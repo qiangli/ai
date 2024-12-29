@@ -17,7 +17,7 @@ import (
 var config internal.Config
 
 var rootCmd = &cobra.Command{
-	Use:   "ai [command]",
+	Use:   "ai [OPTIONS] COMMAND [message...]",
 	Short: "AI command line tool",
 	Long: `AI Command Line Tool
 

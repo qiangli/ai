@@ -8,14 +8,14 @@ Enter message on the command line:
 
   ai COMMAND what is unix?
 
-Read message from stdin "-", heredoc "<<", pipe "|", clipboard "=", or file "<":
+Read message from stdin "-", heredoc "<<", pipe "|", file "<", or clipboard "=":
 
   ai COMMAND -
   ai COMMAND <<eof
-  curl -sL http://example.com | ai COMMAND
-  ai COMMAND =
-  ai COMMAND < file.txt
-  
+  curl -sL http://example.com | ai COMMAND [message...]
+  ai COMMAND [message...] < file.txt
+  ai COMMAND [message...] =
+
 Ctrl+D to accept, Ctrl+C to cancel any time.
 
 Use an editor to compose message:

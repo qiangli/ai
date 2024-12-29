@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -10,50 +11,88 @@ import (
 )
 
 func GetUserInput(cfg *Config, args []string) (string, error) {
-	// read input from stdin or clipboard
-	// if the only argument is "-" or "="
-	isStdin := func() bool {
-		if len(args) == 2 && args[1] == "-" {
-			return true
-		}
-		return false
-	}
-	isClipboard := func() bool {
-		if len(args) == 2 && args[1] == "=" {
-			return true
-		}
-		return false
-	}
-	isSpecial := func() bool {
-		return isStdin() || isClipboard()
-	}
-
-	// read from command line
-	if len(args) > 1 && !isSpecial() {
-		msg := strings.Join(args[1:], " ")
-		return msg, nil
-	}
-
 	// stdin with | or <
 	isPiped := func() bool {
 		stat, _ := os.Stdin.Stat()
 		return (stat.Mode() & os.ModeCharDevice) == 0
+	}()
+
+	var lastChar string
+	var msg string
+
+	// /bin message...
+	if len(args) > 1 {
+		msg = strings.TrimSpace(strings.Join(args[1:], " "))
+		// read input from stdin or clipboard
+		// if the last char on the command line is "-" or "="
+		if !isPiped && len(msg) > 0 {
+			lastChar = string(msg[len(msg)-1])
+			if lastChar == "-" || lastChar == "=" {
+				msg = strings.TrimSpace(msg[:len(msg)-1])
+			} else {
+				lastChar = ""
+			}
+		}
 	}
 
-	if isPiped() || isStdin() {
+	isStdin := func() bool {
+		return lastChar == "-"
+	}()
+	isClipboard := func() bool {
+		return lastChar == "="
+	}()
+
+	isSpecial := func() bool {
+		return isStdin || isClipboard || isPiped
+	}()
+
+	// read from command line
+	if len(msg) > 0 && !isSpecial {
+		return msg, nil
+	}
+
+	// keep this format!
+	const msgDataTpl = `###
+%s
+
+###
+%s
+`
+	cat := func(msg, data string) string {
+		m := strings.TrimSpace(msg)
+		d := strings.TrimSpace(data)
+		switch {
+		case m == "" && d == "":
+			return ""
+		case m == "":
+			return d
+		case d == "":
+			return m
+		default:
+			return fmt.Sprintf(msgDataTpl, m, d)
+		}
+	}
+
+	// stdin takes precedence over clipboard
+	// if both are requested, stdin is used
+	if isPiped || isStdin {
 		data, err := io.ReadAll(os.Stdin)
 		if err != nil {
 			return "", err
 		}
-		return strings.TrimSpace(string(data)), nil
+		return cat(msg, string(data)), nil
 	}
 
 	// clipboard
-	if isClipboard() {
+	if isClipboard {
 		if err := ClearClipboard(); err != nil {
 			return "", err
 		}
-		return ReadFromClipboard()
+		data, err := ReadFromClipboard()
+		if err != nil {
+			return "", err
+		}
+		return cat(msg, data), nil
 	}
 
 	// editor

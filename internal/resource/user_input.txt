@@ -9,16 +9,6 @@ Read message from stdin:
   ai COMMAND -
 Ctrl+D to send, Ctrl+C to cancel.
 
-Wait, clear/read from system clipboard:
-
-  ai COMMAND =
-Use system copy (Ctrl+C on Unix) to send selected contents.
-Ctrl+C to cancel.
-
-Redirect a file:
-
-  ai COMMAND < file.txt
-
 Heredoc message:
 
   ai COMMAND <<eof
@@ -28,8 +18,18 @@ eof
 Pipe message:
 
   echo "What is Unix?" | ai COMMAND
-  cat file.txt | ai COMMAND
-  curl -sL http://example.com | ai COMMAND
+  cat file.txt | ai COMMAND [message...]
+  curl -sL http://example.com | ai COMMAND [message...]
+
+Redirect a file:
+
+  ai COMMAND [message...] < file.txt
+
+Wait, clear/read from system clipboard:
+
+  ai COMMAND [message...] =
+Use system copy (Ctrl+C on Unix) to send selected contents.
+Ctrl+C to cancel.
 
 Use an editor to compose message:
 

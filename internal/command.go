@@ -218,6 +218,7 @@ func ListCommand(cfg *Config, args []string) error {
 }
 
 func HelpCommand(cfg *Config, args []string) error {
+	log.Println("AI Command Line Tool\n")
 	log.Println("Usage:")
 	log.Println("  ai [OPTIONS] COMMAND [message...]\n")
 	hint := GetUserHint()
