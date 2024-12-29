@@ -1,0 +1,27 @@
+###
+
+# AI Command Line Tool Configuration
+
+# API key for the language model
+api_key: "sk-1234"
+
+# Base URL for the API
+# base_url: "https://api.openai.com/v1/"
+base_url: "http://localhost:4000/"
+
+# Specify the language model to use
+model: "gpt-4o-mini"
+
+# Enable verbose console output for debugging
+debug: true
+
+# Enable dry run mode which simulates API calls
+dry_run: true
+
+# Content of the file will be returned for dry run
+dry_run_file: "internal/testdata/dry-run/psql_connect.md"
+
+# Specify the editor to use for composing messages
+editor: "vi"
+
+###

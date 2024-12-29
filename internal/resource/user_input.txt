@@ -1,0 +1,37 @@
+There are multiple ways to interact with the AI model.
+
+Enter message on the command line:
+
+  ai COMMAND what is fish?
+
+Read message from stdin:
+
+  ai COMMAND -
+Ctrl+D to send, Ctrl+C to cancel.
+
+Wait, clear/read from system clipboard:
+
+  ai COMMAND =
+Use system copy (Ctrl+C on Unix) to send selected contents.
+Ctrl+C to cancel.
+
+Redirect a file:
+
+  ai COMMAND < file.txt
+
+Heredoc message:
+
+  ai COMMAND <<eof
+what is the weather today?
+eof
+
+Pipe message:
+
+  echo "What is Unix?" | ai COMMAND
+  cat file.txt | ai COMMAND
+  curl -sL http://example.com | ai COMMAND
+
+Use an editor to compose message:
+
+  export AI_EDITOR=nano # default: vi
+  ai COMMAND # no additional argument
