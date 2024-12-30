@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"encoding/json"
+	"strings"
 
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
@@ -14,38 +15,46 @@ import (
 type ScriptAgent struct {
 	config *Config
 
-	systemMessage string
+	Role    string
+	Message string
 }
 
 type ScriptAgentMessage struct {
 	Content string
 }
 
-func NewScriptAgent(cfg *Config) (*ScriptAgent, error) {
-	systemMessage, err := GetSystemRoleMessage()
-	if err != nil {
-		return nil, err
+func NewScriptAgent(cfg *Config, role, content string) (*ScriptAgent, error) {
+	if role == "" {
+		role = string(openai.ChatCompletionMessageParamRoleSystem)
+	}
+	if content == "" {
+		systemMessage, err := GetSystemRoleContent()
+		if err != nil {
+			return nil, err
+		}
+		content = systemMessage
 	}
 
 	chat := ScriptAgent{
-		config:        cfg,
-		systemMessage: systemMessage,
+		config:  cfg,
+		Role:    role,
+		Message: content,
 	}
 	return &chat, nil
 }
 
-func (r *ScriptAgent) Send(ctx context.Context, command, message string) (*ScriptAgentMessage, error) {
-	systemMessage := r.systemMessage
-
-	userMessage, err := GetUserRoleMessage(
-		command, message,
+func (r *ScriptAgent) Send(ctx context.Context, command, input string) (*ScriptAgentMessage, error) {
+	roleMessage := buildRoleMessage(r.Role, r.Message)
+	userContent, err := GetUserRoleContent(
+		command, input,
 	)
 	if err != nil {
 		return nil, err
 	}
+	userMessage := buildRoleMessage("user", userContent)
 
-	log.Debugln(">>>SYSTEM:\n", systemMessage)
-	log.Debugln(">>>USER:\n", userMessage)
+	log.Debugf(">>>%s:\n%+v\n", strings.ToUpper(r.Role), roleMessage)
+	log.Debugf(">>>USER:\n%+v\n", userMessage)
 
 	//
 	tools := tool.Tools
@@ -54,12 +63,13 @@ func (r *ScriptAgent) Send(ctx context.Context, command, message string) (*Scrip
 	client := openai.NewClient(
 		option.WithAPIKey(r.config.ApiKey),
 		option.WithBaseURL(r.config.BaseUrl),
+		option.WithMiddleware(logMiddleware()),
 	)
 
 	params := openai.ChatCompletionNewParams{
 		Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
-			openai.SystemMessage(systemMessage),
-			openai.UserMessage(userMessage),
+			roleMessage,
+			userMessage,
 		}),
 		Tools: openai.F(tools),
 		Seed:  openai.Int(0),
@@ -105,14 +115,7 @@ func (r *ScriptAgent) Send(ctx context.Context, command, message string) (*Scrip
 		}
 	} else {
 		// dry-run mode
-		if r.config.DryRunFile == "" {
-			content = "Fake data!"
-		} else {
-			content, err = ReadFile(r.config.DryRunFile)
-			if err != nil {
-				return nil, err
-			}
-		}
+		content = r.config.DryRunContent
 	}
 
 	log.Debugf("<<<OPENAI:\nmodel: %s, content length: %v\n\n", model, len(content))

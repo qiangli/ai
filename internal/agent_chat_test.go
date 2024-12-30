@@ -17,7 +17,7 @@ func TestChatSend(t *testing.T) {
 		Model:   "gpt-4o-mini",
 		BaseUrl: "http://localhost:4000",
 	}
-	chat, err := NewChat(cfg)
+	chat, err := NewChat(cfg, "", "")
 	if err != nil {
 		t.Errorf("NewChat error: %v", err)
 		return

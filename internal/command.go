@@ -47,7 +47,7 @@ func DetectContentType(filePath string) string {
 	return "application/octet-stream"
 }
 
-func AgentCommand(cfg *Config, args []string) error {
+func AgentCommand(cfg *Config, args []string, role, content string) error {
 	log.Debugf("Agent command: %v\n", args)
 	if at := args[0]; strings.HasPrefix(at, "@") {
 		name := strings.TrimSpace(at[1:])
@@ -73,10 +73,17 @@ func AgentCommand(cfg *Config, args []string) error {
 
 		switch name {
 		case "ask":
-			agent, err := NewChat(cfg)
+			agent, err := NewChat(cfg, role, content)
 			if err != nil {
 				return err
 			}
+
+			if cfg.DryRun {
+				log.Debugf("Dry run mode. No API call will be made!\n")
+				log.Debugf("The following will be returned:\n%s\n", cfg.DryRunContent)
+			}
+			log.Debugf("Sending request to %s...\n", cfg.BaseUrl)
+
 			ctx := context.TODO()
 			resp, err := agent.Send(ctx, msg)
 			if err != nil {
@@ -86,13 +93,13 @@ func AgentCommand(cfg *Config, args []string) error {
 		default:
 		}
 
-		log.Debugf("agent command completed: %s message: %s\n", args[0], msg)
+		log.Debugf("agent command completed: %v\n", args)
 		return nil
 	}
-	return fmt.Errorf("invalid command: %s", args[0])
+	return fmt.Errorf("invalid command: %v", args)
 }
 
-func SlashCommand(cfg *Config, args []string) error {
+func SlashCommand(cfg *Config, args []string, role, content string) error {
 	log.Debugf("Slash command: %v\n", args)
 
 	if slash := args[0]; strings.HasPrefix(slash, "/") {
@@ -110,19 +117,17 @@ func SlashCommand(cfg *Config, args []string) error {
 			return NewUserInputError("no command and message provided")
 		}
 
-		agent, err := NewScriptAgent(cfg)
+		agent, err := NewScriptAgent(cfg, role, content)
 		if err != nil {
 			return err
 		}
 
 		if cfg.DryRun {
-			log.Infof("Dry run mode. No API call will be made!\n")
-			if cfg.DryRunFile != "" {
-				log.Infof("Content of %s will be returned.\n", cfg.DryRunFile)
-			}
+			log.Debugf("Dry run mode. No API call will be made!\n")
+			log.Debugf("The following will be returned:\n%s\n", cfg.DryRunContent)
 		}
+		log.Debugf("Sending request to %s...\n", cfg.BaseUrl)
 
-		log.Infoln("Sending request to the AI model...")
 		ctx := context.TODO()
 		resp, err := agent.Send(ctx, name, msg)
 		if err != nil {
@@ -130,10 +135,10 @@ func SlashCommand(cfg *Config, args []string) error {
 		}
 		processContent(cfg, resp.Content)
 
-		log.Debugf("Slash command completed: %s message: %s\n", args[0], msg)
+		log.Debugf("Slash command completed: %v\n", args)
 		return nil
 	}
-	return fmt.Errorf("invalid command: %s", args[0])
+	return fmt.Errorf("invalid command: %v", args)
 }
 
 func InfoCommand(cfg *Config, args []string) error {

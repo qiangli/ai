@@ -5,12 +5,12 @@ import (
 	"testing"
 )
 
-func TestGetSystemRoleMessage(t *testing.T) {
-	msg, err := GetSystemRoleMessage()
+func TestGetSystemRoleContent(t *testing.T) {
+	msg, err := GetSystemRoleContent()
 	if err != nil {
-		t.Errorf("GetSystemRoleMessage() failed, expected nil, got %v", err)
+		t.Errorf("failed, expected nil, got %v", err)
 	}
-	t.Logf("\nSystem role message:\n%s\n", msg)
+	t.Logf("\nSystem role content:\n%s\n", msg)
 }
 
 func TestGetUserHint(t *testing.T) {
@@ -18,7 +18,7 @@ func TestGetUserHint(t *testing.T) {
 	t.Logf("User hint: %s", hint)
 }
 
-func TestGetUserRoleMessage(t *testing.T) {
+func TestGetUserRoleContent(t *testing.T) {
 	tests := []struct {
 		command string
 		message string
@@ -34,7 +34,7 @@ func TestGetUserRoleMessage(t *testing.T) {
 		{"", "what is unix?"},
 	}
 	for _, tc := range tests {
-		msg, err := GetUserRoleMessage(
+		msg, err := GetUserRoleContent(
 			tc.command, tc.message,
 		)
 		if err != nil {

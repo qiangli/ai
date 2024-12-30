@@ -4,7 +4,41 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/openai/openai-go"
 )
+
+type Role = openai.ChatCompletionMessageParamRole
+
+// https://platform.openai.com/docs/guides/text-generation#developer-messages
+func buildRoleMessage(role string, content string) openai.ChatCompletionMessageParamUnion {
+	switch role {
+	case "system":
+		return openai.SystemMessage(content)
+	case "assistant":
+		return openai.AssistantMessage(content)
+	case "user":
+		return openai.UserMessage(content)
+	// case "tool":
+	// 	return openai.ToolMessage("", content)
+	// case "function":
+	// 	return openai.FunctionMessage("", content)
+	case "developer":
+		// return DeveloperMessage(content)
+		return openai.SystemMessage(content)
+	default:
+		return nil
+	}
+}
+
+func DeveloperMessage(content string) openai.ChatCompletionMessageParamUnion {
+	return openai.ChatCompletionDeveloperMessageParam{
+		Role: openai.F(openai.ChatCompletionDeveloperMessageParamRoleDeveloper),
+		Content: openai.F([]openai.ChatCompletionContentPartTextParam{
+			openai.TextPart(content),
+		}),
+	}
+}
 
 var availableAgents = map[string]string{
 	"ask": "Ask a general question",

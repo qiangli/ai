@@ -19,7 +19,7 @@ debug: true
 dry_run: true
 
 # Content of the file will be returned for dry run
-dry_run_file: "internal/testdata/dry-run/psql_connect.md"
+dry_run_content: "fake!"
 
 # Specify the editor to use for composing messages
 editor: "vi"

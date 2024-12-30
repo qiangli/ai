@@ -7,8 +7,8 @@ type Config struct {
 
 	Debug bool
 
-	DryRun     bool
-	DryRunFile string
+	DryRun        bool
+	DryRunContent string
 
 	Editor string
 

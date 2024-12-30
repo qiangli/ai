@@ -18,7 +18,7 @@ func TestScriptAgentSend(t *testing.T) {
 		BaseUrl: "http://localhost:4000",
 	}
 
-	chat, err := NewScriptAgent(cfg)
+	chat, err := NewScriptAgent(cfg, "", "")
 	if err != nil {
 		t.Errorf("NewScriptAgent error: %v", err)
 		return

@@ -21,7 +21,7 @@ var userInputInstruction string
 //go:embed resource/user_example.txt
 var userExample string
 
-func GetSystemRoleMessage() (string, error) {
+func GetSystemRoleContent() (string, error) {
 	info, err := CollectSystemInfo()
 	if err != nil {
 		return "", err
@@ -58,7 +58,7 @@ func GetUserInputInstruction() string {
 	return userInputInstruction
 }
 
-func GetUserRoleMessage(command string, message string) (string, error) {
+func GetUserRoleContent(command string, message string) (string, error) {
 	tpl, err := template.New("userRole").Funcs(template.FuncMap{
 		"maxlen": MaxLen,
 	}).Parse(userRoleTemplate)

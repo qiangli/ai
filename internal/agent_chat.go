@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"strings"
 
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
@@ -17,27 +18,36 @@ Be polite, clear, and informative in your responses, maintaining a friendly tone
 type Chat struct {
 	config *Config
 
-	systemMessage string
+	Role    string
+	Message string
 }
 
 type ChatMessage struct {
 	Content string
 }
 
-func NewChat(cfg *Config) (*Chat, error) {
+func NewChat(cfg *Config, role, content string) (*Chat, error) {
+	if role == "" {
+		role = string(openai.ChatCompletionMessageParamRoleSystem)
+	}
+	if content == "" {
+		content = chatSystemMessage
+	}
+
 	chat := Chat{
-		config:        cfg,
-		systemMessage: chatSystemMessage,
+		config:  cfg,
+		Role:    role,
+		Message: content,
 	}
 	return &chat, nil
 }
 
 func (r *Chat) Send(ctx context.Context, input string) (*ChatMessage, error) {
-	systemMessage := r.systemMessage
-	userMessage := input
+	roleMessage := buildRoleMessage(r.Role, r.Message)
+	userMessage := buildRoleMessage("user", input)
 
-	log.Debugln(">>>SYSTEM:\n", systemMessage)
-	log.Debugln(">>>USER:\n", userMessage)
+	log.Debugf(">>>%s:\n%+v\n", strings.ToUpper(r.Role), roleMessage)
+	log.Debugf(">>>USER:\n%+v\n", userMessage)
 
 	//
 	model := r.config.Model
@@ -45,12 +55,13 @@ func (r *Chat) Send(ctx context.Context, input string) (*ChatMessage, error) {
 	client := openai.NewClient(
 		option.WithAPIKey(r.config.ApiKey),
 		option.WithBaseURL(r.config.BaseUrl),
+		option.WithMiddleware(logMiddleware()),
 	)
 
 	params := openai.ChatCompletionNewParams{
 		Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
-			openai.SystemMessage(systemMessage),
-			openai.UserMessage(userMessage),
+			roleMessage,
+			userMessage,
 		}),
 		Seed:  openai.Int(0),
 		Model: openai.F(model),
@@ -65,16 +76,7 @@ func (r *Chat) Send(ctx context.Context, input string) (*ChatMessage, error) {
 		}
 		content = completion.Choices[0].Message.Content
 	} else {
-		// dry-run mode
-		if r.config.DryRunFile == "" {
-			content = "Fake data!"
-		} else {
-			var err error
-			content, err = ReadFile(r.config.DryRunFile)
-			if err != nil {
-				return nil, err
-			}
-		}
+		content = r.config.DryRunContent
 	}
 	log.Debugf("<<<OPENAI:\nmodel: %s, content length: %v\n\n", model, len(content))
 
