@@ -14,8 +14,7 @@ import (
 type ScriptAgent struct {
 	config *Config
 
-	systemMessage    string
-	assistantMessage string
+	systemMessage string
 }
 
 type ScriptAgentMessage struct {
@@ -28,23 +27,15 @@ func NewScriptAgent(cfg *Config) (*ScriptAgent, error) {
 		return nil, err
 	}
 
-	// currently, the assistant role message is static
-	assistantMessage, err := GetAssistantRoleMessage()
-	if err != nil {
-		return nil, err
-	}
-
 	chat := ScriptAgent{
-		config:           cfg,
-		systemMessage:    systemMessage,
-		assistantMessage: assistantMessage,
+		config:        cfg,
+		systemMessage: systemMessage,
 	}
 	return &chat, nil
 }
 
 func (r *ScriptAgent) Send(ctx context.Context, command, message string) (*ScriptAgentMessage, error) {
 	systemMessage := r.systemMessage
-	assistantMessage := r.assistantMessage
 
 	userMessage, err := GetUserRoleMessage(
 		command, message,
@@ -54,7 +45,6 @@ func (r *ScriptAgent) Send(ctx context.Context, command, message string) (*Scrip
 	}
 
 	log.Debugln(">>>SYSTEM:\n", systemMessage)
-	log.Debugln(">>>ASSISTANT:\n", assistantMessage)
 	log.Debugln(">>>USER:\n", userMessage)
 
 	//
@@ -69,7 +59,6 @@ func (r *ScriptAgent) Send(ctx context.Context, command, message string) (*Scrip
 	params := openai.ChatCompletionNewParams{
 		Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
 			openai.SystemMessage(systemMessage),
-			openai.AssistantMessage(assistantMessage),
 			openai.UserMessage(userMessage),
 		}),
 		Tools: openai.F(tools),

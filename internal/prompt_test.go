@@ -13,14 +13,6 @@ func TestGetSystemRoleMessage(t *testing.T) {
 	t.Logf("\nSystem role message:\n%s\n", msg)
 }
 
-func TestGetAssistantRoleMessage(t *testing.T) {
-	msg, err := GetAssistantRoleMessage()
-	if err != nil {
-		t.Errorf("GetAssistantRoleMessage() failed, expected nil, got %v", err)
-	}
-	t.Logf("\nAssistant role message:\n%s\n", msg)
-}
-
 func TestGetUserHint(t *testing.T) {
 	hint := GetUserHint()
 	t.Logf("User hint: %s", hint)

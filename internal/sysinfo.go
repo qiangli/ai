@@ -213,12 +213,18 @@ func CollectEnvVars() map[string]string {
 	return envMap
 }
 
+type ShellInfo struct {
+	Name    string
+	Path    string
+	Version string
+}
+
 // GetShellVersion determines the current shell and retrieves its version.
-func GetShellVersion() (string, error) {
+func GetShellVersion() (*ShellInfo, error) {
 	// Get the SHELL environment variable
 	shellPath := os.Getenv("SHELL")
 	if shellPath == "" {
-		return "", fmt.Errorf("unable to determine shell: SHELL environment variable is not set")
+		return nil, fmt.Errorf("unable to determine shell: SHELL environment variable is not set")
 	}
 
 	// Get the shell name from the path
@@ -236,7 +242,7 @@ func GetShellVersion() (string, error) {
 	// Find the version command for the current shell
 	versionCommand, exists := shellVersionCommands[shellName]
 	if !exists {
-		return "", fmt.Errorf("shell version command not defined for shell: %s", shellName)
+		return nil, fmt.Errorf("shell version command not defined for shell: %s", shellName)
 	}
 
 	// Execute the version command
@@ -245,11 +251,15 @@ func GetShellVersion() (string, error) {
 	cmd.Stdout = &out
 	err := cmd.Run()
 	if err != nil {
-		return "", fmt.Errorf("error executing version command for %s: %v", shellName, err)
+		return nil, fmt.Errorf("error executing version command for %s: %v", shellName, err)
 	}
-
-	// Return the version info
-	return strings.TrimSpace(out.String()), nil
+	lines := strings.SplitN(out.String(), "\n", 2)
+	shellVersion := strings.TrimSpace(lines[0])
+	return &ShellInfo{
+		Name:    shellName,
+		Path:    shellPath,
+		Version: shellVersion,
+	}, nil
 }
 
 // GetOSInfo collects OS-specific release info
@@ -314,10 +324,10 @@ func GetOSInfo() (map[string]string, error) {
 
 // uname -sm
 func Uname() (string, string) {
-	osType := runtime.GOOS
+	osName := runtime.GOOS
 	arch := runtime.GOARCH
 
-	return osType, arch
+	return osName, arch
 }
 
 type SystemInfo struct {
@@ -329,9 +339,9 @@ type SystemInfo struct {
 	Memory          *MemoryStats
 	CPU             []CpuInfo
 	EnvVars         map[string]string
-	ShellVersion    string
+	ShellInfo       *ShellInfo
 	OSInfo          map[string]string
-	OSType          string
+	OS              string
 	Arch            string
 	User            string
 	WorkDir         string
@@ -345,7 +355,7 @@ func CollectSystemInfo() (*SystemInfo, error) {
 	var err error
 
 	// Collect OS type and architecture
-	info.OSType, info.Arch = Uname()
+	info.OS, info.Arch = Uname()
 
 	// Get OS info
 	info.OSInfo, err = GetOSInfo()
@@ -353,8 +363,8 @@ func CollectSystemInfo() (*SystemInfo, error) {
 		errs = append(errs, fmt.Errorf("error getting OS info: %v", err))
 	}
 
-	// Get shell version
-	info.ShellVersion, err = GetShellVersion()
+	// Get shell info
+	info.ShellInfo, err = GetShellVersion()
 	if err != nil {
 		errs = append(errs, fmt.Errorf("error getting shell version: %v", err))
 	}

@@ -2,9 +2,11 @@ package tool
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -104,6 +106,10 @@ var Tools = []openai.ChatCompletionToolParam{
 		"Return working directory name",
 		nil,
 	),
+	define("list-commands",
+		"Return a list of available commands on the system",
+		nil,
+	),
 	define("date",
 		"Display date and time",
 		nil,
@@ -171,6 +177,12 @@ func RunTool(name string, props map[string]interface{}) (string, error) {
 		fmt.Printf("env: %s\n", out)
 	case "pwd":
 		out, err := getPwd()
+		if err != nil {
+			out = err.Error()
+		}
+		return out, nil
+	case "list-commands":
+		out, err := ListCommandNames()
 		if err != nil {
 			out = err.Error()
 		}
@@ -310,4 +322,64 @@ func runWhich(commands []string) (string, error) {
 
 func runDate() (string, error) {
 	return runCommand("date")
+}
+
+func ListCommandNames() (string, error) {
+	list, err := ListCommands(true)
+	if err != nil {
+		return "", err
+	}
+
+	sort.Strings(list)
+	return strings.Join(list, "\n"), nil
+}
+
+// ListCommands returns the full path of the first valid executable command encountered in the PATH
+func ListCommands(nameOnly bool) ([]string, error) {
+	pathEnv := os.Getenv("PATH")
+	if pathEnv == "" {
+		return nil, errors.New("PATH environment variable is not set")
+	}
+
+	uniqueCommands := make(map[string]string) // command name -> full path
+	paths := strings.Split(pathEnv, string(os.PathListSeparator))
+
+	for _, pathDir := range paths {
+		files, err := os.ReadDir(pathDir)
+		if err != nil {
+			continue
+		}
+
+		for _, file := range files {
+			commandName := file.Name()
+			fullPath := filepath.Join(pathDir, commandName)
+
+			// Check if the file is executable and the command hasn't been registered yet
+			if !file.IsDir() && IsExecutable(fullPath) {
+				if _, exists := uniqueCommands[commandName]; !exists {
+					uniqueCommands[commandName] = fullPath
+				}
+			}
+		}
+	}
+
+	commands := make([]string, 0, len(uniqueCommands))
+	for name, fullPath := range uniqueCommands {
+		if nameOnly {
+			commands = append(commands, name)
+			continue
+		}
+		commands = append(commands, fullPath)
+	}
+
+	return commands, nil
+}
+
+func IsExecutable(filePath string) bool {
+	info, err := os.Stat(filePath)
+	if err != nil {
+		return false
+	}
+	mode := info.Mode()
+	return mode.IsRegular() && mode&0111 != 0
 }

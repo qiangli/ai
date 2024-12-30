@@ -14,16 +14,10 @@ Your job is to provide accurate and concise answers to general questions.
 Be polite, clear, and informative in your responses, maintaining a friendly tone.
 `
 
-const chatAssistantMessage = `Greet the user warmly and ask how you can assist them today.
-If the user's input is unclear, kindly ask them to provide more details about their question.
-If you don't understand the user's input, politely ask them to rephrase their question.
-`
-
 type Chat struct {
 	config *Config
 
-	systemMessage    string
-	assistantMessage string
+	systemMessage string
 }
 
 type ChatMessage struct {
@@ -32,20 +26,17 @@ type ChatMessage struct {
 
 func NewChat(cfg *Config) (*Chat, error) {
 	chat := Chat{
-		config:           cfg,
-		systemMessage:    chatSystemMessage,
-		assistantMessage: chatAssistantMessage,
+		config:        cfg,
+		systemMessage: chatSystemMessage,
 	}
 	return &chat, nil
 }
 
 func (r *Chat) Send(ctx context.Context, input string) (*ChatMessage, error) {
 	systemMessage := r.systemMessage
-	assistantMessage := r.assistantMessage
 	userMessage := input
 
 	log.Debugln(">>>SYSTEM:\n", systemMessage)
-	log.Debugln(">>>ASSISTANT:\n", assistantMessage)
 	log.Debugln(">>>USER:\n", userMessage)
 
 	//
@@ -59,7 +50,6 @@ func (r *Chat) Send(ctx context.Context, input string) (*ChatMessage, error) {
 	params := openai.ChatCompletionNewParams{
 		Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
 			openai.SystemMessage(systemMessage),
-			openai.AssistantMessage(assistantMessage),
 			openai.UserMessage(userMessage),
 		}),
 		Seed:  openai.Int(0),

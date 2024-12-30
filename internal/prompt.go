@@ -9,9 +9,6 @@ import (
 //go:embed resource/system_role.md
 var systemRoleTemplate string
 
-//go:embed resource/assistant_role.md
-var assistantRoleTemplate string
-
 //go:embed resource/user_role.md
 var userRoleTemplate string
 
@@ -47,10 +44,6 @@ func GetSystemRoleMessage() (string, error) {
 	}
 
 	return tplOutput.String(), nil
-}
-
-func GetAssistantRoleMessage() (string, error) {
-	return assistantRoleTemplate, nil
 }
 
 func GetUserHint() string {
