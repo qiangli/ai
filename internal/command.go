@@ -3,7 +3,6 @@ package internal
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"mime"
 	"net/http"
 	"os"
@@ -47,77 +46,33 @@ func DetectContentType(filePath string) string {
 	return "application/octet-stream"
 }
 
-func AgentCommand(cfg *Config, args []string, role, content string) error {
-	log.Debugf("Agent command: %v\n", args)
-	if at := args[0]; strings.HasPrefix(at, "@") {
-		name := strings.TrimSpace(at[1:])
-		if name == "" {
-			return NewUserInputError("no agent provided")
-		}
+func AgentCommand(cfg *Config, role, content string) error {
+	log.Debugf("Agent command: %s %v\n", cfg.Command, cfg.Args)
 
-		dict, err := ListAgents()
-		if err != nil {
-			return err
-		}
-		if _, exist := dict[name]; !exist {
-			return NewUserInputError("no such agent: " + name)
-		}
-
-		msg, err := GetUserInput(cfg, args)
-		if err != nil {
-			return err
-		}
-		if msg == "" {
-			return NewUserInputError("no message content")
-		}
-
-		switch name {
-		case "ask":
-			agent, err := NewChat(cfg, role, content)
-			if err != nil {
-				return err
-			}
-
-			if cfg.DryRun {
-				log.Debugf("Dry run mode. No API call will be made!\n")
-				log.Debugf("The following will be returned:\n%s\n", cfg.DryRunContent)
-			}
-			log.Debugf("Sending request to %s...\n", cfg.BaseUrl)
-
-			ctx := context.TODO()
-			resp, err := agent.Send(ctx, msg)
-			if err != nil {
-				return err
-			}
-			processContent(cfg, resp.Content)
-		default:
-		}
-
-		log.Debugf("agent command completed: %v\n", args)
-		return nil
+	name := strings.TrimSpace(cfg.Command[1:])
+	if name == "" {
+		return NewUserInputError("no agent provided")
 	}
-	return fmt.Errorf("invalid command: %v", args)
-}
 
-func SlashCommand(cfg *Config, args []string, role, content string) error {
-	log.Debugf("Slash command: %v\n", args)
+	dict, err := ListAgents()
+	if err != nil {
+		return err
+	}
+	if _, exist := dict[name]; !exist {
+		return NewUserInputError("no such agent: " + name)
+	}
 
-	if slash := args[0]; strings.HasPrefix(slash, "/") {
-		name := strings.TrimSpace(slash[1:])
-		if name != "" {
-			name = filepath.Base(name)
-		}
+	msg, err := GetUserInput(cfg)
+	if err != nil {
+		return err
+	}
+	if msg == "" {
+		return NewUserInputError("no message content")
+	}
 
-		msg, err := GetUserInput(cfg, args)
-		if err != nil {
-			return err
-		}
-
-		if name == "" && msg == "" {
-			return NewUserInputError("no command and message provided")
-		}
-
-		agent, err := NewScriptAgent(cfg, role, content)
+	switch name {
+	case "ask":
+		agent, err := NewChat(cfg, role, content)
 		if err != nil {
 			return err
 		}
@@ -129,19 +84,58 @@ func SlashCommand(cfg *Config, args []string, role, content string) error {
 		log.Debugf("Sending request to %s...\n", cfg.BaseUrl)
 
 		ctx := context.TODO()
-		resp, err := agent.Send(ctx, name, msg)
+		resp, err := agent.Send(ctx, msg)
 		if err != nil {
 			return err
 		}
 		processContent(cfg, resp.Content)
-
-		log.Debugf("Slash command completed: %v\n", args)
-		return nil
+	default:
 	}
-	return fmt.Errorf("invalid command: %v", args)
+
+	log.Debugf("agent command completed: %s %v\n", cfg.Command, cfg.Args)
+	return nil
 }
 
-func InfoCommand(cfg *Config, args []string) error {
+func SlashCommand(cfg *Config, role, content string) error {
+	log.Debugf("Slash command: %s %v\n", cfg.Command, cfg.Args)
+
+	name := strings.TrimSpace(cfg.Command[1:])
+	if name != "" {
+		name = filepath.Base(name)
+	}
+
+	msg, err := GetUserInput(cfg)
+	if err != nil {
+		return err
+	}
+
+	if name == "" && msg == "" {
+		return NewUserInputError("no command and message provided")
+	}
+
+	agent, err := NewScriptAgent(cfg, role, content)
+	if err != nil {
+		return err
+	}
+
+	if cfg.DryRun {
+		log.Debugf("Dry run mode. No API call will be made!\n")
+		log.Debugf("The following will be returned:\n%s\n", cfg.DryRunContent)
+	}
+	log.Debugf("Sending request to %s...\n", cfg.BaseUrl)
+
+	ctx := context.TODO()
+	resp, err := agent.Send(ctx, name, msg)
+	if err != nil {
+		return err
+	}
+	processContent(cfg, resp.Content)
+
+	log.Debugf("Slash command completed: %s %v\n", cfg.Command, cfg.Args)
+	return nil
+}
+
+func InfoCommand(cfg *Config) error {
 	info, err := collectSystemInfo()
 	if err != nil {
 		log.Errorln(err)
@@ -151,13 +145,8 @@ func InfoCommand(cfg *Config, args []string) error {
 	return nil
 }
 
-func ListCommand(cfg *Config, args []string) error {
-	var nameOnly bool
-	if len(args) == 2 && args[1] == "--name" {
-		nameOnly = true
-	}
-
-	list, err := tool.ListCommands(nameOnly)
+func ListCommand(cfg *Config) error {
+	list, err := tool.ListCommands(false)
 	if err != nil {
 		log.Errorf("Error: %v\n", err)
 		return err
@@ -172,7 +161,7 @@ Total: %v
 	return nil
 }
 
-func HelpCommand(cfg *Config, args []string) error {
+func HelpCommand(cfg *Config) error {
 	const helpTpl = `AI Command Line Tool
 Usage:
 	ai [OPTIONS] COMMAND [message...]
@@ -201,11 +190,18 @@ func processContent(cfg *Config, content string) {
 	doc := ParseMarkdown(content)
 	total := len(doc.CodeBlocks)
 
+	// clipboard
+	if cfg.Clipout {
+		if err := NewClipboard().Write(content); err != nil {
+			log.Debugf("failed to copy content to clipboard: %v\n", err)
+		}
+	}
+
+	log.Infoln(content)
+
 	// process code blocks
 	if total > 0 {
 		if cfg.Interactive {
-			log.Infoln(content)
-
 			log.Infof("\n=== CODE BLOCKS (%v) ===\n", total)
 			for i, v := range doc.CodeBlocks {
 				log.Infof("\n===\n%s\n=== %v/%v ===\n", v.Code, i+1, total)
@@ -214,11 +210,12 @@ func processContent(cfg *Config, content string) {
 			log.Infoln("=== END ===\n")
 		} else {
 			const codeTpl = "%s\n"
+			var snippets []string
 			for _, v := range doc.CodeBlocks {
-				log.Printf(codeTpl, v.Code)
+				snippets = append(snippets, v.Code)
 			}
+			// stdout
+			log.Printf(codeTpl, strings.Join(snippets, "\n"))
 		}
-	} else {
-		log.Infoln(content)
 	}
 }

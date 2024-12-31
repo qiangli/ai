@@ -29,30 +29,27 @@ var rootCmd = &cobra.Command{
 	`,
 	Example: internal.GetUserExample(),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cfg := getConfig()
+		cfg := getConfig(args)
 		setLogLevel(cfg.LLM.Debug)
 
 		log.Debugf("LLM config: %+v\n", cfg.LLM)
 
-		if len(args) > 0 {
-			// local - no LLM API call
-			if args[0] == "list" {
-				return internal.ListCommand(cfg.LLM, args)
-			}
-			if args[0] == "info" {
-				return internal.InfoCommand(cfg.LLM, args)
-			}
-			if args[0] == "help" {
-				return internal.HelpCommand(cfg.LLM, args)
-			}
+		command := cfg.LLM.Command
+		switch command {
+		case "list":
+			return internal.ListCommand(cfg.LLM)
+		case "info":
+			return internal.InfoCommand(cfg.LLM)
+		case "help":
+			return internal.HelpCommand(cfg.LLM)
+		}
 
-			// remote - LLM API call
-			if strings.HasPrefix(args[0], "/") {
-				return internal.SlashCommand(cfg.LLM, args, cfg.Role, cfg.Message)
-			}
-			if strings.HasPrefix(args[0], "@") {
-				return internal.AgentCommand(cfg.LLM, args, cfg.Role, cfg.Message)
-			}
+		// remote - LLM API call
+		if strings.HasPrefix(command, "/") {
+			return internal.SlashCommand(cfg.LLM, cfg.Role, cfg.Message)
+		}
+		if strings.HasPrefix(command, "@") {
+			return internal.AgentCommand(cfg.LLM, cfg.Role, cfg.Message)
 		}
 
 		return cmd.Help()
@@ -85,6 +82,9 @@ func init() {
 	rootCmd.Flags().String("role-content", "", "Prompt role content (default auto)")
 
 	rootCmd.Flags().BoolP("interactive", "i", false, "Interactive mode to run, edit, or copy generated code")
+
+	rootCmd.Flags().Bool("pb-read", false, "Read input from the clipboard. Alternatively, append '=' to the command")
+	rootCmd.Flags().Bool("pb-write", false, "Copy output to the clipboard. Alternatively, append '=+' to the command")
 
 	// Bind the flags to viper using underscores
 	rootCmd.Flags().VisitAll(func(f *pflag.Flag) {
@@ -122,7 +122,7 @@ func initConfig() {
 	}
 }
 
-func getConfig() *AppConfig {
+func getConfig(args []string) *AppConfig {
 	var cfg internal.Config
 
 	cfg.ApiKey = viper.GetString("api_key")
@@ -137,6 +137,52 @@ func getConfig() *AppConfig {
 
 	//
 	cfg.WorkDir, _ = os.Getwd()
+
+	// special char sequence handling
+	var pbRead = viper.GetBool("pb_read")
+	var pbWrite = viper.GetBool("pb_write")
+	var isStdin, isClipin, isClipout bool
+	newArgs := args
+
+	if len(args) > 0 {
+		for i := len(args) - 1; i >= 0; i-- {
+			lastArg := args[i]
+
+			if lastArg == internal.StdinInputRedirect {
+				isStdin = true
+			} else if lastArg == internal.ClipboardInputRedirect {
+				isClipin = true
+			} else if lastArg == internal.ClipboardOutputRedirect {
+				isClipout = true
+			} else {
+				// check for suffix for cases where the special char is not the last arg
+				// but is part of the last arg
+				if strings.HasSuffix(lastArg, internal.StdinInputRedirect) {
+					isStdin = true
+					args[i] = strings.TrimSuffix(lastArg, internal.StdinInputRedirect)
+				} else if strings.HasSuffix(lastArg, internal.ClipboardInputRedirect) {
+					isClipin = true
+					args[i] = strings.TrimSuffix(lastArg, internal.ClipboardInputRedirect)
+				} else if strings.HasSuffix(lastArg, internal.ClipboardOutputRedirect) {
+					isClipout = true
+					args[i] = strings.TrimSuffix(lastArg, internal.ClipboardOutputRedirect)
+				}
+				newArgs = args[:i+1]
+				break
+			}
+		}
+	}
+
+	cfg.Stdin = isStdin
+	cfg.Clipin = isClipin || pbRead
+	cfg.Clipout = isClipout || pbWrite
+
+	if len(newArgs) > 0 {
+		cfg.Command = newArgs[0]
+		if len(newArgs) > 1 {
+			cfg.Args = newArgs[1:]
+		}
+	}
 
 	return &AppConfig{
 		LLM:     &cfg,

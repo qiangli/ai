@@ -26,4 +26,11 @@ editor: "vi"
 
 # Interactive
 interactive: false
+
+# Read input from the clipboard
+pb_read: false
+
+# Write output to the clipboard
+pb_write: false
+
 ###

@@ -16,4 +16,11 @@ type Config struct {
 	WorkDir string
 
 	Interactive bool
+
+	Clipin  bool
+	Clipout bool
+	Stdin   bool
+
+	Command string
+	Args    []string
 }

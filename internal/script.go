@@ -110,7 +110,7 @@ func runScript(cfg *Config, script string) error {
 }
 
 func copyScriptToClipboard(_ *Config, script string) error {
-	return WriteToClipboard(script)
+	return NewClipboard().Write(script)
 }
 
 func editScript(cfg *Config, script string) error {

@@ -10,40 +10,52 @@ import (
 	"github.com/qiangli/ai/cli/internal/log"
 )
 
-func GetUserInput(cfg *Config, args []string) (string, error) {
+const StdinInputRedirect = "-"
+
+type EditorProvider interface {
+	Launch() (string, error)
+}
+
+type Editor struct {
+	editor string
+}
+
+func NewEditor(editor string) EditorProvider {
+	return &Editor{
+		editor: editor,
+	}
+}
+
+func (e *Editor) Launch() (string, error) {
+	return LaunchEditor(e.editor)
+}
+
+func GetUserInput(cfg *Config) (string, error) {
 	// stdin with | or <
 	isPiped := func() bool {
 		stat, _ := os.Stdin.Stat()
 		return (stat.Mode() & os.ModeCharDevice) == 0
 	}()
 
-	var lastChar string
-	var msg string
-
-	// /bin message...
-	if len(args) > 1 {
-		msg = strings.TrimSpace(strings.Join(args[1:], " "))
-		// read input from stdin or clipboard
-		// if the last char on the command line is "-" or "="
-		if !isPiped && len(msg) > 0 {
-			lastChar = string(msg[len(msg)-1])
-			if lastChar == "-" || lastChar == "=" {
-				msg = strings.TrimSpace(msg[:len(msg)-1])
-			} else {
-				lastChar = ""
-			}
-		}
+	var stdin io.Reader
+	if cfg.Stdin || isPiped {
+		stdin = os.Stdin
 	}
 
-	isStdin := func() bool {
-		return lastChar == "-"
-	}()
-	isClipboard := func() bool {
-		return lastChar == "="
-	}()
+	return userInput(cfg, stdin, NewClipboard(), NewEditor(cfg.Editor))
+}
+
+func userInput(
+	cfg *Config,
+	stdin io.Reader,
+	clipboard ClipboardProvider,
+	editor EditorProvider,
+) (string, error) {
+
+	msg := strings.TrimSpace(strings.Join(cfg.Args, " "))
 
 	isSpecial := func() bool {
-		return isStdin || isClipboard || isPiped
+		return cfg.Stdin || cfg.Clipin || stdin != nil
 	}()
 
 	// read from command line
@@ -51,13 +63,7 @@ func GetUserInput(cfg *Config, args []string) (string, error) {
 		return msg, nil
 	}
 
-	// keep this format!
-	const msgDataTpl = `###
-%s
-
-###
-%s
-`
+	const msgDataTpl = "###\n%s\n###\n%s\n"
 	cat := func(msg, data string) string {
 		m := strings.TrimSpace(msg)
 		d := strings.TrimSpace(data)
@@ -75,8 +81,8 @@ func GetUserInput(cfg *Config, args []string) (string, error) {
 
 	// stdin takes precedence over clipboard
 	// if both are requested, stdin is used
-	if isPiped || isStdin {
-		data, err := io.ReadAll(os.Stdin)
+	if stdin != nil {
+		data, err := io.ReadAll(stdin)
 		if err != nil {
 			return "", err
 		}
@@ -84,22 +90,21 @@ func GetUserInput(cfg *Config, args []string) (string, error) {
 	}
 
 	// clipboard
-	if isClipboard {
-		if err := ClearClipboard(); err != nil {
+	if cfg.Clipin {
+		if err := clipboard.Clear(); err != nil {
 			return "", err
 		}
-		data, err := ReadFromClipboard()
+		data, err := clipboard.Read()
 		if err != nil {
 			return "", err
 		}
 		return cat(msg, data), nil
 	}
 
+	// no message and no special input
 	// editor
-	editor := cfg.Editor
-	log.Debugf("Using editor: %s\n", editor)
-
-	return LaunchEditor(editor)
+	log.Debugf("Using editor: %s\n", cfg.Editor)
+	return editor.Launch()
 }
 
 func LaunchEditor(editor string) (string, error) {

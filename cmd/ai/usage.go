@@ -25,7 +25,7 @@ Global Options:
 {{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}
 
 Environment variables:
-  AI_API_KEY, AI_BASE_URL, AI_CONFIG, AI_DEBUG, AI_DRY_RUN, AI_DRY_RUN_CONTENT, AI_EDITOR, AI_MODEL, AI_ROLE, AI_ROLE_CONTENT
+  AI_API_KEY, AI_BASE_URL, AI_CONFIG, AI_DEBUG, AI_DRY_RUN, AI_DRY_RUN_CONTENT, AI_EDITOR, AI_MODEL, AI_PB_READ, AI_PB_WRITE, AI_ROLE, AI_ROLE_CONTENT
 
 Use "{{.CommandPath}} help" for more info.
 `
