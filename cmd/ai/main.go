@@ -78,11 +78,13 @@ func init() {
 	rootCmd.Flags().String("base-url", "https://api.openai.com/v1/", "LLM Base URL")
 	rootCmd.Flags().Bool("debug", false, "Enable verbose console output")
 	rootCmd.Flags().Bool("dry-run", false, "Enable dry run mode. No API call will be made")
-	rootCmd.Flags().String("dry-run-content", "", "Content will be returned for dry run")
-	rootCmd.Flags().String("editor", "vi", "Specify the editor to use")
+	rootCmd.Flags().String("dry-run-content", "", "Content returned for dry run")
+	rootCmd.Flags().String("editor", "vi", "Specify editor to use")
 
 	rootCmd.Flags().String("role", "system", "Prompt role")
 	rootCmd.Flags().String("role-content", "", "Prompt role content (default auto)")
+
+	rootCmd.Flags().BoolP("interactive", "i", false, "Interactive mode to run, edit, or copy generated code")
 
 	// Bind the flags to viper using underscores
 	rootCmd.Flags().VisitAll(func(f *pflag.Flag) {
@@ -130,6 +132,8 @@ func getConfig() *AppConfig {
 	cfg.DryRun = viper.GetBool("dry_run")
 	cfg.DryRunContent = viper.GetString("dry_run_content")
 	cfg.Editor = viper.GetString("editor")
+
+	cfg.Interactive = viper.GetBool("interactive")
 
 	//
 	cfg.WorkDir, _ = os.Getwd()

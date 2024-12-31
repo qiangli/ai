@@ -14,4 +14,6 @@ type Config struct {
 
 	// Current working directory where AI script is executed
 	WorkDir string
+
+	Interactive bool
 }

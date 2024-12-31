@@ -173,10 +173,10 @@ func RunTool(name string, props map[string]interface{}) (string, error) {
 		}
 		return out, nil
 	case "env":
-		out := getEnvVarNames()
+		out := GetEnvVarNames()
 		fmt.Printf("env: %s\n", out)
 	case "pwd":
-		out, err := getPwd()
+		out, err := Getwd()
 		if err != nil {
 			out = err.Error()
 		}
@@ -290,7 +290,7 @@ Consider consulting the command's man page or using the help option to find the 
 	return string(out), nil
 }
 
-func getEnvVarNames() string {
+func GetEnvVarNames() string {
 	names := []string{}
 	for _, env := range os.Environ() {
 		pair := strings.SplitN(env, "=", 2)
@@ -302,7 +302,7 @@ func getEnvVarNames() string {
 	return strings.Join(names, "\n")
 }
 
-func getPwd() (string, error) {
+func Getwd() (string, error) {
 	pwd, err := os.Getwd()
 	if err != nil {
 		return "", err

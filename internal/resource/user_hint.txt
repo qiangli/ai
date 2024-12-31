@@ -2,7 +2,5 @@
 . Request explanations for specific shell commands or scripts.
 . Seek advice on best practices for shell scripting.
 . Inquire about different shell environments and their features.
-. Describe specific scenarios or problems with shell scripting or command-line tasks.
-. Expect clear, concise, and accurate responses.
 . Share your skill level, use case, and any error messages or logs for tailored advice.
 . Mention any security, performance, or dependency requirements.

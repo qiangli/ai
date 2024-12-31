@@ -24,4 +24,6 @@ dry_run_content: "fake!"
 # Specify the editor to use for composing messages
 editor: "vi"
 
+# Interactive
+interactive: false
 ###

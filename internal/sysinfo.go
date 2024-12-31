@@ -17,6 +17,7 @@ import (
 	"github.com/shirou/gopsutil/v4/process"
 
 	"github.com/qiangli/ai/cli/internal/log"
+	"github.com/qiangli/ai/cli/internal/tool"
 )
 
 // GetFileSystemInfo retrieves information about the file system.
@@ -195,24 +196,6 @@ func GetCpuInfo() ([]CpuInfo, error) {
 	return cpuInfos, nil
 }
 
-// CollectEnvVars collects a set of environment vars.
-func CollectEnvVars() map[string]string {
-	//
-	variables := []string{"HOME", "LANG", "LOGNAME", "PATH", "PWD", "SHELL", "TERM", "TMPDIR", "USER"}
-	envMap := make(map[string]string)
-
-	for _, v := range variables {
-		value, exists := os.LookupEnv(v)
-		if exists {
-			envMap[v] = value
-		} else {
-			envMap[v] = ""
-		}
-	}
-
-	return envMap
-}
-
 type ShellInfo struct {
 	Name    string
 	Path    string
@@ -331,20 +314,13 @@ func Uname() (string, string) {
 }
 
 type SystemInfo struct {
-	FileSystemTotal uint64
-	FileSystemFree  uint64
-	Processes       []string
-	Network         map[string][]net.IP
-	Disks           []DiskInfo
-	Memory          *MemoryStats
-	CPU             []CpuInfo
-	EnvVars         map[string]string
-	ShellInfo       *ShellInfo
-	OSInfo          map[string]string
-	OS              string
-	Arch            string
-	User            string
-	WorkDir         string
+	OS        string
+	Arch      string
+	OSInfo    map[string]string
+	ShellInfo *ShellInfo
+
+	EnvVarNames string
+	WorkDir     string
 }
 
 func CollectSystemInfo() (*SystemInfo, error) {
@@ -370,33 +346,12 @@ func CollectSystemInfo() (*SystemInfo, error) {
 	}
 
 	// Collect environment variables
-	info.EnvVars = CollectEnvVars()
-
-	// Get user name
-	info.User = os.Getenv("USER")
+	info.EnvVarNames = tool.GetEnvVarNames()
 
 	// Get working directory
-	info.WorkDir, err = os.Getwd()
+	info.WorkDir, err = tool.Getwd()
 	if err != nil {
 		errs = append(errs, fmt.Errorf("error getting working directory: %v", err))
-	}
-
-	// Collect disk info
-	info.Disks, err = GetDiskInfo()
-	if err != nil {
-		errs = append(errs, fmt.Errorf("error collecting disk info: %v", err))
-	}
-
-	// Collect CPU info
-	info.CPU, err = GetCpuInfo()
-	if err != nil {
-		errs = append(errs, fmt.Errorf("error collecting CPU info: %v", err))
-	}
-
-	// Collect network configuration
-	info.Network, err = CollectNetworkConfig()
-	if err != nil {
-		errs = append(errs, fmt.Errorf("error collecting network configuration: %v", err))
 	}
 
 	if len(errs) > 0 {

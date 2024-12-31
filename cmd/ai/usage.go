@@ -7,11 +7,12 @@ Examples:
 {{.Example}}{{end}}
 
 Commands:
-  /[binary] [message...]  Help with command and shell scripting
-  @[agent]  [message...]  Assistants for a variety of tasks
+  /[binary] [message...]  Help with commands and shell scripting
+  @[agent]  [message...]  Consult with agents for a variety of tasks
 
-Available Binary:
+Miscellaneous:
   list                    List available binaries on the path
+  info                    Show system information
 
 Supported Agent:
   ask                     Ask general questions

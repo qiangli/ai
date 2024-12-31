@@ -163,23 +163,25 @@ func ListCommand(cfg *Config, args []string) error {
 		return err
 	}
 
-	log.Printf("Available commands on the system:\n\n")
+	const listTpl = `Available commands on the system:
+%s
+Total: %v
+`
 	sort.Strings(list)
-	for _, c := range list {
-		log.Println(c)
-	}
-	log.Printf("\nTotal: %v\n", len(list))
+	log.Printf(listTpl, strings.Join(list, "\n"), len(list))
 	return nil
 }
 
 func HelpCommand(cfg *Config, args []string) error {
-	log.Println("AI Command Line Tool\n")
-	log.Println("Usage:")
-	log.Println("  ai [OPTIONS] COMMAND [message...]\n")
+	const helpTpl = `AI Command Line Tool
+Usage:
+	ai [OPTIONS] COMMAND [message...]
+%s
+%s
+`
 	hint := GetUserHint()
-	log.Println(hint)
 	ex := GetUserInputInstruction()
-	log.Println(ex)
+	log.Printf(helpTpl, hint, ex)
 	return nil
 }
 
@@ -196,16 +198,27 @@ func collectSystemInfo() (string, error) {
 }
 
 func processContent(cfg *Config, content string) {
-	log.Println(content)
-
 	doc := ParseMarkdown(content)
 	total := len(doc.CodeBlocks)
+
+	// process code blocks
 	if total > 0 {
-		log.Printf("\n=== CODE BLOCKS (%v) ===\n", total)
-		for i, v := range doc.CodeBlocks {
-			log.Printf("\n===\n%s\n=== %v/%v ===\n", v.Code, i+1, total)
-			ProcessBashScript(cfg, v.Code)
+		if cfg.Interactive {
+			log.Infoln(content)
+
+			log.Infof("\n=== CODE BLOCKS (%v) ===\n", total)
+			for i, v := range doc.CodeBlocks {
+				log.Infof("\n===\n%s\n=== %v/%v ===\n", v.Code, i+1, total)
+				ProcessBashScript(cfg, v.Code)
+			}
+			log.Infoln("=== END ===\n")
+		} else {
+			const codeTpl = "%s\n"
+			for _, v := range doc.CodeBlocks {
+				log.Printf(codeTpl, v.Code)
+			}
 		}
-		log.Println("=== END ===\n")
+	} else {
+		log.Infoln(content)
 	}
 }

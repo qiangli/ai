@@ -6,6 +6,13 @@ import (
 	"os"
 )
 
+var printLogger = NewPrinter(os.Stdout)
+
+var promptLogger = NewPrinter(os.Stderr)
+var debugLogger Printer = NewPrinter(os.Stderr)
+var infoLogger = NewPrinter(os.Stderr)
+var errLogger = NewPrinter(os.Stderr)
+
 type Printer interface {
 	Printf(string, ...interface{})
 	Print(...interface{})
@@ -54,8 +61,6 @@ func (r *printer) Println(a ...interface{}) {
 }
 
 // prompter
-var promptLogger = NewPrinter(os.Stderr)
-
 func SetPromptEnabled(b bool) {
 	promptLogger.SetEnabled(b)
 }
@@ -73,8 +78,6 @@ func Promptln(a ...interface{}) {
 }
 
 // Printer for standard output
-var printLogger = NewPrinter(os.Stdout)
-
 func Printf(format string, a ...interface{}) {
 	printLogger.Printf(format, a...)
 }
@@ -88,8 +91,6 @@ func Println(a ...interface{}) {
 }
 
 // Debug logger
-var debugLogger Printer = NewPrinter(os.Stderr)
-
 func SetDebugEnabled(b bool) {
 	debugLogger.SetEnabled(b)
 }
@@ -107,8 +108,6 @@ func Debugln(a ...interface{}) {
 }
 
 // Info logger
-var infoLogger = NewPrinter(os.Stderr)
-
 func Infof(format string, a ...interface{}) {
 	infoLogger.Printf(format, a...)
 }
@@ -122,8 +121,6 @@ func Infoln(a ...interface{}) {
 }
 
 // Error logger
-var errLogger = NewPrinter(os.Stderr)
-
 func Errorf(format string, a ...interface{}) {
 	errLogger.Printf(format, a...)
 }
