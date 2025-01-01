@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/qiangli/ai/cli/internal/log"
+	"github.com/qiangli/ai/internal/log"
 )
 
 // UserInputError represents user input error.

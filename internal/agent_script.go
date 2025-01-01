@@ -8,8 +8,10 @@ import (
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 
-	"github.com/qiangli/ai/cli/internal/log"
-	"github.com/qiangli/ai/cli/internal/tool"
+	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/resource"
+	"github.com/qiangli/ai/internal/tool"
+	"github.com/qiangli/ai/internal/util"
 )
 
 type ScriptAgent struct {
@@ -27,8 +29,12 @@ func NewScriptAgent(cfg *Config, role, content string) (*ScriptAgent, error) {
 	if role == "" {
 		role = string(openai.ChatCompletionMessageParamRoleSystem)
 	}
+	info, err := util.CollectSystemInfo()
+	if err != nil {
+		return nil, err
+	}
 	if content == "" {
-		systemMessage, err := GetSystemRoleContent()
+		systemMessage, err := resource.GetSystemRoleContent(info)
 		if err != nil {
 			return nil, err
 		}
@@ -45,7 +51,7 @@ func NewScriptAgent(cfg *Config, role, content string) (*ScriptAgent, error) {
 
 func (r *ScriptAgent) Send(ctx context.Context, command, input string) (*ScriptAgentMessage, error) {
 	roleMessage := buildRoleMessage(r.Role, r.Message)
-	userContent, err := GetUserRoleContent(
+	userContent, err := resource.GetUserRoleContent(
 		command, input,
 	)
 	if err != nil {

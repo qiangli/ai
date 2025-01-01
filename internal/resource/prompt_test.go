@@ -1,12 +1,18 @@
-package internal
+package resource
 
 import (
 	_ "embed"
 	"testing"
+
+	"github.com/qiangli/ai/internal/util"
 )
 
 func TestGetSystemRoleContent(t *testing.T) {
-	msg, err := GetSystemRoleContent()
+	info, err := util.CollectSystemInfo()
+	if err != nil {
+		t.Errorf("failed, expected nil, got %v", err)
+	}
+	msg, err := GetSystemRoleContent(info)
 	if err != nil {
 		t.Errorf("failed, expected nil, got %v", err)
 	}

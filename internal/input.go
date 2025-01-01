@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/qiangli/ai/cli/internal/log"
+	"github.com/qiangli/ai/internal/log"
 )
 
 const StdinInputRedirect = "-"

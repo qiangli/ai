@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/qiangli/ai/cli/internal/log"
+	"github.com/qiangli/ai/internal/log"
 )
 
 func TestScriptAgentSend(t *testing.T) {

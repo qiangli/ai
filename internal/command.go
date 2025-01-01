@@ -10,8 +10,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/qiangli/ai/cli/internal/log"
-	"github.com/qiangli/ai/cli/internal/tool"
+	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/tool"
+	"github.com/qiangli/ai/internal/util"
 )
 
 // DetectContentType determines the content type of a file based on magic numbers, content, and file extension.
@@ -161,21 +162,8 @@ Total: %v
 	return nil
 }
 
-func HelpCommand(cfg *Config) error {
-	const helpTpl = `AI Command Line Tool
-Usage:
-	ai [OPTIONS] COMMAND [message...]
-%s
-%s
-`
-	hint := GetUserHint()
-	ex := GetUserInputInstruction()
-	log.Printf(helpTpl, hint, ex)
-	return nil
-}
-
 func collectSystemInfo() (string, error) {
-	info, err := CollectSystemInfo()
+	info, err := util.CollectSystemInfo()
 	if err != nil {
 		return "", err
 	}

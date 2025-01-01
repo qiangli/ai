@@ -11,8 +11,10 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/qiangli/ai/cli/internal"
-	"github.com/qiangli/ai/cli/internal/log"
+	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/resource"
+	"github.com/qiangli/ai/internal/util"
 )
 
 type AppConfig struct {
@@ -28,7 +30,7 @@ var rootCmd = &cobra.Command{
 	Long: `AI Command Line Tool
 
 	`,
-	Example: internal.GetUserExample(),
+	Example: resource.GetUserExample(),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		setLogLevel()
 
@@ -43,7 +45,7 @@ var rootCmd = &cobra.Command{
 		case "info":
 			return internal.InfoCommand(cfg.LLM)
 		case "help":
-			return internal.HelpCommand(cfg.LLM)
+			return Help(cmd)
 		}
 
 		// remote - LLM API call
@@ -64,7 +66,7 @@ func init() {
 	defaultCfg := os.Getenv("AI_CONFIG")
 	// default: ~/.ai/config.yaml
 	if defaultCfg == "" {
-		homeDir := internal.HomeDir()
+		homeDir := util.HomeDir()
 		if homeDir != "" {
 			defaultCfg = filepath.Join(homeDir, ".ai", "config.yaml")
 		}

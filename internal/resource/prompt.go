@@ -1,4 +1,4 @@
-package internal
+package resource
 
 import (
 	"bytes"
@@ -6,26 +6,22 @@ import (
 	"text/template"
 )
 
-//go:embed resource/system_role.md
+//go:embed system_role.md
 var systemRoleTemplate string
 
-//go:embed resource/user_role.md
+//go:embed user_role.md
 var userRoleTemplate string
 
-//go:embed resource/user_hint.txt
+//go:embed user_hint.txt
 var userHint string
 
-//go:embed resource/user_input.txt
+//go:embed user_input.txt
 var userInputInstruction string
 
-//go:embed resource/user_example.txt
+//go:embed user_example.txt
 var userExample string
 
-func GetSystemRoleContent() (string, error) {
-	info, err := CollectSystemInfo()
-	if err != nil {
-		return "", err
-	}
+func GetSystemRoleContent(info any) (string, error) {
 	var tplOutput bytes.Buffer
 
 	tpl, err := template.New("systemRole").Funcs(template.FuncMap{
@@ -76,4 +72,11 @@ func GetUserRoleContent(command string, message string) (string, error) {
 	}
 
 	return buf.String(), nil
+}
+
+func MaxLen(s string, max int) string {
+	if len(s) > max {
+		return s[:max] + "..."
+	}
+	return s
 }

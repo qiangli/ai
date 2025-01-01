@@ -7,7 +7,7 @@ import (
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 
-	"github.com/qiangli/ai/cli/internal/log"
+	"github.com/qiangli/ai/internal/log"
 )
 
 const chatSystemMessage = `You are a helpful and knowledgeable assistant.

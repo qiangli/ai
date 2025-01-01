@@ -1,4 +1,4 @@
-package internal
+package util
 
 import (
 	"bufio"
@@ -16,8 +16,8 @@ import (
 	"github.com/shirou/gopsutil/v4/mem"
 	"github.com/shirou/gopsutil/v4/process"
 
-	"github.com/qiangli/ai/cli/internal/log"
-	"github.com/qiangli/ai/cli/internal/tool"
+	// "github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/tool"
 )
 
 // GetFileSystemInfo retrieves information about the file system.
@@ -51,7 +51,7 @@ func GetRunningProcesses() ([]string, error) {
 	for _, p := range processes {
 		name, err := p.Name()
 		if err != nil {
-			log.Errorf("error retrieving process name: %v", err)
+			fmt.Printf("error retrieving process name: %v\n", err)
 			name = "unknown"
 		}
 
@@ -114,7 +114,7 @@ func GetDiskInfo() ([]DiskInfo, error) {
 	for _, partition := range partitions {
 		usageStat, err := disk.Usage(partition.Mountpoint)
 		if err != nil {
-			log.Errorf("error getting usage for partition %s: %v", partition.Mountpoint, err)
+			fmt.Printf("error getting usage for partition %s: %v\n", partition.Mountpoint, err)
 			continue
 		}
 

@@ -1,4 +1,4 @@
-module github.com/qiangli/ai/cli
+module github.com/qiangli/ai
 
 go 1.22.0
 

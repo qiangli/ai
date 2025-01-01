@@ -7,7 +7,7 @@ import (
 
 	"github.com/openai/openai-go/option"
 
-	"github.com/qiangli/ai/cli/internal/log"
+	"github.com/qiangli/ai/internal/log"
 )
 
 func logMiddleware() option.Middleware {

@@ -1,7 +1,7 @@
 //go:build windows
 // +build windows
 
-package internal
+package util
 
 import (
 	"bytes"
