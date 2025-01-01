@@ -104,12 +104,12 @@ func (r *ScriptAgent) Send(ctx context.Context, command, input string) (*ScriptA
 					return nil, err
 				}
 
-				log.Debugf("tool call name: %s, props: %+v\n", name, props)
+				log.Debugf("\n\n*** tool call: %s\nprops: %+v\n", name, props)
 				out, err := tool.RunTool(name, props)
 				if err != nil {
 					return nil, err
 				}
-				log.Debugf("tool call name: %s, out:\n%s\n", name, out)
+				log.Debugf("\n*** tool call: %s\n%s\n", name, out)
 				params.Messages.Value = append(params.Messages.Value, openai.ToolMessage(toolCall.ID, out))
 			}
 		}

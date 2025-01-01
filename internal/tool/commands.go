@@ -126,32 +126,75 @@ func RunTool(name string, props map[string]interface{}) (string, error) {
 	if err := os.Chdir(tempDir); err != nil {
 		return "", err
 	}
+
+	getStr := func(key string) (string, error) {
+		val, ok := props[key]
+		if !ok {
+			return "", fmt.Errorf("missing property: %s", key)
+		}
+		str, ok := val.(string)
+		if !ok {
+			return "", fmt.Errorf("property '%s' must be a string", key)
+		}
+		return str, nil
+	}
+
+	getArray := func(key string) ([]interface{}, error) {
+		val, ok := props[key]
+		if !ok {
+			return nil, fmt.Errorf("missing property: %s", key)
+		}
+		array, ok := val.([]interface{})
+		if !ok {
+			return nil, fmt.Errorf("property '%s' must be an array", key)
+		}
+		return array, nil
+	}
+
 	switch name {
 	case "man":
-		command := props["command"].(string)
+		command, err := getStr("command")
+		if err != nil {
+			return "", err
+		}
 		out, err := runMan(command)
 		if err != nil {
 			out = err.Error()
 		}
 		return out, nil
 	case "help":
-		command := props["command"].(string)
-		arg := props["argument"].(string)
+		command, err := getStr("command")
+		if err != nil {
+			return "", err
+		}
+		arg, err := getStr("argument")
+		if err != nil {
+			return "", err
+		}
 		out, err := runHelp(command, arg)
 		if err != nil {
 			out = err.Error()
 		}
 		return out, nil
 	case "version":
-		command := props["command"].(string)
-		arg := props["argument"].(string)
+		command, err := getStr("command")
+		if err != nil {
+			return "", err
+		}
+		arg, err := getStr("argument")
+		if err != nil {
+			return "", err
+		}
 		out, err := runVersion(command, arg)
 		if err != nil {
 			out = err.Error()
 		}
 		return out, nil
 	case "command":
-		commands := props["commands"].([]interface{})
+		commands, err := getArray("commands")
+		if err != nil {
+			return "", err
+		}
 		items := make([]string, len(commands))
 		for i, v := range commands {
 			items[i] = v.(string)
@@ -162,7 +205,10 @@ func RunTool(name string, props map[string]interface{}) (string, error) {
 		}
 		return out, nil
 	case "which":
-		commands := props["commands"].([]interface{})
+		commands, err := getArray("commands")
+		if err != nil {
+			return "", err
+		}
 		items := make([]string, len(commands))
 		for i, v := range commands {
 			items[i] = v.(string)

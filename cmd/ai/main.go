@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,8 +30,9 @@ var rootCmd = &cobra.Command{
 	`,
 	Example: internal.GetUserExample(),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		setLogLevel()
+
 		cfg := getConfig(args)
-		setLogLevel(cfg.LLM.Debug)
 
 		log.Debugf("LLM config: %+v\n", cfg.LLM)
 
@@ -73,7 +75,8 @@ func init() {
 	rootCmd.Flags().String("api-key", "", "LLM API key")
 	rootCmd.Flags().String("model", openai.ChatModelGPT4o, "LLM model")
 	rootCmd.Flags().String("base-url", "https://api.openai.com/v1/", "LLM Base URL")
-	rootCmd.Flags().Bool("debug", false, "Enable verbose console output")
+	rootCmd.Flags().Bool("verbose", false, "Show debugging information")
+	rootCmd.Flags().Bool("quiet", false, "Operate quietly")
 	rootCmd.Flags().Bool("dry-run", false, "Enable dry run mode. No API call will be made")
 	rootCmd.Flags().String("dry-run-content", "", "Content returned for dry run")
 	rootCmd.Flags().String("editor", "vi", "Specify editor to use")
@@ -116,9 +119,8 @@ func initConfig() {
 
 	viper.AutomaticEnv()
 
-	if err := viper.ReadInConfig(); err == nil {
-		// FIXME
-		log.Debugln("Using config file:", viper.ConfigFileUsed())
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Printf("Error reading config file: %s\n", err)
 	}
 }
 
@@ -128,7 +130,7 @@ func getConfig(args []string) *AppConfig {
 	cfg.ApiKey = viper.GetString("api_key")
 	cfg.Model = viper.GetString("model")
 	cfg.BaseUrl = viper.GetString("base_url")
-	cfg.Debug = viper.GetBool("debug")
+	cfg.Debug = viper.GetBool("verbose")
 	cfg.DryRun = viper.GetBool("dry_run")
 	cfg.DryRunContent = viper.GetString("dry_run_content")
 	cfg.Editor = viper.GetString("editor")
@@ -191,7 +193,13 @@ func getConfig(args []string) *AppConfig {
 	}
 }
 
-func setLogLevel(debug bool) {
+func setLogLevel() {
+	quiet := viper.GetBool("quiet")
+	if quiet {
+		log.SetLogLevel(log.Quiet)
+		return
+	}
+	debug := viper.GetBool("verbose")
 	if debug {
 		log.SetLogLevel(log.Verbose)
 	}

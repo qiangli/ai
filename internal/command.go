@@ -78,10 +78,10 @@ func AgentCommand(cfg *Config, role, content string) error {
 		}
 
 		if cfg.DryRun {
-			log.Debugf("Dry run mode. No API call will be made!\n")
+			log.Infof("Dry run mode. No API call will be made!\n")
 			log.Debugf("The following will be returned:\n%s\n", cfg.DryRunContent)
 		}
-		log.Debugf("Sending request to %s...\n", cfg.BaseUrl)
+		log.Infof("Sending request to %s...\n", cfg.BaseUrl)
 
 		ctx := context.TODO()
 		resp, err := agent.Send(ctx, msg)
@@ -119,10 +119,10 @@ func SlashCommand(cfg *Config, role, content string) error {
 	}
 
 	if cfg.DryRun {
-		log.Debugf("Dry run mode. No API call will be made!\n")
+		log.Infof("Dry run mode. No API call will be made!\n")
 		log.Debugf("The following will be returned:\n%s\n", cfg.DryRunContent)
 	}
-	log.Debugf("Sending request to %s...\n", cfg.BaseUrl)
+	log.Infof("Sending request to %s...\n", cfg.BaseUrl)
 
 	ctx := context.TODO()
 	resp, err := agent.Send(ctx, name, msg)
@@ -197,11 +197,16 @@ func processContent(cfg *Config, content string) {
 		}
 	}
 
-	log.Infoln(content)
+	// show content to the stdout
+	showContent := func() {
+		log.Println(content)
+	}
 
 	// process code blocks
 	if total > 0 {
 		if cfg.Interactive {
+			showContent()
+
 			log.Infof("\n=== CODE BLOCKS (%v) ===\n", total)
 			for i, v := range doc.CodeBlocks {
 				log.Infof("\n===\n%s\n=== %v/%v ===\n", v.Code, i+1, total)
@@ -209,13 +214,21 @@ func processContent(cfg *Config, content string) {
 			}
 			log.Infoln("=== END ===\n")
 		} else {
+			// if there are code blocks in non-interactive mode
+			// we don't show the content to stdout
+			// this is to ensure the code blocks can be piped/redirected
+			// without being mixed with other content
+			log.Infoln(content)
+
 			const codeTpl = "%s\n"
 			var snippets []string
 			for _, v := range doc.CodeBlocks {
 				snippets = append(snippets, v.Code)
 			}
-			// stdout
+			// show code snippets
 			log.Printf(codeTpl, strings.Join(snippets, "\n"))
 		}
+	} else {
+		showContent()
 	}
 }

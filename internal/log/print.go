@@ -136,8 +136,7 @@ func Errorln(a ...interface{}) {
 type Level int
 
 const (
-	Silent Level = iota
-	Quiet
+	Quiet Level = iota
 	Normal
 	Verbose
 )
@@ -155,17 +154,20 @@ func SetLogLevel(level Level) {
 	debugLogger.SetEnabled(false)
 	infoLogger.SetEnabled(false)
 	errLogger.SetEnabled(false)
+	promptLogger.SetEnabled(false)
 
 	switch level {
-	case Silent:
+	case Quiet:
 		return
 	case Normal:
 		infoLogger.SetEnabled(true)
 		errLogger.SetEnabled(true)
+		promptLogger.SetEnabled(true)
 	case Verbose:
 		debugLogger.SetEnabled(true)
 		infoLogger.SetEnabled(true)
 		errLogger.SetEnabled(true)
+		promptLogger.SetEnabled(true)
 	}
 
 	// Check if stdin is piped/redirected
