@@ -6,6 +6,9 @@ import (
 	"text/template"
 )
 
+//go:embed auto_role.md
+var autoRoleTemplate string
+
 //go:embed system_role.md
 var systemRoleTemplate string
 
@@ -20,6 +23,10 @@ var userInputInstruction string
 
 //go:embed user_example.txt
 var userExample string
+
+func GetAutoRoleContent() string {
+	return autoRoleTemplate
+}
 
 func GetSystemRoleContent(info any) (string, error) {
 	var tplOutput bytes.Buffer

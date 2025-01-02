@@ -7,7 +7,7 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
-func TestChatAgentSend(t *testing.T) {
+func TestAskAgentSend(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
@@ -17,20 +17,20 @@ func TestChatAgentSend(t *testing.T) {
 		Model:   "gpt-4o-mini",
 		BaseUrl: "http://localhost:4000",
 	}
-	chat, err := NewChatAgent(cfg, "", "")
+	agent, err := NewAskAgent(cfg, "", "")
 	if err != nil {
-		t.Errorf("New chat agent error: %v", err)
+		t.Errorf("New AskAgent error: %v", err)
 		return
 	}
 
 	log.SetLogLevel(log.Verbose)
 
-	input := "what is this command for zic"
-	resp, err := chat.Send(context.TODO(), input)
+	input := "what is zic command?"
+	resp, err := agent.Send(context.TODO(), input)
 	if err != nil {
-		t.Errorf("chat agent send error: %v", err)
+		t.Errorf("Ask agent send error: %v", err)
 		return
 	}
 
-	t.Logf("chat agent: %+v\n", resp)
+	t.Logf("Ask agent: %+v\n", resp)
 }

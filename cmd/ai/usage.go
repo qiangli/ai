@@ -45,7 +45,7 @@ Commands:
   @[agent]  [message...]  Engage agents for assistance with various tasks
 
 Miscellaneous:
-  list                    List available binaries on $PATH
+  list                    List available binaries in the path
   info                    Show system information
 
 Supported Agent:

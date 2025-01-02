@@ -10,31 +10,19 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
-const chatSystemMessage = `You are a helpful and knowledgeable assistant.
-Your job is to provide accurate and concise answers to general questions.
-Be polite, clear, and informative in your responses, maintaining a friendly tone.
-`
-
-type Chat struct {
+type ChatAgent struct {
 	config *Config
 
 	Role    string
 	Message string
 }
 
-type ChatMessage struct {
-	Content string
-}
-
-func NewChat(cfg *Config, role, content string) (*Chat, error) {
+func NewChatAgent(cfg *Config, role, content string) (*ChatAgent, error) {
 	if role == "" {
-		role = string(openai.ChatCompletionMessageParamRoleSystem)
-	}
-	if content == "" {
-		content = chatSystemMessage
+		role = "system"
 	}
 
-	chat := Chat{
+	chat := ChatAgent{
 		config:  cfg,
 		Role:    role,
 		Message: content,
@@ -42,11 +30,26 @@ func NewChat(cfg *Config, role, content string) (*Chat, error) {
 	return &chat, nil
 }
 
-func (r *Chat) Send(ctx context.Context, input string) (*ChatMessage, error) {
-	roleMessage := buildRoleMessage(r.Role, r.Message)
+func (r *ChatAgent) Send(ctx context.Context, input string) (*ChatMessage, error) {
+	var message = r.Message
+
+	content, err := r.send(ctx, r.Role, message, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ChatMessage{
+		Agent:   "CHAT",
+		Content: content,
+	}, nil
+}
+
+func (r *ChatAgent) send(ctx context.Context, role, prompt, input string) (string, error) {
+
+	roleMessage := buildRoleMessage(role, prompt)
 	userMessage := buildRoleMessage("user", input)
 
-	log.Debugf(">>>%s:\n%+v\n", strings.ToUpper(r.Role), roleMessage)
+	log.Debugf(">>>%s:\n%+v\n", strings.ToUpper(role), roleMessage)
 	log.Debugf(">>>USER:\n%+v\n", userMessage)
 
 	//
@@ -72,13 +75,12 @@ func (r *Chat) Send(ctx context.Context, input string) (*ChatMessage, error) {
 	if !r.config.DryRun {
 		completion, err := client.Chat.Completions.New(ctx, params)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 		content = completion.Choices[0].Message.Content
 	} else {
 		content = r.config.DryRunContent
 	}
 	log.Debugf("<<<OPENAI:\nmodel: %s, content length: %v\n\n", model, len(content))
-
-	return &ChatMessage{Content: content}, nil
+	return content, nil
 }

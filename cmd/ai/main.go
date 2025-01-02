@@ -83,8 +83,10 @@ func init() {
 	rootCmd.Flags().String("dry-run-content", "", "Content returned for dry run")
 	rootCmd.Flags().String("editor", "vi", "Specify editor to use")
 
-	rootCmd.Flags().String("role", "system", "Prompt role")
-	rootCmd.Flags().String("role-content", "", "Prompt role content (default auto)")
+	rootCmd.Flags().String("role", "system", "Specifies the role for the prompt")
+	rootCmd.Flags().String("role-content", "", "Specifies the content for the prompt")
+
+	rootCmd.Flags().BoolP("no-auto-prompt", "n", false, "Disables auto generation of prompt content")
 
 	rootCmd.Flags().BoolP("interactive", "i", false, "Interactive mode to run, edit, or copy generated code")
 
@@ -129,6 +131,8 @@ func initConfig() {
 func getConfig(args []string) *AppConfig {
 	var cfg internal.Config
 
+	cfg.Me = "ME"
+
 	cfg.ApiKey = viper.GetString("api_key")
 	cfg.Model = viper.GetString("model")
 	cfg.BaseUrl = viper.GetString("base_url")
@@ -138,6 +142,8 @@ func getConfig(args []string) *AppConfig {
 	cfg.Editor = viper.GetString("editor")
 
 	cfg.Interactive = viper.GetBool("interactive")
+	noAuto := viper.GetBool("no_auto_prompt")
+	cfg.AutoPrompt = !noAuto
 
 	//
 	cfg.WorkDir, _ = os.Getwd()

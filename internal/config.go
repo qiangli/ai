@@ -21,6 +21,10 @@ type Config struct {
 	Clipout bool
 	Stdin   bool
 
+	Me string
+
+	AutoPrompt bool
+
 	Command string
 	Args    []string
 }

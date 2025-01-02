@@ -48,7 +48,7 @@ func DetectContentType(filePath string) string {
 }
 
 func AgentCommand(cfg *Config, role, content string) error {
-	log.Debugf("Agent command: %s %v\n", cfg.Command, cfg.Args)
+	log.Debugf("Agent: %s %v\n", cfg.Command, cfg.Args)
 
 	name := strings.TrimSpace(cfg.Command[1:])
 	if name == "" {
@@ -71,34 +71,41 @@ func AgentCommand(cfg *Config, role, content string) error {
 		return NewUserInputError("no message content")
 	}
 
+	var agent Agent
+
 	switch name {
 	case "ask":
-		agent, err := NewChat(cfg, role, content)
+		agent, err = NewAskAgent(cfg, role, content)
 		if err != nil {
 			return err
 		}
-
-		if cfg.DryRun {
-			log.Infof("Dry run mode. No API call will be made!\n")
-			log.Debugf("The following will be returned:\n%s\n", cfg.DryRunContent)
-		}
-		log.Infof("Sending request to %s...\n", cfg.BaseUrl)
-
-		ctx := context.TODO()
-		resp, err := agent.Send(ctx, msg)
+	case "chat":
+		agent, err = NewChatAgent(cfg, role, content)
 		if err != nil {
 			return err
 		}
-		processContent(cfg, resp.Content)
 	default:
 	}
 
-	log.Debugf("agent command completed: %s %v\n", cfg.Command, cfg.Args)
+	if cfg.DryRun {
+		log.Infof("Dry run mode. No API call will be made!\n")
+		log.Debugf("The following will be returned:\n%s\n", cfg.DryRunContent)
+	}
+	log.Infof("Sending request to [%s] %s...\n", cfg.Model, cfg.BaseUrl)
+
+	ctx := context.TODO()
+	resp, err := agent.Send(ctx, msg)
+	if err != nil {
+		return err
+	}
+	processContent(cfg, resp)
+
+	log.Debugf("Agent task completed: %s %v\n", cfg.Command, cfg.Args)
 	return nil
 }
 
 func SlashCommand(cfg *Config, role, content string) error {
-	log.Debugf("Slash command: %s %v\n", cfg.Command, cfg.Args)
+	log.Debugf("Command: %s %v\n", cfg.Command, cfg.Args)
 
 	name := strings.TrimSpace(cfg.Command[1:])
 	if name != "" {
@@ -123,16 +130,16 @@ func SlashCommand(cfg *Config, role, content string) error {
 		log.Infof("Dry run mode. No API call will be made!\n")
 		log.Debugf("The following will be returned:\n%s\n", cfg.DryRunContent)
 	}
-	log.Infof("Sending request to %s...\n", cfg.BaseUrl)
+	log.Infof("Sending request to [%s] %s...\n", cfg.Model, cfg.BaseUrl)
 
 	ctx := context.TODO()
 	resp, err := agent.Send(ctx, name, msg)
 	if err != nil {
 		return err
 	}
-	processContent(cfg, resp.Content)
+	processContent(cfg, resp)
 
-	log.Debugf("Slash command completed: %s %v\n", cfg.Command, cfg.Args)
+	log.Debugf("Command completed: %s %v\n", cfg.Command, cfg.Args)
 	return nil
 }
 
@@ -174,7 +181,8 @@ func collectSystemInfo() (string, error) {
 	return string(jd), nil
 }
 
-func processContent(cfg *Config, content string) {
+func processContent(cfg *Config, message *ChatMessage) {
+	content := message.Content
 	doc := ParseMarkdown(content)
 	total := len(doc.CodeBlocks)
 
@@ -187,6 +195,7 @@ func processContent(cfg *Config, content string) {
 
 	// show content to the stdout
 	showContent := func() {
+		log.Infof("\n[%s]\n", message.Agent)
 		log.Println(content)
 	}
 
@@ -206,6 +215,7 @@ func processContent(cfg *Config, content string) {
 			// we don't show the content to stdout
 			// this is to ensure the code blocks can be piped/redirected
 			// without being mixed with other content
+			log.Infof("\n[%s]\n", message.Agent)
 			log.Infoln(content)
 
 			const codeTpl = "%s\n"

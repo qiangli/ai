@@ -16,12 +16,15 @@ build: ## Build
 test:  ## Test
 	@go test -short ./...
 
+tidy: ## Tidy
+	@go mod tidy && go fmt ./...
+
 commit-message: ## Generate commit message and copy the message to clipboard
 	@git diff origin main|go run ./cmd/ai --dry-run=false @ask write commit message for git =+
 
 install: build ## Install
 	@go install ./cmd/ai
 
-.PHONY: build test install
+.PHONY: build test install commit-message
 
 ###

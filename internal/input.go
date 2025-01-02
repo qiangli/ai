@@ -30,6 +30,14 @@ func (e *Editor) Launch() (string, error) {
 	return LaunchEditor(e.editor)
 }
 
+// clipText truncates the input text to no more than the specified maximum length.
+func clipText(text string, maxLen int) string {
+	if len(text) > maxLen {
+		return strings.TrimSpace(text[:maxLen]) + "\n[more...]"
+	}
+	return text
+}
+
 func GetUserInput(cfg *Config) (string, error) {
 	// stdin with | or <
 	isPiped := func() bool {
@@ -42,7 +50,13 @@ func GetUserInput(cfg *Config) (string, error) {
 		stdin = os.Stdin
 	}
 
-	return userInput(cfg, stdin, NewClipboard(), NewEditor(cfg.Editor))
+	msg, err := userInput(cfg, stdin, NewClipboard(), NewEditor(cfg.Editor))
+	if err != nil {
+		return "", err
+	}
+
+	log.Infof("\n[%s]\n%s\n\n", cfg.Me, clipText(msg, 100))
+	return msg, nil
 }
 
 func userInput(

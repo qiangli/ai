@@ -1,12 +1,22 @@
 package internal
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
 
 	"github.com/openai/openai-go"
 )
+
+type Agent interface {
+	Send(ctx context.Context, input string) (*ChatMessage, error)
+}
+
+type ChatMessage struct {
+	Agent   string
+	Content string
+}
 
 type Role = openai.ChatCompletionMessageParamRole
 
@@ -41,7 +51,8 @@ func DeveloperMessage(content string) openai.ChatCompletionMessageParamUnion {
 }
 
 var availableAgents = map[string]string{
-	"ask": "Ask a general question",
+	"ask":  "Ask a general question",
+	"chat": "Simple chat",
 	// "aider":      "AI pair programming in your terminal",
 	// "openhands":  "A platform for software development agents powered by AI",
 	// "vanna":      "Let Vanna.AI write your SQL for you",

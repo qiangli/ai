@@ -21,10 +21,6 @@ type ScriptAgent struct {
 	Message string
 }
 
-type ScriptAgentMessage struct {
-	Content string
-}
-
 func NewScriptAgent(cfg *Config, role, content string) (*ScriptAgent, error) {
 	if role == "" {
 		role = string(openai.ChatCompletionMessageParamRoleSystem)
@@ -49,7 +45,7 @@ func NewScriptAgent(cfg *Config, role, content string) (*ScriptAgent, error) {
 	return &chat, nil
 }
 
-func (r *ScriptAgent) Send(ctx context.Context, command, input string) (*ScriptAgentMessage, error) {
+func (r *ScriptAgent) Send(ctx context.Context, command, input string) (*ChatMessage, error) {
 	roleMessage := buildRoleMessage(r.Role, r.Message)
 	userContent, err := resource.GetUserRoleContent(
 		command, input,
@@ -126,5 +122,8 @@ func (r *ScriptAgent) Send(ctx context.Context, command, input string) (*ScriptA
 
 	log.Debugf("<<<OPENAI:\nmodel: %s, content length: %v\n\n", model, len(content))
 
-	return &ScriptAgentMessage{Content: content}, nil
+	return &ChatMessage{
+		Agent:   "AI",
+		Content: content,
+	}, nil
 }
