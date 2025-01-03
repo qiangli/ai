@@ -10,6 +10,8 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
+const clipMaxLen = 500
+
 const StdinInputRedirect = "-"
 
 type EditorProvider interface {
@@ -55,7 +57,7 @@ func GetUserInput(cfg *Config) (string, error) {
 		return "", err
 	}
 
-	log.Infof("\n[%s]\n%s\n\n", cfg.Me, clipText(msg, 100))
+	log.Infof("\n[%s]\n%s\n\n", cfg.Me, clipText(msg, clipMaxLen))
 	return msg, nil
 }
 

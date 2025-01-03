@@ -34,6 +34,16 @@ var rootCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		setLogLevel()
 
+		fileLog, err := setLogOutput()
+		if err != nil {
+			return err
+		}
+		defer func() {
+			if fileLog != nil {
+				fileLog.Close()
+			}
+		}()
+
 		cfg := getConfig(args)
 
 		log.Debugf("LLM config: %+v\n", cfg.LLM)
@@ -83,15 +93,23 @@ func init() {
 	rootCmd.Flags().String("dry-run-content", "", "Content returned for dry run")
 	rootCmd.Flags().String("editor", "vi", "Specify editor to use")
 
-	rootCmd.Flags().String("role", "system", "Specifies the role for the prompt")
-	rootCmd.Flags().String("role-content", "", "Specifies the content for the prompt")
+	rootCmd.Flags().String("role", "system", "Specify the role for the prompt")
+	rootCmd.Flags().String("role-content", "", "Specify the content for the prompt")
 
-	rootCmd.Flags().BoolP("no-auto-prompt", "n", false, "Disables auto generation of prompt content")
+	rootCmd.Flags().BoolP("no-auto-prompt", "n", false, "Disable auto generation of system prompt")
 
 	rootCmd.Flags().BoolP("interactive", "i", false, "Interactive mode to run, edit, or copy generated code")
 
 	rootCmd.Flags().Bool("pb-read", false, "Read input from the clipboard. Alternatively, append '=' to the command")
 	rootCmd.Flags().Bool("pb-write", false, "Copy output to the clipboard. Alternatively, append '=+' to the command")
+
+	rootCmd.Flags().String("log", "", "Log all debugging information to a file")
+
+	//
+	rootCmd.Flags().MarkHidden("role")
+	rootCmd.Flags().MarkHidden("role-content")
+	rootCmd.Flags().MarkHidden("dry-run")
+	rootCmd.Flags().MarkHidden("dry-run-content")
 
 	// Bind the flags to viper using underscores
 	rootCmd.Flags().VisitAll(func(f *pflag.Flag) {
@@ -211,6 +229,19 @@ func setLogLevel() {
 	if debug {
 		log.SetLogLevel(log.Verbose)
 	}
+}
+
+func setLogOutput() (*log.FileWriter, error) {
+	pathname := viper.GetString("log")
+	if pathname != "" {
+		f, err := log.NewFileWriter(pathname)
+		if err != nil {
+			return nil, err
+		}
+		log.SetLogOutput(f)
+		return f, nil
+	}
+	return nil, nil
 }
 
 func main() {

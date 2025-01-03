@@ -20,7 +20,7 @@ tidy: ## Tidy
 	@go mod tidy && go fmt ./...
 
 commit-message: ## Generate commit message and copy the message to clipboard
-	@git diff origin main|go run ./cmd/ai --dry-run=false @ask write commit message for git =+
+	@git diff origin main|go run ./cmd/ai --dry-run=false @ask write commit message for git without code blocks =+
 
 install: build ## Install
 	@go install ./cmd/ai

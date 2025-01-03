@@ -20,6 +20,8 @@ type Printer interface {
 
 	SetEnabled(bool)
 	IsEnabled() bool
+
+	SetLogger(io.Writer)
 }
 
 func NewPrinter(w io.Writer) Printer {
@@ -32,6 +34,8 @@ func NewPrinter(w io.Writer) Printer {
 type printer struct {
 	out io.Writer
 	on  bool
+
+	logger io.Writer
 }
 
 func (r *printer) SetEnabled(b bool) {
@@ -46,11 +50,17 @@ func (r *printer) Printf(format string, a ...interface{}) {
 	if r.on {
 		fmt.Fprintf(r.out, format, a...)
 	}
+	if r.logger != nil {
+		fmt.Fprintf(r.logger, format, a...)
+	}
 }
 
 func (r *printer) Print(a ...interface{}) {
 	if r.on {
 		fmt.Fprint(r.out, a...)
+	}
+	if r.logger != nil {
+		fmt.Fprint(r.logger, a...)
 	}
 }
 
@@ -58,13 +68,16 @@ func (r *printer) Println(a ...interface{}) {
 	if r.on {
 		fmt.Fprintln(r.out, a...)
 	}
+	if r.logger != nil {
+		fmt.Fprintln(r.logger, a...)
+	}
+}
+
+func (r *printer) SetLogger(w io.Writer) {
+	r.logger = w
 }
 
 // prompter
-func SetPromptEnabled(b bool) {
-	promptLogger.SetEnabled(b)
-}
-
 func Promptf(format string, a ...interface{}) {
 	promptLogger.Printf(format, a...)
 }
@@ -91,10 +104,6 @@ func Println(a ...interface{}) {
 }
 
 // Debug logger
-func SetDebugEnabled(b bool) {
-	debugLogger.SetEnabled(b)
-}
-
 func Debugf(format string, a ...interface{}) {
 	debugLogger.Printf(format, a...)
 }
@@ -174,9 +183,17 @@ func SetLogLevel(level Level) {
 	if in, err := os.Stdin.Stat(); err == nil {
 		// piped | or redirected <
 		if in.Mode()&os.ModeNamedPipe != 0 || in.Size() > 0 {
-			SetPromptEnabled(false)
+			promptLogger.SetEnabled(false)
 		}
 	}
+}
+
+func SetLogOutput(w io.Writer) {
+	printLogger.SetLogger(w)
+	debugLogger.SetLogger(w)
+	infoLogger.SetLogger(w)
+	errLogger.SetLogger(w)
+	promptLogger.SetLogger(w)
 }
 
 func init() {
