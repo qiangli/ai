@@ -11,7 +11,7 @@ help: Makefile
 
 ##
 build: ## Build
-	@build.sh
+	@./build.sh
 
 test:  ## Test
 	@go test -short ./...

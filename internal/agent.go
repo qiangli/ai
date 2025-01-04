@@ -53,10 +53,12 @@ func DeveloperMessage(content string) openai.ChatCompletionMessageParamUnion {
 var availableAgents = map[string]string{
 	"ask":  "Ask a general question",
 	"chat": "Simple chat",
+	"seek": "Explore the web and create an objective research report",
+	"gptr": "Explore the web and create an objective research report",
+
 	// "aider":      "AI pair programming in your terminal",
 	// "openhands":  "A platform for software development agents powered by AI",
 	// "vanna":      "Let Vanna.AI write your SQL for you",
-	// "research": "Autonomous agent designed for comprehensive web and local research",
 }
 
 func ListAgents() (map[string]string, error) {

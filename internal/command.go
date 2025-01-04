@@ -84,7 +84,18 @@ func AgentCommand(cfg *Config, role, content string) error {
 		if err != nil {
 			return err
 		}
+	case "seek":
+		agent, err = NewSeekAgent(cfg, role, content)
+		if err != nil {
+			return err
+		}
+	case "gptr":
+		agent, err = NewGptrAgent(cfg, role, content)
+		if err != nil {
+			return err
+		}
 	default:
+		return NewUserInputError("not supported yet: " + name)
 	}
 
 	if cfg.DryRun {

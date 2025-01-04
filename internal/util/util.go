@@ -2,16 +2,16 @@ package util
 
 import (
 	"os"
+	"os/user"
 	"runtime"
 )
 
 func HomeDir() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		homeDir = os.Getenv("HOME")
-		if homeDir == "" && runtime.GOOS == "windows" {
-			homeDir = os.Getenv("USERPROFILE")
+	home, _ := os.UserHomeDir()
+	if home == "" && runtime.GOOS != "windows" {
+		if u, err := user.Current(); err == nil {
+			return u.HomeDir
 		}
 	}
-	return homeDir
+	return home
 }

@@ -18,11 +18,14 @@
 			},
 			"args": [
 				"--dry-run",
-				"--debug",
-				"/jq",
+				"--verbose",
+				"@gptr",
 				"what",
 				"is",
+				"cooking"
 			],
+			"showLog": false,
+			"stopOnEntry": false,
 		}
 	]
 }

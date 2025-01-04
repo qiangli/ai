@@ -150,12 +150,23 @@ const (
 	Verbose
 )
 
-// IsVerbose returns true if debug output is enabled.
+var logLevel Level
+
 func IsVerbose() bool {
-	return debugLogger.IsEnabled()
+	return logLevel == Verbose
+}
+
+func IsQuiet() bool {
+	return logLevel == Quiet
+}
+
+func IsNormal() bool {
+	return logLevel == Normal
 }
 
 func SetLogLevel(level Level) {
+	logLevel = level
+
 	// stdout
 	printLogger.SetEnabled(true)
 
