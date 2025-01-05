@@ -2,6 +2,7 @@ package tool
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -11,7 +12,12 @@ import (
 	"strings"
 
 	"github.com/openai/openai-go"
+	"github.com/qiangli/ai/internal/db"
 )
+
+type Config struct {
+	DBConfig *db.DBConfig
+}
 
 func define(name, description string, parameters map[string]interface{}) openai.ChatCompletionToolParam {
 	return openai.ChatCompletionToolParam{
@@ -116,7 +122,14 @@ var Tools = []openai.ChatCompletionToolParam{
 	),
 }
 
-func RunTool(name string, props map[string]interface{}) (string, error) {
+func RunTool(cfg *Config, ctx context.Context, name string, props map[string]interface{}) (string, error) {
+	if strings.HasPrefix(name, "db_") {
+		return runDbTool(cfg, ctx, name, props)
+	}
+	return runCommandTool(cfg, ctx, name, props)
+}
+
+func runCommandTool(cfg *Config, ctx context.Context, name string, props map[string]interface{}) (string, error) {
 	// Change to a temporary directory to avoid any side effects
 	// This also magically fixes the following mysterious error for "man" (runMan):
 	// shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
@@ -239,11 +252,9 @@ func RunTool(name string, props map[string]interface{}) (string, error) {
 			out = err.Error()
 		}
 		return out, nil
-	default:
-		return "", fmt.Errorf("unknown tool call: %s", name)
 	}
 
-	return "", nil
+	return "", fmt.Errorf("unknown tool: %s", name)
 }
 
 // runCommand executes a shell command with args and returns the output

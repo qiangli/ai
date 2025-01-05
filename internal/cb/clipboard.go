@@ -1,18 +1,9 @@
-package internal
+package cb
 
 import (
 	"time"
 
 	"github.com/atotto/clipboard"
-)
-
-// clipboard redirection
-const (
-	// read from clipboard
-	ClipboardInputRedirect = "="
-
-	// write to clipboard
-	ClipboardOutputRedirect = "=+"
 )
 
 type ClipboardProvider interface {

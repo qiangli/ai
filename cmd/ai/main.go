@@ -12,13 +12,16 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/agent"
+	"github.com/qiangli/ai/internal/db"
+	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/resource"
 	"github.com/qiangli/ai/internal/util"
 )
 
 type AppConfig struct {
-	LLM *internal.Config
+	LLM *llm.Config
 
 	Role    string
 	Message string
@@ -51,19 +54,19 @@ var rootCmd = &cobra.Command{
 		command := cfg.LLM.Command
 		switch command {
 		case "list":
-			return internal.ListCommand(cfg.LLM)
+			return agent.ListCommand(cfg.LLM)
 		case "info":
-			return internal.InfoCommand(cfg.LLM)
+			return agent.InfoCommand(cfg.LLM)
 		case "help":
 			return Help(cmd)
 		}
 
 		// remote - LLM API call
 		if strings.HasPrefix(command, "/") {
-			return internal.SlashCommand(cfg.LLM, cfg.Role, cfg.Message)
+			return agent.SlashCommand(cfg.LLM, cfg.Role, cfg.Message)
 		}
 		if strings.HasPrefix(command, "@") {
-			return internal.AgentCommand(cfg.LLM, cfg.Role, cfg.Message)
+			return agent.AgentCommand(cfg.LLM, cfg.Role, cfg.Message)
 		}
 
 		return cmd.Help()
@@ -104,6 +107,13 @@ func init() {
 	rootCmd.Flags().Bool("pb-write", false, "Copy output to the clipboard. Alternatively, append '=+' to the command")
 
 	rootCmd.Flags().String("log", "", "Log all debugging information to a file")
+
+	// db
+	rootCmd.Flags().String("db-host", "", "Database host")
+	rootCmd.Flags().String("db-port", "", "Database port")
+	rootCmd.Flags().String("db-username", "", "Database username")
+	rootCmd.Flags().String("db-password", "", "Database password")
+	rootCmd.Flags().String("db-name", "", "Database name")
 
 	//
 	rootCmd.Flags().MarkHidden("role")
@@ -147,7 +157,7 @@ func initConfig() {
 }
 
 func getConfig(args []string) *AppConfig {
-	var cfg internal.Config
+	var cfg llm.Config
 
 	cfg.Me = "ME"
 
@@ -176,24 +186,24 @@ func getConfig(args []string) *AppConfig {
 		for i := len(args) - 1; i >= 0; i-- {
 			lastArg := args[i]
 
-			if lastArg == internal.StdinInputRedirect {
+			if lastArg == agent.StdinInputRedirect {
 				isStdin = true
-			} else if lastArg == internal.ClipboardInputRedirect {
+			} else if lastArg == agent.ClipboardInputRedirect {
 				isClipin = true
-			} else if lastArg == internal.ClipboardOutputRedirect {
+			} else if lastArg == agent.ClipboardOutputRedirect {
 				isClipout = true
 			} else {
 				// check for suffix for cases where the special char is not the last arg
 				// but is part of the last arg
-				if strings.HasSuffix(lastArg, internal.StdinInputRedirect) {
+				if strings.HasSuffix(lastArg, agent.StdinInputRedirect) {
 					isStdin = true
-					args[i] = strings.TrimSuffix(lastArg, internal.StdinInputRedirect)
-				} else if strings.HasSuffix(lastArg, internal.ClipboardInputRedirect) {
+					args[i] = strings.TrimSuffix(lastArg, agent.StdinInputRedirect)
+				} else if strings.HasSuffix(lastArg, agent.ClipboardInputRedirect) {
 					isClipin = true
-					args[i] = strings.TrimSuffix(lastArg, internal.ClipboardInputRedirect)
-				} else if strings.HasSuffix(lastArg, internal.ClipboardOutputRedirect) {
+					args[i] = strings.TrimSuffix(lastArg, agent.ClipboardInputRedirect)
+				} else if strings.HasSuffix(lastArg, agent.ClipboardOutputRedirect) {
 					isClipout = true
-					args[i] = strings.TrimSuffix(lastArg, internal.ClipboardOutputRedirect)
+					args[i] = strings.TrimSuffix(lastArg, agent.ClipboardOutputRedirect)
 				}
 				newArgs = args[:i+1]
 				break
@@ -211,6 +221,17 @@ func getConfig(args []string) *AppConfig {
 			cfg.Args = newArgs[1:]
 		}
 	}
+
+	// db
+	dbCfg := &db.DBConfig{}
+
+	dbCfg.Host = viper.GetString("db_host")
+	dbCfg.Port = viper.GetString("db_port")
+	dbCfg.Username = viper.GetString("db_username")
+	dbCfg.Password = viper.GetString("db_password")
+	dbCfg.DBName = viper.GetString("db_name")
+
+	cfg.DBConfig = dbCfg
 
 	return &AppConfig{
 		LLM:     &cfg,

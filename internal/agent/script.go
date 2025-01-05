@@ -1,4 +1,4 @@
-package internal
+package agent
 
 import (
 	"bufio"
@@ -7,10 +7,12 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/qiangli/ai/internal/cb"
+	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
 )
 
-func ProcessBashScript(cfg *Config, script string) error {
+func ProcessBashScript(cfg *llm.Config, script string) error {
 	lines := strings.Split(script, "\n")
 	if len(lines) > 1 {
 		return confirmRun(
@@ -58,7 +60,7 @@ func confirm(ps string, choices []string, defaultChoice string, in io.Reader) (s
 	}
 }
 
-func confirmRun(cfg *Config, ps string, choices []string, defaultChoice, script string) error {
+func confirmRun(cfg *llm.Config, ps string, choices []string, defaultChoice, script string) error {
 	answer, err := confirm(ps, choices, defaultChoice, os.Stdin)
 	if err != nil {
 		return err
@@ -76,7 +78,7 @@ func confirmRun(cfg *Config, ps string, choices []string, defaultChoice, script 
 	return nil
 }
 
-func runScript(cfg *Config, script string) error {
+func runScript(cfg *llm.Config, script string) error {
 	log.Debugf("Running script:\n%s\n", script)
 
 	tmpFile, err := os.CreateTemp("", "ai-script-*.sh")
@@ -109,11 +111,11 @@ func runScript(cfg *Config, script string) error {
 	return cmd.Run()
 }
 
-func copyScriptToClipboard(_ *Config, script string) error {
-	return NewClipboard().Write(script)
+func copyScriptToClipboard(_ *llm.Config, script string) error {
+	return cb.NewClipboard().Write(script)
 }
 
-func editScript(cfg *Config, script string) error {
+func editScript(cfg *llm.Config, script string) error {
 	editor := cfg.Editor
 
 	log.Debugf("Using editor: %s\n", editor)

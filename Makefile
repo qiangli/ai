@@ -22,7 +22,7 @@ tidy: ## Tidy
 commit-message: ## Generate commit message and copy the message to clipboard
 	@git diff origin main|go run ./cmd/ai --dry-run=false @ask write commit message for git without code blocks =+
 
-install: build ## Install
+install: build test ## Install
 	@go install ./cmd/ai
 
 .PHONY: build test install commit-message

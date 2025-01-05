@@ -1,17 +1,19 @@
-package internal
+package agent
 
 import (
 	"context"
+
+	"github.com/qiangli/ai/internal/llm"
 )
 
 type EvalAgent struct {
-	config *Config
+	config *llm.Config
 
 	Role    string
 	Message string
 }
 
-func NewEvalAgent(cfg *Config, role, content string) (*EvalAgent, error) {
+func NewEvalAgent(cfg *llm.Config, role, content string) (*EvalAgent, error) {
 	if role == "" {
 		role = "system"
 	}
@@ -27,7 +29,7 @@ func NewEvalAgent(cfg *Config, role, content string) (*EvalAgent, error) {
 func (r *EvalAgent) Send(ctx context.Context, input string) (*ChatMessage, error) {
 	var message = r.Message
 
-	content, err := SendMessage(r.config, ctx, r.Role, message, input)
+	content, err := llm.Send(r.config, ctx, r.Role, message, input)
 	if err != nil {
 		return nil, err
 	}

@@ -1,4 +1,4 @@
-package internal
+package agent
 
 import (
 	"context"
@@ -10,6 +10,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/cb"
+	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/tool"
 	"github.com/qiangli/ai/internal/util"
@@ -47,12 +50,12 @@ func DetectContentType(filePath string) string {
 	return "application/octet-stream"
 }
 
-func AgentCommand(cfg *Config, role, content string) error {
+func AgentCommand(cfg *llm.Config, role, content string) error {
 	log.Debugf("Agent: %s %v\n", cfg.Command, cfg.Args)
 
 	name := strings.TrimSpace(cfg.Command[1:])
 	if name == "" {
-		return NewUserInputError("no agent provided")
+		return internal.NewUserInputError("no agent provided")
 	}
 
 	dict, err := ListAgents()
@@ -60,7 +63,7 @@ func AgentCommand(cfg *Config, role, content string) error {
 		return err
 	}
 	if _, exist := dict[name]; !exist {
-		return NewUserInputError("no such agent: " + name)
+		return internal.NewUserInputError("no such agent: " + name)
 	}
 
 	msg, err := GetUserInput(cfg)
@@ -68,7 +71,7 @@ func AgentCommand(cfg *Config, role, content string) error {
 		return err
 	}
 	if msg == "" {
-		return NewUserInputError("no message content")
+		return internal.NewUserInputError("no message content")
 	}
 
 	agent, err := MakeAgent(name, cfg, role, content)
@@ -93,7 +96,7 @@ func AgentCommand(cfg *Config, role, content string) error {
 	return nil
 }
 
-func SlashCommand(cfg *Config, role, content string) error {
+func SlashCommand(cfg *llm.Config, role, content string) error {
 	log.Debugf("Command: %s %v\n", cfg.Command, cfg.Args)
 
 	name := strings.TrimSpace(cfg.Command[1:])
@@ -107,7 +110,7 @@ func SlashCommand(cfg *Config, role, content string) error {
 	}
 
 	if name == "" && msg == "" {
-		return NewUserInputError("no command and message provided")
+		return internal.NewUserInputError("no command and message provided")
 	}
 
 	agent, err := NewScriptAgent(cfg, role, content)
@@ -132,7 +135,7 @@ func SlashCommand(cfg *Config, role, content string) error {
 	return nil
 }
 
-func InfoCommand(cfg *Config) error {
+func InfoCommand(cfg *llm.Config) error {
 	info, err := collectSystemInfo()
 	if err != nil {
 		log.Errorln(err)
@@ -142,7 +145,7 @@ func InfoCommand(cfg *Config) error {
 	return nil
 }
 
-func ListCommand(cfg *Config) error {
+func ListCommand(cfg *llm.Config) error {
 	list, err := tool.ListCommands(false)
 	if err != nil {
 		log.Errorf("Error: %v\n", err)
@@ -170,14 +173,14 @@ func collectSystemInfo() (string, error) {
 	return string(jd), nil
 }
 
-func processContent(cfg *Config, message *ChatMessage) {
+func processContent(cfg *llm.Config, message *ChatMessage) {
 	content := message.Content
-	doc := ParseMarkdown(content)
+	doc := util.ParseMarkdown(content)
 	total := len(doc.CodeBlocks)
 
 	// clipboard
 	if cfg.Clipout {
-		if err := NewClipboard().Write(content); err != nil {
+		if err := cb.NewClipboard().Write(content); err != nil {
 			log.Debugf("failed to copy content to clipboard: %v\n", err)
 		}
 	}

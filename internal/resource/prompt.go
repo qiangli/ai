@@ -32,7 +32,7 @@ func GetSystemRoleContent(info any) (string, error) {
 	var tplOutput bytes.Buffer
 
 	tpl, err := template.New("systemRole").Funcs(template.FuncMap{
-		"maxlen": MaxLen,
+		"maxLen": maxLen,
 	}).Parse(systemRoleTemplate)
 	if err != nil {
 		return "", err
@@ -63,7 +63,7 @@ func GetUserInputInstruction() string {
 
 func GetUserRoleContent(command string, message string) (string, error) {
 	tpl, err := template.New("userRole").Funcs(template.FuncMap{
-		"maxlen": MaxLen,
+		"maxLen": maxLen,
 	}).Parse(userRoleTemplate)
 	if err != nil {
 		return "", err
@@ -79,11 +79,4 @@ func GetUserRoleContent(command string, message string) (string, error) {
 	}
 
 	return buf.String(), nil
-}
-
-func MaxLen(s string, max int) string {
-	if len(s) > max {
-		return s[:max] + "..."
-	}
-	return s
 }

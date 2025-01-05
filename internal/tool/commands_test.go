@@ -1,6 +1,7 @@
 package tool
 
 import (
+	"context"
 	"testing"
 )
 
@@ -14,12 +15,17 @@ func TestRunMan(t *testing.T) {
 }
 
 func TestRunTool(t *testing.T) {
+	ctx := context.Background()
+
 	name := "man"
 	props := map[string]interface{}{
 		"command": "zic",
 	}
 	t.Logf("runTool name: %s, props: %v\n", name, props)
-	out, err := RunTool(name, props)
+
+	cfg := &Config{}
+
+	out, err := RunTool(cfg, ctx, name, props)
 	if err != nil {
 		t.Errorf("runTool error: %v", err)
 		return

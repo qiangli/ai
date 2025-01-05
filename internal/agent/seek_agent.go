@@ -1,17 +1,19 @@
-package internal
+package agent
 
 import (
 	"context"
+
+	"github.com/qiangli/ai/internal/llm"
 )
 
 type SeekAgent struct {
-	config *Config
+	config *llm.Config
 
 	Role    string
 	Message string
 }
 
-func NewSeekAgent(cfg *Config, role, content string) (*SeekAgent, error) {
+func NewSeekAgent(cfg *llm.Config, role, content string) (*SeekAgent, error) {
 	if role == "" {
 		role = "system"
 	}

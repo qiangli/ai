@@ -1,4 +1,4 @@
-package internal
+package agent
 
 import (
 	"context"
@@ -10,16 +10,17 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/internal/gptr"
+	"github.com/qiangli/ai/internal/llm"
 )
 
 type GptrAgent struct {
-	config *Config
+	config *llm.Config
 
 	Role    string
 	Message string
 }
 
-func NewGptrAgent(cfg *Config, role, content string) (*GptrAgent, error) {
+func NewGptrAgent(cfg *llm.Config, role, content string) (*GptrAgent, error) {
 	if role == "" {
 		role = "system"
 	}

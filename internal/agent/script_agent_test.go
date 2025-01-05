@@ -1,9 +1,10 @@
-package internal
+package agent
 
 import (
 	"context"
 	"testing"
 
+	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
 )
 
@@ -12,7 +13,7 @@ func TestScriptAgentSend(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	cfg := &Config{
+	cfg := &llm.Config{
 		ApiKey:  "sk-1234",
 		Model:   "gpt-4o-mini",
 		BaseUrl: "http://localhost:4000",

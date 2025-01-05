@@ -1,4 +1,9 @@
-package internal
+package llm
+
+import (
+	"github.com/openai/openai-go"
+	"github.com/qiangli/ai/internal/db"
+)
 
 type Config struct {
 	ApiKey  string
@@ -27,4 +32,8 @@ type Config struct {
 
 	Command string
 	Args    []string
+
+	Tools []openai.ChatCompletionToolParam
+
+	DBConfig *db.DBConfig
 }

@@ -1,4 +1,4 @@
-package internal
+package agent
 
 import (
 	"fmt"
@@ -7,12 +7,25 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/qiangli/ai/internal/cb"
+	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
 )
 
 const clipMaxLen = 500
 
 const StdinInputRedirect = "-"
+
+type ClipboardProvider = cb.ClipboardProvider
+
+// clipboard redirection
+const (
+	// read from clipboard
+	ClipboardInputRedirect = "="
+
+	// write to clipboard
+	ClipboardOutputRedirect = "=+"
+)
 
 type EditorProvider interface {
 	Launch() (string, error)
@@ -40,7 +53,7 @@ func clipText(text string, maxLen int) string {
 	return text
 }
 
-func GetUserInput(cfg *Config) (string, error) {
+func GetUserInput(cfg *llm.Config) (string, error) {
 	// stdin with | or <
 	isPiped := func() bool {
 		stat, _ := os.Stdin.Stat()
@@ -52,7 +65,7 @@ func GetUserInput(cfg *Config) (string, error) {
 		stdin = os.Stdin
 	}
 
-	msg, err := userInput(cfg, stdin, NewClipboard(), NewEditor(cfg.Editor))
+	msg, err := userInput(cfg, stdin, cb.NewClipboard(), NewEditor(cfg.Editor))
 	if err != nil {
 		return "", err
 	}
@@ -62,7 +75,7 @@ func GetUserInput(cfg *Config) (string, error) {
 }
 
 func userInput(
-	cfg *Config,
+	cfg *llm.Config,
 	stdin io.Reader,
 	clipboard ClipboardProvider,
 	editor EditorProvider,
