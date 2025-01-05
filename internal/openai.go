@@ -10,41 +10,7 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
-type ChatAgent struct {
-	config *Config
-
-	Role    string
-	Message string
-}
-
-func NewChatAgent(cfg *Config, role, content string) (*ChatAgent, error) {
-	if role == "" {
-		role = "system"
-	}
-
-	chat := ChatAgent{
-		config:  cfg,
-		Role:    role,
-		Message: content,
-	}
-	return &chat, nil
-}
-
-func (r *ChatAgent) Send(ctx context.Context, input string) (*ChatMessage, error) {
-	var message = r.Message
-
-	content, err := r.send(ctx, r.Role, message, input)
-	if err != nil {
-		return nil, err
-	}
-
-	return &ChatMessage{
-		Agent:   "CHAT",
-		Content: content,
-	}, nil
-}
-
-func (r *ChatAgent) send(ctx context.Context, role, prompt, input string) (string, error) {
+func SendMessage(cfg *Config, ctx context.Context, role, prompt, input string) (string, error) {
 
 	roleMessage := buildRoleMessage(role, prompt)
 	userMessage := buildRoleMessage("user", input)
@@ -53,11 +19,11 @@ func (r *ChatAgent) send(ctx context.Context, role, prompt, input string) (strin
 	log.Debugf(">>>USER:\n%+v\n", userMessage)
 
 	//
-	model := r.config.Model
+	model := cfg.Model
 
 	client := openai.NewClient(
-		option.WithAPIKey(r.config.ApiKey),
-		option.WithBaseURL(r.config.BaseUrl),
+		option.WithAPIKey(cfg.ApiKey),
+		option.WithBaseURL(cfg.BaseUrl),
 		option.WithMiddleware(logMiddleware()),
 	)
 
@@ -72,14 +38,14 @@ func (r *ChatAgent) send(ctx context.Context, role, prompt, input string) (strin
 
 	var content string
 
-	if !r.config.DryRun {
+	if !cfg.DryRun {
 		completion, err := client.Chat.Completions.New(ctx, params)
 		if err != nil {
 			return "", err
 		}
 		content = completion.Choices[0].Message.Content
 	} else {
-		content = r.config.DryRunContent
+		content = cfg.DryRunContent
 	}
 	log.Debugf("<<<OPENAI:\nmodel: %s, content length: %v\n\n", model, len(content))
 	return content, nil

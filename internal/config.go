@@ -23,7 +23,7 @@ type Config struct {
 
 	Me string
 
-	AutoPrompt bool
+	MetaPrompt bool
 
 	Command string
 	Args    []string

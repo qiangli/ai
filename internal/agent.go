@@ -2,9 +2,6 @@ package internal
 
 import (
 	"context"
-	"fmt"
-	"sort"
-	"strings"
 
 	"github.com/openai/openai-go"
 )
@@ -52,29 +49,30 @@ func DeveloperMessage(content string) openai.ChatCompletionMessageParamUnion {
 
 var availableAgents = map[string]string{
 	"ask":  "Ask a general question",
-	"chat": "Simple chat",
-	"seek": "Explore the web and create an objective research report",
-	"gptr": "Explore the web and create an objective research report",
+	"eval": "Direct message to AI",
+	"seek": "Explore the web for information",
+	"gptr": "GPT Researcher",
 
 	// "aider":      "AI pair programming in your terminal",
 	// "openhands":  "A platform for software development agents powered by AI",
 	// "vanna":      "Let Vanna.AI write your SQL for you",
 }
 
-func ListAgents() (map[string]string, error) {
-	return availableAgents, nil
+func MakeAgent(name string, cfg *Config, role, content string) (Agent, error) {
+	switch name {
+	case "ask":
+		return NewAskAgent(cfg, role, content)
+	case "eval":
+		return NewEvalAgent(cfg, role, content)
+	case "seek":
+		return NewSeekAgent(cfg, role, content)
+	case "gptr":
+		return NewGptrAgent(cfg, role, content)
+	default:
+		return nil, NewUserInputError("not supported yet: " + name)
+	}
 }
 
-func AvailableAgents() string {
-	dict, _ := ListAgents()
-	list := make([]string, 0, len(dict))
-	for k, v := range dict {
-		list = append(list, fmt.Sprintf("%s: %s", k, v))
-	}
-	sort.Strings(list)
-	var result strings.Builder
-	for _, v := range list {
-		result.WriteString(fmt.Sprintf("%s\n", v))
-	}
-	return result.String()
+func ListAgents() (map[string]string, error) {
+	return availableAgents, nil
 }

@@ -49,7 +49,8 @@ Miscellaneous:
   info                    Show system information
 
 Supported Agent:
-  ask                     Ask general questions{{if .HasAvailableLocalFlags}}
+  ask                     Ask general questions with meta prompting
+  eval                    Send direct message without system prompts for evaluation{{if .HasAvailableLocalFlags}}
 
 Options:
 {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}

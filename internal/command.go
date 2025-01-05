@@ -71,31 +71,9 @@ func AgentCommand(cfg *Config, role, content string) error {
 		return NewUserInputError("no message content")
 	}
 
-	var agent Agent
-
-	switch name {
-	case "ask":
-		agent, err = NewAskAgent(cfg, role, content)
-		if err != nil {
-			return err
-		}
-	case "chat":
-		agent, err = NewChatAgent(cfg, role, content)
-		if err != nil {
-			return err
-		}
-	case "seek":
-		agent, err = NewSeekAgent(cfg, role, content)
-		if err != nil {
-			return err
-		}
-	case "gptr":
-		agent, err = NewGptrAgent(cfg, role, content)
-		if err != nil {
-			return err
-		}
-	default:
-		return NewUserInputError("not supported yet: " + name)
+	agent, err := MakeAgent(name, cfg, role, content)
+	if err != nil {
+		return err
 	}
 
 	if cfg.DryRun {

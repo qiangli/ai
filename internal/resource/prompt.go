@@ -6,8 +6,8 @@ import (
 	"text/template"
 )
 
-//go:embed auto_role.md
-var autoRoleTemplate string
+//go:embed meta_role.md
+var metaRoleTemplate string
 
 //go:embed system_role.md
 var systemRoleTemplate string
@@ -24,8 +24,8 @@ var userInputInstruction string
 //go:embed user_example.txt
 var userExample string
 
-func GetAutoRoleContent() string {
-	return autoRoleTemplate
+func GetMetaRoleContent() string {
+	return metaRoleTemplate
 }
 
 func GetSystemRoleContent(info any) (string, error) {

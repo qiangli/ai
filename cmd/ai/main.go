@@ -96,7 +96,7 @@ func init() {
 	rootCmd.Flags().String("role", "system", "Specify the role for the prompt")
 	rootCmd.Flags().String("role-content", "", "Specify the content for the prompt")
 
-	rootCmd.Flags().BoolP("no-auto-prompt", "n", false, "Disable auto generation of system prompt")
+	rootCmd.Flags().BoolP("no-meta-prompt", "n", false, "Disable auto generation of system prompt")
 
 	rootCmd.Flags().BoolP("interactive", "i", false, "Interactive mode to run, edit, or copy generated code")
 
@@ -160,8 +160,8 @@ func getConfig(args []string) *AppConfig {
 	cfg.Editor = viper.GetString("editor")
 
 	cfg.Interactive = viper.GetBool("interactive")
-	noAuto := viper.GetBool("no_auto_prompt")
-	cfg.AutoPrompt = !noAuto
+	noMeta := viper.GetBool("no_meta_prompt")
+	cfg.MetaPrompt = !noMeta
 
 	//
 	cfg.WorkDir, _ = os.Getwd()

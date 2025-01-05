@@ -25,7 +25,7 @@ func NewAskAgent(cfg *Config, role, content string) (*AskAgent, error) {
 	if role == "" {
 		role = "system"
 	}
-	autoMessage := resource.GetAutoRoleContent()
+	autoMessage := resource.GetMetaRoleContent()
 
 	agent := AskAgent{
 		config:      cfg,
@@ -40,7 +40,7 @@ func (r *AskAgent) Send(ctx context.Context, input string) (*ChatMessage, error)
 	var agent = "ASK"
 	var message = r.Message
 
-	if r.config.AutoPrompt {
+	if r.config.MetaPrompt {
 		if message == "" {
 			message = r.autoMessage
 		}
