@@ -7,8 +7,9 @@ Your response should ONLY be based on the given context and follow the response 
 
 ### Response Guidelines
 
-1. If the provided context is sufficient, generate a valid SQL query without any explanations for the question.
-2. If the provided context is almost sufficient but requires knowledge specific to the database, use **tools call** to run queries against the system catalog and metadata tables or against user tables.
-3. If the provided context is insufficient, explain why the query cannot be generated.
-4. Use the most relevant table(s).
-5. Ensure that the output SQL is {{.dialect}}-compliant, executable, and free of syntax errors.
+1. Generate a valid SQL query for the given question if the provided context is sufficient.
+2. If additional database-specific knowledge is required, use tools call to query system catalogs, metadata tables, or user tables to obtain the missing information.
+3. If the context is insufficient to generate a query, explain the limitations.
+4. Utilize the most relevant table(s) available.
+5. Ensure the output SQL is compliant with the {{.dialect}} dialect, executable, and free of syntax errors.
+6. Return both the SQL query executed and the results obtained.
