@@ -9,6 +9,7 @@ require (
 	github.com/atotto/clipboard v0.1.4
 	github.com/docker/docker v27.4.1+incompatible
 	github.com/gocolly/colly v1.2.0
+	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
 	github.com/mariotoffia/goannoy v0.0.0-20241203082301-c889abef1805
 	github.com/openai/openai-go v0.1.0-alpha.41
@@ -42,7 +43,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

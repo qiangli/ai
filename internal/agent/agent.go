@@ -33,10 +33,6 @@ var availableAgents = map[string]string{
 	"seek": "Explore the web for information",
 	"gptr": "GPT Researcher",
 	"sql":  "SQL Assistant",
-
-	// "aider":      "AI pair programming in your terminal",
-	// "openhands":  "A platform for software development agents powered by AI",
-	// "vanna":      "Let Vanna.AI write your SQL for you",
 }
 
 func MakeAgent(name string, cfg *llm.Config, role, content string) (Agent, error) {
@@ -46,7 +42,7 @@ func MakeAgent(name string, cfg *llm.Config, role, content string) (Agent, error
 	case "eval":
 		return NewEvalAgent(cfg, role, content)
 	case "seek":
-		return NewSeekAgent(cfg, role, content)
+		return NewGptrAgent(cfg, role, content)
 	case "gptr":
 		return NewGptrAgent(cfg, role, content)
 	case "sql":

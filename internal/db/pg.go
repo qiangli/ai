@@ -10,11 +10,11 @@ import (
 )
 
 type DBConfig struct {
-	Host     string
-	Port     string
-	Username string
-	Password string
-	DBName   string
+	Host     string `mapstructure:"host"`
+	Port     string `mapstructure:"port"`
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
+	DBName   string `mapstructure:"name"`
 }
 
 // DSN returns the data source name for connecting to the database.

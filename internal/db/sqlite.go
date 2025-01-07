@@ -12,7 +12,7 @@ type DataStore struct {
 	db *sql.DB
 }
 
-func New(dsn string) (*DataStore, error) {
+func NewDB(dsn string) (*DataStore, error) {
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, err

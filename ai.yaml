@@ -33,4 +33,12 @@ pb_read: false
 # Write output to the clipboard
 pb_write: false
 
+# database
+db:
+  name: "postgres"
+  host: "localhost"
+  port: 5432
+  username: ""
+  password: ""
+
 ###

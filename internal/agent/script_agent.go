@@ -32,7 +32,7 @@ func NewScriptAgent(cfg *llm.Config, role, content string) (*ScriptAgent, error)
 		content = systemMessage
 	}
 
-	cfg.Tools = tool.Tools
+	cfg.Tools = tool.SystemTools
 
 	chat := ScriptAgent{
 		config:  cfg,

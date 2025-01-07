@@ -12,6 +12,7 @@ import (
 )
 
 const rootUsageTemplate = `Usage:
+  ai message...
   ai [OPTIONS] COMMAND [message...]{{if .HasExample}}
 
 Examples:
@@ -19,14 +20,8 @@ Examples:
 {{.Example}}{{end}}
 
 Commands:
-  /[binary] [message...]  Provide assistance with command-line utilities and shell scripting
-  @[agent]  [message...]  Engage agents for assistance with various tasks{{if .HasAvailableLocalFlags}}
-
-Options:
-{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
-
-Global Options:
-{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}
+  /[binary] [message...]  Get help with executable and shell scripting tasks
+  @[agent]  [message...]  Engage agents for help with various tasks
 
 Use "{{.CommandPath}} help" for more info.
 `
@@ -41,8 +36,8 @@ Usage:
 {{.Example}}{{end}}
 
 Commands:
-  /[binary] [message...]  Provide assistance with command-line utilities and shell scripting
-  @[agent]  [message...]  Engage agents for assistance with various tasks
+  /[binary] [message...]  Get help with executable and shell scripting tasks
+  @[agent]  [message...]  Engage agents for help with various tasks
 
 Miscellaneous:
   list                    List available binaries in the path
@@ -50,7 +45,8 @@ Miscellaneous:
 
 Supported Agent:
   ask                     Ask general questions with meta prompting
-  eval                    Send direct message without system prompts for evaluation{{if .HasAvailableLocalFlags}}
+  sql                     Generate SQL queries for your dataset
+  eval                    Send direct messages without system prompts for evaluation{{if .HasAvailableLocalFlags}}
 
 Options:
 {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}

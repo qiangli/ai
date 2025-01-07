@@ -36,6 +36,21 @@ Default system prompts can be replaced for testing and evaluation.
 ai --role "system" --role-content "custom prompt" ...
 ```
 
+## Debug
+
+```json
+//https://github.com/jfcg/sorty/issues/6
+// go test -c -o bin/test  ./internal/db
+{
+    "name": "TestGetByVector",
+    "type": "go",
+    "request": "launch",
+    "mode": "exec",
+    "program": "./bin/test",
+    "args": ["-test.run", "^TestGetByVector$"],
+},
+```
+
 ## Security and Privacy
 
 Certain system information is shared with the LLM through function and tool calls. This enables the AI to provide responses that are most relevant to your system.

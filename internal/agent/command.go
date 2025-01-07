@@ -3,9 +3,6 @@ package agent
 import (
 	"context"
 	"encoding/json"
-	"mime"
-	"net/http"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -18,36 +15,38 @@ import (
 	"github.com/qiangli/ai/internal/util"
 )
 
-// DetectContentType determines the content type of a file based on magic numbers, content, and file extension.
-func DetectContentType(filePath string) string {
-	file, err := os.Open(filePath)
+func AgentHelp(cfg *llm.Config, role, content string) error {
+	log.Debugln("Agent smart help")
+	msg := strings.TrimSpace(strings.Join(cfg.Args, " "))
+	if msg == "" {
+		return internal.NewUserInputError("no query provided")
+	}
+
+	agent, err := NewHelpAgent(cfg, role, content)
 	if err != nil {
-		log.Errorf("error opening file: %v", err)
-		return ""
+		return err
 	}
-	defer file.Close()
 
-	buffer := make([]byte, 512)
-	_, err = file.Read(buffer)
+	if cfg.DryRun {
+		log.Infof("Dry run mode. No API call will be made!\n")
+		log.Debugf("The following will be returned:\n%s\n", cfg.DryRunContent)
+	}
+	log.Infof("Sending request to [%s] %s...\n", cfg.Model, cfg.BaseUrl)
+
+	ctx := context.TODO()
+	resp, err := agent.Send(ctx, msg)
 	if err != nil {
-		log.Errorf("error reading file: %v", err)
-		return ""
+		return err
 	}
 
-	contentType := http.DetectContentType(buffer)
-	if contentType != "application/octet-stream" {
-		return contentType
+	// clone the cfg to avoid modifying the original one
+	nc := cfg.Clone()
+	if err := dispatch(nc, resp, role, content); err != nil {
+		return err
 	}
 
-	ext := filepath.Ext(filePath)
-	if ext != "" {
-		extType := mime.TypeByExtension(ext)
-		if extType != "" {
-			return extType
-		}
-	}
-
-	return "application/octet-stream"
+	log.Debugf("Agent help completed: %s %v\n", cfg.Command, cfg.Args)
+	return nil
 }
 
 func AgentCommand(cfg *llm.Config, role, content string) error {
@@ -220,5 +219,36 @@ func processContent(cfg *llm.Config, message *ChatMessage) {
 		}
 	} else {
 		showContent()
+	}
+}
+
+func dispatch(cfg *llm.Config, resp *ChatMessage, role, content string) error {
+	log.Debugf("dispatching: %+v\n", resp)
+
+	var data map[string]string
+	if err := json.Unmarshal([]byte(resp.Content), &data); err != nil {
+		return err
+	}
+	what := data["type"]
+	arg := data["arg"]
+
+	switch what {
+	case "command":
+		if arg == "/" {
+			cfg.Command = "/"
+		} else {
+			cfg.Command = "/" + arg
+		}
+		log.Infof("Running: ai %s...\n", cfg.Command)
+		return SlashCommand(cfg, role, content)
+	case "agent":
+		cfg.Command = "@" + arg
+		log.Infof("Running: ai %s...\n", cfg.Command)
+		return AgentCommand(cfg, role, content)
+	default:
+		log.Debugf("unknown type: %s, default to '@ask'\n", what)
+		cfg.Command = "@ask"
+		log.Infof("Running: ai %s...\n", cfg.Command)
+		return AgentCommand(cfg, role, content)
 	}
 }

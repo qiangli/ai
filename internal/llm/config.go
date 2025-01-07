@@ -35,5 +35,35 @@ type Config struct {
 
 	Tools []openai.ChatCompletionToolParam
 
-	DBConfig *db.DBConfig
+	DBConfig *db.DBConfig `mapstructure:"db"`
+}
+
+func (cfg *Config) Clone() *Config {
+	n := &Config{
+		ApiKey:        cfg.ApiKey,
+		BaseUrl:       cfg.BaseUrl,
+		Model:         cfg.Model,
+		Debug:         cfg.Debug,
+		DryRun:        cfg.DryRun,
+		DryRunContent: cfg.DryRunContent,
+		Editor:        cfg.Editor,
+		WorkDir:       cfg.WorkDir,
+		Interactive:   cfg.Interactive,
+		Clipin:        cfg.Clipin,
+		Clipout:       cfg.Clipout,
+		Stdin:         cfg.Stdin,
+		Me:            cfg.Me,
+		MetaPrompt:    cfg.MetaPrompt,
+		Command:       cfg.Command,
+		Args:          nil,
+		Tools:         nil,
+		DBConfig:      nil,
+	}
+
+	// shallow copy
+	n.Args = cfg.Args
+	n.Tools = cfg.Tools
+	n.DBConfig = cfg.DBConfig
+
+	return n
 }

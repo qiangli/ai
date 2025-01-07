@@ -15,9 +15,8 @@ import (
 	"github.com/shirou/gopsutil/v4/disk"
 	"github.com/shirou/gopsutil/v4/mem"
 	"github.com/shirou/gopsutil/v4/process"
-
 	// "github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/internal/tool"
+	// "github.com/qiangli/ai/internal/tool"
 )
 
 // GetFileSystemInfo retrieves information about the file system.
@@ -346,10 +345,10 @@ func CollectSystemInfo() (*SystemInfo, error) {
 	}
 
 	// Collect environment variables
-	info.EnvVarNames = tool.GetEnvVarNames()
+	info.EnvVarNames = GetEnvVarNames()
 
 	// Get working directory
-	info.WorkDir, err = tool.Getwd()
+	info.WorkDir, err = Getwd()
 	if err != nil {
 		errs = append(errs, fmt.Errorf("error getting working directory: %v", err))
 	}

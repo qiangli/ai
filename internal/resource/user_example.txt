@@ -1,13 +1,2 @@
-$ ai / what is fish?
-$ ai @ask what is fish?
-
-Message is read from command line, stdin "-", heredoc "<<", pipe "|", file "<", or clipboard "=":
-
-  ai COMMAND [message...]
-  ai COMMAND -
-  ai COMMAND <<eof
-  curl -sL http://example.com | ai COMMAND [message...]
-  ai COMMAND [message...] < file.txt
-  ai COMMAND [message...] =
-
-Ctrl+D to accept, Ctrl+C to cancel any time. An editor will be launched if no argument is provided.
+ai / what is fish?
+ai @ask what is fish?

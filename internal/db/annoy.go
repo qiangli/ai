@@ -1,50 +1,58 @@
 // https://github.com/mariotoffia/goannoy
 // https://github.com/spotify/annoy
 
-package vector
+package db
 
 import (
 	"github.com/mariotoffia/goannoy/builder"
 	"github.com/mariotoffia/goannoy/interfaces"
 )
 
-type VectorStore struct {
+type Index struct {
 	idx interfaces.AnnoyIndex[float32, uint32]
 }
 
-func New(f int /*vectorLength*/) *VectorStore {
+func NewIndex(f int /*vectorLength*/) *Index {
 	idx := builder.Index[float32, uint32]().
 		AngularDistance(f).
 		UseMultiWorkerPolicy().
 		MmapIndexAllocator().Build()
 
-	return &VectorStore{
+	return &Index{
 		idx: idx,
 	}
 }
 
-func (r *VectorStore) Build(ntrees int) {
+func (r *Index) Build(ntrees int) {
 	r.idx.Build(ntrees, -1)
 }
 
-func (r *VectorStore) Save(filename string) error {
+func (r *Index) Save(filename string) error {
 	return r.idx.Save(filename)
 }
 
-func (r *VectorStore) Load(filename string) error {
+func (r *Index) Load(filename string) error {
 	return r.idx.Load(filename)
 }
 
-func (r *VectorStore) GetByVector(query []float32, n int) ([]uint32, []float32) {
+func (r *Index) GetByVector(query []float32, n int) ([]uint32, []float32) {
 	ctx := r.idx.CreateContext()
 	return r.idx.GetNnsByVector(query, n, -1, ctx)
 }
 
-func (r *VectorStore) GetByItem(item uint32, n int) ([]uint32, []float32) {
+func (r *Index) GetByItem(item uint32, n int) ([]uint32, []float32) {
 	ctx := r.idx.CreateContext()
 	return r.idx.GetNnsByItem(item, n, -1, ctx)
 }
 
-func (vs *VectorStore) AddItem(id uint32, vector []float32) {
-	vs.idx.AddItem(id, vector)
+func (r *Index) AddItem(id uint32, vector []float32) {
+	r.idx.AddItem(id, vector)
+}
+
+func (r *Index) GetItem(id uint32) []float32 {
+	return r.idx.GetItem(id)
+}
+
+func (r *Index) Close() error {
+	return r.idx.Close()
 }

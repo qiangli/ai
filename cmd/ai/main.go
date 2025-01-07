@@ -27,31 +27,25 @@ type AppConfig struct {
 	Message string
 }
 
-var rootCmd = &cobra.Command{
-	Use:   "ai [OPTIONS] COMMAND [message...]",
-	Short: "AI command line tool",
-	Long: `AI Command Line Tool
+func handle(cmd *cobra.Command, args []string) error {
+	setLogLevel()
 
-	`,
-	Example: resource.GetUserExample(),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		setLogLevel()
-
-		fileLog, err := setLogOutput()
-		if err != nil {
-			return err
+	fileLog, err := setLogOutput()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if fileLog != nil {
+			fileLog.Close()
 		}
-		defer func() {
-			if fileLog != nil {
-				fileLog.Close()
-			}
-		}()
+	}()
 
-		cfg := getConfig(args)
+	cfg := getConfig(args)
 
-		log.Debugf("LLM config: %+v\n", cfg.LLM)
+	log.Debugf("LLM config: %+v %+v\n", cfg.LLM, cfg.LLM.DBConfig)
 
-		command := cfg.LLM.Command
+	command := cfg.LLM.Command
+	if command != "" {
 		switch command {
 		case "list":
 			return agent.ListCommand(cfg.LLM)
@@ -60,16 +54,29 @@ var rootCmd = &cobra.Command{
 		case "help":
 			return Help(cmd)
 		}
-
-		// remote - LLM API call
 		if strings.HasPrefix(command, "/") {
 			return agent.SlashCommand(cfg.LLM, cfg.Role, cfg.Message)
 		}
 		if strings.HasPrefix(command, "@") {
 			return agent.AgentCommand(cfg.LLM, cfg.Role, cfg.Message)
 		}
+	} else if len(cfg.LLM.Args) > 0 {
+		// auto select the best agent to handle the user query
+		// if there is message content
+		return agent.AgentHelp(cfg.LLM, cfg.Role, cfg.Message)
+	}
+	return cmd.Help()
+}
 
-		return cmd.Help()
+var rootCmd = &cobra.Command{
+	Use:   "ai [OPTIONS] COMMAND [message...]",
+	Short: "AI command line tool",
+	Long: `AI Command Line Tool
+
+	`,
+	Example: resource.GetUserExample(),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return handle(cmd, args)
 	},
 }
 
@@ -127,10 +134,16 @@ func init() {
 		viper.BindPFlag(key, f)
 	})
 
+	viper.BindPFlag("db.name", rootCmd.Flags().Lookup("db-name"))
+	viper.BindPFlag("db.host", rootCmd.Flags().Lookup("db-host"))
+	viper.BindPFlag("db.port", rootCmd.Flags().Lookup("db-port"))
+	viper.BindPFlag("db.username", rootCmd.Flags().Lookup("db-username"))
+	viper.BindPFlag("db.password", rootCmd.Flags().Lookup("db-password"))
+
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix("ai")
 	viper.BindEnv("api-key", "AI_API_KEY", "OPENAI_API_KEY")
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 
 	//
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
@@ -215,21 +228,44 @@ func getConfig(args []string) *AppConfig {
 	cfg.Clipin = isClipin || pbRead
 	cfg.Clipout = isClipout || pbWrite
 
+	//
 	if len(newArgs) > 0 {
-		cfg.Command = newArgs[0]
-		if len(newArgs) > 1 {
-			cfg.Args = newArgs[1:]
+		// check for valid command
+		valid := func() bool {
+			misc := []string{"list", "info", "help"}
+			if strings.HasPrefix(newArgs[0], "/") {
+				return true
+			}
+			if strings.HasPrefix(newArgs[0], "@") {
+				return true
+			}
+			for _, v := range misc {
+				if v == newArgs[0] {
+					return true
+				}
+			}
+			return false
 		}
+		if valid() {
+			cfg.Command = newArgs[0]
+			if len(newArgs) > 1 {
+				cfg.Args = newArgs[1:]
+			}
+		} else {
+			cfg.Command = ""
+			cfg.Args = newArgs
+		}
+
 	}
 
 	// db
 	dbCfg := &db.DBConfig{}
 
-	dbCfg.Host = viper.GetString("db_host")
-	dbCfg.Port = viper.GetString("db_port")
-	dbCfg.Username = viper.GetString("db_username")
-	dbCfg.Password = viper.GetString("db_password")
-	dbCfg.DBName = viper.GetString("db_name")
+	dbCfg.Host = viper.GetString("db.host")
+	dbCfg.Port = viper.GetString("db.port")
+	dbCfg.Username = viper.GetString("db.username")
+	dbCfg.Password = viper.GetString("db.password")
+	dbCfg.DBName = viper.GetString("db.name")
 
 	cfg.DBConfig = dbCfg
 

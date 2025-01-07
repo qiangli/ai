@@ -13,6 +13,7 @@ import (
 
 	"github.com/openai/openai-go"
 	"github.com/qiangli/ai/internal/db"
+	"github.com/qiangli/ai/internal/util"
 )
 
 type Config struct {
@@ -30,7 +31,7 @@ func define(name, description string, parameters map[string]interface{}) openai.
 	}
 }
 
-var Tools = []openai.ChatCompletionToolParam{
+var SystemTools = []openai.ChatCompletionToolParam{
 	define("man",
 		"Retrieve the man page for a command",
 		map[string]interface{}{
@@ -120,9 +121,16 @@ var Tools = []openai.ChatCompletionToolParam{
 		"Display date and time",
 		nil,
 	),
+	define("uname",
+		"Display information about the system",
+		nil,
+	),
 }
 
 func RunTool(cfg *Config, ctx context.Context, name string, props map[string]interface{}) (string, error) {
+	if strings.HasPrefix(name, "ai_") {
+		return runAIHelpTool(cfg, ctx, name, props)
+	}
 	if strings.HasPrefix(name, "db_") {
 		return runDbTool(cfg, ctx, name, props)
 	}
@@ -232,10 +240,10 @@ func runCommandTool(cfg *Config, ctx context.Context, name string, props map[str
 		}
 		return out, nil
 	case "env":
-		out := GetEnvVarNames()
+		out := util.GetEnvVarNames()
 		fmt.Printf("env: %s\n", out)
 	case "pwd":
-		out, err := Getwd()
+		out, err := util.Getwd()
 		if err != nil {
 			out = err.Error()
 		}
@@ -252,6 +260,9 @@ func runCommandTool(cfg *Config, ctx context.Context, name string, props map[str
 			out = err.Error()
 		}
 		return out, nil
+	case "uname":
+		as, arch := util.Uname()
+		return fmt.Sprintf("OS: %s\nArch: %s", as, arch), nil
 	}
 
 	return "", fmt.Errorf("unknown tool: %s", name)
@@ -345,26 +356,6 @@ Consider consulting the command's man page or using the help option to find the 
 		return "", err
 	}
 	return string(out), nil
-}
-
-func GetEnvVarNames() string {
-	names := []string{}
-	for _, env := range os.Environ() {
-		pair := strings.SplitN(env, "=", 2)
-		if len(pair) == 2 {
-			names = append(names, pair[0])
-		}
-	}
-	sort.Strings(names)
-	return strings.Join(names, "\n")
-}
-
-func Getwd() (string, error) {
-	pwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	return pwd, nil
 }
 
 // runCommandV executes the shell "command -v" with a list of commands and returns the output

@@ -18,8 +18,8 @@ eof
 Pipe message:
 
   echo "What is Unix?" | ai COMMAND
-  cat file.txt | ai COMMAND [message...]
-  curl -sL http://example.com | ai COMMAND [message...]
+  git diff origin main | ai COMMAND [message...]
+  curl -sL https://en.wikipedia.org/wiki/Artificial_intelligence | head -100 | ai COMMAND [message...]
 
 Redirect a file:
 
@@ -34,4 +34,4 @@ Ctrl+C to cancel.
 Use an editor to compose message:
 
   export AI_EDITOR=nano # default: vi
-  ai COMMAND # no additional argument
+  ai COMMAND
