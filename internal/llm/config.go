@@ -6,9 +6,23 @@ import (
 )
 
 type Config struct {
-	ApiKey  string
-	BaseUrl string
+	Workspace string
+
 	Model   string
+	BaseUrl string
+	ApiKey  string
+
+	L1Model   string
+	L1BaseUrl string
+	L1ApiKey  string
+
+	L2Model   string
+	L2BaseUrl string
+	L2ApiKey  string
+
+	L3Model   string
+	L3BaseUrl string
+	L3ApiKey  string
 
 	Debug bool
 
@@ -36,6 +50,14 @@ type Config struct {
 	Tools []openai.ChatCompletionToolParam
 
 	DBConfig *db.DBConfig `mapstructure:"db"`
+
+	ConfigFile string
+
+	// ai binary path
+	CommandPath string
+
+	//
+	Git *GitConfig
 }
 
 func (cfg *Config) Clone() *Config {
@@ -55,6 +77,7 @@ func (cfg *Config) Clone() *Config {
 		Me:            cfg.Me,
 		MetaPrompt:    cfg.MetaPrompt,
 		Command:       cfg.Command,
+		ConfigFile:    cfg.ConfigFile,
 		Args:          nil,
 		Tools:         nil,
 		DBConfig:      nil,
@@ -66,4 +89,8 @@ func (cfg *Config) Clone() *Config {
 	n.DBConfig = cfg.DBConfig
 
 	return n
+}
+
+type GitConfig struct {
+	Short bool
 }

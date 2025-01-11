@@ -2,9 +2,12 @@ package agent
 
 import (
 	"context"
+	"strings"
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/llm"
+	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/resource"
 )
 
 type Agent interface {
@@ -16,25 +19,6 @@ type ChatMessage struct {
 	Content string
 }
 
-// type Role = openai.ChatCompletionMessageParamRole
-
-// func DeveloperMessage(content string) openai.ChatCompletionMessageParamUnion {
-// 	return openai.ChatCompletionDeveloperMessageParam{
-// 		Role: openai.F(openai.ChatCompletionDeveloperMessageParamRoleDeveloper),
-// 		Content: openai.F([]openai.ChatCompletionContentPartTextParam{
-// 			openai.TextPart(content),
-// 		}),
-// 	}
-// }
-
-var availableAgents = map[string]string{
-	"ask":  "Ask a general question",
-	"eval": "Direct message to AI",
-	"seek": "Explore the web for information",
-	"gptr": "GPT Researcher",
-	"sql":  "SQL Assistant",
-}
-
 func MakeAgent(name string, cfg *llm.Config, role, content string) (Agent, error) {
 	switch name {
 	case "ask":
@@ -43,15 +27,43 @@ func MakeAgent(name string, cfg *llm.Config, role, content string) (Agent, error
 		return NewEvalAgent(cfg, role, content)
 	case "seek":
 		return NewGptrAgent(cfg, role, content)
-	case "gptr":
-		return NewGptrAgent(cfg, role, content)
 	case "sql":
 		return NewSqlAgent(cfg, role, content)
+	case "gptr":
+		return NewGptrAgent(cfg, role, content)
+	case "oh":
+		return NewOhAgent(cfg, role, content)
+	case "git":
+		return NewGitAgent(cfg, role, content)
+	case "code":
+		return NewAiderAgent(cfg, role, content)
 	default:
 		return nil, internal.NewUserInputError("not supported yet: " + name)
 	}
 }
 
-func ListAgents() (map[string]string, error) {
-	return availableAgents, nil
+func agentList() (map[string]string, error) {
+	return resource.AgentDesc, nil
+}
+
+func HandleCommand(cfg *llm.Config, role, content string) error {
+	log.Debugf("Handle: %s %v\n", cfg.Command, cfg.Args)
+
+	command := cfg.Command
+
+	if command != "" {
+		// $ ai /command
+		if strings.HasPrefix(command, "/") {
+			return SlashCommand(cfg, role, content)
+		}
+
+		// $ ai @agent
+		if strings.HasPrefix(command, "@") {
+			return AgentCommand(cfg, role, content)
+		}
+	}
+
+	// auto select the best agent to handle the user query if there is message content
+	// $ ai message...
+	return AgentHelp(cfg, role, content)
 }

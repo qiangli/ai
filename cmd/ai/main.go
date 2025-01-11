@@ -17,6 +17,7 @@ import (
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/resource"
+	"github.com/qiangli/ai/internal/shell"
 	"github.com/qiangli/ai/internal/util"
 )
 
@@ -40,32 +41,48 @@ func handle(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
-	cfg := getConfig(args)
+	cfg := getConfig(cmd, args)
 
-	log.Debugf("LLM config: %+v %+v\n", cfg.LLM, cfg.LLM.DBConfig)
+	log.Debugf("Config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.LLM.DBConfig)
 
 	command := cfg.LLM.Command
-	if command != "" {
-		switch command {
-		case "list":
-			return agent.ListCommand(cfg.LLM)
-		case "info":
-			return agent.InfoCommand(cfg.LLM)
-		case "help":
-			return Help(cmd)
-		}
-		if strings.HasPrefix(command, "/") {
-			return agent.SlashCommand(cfg.LLM, cfg.Role, cfg.Message)
-		}
-		if strings.HasPrefix(command, "@") {
-			return agent.AgentCommand(cfg.LLM, cfg.Role, cfg.Message)
-		}
-	} else if len(cfg.LLM.Args) > 0 {
-		// auto select the best agent to handle the user query
-		// if there is message content
-		return agent.AgentHelp(cfg.LLM, cfg.Role, cfg.Message)
+
+	// interactive mode
+	// $ ai -i or $ ai --interactive
+	if cfg.LLM.Interactive {
+		return shell.Bash(cfg.LLM)
 	}
-	return cmd.Help()
+
+	// $ ai
+	if command == "" && len(cfg.LLM.Args) == 0 {
+		return cmd.Help()
+	}
+
+	// special commands
+	if command != "" {
+		// exact match with no message content
+		// $ ai /
+		// $ ai @
+		// $ ai info
+		// $ ai setup
+		// $ ai help
+		if len(cfg.LLM.Args) == 0 {
+			switch command {
+			case "/":
+				return agent.ListCommands(cfg.LLM)
+			case "@":
+				return agent.ListAgents(cfg.LLM)
+			case "info":
+				return agent.Info(cfg.LLM)
+			case "setup":
+				return agent.Setup(cfg.LLM)
+			case "help":
+				return Help(cmd)
+			}
+		}
+	}
+
+	return agent.HandleCommand(cfg.LLM, cfg.Role, cfg.Message)
 }
 
 var rootCmd = &cobra.Command{
@@ -85,18 +102,43 @@ var cfgFile string
 func init() {
 	defaultCfg := os.Getenv("AI_CONFIG")
 	// default: ~/.ai/config.yaml
+	homeDir := util.HomeDir()
 	if defaultCfg == "" {
-		homeDir := util.HomeDir()
 		if homeDir != "" {
 			defaultCfg = filepath.Join(homeDir, ".ai", "config.yaml")
 		}
 	}
+	defaultWS := filepath.Join(homeDir, ".ai", "workspace")
+
+	//
 	rootCmd.Flags().StringVar(&cfgFile, "config", defaultCfg, "config file")
 
 	// Define flags with dashes
+	rootCmd.Flags().StringP("workspace", "w", defaultWS, "Workspace directory")
+
 	rootCmd.Flags().String("api-key", "", "LLM API key")
 	rootCmd.Flags().String("model", openai.ChatModelGPT4o, "LLM model")
 	rootCmd.Flags().String("base-url", "https://api.openai.com/v1/", "LLM Base URL")
+
+	rootCmd.Flags().String("l1-api-key", "", "Level1 basic LLM API key")
+	rootCmd.Flags().String("l1-model", openai.ChatModelGPT4oMini, "Level1 basic LLM model")
+	rootCmd.Flags().String("l1-base-url", "https://api.openai.com/v1/", "Level1 basic LLM Base URL")
+
+	rootCmd.Flags().String("l2-api-key", "", "Level2 standard LLM API key")
+	rootCmd.Flags().String("l2-model", openai.ChatModelGPT4o, "Level2 standard LLM model")
+	rootCmd.Flags().String("l2-base-url", "https://api.openai.com/v1/", "Level2 standard LLM Base URL")
+
+	rootCmd.Flags().String("l3-api-key", "", "Level3 advanced LLM API key")
+	rootCmd.Flags().String("l3-model", openai.ChatModelO1Mini, "Level3 advanced LLM model")
+	rootCmd.Flags().String("l3-base-url", "https://api.openai.com/v1/", "Level3 advanced LLM Base URL")
+
+	rootCmd.Flags().MarkHidden("l1-api-key")
+	rootCmd.Flags().MarkHidden("l2-api-key")
+	rootCmd.Flags().MarkHidden("l3-api-key")
+	rootCmd.Flags().MarkHidden("l1-base-url")
+	rootCmd.Flags().MarkHidden("l2-base-url")
+	rootCmd.Flags().MarkHidden("l3-base-url")
+
 	rootCmd.Flags().Bool("verbose", false, "Show debugging information")
 	rootCmd.Flags().Bool("quiet", false, "Operate quietly")
 	rootCmd.Flags().Bool("dry-run", false, "Enable dry run mode. No API call will be made")
@@ -127,6 +169,9 @@ func init() {
 	rootCmd.Flags().MarkHidden("role-content")
 	rootCmd.Flags().MarkHidden("dry-run")
 	rootCmd.Flags().MarkHidden("dry-run-content")
+
+	// TODO agent specific flags
+	rootCmd.Flags().Bool("git-short", false, "Generate short one liner commit message")
 
 	// Bind the flags to viper using underscores
 	rootCmd.Flags().VisitAll(func(f *pflag.Flag) {
@@ -169,17 +214,61 @@ func initConfig() {
 	}
 }
 
-func getConfig(args []string) *AppConfig {
+func getConfig(cmd *cobra.Command, args []string) *AppConfig {
 	var cfg llm.Config
 
 	cfg.Me = "ME"
+	cfg.ConfigFile = viper.ConfigFileUsed()
+	cfg.CommandPath = cmd.CommandPath()
+	cfg.Workspace = viper.GetString("workspace")
 
+	//
 	cfg.ApiKey = viper.GetString("api_key")
 	cfg.Model = viper.GetString("model")
 	cfg.BaseUrl = viper.GetString("base_url")
+
+	cfg.L1Model = viper.GetString("l1_model")
+	cfg.L1BaseUrl = viper.GetString("l1_base_url")
+	cfg.L1ApiKey = viper.GetString("l1_api_key")
+	cfg.L2Model = viper.GetString("l2_model")
+	cfg.L2BaseUrl = viper.GetString("l2_base_url")
+	cfg.L2ApiKey = viper.GetString("l2_api_key")
+	cfg.L3Model = viper.GetString("l3_model")
+	cfg.L3BaseUrl = viper.GetString("l3_base_url")
+	cfg.L3ApiKey = viper.GetString("l3_api_key")
+	if cfg.L1Model == "" {
+		cfg.L1Model = cfg.Model
+	}
+	if cfg.L2Model == "" {
+		cfg.L2Model = cfg.Model
+	}
+	if cfg.L3Model == "" {
+		cfg.L3Model = cfg.Model
+	}
+	if cfg.L1ApiKey == "" {
+		cfg.L1ApiKey = cfg.ApiKey
+	}
+	if cfg.L2ApiKey == "" {
+		cfg.L2ApiKey = cfg.ApiKey
+	}
+	if cfg.L3ApiKey == "" {
+		cfg.L3ApiKey = cfg.ApiKey
+	}
+	if cfg.L1BaseUrl == "" {
+		cfg.L1BaseUrl = cfg.BaseUrl
+	}
+	if cfg.L2BaseUrl == "" {
+		cfg.L2BaseUrl = cfg.BaseUrl
+	}
+	if cfg.L3BaseUrl == "" {
+		cfg.L3BaseUrl = cfg.BaseUrl
+	}
+
 	cfg.Debug = viper.GetBool("verbose")
+
 	cfg.DryRun = viper.GetBool("dry_run")
 	cfg.DryRunContent = viper.GetString("dry_run_content")
+
 	cfg.Editor = viper.GetString("editor")
 
 	cfg.Interactive = viper.GetBool("interactive")
@@ -195,6 +284,7 @@ func getConfig(args []string) *AppConfig {
 	var isStdin, isClipin, isClipout bool
 	newArgs := args
 
+	// parse special char sequence
 	if len(args) > 0 {
 		for i := len(args) - 1; i >= 0; i-- {
 			lastArg := args[i]
@@ -228,11 +318,11 @@ func getConfig(args []string) *AppConfig {
 	cfg.Clipin = isClipin || pbRead
 	cfg.Clipout = isClipout || pbWrite
 
-	//
+	// command and args
 	if len(newArgs) > 0 {
 		// check for valid command
 		valid := func() bool {
-			misc := []string{"list", "info", "help"}
+			misc := []string{"info", "setup", "help"}
 			if strings.HasPrefix(newArgs[0], "/") {
 				return true
 			}
@@ -240,7 +330,7 @@ func getConfig(args []string) *AppConfig {
 				return true
 			}
 			for _, v := range misc {
-				if v == newArgs[0] {
+				if v == newArgs[0] && len(newArgs) == 1 {
 					return true
 				}
 			}
@@ -268,6 +358,11 @@ func getConfig(args []string) *AppConfig {
 	dbCfg.DBName = viper.GetString("db.name")
 
 	cfg.DBConfig = dbCfg
+
+	//
+	gitConfig := &llm.GitConfig{}
+	cfg.Git = gitConfig
+	gitConfig.Short = viper.GetBool("git_short")
 
 	return &AppConfig{
 		LLM:     &cfg,

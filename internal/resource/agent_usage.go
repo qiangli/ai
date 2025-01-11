@@ -1,53 +1,41 @@
 package resource
 
-const MiscCommandUsage = `
-list                    List available binaries in the path
-info                    Show system information
-`
-
-var AgentList = map[string]string{
-	"ask":  "Ask general questions on a broad range of topics",
-	"seek": "Explore the web for up to date information",
-	"sql":  "Generate SQL queries for your dataset",
-	"eval": "Send direct messages without system prompts for evaluation",
+// describe each agent in 18 words or less
+var AgentDesc = map[string]string{
+	"ask":  "A versatile Q&A tool providing concise, reliable answers on diverse topics for learners and inquisitive minds",
+	"seek": "Internet agent for gathering insights and information, aiding research, analysis, and staying informed with timely, relevant content",
+	"sql":  "An SQL agent that simplifies query generation, boosts productivity, and assists users from beginners to database administrators",
+	"eval": "Direct AI interaction tool for creative brainstorming, rapid prototyping, and spontaneous problem-solving without predefined workflows",
+	"oh":   "OpenHands aids incremental development for greenfield projects, code integration, refactoring, and debugging with context.",
+	"gptr": "GPT Researcher autonomously conducts thorough web research, generating factual reports with citations",
+	"git":  "A Git agent for generating git messages in software development projects",
+	"code": "Code agent enables collaborative code editing with LLMs in your local workspace",
 }
 
+// summarize each agent in 100 words
 var AgentInfo = map[string]string{
 	"ask": `
-	This agent allows users to pose general questions that cover a broad range of topics.
-Whether you're curious about scientific phenomena, historical events, cultural practices,
-or even the intricacies of technology, this option empowers you to seek explanatory answers.
-It acts as a digital Q&A platform, where the primary goal is to provide reliable, relevant,
-and accessible answers that are informative and concise. Ideal for learners, educators,
-and inquisitive minds, this capability serves as an invaluable tool for expanding knowledge
-and providing quick solutions to everyday questions.
+	This agent serves as an all-encompassing Q&A platform, enabling users to explore and inquire about a diverse array of topics, from scientific phenomena to cultural practices and technology. Its primary objective is to deliver reliable, relevant, and accessible answers that are both informative and concise. Ideal for learners, educators, and the inquisitive, it offers an invaluable tool for broadening knowledge and swiftly addressing everyday questions. By providing clear and explanatory answers, this agent supports users in their quest for understanding across a wide range of subjects.
 `,
 	"seek": `
-	This agent is designed for users who want to traverse the internet to gather information
-and insights. It acts as a gateway to the World Wide Web, harnessing the power of search technologies
-to deliver comprehensive and up-to-date information from a multitude of online sources. Whether you're
-conducting research for academic purposes, performing competitive analysis in business,
-or simply looking to stay informed about the latest trends and news, this feature equips you
-with the necessary tools to efficiently explore digital content.
-It adeptly navigates the vastness of online resources to ensure accurate, timely,
-and contextually relevant information is at your fingertips.`,
+	This agent serves users seeking to gather insights from the internet by using advanced search technologies. It acts as a gateway to deliver comprehensive, up-to-date information from diverse online sources. Whether for academic research, competitive business analysis, or staying informed on trends and news, this tool efficiently supports digital exploration. It skillfully navigates the vast landscape of online resources to provide accurate, timely, and contextually relevant information. Ideal for users needing a reliable means of accessing and analyzing digital content, it ensures that pertinent information is readily available at their fingertips.
+`,
 	"sql": `
-	This SQL agent is tailored for database enthusiasts and professionals who require assistance with SQL queries.
-This tool is essential for individuals seeking to write, modify, or optimize database queries,
-providing valuable guidance and suggestions. It caters to a wide range of SQL-related tasks,
-from managing database schemas to executing complex queries and analyzing their results.
-By simplifying the SQL interaction process, this assistant accelerates query development,
-aids in debugging, and enhances overall database productivity. Whether you're a beginner
-looking to understand the basics or an experienced database administrator aiming for optimization,
-this tool offers indispensable support.
+	This SQL agent streamlines query generation, enabling users to derive insights from databases by asking questions without requiring SQL expertise. It integrates with databases like PostgreSQL, ensuring security and efficiency through privacy and improved accuracy with continuous training. Designed for both enthusiasts and professionals, the tool assists in writing, modifying, and optimizing SQL queries, offering guidance on a wide range of tasks from schema management to complex query execution. By simplifying SQL interactions, it accelerates query development, aids debugging, and boosts productivity, serving both beginners and expert database administrators alike.
 `,
 	"eval": `
-	This tool allows users to engage directly with AI, bypassing traditional prompts or predefined workflows.
-It creates a conversational interface where users can test ideas, hypothesize, or simply interact with an AI
-in a more fluid and natural manner without the constraints of system-imposed prompts.
-This mode is particularly useful for creative brainstorming, rapid prototyping of ideas,
-or when you need quick, unstructured advice.
-By providing a more flexible interaction model, users can explore various scenarios
-or harness the AI's capabilities for off-the-cuff problem-solving, experimentation, and innovation in any field of interest.
+	This tool enables direct, conversational interaction with AI, eliminating traditional prompts or predefined workflows. It offers a dynamic interface for users to test ideas, hypothesize, or simply engage with AI in a fluid, natural way without system constraints. Particularly valuable for creative brainstorming and rapid prototyping, it allows for quick, unstructured advice. By offering a flexible interaction model, users can explore diverse scenarios and fully utilize the AI's capabilities for spontaneous problem-solving, experimentation, and innovation across various fields. This promotes a more adaptable and creative approach to AI engagement.
+`,
+	"oh": `
+    OpenHands is an engineering assistant tool that simplifies tasks by encouraging an incremental approach. Start with basic exercises like creating a "hello world" script and progressively improve your project. It's ideal for greenfield projects, allowing you to begin with simple tasks such as developing a React TODO app and gradually adding features. OpenHands effectively integrates new code into existing systems and supports step-by-step code refactoring. For troubleshooting, detailed context is essential. The best outcomes are achieved by approaching tasks in small steps, providing specific details, sharing context, and making frequent commits.
+`,
+	"gptr": `
+	The GPT Researcher is an autonomous agent designed for thorough web research, producing detailed, factual reports with citations. It efficiently generates research questions and gathers information, addressing misinformation and token limitations common in language models. This tool offers extensive customization and aggregates data from over 20 sources, allowing for report export in multiple formats. Its user-friendly frontend enhances interaction and real-time progress tracking, making research tasks more precise and manageable for individuals and organizations seeking accurate information.
+`,
+	"git": `
+    A Git agent is a tool used in software development to aid in creating and managing Git commit messages. It automates and enhances the process, ensuring consistency and clarity in the project's change history. By producing well-structured commit messages, a Git agent helps maintain organized records, facilitates team collaboration, and improves overall efficiency in version control management.
+`,
+	"code": `
+	The Code agent is an innovative tool that boosts collaborative software development by seamlessly integrating Large Language Models (LLMs) into local environments. By harnessing the power of these models, it can generate new code, refactor existing code, fix bugs, and develop test cases efficiently. This enhances productivity and code quality, making teamwork more efficient and effective.
 `,
 }

@@ -29,6 +29,7 @@ Use "{{.CommandPath}} help" for more info.
 const helpTemplate = `AI Command Line Tool
 
 Usage:
+  ai message...
   ai [OPTIONS] COMMAND [message...]{{if .Hint}}
 
 {{.Hint}}{{end}}{{if .HasExample}}
@@ -40,11 +41,11 @@ Commands:
   @[agent]  [message...]  Engage agents for help with various tasks
 
 Miscellaneous:
-  list                    List available binaries in the path
-  info                    Show system information
+  info                    Show system information shared with LLM
+  setup                   Setup the AI configuration
 
 Supported Agent:
-  ask                     Ask general questions with meta prompting
+  ask                     Ask general questions
   sql                     Generate SQL queries for your dataset
   eval                    Send direct messages without system prompts for evaluation{{if .HasAvailableLocalFlags}}
 

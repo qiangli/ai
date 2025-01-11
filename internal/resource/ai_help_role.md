@@ -22,21 +22,20 @@ Based on the user's query, determine whether to call a system command or an agen
        "arg": "ls"
      }
 
-2. User Query: "Can you help me with my email?"
-   - Use "ai_agent_list" to find supported agents.
-   - Use "ai_agent_help" to determine the best-fit agent for email-related queries.
-   - If unsure, respond with:
+2. User Query: "Please build a basic TODO list app in Go."
+   - Use "ai_agent_info" to evaluate and determine the best-fit agent for coding, refactoring, or bug fixing queries.
+   - If found, response with the selected agent in the format:
+     {
+       "type", "agent",
+       "arg": "<selected_agent_name>"
+     }
+
+3. User Query: "Can you help me with my email?"
+   - Use "ai_agent_info" to determine the best-fit agent for email-related queries.
+   - If not found or unsure, respond with the default `ask` agent:
      {
        "type", "agent",
        "arg": "ask"
-     }
-
-3. User Query: "What is the current system architecture?"
-   - Use "uname" to check the system architecture.
-   - Respond with:
-     {
-       "type": "command",
-       "arg": "uname"
      }
 
 4. User Query: "How do I write a shell script?"
@@ -47,7 +46,8 @@ Based on the user's query, determine whether to call a system command or an agen
      }
 
 5. User Query: "Can you run a SQL query to get the total sales for last month?"
-   - Use the available agent `@sql` to handle SQL queries.
+   - Use "ai_agent_info" to find supported agents.
+   - Use the available agent `sql` to handle SQL queries.
    - Respond with:
      {
        "type": "agent",

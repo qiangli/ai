@@ -1,37 +1,37 @@
 There are multiple ways to interact with the AI tool.
 
-Enter message on the command line:
++ Command line input:
 
   ai COMMAND what is fish?
 
-Read message from stdin:
++ Read from standard input:
 
   ai COMMAND -
 Ctrl+D to send, Ctrl+C to cancel.
 
-Heredoc message:
++ Here document:
 
   ai COMMAND <<eof
 what is the weather today?
 eof
 
-Pipe message:
++ Piping input:
 
   echo "What is Unix?" | ai COMMAND
   git diff origin main | ai COMMAND [message...]
   curl -sL https://en.wikipedia.org/wiki/Artificial_intelligence | head -100 | ai COMMAND [message...]
 
-Redirect a file:
++ File redirection:
 
   ai COMMAND [message...] < file.txt
 
-Wait, clear/read from system clipboard:
++ Reading from system clipboard:
 
   ai COMMAND [message...] =
 Use system copy (Ctrl+C on Unix) to send selected contents.
 Ctrl+C to cancel.
 
-Use an editor to compose message:
++ Composing with text editor:
 
   export AI_EDITOR=nano # default: vi
   ai COMMAND

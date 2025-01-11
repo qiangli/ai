@@ -11,13 +11,16 @@ import (
 	"github.com/qiangli/ai/internal/cb"
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/internal/tool"
 	"github.com/qiangli/ai/internal/util"
 )
 
 func AgentHelp(cfg *llm.Config, role, content string) error {
 	log.Debugln("Agent smart help")
-	msg := strings.TrimSpace(strings.Join(cfg.Args, " "))
+
+	msg, err := GetUserInput(cfg)
+	if err != nil {
+		return err
+	}
 	if msg == "" {
 		return internal.NewUserInputError("no query provided")
 	}
@@ -33,6 +36,7 @@ func AgentHelp(cfg *llm.Config, role, content string) error {
 	}
 	log.Infof("Sending request to [%s] %s...\n", cfg.Model, cfg.BaseUrl)
 
+	// Let LLM decide which agent to use
 	ctx := context.TODO()
 	resp, err := agent.Send(ctx, msg)
 	if err != nil {
@@ -41,7 +45,7 @@ func AgentHelp(cfg *llm.Config, role, content string) error {
 
 	// clone the cfg to avoid modifying the original one
 	nc := cfg.Clone()
-	if err := dispatch(nc, resp, role, content); err != nil {
+	if err := dispatch(nc, resp, role, content, msg); err != nil {
 		return err
 	}
 
@@ -57,7 +61,7 @@ func AgentCommand(cfg *llm.Config, role, content string) error {
 		return internal.NewUserInputError("no agent provided")
 	}
 
-	dict, err := ListAgents()
+	dict, err := agentList()
 	if err != nil {
 		return err
 	}
@@ -72,6 +76,11 @@ func AgentCommand(cfg *llm.Config, role, content string) error {
 	if msg == "" {
 		return internal.NewUserInputError("no message content")
 	}
+
+	return handleAgent(name, cfg, role, content, msg)
+}
+
+func handleAgent(name string, cfg *llm.Config, role, content, msg string) error {
 
 	agent, err := MakeAgent(name, cfg, role, content)
 	if err != nil {
@@ -112,6 +121,10 @@ func SlashCommand(cfg *llm.Config, role, content string) error {
 		return internal.NewUserInputError("no command and message provided")
 	}
 
+	return handleSlash(name, cfg, role, content, msg)
+}
+
+func handleSlash(name string, cfg *llm.Config, role, content, msg string) error {
 	agent, err := NewScriptAgent(cfg, role, content)
 	if err != nil {
 		return err
@@ -134,7 +147,7 @@ func SlashCommand(cfg *llm.Config, role, content string) error {
 	return nil
 }
 
-func InfoCommand(cfg *llm.Config) error {
+func Info(cfg *llm.Config) error {
 	info, err := collectSystemInfo()
 	if err != nil {
 		log.Errorln(err)
@@ -144,8 +157,34 @@ func InfoCommand(cfg *llm.Config) error {
 	return nil
 }
 
-func ListCommand(cfg *llm.Config) error {
-	list, err := tool.ListCommands(false)
+func Setup(cfg *llm.Config) error {
+	if err := setupConfig(cfg); err != nil {
+		log.Errorf("Error: %v\n", err)
+		return err
+	}
+	return nil
+}
+
+func ListAgents(cfg *llm.Config) error {
+	dict, err := agentList()
+	if err != nil {
+		return err
+	}
+
+	var keys []string
+	for k := range dict {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		log.Printf("%s:\t%s\n", k, dict[k])
+	}
+	return nil
+}
+
+func ListCommands(cfg *llm.Config) error {
+	list, err := util.ListCommands(false)
 	if err != nil {
 		log.Errorf("Error: %v\n", err)
 		return err
@@ -222,33 +261,35 @@ func processContent(cfg *llm.Config, message *ChatMessage) {
 	}
 }
 
-func dispatch(cfg *llm.Config, resp *ChatMessage, role, content string) error {
+func dispatch(cfg *llm.Config, resp *ChatMessage, role, content, msg string) error {
 	log.Debugf("dispatching: %+v\n", resp)
 
 	var data map[string]string
 	if err := json.Unmarshal([]byte(resp.Content), &data); err != nil {
-		return err
+		// better continue the conversation than err
+		log.Debugf("failed to unmarshal content: %v\n", err)
+		data = map[string]string{"type": "agent", "arg": "ask"}
 	}
 	what := data["type"]
-	arg := data["arg"]
+	name := data["arg"]
 
 	switch what {
 	case "command":
-		if arg == "/" {
+		if name == "/" {
 			cfg.Command = "/"
 		} else {
-			cfg.Command = "/" + arg
+			cfg.Command = "/" + name
 		}
-		log.Infof("Running: ai %s...\n", cfg.Command)
-		return SlashCommand(cfg, role, content)
+		log.Infof("Running `ai %s` ...\n", cfg.Command)
+		return handleSlash(name, cfg, role, content, msg)
 	case "agent":
-		cfg.Command = "@" + arg
-		log.Infof("Running: ai %s...\n", cfg.Command)
-		return AgentCommand(cfg, role, content)
+		cfg.Command = "@" + name
+		log.Infof("Running `ai %s` ...\n", cfg.Command)
+		return handleAgent(name, cfg, role, content, msg)
 	default:
 		log.Debugf("unknown type: %s, default to '@ask'\n", what)
 		cfg.Command = "@ask"
-		log.Infof("Running: ai %s...\n", cfg.Command)
-		return AgentCommand(cfg, role, content)
+		log.Infof("Running `ai %s` ...\n", cfg.Command)
+		return handleAgent("ask", cfg, role, content, msg)
 	}
 }

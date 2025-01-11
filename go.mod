@@ -7,6 +7,7 @@ toolchain go1.23.4
 require (
 	github.com/PuerkitoBio/goquery v1.10.1
 	github.com/atotto/clipboard v0.1.4
+	github.com/creack/pty v1.1.18
 	github.com/docker/docker v27.4.1+incompatible
 	github.com/gocolly/colly v1.2.0
 	github.com/google/uuid v1.6.0
@@ -18,6 +19,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
 	github.com/yuin/goldmark v1.7.8
+	golang.org/x/term v0.27.0
 	modernc.org/sqlite v1.34.4
 )
 
@@ -89,7 +91,7 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/exp v0.0.0-20231108232855-2478ac86f678 // indirect
 	golang.org/x/net v0.33.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/tools v0.22.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect

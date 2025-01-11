@@ -3,11 +3,9 @@ package tool
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"sort"
 	"strings"
 
@@ -125,6 +123,48 @@ var SystemTools = []openai.ChatCompletionToolParam{
 		"Display information about the system",
 		nil,
 	),
+	define("ls",
+		"list directory contents and requested info for each file operand, including directory contents. No operands mean listing the current directory",
+		map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"args": map[string]interface{}{
+					"type": "array",
+					"items": map[string]string{
+						"type": "string",
+					},
+					"description": "files or directories and flags",
+				},
+			},
+			"required": []string{"args"},
+		}),
+	define("cd",
+		"change the current directory",
+		map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"dir": map[string]string{
+					"type":        "string",
+					"description": "directory to change to",
+				},
+			},
+			"required": []string{"dir"},
+		}),
+	define("mkdir",
+		"make a directory. parent directories are created as needed",
+		map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"dir": map[string]string{
+					"type":        "string",
+					"description": "directory to make",
+				},
+			},
+			"required": []string{"dir"},
+		}),
+	define("git-status",
+		"get the status of the git repository",
+		nil),
 }
 
 func RunTool(cfg *Config, ctx context.Context, name string, props map[string]interface{}) (string, error) {
@@ -137,7 +177,7 @@ func RunTool(cfg *Config, ctx context.Context, name string, props map[string]int
 	return runCommandTool(cfg, ctx, name, props)
 }
 
-func runCommandTool(cfg *Config, ctx context.Context, name string, props map[string]interface{}) (string, error) {
+func runCommandTool(_ *Config, _ context.Context, name string, props map[string]interface{}) (string, error) {
 	// Change to a temporary directory to avoid any side effects
 	// This also magically fixes the following mysterious error for "man" (runMan):
 	// shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
@@ -160,14 +200,18 @@ func runCommandTool(cfg *Config, ctx context.Context, name string, props map[str
 		return str, nil
 	}
 
-	getArray := func(key string) ([]interface{}, error) {
+	getArray := func(key string) ([]string, error) {
 		val, ok := props[key]
 		if !ok {
 			return nil, fmt.Errorf("missing property: %s", key)
 		}
-		array, ok := val.([]interface{})
+		items, ok := val.([]interface{})
 		if !ok {
-			return nil, fmt.Errorf("property '%s' must be an array", key)
+			return nil, fmt.Errorf("property '%s' must be an array of strings", key)
+		}
+		array := make([]string, len(items))
+		for i, v := range items {
+			array[i] = v.(string)
 		}
 		return array, nil
 	}
@@ -216,11 +260,7 @@ func runCommandTool(cfg *Config, ctx context.Context, name string, props map[str
 		if err != nil {
 			return "", err
 		}
-		items := make([]string, len(commands))
-		for i, v := range commands {
-			items[i] = v.(string)
-		}
-		out, err := runCommandV(items)
+		out, err := runCommandV(commands)
 		if err != nil {
 			out = err.Error()
 		}
@@ -230,18 +270,14 @@ func runCommandTool(cfg *Config, ctx context.Context, name string, props map[str
 		if err != nil {
 			return "", err
 		}
-		items := make([]string, len(commands))
-		for i, v := range commands {
-			items[i] = v.(string)
-		}
-		out, err := runWhich(items)
+		out, err := runCommand("which", commands...)
 		if err != nil {
 			out = err.Error()
 		}
 		return out, nil
 	case "env":
 		out := util.GetEnvVarNames()
-		fmt.Printf("env: %s\n", out)
+		return out, nil
 	case "pwd":
 		out, err := util.Getwd()
 		if err != nil {
@@ -255,7 +291,7 @@ func runCommandTool(cfg *Config, ctx context.Context, name string, props map[str
 		}
 		return out, nil
 	case "date":
-		out, err := runDate()
+		out, err := runCommand("date")
 		if err != nil {
 			out = err.Error()
 		}
@@ -263,6 +299,40 @@ func runCommandTool(cfg *Config, ctx context.Context, name string, props map[str
 	case "uname":
 		as, arch := util.Uname()
 		return fmt.Sprintf("OS: %s\nArch: %s", as, arch), nil
+	case "ls":
+		args, err := getArray("args")
+		if err != nil {
+			return "", err
+		}
+		out, err := runCommand("ls", args...)
+		if err != nil {
+			out = err.Error()
+		}
+		return out, nil
+	case "cd":
+		dir, err := getStr("dir")
+		if err != nil {
+			return "", err
+		}
+		if err := os.Chdir(dir); err != nil {
+			return "", err
+		}
+		return "", nil
+	case "mkdir":
+		dir, err := getStr("dir")
+		if err != nil {
+			return "", err
+		}
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return "", err
+		}
+		return "", nil
+	case "git-status":
+		out, err := runCommand("git", "status")
+		if err != nil {
+			out = err.Error()
+		}
+		return out, nil
 	}
 
 	return "", fmt.Errorf("unknown tool: %s", name)
@@ -364,70 +434,12 @@ func runCommandV(commands []string) (string, error) {
 	return runCommand("command", args...)
 }
 
-func runWhich(commands []string) (string, error) {
-	return runCommand("which", commands...)
-}
-
-func runDate() (string, error) {
-	return runCommand("date")
-}
-
 func ListCommandNames() (string, error) {
-	list, err := ListCommands(true)
+	list, err := util.ListCommands(true)
 	if err != nil {
 		return "", err
 	}
 
 	sort.Strings(list)
 	return strings.Join(list, "\n"), nil
-}
-
-// ListCommands returns the full path of the first valid executable command encountered in the PATH
-func ListCommands(nameOnly bool) ([]string, error) {
-	pathEnv := os.Getenv("PATH")
-	if pathEnv == "" {
-		return nil, errors.New("PATH environment variable is not set")
-	}
-
-	uniqueCommands := make(map[string]string) // command name -> full path
-	paths := strings.Split(pathEnv, string(os.PathListSeparator))
-
-	for _, pathDir := range paths {
-		files, err := os.ReadDir(pathDir)
-		if err != nil {
-			continue
-		}
-
-		for _, file := range files {
-			commandName := file.Name()
-			fullPath := filepath.Join(pathDir, commandName)
-
-			// Check if the file is executable and the command hasn't been registered yet
-			if !file.IsDir() && IsExecutable(fullPath) {
-				if _, exists := uniqueCommands[commandName]; !exists {
-					uniqueCommands[commandName] = fullPath
-				}
-			}
-		}
-	}
-
-	commands := make([]string, 0, len(uniqueCommands))
-	for name, fullPath := range uniqueCommands {
-		if nameOnly {
-			commands = append(commands, name)
-			continue
-		}
-		commands = append(commands, fullPath)
-	}
-
-	return commands, nil
-}
-
-func IsExecutable(filePath string) bool {
-	info, err := os.Stat(filePath)
-	if err != nil {
-		return false
-	}
-	mode := info.Mode()
-	return mode.IsRegular() && mode&0111 != 0
 }

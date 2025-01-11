@@ -1,0 +1,8 @@
+###
+services:
+  oh:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai/oh
+    container_name: ai-oh-v0.19.0

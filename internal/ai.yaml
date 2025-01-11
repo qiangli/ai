@@ -1,6 +1,8 @@
 ###
-
 # AI Command Line Tool Configuration
+###
+
+## LLM
 
 # API key for the language model
 api_key: "sk-1234"
@@ -12,8 +14,21 @@ base_url: "http://localhost:4000/"
 # Specify the language model to use
 model: "gpt-4o-mini"
 
+## SQL Agent
+db:
+  name: "postgres"
+  host: "localhost"
+  port: 5432
+  username: ""
+  password: ""
+
+## Debugging
+
 # Enable verbose console output for debugging
 debug: true
+
+# Log all debugging info to a file
+# log_file: "/tmp/ai.log"
 
 # Enable dry run mode which simulates API calls
 dry_run: true
@@ -21,24 +36,9 @@ dry_run: true
 # Content of the file will be returned for dry run
 dry_run_content: "fake!"
 
+## Editor
+
 # Specify the editor to use for composing messages
 editor: "vi"
-
-# Interactive
-interactive: false
-
-# Read input from the clipboard
-pb_read: false
-
-# Write output to the clipboard
-pb_write: false
-
-# database
-db:
-  name: "postgres"
-  host: "localhost"
-  port: 5432
-  username: ""
-  password: ""
 
 ###

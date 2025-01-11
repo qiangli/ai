@@ -65,7 +65,7 @@ func runAIHelpTool(_ *Config, _ context.Context, name string, props map[string]i
 }
 
 func listAgents() (string, error) {
-	agents := resource.AgentList
+	agents := resource.AgentDesc
 	var out []string
 	for agent := range agents {
 		out = append(out, agent)

@@ -1,0 +1,13 @@
+###
+services:
+  aider:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: aider
+    image: ai/aider
+    container_name: ai-aider-v0.71.0
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - cfg.env

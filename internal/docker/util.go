@@ -1,4 +1,4 @@
-package gptr
+package docker
 
 import (
 	"archive/tar"
@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
+	"os/exec"
+	"os/user"
 	"strings"
 
 	"github.com/docker/docker/api/types"
@@ -21,16 +22,10 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
-//go:embed dockerfile/gptr.Dockerfile
-var gptrDockerfile []byte
+type ContainerConfig = container.Config
+type ContainerHostConfig = container.HostConfig
 
-//go:embed dockerfile/gptr.env
-var gptrEnvFile string
-
-const gptrImageName = "ai/gptr"
-const gptrContainerName = "ai-gptr-v3.1.7"
-
-func parseEnvFile(envData string) map[string]string {
+func ParseEnvFile(envData string) map[string]string {
 	lines := strings.Split(envData, "\n")
 	envVars := make(map[string]string)
 	for _, line := range lines {
@@ -50,28 +45,10 @@ func parseEnvFile(envData string) map[string]string {
 	return envVars
 }
 
-func getEnvVars() map[string]string {
-	envVars := []string{
-		"OPENAI_API_BASE",
-		"OPENAI_API_KEY",
-		"RETRIEVER",
-		"GOOGLE_API_KEY",
-		"RETRIEVER_ARG_API_KEY",
-		"SEARX_URL",
-		"RETRIEVER_ENDPOINT",
-		"EMBEDDING",
-		"FAST_LLM",
-		"SMART_LLM",
-		"STRATEGIC_LLM",
-		"CURATE_SOURCES",
-		"REPORT_FORMAT",
-		"DOC_PATH",
-		"SCRAPER",
-	}
-
+func GetEnvVars(vars []string) map[string]string {
 	envMap := make(map[string]string)
 
-	for _, key := range envVars {
+	for _, key := range vars {
 		v := strings.TrimSpace(os.Getenv(key))
 		if v != "" {
 			envMap[key] = v
@@ -81,8 +58,8 @@ func getEnvVars() map[string]string {
 	return envMap
 }
 
-// buildDockerImage constructs and builds a Docker image using provided contents and parameters.
-func buildDockerImage(ctx context.Context, dockerfileName, tag string, dockerfileContent []byte) error {
+// BuildDockerImage constructs and builds a Docker image using provided contents and parameters.
+func BuildDockerImage(ctx context.Context, dockerfileName, tag string, dockerfileContent []byte) error {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return err
@@ -93,7 +70,7 @@ func buildDockerImage(ctx context.Context, dockerfileName, tag string, dockerfil
 	tarWriter := tar.NewWriter(tarBuffer)
 
 	// Add Dockerfile to the tar buffer
-	if err := addFileToTar(tarWriter, dockerfileName, dockerfileContent); err != nil {
+	if err := AddFileToTar(tarWriter, dockerfileName, dockerfileContent); err != nil {
 		return err
 	}
 
@@ -134,8 +111,8 @@ func buildDockerImage(ctx context.Context, dockerfileName, tag string, dockerfil
 	return nil
 }
 
-// Utility function to add a file to the tarball
-func addFileToTar(tw *tar.Writer, name string, fileContent []byte) error {
+// AddFileToTar add a file to the tarball
+func AddFileToTar(tw *tar.Writer, name string, fileContent []byte) error {
 	header := &tar.Header{
 		Name: name,
 		Mode: 0600,
@@ -150,69 +127,7 @@ func addFileToTar(tw *tar.Writer, name string, fileContent []byte) error {
 	return nil
 }
 
-// BuildGPTRImage builds the GPT Researcher Docker image
-func BuildGPTRImage(ctx context.Context) error {
-	return buildDockerImage(ctx, "gptr.Dockerfile", gptrImageName, gptrDockerfile)
-}
-
-func getEnvFile() []string {
-	defaultEnvVars := parseEnvFile(gptrEnvFile)
-	envVars := getEnvVars()
-	for key, value := range defaultEnvVars {
-		if _, exists := envVars[key]; !exists {
-			envVars[key] = value
-		}
-	}
-
-	var envVarsSlice []string
-	for key, value := range envVars {
-		envVarsSlice = append(envVarsSlice, fmt.Sprintf("%s=%s", key, value))
-	}
-	return envVarsSlice
-}
-
-func RunGPTRContainer(ctx context.Context, query string, outDir string) error {
-	envVars := getEnvFile()
-
-	output, err := filepath.Abs(outDir)
-	if err != nil {
-		return err
-	}
-
-	if err := os.MkdirAll(output, 0755); err != nil {
-		return err
-	}
-
-	args := []string{query, "--report_type", "research_report"}
-	config := &container.Config{
-		Image: gptrImageName,
-		Env:   envVars,
-		Cmd:   args,
-	}
-
-	log.Debugf("config: %+v\n", config)
-
-	hostConfig := &container.HostConfig{
-		Binds: []string{output + ":/app/outputs/"},
-	}
-
-	log.Debugf("hostConfig: %+v\n", hostConfig)
-
-	_, err = runContainer(ctx, gptrContainerName, config, hostConfig)
-	if err != nil {
-		log.Errorf("Error running container: %v\n", err)
-
-		// Attempt to remove the container
-		if rmErr := removeContainer(ctx, gptrContainerName); rmErr != nil {
-			log.Errorf("Error removing container: %v\n", rmErr)
-		}
-		return err
-	}
-
-	return nil
-}
-
-func runContainer(ctx context.Context, containerName string, config *container.Config, hostConfig *container.HostConfig) (*container.CreateResponse, error) {
+func RunContainer(ctx context.Context, containerName string, config *container.Config, hostConfig *container.HostConfig) (*container.CreateResponse, error) {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, err
@@ -221,7 +136,7 @@ func runContainer(ctx context.Context, containerName string, config *container.C
 	resp, err := cli.ContainerCreate(ctx, config, hostConfig, nil, nil, containerName)
 	// try remove and create again if container already exists
 	if errdefs.IsConflict(err) {
-		removeContainer(ctx, containerName)
+		RemoveContainer(ctx, containerName)
 
 		resp, err = cli.ContainerCreate(ctx, config, hostConfig, nil, nil, containerName)
 		if err != nil {
@@ -274,7 +189,7 @@ func runContainer(ctx context.Context, containerName string, config *container.C
 	return &resp, nil
 }
 
-func removeContainer(ctx context.Context, containerName string) error {
+func RemoveContainer(ctx context.Context, containerName string) error {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return err
@@ -312,4 +227,34 @@ func removeContainer(ctx context.Context, containerName string) error {
 
 	log.Debugf("Container %s removed successfully\n", containerName)
 	return nil
+}
+
+// GetCurrentUG returns the current user's uid:gid.
+// It uses command execution as a fallback if the Go user package fails.
+func GetCurrentUG() string {
+	currentUser, err := user.Current()
+	if err == nil {
+		return fmt.Sprintf("%s:%s", currentUser.Uid, currentUser.Gid)
+	}
+
+	uid, err := execCommand("id", "-u")
+	if err != nil {
+		uid = "0"
+	}
+	gid, err := execCommand("id", "-g")
+	if err != nil {
+		gid = "0"
+	}
+	return fmt.Sprintf("%s:%s", uid, gid)
+}
+
+func execCommand(name string, arg string) (string, error) {
+	cmd := exec.Command(name, arg)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(out.String()), nil
 }

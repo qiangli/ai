@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/qiangli/ai/internal/gptr"
+	"github.com/qiangli/ai/internal/docker/gptr"
 	"github.com/qiangli/ai/internal/llm"
 )
 
@@ -31,25 +31,6 @@ func NewGptrAgent(cfg *llm.Config, role, content string) (*GptrAgent, error) {
 		Message: content,
 	}
 	return &agent, nil
-}
-
-func isLoopback(hostport string) bool {
-	host, _, err := net.SplitHostPort(hostport)
-	if err != nil {
-		host = hostport
-	}
-
-	ip := net.ParseIP(host)
-
-	if ip != nil && ip.IsLoopback() {
-		return true
-	}
-
-	if host == "localhost" {
-		return true
-	}
-
-	return false
 }
 
 func (r *GptrAgent) Send(ctx context.Context, input string) (*ChatMessage, error) {
@@ -76,7 +57,7 @@ func (r *GptrAgent) Send(ctx context.Context, input string) (*ChatMessage, error
 		}
 		defer os.RemoveAll(tempDir)
 
-		err = gptr.GenerateReport(input, tempDir)
+		err = gptr.GenerateReport(ctx, input, tempDir)
 		if err != nil {
 			return nil, err
 		}
