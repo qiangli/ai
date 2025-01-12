@@ -7,12 +7,12 @@ import (
 	"github.com/qiangli/ai/internal/util"
 )
 
-func TestGetSystemRoleContent(t *testing.T) {
+func TestGetShellSystemRoleContent(t *testing.T) {
 	info, err := util.CollectSystemInfo()
 	if err != nil {
 		t.Errorf("failed, expected nil, got %v", err)
 	}
-	msg, err := GetSystemRoleContent(info)
+	msg, err := GetShellSystemRoleContent(info)
 	if err != nil {
 		t.Errorf("failed, expected nil, got %v", err)
 	}
@@ -24,7 +24,7 @@ func TestGetUserHint(t *testing.T) {
 	t.Logf("User hint: %s", hint)
 }
 
-func TestGetUserRoleContent(t *testing.T) {
+func TestGetShellUserRoleContent(t *testing.T) {
 	tests := []struct {
 		command string
 		message string
@@ -40,7 +40,7 @@ func TestGetUserRoleContent(t *testing.T) {
 		{"", "what is unix?"},
 	}
 	for _, tc := range tests {
-		msg, err := GetUserRoleContent(
+		msg, err := GetShellUserRoleContent(
 			tc.command, tc.message,
 		)
 		if err != nil {

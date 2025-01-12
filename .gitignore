@@ -26,3 +26,7 @@ go.work.sum
 
 ##
 bin/
+
+## aider
+.aider.chat.history*
+.aider.input.history*

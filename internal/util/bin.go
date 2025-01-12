@@ -8,6 +8,7 @@ import (
 )
 
 // ListCommands returns the full path of the first valid executable command encountered in the PATH
+// environment variable. If nameOnly is true, it returns only the command name.
 func ListCommands(nameOnly bool) ([]string, error) {
 	pathEnv := os.Getenv("PATH")
 	if pathEnv == "" {

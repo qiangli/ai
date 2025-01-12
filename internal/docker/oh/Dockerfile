@@ -11,9 +11,9 @@ ARG VERSION=0.19.0
 
 RUN git clone --branch ${VERSION} --depth 1 https://github.com/All-Hands-AI/OpenHands.git /app
 
-RUN chmod -R 770 /app/microagents && \
-    chmod -R 770 /app/openhands/ && \
-    chmod -R 770 /app/containers/app/entrypoint.sh
+RUN chmod -R 777 /app/microagents && \
+    chmod -R 777 /app/openhands/ && \
+    chmod -R 777 /app/containers/app/entrypoint.sh
 
 ###
 # https://github.com/All-Hands-AI/OpenHands/blob/0.19.0/containers/app/Dockerfile
@@ -51,7 +51,7 @@ ENV OPENHANDS_BUILD_VERSION=$OPENHANDS_BUILD_VERSION
 ENV SANDBOX_USER_ID=0
 ENV FILE_STORE=local
 ENV FILE_STORE_PATH=/.openhands-state
-RUN mkdir -p $FILE_STORE_PATH
+RUN mkdir -p $FILE_STORE_PATH && chmod -R 777 ${FILE_STORE_PATH}
 RUN mkdir -p $WORKSPACE_BASE
 
 RUN apt-get update -y \
@@ -67,8 +67,8 @@ RUN useradd -l -m -u $OPENHANDS_USER_ID -s /bin/bash openhands && \
     usermod -aG app openhands && \
     usermod -aG sudo openhands && \
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-RUN chown -R openhands:app /app && chmod -R 770 /app
-RUN sudo chown -R openhands:app $WORKSPACE_BASE && sudo chmod -R 770 $WORKSPACE_BASE
+RUN chown -R openhands:app /app && chmod -R 777 /app
+RUN sudo chown -R openhands:app $WORKSPACE_BASE && sudo chmod -R 777 $WORKSPACE_BASE
 USER openhands
 
 ENV VIRTUAL_ENV=/app/.venv \
@@ -98,8 +98,6 @@ RUN find /app \! -group app -exec chgrp app {} +
 COPY --chown=openhands:app --from=repo /app/containers/app/entrypoint.sh /app/entrypoint.sh
 
 USER root
-
-RUN chmod -R 777 ${FILE_STORE_PATH}
 
 WORKDIR /app
 

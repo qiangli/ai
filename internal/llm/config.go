@@ -94,3 +94,93 @@ func (cfg *Config) Clone() *Config {
 type GitConfig struct {
 	Short bool
 }
+
+type Message struct {
+	Role   string
+	Prompt string
+	Model  *Model
+
+	Input   string
+	DBCreds *db.DBConfig
+
+	Content string
+}
+
+type Model struct {
+	// Provider string
+
+	Name    string
+	BaseUrl string
+	ApiKey  string
+
+	Tools []openai.ChatCompletionToolParam
+
+	DryRun        bool
+	DryRunContent string
+}
+
+// Level represents the "intelligence" level of the model. i.e. basic, regular, advanced
+// for example, OpenAI: gpt-4o-mini, gpt-4o, gpt-o1
+type Level int
+
+const (
+	L0 Level = iota
+	L1
+	L2
+	L3
+)
+
+// CreateModel creates a model with the given configuration and optional level
+func CreateModel(cfg *Config, opt ...Level) *Model {
+	model := &Model{
+		Name:          cfg.Model,
+		BaseUrl:       cfg.BaseUrl,
+		ApiKey:        cfg.ApiKey,
+		Tools:         cfg.Tools,
+		DryRun:        cfg.DryRun,
+		DryRunContent: cfg.DryRunContent,
+	}
+
+	// default level
+	level := L0
+	if len(opt) > 0 {
+		level = opt[0]
+	}
+
+	switch level {
+	case L0:
+		return model
+	case L1:
+		if cfg.L1ApiKey != "" {
+			model.ApiKey = cfg.L1ApiKey
+		}
+		if cfg.L1Model != "" {
+			model.Name = cfg.L1Model
+		}
+		if cfg.L1BaseUrl != "" {
+			model.BaseUrl = cfg.L1BaseUrl
+		}
+	case L2:
+		if cfg.L2ApiKey != "" {
+			model.ApiKey = cfg.L2ApiKey
+		}
+		if cfg.L2Model != "" {
+			model.Name = cfg.L2Model
+		}
+		if cfg.L2BaseUrl != "" {
+			model.BaseUrl = cfg.L2BaseUrl
+		}
+	case L3:
+		if cfg.L3ApiKey != "" {
+			model.ApiKey = cfg.L3ApiKey
+		}
+		if cfg.L3Model != "" {
+			model.Name = cfg.L3Model
+		}
+		if cfg.L3BaseUrl != "" {
+			model.BaseUrl = cfg.L3BaseUrl
+		}
+	}
+
+	return model
+}

@@ -19,8 +19,11 @@ test:  ## Test
 tidy: ## Tidy
 	@go mod tidy && go fmt ./...
 
-commit-message: ## Generate commit message and copy the message to clipboard
-	@git diff origin main|go run ./cmd/ai --dry-run=false @ask write commit message for git without code blocks =+
+git-message: ## Generate commit message and copy the message to clipboard
+	@git diff origin/main|go run ./cmd/ai --dry-run=false @git =+
+
+git-commit: ## Commit with the message copied to clipboard
+	@git commit -m "$$(pbpaste)"
 
 install: build test ## Install
 	@go install ./cmd/ai

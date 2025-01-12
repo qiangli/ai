@@ -4,7 +4,6 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"os"
 
 	"github.com/docker/docker/api/types/mount"
 
@@ -36,7 +35,7 @@ func BuildImage(ctx context.Context) error {
 	return docker.BuildDockerImage(ctx, "Dockerfile", imageName, Dockerfile)
 }
 
-func getEnvVars() []string {
+func getEnvVarMap() map[string]string {
 	vars := []string{
 		"WORKSPACE_BASE",
 	}
@@ -49,7 +48,10 @@ func getEnvVars() []string {
 			envVars[key] = value
 		}
 	}
+	return envVars
+}
 
+func toArray(envVars map[string]string) []string {
 	var envVarsSlice []string
 	for key, value := range envVars {
 		envVarsSlice = append(envVarsSlice, fmt.Sprintf("%s=%s", key, value))
@@ -58,17 +60,17 @@ func getEnvVars() []string {
 }
 
 func RunContainer(ctx context.Context, mode ChatMode, input string) error {
-	envVars := getEnvVars()
+	envVars := getEnvVarMap()
 	args := []string{"--chat-mode", string(mode), "--message", input}
 
 	config := &docker.ContainerConfig{
 		Image: imageName,
-		Env:   envVars,
+		Env:   toArray(envVars),
 		Cmd:   args,
 		User:  docker.GetCurrentUG(),
 	}
 
-	workspaceBase := os.Getenv("WORKSPACE_BASE")
+	workspaceBase := envVars["WORKSPACE_BASE"]
 
 	hostConfig := &docker.ContainerHostConfig{
 		Mounts: []mount.Mount{

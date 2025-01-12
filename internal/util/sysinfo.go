@@ -348,7 +348,7 @@ func CollectSystemInfo() (*SystemInfo, error) {
 	info.EnvVarNames = GetEnvVarNames()
 
 	// Get working directory
-	info.WorkDir, err = Getwd()
+	info.WorkDir, err = os.Getwd()
 	if err != nil {
 		errs = append(errs, fmt.Errorf("error getting working directory: %v", err))
 	}

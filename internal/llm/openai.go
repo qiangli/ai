@@ -13,19 +13,43 @@ import (
 )
 
 func Send(cfg *Config, ctx context.Context, role, prompt, input string) (string, error) {
+	model := &Model{
+		Name:          cfg.Model,
+		BaseUrl:       cfg.BaseUrl,
+		ApiKey:        cfg.ApiKey,
+		Tools:         cfg.Tools,
+		DryRun:        cfg.DryRun,
+		DryRunContent: cfg.DryRunContent,
+	}
 
-	roleMessage := buildRoleMessage(role, prompt)
-	userMessage := buildRoleMessage("user", input)
+	req := &Message{
+		Role:    role,
+		Prompt:  prompt,
+		Model:   model,
+		Input:   input,
+		DBCreds: cfg.DBConfig,
+	}
 
-	log.Debugf(">>>%s:\n%+v\n", strings.ToUpper(role), roleMessage)
+	resp, err := Chat(ctx, req)
+	if err != nil {
+		return "", err
+	}
+	return resp.Content, nil
+}
+
+func Chat(ctx context.Context, req *Message) (*Message, error) {
+
+	roleMessage := buildRoleMessage(req.Role, req.Prompt)
+	userMessage := buildRoleMessage("user", req.Input)
+
+	log.Debugf(">>>%s:\n%+v\n", strings.ToUpper(req.Role), roleMessage)
 	log.Debugf(">>>USER:\n%+v\n", userMessage)
 
-	//
-	model := cfg.Model
+	model := req.Model
 
 	client := openai.NewClient(
-		option.WithAPIKey(cfg.ApiKey),
-		option.WithBaseURL(cfg.BaseUrl),
+		option.WithAPIKey(model.ApiKey),
+		option.WithBaseURL(model.BaseUrl),
 		option.WithMiddleware(log.Middleware()),
 	)
 
@@ -35,30 +59,30 @@ func Send(cfg *Config, ctx context.Context, role, prompt, input string) (string,
 			userMessage,
 		}),
 		Seed:  openai.Int(0),
-		Model: openai.F(model),
+		Model: openai.F(model.Name),
 	}
 
-	if len(cfg.Tools) > 0 {
-		params.Tools = openai.F(cfg.Tools)
+	if len(model.Tools) > 0 {
+		params.Tools = openai.F(model.Tools)
 	}
 
-	var content string
+	resp := &Message{}
 	// TODO
-	var max = len(cfg.Tools) + 1
+	var max = len(model.Tools) + 1
 
-	if !cfg.DryRun {
+	if !model.DryRun {
 		for tries := 0; tries < max; tries++ {
 			log.Debugf("*** tries ***: %v\n", tries)
 
 			completion, err := client.Chat.Completions.New(ctx, params)
 			if err != nil {
-				return "", err
+				return nil, err
 			}
 
 			toolCalls := completion.Choices[0].Message.ToolCalls
 
 			if len(toolCalls) == 0 {
-				content = completion.Choices[0].Message.Content
+				resp.Content = completion.Choices[0].Message.Content
 				break
 			}
 
@@ -68,27 +92,27 @@ func Send(cfg *Config, ctx context.Context, role, prompt, input string) (string,
 				var name = toolCall.Function.Name
 				var props map[string]interface{}
 				if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &props); err != nil {
-					return "", err
+					return nil, err
 				}
 
 				log.Debugf("\n\n*** tool call: %s\nprops: %+v\n", name, props)
 				toolCfg := &tool.Config{
-					DBConfig: cfg.DBConfig,
+					DBConfig: req.DBCreds,
 				}
 				out, err := tool.RunTool(toolCfg, ctx, name, props)
 				if err != nil {
-					return "", err
+					return nil, err
 				}
 				log.Debugf("\n*** tool call: %s\n%s\n", name, out)
 				params.Messages.Value = append(params.Messages.Value, openai.ToolMessage(toolCall.ID, out))
 			}
 		}
 	} else {
-		content = cfg.DryRunContent
+		resp.Content = model.DryRunContent
 	}
 
-	log.Debugf("<<<OPENAI:\nmodel: %s, content length: %v\n\n", model, len(content))
-	return content, nil
+	log.Debugf("<<<OPENAI:\nmodel: %s, content length: %v\n\n", model, len(resp.Content))
+	return resp, nil
 }
 
 // https://platform.openai.com/docs/guides/text-generation#developer-messages

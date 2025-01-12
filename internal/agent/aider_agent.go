@@ -2,7 +2,6 @@ package agent
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net"
 	"net/url"
@@ -10,7 +9,6 @@ import (
 
 	"github.com/qiangli/ai/internal/docker/aider"
 	"github.com/qiangli/ai/internal/llm"
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/resource"
 	"github.com/qiangli/ai/internal/tool"
 )
@@ -22,19 +20,9 @@ type AiderAgent struct {
 	Message string
 }
 
-// type WorkspaceCheck struct {
-// 	WorkspaceBase string `json:"workspace_base"`
-// 	IsValid       bool   `json:"is_valid"`
-// 	Exist         bool   `json:"exist"`
-// 	Reason        string `json:"reason"`
-// }
-
 func NewAiderAgent(cfg *llm.Config, role, content string) (*AiderAgent, error) {
 	if role == "" {
 		role = "system"
-	}
-	if content == "" {
-		content = resource.GetWSCheckSystemRoleContent()
 	}
 
 	cfg.Tools = tool.SystemTools
@@ -50,41 +38,13 @@ func NewAiderAgent(cfg *llm.Config, role, content string) (*AiderAgent, error) {
 func (r *AiderAgent) Send(ctx context.Context, input string) (*ChatMessage, error) {
 	const myName string = "AIDER"
 
-	// Decide the workspace with the help from LLM
-	userContent, err := resource.GetWSCheckUserRoleContent(
-		input,
-	)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := llm.Send(r.config, ctx, r.Role, r.Message, userContent)
-	if err != nil {
-		return nil, err
-	}
-	// unmarshal the response
-	// TODO: retry?
-	var wsCheck WorkspaceCheck
-	err = json.Unmarshal([]byte(resp), &wsCheck)
-	if err != nil {
-		return nil, err
-	}
-	if !wsCheck.IsValid {
-		return &ChatMessage{
-			Agent:   myName,
-			Content: wsCheck.Reason,
-		}, nil
-	}
-
-	log.Debugf("Workspace check: %+v\n", wsCheck)
-
-	// TODO: double check the workspace it is valid
-	workspace := wsCheck.WorkspaceBase
+	workspace, err := checkWorkspace(ctx, r.config, input, llm.L1)
 
 	// https://docs.all-hands.dev/modules/usage/how-to/headless-mode
 	hostDir := workspace
 	containerDir := aider.WorkspaceInSandbox
 	env := "container"
-	userContent, err = resource.GetWSUserInputInstruction(&resource.WSInput{
+	userContent, err := resource.GetWSEnvContextInput(&resource.WSInput{
 		Env:          env,
 		HostDir:      hostDir,
 		ContainerDir: containerDir,
@@ -96,11 +56,6 @@ func (r *AiderAgent) Send(ctx context.Context, input string) (*ChatMessage, erro
 
 	// Set the workspace
 	r.config.WorkDir = workspace
-	if !wsCheck.Exist {
-		if err := os.MkdirAll(workspace, 0755); err != nil {
-			return nil, err
-		}
-	}
 	os.Setenv("WORKSPACE_BASE", workspace)
 
 	// Calling out to OH
@@ -108,7 +63,7 @@ func (r *AiderAgent) Send(ctx context.Context, input string) (*ChatMessage, erro
 	// better to config the base url and api key (and others) for oh
 	u, err := url.Parse(r.config.BaseUrl)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse base url: %w", err)
 	}
 
 	if isLoopback(u.Host) {

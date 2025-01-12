@@ -25,7 +25,7 @@ func NewScriptAgent(cfg *llm.Config, role, content string) (*ScriptAgent, error)
 		return nil, err
 	}
 	if content == "" {
-		systemMessage, err := resource.GetSystemRoleContent(info)
+		systemMessage, err := resource.GetShellSystemRoleContent(info)
 		if err != nil {
 			return nil, err
 		}
@@ -43,7 +43,7 @@ func NewScriptAgent(cfg *llm.Config, role, content string) (*ScriptAgent, error)
 }
 
 func (r *ScriptAgent) Send(ctx context.Context, command, input string) (*ChatMessage, error) {
-	userContent, err := resource.GetUserRoleContent(
+	userContent, err := resource.GetShellUserRoleContent(
 		command, input,
 	)
 	if err != nil {

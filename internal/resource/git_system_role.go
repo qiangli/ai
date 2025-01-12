@@ -97,7 +97,7 @@ func GetConventionalCommitSystemRole() string {
 You are an expert software engineer that generates concise Git commit messages based on the provided diffs.
 
 Review the diffs carefully.
-Generate the commit message for those changes using the *Conventional Commits specification* provided below.
+Generate the commit message for those changes using the *Conventional Commits specification* provided below without additional explanations or code block fencing.
 
 ===
 

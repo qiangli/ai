@@ -33,14 +33,6 @@ func GetEnvVarNames() string {
 	return strings.Join(names, "\n")
 }
 
-func Getwd() (string, error) {
-	pwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	return pwd, nil
-}
-
 func DetectContentType(filePath string) (string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {

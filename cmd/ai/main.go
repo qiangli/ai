@@ -45,6 +45,13 @@ func handle(cmd *cobra.Command, args []string) error {
 
 	log.Debugf("Config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.LLM.DBConfig)
 
+	// set global flags
+	internal.Debug = cfg.LLM.Debug
+	internal.DryRun = cfg.LLM.DryRun
+	internal.DryRunContent = cfg.LLM.DryRunContent
+	internal.WorkDir = cfg.LLM.WorkDir
+
+	//
 	command := cfg.LLM.Command
 
 	// interactive mode

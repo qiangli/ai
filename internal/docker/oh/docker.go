@@ -30,7 +30,7 @@ func BuildImage(ctx context.Context) error {
 	return docker.BuildDockerImage(ctx, "Dockerfile", imageName, Dockerfile)
 }
 
-func getEnvVars() []string {
+func getEnvVarMap() map[string]string {
 	vars := []string{
 		"SANDBOX_RUNTIME_CONTAINER_IMAGE",
 		"SANDBOX_USER_ID",
@@ -63,6 +63,10 @@ func getEnvVars() []string {
 		}
 	}
 
+	return envVars
+}
+
+func toArray(envVars map[string]string) []string {
 	var envVarsSlice []string
 	for key, value := range envVars {
 		envVarsSlice = append(envVarsSlice, fmt.Sprintf("%s=%s", key, value))
@@ -72,17 +76,17 @@ func getEnvVars() []string {
 
 // https://docs.all-hands.dev/modules/usage/how-to/headless-mode
 func RunContainer(ctx context.Context, query string) error {
-	envVars := getEnvVars()
+	envVars := getEnvVarMap()
 	args := []string{"python", "-m", "openhands.core.main", "-t", query}
 
 	config := &docker.ContainerConfig{
 		Image: imageName,
-		Env:   envVars,
+		Env:   toArray(envVars),
 		Cmd:   args,
 		User:  docker.GetCurrentUG(),
 	}
 
-	workspaceBase := os.Getenv("WORKSPACE_BASE")
+	workspaceBase := envVars["WORKSPACE_BASE"]
 
 	hostConfig := &docker.ContainerHostConfig{
 		Mounts: []mount.Mount{

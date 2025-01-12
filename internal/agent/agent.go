@@ -2,6 +2,8 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/qiangli/ai/internal"
@@ -66,4 +68,65 @@ func HandleCommand(cfg *llm.Config, role, content string) error {
 	// auto select the best agent to handle the user query if there is message content
 	// $ ai message...
 	return AgentHelp(cfg, role, content)
+}
+
+type WorkspaceCheck struct {
+	WorkspaceBase string `json:"workspace_base"`
+	Detected      bool   `json:"detected"`
+}
+
+const missingWorkspace = "Please specify a workspace base directory."
+
+// Decide the workspace with the help from LLM
+func checkWorkspace(ctx context.Context, cfg *llm.Config, input string, level llm.Level) (string, error) {
+	ws := cfg.Workspace
+	if ws == "" {
+
+		userContent, err := resource.GetWSBaseUserRoleContent(
+			input,
+		)
+		if err != nil {
+			return "", err
+		}
+
+		role := "system"
+		prompt := resource.GetWSBaseSystemRoleContent()
+
+		req := &llm.Message{
+			Role:    role,
+			Prompt:  prompt,
+			Model:   llm.CreateModel(cfg, level),
+			Input:   userContent,
+			DBCreds: cfg.DBConfig,
+		}
+
+		// role, prompt, userContent
+
+		resp, err := llm.Chat(ctx, req)
+		if err != nil {
+			return "", err
+		}
+		// unmarshal the response
+		// TODO: retry?
+		var wsCheck WorkspaceCheck
+		if err := json.Unmarshal([]byte(resp.Content), &wsCheck); err != nil {
+			return "", fmt.Errorf("failed to unmarshal response: %w", err)
+		}
+		if !wsCheck.Detected {
+			return "", fmt.Errorf("%s", missingWorkspace)
+		}
+
+		log.Debugf("Workspace check: %+v\n", wsCheck)
+
+		ws = wsCheck.WorkspaceBase
+	}
+
+	// double check the workspace it is valid
+	workspace, err := ValidatePath(ws)
+	if err != nil {
+		return "", err
+	}
+
+	log.Infof("Workspace: %s %s\n", ws, workspace)
+	return workspace, nil
 }

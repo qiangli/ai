@@ -4,15 +4,18 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
-	"os/exec"
 	"sort"
 	"strings"
 
 	"github.com/openai/openai-go"
 	"github.com/qiangli/ai/internal/db"
-	"github.com/qiangli/ai/internal/util"
+	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/tool/vos"
 )
+
+var _os vos.System = &vos.VirtualSystem{}
+var _exec = _os
+var _util = _os
 
 type Config struct {
 	DBConfig *db.DBConfig
@@ -30,35 +33,42 @@ func define(name, description string, parameters map[string]interface{}) openai.
 }
 
 var SystemTools = []openai.ChatCompletionToolParam{
+	define("list-commands",
+		"return a list of available commands on the system",
+		nil,
+	),
 	define("man",
-		"Retrieve the man page for a command",
+		"find and display online manual documentation page for a command",
 		map[string]interface{}{
 			"type": "object",
 			"properties": map[string]interface{}{
 				"command": map[string]string{
-					"type": "string",
+					"type":        "string",
+					"description": "The command to get the manual page for",
 				},
 			},
 			"required": []string{"command"},
-		}),
+		},
+	),
 	define("help",
-		"Get help information for a command",
+		"display helpful information about a command",
 		map[string]interface{}{
 			"type": "object",
 			"properties": map[string]interface{}{
 				"command": map[string]string{
 					"type":        "string",
-					"description": "Command to get help information for",
+					"description": "The command to get help information for",
 				},
 				"argument": map[string]string{
 					"type":        "string",
-					"description": "Flag, option, or argument to pass to the command",
+					"description": "Flag, option, or argument to pass to the command. Commonly '--help', '-h', or 'help'",
 				},
 			},
 			"required": []string{"command", "argument"},
-		}),
+		},
+	),
 	define("version",
-		"Get version information for a command",
+		"get version information for a command",
 		map[string]interface{}{
 			"type": "object",
 			"properties": map[string]interface{}{
@@ -68,13 +78,14 @@ var SystemTools = []openai.ChatCompletionToolParam{
 				},
 				"argument": map[string]string{
 					"type":        "string",
-					"description": "Flag, option, or argument to pass to the command",
+					"description": "Flag, option, or argument to pass to the command. Commonly '--version', '-v', or 'version'",
 				},
 			},
 			"required": []string{"command", "argument"},
-		}),
+		},
+	),
 	define("command",
-		"Display the path or information about command",
+		"display the path or information about commands",
 		map[string]interface{}{
 			"type": "object",
 			"properties": map[string]interface{}{
@@ -87,9 +98,10 @@ var SystemTools = []openai.ChatCompletionToolParam{
 				},
 			},
 			"required": []string{"commands"},
-		}),
+		},
+	),
 	define("which",
-		"Locate a program file in the user's path",
+		"locate a program file in the user's path",
 		map[string]interface{}{
 			"type": "object",
 			"properties": map[string]interface{}{
@@ -102,42 +114,36 @@ var SystemTools = []openai.ChatCompletionToolParam{
 				},
 			},
 			"required": []string{"commands"},
-		}),
-	define("env",
-		"Print environment on user's system. Only names are returned for security reasons",
-		nil,
+		},
 	),
-	define("pwd",
-		"Return working directory name",
-		nil,
-	),
-	define("list-commands",
-		"Return a list of available commands on the system",
-		nil,
-	),
-	define("date",
-		"Display date and time",
-		nil,
-	),
-	define("uname",
-		"Display information about the system",
-		nil,
-	),
-	define("ls",
-		"list directory contents and requested info for each file operand, including directory contents. No operands mean listing the current directory",
+	define("exec",
+		"execute a command. Restrictions apply",
 		map[string]interface{}{
 			"type": "object",
 			"properties": map[string]interface{}{
+				"command": map[string]string{
+					"type":        "string",
+					"description": "The command to execute",
+				},
 				"args": map[string]interface{}{
 					"type": "array",
 					"items": map[string]string{
 						"type": "string",
 					},
-					"description": "files or directories and flags",
+					"description": "optional arguments to pass to the command",
 				},
 			},
-			"required": []string{"args"},
-		}),
+			"required": []string{"command"},
+		},
+	),
+	define("env",
+		"print environment on user's system. Only names are returned for security reasons",
+		nil,
+	),
+	define("pwd",
+		"return working directory name",
+		nil,
+	),
 	define("cd",
 		"change the current directory",
 		map[string]interface{}{
@@ -149,7 +155,23 @@ var SystemTools = []openai.ChatCompletionToolParam{
 				},
 			},
 			"required": []string{"dir"},
-		}),
+		},
+	),
+	define("ls",
+		"list directory contents as well as any requested, associated information",
+		map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"args": map[string]interface{}{
+					"type": "array",
+					"items": map[string]string{
+						"type": "string",
+					},
+					"description": "files, directories and flags",
+				},
+			},
+		},
+	),
 	define("mkdir",
 		"make a directory. parent directories are created as needed",
 		map[string]interface{}{
@@ -157,41 +179,77 @@ var SystemTools = []openai.ChatCompletionToolParam{
 			"properties": map[string]interface{}{
 				"dir": map[string]string{
 					"type":        "string",
-					"description": "directory to make",
+					"description": "The directory to make",
 				},
 			},
 			"required": []string{"dir"},
-		}),
-	define("git-status",
-		"get the status of the git repository",
-		nil),
+		},
+	),
+	define("uname",
+		"display information about the current system's operating system and architecture",
+		nil,
+	),
+	define("test",
+		"condition evaluation utility. if it evaluates to true, returns true; otherwise it returns false.",
+		map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"expression": map[string]interface{}{
+					"type":        "string",
+					"description": "The expression to evaluate",
+				},
+			},
+			"required": []string{"expression"},
+		},
+	),
 }
 
 func RunTool(cfg *Config, ctx context.Context, name string, props map[string]interface{}) (string, error) {
-	if strings.HasPrefix(name, "ai_") {
-		return runAIHelpTool(cfg, ctx, name, props)
+	var out string
+	var err error
+
+	switch {
+	case strings.HasPrefix(name, "ai_"):
+		out, err = runAIHelpTool(cfg, ctx, name, props)
+	case strings.HasPrefix(name, "db_"):
+		out, err = runDbTool(cfg, ctx, name, props)
+	default:
+		out, err = runCommandTool(cfg, ctx, name, props)
 	}
-	if strings.HasPrefix(name, "db_") {
-		return runDbTool(cfg, ctx, name, props)
+
+	if err != nil {
+		return err.Error(), nil
 	}
-	return runCommandTool(cfg, ctx, name, props)
+	return out, nil
 }
 
 func runCommandTool(_ *Config, _ context.Context, name string, props map[string]interface{}) (string, error) {
-	// Change to a temporary directory to avoid any side effects
-	// This also magically fixes the following mysterious error for "man" (runMan):
-	// shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
-	// chdir: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
-	//
-	tempDir := os.TempDir()
-	if err := os.Chdir(tempDir); err != nil {
-		return "", err
+	// if required properties is not missing and is an array of strings
+	// check if the required properties are present
+	required := func(key string) bool {
+		val, ok := props["required"]
+		if !ok {
+			return false
+		}
+		items, ok := val.([]string)
+		if !ok {
+			return false
+		}
+		for _, v := range items {
+			if v == key {
+				return true
+			}
+		}
+		return false
 	}
 
 	getStr := func(key string) (string, error) {
 		val, ok := props[key]
 		if !ok {
-			return "", fmt.Errorf("missing property: %s", key)
+			if required(key) {
+				return "", fmt.Errorf("missing property: %s", key)
+			}
+			return "", nil
 		}
 		str, ok := val.(string)
 		if !ok {
@@ -203,30 +261,94 @@ func runCommandTool(_ *Config, _ context.Context, name string, props map[string]
 	getArray := func(key string) ([]string, error) {
 		val, ok := props[key]
 		if !ok {
-			return nil, fmt.Errorf("missing property: %s", key)
+			if required(key) {
+				return nil, fmt.Errorf("name: %s missing property: %s", name, key)
+			}
+			return []string{}, nil
 		}
-		items, ok := val.([]interface{})
+		items, ok := val.([]string)
 		if !ok {
-			return nil, fmt.Errorf("property '%s' must be an array of strings", key)
+			if required(key) {
+				return nil, fmt.Errorf("name: %s property '%s' must be an array of strings", name, key)
+			}
+			return []string{}, nil
 		}
-		array := make([]string, len(items))
-		for i, v := range items {
-			array[i] = v.(string)
+		return items, nil
+	}
+
+	// shell commands sensitive to the current directory or relatively "safe" to run
+	switch name {
+	case "exec":
+		command, err := getStr("command")
+		if err != nil {
+			return "", err
 		}
-		return array, nil
+		args, err := getArray("args")
+		if err != nil {
+			return "", err
+		}
+		return safeRunCommand(command, args...)
+	case "pwd":
+		return _os.Getwd()
+	case "cd":
+		dir, err := getStr("dir")
+		if err != nil {
+			return "", err
+		}
+		return "", _os.Chdir(dir)
+	case "ls":
+		args, err := getArray("args")
+		if err != nil {
+			return "", err
+		}
+		return runCommand("ls", args...)
+	case "mkdir":
+		dir, err := getStr("dir")
+		if err != nil {
+			return "", err
+		}
+		return "", _os.MkdirAll(dir, 0755)
+	case "test":
+		expr, err := getStr("expression")
+		if err != nil {
+			return "", err
+		}
+		_, err = runCommand("test", expr)
+		if err != nil {
+			return "false", nil
+		}
+		return "true", nil
+	}
+
+	// Change to a temporary directory to avoid any side effects
+	// This also magically fixes the following mysterious error for "man" (runMan):
+	// shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+	// chdir: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+	//
+	curDir, err := _os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		err := _os.Chdir(curDir)
+		if err != nil {
+			log.Errorf("runCommandTool error changing back to original directory:", err)
+		}
+	}()
+	tempDir := _os.TempDir()
+	if err := _os.Chdir(tempDir); err != nil {
+		return "", err
 	}
 
 	switch name {
+	case "list-commands":
+		return ListCommandNames()
 	case "man":
 		command, err := getStr("command")
 		if err != nil {
 			return "", err
 		}
-		out, err := runMan(command)
-		if err != nil {
-			out = err.Error()
-		}
-		return out, nil
+		return runMan(command)
 	case "help":
 		command, err := getStr("command")
 		if err != nil {
@@ -236,11 +358,7 @@ func runCommandTool(_ *Config, _ context.Context, name string, props map[string]
 		if err != nil {
 			return "", err
 		}
-		out, err := runHelp(command, arg)
-		if err != nil {
-			out = err.Error()
-		}
-		return out, nil
+		return runHelp(command, arg)
 	case "version":
 		command, err := getStr("command")
 		if err != nil {
@@ -250,89 +368,24 @@ func runCommandTool(_ *Config, _ context.Context, name string, props map[string]
 		if err != nil {
 			return "", err
 		}
-		out, err := runVersion(command, arg)
-		if err != nil {
-			out = err.Error()
-		}
-		return out, nil
+		return runVersion(command, arg)
 	case "command":
 		commands, err := getArray("commands")
 		if err != nil {
 			return "", err
 		}
-		out, err := runCommandV(commands)
-		if err != nil {
-			out = err.Error()
-		}
-		return out, nil
+		return runCommandV(commands)
 	case "which":
 		commands, err := getArray("commands")
 		if err != nil {
 			return "", err
 		}
-		out, err := runCommand("which", commands...)
-		if err != nil {
-			out = err.Error()
-		}
-		return out, nil
+		return runCommand("which", commands...)
 	case "env":
-		out := util.GetEnvVarNames()
-		return out, nil
-	case "pwd":
-		out, err := util.Getwd()
-		if err != nil {
-			out = err.Error()
-		}
-		return out, nil
-	case "list-commands":
-		out, err := ListCommandNames()
-		if err != nil {
-			out = err.Error()
-		}
-		return out, nil
-	case "date":
-		out, err := runCommand("date")
-		if err != nil {
-			out = err.Error()
-		}
-		return out, nil
+		return _util.Env(), nil
 	case "uname":
-		as, arch := util.Uname()
+		as, arch := _util.Uname()
 		return fmt.Sprintf("OS: %s\nArch: %s", as, arch), nil
-	case "ls":
-		args, err := getArray("args")
-		if err != nil {
-			return "", err
-		}
-		out, err := runCommand("ls", args...)
-		if err != nil {
-			out = err.Error()
-		}
-		return out, nil
-	case "cd":
-		dir, err := getStr("dir")
-		if err != nil {
-			return "", err
-		}
-		if err := os.Chdir(dir); err != nil {
-			return "", err
-		}
-		return "", nil
-	case "mkdir":
-		dir, err := getStr("dir")
-		if err != nil {
-			return "", err
-		}
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			return "", err
-		}
-		return "", nil
-	case "git-status":
-		out, err := runCommand("git", "status")
-		if err != nil {
-			out = err.Error()
-		}
-		return out, nil
 	}
 
 	return "", fmt.Errorf("unknown tool: %s", name)
@@ -340,7 +393,7 @@ func runCommandTool(_ *Config, _ context.Context, name string, props map[string]
 
 // runCommand executes a shell command with args and returns the output
 func runCommand(cmd string, args ...string) (string, error) {
-	out, err := exec.Command(cmd, args...).CombinedOutput()
+	out, err := _exec.Command(cmd, args...).CombinedOutput()
 	if err != nil {
 		return "", err
 	}
@@ -348,7 +401,7 @@ func runCommand(cmd string, args ...string) (string, error) {
 }
 
 func runMan(command string) (string, error) {
-	manCmd := exec.Command("man", command)
+	manCmd := _exec.Command("man", command)
 	var manOutput bytes.Buffer
 
 	// Capture the output of the man command.
@@ -360,7 +413,7 @@ func runMan(command string) (string, error) {
 	}
 
 	// Process with 'col' to remove formatting
-	colCmd := exec.Command("col", "-b")
+	colCmd := _exec.Command("col", "-b")
 	var colOutput bytes.Buffer
 
 	colCmd.Stdin = bytes.NewReader(manOutput.Bytes())
@@ -397,13 +450,14 @@ func runHelp(command string, arg string) (string, error) {
 	const tpl = `
 Invalid argument '%s' detected for command '%s'.
 Accepted format: any flag starting with '-' or '--' or one of the following: %v.
-Consider consulting the command's man page or using the help option to find the correct argument.
+Consult the command's man page to find the valid argument.
 	`
-	allowed := []string{"--help", "help"}
+	// TODO -h may not always be safe?
+	allowed := []string{"--help", "-h", "help"}
 	if !isSafeArg(arg, allowed) {
 		return "", fmt.Errorf(tpl, arg, command, allowed)
 	}
-	out, err := exec.Command(command, arg).CombinedOutput()
+	out, err := _exec.Command(command, arg).CombinedOutput()
 	if err != nil {
 		return "", err
 	}
@@ -415,13 +469,14 @@ func runVersion(command string, arg string) (string, error) {
 	const tpl = `
 Invalid argument '%s' detected for command '%s'.
 Accepted format: any flag starting with '-' or '--' or one of the following: %v.
-Consider consulting the command's man page or using the help option to find the correct argument.
+Consult the command's man page or use the help option to find the valid argument.
 	`
-	allowed := []string{"--version", "version"}
+	// TODO -v or version may not always be safe for certain commands?
+	allowed := []string{"--version", "-v", "version"}
 	if !isSafeArg(arg, allowed) {
 		return "", fmt.Errorf(tpl, arg, command, allowed)
 	}
-	out, err := exec.Command(command, arg).CombinedOutput()
+	out, err := _exec.Command(command, arg).CombinedOutput()
 	if err != nil {
 		return "", err
 	}
@@ -435,11 +490,26 @@ func runCommandV(commands []string) (string, error) {
 }
 
 func ListCommandNames() (string, error) {
-	list, err := util.ListCommands(true)
+	list, err := _util.ListCommands(true)
 	if err != nil {
 		return "", err
 	}
 
 	sort.Strings(list)
 	return strings.Join(list, "\n"), nil
+}
+
+func safeRunCommand(command string, args ...string) (string, error) {
+	allowed := getAllowedCommands()
+	for _, v := range allowed {
+		if command == v {
+			return runCommand(command, args...)
+
+		}
+	}
+	return "", fmt.Errorf("%s: Not permitted", command)
+}
+
+func getAllowedCommands() []string {
+	return execWhitelist
 }
