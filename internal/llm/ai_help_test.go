@@ -1,4 +1,4 @@
-package tool
+package llm
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 
 func TestHelpAgentTools(t *testing.T) {
 
-	tools := HelpAgentTools()
+	tools := GetAIHelpTools()
 	if len(tools) != len(helpAgentNames) {
 		t.Errorf("expected 8 tools, got %d", len(tools))
 	}

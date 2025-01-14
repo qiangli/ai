@@ -20,8 +20,8 @@ Examples:
 {{.Example}}{{end}}
 
 Commands:
-  /[binary] [message...]  Get help with executable and shell scripting tasks
-  @[agent]  [message...]  Engage agents for help with various tasks
+  /[binary] [message...]  Get help with system command and shell scripting tasks
+  @[agent]  [message...]  Engage specialist agents for assistance with complex tasks
 
 Use "{{.CommandPath}} help" for more info.
 `
@@ -37,17 +37,13 @@ Usage:
 {{.Example}}{{end}}
 
 Commands:
-  /[binary] [message...]  Get help with executable and shell scripting tasks
-  @[agent]  [message...]  Engage agents for help with various tasks
+  /[binary] [message...]  Get help with system command and shell scripting tasks
+  @[agent]  [message...]  Engage specialist agents for assistance with complex tasks
 
 Miscellaneous:
-  info                    Show system information shared with LLM
-  setup                   Setup the AI configuration
-
-Supported Agent:
-  ask                     Ask general questions
-  sql                     Generate SQL queries for your dataset
-  eval                    Send direct messages without system prompts for evaluation{{if .HasAvailableLocalFlags}}
+  /                       List available binaries in the path
+  @                       List available agents
+  setup                   Setup the AI configuration{{if .HasAvailableLocalFlags}}
 
 Options:
 {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}

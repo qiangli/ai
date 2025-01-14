@@ -5,6 +5,10 @@ import (
 	"github.com/qiangli/ai/internal/db"
 )
 
+type Tool openai.ChatCompletionToolParam
+
+type Tools []openai.ChatCompletionToolParam
+
 type Config struct {
 	Workspace string
 
@@ -47,7 +51,7 @@ type Config struct {
 	Command string
 	Args    []string
 
-	Tools []openai.ChatCompletionToolParam
+	Tools Tools
 
 	DBConfig *db.DBConfig `mapstructure:"db"`
 
@@ -113,7 +117,7 @@ type Model struct {
 	BaseUrl string
 	ApiKey  string
 
-	Tools []openai.ChatCompletionToolParam
+	Tools Tools
 
 	DryRun        bool
 	DryRunContent string
@@ -129,6 +133,18 @@ const (
 	L2
 	L3
 )
+
+func Level1(cfg *Config) *Model {
+	return CreateModel(cfg, L1)
+}
+
+func Level2(cfg *Config) *Model {
+	return CreateModel(cfg, L2)
+}
+
+func Level3(cfg *Config) *Model {
+	return CreateModel(cfg, L3)
+}
 
 // CreateModel creates a model with the given configuration and optional level
 func CreateModel(cfg *Config, opt ...Level) *Model {
@@ -183,4 +199,9 @@ func CreateModel(cfg *Config, opt ...Level) *Model {
 	}
 
 	return model
+}
+
+type ToolConfig struct {
+	Model    *Model
+	DBConfig *db.DBConfig
 }

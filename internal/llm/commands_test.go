@@ -1,4 +1,4 @@
-package tool
+package llm
 
 import (
 	"context"
@@ -23,7 +23,7 @@ func TestRunTool(t *testing.T) {
 	}
 	t.Logf("runTool name: %s, props: %v\n", name, props)
 
-	cfg := &Config{}
+	cfg := &ToolConfig{}
 
 	out, err := RunTool(cfg, ctx, name, props)
 	if err != nil {
@@ -43,7 +43,7 @@ func TestRunToolGit(t *testing.T) {
 	}
 	t.Logf("runTool name: %s, props: %v\n", name, props)
 
-	cfg := &Config{}
+	cfg := &ToolConfig{}
 
 	out, err := RunTool(cfg, ctx, name, props)
 	if err != nil {
@@ -54,16 +54,17 @@ func TestRunToolGit(t *testing.T) {
 }
 
 func TestSystemToolsCheck(t *testing.T) {
-	// ctx := context.Background()
-
 	all := []string{}
-	for _, v := range SystemTools {
+	for _, v := range systemTools {
 		all = append(all, v.Function.Value.Name.Value)
 	}
 	t.Logf("SystemTools: %v", all)
 
-	for _, v := range SystemTools {
-		name := v.Function.Value.Name.Value
+	cfg := &ToolConfig{}
+	ctx := context.TODO()
+
+	for _, v := range all {
+		name := v
 		props := map[string]interface{}{}
 		props["command"] = "which"
 		props["commands"] = []string{"ls", "pwd"}
@@ -73,11 +74,46 @@ func TestSystemToolsCheck(t *testing.T) {
 
 		t.Logf("runTool name: %s, props: %v\n", name, props)
 
-		out, err := RunTool(nil, nil, name, props)
+		out, err := RunTool(cfg, ctx, name, props)
 		if err != nil {
 			t.Errorf("runTool error: %v", err)
 			return
 		}
-		t.Logf("runTool out: %v\n", out)
+		t.Logf("runTool name: %s, out: %v\n", name, out)
+	}
+}
+
+func TestExecAllowed(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+	name := "exec"
+	all := toolsList
+
+	t.Logf("TestExecAllowed: %v", all)
+
+	cfg := &ToolConfig{
+		// Model: &Model{
+		// 	Name:   "gpt-4o-mini",
+		// 	ApiKey: "sk-1234",
+		// 	BaseUrl: "http://localhost:4000",
+		// 	Tools: GetRestrictedTools(),
+		// },
+	}
+	ctx := context.TODO()
+
+	for _, v := range all {
+		props := map[string]interface{}{}
+		props["command"] = v
+		props["args"] = []string{"--version"}
+
+		t.Logf("runTool name: %s, props: %v\n", name, props)
+
+		out, err := RunTool(cfg, ctx, name, props)
+		if err != nil {
+			t.Errorf("runTool error: %v", err)
+			return
+		}
+		t.Logf("runTool name: %s, out: %v\n", name, out)
 	}
 }

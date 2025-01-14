@@ -9,8 +9,8 @@ import (
 
 	"github.com/qiangli/ai/internal/docker/aider"
 	"github.com/qiangli/ai/internal/llm"
+	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/resource"
-	"github.com/qiangli/ai/internal/tool"
 )
 
 type AiderAgent struct {
@@ -25,7 +25,7 @@ func NewAiderAgent(cfg *llm.Config, role, content string) (*AiderAgent, error) {
 		role = "system"
 	}
 
-	cfg.Tools = tool.SystemTools
+	cfg.Tools = llm.GetSystemTools()
 
 	agent := AiderAgent{
 		config:  cfg,
@@ -36,9 +36,12 @@ func NewAiderAgent(cfg *llm.Config, role, content string) (*AiderAgent, error) {
 }
 
 func (r *AiderAgent) Send(ctx context.Context, input string) (*ChatMessage, error) {
-	const myName string = "AIDER"
+	workspace, err := resolveWorkspaceBase(ctx, r.config, r.config.Workspace, input)
+	if err != nil {
+		return nil, err
+	}
 
-	workspace, err := checkWorkspace(ctx, r.config, input, llm.L1)
+	log.Infof("using workspace: %s\n", workspace)
 
 	// https://docs.all-hands.dev/modules/usage/how-to/headless-mode
 	hostDir := workspace
@@ -89,7 +92,7 @@ func (r *AiderAgent) Send(ctx context.Context, input string) (*ChatMessage, erro
 	}
 
 	return &ChatMessage{
-		Agent:   myName,
+		Agent:   "AIDER",
 		Content: content,
 	}, nil
 }

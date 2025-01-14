@@ -12,6 +12,9 @@ var metaRoleTemplate string
 //go:embed shell_system_role.md
 var shellSystemRoleTemplate string
 
+//go:embed shell_security_role.md
+var shellSecurityRoleTemplate string
+
 //go:embed user_role.md
 var userRoleTemplate string
 
@@ -50,6 +53,10 @@ func GetShellSystemRoleContent(info any) (string, error) {
 	}
 
 	return tplOutput.String(), nil
+}
+
+func GetShellSecurityRoleContent() string {
+	return shellSecurityRoleTemplate
 }
 
 func GetUserHint() string {

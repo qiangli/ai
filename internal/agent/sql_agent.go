@@ -7,7 +7,6 @@ import (
 	"github.com/qiangli/ai/internal/db"
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/resource"
-	"github.com/qiangli/ai/internal/tool"
 )
 
 type SqlAgent struct {
@@ -35,7 +34,7 @@ func NewSqlAgent(cfg *llm.Config, role, content string) (*SqlAgent, error) {
 	}
 
 	// Set up the tools
-	cfg.Tools = tool.DBTools
+	cfg.Tools = llm.GetDBTools()
 
 	agent := SqlAgent{
 		config:  cfg,

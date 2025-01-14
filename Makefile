@@ -22,7 +22,7 @@ tidy: ## Tidy
 git-message: ## Generate commit message and copy the message to clipboard
 	@git diff origin/main|go run ./cmd/ai --dry-run=false @git =+
 
-git-commit: ## Commit with the message copied to clipboard
+git-commit: git-message ## Generate and commit with the message
 	@git commit -m "$$(pbpaste)"
 
 install: build test ## Install

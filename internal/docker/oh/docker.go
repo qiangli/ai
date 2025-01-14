@@ -83,7 +83,7 @@ func RunContainer(ctx context.Context, query string) error {
 		Image: imageName,
 		Env:   toArray(envVars),
 		Cmd:   args,
-		User:  docker.GetCurrentUG(),
+		User:  "root",
 	}
 
 	workspaceBase := envVars["WORKSPACE_BASE"]

@@ -1,4 +1,4 @@
-package tool
+package llm
 
 import (
 	"context"
@@ -39,7 +39,7 @@ AND table_schema NOT IN ('pg_catalog', 'information_schema')
 ORDER BY table_schema, table_name, ordinal_position;
 `
 
-var DBTools = []openai.ChatCompletionToolParam{
+var dbTools = []openai.ChatCompletionToolParam{
 	define("db_query",
 		"Run query against the database",
 		map[string]interface{}{
@@ -90,17 +90,9 @@ var DBTools = []openai.ChatCompletionToolParam{
 		}),
 }
 
-func runDbTool(cfg *Config, ctx context.Context, name string, props map[string]interface{}) (string, error) {
+func runDbTool(cfg *ToolConfig, ctx context.Context, name string, props map[string]interface{}) (string, error) {
 	getStr := func(key string) (string, error) {
-		val, ok := props[key]
-		if !ok {
-			return "", fmt.Errorf("missing property: %s", key)
-		}
-		str, ok := val.(string)
-		if !ok {
-			return "", fmt.Errorf("property '%s' must be a string", key)
-		}
-		return str, nil
+		return getStrProp(key, props)
 	}
 
 	switch name {
@@ -134,4 +126,8 @@ func runDbTool(cfg *Config, ctx context.Context, name string, props map[string]i
 	}
 
 	return "", nil
+}
+
+func GetDBTools() []openai.ChatCompletionToolParam {
+	return dbTools
 }

@@ -9,23 +9,14 @@ import (
 	"github.com/openai/openai-go/option"
 
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/internal/tool"
+	// "github.com/qiangli/ai/internal/tool"
 )
 
 func Send(cfg *Config, ctx context.Context, role, prompt, input string) (string, error) {
-	model := &Model{
-		Name:          cfg.Model,
-		BaseUrl:       cfg.BaseUrl,
-		ApiKey:        cfg.ApiKey,
-		Tools:         cfg.Tools,
-		DryRun:        cfg.DryRun,
-		DryRunContent: cfg.DryRunContent,
-	}
-
 	req := &Message{
 		Role:    role,
 		Prompt:  prompt,
-		Model:   model,
+		Model:   CreateModel(cfg),
 		Input:   input,
 		DBCreds: cfg.DBConfig,
 	}
@@ -63,7 +54,7 @@ func Chat(ctx context.Context, req *Message) (*Message, error) {
 	}
 
 	if len(model.Tools) > 0 {
-		params.Tools = openai.F(model.Tools)
+		params.Tools = openai.F([]openai.ChatCompletionToolParam(model.Tools))
 	}
 
 	resp := &Message{}
@@ -95,15 +86,16 @@ func Chat(ctx context.Context, req *Message) (*Message, error) {
 					return nil, err
 				}
 
-				log.Debugf("\n\n*** tool call: %s\nprops: %+v\n", name, props)
-				toolCfg := &tool.Config{
+				log.Debugf("\n\n*** tool call: %s props: %+v\n", name, props)
+				toolCfg := &ToolConfig{
+					Model:    model,
 					DBConfig: req.DBCreds,
 				}
-				out, err := tool.RunTool(toolCfg, ctx, name, props)
+				out, err := RunTool(toolCfg, ctx, name, props)
 				if err != nil {
 					return nil, err
 				}
-				log.Debugf("\n*** tool call: %s\n%s\n", name, out)
+				log.Debugf("\n*** tool call: %s out: %s\n", name, out)
 				params.Messages.Value = append(params.Messages.Value, openai.ToolMessage(toolCall.ID, out))
 			}
 		}

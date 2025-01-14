@@ -9,8 +9,8 @@ import (
 
 	"github.com/qiangli/ai/internal/docker/oh"
 	"github.com/qiangli/ai/internal/llm"
+	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/resource"
-	"github.com/qiangli/ai/internal/tool"
 )
 
 type OhAgent struct {
@@ -28,7 +28,7 @@ func NewOhAgent(cfg *llm.Config, role, content string) (*OhAgent, error) {
 		content = resource.GetWSBaseSystemRoleContent()
 	}
 
-	cfg.Tools = tool.SystemTools
+	cfg.Tools = llm.GetSystemTools()
 
 	agent := OhAgent{
 		config:  cfg,
@@ -39,9 +39,12 @@ func NewOhAgent(cfg *llm.Config, role, content string) (*OhAgent, error) {
 }
 
 func (r *OhAgent) Send(ctx context.Context, input string) (*ChatMessage, error) {
-	const myName string = "OH"
+	workspace, err := resolveWorkspaceBase(ctx, r.config, r.config.Workspace, input)
+	if err != nil {
+		return nil, err
+	}
 
-	workspace, err := checkWorkspace(ctx, r.config, input, llm.L1)
+	log.Infof("using workspace: %s\n", workspace)
 
 	// https://docs.all-hands.dev/modules/usage/how-to/headless-mode
 	hostDir := workspace
@@ -92,7 +95,7 @@ func (r *OhAgent) Send(ctx context.Context, input string) (*ChatMessage, error) 
 	}
 
 	return &ChatMessage{
-		Agent:   myName,
+		Agent:   "OH",
 		Content: content,
 	}, nil
 }
