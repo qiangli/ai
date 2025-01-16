@@ -1,6 +1,4 @@
 . Ask for help with writing or debugging shell scripts.
 . Request explanations for specific shell commands or scripts.
-. Seek advice on best practices for shell scripting.
-. Inquire about different shell environments and their features.
-. Share your skill level, use case, and any error messages or logs for tailored advice.
-. Mention any security, performance, or dependency requirements.
+. Get assistance with writing, optimizing, or debugging SQL queries.
+. Seek guidance on writing code or debugging in various programming languages.

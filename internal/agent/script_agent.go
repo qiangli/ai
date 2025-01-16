@@ -5,7 +5,6 @@ import (
 
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/resource"
-	"github.com/qiangli/ai/internal/tool"
 	"github.com/qiangli/ai/internal/util"
 )
 
@@ -32,7 +31,7 @@ func NewScriptAgent(cfg *llm.Config, role, content string) (*ScriptAgent, error)
 		content = systemMessage
 	}
 
-	cfg.Tools = tool.SystemTools
+	cfg.Tools = llm.GetSystemTools()
 
 	chat := ScriptAgent{
 		config:  cfg,
@@ -50,13 +49,19 @@ func (r *ScriptAgent) Send(ctx context.Context, command, input string) (*ChatMes
 		return nil, err
 	}
 
-	content, err := llm.Send(r.config, ctx, r.Role, r.Message, userContent)
+	resp, err := llm.Chat(ctx, &llm.Message{
+		Role:    r.Role,
+		Prompt:  r.Message,
+		Model:   llm.Level2(r.config),
+		Input:   userContent,
+		DBCreds: r.config.DBConfig,
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	return &ChatMessage{
-		Agent:   "AI",
-		Content: content,
+		Agent:   "SLASH",
+		Content: resp.Content,
 	}, nil
 }

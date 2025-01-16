@@ -5,7 +5,6 @@ import (
 
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/resource"
-	"github.com/qiangli/ai/internal/tool"
 )
 
 // HelpAgent auto selects the best agent to handle the user query
@@ -24,7 +23,7 @@ func NewHelpAgent(cfg *llm.Config, role, content string) (*HelpAgent, error) {
 		content = resource.GetAIHelpRoleContent()
 	}
 
-	cfg.Tools = tool.HelpAgentTools()
+	cfg.Tools = llm.GetAIHelpTools()
 
 	agent := HelpAgent{
 		config:  cfg,

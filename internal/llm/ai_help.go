@@ -1,4 +1,4 @@
-package tool
+package llm
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/qiangli/ai/internal/resource"
 )
 
-var AIHelpTools = []openai.ChatCompletionToolParam{
+var aiHelpTools = []openai.ChatCompletionToolParam{
 	define("ai_agent_info",
 		"Get information about all supported AI agents",
 		nil,
@@ -32,17 +32,9 @@ var AIHelpTools = []openai.ChatCompletionToolParam{
 		}),
 }
 
-func runAIHelpTool(_ *Config, _ context.Context, name string, props map[string]interface{}) (string, error) {
+func runAIHelpTool(_ *ToolConfig, _ context.Context, name string, props map[string]interface{}) (string, error) {
 	getStr := func(key string) (string, error) {
-		val, ok := props[key]
-		if !ok {
-			return "", fmt.Errorf("missing property: %s", key)
-		}
-		str, ok := val.(string)
-		if !ok {
-			return "", fmt.Errorf("property %s must be a string", key)
-		}
-		return str, nil
+		return getStrProp(key, props)
 	}
 
 	switch name {
@@ -82,23 +74,8 @@ func agentInfo() (string, error) {
 	return strings.Join(out, "\n"), nil
 }
 
-var AllTools = append(append(AIHelpTools, SystemTools...), DBTools...)
+var helpAgentNames = []string{"ai_agent_info", "which", "command", "man", "uname"}
 
-var helpAgentNames = []string{"ai_agent_info", "which", "command", "man", "help", "uname"}
-
-func filteredTools(names []string) []openai.ChatCompletionToolParam {
-	// filter AllTools by function name
-	var tools []openai.ChatCompletionToolParam
-	for _, tool := range AllTools {
-		for _, name := range names {
-			if tool.Function.Value.Name.Value == name {
-				tools = append(tools, tool)
-			}
-		}
-	}
-	return tools
-}
-
-func HelpAgentTools() []openai.ChatCompletionToolParam {
+func GetAIHelpTools() []openai.ChatCompletionToolParam {
 	return filteredTools(helpAgentNames)
 }

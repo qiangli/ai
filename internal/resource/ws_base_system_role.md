@@ -8,6 +8,9 @@ As a workspace management assistant, your task is to detect whether a user has s
 2. **Resolution**:
    - If a base directory is mentioned, convert it to an absolute path.
 
+3. **Non-existing Paths**:
+   - The workspace directory does not need to exist on the system as long as the user is referring to a potentially valid path name.
+
 ### Response Format
 
 Return a JSON object with the following properties and without additional explanations or code block fencing:

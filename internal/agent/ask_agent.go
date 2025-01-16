@@ -48,14 +48,20 @@ func (r *AskAgent) Send(ctx context.Context, input string) (*ChatMessage, error)
 		message = prompt.RolePrompt
 	}
 
-	content, err := llm.Send(r.config, ctx, r.Role, message, input)
+	resp, err := llm.Chat(ctx, &llm.Message{
+		Role:    r.Role,
+		Prompt:  message,
+		Model:   llm.Level1(r.config),
+		Input:   input,
+		DBCreds: r.config.DBConfig,
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	return &ChatMessage{
 		Agent:   agent,
-		Content: content,
+		Content: resp.Content,
 	}, nil
 }
 

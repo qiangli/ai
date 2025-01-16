@@ -89,7 +89,10 @@ func handle(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	return agent.HandleCommand(cfg.LLM, cfg.Role, cfg.Message)
+	if err := agent.HandleCommand(cfg.LLM, cfg.Role, cfg.Message); err != nil {
+		log.Errorln(err)
+	}
+	return nil
 }
 
 var rootCmd = &cobra.Command{
@@ -115,13 +118,12 @@ func init() {
 			defaultCfg = filepath.Join(homeDir, ".ai", "config.yaml")
 		}
 	}
-	defaultWS := filepath.Join(homeDir, ".ai", "workspace")
 
 	//
 	rootCmd.Flags().StringVar(&cfgFile, "config", defaultCfg, "config file")
 
 	// Define flags with dashes
-	rootCmd.Flags().StringP("workspace", "w", defaultWS, "Workspace directory")
+	rootCmd.Flags().StringP("workspace", "w", "", "Workspace directory")
 
 	rootCmd.Flags().String("api-key", "", "LLM API key")
 	rootCmd.Flags().String("model", openai.ChatModelGPT4o, "LLM model")
@@ -129,15 +131,15 @@ func init() {
 
 	rootCmd.Flags().String("l1-api-key", "", "Level1 basic LLM API key")
 	rootCmd.Flags().String("l1-model", openai.ChatModelGPT4oMini, "Level1 basic LLM model")
-	rootCmd.Flags().String("l1-base-url", "https://api.openai.com/v1/", "Level1 basic LLM Base URL")
+	rootCmd.Flags().String("l1-base-url", "", "Level1 basic LLM Base URL")
 
 	rootCmd.Flags().String("l2-api-key", "", "Level2 standard LLM API key")
 	rootCmd.Flags().String("l2-model", openai.ChatModelGPT4o, "Level2 standard LLM model")
-	rootCmd.Flags().String("l2-base-url", "https://api.openai.com/v1/", "Level2 standard LLM Base URL")
+	rootCmd.Flags().String("l2-base-url", "", "Level2 standard LLM Base URL")
 
 	rootCmd.Flags().String("l3-api-key", "", "Level3 advanced LLM API key")
 	rootCmd.Flags().String("l3-model", openai.ChatModelO1Mini, "Level3 advanced LLM model")
-	rootCmd.Flags().String("l3-base-url", "https://api.openai.com/v1/", "Level3 advanced LLM Base URL")
+	rootCmd.Flags().String("l3-base-url", "", "Level3 advanced LLM Base URL")
 
 	rootCmd.Flags().MarkHidden("l1-api-key")
 	rootCmd.Flags().MarkHidden("l2-api-key")
@@ -163,6 +165,7 @@ func init() {
 	rootCmd.Flags().Bool("pb-write", false, "Copy output to the clipboard. Alternatively, append '=+' to the command")
 
 	rootCmd.Flags().String("log", "", "Log all debugging information to a file")
+	rootCmd.Flags().Bool("trace", false, "Trace API calls")
 
 	// db
 	rootCmd.Flags().String("db-host", "", "Database host")
@@ -176,6 +179,7 @@ func init() {
 	rootCmd.Flags().MarkHidden("role-content")
 	rootCmd.Flags().MarkHidden("dry-run")
 	rootCmd.Flags().MarkHidden("dry-run-content")
+	rootCmd.Flags().MarkHidden("trace")
 
 	// TODO agent specific flags
 	rootCmd.Flags().Bool("git-short", false, "Generate short one liner commit message")
@@ -388,6 +392,10 @@ func setLogLevel() {
 	if debug {
 		log.SetLogLevel(log.Verbose)
 	}
+
+	// trace
+	log.Trace = viper.GetBool("trace")
+
 }
 
 func setLogOutput() (*log.FileWriter, error) {

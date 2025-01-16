@@ -2,8 +2,9 @@ package agent
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/qiangli/ai/internal"
@@ -70,63 +71,91 @@ func HandleCommand(cfg *llm.Config, role, content string) error {
 	return AgentHelp(cfg, role, content)
 }
 
-type WorkspaceCheck struct {
-	WorkspaceBase string `json:"workspace_base"`
-	Detected      bool   `json:"detected"`
-}
-
-const missingWorkspace = "Please specify a workspace base directory."
-
-// Decide the workspace with the help from LLM
-func checkWorkspace(ctx context.Context, cfg *llm.Config, input string, level llm.Level) (string, error) {
-	ws := cfg.Workspace
-	if ws == "" {
-
-		userContent, err := resource.GetWSBaseUserRoleContent(
-			input,
-		)
-		if err != nil {
-			return "", err
-		}
-
-		role := "system"
-		prompt := resource.GetWSBaseSystemRoleContent()
-
-		req := &llm.Message{
-			Role:    role,
-			Prompt:  prompt,
-			Model:   llm.CreateModel(cfg, level),
-			Input:   userContent,
-			DBCreds: cfg.DBConfig,
-		}
-
-		// role, prompt, userContent
-
-		resp, err := llm.Chat(ctx, req)
-		if err != nil {
-			return "", err
-		}
-		// unmarshal the response
-		// TODO: retry?
-		var wsCheck WorkspaceCheck
-		if err := json.Unmarshal([]byte(resp.Content), &wsCheck); err != nil {
-			return "", fmt.Errorf("failed to unmarshal response: %w", err)
-		}
-		if !wsCheck.Detected {
-			return "", fmt.Errorf("%s", missingWorkspace)
-		}
-
-		log.Debugf("Workspace check: %+v\n", wsCheck)
-
-		ws = wsCheck.WorkspaceBase
+// resolveWorkspaceBase resolves the workspace base path.
+// If the workspace is provided, validate and create if needed and return it.
+// If the workspace is not provided, it tries to detect the workspace from the input using LLM.
+// If the workspace is under the current directory (sub module), use the current directory as the workspace.
+// If the workspace or its parent is a git repo (inside a git repo), use that as the workspace.
+func resolveWorkspaceBase(ctx context.Context, cfg *llm.Config, workspace string, input string) (string, error) {
+	if workspace != "" {
+		return validatePath(workspace)
 	}
 
-	// double check the workspace it is valid
-	workspace, err := ValidatePath(ws)
-	if err != nil {
+	var err error
+	if workspace, err = llm.DetectWorkspace(ctx, &llm.Model{
+		Name:    cfg.L1Model,
+		BaseUrl: cfg.L1BaseUrl,
+		ApiKey:  cfg.L1ApiKey,
+	}, input); err != nil {
 		return "", err
 	}
 
-	log.Infof("Workspace: %s %s\n", ws, workspace)
+	log.Infof("Workspace detected: %s\n", workspace)
+
+	if workspace, err = validatePath(workspace); err != nil {
+		return "", err
+	}
+
+	// if the workspace contains the current working directory, use the current working directory
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	if strings.HasPrefix(workspace, cwd) {
+		return cwd, nil
+	}
+
+	// check if the workspace path or any of its parent contains a git repository
+	// if so, use the git repository as the workspace
+	if workspace, err = detectGitRepo(workspace); err != nil {
+		return "", err
+	}
+
 	return workspace, nil
+}
+
+// ValidatePath returns the absolute path of the given path.
+// If the path is empty, it returns an error. If the path is not an absolute path,
+// it converts it to an absolute path.
+// If the path exists, it returns its absolute path.
+func validatePath(path string) (string, error) {
+	if path == "" {
+		return "", fmt.Errorf("path is empty")
+	}
+
+	if !filepath.IsAbs(path) {
+		absPath, err := filepath.Abs(path)
+		if err != nil {
+			return "", fmt.Errorf("failed to get absolute path: %w", err)
+		}
+		path = absPath
+	}
+	if _, err := os.Stat(path); err != nil {
+		if os.IsNotExist(err) {
+			if err := os.MkdirAll(path, os.ModePerm); err != nil {
+				return "", fmt.Errorf("failed to create directory: %w", err)
+			}
+			return path, nil
+		}
+		return "", fmt.Errorf("failed to stat path: %w", err)
+	}
+
+	return path, nil
+}
+
+func detectGitRepo(path string) (string, error) {
+	if path == "" {
+		return "", fmt.Errorf("path is empty")
+	}
+	for {
+		if _, err := os.Stat(filepath.Join(path, ".git")); err == nil {
+			return path, nil
+		}
+		path = filepath.Dir(path)
+		if path == "/" {
+			break
+		}
+	}
+
+	return path, nil
 }

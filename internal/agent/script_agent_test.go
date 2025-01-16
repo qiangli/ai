@@ -27,8 +27,8 @@ func TestScriptAgentSend(t *testing.T) {
 
 	log.SetLogLevel(log.Verbose)
 
-	command := "zic"
-	message := "what is this command for"
+	command := ""
+	message := "what is the latest node version?"
 	resp, err := chat.Send(context.TODO(), command, message)
 	if err != nil {
 		t.Errorf("ScriptAgent.Send error: %v", err)
