@@ -23,8 +23,8 @@ type ChatMessage struct {
 }
 
 type UserInput struct {
-	Command    string
-	SubCommand string
+	Agent      string
+	Subcommand string
 
 	Message string
 	Content string
@@ -47,33 +47,55 @@ func (r *UserInput) Input() string {
 	}
 }
 
-func MakeAgent(name string, cfg *llm.Config, role, prompt string) (Agent, error) {
+// Clip returns a clipped version of the content.
+// This is intended for "smart" agents to make decisions based on user inputs.
+func (r *UserInput) Clip() string {
+	switch {
+	case r.Message == "" && r.Content == "":
+		return ""
+	case r.Message == "":
+		return clipText(r.Content, 500)
+	case r.Content == "":
+		return r.Message
+	default:
+		return fmt.Sprintf("###\n%s\n###\n%s", r.Message, clipText(r.Content, 500))
+	}
+}
+
+func MakeAgent(name string, cfg *internal.AppConfig) (Agent, error) {
+
 	switch name {
 	case "ask":
-		return NewAskAgent(cfg, role, prompt)
-	case "eval":
-		return NewEvalAgent(cfg, role, prompt)
+		return NewAskAgent(cfg)
 	case "seek":
-		return NewGptrAgent(cfg, role, prompt)
+		return NewGptrAgent(cfg)
 	case "sql":
-		return NewSqlAgent(cfg, role, prompt)
+		return NewSqlAgent(cfg)
 	case "gptr":
-		return NewGptrAgent(cfg, role, prompt)
+		return NewGptrAgent(cfg)
 	case "oh":
-		return NewOhAgent(cfg, role, prompt)
+		return NewOhAgent(cfg)
 	case "git":
-		return NewGitAgent(cfg, role, prompt)
+		return NewGitAgent(cfg)
 	case "code":
-		return NewAiderAgent(cfg, role, prompt)
+		return NewAiderAgent(cfg)
 	case "pr":
-		return NewPrAgent(cfg, role, prompt)
+		return NewPrAgent(cfg)
+	case "eval":
+		return NewEvalAgent(cfg)
+	case "script":
+		return NewScriptAgent(cfg)
 	default:
 		return nil, internal.NewUserInputError("not supported yet: " + name)
 	}
 }
 
-func agentList() (map[string]string, error) {
-	return resource.AgentDesc, nil
+func agentList() map[string]string {
+	return resource.AgentDesc
+}
+
+func agentCommandList() map[string]string {
+	return resource.AgentCommands
 }
 
 func hasAgent(name string) bool {
@@ -83,31 +105,67 @@ func hasAgent(name string) bool {
 			return true
 		}
 	}
-	dict, _ := agentList()
+	dict := agentList()
 	_, exist := dict[name]
 	return exist
 }
 
-func HandleCommand(cfg *llm.Config, role, prompt string) error {
+func HandleCommand(cfg *internal.AppConfig) error {
 	log.Debugf("Handle: %s %v\n", cfg.Command, cfg.Args)
 
-	command := cfg.Command
+	cmd := cfg.Command
 
-	if command != "" {
+	if cmd != "" {
 		// $ ai /command
-		if strings.HasPrefix(command, "/") {
-			return SlashCommand(cfg, role, prompt)
+		if strings.HasPrefix(cmd, "/") {
+			name := strings.TrimSpace(cmd[1:])
+			in, err := GetUserInput(cfg)
+			if err != nil {
+				return err
+			}
+
+			if name == "" && in.IsEmpty() {
+				return internal.NewUserInputError("no command and message provided")
+			}
+
+			in.Agent = "script"
+			in.Subcommand = name
+			return handleAgent(cfg, in)
 		}
 
 		// $ ai @agent
-		if strings.HasPrefix(command, "@") {
-			return AgentCommand(cfg, role, prompt)
+		if strings.HasPrefix(cmd, "@") {
+			name := strings.TrimSpace(cmd[1:])
+			if name == "" {
+				// auto select
+				// $ ai @ message...
+				return AgentHelp(cfg)
+			}
+
+			na := strings.SplitN(name, "/", 2)
+			agent := na[0]
+			if !hasAgent(agent) {
+				return internal.NewUserInputError("no such agent: " + agent)
+			}
+			in, err := GetUserInput(cfg)
+			if err != nil {
+				return err
+			}
+			if in.IsEmpty() {
+				return internal.NewUserInputError("no message content")
+			}
+
+			in.Agent = agent
+			if len(na) > 1 {
+				in.Subcommand = na[1]
+			}
+			return handleAgent(cfg, in)
 		}
 	}
 
 	// auto select the best agent to handle the user query if there is message content
 	// $ ai message...
-	return AgentHelp(cfg, role, prompt)
+	return AgentHelp(cfg)
 }
 
 // resolveWorkspaceBase resolves the workspace base path.
@@ -115,13 +173,13 @@ func HandleCommand(cfg *llm.Config, role, prompt string) error {
 // If the workspace is not provided, it tries to detect the workspace from the input using LLM.
 // If the workspace is under the current directory (sub module), use the current directory as the workspace.
 // If the workspace or its parent is a git repo (inside a git repo), use that as the workspace.
-func resolveWorkspaceBase(ctx context.Context, cfg *llm.Config, workspace string, input string) (string, error) {
+func resolveWorkspaceBase(ctx context.Context, cfg *internal.LLMConfig, workspace string, input string) (string, error) {
 	if workspace != "" {
 		return validatePath(workspace)
 	}
 
 	var err error
-	if workspace, err = llm.DetectWorkspace(ctx, &llm.Model{
+	if workspace, err = llm.DetectWorkspace(ctx, &internal.Model{
 		Name:    cfg.L1Model,
 		BaseUrl: cfg.L1BaseUrl,
 		ApiKey:  cfg.L1ApiKey,

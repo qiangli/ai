@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/docker/aider"
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
@@ -14,18 +15,21 @@ import (
 )
 
 type AiderAgent struct {
-	config *llm.Config
+	config *internal.AppConfig
 
 	Role   string
 	Prompt string
 }
 
-func NewAiderAgent(cfg *llm.Config, role, prompt string) (*AiderAgent, error) {
+func NewAiderAgent(cfg *internal.AppConfig) (*AiderAgent, error) {
+	role := cfg.Role
+	prompt := cfg.Prompt
+
 	if role == "" {
 		role = "system"
 	}
 
-	cfg.Tools = llm.GetSystemTools()
+	cfg.LLM.Tools = llm.GetSystemTools()
 
 	agent := AiderAgent{
 		config: cfg,
@@ -37,8 +41,9 @@ func NewAiderAgent(cfg *llm.Config, role, prompt string) (*AiderAgent, error) {
 
 func (r *AiderAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
 	var input = in.Input()
+	var clip = in.Clip()
 
-	workspace, err := resolveWorkspaceBase(ctx, r.config, r.config.Workspace, input)
+	workspace, err := resolveWorkspaceBase(ctx, r.config.LLM, r.config.LLM.Workspace, clip)
 	if err != nil {
 		return nil, err
 	}
@@ -60,13 +65,13 @@ func (r *AiderAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, err
 	}
 
 	// Set the workspace
-	r.config.WorkDir = workspace
+	r.config.LLM.WorkDir = workspace
 	os.Setenv("WORKSPACE_BASE", workspace)
 
 	// Calling out to OH
 	// FIXME: This is a hack
 	// better to config the base url and api key (and others) for oh
-	u, err := url.Parse(r.config.BaseUrl)
+	u, err := url.Parse(r.config.LLM.BaseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse base url: %w", err)
 	}
@@ -76,21 +81,21 @@ func (r *AiderAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, err
 		u.Host = "host.docker.internal:" + port
 	}
 	os.Setenv("OPENAI_API_BASE", u.String())
-	os.Setenv("OPENAI_API_KEY", r.config.ApiKey)
-	os.Setenv("AIDER_MODEL", r.config.L2Model)
-	os.Setenv("AIDER_WEAK_MODEL", r.config.L1Model)
+	os.Setenv("OPENAI_API_KEY", r.config.LLM.ApiKey)
+	os.Setenv("AIDER_MODEL", r.config.LLM.L2Model)
+	os.Setenv("AIDER_WEAK_MODEL", r.config.LLM.L1Model)
 
-	os.Setenv("AIDER_VERBOSE", fmt.Sprintf("%v", r.config.Debug))
+	os.Setenv("AIDER_VERBOSE", fmt.Sprintf("%v", r.config.LLM.Debug))
 
 	var content string
 
-	if !r.config.DryRun {
+	if !r.config.LLM.DryRun {
 		err = aider.Run(ctx, aider.Code, userContent)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		content = r.config.DryRunContent
+		content = r.config.LLM.DryRunContent
 	}
 
 	return &ChatMessage{

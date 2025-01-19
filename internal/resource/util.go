@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"regexp"
@@ -54,4 +55,18 @@ func tryUnmarshal(data string, v any) error {
 		return fmt.Errorf("failed to repair JSON: %v", err)
 	}
 	return json.Unmarshal([]byte(repaired), v)
+}
+
+func apply(tpl string, data any) (string, error) {
+	t, err := template.New("pr").Funcs(tplFuncMap).Parse(tpl)
+	if err != nil {
+		return "", err
+	}
+
+	var buf bytes.Buffer
+	if err := t.Execute(&buf, data); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }

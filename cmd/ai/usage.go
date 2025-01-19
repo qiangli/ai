@@ -13,15 +13,15 @@ import (
 
 const rootUsageTemplate = `Usage:
   ai message...
-  ai [OPTIONS] COMMAND [message...]{{if .HasExample}}
+  ai [OPTIONS] AGENT [message...]{{if .HasExample}}
 
 Examples:
 
 {{.Example}}{{end}}
 
-Commands:
-  /[binary] [message...]  Get help with system command and shell scripting tasks
-  @[agent]  [message...]  Engage specialist agents for assistance with complex tasks
+Agent:
+  /[command]       [message...] Get help with system command and shell scripting tasks
+  @[agent/command] [message...] Engage specialist agents for assistance with complex tasks
 
 Use "{{.CommandPath}} help" for more info.
 `
@@ -30,19 +30,19 @@ const helpTemplate = `AI Command Line Tool
 
 Usage:
   ai message...
-  ai [OPTIONS] COMMAND [message...]{{if .Hint}}
+  ai [OPTIONS] AGENT [message...]{{if .Hint}}
 
 {{.Hint}}{{end}}{{if .HasExample}}
 
 {{.Example}}{{end}}
 
-Commands:
-  /[binary] [message...]  Get help with system command and shell scripting tasks
-  @[agent]  [message...]  Engage specialist agents for assistance with complex tasks
+Agent:
+  /[command]       [message...] Get help with system command and shell scripting tasks
+  @[agent/command] [message...] Engage specialist agents for assistance with complex tasks
 
 Miscellaneous:
-  /                       List available binaries in the path
-  @                       List available agents
+  /                       List system commands available in the path
+  @                       List all supported agents
   setup                   Setup the AI configuration{{if .HasAvailableLocalFlags}}
 
 Options:

@@ -4,18 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/cb"
-	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/resource"
 	"github.com/qiangli/ai/internal/util"
 )
 
-func AgentHelp(cfg *llm.Config, role, prompt string) error {
+func AgentHelp(cfg *internal.AppConfig) error {
 	log.Debugln("Agent smart help")
 
 	in, err := GetUserInput(cfg)
@@ -26,27 +25,25 @@ func AgentHelp(cfg *llm.Config, role, prompt string) error {
 		return internal.NewUserInputError("no query provided")
 	}
 
-	agent, err := NewHelpAgent(cfg, role, prompt)
+	agent, err := NewHelpAgent(cfg)
 	if err != nil {
 		return err
 	}
 
-	if cfg.DryRun {
+	if cfg.LLM.DryRun {
 		log.Infof("Dry run mode. No API call will be made!\n")
-		log.Debugf("The following will be returned:\n%s\n", cfg.DryRunContent)
+		log.Debugf("The following will be returned:\n%s\n", cfg.LLM.DryRunContent)
 	}
-	log.Infof("Sending request to [%s] %s...\n", cfg.Model, cfg.BaseUrl)
+	log.Infof("Sending request to [%s] %s...\n", cfg.LLM.Model, cfg.LLM.BaseUrl)
 
 	// Let LLM decide which agent to use
 	ctx := context.TODO()
-	resp, err := agent.Send(ctx, in.Input())
+	resp, err := agent.Send(ctx, in)
 	if err != nil {
 		return err
 	}
 
-	// clone the cfg to avoid modifying the original one
-	nc := cfg.Clone()
-	if err := dispatch(nc, resp, role, prompt, in); err != nil {
+	if err := dispatch(cfg, resp, in); err != nil {
 		return err
 	}
 
@@ -54,51 +51,20 @@ func AgentHelp(cfg *llm.Config, role, prompt string) error {
 	return nil
 }
 
-func AgentCommand(cfg *llm.Config, role, prompt string) error {
-	log.Debugf("Agent: %s %v\n", cfg.Command, cfg.Args)
-
-	names := strings.TrimSpace(cfg.Command[1:])
-	if names == "" {
-		return internal.NewUserInputError("no agent provided")
-	}
-
-	na := strings.SplitN(names, "/", 2)
-	name := na[0]
-
-	if !hasAgent(name) {
-		return internal.NewUserInputError("no such agent: " + name)
-	}
-	input, err := GetUserInput(cfg)
-	if err != nil {
-		return err
-	}
-	if input.IsEmpty() {
-		return internal.NewUserInputError("no message content")
-	}
-
-	input.Command = name
-	if len(na) > 1 {
-		input.SubCommand = na[1]
-	}
-
-	return handleAgent(cfg, role, prompt, input)
-}
-
-func handleAgent(cfg *llm.Config, role, prompt string, input *UserInput) error {
-
-	agent, err := MakeAgent(input.Command, cfg, role, prompt)
+func handleAgent(cfg *internal.AppConfig, in *UserInput) error {
+	agent, err := MakeAgent(in.Agent, cfg)
 	if err != nil {
 		return err
 	}
 
-	if cfg.DryRun {
+	if cfg.LLM.DryRun {
 		log.Infof("Dry run mode. No API call will be made!\n")
-		log.Debugf("The following will be returned:\n%s\n", cfg.DryRunContent)
+		log.Debugf("The following will be returned:\n%s\n", cfg.LLM.DryRunContent)
 	}
-	log.Infof("Sending request to [%s] %s...\n", cfg.Model, cfg.BaseUrl)
+	log.Infof("[%s/%s] sending request to [%s] %s...\n", in.Agent, in.Subcommand, cfg.LLM.Model, cfg.LLM.BaseUrl)
 
 	ctx := context.TODO()
-	resp, err := agent.Send(ctx, input)
+	resp, err := agent.Send(ctx, in)
 	if err != nil {
 		return err
 	}
@@ -108,51 +74,7 @@ func handleAgent(cfg *llm.Config, role, prompt string, input *UserInput) error {
 	return nil
 }
 
-func SlashCommand(cfg *llm.Config, role, prompt string) error {
-	log.Debugf("Command: %s %v\n", cfg.Command, cfg.Args)
-
-	name := strings.TrimSpace(cfg.Command[1:])
-	if name != "" {
-		name = filepath.Base(name)
-	}
-
-	input, err := GetUserInput(cfg)
-	if err != nil {
-		return err
-	}
-
-	if name == "" && input.IsEmpty() {
-		return internal.NewUserInputError("no command and message provided")
-	}
-
-	input.Command = name
-	return handleSlash(cfg, role, prompt, input)
-}
-
-func handleSlash(cfg *llm.Config, role, prompt string, in *UserInput) error {
-	agent, err := NewScriptAgent(cfg, role, prompt)
-	if err != nil {
-		return err
-	}
-
-	if cfg.DryRun {
-		log.Infof("Dry run mode. No API call will be made!\n")
-		log.Debugf("The following will be returned:\n%s\n", cfg.DryRunContent)
-	}
-	log.Infof("Sending request to [%s] %s...\n", cfg.Model, cfg.BaseUrl)
-
-	ctx := context.TODO()
-	resp, err := agent.Send(ctx, in)
-	if err != nil {
-		return err
-	}
-	processContent(cfg, resp)
-
-	log.Debugf("Command completed: %s %v\n", cfg.Command, cfg.Args)
-	return nil
-}
-
-func Info(cfg *llm.Config) error {
+func Info(cfg *internal.AppConfig) error {
 	info, err := collectSystemInfo()
 	if err != nil {
 		log.Errorln(err)
@@ -162,7 +84,7 @@ func Info(cfg *llm.Config) error {
 	return nil
 }
 
-func Setup(cfg *llm.Config) error {
+func Setup(cfg *internal.AppConfig) error {
 	if err := setupConfig(cfg); err != nil {
 		log.Errorf("Error: %v\n", err)
 		return err
@@ -170,25 +92,30 @@ func Setup(cfg *llm.Config) error {
 	return nil
 }
 
-func ListAgents(cfg *llm.Config) error {
-	dict, err := agentList()
-	if err != nil {
-		return err
-	}
-
+func ListAgents(cfg *internal.AppConfig) error {
+	dict := agentList()
 	var keys []string
 	for k := range dict {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 
+	commands := agentCommandList()
+
 	for _, k := range keys {
-		log.Printf("%s:\t%s\n", k, dict[k])
+		log.Printf("%s:\t%s", k, dict[k])
+		if v, ok := commands[k]; ok {
+			log.Printf("%s", v)
+		} else {
+			log.Println()
+		}
 	}
+	log.Printf("\n/ is shorthand for @script\n")
+
 	return nil
 }
 
-func ListCommands(cfg *llm.Config) error {
+func ListCommands(cfg *internal.AppConfig) error {
 	list, err := util.ListCommands(false)
 	if err != nil {
 		log.Errorf("Error: %v\n", err)
@@ -216,7 +143,7 @@ func collectSystemInfo() (string, error) {
 	return string(jd), nil
 }
 
-func processContent(cfg *llm.Config, message *ChatMessage) {
+func processContent(cfg *internal.AppConfig, message *ChatMessage) {
 	content := message.Content
 	doc := util.ParseMarkdown(content)
 	total := len(doc.CodeBlocks)
@@ -237,7 +164,7 @@ func processContent(cfg *llm.Config, message *ChatMessage) {
 		return (stat.Mode() & os.ModeCharDevice) == 0
 	}()
 
-	PrintMessage(cfg.Output, message)
+	PrintMessage(cfg.LLM.Output, message)
 
 	if total > 0 && isPiped {
 		// if there are code blocks and stdout is redirected
@@ -252,38 +179,21 @@ func processContent(cfg *llm.Config, message *ChatMessage) {
 	}
 }
 
-func dispatch(cfg *llm.Config, resp *ChatMessage, role, prompt string, in *UserInput) error {
+func dispatch(cfg *internal.AppConfig, resp *ChatMessage, in *UserInput) error {
 	log.Debugf("dispatching: %+v\n", resp)
 
-	var data map[string]string
+	var data resource.AgentDetect
 	if err := json.Unmarshal([]byte(resp.Content), &data); err != nil {
 		// better continue the conversation than err
 		log.Debugf("failed to unmarshal content: %v\n", err)
-		data = map[string]string{"type": "agent", "arg": "ask"}
-	}
-	what := data["type"]
-	name := data["arg"]
-
-	switch what {
-	case "command":
-		if name == "/" {
-			cfg.Command = "/"
-		} else {
-			cfg.Command = "/" + name
+		data = resource.AgentDetect{
+			Agent:   "ask",
+			Command: "",
 		}
-		log.Infof("Running `ai %s` ...\n", cfg.Command)
-		in.Command = name
-		return handleSlash(cfg, role, prompt, in)
-	case "agent":
-		cfg.Command = "@" + name
-		log.Infof("Running `ai %s` ...\n", cfg.Command)
-		in.Command = name
-		return handleAgent(cfg, role, prompt, in)
-	default:
-		log.Debugf("unknown type: %s, default to '@ask'\n", what)
-		cfg.Command = "@ask"
-		log.Infof("Running `ai %s` ...\n", cfg.Command)
-		in.Command = "ask"
-		return handleAgent(cfg, role, prompt, in)
 	}
+
+	in.Agent = data.Agent
+	in.Subcommand = data.Command
+
+	return handleAgent(cfg, in)
 }

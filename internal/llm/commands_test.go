@@ -3,6 +3,8 @@ package llm
 import (
 	"context"
 	"testing"
+
+	"github.com/qiangli/ai/internal"
 )
 
 func TestRunMan(t *testing.T) {
@@ -23,7 +25,7 @@ func TestRunTool(t *testing.T) {
 	}
 	t.Logf("runTool name: %s, props: %v\n", name, props)
 
-	cfg := &ToolConfig{}
+	cfg := &internal.ToolConfig{}
 
 	out, err := RunTool(cfg, ctx, name, props)
 	if err != nil {
@@ -43,7 +45,7 @@ func TestRunToolGit(t *testing.T) {
 	}
 	t.Logf("runTool name: %s, props: %v\n", name, props)
 
-	cfg := &ToolConfig{}
+	cfg := &internal.ToolConfig{}
 
 	out, err := RunTool(cfg, ctx, name, props)
 	if err != nil {
@@ -60,7 +62,7 @@ func TestSystemToolsCheck(t *testing.T) {
 	}
 	t.Logf("SystemTools: %v", all)
 
-	cfg := &ToolConfig{}
+	cfg := &internal.ToolConfig{}
 	ctx := context.TODO()
 
 	for _, v := range all {
@@ -92,7 +94,7 @@ func TestExecAllowed(t *testing.T) {
 
 	t.Logf("TestExecAllowed: %v", all)
 
-	cfg := &ToolConfig{
+	cfg := &internal.ToolConfig{
 		// Model: &Model{
 		// 	Name:   "gpt-4o-mini",
 		// 	ApiKey: "sk-1234",

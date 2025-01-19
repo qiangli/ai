@@ -1,14 +1,15 @@
 package resource
 
-// describe each agent in 18 words or less
+// describe each agent in 16 words
 var AgentDesc = map[string]string{
-	"ask":  "Provide concise, clear answers on various topics",
-	"sql":  "Generate queries, enhancing productivity for all user levels.",
-	"oh":   "Aid greenfield projects, refactoring, and debugging.",
-	"seek": "Conduct web research and gather timely information to create factual, cited reports.",
-	"git":  "Generate effective commit messages for projects.",
-	"code": "Enable collaborative code editing with LLMs.",
-	"pr":   "Create pull request descriptions for local changes.",
+	"ask":    "All-encompassing Q&A platform providing concise, reliable answers on diverse topics.",
+	"sql":    "Streamlines SQL query generation, helping users derive insights without SQL expertise.",
+	"oh":     "Engineering assistant promoting incremental development and detailed refactoring support.",
+	"seek":   "Digital exploration tool delivering accurate, relevant insights from diverse online sources.",
+	"git":    "Automates Git commit message creation for clarity and consistency in version control.",
+	"code":   "Integrates LLMs for collaborative coding, refactoring, bug fixing, and test development.",
+	"pr":     "Enhances PR management with automated summaries, reviews, suggestions, and changelog updates.",
+	"script": "Receive assistance to execute system commands, create and troubleshoot various shell scripts.",
 }
 
 // summarize each agent in 100 words
@@ -32,6 +33,26 @@ var AgentInfo = map[string]string{
 	The Code agent is an innovative tool that boosts collaborative software development by seamlessly integrating Large Language Models (LLMs) into local environments. By harnessing the power of these models, it can generate new code, refactor existing code, fix bugs, and develop test cases efficiently. This enhances productivity and code quality, making teamwork more efficient and effective.
 `,
 	"pr": `
-	The Pull Request (PR) agent is a valuable tool for software developers, streamlining the process of creating pull request descriptions. By leveraging AI capabilities, it generates detailed and informative descriptions for local changes, enhancing communication and collaboration among team members. This tool ensures that pull requests are well-documented, facilitating code reviews and improving the overall efficiency of the development workflow.
+    The PR agent is a robust tool designed to optimize pull request management by automating several key tasks. It generates detailed and accurate summaries, titles, and labels for PR descriptions, reducing manual effort. With its review functionality, developers receive tailored feedback on potential issues, security vulnerabilities, and the overall review process, ensuring high-quality code. Additionally, it offers code suggestions to improve existing code within the PR. The changelog feature further boosts productivity by automatically updating the CHANGELOG.md file, capturing all relevant changes.
+`,
+	"script": `
+	The Script agent is a versatile tool that assists users in executing system commands, creating shell scripts, and troubleshooting various scripting tasks. By providing guidance on command syntax, script structure, and error handling, it simplifies the process of writing and executing scripts. Whether you are a novice or an experienced script writer, this agent offers valuable support in automating tasks, managing system configurations, and troubleshooting common scripting issues. It serves as a reliable companion for script development and execution, enhancing productivity and efficiency in system administration and automation.
+	
+`,
+}
+
+var AgentCommands = map[string]string{
+	"git": `
+  /short:        Generate a short commit message for Git based on the provided information.
+  /conventional: Generate a commit message for Git based on the provided information according to the Conventional Commits specification. https://www.conventionalcommits.org/en/v1.0.0/#summary
+`,
+	"pr": `
+  /describe:  Automatically generating PR description - title, type, summary, code walkthrough and labels
+  /review:    Adjustable feedback about the PR, possible issues, security concerns, review effort and more
+  /improve:   Code suggestions for improving the PR
+  /changelog: Automatically updating the CHANGELOG.md file with the PR changes
+`,
+	"script": `
+  Run "list-commands" tool to get the complete list of system commands available for the agent on the local system.
 `,
 }

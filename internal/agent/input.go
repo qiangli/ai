@@ -6,8 +6,8 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/cb"
-	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
 )
 
@@ -44,7 +44,7 @@ func (e *Editor) Launch() (string, error) {
 	return LaunchEditor(e.editor)
 }
 
-func GetUserInput(cfg *llm.Config) (*UserInput, error) {
+func GetUserInput(cfg *internal.AppConfig) (*UserInput, error) {
 	// stdin with | or <
 	isPiped := func() bool {
 		stat, _ := os.Stdin.Stat()
@@ -66,7 +66,7 @@ func GetUserInput(cfg *llm.Config) (*UserInput, error) {
 }
 
 func userInput(
-	cfg *llm.Config,
+	cfg *internal.AppConfig,
 	stdin io.Reader,
 	clipboard ClipboardProvider,
 	editor EditorProvider,

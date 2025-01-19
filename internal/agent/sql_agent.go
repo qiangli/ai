@@ -4,26 +4,30 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/db"
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/resource"
 )
 
 type SqlAgent struct {
-	config *llm.Config
+	config *internal.AppConfig
 
 	Role   string
 	Prompt string
 }
 
-func NewSqlAgent(cfg *llm.Config, role, prompt string) (*SqlAgent, error) {
+func NewSqlAgent(cfg *internal.AppConfig) (*SqlAgent, error) {
+	role := cfg.Role
+	prompt := cfg.Prompt
+
 	if role == "" {
 		role = "system"
 	}
 
 	if prompt == "" {
 		var err error
-		info, err := getDBInfo(cfg.Sql.DBConfig)
+		info, err := getDBInfo(cfg.LLM.Sql.DBConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -34,7 +38,7 @@ func NewSqlAgent(cfg *llm.Config, role, prompt string) (*SqlAgent, error) {
 	}
 
 	// Set up the tools
-	cfg.Tools = llm.GetDBTools()
+	cfg.LLM.Tools = llm.GetDBTools()
 
 	agent := SqlAgent{
 		config: cfg,
@@ -45,7 +49,7 @@ func NewSqlAgent(cfg *llm.Config, role, prompt string) (*SqlAgent, error) {
 }
 
 func (r *SqlAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
-	content, err := llm.Send(r.config, ctx, r.Role, r.Prompt, in.Input())
+	content, err := llm.Send(r.config.LLM, ctx, r.Role, r.Prompt, in.Input())
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +60,7 @@ func (r *SqlAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error
 	}, nil
 }
 
-func getDBInfo(cfg *db.DBConfig) (*resource.DBInfo, error) {
+func getDBInfo(cfg *internal.DBConfig) (*resource.DBInfo, error) {
 	pg, err := db.Connect(cfg)
 	if err != nil {
 		return nil, err

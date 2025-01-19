@@ -13,20 +13,10 @@ import (
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/agent"
-	"github.com/qiangli/ai/internal/db"
-	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/resource"
-	"github.com/qiangli/ai/internal/shell"
 	"github.com/qiangli/ai/internal/util"
 )
-
-type AppConfig struct {
-	LLM *llm.Config
-
-	Role   string
-	Prompt string
-}
 
 // Output format type
 type outputValue string
@@ -73,16 +63,18 @@ func handle(cmd *cobra.Command, args []string) error {
 	internal.WorkDir = cfg.LLM.WorkDir
 
 	//
-	command := cfg.LLM.Command
+	command := cfg.Command
 
 	// interactive mode
 	// $ ai -i or $ ai --interactive
+	// TODO: implement interactive mode
 	if cfg.LLM.Interactive {
-		return shell.Bash(cfg.LLM)
+		// return shell.Bash(cfg.LLM)
+		return fmt.Errorf("interactive mode not implemented yet")
 	}
 
 	// $ ai
-	if command == "" && len(cfg.LLM.Args) == 0 {
+	if command == "" && len(cfg.Args) == 0 {
 		return cmd.Help()
 	}
 
@@ -94,30 +86,32 @@ func handle(cmd *cobra.Command, args []string) error {
 		// $ ai info
 		// $ ai setup
 		// $ ai help
-		if len(cfg.LLM.Args) == 0 {
+		if len(cfg.Args) == 0 {
 			switch command {
 			case "/":
-				return agent.ListCommands(cfg.LLM)
+				return agent.ListCommands(cfg)
+			case "list-commands":
+				return agent.ListCommands(cfg)
 			case "@":
-				return agent.ListAgents(cfg.LLM)
+				return agent.ListAgents(cfg)
 			case "info":
-				return agent.Info(cfg.LLM)
+				return agent.Info(cfg)
 			case "setup":
-				return agent.Setup(cfg.LLM)
+				return agent.Setup(cfg)
 			case "help":
 				return Help(cmd)
 			}
 		}
 	}
 
-	if err := agent.HandleCommand(cfg.LLM, cfg.Role, cfg.Prompt); err != nil {
+	if err := agent.HandleCommand(cfg); err != nil {
 		log.Errorln(err)
 	}
 	return nil
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "ai [OPTIONS] COMMAND [message...]",
+	Use:   "ai [OPTIONS] AGENT [message...]",
 	Short: "AI command line tool",
 	Long: `AI Command Line Tool
 
@@ -207,9 +201,6 @@ func init() {
 	rootCmd.Flags().String("sql-db-password", "", "Database password")
 	rootCmd.Flags().String("sql-db-name", "", "Database name")
 
-	// git
-	rootCmd.Flags().Bool("git-short", false, "Generate short one liner commit message")
-
 	// Bind the flags to viper using underscores
 	rootCmd.Flags().VisitAll(func(f *pflag.Flag) {
 		key := strings.ReplaceAll(f.Name, "-", "_")
@@ -254,12 +245,18 @@ func initConfig() {
 	}
 }
 
-func getConfig(cmd *cobra.Command, args []string) *AppConfig {
-	var cfg llm.Config
+func getConfig(cmd *cobra.Command, args []string) *internal.AppConfig {
+	var cfg internal.LLMConfig
+	var app = internal.AppConfig{
+		LLM:    &cfg,
+		Role:   viper.GetString("role"),
+		Prompt: viper.GetString("role_prompt"),
+	}
 
-	cfg.Me = "ME"
-	cfg.ConfigFile = viper.ConfigFileUsed()
-	cfg.CommandPath = cmd.CommandPath()
+	app.Me = "ME"
+	app.ConfigFile = viper.ConfigFileUsed()
+	app.CommandPath = cmd.CommandPath()
+
 	cfg.Output = outputFlag
 	cfg.Workspace = viper.GetString("workspace")
 
@@ -310,7 +307,7 @@ func getConfig(cmd *cobra.Command, args []string) *AppConfig {
 	cfg.DryRun = viper.GetBool("dry_run")
 	cfg.DryRunContent = viper.GetString("dry_run_content")
 
-	cfg.Editor = viper.GetString("editor")
+	app.Editor = viper.GetString("editor")
 
 	cfg.Interactive = viper.GetBool("interactive")
 	noMeta := viper.GetBool("no_meta_prompt")
@@ -355,15 +352,15 @@ func getConfig(cmd *cobra.Command, args []string) *AppConfig {
 		}
 	}
 
-	cfg.Stdin = isStdin
-	cfg.Clipin = isClipin || pbRead
-	cfg.Clipout = isClipout || pbWrite
+	app.Stdin = isStdin
+	app.Clipin = isClipin || pbRead
+	app.Clipout = isClipout || pbWrite
 
 	// command and args
 	if len(newArgs) > 0 {
 		// check for valid command
 		valid := func() bool {
-			misc := []string{"info", "setup", "help"}
+			misc := []string{"info", "setup", "help", "list-commands"}
 			if strings.HasPrefix(newArgs[0], "/") {
 				return true
 			}
@@ -378,38 +375,33 @@ func getConfig(cmd *cobra.Command, args []string) *AppConfig {
 			return false
 		}
 		if valid() {
-			cfg.Command = newArgs[0]
+			app.Command = newArgs[0]
 			if len(newArgs) > 1 {
-				cfg.Args = newArgs[1:]
+				app.Args = newArgs[1:]
 			}
 		} else {
-			cfg.Command = ""
-			cfg.Args = newArgs
+			app.Command = ""
+			app.Args = newArgs
 		}
 
 	}
 
 	// sql db
-	dbCfg := &db.DBConfig{}
+	dbCfg := &internal.DBConfig{}
 	dbCfg.Host = viper.GetString("sql.db_host")
 	dbCfg.Port = viper.GetString("sql.db_port")
 	dbCfg.Username = viper.GetString("sql.db_username")
 	dbCfg.Password = viper.GetString("sql.db_password")
 	dbCfg.DBName = viper.GetString("sql.db_name")
-	cfg.Sql = &llm.SQLConfig{
+	cfg.Sql = &internal.SQLConfig{
 		DBConfig: dbCfg,
 	}
 
 	//
-	gitConfig := &llm.GitConfig{}
+	gitConfig := &internal.GitConfig{}
 	cfg.Git = gitConfig
-	gitConfig.Short = viper.GetBool("git.short")
 
-	return &AppConfig{
-		LLM:    &cfg,
-		Role:   viper.GetString("role"),
-		Prompt: viper.GetString("role_prompt"),
-	}
+	return &app
 }
 
 func setLogLevel() {

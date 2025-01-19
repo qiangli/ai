@@ -9,18 +9,20 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/docker/gptr"
-	"github.com/qiangli/ai/internal/llm"
 )
 
 type GptrAgent struct {
-	config *llm.Config
+	config *internal.AppConfig
 
 	Role   string
 	Prompt string
 }
 
-func NewGptrAgent(cfg *llm.Config, role, prompt string) (*GptrAgent, error) {
+func NewGptrAgent(cfg *internal.AppConfig) (*GptrAgent, error) {
+	role := cfg.Role
+	prompt := cfg.Prompt
 	if role == "" {
 		role = "system"
 	}
@@ -36,7 +38,7 @@ func NewGptrAgent(cfg *llm.Config, role, prompt string) (*GptrAgent, error) {
 func (r *GptrAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
 	// FIXME: This is a hack
 	// better to config the base url and api key (and others) for gptr
-	u, err := url.Parse(r.config.BaseUrl)
+	u, err := url.Parse(r.config.LLM.BaseUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -46,11 +48,11 @@ func (r *GptrAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, erro
 		u.Host = "host.docker.internal:" + port
 	}
 	os.Setenv("OPENAI_API_BASE", u.String())
-	os.Setenv("OPENAI_API_KEY", r.config.ApiKey)
+	os.Setenv("OPENAI_API_KEY", r.config.LLM.ApiKey)
 
 	var content string
 
-	if !r.config.DryRun {
+	if !r.config.LLM.DryRun {
 		tempDir, err := os.MkdirTemp("", "gptr")
 		if err != nil {
 			return nil, err
@@ -67,7 +69,7 @@ func (r *GptrAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, erro
 			return nil, err
 		}
 	} else {
-		content = r.config.DryRunContent
+		content = r.config.LLM.DryRunContent
 	}
 
 	return &ChatMessage{

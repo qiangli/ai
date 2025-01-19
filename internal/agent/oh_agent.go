@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/docker/oh"
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
@@ -14,13 +15,16 @@ import (
 )
 
 type OhAgent struct {
-	config *llm.Config
+	config *internal.AppConfig
 
 	Role   string
 	Prompt string
 }
 
-func NewOhAgent(cfg *llm.Config, role, prompt string) (*OhAgent, error) {
+func NewOhAgent(cfg *internal.AppConfig) (*OhAgent, error) {
+	role := cfg.Role
+	prompt := cfg.Prompt
+
 	if role == "" {
 		role = "system"
 	}
@@ -28,7 +32,7 @@ func NewOhAgent(cfg *llm.Config, role, prompt string) (*OhAgent, error) {
 		prompt = resource.GetWSBaseSystemRoleContent()
 	}
 
-	cfg.Tools = llm.GetSystemTools()
+	cfg.LLM.Tools = llm.GetSystemTools()
 
 	agent := OhAgent{
 		config: cfg,
@@ -40,8 +44,9 @@ func NewOhAgent(cfg *llm.Config, role, prompt string) (*OhAgent, error) {
 
 func (r *OhAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
 	var input = in.Input()
+	var clip = in.Clip()
 
-	workspace, err := resolveWorkspaceBase(ctx, r.config, r.config.Workspace, input)
+	workspace, err := resolveWorkspaceBase(ctx, r.config.LLM, r.config.LLM.Workspace, clip)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +68,7 @@ func (r *OhAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error)
 	}
 
 	// Set the workspace
-	r.config.WorkDir = workspace
+	r.config.LLM.WorkDir = workspace
 	os.Setenv("WORKSPACE_BASE", workspace)
 	os.Setenv("WORKSPACE_MOUNT_PATH", workspace)
 	os.Setenv("WORKSPACE_MOUNT_PATH_IN_SANDBOX", oh.WorkspaceInSandbox)
@@ -71,7 +76,7 @@ func (r *OhAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error)
 	// Calling out to OH
 	// FIXME: This is a hack
 	// better to config the base url and api key (and others) for oh
-	u, err := url.Parse(r.config.BaseUrl)
+	u, err := url.Parse(r.config.LLM.BaseUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -81,19 +86,19 @@ func (r *OhAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error)
 		u.Host = "host.docker.internal:" + port
 	}
 	os.Setenv("LLM_BASE_URL", u.String())
-	os.Setenv("LLM_API_KEY", r.config.ApiKey)
-	os.Setenv("LLM_MODEL", r.config.Model)
-	os.Setenv("DEBUG", fmt.Sprintf("%v", r.config.Debug))
+	os.Setenv("LLM_API_KEY", r.config.LLM.ApiKey)
+	os.Setenv("LLM_MODEL", r.config.LLM.Model)
+	os.Setenv("DEBUG", fmt.Sprintf("%v", r.config.LLM.Debug))
 
 	var content string
 
-	if !r.config.DryRun {
+	if !r.config.LLM.DryRun {
 		err = oh.Run(ctx, userContent)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		content = r.config.DryRunContent
+		content = r.config.LLM.DryRunContent
 	}
 
 	return &ChatMessage{

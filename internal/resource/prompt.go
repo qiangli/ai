@@ -27,9 +27,6 @@ var userInputInstruction string
 //go:embed user_example.txt
 var userExample string
 
-//go:embed ai_help_role.md
-var aiHelpRoleTemplate string
-
 func GetMetaRoleContent() string {
 	return metaRoleTemplate
 }
@@ -89,8 +86,4 @@ func GetShellUserRoleContent(command string, message string) (string, error) {
 	}
 
 	return buf.String(), nil
-}
-
-func GetAIHelpRoleContent() string {
-	return aiHelpRoleTemplate
 }

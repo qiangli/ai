@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/resource"
@@ -11,13 +12,16 @@ import (
 )
 
 type PrAgent struct {
-	config *llm.Config
+	config *internal.AppConfig
 
 	Role   string
 	Prompt string
 }
 
-func NewPrAgent(cfg *llm.Config, role, prompt string) (*PrAgent, error) {
+func NewPrAgent(cfg *internal.AppConfig) (*PrAgent, error) {
+	role := cfg.Role
+	prompt := cfg.Prompt
+
 	if role == "" {
 		role = "system"
 	}
@@ -33,7 +37,7 @@ func (r *PrAgent) getSystemPrompt(in *UserInput) (string, error) {
 	if r.Prompt != "" {
 		return r.Prompt, nil
 	}
-	switch in.SubCommand {
+	switch in.Subcommand {
 	case "":
 		return resource.GetPrDescriptionSystem()
 	case "describe":
@@ -42,14 +46,14 @@ func (r *PrAgent) getSystemPrompt(in *UserInput) (string, error) {
 		return resource.GetPrReviewSystem()
 	case "improve":
 		return resource.GetPrCodeSystem()
-	case "log":
+	case "changelog":
 		return resource.GetPrChangelogSystem(), nil
 	}
-	return "", fmt.Errorf("unknown subcommand: %s", in.SubCommand)
+	return "", fmt.Errorf("unknown @pr subcommand: %s", in.Subcommand)
 }
 
 func (r *PrAgent) format(in *UserInput, resp string) (string, error) {
-	switch in.SubCommand {
+	switch in.Subcommand {
 	case "":
 		return resource.FormatPrDescription(resp)
 	case "describe":
@@ -58,10 +62,10 @@ func (r *PrAgent) format(in *UserInput, resp string) (string, error) {
 		return resource.FormatPrReview(resp)
 	case "improve":
 		return resource.FormatPrCodeSuggestion(resp)
-	case "log":
+	case "changelog":
 		return resource.FormatPrChangelog(resp)
 	}
-	return "", fmt.Errorf("unknown subcommand: %s", in.SubCommand)
+	return "", fmt.Errorf("unknown subcommand: %s", in.Subcommand)
 }
 
 func (r *PrAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
@@ -78,7 +82,7 @@ func (r *PrAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error)
 		return nil, err
 	}
 
-	resp, err := llm.Send(r.config, ctx, r.Role, prompt, input)
+	resp, err := llm.Send(r.config.LLM, ctx, r.Role, prompt, input)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +95,7 @@ func (r *PrAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error)
 	}
 
 	return &ChatMessage{
-		Agent:   "PR",
+		Agent:   in.Agent,
 		Content: content,
 	}, nil
 }

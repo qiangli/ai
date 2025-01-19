@@ -3,17 +3,17 @@ package agent
 import (
 	"context"
 
-	"github.com/qiangli/ai/internal/llm"
+	"github.com/qiangli/ai/internal"
 )
 
 type SeekAgent struct {
-	config *llm.Config
+	config *internal.LLMConfig
 
 	Role    string
 	Message string
 }
 
-func NewSeekAgent(cfg *llm.Config, role, content string) (*SeekAgent, error) {
+func NewSeekAgent(cfg *internal.LLMConfig, role, content string) (*SeekAgent, error) {
 	if role == "" {
 		role = "system"
 	}

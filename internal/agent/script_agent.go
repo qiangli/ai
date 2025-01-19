@@ -2,20 +2,25 @@ package agent
 
 import (
 	"context"
+	"path/filepath"
 
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/resource"
 	"github.com/qiangli/ai/internal/util"
 )
 
 type ScriptAgent struct {
-	config *llm.Config
+	config *internal.AppConfig
 
 	Role   string
 	Prompt string
 }
 
-func NewScriptAgent(cfg *llm.Config, role, prompt string) (*ScriptAgent, error) {
+func NewScriptAgent(cfg *internal.AppConfig) (*ScriptAgent, error) {
+	role := cfg.Role
+	prompt := cfg.Prompt
+
 	if role == "" {
 		role = "system"
 	}
@@ -31,7 +36,7 @@ func NewScriptAgent(cfg *llm.Config, role, prompt string) (*ScriptAgent, error) 
 		}
 	}
 
-	cfg.Tools = llm.GetSystemTools()
+	cfg.LLM.Tools = llm.GetSystemTools()
 
 	chat := ScriptAgent{
 		config: cfg,
@@ -42,26 +47,32 @@ func NewScriptAgent(cfg *llm.Config, role, prompt string) (*ScriptAgent, error) 
 }
 
 func (r *ScriptAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
-	userContent, err := resource.GetShellUserRoleContent(
-		in.Command, in.Input(),
-	)
+	cmd := in.Subcommand
+	if cmd != "" {
+		cmd = filepath.Base(cmd)
+	}
+
+	userContent, err := resource.GetShellUserRoleContent(cmd, in.Input())
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := llm.Chat(ctx, &llm.Message{
-		Role:    r.Role,
-		Prompt:  r.Prompt,
-		Model:   llm.Level2(r.config),
-		Input:   userContent,
-		DBCreds: r.config.Sql.DBConfig,
-	})
+	msg := &internal.Message{
+		Role:   r.Role,
+		Prompt: r.Prompt,
+		Model:  internal.Level2(r.config.LLM),
+		Input:  userContent,
+		// DBCreds: nil,
+	}
+
+	resp, err := llm.Chat(ctx, msg)
+
 	if err != nil {
 		return nil, err
 	}
 
 	return &ChatMessage{
-		Agent:   "SLASH",
+		Agent:   in.Agent,
 		Content: resp.Content,
 	}, nil
 }

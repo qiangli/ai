@@ -1,10 +1,8 @@
 package resource
 
 import (
-	"bytes"
 	_ "embed"
 	"fmt"
-	"text/template"
 	"time"
 
 	"github.com/qiangli/ai/internal/resource/pr"
@@ -54,20 +52,6 @@ var prChangelogSystem string
 
 //go:embed pr/changelog_format.md
 var prChangelogFormat string
-
-func apply(tpl string, data any) (string, error) {
-	t, err := template.New("pr").Funcs(tplFuncMap).Parse(tpl)
-	if err != nil {
-		return "", err
-	}
-
-	var buf bytes.Buffer
-	if err := t.Execute(&buf, data); err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
-}
 
 func GetPrUser(in *pr.Input) (string, error) {
 	data := map[string]any{

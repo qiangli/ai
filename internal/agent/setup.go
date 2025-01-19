@@ -7,11 +7,10 @@ import (
 	"path/filepath"
 
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/llm"
 )
 
 // Use the configFileContent variable in your application as needed
-func setupConfig(cfg *llm.Config) error {
+func setupConfig(cfg *internal.AppConfig) error {
 	if _, err := os.Stat(cfg.ConfigFile); errors.Is(err, os.ErrNotExist) {
 		dir := filepath.Dir(cfg.ConfigFile)
 		if err := os.MkdirAll(dir, os.ModePerm); err != nil {

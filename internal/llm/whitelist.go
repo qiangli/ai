@@ -16,6 +16,8 @@ var allowList = []string{}
 // Read from config
 var denyList = []string{
 	"env",
+	"printenv",
+	"rm",
 }
 
 var whitelist = append(toolsList, allowList...)

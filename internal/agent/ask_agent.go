@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/resource"
 )
 
 type AskAgent struct {
-	config *llm.Config
+	config *internal.AppConfig
 
 	Role   string
 	Prompt string
@@ -17,7 +18,9 @@ type AskAgent struct {
 	autoMessage string
 }
 
-func NewAskAgent(cfg *llm.Config, role, prompt string) (*AskAgent, error) {
+func NewAskAgent(cfg *internal.AppConfig) (*AskAgent, error) {
+	role := cfg.Role
+	prompt := cfg.Prompt
 	if role == "" {
 		role = "system"
 	}
@@ -36,12 +39,13 @@ func (r *AskAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error
 	var agent = "ASK"
 	var message = r.Prompt
 	var input = in.Input()
+	var clip = in.Clip()
 
-	if r.config.MetaPrompt {
+	if r.config.LLM.MetaPrompt {
 		if message == "" {
 			message = r.autoMessage
 		}
-		prompt, err := r.GeneratePrompt(r.config, ctx, r.Role, message, input)
+		prompt, err := r.GeneratePrompt(r.config.LLM, ctx, r.Role, message, clip)
 		if err != nil {
 			return nil, err
 		}
@@ -49,12 +53,12 @@ func (r *AskAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error
 		message = prompt.RolePrompt
 	}
 
-	resp, err := llm.Chat(ctx, &llm.Message{
-		Role:    r.Role,
-		Prompt:  message,
-		Model:   llm.Level1(r.config),
-		Input:   input,
-		DBCreds: r.config.Sql.DBConfig,
+	resp, err := llm.Chat(ctx, &internal.Message{
+		Role:   r.Role,
+		Prompt: message,
+		Model:  internal.Level1(r.config.LLM),
+		Input:  input,
+		// DBCreds: nil,
 	})
 	if err != nil {
 		return nil, err
@@ -71,7 +75,7 @@ type AskAgentPrompt struct {
 	RolePrompt string `json:"agent_role_prompt"`
 }
 
-func (r *AskAgent) GeneratePrompt(cfg *llm.Config, ctx context.Context, role, prompt, input string) (*AskAgentPrompt, error) {
+func (r *AskAgent) GeneratePrompt(cfg *internal.LLMConfig, ctx context.Context, role, prompt, input string) (*AskAgentPrompt, error) {
 	content, err := llm.Send(cfg, ctx, role, prompt, input)
 	if err != nil {
 		return nil, err

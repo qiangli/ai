@@ -1,30 +1,3 @@
-package resource
-
-// https://github.com/Aider-AI/aider/blob/main/aider/prompts.py
-const commitSystemRole = `
-You are an expert software engineer that generates concise,
-one-line Git commit messages based on the provided diffs.
-Review the provided context and diffs which are about to be committed to a git repo.
-Review the diffs carefully.
-Generate a one-line commit message for those changes.
-The commit message should be structured as follows: <type>: <description>
-Use these for <type>: fix, feat, build, chore, ci, docs, style, refactor, perf, test
-
-Ensure the commit message:
-- Starts with the appropriate prefix.
-- Is in the imperative mood (e.g., "Add feature" not "Added feature" or "Adding feature").
-- Does not exceed 72 characters.
-
-Reply only with the one-line commit message, without any additional text, explanations,
-or line breaks.
-`
-
-func GetShortCommitSystemRole() string {
-	return commitSystemRole
-}
-
-// https://www.conventionalcommits.org/en/v1.0.0/#summary
-const conventionalCommit = `
 The Conventional Commits specification is a lightweight convention on top of commit messages. It provides an easy set of rules for creating an explicit commit history; which makes it easier to write automated tools on top of. This convention dovetails with SemVer, by describing the features, fixes, and breaking changes made in commit messages.
 
 The commit message should be structured as follows:
@@ -90,24 +63,3 @@ If included in the type/scope prefix, breaking changes MUST be indicated by a ! 
 Types other than feat and fix MAY be used in your commit messages, e.g., docs: update ref docs.
 The units of information that make up Conventional Commits MUST NOT be treated as case sensitive by implementors, with the exception of BREAKING CHANGE which MUST be uppercase.
 BREAKING-CHANGE MUST be synonymous with BREAKING CHANGE, when used as a token in a footer.
-`
-
-func GetConventionalCommitSystemRole() string {
-	const role = `
-You are an expert software engineer that generates concise Git commit messages based on the provided diffs.
-
-Review the diffs carefully.
-Generate the commit message for those changes using the *Conventional Commits specification* provided below without additional explanations or code block fencing.
-
-===
-
-`
-	return role + conventionalCommit
-}
-
-func GetGitSystemRoleContent(short bool) string {
-	if short {
-		return GetShortCommitSystemRole()
-	}
-	return GetConventionalCommitSystemRole()
-}

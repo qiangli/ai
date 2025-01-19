@@ -74,7 +74,6 @@ func getArrayProp(key string, props map[string]interface{}) ([]string, error) {
 }
 
 func filteredTools(names []string) []openai.ChatCompletionToolParam {
-	// filter AllTools by function name
 	var tools []openai.ChatCompletionToolParam
 	for _, tool := range allTools {
 		for _, name := range names {

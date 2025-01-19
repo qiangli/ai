@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 	"testing"
+
+	"github.com/qiangli/ai/internal"
 )
 
 func TestQuery(t *testing.T) {
@@ -11,7 +13,7 @@ func TestQuery(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	cfg := &DBConfig{
+	cfg := &internal.DBConfig{
 		Host:     "localhost",
 		Port:     "5432",
 		Username: "",

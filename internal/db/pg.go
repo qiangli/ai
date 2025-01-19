@@ -7,36 +7,9 @@ import (
 	"strings"
 
 	_ "github.com/lib/pq"
+
+	"github.com/qiangli/ai/internal"
 )
-
-type DBConfig struct {
-	Host     string `mapstructure:"host"`
-	Port     string `mapstructure:"port"`
-	Username string `mapstructure:"username"`
-	Password string `mapstructure:"password"`
-	DBName   string `mapstructure:"name"`
-}
-
-// DSN returns the data source name for connecting to the database.
-func (d *DBConfig) DSN() string {
-	host := d.Host
-	if host == "" {
-		host = "localhost"
-	}
-	port := d.Port
-	if port == "" {
-		port = "5432"
-	}
-	dbname := d.DBName
-	if dbname == "" {
-		dbname = "postgres"
-	}
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, d.Username, d.Password, dbname)
-}
-
-func (d *DBConfig) IsValid() bool {
-	return d.Username != "" && d.Password != ""
-}
 
 type Queryable interface {
 	QueryContext(context.Context, string, ...interface{}) (*sql.Rows, error)
@@ -129,11 +102,11 @@ func RetrieveDatabases(ctx context.Context, q Queryable) ([]*PGDatabase, error) 
 	return results, nil
 }
 
-func Connect(db *DBConfig) (*sql.DB, error) {
+func Connect(db *internal.DBConfig) (*sql.DB, error) {
 	return sql.Open("postgres", db.DSN())
 }
 
-func Ping(db *DBConfig) error {
+func Ping(db *internal.DBConfig) error {
 	pg, err := Connect(db)
 	if err != nil {
 		return err
@@ -146,7 +119,7 @@ func RunSelectQuery(ctx context.Context, q Queryable, query string) (*sql.Rows, 
 	return q.QueryContext(ctx, query)
 }
 
-func RunQuery(cfg *DBConfig, ctx context.Context, query string) (string, error) {
+func RunQuery(cfg *internal.DBConfig, ctx context.Context, query string) (string, error) {
 	pg, err := Connect(cfg)
 	if err != nil {
 		return "", err

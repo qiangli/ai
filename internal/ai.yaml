@@ -22,9 +22,6 @@ sql:
   db_username: ""
   db_password: ""
 
-git:
-  short: false
-
 ## Debugging
 
 # Enable verbose console output for debugging

@@ -8,17 +8,19 @@ import (
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
-	// "github.com/qiangli/ai/internal/tool"
 )
 
-func Send(cfg *Config, ctx context.Context, role, prompt, input string) (string, error) {
-	req := &Message{
-		Role:    role,
-		Prompt:  prompt,
-		Model:   CreateModel(cfg),
-		Input:   input,
-		DBCreds: cfg.Sql.DBConfig,
+func Send(cfg *internal.LLMConfig, ctx context.Context, role, prompt, input string) (string, error) {
+	req := &internal.Message{
+		Role:   role,
+		Prompt: prompt,
+		Model:  internal.CreateModel(cfg),
+		Input:  input,
+	}
+	if cfg.Sql != nil {
+		req.DBCreds = cfg.Sql.DBConfig
 	}
 
 	resp, err := Chat(ctx, req)
@@ -28,7 +30,7 @@ func Send(cfg *Config, ctx context.Context, role, prompt, input string) (string,
 	return resp.Content, nil
 }
 
-func Chat(ctx context.Context, req *Message) (*Message, error) {
+func Chat(ctx context.Context, req *internal.Message) (*internal.Message, error) {
 
 	roleMessage := buildRoleMessage(req.Role, req.Prompt)
 	userMessage := buildRoleMessage("user", req.Input)
@@ -57,7 +59,7 @@ func Chat(ctx context.Context, req *Message) (*Message, error) {
 		params.Tools = openai.F([]openai.ChatCompletionToolParam(model.Tools))
 	}
 
-	resp := &Message{}
+	resp := &internal.Message{}
 	// TODO
 	var max = len(model.Tools) + 1
 
@@ -87,7 +89,7 @@ func Chat(ctx context.Context, req *Message) (*Message, error) {
 				}
 
 				log.Debugf("\n\n*** tool call: %s props: %+v\n", name, props)
-				toolCfg := &ToolConfig{
+				toolCfg := &internal.ToolConfig{
 					Model:    model,
 					DBConfig: req.DBCreds,
 				}

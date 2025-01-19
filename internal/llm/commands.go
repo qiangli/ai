@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/openai/openai-go"
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/llm/vos"
 	"github.com/qiangli/ai/internal/log"
 )
@@ -155,7 +156,7 @@ var systemTools = []openai.ChatCompletionToolParam{
 	),
 }
 
-func RunTool(cfg *ToolConfig, ctx context.Context, name string, props map[string]interface{}) (string, error) {
+func RunTool(cfg *internal.ToolConfig, ctx context.Context, name string, props map[string]interface{}) (string, error) {
 	var out string
 	var err error
 
@@ -174,7 +175,7 @@ func RunTool(cfg *ToolConfig, ctx context.Context, name string, props map[string
 	return out, nil
 }
 
-func runCommandTool(cfg *ToolConfig, ctx context.Context, name string, props map[string]interface{}) (string, error) {
+func runCommandTool(cfg *internal.ToolConfig, ctx context.Context, name string, props map[string]interface{}) (string, error) {
 	getStr := func(key string) (string, error) {
 		return getStrProp(key, props)
 	}
@@ -324,7 +325,7 @@ func ListCommandNames() (string, error) {
 	return strings.Join(list, "\n"), nil
 }
 
-func runRestricted(ctx context.Context, model *Model, command string, args []string) (string, error) {
+func runRestricted(ctx context.Context, model *internal.Model, command string, args []string) (string, error) {
 	if isDenied(command) {
 		return "", fmt.Errorf("%s: Not permitted", command)
 	}
@@ -347,12 +348,8 @@ func GetSystemTools() []openai.ChatCompletionToolParam {
 	return systemTools
 }
 
-func GetWSDetectTools() []openai.ChatCompletionToolParam {
-	return GetRestrictedTools()
-}
-
 // GetRestrictedTools returns all but the exec tool
-func GetRestrictedTools() []openai.ChatCompletionToolParam {
+func GetRestrictedSystemTools() []openai.ChatCompletionToolParam {
 	exclude := []string{"exec"}
 	return restrictedSystemTools(exclude)
 }

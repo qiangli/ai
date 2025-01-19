@@ -6,6 +6,7 @@ import (
 
 	"github.com/openai/openai-go"
 
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/db"
 )
 
@@ -90,7 +91,7 @@ var dbTools = []openai.ChatCompletionToolParam{
 		}),
 }
 
-func runDbTool(cfg *ToolConfig, ctx context.Context, name string, props map[string]interface{}) (string, error) {
+func runDbTool(cfg *internal.ToolConfig, ctx context.Context, name string, props map[string]interface{}) (string, error) {
 	getStr := func(key string) (string, error) {
 		return getStrProp(key, props)
 	}

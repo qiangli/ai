@@ -7,12 +7,12 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/cb"
-	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
 )
 
-func ProcessBashScript(cfg *llm.Config, script string) error {
+func ProcessBashScript(cfg *internal.AppConfig, script string) error {
 	lines := strings.Split(script, "\n")
 	if len(lines) > 1 {
 		return confirmRun(
@@ -60,7 +60,7 @@ func confirm(ps string, choices []string, defaultChoice string, in io.Reader) (s
 	}
 }
 
-func confirmRun(cfg *llm.Config, ps string, choices []string, defaultChoice, script string) error {
+func confirmRun(cfg *internal.AppConfig, ps string, choices []string, defaultChoice, script string) error {
 	answer, err := confirm(ps, choices, defaultChoice, os.Stdin)
 	if err != nil {
 		return err
@@ -78,7 +78,7 @@ func confirmRun(cfg *llm.Config, ps string, choices []string, defaultChoice, scr
 	return nil
 }
 
-func runScript(cfg *llm.Config, script string) error {
+func runScript(cfg *internal.AppConfig, script string) error {
 	log.Debugf("Running script:\n%s\n", script)
 
 	tmpFile, err := os.CreateTemp("", "ai-script-*.sh")
@@ -98,7 +98,7 @@ func runScript(cfg *llm.Config, script string) error {
 		return err
 	}
 
-	wd := cfg.WorkDir
+	wd := cfg.LLM.WorkDir
 
 	log.Debugf("Working directory: %s\n", wd)
 	log.Debugf("Script file: %s\n", tmpFile.Name())
@@ -111,11 +111,11 @@ func runScript(cfg *llm.Config, script string) error {
 	return cmd.Run()
 }
 
-func copyScriptToClipboard(_ *llm.Config, script string) error {
+func copyScriptToClipboard(_ *internal.AppConfig, script string) error {
 	return cb.NewClipboard().Write(script)
 }
 
-func editScript(cfg *llm.Config, script string) error {
+func editScript(cfg *internal.AppConfig, script string) error {
 	editor := cfg.Editor
 
 	log.Debugf("Using editor: %s\n", editor)

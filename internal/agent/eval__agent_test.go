@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/qiangli/ai/internal/llm"
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
 )
 
@@ -13,12 +13,14 @@ func TestEvalAgentSend(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	cfg := &llm.Config{
+	cfg := &internal.LLMConfig{
 		ApiKey:  "sk-1234",
 		Model:   "gpt-4o-mini",
 		BaseUrl: "http://localhost:4000",
 	}
-	chat, err := NewEvalAgent(cfg, "", "")
+	chat, err := NewEvalAgent(&internal.AppConfig{
+		LLM: cfg,
+	})
 	if err != nil {
 		t.Errorf("New chat agent error: %v", err)
 		return

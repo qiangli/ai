@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/qiangli/ai/internal/llm"
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
 )
 
@@ -13,7 +13,7 @@ func TestResolveWorkspaceBase(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	cfg := &llm.Config{
+	cfg := &internal.LLMConfig{
 		L1ApiKey:  "sk-1234",
 		L1Model:   "gpt-4o-mini",
 		L1BaseUrl: "http://localhost:4000",

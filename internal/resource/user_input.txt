@@ -2,36 +2,36 @@ There are multiple ways to interact with the AI tool.
 
 + Command line input:
 
-  ai COMMAND what is fish?
+  ai AGENT what is fish?
 
 + Read from standard input:
 
-  ai COMMAND -
+  ai AGENT -
 Ctrl+D to send, Ctrl+C to cancel.
 
 + Here document:
 
-  ai COMMAND <<eof
+  ai AGENT <<eof
 what is the weather today?
 eof
 
 + Piping input:
 
-  echo "What is Unix?" | ai COMMAND
-  git diff origin main | ai COMMAND [message...]
-  curl -sL https://en.wikipedia.org/wiki/Artificial_intelligence | head -100 | ai COMMAND [message...]
+  echo "What is Unix?" | ai AGENT
+  git diff origin main | ai AGENT [message...]
+  curl -sL https://en.wikipedia.org/wiki/Artificial_intelligence | head -100 | ai AGENT [message...]
 
 + File redirection:
 
-  ai COMMAND [message...] < file.txt
+  ai AGENT [message...] < file.txt
 
 + Reading from system clipboard:
 
-  ai COMMAND [message...] =
+  ai AGENT [message...] =
 Use system copy (Ctrl+C on Unix) to send selected contents.
 Ctrl+C to cancel.
 
 + Composing with text editor:
 
   export AI_EDITOR=nano # default: vi
-  ai COMMAND
+  ai AGENT

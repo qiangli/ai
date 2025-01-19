@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
 )
 
@@ -12,7 +13,7 @@ func TestDetectWorkspace(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	model := &Model{
+	model := &internal.Model{
 		Name:    "gpt-4o-mini",
 		BaseUrl: "http://localhost:4000",
 		ApiKey:  "sk-1234",
@@ -44,7 +45,7 @@ func TestEvaluateCommand(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	model := &Model{
+	model := &internal.Model{
 		Name:    "gpt-4o-mini",
 		BaseUrl: "http://localhost:4000",
 		ApiKey:  "sk-1234",
@@ -75,5 +76,34 @@ func TestEvaluateCommand(t *testing.T) {
 			return
 		}
 		t.Logf("evaluate command: %+v\n", resp)
+	}
+}
+
+func TestGenerateConfig(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
+	model := &internal.Model{
+		Name:    "gpt-4o-mini",
+		BaseUrl: "http://localhost:4000",
+		ApiKey:  "sk-1234",
+	}
+
+	log.SetLogLevel(log.Verbose)
+
+	tests := []struct {
+		input string
+	}{
+		{"generate git in verbose mode using the gpt-4o-mini model and send the result to the clipboard"},
+	}
+
+	for _, test := range tests {
+		resp, err := GenerateConfig(context.TODO(), model, test.input)
+		if err != nil {
+			t.Errorf("generate config: %v\n%+v", err, resp)
+			return
+		}
+		t.Logf("generate config: %+v\n", resp)
 	}
 }

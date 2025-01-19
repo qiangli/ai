@@ -12,7 +12,7 @@ make install
 ## Run
 
 ```bash
-ai [OPTIONS] COMMAND [message...]
+ai [OPTIONS] AGENT [message...]
 
 ai @ask "What is the capital of France?"
 git diff origin main|ai @ask generate commit message for git

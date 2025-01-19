@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/resource"
 )
@@ -19,7 +20,7 @@ const missingWorkspace = "Please specify a workspace base directory."
 const permissionDenied = "Permission denied."
 
 // DetectWorkspace decides the workspace with the help from LLM
-func DetectWorkspace(ctx context.Context, model *Model, input string) (string, error) {
+func DetectWorkspace(ctx context.Context, model *internal.Model, input string) (string, error) {
 	userContent, err := resource.GetWSBaseUserRoleContent(
 		input,
 	)
@@ -27,7 +28,7 @@ func DetectWorkspace(ctx context.Context, model *Model, input string) (string, e
 		return "", err
 	}
 
-	req := &Message{
+	req := &internal.Message{
 		Role:   "system",
 		Prompt: resource.GetWSBaseSystemRoleContent(),
 		Model:  model,
@@ -35,7 +36,7 @@ func DetectWorkspace(ctx context.Context, model *Model, input string) (string, e
 	}
 
 	if model.Tools == nil {
-		model.Tools = GetWSDetectTools()
+		model.Tools = GetRestrictedSystemTools()
 	}
 
 	resp, err := Chat(ctx, req)
@@ -62,9 +63,9 @@ type CommandCheck struct {
 }
 
 // EvaluateCommand consults LLM to evaluate the safety of a command
-func EvaluateCommand(ctx context.Context, model *Model, command string, args []string) (bool, error) {
+func EvaluateCommand(ctx context.Context, model *internal.Model, command string, args []string) (bool, error) {
 	const tpl = "Here is the command and arguments: %s %s"
-	req := &Message{
+	req := &internal.Message{
 		Role:   "system",
 		Prompt: resource.GetShellSecurityRoleContent(),
 		Model:  model,
@@ -72,7 +73,7 @@ func EvaluateCommand(ctx context.Context, model *Model, command string, args []s
 	}
 
 	if model.Tools == nil {
-		model.Tools = GetRestrictedTools()
+		model.Tools = GetRestrictedSystemTools()
 	}
 
 	resp, err := Chat(ctx, req)
@@ -88,4 +89,42 @@ func EvaluateCommand(ctx context.Context, model *Model, command string, args []s
 	log.Debugf("CommandCheck: %+v\n", check)
 
 	return check.Safe, nil
+}
+
+// GenerateConfig extracts config settings from the input with the help from LLM.
+func GenerateConfig(ctx context.Context, model *internal.Model, input string) (*resource.ConfigSchema, error) {
+	prompt, err := resource.GetCliConfigSystem()
+	if err != nil {
+		return nil, err
+	}
+	userContent, err := resource.GetCliConfigUser(input)
+	if err != nil {
+		return nil, err
+	}
+
+	req := &internal.Message{
+		Role:   "system",
+		Prompt: prompt,
+		Model:  model,
+		Input:  userContent,
+	}
+
+	if model.Tools == nil {
+		model.Tools = GetRestrictedSystemTools()
+	}
+
+	resp, err := Chat(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	var cfg resource.ConfigSchema
+
+	if err := json.Unmarshal([]byte(resp.Content), &cfg); err != nil {
+		return nil, fmt.Errorf("failed to generate config: %w", err)
+	}
+
+	log.Debugf("config: %+v\n", cfg)
+
+	return &cfg, nil
 }
