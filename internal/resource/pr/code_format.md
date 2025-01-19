@@ -1,6 +1,6 @@
 # PR Code Suggestions
 
-{{range .CodeSuggestions}}
+{{range .}}
 ## Suggestion for Improvement
 
 **Relevant File:**  

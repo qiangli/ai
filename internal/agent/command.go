@@ -237,8 +237,7 @@ func processContent(cfg *llm.Config, message *ChatMessage) {
 		return (stat.Mode() & os.ModeCharDevice) == 0
 	}()
 
-	// TODO: markdown formatting lost if the content is also tee'd to a file
-	renderMessage(message)
+	PrintMessage(cfg.Output, message)
 
 	if total > 0 && isPiped {
 		// if there are code blocks and stdout is redirected

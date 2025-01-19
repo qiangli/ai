@@ -28,6 +28,27 @@ type AppConfig struct {
 	Prompt string
 }
 
+// Output format type
+type outputValue string
+
+func newOutputValue(val string, p *string) *outputValue {
+	*p = val
+	return (*outputValue)(p)
+}
+func (s *outputValue) Set(val string) error {
+	for _, v := range []string{"raw", "markdown"} {
+		if val == v {
+			*s = outputValue(val)
+			return nil
+		}
+	}
+	return fmt.Errorf("invalid output format: %v. supported: raw, markdown", val)
+}
+func (s *outputValue) Type() string {
+	return "string"
+}
+func (s *outputValue) String() string { return string(*s) }
+
 func handle(cmd *cobra.Command, args []string) error {
 	setLogLevel()
 
@@ -43,7 +64,7 @@ func handle(cmd *cobra.Command, args []string) error {
 
 	cfg := getConfig(cmd, args)
 
-	log.Debugf("Config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.LLM.DBConfig)
+	log.Debugf("Config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.LLM.Sql.DBConfig)
 
 	// set global flags
 	internal.Debug = cfg.LLM.Debug
@@ -109,6 +130,8 @@ var rootCmd = &cobra.Command{
 
 var cfgFile string
 
+var outputFlag string
+
 func init() {
 	defaultCfg := os.Getenv("AI_CONFIG")
 	// default: ~/.ai/config.yaml
@@ -167,13 +190,6 @@ func init() {
 	rootCmd.Flags().String("log", "", "Log all debugging information to a file")
 	rootCmd.Flags().Bool("trace", false, "Trace API calls")
 
-	// db
-	rootCmd.Flags().String("db-host", "", "Database host")
-	rootCmd.Flags().String("db-port", "", "Database port")
-	rootCmd.Flags().String("db-username", "", "Database username")
-	rootCmd.Flags().String("db-password", "", "Database password")
-	rootCmd.Flags().String("db-name", "", "Database name")
-
 	//
 	rootCmd.Flags().MarkHidden("role")
 	rootCmd.Flags().MarkHidden("role-prompt")
@@ -181,7 +197,17 @@ func init() {
 	rootCmd.Flags().MarkHidden("dry-run-content")
 	rootCmd.Flags().MarkHidden("trace")
 
-	// TODO agent specific flags
+	rootCmd.Flags().Var(newOutputValue("markdown", &outputFlag), "output", "Output format, must be either raw or markdown.")
+
+	// agent specific flags
+	// db
+	rootCmd.Flags().String("sql-db-host", "", "Database host")
+	rootCmd.Flags().String("sql-db-port", "", "Database port")
+	rootCmd.Flags().String("sql-db-username", "", "Database username")
+	rootCmd.Flags().String("sql-db-password", "", "Database password")
+	rootCmd.Flags().String("sql-db-name", "", "Database name")
+
+	// git
 	rootCmd.Flags().Bool("git-short", false, "Generate short one liner commit message")
 
 	// Bind the flags to viper using underscores
@@ -190,11 +216,14 @@ func init() {
 		viper.BindPFlag(key, f)
 	})
 
-	viper.BindPFlag("db.name", rootCmd.Flags().Lookup("db-name"))
-	viper.BindPFlag("db.host", rootCmd.Flags().Lookup("db-host"))
-	viper.BindPFlag("db.port", rootCmd.Flags().Lookup("db-port"))
-	viper.BindPFlag("db.username", rootCmd.Flags().Lookup("db-username"))
-	viper.BindPFlag("db.password", rootCmd.Flags().Lookup("db-password"))
+	// Bind the flags to viper using dots
+	viper.BindPFlag("sql.db-name", rootCmd.Flags().Lookup("sql-db-name"))
+	viper.BindPFlag("sql.db-host", rootCmd.Flags().Lookup("sql-db-host"))
+	viper.BindPFlag("sql.db-port", rootCmd.Flags().Lookup("sql-db-port"))
+	viper.BindPFlag("sql.db-username", rootCmd.Flags().Lookup("sql-db-username"))
+	viper.BindPFlag("sql.db-password", rootCmd.Flags().Lookup("sql-db-password"))
+
+	viper.BindPFlag("git.short", rootCmd.Flags().Lookup("git-short"))
 
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix("ai")
@@ -231,6 +260,7 @@ func getConfig(cmd *cobra.Command, args []string) *AppConfig {
 	cfg.Me = "ME"
 	cfg.ConfigFile = viper.ConfigFileUsed()
 	cfg.CommandPath = cmd.CommandPath()
+	cfg.Output = outputFlag
 	cfg.Workspace = viper.GetString("workspace")
 
 	//
@@ -359,21 +389,21 @@ func getConfig(cmd *cobra.Command, args []string) *AppConfig {
 
 	}
 
-	// db
+	// sql db
 	dbCfg := &db.DBConfig{}
-
-	dbCfg.Host = viper.GetString("db.host")
-	dbCfg.Port = viper.GetString("db.port")
-	dbCfg.Username = viper.GetString("db.username")
-	dbCfg.Password = viper.GetString("db.password")
-	dbCfg.DBName = viper.GetString("db.name")
-
-	cfg.DBConfig = dbCfg
+	dbCfg.Host = viper.GetString("sql.db_host")
+	dbCfg.Port = viper.GetString("sql.db_port")
+	dbCfg.Username = viper.GetString("sql.db_username")
+	dbCfg.Password = viper.GetString("sql.db_password")
+	dbCfg.DBName = viper.GetString("sql.db_name")
+	cfg.Sql = &llm.SQLConfig{
+		DBConfig: dbCfg,
+	}
 
 	//
 	gitConfig := &llm.GitConfig{}
 	cfg.Git = gitConfig
-	gitConfig.Short = viper.GetBool("git_short")
+	gitConfig.Short = viper.GetBool("git.short")
 
 	return &AppConfig{
 		LLM:    &cfg,

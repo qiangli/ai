@@ -1,9 +1,13 @@
 package resource
 
 import (
+	"encoding/json"
+	"fmt"
 	"regexp"
 	"strings"
 	"text/template"
+
+	"github.com/kaptinlin/jsonrepair"
 )
 
 func splitVersion(s string) (string, string) {
@@ -35,4 +39,19 @@ var tplFuncMap = template.FuncMap{
 	"trim":       strings.TrimSpace,
 	"toLower":    strings.ToLower,
 	"splitLines": splitLines,
+}
+
+// tryUnmarshal tries to unmarshal the data into the v.
+// If it fails, it will try to repair the data and unmarshal it again.
+func tryUnmarshal(data string, v any) error {
+	err := json.Unmarshal([]byte(data), v)
+	if err == nil {
+		return nil
+	}
+
+	repaired, err := jsonrepair.JSONRepair(data)
+	if err != nil {
+		return fmt.Errorf("failed to repair JSON: %v", err)
+	}
+	return json.Unmarshal([]byte(repaired), v)
 }

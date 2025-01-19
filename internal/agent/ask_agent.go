@@ -54,7 +54,7 @@ func (r *AskAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error
 		Prompt:  message,
 		Model:   llm.Level1(r.config),
 		Input:   input,
-		DBCreds: r.config.DBConfig,
+		DBCreds: r.config.Sql.DBConfig,
 	})
 	if err != nil {
 		return nil, err

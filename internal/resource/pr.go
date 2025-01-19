@@ -3,7 +3,7 @@ package resource
 import (
 	"bytes"
 	_ "embed"
-	"encoding/json"
+	"fmt"
 	"text/template"
 	"time"
 
@@ -52,89 +52,57 @@ var prCodeFormat string
 //go:embed pr/changelog_system.md
 var prChangelogSystem string
 
-func GetPrUser(in *pr.Input) (string, error) {
-	tpl, err := template.New("prDescriptionUser").Funcs(tplFuncMap).Parse(prUser)
+//go:embed pr/changelog_format.md
+var prChangelogFormat string
+
+func apply(tpl string, data any) (string, error) {
+	t, err := template.New("pr").Funcs(tplFuncMap).Parse(tpl)
 	if err != nil {
 		return "", err
 	}
 
 	var buf bytes.Buffer
+	if err := t.Execute(&buf, data); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
+}
+
+func GetPrUser(in *pr.Input) (string, error) {
 	data := map[string]any{
 		"instruction": in.Instruction,
 		"diff":        in.Diff,
 		"changelog":   in.ChangeLog,
 		"today":       time.Now().Format("2006-01-02"),
 	}
-	if err := tpl.Execute(&buf, data); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
+	return apply(prUser, data)
 }
 
 func GetPrDescriptionSystem() (string, error) {
-	tpl, err := template.New("prDescriptionSystem").Parse(prDescriptionSystem)
-	if err != nil {
-		return "", err
-	}
-
-	var buf bytes.Buffer
 	data := map[string]any{
 		"schema":   prDecriptionSchema,
 		"example":  prDescrptionExample,
 		"maxFiles": 8,
 	}
-	if err := tpl.Execute(&buf, data); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
-}
-
-func formatPr(format string, data any) (string, error) {
-	tpl, err := template.New("prFormat").Funcs(tplFuncMap).Parse(format)
-	if err != nil {
-		return "", err
-	}
-
-	var buf bytes.Buffer
-	if err := tpl.Execute(&buf, data); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
+	return apply(prDescriptionSystem, data)
 }
 
 func GetPrReviewSystem() (string, error) {
-	tpl, err := template.New("prReviewSystem").Parse(prReviewSystem)
-	if err != nil {
-		return "", err
-	}
-
-	var buf bytes.Buffer
 	data := map[string]any{
 		"schema":  prReviewSchema,
 		"example": prReviewExample,
 	}
-	if err := tpl.Execute(&buf, data); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
+	return apply(prReviewSystem, data)
 }
 
 func GetPrCodeSystem() (string, error) {
-	tpl, err := template.New("prCodeSystem").Parse(prCodeSystem)
-	if err != nil {
-		return "", err
-	}
-
-	var buf bytes.Buffer
 	data := map[string]any{
 		"schema":         prCodeSchema,
 		"example":        prCodeExample,
 		"maxSuggestions": 8,
 	}
-	if err := tpl.Execute(&buf, data); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
+	return apply(prCodeSystem, data)
 }
 
 func GetPrChangelogSystem() string {
@@ -143,24 +111,31 @@ func GetPrChangelogSystem() string {
 
 func FormatPrDescription(resp string) (string, error) {
 	var data pr.PRDescription
-	if err := json.Unmarshal([]byte(resp), &data); err != nil {
-		return "", err
+	if err := tryUnmarshal(resp, &data); err != nil {
+		return "", fmt.Errorf("error unmarshalling response: %w", err)
 	}
-	return formatPr(prDescriptionFormat, &data)
+	return apply(prDescriptionFormat, &data)
 }
 
 func FormatPrCodeSuggestion(resp string) (string, error) {
 	var data pr.PRCodeSuggestions
-	if err := json.Unmarshal([]byte(resp), &data); err != nil {
-		return "", err
+	if err := tryUnmarshal(resp, &data); err != nil {
+		return "", fmt.Errorf("error unmarshalling response: %w", err)
 	}
-	return formatPr(prCodeFormat, &data)
+	return apply(prCodeFormat, data.CodeSuggestions)
 }
 
 func FormatPrReview(resp string) (string, error) {
 	var data pr.PRReview
-	if err := json.Unmarshal([]byte(resp), &data); err != nil {
-		return "", err
+	if err := tryUnmarshal(resp, &data); err != nil {
+		return "", fmt.Errorf("error unmarshalling response: %w", err)
 	}
-	return formatPr(prReviewFormat, &data)
+	return apply(prReviewFormat, &data.Review)
+}
+
+func FormatPrChangelog(resp string) (string, error) {
+	return apply(prChangelogFormat, &pr.PRChangelog{
+		Changelog: resp,
+		Today:     time.Now().Format("2006-01-02"),
+	})
 }

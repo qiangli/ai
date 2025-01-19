@@ -5,20 +5,20 @@
   "pr_files": [
     {
       "filename": "src/utils/helper.js",
-      "changes_summary": "- Refactored and optimized helper functions",
-      "changes_title": "Refactor for clarity and performance",
+      "change_summary": "- Refactored and optimized helper functions",
+      "change_title": "Refactor for clarity and performance",
       "label": "enhancement"
     },
     {
       "filename": "docs/api.md",
-      "changes_summary": "- Updated API docs",
-      "changes_title": "Update API documentation",
+      "change_summary": "- Updated API docs",
+      "change_title": "Update API documentation",
       "label": "documentation"
     },
     {
       "filename": "src/errorHandler.js",
-      "changes_summary": "- Improved error handling",
-      "changes_title": "Enhance error handling",
+      "change_summary": "- Improved error handling",
+      "change_title": "Enhance error handling",
       "label": "error handling"
     }
   ]

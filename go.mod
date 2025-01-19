@@ -12,6 +12,7 @@ require (
 	github.com/docker/docker v27.4.1+incompatible
 	github.com/gocolly/colly v1.2.0
 	github.com/google/uuid v1.6.0
+	github.com/kaptinlin/jsonrepair v0.1.0
 	github.com/lib/pq v1.10.9
 	github.com/mariotoffia/goannoy v0.0.0-20241203082301-c889abef1805
 	github.com/openai/openai-go v0.1.0-alpha.41

@@ -14,13 +14,16 @@ base_url: "http://localhost:4000/"
 # Specify the language model to use
 model: "gpt-4o-mini"
 
-## SQL Agent
-db:
-  name: "postgres"
-  host: "localhost"
-  port: 5432
-  username: ""
-  password: ""
+## Agents
+sql:
+  db_name: "postgres"
+  db_host: "localhost"
+  db_port: 5432
+  db_username: ""
+  db_password: ""
+
+git:
+  short: false
 
 ## Debugging
 

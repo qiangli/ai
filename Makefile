@@ -25,6 +25,9 @@ git-message: ## Generate commit message and copy the message to clipboard
 git-commit: git-message ## Generate and commit with the message
 	@git commit -m "$$(pbpaste)"
 
+git-amend: git-message ## Generate and amend with the message
+	@git commit --amend -m "$$(pbpaste)"
+
 install: build test ## Install
 	@go install ./cmd/ai
 

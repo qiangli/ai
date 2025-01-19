@@ -1,0 +1,5 @@
+# Changelog Updates
+
+## {{.Today}}
+
+{{.Changelog}}

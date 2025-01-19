@@ -42,7 +42,7 @@ Specific guidelines for generating code suggestions:
 - When mentioning code elements (variables, names, or files) in your response, surround them with backticks (`). For example: "verify that `user_id` is..."
 - Remember that Pull Request reviews show only changed code segments (diff hunks), not the entire codebase. Without full context, be cautious about suggesting modifications that could duplicate existing functionality (such as error handling) or questioning variable declarations that may exist elsewhere. Keep your review focused on the visible changes, acknowledging they're part of a larger codebase.
 
-Output must conform to the **PRReview** JSON schema as below:
+Output must conform strictly to the **PRCodeSuggestions** JSON schema provided below.
 
 ======
 {{.schema}}
@@ -54,4 +54,8 @@ Example output:
 {{.example}}
 ======
 
-The answer must be a valid JSON, formatted correctly without additional explanations or code block fencing.
+Ensure each field matches the data type and structure specified in the schema.
+Do not include any extra fields or alter the structure.
+The response must be a valid JSON object, adhering exactly to the schema requirements,
+correctly formatted without explanations, or code block fencing.
+Carefully escape all string literals, including double quotes `"`, tabs `\t`, and new line characters `\r` `\n`.

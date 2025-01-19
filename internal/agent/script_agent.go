@@ -54,7 +54,7 @@ func (r *ScriptAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, er
 		Prompt:  r.Prompt,
 		Model:   llm.Level2(r.config),
 		Input:   userContent,
-		DBCreds: r.config.DBConfig,
+		DBCreds: r.config.Sql.DBConfig,
 	})
 	if err != nil {
 		return nil, err

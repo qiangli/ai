@@ -1,19 +1,19 @@
 # PR Review Guide
 
 ## Estimated Effort to Review [1-5]
-- **Estimate:**: {{ .Review.EstimatedEffortToReview }}
+- **Estimate:**: {{ .EstimatedEffortToReview }}
 
 ## Quality [0-100]
-- **Score**: {{ .Review.Score }}
+- **Score**: {{ .Score }}
 
 ## Relevant Tests
-- **{{ .Review.RelevantTests }}**
+- **{{ .RelevantTests }}**
 
 ## Insights from User Answers
-- {{ .Review.InsightsFromUserAnswers }}
+- {{ .InsightsFromUserAnswers }}
 
 ## Key Issues to Review
-{{ range .Review.KeyIssuesToReview }}
+{{ range .KeyIssuesToReview }}
 - **File**: {{ .RelevantFile }}
   - **Header**: {{ .IssueHeader }}
   - **Content**: {{ .IssueContent }}
@@ -21,4 +21,4 @@
 {{ end }}
 
 ## Security Concerns
-- {{ .Review.SecurityConcerns }}
+- {{ .SecurityConcerns }}

@@ -44,14 +44,16 @@
       ]
     }
   },
-  "type": "object",
-  "properties": {
-    "code_suggestions": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/CodeSuggestion"
+  "PRCodeSuggestions": {
+    "type": "object",
+    "properties": {
+      "code_suggestions": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/CodeSuggestion"
+        }
       }
-    }
-  },
-  "required": ["code_suggestions"]
+    },
+    "required": ["code_suggestions"]
+  }
 }

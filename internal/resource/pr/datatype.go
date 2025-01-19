@@ -1,11 +1,18 @@
 package pr
 
+type Input struct {
+	Instruction string
+	Diff        string
+
+	ChangeLog string
+}
+
 type Type string
 
 type FileFileDescription struct {
 	Filename string `json:"filename"`
-	Summary  string `json:"changes_summary"`
-	Title    string `json:"changes_title"`
+	Summary  string `json:"change_summary"`
+	Title    string `json:"change_title"`
 	Label    string `json:"label"`
 }
 
@@ -50,9 +57,8 @@ type Review struct {
 type PRReview struct {
 	Review Review `json:"review"`
 }
-type Input struct {
-	Instruction string
-	Diff        string
 
-	ChangeLog string
+type PRChangelog struct {
+	Today     string `json:"today"`
+	Changelog string `json:"changelog"`
 }

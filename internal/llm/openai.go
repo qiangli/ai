@@ -18,7 +18,7 @@ func Send(cfg *Config, ctx context.Context, role, prompt, input string) (string,
 		Prompt:  prompt,
 		Model:   CreateModel(cfg),
 		Input:   input,
-		DBCreds: cfg.DBConfig,
+		DBCreds: cfg.Sql.DBConfig,
 	}
 
 	resp, err := Chat(ctx, req)

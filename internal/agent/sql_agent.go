@@ -23,7 +23,7 @@ func NewSqlAgent(cfg *llm.Config, role, prompt string) (*SqlAgent, error) {
 
 	if prompt == "" {
 		var err error
-		info, err := getDBInfo(cfg.DBConfig)
+		info, err := getDBInfo(cfg.Sql.DBConfig)
 		if err != nil {
 			return nil, err
 		}

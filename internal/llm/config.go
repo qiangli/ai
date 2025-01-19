@@ -53,15 +53,17 @@ type Config struct {
 
 	Tools Tools
 
-	DBConfig *db.DBConfig `mapstructure:"db"`
-
 	ConfigFile string
 
 	// ai binary path
 	CommandPath string
 
+	Output string
+
 	//
 	Git *GitConfig
+
+	Sql *SQLConfig
 }
 
 func (cfg *Config) Clone() *Config {
@@ -84,19 +86,25 @@ func (cfg *Config) Clone() *Config {
 		ConfigFile:    cfg.ConfigFile,
 		Args:          nil,
 		Tools:         nil,
-		DBConfig:      nil,
+		Sql:           nil,
+		Git:           nil,
 	}
 
 	// shallow copy
 	n.Args = cfg.Args
 	n.Tools = cfg.Tools
-	n.DBConfig = cfg.DBConfig
+	n.Sql = cfg.Sql
+	n.Git = cfg.Git
 
 	return n
 }
 
 type GitConfig struct {
 	Short bool
+}
+
+type SQLConfig struct {
+	DBConfig *db.DBConfig `mapstructure:"db"`
 }
 
 type Message struct {

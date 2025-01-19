@@ -2,6 +2,7 @@ package agent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
@@ -33,31 +34,34 @@ func (r *PrAgent) getSystemPrompt(in *UserInput) (string, error) {
 		return r.Prompt, nil
 	}
 	switch in.SubCommand {
+	case "":
+		return resource.GetPrDescriptionSystem()
 	case "describe":
 		return resource.GetPrDescriptionSystem()
 	case "review":
 		return resource.GetPrReviewSystem()
-	case "code":
+	case "improve":
 		return resource.GetPrCodeSystem()
 	case "log":
 		return resource.GetPrChangelogSystem(), nil
 	}
-	// default
-	return resource.GetPrDescriptionSystem()
+	return "", fmt.Errorf("unknown subcommand: %s", in.SubCommand)
 }
 
 func (r *PrAgent) format(in *UserInput, resp string) (string, error) {
 	switch in.SubCommand {
+	case "":
+		return resource.FormatPrDescription(resp)
 	case "describe":
 		return resource.FormatPrDescription(resp)
 	case "review":
 		return resource.FormatPrReview(resp)
-	case "code":
+	case "improve":
 		return resource.FormatPrCodeSuggestion(resp)
 	case "log":
-		return resp, nil
+		return resource.FormatPrChangelog(resp)
 	}
-	return resource.FormatPrDescription(resp)
+	return "", fmt.Errorf("unknown subcommand: %s", in.SubCommand)
 }
 
 func (r *PrAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
