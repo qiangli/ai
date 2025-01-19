@@ -14,7 +14,7 @@ import (
 )
 
 type Agent interface {
-	Send(ctx context.Context, input string) (*ChatMessage, error)
+	Send(context.Context, *UserInput) (*ChatMessage, error)
 }
 
 type ChatMessage struct {
@@ -22,24 +22,51 @@ type ChatMessage struct {
 	Content string
 }
 
-func MakeAgent(name string, cfg *llm.Config, role, content string) (Agent, error) {
+type UserInput struct {
+	Command    string
+	SubCommand string
+
+	Message string
+	Content string
+}
+
+func (r *UserInput) IsEmpty() bool {
+	return r.Message == "" && r.Content == ""
+}
+
+func (r *UserInput) Input() string {
+	switch {
+	case r.Message == "" && r.Content == "":
+		return ""
+	case r.Message == "":
+		return r.Content
+	case r.Content == "":
+		return r.Message
+	default:
+		return fmt.Sprintf("###\n%s\n###\n%s", r.Message, r.Content)
+	}
+}
+
+func MakeAgent(name string, cfg *llm.Config, role, prompt string) (Agent, error) {
 	switch name {
 	case "ask":
-		return NewAskAgent(cfg, role, content)
+		return NewAskAgent(cfg, role, prompt)
 	case "eval":
-		return NewEvalAgent(cfg, role, content)
+		return NewEvalAgent(cfg, role, prompt)
 	case "seek":
-		return NewGptrAgent(cfg, role, content)
+		return NewGptrAgent(cfg, role, prompt)
 	case "sql":
-		return NewSqlAgent(cfg, role, content)
+		return NewSqlAgent(cfg, role, prompt)
 	case "gptr":
-		return NewGptrAgent(cfg, role, content)
+		return NewGptrAgent(cfg, role, prompt)
 	case "oh":
-		return NewOhAgent(cfg, role, content)
+		return NewOhAgent(cfg, role, prompt)
 	case "git":
-		return NewGitAgent(cfg, role, content)
+		return NewGitAgent(cfg, role, prompt)
 	case "code":
-		return NewAiderAgent(cfg, role, content)
+		return NewAiderAgent(cfg, role, prompt)
+	case "pr":
+		return NewPrAgent(cfg, role, prompt)
 	default:
 		return nil, internal.NewUserInputError("not supported yet: " + name)
 	}
@@ -49,7 +76,19 @@ func agentList() (map[string]string, error) {
 	return resource.AgentDesc, nil
 }
 
-func HandleCommand(cfg *llm.Config, role, content string) error {
+func hasAgent(name string) bool {
+	var hidden = []string{"eval"}
+	for _, v := range hidden {
+		if name == v {
+			return true
+		}
+	}
+	dict, _ := agentList()
+	_, exist := dict[name]
+	return exist
+}
+
+func HandleCommand(cfg *llm.Config, role, prompt string) error {
 	log.Debugf("Handle: %s %v\n", cfg.Command, cfg.Args)
 
 	command := cfg.Command
@@ -57,18 +96,18 @@ func HandleCommand(cfg *llm.Config, role, content string) error {
 	if command != "" {
 		// $ ai /command
 		if strings.HasPrefix(command, "/") {
-			return SlashCommand(cfg, role, content)
+			return SlashCommand(cfg, role, prompt)
 		}
 
 		// $ ai @agent
 		if strings.HasPrefix(command, "@") {
-			return AgentCommand(cfg, role, content)
+			return AgentCommand(cfg, role, prompt)
 		}
 	}
 
 	// auto select the best agent to handle the user query if there is message content
 	// $ ai message...
-	return AgentHelp(cfg, role, content)
+	return AgentHelp(cfg, role, prompt)
 }
 
 // resolveWorkspaceBase resolves the workspace base path.

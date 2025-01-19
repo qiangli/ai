@@ -10,29 +10,27 @@ import (
 type GitAgent struct {
 	config *llm.Config
 
-	Role    string
-	Message string
+	Role   string
+	Prompt string
 }
 
-func NewGitAgent(cfg *llm.Config, role, content string) (*GitAgent, error) {
+func NewGitAgent(cfg *llm.Config, role, prompt string) (*GitAgent, error) {
 	if role == "" {
 		role = "system"
 	}
-	if content == "" {
-		content = resource.GetGitSystemRoleContent(cfg.Git.Short)
+	if prompt == "" {
+		prompt = resource.GetGitSystemRoleContent(cfg.Git.Short)
 	}
 	agent := GitAgent{
-		config:  cfg,
-		Role:    role,
-		Message: content,
+		config: cfg,
+		Role:   role,
+		Prompt: prompt,
 	}
 	return &agent, nil
 }
 
-func (r *GitAgent) Send(ctx context.Context, input string) (*ChatMessage, error) {
-	var message = r.Message
-
-	content, err := llm.Send(r.config, ctx, r.Role, message, input)
+func (r *GitAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
+	content, err := llm.Send(r.config, ctx, r.Role, r.Prompt, in.Input())
 	if err != nil {
 		return nil, err
 	}

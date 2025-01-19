@@ -1,7 +1,6 @@
 package agent
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -45,15 +44,7 @@ func (e *Editor) Launch() (string, error) {
 	return LaunchEditor(e.editor)
 }
 
-// clipText truncates the input text to no more than the specified maximum length.
-func clipText(text string, maxLen int) string {
-	if len(text) > maxLen {
-		return strings.TrimSpace(text[:maxLen]) + "\n[more...]"
-	}
-	return text
-}
-
-func GetUserInput(cfg *llm.Config) (string, error) {
+func GetUserInput(cfg *llm.Config) (*UserInput, error) {
 	// stdin with | or <
 	isPiped := func() bool {
 		stat, _ := os.Stdin.Stat()
@@ -65,13 +56,13 @@ func GetUserInput(cfg *llm.Config) (string, error) {
 		stdin = os.Stdin
 	}
 
-	msg, err := userInput(cfg, stdin, cb.NewClipboard(), NewEditor(cfg.Editor))
+	input, err := userInput(cfg, stdin, cb.NewClipboard(), NewEditor(cfg.Editor))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	log.Infof("\n[%s]\n%s\n\n", cfg.Me, clipText(msg, clipMaxLen))
-	return msg, nil
+	log.Infof("\n[%s]\n%s\n%s\n\n", cfg.Me, input.Message, clipText(input.Content, clipMaxLen))
+	return input, nil
 }
 
 func userInput(
@@ -79,7 +70,7 @@ func userInput(
 	stdin io.Reader,
 	clipboard ClipboardProvider,
 	editor EditorProvider,
-) (string, error) {
+) (*UserInput, error) {
 
 	msg := strings.TrimSpace(strings.Join(cfg.Args, " "))
 
@@ -89,23 +80,13 @@ func userInput(
 
 	// read from command line
 	if len(msg) > 0 && !isSpecial {
-		return msg, nil
+		return &UserInput{Message: msg}, nil
 	}
 
-	const msgDataTpl = "###\n%s\n###\n%s\n"
-	cat := func(msg, data string) string {
+	cat := func(msg, data string) *UserInput {
 		m := strings.TrimSpace(msg)
 		d := strings.TrimSpace(data)
-		switch {
-		case m == "" && d == "":
-			return ""
-		case m == "":
-			return d
-		case d == "":
-			return m
-		default:
-			return fmt.Sprintf(msgDataTpl, m, d)
-		}
+		return &UserInput{Message: m, Content: d}
 	}
 
 	// stdin takes precedence over clipboard
@@ -113,7 +94,7 @@ func userInput(
 	if stdin != nil {
 		data, err := io.ReadAll(stdin)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		return cat(msg, string(data)), nil
 	}
@@ -121,11 +102,11 @@ func userInput(
 	// clipboard
 	if cfg.Clipin {
 		if err := clipboard.Clear(); err != nil {
-			return "", err
+			return nil, err
 		}
 		data, err := clipboard.Read()
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		return cat(msg, data), nil
 	}
@@ -133,7 +114,11 @@ func userInput(
 	// no message and no special input
 	// editor
 	log.Debugf("Using editor: %s\n", cfg.Editor)
-	return editor.Launch()
+	content, err := editor.Launch()
+	if err != nil {
+		return nil, err
+	}
+	return cat("", content), nil
 }
 
 func LaunchEditor(editor string) (string, error) {

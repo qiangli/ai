@@ -16,29 +16,31 @@ import (
 type OhAgent struct {
 	config *llm.Config
 
-	Role    string
-	Message string
+	Role   string
+	Prompt string
 }
 
-func NewOhAgent(cfg *llm.Config, role, content string) (*OhAgent, error) {
+func NewOhAgent(cfg *llm.Config, role, prompt string) (*OhAgent, error) {
 	if role == "" {
 		role = "system"
 	}
-	if content == "" {
-		content = resource.GetWSBaseSystemRoleContent()
+	if prompt == "" {
+		prompt = resource.GetWSBaseSystemRoleContent()
 	}
 
 	cfg.Tools = llm.GetSystemTools()
 
 	agent := OhAgent{
-		config:  cfg,
-		Role:    role,
-		Message: content,
+		config: cfg,
+		Role:   role,
+		Prompt: prompt,
 	}
 	return &agent, nil
 }
 
-func (r *OhAgent) Send(ctx context.Context, input string) (*ChatMessage, error) {
+func (r *OhAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
+	var input = in.Input()
+
 	workspace, err := resolveWorkspaceBase(ctx, r.config, r.config.Workspace, input)
 	if err != nil {
 		return nil, err

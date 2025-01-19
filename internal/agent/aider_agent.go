@@ -16,11 +16,11 @@ import (
 type AiderAgent struct {
 	config *llm.Config
 
-	Role    string
-	Message string
+	Role   string
+	Prompt string
 }
 
-func NewAiderAgent(cfg *llm.Config, role, content string) (*AiderAgent, error) {
+func NewAiderAgent(cfg *llm.Config, role, prompt string) (*AiderAgent, error) {
 	if role == "" {
 		role = "system"
 	}
@@ -28,14 +28,16 @@ func NewAiderAgent(cfg *llm.Config, role, content string) (*AiderAgent, error) {
 	cfg.Tools = llm.GetSystemTools()
 
 	agent := AiderAgent{
-		config:  cfg,
-		Role:    role,
-		Message: content,
+		config: cfg,
+		Role:   role,
+		Prompt: prompt,
 	}
 	return &agent, nil
 }
 
-func (r *AiderAgent) Send(ctx context.Context, input string) (*ChatMessage, error) {
+func (r *AiderAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
+	var input = in.Input()
+
 	workspace, err := resolveWorkspaceBase(ctx, r.config, r.config.Workspace, input)
 	if err != nil {
 		return nil, err

@@ -24,8 +24,8 @@ import (
 type AppConfig struct {
 	LLM *llm.Config
 
-	Role    string
-	Message string
+	Role   string
+	Prompt string
 }
 
 func handle(cmd *cobra.Command, args []string) error {
@@ -89,7 +89,7 @@ func handle(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if err := agent.HandleCommand(cfg.LLM, cfg.Role, cfg.Message); err != nil {
+	if err := agent.HandleCommand(cfg.LLM, cfg.Role, cfg.Prompt); err != nil {
 		log.Errorln(err)
 	}
 	return nil
@@ -155,7 +155,7 @@ func init() {
 	rootCmd.Flags().String("editor", "vi", "Specify editor to use")
 
 	rootCmd.Flags().String("role", "system", "Specify the role for the prompt")
-	rootCmd.Flags().String("role-content", "", "Specify the content for the prompt")
+	rootCmd.Flags().String("role-prompt", "", "Specify the content for the prompt")
 
 	rootCmd.Flags().BoolP("no-meta-prompt", "n", false, "Disable auto generation of system prompt")
 
@@ -176,7 +176,7 @@ func init() {
 
 	//
 	rootCmd.Flags().MarkHidden("role")
-	rootCmd.Flags().MarkHidden("role-content")
+	rootCmd.Flags().MarkHidden("role-prompt")
 	rootCmd.Flags().MarkHidden("dry-run")
 	rootCmd.Flags().MarkHidden("dry-run-content")
 	rootCmd.Flags().MarkHidden("trace")
@@ -376,9 +376,9 @@ func getConfig(cmd *cobra.Command, args []string) *AppConfig {
 	gitConfig.Short = viper.GetBool("git_short")
 
 	return &AppConfig{
-		LLM:     &cfg,
-		Role:    viper.GetString("role"),
-		Message: viper.GetString("role_content"),
+		LLM:    &cfg,
+		Role:   viper.GetString("role"),
+		Prompt: viper.GetString("role_prompt"),
 	}
 }
 

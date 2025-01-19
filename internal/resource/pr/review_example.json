@@ -1,0 +1,18 @@
+{
+  "review": {
+    "estimated_effort_to_review_3": 2,
+    "score": "85",
+    "relevant_tests": "yes",
+    "insights_from_user_answers": "The user is familiar with the project requirements.",
+    "key_issues_to_review": [
+      {
+        "relevant_file": "src/main/FeatureX.java",
+        "issue_header": "Perf Issue",
+        "issue_content": "Potential performance bottleneck in data processing logic.",
+        "start_line": 45,
+        "end_line": 68
+      }
+    ],
+    "security_concerns": "No clear vulnerabilities detected."
+  }
+}

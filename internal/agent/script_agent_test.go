@@ -19,7 +19,7 @@ func TestScriptAgentSend(t *testing.T) {
 		BaseUrl: "http://localhost:4000",
 	}
 
-	chat, err := NewScriptAgent(cfg, "", "")
+	agent, err := NewScriptAgent(cfg, "", "")
 	if err != nil {
 		t.Errorf("NewScriptAgent error: %v", err)
 		return
@@ -29,7 +29,10 @@ func TestScriptAgentSend(t *testing.T) {
 
 	command := ""
 	message := "what is the latest node version?"
-	resp, err := chat.Send(context.TODO(), command, message)
+	resp, err := agent.Send(context.TODO(), &UserInput{
+		Command: command,
+		Message: message,
+	})
 	if err != nil {
 		t.Errorf("ScriptAgent.Send error: %v", err)
 		return

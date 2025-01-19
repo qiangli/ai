@@ -16,24 +16,24 @@ import (
 type GptrAgent struct {
 	config *llm.Config
 
-	Role    string
-	Message string
+	Role   string
+	Prompt string
 }
 
-func NewGptrAgent(cfg *llm.Config, role, content string) (*GptrAgent, error) {
+func NewGptrAgent(cfg *llm.Config, role, prompt string) (*GptrAgent, error) {
 	if role == "" {
 		role = "system"
 	}
 
 	agent := GptrAgent{
-		config:  cfg,
-		Role:    role,
-		Message: content,
+		config: cfg,
+		Role:   role,
+		Prompt: prompt,
 	}
 	return &agent, nil
 }
 
-func (r *GptrAgent) Send(ctx context.Context, input string) (*ChatMessage, error) {
+func (r *GptrAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
 	// FIXME: This is a hack
 	// better to config the base url and api key (and others) for gptr
 	u, err := url.Parse(r.config.BaseUrl)
@@ -57,7 +57,7 @@ func (r *GptrAgent) Send(ctx context.Context, input string) (*ChatMessage, error
 		}
 		defer os.RemoveAll(tempDir)
 
-		err = gptr.GenerateReport(ctx, input, tempDir)
+		err = gptr.GenerateReport(ctx, in.Input(), tempDir)
 		if err != nil {
 			return nil, err
 		}

@@ -26,7 +26,9 @@ func TestAskAgentSend(t *testing.T) {
 
 	log.SetLogLevel(log.Verbose)
 
-	input := "what is zic command?"
+	input := &UserInput{
+		Message: "what is zic command?",
+	}
 	resp, err := agent.Send(context.TODO(), input)
 	if err != nil {
 		t.Errorf("Ask agent send error: %v", err)

@@ -12,42 +12,40 @@ import (
 type SqlAgent struct {
 	config *llm.Config
 
-	Role    string
-	Message string
+	Role   string
+	Prompt string
 }
 
-func NewSqlAgent(cfg *llm.Config, role, content string) (*SqlAgent, error) {
+func NewSqlAgent(cfg *llm.Config, role, prompt string) (*SqlAgent, error) {
 	if role == "" {
 		role = "system"
 	}
 
-	if content == "" {
+	if prompt == "" {
+		var err error
 		info, err := getDBInfo(cfg.DBConfig)
 		if err != nil {
 			return nil, err
 		}
-		systemMessage, err := resource.GetSqlSystemRoleContent(info)
+		prompt, err = resource.GetSqlSystemRoleContent(info)
 		if err != nil {
 			return nil, err
 		}
-		content = systemMessage
 	}
 
 	// Set up the tools
 	cfg.Tools = llm.GetDBTools()
 
 	agent := SqlAgent{
-		config:  cfg,
-		Role:    role,
-		Message: content,
+		config: cfg,
+		Role:   role,
+		Prompt: prompt,
 	}
 	return &agent, nil
 }
 
-func (r *SqlAgent) Send(ctx context.Context, input string) (*ChatMessage, error) {
-	var message = r.Message
-
-	content, err := llm.Send(r.config, ctx, r.Role, message, input)
+func (r *SqlAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
+	content, err := llm.Send(r.config, ctx, r.Role, r.Prompt, in.Input())
 	if err != nil {
 		return nil, err
 	}

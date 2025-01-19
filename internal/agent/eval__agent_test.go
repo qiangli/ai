@@ -26,7 +26,7 @@ func TestEvalAgentSend(t *testing.T) {
 
 	log.SetLogLevel(log.Verbose)
 
-	input := "what is this ZIC command for"
+	input := &UserInput{Message: "what is this ZIC command for"}
 	resp, err := chat.Send(context.TODO(), input)
 	if err != nil {
 		t.Errorf("chat agent send error: %v", err)

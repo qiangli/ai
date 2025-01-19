@@ -1,0 +1,13 @@
+{
+  "code_suggestions": [
+    {
+      "relevant_file": "src/utils/math.js",
+      "language": "JavaScript",
+      "suggestion_content": "Replace the loop with a built-in method to improve readability.",
+      "existing_code": "for (let i = 0; i < arr.length; i++) {...}",
+      "improved_code": "arr.forEach(element => {...})",
+      "one_sentence_summary": "Use a built-in array method for clearer code.",
+      "label": "best practice"
+    }
+  ]
+}

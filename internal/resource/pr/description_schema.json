@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "PRType": {
+      "type": "string",
+      "enum": [
+        "Bug fix",
+        "New feature",
+        "Breaking change",
+        "Enhancement",
+        "Documentation",
+        "Other"
+      ]
+    },
+    "FileDescription": {
+      "type": "object",
+      "properties": {
+        "filename": {
+          "type": "string",
+          "description": "The full file path of the relevant file"
+        },
+        "changes_summary": {
+          "type": "string",
+          "description": "Concise summary of the changes in the relevant file, in bullet points (1-4 bullet points)."
+        },
+        "changes_title": {
+          "type": "string",
+          "description": "One-line summary (5-10 words) capturing the main theme of changes in the file"
+        },
+        "label": {
+          "type": "string",
+          "description": "A single semantic label that represents a type of code changes that occurred in the File. Possible values (partial list): 'bug fix', 'new feature', 'breaking change', 'enhancement', 'documentation', 'error handling', 'configuration changes', 'dependencies', 'formatting', 'miscellaneous', ..."
+        }
+      },
+      "required": ["filename", "changes_summary", "changes_title", "label"]
+    },
+    "PRDescription": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "array",
+          "items": {
+            "$ref": "#/properties/PRType"
+          },
+          "description": "One or more types that describe the PR content. Return the label member value (e.g. 'Bug fix', not 'bug_fix')"
+        },
+        "description": {
+          "type": "string",
+          "description": "Summarize the PR changes and elaborate on the key aspects of the update, providing enough detail to understand the scope and purpose. Include information on: rationale behind the change, affected functionality, notable improvements and bug fixes."
+        },
+        "title": {
+          "type": "string",
+          "description": "A concise and descriptive title to highlight the most impactful changes."
+        },
+        "pr_files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/properties/FileDescription"
+          },
+          "maxItems": 20,
+          "description": "A list of all the files that were changed in the PR, and summary of their changes. Each file must be analyzed regardless of change size."
+        }
+      },
+      "required": ["type", "description", "title", "pr_files"]
+    }
+  }
+}

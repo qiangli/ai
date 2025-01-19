@@ -2,6 +2,8 @@ package resource
 
 import (
 	"regexp"
+	"strings"
+	"text/template"
 )
 
 func splitVersion(s string) (string, string) {
@@ -22,4 +24,15 @@ func maxLen(s string, max int) string {
 		return s[:max] + "..."
 	}
 	return s
+}
+
+func splitLines(s string) []string {
+	return strings.Split(s, "\n")
+}
+
+var tplFuncMap = template.FuncMap{
+	"maxLen":     maxLen,
+	"trim":       strings.TrimSpace,
+	"toLower":    strings.ToLower,
+	"splitLines": splitLines,
 }

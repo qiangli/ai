@@ -11,13 +11,13 @@ import (
 type AskAgent struct {
 	config *llm.Config
 
-	Role    string
-	Message string
+	Role   string
+	Prompt string
 
 	autoMessage string
 }
 
-func NewAskAgent(cfg *llm.Config, role, content string) (*AskAgent, error) {
+func NewAskAgent(cfg *llm.Config, role, prompt string) (*AskAgent, error) {
 	if role == "" {
 		role = "system"
 	}
@@ -26,15 +26,16 @@ func NewAskAgent(cfg *llm.Config, role, content string) (*AskAgent, error) {
 	agent := AskAgent{
 		config:      cfg,
 		Role:        role,
-		Message:     content,
+		Prompt:      prompt,
 		autoMessage: autoMessage,
 	}
 	return &agent, nil
 }
 
-func (r *AskAgent) Send(ctx context.Context, input string) (*ChatMessage, error) {
+func (r *AskAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
 	var agent = "ASK"
-	var message = r.Message
+	var message = r.Prompt
+	var input = in.Input()
 
 	if r.config.MetaPrompt {
 		if message == "" {

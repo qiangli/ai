@@ -2,6 +2,7 @@ package agent
 
 import (
 	"net"
+	"strings"
 )
 
 func isLoopback(hostport string) bool {
@@ -21,4 +22,12 @@ func isLoopback(hostport string) bool {
 	}
 
 	return false
+}
+
+// clipText truncates the input text to no more than the specified maximum length.
+func clipText(text string, maxLen int) string {
+	if len(text) > maxLen {
+		return strings.TrimSpace(text[:maxLen]) + "\n[more...]"
+	}
+	return text
 }

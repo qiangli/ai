@@ -88,7 +88,7 @@ func TestUserInput(t *testing.T) {
 				reader = strings.NewReader(tt.stdin)
 			}
 
-			got, err := userInput(
+			input, err := userInput(
 				&llm.Config{
 					Args:   tt.cfg.Args,
 					Stdin:  tt.cfg.Stdin,
@@ -103,6 +103,7 @@ func TestUserInput(t *testing.T) {
 				t.Errorf("user input error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			got := input.Input()
 			if strings.TrimSpace(got) != strings.TrimSpace(tt.want) {
 				t.Errorf("user input = %v, want %v", got, tt.want)
 			}

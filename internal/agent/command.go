@@ -3,6 +3,7 @@ package agent
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -14,18 +15,18 @@ import (
 	"github.com/qiangli/ai/internal/util"
 )
 
-func AgentHelp(cfg *llm.Config, role, content string) error {
+func AgentHelp(cfg *llm.Config, role, prompt string) error {
 	log.Debugln("Agent smart help")
 
-	msg, err := GetUserInput(cfg)
+	in, err := GetUserInput(cfg)
 	if err != nil {
 		return err
 	}
-	if msg == "" {
+	if in.IsEmpty() {
 		return internal.NewUserInputError("no query provided")
 	}
 
-	agent, err := NewHelpAgent(cfg, role, content)
+	agent, err := NewHelpAgent(cfg, role, prompt)
 	if err != nil {
 		return err
 	}
@@ -38,14 +39,14 @@ func AgentHelp(cfg *llm.Config, role, content string) error {
 
 	// Let LLM decide which agent to use
 	ctx := context.TODO()
-	resp, err := agent.Send(ctx, msg)
+	resp, err := agent.Send(ctx, in.Input())
 	if err != nil {
 		return err
 	}
 
 	// clone the cfg to avoid modifying the original one
 	nc := cfg.Clone()
-	if err := dispatch(nc, resp, role, content, msg); err != nil {
+	if err := dispatch(nc, resp, role, prompt, in); err != nil {
 		return err
 	}
 
@@ -53,36 +54,39 @@ func AgentHelp(cfg *llm.Config, role, content string) error {
 	return nil
 }
 
-func AgentCommand(cfg *llm.Config, role, content string) error {
+func AgentCommand(cfg *llm.Config, role, prompt string) error {
 	log.Debugf("Agent: %s %v\n", cfg.Command, cfg.Args)
 
-	name := strings.TrimSpace(cfg.Command[1:])
-	if name == "" {
+	names := strings.TrimSpace(cfg.Command[1:])
+	if names == "" {
 		return internal.NewUserInputError("no agent provided")
 	}
 
-	dict, err := agentList()
-	if err != nil {
-		return err
-	}
-	if _, exist := dict[name]; !exist {
+	na := strings.SplitN(names, "/", 2)
+	name := na[0]
+
+	if !hasAgent(name) {
 		return internal.NewUserInputError("no such agent: " + name)
 	}
-
-	msg, err := GetUserInput(cfg)
+	input, err := GetUserInput(cfg)
 	if err != nil {
 		return err
 	}
-	if msg == "" {
+	if input.IsEmpty() {
 		return internal.NewUserInputError("no message content")
 	}
 
-	return handleAgent(name, cfg, role, content, msg)
+	input.Command = name
+	if len(na) > 1 {
+		input.SubCommand = na[1]
+	}
+
+	return handleAgent(cfg, role, prompt, input)
 }
 
-func handleAgent(name string, cfg *llm.Config, role, content, msg string) error {
+func handleAgent(cfg *llm.Config, role, prompt string, input *UserInput) error {
 
-	agent, err := MakeAgent(name, cfg, role, content)
+	agent, err := MakeAgent(input.Command, cfg, role, prompt)
 	if err != nil {
 		return err
 	}
@@ -94,7 +98,7 @@ func handleAgent(name string, cfg *llm.Config, role, content, msg string) error 
 	log.Infof("Sending request to [%s] %s...\n", cfg.Model, cfg.BaseUrl)
 
 	ctx := context.TODO()
-	resp, err := agent.Send(ctx, msg)
+	resp, err := agent.Send(ctx, input)
 	if err != nil {
 		return err
 	}
@@ -104,7 +108,7 @@ func handleAgent(name string, cfg *llm.Config, role, content, msg string) error 
 	return nil
 }
 
-func SlashCommand(cfg *llm.Config, role, content string) error {
+func SlashCommand(cfg *llm.Config, role, prompt string) error {
 	log.Debugf("Command: %s %v\n", cfg.Command, cfg.Args)
 
 	name := strings.TrimSpace(cfg.Command[1:])
@@ -112,20 +116,21 @@ func SlashCommand(cfg *llm.Config, role, content string) error {
 		name = filepath.Base(name)
 	}
 
-	msg, err := GetUserInput(cfg)
+	input, err := GetUserInput(cfg)
 	if err != nil {
 		return err
 	}
 
-	if name == "" && msg == "" {
+	if name == "" && input.IsEmpty() {
 		return internal.NewUserInputError("no command and message provided")
 	}
 
-	return handleSlash(name, cfg, role, content, msg)
+	input.Command = name
+	return handleSlash(cfg, role, prompt, input)
 }
 
-func handleSlash(name string, cfg *llm.Config, role, content, msg string) error {
-	agent, err := NewScriptAgent(cfg, role, content)
+func handleSlash(cfg *llm.Config, role, prompt string, in *UserInput) error {
+	agent, err := NewScriptAgent(cfg, role, prompt)
 	if err != nil {
 		return err
 	}
@@ -137,7 +142,7 @@ func handleSlash(name string, cfg *llm.Config, role, content, msg string) error 
 	log.Infof("Sending request to [%s] %s...\n", cfg.Model, cfg.BaseUrl)
 
 	ctx := context.TODO()
-	resp, err := agent.Send(ctx, name, msg)
+	resp, err := agent.Send(ctx, in)
 	if err != nil {
 		return err
 	}
@@ -223,45 +228,32 @@ func processContent(cfg *llm.Config, message *ChatMessage) {
 		}
 	}
 
-	// show content to the stdout
-	showContent := func() {
-		log.Infof("\n[%s]\n", message.Agent)
-		log.Println(content)
-	}
-
 	// process code blocks
-	if total > 0 {
-		if cfg.Interactive {
-			showContent()
-
-			log.Infof("\n=== CODE BLOCKS (%v) ===\n", total)
-			for i, v := range doc.CodeBlocks {
-				log.Infof("\n===\n%s\n=== %v/%v ===\n", v.Code, i+1, total)
-				ProcessBashScript(cfg, v.Code)
-			}
-			log.Infoln("=== END ===\n")
-		} else {
-			// if there are code blocks in non-interactive mode
-			// we don't show the content to stdout
-			// this is to ensure the code blocks can be piped/redirected
-			// without being mixed with other content
-			log.Infof("\n[%s]\n", message.Agent)
-			log.Infoln(content)
-
-			const codeTpl = "%s\n"
-			var snippets []string
-			for _, v := range doc.CodeBlocks {
-				snippets = append(snippets, v.Code)
-			}
-			// show code snippets
-			log.Printf(codeTpl, strings.Join(snippets, "\n"))
+	isPiped := func() bool {
+		stat, err := os.Stdout.Stat()
+		if err != nil {
+			return false
 		}
-	} else {
-		showContent()
+		return (stat.Mode() & os.ModeCharDevice) == 0
+	}()
+
+	// TODO: markdown formatting lost if the content is also tee'd to a file
+	renderMessage(message)
+
+	if total > 0 && isPiped {
+		// if there are code blocks and stdout is redirected
+		// we send the code blocks to the stdout
+		const codeTpl = "%s\n"
+		var snippets []string
+		for _, v := range doc.CodeBlocks {
+			snippets = append(snippets, v.Code)
+		}
+		// show code snippets
+		log.Printf(codeTpl, strings.Join(snippets, "\n"))
 	}
 }
 
-func dispatch(cfg *llm.Config, resp *ChatMessage, role, content, msg string) error {
+func dispatch(cfg *llm.Config, resp *ChatMessage, role, prompt string, in *UserInput) error {
 	log.Debugf("dispatching: %+v\n", resp)
 
 	var data map[string]string
@@ -281,15 +273,18 @@ func dispatch(cfg *llm.Config, resp *ChatMessage, role, content, msg string) err
 			cfg.Command = "/" + name
 		}
 		log.Infof("Running `ai %s` ...\n", cfg.Command)
-		return handleSlash(name, cfg, role, content, msg)
+		in.Command = name
+		return handleSlash(cfg, role, prompt, in)
 	case "agent":
 		cfg.Command = "@" + name
 		log.Infof("Running `ai %s` ...\n", cfg.Command)
-		return handleAgent(name, cfg, role, content, msg)
+		in.Command = name
+		return handleAgent(cfg, role, prompt, in)
 	default:
 		log.Debugf("unknown type: %s, default to '@ask'\n", what)
 		cfg.Command = "@ask"
 		log.Infof("Running `ai %s` ...\n", cfg.Command)
-		return handleAgent("ask", cfg, role, content, msg)
+		in.Command = "ask"
+		return handleAgent(cfg, role, prompt, in)
 	}
 }
