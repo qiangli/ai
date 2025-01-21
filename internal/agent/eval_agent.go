@@ -31,7 +31,8 @@ func NewEvalAgent(cfg *internal.AppConfig) (*EvalAgent, error) {
 }
 
 func (r *EvalAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
-	content, err := llm.Send(r.config.LLM, ctx, r.Role, r.Prompt, in.Input())
+	model := internal.CreateModel(r.config.LLM)
+	content, err := llm.Send(ctx, r.Role, r.Prompt, model, in.Input())
 	if err != nil {
 		return nil, err
 	}

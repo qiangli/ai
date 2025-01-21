@@ -12,15 +12,12 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
-func Send(cfg *internal.LLMConfig, ctx context.Context, role, prompt, input string) (string, error) {
+func Send(ctx context.Context, role, prompt string, model *internal.Model, input string) (string, error) {
 	req := &internal.Message{
 		Role:   role,
 		Prompt: prompt,
-		Model:  internal.CreateModel(cfg),
+		Model:  model,
 		Input:  input,
-	}
-	if cfg.Sql != nil {
-		req.DBCreds = cfg.Sql.DBConfig
 	}
 
 	resp, err := Chat(ctx, req)
@@ -63,7 +60,7 @@ func Chat(ctx context.Context, req *internal.Message) (*internal.Message, error)
 	// TODO
 	var max = len(model.Tools) + 1
 
-	if !model.DryRun {
+	if !internal.DryRun {
 		for tries := 0; tries < max; tries++ {
 			log.Debugf("*** tries ***: %v\n", tries)
 
@@ -92,6 +89,7 @@ func Chat(ctx context.Context, req *internal.Message) (*internal.Message, error)
 				toolCfg := &internal.ToolConfig{
 					Model:    model,
 					DBConfig: req.DBCreds,
+					Next:     req.Next,
 				}
 				out, err := RunTool(toolCfg, ctx, name, props)
 				if err != nil {
@@ -102,7 +100,7 @@ func Chat(ctx context.Context, req *internal.Message) (*internal.Message, error)
 			}
 		}
 	} else {
-		resp.Content = model.DryRunContent
+		resp.Content = internal.DryRunContent
 	}
 
 	log.Debugf("<<<OPENAI:\nmodel: %s, content length: %v\n\n", model, len(resp.Content))

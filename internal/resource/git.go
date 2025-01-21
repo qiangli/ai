@@ -7,20 +7,15 @@ import (
 
 // https://github.com/Aider-AI/aider/blob/main/aider/prompts.py
 //
-//go:embed git/commit_short.md
-var gitCommitShort string
-
-func getGitCommitShortSystemRole() string {
-	return gitCommitShort
-}
+//go:embed git/message_short.md
+var gitMessageShort string
 
 // https://www.conventionalcommits.org/en/v1.0.0/#summary
 //
-//go:embed git/commit_conventional.md
-var gitCommitConventional string
+//go:embed git/message_conventional.md
+var gitMessageConventional string
 
-func getConventionalCommitSystemRole() string {
-	const format = `
+const longFormat = `
 You are an expert software engineer that generates concise Git commit messages based on the provided diffs.
 
 Review the diffs carefully.
@@ -29,12 +24,17 @@ Generate the commit message for those changes using the *Conventional Commits sp
 ===
 %s
 `
-	return fmt.Sprintf(format, gitCommitConventional)
+
+func GetGitMessageSystem(short bool) string {
+	if short {
+		return gitMessageShort
+	}
+	return fmt.Sprintf(longFormat, gitMessageConventional)
 }
 
-func GetGitSystemRoleContent(short bool) string {
-	if short {
-		return getGitCommitShortSystemRole()
-	}
-	return getConventionalCommitSystemRole()
+//go:embed cli/git_system.md
+var cliGitSystem string
+
+func GetCliGitSystem() string {
+	return cliGitSystem
 }

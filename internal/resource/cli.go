@@ -25,6 +25,9 @@ var cliConfigUser string
 //go:embed cli/agent_detect_system.md
 var cliAgentDetectSystem string
 
+//go:embed cli/pr_system.md
+var cliPrSystem string
+
 func GetCliConfigSystem() (string, error) {
 	data := map[string]any{
 		"schema": cliConfigSchema,
@@ -41,4 +44,8 @@ func GetCliConfigUser(input string) (string, error) {
 
 func GetCliAgentDetectSystem() string {
 	return cliAgentDetectSystem
+}
+
+func GetCliPrSystem() string {
+	return cliPrSystem
 }

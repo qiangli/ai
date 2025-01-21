@@ -34,7 +34,6 @@ func DetectWorkspace(ctx context.Context, model *internal.Model, input string) (
 		Model:  model,
 		Input:  userContent,
 	}
-
 	if model.Tools == nil {
 		model.Tools = GetRestrictedSystemTools()
 	}

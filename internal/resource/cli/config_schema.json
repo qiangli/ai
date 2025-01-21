@@ -17,13 +17,11 @@
     },
     "model": {
       "type": "string",
-      "description": "LLM model",
-      "default": "ChatModelGPT4o"
+      "description": "LLM model"
     },
     "base-url": {
       "type": "string",
-      "description": "LLM Base URL",
-      "default": "https://api.openai.com/v1/"
+      "description": "LLM Base URL"
     },
     "l1-api-key": {
       "type": "string",
@@ -31,8 +29,7 @@
     },
     "l1-model": {
       "type": "string",
-      "description": "Level1 basic LLM model",
-      "default": "ChatModelGPT4oMini"
+      "description": "Level1 basic LLM model"
     },
     "l1-base-url": {
       "type": "string",
@@ -44,8 +41,7 @@
     },
     "l2-model": {
       "type": "string",
-      "description": "Level2 standard LLM model",
-      "default": "ChatModelGPT4o"
+      "description": "Level2 standard LLM model"
     },
     "l2-base-url": {
       "type": "string",
@@ -57,8 +53,7 @@
     },
     "l3-model": {
       "type": "string",
-      "description": "Level3 advanced LLM model",
-      "default": "ChatModelO1Mini"
+      "description": "Level3 advanced LLM model"
     },
     "l3-base-url": {
       "type": "string",
@@ -72,18 +67,9 @@
       "type": "boolean",
       "description": "Operate quietly"
     },
-    "dry-run": {
-      "type": "boolean",
-      "description": "Enable dry run mode. No API call will be made"
-    },
-    "dry-run-content": {
-      "type": "string",
-      "description": "Content returned for dry run"
-    },
     "editor": {
       "type": "string",
-      "description": "Specify editor to use",
-      "default": "vi"
+      "description": "Specify editor to use"
     },
     "role": {
       "type": "string",
@@ -119,8 +105,7 @@
     },
     "output": {
       "type": "string",
-      "description": "Output format, must be either raw or markdown.",
-      "default": "markdown"
+      "description": "Output format, must be either raw or markdown."
     },
     "sqlConfig": {
       "$ref": "#/definitions/SqlConfig"

@@ -45,7 +45,7 @@ func (r *AskAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error
 		if message == "" {
 			message = r.autoMessage
 		}
-		prompt, err := r.GeneratePrompt(r.config.LLM, ctx, r.Role, message, clip)
+		prompt, err := r.GeneratePrompt(ctx, r.Role, message, clip)
 		if err != nil {
 			return nil, err
 		}
@@ -56,9 +56,8 @@ func (r *AskAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error
 	resp, err := llm.Chat(ctx, &internal.Message{
 		Role:   r.Role,
 		Prompt: message,
-		Model:  internal.Level1(r.config.LLM),
+		Model:  internal.Level2(r.config.LLM),
 		Input:  input,
-		// DBCreds: nil,
 	})
 	if err != nil {
 		return nil, err
@@ -75,8 +74,9 @@ type AskAgentPrompt struct {
 	RolePrompt string `json:"agent_role_prompt"`
 }
 
-func (r *AskAgent) GeneratePrompt(cfg *internal.LLMConfig, ctx context.Context, role, prompt, input string) (*AskAgentPrompt, error) {
-	content, err := llm.Send(cfg, ctx, role, prompt, input)
+func (r *AskAgent) GeneratePrompt(ctx context.Context, role, prompt, input string) (*AskAgentPrompt, error) {
+	model := internal.Level1(r.config.LLM)
+	content, err := llm.Send(ctx, role, prompt, model, input)
 	if err != nil {
 		return nil, err
 	}

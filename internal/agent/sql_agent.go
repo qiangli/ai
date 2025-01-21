@@ -37,9 +37,6 @@ func NewSqlAgent(cfg *internal.AppConfig) (*SqlAgent, error) {
 		}
 	}
 
-	// Set up the tools
-	cfg.LLM.Tools = llm.GetDBTools()
-
 	agent := SqlAgent{
 		config: cfg,
 		Role:   role,
@@ -49,14 +46,22 @@ func NewSqlAgent(cfg *internal.AppConfig) (*SqlAgent, error) {
 }
 
 func (r *SqlAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
-	content, err := llm.Send(r.config.LLM, ctx, r.Role, r.Prompt, in.Input())
+	model := internal.CreateModel(r.config.LLM)
+	model.Tools = llm.GetDBTools()
+	msg := &internal.Message{
+		Role:   r.Role,
+		Prompt: r.Prompt,
+		Model:  model,
+		Input:  in.Input(),
+	}
+	resp, err := llm.Chat(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
 
 	return &ChatMessage{
 		Agent:   "SQL",
-		Content: content,
+		Content: resp.Content,
 	}, nil
 }
 

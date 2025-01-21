@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/resource"
@@ -17,50 +18,8 @@ type Agent interface {
 	Send(context.Context, *UserInput) (*ChatMessage, error)
 }
 
-type ChatMessage struct {
-	Agent   string
-	Content string
-}
-
-type UserInput struct {
-	Agent      string
-	Subcommand string
-
-	Message string
-	Content string
-}
-
-func (r *UserInput) IsEmpty() bool {
-	return r.Message == "" && r.Content == ""
-}
-
-func (r *UserInput) Input() string {
-	switch {
-	case r.Message == "" && r.Content == "":
-		return ""
-	case r.Message == "":
-		return r.Content
-	case r.Content == "":
-		return r.Message
-	default:
-		return fmt.Sprintf("###\n%s\n###\n%s", r.Message, r.Content)
-	}
-}
-
-// Clip returns a clipped version of the content.
-// This is intended for "smart" agents to make decisions based on user inputs.
-func (r *UserInput) Clip() string {
-	switch {
-	case r.Message == "" && r.Content == "":
-		return ""
-	case r.Message == "":
-		return clipText(r.Content, 500)
-	case r.Content == "":
-		return r.Message
-	default:
-		return fmt.Sprintf("###\n%s\n###\n%s", r.Message, clipText(r.Content, 500))
-	}
-}
+type UserInput = api.Request
+type ChatMessage = api.Response
 
 func MakeAgent(name string, cfg *internal.AppConfig) (Agent, error) {
 

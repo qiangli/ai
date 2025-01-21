@@ -56,12 +56,6 @@ func handle(cmd *cobra.Command, args []string) error {
 
 	log.Debugf("Config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.LLM.Sql.DBConfig)
 
-	// set global flags
-	internal.Debug = cfg.LLM.Debug
-	internal.DryRun = cfg.LLM.DryRun
-	internal.DryRunContent = cfg.LLM.DryRunContent
-	internal.WorkDir = cfg.LLM.WorkDir
-
 	//
 	command := cfg.Command
 
@@ -123,7 +117,6 @@ var rootCmd = &cobra.Command{
 }
 
 var cfgFile string
-
 var outputFlag string
 
 func init() {
@@ -138,6 +131,8 @@ func init() {
 
 	//
 	rootCmd.Flags().StringVar(&cfgFile, "config", defaultCfg, "config file")
+	rootCmd.Flags().BoolVar(&internal.DryRun, "dry-run", false, "Enable dry run mode. No API call will be made")
+	rootCmd.Flags().StringVar(&internal.DryRunContent, "dry-run-content", "", "Content returned for dry run")
 
 	// Define flags with dashes
 	rootCmd.Flags().StringP("workspace", "w", "", "Workspace directory")
@@ -167,8 +162,6 @@ func init() {
 
 	rootCmd.Flags().Bool("verbose", false, "Show debugging information")
 	rootCmd.Flags().Bool("quiet", false, "Operate quietly")
-	rootCmd.Flags().Bool("dry-run", false, "Enable dry run mode. No API call will be made")
-	rootCmd.Flags().String("dry-run-content", "", "Content returned for dry run")
 	rootCmd.Flags().String("editor", "vi", "Specify editor to use")
 
 	rootCmd.Flags().String("role", "system", "Specify the role for the prompt")
@@ -303,9 +296,6 @@ func getConfig(cmd *cobra.Command, args []string) *internal.AppConfig {
 	}
 
 	cfg.Debug = viper.GetBool("verbose")
-
-	cfg.DryRun = viper.GetBool("dry_run")
-	cfg.DryRunContent = viper.GetString("dry_run_content")
 
 	app.Editor = viper.GetString("editor")
 

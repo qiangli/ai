@@ -9,7 +9,6 @@ import (
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/docker/oh"
-	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/resource"
 )
@@ -31,8 +30,6 @@ func NewOhAgent(cfg *internal.AppConfig) (*OhAgent, error) {
 	if prompt == "" {
 		prompt = resource.GetWSBaseSystemRoleContent()
 	}
-
-	cfg.LLM.Tools = llm.GetSystemTools()
 
 	agent := OhAgent{
 		config: cfg,
@@ -92,13 +89,13 @@ func (r *OhAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error)
 
 	var content string
 
-	if !r.config.LLM.DryRun {
+	if !internal.DryRun {
 		err = oh.Run(ctx, userContent)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		content = r.config.LLM.DryRunContent
+		content = internal.DryRunContent
 	}
 
 	return &ChatMessage{

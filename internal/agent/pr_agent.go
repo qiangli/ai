@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/resource"
@@ -37,9 +38,7 @@ func (r *PrAgent) getSystemPrompt(in *UserInput) (string, error) {
 	if r.Prompt != "" {
 		return r.Prompt, nil
 	}
-	switch in.Subcommand {
-	case "":
-		return resource.GetPrDescriptionSystem()
+	switch baseCommand(in.Subcommand) {
 	case "describe":
 		return resource.GetPrDescriptionSystem()
 	case "review":
@@ -53,9 +52,7 @@ func (r *PrAgent) getSystemPrompt(in *UserInput) (string, error) {
 }
 
 func (r *PrAgent) format(in *UserInput, resp string) (string, error) {
-	switch in.Subcommand {
-	case "":
-		return resource.FormatPrDescription(resp)
+	switch baseCommand(in.Subcommand) {
 	case "describe":
 		return resource.FormatPrDescription(resp)
 	case "review":
@@ -69,6 +66,10 @@ func (r *PrAgent) format(in *UserInput, resp string) (string, error) {
 }
 
 func (r *PrAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
+	if in.Subcommand == "" {
+		return r.Handle(ctx, in, nil)
+	}
+
 	input, err := resource.GetPrUser(&pr.Input{
 		Instruction: in.Message,
 		Diff:        in.Content,
@@ -81,8 +82,8 @@ func (r *PrAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error)
 	if err != nil {
 		return nil, err
 	}
-
-	resp, err := llm.Send(r.config.LLM, ctx, r.Role, prompt, input)
+	model := internal.Level1(r.config.LLM)
+	resp, err := llm.Send(ctx, r.Role, prompt, model, input)
 	if err != nil {
 		return nil, err
 	}
@@ -97,5 +98,40 @@ func (r *PrAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error)
 	return &ChatMessage{
 		Agent:   in.Agent,
 		Content: content,
+	}, nil
+}
+
+func (r *PrAgent) Handle(ctx context.Context, req *api.Request, next api.HandlerNext) (*api.Response, error) {
+	// let LLM decide which subcommand to call based on the user input
+	var clip = req.Clip()
+	prompt := resource.GetCliPrSystem()
+
+	action := func(ctx context.Context, sub string) (string, error) {
+		log.Debugf("action: PR subcommand: %s\n", sub)
+		req.Subcommand = sub
+		resp, err := r.Send(ctx, req)
+		if err != nil {
+			return "", err
+		}
+		return resp.Content, nil
+	}
+
+	model := internal.Level1(r.config.LLM)
+	model.Tools = llm.GetPrTools()
+
+	msg := &internal.Message{
+		Role:   "system",
+		Prompt: prompt,
+		Model:  model,
+		Input:  clip,
+		Next:   action,
+	}
+	resp, err := llm.Chat(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
+
+	return &api.Response{
+		Content: resp.Content,
 	}, nil
 }

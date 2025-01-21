@@ -9,7 +9,6 @@ import (
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/docker/aider"
-	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/resource"
 )
@@ -28,8 +27,6 @@ func NewAiderAgent(cfg *internal.AppConfig) (*AiderAgent, error) {
 	if role == "" {
 		role = "system"
 	}
-
-	cfg.LLM.Tools = llm.GetSystemTools()
 
 	agent := AiderAgent{
 		config: cfg,
@@ -89,13 +86,13 @@ func (r *AiderAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, err
 
 	var content string
 
-	if !r.config.LLM.DryRun {
+	if !internal.DryRun {
 		err = aider.Run(ctx, aider.Code, userContent)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		content = r.config.LLM.DryRunContent
+		content = internal.DryRunContent
 	}
 
 	return &ChatMessage{

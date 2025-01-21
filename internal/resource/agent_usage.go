@@ -43,14 +43,14 @@ var AgentInfo = map[string]string{
 
 var AgentCommands = map[string]string{
 	"git": `
-  /short:        Generate a short commit message for Git based on the provided information.
+  /short:        Generate a short commit message for Git based on the provided information
   /conventional: Generate a commit message for Git based on the provided information according to the Conventional Commits specification. https://www.conventionalcommits.org/en/v1.0.0/#summary
 `,
 	"pr": `
-  /describe:  Automatically generating PR description - title, type, summary, code walkthrough and labels
-  /review:    Adjustable feedback about the PR, possible issues, security concerns, review effort and more
+  /describe:  Generate PR description - title, type, summary, code walkthrough and labels
+  /review:    Feedback about the PR, possible issues, security concerns, review effort and more
   /improve:   Code suggestions for improving the PR
-  /changelog: Automatically updating the CHANGELOG.md file with the PR changes
+  /changelog: Update the CHANGELOG.md file with the PR changes
 `,
 	"script": `
   Run "list-commands" tool to get the complete list of system commands available for the agent on the local system.

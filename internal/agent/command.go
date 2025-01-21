@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/cb"
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/internal/resource"
 	"github.com/qiangli/ai/internal/util"
 )
 
@@ -30,20 +30,20 @@ func AgentHelp(cfg *internal.AppConfig) error {
 		return err
 	}
 
-	if cfg.LLM.DryRun {
+	if internal.DryRun {
 		log.Infof("Dry run mode. No API call will be made!\n")
-		log.Debugf("The following will be returned:\n%s\n", cfg.LLM.DryRunContent)
+		log.Debugf("The following will be returned:\n%s\n", internal.DryRunContent)
 	}
 	log.Infof("Sending request to [%s] %s...\n", cfg.LLM.Model, cfg.LLM.BaseUrl)
 
-	// Let LLM decide which agent to use
-	ctx := context.TODO()
-	resp, err := agent.Send(ctx, in)
-	if err != nil {
-		return err
+	// // Let LLM decide which agent to use
+	next := func(ctx context.Context, req *api.Request) (*api.Response, error) {
+		err := handleAgent(cfg, req)
+		return nil, err
 	}
 
-	if err := dispatch(cfg, resp, in); err != nil {
+	_, err = agent.Handle(context.TODO(), in, next)
+	if err != nil {
 		return err
 	}
 
@@ -57,9 +57,9 @@ func handleAgent(cfg *internal.AppConfig, in *UserInput) error {
 		return err
 	}
 
-	if cfg.LLM.DryRun {
+	if internal.DryRun {
 		log.Infof("Dry run mode. No API call will be made!\n")
-		log.Debugf("The following will be returned:\n%s\n", cfg.LLM.DryRunContent)
+		log.Debugf("The following will be returned:\n%s\n", internal.DryRunContent)
 	}
 	log.Infof("[%s/%s] sending request to [%s] %s...\n", in.Agent, in.Subcommand, cfg.LLM.Model, cfg.LLM.BaseUrl)
 
@@ -177,23 +177,4 @@ func processContent(cfg *internal.AppConfig, message *ChatMessage) {
 		// show code snippets
 		log.Printf(codeTpl, strings.Join(snippets, "\n"))
 	}
-}
-
-func dispatch(cfg *internal.AppConfig, resp *ChatMessage, in *UserInput) error {
-	log.Debugf("dispatching: %+v\n", resp)
-
-	var data resource.AgentDetect
-	if err := json.Unmarshal([]byte(resp.Content), &data); err != nil {
-		// better continue the conversation than err
-		log.Debugf("failed to unmarshal content: %v\n", err)
-		data = resource.AgentDetect{
-			Agent:   "ask",
-			Command: "",
-		}
-	}
-
-	in.Agent = data.Agent
-	in.Subcommand = data.Command
-
-	return handleAgent(cfg, in)
 }

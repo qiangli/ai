@@ -6,12 +6,12 @@ import (
 	"os"
 )
 
-var printLogger = NewPrinter(os.Stdout)
+var printLogger = NewPrinter(os.Stdout, 0)
 
-var promptLogger = NewPrinter(os.Stderr)
-var debugLogger Printer = NewPrinter(os.Stderr)
-var infoLogger = NewPrinter(os.Stderr)
-var errLogger = NewPrinter(os.Stderr)
+var promptLogger = NewPrinter(os.Stderr, 0)
+var debugLogger Printer = NewPrinter(os.Stderr, 500)
+var infoLogger = NewPrinter(os.Stderr, 0)
+var errLogger = NewPrinter(os.Stderr, 0)
 
 type Printer interface {
 	Printf(string, ...interface{})
@@ -24,16 +24,19 @@ type Printer interface {
 	SetLogger(io.Writer)
 }
 
-func NewPrinter(w io.Writer) Printer {
+func NewPrinter(w io.Writer, max int) Printer {
 	return &printer{
 		out: w,
 		on:  true,
+		max: max,
 	}
 }
 
 type printer struct {
 	out io.Writer
 	on  bool
+
+	max int
 
 	logger io.Writer
 }
@@ -48,7 +51,7 @@ func (r *printer) IsEnabled() bool {
 
 func (r *printer) Printf(format string, a ...interface{}) {
 	if r.on {
-		fmt.Fprintf(r.out, format, a...)
+		Fprintf(r.out, format, r.max, a...)
 	}
 	if r.logger != nil {
 		fmt.Fprintf(r.logger, format, a...)
@@ -57,7 +60,7 @@ func (r *printer) Printf(format string, a ...interface{}) {
 
 func (r *printer) Print(a ...interface{}) {
 	if r.on {
-		fmt.Fprint(r.out, a...)
+		Fprint(r.out, r.max, a...)
 	}
 	if r.logger != nil {
 		fmt.Fprint(r.logger, a...)
@@ -66,7 +69,7 @@ func (r *printer) Print(a ...interface{}) {
 
 func (r *printer) Println(a ...interface{}) {
 	if r.on {
-		fmt.Fprintln(r.out, a...)
+		Fprintln(r.out, r.max, a...)
 	}
 	if r.logger != nil {
 		fmt.Fprintln(r.logger, a...)
@@ -151,6 +154,8 @@ const (
 )
 
 var logLevel Level
+
+var Trace bool
 
 func IsVerbose() bool {
 	return logLevel == Verbose

@@ -31,3 +31,11 @@ func clipText(text string, maxLen int) string {
 	}
 	return text
 }
+
+// baseCommand returns the last part of the string separated by /.
+func baseCommand(s string) string {
+	s = strings.TrimSpace(s)
+	s = strings.Trim(s, "/")
+	sa := strings.Split(s, "/")
+	return sa[len(sa)-1]
+}

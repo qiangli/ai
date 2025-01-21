@@ -36,14 +36,12 @@ func NewScriptAgent(cfg *internal.AppConfig) (*ScriptAgent, error) {
 		}
 	}
 
-	cfg.LLM.Tools = llm.GetSystemTools()
-
-	chat := ScriptAgent{
+	agent := ScriptAgent{
 		config: cfg,
 		Role:   role,
 		Prompt: prompt,
 	}
-	return &chat, nil
+	return &agent, nil
 }
 
 func (r *ScriptAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
@@ -57,12 +55,14 @@ func (r *ScriptAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, er
 		return nil, err
 	}
 
+	model := internal.CreateModel(r.config.LLM)
+	model.Tools = llm.GetSystemTools()
+
 	msg := &internal.Message{
 		Role:   r.Role,
 		Prompt: r.Prompt,
-		Model:  internal.Level2(r.config.LLM),
+		Model:  model,
 		Input:  userContent,
-		// DBCreds: nil,
 	}
 
 	resp, err := llm.Chat(ctx, msg)

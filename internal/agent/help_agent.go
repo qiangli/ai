@@ -2,9 +2,12 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/llm"
+	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/resource"
 )
 
@@ -27,8 +30,6 @@ func NewHelpAgent(cfg *internal.AppConfig) (*HelpAgent, error) {
 		content = resource.GetCliAgentDetectSystem()
 	}
 
-	cfg.LLM.Tools = llm.GetAIHelpTools()
-
 	agent := HelpAgent{
 		config:  cfg,
 		Role:    role,
@@ -37,16 +38,36 @@ func NewHelpAgent(cfg *internal.AppConfig) (*HelpAgent, error) {
 	return &agent, nil
 }
 
-func (r *HelpAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
-	var clip = in.Clip()
+func (r *HelpAgent) Handle(ctx context.Context, req *api.Request, next api.HandlerNext) (*api.Response, error) {
+	var clip = req.Clip()
 
-	content, err := llm.Send(r.config.LLM, ctx, r.Role, r.Message, clip)
+	model := internal.Level1(r.config.LLM)
+	model.Tools = llm.GetAIHelpTools()
+	msg := &internal.Message{
+		Role:   r.Role,
+		Prompt: r.Message,
+		Model:  model,
+		Input:  clip,
+	}
+	resp, err := llm.Chat(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
 
-	return &ChatMessage{
-		Agent:   "AI",
-		Content: content,
-	}, nil
+	var data resource.AgentDetect
+	if err := json.Unmarshal([]byte(resp.Content), &data); err != nil {
+		// better continue the conversation than err
+		log.Debugf("failed to unmarshal content: %v\n", err)
+		data = resource.AgentDetect{
+			Agent:   "ask",
+			Command: "",
+		}
+	}
+
+	log.Debugf("dispatching: %+v\n", data)
+
+	req.Agent = data.Agent
+	req.Subcommand = data.Command
+
+	return next(ctx, req)
 }

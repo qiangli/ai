@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/openai/openai-go"
+
+	"github.com/qiangli/ai/internal/api"
 )
 
 //go:embed ai.yaml
@@ -15,12 +17,9 @@ func GetDefaultConfig() string {
 }
 
 // global flags
-var Debug bool // verbose output
 
 var DryRun bool
 var DryRunContent string
-
-var WorkDir string
 
 type AppConfig struct {
 	ConfigFile string
@@ -70,17 +69,12 @@ type LLMConfig struct {
 
 	Debug bool
 
-	DryRun        bool
-	DryRunContent string
-
 	// Current working directory where AI script is executed
 	WorkDir string
 
 	Interactive bool
 
 	MetaPrompt bool
-
-	Tools Tools
 
 	Output string
 
@@ -92,22 +86,18 @@ type LLMConfig struct {
 
 func (cfg *LLMConfig) Clone() *LLMConfig {
 	n := &LLMConfig{
-		ApiKey:        cfg.ApiKey,
-		BaseUrl:       cfg.BaseUrl,
-		Model:         cfg.Model,
-		Debug:         cfg.Debug,
-		DryRun:        cfg.DryRun,
-		DryRunContent: cfg.DryRunContent,
-		WorkDir:       cfg.WorkDir,
-		Interactive:   cfg.Interactive,
-		MetaPrompt:    cfg.MetaPrompt,
-		Tools:         nil,
-		Sql:           nil,
-		Git:           nil,
+		ApiKey:      cfg.ApiKey,
+		BaseUrl:     cfg.BaseUrl,
+		Model:       cfg.Model,
+		Debug:       cfg.Debug,
+		WorkDir:     cfg.WorkDir,
+		Interactive: cfg.Interactive,
+		MetaPrompt:  cfg.MetaPrompt,
+		Sql:         nil,
+		Git:         nil,
 	}
 
 	// shallow copy
-	n.Tools = cfg.Tools
 	n.Sql = cfg.Sql
 	n.Git = cfg.Git
 
@@ -159,65 +149,43 @@ type Message struct {
 	DBCreds *DBConfig
 
 	Content string
+
+	Next api.Action
 }
 
-type Model struct {
-	// Provider string
-
-	Name    string
-	BaseUrl string
-	ApiKey  string
-
-	Tools Tools
-
-	DryRun        bool
-	DryRunContent string
-}
-
-// Level represents the "intelligence" level of the model. i.e. basic, regular, advanced
-// for example, OpenAI: gpt-4o-mini, gpt-4o, gpt-o1
-type Level int
-
-const (
-	L0 Level = iota
-	L1
-	L2
-	L3
-)
+type Model = api.Model
+type Level = api.Level
 
 func Level1(cfg *LLMConfig) *Model {
-	return CreateModel(cfg, L1)
+	return CreateModel(cfg, api.L1)
 }
 
 func Level2(cfg *LLMConfig) *Model {
-	return CreateModel(cfg, L2)
+	return CreateModel(cfg, api.L2)
 }
 
 func Level3(cfg *LLMConfig) *Model {
-	return CreateModel(cfg, L3)
+	return CreateModel(cfg, api.L3)
 }
 
 // CreateModel creates a model with the given configuration and optional level
 func CreateModel(cfg *LLMConfig, opt ...Level) *Model {
 	model := &Model{
-		Name:          cfg.Model,
-		BaseUrl:       cfg.BaseUrl,
-		ApiKey:        cfg.ApiKey,
-		Tools:         cfg.Tools,
-		DryRun:        cfg.DryRun,
-		DryRunContent: cfg.DryRunContent,
+		Name:    cfg.Model,
+		BaseUrl: cfg.BaseUrl,
+		ApiKey:  cfg.ApiKey,
 	}
 
 	// default level
-	level := L0
+	level := api.L0
 	if len(opt) > 0 {
 		level = opt[0]
 	}
 
 	switch level {
-	case L0:
+	case api.L0:
 		return model
-	case L1:
+	case api.L1:
 		if cfg.L1ApiKey != "" {
 			model.ApiKey = cfg.L1ApiKey
 		}
@@ -227,7 +195,7 @@ func CreateModel(cfg *LLMConfig, opt ...Level) *Model {
 		if cfg.L1BaseUrl != "" {
 			model.BaseUrl = cfg.L1BaseUrl
 		}
-	case L2:
+	case api.L2:
 		if cfg.L2ApiKey != "" {
 			model.ApiKey = cfg.L2ApiKey
 		}
@@ -237,7 +205,7 @@ func CreateModel(cfg *LLMConfig, opt ...Level) *Model {
 		if cfg.L2BaseUrl != "" {
 			model.BaseUrl = cfg.L2BaseUrl
 		}
-	case L3:
+	case api.L3:
 		if cfg.L3ApiKey != "" {
 			model.ApiKey = cfg.L3ApiKey
 		}
@@ -255,4 +223,6 @@ func CreateModel(cfg *LLMConfig, opt ...Level) *Model {
 type ToolConfig struct {
 	Model    *Model
 	DBConfig *DBConfig
+
+	Next api.Action
 }

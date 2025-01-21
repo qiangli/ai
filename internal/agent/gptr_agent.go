@@ -52,7 +52,7 @@ func (r *GptrAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, erro
 
 	var content string
 
-	if !r.config.LLM.DryRun {
+	if !internal.DryRun {
 		tempDir, err := os.MkdirTemp("", "gptr")
 		if err != nil {
 			return nil, err
@@ -69,7 +69,7 @@ func (r *GptrAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, erro
 			return nil, err
 		}
 	} else {
-		content = r.config.LLM.DryRunContent
+		content = internal.DryRunContent
 	}
 
 	return &ChatMessage{
