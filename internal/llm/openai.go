@@ -3,6 +3,7 @@ package llm
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/openai/openai-go"
@@ -11,6 +12,8 @@ import (
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
 )
+
+// https://github.com/openai/openai-go/tree/main/examples
 
 func Send(ctx context.Context, role, prompt string, model *internal.Model, input string) (string, error) {
 	req := &internal.Message{
@@ -99,6 +102,46 @@ func Chat(ctx context.Context, req *internal.Message) (*internal.Message, error)
 				params.Messages.Value = append(params.Messages.Value, openai.ToolMessage(toolCall.ID, out))
 			}
 		}
+	} else {
+		resp.Content = internal.DryRunContent
+	}
+
+	log.Debugf("<<<OPENAI:\nmodel: %s, content length: %v\n\n", model, len(resp.Content))
+	return resp, nil
+}
+
+func GenerateImage(ctx context.Context, req *internal.Message) (*internal.Message, error) {
+	roleMessage := buildRoleMessage(req.Role, req.Prompt)
+	userMessage := buildRoleMessage("user", req.Input)
+
+	log.Debugf(">>>%s:\n%+v\n", strings.ToUpper(req.Role), roleMessage)
+	log.Debugf(">>>USER:\n%+v\n", userMessage)
+
+	prompt := fmt.Sprintf("%s\n===%s", roleMessage, userMessage)
+
+	model := req.Model
+
+	client := openai.NewClient(
+		option.WithAPIKey(model.ApiKey),
+		option.WithBaseURL(model.BaseUrl),
+		option.WithMiddleware(log.Middleware()),
+	)
+
+	resp := &internal.Message{}
+
+	if !internal.DryRun {
+		// Base64
+		image, err := client.Images.Generate(ctx, openai.ImageGenerateParams{
+			Prompt:         openai.String(prompt),
+			Model:          openai.F(model.Name),
+			ResponseFormat: openai.F(openai.ImageGenerateParamsResponseFormatB64JSON),
+			N:              openai.Int(1),
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		resp.Content = image.Data[0].B64JSON
 	} else {
 		resp.Content = internal.DryRunContent
 	}

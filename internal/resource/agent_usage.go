@@ -3,14 +3,15 @@ package resource
 // describe each agent in 16 words
 var AgentDesc = map[string]string{
 	"ask":    "All-encompassing Q&A platform providing concise, reliable answers on diverse topics.",
-	"sql":    "Streamlines SQL query generation, helping users derive insights without SQL expertise.",
+	"sql":    "Streamline SQL query generation, helping users derive insights without SQL expertise.",
 	"oh":     "Engineering assistant promoting incremental development and detailed refactoring support.",
 	"seek":   "Digital exploration tool delivering accurate, relevant insights from diverse online sources.",
-	"git":    "Automates Git commit message creation for clarity and consistency in version control.",
-	"code":   "Integrates LLMs for collaborative coding, refactoring, bug fixing, and test development.",
-	"pr":     "Enhances PR management with automated summaries, reviews, suggestions, and changelog updates.",
+	"git":    "Automate Git commit message creation for clarity and consistency in version control.",
+	"code":   "Integrate LLMs for collaborative coding, refactoring, bug fixing, and test development.",
+	"pr":     "Enhance PR management with automated summaries, reviews, suggestions, and changelog updates.",
 	"script": "Receive assistance to execute system commands, create and troubleshoot various shell scripts.",
 	"doc":    "Create a polished document by integrating draft materials into the provided template.",
+	"draw":   "Generate images based on user input, providing visual representations of text-based descriptions.",
 }
 
 // summarize each agent in 100 words
@@ -42,6 +43,9 @@ var AgentInfo = map[string]string{
 `,
 	"doc": `
 	This advanced AI document agent helps you create polished and coherent documents effortlessly. By integrating your draft materials into a provided example template, the AI ensures the final document adheres strictly to the template's structure and formatting. It pays close attention to headings, subheadings, bullet points, numbering, and overall organization. The AI maintains a consistent writing style that matches the template's tone and formality, and it refines the content for clarity, coherence, and readability. Finally, it conducts a thorough review to ensure the document meets all specified requirements. This agent streamlines the document creation process, delivering high-quality results with minimal effort.
+`,
+	"draw": `
+	This agent is a powerful tool that generates images based on user input, providing visual representations of text-based descriptions. By converting textual descriptions into visual diagrams, charts, or illustrations, the agent helps users communicate complex ideas, processes, or concepts more effectively. It supports various input formats, including natural language descriptions, code snippets, or data tables, and produces corresponding visual outputs that enhance understanding and clarity. Whether you need to create flowcharts, network diagrams, or architectural blueprints, this agent simplifies the image creation process, enabling users to convey information visually with ease.
 `,
 }
 

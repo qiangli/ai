@@ -1,5 +1,9 @@
 # AI Command Line Tool
 
+As a software engineer, I need two types of tools for my daily tasks: one for working inside a file and the other outside.
+
+This AI tool assists you with all the tasks beyond file editing on your system complementing Continue, Cline and the like.
+
 ## Build
 
 ```bash
@@ -216,7 +220,9 @@ ai "message..."
 
 ## Credits
 
-+ @sql system role prompt is adapted from [Vanna](https://github.com/vanna-ai/vanna.git)
++ @git System role prompt adapted from [Aider](https://github.com/Aider-AI/aider.git)
++ @pr  system role prompt adapted from [PR Agent](https://github.com/qodo-ai/pr-agent.git)
++ @sql system role prompt adapted from [Vanna](https://github.com/vanna-ai/vanna.git)
 
 + @code runs [Aider](https://github.com/Aider-AI/aider.git) in docker
 + @oh runs [OpenHands](https://github.com/All-Hands-AI/OpenHands.git) in docker

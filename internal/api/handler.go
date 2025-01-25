@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/openai/openai-go"
 )
 
 type Request struct {
@@ -71,10 +73,16 @@ func clipText(text string, maxLen int) string {
 	return text
 }
 
+const (
+	ContentTypeText    = "text"
+	ContentTypeB64JSON = string(openai.ImageGenerateParamsResponseFormatB64JSON)
+)
+
 type Response struct {
 	Agent string `json:"agent"`
 
-	Content string `json:"content"`
+	ContentType string `json:"content_type"`
+	Content     string `json:"content"`
 }
 
 type HandlerNext = func(context.Context, *Request) (*Response, error)

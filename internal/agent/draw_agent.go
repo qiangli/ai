@@ -4,17 +4,18 @@ import (
 	"context"
 
 	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/llm"
 )
 
-type EvalAgent struct {
+type DrawAgent struct {
 	config *internal.AppConfig
 
 	Role   string
 	Prompt string
 }
 
-func NewEvalAgent(cfg *internal.AppConfig) (*EvalAgent, error) {
+func NewDrawAgent(cfg *internal.AppConfig) (*DrawAgent, error) {
 	role := cfg.Role
 	prompt := cfg.Prompt
 
@@ -22,7 +23,7 @@ func NewEvalAgent(cfg *internal.AppConfig) (*EvalAgent, error) {
 		role = "system"
 	}
 
-	agent := EvalAgent{
+	agent := DrawAgent{
 		config: cfg,
 		Role:   role,
 		Prompt: prompt,
@@ -30,8 +31,8 @@ func NewEvalAgent(cfg *internal.AppConfig) (*EvalAgent, error) {
 	return &agent, nil
 }
 
-func (r *EvalAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
-	model := internal.CreateModel(r.config.LLM)
+func (r *DrawAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
+	model := internal.ImageModel(r.config.LLM)
 	req := &internal.Message{
 		Role:   r.Role,
 		Prompt: r.Prompt,
@@ -39,12 +40,14 @@ func (r *EvalAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, erro
 		Input:  in.Input(),
 	}
 
-	resp, err := llm.Chat(ctx, req)
+	resp, err := llm.GenerateImage(ctx, req)
 	if err != nil {
 		return nil, err
 	}
+
 	return &ChatMessage{
-		Agent:   "EVAL",
-		Content: resp.Content,
+		Agent:       "DRAW",
+		ContentType: api.ContentTypeB64JSON,
+		Content:     resp.Content,
 	}, nil
 }

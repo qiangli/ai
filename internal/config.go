@@ -43,7 +43,10 @@ type AppConfig struct {
 
 	Files []string
 
+	// Output format: raw or markdown
 	Format string
+
+	// Save output to file
 	Output string
 
 	Me string
@@ -74,6 +77,10 @@ type LLMConfig struct {
 	L3Model   string
 	L3BaseUrl string
 	L3ApiKey  string
+
+	ImageModel   string
+	ImageBaseUrl string
+	ImageApiKey  string
 
 	Debug bool
 
@@ -154,6 +161,7 @@ type Message struct {
 	Input   string
 	DBCreds *DBConfig
 
+	// Response
 	Content string
 
 	Next api.Action
@@ -172,6 +180,22 @@ func Level2(cfg *LLMConfig) *Model {
 
 func Level3(cfg *LLMConfig) *Model {
 	return CreateModel(cfg, api.L3)
+}
+
+func ImageModel(cfg *LLMConfig) *Model {
+	model := &Model{
+		Name:    cfg.ImageModel,
+		BaseUrl: cfg.BaseUrl,
+		ApiKey:  cfg.ApiKey,
+	}
+	if cfg.ImageApiKey != "" {
+		model.ApiKey = cfg.ImageApiKey
+	}
+	if cfg.ImageBaseUrl != "" {
+		model.BaseUrl = cfg.ImageBaseUrl
+	}
+
+	return model
 }
 
 // CreateModel creates a model with the given configuration and optional level

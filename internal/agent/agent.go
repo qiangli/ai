@@ -46,6 +46,8 @@ func MakeAgent(name string, cfg *internal.AppConfig) (Agent, error) {
 		return NewScriptAgent(cfg)
 	case "doc":
 		return NewDocAgent(cfg)
+	case "draw":
+		return NewDrawAgent(cfg)
 	default:
 		return nil, internal.NewUserInputError("not supported yet: " + name)
 	}

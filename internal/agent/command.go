@@ -1,9 +1,14 @@
 package agent
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
+	"image"
+	"image/png"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -158,6 +163,16 @@ func collectSystemInfo() (string, error) {
 }
 
 func processContent(cfg *internal.AppConfig, message *ChatMessage) {
+	if message.ContentType == api.ContentTypeText || message.ContentType == "" {
+		processTextContent(cfg, message)
+	} else if message.ContentType == api.ContentTypeB64JSON {
+		processImageContent(cfg, message)
+	} else {
+		log.Debugf("Unsupported content type: %s\n", message.ContentType)
+	}
+}
+
+func processTextContent(cfg *internal.AppConfig, message *ChatMessage) {
 	content := message.Content
 	doc := util.ParseMarkdown(content)
 	total := len(doc.CodeBlocks)
@@ -194,4 +209,51 @@ func processContent(cfg *internal.AppConfig, message *ChatMessage) {
 		// show code snippets
 		log.Printf(codeTpl, strings.Join(snippets, "\n"))
 	}
+}
+
+func processImageContent(cfg *internal.AppConfig, message *ChatMessage) {
+	// b, err := base64.StdEncoding.DecodeString(message.Content)
+	// if err != nil {
+	// 	log.Errorf("failed to decode image content: %v\n", err)
+	// 	return
+	// }
+
+	var imageFile string
+	if cfg.Output != "" {
+		imageFile = cfg.Output
+	} else {
+		imageFile = filepath.Join(os.TempDir(), "image.png")
+	}
+
+	if err := saveImage(message.Content, imageFile); err != nil {
+		log.Errorf("failed to save image: %v\n", err)
+		return
+	}
+
+	if err := util.PrintImage(os.Stdout, imageFile); err != nil {
+		if err := util.ViewImage(imageFile); err != nil {
+			log.Errorf("failed to view image: %v\n", err)
+		}
+	}
+}
+
+func saveImage(b64Image string, dest string) error {
+	// https://sw.kovidgoyal.net/kitty/graphics-protocol/
+	img, _, err := image.Decode(base64.NewDecoder(base64.StdEncoding, strings.NewReader(b64Image)))
+	if err != nil {
+		return err
+
+	}
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, img); err != nil {
+		return err
+	}
+
+	err = os.WriteFile(dest, buf.Bytes(), 0755)
+	if err != nil {
+		log.Errorf("failed to write image to %s: %v\n", dest, err)
+	}
+	log.Infof("Image content saved to %s\n", dest)
+
+	return nil
 }

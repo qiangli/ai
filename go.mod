@@ -5,6 +5,7 @@ go 1.23
 toolchain go1.23.4
 
 require (
+	github.com/BourgeoisBear/rasterm v1.1.1
 	github.com/PuerkitoBio/goquery v1.10.1
 	github.com/atotto/clipboard v0.1.4
 	github.com/charmbracelet/glamour v0.8.0
