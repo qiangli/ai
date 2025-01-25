@@ -85,7 +85,7 @@ func Chat(ctx context.Context, req *internal.Message) (*internal.Message, error)
 					return nil, err
 				}
 
-				log.Debugf("\n\n*** tool call: %s props: %+v\n", name, props)
+				log.Debugf("\n\n>>> tool call: %s props: %+v\n", name, props)
 				toolCfg := &internal.ToolConfig{
 					Model:    model,
 					DBConfig: req.DBCreds,
@@ -95,7 +95,7 @@ func Chat(ctx context.Context, req *internal.Message) (*internal.Message, error)
 				if err != nil {
 					return nil, err
 				}
-				log.Debugf("\n*** tool call: %s out: %s\n", name, out)
+				log.Debugf("\n<<< tool call: %s out: %s\n", name, out)
 				params.Messages.Value = append(params.Messages.Value, openai.ToolMessage(toolCall.ID, out))
 			}
 		}

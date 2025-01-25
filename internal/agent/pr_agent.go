@@ -2,7 +2,6 @@ package agent
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/api"
@@ -38,34 +37,16 @@ func (r *PrAgent) getSystemPrompt(in *UserInput) (string, error) {
 	if r.Prompt != "" {
 		return r.Prompt, nil
 	}
-	switch baseCommand(in.Subcommand) {
-	case "describe":
-		return resource.GetPrDescriptionSystem()
-	case "review":
-		return resource.GetPrReviewSystem()
-	case "improve":
-		return resource.GetPrCodeSystem()
-	case "changelog":
-		return resource.GetPrChangelogSystem(), nil
-	}
-	return "", fmt.Errorf("unknown @pr subcommand: %s", in.Subcommand)
+	return resource.GetPrSystem(baseCommand(in.Subcommand))
 }
 
 func (r *PrAgent) format(in *UserInput, resp string) (string, error) {
-	switch baseCommand(in.Subcommand) {
-	case "describe":
-		return resource.FormatPrDescription(resp)
-	case "review":
-		return resource.FormatPrReview(resp)
-	case "improve":
-		return resource.FormatPrCodeSuggestion(resp)
-	case "changelog":
-		return resource.FormatPrChangelog(resp)
-	}
-	return "", fmt.Errorf("unknown subcommand: %s", in.Subcommand)
+	return resource.FormatPrResponse(baseCommand(in.Subcommand), resp)
 }
 
 func (r *PrAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
+	log.Debugf("PrAgent.Send: subcommand: %s\n", in.Subcommand)
+
 	if in.Subcommand == "" {
 		return r.Handle(ctx, in, nil)
 	}
@@ -83,13 +64,17 @@ func (r *PrAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error)
 		return nil, err
 	}
 	model := internal.Level1(r.config.LLM)
+
+	log.Debugf("PrAgent.Send: model: %+v\n", model)
+
 	resp, err := llm.Send(ctx, r.Role, prompt, model, input)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Debugf("PR response: %v", resp)
+	log.Debugf("PrAgent.Send response: %v", resp)
 
+	// convert json response to markdown
 	content, err := r.format(in, resp)
 	if err != nil {
 		return nil, err
@@ -102,9 +87,15 @@ func (r *PrAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error)
 }
 
 func (r *PrAgent) Handle(ctx context.Context, req *api.Request, next api.HandlerNext) (*api.Response, error) {
+	intent := req.Intent()
+	if intent == "" {
+		log.Debugf("PrAgent.Handle: no intent, default to: describe\n")
+		req.Subcommand = "describe"
+		return r.Send(ctx, req)
+	}
+
 	// let LLM decide which subcommand to call based on the user input
-	var clip = req.Clip()
-	prompt := resource.GetCliPrSystem()
+	prompt := resource.GetCliPrSubSystem()
 
 	action := func(ctx context.Context, sub string) (string, error) {
 		log.Debugf("action: PR subcommand: %s\n", sub)
@@ -123,7 +114,7 @@ func (r *PrAgent) Handle(ctx context.Context, req *api.Request, next api.Handler
 		Role:   "system",
 		Prompt: prompt,
 		Model:  model,
-		Input:  clip,
+		Input:  intent,
 		Next:   action,
 	}
 	resp, err := llm.Chat(ctx, msg)

@@ -19,22 +19,38 @@ const longFormat = `
 You are an expert software engineer that generates concise Git commit messages based on the provided diffs.
 
 Review the diffs carefully.
-Generate the commit message for those changes using the *Conventional Commits specification* provided below without additional explanations or code block fencing.
+
+Generate the commit message for those changes using the *Conventional Commits specification* provided below.
 
 ===
 %s
+===
+
+The response must conform strictly to the provided specification without any additional explanations or code block fencing.
 `
 
-func GetGitMessageSystem(short bool) string {
+func getGitMessageSystem(short bool) string {
 	if short {
 		return gitMessageShort
 	}
 	return fmt.Sprintf(longFormat, gitMessageConventional)
 }
 
-//go:embed cli/git_system.md
-var cliGitSystem string
+//go:embed cli/git_sub_system.md
+var cliGitSubSystem string
 
-func GetCliGitSystem() string {
-	return cliGitSystem
+func GetCliGitSubSystem() string {
+	return cliGitSubSystem
+}
+
+// GetGitMessageSystem returns the git message system prompt based on the subcommand.
+// Returns the conventional system prompt unless "short" is requested.
+func GetGitMessageSystem(sub string) (string, error) {
+	switch sub {
+	case "short":
+		return getGitMessageSystem(true), nil
+	case "conventional":
+		return getGitMessageSystem(false), nil
+	}
+	return "", fmt.Errorf("unknown @git subcommand: %s", sub)
 }

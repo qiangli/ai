@@ -2,7 +2,6 @@ package agent
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/api"
@@ -37,16 +36,12 @@ func (r *GitAgent) getSystemPrompt(in *UserInput) (string, error) {
 	if r.Prompt != "" {
 		return r.Prompt, nil
 	}
-	switch baseCommand(in.Subcommand) {
-	case "short":
-		return resource.GetGitMessageSystem(true), nil
-	case "conventional":
-		return resource.GetGitMessageSystem(false), nil
-	}
-	return "", fmt.Errorf("unknown @git subcommand: %s", in.Subcommand)
+	return resource.GetGitMessageSystem(baseCommand(in.Subcommand))
 }
 
 func (r *GitAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
+	log.Debugf("GitAgent.Send: subcommand: %s\n", in.Subcommand)
+
 	if in.Subcommand == "" {
 		return r.Handle(ctx, in, nil)
 	}
@@ -56,6 +51,9 @@ func (r *GitAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error
 		return nil, err
 	}
 	model := internal.Level1(r.config.LLM)
+
+	log.Debugf("GitAgent.Send: model: %+v\n", model)
+
 	content, err := llm.Send(ctx, r.Role, prompt, model, in.Input())
 	if err != nil {
 		return nil, err
@@ -68,12 +66,18 @@ func (r *GitAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error
 }
 
 func (r *GitAgent) Handle(ctx context.Context, req *api.Request, next api.HandlerNext) (*api.Response, error) {
-	// let LLM decide which subcommand to call based on the user input
-	var clip = req.Clip()
-	prompt := resource.GetCliGitSystem()
+	var intent = req.Intent()
+	if intent == "" {
+		log.Debugf("GitAgent.Handle: intent: empty, default to: conventional\n")
+		req.Subcommand = "conventional"
+		return r.Send(ctx, req)
+	}
 
+	log.Debugf("GitAgent.Handle: intent: %s\n", intent)
+
+	// let LLM decide which subcommand to call based on the user input
 	action := func(ctx context.Context, sub string) (string, error) {
-		log.Debugf("action: GIT subcommand: %s\n", sub)
+		log.Debugf("GitAgent.Handle: action: GIT subcommand: %s\n", sub)
 		req.Subcommand = sub
 		resp, err := r.Send(ctx, req)
 		if err != nil {
@@ -87,9 +91,9 @@ func (r *GitAgent) Handle(ctx context.Context, req *api.Request, next api.Handle
 
 	msg := &internal.Message{
 		Role:   "system",
-		Prompt: prompt,
+		Prompt: resource.GetCliGitSubSystem(),
 		Model:  model,
-		Input:  clip,
+		Input:  intent,
 		Next:   action,
 	}
 	resp, err := llm.Chat(ctx, msg)

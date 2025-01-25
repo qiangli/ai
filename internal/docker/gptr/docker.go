@@ -59,7 +59,13 @@ func getEnvVars() []string {
 	return envVarsSlice
 }
 
-func RunContainer(ctx context.Context, query string, outDir string) error {
+type GptrQuery struct {
+	Query      string `json:"query"`
+	ReportType string `json:"report_type"`
+	Tone       string `json:"tone"`
+}
+
+func RunContainer(ctx context.Context, reportType, tone, query string, outDir string) error {
 	envVars := getEnvVars()
 
 	output, err := filepath.Abs(outDir)
@@ -71,7 +77,7 @@ func RunContainer(ctx context.Context, query string, outDir string) error {
 		return err
 	}
 
-	args := []string{query, "--report_type", "research_report"}
+	args := []string{query, "--report_type", reportType}
 	config := &docker.ContainerConfig{
 		Image: imageName,
 		Env:   envVars,

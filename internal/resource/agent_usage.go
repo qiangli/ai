@@ -10,6 +10,7 @@ var AgentDesc = map[string]string{
 	"code":   "Integrates LLMs for collaborative coding, refactoring, bug fixing, and test development.",
 	"pr":     "Enhances PR management with automated summaries, reviews, suggestions, and changelog updates.",
 	"script": "Receive assistance to execute system commands, create and troubleshoot various shell scripts.",
+	"doc":    "Create a polished document by integrating draft materials into the provided template.",
 }
 
 // summarize each agent in 100 words
@@ -39,12 +40,15 @@ var AgentInfo = map[string]string{
 	The Script agent is a versatile tool that assists users in executing system commands, creating shell scripts, and troubleshooting various scripting tasks. By providing guidance on command syntax, script structure, and error handling, it simplifies the process of writing and executing scripts. Whether you are a novice or an experienced script writer, this agent offers valuable support in automating tasks, managing system configurations, and troubleshooting common scripting issues. It serves as a reliable companion for script development and execution, enhancing productivity and efficiency in system administration and automation.
 	
 `,
+	"doc": `
+	This advanced AI document agent helps you create polished and coherent documents effortlessly. By integrating your draft materials into a provided example template, the AI ensures the final document adheres strictly to the template's structure and formatting. It pays close attention to headings, subheadings, bullet points, numbering, and overall organization. The AI maintains a consistent writing style that matches the template's tone and formality, and it refines the content for clarity, coherence, and readability. Finally, it conducts a thorough review to ensure the document meets all specified requirements. This agent streamlines the document creation process, delivering high-quality results with minimal effort.
+`,
 }
 
 var AgentCommands = map[string]string{
 	"git": `
   /short:        Generate a short commit message for Git based on the provided information
-  /conventional: Generate a commit message for Git based on the provided information according to the Conventional Commits specification. https://www.conventionalcommits.org/en/v1.0.0/#summary
+  /conventional: Generate a commit message for Git based on the provided information according to the Conventional Commits specification at https://www.conventionalcommits.org/en/v1.0.0/#summary
 `,
 	"pr": `
   /describe:  Generate PR description - title, type, summary, code walkthrough and labels
@@ -53,6 +57,6 @@ var AgentCommands = map[string]string{
   /changelog: Update the CHANGELOG.md file with the PR changes
 `,
 	"script": `
-  Run "list-commands" tool to get the complete list of system commands available for the agent on the local system.
+  Run "ai list-commands" tool to get the complete list of system commands available in the path.
 `,
 }

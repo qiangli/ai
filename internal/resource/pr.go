@@ -63,7 +63,7 @@ func GetPrUser(in *pr.Input) (string, error) {
 	return apply(prUser, data)
 }
 
-func GetPrDescriptionSystem() (string, error) {
+func getPrDescriptionSystem() (string, error) {
 	data := map[string]any{
 		"schema":   prDecriptionSchema,
 		"example":  prDescrptionExample,
@@ -72,7 +72,7 @@ func GetPrDescriptionSystem() (string, error) {
 	return apply(prDescriptionSystem, data)
 }
 
-func GetPrReviewSystem() (string, error) {
+func getPrReviewSystem() (string, error) {
 	data := map[string]any{
 		"schema":  prReviewSchema,
 		"example": prReviewExample,
@@ -80,7 +80,7 @@ func GetPrReviewSystem() (string, error) {
 	return apply(prReviewSystem, data)
 }
 
-func GetPrCodeSystem() (string, error) {
+func getPrCodeSystem() (string, error) {
 	data := map[string]any{
 		"schema":         prCodeSchema,
 		"example":        prCodeExample,
@@ -89,11 +89,25 @@ func GetPrCodeSystem() (string, error) {
 	return apply(prCodeSystem, data)
 }
 
-func GetPrChangelogSystem() string {
+func getPrChangelogSystem() string {
 	return prChangelogSystem
 }
 
-func FormatPrDescription(resp string) (string, error) {
+func GetPrSystem(sub string) (string, error) {
+	switch sub {
+	case "describe":
+		return getPrDescriptionSystem()
+	case "review":
+		return getPrReviewSystem()
+	case "improve":
+		return getPrCodeSystem()
+	case "changelog":
+		return getPrChangelogSystem(), nil
+	}
+	return "", fmt.Errorf("unknown @pr subcommand: %s", sub)
+}
+
+func formatPrDescription(resp string) (string, error) {
 	var data pr.PRDescription
 	if err := tryUnmarshal(resp, &data); err != nil {
 		return "", fmt.Errorf("error unmarshalling response: %w", err)
@@ -101,7 +115,7 @@ func FormatPrDescription(resp string) (string, error) {
 	return apply(prDescriptionFormat, &data)
 }
 
-func FormatPrCodeSuggestion(resp string) (string, error) {
+func formatPrCodeSuggestion(resp string) (string, error) {
 	var data pr.PRCodeSuggestions
 	if err := tryUnmarshal(resp, &data); err != nil {
 		return "", fmt.Errorf("error unmarshalling response: %w", err)
@@ -109,7 +123,7 @@ func FormatPrCodeSuggestion(resp string) (string, error) {
 	return apply(prCodeFormat, data.CodeSuggestions)
 }
 
-func FormatPrReview(resp string) (string, error) {
+func formatPrReview(resp string) (string, error) {
 	var data pr.PRReview
 	if err := tryUnmarshal(resp, &data); err != nil {
 		return "", fmt.Errorf("error unmarshalling response: %w", err)
@@ -117,9 +131,23 @@ func FormatPrReview(resp string) (string, error) {
 	return apply(prReviewFormat, &data.Review)
 }
 
-func FormatPrChangelog(resp string) (string, error) {
+func formatPrChangelog(resp string) (string, error) {
 	return apply(prChangelogFormat, &pr.PRChangelog{
 		Changelog: resp,
 		Today:     time.Now().Format("2006-01-02"),
 	})
+}
+
+func FormatPrResponse(sub, resp string) (string, error) {
+	switch sub {
+	case "describe":
+		return formatPrDescription(resp)
+	case "review":
+		return formatPrReview(resp)
+	case "improve":
+		return formatPrCodeSuggestion(resp)
+	case "changelog":
+		return formatPrChangelog(resp)
+	}
+	return "", fmt.Errorf("unknown @pr subcommand: %s", sub)
 }

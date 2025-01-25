@@ -1,6 +1,9 @@
 package agent
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
 )
@@ -36,4 +39,19 @@ func PrintMessage(output string, message *ChatMessage) {
 	} else {
 		showMessage(message)
 	}
+}
+
+func SaveMessage(filename string, message *ChatMessage) error {
+	if message == nil {
+		return nil
+	}
+	if filename == "" {
+		return nil
+	}
+	dir := filepath.Dir(filename)
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return err
+	}
+
+	return os.WriteFile(filename, []byte(message.Content), os.ModePerm)
 }

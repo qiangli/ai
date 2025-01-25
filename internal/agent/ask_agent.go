@@ -39,13 +39,12 @@ func (r *AskAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error
 	var agent = "ASK"
 	var message = r.Prompt
 	var input = in.Input()
-	var clip = in.Clip()
 
 	if r.config.LLM.MetaPrompt {
 		if message == "" {
 			message = r.autoMessage
 		}
-		prompt, err := r.GeneratePrompt(ctx, r.Role, message, clip)
+		prompt, err := r.GeneratePrompt(ctx, r.Role, message, in.Intent())
 		if err != nil {
 			return nil, err
 		}

@@ -18,27 +18,6 @@ import (
 	"github.com/qiangli/ai/internal/util"
 )
 
-// Output format type
-type outputValue string
-
-func newOutputValue(val string, p *string) *outputValue {
-	*p = val
-	return (*outputValue)(p)
-}
-func (s *outputValue) Set(val string) error {
-	for _, v := range []string{"raw", "markdown"} {
-		if val == v {
-			*s = outputValue(val)
-			return nil
-		}
-	}
-	return fmt.Errorf("invalid output format: %v. supported: raw, markdown", val)
-}
-func (s *outputValue) Type() string {
-	return "string"
-}
-func (s *outputValue) String() string { return string(*s) }
-
 func handle(cmd *cobra.Command, args []string) error {
 	setLogLevel()
 
@@ -117,7 +96,11 @@ var rootCmd = &cobra.Command{
 }
 
 var cfgFile string
+var formatFlag string
 var outputFlag string
+
+var inputFiles []string
+var docTemplate string
 
 func init() {
 	defaultCfg := os.Getenv("AI_CONFIG")
@@ -174,6 +157,8 @@ func init() {
 	rootCmd.Flags().Bool("pb-read", false, "Read input from the clipboard. Alternatively, append '=' to the command")
 	rootCmd.Flags().Bool("pb-write", false, "Copy output to the clipboard. Alternatively, append '=+' to the command")
 
+	rootCmd.Flags().VarP(newFilesValue([]string{}, &inputFiles), "file", "", `Read input from files.  May be given multiple times to add multiple file content`)
+
 	rootCmd.Flags().String("log", "", "Log all debugging information to a file")
 	rootCmd.Flags().Bool("trace", false, "Trace API calls")
 
@@ -184,7 +169,8 @@ func init() {
 	rootCmd.Flags().MarkHidden("dry-run-content")
 	rootCmd.Flags().MarkHidden("trace")
 
-	rootCmd.Flags().Var(newOutputValue("markdown", &outputFlag), "output", "Output format, must be either raw or markdown.")
+	rootCmd.Flags().Var(newOutputValue("markdown", &formatFlag), "format", "Output format, must be either raw or markdown.")
+	rootCmd.Flags().StringVar(&outputFlag, "output", "", "Save final response to a file.")
 
 	// agent specific flags
 	// db
@@ -193,6 +179,9 @@ func init() {
 	rootCmd.Flags().String("sql-db-username", "", "Database username")
 	rootCmd.Flags().String("sql-db-password", "", "Database password")
 	rootCmd.Flags().String("sql-db-name", "", "Database name")
+
+	// doc
+	rootCmd.Flags().VarP(newTemplateValue("", &docTemplate), "doc-template", "", "Document template file")
 
 	// Bind the flags to viper using underscores
 	rootCmd.Flags().VisitAll(func(f *pflag.Flag) {
@@ -247,10 +236,15 @@ func getConfig(cmd *cobra.Command, args []string) *internal.AppConfig {
 	}
 
 	app.Me = "ME"
+	app.Files = inputFiles
+	app.Format = formatFlag
+	app.Output = outputFlag
 	app.ConfigFile = viper.ConfigFileUsed()
 	app.CommandPath = cmd.CommandPath()
 
-	cfg.Output = outputFlag
+	//
+	app.Template = docTemplate
+
 	cfg.Workspace = viper.GetString("workspace")
 
 	//

@@ -37,10 +37,14 @@ func NewAiderAgent(cfg *internal.AppConfig) (*AiderAgent, error) {
 }
 
 func (r *AiderAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
-	var input = in.Input()
-	var clip = in.Clip()
+	log.Debugf(`AiderAgent.Send: subcommand: %s\n`, in.Subcommand)
+	if in.Subcommand == "" {
+		in.Subcommand = string(aider.Code)
+	}
 
-	workspace, err := resolveWorkspaceBase(ctx, r.config.LLM, r.config.LLM.Workspace, clip)
+	var input = in.Input()
+
+	workspace, err := resolveWorkspaceBase(ctx, r.config.LLM, r.config.LLM.Workspace, in.Intent())
 	if err != nil {
 		return nil, err
 	}
@@ -79,15 +83,20 @@ func (r *AiderAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, err
 	}
 	os.Setenv("OPENAI_API_BASE", u.String())
 	os.Setenv("OPENAI_API_KEY", r.config.LLM.ApiKey)
-	os.Setenv("AIDER_MODEL", r.config.LLM.L2Model)
+
 	os.Setenv("AIDER_WEAK_MODEL", r.config.LLM.L1Model)
+	os.Setenv("AIDER_EDITOR_MODEL", r.config.LLM.L2Model)
+	os.Setenv("AIDER_MODEL", r.config.LLM.L2Model)
+	if in.Subcommand == string(aider.Architect) {
+		os.Setenv("AIDER_MODEL", r.config.LLM.L3Model)
+	}
 
 	os.Setenv("AIDER_VERBOSE", fmt.Sprintf("%v", r.config.LLM.Debug))
 
 	var content string
 
 	if !internal.DryRun {
-		err = aider.Run(ctx, aider.Code, userContent)
+		err = aider.Run(ctx, aider.ChatMode(in.Subcommand), userContent)
 		if err != nil {
 			return nil, err
 		}

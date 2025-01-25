@@ -27,7 +27,7 @@ func TestGetPrDescriptionSystem(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			text, err := GetPrDescriptionSystem()
+			text, err := getPrDescriptionSystem()
 			if err != nil {
 				t.Errorf("GetPrDescriptionSystem: %v", err)
 			}
@@ -103,7 +103,7 @@ func TestGetPrUser(t *testing.T) {
 }
 
 func TestFormatPrDescription(t *testing.T) {
-	out, err := FormatPrDescription(prDescrptionExample)
+	out, err := formatPrDescription(prDescrptionExample)
 	if err != nil {
 		t.Errorf("FormatPrDescription: %v", err)
 	}
@@ -118,7 +118,7 @@ func TestGetPrReviewSystem(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			text, err := GetPrReviewSystem()
+			text, err := getPrReviewSystem()
 			if err != nil {
 				t.Errorf("TestGetPrReviewSystem: %v", err)
 			}
@@ -135,7 +135,7 @@ func TestGetPrCodeSystem(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			text, err := GetPrCodeSystem()
+			text, err := getPrCodeSystem()
 			if err != nil {
 				t.Errorf("TestGetPrCodeSystem: %v", err)
 			}

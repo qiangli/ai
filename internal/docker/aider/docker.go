@@ -19,6 +19,9 @@ const (
 	Code      ChatMode = "code"
 	Ask       ChatMode = "ask"
 	Architect ChatMode = "architect"
+	Help      ChatMode = "help"
+	//
+	Watch ChatMode = "watch"
 )
 
 //go:embed Dockerfile
@@ -38,6 +41,12 @@ func BuildImage(ctx context.Context) error {
 func getEnvVarMap() map[string]string {
 	vars := []string{
 		"WORKSPACE_BASE",
+		"OPENAI_API_BASE",
+		"OPENAI_API_KEY",
+		"AIDER_WEAK_MODEL",
+		"AIDER_EDITOR_MODEL",
+		"AIDER_MODEL",
+		"AIDER_VERBOSE",
 	}
 	envVars := docker.GetEnvVars(vars)
 
@@ -61,7 +70,12 @@ func toArray(envVars map[string]string) []string {
 
 func RunContainer(ctx context.Context, mode ChatMode, input string) error {
 	envVars := getEnvVarMap()
-	args := []string{"--chat-mode", string(mode), "--message", input}
+	var args []string
+	if mode == Watch {
+		args = []string{"--watch-files", "--message", input}
+	} else {
+		args = []string{"--chat-mode", string(mode), "--message", input}
+	}
 
 	config := &docker.ContainerConfig{
 		Image: imageName,

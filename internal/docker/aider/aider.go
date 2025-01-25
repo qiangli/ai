@@ -19,7 +19,7 @@ func Run(ctx context.Context, mode ChatMode, query string) error {
 		return err
 	}
 
-	log.Infoln("Running aider...")
+	log.Infof("Running aider [%v] ...\n", mode)
 	if err := RunContainer(ctx, mode, query); err != nil {
 		return err
 	}

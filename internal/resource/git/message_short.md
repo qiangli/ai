@@ -12,5 +12,4 @@ Ensure the commit message:
 - Is in the imperative mood (e.g., "Add feature" not "Added feature" or "Adding feature").
 - Does not exceed 72 characters.
 
-Reply only with the one-line commit message, without any additional text, explanations,
-or line breaks.
+Reply only with the one-line commit message, without any additional text, explanations, line breaks, or code block fencing.

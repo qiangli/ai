@@ -44,6 +44,8 @@ func MakeAgent(name string, cfg *internal.AppConfig) (Agent, error) {
 		return NewEvalAgent(cfg)
 	case "script":
 		return NewScriptAgent(cfg)
+	case "doc":
+		return NewDocAgent(cfg)
 	default:
 		return nil, internal.NewUserInputError("not supported yet: " + name)
 	}
@@ -70,7 +72,7 @@ func hasAgent(name string) bool {
 }
 
 func HandleCommand(cfg *internal.AppConfig) error {
-	log.Debugf("Handle: %s %v\n", cfg.Command, cfg.Args)
+	log.Debugf("HandleCommand: %s %v\n", cfg.Command, cfg.Args)
 
 	cmd := cfg.Command
 

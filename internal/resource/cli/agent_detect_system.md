@@ -49,7 +49,7 @@ The response must be a valid JSON conforming to the supplied JSON schema definit
        "command": ""
      }
 
-3. **User Query:** "What are the stock prices of X?"
+3. **User Query:** "What are the stock prices of X, Y, Z?"
    - Use `ai_agent_info` to find the best-fit agent for real-time queries or online research.
    - If `seek` is found to be the best fit, respond with:
      {

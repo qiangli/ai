@@ -93,6 +93,18 @@ func Setup(cfg *internal.AppConfig) error {
 }
 
 func ListAgents(cfg *internal.AppConfig) error {
+	const format = `
+Available agents:
+
+%s
+
+/ is shorthand for @script
+
+Not sure which agent to use? Simply enter your message and AI will choose the most appropriate one for you:
+
+ai "message..."
+
+`
 	dict := agentList()
 	var keys []string
 	for k := range dict {
@@ -101,16 +113,18 @@ func ListAgents(cfg *internal.AppConfig) error {
 	sort.Strings(keys)
 
 	commands := agentCommandList()
-
+	var buf strings.Builder
 	for _, k := range keys {
-		log.Printf("%s:\t%s", k, dict[k])
+		buf.WriteString(k)
+		buf.WriteString(":\t")
+		buf.WriteString(dict[k])
 		if v, ok := commands[k]; ok {
-			log.Printf("%s", v)
-		} else {
-			log.Println()
+			buf.WriteString("\t")
+			buf.WriteString(v)
 		}
+		buf.WriteString("\n")
 	}
-	log.Printf("\n/ is shorthand for @script\n")
+	log.Printf(format, buf.String())
 
 	return nil
 }
@@ -164,7 +178,10 @@ func processContent(cfg *internal.AppConfig, message *ChatMessage) {
 		return (stat.Mode() & os.ModeCharDevice) == 0
 	}()
 
-	PrintMessage(cfg.LLM.Output, message)
+	PrintMessage(cfg.Format, message)
+	if cfg.Output != "" {
+		SaveMessage(cfg.Output, message)
+	}
 
 	if total > 0 && isPiped {
 		// if there are code blocks and stdout is redirected

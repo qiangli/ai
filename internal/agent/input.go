@@ -61,7 +61,9 @@ func GetUserInput(cfg *internal.AppConfig) (*UserInput, error) {
 		return nil, err
 	}
 
-	log.Infof("\n[%s]\n%s\n%s\n\n", cfg.Me, input.Message, clipText(input.Content, clipMaxLen))
+	input.Files = cfg.Files
+
+	log.Infof("\n[%s]\n%s\n%s\n%v\n\n", cfg.Me, input.Message, clipText(input.Content, clipMaxLen), input.Files)
 	return input, nil
 }
 

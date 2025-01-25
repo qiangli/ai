@@ -39,15 +39,13 @@ func NewHelpAgent(cfg *internal.AppConfig) (*HelpAgent, error) {
 }
 
 func (r *HelpAgent) Handle(ctx context.Context, req *api.Request, next api.HandlerNext) (*api.Response, error) {
-	var clip = req.Clip()
-
 	model := internal.Level1(r.config.LLM)
 	model.Tools = llm.GetAIHelpTools()
 	msg := &internal.Message{
 		Role:   r.Role,
 		Prompt: r.Message,
 		Model:  model,
-		Input:  clip,
+		Input:  req.Query(),
 	}
 	resp, err := llm.Chat(ctx, msg)
 	if err != nil {

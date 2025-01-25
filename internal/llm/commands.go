@@ -169,6 +169,8 @@ func RunTool(cfg *internal.ToolConfig, ctx context.Context, name string, props m
 		out, err = runPrTool(cfg, ctx, name, props)
 	case strings.HasPrefix(name, "git_"):
 		out, err = runGitTool(cfg, ctx, name, props)
+	case strings.HasPrefix(name, "gptr_"):
+		out, err = runGptrTool(cfg, ctx, name, props)
 	default:
 		out, err = runCommandTool(cfg, ctx, name, props)
 	}

@@ -41,7 +41,15 @@ type AppConfig struct {
 	Clipout bool
 	Stdin   bool
 
+	Files []string
+
+	Format string
+	Output string
+
 	Me string
+
+	//
+	Template string
 }
 
 type Tool openai.ChatCompletionToolParam
@@ -75,8 +83,6 @@ type LLMConfig struct {
 	Interactive bool
 
 	MetaPrompt bool
-
-	Output string
 
 	//
 	Git *GitConfig

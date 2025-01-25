@@ -8,7 +8,38 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
-func GenerateReport(ctx context.Context, query string, out string) error {
+// https://docs.gptr.dev/docs/gpt-researcher/getting-started/cli
+
+var ReportTypes = map[string]string{
+	"research_report": "Summary - Short and fast (~2 min)",
+	"detailed_report": "Detailed - In depth and longer (~5 min)",
+	"resource_report": "Resource Report",
+	"outline_report":  "Outline Report",
+	"custom_report":   "Custom Report",
+	"subtopic_report": "Subtopic Report",
+}
+
+var Tones = map[string]string{
+	"objective":   "Impartial and unbiased presentation",
+	"formal":      "Academic standards with sophisticated language",
+	"analytical":  "Critical evaluation and examination",
+	"persuasive":  "Convincing viewpoint",
+	"informative": "Clear and comprehensive information",
+	"explanatory": "Clarifying complex concepts",
+	"descriptive": "Detailed depiction",
+	"critical":    "Judging validity and relevance",
+	"comparative": "Juxtaposing different theories",
+	"speculative": "Exploring hypotheses",
+	"reflective":  "Personal insights",
+	"narrative":   "Story-based presentation",
+	"humorous":    "Light-hearted and engaging",
+	"optimistic":  "Highlighting positive aspects",
+	"pessimistic": "Focusing on challenges",
+}
+
+func GenerateReport(ctx context.Context, sub, query string, out string) error {
+	reportType, tone := splitSub(sub)
+
 	query = strings.TrimSpace(query)
 	if len(query) == 0 {
 		return fmt.Errorf("query is required")
@@ -19,9 +50,49 @@ func GenerateReport(ctx context.Context, query string, out string) error {
 		return err
 	}
 
-	log.Infoln("Generating report...")
-	if err := RunContainer(ctx, query, out); err != nil {
+	log.Infof("Generating report type: %s tone: %s...\n", reportType, tone)
+	if err := RunContainer(ctx, reportType, tone, query, out); err != nil {
 		return err
 	}
 	return nil
+}
+
+func splitSub(s string) (string, string) {
+	var reportType string
+	var tone string
+
+	s = strings.Trim(s, "/")
+	parts := strings.SplitN(s, "/", 2)
+
+	if len(parts) == 1 {
+		reportType = parts[0]
+	}
+	if len(parts) == 2 {
+		reportType = parts[0]
+		tone = parts[1]
+	}
+
+	validType := func() bool {
+		for k := range ReportTypes {
+			if reportType == k {
+				return true
+			}
+		}
+		return false
+	}
+	validTone := func() bool {
+		for k := range Tones {
+			if tone == k {
+				return true
+			}
+		}
+		return false
+	}
+	if !validType() {
+		reportType = "research_report"
+	}
+	if !validTone() {
+		tone = "objective"
+	}
+	return reportType, tone
 }

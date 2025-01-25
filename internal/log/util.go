@@ -9,17 +9,29 @@ import (
 // if max is 0 or trace is on, it will not truncate.
 func Fprintf(w io.Writer, format string, max int, a ...interface{}) {
 	s := fmt.Sprintf(format, a...)
-
-	if !Trace && max > 0 && len(s) > max {
-		s = s[:max] + "..."
-	}
+	s = clip(s, max)
 	fmt.Fprint(w, s)
 }
 
 func Fprintln(w io.Writer, max int, a ...interface{}) {
-	Fprintf(w, "%v\n", max, a...)
+	s := fmt.Sprintln(a...)
+	s = clip(s, max)
+	fmt.Fprint(w, s)
 }
 
 func Fprint(w io.Writer, max int, a ...interface{}) {
-	Fprintf(w, "%v", max, a...)
+	s := fmt.Sprint(a...)
+	s = clip(s, max)
+	fmt.Fprint(w, s)
+}
+
+func clip(s string, max int) string {
+	if !Trace && max > 0 && len(s) > max {
+		trailing := "..."
+		if s[len(s)-1] == '\n' || s[len(s)-1] == '\r' {
+			trailing = "...\n"
+		}
+		s = s[:max] + trailing
+	}
+	return s
 }

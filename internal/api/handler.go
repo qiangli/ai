@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -12,13 +13,17 @@ type Request struct {
 
 	Message string `json:"message"`
 	Content string `json:"content"`
+
+	Files []string `json:"files"`
+
+	Extra map[string]any `json:"extra"`
 }
 
 func (r *Request) IsEmpty() bool {
-	return r.Message == "" && r.Content == ""
+	return r.Message == "" && r.Content == "" && len(r.Files) == 0
 }
 
-func (r *Request) Input() string {
+func (r *Request) Query() string {
 	switch {
 	case r.Message == "" && r.Content == "":
 		return ""
@@ -31,19 +36,31 @@ func (r *Request) Input() string {
 	}
 }
 
-// Clip returns a clipped version of the content.
-// This is intended for "smart" agents to make decisions based on user inputs.
-func (r *Request) Clip() string {
-	switch {
-	case r.Message == "" && r.Content == "":
-		return ""
-	case r.Message == "":
-		return clipText(r.Content, 500)
-	case r.Content == "":
-		return r.Message
-	default:
-		return fmt.Sprintf("###\n%s\n###\n%s", r.Message, clipText(r.Content, 500))
+func (r *Request) Input() string {
+	fc, _ := r.FileContent()
+	return r.Query() + "\n" + fc
+}
+
+func (r *Request) FileContent() (string, error) {
+	var b strings.Builder
+	if len(r.Files) > 0 {
+		for _, f := range r.Files {
+			b.WriteString("\n### " + f + " ###\n")
+			c, err := os.ReadFile(f)
+			if err != nil {
+				return "", err
+
+			}
+			b.WriteString(string(c))
+		}
 	}
+	return b.String(), nil
+}
+
+// Intent returns a clipped version of the query.
+// This is intended for "smart" agents to make decisions based on user inputs.
+func (r *Request) Intent() string {
+	return clipText(r.Message, 500)
 }
 
 // clipText truncates the input text to no more than the specified maximum length.

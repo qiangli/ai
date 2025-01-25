@@ -40,10 +40,7 @@ func NewOhAgent(cfg *internal.AppConfig) (*OhAgent, error) {
 }
 
 func (r *OhAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error) {
-	var input = in.Input()
-	var clip = in.Clip()
-
-	workspace, err := resolveWorkspaceBase(ctx, r.config.LLM, r.config.LLM.Workspace, clip)
+	workspace, err := resolveWorkspaceBase(ctx, r.config.LLM, r.config.LLM.Workspace, in.Intent())
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +55,7 @@ func (r *OhAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error)
 		Env:          env,
 		HostDir:      hostDir,
 		ContainerDir: containerDir,
-		Input:        input,
+		Input:        in.Input(),
 	})
 	if err != nil {
 		return nil, err

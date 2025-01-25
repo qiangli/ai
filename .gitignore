@@ -30,3 +30,7 @@ bin/
 ## aider
 .aider.chat.history*
 .aider.input.history*
+
+#
+.DS_Store
+.test.swp
