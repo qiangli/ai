@@ -1,0 +1,110 @@
+###
+user:
+  name: "me"
+  display: "👤 User"
+
+agents:
+  - name: "launch"
+    display: "🐝 Agent"
+    description: "Dispatch to the most appropriate agent based on the user's input."
+    model: L1
+    instruction: "resource:agent_sub_system_role"
+    functions:
+      - "list_agents"
+      - "agent_info"
+  
+  - name: "meta-prompt"
+    description: "Generates a system prompt based on the user's input."
+    model: L1
+    instruction: "resource:agent_meta_system_role"
+    advices:
+      after: "decode_meta_response"
+
+  - name: "ask"
+    display: "💬 Q&A"
+    description: "Deliver concise, reliable answers on a wide range of topics."
+    model: L1
+    instruction: "vars:system_role_prompt"
+    dependencies:
+      - "meta-prompt"
+
+  - name: "script"
+    display: ""
+    description: "Generates a script based on the user's input."
+    model: L2
+    instruction: "resource:script_system_role"
+    functions:
+      - "list_commands"
+      - "which"
+      - "uname"
+      - "man"
+      - "exec"
+  
+  - name: "code"
+    display: ""
+    description: "Generates code based on the user's input."
+    model: L2
+    instruction: "resource:code_system_role"
+    dependencies:
+      - "workspace"
+      - "environment"
+    functions:
+      - "list_commands"
+
+  - name: "workspace"
+    description: "Determines the user's workspace based on user's input."
+    model: L1
+    instruction: "resource:workspace_system_role"
+    functions:
+      - "list_commands"
+      - "which"
+      - "uname"
+  
+  - name: "docker_env"
+    description: "Determines the user's environment based on user's input. either host or container"
+    model: L1
+    instruction: "resource:docker_env_system_role"
+    functions:
+      - "list_command"
+
+##
+functions:
+  - name: "list_agents"
+    description: "List all supported AI agents"
+    type: "internal"
+  - name: "agent_info"
+    description: "Get information about a specific agent"
+    parameters:
+      type: "object"
+      properties:
+          agent:
+            type: "string"
+            description: "The name of the agent"
+      required:
+        - agent
+    type: "internal"
+  - name: "list_commands"
+    type: "internal"
+  - name: "which"
+    type: "command"
+  - name: "uname"
+    type: "command"
+  - name: "man"
+    type: "command"
+
+##
+models:
+  - name: "L1"
+    description: "Level 1 basic model"
+    external: true
+  - name: "L2"
+    description: "Level 2 regular model"
+    external: true
+  - name: "L3"
+    description: "Level 3 advanced model"
+    external: true
+  - name: "Image"
+    description: "Image model"
+    external: true
+
+    

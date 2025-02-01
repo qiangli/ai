@@ -70,7 +70,7 @@ func (r *AskAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, error
 
 type AskAgentPrompt struct {
 	Service    string `json:"service"`
-	RolePrompt string `json:"agent_role_prompt"`
+	RolePrompt string `json:"system_role_prompt"`
 }
 
 func (r *AskAgent) GeneratePrompt(ctx context.Context, role, prompt, input string) (*AskAgentPrompt, error) {
@@ -90,10 +90,3 @@ func (r *AskAgent) GeneratePrompt(ctx context.Context, role, prompt, input strin
 	}
 	return &resp, nil
 }
-
-const techAgentDummyResponse = `
-{
- "service": "🖥️ Technical Support Agent",
- "agent_role_prompt": "You are a proficient AI technical support assistant. Your primary function is to provide detailed, accurate, and user-friendly instructions for troubleshooting and maintaining computer systems, particularly in Windows operating systems."
-}
-`

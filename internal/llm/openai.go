@@ -159,8 +159,28 @@ func buildRoleMessage(role string, content string) openai.ChatCompletionMessageP
 		return openai.AssistantMessage(content)
 	case "user":
 		return openai.UserMessage(content)
-	// case "tool":
-	// 	return openai.ToolMessage("", content)
+	case "tool":
+		return openai.ToolMessage("", content)
+	// case "function":
+	// 	return openai.FunctionMessage("", content)
+	case "developer":
+		// return DeveloperMessage(content)
+		return openai.SystemMessage(content)
+	default:
+		return nil
+	}
+}
+
+func buildMessage(id string, role string, content string) openai.ChatCompletionMessageParamUnion {
+	switch role {
+	case "system":
+		return openai.SystemMessage(content)
+	case "assistant":
+		return openai.AssistantMessage(content)
+	case "user":
+		return openai.UserMessage(content)
+	case "tool":
+		return openai.ToolMessage(id, content)
 	// case "function":
 	// 	return openai.FunctionMessage("", content)
 	case "developer":
@@ -178,4 +198,100 @@ func DeveloperMessage(content string) openai.ChatCompletionMessageParamUnion {
 			openai.TextPart(content),
 		}),
 	}
+}
+
+type Request struct {
+	BaseUrl string
+	ApiKey  string
+	Model   string
+
+	Messages []*Message
+
+	Tools []*ToolFunc
+}
+
+type Message struct {
+	Role    string
+	Content string
+	Sender  string
+
+	ToolCall *ToolCall
+}
+
+type ToolFunc struct {
+	Name        string
+	Description string
+	Parameters  map[string]interface{}
+}
+
+type Response struct {
+	Role    string
+	Content string
+
+	ToolCalls []*ToolCall
+}
+
+type ToolCall struct {
+	ID   string
+	Name string
+
+	Arguments map[string]interface{}
+}
+
+func Call(ctx context.Context, req *Request) (*Response, error) {
+
+	messages := make([]openai.ChatCompletionMessageParamUnion, 0)
+	for _, m := range req.Messages {
+		id := ""
+		if m.ToolCall != nil {
+			id = m.ToolCall.ID
+		}
+		messages = append(messages, buildMessage(id, m.Role, m.Content))
+	}
+
+	client := openai.NewClient(
+		option.WithAPIKey(req.ApiKey),
+		option.WithBaseURL(req.BaseUrl),
+		option.WithMiddleware(log.Middleware()),
+	)
+
+	params := openai.ChatCompletionNewParams{
+		Messages: openai.F(messages),
+		Seed:     openai.Int(0),
+		Model:    openai.F(req.Model),
+	}
+
+	if len(req.Tools) > 0 {
+		tools := make([]openai.ChatCompletionToolParam, 0)
+		for _, f := range req.Tools {
+			tools = append(tools, define(f.Name, f.Description, f.Parameters))
+		}
+		params.Tools = openai.F(tools)
+	}
+
+	resp := &Response{}
+
+	completion, err := client.Chat.Completions.New(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	message := completion.Choices[0].Message
+	resp.Role = string(message.Role)
+	resp.Content = message.Content
+
+	for _, v := range message.ToolCalls {
+		var args map[string]interface{}
+		if err := json.Unmarshal([]byte(v.Function.Arguments), &args); err != nil {
+			return nil, err
+		}
+
+		resp.ToolCalls = append(resp.ToolCalls, &ToolCall{
+			ID:        v.ID,
+			Name:      v.Function.Name,
+			Arguments: args,
+		})
+	}
+
+	return resp, nil
 }

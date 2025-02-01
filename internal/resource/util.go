@@ -58,7 +58,7 @@ func tryUnmarshal(data string, v any) error {
 }
 
 func apply(tpl string, data any) (string, error) {
-	t, err := template.New("pr").Funcs(tplFuncMap).Parse(tpl)
+	t, err := template.New("template").Funcs(tplFuncMap).Parse(tpl)
 	if err != nil {
 		return "", err
 	}

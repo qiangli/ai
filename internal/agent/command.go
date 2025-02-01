@@ -57,6 +57,12 @@ func AgentHelp(cfg *internal.AppConfig) error {
 }
 
 func handleAgent(cfg *internal.AppConfig, in *UserInput) error {
+	// use swarm for ask
+	if in.Agent == "ask" {
+		return Run(cfg, in.Agent, in)
+	}
+
+	// TODO: migrate to swarm
 	agent, err := MakeAgent(in.Agent, cfg)
 	if err != nil {
 		return err

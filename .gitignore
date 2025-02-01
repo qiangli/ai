@@ -31,6 +31,7 @@ bin/
 .aider.chat.history*
 .aider.input.history*
 
+__debug_bin*
 #
 .DS_Store
 .test.swp
