@@ -1,3 +1,6 @@
 # Swarm
 
-A lightweight multi-agent orchestration that implements [Swarm](https://github.com/openai/swarm) in golang.
+A lightweight multi-agent orchestration.
+
+[Swarm](https://github.com/openai/swarm)
+[Magentic-One](https://github.com/microsoft/autogen/tree/main/python/packages/autogen-magentic-one)

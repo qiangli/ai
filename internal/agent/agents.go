@@ -12,6 +12,7 @@ import (
 	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/swarm"
+	"github.com/qiangli/ai/internal/util"
 )
 
 const LaunchAgent = "launch"
@@ -42,6 +43,8 @@ type AgentConfig struct {
 	Instruction string `yaml:"instruction"`
 	Model       string `yaml:"model"`
 
+	Entrypoint string `yaml:"entrypoint"`
+
 	Functions []string `yaml:"functions"`
 
 	Dependencies []string `yaml:"dependencies"`
@@ -50,8 +53,10 @@ type AgentConfig struct {
 }
 
 type FunctionConfig struct {
+	Type   string   `yaml:"type"`
+	Labels []string `yaml:"labels"`
+
 	Name        string         `yaml:"name"`
-	Type        string         `yaml:"type"`
 	Description string         `yaml:"description"`
 	Parameters  map[string]any `yaml:"parameters"`
 }
@@ -83,7 +88,7 @@ func LoadAgentsConfig() (*AgentsConfig, error) {
 }
 
 func Run(app *internal.AppConfig, starter string, input *UserInput) error {
-	log.Debugf("Running agent %s", starter)
+	log.Debugf("Running agent %q with swarm\n", starter)
 
 	//
 	config, err := LoadAgentsConfig()
@@ -216,16 +221,34 @@ func Run(app *internal.AppConfig, starter string, input *UserInput) error {
 		return &agent, nil
 	}
 
-	content := input.Input()
-	vars := swarm.NewVars()
-
+	// initialize
 	agentCfg, err := getAgent(starter)
 	if err != nil {
 		return err
 	}
 
+	vars := swarm.NewVars()
+	sysInfo, err := util.CollectSystemInfo()
+	if err != nil {
+		return err
+	}
+	vars.Arch = sysInfo.Arch
+	vars.OS = sysInfo.OS
+	vars.ShellInfo = sysInfo.ShellInfo
+	vars.OSInfo = sysInfo.OSInfo
+	vars.UserInfo = sysInfo.UserInfo
+	vars.WorkDir = sysInfo.WorkDir
+
+	// TODO refactor Input in Vars or Request
+	vars.Agent = input.Agent
+	vars.Subcommand = input.Subcommand
+	vars.Input = input.Input()
+	vars.Intent = input.Intent()
+	vars.Query = input.Query()
+	vars.Files = input.Files
+
 	var history = []*swarm.Message{}
-	msg := &swarm.Message{Role: swarm.RoleUser, Content: content, Sender: config.User.Name}
+	msg := &swarm.Message{Role: swarm.RoleUser, Content: input.Input(), Sender: config.User.Name}
 	req := &swarm.Request{Message: msg, Vars: vars}
 
 	if len(agentCfg.Dependencies) > 0 {

@@ -232,12 +232,17 @@ func addFlags(cmd *cobra.Command) {
 	flags.String("log", "", "Log all debugging information to a file")
 	flags.Bool("trace", false, "Trace API calls")
 
+	flags.String("message", "", "Specify input message. Overrides all other input methods")
+
 	//
+	flags.MarkHidden("message")
 	flags.MarkHidden("role")
 	flags.MarkHidden("role-prompt")
 	flags.MarkHidden("dry-run")
 	flags.MarkHidden("dry-run-content")
 	flags.MarkHidden("trace")
+	flags.MarkHidden("log")
+	flags.MarkHidden("interactive")
 
 	flags.Var(newOutputValue("markdown", &formatFlag), "format", "Output format, must be either raw or markdown.")
 	flags.StringVar(&outputFlag, "output", "", "Save final response to a file.")
@@ -292,6 +297,8 @@ func getConfig(cmd *cobra.Command, args []string) *internal.AppConfig {
 	app.Output = outputFlag
 	app.ConfigFile = viper.ConfigFileUsed()
 	app.CommandPath = cmd.CommandPath()
+
+	app.Message = viper.GetString("message")
 
 	//
 	app.Template = docTemplate

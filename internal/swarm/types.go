@@ -23,6 +23,7 @@ type Message = llm.Message
 
 type ToolFunc = llm.ToolFunc
 
+// type ToolCall = llm.ToolCall
 type ToolCall = llm.ToolCall
 
 const (
@@ -38,17 +39,22 @@ const (
 )
 
 type Vars struct {
-	OS    string
-	Shell string
-	Arch  string
-	User  string
+	OS        string
+	Arch      string
+	ShellInfo map[string]string
+	OSInfo    map[string]string
+
+	UserInfo map[string]string
 
 	Workspace string
 	WorkDir   string
 
-	Input  string
-	Intent string
-	Query  string
+	Agent      string `json:"agent"`
+	Subcommand string `json:"subcommand"`
+	Input      string
+	Intent     string
+	Query      string
+	Files      []string `json:"files"`
 
 	Env string
 
@@ -202,14 +208,14 @@ type Result struct {
 	Vars Vars
 }
 
-type Text *string
-
 type Model struct {
 	Name string
 	// Provider string
 	BaseUrl string
 	ApiKey  string
 }
+
+// type Text *string
 
 // type Agentic interface {
 // 	Name() string
@@ -245,10 +251,6 @@ type Model struct {
 // 	Required   []string       `json:"required"`
 // }
 
-// type BeforeAdvice func(*Message, *Vars) (*Message, error)
-// type AfterAdvice func(*Message, *Vars) (*Message, error)
-
-// type NextAdvice func(*Message, *Vars) (*Response, error)
-// type AroundAdvice func(*Message, *Vars, NextAdvice) (*Response, error)
+// type Function func(ctx context.Context, name string, args map[string]any) (string, error)
 
 type Advice func(*Request, *Response, Advice) error

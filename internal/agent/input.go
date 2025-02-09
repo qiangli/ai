@@ -45,6 +45,10 @@ func (e *Editor) Launch() (string, error) {
 }
 
 func GetUserInput(cfg *internal.AppConfig) (*UserInput, error) {
+	if cfg.Message != "" {
+		return &UserInput{Message: cfg.Message}, nil
+	}
+
 	// stdin with | or <
 	isPiped := func() bool {
 		stat, _ := os.Stdin.Stat()

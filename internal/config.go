@@ -35,6 +35,9 @@ type AppConfig struct {
 	Command string
 	Args    []string
 
+	// --message takes precedence over all other forms of input
+	Message string
+
 	Editor string
 
 	Clipin  bool

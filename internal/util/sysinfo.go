@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"os/user"
 	"runtime"
 	"strings"
 	"syscall"
@@ -195,14 +196,8 @@ func GetCpuInfo() ([]CpuInfo, error) {
 	return cpuInfos, nil
 }
 
-type ShellInfo struct {
-	Name    string
-	Path    string
-	Version string
-}
-
-// GetShellVersion determines the current shell and retrieves its version.
-func GetShellVersion() (*ShellInfo, error) {
+// GetShellInfo determines the current shell and retrieves its version.
+func GetShellInfo() (map[string]string, error) {
 	// Get the SHELL environment variable
 	shellPath := os.Getenv("SHELL")
 	if shellPath == "" {
@@ -237,10 +232,10 @@ func GetShellVersion() (*ShellInfo, error) {
 	}
 	lines := strings.SplitN(out.String(), "\n", 2)
 	shellVersion := strings.TrimSpace(lines[0])
-	return &ShellInfo{
-		Name:    shellName,
-		Path:    shellPath,
-		Version: shellVersion,
+	return map[string]string{
+		"Name":    shellName,
+		"Path":    shellPath,
+		"Version": shellVersion,
 	}, nil
 }
 
@@ -316,7 +311,9 @@ type SystemInfo struct {
 	OS        string
 	Arch      string
 	OSInfo    map[string]string
-	ShellInfo *ShellInfo
+	ShellInfo map[string]string
+
+	UserInfo map[string]string
 
 	EnvVarNames string
 	WorkDir     string
@@ -339,7 +336,7 @@ func CollectSystemInfo() (*SystemInfo, error) {
 	}
 
 	// Get shell info
-	info.ShellInfo, err = GetShellVersion()
+	info.ShellInfo, err = GetShellInfo()
 	if err != nil {
 		errs = append(errs, fmt.Errorf("error getting shell version: %v", err))
 	}
@@ -351,6 +348,22 @@ func CollectSystemInfo() (*SystemInfo, error) {
 	info.WorkDir, err = os.Getwd()
 	if err != nil {
 		errs = append(errs, fmt.Errorf("error getting working directory: %v", err))
+	}
+
+	// Get current user
+	u, err := user.Current()
+	if err != nil {
+		errs = append(errs, fmt.Errorf("error getting current user: %v", err))
+	}
+	info.UserInfo = map[string]string{
+		"Username": u.Username,
+		"Uid":      u.Uid,
+		"Gid":      u.Gid,
+		"Name":     u.Name,
+		"HomeDir":  u.HomeDir,
+	}
+	if u.Name == "" {
+		info.UserInfo["Name"] = u.Username
 	}
 
 	if len(errs) > 0 {

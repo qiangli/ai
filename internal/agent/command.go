@@ -57,8 +57,9 @@ func AgentHelp(cfg *internal.AppConfig) error {
 }
 
 func handleAgent(cfg *internal.AppConfig, in *UserInput) error {
-	// use swarm for ask
-	if in.Agent == "ask" {
+	// use swarm
+	if in.Agent == "ask" ||
+		in.Agent == "script" {
 		return Run(cfg, in.Agent, in)
 	}
 

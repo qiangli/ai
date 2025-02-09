@@ -18,10 +18,18 @@ var gptr_sub_system_role string
 //go:embed prompts/pr_sub_system_role.md
 var pr_sub_system_role string
 
+//go:embed prompts/script_system_role.md
+var script_system_role string
+
+//go:embed prompts/script_user_role.md
+var script_user_role string
+
 var Prompts = map[string]string{
 	"agent_meta_system_role": agent_meta_system_role,
 	"agent_sub_system_role":  agent_sub_system_role,
 	"git_sub_system_role":    git_sub_system_role,
 	"gptr_sub_system_role":   gptr_sub_system_role,
 	"pr_sub_system_role":     pr_sub_system_role,
+	"script_system_role":     script_system_role,
+	"script_user_role":       script_user_role,
 }

@@ -205,17 +205,23 @@ type Request struct {
 	ApiKey  string
 	Model   string
 
+	History  []*Message
 	Messages []*Message
+
+	MaxTurns int
+	RunTool  func(ctx context.Context, name string, props map[string]interface{}) (string, error)
 
 	Tools []*ToolFunc
 }
+
+type ToolCall = openai.ChatCompletionMessageToolCall
 
 type Message struct {
 	Role    string
 	Content string
 	Sender  string
 
-	ToolCall *ToolCall
+	ToolCalls []ToolCall
 }
 
 type ToolFunc struct {
@@ -228,25 +234,27 @@ type Response struct {
 	Role    string
 	Content string
 
-	ToolCalls []*ToolCall
+	ToolCalls []ToolCall
 }
 
-type ToolCall struct {
-	ID   string
-	Name string
+// type ToolCall struct {
+// 	ID   string
+// 	Name string
 
-	Arguments map[string]interface{}
-}
+// 	Arguments map[string]interface{}
+// }
 
 func Call(ctx context.Context, req *Request) (*Response, error) {
-
 	messages := make([]openai.ChatCompletionMessageParamUnion, 0)
-	for _, m := range req.Messages {
-		id := ""
-		if m.ToolCall != nil {
-			id = m.ToolCall.ID
-		}
-		messages = append(messages, buildMessage(id, m.Role, m.Content))
+	list := append(req.History, req.Messages...)
+	for _, v := range list {
+		// id := ""
+		// if m.ToolCall != nil {
+		// 	id = m.ToolCall.ID
+		// }
+		msg := buildMessage("", v.Role, v.Content)
+		// msg.ToolCalls = v.ToolCalls
+		messages = append(messages, msg)
 	}
 
 	client := openai.NewClient(
@@ -271,27 +279,69 @@ func Call(ctx context.Context, req *Request) (*Response, error) {
 
 	resp := &Response{}
 
-	completion, err := client.Chat.Completions.New(ctx, params)
-	if err != nil {
-		return nil, err
-	}
+	for tries := 0; tries < req.MaxTurns; tries++ {
+		log.Debugf("*** tries ***: %v\n", tries)
 
-	message := completion.Choices[0].Message
-	resp.Role = string(message.Role)
-	resp.Content = message.Content
-
-	for _, v := range message.ToolCalls {
-		var args map[string]interface{}
-		if err := json.Unmarshal([]byte(v.Function.Arguments), &args); err != nil {
+		completion, err := client.Chat.Completions.New(ctx, params)
+		if err != nil {
 			return nil, err
 		}
 
-		resp.ToolCalls = append(resp.ToolCalls, &ToolCall{
-			ID:        v.ID,
-			Name:      v.Function.Name,
-			Arguments: args,
-		})
+		toolCalls := completion.Choices[0].Message.ToolCalls
+
+		if len(toolCalls) == 0 {
+			resp.Role = string(completion.Choices[0].Message.Role)
+			resp.Content = completion.Choices[0].Message.Content
+			break
+		}
+
+		params.Messages.Value = append(params.Messages.Value, completion.Choices[0].Message)
+
+		for _, toolCall := range toolCalls {
+			var name = toolCall.Function.Name
+			var props map[string]interface{}
+			if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &props); err != nil {
+				return nil, err
+			}
+
+			log.Debugf("\n\n>>> tool call: %s props: %+v\n", name, props)
+			// toolCfg := &internal.ToolConfig{
+			// 	Model:    model,
+			// 	DBConfig: req.DBCreds,
+			// 	Next:     req.Next,
+			// }
+			out, err := req.RunTool(ctx, name, props)
+			if err != nil {
+				return nil, err
+			}
+			log.Debugf("\n<<< tool call: %s out: %s\n", name, out)
+			params.Messages.Value = append(params.Messages.Value, openai.ToolMessage(toolCall.ID, out))
+		}
 	}
+
+	// completion, err := client.Chat.Completions.New(ctx, params)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// message := completion.Choices[0].Message
+	// resp := &Response{
+	// 	Role:    string(message.Role),
+	// 	Content: message.Content,
+	// 	ToolCalls: message.ToolCalls,
+	// }
+	// for _, v := range message.ToolCalls {
+	// 	var args map[string]interface{}
+	// 	if err := json.Unmarshal([]byte(v.Function.Arguments), &args); err != nil {
+	// 		return nil, err
+	// 	}
+
+	// 	resp.ToolCalls = append(resp.ToolCalls, &ToolCall{
+	// 		ID:        v.ID,
+	// 		Name:      v.Function.Name,
+	// 		Arguments: args,
+	// 	})
+	// }
 
 	return resp, nil
 }
