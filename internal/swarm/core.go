@@ -2,218 +2,148 @@ package swarm
 
 import (
 	"context"
-	// "encoding/json"
-	// "fmt"
+	"errors"
+	"time"
 
-	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/llm"
+	"github.com/qiangli/ai/internal/log"
 )
 
 type Swarm struct {
-	Agent    *Agent
-	Messages []*Message
-	Vars     *Vars
-	MaxTurns int
-	MaxTime  int64
-	Stream   bool
-	Debug    bool
+	History []*Message
+	Vars    *Vars
+	Stream  bool
+
+	//
+	Create AgentFunc
+
+	//
+	DryRun        bool
+	DryRunContent string
 }
 
-func NewSwarm(agent *Agent, vars *Vars, messages []*Message) *Swarm {
+func NewSwarm(config *AgentsConfig) *Swarm {
 	return &Swarm{
-		Agent:    agent,
-		Vars:     vars,
-		Messages: messages,
-		MaxTurns: 100,
-		MaxTime:  3600,
-		Stream:   true,
-		Debug:    false,
+		Vars:    NewVars(),
+		History: []*Message{},
+		Stream:  true,
+		Create:  AgentCreator(config),
 	}
 }
 
-func (r *Swarm) Run(req *Request) (*Response, error) {
-	ctx := context.TODO()
-
-	if r.Agent.BeforeAdvice != nil {
-		if err := r.Agent.BeforeAdvice(req, nil, nil); err != nil {
-			return nil, err
-		}
-	}
-
-	var resp Response
-
-	if r.Agent.AroundAdvice != nil {
-		next := func(_ *Request, _ *Response, _ Advice) error {
-			return r.runLoop(ctx, req, &resp)
-		}
-		if err := r.Agent.AroundAdvice(req, &resp, next); err != nil {
-			return nil, err
-		}
-	} else {
-		if err := r.runLoop(ctx, req, &resp); err != nil {
-			return nil, err
-		}
-	}
-
-	if r.Agent.AfterAdvice != nil {
-		if err := r.Agent.AfterAdvice(nil, &resp, nil); err != nil {
-			return nil, err
-		}
-	}
-
-	return &resp, nil
-}
-
-func (r *Swarm) runLoop(ctx context.Context, req *Request, resp *Response) error {
-	var history = []*Message{}
-	history = append(history, r.Messages...)
-
-	messages := []*Message{}
-	if r.Agent.Instruction != "" {
-		role := r.Agent.Role
-		if role == "" {
-			role = RoleSystem
-		}
-		messages = append(messages, &Message{
-			Role:    role,
-			Content: r.Agent.Instruction,
-			Sender:  r.Agent.Name,
-		})
-	}
-	if req.Message != nil {
-		messages = append(messages, req.Message)
-	}
-
-	initLen := len(r.Messages)
-	activeAgent := r.Agent
-	agentRole := activeAgent.Role
-	if agentRole == "" {
-		agentRole = RoleAssistant
-	}
-
-	runTool := func(ctx context.Context, name string, args map[string]interface{}) (string, error) {
-		content, err := llm.RunTool(&internal.ToolConfig{
-			Model: &internal.Model{
-				Name:    activeAgent.Model.Name,
-				BaseUrl: activeAgent.Model.BaseUrl,
-				ApiKey:  activeAgent.Model.ApiKey,
-			},
-		}, ctx, name, args)
+func (r *Swarm) Run(req *Request, resp *Response) error {
+	for {
+		agent, err := r.Create(req.Agent, r.Vars)
 		if err != nil {
-			return "", err
+			return err
 		}
-		return content, nil
-	}
 
-	result, err := llm.Call(ctx, &llm.Request{
-		BaseUrl:  activeAgent.Model.BaseUrl,
-		ApiKey:   activeAgent.Model.ApiKey,
-		Model:    activeAgent.Model.Name,
-		History:  history,
-		Messages: messages,
-		MaxTurns: r.MaxTurns,
-		RunTool:  runTool,
-		Tools:    activeAgent.Functions,
-	})
-	if err != nil {
-		return err
-	}
+		timeout := TimeoutHandler(agent, time.Duration(agent.MaxTime)*time.Second, "timed out")
+		maxlog := MaxLogHandler(500)
 
-	history = append(history, messages...)
-	message := Message{
-		Role:    result.Role,
-		Content: result.Content,
-		Sender:  activeAgent.Name,
-	}
-	history = append(history, &message)
+		chain := New(maxlog).Then(timeout)
 
-	// for len(history)-initLen < r.MaxTurns {
+		if err := chain.Serve(req, resp); err != nil {
+			return err
+		}
 
-	// 	resp, err := llm.Call(ctx, &llm.Request{
-	// 		BaseUrl:  activeAgent.Model.BaseUrl,
-	// 		ApiKey:   activeAgent.Model.ApiKey,
-	// 		Model:    activeAgent.Model.Name,
-	// 		History:  history,
-	// 		Messages: messages,
-	// 		Tools:    activeAgent.Functions,
-	// 	})
-
-	// 	if err != nil {
-	// 		return err
-	// 	}
-
-	// 	history = append(history, messages...)
-
-	// 	if len(resp.ToolCalls) == 0 {
-	// 		break
-	// 	}
-
-	// 	message := Message{
-	// 		Role:    resp.Role,
-	// 		Content: resp.Content,
-	// 		Sender:  activeAgent.Name,
-	// 		ToolCalls: resp.ToolCalls,
-	// 	}
-	// 	history = append(history, &message)
-
-	// 	// handle function calls, updating context_variables
-	// 	messages, err = r.runTools(ctx, activeAgent, resp.ToolCalls, req.Vars)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
-
-	if resp == nil {
+		// update the request
+		if resp.Transfer {
+			req.Agent = resp.NextAgent
+			continue
+		}
 		return nil
 	}
-
-	resp.Messages = history[initLen:]
-	resp.Agent = activeAgent
-	resp.Vars = req.Vars
-	return nil
 }
 
-// func (r *Swarm) runTools(ctx context.Context, agent *Agent, calls []*ToolCall, _ *Vars) ([]*Message, error) {
-// 	functions := agent.Functions
-// 	var funcMap = make(map[string]bool)
-// 	for _, v := range functions {
-// 		funcMap[v.Name] = true
-// 	}
+// MaxLogHandler returns a [Handler] that logs the request and response
+func MaxLogHandler(n int) func(Handler) Handler {
+	return func(next Handler) Handler {
+		return &maxLogHandler{
+			next: next,
+			max:  n,
+		}
+	}
+}
 
-// 	var messages []*Message
-// 	for _, v := range calls {
-// 		var args map[string]interface{}
-// 		if err := json.Unmarshal([]byte(v.Function.Arguments), &args); err != nil {
-// 			return nil, err
-// 		}
-// 		var name = v.Function.Name
+type maxLogHandler struct {
+	next Handler
+	max  int
+}
 
-// 		if _, ok := funcMap[name]; !ok {
-// 			messages = append(messages, &Message{
-// 				Role:     RoleTool,
-// 				Content:  fmt.Sprintf("error: tool %s not found", name),
-// 				ToolCall: v,
-// 			})
-// 			continue
-// 		}
+func (h *maxLogHandler) Serve(r *Request, w *Response) error {
 
-// 		// content, err := RunTool(ctx, agent, name, args)
-// 		content, err := llm.RunTool(&internal.ToolConfig{
-// 			Model: &internal.Model{
-// 				Name:    agent.Model.Name,
-// 				BaseUrl: agent.Model.BaseUrl,
-// 				ApiKey:  agent.Model.ApiKey,
-// 			},
-// 		}, ctx, name, args)
+	log.Debugf("req: %+v\n", r)
+	if r.Message != nil {
+		log.Printf("%s %s\n", r.Message.Role, clip(r.Message.Content, h.max))
+	}
 
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		messages = append(messages, &Message{
-// 			Role:     RoleTool,
-// 			Content:  content,
-// 			ToolCall: v,
-// 		})
-// 	}
-// 	return messages, nil
-// }
+	err := h.next.Serve(r, w)
+
+	log.Debugf("resp: %+v\n", w)
+	if w.Messages != nil {
+		for _, m := range w.Messages {
+			log.Printf("%s %s\n", m.Role, clip(m.Content, h.max))
+		}
+	}
+
+	return err
+}
+
+// TimeoutHandler returns a [Handler] that runs h with the given time limit.
+//
+// The new Handler calls h.Serve to handle each request, but if a
+// call runs for longer than its time limit, the handler responds with
+// a timeout error.
+// After such a timeout, writes by h to its [Response] will return
+// [ErrHandlerTimeout].
+func TimeoutHandler(next Handler, dt time.Duration, msg string) Handler {
+	return &timeoutHandler{
+		next:    next,
+		content: msg,
+		dt:      dt,
+	}
+}
+
+// ErrHandlerTimeout is returned on [Response]
+// in handlers which have timed out.
+var ErrHandlerTimeout = errors.New("Handler timeout")
+
+type timeoutHandler struct {
+	next    Handler
+	content string
+	dt      time.Duration
+}
+
+func (h *timeoutHandler) Serve(r *Request, w *Response) error {
+	ctx, cancelCtx := context.WithTimeout(r.Context(), h.dt)
+	defer cancelCtx()
+
+	r = r.WithContext(ctx)
+
+	done := make(chan struct{})
+	panicChan := make(chan any, 1)
+
+	go func() {
+		defer func() {
+			if p := recover(); p != nil {
+				panicChan <- p
+			}
+		}()
+
+		h.next.Serve(r, w)
+
+		close(done)
+	}()
+
+	select {
+	case p := <-panicChan:
+		return p.(error)
+	case <-done:
+		return nil
+	case <-ctx.Done():
+		w.Messages = []*Message{{Content: h.content}}
+		w.Agent = nil
+	}
+
+	return ErrHandlerTimeout
+}

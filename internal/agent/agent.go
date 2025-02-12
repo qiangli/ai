@@ -24,8 +24,6 @@ type ChatMessage = api.Response
 func MakeAgent(name string, cfg *internal.AppConfig) (Agent, error) {
 
 	switch name {
-	case "ask":
-		return NewAskAgent(cfg)
 	case "seek":
 		return NewGptrAgent(cfg)
 	case "sql":
@@ -34,16 +32,10 @@ func MakeAgent(name string, cfg *internal.AppConfig) (Agent, error) {
 		return NewGptrAgent(cfg)
 	case "oh":
 		return NewOhAgent(cfg)
-	case "git":
-		return NewGitAgent(cfg)
 	case "code":
 		return NewAiderAgent(cfg)
-	case "pr":
-		return NewPrAgent(cfg)
 	case "eval":
 		return NewEvalAgent(cfg)
-	case "script":
-		return NewScriptAgent(cfg)
 	case "doc":
 		return NewDocAgent(cfg)
 	case "draw":

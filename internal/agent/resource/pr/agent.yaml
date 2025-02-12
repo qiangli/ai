@@ -1,0 +1,67 @@
+###
+user:
+  name: "me"
+  display: "👤 User"
+
+maxTurns: 32
+maxTime: 3600
+
+agents:
+  - name: "pr"
+    display: "🐝 PR"
+    description: "Enhance PR management with automated summaries, reviews, suggestions, and changelog updates."
+    model: L1
+    instruction:
+      content: "resource:pr_sub_system_role"
+    functions:
+      - "agent_transfer"
+
+  - name: "describe"
+    description: "Automatically generating PR description - title, type, summary, code walkthrough and labels"
+    model: L1
+    entrypoint: pr_system_role_prompt
+    advices:
+      before: "pr_user_input"
+      after: "pr_json_to_markdown"
+
+  - name: "review"
+    description: "Adjustable feedback about the PR, possible issues, security concerns, review effort and more"
+    model: L1
+    entrypoint: pr_system_role_prompt
+    advices:
+      before: "pr_user_input"
+      after: "pr_json_to_markdown"
+
+  - name: "improve"
+    description: "Code suggestions for improving the PR"
+    model: L1
+    entrypoint: pr_system_role_prompt
+    advices:
+      before: "pr_user_input"
+      after: "pr_json_to_markdown"
+
+  - name: "changelog"
+    description: "Automatically updating the CHANGELOG.md file with the PR changes"
+    model: L1
+    entrypoint: pr_system_role_prompt
+    advices:
+      before: "pr_user_input"
+      after: "pr_json_to_markdown"
+
+functions:
+  - name: "agent_transfer"
+    description: "Transfer the current task to a specific agent"
+    parameters:
+      type: "object"
+      properties:
+          agent:
+            type: "string"
+            description: "The name of the agent"
+      required:
+        - agent
+
+models:
+  - name: "L1"
+    description: "Level 1 basic model"
+    external: true
+###

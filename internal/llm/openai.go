@@ -15,6 +15,17 @@ import (
 
 // https://github.com/openai/openai-go/tree/main/examples
 
+const TransferAgentName = "agent_transfer"
+
+func NewClient(apiKey, baseUrl string) *openai.Client {
+	client := openai.NewClient(
+		option.WithAPIKey(apiKey),
+		option.WithBaseURL(baseUrl),
+		option.WithMiddleware(log.Middleware(internal.DryRun, internal.DryRunContent)),
+	)
+	return client
+}
+
 func Send(ctx context.Context, role, prompt string, model *internal.Model, input string) (string, error) {
 	req := &internal.Message{
 		Role:   role,
@@ -40,11 +51,7 @@ func Chat(ctx context.Context, req *internal.Message) (*internal.Message, error)
 
 	model := req.Model
 
-	client := openai.NewClient(
-		option.WithAPIKey(model.ApiKey),
-		option.WithBaseURL(model.BaseUrl),
-		option.WithMiddleware(log.Middleware()),
-	)
+	client := NewClient(model.ApiKey, model.BaseUrl)
 
 	params := openai.ChatCompletionNewParams{
 		Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
@@ -63,47 +70,43 @@ func Chat(ctx context.Context, req *internal.Message) (*internal.Message, error)
 	// TODO
 	var max = len(model.Tools) + 1
 
-	if !internal.DryRun {
-		for tries := 0; tries < max; tries++ {
-			log.Debugf("*** tries ***: %v\n", tries)
+	for tries := 0; tries < max; tries++ {
+		log.Debugf("*** tries ***: %v\n", tries)
 
-			completion, err := client.Chat.Completions.New(ctx, params)
-			if err != nil {
+		completion, err := client.Chat.Completions.New(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+
+		toolCalls := completion.Choices[0].Message.ToolCalls
+
+		if len(toolCalls) == 0 {
+			resp.Content = completion.Choices[0].Message.Content
+			break
+		}
+
+		params.Messages.Value = append(params.Messages.Value, completion.Choices[0].Message)
+
+		for _, toolCall := range toolCalls {
+			var name = toolCall.Function.Name
+			var props map[string]interface{}
+			if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &props); err != nil {
 				return nil, err
 			}
 
-			toolCalls := completion.Choices[0].Message.ToolCalls
-
-			if len(toolCalls) == 0 {
-				resp.Content = completion.Choices[0].Message.Content
-				break
+			log.Debugf("\n\n>>> tool call: %s props: %+v\n", name, props)
+			toolCfg := &internal.ToolConfig{
+				Model:    model,
+				DBConfig: req.DBCreds,
+				Next:     req.Next,
 			}
-
-			params.Messages.Value = append(params.Messages.Value, completion.Choices[0].Message)
-
-			for _, toolCall := range toolCalls {
-				var name = toolCall.Function.Name
-				var props map[string]interface{}
-				if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &props); err != nil {
-					return nil, err
-				}
-
-				log.Debugf("\n\n>>> tool call: %s props: %+v\n", name, props)
-				toolCfg := &internal.ToolConfig{
-					Model:    model,
-					DBConfig: req.DBCreds,
-					Next:     req.Next,
-				}
-				out, err := RunTool(toolCfg, ctx, name, props)
-				if err != nil {
-					return nil, err
-				}
-				log.Debugf("\n<<< tool call: %s out: %s\n", name, out)
-				params.Messages.Value = append(params.Messages.Value, openai.ToolMessage(toolCall.ID, out))
+			out, err := RunTool(toolCfg, ctx, name, props)
+			if err != nil {
+				return nil, err
 			}
+			log.Debugf("\n<<< tool call: %s out: %s\n", name, out)
+			params.Messages.Value = append(params.Messages.Value, openai.ToolMessage(toolCall.ID, out))
 		}
-	} else {
-		resp.Content = internal.DryRunContent
 	}
 
 	log.Debugf("<<<OPENAI:\nmodel: %s, content length: %v\n\n", model, len(resp.Content))
@@ -121,30 +124,22 @@ func GenerateImage(ctx context.Context, req *internal.Message) (*internal.Messag
 
 	model := req.Model
 
-	client := openai.NewClient(
-		option.WithAPIKey(model.ApiKey),
-		option.WithBaseURL(model.BaseUrl),
-		option.WithMiddleware(log.Middleware()),
-	)
+	client := NewClient(model.ApiKey, model.BaseUrl)
 
 	resp := &internal.Message{}
 
-	if !internal.DryRun {
-		// Base64
-		image, err := client.Images.Generate(ctx, openai.ImageGenerateParams{
-			Prompt:         openai.String(prompt),
-			Model:          openai.F(model.Name),
-			ResponseFormat: openai.F(openai.ImageGenerateParamsResponseFormatB64JSON),
-			N:              openai.Int(1),
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		resp.Content = image.Data[0].B64JSON
-	} else {
-		resp.Content = internal.DryRunContent
+	// Base64
+	image, err := client.Images.Generate(ctx, openai.ImageGenerateParams{
+		Prompt:         openai.String(prompt),
+		Model:          openai.F(model.Name),
+		ResponseFormat: openai.F(openai.ImageGenerateParamsResponseFormatB64JSON),
+		N:              openai.Int(1),
+	})
+	if err != nil {
+		return nil, err
 	}
+
+	resp.Content = image.Data[0].B64JSON
 
 	log.Debugf("<<<OPENAI:\nmodel: %s, content length: %v\n\n", model, len(resp.Content))
 	return resp, nil
@@ -205,11 +200,11 @@ type Request struct {
 	ApiKey  string
 	Model   string
 
-	History  []*Message
+	// History  []*Message
 	Messages []*Message
 
 	MaxTurns int
-	RunTool  func(ctx context.Context, name string, props map[string]interface{}) (string, error)
+	RunTool  func(ctx context.Context, name string, props map[string]any) (string, error)
 
 	Tools []*ToolFunc
 }
@@ -234,34 +229,18 @@ type Response struct {
 	Role    string
 	Content string
 
-	ToolCalls []ToolCall
+	Transfer  bool
+	NextAgent string
 }
-
-// type ToolCall struct {
-// 	ID   string
-// 	Name string
-
-// 	Arguments map[string]interface{}
-// }
 
 func Call(ctx context.Context, req *Request) (*Response, error) {
 	messages := make([]openai.ChatCompletionMessageParamUnion, 0)
-	list := append(req.History, req.Messages...)
-	for _, v := range list {
-		// id := ""
-		// if m.ToolCall != nil {
-		// 	id = m.ToolCall.ID
-		// }
+	for _, v := range req.Messages {
 		msg := buildMessage("", v.Role, v.Content)
-		// msg.ToolCalls = v.ToolCalls
 		messages = append(messages, msg)
 	}
 
-	client := openai.NewClient(
-		option.WithAPIKey(req.ApiKey),
-		option.WithBaseURL(req.BaseUrl),
-		option.WithMiddleware(log.Middleware()),
-	)
+	client := NewClient(req.ApiKey, req.BaseUrl)
 
 	params := openai.ChatCompletionNewParams{
 		Messages: openai.F(messages),
@@ -280,7 +259,7 @@ func Call(ctx context.Context, req *Request) (*Response, error) {
 	resp := &Response{}
 
 	for tries := 0; tries < req.MaxTurns; tries++ {
-		log.Debugf("*** tries ***: %v\n", tries)
+		log.Debugf("*** sending to %s ***: %v of %v\n", req.BaseUrl, tries, req.MaxTurns)
 
 		completion, err := client.Chat.Completions.New(ctx, params)
 		if err != nil {
@@ -305,43 +284,24 @@ func Call(ctx context.Context, req *Request) (*Response, error) {
 			}
 
 			log.Debugf("\n\n>>> tool call: %s props: %+v\n", name, props)
-			// toolCfg := &internal.ToolConfig{
-			// 	Model:    model,
-			// 	DBConfig: req.DBCreds,
-			// 	Next:     req.Next,
-			// }
+
+			// TODO: return struct response
 			out, err := req.RunTool(ctx, name, props)
 			if err != nil {
 				return nil, err
 			}
+
 			log.Debugf("\n<<< tool call: %s out: %s\n", name, out)
+
+			if name == TransferAgentName {
+				return &Response{
+					Transfer:  true,
+					NextAgent: out,
+				}, nil
+			}
 			params.Messages.Value = append(params.Messages.Value, openai.ToolMessage(toolCall.ID, out))
 		}
 	}
-
-	// completion, err := client.Chat.Completions.New(ctx, params)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// message := completion.Choices[0].Message
-	// resp := &Response{
-	// 	Role:    string(message.Role),
-	// 	Content: message.Content,
-	// 	ToolCalls: message.ToolCalls,
-	// }
-	// for _, v := range message.ToolCalls {
-	// 	var args map[string]interface{}
-	// 	if err := json.Unmarshal([]byte(v.Function.Arguments), &args); err != nil {
-	// 		return nil, err
-	// 	}
-
-	// 	resp.ToolCalls = append(resp.ToolCalls, &ToolCall{
-	// 		ID:        v.ID,
-	// 		Name:      v.Function.Name,
-	// 		Arguments: args,
-	// 	})
-	// }
 
 	return resp, nil
 }

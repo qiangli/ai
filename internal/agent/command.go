@@ -58,9 +58,15 @@ func AgentHelp(cfg *internal.AppConfig) error {
 
 func handleAgent(cfg *internal.AppConfig, in *UserInput) error {
 	// use swarm
-	if in.Agent == "ask" ||
-		in.Agent == "script" {
-		return Run(cfg, in.Agent, in)
+	switch in.Agent {
+	case "ask":
+		return RunAskAgent(cfg, in.Agent, in)
+	case "script":
+		return RunScriptAgent(cfg, in.Agent, in)
+	case "git":
+		return RunGitAgent(cfg, in.Agent, in)
+	case "pr":
+		return RunPrAgent(cfg, in.Agent, in)
 	}
 
 	// TODO: migrate to swarm

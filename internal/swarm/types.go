@@ -1,21 +1,19 @@
 package swarm
 
 import (
+	"context"
 	"fmt"
 
+	// "github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/llm"
 )
 
-type AgentRegistry map[string]*Agent
+// type AgentRegistry map[string]*Agent
 
-var Agents = AgentRegistry{}
+// var Agents = AgentRegistry{}
 
-// type Message struct {
-// 	Role    string
-// 	Content string
-
-// 	Sender string
-// }
+type UserInput = api.Request
 
 type Message = llm.Message
 
@@ -48,18 +46,14 @@ type Vars struct {
 
 	Workspace string
 	WorkDir   string
-
-	Agent      string `json:"agent"`
-	Subcommand string `json:"subcommand"`
-	Input      string
-	Intent     string
-	Query      string
-	Files      []string `json:"files"`
-
-	Env string
+	Env       string
 
 	// per agent
 	Extra map[string]any
+
+	Models map[string]*Model
+
+	Functions map[string]*ToolFunc
 }
 
 func NewVars() *Vars {
@@ -90,27 +84,6 @@ func (r *Vars) GetString(key string) string {
 	return s
 }
 
-// type InputText *string
-
-// type OutputText *string
-
-// map[string]interface{}
-
-// type Input struct {
-// 	Name      string         `json:"name"`
-// 	Arguments map[string]any `json:"arguments"`
-
-// 	Vars Vars `json:"vars"`
-// }
-
-// type Output struct {
-// 	Output     string `json:"output"`
-// 	Error      string `json:"error"`
-// 	ExitStatus int    `json:"exit_status"`
-
-// 	Agent *Agent `json:"agent"`
-// }
-
 // Swarm Agents can call functions directly.
 // Function should usually return a string (values will be attempted to be cast as a string).
 // If a function returns an Agent, execution will be transferred to that Agent.
@@ -136,35 +109,77 @@ func (r *Vars) GetString(key string) string {
 // 	return r.Content, nil
 // }
 
-type Agent struct {
-	// The name of the agent.
-	Name string
+type Request struct {
+	Agent string
 
-	Display string
+	Message *Message
 
-	// The model to be used by the agent
-	Model *Model
+	RawInput *UserInput
 
-	// The role of the agent. default is "system"
-	Role string
-
-	// Instructions for the agent, can be a string or a callable returning a string
-	Instruction string
-
-	// A list of functions that the agent can call
-	Functions []*ToolFunc
-
-	// advices
-
-	BeforeAdvice Advice
-	AfterAdvice  Advice
-
-	AroundAdvice Advice
+	// ctx is either the client or server context. It should only
+	// be modified via copying the whole Request using Clone or WithContext.
+	// It is unexported to prevent people from using Context wrong
+	// and mutating the contexts held by callers of the same request.
+	ctx context.Context
 }
 
-type Request struct {
-	Message *Message
-	Vars    *Vars
+// Context returns the request's context. To change the context, use
+// [Request.Clone] or [Request.WithContext].
+//
+// The returned context is always non-nil; it defaults to the
+// background context.
+//
+// For outgoing client requests, the context controls cancellation.
+//
+// For incoming server requests, the context is canceled when the
+// client's connection closes, the request is canceled (with HTTP/2),
+// or when the ServeHTTP method returns.
+func (r *Request) Context() context.Context {
+	if r.ctx != nil {
+		return r.ctx
+	}
+	return context.Background()
+}
+
+// WithContext returns a shallow copy of r with its context changed
+// to ctx. The provided ctx must be non-nil.
+//
+// For outgoing client request, the context controls the entire
+// lifetime of a request and its response: obtaining a connection,
+// sending the request, and reading the response headers and body.
+//
+// To create a new request with a context, use [NewRequestWithContext].
+// To make a deep copy of a request with a new context, use [Request.Clone].
+func (r *Request) WithContext(ctx context.Context) *Request {
+	if ctx == nil {
+		panic("nil context")
+	}
+	r2 := new(Request)
+	*r2 = *r
+	r2.ctx = ctx
+	return r2
+}
+
+// Clone returns a shallow copy of r with its context changed to ctx.
+// The provided ctx must be non-nil.
+//
+// Clone only makes a shallow copy of the Body field.
+//
+// For an outgoing client request, the context controls the entire
+// lifetime of a request and its response: obtaining a connection,
+// sending the request, and reading the response headers and body.
+func (r *Request) Clone(ctx context.Context) *Request {
+	if ctx == nil {
+		panic("nil context")
+	}
+	r2 := new(Request)
+	*r2 = *r
+	r2.ctx = ctx
+	r2.Agent = r.Agent
+	r2.Message = r.Message
+	r2.RawInput = r.RawInput
+
+	return r2
 }
 
 type Response struct {
@@ -172,11 +187,11 @@ type Response struct {
 	// with a sender field indicating which Agent the message originated from.
 	Messages []*Message
 
+	Transfer  bool
+	NextAgent string
+
 	// The last agent to handle a message
 	Agent *Agent
-
-	// The same as the input variables, plus any changes.
-	Vars *Vars
 }
 
 func (r *Response) LastMessage() *Message {
@@ -184,16 +199,6 @@ func (r *Response) LastMessage() *Message {
 		return r.Messages[len(r.Messages)-1]
 	}
 	return nil
-}
-
-func (r *Response) AddExtra(key string, value any) {
-	if r.Vars == nil {
-		r.Vars = &Vars{}
-	}
-	if r.Vars.Extra == nil {
-		r.Vars.Extra = map[string]interface{}{}
-	}
-	r.Vars.Extra[key] = value
 }
 
 // Result encapsulates the possible return values for an agent function.
@@ -208,22 +213,11 @@ type Result struct {
 	Vars Vars
 }
 
-type Model struct {
-	Name string
-	// Provider string
-	BaseUrl string
-	ApiKey  string
+type Model = api.Model
+
+type Agentic interface {
+	Run(*Request, *Response) error
 }
-
-// type Text *string
-
-// type Agentic interface {
-// 	Name() string
-// 	Instruction() string
-// 	Input() string
-// 	Model() Model
-// 	ToolCalls() []ToolCall
-// }
 
 // type Descriptor interface {
 // 	Help() string
@@ -251,6 +245,10 @@ type Model struct {
 // 	Required   []string       `json:"required"`
 // }
 
-// type Function func(ctx context.Context, name string, args map[string]any) (string, error)
+type Advice func(*Vars, *Request, *Response, Advice) error
 
-type Advice func(*Request, *Response, Advice) error
+type Entrypoint func(*Vars, *Agent, *UserInput) error
+
+type AgentFunc func(string, *Vars) (*Agent, error)
+
+// type ToolConfig = internal.ToolConfig

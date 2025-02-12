@@ -51,7 +51,7 @@ func (r *printer) IsEnabled() bool {
 
 func (r *printer) Printf(format string, a ...interface{}) {
 	if r.on {
-		Fprintf(r.out, format, r.max, a...)
+		fmt.Fprintf(r.out, format, a...)
 	}
 	if r.logger != nil {
 		fmt.Fprintf(r.logger, format, a...)
@@ -60,7 +60,7 @@ func (r *printer) Printf(format string, a ...interface{}) {
 
 func (r *printer) Print(a ...interface{}) {
 	if r.on {
-		Fprint(r.out, r.max, a...)
+		fmt.Fprint(r.out, a...)
 	}
 	if r.logger != nil {
 		fmt.Fprint(r.logger, a...)
@@ -69,7 +69,7 @@ func (r *printer) Print(a ...interface{}) {
 
 func (r *printer) Println(a ...interface{}) {
 	if r.on {
-		Fprintln(r.out, r.max, a...)
+		fmt.Fprintln(r.out, a...)
 	}
 	if r.logger != nil {
 		fmt.Fprintln(r.logger, a...)

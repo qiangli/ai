@@ -15,21 +15,6 @@ var _os vos.System = &vos.VirtualSystem{}
 var _exec = _os
 var _util = _os
 
-func RunTool(ctx context.Context, agent *Agent, name string, props map[string]interface{}) (string, error) {
-	var out string
-	var err error
-
-	switch {
-	default:
-		out, err = runCommandTool(ctx, agent, name, props)
-	}
-
-	if err != nil {
-		return fmt.Sprintf("%s: %v", out, err), nil
-	}
-	return out, nil
-}
-
 func runCommandTool(ctx context.Context, agent *Agent, name string, props map[string]interface{}) (string, error) {
 	getStr := func(key string) (string, error) {
 		return getStrProp(key, props)
@@ -98,7 +83,7 @@ func runCommandTool(ctx context.Context, agent *Agent, name string, props map[st
 
 	switch name {
 	case "list_commands":
-		return ListCommandNames()
+		return listCommandNames()
 	case "man":
 		command, err := getStr("command")
 		if err != nil {
@@ -170,7 +155,7 @@ func runCommandV(commands []string) (string, error) {
 	return runCommand("command", args)
 }
 
-func ListCommandNames() (string, error) {
+func listCommandNames() (string, error) {
 	list, err := _util.ListCommands(true)
 	if err != nil {
 		return "", err
@@ -188,7 +173,7 @@ func runRestricted(ctx context.Context, agent *Agent, command string, args []str
 		return runCommand(command, args)
 	}
 
-	safe, err := EvaluateCommand(ctx, agent, command, args)
+	safe, err := evaluateCommand(ctx, agent, command, args)
 	if err != nil {
 		return "", err
 	}

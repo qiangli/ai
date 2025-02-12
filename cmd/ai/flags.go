@@ -234,18 +234,8 @@ func addFlags(cmd *cobra.Command) {
 
 	flags.String("message", "", "Specify input message. Overrides all other input methods")
 
-	//
-	flags.MarkHidden("message")
-	flags.MarkHidden("role")
-	flags.MarkHidden("role-prompt")
-	flags.MarkHidden("dry-run")
-	flags.MarkHidden("dry-run-content")
-	flags.MarkHidden("trace")
-	flags.MarkHidden("log")
-	flags.MarkHidden("interactive")
-
 	flags.Var(newOutputValue("markdown", &formatFlag), "format", "Output format, must be either raw or markdown.")
-	flags.StringVar(&outputFlag, "output", "", "Save final response to a file.")
+	flags.StringVarP(&outputFlag, "output", "o", "", "Save final response to a file.")
 
 	// agent specific flags
 	// db
@@ -257,6 +247,17 @@ func addFlags(cmd *cobra.Command) {
 
 	// doc
 	flags.VarP(newTemplateValue("", &docTemplate), "doc-template", "", "Document template file")
+
+	//
+	flags.MarkHidden("message")
+	flags.MarkHidden("role")
+	flags.MarkHidden("role-prompt")
+	flags.MarkHidden("dry-run")
+	flags.MarkHidden("dry-run-content")
+	flags.MarkHidden("trace")
+	flags.MarkHidden("log")
+	flags.MarkHidden("interactive")
+	flags.MarkHidden("no-meta-prompt")
 
 	// Bind the flags to viper using underscores
 	flags.VisitAll(func(f *pflag.Flag) {

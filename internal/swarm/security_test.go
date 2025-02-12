@@ -33,7 +33,7 @@ func TestEvaluateCommand(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		resp, err := EvaluateCommand(context.TODO(), &Agent{
+		resp, err := evaluateCommand(context.TODO(), &Agent{
 			Model: model,
 		}, test.command, test.args)
 		if err != nil {

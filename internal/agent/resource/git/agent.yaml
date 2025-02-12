@@ -1,0 +1,51 @@
+###
+user:
+  name: "me"
+  display: "👤 User"
+
+maxTurns: 32
+maxTime: 3600
+
+agents:
+  - name: "git"
+    display: "🐝 Git"
+    description: "Automate git commit message creation for clarity and consistency in version control"
+    model: L1
+    instruction:
+      content: "resource:git_sub_system_role"
+    functions:
+      - "agent_transfer"
+
+  # prompt adapted from https://github.com/Aider-AI/aider/blob/main/aider/prompts.py
+  - name: "short"
+    display: "🖊️ Git short"
+    description: "Generate concise, one-line git commit messages based on the provided diffs."
+    model: L1
+    instruction:
+      content: "resource:git_message_short"
+
+  # https://www.conventionalcommits.org/en/v1.0.0/#summary
+  - name: "conventional"
+    display: "📜 Git Conventional"
+    description: "Generate concise git commit messages based on the provided diffs using the Conventional Commits specification"
+    model: L1
+    instruction:
+      content: "resource:git_message_conventional"
+
+functions:
+  - name: "agent_transfer"
+    description: "Transfer the current task to a specific agent"
+    parameters:
+      type: "object"
+      properties:
+          agent:
+            type: "string"
+            description: "The name of the agent"
+      required:
+        - agent
+
+models:
+  - name: "L1"
+    description: "Level 1 basic model"
+    external: true
+###

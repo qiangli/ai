@@ -1,8 +1,12 @@
 package agent
 
 import (
+	"encoding/json"
+	"fmt"
 	"net"
 	"strings"
+
+	"github.com/kaptinlin/jsonrepair"
 )
 
 func isLoopback(hostport string) bool {
@@ -38,4 +42,19 @@ func baseCommand(s string) string {
 	s = strings.Trim(s, "/")
 	sa := strings.Split(s, "/")
 	return sa[len(sa)-1]
+}
+
+// tryUnmarshal tries to unmarshal the data into the v.
+// If it fails, it will try to repair the data and unmarshal it again.
+func tryUnmarshal(data string, v any) error {
+	err := json.Unmarshal([]byte(data), v)
+	if err == nil {
+		return nil
+	}
+
+	repaired, err := jsonrepair.JSONRepair(data)
+	if err != nil {
+		return fmt.Errorf("failed to repair JSON: %v", err)
+	}
+	return json.Unmarshal([]byte(repaired), v)
 }

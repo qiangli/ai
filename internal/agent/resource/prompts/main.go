@@ -10,8 +10,6 @@ import (
 	"strings"
 )
 
-// const promptsDir = "prompts"
-
 func GeneratePrompts() {
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {
@@ -71,15 +69,7 @@ func generatePrompts(dir string) {
 	fmt.Fprintln(outputFile, fmt.Sprintf(generated, strings.Join(embeds, "\n"), strings.Join(entries, "\n")))
 }
 
-// import (
-// 	"flag"
-// 	"fmt"
-
-// 	"github.com/qiangli/ai/internal/agent/resource"
-// )
-
 func main() {
-	// flag.Parse()
 	GeneratePrompts()
 	fmt.Println("Prompt resource mapping generated")
 }
