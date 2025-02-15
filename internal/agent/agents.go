@@ -18,6 +18,9 @@ const LaunchAgent = "launch"
 
 var resourceMap = resource.Prompts
 
+//go:embed resource/common.yaml
+var configCommonYaml []byte
+
 //go:embed resource/ask/agent.yaml
 var configAskAgentYaml []byte
 
@@ -72,6 +75,30 @@ func RunGptrAgent(app *internal.AppConfig, name string, input *UserInput) error 
 	return runSwarm(app, data, agent, input)
 }
 
+//go:embed resource/oh/agent.yaml
+var configOhAgentYaml []byte
+
+func RunOhAgent(app *internal.AppConfig, name string, input *UserInput) error {
+	var agent = baseCommand(input.Subcommand)
+	if agent == "" {
+		agent = name
+	}
+	data := [][]byte{configCommonYaml, configOhAgentYaml}
+	return runSwarm(app, data, agent, input)
+}
+
+//go:embed resource/aider/agent.yaml
+var configAiderAgentYaml []byte
+
+func RunAiderAgent(app *internal.AppConfig, name string, input *UserInput) error {
+	var agent = baseCommand(input.Subcommand)
+	if agent == "" {
+		agent = name
+	}
+	data := [][]byte{configCommonYaml, configAiderAgentYaml}
+	return runSwarm(app, data, agent, input)
+}
+
 func LoadAgentsConfig(data [][]byte) (*swarm.AgentsConfig, error) {
 	merged := &swarm.AgentsConfig{}
 
@@ -81,7 +108,7 @@ func LoadAgentsConfig(data [][]byte) (*swarm.AgentsConfig, error) {
 			return nil, err
 		}
 
-		if err := mergo.Merge(merged, cfg, mergo.WithOverride); err != nil {
+		if err := mergo.Merge(merged, cfg, mergo.WithAppendSlice); err != nil {
 			return nil, err
 		}
 	}

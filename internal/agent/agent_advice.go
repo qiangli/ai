@@ -14,6 +14,16 @@ import (
 
 var adviceMap = map[string]swarm.Advice{}
 
+func init() {
+	adviceMap["decode_meta_response"] = decodeMetaResponseAdvice
+	adviceMap["script_user_input"] = scriptUserInputAdvice
+	adviceMap["pr_user_input"] = prUserInputAdvice
+	adviceMap["pr_json_to_markdown"] = prFormatAdvice
+	adviceMap["resolve_workspace"] = resolveWorkspaceAdvice
+	adviceMap["aider"] = aiderAdvice
+	adviceMap["openhands"] = ohAdvice
+}
+
 type metaResponse struct {
 	Service    string `json:"service"`
 	RolePrompt string `json:"system_role_prompt"`
@@ -156,9 +166,10 @@ func prFormatAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, 
 	return nil
 }
 
-func init() {
-	adviceMap["decode_meta_response"] = decodeMetaResponseAdvice
-	adviceMap["script_user_input"] = scriptUserInputAdvice
-	adviceMap["pr_user_input"] = prUserInputAdvice
-	adviceMap["pr_json_to_markdown"] = prFormatAdvice
+func aiderAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
+	return Aider(req.Context(), vars.Models, vars.Workspace, req.RawInput.Subcommand, req.RawInput.Input())
+}
+
+func ohAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
+	return OpenHands(req.Context(), vars.Models["L2"], vars.Workspace, req.RawInput)
 }

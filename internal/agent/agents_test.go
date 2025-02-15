@@ -12,7 +12,7 @@ import (
 var agentsYaml []byte
 
 func TestLoadAgentsConfig(t *testing.T) {
-	data := [][]byte{agentsYaml}
+	data := [][]byte{configCommonYaml, agentsYaml}
 	cfg, err := LoadAgentsConfig(data)
 	if err != nil {
 		t.Errorf("Error loading agents configuration: %v", err)

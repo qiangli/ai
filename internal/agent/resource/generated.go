@@ -9,6 +9,9 @@ var agent_meta_system_role string
 //go:embed prompts/agent_sub_system_role.md
 var agent_sub_system_role string
 
+//go:embed prompts/docker_input_user_role.md
+var docker_input_user_role string
+
 //go:embed prompts/git_message_conventional.md
 var git_message_conventional string
 
@@ -75,9 +78,16 @@ var script_system_role string
 //go:embed prompts/script_user_role.md
 var script_user_role string
 
+//go:embed prompts/workspace_system_role.md
+var workspace_system_role string
+
+//go:embed prompts/workspace_user_role.md
+var workspace_user_role string
+
 var Prompts = map[string]string{
 	"agent_meta_system_role":   agent_meta_system_role,
 	"agent_sub_system_role":    agent_sub_system_role,
+	"docker_input_user_role":   docker_input_user_role,
 	"git_message_conventional": git_message_conventional,
 	"git_message_short":        git_message_short,
 	"git_sub_system_role":      git_sub_system_role,
@@ -100,4 +110,6 @@ var Prompts = map[string]string{
 	"pr_user_role":             pr_user_role,
 	"script_system_role":       script_system_role,
 	"script_user_role":         script_user_role,
+	"workspace_system_role":    workspace_system_role,
+	"workspace_user_role":      workspace_user_role,
 }

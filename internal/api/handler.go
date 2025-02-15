@@ -73,7 +73,7 @@ func (r *Request) FileContent() (string, error) {
 // Intent returns a clipped version of the query.
 // This is intended for "smart" agents to make decisions based on user inputs.
 func (r *Request) Intent() string {
-	return clipText(r.Message, 500)
+	return clipText(r.Query(), 500)
 }
 
 // clipText truncates the input text to no more than the specified maximum length.

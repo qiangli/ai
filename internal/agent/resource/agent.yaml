@@ -21,22 +21,22 @@ agents:
       - "list_agents"
       - "agent_info"
 
-  - name: "workspace"
-    description: "Determines the user's workspace based on user's input."
-    model: L1
-    instruction:
-      content: "resource:workspace_system_role"
-    functions:
-      - "list_commands"
-      - "which"
+  # - name: "workspace"
+  #   description: "Determines the user's workspace based on user's input."
+  #   model: L1
+  #   instruction:
+  #     content: "resource:workspace_system_role"
+  #   functions:
+  #     - "list_commands"
+  #     - "which"
 
-  - name: "runtime_env"
-    description: "Determines the user's environment based on user's input. either host or container"
-    model: L1
-    instruction:
-      content: "resource:docker_env_system_role"
-    functions:
-      - "list_command"
+  # - name: "runtime_env"
+  #   description: "Determines the user's environment based on user's input. either host or container"
+  #   model: L1
+  #   instruction:
+  #     content: "resource:docker_env_system_role"
+  #   functions:
+  #     - "list_command"
 
 functions:
   - name: "list_agents"

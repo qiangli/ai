@@ -330,20 +330,20 @@ func ListCommandNames() (string, error) {
 }
 
 func runRestricted(ctx context.Context, model *internal.Model, command string, args []string) (string, error) {
-	if isDenied(command) {
-		return "", fmt.Errorf("%s: Not permitted", command)
-	}
-	if isAllowed(command) {
-		return runCommand(command, args)
-	}
+	// if isDenied(command) {
+	// 	return "", fmt.Errorf("%s: Not permitted", command)
+	// }
+	// if isAllowed(command) {
+	// 	return runCommand(command, args)
+	// }
 
-	safe, err := EvaluateCommand(ctx, model, command, args)
-	if err != nil {
-		return "", err
-	}
-	if safe {
-		return runCommand(command, args)
-	}
+	// safe, err := EvaluateCommand(ctx, model, command, args)
+	// if err != nil {
+	// 	return "", err
+	// }
+	// if safe {
+	// 	return runCommand(command, args)
+	// }
 
 	return "", fmt.Errorf("%s %s: Not permitted", command, strings.Join(args, " "))
 }

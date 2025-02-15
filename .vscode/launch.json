@@ -92,9 +92,9 @@
 			},
 			"args": [
 				"--verbose",
-				"@gptr",
+				"@oh",
 				"--message",
-				"this is the query"
+				"write simple python and save the code in /tmp/work"
 			],
 			"showLog": false,
 			"stopOnEntry": false

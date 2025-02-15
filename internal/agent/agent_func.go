@@ -10,8 +10,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/qiangli/ai/internal/agent/resource"
 	"github.com/qiangli/ai/internal/api"
+	"github.com/qiangli/ai/internal/docker/aider"
 	"github.com/qiangli/ai/internal/docker/gptr"
+	"github.com/qiangli/ai/internal/docker/oh"
+	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/swarm"
 )
 
@@ -90,4 +94,126 @@ func readReport(tempDir string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("no report file generated")
+}
+
+type WSInput struct {
+	Env          string
+	HostDir      string
+	ContainerDir string
+	Input        string
+}
+
+func Aider(ctx context.Context, models map[string]*swarm.Model, workspace, sub, input string) error {
+	log.Infof("using workspace: %s\n", workspace)
+
+	if sub == "" {
+		sub = string(aider.Code)
+	}
+	if workspace == "" {
+		return fmt.Errorf("workspace is required")
+	}
+
+	// https://docs.all-hands.dev/modules/usage/how-to/headless-mode
+	hostDir := workspace
+	containerDir := aider.WorkspaceInSandbox
+	env := "container"
+
+	tpl, ok := resource.Prompts["docker_input_user_role"]
+	if !ok {
+		return fmt.Errorf("no such prompt: docker_input_user_role")
+	}
+	userContent, err := applyTemplate(tpl, &WSInput{
+		Env:          env,
+		HostDir:      hostDir,
+		ContainerDir: containerDir,
+		Input:        input,
+	})
+	if err != nil {
+		return err
+	}
+
+	// Set the workspace
+	os.Setenv("WORKSPACE_BASE", workspace)
+
+	// Calling out to OH
+	// FIXME: This is a hack
+	// better to config the base url and api key (and others) for oh
+
+	// FIXME this wont work if model providers are different
+	model := models["L1"]
+
+	u, err := url.Parse(model.BaseUrl)
+	if err != nil {
+		return fmt.Errorf("failed to parse base url: %w", err)
+	}
+
+	if isLoopback(u.Host) {
+		_, port, _ := net.SplitHostPort(u.Host)
+		u.Host = "host.docker.internal:" + port
+	}
+
+	os.Setenv("OPENAI_API_BASE", u.String())
+	os.Setenv("OPENAI_API_KEY", model.ApiKey)
+
+	os.Setenv("AIDER_WEAK_MODEL", models["L1"].Name)
+	os.Setenv("AIDER_EDITOR_MODEL", models["L2"].Name)
+	os.Setenv("AIDER_MODEL", models["L2"].Name)
+	if sub == string(aider.Architect) {
+		os.Setenv("AIDER_MODEL", models["L3"].Name)
+	}
+
+	os.Setenv("AIDER_VERBOSE", fmt.Sprintf("%v", log.IsVerbose()))
+
+	return aider.Run(ctx, aider.ChatMode(sub), userContent)
+}
+
+func OpenHands(ctx context.Context, model *swarm.Model, workspace string, in *UserInput) error {
+	log.Infof("using workspace: %s\n", workspace)
+
+	if workspace == "" {
+		return fmt.Errorf("workspace is required")
+	}
+
+	// https://docs.all-hands.dev/modules/usage/how-to/headless-mode
+	hostDir := workspace
+	containerDir := oh.WorkspaceInSandbox
+	env := "container"
+
+	tpl, ok := resource.Prompts["docker_input_user_role"]
+	if !ok {
+		return fmt.Errorf("no such prompt: docker_input_user_role")
+	}
+	userContent, err := applyTemplate(tpl, &WSInput{
+		Env:          env,
+		HostDir:      hostDir,
+		ContainerDir: containerDir,
+		Input:        in.Input(),
+	})
+	if err != nil {
+		return err
+	}
+
+	// Set the workspace
+	os.Setenv("WORKSPACE_BASE", workspace)
+	os.Setenv("WORKSPACE_MOUNT_PATH", workspace)
+	os.Setenv("WORKSPACE_MOUNT_PATH_IN_SANDBOX", oh.WorkspaceInSandbox)
+
+	// Calling out to OH
+	// FIXME: This is a hack
+	// better to config the base url and api key (and others) for oh
+	u, err := url.Parse(model.BaseUrl)
+	if err != nil {
+		return err
+	}
+
+	if isLoopback(u.Host) {
+		_, port, _ := net.SplitHostPort(u.Host)
+		u.Host = "host.docker.internal:" + port
+	}
+	os.Setenv("LLM_BASE_URL", u.String())
+	os.Setenv("LLM_API_KEY", model.ApiKey)
+	os.Setenv("LLM_MODEL", model.Name)
+	os.Setenv("DEBUG", fmt.Sprintf("%v", log.IsVerbose()))
+
+	return oh.Run(ctx, userContent)
 }
