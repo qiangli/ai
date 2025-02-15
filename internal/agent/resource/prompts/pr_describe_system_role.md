@@ -4,19 +4,19 @@ Your task is to provide a full description for the PR content - type, descriptio
 
 - Focus on the new PR code (lines starting with '+' in the 'PR Git Diff' section).
 - The generated title and description should prioritize the most significant changes.
-- Limit the number of walkthrough files to `{{.maxFiles}}` or less of the most critical files.
+- Limit the number of walkthrough files to `{{.Extra.PR.MaxFiles}}` or less of the most critical files.
 - When quoting variables, names or file paths from the code, use backticks (`) instead of single quote (').
 
 Output must conform strictly to the **PRDescription** JSON schema provided below.
 
 ======
-{{.schema}}
+{{.Extra.PR.Schema}}
 ======
 
 Example output:
 
 ======
-{{.example}}
+{{.Extra.PR.Example}}
 ======
 
 Ensure each field matches the data type and structure specified in the schema.

@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
 )
 
-const TransferAgentName = "agent_transfer"
+const transferAgentName = "agent_transfer"
 
 type Agent struct {
 	// The name of the agent.
@@ -42,18 +43,15 @@ type Agent struct {
 	//
 	MaxTurns int
 	MaxTime  int
+
+	//
+	sw *Swarm
 }
 
 func (r *Agent) Serve(req *Request, resp *Response) error {
 	log.Debugf("run agent: %s\n", r.Name)
 
 	ctx := req.Context()
-
-	if r.Entrypoint != nil {
-		if err := r.Entrypoint(r.Vars, r, req.RawInput); err != nil {
-			return err
-		}
-	}
 
 	// dependencies
 	if len(r.Dependencies) > 0 {
@@ -64,7 +62,7 @@ func (r *Agent) Serve(req *Request, resp *Response) error {
 				Message:  req.Message,
 			}
 			depResp := &Response{}
-			if err := dep.Serve(depReq, depResp); err != nil {
+			if err := r.sw.Run(depReq, depResp); err != nil {
 				return err
 			}
 			log.Debugf("run dependency: %v %+v\n", dep.Display, depResp)
@@ -102,8 +100,9 @@ func (r *Agent) Serve(req *Request, resp *Response) error {
 }
 
 func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error {
-	var history = []*Message{}
+	var history []*Message
 
+	// system role prompt as first message
 	if r.Instruction != "" {
 		role := r.Role
 		if role == "" {
@@ -115,10 +114,13 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 			Sender:  r.Name,
 		})
 	}
+	history = append(history, r.sw.History...)
+
 	if req.Message == nil {
 		req.Message = &Message{
 			Role:    RoleUser,
 			Content: req.RawInput.Input(),
+			Sender:  r.Name,
 		}
 	}
 	history = append(history, req.Message)
@@ -129,7 +131,7 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 		agentRole = RoleAssistant
 	}
 
-	runTool := func(ctx context.Context, name string, args map[string]any) (string, error) {
+	runTool := func(ctx context.Context, name string, args map[string]any) (*Result, error) {
 		log.Debugf("run tool: %s %+v\n", name, args)
 		return r.runTool(ctx, name, args)
 	}
@@ -147,37 +149,47 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 		return err
 	}
 
-	message := Message{
-		Role:    result.Role,
-		Content: result.Content,
-		Sender:  r.Name,
-	}
-	history = append(history, &message)
-
-	if resp == nil {
-		return nil
+	if !result.Transfer {
+		message := Message{
+			Role:    result.Role,
+			Content: result.Content,
+			Sender:  r.Name,
+		}
+		history = append(history, &message)
 	}
 
 	resp.Messages = history[initLen:]
+
 	resp.Agent = r
 	resp.Transfer = result.Transfer
 	resp.NextAgent = result.NextAgent
+
+	r.sw.History = history
 	return nil
 }
 
-func (r *Agent) runTool(ctx context.Context, name string, args map[string]any) (string, error) {
+func (r *Agent) runTool(ctx context.Context, name string, args map[string]any) (*Result, error) {
 	var out string
 	var err error
 
+	if fn, ok := r.Vars.FuncRegistry[name]; ok {
+		log.Debugf("run function: %s %+v\n", name, args)
+		return fn(ctx, r, name, args)
+	}
+
 	switch name {
-	case TransferAgentName:
-		out, err = transferAgent(ctx, r, name, args)
+	case transferAgentName:
+		return transferAgent(ctx, r, name, args)
 	default:
 		out, err = runCommandTool(ctx, r, name, args)
 	}
 
 	if err != nil {
-		return fmt.Sprintf("%s: %v", out, err), nil
+		return &Result{
+			Value: fmt.Sprintf("%s: %v", out, err),
+		}, nil
 	}
-	return out, nil
+	return &api.Result{
+		Value: out,
+	}, nil
 }

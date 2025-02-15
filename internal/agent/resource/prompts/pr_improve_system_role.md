@@ -35,23 +35,23 @@ __new hunk__
 
 Specific guidelines for generating code suggestions:
 
-- Provide up to `{{.maxSuggestions}}` distinct and insightful code suggestions. Return less suggestions if no pertinent ones are applicable.
+- Provide up to `{{.Extra.PR.MaxSuggestions}}` distinct and insightful code suggestions. Return less suggestions if no pertinent ones are applicable.
 - Focus solely on enhancing new code introduced in the PR, identified by '+' prefixes in '__new hunk__' sections.
 - Prioritize suggestions that address potential issues, critical problems, and bugs in the PR code. Avoid repeating changes already implemented in the PR. If no pertinent suggestions are applicable, return an empty list.
 - Don't suggest to add docs, or comments, to remove unused imports, to use specific exception types, or to change packages versions.
-- When mentioning code elements (variables, names, or files) in your response, surround them with backticks (`). For example: "verify that `user_id` is..."
+- When mentioning code elements (variables, names, or files) in your response, surround them with backtick (`). For example: "verify that `user_id` is..."
 - Remember that Pull Request reviews show only changed code segments (diff hunks), not the entire codebase. Without full context, be cautious about suggesting modifications that could duplicate existing functionality (such as error handling) or questioning variable declarations that may exist elsewhere. Keep your review focused on the visible changes, acknowledging they're part of a larger codebase.
 
 Output must conform strictly to the **PRCodeSuggestions** JSON schema provided below.
 
 ======
-{{.schema}}
+{{.Extra.PR.Schema}}
 ======
 
 Example output:
 
 ======
-{{.example}}
+{{.Extra.PR.Example}}
 ======
 
 Ensure each field matches the data type and structure specified in the schema.

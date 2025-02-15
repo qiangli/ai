@@ -3,6 +3,8 @@ package swarm
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/qiangli/ai/internal/log"
@@ -14,6 +16,7 @@ type Swarm struct {
 	Stream  bool
 
 	//
+	Config *AgentsConfig
 	Create AgentFunc
 
 	//
@@ -26,16 +29,50 @@ func NewSwarm(config *AgentsConfig) *Swarm {
 		Vars:    NewVars(),
 		History: []*Message{},
 		Stream:  true,
+		Config:  config,
 		Create:  AgentCreator(config),
 	}
 }
 
 func (r *Swarm) Run(req *Request, resp *Response) error {
+	resourceMap := r.Config.ResourceMap
+
+	// "resource:" prefix is used to refer to a resource
+	// "vars:" prefix is used to refer to a variable
+	apply := func(s string, vars *Vars) (string, error) {
+		if strings.HasPrefix(s, "resource:") {
+			v, ok := resourceMap[s[9:]]
+			if !ok {
+				return "", fmt.Errorf("no such resource: %s", s[9:])
+			}
+			return applyTemplate(v, vars, r.Config.TemplateFuncMap)
+		}
+		if strings.HasPrefix(s, "vars:") {
+			v := vars.GetString(s[5:])
+			return v, nil
+		}
+		return s, nil
+	}
+
 	for {
 		agent, err := r.Create(req.Agent, r.Vars)
 		if err != nil {
 			return err
 		}
+		agent.sw = r
+
+		if agent.Entrypoint != nil {
+			if err := agent.Entrypoint(r.Vars, agent, req.RawInput); err != nil {
+				return err
+			}
+		}
+
+		// update the request instruction
+		content, err := apply(agent.Instruction, r.Vars)
+		if err != nil {
+			return err
+		}
+		agent.Instruction = content
 
 		timeout := TimeoutHandler(agent, time.Duration(agent.MaxTime)*time.Second, "timed out")
 		maxlog := MaxLogHandler(500)

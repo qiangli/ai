@@ -42,13 +42,13 @@ __new hunk__
 Output must conform strictly to the **PRReview** JSON schema provided below.
 
 ======
-{{.schema}}
+{{.Extra.PR.Schema}}
 ======
 
 Example output:
 
 ======
-{{.example}}
+{{.Extra.PR.Example}}
 ======
 
 Ensure each field matches the data type and structure specified in the schema.

@@ -124,7 +124,7 @@ type Action struct {
 
 type Sandbox interface {
 	// Run executes the action in the sandbox and returns the result.
-	Run(action Action) Result
+	// Run(action Action) Result
 }
 
 // built-in agents

@@ -15,7 +15,7 @@ var _os vos.System = &vos.VirtualSystem{}
 var _exec = _os
 var _util = _os
 
-func runCommandTool(ctx context.Context, agent *Agent, name string, props map[string]interface{}) (string, error) {
+func runCommandTool(ctx context.Context, agent *Agent, name string, props map[string]any) (string, error) {
 	getStr := func(key string) (string, error) {
 		return getStrProp(key, props)
 	}
@@ -186,7 +186,7 @@ func runRestricted(ctx context.Context, agent *Agent, command string, args []str
 
 // if required properties is not missing and is an array of strings
 // check if the required properties are present
-func isRequired(key string, props map[string]interface{}) bool {
+func isRequired(key string, props map[string]any) bool {
 	val, ok := props["required"]
 	if !ok {
 		return false
@@ -203,7 +203,7 @@ func isRequired(key string, props map[string]interface{}) bool {
 	return false
 }
 
-func getStrProp(key string, props map[string]interface{}) (string, error) {
+func getStrProp(key string, props map[string]any) (string, error) {
 	val, ok := props[key]
 	if !ok {
 		if isRequired(key, props) {
@@ -218,7 +218,7 @@ func getStrProp(key string, props map[string]interface{}) (string, error) {
 	return str, nil
 }
 
-func getArrayProp(key string, props map[string]interface{}) ([]string, error) {
+func getArrayProp(key string, props map[string]any) ([]string, error) {
 	val, ok := props[key]
 	if !ok {
 		if isRequired(key, props) {
@@ -226,7 +226,7 @@ func getArrayProp(key string, props map[string]interface{}) ([]string, error) {
 		}
 		return []string{}, nil
 	}
-	items, ok := val.([]interface{})
+	items, ok := val.([]any)
 	if ok {
 		strs := make([]string, len(items))
 		for i, v := range items {

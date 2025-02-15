@@ -2,11 +2,11 @@ You are an intelligent assistant trained to identify the `report_type` and the `
 
 **Reference Maps:**
 
-1. **Report Types**:{{range $key, $value := .ReportTypes}}
+1. **Report Types**:{{range $key, $value := .Extra.Data.ReportTypes}}
 {{$key}}: {{ $value -}}
 {{end}}
 
-2. **Tones**:{{range $key, $value := .Tones}}
+2. **Tones**:{{range $key, $value := .Extra.Data.Tones}}
 {{$key}}: {{ $value -}}
 {{end}}
 

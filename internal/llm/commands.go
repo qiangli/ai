@@ -165,12 +165,12 @@ func RunTool(cfg *internal.ToolConfig, ctx context.Context, name string, props m
 		out, err = runAIHelpTool(cfg, ctx, name, props)
 	case strings.HasPrefix(name, "db_"):
 		out, err = runDbTool(cfg, ctx, name, props)
-	// case strings.HasPrefix(name, "pr_"):
-	// 	out, err = runPrTool(cfg, ctx, name, props)
-	case strings.HasPrefix(name, "gptr_"):
-		out, err = runGptrTool(cfg, ctx, name, props)
-	default:
-		out, err = runCommandTool(cfg, ctx, name, props)
+		// case strings.HasPrefix(name, "pr_"):
+		// 	out, err = runPrTool(cfg, ctx, name, props)
+		// case strings.HasPrefix(name, "gptr_"):
+		// 	out, err = runGptrTool(cfg, ctx, name, props)
+		// default:
+		// 	out, err = runCommandTool(cfg, ctx, name, props)
 	}
 
 	if err != nil {

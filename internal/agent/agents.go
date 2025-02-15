@@ -60,6 +60,18 @@ func RunPrAgent(app *internal.AppConfig, name string, input *UserInput) error {
 	return runSwarm(app, data, agent, input)
 }
 
+//go:embed resource/gptr/agent.yaml
+var configGptrAgentYaml []byte
+
+func RunGptrAgent(app *internal.AppConfig, name string, input *UserInput) error {
+	var agent = baseCommand(input.Subcommand)
+	if agent == "" {
+		agent = name
+	}
+	data := [][]byte{configGptrAgentYaml}
+	return runSwarm(app, data, agent, input)
+}
+
 func LoadAgentsConfig(data [][]byte) (*swarm.AgentsConfig, error) {
 	merged := &swarm.AgentsConfig{}
 
@@ -130,6 +142,10 @@ func runSwarm(app *internal.AppConfig, data [][]byte, starter string, input *Use
 	if err != nil {
 		return err
 	}
+
+	sw.Vars.Input = input
+
+	//
 	sw.Vars.Arch = sysInfo.Arch
 	sw.Vars.OS = sysInfo.OS
 	sw.Vars.ShellInfo = sysInfo.ShellInfo
@@ -139,6 +155,7 @@ func runSwarm(app *internal.AppConfig, data [][]byte, starter string, input *Use
 	//
 	sw.Vars.Models = modelMap
 	sw.Vars.Functions = functionMap
+	sw.Vars.FuncRegistry = funcRegistry
 
 	resp := &swarm.Response{}
 	if err := sw.Run(&swarm.Request{

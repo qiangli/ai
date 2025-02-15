@@ -2,12 +2,17 @@ package swarm
 
 import (
 	"context"
+
+	"github.com/qiangli/ai/internal/api"
 )
 
-func transferAgent(ctx context.Context, _ *Agent, name string, props map[string]any) (string, error) {
+func transferAgent(ctx context.Context, agent *Agent, name string, props map[string]any) (*Result, error) {
 	transferTo, err := getStrProp("agent", props)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return transferTo, nil
+	return &api.Result{
+		NextAgent: transferTo,
+		State:     api.StateTransfer,
+	}, nil
 }

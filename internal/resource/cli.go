@@ -42,13 +42,3 @@ func GetCliConfigUser(input string) (string, error) {
 func GetCliAgentDetectSystem() string {
 	return cliAgentDetectSystem
 }
-
-//go:embed cli/gptr_report_system.md
-var cliGptrReportSystem string
-
-func GetCliGptrReportSystem(reportTypes, tones map[string]string) (string, error) {
-	return apply(cliGptrReportSystem, map[string]any{
-		"ReportTypes": reportTypes,
-		"Tones":       tones,
-	})
-}

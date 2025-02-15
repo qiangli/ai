@@ -10,12 +10,13 @@ import (
 	"github.com/openai/openai-go/option"
 
 	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
 )
 
 // https://github.com/openai/openai-go/tree/main/examples
 
-const TransferAgentName = "agent_transfer"
+// const TransferAgentName = "agent_transfer"
 
 func NewClient(apiKey, baseUrl string) *openai.Client {
 	client := openai.NewClient(
@@ -204,7 +205,7 @@ type Request struct {
 	Messages []*Message
 
 	MaxTurns int
-	RunTool  func(ctx context.Context, name string, props map[string]any) (string, error)
+	RunTool  func(ctx context.Context, name string, props map[string]any) (*api.Result, error)
 
 	Tools []*ToolFunc
 }
@@ -285,7 +286,7 @@ func Call(ctx context.Context, req *Request) (*Response, error) {
 
 			log.Debugf("\n\n>>> tool call: %s props: %+v\n", name, props)
 
-			// TODO: return struct response
+			//
 			out, err := req.RunTool(ctx, name, props)
 			if err != nil {
 				return nil, err
@@ -293,13 +294,18 @@ func Call(ctx context.Context, req *Request) (*Response, error) {
 
 			log.Debugf("\n<<< tool call: %s out: %s\n", name, out)
 
-			if name == TransferAgentName {
+			if out.State == api.StateExit {
 				return &Response{
-					Transfer:  true,
-					NextAgent: out,
+					Content: out.Value,
 				}, nil
 			}
-			params.Messages.Value = append(params.Messages.Value, openai.ToolMessage(toolCall.ID, out))
+			if out.State == api.StateTransfer {
+				return &Response{
+					Transfer:  true,
+					NextAgent: out.NextAgent,
+				}, nil
+			}
+			params.Messages.Value = append(params.Messages.Value, openai.ToolMessage(toolCall.ID, out.Value))
 		}
 	}
 

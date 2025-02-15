@@ -49,11 +49,14 @@ type Vars struct {
 	Env       string
 
 	// per agent
+	Input *UserInput
+
 	Extra map[string]any
 
 	Models map[string]*Model
 
-	Functions map[string]*ToolFunc
+	Functions    map[string]*ToolFunc
+	FuncRegistry map[string]Function
 }
 
 func NewVars() *Vars {
@@ -94,6 +97,8 @@ func (r *Vars) GetString(key string) string {
 // 	Description string
 // 	Parameters  map[string]any
 // }
+
+type Function = func(context.Context, *Agent, string, map[string]any) (*Result, error)
 
 // // Agent instructions are directly converted into the system prompt of a conversation.
 // // The instructions can either be a regular string, or a function that returns a string.
@@ -202,16 +207,31 @@ func (r *Response) LastMessage() *Message {
 }
 
 // Result encapsulates the possible return values for an agent function.
-type Result struct {
-	// The result value as a string
-	Value string
+// type Result struct {
+// 	// The result value as a string
+// 	Value string
 
-	// The agent instance, if applicable
-	Agent *Agent
+// 	// The current agent instance, if applicable
+// 	Agent *Agent
 
-	// A dictionary of context variables
-	Vars Vars
-}
+// 	// The agent name to transfer to for StateTransfer
+// 	NextAgent string
+
+// 	State State
+// }
+
+type State = api.State
+type Result = api.Result
+
+// type State int
+
+// const (
+// 	StateUnknown State = iota
+
+// 	StateExit
+// 	StateTransfer
+// 	StateInputWait
+// )
 
 type Model = api.Model
 

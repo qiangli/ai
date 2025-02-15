@@ -2,7 +2,6 @@ package swarm
 
 import (
 	"fmt"
-	"strings"
 	"text/template"
 )
 
@@ -76,25 +75,7 @@ type AdviceConfig struct {
 }
 
 func AgentCreator(config *AgentsConfig) AgentFunc {
-	resourceMap := config.ResourceMap
 	adviceMap := config.AdviceMap
-
-	// "resource:" prefix is used to refer to a resource
-	// "vars:" prefix is used to refer to a variable
-	apply := func(s string, vars *Vars) (string, error) {
-		if strings.HasPrefix(s, "resource:") {
-			v, ok := resourceMap[s[9:]]
-			if !ok {
-				return "", fmt.Errorf("no such resource: %s", s[9:])
-			}
-			return applyTemplate(v, vars, config.TemplateFuncMap)
-		}
-		if strings.HasPrefix(s, "vars:") {
-			v := vars.GetString(s[5:])
-			return v, nil
-		}
-		return s, nil
-	}
 
 	getAgentConfig := func(name string) (*AgentConfig, error) {
 		for _, a := range config.Agents {
@@ -106,14 +87,22 @@ func AgentCreator(config *AgentsConfig) AgentFunc {
 	}
 
 	newAgent := func(ac *AgentConfig, vars *Vars) (*Agent, error) {
+		agent := Agent{
+			Name:        ac.Name,
+			Display:     ac.Display,
+			Role:        ac.Instruction.Role,
+			Instruction: ac.Instruction.Content,
+			Vars:        vars,
+			MaxTurns:    config.MaxTurns,
+			MaxTime:     config.MaxTime,
+		}
+
 		model, ok := vars.Models[ac.Model]
 		if !ok {
 			return nil, fmt.Errorf("no such model: %s", ac.Model)
 		}
-		content, err := apply(ac.Instruction.Content, vars)
-		if err != nil {
-			return nil, err
-		}
+		agent.Model = model
+
 		functions := []*ToolFunc{}
 		for _, f := range ac.Functions {
 			fn, ok := vars.Functions[f]
@@ -122,17 +111,8 @@ func AgentCreator(config *AgentsConfig) AgentFunc {
 			}
 			functions = append(functions, fn)
 		}
-		agent := Agent{
-			Name:        ac.Name,
-			Display:     ac.Display,
-			Model:       model,
-			Role:        ac.Instruction.Role,
-			Instruction: content,
-			Functions:   functions,
-			Vars:        vars,
-			MaxTurns:    config.MaxTurns,
-			MaxTime:     config.MaxTime,
-		}
+		agent.Functions = functions
+
 		if ac.Advices.Before != "" {
 			if ad, ok := adviceMap[ac.Advices.Before]; ok {
 				agent.BeforeAdvice = ad
@@ -190,6 +170,7 @@ func AgentCreator(config *AgentsConfig) AgentFunc {
 			return nil, err
 		}
 		agent.Dependencies = deps
+
 		return agent, nil
 	}
 }

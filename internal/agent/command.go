@@ -67,6 +67,10 @@ func handleAgent(cfg *internal.AppConfig, in *UserInput) error {
 		return RunGitAgent(cfg, in.Agent, in)
 	case "pr":
 		return RunPrAgent(cfg, in.Agent, in)
+	case "gptr":
+		return RunGptrAgent(cfg, in.Agent, in)
+	case "seek":
+		return RunGptrAgent(cfg, "gptr", in)
 	}
 
 	// TODO: migrate to swarm

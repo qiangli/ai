@@ -19,6 +19,8 @@ agents:
   - name: "describe"
     description: "Automatically generating PR description - title, type, summary, code walkthrough and labels"
     model: L1
+    instruction:
+      content: "resource:pr_describe_system_role"
     entrypoint: pr_system_role_prompt
     advices:
       before: "pr_user_input"
@@ -27,6 +29,8 @@ agents:
   - name: "review"
     description: "Adjustable feedback about the PR, possible issues, security concerns, review effort and more"
     model: L1
+    instruction:
+      content: "resource:pr_review_system_role"
     entrypoint: pr_system_role_prompt
     advices:
       before: "pr_user_input"
@@ -35,6 +39,8 @@ agents:
   - name: "improve"
     description: "Code suggestions for improving the PR"
     model: L1
+    instruction:
+      content: "resource:pr_improve_system_role"
     entrypoint: pr_system_role_prompt
     advices:
       before: "pr_user_input"
@@ -43,6 +49,8 @@ agents:
   - name: "changelog"
     description: "Automatically updating the CHANGELOG.md file with the PR changes"
     model: L1
+    instruction:
+      content: "resource:pr_changelog_system_role"
     entrypoint: pr_system_role_prompt
     advices:
       before: "pr_user_input"

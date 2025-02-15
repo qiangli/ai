@@ -1,0 +1,46 @@
+###
+user:
+  name: "me"
+  display: "👤 User"
+
+maxTurns: 32
+maxTime: 3600
+
+agents:
+  - name: "gptr"
+    display: "🔍 Researcher"
+    description: "Digital exploration tool delivering accurate, relevant insights from diverse online sources."
+    model: L1
+    instruction:
+      content: "resource:gptr_sub_system_role"
+    entrypoint: gptr_system_role_prompt
+    functions:
+      - "gptr_generate_report"
+
+functions:
+  - name: "gptr_generate_report"
+    description: "Produce detailed, factual, and unbiased research reports with citations"
+    parameters:
+      type: "object"
+      properties:
+          report_type:
+            type: "string"
+            description: "The type of report to generate. e.g. 'market analysis', 'competitor analysis', etc."
+          tone:
+            type: "string"
+            description: "The tone of the report. e.g. 'formal', 'informal', 'persuasive', etc."
+      required:
+        - report_type
+        - tone
+
+models:
+  - name: "L1"
+    description: "Level 1 basic model"
+    external: true
+  - name: "L2"
+    description: "Level 2 regular model"
+    external: true
+  - name: "L3"
+    description: "Level 3 advanced model"
+    external: true
+###

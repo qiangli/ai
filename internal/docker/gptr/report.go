@@ -37,10 +37,21 @@ var Tones = map[string]string{
 	"pessimistic": "Focusing on challenges",
 }
 
-func GenerateReport(ctx context.Context, sub, query string, out string) error {
-	reportType, tone := splitSub(sub)
+type ReportArgs struct {
+	ReportType string `json:"report_type"`
+	Tone       string `json:"tone"`
+}
 
-	query = strings.TrimSpace(query)
+func GenerateReport(ctx context.Context, reportType, tone, input string, out string) error {
+	if len(reportType) == 0 {
+		reportType = "research_report"
+	}
+
+	if len(tone) == 0 {
+		tone = "objective"
+	}
+
+	query := strings.TrimSpace(input)
 	if len(query) == 0 {
 		return fmt.Errorf("query is required")
 	}
@@ -57,7 +68,15 @@ func GenerateReport(ctx context.Context, sub, query string, out string) error {
 	return nil
 }
 
-func splitSub(s string) (string, string) {
+func ToReportArgs(sub string) *ReportArgs {
+	reportType, tone := SplitSub(sub)
+	return &ReportArgs{
+		ReportType: reportType,
+		Tone:       tone,
+	}
+}
+
+func SplitSub(s string) (string, string) {
 	var reportType string
 	var tone string
 

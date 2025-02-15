@@ -79,7 +79,7 @@
 			"stopOnEntry": false
 		},
 		{
-			"name": "PR",
+			"name": "Agent",
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
@@ -92,9 +92,9 @@
 			},
 			"args": [
 				"--verbose",
-				"@pr",
+				"@gptr",
 				"--message",
-				"this is the changes"
+				"this is the query"
 			],
 			"showLog": false,
 			"stopOnEntry": false

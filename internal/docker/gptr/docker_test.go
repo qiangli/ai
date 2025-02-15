@@ -11,17 +11,18 @@ func TestGenerateReport(t *testing.T) {
 	}
 
 	tests := []struct {
-		name  string
-		sub   string
-		query string
-		out   string
+		name       string
+		reportType string
+		tone       string
+		query      string
+		out        string
 	}{
-		{"Test", "/detailed_report/humorous", "Renewable energy sources and their potential", "/tmp/gptr"},
+		{"Test", "detailed_report", "humorous", "Renewable energy sources and their potential", "/tmp/gptr"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			err := GenerateReport(ctx, tt.sub, tt.query, tt.out)
+			err := GenerateReport(ctx, tt.reportType, tt.tone, tt.query, tt.out)
 			if err != nil {
 				t.Errorf("GenerateReport error = %v", err)
 				return

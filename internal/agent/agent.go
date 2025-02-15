@@ -24,12 +24,8 @@ type ChatMessage = api.Response
 func MakeAgent(name string, cfg *internal.AppConfig) (Agent, error) {
 
 	switch name {
-	case "seek":
-		return NewGptrAgent(cfg)
 	case "sql":
 		return NewSqlAgent(cfg)
-	case "gptr":
-		return NewGptrAgent(cfg)
 	case "oh":
 		return NewOhAgent(cfg)
 	case "code":
@@ -99,9 +95,9 @@ func HandleCommand(cfg *internal.AppConfig) error {
 
 			na := strings.SplitN(name, "/", 2)
 			agent := na[0]
-			if !hasAgent(agent) {
-				return internal.NewUserInputError("no such agent: " + agent)
-			}
+			// if !hasAgent(agent) {
+			// 	return internal.NewUserInputError("no such agent: " + agent)
+			// }
 			in, err := GetUserInput(cfg)
 			if err != nil {
 				return err
