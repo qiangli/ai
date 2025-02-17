@@ -219,6 +219,7 @@ func runSwarm(app *internal.AppConfig, data [][]byte, starter string, input *Use
 			}
 		} else {
 			modelMap[m.Name] = &api.Model{
+				Type:    api.ModelType(m.Type),
 				Name:    m.Model,
 				BaseUrl: m.BaseUrl,
 				ApiKey:  m.ApiKey,
@@ -244,6 +245,8 @@ func runSwarm(app *internal.AppConfig, data [][]byte, starter string, input *Use
 
 	//
 	sw.Vars.Input = input
+	sw.Vars.Role = app.Role
+	sw.Vars.Prompt = app.Prompt
 
 	if app.Db != nil {
 		sw.Vars.DBCred = &swarm.DBCred{
@@ -285,11 +288,12 @@ func runSwarm(app *internal.AppConfig, data [][]byte, starter string, input *Use
 
 	results := resp.Messages
 	for _, v := range results {
-		processContent(app, &api.Response{
+		m := &api.Response{
 			Agent:       name,
-			ContentType: api.ContentTypeText,
+			ContentType: v.ContentType,
 			Content:     v.Content,
-		})
+		}
+		processContent(app, m)
 	}
 
 	log.Debugf("Agent task completed: %s %v\n", app.Command, app.Args)

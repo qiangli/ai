@@ -43,6 +43,7 @@ models:
     description: "Level 3 advanced model"
     external: true
   - name: "Image"
+    type: "image"
     description: "Image model"
     external: true
 ###

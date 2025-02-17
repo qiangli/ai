@@ -9,18 +9,7 @@ import (
 	"github.com/openai/openai-go"
 )
 
-type RequestType int
-
-const (
-	RequestText RequestType = iota
-	RequestImage
-	// RequestSound
-	// RequestVision
-)
-
 type Request struct {
-	Type RequestType `json:"type"`
-
 	Agent      string `json:"agent"`
 	Subcommand string `json:"subcommand"`
 

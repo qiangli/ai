@@ -68,8 +68,6 @@ type Tool openai.ChatCompletionToolParam
 type Tools []openai.ChatCompletionToolParam
 
 type LLMConfig struct {
-	// Workspace string
-
 	Model   string
 	BaseUrl string
 	ApiKey  string
@@ -116,10 +114,6 @@ func (cfg *LLMConfig) Clone() *LLMConfig {
 
 type GitConfig struct {
 }
-
-// type SQLConfig struct {
-// 	DBConfig *DBConfig `mapstructure:"db"`
-// }
 
 type DBConfig struct {
 	Host     string `mapstructure:"host"`
@@ -181,6 +175,7 @@ func Level3(cfg *LLMConfig) *Model {
 
 func ImageModel(cfg *LLMConfig) *Model {
 	model := &Model{
+		Type:    api.ModelTypeImage,
 		Name:    cfg.ImageModel,
 		BaseUrl: cfg.BaseUrl,
 		ApiKey:  cfg.ApiKey,
@@ -198,6 +193,7 @@ func ImageModel(cfg *LLMConfig) *Model {
 // CreateModel creates a model with the given configuration and optional level
 func CreateModel(cfg *LLMConfig, opt ...Level) *Model {
 	model := &Model{
+		Type:    api.ModelTypeText,
 		Name:    cfg.Model,
 		BaseUrl: cfg.BaseUrl,
 		ApiKey:  cfg.ApiKey,
@@ -246,10 +242,3 @@ func CreateModel(cfg *LLMConfig, opt ...Level) *Model {
 
 	return model
 }
-
-// type ToolConfig struct {
-// 	Model    *Model
-// 	DBConfig *DBConfig
-
-// 	Next api.Action
-// }

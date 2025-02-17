@@ -1,13 +1,5 @@
 package api
 
-import (
-	"context"
-)
-
-type LLM interface {
-	Call(ctx context.Context, req *Request) (*Response, error)
-}
-
 type Result struct {
 	// The result value as a string
 	Value string

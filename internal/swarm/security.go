@@ -54,7 +54,7 @@ func evaluateCommand(ctx context.Context, agent *Agent, command string, args []s
 
 	log.Debugf("evaluateCommand:\n%s %v\n", command, args)
 
-	resp, err := llm.Call(ctx, req)
+	resp, err := llm.Send(ctx, req)
 	if err != nil {
 		return false, err
 	}

@@ -60,6 +60,7 @@ type FunctionConfig struct {
 
 type ModelConfig struct {
 	Name        string `yaml:"name"`
+	Type        string `yaml:"type"`
 	Description string `yaml:"description"`
 	Model       string `yaml:"model"`
 	BaseUrl     string `yaml:"baseUrl"`
@@ -94,6 +95,13 @@ func AgentCreator(config *AgentsConfig) AgentFunc {
 			Vars:        vars,
 			MaxTurns:    config.MaxTurns,
 			MaxTime:     config.MaxTime,
+		}
+		// override from command line flags
+		if vars.Role != "" {
+			agent.Role = vars.Role
+		}
+		if vars.Prompt != "" {
+			agent.Instruction = vars.Prompt
 		}
 
 		model, ok := vars.Models[ac.Model]

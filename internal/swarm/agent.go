@@ -136,14 +136,15 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 		return r.runTool(ctx, name, args)
 	}
 
-	result, err := llm.Call(ctx, &llm.Request{
-		BaseUrl:  r.Model.BaseUrl,
-		ApiKey:   r.Model.ApiKey,
-		Model:    r.Model.Name,
-		Messages: history,
-		MaxTurns: r.MaxTurns,
-		RunTool:  runTool,
-		Tools:    r.Functions,
+	result, err := llm.Send(ctx, &llm.Request{
+		ModelType: r.Model.Type,
+		BaseUrl:   r.Model.BaseUrl,
+		ApiKey:    r.Model.ApiKey,
+		Model:     r.Model.Name,
+		Messages:  history,
+		MaxTurns:  r.MaxTurns,
+		RunTool:   runTool,
+		Tools:     r.Functions,
 	})
 	if err != nil {
 		return err
@@ -151,9 +152,10 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 
 	if !result.Transfer {
 		message := Message{
-			Role:    result.Role,
-			Content: result.Content,
-			Sender:  r.Name,
+			ContentType: result.ContentType,
+			Role:        result.Role,
+			Content:     result.Content,
+			Sender:      r.Name,
 		}
 		history = append(history, &message)
 	}

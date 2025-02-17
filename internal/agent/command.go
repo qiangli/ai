@@ -175,12 +175,6 @@ func processTextContent(cfg *internal.AppConfig, message *ChatMessage) {
 }
 
 func processImageContent(cfg *internal.AppConfig, message *ChatMessage) {
-	// b, err := base64.StdEncoding.DecodeString(message.Content)
-	// if err != nil {
-	// 	log.Errorf("failed to decode image content: %v\n", err)
-	// 	return
-	// }
-
 	var imageFile string
 	if cfg.Output != "" {
 		imageFile = cfg.Output
