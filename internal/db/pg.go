@@ -8,7 +8,7 @@ import (
 
 	_ "github.com/lib/pq"
 
-	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/api"
 )
 
 type Queryable interface {
@@ -102,11 +102,11 @@ func RetrieveDatabases(ctx context.Context, q Queryable) ([]*PGDatabase, error) 
 	return results, nil
 }
 
-func Connect(db *internal.DBConfig) (*sql.DB, error) {
+func Connect(db *api.DBCred) (*sql.DB, error) {
 	return sql.Open("postgres", db.DSN())
 }
 
-func Ping(db *internal.DBConfig) error {
+func Ping(db *api.DBCred) error {
 	pg, err := Connect(db)
 	if err != nil {
 		return err
@@ -119,7 +119,7 @@ func RunSelectQuery(ctx context.Context, q Queryable, query string) (*sql.Rows, 
 	return q.QueryContext(ctx, query)
 }
 
-func RunQuery(cfg *internal.DBConfig, ctx context.Context, query string) (string, error) {
+func RunQuery(cfg *api.DBCred, ctx context.Context, query string) (string, error) {
 	pg, err := Connect(cfg)
 	if err != nil {
 		return "", err

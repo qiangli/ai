@@ -29,6 +29,9 @@ type AppConfig struct {
 
 	LLM *LLMConfig
 
+	Git *GitConfig
+	Db  *DBConfig
+
 	Role   string
 	Prompt string
 
@@ -56,6 +59,8 @@ type AppConfig struct {
 
 	//
 	Template string
+
+	Workspace string
 }
 
 type Tool openai.ChatCompletionToolParam
@@ -63,7 +68,7 @@ type Tool openai.ChatCompletionToolParam
 type Tools []openai.ChatCompletionToolParam
 
 type LLMConfig struct {
-	Workspace string
+	// Workspace string
 
 	Model   string
 	BaseUrl string
@@ -93,11 +98,6 @@ type LLMConfig struct {
 	Interactive bool
 
 	MetaPrompt bool
-
-	//
-	Git *GitConfig
-
-	Sql *SQLConfig
 }
 
 func (cfg *LLMConfig) Clone() *LLMConfig {
@@ -109,13 +109,7 @@ func (cfg *LLMConfig) Clone() *LLMConfig {
 		WorkDir:     cfg.WorkDir,
 		Interactive: cfg.Interactive,
 		MetaPrompt:  cfg.MetaPrompt,
-		Sql:         nil,
-		Git:         nil,
 	}
-
-	// shallow copy
-	n.Sql = cfg.Sql
-	n.Git = cfg.Git
 
 	return n
 }
@@ -123,9 +117,9 @@ func (cfg *LLMConfig) Clone() *LLMConfig {
 type GitConfig struct {
 }
 
-type SQLConfig struct {
-	DBConfig *DBConfig `mapstructure:"db"`
-}
+// type SQLConfig struct {
+// 	DBConfig *DBConfig `mapstructure:"db"`
+// }
 
 type DBConfig struct {
 	Host     string `mapstructure:"host"`

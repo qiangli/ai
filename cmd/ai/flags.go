@@ -304,7 +304,7 @@ func getConfig(cmd *cobra.Command, args []string) *internal.AppConfig {
 	//
 	app.Template = docTemplate
 
-	cfg.Workspace = viper.GetString("workspace")
+	app.Workspace = viper.GetString("workspace")
 
 	//
 	cfg.ApiKey = viper.GetString("api_key")
@@ -441,13 +441,10 @@ func getConfig(cmd *cobra.Command, args []string) *internal.AppConfig {
 	dbCfg.Username = viper.GetString("sql.db_username")
 	dbCfg.Password = viper.GetString("sql.db_password")
 	dbCfg.DBName = viper.GetString("sql.db_name")
-	cfg.Sql = &internal.SQLConfig{
-		DBConfig: dbCfg,
-	}
-
+	app.Db = dbCfg
 	//
 	gitConfig := &internal.GitConfig{}
-	cfg.Git = gitConfig
+	app.Git = gitConfig
 
 	return &app
 }

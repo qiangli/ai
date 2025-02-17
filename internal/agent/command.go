@@ -75,6 +75,8 @@ func handleAgent(cfg *internal.AppConfig, in *UserInput) error {
 		return RunAiderAgent(cfg, in.Agent, in)
 	case "oh":
 		return RunOhAgent(cfg, in.Agent, in)
+	case "sql":
+		return RunSqlAgent(cfg, in.Agent, in)
 	}
 
 	// TODO: migrate to swarm

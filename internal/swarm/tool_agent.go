@@ -7,7 +7,7 @@ import (
 )
 
 func transferAgent(ctx context.Context, agent *Agent, name string, props map[string]any) (*Result, error) {
-	transferTo, err := getStrProp("agent", props)
+	transferTo, err := GetStrProp("agent", props)
 	if err != nil {
 		return nil, err
 	}

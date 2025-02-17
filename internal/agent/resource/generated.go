@@ -78,6 +78,9 @@ var script_system_role string
 //go:embed prompts/script_user_role.md
 var script_user_role string
 
+//go:embed prompts/sql_system_role.md
+var sql_system_role string
+
 //go:embed prompts/workspace_system_role.md
 var workspace_system_role string
 
@@ -110,6 +113,7 @@ var Prompts = map[string]string{
 	"pr_user_role":             pr_user_role,
 	"script_system_role":       script_system_role,
 	"script_user_role":         script_user_role,
+	"sql_system_role":          sql_system_role,
 	"workspace_system_role":    workspace_system_role,
 	"workspace_user_role":      workspace_user_role,
 }

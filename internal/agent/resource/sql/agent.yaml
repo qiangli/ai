@@ -1,0 +1,86 @@
+###
+user:
+  name: "me"
+  display: "👤 User"
+
+maxTurns: 32
+maxTime: 3600
+
+agents:
+  - name: "sql"
+    display: "📊 SQL"
+    description: "Streamline SQL query generation, helping users derive insights without SQL expertise."
+    model: L1
+    instruction:
+      content: "resource:sql_system_role"
+    entrypoint: "sql_entry"
+    functions:
+      - "db_query"
+      - "db_version"
+      - "db_all_databases"
+      - "db_all_tables"
+      - "db_all_views"
+      - "db_all_sequences"
+      - "db_all_columns"
+
+functions:
+  - name: "db_query"
+    description: "Run query against the database"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "SELECT SQL query to run"
+      required:
+        - query
+    type: "internal"
+    labels: []
+
+  - name: "db_version"
+    description: "Gather database version information"
+    type: "internal"
+    labels: []
+
+  - name: "db_all_databases"
+    description: "List all available databases"
+    type: "internal"
+    labels: []
+
+  - name: "db_all_tables"
+    description: "List all tables in the database"
+    type: "internal"
+    labels: []
+
+  - name: "db_all_views"
+    description: "List all views in the database"
+    type: "internal"
+    labels: []
+
+  - name: "db_all_sequences"
+    description: "List all sequences in the database"
+    type: "internal"
+    labels: []
+
+  - name: "db_all_columns"
+    description: "List all columns in a table"
+    parameters:
+      type: "object"
+      properties:
+        schema:
+          type: "string"
+          description: "Schema name"
+        table:
+          type: "string"
+          description: "Table name"
+      required:
+        - schema
+        - table
+    type: "internal"
+    labels: []
+
+models:
+  - name: "L1"
+    description: "Level 1 basic model"
+    external: true
+###

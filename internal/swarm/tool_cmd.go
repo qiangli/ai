@@ -17,10 +17,10 @@ var _util = _os
 
 func runCommandTool(ctx context.Context, agent *Agent, name string, props map[string]any) (string, error) {
 	getStr := func(key string) (string, error) {
-		return getStrProp(key, props)
+		return GetStrProp(key, props)
 	}
 	getArray := func(key string) ([]string, error) {
-		return getArrayProp(key, props)
+		return GetArrayProp(key, props)
 	}
 
 	// shell commands sensitive to the current directory or relatively "safe" to run
@@ -203,7 +203,7 @@ func isRequired(key string, props map[string]any) bool {
 	return false
 }
 
-func getStrProp(key string, props map[string]any) (string, error) {
+func GetStrProp(key string, props map[string]any) (string, error) {
 	val, ok := props[key]
 	if !ok {
 		if isRequired(key, props) {
@@ -218,7 +218,7 @@ func getStrProp(key string, props map[string]any) (string, error) {
 	return str, nil
 }
 
-func getArrayProp(key string, props map[string]any) ([]string, error) {
+func GetArrayProp(key string, props map[string]any) ([]string, error) {
 	val, ok := props[key]
 	if !ok {
 		if isRequired(key, props) {

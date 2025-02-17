@@ -99,6 +99,19 @@ func RunAiderAgent(app *internal.AppConfig, name string, input *UserInput) error
 	return runSwarm(app, data, agent, input)
 }
 
+//go:embed resource/sql/agent.yaml
+var configSqlAgentYaml []byte
+
+func RunSqlAgent(app *internal.AppConfig, name string, input *UserInput) error {
+	var agent = baseCommand(input.Subcommand)
+	if agent == "" {
+		agent = name
+	}
+	data := [][]byte{configSqlAgentYaml}
+	return runSwarm(app, data, agent, input)
+}
+
+// LoadAgentsConfig loads the agent configuration from the provided YAML data.
 func LoadAgentsConfig(data [][]byte) (*swarm.AgentsConfig, error) {
 	merged := &swarm.AgentsConfig{}
 
@@ -172,6 +185,15 @@ func runSwarm(app *internal.AppConfig, data [][]byte, starter string, input *Use
 
 	sw.Vars.Input = input
 
+	if app.Db != nil {
+		sw.Vars.DBCred = &swarm.DBCred{
+			Host:     app.Db.Host,
+			Port:     app.Db.Port,
+			Username: app.Db.Username,
+			Password: app.Db.Password,
+			DBName:   app.Db.DBName,
+		}
+	}
 	//
 	sw.Vars.Arch = sysInfo.Arch
 	sw.Vars.OS = sysInfo.OS

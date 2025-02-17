@@ -36,6 +36,8 @@ const (
 	VarsEnvHost      = "host"
 )
 
+type DBCred = api.DBCred
+
 type Vars struct {
 	OS        string
 	Arch      string
@@ -47,6 +49,8 @@ type Vars struct {
 	Workspace string
 	WorkDir   string
 	Env       string
+
+	DBCred *DBCred
 
 	// per agent
 	Input *UserInput

@@ -10,7 +10,6 @@ import (
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/agent"
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/internal/resource"
 )
 
 func handle(cmd *cobra.Command, args []string) error {
@@ -28,7 +27,7 @@ func handle(cmd *cobra.Command, args []string) error {
 
 	cfg := getConfig(cmd, args)
 
-	log.Debugf("Config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.LLM.Sql.DBConfig)
+	log.Debugf("Config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.Db)
 
 	//
 	command := cfg.Command
@@ -84,7 +83,7 @@ var rootCmd = &cobra.Command{
 	Long: `AI Command Line Tool
 
 	`,
-	Example: resource.GetUserExample(),
+	Example: usageExample,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return handle(cmd, args)
 	},

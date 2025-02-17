@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/api"
 )
 
 func TestQuery(t *testing.T) {
@@ -13,7 +13,7 @@ func TestQuery(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	cfg := &internal.DBConfig{
+	cfg := &api.DBCred{
 		Host:     "localhost",
 		Port:     "5432",
 		Username: "",

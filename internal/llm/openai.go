@@ -16,7 +16,20 @@ import (
 
 // https://github.com/openai/openai-go/tree/main/examples
 
-// const TransferAgentName = "agent_transfer"
+func define(name, description string, parameters map[string]interface{}) openai.ChatCompletionToolParam {
+	return openai.ChatCompletionToolParam{
+		Type: openai.F(openai.ChatCompletionToolTypeFunction),
+		Function: openai.F(openai.FunctionDefinitionParam{
+			Name:        openai.String(name),
+			Description: openai.String(description),
+			Parameters:  openai.F(openai.FunctionParameters(parameters)),
+		}),
+	}
+}
+
+func RunTool(cfg *internal.ToolConfig, ctx context.Context, name string, props map[string]interface{}) (string, error) {
+	panic("No longer supported with Chat, migrate to enw Call")
+}
 
 func NewClient(apiKey, baseUrl string) *openai.Client {
 	client := openai.NewClient(

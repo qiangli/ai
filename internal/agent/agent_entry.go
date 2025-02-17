@@ -4,11 +4,18 @@ import (
 	"fmt"
 
 	"github.com/qiangli/ai/internal/agent/resource"
+	"github.com/qiangli/ai/internal/db"
 	"github.com/qiangli/ai/internal/docker/gptr"
 	"github.com/qiangli/ai/internal/swarm"
 )
 
 var entrypointMap = map[string]swarm.Entrypoint{}
+
+func init() {
+	entrypointMap["pr_system_role_prompt"] = prPromptEntrypoint
+	entrypointMap["gptr_system_role_prompt"] = gptrPromptEntrypoint
+	entrypointMap["sql_entry"] = sqlPromptEntrypoint
+}
 
 // PR entrypoint that generates and updates the instruction/system role prompt
 func prPromptEntrypoint(vars *swarm.Vars, agent *swarm.Agent, input *swarm.UserInput) error {
@@ -35,7 +42,11 @@ func gptrPromptEntrypoint(vars *swarm.Vars, agent *swarm.Agent, input *swarm.Use
 	return nil
 }
 
-func init() {
-	entrypointMap["pr_system_role_prompt"] = prPromptEntrypoint
-	entrypointMap["gptr_system_role_prompt"] = gptrPromptEntrypoint
+func sqlPromptEntrypoint(vars *swarm.Vars, agent *swarm.Agent, input *swarm.UserInput) error {
+	data, err := db.GetDBInfo(vars.DBCred)
+	if err != nil {
+		return err
+	}
+	vars.Extra["SQL"] = data
+	return nil
 }

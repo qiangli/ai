@@ -20,8 +20,8 @@ type ChatMessage = api.Response
 func MakeAgent(name string, cfg *internal.AppConfig) (Agent, error) {
 
 	switch name {
-	case "sql":
-		return NewSqlAgent(cfg)
+	// case "sql":
+	// 	return NewSqlAgent(cfg)
 	// case "oh":
 	// 	return NewOhAgent(cfg)
 	// case "code":

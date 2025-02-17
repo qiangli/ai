@@ -14,9 +14,9 @@ agents:
     instruction:
       content: "resource:agent_sub_system_role"
     entrypoint: "init_launch"
-    dependencies:
-      - "workspace"
-      - "runtime_env"
+    # dependencies:
+    #   - "workspace"
+    #   - "runtime_env"
     functions:
       - "list_agents"
       - "agent_info"

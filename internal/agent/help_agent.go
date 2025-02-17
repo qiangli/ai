@@ -8,7 +8,6 @@ import (
 	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/internal/resource"
 )
 
 // HelpAgent auto selects the best agent to handle the user query
@@ -26,9 +25,9 @@ func NewHelpAgent(cfg *internal.AppConfig) (*HelpAgent, error) {
 	if role == "" {
 		role = "system"
 	}
-	if content == "" {
-		content = resource.GetCliAgentDetectSystem()
-	}
+	// if content == "" {
+	// 	content = resource.GetCliAgentDetectSystem()
+	// }
 
 	agent := HelpAgent{
 		config:  cfg,
@@ -38,9 +37,14 @@ func NewHelpAgent(cfg *internal.AppConfig) (*HelpAgent, error) {
 	return &agent, nil
 }
 
+type AgentDetect struct {
+	Agent   string `json:"agent"`
+	Command string `json:"command"`
+}
+
 func (r *HelpAgent) Handle(ctx context.Context, req *api.Request, next api.HandlerNext) (*api.Response, error) {
 	model := internal.Level1(r.config.LLM)
-	model.Tools = llm.GetAIHelpTools()
+	// model.Tools = llm.GetAIHelpTools()
 	msg := &internal.Message{
 		Role:   r.Role,
 		Prompt: r.Message,
@@ -52,11 +56,11 @@ func (r *HelpAgent) Handle(ctx context.Context, req *api.Request, next api.Handl
 		return nil, err
 	}
 
-	var data resource.AgentDetect
+	var data AgentDetect
 	if err := json.Unmarshal([]byte(resp.Content), &data); err != nil {
 		// better continue the conversation than err
 		log.Debugf("failed to unmarshal content: %v\n", err)
-		data = resource.AgentDetect{
+		data = AgentDetect{
 			Agent:   "ask",
 			Command: "",
 		}
