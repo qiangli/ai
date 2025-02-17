@@ -22,6 +22,36 @@ func init() {
 	adviceMap["resolve_workspace"] = resolveWorkspaceAdvice
 	adviceMap["aider"] = aiderAdvice
 	adviceMap["openhands"] = ohAdvice
+	adviceMap["agent_launch"] = agentLaunchAdvice
+}
+
+type AgentDetect struct {
+	Agent   string `json:"agent"`
+	Command string `json:"command"`
+}
+
+// agent after advice
+func agentLaunchAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
+	var v AgentDetect
+	msg := resp.LastMessage()
+	if msg == nil {
+		return fmt.Errorf("invalid response: no message")
+	}
+
+	if err := json.Unmarshal([]byte(msg.Content), &v); err != nil {
+		log.Debugf("decode_meta_response error: %v", err)
+		return nil
+	}
+
+	//
+	req.RawInput.Subcommand = v.Command
+	//
+	resp.Transfer = true
+	resp.NextAgent = v.Agent
+
+	log.Debugf("dispatching: %+v\n", v)
+
+	return nil
 }
 
 type metaResponse struct {

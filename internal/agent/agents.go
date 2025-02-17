@@ -14,12 +14,35 @@ import (
 	"github.com/qiangli/ai/internal/util"
 )
 
-const LaunchAgent = "launch"
+const launchAgent = "launch"
+
+var agentsRunMap = map[string]func(*internal.AppConfig, string, *UserInput) error{
+	"ask":    RunAskAgent,
+	"script": RunScriptAgent,
+	"git":    RunGitAgent,
+	"pr":     RunPrAgent,
+	"gptr":   RunGptrAgent,
+	"seek":   RunGptrAgent,
+	"aider":  RunAiderAgent,
+	"oh":     RunOhAgent,
+	"sql":    RunSqlAgent,
+	"doc":    RunDocAgent,
+	"eval":   RunEvalAgent,
+	"draw":   RunDrawAgent,
+}
 
 var resourceMap = resource.Prompts
 
 //go:embed resource/common.yaml
 var configCommonYaml []byte
+
+//go:embed resource/launch/agent.yaml
+var configLaunchAgentYaml []byte
+
+func RunLaunchAgent(app *internal.AppConfig, input *UserInput) error {
+	data := [][]byte{configLaunchAgentYaml}
+	return runSwarm(app, data, launchAgent, input)
+}
 
 //go:embed resource/ask/agent.yaml
 var configAskAgentYaml []byte
@@ -123,6 +146,30 @@ func RunDocAgent(app *internal.AppConfig, name string, input *UserInput) error {
 	return runSwarm(app, data, agent, input)
 }
 
+//go:embed resource/eval/agent.yaml
+var configEvalAgentYaml []byte
+
+func RunEvalAgent(app *internal.AppConfig, name string, input *UserInput) error {
+	var agent = baseCommand(input.Subcommand)
+	if agent == "" {
+		agent = name
+	}
+	data := [][]byte{configCommonYaml, configEvalAgentYaml}
+	return runSwarm(app, data, agent, input)
+}
+
+//go:embed resource/draw/agent.yaml
+var configDrawAgentYaml []byte
+
+func RunDrawAgent(app *internal.AppConfig, name string, input *UserInput) error {
+	var agent = baseCommand(input.Subcommand)
+	if agent == "" {
+		agent = name
+	}
+	data := [][]byte{configDrawAgentYaml}
+	return runSwarm(app, data, agent, input)
+}
+
 // LoadAgentsConfig loads the agent configuration from the provided YAML data.
 func LoadAgentsConfig(data [][]byte) (*swarm.AgentsConfig, error) {
 	merged := &swarm.AgentsConfig{}
@@ -195,6 +242,7 @@ func runSwarm(app *internal.AppConfig, data [][]byte, starter string, input *Use
 		return err
 	}
 
+	//
 	sw.Vars.Input = input
 
 	if app.Db != nil {
@@ -217,8 +265,6 @@ func runSwarm(app *internal.AppConfig, data [][]byte, starter string, input *Use
 	sw.Vars.Models = modelMap
 	sw.Vars.Functions = functionMap
 	sw.Vars.FuncRegistry = funcRegistry
-
-	sw.Vars.Input.Template = app.Template
 
 	resp := &swarm.Response{}
 	if err := sw.Run(&swarm.Request{

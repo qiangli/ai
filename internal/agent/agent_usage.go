@@ -1,4 +1,4 @@
-package resource
+package agent
 
 // describe each agent in 16 words
 var AgentDesc = map[string]string{

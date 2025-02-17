@@ -1,4 +1,11 @@
 ###
+user:
+  name: "me"
+  display: "👤 User"
+
+maxTurns: 32
+maxTime: 3600
+
 agents:
   - name: "aider"
     display: "🔍 Aider"

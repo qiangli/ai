@@ -2,7 +2,6 @@ package agent
 
 import (
 	"bytes"
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"image"
@@ -30,78 +29,17 @@ func AgentHelp(cfg *internal.AppConfig) error {
 		return internal.NewUserInputError("no query provided")
 	}
 
-	agent, err := NewHelpAgent(cfg)
-	if err != nil {
-		return err
-	}
-
-	if internal.DryRun {
-		log.Infof("Dry run mode. No API call will be made!\n")
-		log.Debugf("The following will be returned:\n%s\n", internal.DryRunContent)
-	}
-	log.Infof("Sending request to [%s] %s...\n", cfg.LLM.Model, cfg.LLM.BaseUrl)
-
-	// // Let LLM decide which agent to use
-	next := func(ctx context.Context, req *api.Request) (*api.Response, error) {
-		err := handleAgent(cfg, req)
-		return nil, err
-	}
-
-	_, err = agent.Handle(context.TODO(), in, next)
-	if err != nil {
-		return err
-	}
-
-	log.Debugf("Agent help completed: %s %v\n", cfg.Command, cfg.Args)
-	return nil
+	return RunLaunchAgent(cfg, in)
 }
 
 func handleAgent(cfg *internal.AppConfig, in *UserInput) error {
-	// use swarm
-	switch in.Agent {
-	case "ask":
-		return RunAskAgent(cfg, in.Agent, in)
-	case "script":
-		return RunScriptAgent(cfg, in.Agent, in)
-	case "git":
-		return RunGitAgent(cfg, in.Agent, in)
-	case "pr":
-		return RunPrAgent(cfg, in.Agent, in)
-	case "gptr":
-		return RunGptrAgent(cfg, in.Agent, in)
-	case "seek":
-		return RunGptrAgent(cfg, "gptr", in)
-	case "aider":
-		return RunAiderAgent(cfg, in.Agent, in)
-	case "oh":
-		return RunOhAgent(cfg, in.Agent, in)
-	case "sql":
-		return RunSqlAgent(cfg, in.Agent, in)
-	case "doc":
-		return RunDocAgent(cfg, in.Agent, in)
+	log.Debugf("HandleAgent: %s %v\n", cfg.Command, cfg.Args)
+
+	if runner, ok := agentsRunMap[in.Agent]; ok {
+		return runner(cfg, in.Agent, in)
 	}
 
-	// TODO: migrate to swarm
-	agent, err := MakeAgent(in.Agent, cfg)
-	if err != nil {
-		return err
-	}
-
-	if internal.DryRun {
-		log.Infof("Dry run mode. No API call will be made!\n")
-		log.Debugf("The following will be returned:\n%s\n", internal.DryRunContent)
-	}
-	log.Infof("[%s/%s] sending request to [%s] %s...\n", in.Agent, in.Subcommand, cfg.LLM.Model, cfg.LLM.BaseUrl)
-
-	ctx := context.TODO()
-	resp, err := agent.Send(ctx, in)
-	if err != nil {
-		return err
-	}
-	processContent(cfg, resp)
-
-	log.Debugf("Agent task completed: %s %v\n", cfg.Command, cfg.Args)
-	return nil
+	return internal.NewUserInputError("not supported yet: " + in.Agent)
 }
 
 func Info(cfg *internal.AppConfig) error {

@@ -30,9 +30,8 @@ type AgentConfig struct {
 	Display     string `yaml:"display"`
 	Description string `yaml:"description"`
 
-	// templates
+	//
 	Instruction PromptConfig `yaml:"instruction"`
-	Message     PromptConfig `yaml:"message"`
 
 	Model string `yaml:"model"`
 

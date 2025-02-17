@@ -247,9 +247,9 @@ func CreateModel(cfg *LLMConfig, opt ...Level) *Model {
 	return model
 }
 
-type ToolConfig struct {
-	Model    *Model
-	DBConfig *DBConfig
+// type ToolConfig struct {
+// 	Model    *Model
+// 	DBConfig *DBConfig
 
-	Next api.Action
-}
+// 	Next api.Action
+// }

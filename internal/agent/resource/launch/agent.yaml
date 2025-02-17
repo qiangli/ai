@@ -13,30 +13,9 @@ agents:
     model: L1
     instruction:
       content: "resource:agent_sub_system_role"
-    entrypoint: "init_launch"
-    # dependencies:
-    #   - "workspace"
-    #   - "runtime_env"
     functions:
       - "list_agents"
       - "agent_info"
-
-  # - name: "workspace"
-  #   description: "Determines the user's workspace based on user's input."
-  #   model: L1
-  #   instruction:
-  #     content: "resource:workspace_system_role"
-  #   functions:
-  #     - "list_commands"
-  #     - "which"
-
-  # - name: "runtime_env"
-  #   description: "Determines the user's environment based on user's input. either host or container"
-  #   model: L1
-  #   instruction:
-  #     content: "resource:docker_env_system_role"
-  #   functions:
-  #     - "list_command"
 
 functions:
   - name: "list_agents"
@@ -61,14 +40,5 @@ functions:
 models:
   - name: "L1"
     description: "Level 1 basic model"
-    external: true
-  - name: "L2"
-    description: "Level 2 regular model"
-    external: true
-  - name: "L3"
-    description: "Level 3 advanced model"
-    external: true
-  - name: "Image"
-    description: "Image model"
     external: true
 ###

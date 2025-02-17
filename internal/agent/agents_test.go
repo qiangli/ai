@@ -8,11 +8,8 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
-//go:embed resource/agent.yaml
-var agentsYaml []byte
-
 func TestLoadAgentsConfig(t *testing.T) {
-	data := [][]byte{configCommonYaml, agentsYaml}
+	data := [][]byte{configCommonYaml, configEvalAgentYaml}
 	cfg, err := LoadAgentsConfig(data)
 	if err != nil {
 		t.Errorf("Error loading agents configuration: %v", err)

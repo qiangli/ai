@@ -1,0 +1,19 @@
+###
+user:
+  name: "me"
+  display: "👤 User"
+
+maxTurns: 32
+maxTime: 3600
+
+agents:
+  - name: "draw"
+    display: "🐝 Draw"
+    description: "Generate images based on user input, providing visual representations of text-based descriptions."
+    model: Image
+
+models:
+  - name: "Image"
+    description: "Image model"
+    external: true
+###
