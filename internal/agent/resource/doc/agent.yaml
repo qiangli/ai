@@ -1,0 +1,22 @@
+###
+user:
+  name: "me"
+  display: "👤 User"
+
+maxTurns: 32
+maxTime: 3600
+
+agents:
+  - name: "doc"
+    display: "🐝 Doc"
+    description: "Create a polished document by integrating draft materials into the provided template."
+    model: L2
+    instruction:
+      content: "resource:doc_compose_system_role"
+    entrypoint: "doc_compose_entry"
+ 
+models:
+  - name: "L2"
+    description: "Level 2 regular model"
+    external: true
+###

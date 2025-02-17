@@ -111,6 +111,18 @@ func RunSqlAgent(app *internal.AppConfig, name string, input *UserInput) error {
 	return runSwarm(app, data, agent, input)
 }
 
+//go:embed resource/doc/agent.yaml
+var configDocAgentYaml []byte
+
+func RunDocAgent(app *internal.AppConfig, name string, input *UserInput) error {
+	var agent = baseCommand(input.Subcommand)
+	if agent == "" {
+		agent = name
+	}
+	data := [][]byte{configDocAgentYaml}
+	return runSwarm(app, data, agent, input)
+}
+
 // LoadAgentsConfig loads the agent configuration from the provided YAML data.
 func LoadAgentsConfig(data [][]byte) (*swarm.AgentsConfig, error) {
 	merged := &swarm.AgentsConfig{}
@@ -205,6 +217,8 @@ func runSwarm(app *internal.AppConfig, data [][]byte, starter string, input *Use
 	sw.Vars.Models = modelMap
 	sw.Vars.Functions = functionMap
 	sw.Vars.FuncRegistry = funcRegistry
+
+	sw.Vars.Input.Template = app.Template
 
 	resp := &swarm.Response{}
 	if err := sw.Run(&swarm.Request{

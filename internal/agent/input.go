@@ -46,7 +46,11 @@ func (e *Editor) Launch() (string, error) {
 
 func GetUserInput(cfg *internal.AppConfig) (*UserInput, error) {
 	if cfg.Message != "" {
-		return &UserInput{Message: cfg.Message}, nil
+		return &UserInput{
+			Message:  cfg.Message,
+			Files:    cfg.Files,
+			Template: cfg.Template,
+		}, nil
 	}
 
 	// stdin with | or <
@@ -65,7 +69,9 @@ func GetUserInput(cfg *internal.AppConfig) (*UserInput, error) {
 		return nil, err
 	}
 
+	//
 	input.Files = cfg.Files
+	input.Template = cfg.Template
 
 	log.Infof("\n[%s]\n%s\n%s\n%v\n\n", cfg.Me, input.Message, clipText(input.Content, clipMaxLen), input.Files)
 	return input, nil

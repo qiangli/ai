@@ -37,7 +37,7 @@ func (r *DrawAgent) Send(ctx context.Context, in *UserInput) (*ChatMessage, erro
 		Role:   r.Role,
 		Prompt: r.Prompt,
 		Model:  model,
-		Input:  in.Input(),
+		Input:  in.Query(),
 	}
 
 	resp, err := llm.GenerateImage(ctx, req)

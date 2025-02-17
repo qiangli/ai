@@ -7,6 +7,8 @@ import (
 	"github.com/qiangli/ai/internal/api"
 )
 
+// https://github.com/jfcg/sorty/issues/6
+
 func TestQuery(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")

@@ -9,6 +9,9 @@ var agent_meta_system_role string
 //go:embed prompts/agent_sub_system_role.md
 var agent_sub_system_role string
 
+//go:embed prompts/doc_compose_system_role.md
+var doc_compose_system_role string
+
 //go:embed prompts/docker_input_user_role.md
 var docker_input_user_role string
 
@@ -90,6 +93,7 @@ var workspace_user_role string
 var Prompts = map[string]string{
 	"agent_meta_system_role":   agent_meta_system_role,
 	"agent_sub_system_role":    agent_sub_system_role,
+	"doc_compose_system_role":  doc_compose_system_role,
 	"docker_input_user_role":   docker_input_user_role,
 	"git_message_conventional": git_message_conventional,
 	"git_message_short":        git_message_short,

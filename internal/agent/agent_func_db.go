@@ -9,26 +9,26 @@ import (
 	"github.com/qiangli/ai/internal/swarm"
 )
 
-const versionQuery = `"SELECT version()"`
+const versionQuery = `SELECT version()`
 
 const allDatabasesQuery = `SELECT datname FROM pg_database WHERE datistemplate = false AND datallowconn = true`
 
 const allTablesQuery = `
 SELECT schemaname, tablename
 FROM pg_tables
-WHERE schemaname NOT IN ('pg_catalog', 'information_schema');
+WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
 `
 
 const allViewsQuery = `
 SELECT schemaname, viewname
 FROM pg_views
-WHERE schemaname NOT IN ('pg_catalog', 'information_schema');
+WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
 `
 
 const allSequencesQuery = `
 SELECT schemaname, sequencename
 FROM pg_sequences
-WHERE schemaname NOT IN ('pg_catalog', 'information_schema');
+WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
 `
 
 const allColumnsQuery = `
@@ -36,7 +36,7 @@ SELECT table_schema, table_name, column_name, data_type, is_nullable, column_def
 FROM information_schema.columns
 WHERE table_schema = '%s' AND table_name = '%s'
 AND table_schema NOT IN ('pg_catalog', 'information_schema')
-ORDER BY table_schema, table_name, ordinal_position;
+ORDER BY table_schema, table_name, ordinal_position
 `
 
 func init() {

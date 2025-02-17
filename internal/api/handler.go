@@ -27,6 +27,8 @@ type Request struct {
 	Message string `json:"message"`
 	Content string `json:"content"`
 
+	Template string `json:"template"`
+
 	Files []string `json:"files"`
 
 	Extra map[string]any `json:"extra"`
@@ -47,11 +49,6 @@ func (r *Request) Query() string {
 	default:
 		return fmt.Sprintf("###\n%s\n###\n%s", r.Message, r.Content)
 	}
-}
-
-func (r *Request) Input() string {
-	fc, _ := r.FileContent()
-	return r.Query() + "\n" + fc
 }
 
 func (r *Request) FileContent() (string, error) {

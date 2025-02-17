@@ -37,7 +37,7 @@ func gptrGenerateReport(ctx context.Context, agent *swarm.Agent, name string, ar
 		return nil, err
 	}
 
-	content, err := GenerateReport(ctx, agent.Model, obj.ReportType, obj.Tone, agent.Vars.Input.Input())
+	content, err := GenerateReport(ctx, agent.Model, obj.ReportType, obj.Tone, agent.Vars.Input.Query())
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +187,7 @@ func OpenHands(ctx context.Context, model *swarm.Model, workspace string, in *Us
 		Env:          env,
 		HostDir:      hostDir,
 		ContainerDir: containerDir,
-		Input:        in.Input(),
+		Input:        in.Query(),
 	})
 	if err != nil {
 		return err

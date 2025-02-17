@@ -103,7 +103,7 @@ func TestUserInput(t *testing.T) {
 				t.Errorf("user input error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			got := input.Input()
+			got := input.Query()
 			if strings.TrimSpace(got) != strings.TrimSpace(tt.want) {
 				t.Errorf("user input = %v, want %v", got, tt.want)
 			}

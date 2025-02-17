@@ -64,7 +64,7 @@ func scriptUserInputAdvice(vars *swarm.Vars, req *swarm.Request, _ *swarm.Respon
 	}
 	content, err := applyTemplate(tpl, map[string]any{
 		"Command": cmd,
-		"Message": in.Input(),
+		"Message": in.Query(),
 	})
 	if err != nil {
 		return err
@@ -167,7 +167,7 @@ func prFormatAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, 
 }
 
 func aiderAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
-	return Aider(req.Context(), vars.Models, vars.Workspace, req.RawInput.Subcommand, req.RawInput.Input())
+	return Aider(req.Context(), vars.Models, vars.Workspace, req.RawInput.Subcommand, req.RawInput.Query())
 }
 
 func ohAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {

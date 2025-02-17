@@ -22,7 +22,7 @@ You are an advanced language model tasked with writing a document. You will be p
    - Conduct a final review of the document to ensure it meets all the requirements and adheres strictly to the example template.
 
 === Example Template ===
-{{.template}}
+{{.Extra.Doc.Template}}
 
 === Draft Materials ===
-{{.draft}}
+{{.Extra.Doc.Draft}}

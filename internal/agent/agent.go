@@ -28,8 +28,8 @@ func MakeAgent(name string, cfg *internal.AppConfig) (Agent, error) {
 	// 	return NewAiderAgent(cfg)
 	case "eval":
 		return NewEvalAgent(cfg)
-	case "doc":
-		return NewDocAgent(cfg)
+	// case "doc":
+	// 	return NewDocAgent(cfg)
 	case "draw":
 		return NewDrawAgent(cfg)
 	default:

@@ -119,7 +119,7 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 	if req.Message == nil {
 		req.Message = &Message{
 			Role:    RoleUser,
-			Content: req.RawInput.Input(),
+			Content: req.RawInput.Query(),
 			Sender:  r.Name,
 		}
 	}
