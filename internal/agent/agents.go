@@ -13,7 +13,7 @@ import (
 const launchAgent = "launch"
 
 var agentConfigMap = map[string][][]byte{
-	"launch": [][]byte{configLaunchAgentYaml},
+	"launch": [][]byte{configCommonYaml, configLaunchAgentYaml},
 	"ask":    [][]byte{configAskAgentYaml},
 	"script": [][]byte{configScriptAgentYaml},
 	"git":    [][]byte{configGitAgentYaml},
@@ -69,7 +69,7 @@ var configEvalAgentYaml []byte
 //go:embed resource/draw/agent.yaml
 var configDrawAgentYaml []byte
 
-func runSwarm(app *internal.AppConfig, name string, input *UserInput) error {
+func runSwarm(app *internal.AppConfig, name string, input *api.UserInput) error {
 	log.Debugf("Running agent %q with swarm\n", name)
 
 	sw, err := swarm.NewSwarm(app)

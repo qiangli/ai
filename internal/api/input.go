@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -9,7 +8,7 @@ import (
 	"github.com/openai/openai-go"
 )
 
-type Request struct {
+type UserInput struct {
 	Agent      string `json:"agent"`
 	Subcommand string `json:"subcommand"`
 
@@ -23,11 +22,11 @@ type Request struct {
 	Extra map[string]any `json:"extra"`
 }
 
-func (r *Request) IsEmpty() bool {
+func (r *UserInput) IsEmpty() bool {
 	return r.Message == "" && r.Content == "" && len(r.Files) == 0
 }
 
-func (r *Request) Query() string {
+func (r *UserInput) Query() string {
 	switch {
 	case r.Message == "" && r.Content == "":
 		return ""
@@ -40,7 +39,7 @@ func (r *Request) Query() string {
 	}
 }
 
-func (r *Request) FileContent() (string, error) {
+func (r *UserInput) FileContent() (string, error) {
 	var b strings.Builder
 	if len(r.Files) > 0 {
 		for _, f := range r.Files {
@@ -58,7 +57,7 @@ func (r *Request) FileContent() (string, error) {
 
 // Intent returns a clipped version of the query.
 // This is intended for "smart" agents to make decisions based on user inputs.
-func (r *Request) Intent() string {
+func (r *UserInput) Intent() string {
 	return clipText(r.Query(), 500)
 }
 
@@ -74,20 +73,3 @@ const (
 	ContentTypeText    = "text"
 	ContentTypeB64JSON = string(openai.ImageGenerateParamsResponseFormatB64JSON)
 )
-
-type Response struct {
-	Agent string `json:"agent"`
-
-	ContentType string `json:"content_type"`
-	Content     string `json:"content"`
-}
-
-type HandlerNext = func(context.Context, *Request) (*Response, error)
-
-type Handler = func(context.Context, *Request, HandlerNext) (*Response, error)
-
-type Agent interface {
-	Handle(context.Context, *Request, HandlerNext) (*Response, error)
-}
-
-type Action = func(context.Context, string) (string, error)

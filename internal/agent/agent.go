@@ -4,12 +4,12 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/api"
+	// "github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
 )
 
-type UserInput = api.Request
-type ChatMessage = api.Response
+// type UserInput = api.Request
+// type ChatMessage = api.Response
 
 func agentList() map[string]string {
 	return AgentDesc

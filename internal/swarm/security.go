@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
 )
@@ -30,16 +31,29 @@ func evaluateCommand(ctx context.Context, agent *Agent, command string, args []s
 	if err != nil {
 		return false, err
 	}
-	userRole, err := applyTemplate(shellSecurityUserRole, agent.Vars, nil)
 	agent.Vars.Extra["Command"] = command
 	agent.Vars.Extra["Args"] = strings.Join(args, " ")
+	userRole, err := applyTemplate(shellSecurityUserRole, agent.Vars, nil)
 	if err != nil {
 		return false, err
 	}
-	req := &llm.Request{
-		Model:   agent.Model.Name,
-		BaseUrl: agent.Model.BaseUrl,
-		ApiKey:  agent.Model.ApiKey,
+	runTool := func(ctx context.Context, name string, args map[string]any) (*Result, error) {
+		log.Debugf("run tool: %s %+v\n", name, args)
+		out, err := runCommandTool(ctx, agent, name, args)
+		if err != nil {
+			return &Result{
+				Value: fmt.Sprintf("%s: %v", out, err),
+			}, nil
+		}
+		return &api.Result{
+			Value: out,
+		}, nil
+	}
+	req := &api.Request{
+		ModelType: agent.Model.Type,
+		Model:     agent.Model.Name,
+		BaseUrl:   agent.Model.BaseUrl,
+		ApiKey:    agent.Model.ApiKey,
 		Messages: []*Message{
 			{
 				Role:    "system",
@@ -50,6 +64,9 @@ func evaluateCommand(ctx context.Context, agent *Agent, command string, args []s
 				Content: userRole,
 			},
 		},
+		Tools:    agent.Functions,
+		RunTool:  runTool,
+		MaxTurns: 32,
 	}
 
 	log.Debugf("evaluateCommand:\n%s %v\n", command, args)

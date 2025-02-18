@@ -8,6 +8,7 @@ import (
 
 	"github.com/qiangli/ai/internal/agent/resource"
 	"github.com/qiangli/ai/internal/agent/resource/pr"
+	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/swarm"
 )
@@ -47,8 +48,10 @@ func agentLaunchAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Respons
 	//
 	req.RawInput.Subcommand = v.Command
 	//
-	resp.Transfer = true
-	resp.NextAgent = v.Agent
+	resp.Result = &swarm.Result{
+		State:     api.StateTransfer,
+		NextAgent: v.Agent,
+	}
 
 	log.Debugf("dispatching: %+v\n", v)
 
@@ -137,16 +140,6 @@ func prUserInputAdvice(vars *swarm.Vars, req *swarm.Request, _ *swarm.Response, 
 	return nil
 }
 
-func subAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, next swarm.Advice) error {
-	sub := baseCommand(req.RawInput.Subcommand)
-	if sub != "" {
-		resp.NextAgent = sub
-		resp.Transfer = true
-		return nil
-	}
-	return next(vars, req, resp, next)
-}
-
 // PR format after advice
 func prFormatAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
 	name := req.Agent
@@ -213,4 +206,16 @@ func aiderAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ s
 
 func ohAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
 	return OpenHands(req.Context(), vars.Models["L2"], vars.Workspace, req.RawInput)
+}
+
+func subAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, next swarm.Advice) error {
+	sub := baseCommand(req.RawInput.Subcommand)
+	if sub != "" {
+		resp.Result = &swarm.Result{
+			State:     api.StateTransfer,
+			NextAgent: sub,
+		}
+		return nil
+	}
+	return next(vars, req, resp, next)
 }

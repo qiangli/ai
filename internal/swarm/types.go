@@ -4,25 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	// "github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/api"
-	"github.com/qiangli/ai/internal/llm"
 )
 
-// type AgentRegistry map[string]*Agent
-
-// var Agents = AgentRegistry{}
-
-type UserInput = api.Request
-
-type Message = llm.Message
-
-// type Request = llm.Request
-
-type ToolFunc = llm.ToolFunc
-
-// type ToolCall = llm.ToolCall
-type ToolCall = llm.ToolCall
+type UserInput = api.UserInput
+type Message = api.Message
+type ToolFunc = api.ToolFunc
+type DBCred = api.DBCred
+type Model = api.Model
+type Result = api.Result
 
 const (
 	RoleSystem    = "system"
@@ -35,8 +25,6 @@ const (
 	VarsEnvContainer = "container"
 	VarsEnvHost      = "host"
 )
-
-type DBCred = api.DBCred
 
 type Vars struct {
 	OS        string
@@ -53,10 +41,6 @@ type Vars struct {
 	DBCred *DBCred
 
 	// per agent
-	// Input  *UserInput
-	// Role   string
-	// Prompt string
-	// Model  *Model
 	Extra map[string]any
 
 	Models map[string]*Model
@@ -94,31 +78,13 @@ func (r *Vars) GetString(key string) string {
 }
 
 // Swarm Agents can call functions directly.
-// Function should usually return a string (values will be attempted to be cast as a string).
+// Function should usually return a string values.
 // If a function returns an Agent, execution will be transferred to that Agent.
-// type Function func(*Input) *Output
-
-// type Function struct {
-// 	Name        string
-// 	Description string
-// 	Parameters  map[string]any
-// }
-
 type Function = func(context.Context, *Agent, string, map[string]any) (*Result, error)
 
-// // Agent instructions are directly converted into the system prompt of a conversation.
-// // The instructions can either be a regular string, or a function that returns a string.
-// type Instruction struct {
-// 	Content string
-// 	Func    func(Vars) (string, error)
-// }
+type Advice func(*Vars, *Request, *Response, Advice) error
 
-// func (r Instruction) Get(vars Vars) (string, error) {
-// 	if r.Func != nil {
-// 		return r.Func(vars)
-// 	}
-// 	return r.Content, nil
-// }
+type Entrypoint func(*Vars, *Agent, *UserInput) error
 
 type Request struct {
 	Agent string
@@ -198,11 +164,13 @@ type Response struct {
 	// with a sender field indicating which Agent the message originated from.
 	Messages []*Message
 
-	Transfer  bool
-	NextAgent string
+	// Transfer  bool
+	// NextAgent string
 
 	// The last agent to handle a message
 	Agent *Agent
+
+	Result *Result
 }
 
 func (r *Response) LastMessage() *Message {
@@ -212,69 +180,6 @@ func (r *Response) LastMessage() *Message {
 	return nil
 }
 
-// Result encapsulates the possible return values for an agent function.
-// type Result struct {
-// 	// The result value as a string
-// 	Value string
-
-// 	// The current agent instance, if applicable
-// 	Agent *Agent
-
-// 	// The agent name to transfer to for StateTransfer
-// 	NextAgent string
-
-// 	State State
-// }
-
-type State = api.State
-type Result = api.Result
-
-// type State int
-
-// const (
-// 	StateUnknown State = iota
-
-// 	StateExit
-// 	StateTransfer
-// 	StateInputWait
-// )
-
-type Model = api.Model
-
 type Agentic interface {
 	Run(*Request, *Response) error
 }
-
-// type Descriptor interface {
-// 	Help() string
-// 	Describe() string
-// 	Version() string
-// }
-
-// type Commander interface {
-// 	Execute(Text) Text
-// }
-
-// type Treelike interface {
-// 	Sub() []Agentic
-// }
-
-// type ToolDefinition struct {
-// 	Name        string         `json:"name"`
-// 	Description string         `json:"description"`
-// 	Parameters  ToolParameters `json:"parameters"`
-// }
-
-// type ToolParameters struct {
-// 	Type       string         `json:"type"`
-// 	Properties map[string]any `json:"properties"`
-// 	Required   []string       `json:"required"`
-// }
-
-type Advice func(*Vars, *Request, *Response, Advice) error
-
-type Entrypoint func(*Vars, *Agent, *UserInput) error
-
-type AgentFunc func(string, *Vars) (*Agent, error)
-
-// type ToolConfig = internal.ToolConfig

@@ -4,11 +4,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
 )
 
-func renderMessage(message *ChatMessage) {
+func renderMessage(message *api.Response) {
 	if message == nil {
 		return
 	}
@@ -25,7 +26,7 @@ func renderMessage(message *ChatMessage) {
 	log.Infoln(content)
 }
 
-func showMessage(message *ChatMessage) {
+func showMessage(message *api.Response) {
 	if message == nil {
 		return
 	}
@@ -33,7 +34,7 @@ func showMessage(message *ChatMessage) {
 	log.Infoln(message.Content)
 }
 
-func PrintMessage(output string, message *ChatMessage) {
+func PrintMessage(output string, message *api.Response) {
 	if output == "markdown" {
 		renderMessage(message)
 	} else {
@@ -41,7 +42,7 @@ func PrintMessage(output string, message *ChatMessage) {
 	}
 }
 
-func SaveMessage(filename string, message *ChatMessage) error {
+func SaveMessage(filename string, message *api.Response) error {
 	if message == nil {
 		return nil
 	}

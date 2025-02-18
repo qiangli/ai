@@ -25,11 +25,8 @@ type Swarm struct {
 	Vars    *Vars
 	Stream  bool
 
-	// RawInput *UserInput
-
 	//
 	Config *AgentsConfig
-	// Create AgentFunc
 
 	//
 	DryRun        bool
@@ -40,10 +37,10 @@ type Swarm struct {
 
 	AgentConfigMap map[string][][]byte
 
-	ResourceMap     map[string]string     `yaml:"-"`
-	AdviceMap       map[string]Advice     `yaml:"-"`
-	EntrypointMap   map[string]Entrypoint `yaml:"-"`
-	TemplateFuncMap template.FuncMap      `yaml:"-"`
+	ResourceMap     map[string]string
+	AdviceMap       map[string]Advice
+	EntrypointMap   map[string]Entrypoint
+	TemplateFuncMap template.FuncMap
 
 	FuncRegistry map[string]Function
 }
@@ -64,20 +61,27 @@ func NewSwarm(app *AppConfig) (*Swarm, error) {
 }
 
 // loadAgentsConfig loads the agent configuration from the provided YAML data.
-func (r *Swarm) loadAgentsConfig(data [][]byte) error {
+func loadAgentsConfig(data [][]byte) (*AgentsConfig, error) {
 	merged := &AgentsConfig{}
 
 	for _, v := range data {
 		cfg := &AgentsConfig{}
 		if err := yaml.Unmarshal(v, cfg); err != nil {
-			return err
+			return nil, err
 		}
 
 		if err := mergo.Merge(merged, cfg, mergo.WithAppendSlice); err != nil {
-			return err
+			return nil, err
 		}
 	}
+	return merged, nil
+}
 
+func (r *Swarm) loadAgentsConfig(data [][]byte) error {
+	merged, err := loadAgentsConfig(data)
+	if err != nil {
+		return err
+	}
 	merged.ResourceMap = r.ResourceMap
 	merged.TemplateFuncMap = r.TemplateFuncMap
 
@@ -86,14 +90,11 @@ func (r *Swarm) loadAgentsConfig(data [][]byte) error {
 	merged.EntrypointMap = r.EntrypointMap
 
 	r.Config = merged
-	// r.Create = AgentCreator(merged)
 
 	return nil
 }
 
 func (r *Swarm) initVars() error {
-	app := r.AppConfig
-
 	//
 	sysInfo, err := util.CollectSystemInfo()
 	if err != nil {
@@ -101,16 +102,13 @@ func (r *Swarm) initVars() error {
 	}
 
 	//
-	// r.Vars.Role = app.Role
-	// r.Vars.Prompt = app.Prompt
-
-	if app.Db != nil {
+	if r.AppConfig.Db != nil {
 		r.Vars.DBCred = &DBCred{
-			Host:     app.Db.Host,
-			Port:     app.Db.Port,
-			Username: app.Db.Username,
-			Password: app.Db.Password,
-			DBName:   app.Db.DBName,
+			Host:     r.AppConfig.Db.Host,
+			Port:     r.AppConfig.Db.Port,
+			Username: r.AppConfig.Db.Username,
+			Password: r.AppConfig.Db.Password,
+			DBName:   r.AppConfig.Db.DBName,
 		}
 	}
 	//
@@ -152,13 +150,13 @@ func (r *Swarm) Load(name string, input *UserInput) error {
 		if m.External {
 			switch m.Name {
 			case "L1":
-				modelMap["L1"] = internal.Level1(app.LLM)
+				modelMap["L1"] = api.Level1(app.LLM)
 			case "L2":
-				modelMap["L2"] = internal.Level2(app.LLM)
+				modelMap["L2"] = api.Level2(app.LLM)
 			case "L3":
-				modelMap["L3"] = internal.Level3(app.LLM)
+				modelMap["L3"] = api.Level3(app.LLM)
 			case "Image":
-				modelMap["Image"] = internal.ImageModel(app.LLM)
+				modelMap["Image"] = api.ImageModel(app.LLM)
 			}
 		} else {
 			modelMap[m.Name] = &api.Model{
@@ -235,8 +233,9 @@ func (r *Swarm) Run(req *Request, resp *Response) error {
 		}
 
 		// update the request
-		if resp.Transfer {
-			req.Agent = resp.NextAgent
+		result := resp.Result
+		if result != nil && result.State == api.StateTransfer {
+			req.Agent = result.NextAgent
 			continue
 		}
 		return nil

@@ -91,9 +91,9 @@
 			},
 			"args": [
 				"--verbose",
-				"/rg",
+				"/ag",
 				"--message",
-				"find all dogs and cats in the current directory"
+				"show me all the dogs and cats in the current project",
 			],
 			"showLog": false,
 			"stopOnEntry": false

@@ -170,7 +170,7 @@ func Aider(ctx context.Context, models map[string]*swarm.Model, workspace, sub, 
 	return aider.Run(ctx, aider.ChatMode(sub), userContent)
 }
 
-func OpenHands(ctx context.Context, model *swarm.Model, workspace string, in *UserInput) error {
+func OpenHands(ctx context.Context, model *swarm.Model, workspace string, in *api.UserInput) error {
 	log.Infof("using workspace: %s\n", workspace)
 
 	if workspace == "" {

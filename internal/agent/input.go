@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/cb"
 	"github.com/qiangli/ai/internal/log"
 )
@@ -44,9 +45,9 @@ func (e *Editor) Launch() (string, error) {
 	return LaunchEditor(e.editor)
 }
 
-func GetUserInput(cfg *internal.AppConfig) (*UserInput, error) {
+func GetUserInput(cfg *internal.AppConfig) (*api.UserInput, error) {
 	if cfg.Message != "" {
-		return &UserInput{
+		return &api.UserInput{
 			Message:  cfg.Message,
 			Files:    cfg.Files,
 			Template: cfg.Template,
@@ -82,7 +83,7 @@ func userInput(
 	stdin io.Reader,
 	clipboard ClipboardProvider,
 	editor EditorProvider,
-) (*UserInput, error) {
+) (*api.UserInput, error) {
 
 	msg := strings.TrimSpace(strings.Join(cfg.Args, " "))
 
@@ -92,13 +93,13 @@ func userInput(
 
 	// read from command line
 	if len(msg) > 0 && !isSpecial {
-		return &UserInput{Message: msg}, nil
+		return &api.UserInput{Message: msg}, nil
 	}
 
-	cat := func(msg, data string) *UserInput {
+	cat := func(msg, data string) *api.UserInput {
 		m := strings.TrimSpace(msg)
 		d := strings.TrimSpace(data)
-		return &UserInput{Message: m, Content: d}
+		return &api.UserInput{Message: m, Content: d}
 	}
 
 	// stdin takes precedence over clipboard

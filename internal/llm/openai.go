@@ -85,54 +85,11 @@ func DeveloperMessage(content string) openai.ChatCompletionMessageParamUnion {
 	}
 }
 
-type Request struct {
-	ModelType api.ModelType
-	BaseUrl   string
-	ApiKey    string
-	Model     string
-
-	// History  []*Message
-	Messages []*Message
-
-	MaxTurns int
-	RunTool  func(ctx context.Context, name string, props map[string]any) (*api.Result, error)
-
-	Tools []*ToolFunc
-}
-
-type ToolCall = openai.ChatCompletionMessageToolCall
-
-type Message struct {
-	ContentType string
-
-	Role    string
-	Content string
-	Sender  string
-
-	// ToolCalls []ToolCall
-}
-
-type ToolFunc struct {
-	Name        string
-	Description string
-	Parameters  map[string]interface{}
-}
-
-type Response struct {
-	ContentType string
-
-	Role    string
-	Content string
-
-	Transfer  bool
-	NextAgent string
-}
-
-func Send(ctx context.Context, req *Request) (*Response, error) {
+func Send(ctx context.Context, req *api.Request) (*api.Response, error) {
 	log.Debugf(">>>OPENAI:\n type: %s model: %s, messages: %v tools: %v\n\n", req.ModelType, req.Model, len(req.Messages), len(req.Tools))
 
 	var err error
-	var resp *Response
+	var resp *api.Response
 
 	switch req.ModelType {
 	case api.ModelTypeImage:
@@ -146,11 +103,11 @@ func Send(ctx context.Context, req *Request) (*Response, error) {
 		return nil, err
 	}
 
-	log.Debugf("<<<OPENAI:\n type: %s transfer: %s, next: %s content: %v\n\n", resp.ContentType, resp.Transfer, resp.NextAgent, len(resp.Content))
+	log.Debugf("<<<OPENAI:\n type: %s transfer: %+v, content: %v\n\n", resp.ContentType, resp.Result, len(resp.Content))
 	return resp, nil
 }
 
-func call(ctx context.Context, req *Request) (*Response, error) {
+func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	messages := make([]openai.ChatCompletionMessageParamUnion, 0)
 	for _, v := range req.Messages {
 		msg := buildMessage("", v.Role, v.Content)
@@ -173,7 +130,7 @@ func call(ctx context.Context, req *Request) (*Response, error) {
 		params.Tools = openai.F(tools)
 	}
 
-	resp := &Response{}
+	resp := &api.Response{}
 
 	for tries := 0; tries < req.MaxTurns; tries++ {
 		log.Debugf("*** sending to %s ***: %v of %v\n", req.BaseUrl, tries, req.MaxTurns)
@@ -209,17 +166,14 @@ func call(ctx context.Context, req *Request) (*Response, error) {
 			}
 
 			log.Debugf("\n<<< tool call: %s out: %s\n", name, out)
+			resp.Result = out
 
 			if out.State == api.StateExit {
-				return &Response{
-					Content: out.Value,
-				}, nil
+				resp.Content = out.Value
+				return resp, nil
 			}
 			if out.State == api.StateTransfer {
-				return &Response{
-					Transfer:  true,
-					NextAgent: out.NextAgent,
-				}, nil
+				return resp, nil
 			}
 			params.Messages.Value = append(params.Messages.Value, openai.ToolMessage(toolCall.ID, out.Value))
 		}
@@ -228,7 +182,7 @@ func call(ctx context.Context, req *Request) (*Response, error) {
 	return resp, nil
 }
 
-func generateImage(ctx context.Context, req *Request) (*Response, error) {
+func generateImage(ctx context.Context, req *api.Request) (*api.Response, error) {
 	messages := make([]string, 0)
 	for _, v := range req.Messages {
 		messages = append(messages, v.Content)
@@ -238,7 +192,7 @@ func generateImage(ctx context.Context, req *Request) (*Response, error) {
 	prompt := strings.Join(messages, "\n")
 	model := req.Model
 
-	resp := &Response{
+	resp := &api.Response{
 		ContentType: api.ContentTypeB64JSON,
 	}
 

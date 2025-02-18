@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/util"
 )
 
 func TestEvaluateCommand(t *testing.T) {
@@ -20,6 +21,18 @@ func TestEvaluateCommand(t *testing.T) {
 
 	log.SetLogLevel(log.Verbose)
 
+	var vars = NewVars()
+	sysInfo, err := util.CollectSystemInfo()
+	if err != nil {
+		t.Errorf("collect system info: %v", err)
+	}
+	vars.Arch = sysInfo.Arch
+	vars.OS = sysInfo.OS
+	vars.ShellInfo = sysInfo.ShellInfo
+	vars.OSInfo = sysInfo.OSInfo
+	vars.UserInfo = sysInfo.UserInfo
+	vars.WorkDir = sysInfo.WorkDir
+
 	tests := []struct {
 		command string
 		args    []string
@@ -30,11 +43,13 @@ func TestEvaluateCommand(t *testing.T) {
 		// {"rm", []string{"-rf", "/tmp/test"}, false},
 		// {"find", []string{"./", "-name", "*.txt"}, true},
 		// {"find", []string{"/tmp/test", "-type", "f", "-name", "*.exe", "-exec", "rm", "{}", "\\;"}, false},
+		{"/bin/find", []string{".", "-type", "f", "-name", "*cmdIds*.go"}, true},
 	}
 
 	for _, test := range tests {
 		resp, err := evaluateCommand(context.TODO(), &Agent{
 			Model: model,
+			Vars:  vars,
 		}, test.command, test.args)
 		if err != nil {
 			t.Errorf("evaluate command: %v\n%+v", err, resp)

@@ -138,7 +138,7 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 		return r.runTool(ctx, name, args)
 	}
 
-	result, err := llm.Send(ctx, &llm.Request{
+	result, err := llm.Send(ctx, &api.Request{
 		ModelType: r.Model.Type,
 		BaseUrl:   r.Model.BaseUrl,
 		ApiKey:    r.Model.ApiKey,
@@ -152,7 +152,7 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 		return err
 	}
 
-	if !result.Transfer {
+	if result.Result == nil || result.Result.State != api.StateTransfer {
 		message := Message{
 			ContentType: result.ContentType,
 			Role:        result.Role,
@@ -165,8 +165,7 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 	resp.Messages = history[initLen:]
 
 	resp.Agent = r
-	resp.Transfer = result.Transfer
-	resp.NextAgent = result.NextAgent
+	resp.Result = result.Result
 
 	r.sw.History = history
 	return nil
@@ -195,5 +194,16 @@ func (r *Agent) runTool(ctx context.Context, name string, args map[string]any) (
 	}
 	return &api.Result{
 		Value: out,
+	}, nil
+}
+
+func transferAgent(ctx context.Context, agent *Agent, name string, props map[string]any) (*Result, error) {
+	transferTo, err := GetStrProp("agent", props)
+	if err != nil {
+		return nil, err
+	}
+	return &api.Result{
+		NextAgent: transferTo,
+		State:     api.StateTransfer,
 	}, nil
 }

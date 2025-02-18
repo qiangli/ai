@@ -34,7 +34,7 @@ func AgentHelp(cfg *internal.AppConfig) error {
 	return handleAgent(cfg, in)
 }
 
-func handleAgent(cfg *internal.AppConfig, in *UserInput) error {
+func handleAgent(cfg *internal.AppConfig, in *api.UserInput) error {
 	log.Debugf("HandleAgent: %s %v\n", cfg.Command, cfg.Args)
 
 	return runSwarm(cfg, in.Agent, in)
@@ -123,7 +123,7 @@ func collectSystemInfo() (string, error) {
 	return string(jd), nil
 }
 
-func processContent(cfg *internal.AppConfig, message *ChatMessage) {
+func processContent(cfg *internal.AppConfig, message *api.Response) {
 	if message.ContentType == api.ContentTypeText || message.ContentType == "" {
 		processTextContent(cfg, message)
 	} else if message.ContentType == api.ContentTypeB64JSON {
@@ -133,7 +133,7 @@ func processContent(cfg *internal.AppConfig, message *ChatMessage) {
 	}
 }
 
-func processTextContent(cfg *internal.AppConfig, message *ChatMessage) {
+func processTextContent(cfg *internal.AppConfig, message *api.Response) {
 	content := message.Content
 	doc := util.ParseMarkdown(content)
 	total := len(doc.CodeBlocks)
@@ -172,7 +172,7 @@ func processTextContent(cfg *internal.AppConfig, message *ChatMessage) {
 	}
 }
 
-func processImageContent(cfg *internal.AppConfig, message *ChatMessage) {
+func processImageContent(cfg *internal.AppConfig, message *api.Response) {
 	var imageFile string
 	if cfg.Output != "" {
 		imageFile = cfg.Output
