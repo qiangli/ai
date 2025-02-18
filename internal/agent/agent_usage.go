@@ -5,7 +5,7 @@ var AgentDesc = map[string]string{
 	"ask":    "All-encompassing Q&A platform providing concise, reliable answers on diverse topics.",
 	"sql":    "Streamline SQL query generation, helping users derive insights without SQL expertise.",
 	"oh":     "Engineering assistant promoting incremental development and detailed refactoring support.",
-	"seek":   "Digital exploration tool delivering accurate, relevant insights from diverse online sources.",
+	"gptr":   "Digital exploration tool delivering accurate, relevant insights from diverse online sources.",
 	"git":    "Automate Git commit message creation for clarity and consistency in version control.",
 	"code":   "Integrate LLMs for collaborative coding, refactoring, bug fixing, and test development.",
 	"pr":     "Enhance PR management with automated summaries, reviews, suggestions, and changelog updates.",
@@ -25,7 +25,7 @@ var AgentInfo = map[string]string{
 	"oh": `
     OpenHands is an engineering assistant tool that simplifies tasks by encouraging an incremental approach. Start with basic exercises like creating a "hello world" script and progressively improve your project. It's ideal for greenfield projects, allowing you to begin with simple tasks such as developing a React TODO app and gradually adding features. OpenHands effectively integrates new code into existing systems and supports step-by-step code refactoring. For troubleshooting, detailed context is essential. The best outcomes are achieved by approaching tasks in small steps, providing specific details, sharing context, and making frequent commits.
 `,
-	"seek": `
+	"gptr": `
     The agent is a comprehensive tool designed for advanced digital exploration and research. It serves users seeking insights from diverse online sources, whether for academic research, competitive business analysis, or trend monitoring. Leveraging search technologies, it efficiently navigates the internet to provide accurate, timely, and contextually relevant information. With autonomous capabilities, it creates detailed, factual reports complete with citations, tackling issues like misinformation. Customizable and user-friendly, the tool aggregates data from over multiple sources, making digital content access and analysis reliable and efficient.
 `,
 	"git": `

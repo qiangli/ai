@@ -61,6 +61,15 @@ type AppConfig struct {
 	Template string
 
 	Workspace string
+
+	Debug bool
+	// Current working directory where AI script is executed
+	WorkDir     string
+	Interactive bool
+	MetaPrompt  bool
+
+	MaxTime  int
+	MaxTurns int
 }
 
 type Tool openai.ChatCompletionToolParam
@@ -88,25 +97,25 @@ type LLMConfig struct {
 	ImageBaseUrl string
 	ImageApiKey  string
 
-	Debug bool
+	// Debug bool
 
-	// Current working directory where AI script is executed
-	WorkDir string
+	// // Current working directory where AI script is executed
+	// WorkDir string
 
-	Interactive bool
+	// Interactive bool
 
-	MetaPrompt bool
+	// MetaPrompt bool
 }
 
 func (cfg *LLMConfig) Clone() *LLMConfig {
 	n := &LLMConfig{
-		ApiKey:      cfg.ApiKey,
-		BaseUrl:     cfg.BaseUrl,
-		Model:       cfg.Model,
-		Debug:       cfg.Debug,
-		WorkDir:     cfg.WorkDir,
-		Interactive: cfg.Interactive,
-		MetaPrompt:  cfg.MetaPrompt,
+		ApiKey:  cfg.ApiKey,
+		BaseUrl: cfg.BaseUrl,
+		Model:   cfg.Model,
+		// Debug:       cfg.Debug,
+		// WorkDir:     cfg.WorkDir,
+		// Interactive: cfg.Interactive,
+		// MetaPrompt:  cfg.MetaPrompt,
 	}
 
 	return n

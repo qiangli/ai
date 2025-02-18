@@ -29,17 +29,15 @@ func AgentHelp(cfg *internal.AppConfig) error {
 		return internal.NewUserInputError("no query provided")
 	}
 
-	return RunLaunchAgent(cfg, in)
+	in.Agent = launchAgent
+
+	return handleAgent(cfg, in)
 }
 
 func handleAgent(cfg *internal.AppConfig, in *UserInput) error {
 	log.Debugf("HandleAgent: %s %v\n", cfg.Command, cfg.Args)
 
-	if runner, ok := agentsRunMap[in.Agent]; ok {
-		return runner(cfg, in.Agent, in)
-	}
-
-	return internal.NewUserInputError("not supported yet: " + in.Agent)
+	return runSwarm(cfg, in.Agent, in)
 }
 
 func Info(cfg *internal.AppConfig) error {

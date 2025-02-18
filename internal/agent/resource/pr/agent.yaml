@@ -13,6 +13,8 @@ agents:
     model: L1
     instruction:
       content: "resource:pr_sub_system_role"
+    advices:
+      around: "sub"
     functions:
       - "agent_transfer"
 

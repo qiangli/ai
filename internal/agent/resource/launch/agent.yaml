@@ -13,6 +13,8 @@ agents:
     model: L1
     instruction:
       content: "resource:agent_sub_system_role"
+    advices:
+      after: "agent_launch"
     functions:
       - "list_agents"
       - "agent_info"

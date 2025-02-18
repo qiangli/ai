@@ -74,7 +74,12 @@ type AdviceConfig struct {
 	Around string `yaml:"around"`
 }
 
-func AgentCreator(config *AgentsConfig) AgentFunc {
+func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
+	if err := r.Load(name, input); err != nil {
+		return nil, err
+	}
+
+	config := r.Config
 	adviceMap := config.AdviceMap
 
 	getAgentConfig := func(name string) (*AgentConfig, error) {
@@ -93,15 +98,22 @@ func AgentCreator(config *AgentsConfig) AgentFunc {
 			Role:        ac.Instruction.Role,
 			Instruction: ac.Instruction.Content,
 			Vars:        vars,
+			RawInput:    input,
 			MaxTurns:    config.MaxTurns,
 			MaxTime:     config.MaxTime,
 		}
 		// override from command line flags
-		if vars.Role != "" {
-			agent.Role = vars.Role
+		if r.AppConfig.Role != "" {
+			agent.Role = r.AppConfig.Role
 		}
-		if vars.Prompt != "" {
-			agent.Instruction = vars.Prompt
+		if r.AppConfig.Prompt != "" {
+			agent.Instruction = r.AppConfig.Prompt
+		}
+		if r.AppConfig.MaxTurns != 0 {
+			agent.MaxTurns = r.AppConfig.MaxTurns
+		}
+		if r.AppConfig.MaxTime != 0 {
+			agent.MaxTime = r.AppConfig.MaxTime
 		}
 
 		model, ok := vars.Models[ac.Model]
@@ -152,7 +164,7 @@ func AgentCreator(config *AgentsConfig) AgentFunc {
 		return &agent, nil
 	}
 
-	return func(name string, vars *Vars) (*Agent, error) {
+	creator := func(name string, vars *Vars) (*Agent, error) {
 		agentCfg, err := getAgentConfig(name)
 		if err != nil {
 			return nil, err
@@ -180,4 +192,6 @@ func AgentCreator(config *AgentsConfig) AgentFunc {
 
 		return agent, nil
 	}
+
+	return creator(name, r.Vars)
 }

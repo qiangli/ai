@@ -98,7 +98,7 @@ func runScript(cfg *internal.AppConfig, script string) error {
 		return err
 	}
 
-	wd := cfg.LLM.WorkDir
+	wd := cfg.WorkDir
 
 	log.Debugf("Working directory: %s\n", wd)
 	log.Debugf("Script file: %s\n", tmpFile.Name())

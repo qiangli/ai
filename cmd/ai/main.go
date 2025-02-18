@@ -35,13 +35,13 @@ func handle(cmd *cobra.Command, args []string) error {
 	// interactive mode
 	// $ ai -i or $ ai --interactive
 	// TODO: implement interactive mode
-	if cfg.LLM.Interactive {
+	if cfg.Interactive {
 		// return shell.Bash(cfg.LLM)
 		return fmt.Errorf("interactive mode not implemented yet")
 	}
 
 	// $ ai
-	if command == "" && len(cfg.Args) == 0 {
+	if command == "" && len(cfg.Args) == 0 && cfg.Message == "" {
 		return cmd.Help()
 	}
 

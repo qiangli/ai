@@ -26,6 +26,8 @@ type Agent struct {
 	// Instructions for the agent, can be a string or a callable returning a string
 	Instruction string
 
+	RawInput *UserInput
+
 	Vars *Vars
 
 	// A list of functions that the agent can call

@@ -23,6 +23,7 @@ func init() {
 	adviceMap["aider"] = aiderAdvice
 	adviceMap["openhands"] = ohAdvice
 	adviceMap["agent_launch"] = agentLaunchAdvice
+	adviceMap["sub"] = subAdvice
 }
 
 type AgentDetect struct {
@@ -134,6 +135,16 @@ func prUserInputAdvice(vars *swarm.Vars, req *swarm.Request, _ *swarm.Response, 
 	}
 
 	return nil
+}
+
+func subAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, next swarm.Advice) error {
+	sub := baseCommand(req.RawInput.Subcommand)
+	if sub != "" {
+		resp.NextAgent = sub
+		resp.Transfer = true
+		return nil
+	}
+	return next(vars, req, resp, next)
 }
 
 // PR format after advice

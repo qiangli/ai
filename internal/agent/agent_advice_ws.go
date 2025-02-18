@@ -37,8 +37,8 @@ func resolveWorkspaceAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Re
 	if !ok {
 		return fmt.Errorf("failed to get template: %s", "ws_base_user_role")
 	}
-	userInput, err := applyTemplate(tpl, map[string]string{
-		"Input": vars.Input.Intent(),
+	query, err := applyTemplate(tpl, map[string]string{
+		"Input": req.RawInput.Intent(),
 	})
 	if err != nil {
 		return err
@@ -46,7 +46,7 @@ func resolveWorkspaceAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Re
 
 	msg := &swarm.Message{
 		Role:    swarm.RoleUser,
-		Content: userInput,
+		Content: query,
 		Sender:  req.Agent,
 	}
 	req.Message = msg

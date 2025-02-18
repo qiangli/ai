@@ -237,6 +237,9 @@ func addFlags(cmd *cobra.Command) {
 	flags.Var(newOutputValue("markdown", &formatFlag), "format", "Output format, must be either raw or markdown.")
 	flags.StringVarP(&outputFlag, "output", "o", "", "Save final response to a file.")
 
+	flags.Int("max-turns", 32, "Max number of turns")
+	flags.Int("max-time", 3600, "Max number of seconds for timeout")
+
 	// agent specific flags
 	// db
 	flags.String("sql-db-host", "", "Database host")
@@ -353,16 +356,15 @@ func getConfig(cmd *cobra.Command, args []string) *internal.AppConfig {
 	cfg.ImageApiKey = viper.GetString("image_api_key")
 
 	//
-	cfg.Debug = viper.GetBool("verbose")
-
+	app.Debug = viper.GetBool("verbose")
 	app.Editor = viper.GetString("editor")
-
-	cfg.Interactive = viper.GetBool("interactive")
+	app.Interactive = viper.GetBool("interactive")
 	noMeta := viper.GetBool("no_meta_prompt")
-	cfg.MetaPrompt = !noMeta
+	app.MetaPrompt = !noMeta
+	app.WorkDir, _ = os.Getwd()
 
-	//
-	cfg.WorkDir, _ = os.Getwd()
+	app.MaxTurns = viper.GetInt("max_turns")
+	app.MaxTime = viper.GetInt("max_time")
 
 	// special char sequence handling
 	var pbRead = viper.GetBool("pb_read")

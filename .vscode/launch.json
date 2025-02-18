@@ -37,6 +37,26 @@
 			"stopOnEntry": false,
 		},
 		{
+			"name": "Smart Launch",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/ai/",
+			"env": {
+				"AI_MODEL": "gpt4o-mini",
+				"AI_API_KEY": "sk-1234",
+				"AI_BASE_URL": "http://localhost:4000",
+				"AI_DEBUG": "true",
+			},
+			"args": [
+				"--verbose",
+				"--message",
+				"find all dogs and cats in the current directory",
+			],
+			"showLog": false,
+			"stopOnEntry": false
+		},
+		{
 			"name": "Ask",
 			"type": "go",
 			"request": "launch",
@@ -97,6 +117,27 @@
 				"--role-prompt", "you are a coding assistant. you solve all problems in python.",
 				"--message",
 				"what is the sum of 1+1"
+			],
+			"showLog": false,
+			"stopOnEntry": false
+		},
+		{
+			"name": "Git message",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/ai/",
+			"env": {
+				"AI_MODEL": "gpt4o-mini",
+				"AI_API_KEY": "sk-1234",
+				"AI_BASE_URL": "http://localhost:4000",
+				"AI_DEBUG": "true",
+			},
+			"args": [
+				"--verbose",
+				"@git/short",
+				"--message",
+				"write a short commit message for the code changes",
 			],
 			"showLog": false,
 			"stopOnEntry": false

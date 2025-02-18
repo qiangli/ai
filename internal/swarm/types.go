@@ -53,11 +53,11 @@ type Vars struct {
 	DBCred *DBCred
 
 	// per agent
-	Input  *UserInput
-	Role   string
-	Prompt string
-	Model  *Model
-	Extra  map[string]any
+	// Input  *UserInput
+	// Role   string
+	// Prompt string
+	// Model  *Model
+	Extra map[string]any
 
 	Models map[string]*Model
 

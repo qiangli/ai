@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/qiangli/ai/internal/agent/resource"
@@ -23,6 +24,8 @@ var funcRegistry = map[string]swarm.Function{}
 
 func init() {
 	funcRegistry["gptr_generate_report"] = gptrGenerateReport
+	funcRegistry["list_agents"] = listAgentFunc
+	funcRegistry["agent_info"] = agentInfoFunc
 }
 
 func gptrGenerateReport(ctx context.Context, agent *swarm.Agent, name string, args map[string]any) (*api.Result, error) {
@@ -37,7 +40,7 @@ func gptrGenerateReport(ctx context.Context, agent *swarm.Agent, name string, ar
 		return nil, err
 	}
 
-	content, err := GenerateReport(ctx, agent.Model, obj.ReportType, obj.Tone, agent.Vars.Input.Query())
+	content, err := GenerateReport(ctx, agent.Model, obj.ReportType, obj.Tone, agent.RawInput.Query())
 	if err != nil {
 		return nil, err
 	}
@@ -216,4 +219,29 @@ func OpenHands(ctx context.Context, model *swarm.Model, workspace string, in *Us
 	os.Setenv("DEBUG", fmt.Sprintf("%v", log.IsVerbose()))
 
 	return oh.Run(ctx, userContent)
+}
+
+func listAgentFunc(ctx context.Context, agent *swarm.Agent, name string, args map[string]any) (*api.Result, error) {
+	var list []string
+	for k, v := range AgentDesc {
+		list = append(list, fmt.Sprintf("%s: %s", k, v))
+	}
+	sort.Strings(list)
+	return &api.Result{
+		Value: fmt.Sprintf("Available agents:\n%s\n", strings.Join(list, "\n")),
+	}, nil
+}
+
+func agentInfoFunc(ctx context.Context, agent *swarm.Agent, name string, args map[string]any) (*api.Result, error) {
+	key, err := swarm.GetStrProp("agent", args)
+	if err != nil {
+		return nil, err
+	}
+	var result = "ask"
+	if v, ok := AgentDesc[key]; ok {
+		result = v
+	}
+	return &api.Result{
+		Value: result,
+	}, nil
 }
