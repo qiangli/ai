@@ -27,6 +27,8 @@ const (
 )
 
 type Request struct {
+	Agent string
+
 	ModelType ModelType
 	BaseUrl   string
 	ApiKey    string
@@ -59,11 +61,9 @@ type Response struct {
 	ContentType string
 	Content     string
 
-	Agent string
-	Role  string
-
-	// Transfer  bool
-	// NextAgent string
+	Agent   string
+	Display string
+	Role    string
 
 	Result *Result
 }

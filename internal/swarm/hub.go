@@ -2,9 +2,7 @@ package swarm
 
 import (
 	"fmt"
-	"os"
 	"reflect"
-	"strings"
 
 	"github.com/google/uuid"
 )
@@ -12,84 +10,7 @@ import (
 // User interface
 // Input
 // Output
-
-type Input struct {
-	// user requested agent and subcommand
-	Agent      string `json:"agent"`
-	Subcommand string `json:"subcommand"`
-
-	// input collected from command line
-	Message string `json:"message"`
-
-	// input collected from stdin, or editor
-	Content string `json:"content"`
-
-	// File paths whose content to be included in the input
-	Files []string `json:"files"`
-
-	Extra map[string]any `json:"extra"`
-}
-
-// IsEmpty returns true if the message, content, and files are all empty.
-func (r *Input) IsEmpty() bool {
-	return r.Message == "" && r.Content == "" && len(r.Files) == 0
-}
-
-// Input returns a single string concatenating all user inputs.
-func (r *Input) Input() string {
-	fc, _ := r.FileContent()
-	return r.Query() + "\n" + fc
-}
-
-// Query returns a single string combining both the message and content.
-func (r *Input) Query() string {
-	switch {
-	case r.Message == "" && r.Content == "":
-		return ""
-	case r.Message == "":
-		return r.Content
-	case r.Content == "":
-		return r.Message
-	default:
-		return fmt.Sprintf("###\n%s\n###\n%s", r.Message, r.Content)
-	}
-}
-
-// FileContent returns the content of the files in the input.
-func (r *Input) FileContent() (string, error) {
-	var b strings.Builder
-	if len(r.Files) > 0 {
-		for _, f := range r.Files {
-			b.WriteString("\n### " + f + " ###\n")
-			c, err := os.ReadFile(f)
-			if err != nil {
-				return "", err
-
-			}
-			b.WriteString(string(c))
-		}
-	}
-	return b.String(), nil
-}
-
-// Intent returns a clipped version of the query.
-// This is intended for "smart" agents to make decisions based on user inputs.
-func (r *Input) Intent() string {
-	return r.clipText(r.Message, 500)
-}
-
-// clipText truncates the input text to no more than the specified maximum length.
-func (r *Input) clipText(text string, maxLen int) string {
-	if len(text) > maxLen {
-		return strings.TrimSpace(text[:maxLen]) + "\n[more...]"
-	}
-	return text
-}
-
-func (r *Input) String() string {
-	return r.Query()
-}
-
+type Input = UserInput
 type Output struct {
 	// The last agent that processed the output content.
 	Agent string `json:"agent"`

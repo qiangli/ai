@@ -22,7 +22,7 @@ func init() {
 
 // PR entrypoint that generates and updates the instruction/system role prompt
 func prPromptEntrypoint(vars *swarm.Vars, agent *swarm.Agent, input *swarm.UserInput) error {
-	sub := agent.Name
+	sub := baseCommand(agent.Name)
 	schema := fmt.Sprintf("pr_%s_schema", sub)
 	example := fmt.Sprintf("pr_%s_example", sub)
 

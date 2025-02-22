@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/agent/resource"
 	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/cb"
 	"github.com/qiangli/ai/internal/log"
@@ -31,13 +32,7 @@ func AgentHelp(cfg *internal.AppConfig) error {
 
 	in.Agent = launchAgent
 
-	return handleAgent(cfg, in)
-}
-
-func handleAgent(cfg *internal.AppConfig, in *api.UserInput) error {
-	log.Debugf("HandleAgent: %s %v\n", cfg.Command, cfg.Args)
-
-	return runSwarm(cfg, in.Agent, in)
+	return RunSwarm(cfg, in)
 }
 
 func Info(cfg *internal.AppConfig) error {
@@ -71,23 +66,24 @@ Not sure which agent to use? Simply enter your message and AI will choose the mo
 ai "message..."
 
 `
-	dict := agentList()
+	// dict := agentList()
+	dict := resource.AgentCommandMap
 	var keys []string
 	for k := range dict {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 
-	commands := agentCommandList()
+	// commands := agentCommandList()
 	var buf strings.Builder
 	for _, k := range keys {
 		buf.WriteString(k)
 		buf.WriteString(":\t")
-		buf.WriteString(dict[k])
-		if v, ok := commands[k]; ok {
-			buf.WriteString("\t")
-			buf.WriteString(v)
-		}
+		buf.WriteString(dict[k].Description)
+		// if v, ok := commands[k]; ok {
+		// 	buf.WriteString("\t")
+		// 	buf.WriteString(v)
+		// }
 		buf.WriteString("\n")
 	}
 	log.Printf(format, buf.String())
@@ -211,4 +207,66 @@ func saveImage(b64Image string, dest string) error {
 	log.Infof("Image content saved to %s\n", dest)
 
 	return nil
+}
+
+// func agentCommandList() map[string]string {
+// 	return AgentCommands
+// }
+
+func HandleCommand(cfg *internal.AppConfig) error {
+	log.Debugf("HandleCommand: %s %v\n", cfg.Command, cfg.Args)
+
+	cmd := cfg.Command
+
+	if cmd != "" {
+		// $ ai /command
+		if strings.HasPrefix(cmd, "/") {
+			name := strings.TrimSpace(cmd[1:])
+			in, err := GetUserInput(cfg)
+			if err != nil {
+				return err
+			}
+
+			if name == "" && in.IsEmpty() {
+				return internal.NewUserInputError("no command and message provided")
+			}
+
+			in.Agent = "script"
+			in.Subcommand = name
+			return RunSwarm(cfg, in)
+		}
+
+		// $ ai @agent
+		if strings.HasPrefix(cmd, "@") {
+			name := strings.TrimSpace(cmd[1:])
+			if name == "" {
+				// auto select
+				// $ ai @ message...
+				return AgentHelp(cfg)
+			}
+
+			// na := strings.SplitN(name, "/", 2)
+			// agent := na[0]
+
+			in, err := GetUserInput(cfg)
+			if err != nil {
+				return err
+			}
+			if in.IsEmpty() {
+				return internal.NewUserInputError("no message content")
+			}
+
+			in.Agent = name
+
+			// in.Agent = agent
+			// if len(na) > 1 {
+			// 	in.Subcommand = na[1]
+			// }
+			return RunSwarm(cfg, in)
+		}
+	}
+
+	// auto select the best agent to handle the user query if there is message content
+	// $ ai message...
+	return AgentHelp(cfg)
 }

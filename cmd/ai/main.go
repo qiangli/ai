@@ -12,7 +12,7 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
-func handle(cmd *cobra.Command, args []string) error {
+func Run(cmd *cobra.Command, args []string) error {
 	setLogLevel()
 
 	fileLog, err := setLogOutput()
@@ -25,7 +25,7 @@ func handle(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
-	cfg := getConfig(cmd, args)
+	cfg := configure(cmd, args)
 
 	log.Debugf("Config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.Db)
 
@@ -55,11 +55,9 @@ func handle(cmd *cobra.Command, args []string) error {
 		// $ ai help
 		if len(cfg.Args) == 0 {
 			switch command {
-			case "/":
+			case "/", "list-commands", "commands":
 				return agent.ListCommands(cfg)
-			case "list-commands":
-				return agent.ListCommands(cfg)
-			case "@":
+			case "@", "list-agents", "agents":
 				return agent.ListAgents(cfg)
 			case "info":
 				return agent.Info(cfg)
@@ -85,7 +83,7 @@ var rootCmd = &cobra.Command{
 	`,
 	Example: usageExample,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return handle(cmd, args)
+		return Run(cmd, args)
 	},
 }
 

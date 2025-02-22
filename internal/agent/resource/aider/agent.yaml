@@ -10,6 +10,7 @@ agents:
   - name: "aider"
     display: "🔍 Aider"
     description: "Integrate LLMs for collaborative coding, refactoring, bug fixing, and test development."
+    overview: "The Code agent is an innovative tool that boosts collaborative software development by seamlessly integrating Large Language Models (LLMs) into local environments. By harnessing the power of these models, it can generate new code, refactor existing code, fix bugs, and develop test cases efficiently. This enhances productivity and code quality, making teamwork more efficient and effective."
     model: L1
     instruction:
       content: "You are a coding assistant."

@@ -13,6 +13,8 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
+var braille = []string{"⣿", "⠉", "⠛", "⠿"}
+
 // https://github.com/openai/openai-go/tree/main/examples
 
 func define(name, description string, parameters map[string]interface{}) openai.ChatCompletionToolParam {
@@ -132,13 +134,16 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 
 	resp := &api.Response{}
 
-	for tries := 0; tries < req.MaxTurns; tries++ {
-		log.Debugf("*** sending to %s ***: %v of %v\n", req.BaseUrl, tries, req.MaxTurns)
+	for tries := range req.MaxTurns {
+		log.Debugf("*** sending request to %s ***: %v of %v\n", req.BaseUrl, tries, req.MaxTurns)
 
+		log.Infof("[%v] @%s %s %s\n", tries, req.Agent, req.Model, req.BaseUrl)
 		completion, err := client.Chat.Completions.New(ctx, params)
 		if err != nil {
+			log.Errorf("✗ %s\n", err)
 			return nil, err
 		}
+		log.Infof("✨ %v\n", completion.Choices[0].FinishReason)
 
 		toolCalls := completion.Choices[0].Message.ToolCalls
 
@@ -150,20 +155,23 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 
 		params.Messages.Value = append(params.Messages.Value, completion.Choices[0].Message)
 
-		for _, toolCall := range toolCalls {
+		for i, toolCall := range toolCalls {
 			var name = toolCall.Function.Name
 			var props map[string]interface{}
 			if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &props); err != nil {
 				return nil, err
 			}
 
-			log.Debugf("\n\n>>> tool call: %s props: %+v\n", name, props)
+			log.Debugf("\n\n>>> tool call: %v %s props: %+v\n", i, name, props)
 
 			//
+			log.Infof("⣿ %s %+v\n", name, props)
 			out, err := req.RunTool(ctx, name, props)
 			if err != nil {
+				log.Errorf("✗ %s\n", err)
 				return nil, err
 			}
+			log.Infof("✔ done\n")
 
 			log.Debugf("\n<<< tool call: %s out: %s\n", name, out)
 			resp.Result = out

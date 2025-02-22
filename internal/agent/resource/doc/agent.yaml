@@ -10,6 +10,7 @@ agents:
   - name: "doc"
     display: "🐝 Doc"
     description: "Create a polished document by integrating draft materials into the provided template."
+    overview: "This advanced AI document agent helps you create polished and coherent documents effortlessly. By integrating your draft materials into a provided example template, the AI ensures the final document adheres strictly to the template's structure and formatting. It pays close attention to headings, subheadings, bullet points, numbering, and overall organization. The AI maintains a consistent writing style that matches the template's tone and formality, and it refines the content for clarity, coherence, and readability. Finally, it conducts a thorough review to ensure the document meets all specified requirements. This agent streamlines the document creation process, delivering high-quality results with minimal effort."
     model: L2
     instruction:
       content: "resource:doc_compose_system_role"

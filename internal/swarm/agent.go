@@ -3,6 +3,7 @@ package swarm
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/llm"
@@ -28,7 +29,7 @@ type Agent struct {
 
 	RawInput *UserInput
 
-	Vars *Vars
+	// Vars *Vars
 
 	// A list of functions that the agent can call
 	Functions []*ToolFunc
@@ -48,6 +49,10 @@ type Agent struct {
 
 	//
 	sw *Swarm
+}
+
+func (r *Agent) Vars() *Vars {
+	return r.sw.Vars
 }
 
 func (r *Agent) Serve(req *Request, resp *Response) error {
@@ -76,7 +81,7 @@ func (r *Agent) Serve(req *Request, resp *Response) error {
 		return nil
 	}
 	if r.BeforeAdvice != nil {
-		if err := r.BeforeAdvice(r.Vars, req, resp, noop); err != nil {
+		if err := r.BeforeAdvice(r.sw.Vars, req, resp, noop); err != nil {
 			return err
 		}
 	}
@@ -84,7 +89,7 @@ func (r *Agent) Serve(req *Request, resp *Response) error {
 		next := func(vars *Vars, req *Request, resp *Response, _ Advice) error {
 			return r.runLoop(ctx, req, resp)
 		}
-		if err := r.AroundAdvice(r.Vars, req, resp, next); err != nil {
+		if err := r.AroundAdvice(r.sw.Vars, req, resp, next); err != nil {
 			return err
 		}
 	} else {
@@ -93,7 +98,7 @@ func (r *Agent) Serve(req *Request, resp *Response) error {
 		}
 	}
 	if r.AfterAdvice != nil {
-		if err := r.AfterAdvice(r.Vars, req, resp, noop); err != nil {
+		if err := r.AfterAdvice(r.sw.Vars, req, resp, noop); err != nil {
 			return err
 		}
 	}
@@ -102,21 +107,45 @@ func (r *Agent) Serve(req *Request, resp *Response) error {
 }
 
 func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error {
+	// "resource:" prefix is used to refer to a resource
+	// "vars:" prefix is used to refer to a variable
+	apply := func(s string, vars *Vars) (string, error) {
+		if strings.HasPrefix(s, "resource:") {
+			v, ok := r.sw.Config.ResourceMap[s[9:]]
+			if !ok {
+				return "", fmt.Errorf("no such resource: %s", s[9:])
+			}
+			return applyTemplate(v, vars, r.sw.Config.TemplateFuncMap)
+		}
+		if strings.HasPrefix(s, "vars:") {
+			v := vars.GetString(s[5:])
+			return v, nil
+		}
+		return s, nil
+	}
+
 	var history []*Message
 
 	// system role prompt as first message
 	if r.Instruction != "" {
+		// update the request instruction
+		content, err := apply(r.Instruction, r.sw.Vars)
+		if err != nil {
+			return err
+		}
+
 		role := r.Role
 		if role == "" {
 			role = RoleSystem
 		}
 		history = append(history, &Message{
 			Role:    role,
-			Content: r.Instruction,
+			Content: content,
 			Sender:  r.Name,
 		})
 	}
-	history = append(history, r.sw.History...)
+	// FIXME: this is confusing LLM?
+	// history = append(history, r.sw.History...)
 
 	if req.Message == nil {
 		req.Message = &Message{
@@ -139,6 +168,7 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 	}
 
 	result, err := llm.Send(ctx, &api.Request{
+		Agent:     r.Name,
 		ModelType: r.Model.Type,
 		BaseUrl:   r.Model.BaseUrl,
 		ApiKey:    r.Model.ApiKey,
@@ -175,14 +205,14 @@ func (r *Agent) runTool(ctx context.Context, name string, args map[string]any) (
 	var out string
 	var err error
 
-	if fn, ok := r.Vars.FuncRegistry[name]; ok {
+	if fn, ok := r.sw.Vars.FuncRegistry[name]; ok {
 		log.Debugf("run function: %s %+v\n", name, args)
 		return fn(ctx, r, name, args)
 	}
 
 	switch name {
 	case transferAgentName:
-		return transferAgent(ctx, r, name, args)
+		return transferAgentSub(ctx, r, args)
 	default:
 		out, err = runCommandTool(ctx, r, name, args)
 	}
@@ -197,13 +227,13 @@ func (r *Agent) runTool(ctx context.Context, name string, args map[string]any) (
 	}, nil
 }
 
-func transferAgent(ctx context.Context, agent *Agent, name string, props map[string]any) (*Result, error) {
+func transferAgentSub(ctx context.Context, agent *Agent, props map[string]any) (*Result, error) {
 	transferTo, err := GetStrProp("agent", props)
 	if err != nil {
 		return nil, err
 	}
 	return &api.Result{
-		NextAgent: transferTo,
+		NextAgent: fmt.Sprintf("%s/%s", agent.Name, transferTo),
 		State:     api.StateTransfer,
 	}, nil
 }

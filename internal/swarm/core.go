@@ -3,8 +3,6 @@ package swarm
 import (
 	"context"
 	"errors"
-	"fmt"
-	"strings"
 	"text/template"
 	"time"
 
@@ -31,9 +29,6 @@ type Swarm struct {
 	//
 	DryRun        bool
 	DryRunContent string
-
-	// starter
-	Agent string
 
 	AgentConfigMap map[string][][]byte
 
@@ -140,7 +135,6 @@ func (r *Swarm) Load(name string, input *UserInput) error {
 	if err != nil {
 		return err
 	}
-	r.Agent = name
 
 	app := r.AppConfig
 	config := r.Config
@@ -186,22 +180,22 @@ func (r *Swarm) Load(name string, input *UserInput) error {
 }
 
 func (r *Swarm) Run(req *Request, resp *Response) error {
-	// "resource:" prefix is used to refer to a resource
-	// "vars:" prefix is used to refer to a variable
-	apply := func(s string, vars *Vars) (string, error) {
-		if strings.HasPrefix(s, "resource:") {
-			v, ok := r.Config.ResourceMap[s[9:]]
-			if !ok {
-				return "", fmt.Errorf("no such resource: %s", s[9:])
-			}
-			return applyTemplate(v, vars, r.Config.TemplateFuncMap)
-		}
-		if strings.HasPrefix(s, "vars:") {
-			v := vars.GetString(s[5:])
-			return v, nil
-		}
-		return s, nil
-	}
+	// // "resource:" prefix is used to refer to a resource
+	// // "vars:" prefix is used to refer to a variable
+	// apply := func(s string, vars *Vars) (string, error) {
+	// 	if strings.HasPrefix(s, "resource:") {
+	// 		v, ok := r.Config.ResourceMap[s[9:]]
+	// 		if !ok {
+	// 			return "", fmt.Errorf("no such resource: %s", s[9:])
+	// 		}
+	// 		return applyTemplate(v, vars, r.Config.TemplateFuncMap)
+	// 	}
+	// 	if strings.HasPrefix(s, "vars:") {
+	// 		v := vars.GetString(s[5:])
+	// 		return v, nil
+	// 	}
+	// 	return s, nil
+	// }
 
 	for {
 		agent, err := r.Create(req.Agent, req.RawInput)
@@ -216,12 +210,12 @@ func (r *Swarm) Run(req *Request, resp *Response) error {
 			}
 		}
 
-		// update the request instruction
-		content, err := apply(agent.Instruction, r.Vars)
-		if err != nil {
-			return err
-		}
-		agent.Instruction = content
+		// // update the request instruction
+		// content, err := apply(agent.Instruction, r.Vars)
+		// if err != nil {
+		// 	return err
+		// }
+		// agent.Instruction = content
 
 		timeout := TimeoutHandler(agent, time.Duration(agent.MaxTime)*time.Second, "timed out")
 		maxlog := MaxLogHandler(500)
@@ -261,7 +255,7 @@ func (h *maxLogHandler) Serve(r *Request, w *Response) error {
 
 	log.Debugf("req: %+v\n", r)
 	if r.Message != nil {
-		log.Printf("%s %s\n", r.Message.Role, clip(r.Message.Content, h.max))
+		log.Debugf("%s %s\n", r.Message.Role, clip(r.Message.Content, h.max))
 	}
 
 	err := h.next.Serve(r, w)
@@ -269,7 +263,7 @@ func (h *maxLogHandler) Serve(r *Request, w *Response) error {
 	log.Debugf("resp: %+v\n", w)
 	if w.Messages != nil {
 		for _, m := range w.Messages {
-			log.Printf("%s %s\n", m.Role, clip(m.Content, h.max))
+			log.Debugf("%s %s\n", m.Role, clip(m.Content, h.max))
 		}
 	}
 

@@ -8,6 +8,11 @@ import (
 	"github.com/openai/openai-go"
 )
 
+const (
+	ContentTypeText    = "text"
+	ContentTypeB64JSON = string(openai.ImageGenerateParamsResponseFormatB64JSON)
+)
+
 type UserInput struct {
 	Agent      string `json:"agent"`
 	Subcommand string `json:"subcommand"`
@@ -68,8 +73,3 @@ func clipText(text string, maxLen int) string {
 	}
 	return text
 }
-
-const (
-	ContentTypeText    = "text"
-	ContentTypeB64JSON = string(openai.ImageGenerateParamsResponseFormatB64JSON)
-)

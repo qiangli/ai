@@ -74,7 +74,7 @@ func GetUserInput(cfg *internal.AppConfig) (*api.UserInput, error) {
 	input.Files = cfg.Files
 	input.Template = cfg.Template
 
-	log.Infof("\n[%s]\n%s\n%s\n%v\n\n", cfg.Me, input.Message, clipText(input.Content, clipMaxLen), input.Files)
+	log.Debugf("\n[%s]\n%s\n%s\n%v\n\n", cfg.Me, input.Message, clipText(input.Content, clipMaxLen), input.Files)
 	return input, nil
 }
 

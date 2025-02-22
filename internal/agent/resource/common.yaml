@@ -1,24 +1,4 @@
 ###
-agents:
-  - name: "workspace"
-    description: "Determines the user's workspace based on user's input."
-    model: L1
-    instruction:
-      content: "resource:workspace_system_role"
-    advices:
-      around: "resolve_workspace"
-    functions:
-      - "list_commands"
-      - "command"
-      - "which"
-      - "man"
-      - "exec"
-      - "env"
-      - "pwd"
-      - "cd"
-      - "ls"
-      - "uname"
-      - "test"
 
 functions:
   - name: "list_commands"
@@ -146,4 +126,19 @@ functions:
     labels:
       - system
 
+
+models:
+  - name: "L1"
+    description: "Level 1 basic model"
+    external: true
+  - name: "L2"
+    description: "Level 2 regular model"
+    external: true
+  - name: "L3"
+    description: "Level 3 advanced model"
+    external: true
+  - name: "Image"
+    type: "image"
+    description: "Image model"
+    external: true
 ###

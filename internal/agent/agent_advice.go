@@ -142,7 +142,7 @@ func prUserInputAdvice(vars *swarm.Vars, req *swarm.Request, _ *swarm.Response, 
 
 // PR format after advice
 func prFormatAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
-	name := req.Agent
+	name := baseCommand(req.Agent)
 	var tplName = fmt.Sprintf("pr_%s_format", name)
 	tpl, ok := resource.Prompts[tplName]
 	if !ok {
@@ -213,7 +213,7 @@ func subAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, next 
 	if sub != "" {
 		resp.Result = &swarm.Result{
 			State:     api.StateTransfer,
-			NextAgent: sub,
+			NextAgent: fmt.Sprintf("%s/%s", req.Agent, sub),
 		}
 		return nil
 	}

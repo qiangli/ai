@@ -64,26 +64,26 @@ func sqlDBQuery(ctx context.Context, agent *swarm.Agent, name string, args map[s
 	if err != nil {
 		return nil, err
 	}
-	return sqlQuery(ctx, agent.Vars.DBCred, query)
+	return sqlQuery(ctx, agent.Vars().DBCred, query)
 }
 
 func sqlDBVersion(ctx context.Context, agent *swarm.Agent, name string, args map[string]any) (*api.Result, error) {
-	return sqlQuery(ctx, agent.Vars.DBCred, versionQuery)
+	return sqlQuery(ctx, agent.Vars().DBCred, versionQuery)
 }
 
 func sqlDBAllDatabases(ctx context.Context, agent *swarm.Agent, name string, args map[string]any) (*api.Result, error) {
-	return sqlQuery(ctx, agent.Vars.DBCred, allDatabasesQuery)
+	return sqlQuery(ctx, agent.Vars().DBCred, allDatabasesQuery)
 }
 
 func sqlDBAllTables(ctx context.Context, agent *swarm.Agent, name string, args map[string]any) (*api.Result, error) {
-	return sqlQuery(ctx, agent.Vars.DBCred, allTablesQuery)
+	return sqlQuery(ctx, agent.Vars().DBCred, allTablesQuery)
 }
 
 func sqlDBAllViews(ctx context.Context, agent *swarm.Agent, name string, args map[string]any) (*api.Result, error) {
-	return sqlQuery(ctx, agent.Vars.DBCred, allViewsQuery)
+	return sqlQuery(ctx, agent.Vars().DBCred, allViewsQuery)
 }
 func sqlDBAllSequences(ctx context.Context, agent *swarm.Agent, name string, args map[string]any) (*api.Result, error) {
-	return sqlQuery(ctx, agent.Vars.DBCred, allSequencesQuery)
+	return sqlQuery(ctx, agent.Vars().DBCred, allSequencesQuery)
 }
 
 func sqlDBAllColumns(ctx context.Context, agent *swarm.Agent, name string, args map[string]any) (*api.Result, error) {
@@ -96,5 +96,5 @@ func sqlDBAllColumns(ctx context.Context, agent *swarm.Agent, name string, args 
 		return nil, err
 	}
 	query := fmt.Sprintf(allColumnsQuery, schema, table)
-	return sqlQuery(ctx, agent.Vars.DBCred, query)
+	return sqlQuery(ctx, agent.Vars().DBCred, query)
 }

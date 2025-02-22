@@ -87,6 +87,7 @@ type Advice func(*Vars, *Request, *Response, Advice) error
 type Entrypoint func(*Vars, *Agent, *UserInput) error
 
 type Request struct {
+	// The name of the active agent
 	Agent string
 
 	Message *Message
@@ -181,5 +182,5 @@ func (r *Response) LastMessage() *Message {
 }
 
 type Agentic interface {
-	Run(*Request, *Response) error
+	Serve(*Request, *Response) error
 }

@@ -12,64 +12,19 @@ import (
 
 const launchAgent = "launch"
 
-var agentConfigMap = map[string][][]byte{
-	"launch": [][]byte{configCommonYaml, configLaunchAgentYaml},
-	"ask":    [][]byte{configAskAgentYaml},
-	"script": [][]byte{configScriptAgentYaml},
-	"git":    [][]byte{configGitAgentYaml},
-	"pr":     [][]byte{configPrAgentYaml},
-	"gptr":   [][]byte{configGptrAgentYaml},
-	"seek":   [][]byte{configGptrAgentYaml},
-	"aider":  [][]byte{configCommonYaml, configAiderAgentYaml},
-	"oh":     [][]byte{configCommonYaml, configOhAgentYaml},
-	"sql":    [][]byte{configSqlAgentYaml},
-	"doc":    [][]byte{configDocAgentYaml},
-	"eval":   [][]byte{configCommonYaml, configEvalAgentYaml},
-	"draw":   [][]byte{configDrawAgentYaml},
+var agentConfigMap = map[string][][]byte{}
+
+func init() {
+	resourceMap := resource.AgentCommandMap
+	for k, v := range resourceMap {
+		agentConfigMap[k] = [][]byte{resource.CommonData, v.Data}
+	}
 }
 
 var resourceMap = resource.Prompts
 
-//go:embed resource/common.yaml
-var configCommonYaml []byte
-
-//go:embed resource/launch/agent.yaml
-var configLaunchAgentYaml []byte
-
-//go:embed resource/ask/agent.yaml
-var configAskAgentYaml []byte
-
-//go:embed resource/script/agent.yaml
-var configScriptAgentYaml []byte
-
-//go:embed resource/git/agent.yaml
-var configGitAgentYaml []byte
-
-//go:embed resource/pr/agent.yaml
-var configPrAgentYaml []byte
-
-//go:embed resource/gptr/agent.yaml
-var configGptrAgentYaml []byte
-
-//go:embed resource/oh/agent.yaml
-var configOhAgentYaml []byte
-
-//go:embed resource/aider/agent.yaml
-var configAiderAgentYaml []byte
-
-//go:embed resource/sql/agent.yaml
-var configSqlAgentYaml []byte
-
-//go:embed resource/doc/agent.yaml
-var configDocAgentYaml []byte
-
-//go:embed resource/eval/agent.yaml
-var configEvalAgentYaml []byte
-
-//go:embed resource/draw/agent.yaml
-var configDrawAgentYaml []byte
-
-func runSwarm(app *internal.AppConfig, name string, input *api.UserInput) error {
+func RunSwarm(app *internal.AppConfig, input *api.UserInput) error {
+	name := input.Agent
 	log.Debugf("Running agent %q with swarm\n", name)
 
 	sw, err := swarm.NewSwarm(app)
@@ -84,17 +39,13 @@ func runSwarm(app *internal.AppConfig, name string, input *api.UserInput) error 
 	sw.AdviceMap = adviceMap
 	sw.EntrypointMap = entrypointMap
 
-	sw.Agent = name
-
-	// if err := sw.Load(name, input); err != nil {
-	// 	return err
-	// }
-
 	req := &swarm.Request{
 		Agent:    name,
 		RawInput: input,
 	}
 	resp := &swarm.Response{}
+
+	showInput(app, req)
 
 	if err := sw.Run(req, resp); err != nil {
 		return err
@@ -105,15 +56,18 @@ func runSwarm(app *internal.AppConfig, name string, input *api.UserInput) error 
 		log.Debugf("Message %+v\n", m)
 	}
 
+	var agent = name
 	var display = ""
 	if resp.Agent != nil {
+		agent = resp.Agent.Name
 		display = resp.Agent.Display
 	}
 
 	results := resp.Messages
 	for _, v := range results {
 		m := &api.Response{
-			Agent:       display,
+			Agent:       agent,
+			Display:     display,
 			ContentType: v.ContentType,
 			Content:     v.Content,
 		}

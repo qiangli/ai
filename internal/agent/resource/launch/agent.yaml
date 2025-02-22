@@ -8,7 +8,7 @@ maxTime: 3600
 
 agents:
   - name: "launch"
-    display: "🐝 Agent"
+    display: "🚀 Agent"
     description: "Dispatch to the most appropriate agent based on the user's input."
     model: L1
     instruction:

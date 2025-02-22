@@ -27,16 +27,18 @@ type CommandCheck struct {
 
 // evaluateCommand consults LLM to evaluate the safety of a command
 func evaluateCommand(ctx context.Context, agent *Agent, command string, args []string) (bool, error) {
-	systemRole, err := applyTemplate(shellSecuritySystemRole, agent.Vars, nil)
+	instruction, err := applyTemplate(shellSecuritySystemRole, agent.sw.Vars, nil)
 	if err != nil {
 		return false, err
 	}
-	agent.Vars.Extra["Command"] = command
-	agent.Vars.Extra["Args"] = strings.Join(args, " ")
-	userRole, err := applyTemplate(shellSecurityUserRole, agent.Vars, nil)
+
+	agent.sw.Vars.Extra["Command"] = command
+	agent.sw.Vars.Extra["Args"] = strings.Join(args, " ")
+	query, err := applyTemplate(shellSecurityUserRole, agent.sw.Vars, nil)
 	if err != nil {
 		return false, err
 	}
+
 	runTool := func(ctx context.Context, name string, args map[string]any) (*Result, error) {
 		log.Debugf("run tool: %s %+v\n", name, args)
 		out, err := runCommandTool(ctx, agent, name, args)
@@ -49,6 +51,7 @@ func evaluateCommand(ctx context.Context, agent *Agent, command string, args []s
 			Value: out,
 		}, nil
 	}
+
 	req := &api.Request{
 		ModelType: agent.Model.Type,
 		Model:     agent.Model.Name,
@@ -56,12 +59,12 @@ func evaluateCommand(ctx context.Context, agent *Agent, command string, args []s
 		ApiKey:    agent.Model.ApiKey,
 		Messages: []*Message{
 			{
-				Role:    "system",
-				Content: systemRole,
+				Role:    RoleSystem,
+				Content: instruction,
 			},
 			{
-				Role:    "user",
-				Content: userRole,
+				Role:    RoleUser,
+				Content: query,
 			},
 		},
 		Tools:    agent.Functions,

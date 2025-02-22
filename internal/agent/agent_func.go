@@ -223,8 +223,8 @@ func OpenHands(ctx context.Context, model *swarm.Model, workspace string, in *ap
 
 func listAgentFunc(ctx context.Context, agent *swarm.Agent, name string, args map[string]any) (*api.Result, error) {
 	var list []string
-	for k, v := range AgentDesc {
-		list = append(list, fmt.Sprintf("%s: %s", k, v))
+	for k, v := range resource.AgentCommandMap {
+		list = append(list, fmt.Sprintf("%s: %s", k, v.Description))
 	}
 	sort.Strings(list)
 	return &api.Result{
@@ -237,9 +237,12 @@ func agentInfoFunc(ctx context.Context, agent *swarm.Agent, name string, args ma
 	if err != nil {
 		return nil, err
 	}
-	var result = "ask"
-	if v, ok := AgentDesc[key]; ok {
-		result = v
+	var result string
+	if v, ok := resource.AgentCommandMap[key]; ok {
+		result = v.Overview
+		if result == "" {
+			result = v.Description
+		}
 	}
 	return &api.Result{
 		Value: result,

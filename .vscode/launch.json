@@ -51,7 +51,7 @@
 			"args": [
 				"--verbose",
 				"--message",
-				"find all dogs and cats in the current directory",
+				"what is fish",
 			],
 			"showLog": false,
 			"stopOnEntry": false
@@ -69,7 +69,7 @@
 				"AI_DEBUG": "true",
 			},
 			"args": [
-				"--verbose",
+				"--verbose=false",
 				"@ask",
 				"--message",
 				"what is fish"
@@ -91,9 +91,9 @@
 			},
 			"args": [
 				"--verbose",
-				"/ag",
+				"/git",
 				"--message",
-				"show me all the dogs and cats in the current project",
+				"show the difference with remote origin/main for the local repo",
 			],
 			"showLog": false,
 			"stopOnEntry": false
@@ -135,7 +135,7 @@
 			},
 			"args": [
 				"--verbose",
-				"@git/short",
+				"@git",
 				"--message",
 				"write a short commit message for the code changes",
 			],

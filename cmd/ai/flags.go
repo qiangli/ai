@@ -175,12 +175,21 @@ func addFlags(cmd *cobra.Command) {
 	flags := cmd.Flags()
 	//
 	flags.StringVar(&cfgFile, "config", defaultCfg, "config file")
-	flags.BoolVar(&internal.DryRun, "dry-run", false, "Enable dry run mode. No API call will be made")
-	flags.StringVar(&internal.DryRunContent, "dry-run-content", "", "Content returned for dry run")
 
-	// Define flags with dashes
+	//
 	flags.StringP("workspace", "w", "", "Workspace directory")
 
+	flags.String("message", "", "Specify input message. Overrides all other input methods")
+	flags.String("editor", "vi", "Specify editor to use")
+	flags.VarP(newFilesValue([]string{}, &inputFiles), "file", "", `Read input from files.  May be given multiple times to add multiple file content`)
+
+	flags.Bool("pb-read", false, "Read input from the clipboard. Alternatively, append '=' to the command")
+	flags.Bool("pb-write", false, "Copy output to the clipboard. Alternatively, append '=+' to the command")
+
+	flags.Var(newOutputValue("markdown", &formatFlag), "format", "Output format, must be either raw or markdown.")
+	flags.StringVarP(&outputFlag, "output", "o", "", "Save final response to a file.")
+
+	// LLM
 	flags.String("api-key", "", "LLM API key")
 	flags.String("model", openai.ChatModelGPT4o, "LLM model")
 	flags.String("base-url", "https://api.openai.com/v1/", "LLM Base URL")
@@ -213,29 +222,21 @@ func addFlags(cmd *cobra.Command) {
 	flags.MarkHidden("image-base-url")
 	flags.MarkHidden("image-viewer")
 
+	//
 	flags.Bool("verbose", false, "Show debugging information")
 	flags.Bool("quiet", false, "Operate quietly")
-	flags.String("editor", "vi", "Specify editor to use")
+	flags.String("log", "", "Log all debugging information to a file")
+	flags.Bool("trace", false, "Trace API calls")
 
 	flags.String("role", "system", "Specify the role for the prompt")
 	flags.String("role-prompt", "", "Specify the content for the prompt")
 
-	flags.BoolP("no-meta-prompt", "n", false, "Disable auto generation of system prompt")
+	flags.BoolVar(&internal.DryRun, "dry-run", false, "Enable dry run mode. No API call will be made")
+	flags.StringVar(&internal.DryRunContent, "dry-run-content", "", "Content returned for dry run")
+
+	flags.Bool("no-meta-prompt", false, "Disable auto generation of system prompt")
 
 	flags.BoolP("interactive", "i", false, "Interactive mode to run, edit, or copy generated code")
-
-	flags.Bool("pb-read", false, "Read input from the clipboard. Alternatively, append '=' to the command")
-	flags.Bool("pb-write", false, "Copy output to the clipboard. Alternatively, append '=+' to the command")
-
-	flags.VarP(newFilesValue([]string{}, &inputFiles), "file", "", `Read input from files.  May be given multiple times to add multiple file content`)
-
-	flags.String("log", "", "Log all debugging information to a file")
-	flags.Bool("trace", false, "Trace API calls")
-
-	flags.String("message", "", "Specify input message. Overrides all other input methods")
-
-	flags.Var(newOutputValue("markdown", &formatFlag), "format", "Output format, must be either raw or markdown.")
-	flags.StringVarP(&outputFlag, "output", "o", "", "Save final response to a file.")
 
 	flags.Int("max-turns", 32, "Max number of turns")
 	flags.Int("max-time", 3600, "Max number of seconds for timeout")
@@ -247,6 +248,12 @@ func addFlags(cmd *cobra.Command) {
 	flags.String("sql-db-username", "", "Database username")
 	flags.String("sql-db-password", "", "Database password")
 	flags.String("sql-db-name", "", "Database name")
+
+	flags.MarkHidden("sql-db-host")
+	flags.MarkHidden("sql-db-port")
+	flags.MarkHidden("sql-db-username")
+	flags.MarkHidden("sql-db-password")
+	flags.MarkHidden("sql-db-name")
 
 	// doc
 	flags.VarP(newTemplateValue("", &docTemplate), "doc-template", "", "Document template file")
@@ -287,7 +294,7 @@ func addFlags(cmd *cobra.Command) {
 	rootCmd.SetUsageTemplate(rootUsageTemplate)
 }
 
-func getConfig(cmd *cobra.Command, args []string) *internal.AppConfig {
+func configure(cmd *cobra.Command, args []string) *internal.AppConfig {
 	var cfg internal.LLMConfig
 	var app = internal.AppConfig{
 		LLM:    &cfg,
@@ -295,7 +302,7 @@ func getConfig(cmd *cobra.Command, args []string) *internal.AppConfig {
 		Prompt: viper.GetString("role_prompt"),
 	}
 
-	app.Me = "ME"
+	app.Me = "👤 ME"
 	app.Files = inputFiles
 	app.Format = formatFlag
 	app.Output = outputFlag
@@ -408,9 +415,9 @@ func getConfig(cmd *cobra.Command, args []string) *internal.AppConfig {
 
 	// command and args
 	if len(newArgs) > 0 {
-		// check for valid command
+		// check for valid sub command
 		valid := func() bool {
-			misc := []string{"info", "setup", "help", "list-commands"}
+			misc := []string{"info", "setup", "help", "list-commands", "list-agents", "commands", "agents"}
 			if strings.HasPrefix(newArgs[0], "/") {
 				return true
 			}

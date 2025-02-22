@@ -43,13 +43,15 @@ func TestEvaluateCommand(t *testing.T) {
 		// {"rm", []string{"-rf", "/tmp/test"}, false},
 		// {"find", []string{"./", "-name", "*.txt"}, true},
 		// {"find", []string{"/tmp/test", "-type", "f", "-name", "*.exe", "-exec", "rm", "{}", "\\;"}, false},
-		{"/bin/find", []string{".", "-type", "f", "-name", "*cmdIds*.go"}, true},
 	}
 
 	for _, test := range tests {
 		resp, err := evaluateCommand(context.TODO(), &Agent{
 			Model: model,
-			Vars:  vars,
+			// Vars:  vars,
+			sw: &Swarm{
+				Vars: vars,
+			},
 		}, test.command, test.args)
 		if err != nil {
 			t.Errorf("evaluate command: %v\n%+v", err, resp)

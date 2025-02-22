@@ -4,8 +4,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/swarm"
 	"github.com/qiangli/ai/internal/util"
 )
 
@@ -16,13 +18,13 @@ func renderMessage(message *api.Response) {
 
 	// show original message if in verbose mode
 	if log.IsVerbose() {
-		log.Infof("\n[%s]\n", message.Agent)
+		log.Infof("\n[%s]\n", message.Display)
 		log.Infoln(message.Content)
 	}
 
 	// TODO: markdown formatting lost if the content is also tee'd to a file
 	content := util.Render(message.Content)
-	log.Infof("\n[%s]\n", message.Agent)
+	log.Infof("\n[%s]\n", message.Display)
 	log.Infoln(content)
 }
 
@@ -30,7 +32,7 @@ func showMessage(message *api.Response) {
 	if message == nil {
 		return
 	}
-	log.Infof("\n[%s]\n", message.Agent)
+	log.Infof("\n[%s]\n", message.Display)
 	log.Infoln(message.Content)
 }
 
@@ -55,4 +57,8 @@ func SaveMessage(filename string, message *api.Response) error {
 	}
 
 	return os.WriteFile(filename, []byte(message.Content), os.ModePerm)
+}
+
+func showInput(cfg *internal.AppConfig, req *swarm.Request) {
+	log.Printf("[%s]\n\n%s\n\n", cfg.Me, req.RawInput.Query())
 }

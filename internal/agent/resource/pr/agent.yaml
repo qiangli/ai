@@ -10,6 +10,7 @@ agents:
   - name: "pr"
     display: "🐝 PR"
     description: "Enhance PR management with automated summaries, reviews, suggestions, and changelog updates."
+    overview: "The PR agent is a robust tool designed to optimize pull request management by automating several key tasks. It generates detailed and accurate summaries, titles, and labels for PR descriptions, reducing manual effort. With its review functionality, developers receive tailored feedback on potential issues, security vulnerabilities, and the overall review process, ensuring high-quality code. Additionally, it offers code suggestions to improve existing code within the PR. The changelog feature further boosts productivity by automatically updating the CHANGELOG.md file, capturing all relevant changes."
     model: L1
     instruction:
       content: "resource:pr_sub_system_role"
@@ -18,8 +19,8 @@ agents:
     functions:
       - "agent_transfer"
 
-  - name: "describe"
-    description: "Automatically generating PR description - title, type, summary, code walkthrough and labels"
+  - name: "pr/describe"
+    description: "Generate PR description - title, type, summary, code walkthrough and labels"
     model: L1
     instruction:
       content: "resource:pr_describe_system_role"
@@ -28,8 +29,8 @@ agents:
       before: "pr_user_input"
       after: "pr_json_to_markdown"
 
-  - name: "review"
-    description: "Adjustable feedback about the PR, possible issues, security concerns, review effort and more"
+  - name: "pr/review"
+    description: "Give feedback about the PR, possible issues, security concerns, review effort and more"
     model: L1
     instruction:
       content: "resource:pr_review_system_role"
@@ -38,8 +39,8 @@ agents:
       before: "pr_user_input"
       after: "pr_json_to_markdown"
 
-  - name: "improve"
-    description: "Code suggestions for improving the PR"
+  - name: "pr/improve"
+    description: "Provide code suggestions for improving the PR"
     model: L1
     instruction:
       content: "resource:pr_improve_system_role"
@@ -48,8 +49,8 @@ agents:
       before: "pr_user_input"
       after: "pr_json_to_markdown"
 
-  - name: "changelog"
-    description: "Automatically updating the CHANGELOG.md file with the PR changes"
+  - name: "pr/changelog"
+    description: "Update the CHANGELOG.md file with the PR changes"
     model: L1
     instruction:
       content: "resource:pr_changelog_system_role"

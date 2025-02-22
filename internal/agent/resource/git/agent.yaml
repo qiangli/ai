@@ -10,6 +10,7 @@ agents:
   - name: "git"
     display: "🐝 Git"
     description: "Automate git commit message creation for clarity and consistency in version control"
+    overview: "A Git agent is a tool used in software development to aid in creating and managing Git commit messages. It automates and enhances the process, ensuring consistency and clarity in the project's change history. By producing well-structured commit messages, a Git agent helps maintain organized records, facilitates team collaboration, and improves overall efficiency in version control management."
     model: L1
     instruction:
       content: "resource:git_sub_system_role"
@@ -19,7 +20,7 @@ agents:
       - "agent_transfer"
 
   # prompt adapted from https://github.com/Aider-AI/aider/blob/main/aider/prompts.py
-  - name: "short"
+  - name: "git/short"
     display: "🖊️ Git short"
     description: "Generate concise, one-line git commit messages based on the provided diffs."
     model: L1
@@ -27,7 +28,7 @@ agents:
       content: "resource:git_message_short"
 
   # https://www.conventionalcommits.org/en/v1.0.0/#summary
-  - name: "conventional"
+  - name: "git/conventional"
     display: "📜 Git Conventional"
     description: "Generate concise git commit messages based on the provided diffs using the Conventional Commits specification"
     model: L1

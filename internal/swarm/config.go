@@ -97,10 +97,10 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 			Display:     ac.Display,
 			Role:        ac.Instruction.Role,
 			Instruction: ac.Instruction.Content,
-			Vars:        vars,
-			RawInput:    input,
-			MaxTurns:    config.MaxTurns,
-			MaxTime:     config.MaxTime,
+			// Vars:        vars,
+			RawInput: input,
+			MaxTurns: config.MaxTurns,
+			MaxTime:  config.MaxTime,
 		}
 		// override from command line flags
 		if r.AppConfig.Role != "" {
