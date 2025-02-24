@@ -17,11 +17,13 @@ require (
 	github.com/kaptinlin/jsonrepair v0.1.0
 	github.com/lib/pq v1.10.9
 	github.com/mariotoffia/goannoy v0.0.0-20241203082301-c889abef1805
+	github.com/metoro-io/mcp-golang v0.8.0
 	github.com/openai/openai-go v0.1.0-alpha.41
 	github.com/shirou/gopsutil/v4 v4.24.11
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
+	github.com/tailscale/hujson v0.0.0-20241010212012-29efb4a0184b
 	github.com/yuin/goldmark v1.7.8
 	golang.org/x/term v0.27.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -38,6 +40,8 @@ require (
 	github.com/antchfx/xpath v1.3.3 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
+	github.com/bahlo/generic-list-go v0.2.0 // indirect
+	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/charmbracelet/lipgloss v0.12.1 // indirect
 	github.com/charmbracelet/x/ansi v0.1.4 // indirect
 	github.com/containerd/log v0.1.0 // indirect
@@ -61,12 +65,14 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/invopop/jsonschema v0.12.0 // indirect
 	github.com/jfcg/sixb v1.3.8 // indirect
 	github.com/jfcg/sorty/v2 v2.1.0 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
+	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
@@ -98,6 +104,7 @@ require (
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
+	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/yuin/goldmark-emoji v1.0.3 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect

@@ -1,0 +1,42 @@
+{
+  "mcpServers": {
+    // "docker-mcp": {
+    //   "command": "uv",
+    //   "args": [
+    //     "--directory",
+    //     "local/docker/src/docker_mcp",
+    //     "run",
+    //     "docker-mcp"
+    //   ]
+    // },
+    "filesystem": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "--mount", "type=bind,src=~/,dst=/workspace,ro",
+        "mcp/filesystem",
+        "/workspace"
+      ]
+    },
+  //   "postgres": {
+  //     "command": "docker",
+  //     "args": [
+  //       "run", 
+  //       "-i", 
+  //       "--rm", 
+  //       "mcp/postgres", 
+  //       "postgresql://host.docker.internal:5432/postgres"]
+  //   },
+  //   "redis": {
+  //     "command": "docker",
+  //     "args": [
+  //       "run", 
+  //       "-i", 
+  //       "--rm", 
+  //       "mcp/redis", 
+  //       "redis://host.docker.internal:6379"]
+  //   }
+  }
+}

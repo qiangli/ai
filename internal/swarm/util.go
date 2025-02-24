@@ -2,6 +2,8 @@ package swarm
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"text/template"
 )
 
@@ -28,4 +30,22 @@ func clip(s string, max int) string {
 		s = s[:max] + trailing
 	}
 	return s
+}
+
+func structToMap(input any) (map[string]any, error) {
+	if result, ok := input.(map[string]any); ok {
+		return result, nil
+	}
+
+	jsonData, err := json.Marshal(input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal input to JSON: %v", err)
+	}
+
+	var resultMap map[string]any
+	if err := json.Unmarshal(jsonData, &resultMap); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal JSON to map[string]any: %v", err)
+	}
+
+	return resultMap, nil
 }
