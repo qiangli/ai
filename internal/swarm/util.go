@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
 	"text/template"
 )
 
@@ -48,4 +50,15 @@ func structToMap(input any) (map[string]any, error) {
 	}
 
 	return resultMap, nil
+}
+
+func expandWithDefault(input string) string {
+	return os.Expand(input, func(key string) string {
+		parts := strings.SplitN(key, ":-", 2)
+		value := os.Getenv(parts[0])
+		if value == "" && len(parts) > 1 {
+			return parts[1]
+		}
+		return value
+	})
 }

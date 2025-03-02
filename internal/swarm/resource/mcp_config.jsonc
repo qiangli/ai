@@ -1,5 +1,9 @@
 {
   "mcpServers": {
+    "ddg": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "mcp/ddg"]
+    },
     // "docker-mcp": {
     //   "command": "uv",
     //   "args": [
@@ -8,35 +12,85 @@
     //     "run",
     //     "docker-mcp"
     //   ]
+    // // },
+    // "fetch": {
+    //   "command": "docker",
+    //   "args": ["run", "-i", "--rm", "mcp/fetch"]
     // },
-    "filesystem": {
+    // "filesystem": {
+    //   "command": "docker",
+    //   "args": [
+    //     "run",
+    //     "-i",
+    //     "--rm",
+    //     "--mount", "type=bind,src=/tmp/,dst=/workspace,ro",
+    //     "mcp/filesystem",
+    //     "/workspace"
+    //   ]
+    // },
+    // "git": {
+    //   "command": "docker",
+    //   "args": [
+    //     "run",
+    //     "--rm",
+    //     "-i",
+    //     "--mount", "type=bind,src=/tmp/,dst=/projects,ro",
+    //     "mcp/git"
+    //   ]
+    // },
+    // "github": {
+    //   "command": "docker",
+    //   "args": [
+    //     "run",
+    //     "-i",
+    //     "--rm",
+    //     "-e",
+    //     "GITHUB_PERSONAL_ACCESS_TOKEN",
+    //     "mcp/github"
+    //   ],
+    //   "env": {
+    //     "GITHUB_PERSONAL_ACCESS_TOKEN": "<YOUR_TOKEN>"
+    //   }
+    // },
+    // "google-maps": {
+    //   "command": "docker",
+    //   "args": [
+    //     "run",
+    //     "-i",
+    //     "--rm",
+    //     "-e",
+    //     "GOOGLE_MAPS_API_KEY",
+    //     "mcp/google-maps"
+    //   ],
+    //   "env": {
+    //     "GOOGLE_MAPS_API_KEY": "<YOUR_API_KEY>"
+    //   }
+    // },
+    "postgres": {
       "command": "docker",
       "args": [
-        "run",
-        "-i",
-        "--rm",
-        "--mount", "type=bind,src=~/,dst=/workspace,ro",
-        "mcp/filesystem",
-        "/workspace"
-      ]
+        "run", 
+        "-i", 
+        "--rm", 
+        "mcp/postgres", 
+        "postgresql://${AI_SQL_DB_USERNAME}:${AI_SQL_DB_PASSWORD}@host.docker.internal:5432/${AI_SQL_DB_NAME:-postgres}"]
     },
-  //   "postgres": {
-  //     "command": "docker",
-  //     "args": [
-  //       "run", 
-  //       "-i", 
-  //       "--rm", 
-  //       "mcp/postgres", 
-  //       "postgresql://host.docker.internal:5432/postgres"]
-  //   },
-  //   "redis": {
-  //     "command": "docker",
-  //     "args": [
-  //       "run", 
-  //       "-i", 
-  //       "--rm", 
-  //       "mcp/redis", 
-  //       "redis://host.docker.internal:6379"]
-  //   }
+    // "memory": {
+    //   "command": "docker",
+    //   "args": ["run", "-i", "-v", "claude-memory:/app/dist", "--rm", "mcp/memory"]
+    // },
+    // "redis": {
+    //   "command": "docker",
+    //   "args": [
+    //     "run", 
+    //     "-i", 
+    //     "--rm", 
+    //     "mcp/redis", 
+    //     "redis://host.docker.internal:6379"]
+    // },
+    "time": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "mcp/time"]
+    }
   }
 }

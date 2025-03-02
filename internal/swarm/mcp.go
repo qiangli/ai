@@ -6,11 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
+	"strings"
 
-	mcp "github.com/metoro-io/mcp-golang"
-	"github.com/metoro-io/mcp-golang/transport/stdio"
+	"github.com/mark3labs/mcp-go/client"
+	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/tailscale/hujson"
+
+	"github.com/qiangli/ai/internal/log"
 )
 
 //go:embed resource/mcp_config.jsonc
@@ -18,11 +20,17 @@ var mcpConfigData []byte
 
 var mcpConfig = NewMcpConfig()
 
+var mcpServerTool *McpServerTool
+
 func init() {
 	mcpConfig.Load(mcpConfigData)
+	mcpServerTool = NewMcpServerTool(mcpConfig)
+	mcpConfig.ProxyUrl = os.Getenv("AI_MCP_PROXY_URL")
 }
 
 type McpConfig struct {
+	ProxyUrl string `json:"baseUrl"`
+
 	McpServers map[string]*McpServerConfig `json:"mcpServers"`
 }
 
@@ -50,102 +58,167 @@ func (c *McpConfig) Load(data []byte) error {
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(hu, &c)
+	ex := expandWithDefault(string(hu))
+	err = json.Unmarshal([]byte(ex), &c)
 	if err != nil {
 		return fmt.Errorf("unmarshal mcp config: %v", err)
 	}
 	return nil
 }
 
-type ToolResponse = mcp.ToolResponse
+type MCPClient interface {
+	ListTools(context.Context, mcp.ListToolsRequest) (*mcp.ListToolsResult, error)
+	CallTool(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error)
+	Initialize(context.Context, mcp.InitializeRequest) (*mcp.InitializeResult, error)
+	Close() error
+}
 
 type McpClientSession struct {
-	cfg *McpServerConfig
+	baseUrl string
+	cfg     *McpServerConfig
 
-	cmd    *exec.Cmd
-	client *mcp.Client
+	client MCPClient
 }
 
-func (r *McpClientSession) Connect(ctx context.Context) error {
-	cmd := exec.Command(r.cfg.Command, r.cfg.Args...)
-	stdin, err := cmd.StdinPipe()
-	if err != nil {
-		return err
-	}
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-
-	clientTransport := stdio.NewStdioServerTransportWithIO(stdout, stdin)
-	client := mcp.NewClient(clientTransport)
-
-	if _, err := client.Initialize(ctx); err != nil {
-		return err
-	}
-
-	r.cmd = cmd
-	r.client = client
-
-	return nil
-}
-
-func (r *McpClientSession) ListTools(ctx context.Context) ([]*FunctionConfig, error) {
-	tools, err := r.client.ListTools(ctx, nil)
+func (r *McpClientSession) createStdioClient(ctx context.Context) (MCPClient, error) {
+	client, err := client.NewStdioMCPClient(
+		r.cfg.Command,
+		os.Environ(),
+		r.cfg.Args...,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	funcs := make([]*FunctionConfig, len(tools.Tools))
-	for _, tool := range tools.Tools {
-		desc := ""
-		if tool.Description != nil {
-			desc = *tool.Description
-		}
+	return client, nil
+}
 
-		params, err := structToMap(tool.InputSchema)
-		if err != nil {
-			return nil, err
-		}
-		funcs = append(funcs, &FunctionConfig{
-			Name:        tool.Name,
-			Description: desc,
-			Parameters:  params,
+func (r *McpClientSession) createSSEClient(ctx context.Context, baseUrl string) (MCPClient, error) {
+	client, err := client.NewSSEMCPClient(baseUrl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create SSE client: %v", err)
+	}
+	defer client.Close()
+
+	// Start the client
+	if err := client.Start(ctx); err != nil {
+		return nil, fmt.Errorf("failed to start SSE client: %v", err)
+	}
+	return client, nil
+}
+
+func (r *McpClientSession) Connect(ctx context.Context) error {
+	initRequest := mcp.InitializeRequest{}
+	initRequest.Params.ProtocolVersion = mcp.LATEST_PROTOCOL_VERSION
+	initRequest.Params.ClientInfo = mcp.Implementation{
+		Name:    "swarm-client",
+		Version: "1.0.0",
+	}
+
+	var err error
+	var client MCPClient
+	var result *mcp.InitializeResult
+
+	if r.baseUrl != "" {
+		client, err = r.createSSEClient(ctx, r.baseUrl)
+	} else {
+		client, err = r.createStdioClient(ctx)
+	}
+	if err != nil {
+		return err
+	}
+
+	result, err = client.Initialize(ctx, initRequest)
+	if err != nil {
+		return err
+	}
+
+	r.client = client
+
+	log.Debugf("Initialized: %s %s\n", result.ServerInfo.Name, result.ServerInfo.Version)
+	return nil
+}
+
+func (r *McpClientSession) ListTools(ctx context.Context) ([]*ToolFunc, error) {
+	toolsRequest := mcp.ListToolsRequest{}
+	tools, err := r.client.ListTools(ctx, toolsRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	funcs := make([]*ToolFunc, 0)
+	for _, v := range tools.Tools {
+		funcs = append(funcs, &ToolFunc{
+			Name:        v.Name,
+			Description: v.Description,
+			Parameters: map[string]any{
+				"type":       v.InputSchema.Type,
+				"properties": v.InputSchema.Properties,
+				"required":   v.InputSchema.Required,
+			},
 		})
 	}
 	return funcs, nil
 }
 
-func (r *McpClientSession) CallTool(ctx context.Context, tool string, args any) (string, error) {
-	resp, err := r.client.CallTool(ctx, tool, args)
+func (r *McpClientSession) GetTools(ctx context.Context, server string) ([]*FunctionConfig, error) {
+	toolsRequest := mcp.ListToolsRequest{}
+	tools, err := r.client.ListTools(ctx, toolsRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	funcs := make([]*FunctionConfig, 0)
+	for _, v := range tools.Tools {
+		funcs = append(funcs, &FunctionConfig{
+			Name:        v.Name,
+			Description: v.Description,
+			Parameters: map[string]any{
+				"type":       v.InputSchema.Type,
+				"properties": v.InputSchema.Properties,
+				"required":   v.InputSchema.Required,
+			},
+		})
+	}
+	return funcs, nil
+}
+
+func (r *McpClientSession) CallTool(ctx context.Context, tool string, args map[string]any) (string, error) {
+	req := mcp.CallToolRequest{}
+	req.Params.Name = tool
+	req.Params.Arguments = args
+
+	resp, err := r.client.CallTool(ctx, req)
 	if err != nil {
 		return "", err
 	}
 	for _, content := range resp.Content {
-		if content.TextContent != nil {
-			return content.TextContent.Text, nil
+		if textContent, ok := content.(mcp.TextContent); ok {
+			return textContent.Text, nil
+		} else {
+			jsonBytes, _ := json.MarshalIndent(content, "", "  ")
+			return string(jsonBytes), nil
 		}
 	}
 	return "", nil
 }
 
 func (r *McpClientSession) Close() error {
-	if r.cmd == nil {
+	if r.client == nil {
 		return nil
 	}
-	return r.cmd.Process.Kill()
+	return r.client.Close()
 }
 
-type McpClient struct {
+type McpClientHelper struct {
+	ProxyUrl     string
 	ServerConfig *McpServerConfig
 }
 
-func (r *McpClient) ListTools(ctx context.Context) ([]*FunctionConfig, error) {
+func (r *McpClientHelper) ListTools(ctx context.Context) ([]*ToolFunc, error) {
 	clientSession := &McpClientSession{
-		cfg: r.ServerConfig,
+		baseUrl: r.ProxyUrl,
+		cfg:     r.ServerConfig,
 	}
 	if err := clientSession.Connect(ctx); err != nil {
 		return nil, err
@@ -155,9 +228,10 @@ func (r *McpClient) ListTools(ctx context.Context) ([]*FunctionConfig, error) {
 	return clientSession.ListTools(ctx)
 }
 
-func (r *McpClient) CallTool(ctx context.Context, tool string, args any) (string, error) {
+func (r *McpClientHelper) CallTool(ctx context.Context, tool string, args map[string]any) (string, error) {
 	clientSession := &McpClientSession{
-		cfg: r.ServerConfig,
+		baseUrl: r.ProxyUrl,
+		cfg:     r.ServerConfig,
 	}
 	if err := clientSession.Connect(ctx); err != nil {
 		return "", err
@@ -167,37 +241,57 @@ func (r *McpClient) CallTool(ctx context.Context, tool string, args any) (string
 	return clientSession.CallTool(ctx, tool, args)
 }
 
-type McpServer struct {
+type McpServerTool struct {
 	Config *McpConfig
 }
 
-func NewMcpServer() *McpServer {
-	return &McpServer{
-		Config: mcpConfig,
+func NewMcpServerTool(cfg *McpConfig) *McpServerTool {
+	return &McpServerTool{
+		Config: cfg,
 	}
 }
 
-func (r *McpServer) ListTools() ([]*FunctionConfig, error) {
-	var tools []*FunctionConfig
+func (r *McpServerTool) ListTools() (map[string][]*ToolFunc, error) {
+	var tools = map[string][]*ToolFunc{}
 	ctx := context.Background()
-	for _, cfg := range r.Config.McpServers {
-		client := &McpClient{
+	for v, cfg := range r.Config.McpServers {
+		client := &McpClientHelper{
+			ProxyUrl:     r.Config.ProxyUrl,
 			ServerConfig: cfg,
 		}
 		funcs, err := client.ListTools(ctx)
 		if err != nil {
 			return nil, err
 		}
-		tools = append(tools, funcs...)
+		tools[v] = funcs
 	}
 	return tools, nil
 }
 
-func (r *McpServer) CallTool(tool string, args any) (string, error) {
+func (r *McpServerTool) GetTools(server string) ([]*ToolFunc, error) {
 	ctx := context.Background()
-	for _, cfg := range r.Config.McpServers {
-		if tool == cfg.Command {
-			client := &McpClient{
+	for v, cfg := range r.Config.McpServers {
+		if v == server {
+			client := &McpClientHelper{
+				ProxyUrl:     r.Config.ProxyUrl,
+				ServerConfig: cfg,
+			}
+			return client.ListTools(ctx)
+		}
+	}
+	return nil, fmt.Errorf("no such server: %s", server)
+}
+
+func (r *McpServerTool) CallTool(server, tool string, args map[string]any) (string, error) {
+	// TODO better handle proxy
+	if r.Config.ProxyUrl != "" && !strings.HasPrefix(tool, server+"__") {
+		tool = fmt.Sprintf("%s__%s", server, tool)
+	}
+	ctx := context.Background()
+	for v, cfg := range r.Config.McpServers {
+		if v == server {
+			client := &McpClientHelper{
+				ProxyUrl:     r.Config.ProxyUrl,
 				ServerConfig: cfg,
 			}
 			resp, err := client.CallTool(ctx, tool, args)
@@ -209,5 +303,5 @@ func (r *McpServer) CallTool(tool string, args any) (string, error) {
 			}
 		}
 	}
-	return "", fmt.Errorf("no such tool: %s", tool)
+	return "", fmt.Errorf("no such server: %s", server)
 }

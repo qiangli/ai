@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"fmt"
+	"strings"
 	"text/template"
 )
 
@@ -58,6 +59,12 @@ type FunctionConfig struct {
 	Parameters  map[string]any `yaml:"parameters"`
 }
 
+// type FunctionParams struct {
+// 	Type       string         `yaml:"type"`
+// 	Properties map[string]any `yaml:"properties,omitempty"`
+// 	Required   []string       `yaml:"required,omitempty"`
+// }
+
 type ModelConfig struct {
 	Name        string `yaml:"name"`
 	Type        string `yaml:"type"`
@@ -81,6 +88,43 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 
 	config := r.Config
 	adviceMap := config.AdviceMap
+
+	getMcpTools := func(server string) ([]*ToolFunc, error) {
+		parts := strings.SplitN(server, ":", 2)
+		if len(parts) == 2 {
+			// mcp:server
+			server = parts[1]
+		}
+		var mcpToolMap map[string][]*ToolFunc
+		var err error
+
+		if server == "" || server == "*" {
+			mcpToolMap, err = mcpServerTool.ListTools()
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			tools, err := mcpServerTool.GetTools(server)
+			if err != nil {
+				return nil, err
+			}
+			mcpToolMap = map[string][]*ToolFunc{
+				server: tools,
+			}
+		}
+		mcpFunctions := []*ToolFunc{}
+		for server, tm := range mcpToolMap {
+			for _, v := range tm {
+				n := fmt.Sprintf("%s__%s", server, v.Name)
+				mcpFunctions = append(mcpFunctions, &ToolFunc{
+					Name:        n,
+					Description: v.Description,
+					Parameters:  v.Parameters,
+				})
+			}
+		}
+		return mcpFunctions, nil
+	}
 
 	getAgentConfig := func(name string) (*AgentConfig, error) {
 		for _, a := range config.Agents {
@@ -122,12 +166,28 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 		}
 		agent.Model = model
 
-		functions := []*ToolFunc{}
+		funcMap := make(map[string]*ToolFunc)
 		for _, f := range ac.Functions {
+			if strings.HasPrefix(f, "mcp:") {
+				// mcp:server
+				mcpFunctions, err := getMcpTools(f)
+				if err != nil {
+					return nil, err
+				}
+				for _, fn := range mcpFunctions {
+					funcMap[fn.Name] = fn
+				}
+				continue
+			}
+
 			fn, ok := vars.Functions[f]
 			if !ok {
 				return nil, fmt.Errorf("no such function: %s", f)
 			}
+			funcMap[fn.Name] = fn
+		}
+		functions := []*ToolFunc{}
+		for _, fn := range funcMap {
 			functions = append(functions, fn)
 		}
 		agent.Functions = functions

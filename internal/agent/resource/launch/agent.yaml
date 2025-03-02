@@ -19,7 +19,6 @@ agents:
       - "list_agents"
       - "agent_info"
       - "list_commands"
-      - "command"
       - "which"
       - "man"
       - "exec"
@@ -28,7 +27,6 @@ agents:
       - "cd"
       - "ls"
       - "uname"
-      - "test"
 
 functions:
   - name: "list_agents"

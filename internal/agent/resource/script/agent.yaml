@@ -18,7 +18,6 @@ agents:
       before: "script_user_input"
     functions:
       - "list_commands"
-      - "command"
       - "which"
       - "man"
       - "exec"
@@ -27,7 +26,6 @@ agents:
       - "cd"
       - "ls"
       - "uname"
-      - "test"
 
 functions:
   - name: "list_commands"

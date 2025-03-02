@@ -205,9 +205,21 @@ func (r *Agent) runTool(ctx context.Context, name string, args map[string]any) (
 	var out string
 	var err error
 
+	// built-in functions
 	if fn, ok := r.sw.Vars.FuncRegistry[name]; ok {
 		log.Debugf("run function: %s %+v\n", name, args)
 		return fn(ctx, r, name, args)
+	}
+
+	// mcp
+	parts := strings.SplitN(name, "__", 2)
+	if len(parts) == 2 {
+		server := parts[0]
+		name = parts[1]
+		out, err := mcpServerTool.CallTool(server, name, args)
+		return &api.Result{
+			Value: out,
+		}, err
 	}
 
 	switch name {
@@ -215,16 +227,19 @@ func (r *Agent) runTool(ctx context.Context, name string, args map[string]any) (
 		return transferAgentSub(ctx, r, args)
 	default:
 		out, err = runCommandTool(ctx, r, name, args)
+		return &api.Result{
+			Value: out,
+		}, err
 	}
 
-	if err != nil {
-		return &Result{
-			Value: fmt.Sprintf("%s: %v", out, err),
-		}, nil
-	}
-	return &api.Result{
-		Value: out,
-	}, nil
+	// if err != nil {
+	// 	return &Result{
+	// 		Value: fmt.Sprintf("%s: %v", out, err),
+	// 	}, nil
+	// }
+	// return &api.Result{
+	// 	Value: out,
+	// }, nil
 }
 
 func transferAgentSub(ctx context.Context, agent *Agent, props map[string]any) (*Result, error) {

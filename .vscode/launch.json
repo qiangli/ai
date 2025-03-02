@@ -91,9 +91,9 @@
 			},
 			"args": [
 				"--verbose",
-				"/git",
+				"/rg",
 				"--message",
-				"show the difference with remote origin/main for the local repo",
+				"find all cats and dogs in files ending in .go for the local repo",
 			],
 			"showLog": false,
 			"stopOnEntry": false
@@ -116,7 +116,7 @@
 				"--role", "system",
 				"--role-prompt", "you are a coding assistant. you solve all problems in python.",
 				"--message",
-				"what is the sum of 1+1"
+				"What is the current time in New York?",
 			],
 			"showLog": false,
 			"stopOnEntry": false

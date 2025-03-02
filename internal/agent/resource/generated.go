@@ -15,6 +15,9 @@ var doc_compose_system_role string
 //go:embed prompts/docker_input_user_role.md
 var docker_input_user_role string
 
+//go:embed prompts/eval_system_role.md
+var eval_system_role string
+
 //go:embed prompts/git_message_conventional.md
 var git_message_conventional string
 
@@ -95,6 +98,7 @@ var Prompts = map[string]string{
 	"agent_sub_system_role":    agent_sub_system_role,
 	"doc_compose_system_role":  doc_compose_system_role,
 	"docker_input_user_role":   docker_input_user_role,
+	"eval_system_role":         eval_system_role,
 	"git_message_conventional": git_message_conventional,
 	"git_message_short":        git_message_short,
 	"git_sub_system_role":      git_sub_system_role,
@@ -206,7 +210,7 @@ var AgentCommandMap = map[string]AgentConfig{
 	},
 	"eval": {
 		Name:        "eval",
-		Description: "Evaluate and test prompts.",
+		Description: "Evaluate and test tools.",
 		Internal:    false,
 		Data:        eval_agent_yaml_data,
 		Overview:    "",

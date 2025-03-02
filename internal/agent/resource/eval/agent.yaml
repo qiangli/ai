@@ -9,8 +9,12 @@ maxTime: 3600
 agents:
   - name: "eval"
     display: "🐝 Eval"
-    description: "Evaluate and test prompts."
+    description: "Evaluate and test tools."
+    instruction:
+      content: "resource:eval_system_role"
     model: L1
+    functions:
+      - "mcp:*"
 
 functions:
   - name: "list_agents"

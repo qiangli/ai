@@ -17,12 +17,15 @@ tidy:
     go fmt ./...
     go vet ./...
 
+# Generate a git commit message
 git-message:
     git diff origin/main | go run ./cmd/ai --dry-run=false @git/conventional =+
 
+# git commit
 git-commit: git-message
     git commit -m "$(pbpaste)"
 
+# git commit --amend
 git-amend: git-message
     git commit --amend -m "$(pbpaste)"
 

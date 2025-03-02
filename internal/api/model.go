@@ -70,6 +70,9 @@ func Level3(cfg *LLMConfig) *Model {
 }
 
 func ImageModel(cfg *LLMConfig) *Model {
+	if cfg == nil {
+		return &Model{}
+	}
 	model := &Model{
 		Type:    ModelTypeImage,
 		Name:    cfg.ImageModel,
@@ -88,6 +91,9 @@ func ImageModel(cfg *LLMConfig) *Model {
 
 // CreateModel creates a model with the given configuration and optional level
 func CreateModel(cfg *LLMConfig, opt ...Level) *Model {
+	if cfg == nil {
+		return &Model{}
+	}
 	model := &Model{
 		Type:    ModelTypeText,
 		Name:    cfg.Model,

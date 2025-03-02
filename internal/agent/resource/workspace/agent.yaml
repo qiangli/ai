@@ -10,7 +10,6 @@ agents:
       around: "resolve_workspace"
     functions:
       - "list_commands"
-      - "command"
       - "which"
       - "man"
       - "exec"
@@ -19,5 +18,4 @@ agents:
       - "cd"
       - "ls"
       - "uname"
-      - "test"
 ###

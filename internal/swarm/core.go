@@ -168,6 +168,11 @@ func (r *Swarm) Load(name string, input *UserInput) error {
 			Name:        v.Name,
 			Description: v.Description,
 			Parameters:  v.Parameters,
+			// Parameters: map[string]any{
+			// 	"type":       v.Parameters.Type,
+			// 	"properties": v.Parameters.Properties,
+			// 	"required":   v.Parameters.Required,
+			// },
 		}
 	}
 
@@ -180,22 +185,6 @@ func (r *Swarm) Load(name string, input *UserInput) error {
 }
 
 func (r *Swarm) Run(req *Request, resp *Response) error {
-	// // "resource:" prefix is used to refer to a resource
-	// // "vars:" prefix is used to refer to a variable
-	// apply := func(s string, vars *Vars) (string, error) {
-	// 	if strings.HasPrefix(s, "resource:") {
-	// 		v, ok := r.Config.ResourceMap[s[9:]]
-	// 		if !ok {
-	// 			return "", fmt.Errorf("no such resource: %s", s[9:])
-	// 		}
-	// 		return applyTemplate(v, vars, r.Config.TemplateFuncMap)
-	// 	}
-	// 	if strings.HasPrefix(s, "vars:") {
-	// 		v := vars.GetString(s[5:])
-	// 		return v, nil
-	// 	}
-	// 	return s, nil
-	// }
 
 	for {
 		agent, err := r.Create(req.Agent, req.RawInput)
@@ -209,13 +198,6 @@ func (r *Swarm) Run(req *Request, resp *Response) error {
 				return err
 			}
 		}
-
-		// // update the request instruction
-		// content, err := apply(agent.Instruction, r.Vars)
-		// if err != nil {
-		// 	return err
-		// }
-		// agent.Instruction = content
 
 		timeout := TimeoutHandler(agent, time.Duration(agent.MaxTime)*time.Second, "timed out")
 		maxlog := MaxLogHandler(500)

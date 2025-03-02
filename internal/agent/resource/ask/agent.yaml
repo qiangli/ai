@@ -27,6 +27,8 @@ agents:
       content: "vars:system_role_prompt"
     dependencies:
       - "meta-prompt"
+    functions:
+      - "mcp:*"
 
 models:
   - name: "L1"
