@@ -19,6 +19,8 @@ import (
 	"github.com/qiangli/ai/internal/util"
 )
 
+var builtinCommands = []string{"info", "setup", "help", "list-commands", "list-agents", "list-tools", "commands", "agents", "tools"}
+
 var cfgFile string
 var formatFlag string
 var outputFlag string
@@ -417,14 +419,13 @@ func configure(cmd *cobra.Command, args []string) *internal.AppConfig {
 	if len(newArgs) > 0 {
 		// check for valid sub command
 		valid := func() bool {
-			misc := []string{"info", "setup", "help", "list-commands", "list-agents", "commands", "agents"}
 			if strings.HasPrefix(newArgs[0], "/") {
 				return true
 			}
 			if strings.HasPrefix(newArgs[0], "@") {
 				return true
 			}
-			for _, v := range misc {
+			for _, v := range builtinCommands {
 				if v == newArgs[0] && len(newArgs) == 1 {
 					return true
 				}

@@ -45,6 +45,7 @@ func TestMcpListTools(t *testing.T) {
 			t.Logf("server: %s tools: %s %s\n", k, v.Name, v.Description)
 		}
 	}
+	t.Logf("Total: %v", len(tools))
 }
 
 func TestMcpGetTools(t *testing.T) {

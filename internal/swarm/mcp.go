@@ -24,8 +24,13 @@ var mcpServerTool *McpServerTool
 
 func init() {
 	mcpConfig.Load(mcpConfigData)
-	mcpServerTool = NewMcpServerTool(mcpConfig)
 	mcpConfig.ProxyUrl = os.Getenv("AI_MCP_PROXY_URL")
+	mcpServerTool = NewMcpServerTool(mcpConfig)
+}
+
+func ListTools() (map[string][]*ToolFunc, error) {
+	mcpConfig.ProxyUrl = os.Getenv("AI_MCP_PROXY_URL")
+	return mcpServerTool.ListTools()
 }
 
 type McpConfig struct {
@@ -254,9 +259,25 @@ func NewMcpServerTool(cfg *McpConfig) *McpServerTool {
 func (r *McpServerTool) ListTools() (map[string][]*ToolFunc, error) {
 	var tools = map[string][]*ToolFunc{}
 	ctx := context.Background()
+
+	if r.Config.ProxyUrl != "" {
+		client := &McpClientHelper{
+			ProxyUrl: r.Config.ProxyUrl,
+		}
+		funcs, err := client.ListTools(ctx)
+		if err != nil {
+			return nil, err
+		}
+		// TODO better handle proxy
+		for _, v := range funcs {
+			tools[v.Name] = []*ToolFunc{v}
+		}
+		return tools, nil
+	}
+
 	for v, cfg := range r.Config.McpServers {
 		client := &McpClientHelper{
-			ProxyUrl:     r.Config.ProxyUrl,
+			// ProxyUrl:     r.Config.ProxyUrl,
 			ServerConfig: cfg,
 		}
 		funcs, err := client.ListTools(ctx)

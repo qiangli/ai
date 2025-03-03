@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"image"
 	"image/png"
 	"os"
@@ -16,6 +17,7 @@ import (
 	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/cb"
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/swarm"
 	"github.com/qiangli/ai/internal/util"
 )
 
@@ -117,6 +119,34 @@ func collectSystemInfo() (string, error) {
 		return "", err
 	}
 	return string(jd), nil
+}
+
+func ListTools(cfg *internal.AppConfig) error {
+	list := []string{}
+	const listTpl = `Available MCP tools:
+
+%s
+
+Total: %v
+`
+	// TODO flag to set the proxy url
+	if os.Getenv("AI_MCP_PROXY_URL") == "" {
+		os.Setenv("AI_MCP_PROXY_URL", "http://localhost:58080/sse")
+	}
+
+	tools, err := swarm.ListTools()
+	if err != nil {
+		return err
+	}
+	for k, tool := range tools {
+		for _, v := range tool {
+			list = append(list, fmt.Sprintf("%s: %s\n", k, strings.TrimSpace(v.Description)))
+		}
+	}
+
+	sort.Strings(list)
+	log.Printf(listTpl, strings.Join(list, "\n"), len(list))
+	return nil
 }
 
 func processContent(cfg *internal.AppConfig, message *api.Response) {

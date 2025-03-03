@@ -59,6 +59,8 @@ func Run(cmd *cobra.Command, args []string) error {
 				return agent.ListCommands(cfg)
 			case "@", "list-agents", "agents":
 				return agent.ListAgents(cfg)
+			case "list-tools", "tools":
+				return agent.ListTools(cfg)
 			case "info":
 				return agent.Info(cfg)
 			case "setup":
