@@ -270,7 +270,19 @@ func (r *McpServerTool) ListTools() (map[string][]*ToolFunc, error) {
 		}
 		// TODO better handle proxy
 		for _, v := range funcs {
-			tools[v.Name] = []*ToolFunc{v}
+			parts := strings.SplitN(v.Name, "__", 2)
+			if len(parts) != 2 {
+				return nil, fmt.Errorf("invalid tool name: %s", v.Name)
+			}
+			name := parts[0]
+			toolName := parts[1]
+			funcs, ok := tools[name]
+			v.Name = toolName
+			if ok {
+				tools[name] = append(funcs, v)
+			} else {
+				tools[name] = []*ToolFunc{v}
+			}
 		}
 		return tools, nil
 	}
@@ -304,11 +316,17 @@ func (r *McpServerTool) GetTools(server string) ([]*ToolFunc, error) {
 }
 
 func (r *McpServerTool) CallTool(server, tool string, args map[string]any) (string, error) {
-	// TODO better handle proxy
+	ctx := context.Background()
+
 	if r.Config.ProxyUrl != "" && !strings.HasPrefix(tool, server+"__") {
 		tool = fmt.Sprintf("%s__%s", server, tool)
+		client := &McpClientHelper{
+			ProxyUrl: r.Config.ProxyUrl,
+		}
+		return client.CallTool(ctx, tool, args)
 	}
-	ctx := context.Background()
+
+	//
 	for v, cfg := range r.Config.McpServers {
 		if v == server {
 			client := &McpClientHelper{

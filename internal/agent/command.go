@@ -140,7 +140,7 @@ Total: %v
 	}
 	for k, tool := range tools {
 		for _, v := range tool {
-			list = append(list, fmt.Sprintf("%s: %s\n", k, strings.TrimSpace(v.Description)))
+			list = append(list, fmt.Sprintf("%s %s: %s\n", k, v.Name, strings.TrimSpace(v.Description)))
 		}
 	}
 
