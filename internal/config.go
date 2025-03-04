@@ -38,6 +38,7 @@ type AppConfig struct {
 	Role   string
 	Prompt string
 
+	Agent   string
 	Command string
 	Args    []string
 
@@ -46,11 +47,19 @@ type AppConfig struct {
 
 	Editor string
 
-	Clipin  bool
-	Clipout bool
+	Clipin   bool
+	ClipWait bool
+
+	Clipout    bool
+	ClipAppend bool
+
+	IsPiped bool
 	Stdin   bool
 
 	Files []string
+
+	// MCP server url
+	McpServerUrl string
 
 	// Output format: raw or markdown
 	Format string

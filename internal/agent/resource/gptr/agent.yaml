@@ -10,13 +10,14 @@ agents:
   - name: "gptr"
     display: "🔍 Researcher"
     description: "Deliver live, realtime, accurate, relevant insights from diverse online sources."
-    "overview": "The agent is a comprehensive tool designed for advanced digital exploration and research. It serves users seeking insights from diverse online sources, whether for academic research, competitive business analysis, or trend monitoring. Leveraging search technologies, it efficiently navigates the internet to provide accurate, timely, and contextually relevant information. With autonomous capabilities, it creates detailed, factual reports complete with citations, tackling issues like misinformation. Customizable and user-friendly, the tool aggregates data from over multiple sources, making digital content access and analysis reliable and efficient."
+    overview: "The agent is a comprehensive tool designed for advanced digital exploration and research. It serves users seeking insights from diverse online sources, whether for academic research, competitive business analysis, or trend monitoring. Leveraging search technologies, it efficiently navigates the internet to provide accurate, timely, and contextually relevant information. With autonomous capabilities, it creates detailed, factual reports complete with citations, tackling issues like misinformation. Customizable and user-friendly, the tool aggregates data from over multiple sources, making digital content access and analysis reliable and efficient."
     model: L1
     instruction:
       content: "resource:gptr_sub_system_role"
     entrypoint: gptr_system_role_prompt
     functions:
-      - "gptr_generate_report"
+      - "mcp:gptr"
+      # - "gptr_generate_report"
 
 functions:
   - name: "gptr_generate_report"

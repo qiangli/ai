@@ -30,6 +30,9 @@ var git_sub_system_role string
 //go:embed prompts/gptr_sub_system_role.md
 var gptr_sub_system_role string
 
+//go:embed prompts/image_param_system_role.md
+var image_param_system_role string
+
 //go:embed prompts/pr_changelog_format.md
 var pr_changelog_format string
 
@@ -103,6 +106,7 @@ var Prompts = map[string]string{
 	"git_message_short":        git_message_short,
 	"git_sub_system_role":      git_sub_system_role,
 	"gptr_sub_system_role":     gptr_sub_system_role,
+	"image_param_system_role":  image_param_system_role,
 	"pr_changelog_format":      pr_changelog_format,
 	"pr_changelog_system_role": pr_changelog_system_role,
 	"pr_describe_example":      pr_describe_example,
@@ -169,9 +173,6 @@ var pr_agent_yaml_data []byte
 
 //go:embed script/agent.yaml
 var script_agent_yaml_data []byte
-
-//go:embed seek/agent.yaml
-var seek_agent_yaml_data []byte
 
 //go:embed sql/agent.yaml
 var sql_agent_yaml_data []byte
@@ -246,7 +247,7 @@ var AgentCommandMap = map[string]AgentConfig{
 	"launch": {
 		Name:        "launch",
 		Description: "Dispatch to the most appropriate agent based on the user's input.",
-		Internal:    false,
+		Internal:    true,
 		Data:        launch_agent_yaml_data,
 		Overview:    "",
 	},
@@ -305,13 +306,6 @@ var AgentCommandMap = map[string]AgentConfig{
 		Internal:    false,
 		Data:        script_agent_yaml_data,
 		Overview:    "The Script agent is a versatile tool that assists users in executing system commands, creating shell scripts, and troubleshooting various scripting tasks. By providing guidance on command syntax, script structure, and error handling, it simplifies the process of writing and executing scripts. Whether you are a novice or an experienced script writer, this agent offers valuable support in automating tasks, managing system configurations, and troubleshooting common scripting issues. It serves as a reliable companion for script development and execution, enhancing productivity and efficiency in system administration and automation.",
-	},
-	"seek": {
-		Name:        "seek",
-		Description: "",
-		Internal:    false,
-		Data:        seek_agent_yaml_data,
-		Overview:    "",
 	},
 	"sql": {
 		Name:        "sql",

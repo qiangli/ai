@@ -2,7 +2,7 @@ package swarm
 
 import (
 	"context"
-	_ "embed"
+	// _ "embed"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -15,28 +15,13 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
-//go:embed resource/mcp_config.jsonc
-var mcpConfigData []byte
-
-var mcpConfig = NewMcpConfig()
-
-var mcpServerTool *McpServerTool
-
-func init() {
-	mcpConfig.Load(mcpConfigData)
-	mcpConfig.ProxyUrl = os.Getenv("AI_MCP_PROXY_URL")
-	mcpServerTool = NewMcpServerTool(mcpConfig)
-}
-
-func ListTools() (map[string][]*ToolFunc, error) {
-	mcpConfig.ProxyUrl = os.Getenv("AI_MCP_PROXY_URL")
-	return mcpServerTool.ListTools()
+func ListTools(serverUrl string) (map[string][]*ToolFunc, error) {
+	tools := NewMcpServerTool(serverUrl)
+	return tools.ListTools()
 }
 
 type McpConfig struct {
-	ProxyUrl string `json:"baseUrl"`
-
-	McpServers map[string]*McpServerConfig `json:"mcpServers"`
+	ServerUrl string `json:"serverUrl"`
 }
 
 type McpServerConfig struct {
@@ -44,9 +29,9 @@ type McpServerConfig struct {
 	Args    []string `json:"args"`
 }
 
-func NewMcpConfig() *McpConfig {
+func NewMcpConfig(serverUrl string) *McpConfig {
 	return &McpConfig{
-		McpServers: make(map[string]*McpServerConfig),
+		ServerUrl: serverUrl,
 	}
 }
 
@@ -250,9 +235,9 @@ type McpServerTool struct {
 	Config *McpConfig
 }
 
-func NewMcpServerTool(cfg *McpConfig) *McpServerTool {
+func NewMcpServerTool(serverUrl string) *McpServerTool {
 	return &McpServerTool{
-		Config: cfg,
+		Config: NewMcpConfig(serverUrl),
 	}
 }
 
@@ -260,9 +245,9 @@ func (r *McpServerTool) ListTools() (map[string][]*ToolFunc, error) {
 	var tools = map[string][]*ToolFunc{}
 	ctx := context.Background()
 
-	if r.Config.ProxyUrl != "" {
+	if r.Config.ServerUrl != "" {
 		client := &McpClientHelper{
-			ProxyUrl: r.Config.ProxyUrl,
+			ProxyUrl: r.Config.ServerUrl,
 		}
 		funcs, err := client.ListTools(ctx)
 		if err != nil {
@@ -286,30 +271,17 @@ func (r *McpServerTool) ListTools() (map[string][]*ToolFunc, error) {
 		}
 		return tools, nil
 	}
-
-	for v, cfg := range r.Config.McpServers {
-		client := &McpClientHelper{
-			// ProxyUrl:     r.Config.ProxyUrl,
-			ServerConfig: cfg,
-		}
-		funcs, err := client.ListTools(ctx)
-		if err != nil {
-			return nil, err
-		}
-		tools[v] = funcs
-	}
 	return tools, nil
 }
 
 func (r *McpServerTool) GetTools(server string) ([]*ToolFunc, error) {
-	ctx := context.Background()
-	for v, cfg := range r.Config.McpServers {
+	tools, err := r.ListTools()
+	if err != nil {
+		return nil, err
+	}
+	for v, tools := range tools {
 		if v == server {
-			client := &McpClientHelper{
-				ProxyUrl:     r.Config.ProxyUrl,
-				ServerConfig: cfg,
-			}
-			return client.ListTools(ctx)
+			return tools, nil
 		}
 	}
 	return nil, fmt.Errorf("no such server: %s", server)
@@ -318,29 +290,12 @@ func (r *McpServerTool) GetTools(server string) ([]*ToolFunc, error) {
 func (r *McpServerTool) CallTool(server, tool string, args map[string]any) (string, error) {
 	ctx := context.Background()
 
-	if r.Config.ProxyUrl != "" && !strings.HasPrefix(tool, server+"__") {
+	if r.Config.ServerUrl != "" && !strings.HasPrefix(tool, server+"__") {
 		tool = fmt.Sprintf("%s__%s", server, tool)
 		client := &McpClientHelper{
-			ProxyUrl: r.Config.ProxyUrl,
+			ProxyUrl: r.Config.ServerUrl,
 		}
 		return client.CallTool(ctx, tool, args)
 	}
-
-	//
-	for v, cfg := range r.Config.McpServers {
-		if v == server {
-			client := &McpClientHelper{
-				ProxyUrl:     r.Config.ProxyUrl,
-				ServerConfig: cfg,
-			}
-			resp, err := client.CallTool(ctx, tool, args)
-			if err != nil {
-				return "", err
-			}
-			if resp != "" {
-				return resp, nil
-			}
-		}
-	}
-	return "", fmt.Errorf("no such server: %s", server)
+	return "", fmt.Errorf("no such tool: %s %s", server, tool)
 }

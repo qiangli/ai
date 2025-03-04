@@ -136,7 +136,7 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 
 		role := r.Role
 		if role == "" {
-			role = RoleSystem
+			role = api.RoleSystem
 		}
 		history = append(history, &Message{
 			Role:    role,
@@ -149,7 +149,7 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 
 	if req.Message == nil {
 		req.Message = &Message{
-			Role:    RoleUser,
+			Role:    api.RoleUser,
 			Content: req.RawInput.Query(),
 			Sender:  r.Name,
 		}
@@ -159,12 +159,12 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 	initLen := len(history)
 	agentRole := r.Role
 	if agentRole == "" {
-		agentRole = RoleAssistant
+		agentRole = api.RoleAssistant
 	}
 
 	runTool := func(ctx context.Context, name string, args map[string]any) (*Result, error) {
 		log.Debugf("run tool: %s %+v\n", name, args)
-		return r.runTool(ctx, name, args)
+		return r.callTool(ctx, name, args)
 	}
 
 	result, err := llm.Send(ctx, &api.Request{
@@ -177,6 +177,10 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 		MaxTurns:  r.MaxTurns,
 		RunTool:   runTool,
 		Tools:     r.Functions,
+		//
+		ImageQuality: req.ImageQuality,
+		ImageSize:    req.ImageSize,
+		ImageStyle:   req.ImageStyle,
 	})
 	if err != nil {
 		return err
@@ -201,9 +205,33 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 	return nil
 }
 
-func (r *Agent) runTool(ctx context.Context, name string, args map[string]any) (*Result, error) {
+func (r *Agent) callTool(ctx context.Context, name string, args map[string]any) (*Result, error) {
 	var out string
 	var err error
+
+	// transfer to agent
+	if strings.HasPrefix(name, "agent__") {
+		v, ok := r.sw.AgentToolMap[name]
+		if !ok {
+			return nil, fmt.Errorf("no such agent tool: %s", name)
+		}
+		return &api.Result{
+			NextAgent: v.Name,
+			State:     api.StateTransfer,
+		}, nil
+	}
+
+	// call mcp server tool
+	parts := strings.SplitN(name, "__", 2)
+	if len(parts) == 2 {
+		server := parts[0]
+		name = parts[1]
+		// call mcp server tool
+		out, err := r.sw.McpServerTool.CallTool(server, name, args)
+		return &api.Result{
+			Value: out,
+		}, err
+	}
 
 	// built-in functions
 	if fn, ok := r.sw.Vars.FuncRegistry[name]; ok {
@@ -211,35 +239,16 @@ func (r *Agent) runTool(ctx context.Context, name string, args map[string]any) (
 		return fn(ctx, r, name, args)
 	}
 
-	// mcp
-	parts := strings.SplitN(name, "__", 2)
-	if len(parts) == 2 {
-		server := parts[0]
-		name = parts[1]
-		out, err := mcpServerTool.CallTool(server, name, args)
-		return &api.Result{
-			Value: out,
-		}, err
-	}
-
+	//
 	switch name {
 	case transferAgentName:
 		return transferAgentSub(ctx, r, args)
 	default:
-		out, err = runCommandTool(ctx, r, name, args)
+		out, err = CallCommandTool(ctx, r, name, args)
 		return &api.Result{
 			Value: out,
 		}, err
 	}
-
-	// if err != nil {
-	// 	return &Result{
-	// 		Value: fmt.Sprintf("%s: %v", out, err),
-	// 	}, nil
-	// }
-	// return &api.Result{
-	// 	Value: out,
-	// }, nil
 }
 
 func transferAgentSub(ctx context.Context, agent *Agent, props map[string]any) (*Result, error) {

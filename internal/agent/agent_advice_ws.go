@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/internal/agent/resource"
+	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/swarm"
 )
@@ -45,7 +46,7 @@ func resolveWorkspaceAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Re
 	}
 
 	msg := &swarm.Message{
-		Role:    swarm.RoleUser,
+		Role:    api.RoleUser,
 		Content: query,
 		Sender:  req.Agent,
 	}

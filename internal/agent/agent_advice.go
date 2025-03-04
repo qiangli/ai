@@ -9,6 +9,7 @@ import (
 	"github.com/qiangli/ai/internal/agent/resource"
 	"github.com/qiangli/ai/internal/agent/resource/pr"
 	"github.com/qiangli/ai/internal/api"
+	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/swarm"
 )
@@ -25,6 +26,7 @@ func init() {
 	adviceMap["openhands"] = ohAdvice
 	adviceMap["agent_launch"] = agentLaunchAdvice
 	adviceMap["sub"] = subAdvice
+	adviceMap["image_params"] = imageParamsAdvice
 }
 
 type AgentDetect struct {
@@ -104,7 +106,7 @@ func scriptUserInputAdvice(vars *swarm.Vars, req *swarm.Request, _ *swarm.Respon
 		return err
 	}
 	req.Message = &swarm.Message{
-		Role:    swarm.RoleUser,
+		Role:    api.RoleUser,
 		Content: content,
 		Sender:  req.Agent,
 	}
@@ -132,7 +134,7 @@ func prUserInputAdvice(vars *swarm.Vars, req *swarm.Request, _ *swarm.Response, 
 		return err
 	}
 	req.Message = &swarm.Message{
-		Role:    swarm.RoleUser,
+		Role:    api.RoleUser,
 		Content: content,
 		Sender:  req.Agent,
 	}
@@ -218,4 +220,64 @@ func subAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, next 
 		return nil
 	}
 	return next(vars, req, resp, next)
+}
+
+type ImageParams struct {
+	Quality string `json:"quality"`
+	Size    string `json:"size"`
+	Style   string `json:"style"`
+}
+
+func imageParamsAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, next swarm.Advice) error {
+	// skip if all image params are already set
+	if req.ImageQuality != "" && req.ImageSize != "" && req.ImageStyle != "" {
+		log.Debugf("skip image params advice as all are already set")
+		return nil
+	}
+
+	model, ok := vars.Models["L1"]
+	if !ok {
+		log.Debugf("no model found")
+		return nil
+	}
+	ctx := req.Context()
+	var msgs = []*api.Message{
+		{
+			Role:    api.RoleSystem,
+			Content: resource.Prompts["image_param_system_role"],
+		},
+		{
+			Role:    api.RoleUser,
+			Content: req.RawInput.Intent(),
+		},
+	}
+
+	result, err := llm.Send(ctx, &api.Request{
+		ModelType: model.Type,
+		BaseUrl:   model.BaseUrl,
+		ApiKey:    model.ApiKey,
+		Model:     model.Name,
+		Messages:  msgs,
+	})
+	if err != nil {
+		log.Errorf("error sending request: %v", err)
+		return nil
+	}
+
+	var params ImageParams
+	if err := json.Unmarshal([]byte(result.Content), &params); err != nil {
+		log.Debugf("error unmarshaling response: %v", err)
+		return nil
+	}
+
+	if params.Quality == "" {
+		req.ImageQuality = params.Quality
+	}
+	if params.Size == "" {
+		req.ImageSize = params.Size
+	}
+	if params.Style == "" {
+		req.ImageStyle = params.Style
+	}
+	return nil
 }

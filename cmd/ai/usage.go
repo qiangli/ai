@@ -5,41 +5,35 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/qiangli/ai/internal"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
+	"github.com/qiangli/ai/internal/agent"
 )
 
 const rootUsageTemplate = `Usage:
-  ai message...
-  ai [OPTIONS] AGENT [message...]{{if .HasExample}}
+  ai [OPTIONS] [@agent] message...{{if .HasExample}}
 
 Examples:
 {{.Example}}{{end}}
 
-Agent:
-  /[command]       [message...] Get help with system command and shell scripting tasks
-  @[agent/command] [message...] Engage specialist agents for assistance with complex tasks
-
-Use "{{.CommandPath}} help" for more info.
+{{.CommandPath}} /help [info|agents|commands|tools] for more details.
 `
 
 const helpTemplate = `AI Command Line Tool
 
 Usage:
-  ai message...
-  ai [OPTIONS] AGENT [message...]{{if .Hint}}
-
-{{.Hint}}{{end}}{{if .HasExample}}
+  ai [OPTIONS] @agent message...{{if .HasExample}}
 {{.Example}}{{end}}
 
-Agent:
-  /[command]       [message...] Get help with system command and shell scripting tasks
-  @[agent/command] [message...] Engage specialist agents for assistance with complex tasks
-
 Miscellaneous:
-  /                       List system commands available in the path
-  @                       List all supported agents
-  setup                   Setup the AI configuration{{if .HasAvailableLocalFlags}}
+
+  ai message...                  Auto select agent for help with any questions
+  ai /[command]       message... Use script agent for help with command and shell scripts
+  ai @[agent/command] message... Engage specialist agent for help with various tasks
+
+  ai /setup                      Setup AI configuration{{if .HasAvailableLocalFlags}}
 
 Options:
 {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
@@ -51,62 +45,58 @@ Environment variables:
 `
 
 const usageExample = `
-ai what is fish?
-ai / what is fish?
-ai @ask what is fish?
-`
-
-const usageHint = `
-. Ask for help with writing or debugging shell scripts.
-. Request explanations for specific shell commands or scripts.
-. Get assistance with writing, optimizing, or debugging SQL queries.
-. Seek guidance on writing code or debugging in various programming languages.
+ai what is fish
+ai / what is fish
+ai @ask what is fish
 `
 
 const inputInstruction = `
-There are multiple ways to interact with the AI tool.
+There are multiple ways to interact with this AI tool.
 
 + Command line input:
 
-  ai AGENT what is fish?
+  ai @agent what is fish?
 
 + Read from standard input:
 
-  ai AGENT -
+  ai @agent -
+  ai @agent --stdin
 Ctrl+D to send, Ctrl+C to cancel.
 
 + Here document:
 
-  ai AGENT <<eof
+  ai @agent <<eof
 what is the weather today?
 eof
 
 + Piping input:
 
-  echo "What is Unix?" | ai AGENT
-  git diff origin main | ai AGENT [message...]
-  curl -sL https://en.wikipedia.org/wiki/Artificial_intelligence | head -100 | ai AGENT [message...]
+  echo "What is Unix?" | ai @agent [message...]
+  git diff origin/main | ai @agent [message...]
 
 + File redirection:
 
-  ai AGENT [message...] < file.txt
+  ai @agent [message...] < file.txt
 
 + Reading from system clipboard:
 
-  ai AGENT [message...] =
+  ai @agent [message...] {
 Use system copy (Ctrl+C on Unix) to send selected contents.
 Ctrl+C to cancel.
+
+  ai @agent [message...] {{
+Use system copy (Ctrl+C on Unix) to copy and press enter or "Y" to send.
+Ctrl+C or enter "N" to cancel
 
 + Composing with text editor:
 
   export AI_EDITOR=nano # default: vi
-  ai AGENT
+  ai @agent
 `
 
 type HelpData struct {
 	CommandPath string
 
-	Hint                       string
 	HasExample                 bool
 	Example                    string
 	HasAvailableLocalFlags     bool
@@ -136,7 +126,6 @@ func getHelpData(cmd *cobra.Command) *HelpData {
 
 	return &HelpData{
 		CommandPath:                cmd.CommandPath(),
-		Hint:                       usageHint,
 		HasExample:                 len(inputInstruction) > 0,
 		Example:                    inputInstruction,
 		HasAvailableLocalFlags:     localFlags.HasAvailableFlags(),
@@ -147,7 +136,21 @@ func getHelpData(cmd *cobra.Command) *HelpData {
 	}
 }
 
-func Help(cmd *cobra.Command) error {
+func Help(cfg *internal.AppConfig, cmd *cobra.Command) error {
+	if len(cfg.Args) > 0 {
+		switch cfg.Args[0] {
+		case "agents", "agent":
+			return agent.ListAgents(cfg)
+		case "commands", "command":
+			return agent.ListCommands(cfg)
+		case "tools", "tool":
+			return agent.ListTools(cfg)
+		case "info":
+			return agent.Info(cfg)
+		}
+	}
+
+	// help
 	trimTrailingWhitespaces := func(s string) string {
 		return strings.TrimRightFunc(s, func(r rune) bool {
 			return r == ' ' || r == '\t'

@@ -19,7 +19,7 @@ tidy:
 
 # Generate a git commit message
 git-message:
-    git diff origin/main | go run ./cmd/ai --dry-run=false @git/conventional =+
+    git diff origin/main | go run ./cmd/ai --dry-run=false @git/conventional }
 
 # git commit
 git-commit: git-message

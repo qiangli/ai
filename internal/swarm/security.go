@@ -41,7 +41,7 @@ func evaluateCommand(ctx context.Context, agent *Agent, command string, args []s
 
 	runTool := func(ctx context.Context, name string, args map[string]any) (*Result, error) {
 		log.Debugf("run tool: %s %+v\n", name, args)
-		out, err := runCommandTool(ctx, agent, name, args)
+		out, err := CallCommandTool(ctx, agent, name, args)
 		if err != nil {
 			return &Result{
 				Value: fmt.Sprintf("%s: %v", out, err),
@@ -59,11 +59,11 @@ func evaluateCommand(ctx context.Context, agent *Agent, command string, args []s
 		ApiKey:    agent.Model.ApiKey,
 		Messages: []*Message{
 			{
-				Role:    RoleSystem,
+				Role:    api.RoleSystem,
 				Content: instruction,
 			},
 			{
-				Role:    RoleUser,
+				Role:    api.RoleUser,
 				Content: query,
 			},
 		},

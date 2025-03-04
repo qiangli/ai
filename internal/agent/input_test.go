@@ -20,8 +20,17 @@ func (c *MockClipboard) Read() (string, error) {
 	return c.content, nil
 }
 
+func (c *MockClipboard) Get() (string, error) {
+	return c.content, nil
+}
+
 func (c *MockClipboard) Write(text string) error {
 	c.content = text
+	return nil
+}
+
+func (c *MockClipboard) Append(text string) error {
+	c.content += text
 	return nil
 }
 

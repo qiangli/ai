@@ -3,6 +3,7 @@ package llm
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/openai/openai-go"
@@ -132,10 +133,14 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 		params.Tools = openai.F(tools)
 	}
 
+	maxTurns := req.MaxTurns
+	if maxTurns == 0 {
+		maxTurns = 3
+	}
 	resp := &api.Response{}
 
-	for tries := range req.MaxTurns {
-		log.Debugf("*** sending request to %s ***: %v of %v\n", req.BaseUrl, tries, req.MaxTurns)
+	for tries := range maxTurns {
+		log.Debugf("*** sending request to %s ***: %v of %v\n", req.BaseUrl, tries, maxTurns)
 
 		log.Infof("[%v] @%s %s %s\n", tries, req.Agent, req.Model, req.BaseUrl)
 		completion, err := client.Chat.Completions.New(ctx, params)
@@ -143,7 +148,7 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 			log.Errorf("✗ %s\n", err)
 			return nil, err
 		}
-		log.Infof("✨ %v\n", completion.Choices[0].FinishReason)
+		log.Infof("⣿ %v\n", completion.Choices[0].FinishReason)
 
 		toolCalls := completion.Choices[0].Message.ToolCalls
 
@@ -165,13 +170,17 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 			log.Debugf("\n\n>>> tool call: %v %s props: %+v\n", i, name, props)
 
 			//
-			log.Infof("⣿ %s %+v\n", name, props)
+			log.Infof("✨ %s %+v\n", name, props)
 			out, err := req.RunTool(ctx, name, props)
 			if err != nil {
 				log.Errorf("✗ %s\n", err)
-				return nil, err
+				// inform LLM of the error
+				out = &api.Result{
+					Value: fmt.Sprintf("%s", err),
+				}
+			} else {
+				log.Infof("✔ done\n")
 			}
-			log.Infof("✔ done\n")
 
 			log.Debugf("\n<<< tool call: %s out: %s\n", name, out)
 			resp.Result = out
@@ -204,16 +213,52 @@ func generateImage(ctx context.Context, req *api.Request) (*api.Response, error)
 		ContentType: api.ContentTypeB64JSON,
 	}
 
-	// Base64
+	log.Infof("@%s %s %s\n", req.Agent, req.Model, req.BaseUrl)
+
+	var imageFormat = openai.ImageGenerateParamsResponseFormatB64JSON
+
+	var qualityMap = map[string]openai.ImageGenerateParamsQuality{
+		"standard": openai.ImageGenerateParamsQualityStandard,
+		"hd":       openai.ImageGenerateParamsQualityHD,
+	}
+	var sizeMap = map[string]openai.ImageGenerateParamsSize{
+		"256x256":   openai.ImageGenerateParamsSize256x256,
+		"512x512":   openai.ImageGenerateParamsSize512x512,
+		"1024x1024": openai.ImageGenerateParamsSize1024x1024,
+		"1792x1024": openai.ImageGenerateParamsSize1792x1024,
+		"1024x1792": openai.ImageGenerateParamsSize1024x1792,
+	}
+	var styleMap = map[string]openai.ImageGenerateParamsStyle{
+		"vivid":   openai.ImageGenerateParamsStyleVivid,
+		"natural": openai.ImageGenerateParamsStyleNatural,
+	}
+
+	var imageQuality = openai.ImageGenerateParamsQualityStandard
+	var imageSize = openai.ImageGenerateParamsSize1024x1024
+	var imageStyle = openai.ImageGenerateParamsStyleNatural
+	if q, ok := qualityMap[req.ImageQuality]; ok {
+		imageQuality = q
+	}
+	if s, ok := sizeMap[req.ImageSize]; ok {
+		imageSize = s
+	}
+	if s, ok := styleMap[req.ImageStyle]; ok {
+		imageStyle = s
+	}
+
 	image, err := client.Images.Generate(ctx, openai.ImageGenerateParams{
 		Prompt:         openai.String(prompt),
 		Model:          openai.F(model),
-		ResponseFormat: openai.F(openai.ImageGenerateParamsResponseFormatB64JSON),
+		ResponseFormat: openai.F(imageFormat),
+		Quality:        openai.F(imageQuality),
+		Size:           openai.F(imageSize),
+		Style:          openai.F(imageStyle),
 		N:              openai.Int(1),
 	})
 	if err != nil {
 		return nil, err
 	}
+	log.Infof("✨ %v %v %v\n", imageQuality, imageSize, imageStyle)
 
 	resp.Content = image.Data[0].B64JSON
 

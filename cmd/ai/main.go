@@ -25,55 +25,42 @@ func Run(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
-	cfg := configure(cmd, args)
+	cfg, err := parseConfig(cmd, args)
+	if err != nil {
+		return err
+	}
 
 	log.Debugf("Config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.Db)
-
-	//
-	command := cfg.Command
 
 	// interactive mode
 	// $ ai -i or $ ai --interactive
 	// TODO: implement interactive mode
 	if cfg.Interactive {
-		// return shell.Bash(cfg.LLM)
+		// return shell.Bash(cfg)
 		return fmt.Errorf("interactive mode not implemented yet")
 	}
 
 	// $ ai
-	if command == "" && len(cfg.Args) == 0 && cfg.Message == "" {
-		return cmd.Help()
+	if cfg.Command == "" && len(cfg.Args) == 0 && cfg.Message == "" {
+		if !cfg.IsPiped && !cfg.Stdin {
+			return cmd.Help()
+		}
 	}
 
 	// special commands
-	if command != "" {
-		// exact match with no message content
-		// $ ai /
-		// $ ai @
-		// $ ai info
-		// $ ai setup
-		// $ ai help
-		if len(cfg.Args) == 0 {
-			switch command {
-			case "/", "list-commands", "commands":
-				return agent.ListCommands(cfg)
-			case "@", "list-agents", "agents":
-				return agent.ListAgents(cfg)
-			case "list-tools", "tools":
-				return agent.ListTools(cfg)
-			case "info":
-				return agent.Info(cfg)
-			case "setup":
-				return agent.Setup(cfg)
-			case "help":
-				return Help(cmd)
-			}
-		}
+	// $ ai setup
+	// $ ai help info|commands|agents|tools
+	switch cfg.Command {
+	case "/setup":
+		return agent.Setup(cfg)
+	case "/help":
+		return Help(cfg, cmd)
 	}
 
 	if err := agent.HandleCommand(cfg); err != nil {
 		log.Errorln(err)
 	}
+
 	return nil
 }
 

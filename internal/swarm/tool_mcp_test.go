@@ -14,7 +14,7 @@ func TestMcpConfigLoad(t *testing.T) {
 	os.Setenv("AI_SQL_DB_USERNAME", "admin")
 	os.Setenv("AI_SQL_DB_PASSWORD", "password")
 
-	var cfg = NewMcpConfig()
+	var cfg = NewMcpConfig("")
 	err := cfg.LoadFile("resource/mcp_config.jsonc")
 	if err != nil {
 		t.Errorf("load mcp config: %v", err)
@@ -26,14 +26,14 @@ func TestMcpListTools(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	var cfg = NewMcpConfig()
-	err := cfg.LoadFile("resource/mcp_config.jsonc")
-	if err != nil {
-		t.Errorf("load mcp config: %v", err)
-	}
-	cfg.ProxyUrl = "http://localhost:58080/sse"
+	var serverUrl = "http://localhost:58080/sse"
+	// var cfg = NewMcpConfig(serverUrl)
+	// err := cfg.LoadFile("resource/mcp_config.jsonc")
+	// if err != nil {
+	// 	t.Errorf("load mcp config: %v", err)
+	// }
 
-	server := NewMcpServerTool(cfg)
+	server := NewMcpServerTool(serverUrl)
 
 	tools, err := server.ListTools()
 	if err != nil {
@@ -53,14 +53,14 @@ func TestMcpGetTools(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	var cfg = NewMcpConfig()
-	err := cfg.LoadFile("resource/mcp_config.jsonc")
-	if err != nil {
-		t.Errorf("load mcp config: %v", err)
-	}
-	cfg.ProxyUrl = "http://localhost:58080/sse"
+	var serverUrl = "http://localhost:58080/sse"
+	// var cfg = NewMcpConfig(serverUrl)
+	// err := cfg.LoadFile("resource/mcp_config.jsonc")
+	// if err != nil {
+	// 	t.Errorf("load mcp config: %v", err)
+	// }
 
-	server := NewMcpServerTool(cfg)
+	server := NewMcpServerTool(serverUrl)
 
 	tools, err := server.GetTools("time")
 	if err != nil {
@@ -77,14 +77,14 @@ func TestMcpCallTool(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	var cfg = NewMcpConfig()
-	err := cfg.LoadFile("resource/mcp_config.jsonc")
-	if err != nil {
-		t.Errorf("load mcp config: %v", err)
-	}
-	cfg.ProxyUrl = "http://localhost:58080/sse"
+	var serverUrl = "http://localhost:58080/sse"
+	// var cfg = NewMcpConfig(serverUrl)
+	// err := cfg.LoadFile("resource/mcp_config.jsonc")
+	// if err != nil {
+	// 	t.Errorf("load mcp config: %v", err)
+	// }
 
-	server := NewMcpServerTool(cfg)
+	server := NewMcpServerTool(serverUrl)
 
 	resp, err := server.CallTool("time", "convert_time", map[string]interface{}{
 		"source_timezone": "America/Los_Angeles",

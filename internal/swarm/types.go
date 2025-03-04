@@ -15,13 +15,6 @@ type Model = api.Model
 type Result = api.Result
 
 const (
-	RoleSystem    = "system"
-	RoleAssistant = "assistant"
-	RoleUser      = "user"
-	RoleTool      = "tool"
-)
-
-const (
 	VarsEnvContainer = "container"
 	VarsEnvHost      = "host"
 )
@@ -45,7 +38,8 @@ type Vars struct {
 
 	Models map[string]*Model
 
-	Functions    map[string]*ToolFunc
+	Functions map[string]*ToolFunc
+
 	FuncRegistry map[string]Function
 }
 
@@ -93,6 +87,13 @@ type Request struct {
 	Message *Message
 
 	RawInput *UserInput
+
+	//
+	ImageQuality string
+	ImageSize    string
+	ImageStyle   string
+
+	ExtraParams map[string]any
 
 	// ctx is either the client or server context. It should only
 	// be modified via copying the whole Request using Clone or WithContext.

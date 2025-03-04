@@ -4,6 +4,13 @@ import (
 	"context"
 )
 
+const (
+	RoleSystem    = "system"
+	RoleAssistant = "assistant"
+	RoleUser      = "user"
+	RoleTool      = "tool"
+)
+
 // Result encapsulates the possible return values for an agent function.
 type Result struct {
 	// The result value as a string
@@ -36,6 +43,10 @@ type Request struct {
 
 	// History  []*Message
 	Messages []*Message
+
+	ImageQuality string
+	ImageSize    string
+	ImageStyle   string
 
 	MaxTurns int
 	RunTool  func(ctx context.Context, name string, props map[string]any) (*Result, error)

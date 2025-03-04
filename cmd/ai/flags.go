@@ -19,7 +19,28 @@ import (
 	"github.com/qiangli/ai/internal/util"
 )
 
-var builtinCommands = []string{"info", "setup", "help", "list-commands", "list-agents", "list-tools", "commands", "agents", "tools"}
+var prefixedCommands = []string{
+	"/", "@",
+}
+
+// var builtinCommands = []string{
+// 	"setup", "help",
+// }
+
+// check for valid sub command
+func validSub(newArgs []string) bool {
+	for _, v := range prefixedCommands {
+		if strings.HasPrefix(newArgs[0], v) {
+			return true
+		}
+	}
+	// for _, v := range builtinCommands {
+	// 	if v == newArgs[0] {
+	// 		return true
+	// 	}
+	// }
+	return false
+}
 
 var cfgFile string
 var formatFlag string
@@ -180,16 +201,28 @@ func addFlags(cmd *cobra.Command) {
 
 	//
 	flags.StringP("workspace", "w", "", "Workspace directory")
+	flags.String("agent", "", "Specify the agent to use. Same as @agent. Auto select if not specified")
 
-	flags.String("message", "", "Specify input message. Overrides all other input methods")
 	flags.String("editor", "vi", "Specify editor to use")
-	flags.VarP(newFilesValue([]string{}, &inputFiles), "file", "", `Read input from files.  May be given multiple times to add multiple file content`)
 
-	flags.Bool("pb-read", false, "Read input from the clipboard. Alternatively, append '=' to the command")
-	flags.Bool("pb-write", false, "Copy output to the clipboard. Alternatively, append '=+' to the command")
+	// input
+	flags.String("message", "", "Specify input message. Overrides all other input methods")
+	flags.String("input", "", "Read input message from a file")
+	flags.VarP(newFilesValue([]string{}, &inputFiles), "file", "", `Read input from files.  May be given multiple times to add multiple file content`)
+	flags.Bool("stdin", false, "Read input from stdin. Alternatively, append '-' to the command")
+
+	flags.Bool("pb-read", false, "Read input from the clipboard. Alternatively, append '{' to the command")
+	flags.Bool("pb-read-wait", false, "Read input from the clipboard and wait for confirmation. Alternatively, append '{{' to the command")
+
+	// output
+	flags.Bool("pb-write", false, "Copy output to the clipboard. Alternatively, append '}' to the command")
+	flags.Bool("pb-write-append", false, "Append output to the clipboard. Alternatively, append '}}' to the command")
 
 	flags.Var(newOutputValue("markdown", &formatFlag), "format", "Output format, must be either raw or markdown.")
 	flags.StringVarP(&outputFlag, "output", "o", "", "Save final response to a file.")
+
+	// mcp
+	flags.String("mcp-server-url", "http://localhost:58080/sse", "MCP server URL")
 
 	// LLM
 	flags.String("api-key", "", "LLM API key")
@@ -230,6 +263,7 @@ func addFlags(cmd *cobra.Command) {
 	flags.String("log", "", "Log all debugging information to a file")
 	flags.Bool("trace", false, "Trace API calls")
 
+	//
 	flags.String("role", "system", "Specify the role for the prompt")
 	flags.String("role-prompt", "", "Specify the content for the prompt")
 
@@ -251,24 +285,29 @@ func addFlags(cmd *cobra.Command) {
 	flags.String("sql-db-password", "", "Database password")
 	flags.String("sql-db-name", "", "Database name")
 
+	// doc
+	flags.VarP(newTemplateValue("", &docTemplate), "template", "", "Document template file")
+
+	// hide flags
+	flags.MarkHidden("editor")
+
 	flags.MarkHidden("sql-db-host")
 	flags.MarkHidden("sql-db-port")
 	flags.MarkHidden("sql-db-username")
 	flags.MarkHidden("sql-db-password")
 	flags.MarkHidden("sql-db-name")
 
-	// doc
-	flags.VarP(newTemplateValue("", &docTemplate), "doc-template", "", "Document template file")
-
-	//
-	flags.MarkHidden("message")
 	flags.MarkHidden("role")
 	flags.MarkHidden("role-prompt")
+
 	flags.MarkHidden("dry-run")
 	flags.MarkHidden("dry-run-content")
+
 	flags.MarkHidden("trace")
 	flags.MarkHidden("log")
+
 	flags.MarkHidden("interactive")
+
 	flags.MarkHidden("no-meta-prompt")
 
 	// Bind the flags to viper using underscores
@@ -296,10 +335,10 @@ func addFlags(cmd *cobra.Command) {
 	rootCmd.SetUsageTemplate(rootUsageTemplate)
 }
 
-func configure(cmd *cobra.Command, args []string) *internal.AppConfig {
-	var cfg internal.LLMConfig
+func parseConfig(cmd *cobra.Command, args []string) (*internal.AppConfig, error) {
+	var lc internal.LLMConfig
 	var app = internal.AppConfig{
-		LLM:    &cfg,
+		LLM:    &lc,
 		Role:   viper.GetString("role"),
 		Prompt: viper.GetString("role_prompt"),
 	}
@@ -311,58 +350,70 @@ func configure(cmd *cobra.Command, args []string) *internal.AppConfig {
 	app.ConfigFile = viper.ConfigFileUsed()
 	app.CommandPath = cmd.CommandPath()
 
+	//
+	app.Agent = viper.GetString("agent")
+	if app.Agent == "" {
+		app.Agent = "ask"
+	}
 	app.Message = viper.GetString("message")
-
-	//
+	// read input file if message is empty
+	inputFile := viper.GetString("input")
+	if inputFile != "" && app.Message == "" {
+		b, err := os.ReadFile(inputFile)
+		if err != nil {
+			return nil, errors.New("failed to read input file")
+		} else {
+			app.Message = string(b)
+		}
+	}
 	app.Template = docTemplate
-
 	app.Workspace = viper.GetString("workspace")
+	app.McpServerUrl = viper.GetString("mcp_server_url")
 
-	//
-	cfg.ApiKey = viper.GetString("api_key")
-	cfg.Model = viper.GetString("model")
-	cfg.BaseUrl = viper.GetString("base_url")
+	// LLM config
+	lc.ApiKey = viper.GetString("api_key")
+	lc.Model = viper.GetString("model")
+	lc.BaseUrl = viper.GetString("base_url")
 
-	cfg.L1Model = viper.GetString("l1_model")
-	cfg.L1BaseUrl = viper.GetString("l1_base_url")
-	cfg.L1ApiKey = viper.GetString("l1_api_key")
-	cfg.L2Model = viper.GetString("l2_model")
-	cfg.L2BaseUrl = viper.GetString("l2_base_url")
-	cfg.L2ApiKey = viper.GetString("l2_api_key")
-	cfg.L3Model = viper.GetString("l3_model")
-	cfg.L3BaseUrl = viper.GetString("l3_base_url")
-	cfg.L3ApiKey = viper.GetString("l3_api_key")
-	if cfg.L1Model == "" {
-		cfg.L1Model = cfg.Model
+	lc.L1Model = viper.GetString("l1_model")
+	lc.L1BaseUrl = viper.GetString("l1_base_url")
+	lc.L1ApiKey = viper.GetString("l1_api_key")
+	lc.L2Model = viper.GetString("l2_model")
+	lc.L2BaseUrl = viper.GetString("l2_base_url")
+	lc.L2ApiKey = viper.GetString("l2_api_key")
+	lc.L3Model = viper.GetString("l3_model")
+	lc.L3BaseUrl = viper.GetString("l3_base_url")
+	lc.L3ApiKey = viper.GetString("l3_api_key")
+	if lc.L1Model == "" {
+		lc.L1Model = lc.Model
 	}
-	if cfg.L2Model == "" {
-		cfg.L2Model = cfg.Model
+	if lc.L2Model == "" {
+		lc.L2Model = lc.Model
 	}
-	if cfg.L3Model == "" {
-		cfg.L3Model = cfg.Model
+	if lc.L3Model == "" {
+		lc.L3Model = lc.Model
 	}
-	if cfg.L1ApiKey == "" {
-		cfg.L1ApiKey = cfg.ApiKey
+	if lc.L1ApiKey == "" {
+		lc.L1ApiKey = lc.ApiKey
 	}
-	if cfg.L2ApiKey == "" {
-		cfg.L2ApiKey = cfg.ApiKey
+	if lc.L2ApiKey == "" {
+		lc.L2ApiKey = lc.ApiKey
 	}
-	if cfg.L3ApiKey == "" {
-		cfg.L3ApiKey = cfg.ApiKey
+	if lc.L3ApiKey == "" {
+		lc.L3ApiKey = lc.ApiKey
 	}
-	if cfg.L1BaseUrl == "" {
-		cfg.L1BaseUrl = cfg.BaseUrl
+	if lc.L1BaseUrl == "" {
+		lc.L1BaseUrl = lc.BaseUrl
 	}
-	if cfg.L2BaseUrl == "" {
-		cfg.L2BaseUrl = cfg.BaseUrl
+	if lc.L2BaseUrl == "" {
+		lc.L2BaseUrl = lc.BaseUrl
 	}
-	if cfg.L3BaseUrl == "" {
-		cfg.L3BaseUrl = cfg.BaseUrl
+	if lc.L3BaseUrl == "" {
+		lc.L3BaseUrl = lc.BaseUrl
 	}
-
-	cfg.ImageModel = viper.GetString("image_model")
-	cfg.ImageBaseUrl = viper.GetString("image_base_url")
-	cfg.ImageApiKey = viper.GetString("image_api_key")
+	lc.ImageModel = viper.GetString("image_model")
+	lc.ImageBaseUrl = viper.GetString("image_base_url")
+	lc.ImageApiKey = viper.GetString("image_api_key")
 
 	//
 	app.Debug = viper.GetBool("verbose")
@@ -376,34 +427,52 @@ func configure(cmd *cobra.Command, args []string) *internal.AppConfig {
 	app.MaxTime = viper.GetInt("max_time")
 
 	// special char sequence handling
+	var stdin = viper.GetBool("stdin")
 	var pbRead = viper.GetBool("pb_read")
+	var pbReadWait = viper.GetBool("pb_read_wait")
 	var pbWrite = viper.GetBool("pb_write")
-	var isStdin, isClipin, isClipout bool
+	var pbWriteAppend = viper.GetBool("pb_write_append")
+	var isStdin, isClipin, isClipWait, isClipout, isClipAppend bool
+
 	newArgs := args
 
-	// parse special char sequence
+	// parse special char sequence for stdin/clipboard: - = =+
 	if len(args) > 0 {
 		for i := len(args) - 1; i >= 0; i-- {
 			lastArg := args[i]
 
-			if lastArg == agent.StdinInputRedirect {
+			if lastArg == agent.StdinRedirect {
 				isStdin = true
-			} else if lastArg == agent.ClipboardInputRedirect {
+			} else if lastArg == agent.ClipinRedirect {
 				isClipin = true
-			} else if lastArg == agent.ClipboardOutputRedirect {
+			} else if lastArg == agent.ClipinRedirect2 {
+				isClipin = true
+				isClipWait = true
+			} else if lastArg == agent.ClipoutRedirect {
 				isClipout = true
+			} else if lastArg == agent.ClipoutRedirect2 {
+				isClipout = true
+				isClipAppend = true
 			} else {
 				// check for suffix for cases where the special char is not the last arg
 				// but is part of the last arg
-				if strings.HasSuffix(lastArg, agent.StdinInputRedirect) {
+				if strings.HasSuffix(lastArg, agent.StdinRedirect) {
 					isStdin = true
-					args[i] = strings.TrimSuffix(lastArg, agent.StdinInputRedirect)
-				} else if strings.HasSuffix(lastArg, agent.ClipboardInputRedirect) {
+					args[i] = strings.TrimSuffix(lastArg, agent.StdinRedirect)
+				} else if strings.HasSuffix(lastArg, agent.ClipinRedirect) {
 					isClipin = true
-					args[i] = strings.TrimSuffix(lastArg, agent.ClipboardInputRedirect)
-				} else if strings.HasSuffix(lastArg, agent.ClipboardOutputRedirect) {
+					args[i] = strings.TrimSuffix(lastArg, agent.ClipinRedirect)
+				} else if strings.HasSuffix(lastArg, agent.ClipinRedirect2) {
+					isClipin = true
+					isClipWait = true
+					args[i] = strings.TrimSuffix(lastArg, agent.ClipinRedirect2)
+				} else if strings.HasSuffix(lastArg, agent.ClipoutRedirect) {
 					isClipout = true
-					args[i] = strings.TrimSuffix(lastArg, agent.ClipboardOutputRedirect)
+					args[i] = strings.TrimSuffix(lastArg, agent.ClipoutRedirect)
+				} else if strings.HasSuffix(lastArg, agent.ClipoutRedirect2) {
+					isClipout = true
+					isClipAppend = true
+					args[i] = strings.TrimSuffix(lastArg, agent.ClipoutRedirect2)
 				}
 				newArgs = args[:i+1]
 				break
@@ -411,28 +480,21 @@ func configure(cmd *cobra.Command, args []string) *internal.AppConfig {
 		}
 	}
 
-	app.Stdin = isStdin
-	app.Clipin = isClipin || pbRead
-	app.Clipout = isClipout || pbWrite
+	isPiped := func() bool {
+		stat, _ := os.Stdin.Stat()
+		return (stat.Mode() & os.ModeCharDevice) == 0
+	}
+
+	app.IsPiped = isPiped()
+	app.Stdin = isStdin || stdin
+	app.Clipin = isClipin || pbRead || pbReadWait
+	app.ClipWait = isClipWait || pbReadWait
+	app.Clipout = isClipout || pbWrite || pbWriteAppend
+	app.ClipAppend = isClipAppend || pbWriteAppend
 
 	// command and args
 	if len(newArgs) > 0 {
-		// check for valid sub command
-		valid := func() bool {
-			if strings.HasPrefix(newArgs[0], "/") {
-				return true
-			}
-			if strings.HasPrefix(newArgs[0], "@") {
-				return true
-			}
-			for _, v := range builtinCommands {
-				if v == newArgs[0] && len(newArgs) == 1 {
-					return true
-				}
-			}
-			return false
-		}
-		if valid() {
+		if validSub(newArgs) {
 			app.Command = newArgs[0]
 			if len(newArgs) > 1 {
 				app.Args = newArgs[1:]
@@ -441,7 +503,6 @@ func configure(cmd *cobra.Command, args []string) *internal.AppConfig {
 			app.Command = ""
 			app.Args = newArgs
 		}
-
 	}
 
 	// sql db
@@ -456,5 +517,5 @@ func configure(cmd *cobra.Command, args []string) *internal.AppConfig {
 	gitConfig := &internal.GitConfig{}
 	app.Git = gitConfig
 
-	return &app
+	return &app, nil
 }

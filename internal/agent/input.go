@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -14,17 +15,24 @@ import (
 
 const clipMaxLen = 500
 
-const StdinInputRedirect = "-"
+const StdinRedirect = "-"
 
 type ClipboardProvider = cb.ClipboardProvider
 
 // clipboard redirection
 const (
 	// read from clipboard
-	ClipboardInputRedirect = "="
+	ClipinRedirect = "{"
 
-	// write to clipboard
-	ClipboardOutputRedirect = "=+"
+	// read from clipboard and wait, allowing multiple copy
+	// until Ctrl-D is entered
+	ClipinRedirect2 = "{{"
+
+	// write to clipboard, overwriting its content
+	ClipoutRedirect = "}"
+
+	// append to clipboard
+	ClipoutRedirect2 = "}}"
 )
 
 type EditorProvider interface {
@@ -55,13 +63,8 @@ func GetUserInput(cfg *internal.AppConfig) (*api.UserInput, error) {
 	}
 
 	// stdin with | or <
-	isPiped := func() bool {
-		stat, _ := os.Stdin.Stat()
-		return (stat.Mode() & os.ModeCharDevice) == 0
-	}()
-
 	var stdin io.Reader
-	if cfg.Stdin || isPiped {
+	if cfg.Stdin || cfg.IsPiped {
 		stdin = os.Stdin
 	}
 
@@ -117,9 +120,25 @@ func userInput(
 		if err := clipboard.Clear(); err != nil {
 			return nil, err
 		}
-		data, err := clipboard.Read()
-		if err != nil {
-			return nil, err
+
+		var data string
+		if cfg.ClipWait {
+			// TODO read-append clipboard content
+			v, err := clipboard.Read()
+			if err != nil {
+				return nil, err
+			}
+			log.Printf("%s\n", clipText(v, 100))
+			if err := Confirm(); err != nil {
+				return nil, err
+			}
+			data = v
+		} else {
+			v, err := clipboard.Read()
+			if err != nil {
+				return nil, err
+			}
+			data = v
 		}
 		return cat(msg, data), nil
 	}
@@ -156,4 +175,34 @@ func LaunchEditor(editor string) (string, error) {
 	}
 
 	return (string(content)), nil
+}
+
+// PrintInput prints the user message or intent only
+func PrintInput(cfg *internal.AppConfig, input *api.UserInput) {
+	if input == nil {
+		return
+	}
+
+	var msg = clipText(input.Query(), clipMaxLen)
+
+	if cfg.Format == "markdown" {
+		renderContent(cfg.Me, msg)
+	} else {
+		showContent(cfg.Me, msg)
+	}
+}
+
+func Confirm() error {
+	ps := "Continue? [Y/n] "
+	choices := []string{"yes", "no"}
+	defaultChoice := "yes"
+
+	answer, err := confirm(ps, choices, defaultChoice, os.Stdin)
+	if err != nil {
+		return err
+	}
+	if answer == "yes" {
+		return nil
+	}
+	return fmt.Errorf("canceled")
 }

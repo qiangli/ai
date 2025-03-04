@@ -12,6 +12,8 @@ agents:
     description: "Generate images based on user input, providing visual representations of text-based descriptions."
     overview: "This agent is a powerful tool that generates images based on user input, providing visual representations of text-based descriptions. By converting textual descriptions into visual diagrams, charts, or illustrations, the agent helps users communicate complex ideas, processes, or concepts more effectively. It supports various input formats, including natural language descriptions, code snippets, or data tables, and produces corresponding visual outputs that enhance understanding and clarity. Whether you need to create flowcharts, network diagrams, or architectural blueprints, this agent simplifies the image creation process, enabling users to convey information visually with ease."
     model: Image
+    advices:
+      before: "image_params"
 
 models:
   - name: "Image"

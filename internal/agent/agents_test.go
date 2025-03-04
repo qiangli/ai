@@ -16,7 +16,7 @@ func TestCreateAgent(t *testing.T) {
 	}
 
 	sw.AgentConfigMap = agentConfigMap
-	sw.FuncRegistry = funcRegistry
+	sw.AgentToolMap = agentToolMap
 	sw.ResourceMap = resourceMap
 	sw.TemplateFuncMap = tplFuncMap
 	sw.AdviceMap = adviceMap

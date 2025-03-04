@@ -3,7 +3,6 @@
 functions:
   - name: "list_commands"
     description: "List all available commands on the user's path"
-    type: "internal"
     labels:
       - system
   - name: "command"

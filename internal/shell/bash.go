@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	"github.com/creack/pty"
@@ -28,20 +27,32 @@ Use "%s help" for more info.
 `
 
 func Bash(cfg *internal.AppConfig) error {
-	shellPath := os.Getenv("SHELL")
-	if shellPath == "" {
-		shellPath = "bash"
+	var name string
+	var args []string
+
+	if len(cfg.Args) > 0 {
+		name = cfg.Args[0]
+		args = cfg.Args[1:]
 	}
-	bin, err := exec.LookPath(shellPath)
+
+	// default to shell
+	if name == "" {
+		name = "bash"
+		if s := os.Getenv("SHELL"); s != "" {
+			name = s
+		}
+	}
+	bin, err := exec.LookPath(name)
 	if err != nil {
 		return err
 	}
 
-	log.Printf(usage, cfg.CommandPath)
+	// log.Printf(usage, cfg.CommandPath)
 
-	c := exec.Command(bin)
+	c := exec.Command(bin, args...)
 	c.Env = os.Environ()
-	c.Env = append(c.Env, "PS1=ai> ")
+	// Prompt string for the shell
+	// c.Env = append(c.Env, "PS1=ai> ")
 	c.Dir = cfg.WorkDir
 
 	// Start the command with a pty.
@@ -111,10 +122,10 @@ func Bash(cfg *internal.AppConfig) error {
 			input := string(buf[:n])
 			// Check if input contains newline or specific command
 			// if strings.TrimSpace(input) == "ai" {
-			if strings.Contains(input, "ai") {
-				// Substitute with your desired command or handle
-				input = "your_new_command\n"
-			}
+			// if strings.Contains(input, "ai") {
+			// 	// Substitute with your desired command or handle
+			// 	input = "your_new_command\n"
+			// }
 
 			// Write to ptmx and log
 			_, _ = cleanInputLog.Write([]byte(input))
@@ -124,17 +135,35 @@ func Bash(cfg *internal.AppConfig) error {
 
 	// Copy pty output to stdout and log to outputLog.
 	ptyReader := io.TeeReader(ptmx, cleanOutputLog)
+	// _, _ = io.Copy(os.Stdout, ptyReader)
+
+	// Channel to communicate between goroutines
+	outChan := make(chan string)
+
+	go Tail(outChan)
+
+	go func() {
+		scanner := bufio.NewScanner(ptyReader)
+		for scanner.Scan() {
+			line := scanner.Text()
+			outChan <- line
+		}
+		if err := scanner.Err(); err != nil {
+			fmt.Fprintln(os.Stderr, "Error reading pty:", err)
+		}
+	}()
+
 	_, _ = io.Copy(os.Stdout, ptyReader)
 
 	return nil
 }
 
-func stripAnsiControlCharacters(input string) string {
-	return strings.Map(func(r rune) rune {
-		// Typical ranges for ASCII control codes
-		if r < 32 || r == 127 {
-			return -1
-		}
-		return r
-	}, input)
-}
+// func stripAnsiControlCharacters(input string) string {
+// 	return strings.Map(func(r rune) rune {
+// 		// Typical ranges for ASCII control codes
+// 		if r < 32 || r == 127 {
+// 			return -1
+// 		}
+// 		return r
+// 	}, input)
+// }

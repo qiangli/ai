@@ -20,6 +20,7 @@ import (
 	"github.com/qiangli/ai/internal/swarm"
 )
 
+// builtin functions
 var funcRegistry = map[string]swarm.Function{}
 
 func init() {

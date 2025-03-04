@@ -22,11 +22,14 @@ agents:
     overview: "This agent serves as an all-encompassing Q&A platform, enabling users to explore and inquire about a diverse array of topics, from scientific phenomena to cultural practices and technology. Its primary objective is to deliver reliable, relevant, and accessible answers that are both informative and concise. Ideal for learners, educators, and the inquisitive, it offers an invaluable tool for broadening knowledge and swiftly addressing everyday questions. By providing clear and explanatory answers, this agent supports users in their quest for understanding across a wide range of subjects."
     model: L1
     instruction:
-      content: "vars:system_role_prompt"
-    dependencies:
-      - "meta-prompt"
+      content: "resource:eval_system_role"
+    # instruction:
+    #   content: "vars:system_role_prompt"
+    # dependencies:
+    #   - "meta-prompt"
     functions:
       - "mcp:*"
+      - "agent:*"
 
 models:
   - name: "L1"

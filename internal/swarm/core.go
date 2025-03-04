@@ -30,22 +30,27 @@ type Swarm struct {
 	DryRun        bool
 	DryRunContent string
 
+	McpServerTool *McpServerTool
+	AgentToolMap  map[string]*ToolFunc
+	FuncRegistry  map[string]Function
+
+	// map of agent name to the agent configuration data.
 	AgentConfigMap map[string][][]byte
 
 	ResourceMap     map[string]string
 	AdviceMap       map[string]Advice
 	EntrypointMap   map[string]Entrypoint
 	TemplateFuncMap template.FuncMap
-
-	FuncRegistry map[string]Function
 }
 
 func NewSwarm(app *AppConfig) (*Swarm, error) {
+	server := NewMcpServerTool(app.McpServerUrl)
 	sw := &Swarm{
-		Vars:      NewVars(),
-		History:   []*Message{},
-		Stream:    true,
-		AppConfig: app,
+		Vars:          NewVars(),
+		History:       []*Message{},
+		Stream:        true,
+		AppConfig:     app,
+		McpServerTool: server,
 	}
 
 	if err := sw.initVars(); err != nil {
@@ -168,11 +173,6 @@ func (r *Swarm) Load(name string, input *UserInput) error {
 			Name:        v.Name,
 			Description: v.Description,
 			Parameters:  v.Parameters,
-			// Parameters: map[string]any{
-			// 	"type":       v.Parameters.Type,
-			// 	"properties": v.Parameters.Properties,
-			// 	"required":   v.Parameters.Required,
-			// },
 		}
 	}
 
@@ -185,7 +185,6 @@ func (r *Swarm) Load(name string, input *UserInput) error {
 }
 
 func (r *Swarm) Run(req *Request, resp *Response) error {
-
 	for {
 		agent, err := r.Create(req.Agent, req.RawInput)
 		if err != nil {

@@ -15,7 +15,7 @@ var _os vos.System = &vos.VirtualSystem{}
 var _exec = _os
 var _util = _os
 
-func runCommandTool(ctx context.Context, agent *Agent, name string, props map[string]any) (string, error) {
+func CallCommandTool(ctx context.Context, agent *Agent, name string, props map[string]any) (string, error) {
 	getStr := func(key string) (string, error) {
 		return GetStrProp(key, props)
 	}

@@ -59,12 +59,6 @@ type FunctionConfig struct {
 	Parameters  map[string]any `yaml:"parameters"`
 }
 
-// type FunctionParams struct {
-// 	Type       string         `yaml:"type"`
-// 	Properties map[string]any `yaml:"properties,omitempty"`
-// 	Required   []string       `yaml:"required,omitempty"`
-// }
-
 type ModelConfig struct {
 	Name        string `yaml:"name"`
 	Type        string `yaml:"type"`
@@ -89,35 +83,35 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 	config := r.Config
 	adviceMap := config.AdviceMap
 
-	getMcpTools := func(server string) ([]*ToolFunc, error) {
-		parts := strings.SplitN(server, ":", 2)
+	getMcpTools := func(s string) ([]*ToolFunc, error) {
+		parts := strings.SplitN(s, ":", 2)
 		if len(parts) == 2 {
 			// mcp:server
-			server = parts[1]
+			s = parts[1]
 		}
 		var mcpToolMap map[string][]*ToolFunc
 		var err error
 
-		if server == "" || server == "*" {
-			mcpToolMap, err = mcpServerTool.ListTools()
+		if s == "" || s == "*" {
+			mcpToolMap, err = r.McpServerTool.ListTools()
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			tools, err := mcpServerTool.GetTools(server)
+			tools, err := r.McpServerTool.GetTools(s)
 			if err != nil {
 				return nil, err
 			}
 			mcpToolMap = map[string][]*ToolFunc{
-				server: tools,
+				s: tools,
 			}
 		}
 		mcpFunctions := []*ToolFunc{}
-		for server, tm := range mcpToolMap {
-			for _, v := range tm {
-				n := fmt.Sprintf("%s__%s", server, v.Name)
+		for server, m := range mcpToolMap {
+			for _, v := range m {
+				fn := fmt.Sprintf("%s__%s", server, v.Name)
 				mcpFunctions = append(mcpFunctions, &ToolFunc{
-					Name:        n,
+					Name:        fn,
 					Description: v.Description,
 					Parameters:  v.Parameters,
 				})
@@ -126,13 +120,51 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 		return mcpFunctions, nil
 	}
 
-	getAgentConfig := func(name string) (*AgentConfig, error) {
+	// agent:agent/command
+	getAgentTools := func(s string) ([]*ToolFunc, error) {
+		// skip self
+		if s == name {
+			return nil, nil
+		}
+		parts := strings.SplitN(s, ":", 2)
+		if len(parts) == 2 {
+			// agent:agent/command
+			s = parts[1]
+		}
+		if s == "" || s == "*" {
+			agentFuncs := []*ToolFunc{}
+			// fn:agent__agent_command
+			for fn, v := range r.AgentToolMap {
+				// skip agent itself
+				if name == v.Name {
+					continue
+				}
+				agentFuncs = append(agentFuncs, &ToolFunc{
+					Name:        fn,
+					Description: v.Description,
+				})
+			}
+			return agentFuncs, nil
+		}
+		fn := fmt.Sprintf("agent__%s", strings.ReplaceAll(s, "/", "_"))
+		if v, ok := r.AgentToolMap[fn]; ok {
+			return []*ToolFunc{
+				{
+					Name:        fn,
+					Description: v.Description,
+				},
+			}, nil
+		}
+		return nil, fmt.Errorf("no such agent tool: %s", s)
+	}
+
+	getAgentConfig := func(s string) (*AgentConfig, error) {
 		for _, a := range config.Agents {
-			if a.Name == name {
+			if a.Name == s {
 				return &a, nil
 			}
 		}
-		return nil, fmt.Errorf("no such agent: %s", name)
+		return nil, fmt.Errorf("no such agent: %s", s)
 	}
 
 	newAgent := func(ac *AgentConfig, vars *Vars) (*Agent, error) {
@@ -166,20 +198,34 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 		}
 		agent.Model = model
 
+		// tools
 		funcMap := make(map[string]*ToolFunc)
 		for _, f := range ac.Functions {
+			// mcp:server
 			if strings.HasPrefix(f, "mcp:") {
-				// mcp:server
-				mcpFunctions, err := getMcpTools(f)
+				mcpFuncs, err := getMcpTools(f)
 				if err != nil {
 					return nil, err
 				}
-				for _, fn := range mcpFunctions {
+				for _, fn := range mcpFuncs {
 					funcMap[fn.Name] = fn
 				}
 				continue
 			}
 
+			// agent functions
+			if strings.HasPrefix(f, "agent:") {
+				agentFuncs, err := getAgentTools(f)
+				if err != nil {
+					return nil, err
+				}
+				for _, fn := range agentFuncs {
+					funcMap[fn.Name] = fn
+				}
+				continue
+			}
+
+			// builtin functions
 			fn, ok := vars.Functions[f]
 			if !ok {
 				return nil, fmt.Errorf("no such function: %s", f)
