@@ -1,15 +1,13 @@
 package agent
 
 import (
-	"bufio"
-	"io"
 	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/cb"
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/util"
 )
 
 func ProcessBashScript(cfg *internal.AppConfig, script string) error {
@@ -33,35 +31,8 @@ func ProcessBashScript(cfg *internal.AppConfig, script string) error {
 	}
 }
 
-func confirm(ps string, choices []string, defaultChoice string, in io.Reader) (string, error) {
-	memo := make(map[string]string)
-	for _, v := range choices {
-		choice := strings.ToLower(v)
-		memo[choice] = choice
-		memo[choice[:1]] = choice
-	}
-
-	reader := bufio.NewReader(in)
-	for {
-		log.Promptf(ps)
-
-		resp, err := reader.ReadString('\n')
-		if err != nil {
-			return "", err
-		}
-		resp = strings.ToLower(strings.TrimSpace(resp))
-		if resp == "" {
-			return defaultChoice, nil
-		}
-		result, ok := memo[resp]
-		if ok {
-			return result, nil
-		}
-	}
-}
-
 func confirmRun(cfg *internal.AppConfig, ps string, choices []string, defaultChoice, script string) error {
-	answer, err := confirm(ps, choices, defaultChoice, os.Stdin)
+	answer, err := util.Confirm(ps, choices, defaultChoice, os.Stdin)
 	if err != nil {
 		return err
 	}
@@ -112,7 +83,7 @@ func runScript(cfg *internal.AppConfig, script string) error {
 }
 
 func copyScriptToClipboard(_ *internal.AppConfig, script string) error {
-	return cb.NewClipboard().Write(script)
+	return util.NewClipboard().Write(script)
 }
 
 func editScript(cfg *internal.AppConfig, script string) error {

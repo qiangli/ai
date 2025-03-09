@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/swarm/vfs"
 	"github.com/qiangli/ai/internal/util"
 )
 
@@ -44,13 +45,18 @@ func TestEvaluateCommand(t *testing.T) {
 		// {"find", []string{"./", "-name", "*.txt"}, true},
 		// {"find", []string{"/tmp/test", "-type", "f", "-name", "*.exe", "-exec", "rm", "{}", "\\;"}, false},
 	}
+	fs, err := vfs.NewVFS([]string{"/tmp"})
+	if err != nil {
+		t.Errorf("create vfs: %v", err)
+		return
+	}
 
 	for _, test := range tests {
-		resp, err := evaluateCommand(context.TODO(), &Agent{
+		resp, err := evaluateCommand(fs, context.TODO(), &Agent{
 			Model: model,
-			// Vars:  vars,
 			sw: &Swarm{
 				Vars: vars,
+				fs:   fs,
 			},
 		}, test.command, test.args)
 		if err != nil {

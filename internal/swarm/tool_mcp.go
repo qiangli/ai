@@ -15,7 +15,7 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
-func ListTools(serverUrl string) (map[string][]*ToolFunc, error) {
+func ListMcpTools(serverUrl string) (map[string][]*ToolFunc, error) {
 	tools := NewMcpServerTool(serverUrl)
 	return tools.ListTools()
 }

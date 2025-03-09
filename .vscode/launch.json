@@ -116,7 +116,8 @@
 				"--role", "system",
 				"--role-prompt", "you are a coding assistant. you solve all problems in python.",
 				"--message",
-				"What is the current time in New York?",
+				"find all occurances of VFS in the current project"
+				// "What is the current time in New York?",
 			],
 			"showLog": false,
 			"stopOnEntry": false

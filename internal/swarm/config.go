@@ -83,6 +83,10 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 	config := r.Config
 	adviceMap := config.AdviceMap
 
+	getSystemTools := func() ([]*ToolFunc, error) {
+		return ListSystemTools()
+	}
+
 	getMcpTools := func(s string) ([]*ToolFunc, error) {
 		parts := strings.SplitN(s, ":", 2)
 		if len(parts) == 2 {
@@ -220,6 +224,18 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 					return nil, err
 				}
 				for _, fn := range agentFuncs {
+					funcMap[fn.Name] = fn
+				}
+				continue
+			}
+
+			// system tools
+			if strings.HasPrefix(f, "system:") {
+				sysFuncs, err := getSystemTools()
+				if err != nil {
+					return nil, err
+				}
+				for _, fn := range sysFuncs {
 					funcMap[fn.Name] = fn
 				}
 				continue

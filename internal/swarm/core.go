@@ -12,6 +12,7 @@ import (
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/swarm/vfs"
 	"github.com/qiangli/ai/internal/util"
 )
 
@@ -41,10 +42,14 @@ type Swarm struct {
 	AdviceMap       map[string]Advice
 	EntrypointMap   map[string]Entrypoint
 	TemplateFuncMap template.FuncMap
+
+	//
+	fs vfs.FileSystem
 }
 
 func NewSwarm(app *AppConfig) (*Swarm, error) {
 	server := NewMcpServerTool(app.McpServerUrl)
+
 	sw := &Swarm{
 		Vars:          NewVars(),
 		History:       []*Message{},
@@ -56,6 +61,12 @@ func NewSwarm(app *AppConfig) (*Swarm, error) {
 	if err := sw.initVars(); err != nil {
 		return nil, err
 	}
+
+	fs, err := vfs.NewVFS(app.Roots)
+	if err != nil {
+		return nil, err
+	}
+	sw.fs = fs
 
 	return sw, nil
 }
@@ -118,6 +129,7 @@ func (r *Swarm) initVars() error {
 	r.Vars.OSInfo = sysInfo.OSInfo
 	r.Vars.UserInfo = sysInfo.UserInfo
 	r.Vars.WorkDir = sysInfo.WorkDir
+	r.Vars.Roots = r.AppConfig.Roots
 
 	return nil
 }

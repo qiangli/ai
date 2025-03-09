@@ -14,7 +14,7 @@ agents:
       content: "resource:eval_system_role"
     model: L1
     functions:
-      - "mcp:*"
+      - "system:*"
 
 functions:
   - name: "list_agents"

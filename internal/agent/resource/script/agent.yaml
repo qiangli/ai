@@ -17,141 +17,142 @@ agents:
     advices:
       before: "script_user_input"
     functions:
-      - "list_commands"
-      - "which"
-      - "man"
-      - "exec"
-      - "env"
-      - "pwd"
-      - "cd"
-      - "ls"
-      - "uname"
+      - "system:*"
+      # - "list_commands"
+      # - "which"
+      # - "man"
+      # - "exec"
+      # - "env"
+      # - "pwd"
+      # - "cd"
+      # - "ls"
+      # - "uname"
 
-functions:
-  - name: "list_commands"
-    description: "List all available commands on the user's path"
-    type: "internal"
-    labels:
-      - system
-  - name: "command"
-    description: "Display the path or information about commands"
-    parameters:
-      type: "object"
-      properties:
-          commands:
-            type: "array"
-            items:
-              type: "string"
-            description: "List of commands to display the path or information about"
-      required:
-        - commands
-    type: "command"
-    labels:
-      - system
-  - name: "which"
-    description: "Locate a program file in the user's path"
-    parameters:
-      type: "object"
-      properties:
-          commands:
-            type: "array"
-            items:
-              type: "string"
-            description: "List of command names and searches the path for each executable file that would be run had these commands actually been invoked"
-      required:
-        - commands
-    type: "command"
-    labels:
-      - system
-  - name: "man"
-    description: "Find and display online manual documentation page for a command"
-    parameters:
-      type: "object"
-      properties:
-          command:
-            type: "string"
-            description: "The command to get the manual page for"
-      required:
-        - command
-    type: "command"
-    labels:
-      - system
-  - name: "exec"
-    description: "Execute a command in the user's environment. Restrictions may apply"
-    parameters:
-      type: "object"
-      properties:
-          command:
-            type: "string"
-            description: "The command to execute"
-          args:
-            type: "array"
-            items:
-              type: "string"
-            description: "The arguments to pass to the command. may be empty"
-      required:
-        - command
-    type: "command"
-    labels:
-      - system
-  - name: "env"
-    description: "Print environment on user's system. Only names are returned for security reasons"
-    type: "internal"
-    labels:
-      - system
-  - name: "pwd"
-    description: "Print the current working directory on user's system"
-    type: "internal"
-    labels:
-      - system
-  - name: "cd"
-    description: "Change the current working directory on user's system"
-    parameters:
-      type: "object"
-      properties:
-          dir:
-            type: "string"
-            description: "The directory to change to"
-      required:
-        - dir
-    type: "internal"
-    labels:
-      - system
-  - name: "ls"
-    description: "List directory contents as well as any requested, associated information"
-    parameters:
-      type: "object"
-      properties:
-          args:
-            type: "array"
-            items:
-              type: "string"
-            description: "The files, directories and flags"
-      required:
-        - dir
-    type: "command"
-    labels:
-      - system
-  - name: "uname"
-    description: "Display information about the current system's operating system and architecture"
-    type: "command"
-    labels:
-      - system
-  - name: "test"
-    description: "Condition evaluation utility. if it evaluates to true, returns true; otherwise it returns false."
-    parameters:
-      type: "object"
-      properties:
-          args:
-            type: "array"
-            items:
-              type: "string"
-            description: "The arguments and arguments to pass to the test"
-      required:
-        - args
-    type: "command"
-    labels:
-      - system
+# functions:
+#   - name: "list_commands"
+#     description: "List all available commands on the user's path"
+#     type: "internal"
+#     labels:
+#       - system
+#   - name: "command"
+#     description: "Display the path or information about commands"
+#     parameters:
+#       type: "object"
+#       properties:
+#           commands:
+#             type: "array"
+#             items:
+#               type: "string"
+#             description: "List of commands to display the path or information about"
+#       required:
+#         - commands
+#     type: "command"
+#     labels:
+#       - system
+#   - name: "which"
+#     description: "Locate a program file in the user's path"
+#     parameters:
+#       type: "object"
+#       properties:
+#           commands:
+#             type: "array"
+#             items:
+#               type: "string"
+#             description: "List of command names and searches the path for each executable file that would be run had these commands actually been invoked"
+#       required:
+#         - commands
+#     type: "command"
+#     labels:
+#       - system
+#   - name: "man"
+#     description: "Find and display online manual documentation page for a command"
+#     parameters:
+#       type: "object"
+#       properties:
+#           command:
+#             type: "string"
+#             description: "The command to get the manual page for"
+#       required:
+#         - command
+#     type: "command"
+#     labels:
+#       - system
+#   - name: "exec"
+#     description: "Execute a command in the user's environment. Restrictions may apply"
+#     parameters:
+#       type: "object"
+#       properties:
+#           command:
+#             type: "string"
+#             description: "The command to execute"
+#           args:
+#             type: "array"
+#             items:
+#               type: "string"
+#             description: "The arguments to pass to the command. may be empty"
+#       required:
+#         - command
+#     type: "command"
+#     labels:
+#       - system
+#   - name: "env"
+#     description: "Print environment on user's system. Only names are returned for security reasons"
+#     type: "internal"
+#     labels:
+#       - system
+#   - name: "pwd"
+#     description: "Print the current working directory on user's system"
+#     type: "internal"
+#     labels:
+#       - system
+#   - name: "cd"
+#     description: "Change the current working directory on user's system"
+#     parameters:
+#       type: "object"
+#       properties:
+#           dir:
+#             type: "string"
+#             description: "The directory to change to"
+#       required:
+#         - dir
+#     type: "internal"
+#     labels:
+#       - system
+#   - name: "ls"
+#     description: "List directory contents as well as any requested, associated information"
+#     parameters:
+#       type: "object"
+#       properties:
+#           args:
+#             type: "array"
+#             items:
+#               type: "string"
+#             description: "The files, directories and flags"
+#       required:
+#         - dir
+#     type: "command"
+#     labels:
+#       - system
+#   - name: "uname"
+#     description: "Display information about the current system's operating system and architecture"
+#     type: "command"
+#     labels:
+#       - system
+#   - name: "test"
+#     description: "Condition evaluation utility. if it evaluates to true, returns true; otherwise it returns false."
+#     parameters:
+#       type: "object"
+#       properties:
+#           args:
+#             type: "array"
+#             items:
+#               type: "string"
+#             description: "The arguments and arguments to pass to the test"
+#       required:
+#         - args
+#     type: "command"
+#     labels:
+#       - system
 
 models:
   - name: "L1"

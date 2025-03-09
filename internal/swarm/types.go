@@ -33,6 +33,8 @@ type Vars struct {
 
 	DBCred *DBCred
 
+	Roots []string
+
 	// per agent
 	Extra map[string]any
 

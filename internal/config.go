@@ -27,6 +27,9 @@ var DryRunContent string
 type AppConfig struct {
 	ConfigFile string
 
+	// list of top level directories
+	Roots []string
+
 	// ai binary path
 	CommandPath string
 

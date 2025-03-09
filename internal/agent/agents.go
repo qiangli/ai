@@ -40,6 +40,14 @@ func RunSwarm(cfg *internal.AppConfig, input *api.UserInput) error {
 	name := input.Agent
 	log.Debugf("Running agent %q with swarm\n", name)
 
+	// TODO:
+	roots, err := listRoots()
+	if err != nil {
+		return err
+	}
+	cfg.Roots = roots
+
+	//
 	sw, err := swarm.NewSwarm(cfg)
 	if err != nil {
 		return err

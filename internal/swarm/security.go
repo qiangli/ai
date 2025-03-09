@@ -10,6 +10,7 @@ import (
 	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/swarm/vfs"
 )
 
 //go:embed resource/shell_security_system.md
@@ -26,7 +27,7 @@ type CommandCheck struct {
 }
 
 // evaluateCommand consults LLM to evaluate the safety of a command
-func evaluateCommand(ctx context.Context, agent *Agent, command string, args []string) (bool, error) {
+func evaluateCommand(fs vfs.FileSystem, ctx context.Context, agent *Agent, command string, args []string) (bool, error) {
 	instruction, err := applyTemplate(shellSecuritySystemRole, agent.sw.Vars, nil)
 	if err != nil {
 		return false, err
@@ -41,7 +42,7 @@ func evaluateCommand(ctx context.Context, agent *Agent, command string, args []s
 
 	runTool := func(ctx context.Context, name string, args map[string]any) (*Result, error) {
 		log.Debugf("run tool: %s %+v\n", name, args)
-		out, err := CallCommandTool(ctx, agent, name, args)
+		out, err := CallSystemTool(fs, ctx, agent, name, args)
 		if err != nil {
 			return &Result{
 				Value: fmt.Sprintf("%s: %v", out, err),

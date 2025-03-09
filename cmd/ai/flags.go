@@ -198,28 +198,27 @@ func addFlags(cmd *cobra.Command) {
 	flags := cmd.Flags()
 	//
 	flags.StringVar(&cfgFile, "config", defaultCfg, "config file")
+	flags.String("editor", "vi", "Specify editor to use")
 
 	//
-	flags.StringP("workspace", "w", "", "Workspace directory")
 	flags.String("agent", "", "Specify the agent to use. Same as @agent. Auto select if not specified")
-
-	flags.String("editor", "vi", "Specify editor to use")
+	flags.StringP("workspace", "w", "", "Workspace directory")
 
 	// input
 	flags.String("message", "", "Specify input message. Overrides all other input methods")
+
 	flags.String("input", "", "Read input message from a file")
 	flags.VarP(newFilesValue([]string{}, &inputFiles), "file", "", `Read input from files.  May be given multiple times to add multiple file content`)
 	flags.Bool("stdin", false, "Read input from stdin. Alternatively, append '-' to the command")
-
 	flags.Bool("pb-read", false, "Read input from the clipboard. Alternatively, append '{' to the command")
 	flags.Bool("pb-read-wait", false, "Read input from the clipboard and wait for confirmation. Alternatively, append '{{' to the command")
 
 	// output
 	flags.Bool("pb-write", false, "Copy output to the clipboard. Alternatively, append '}' to the command")
 	flags.Bool("pb-write-append", false, "Append output to the clipboard. Alternatively, append '}}' to the command")
+	flags.StringVarP(&outputFlag, "output", "o", "", "Save final response to a file.")
 
 	flags.Var(newOutputValue("markdown", &formatFlag), "format", "Output format, must be either raw or markdown.")
-	flags.StringVarP(&outputFlag, "output", "o", "", "Save final response to a file.")
 
 	// mcp
 	flags.String("mcp-server-url", "http://localhost:58080/sse", "MCP server URL")

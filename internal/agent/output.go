@@ -11,7 +11,6 @@ import (
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/api"
-	"github.com/qiangli/ai/internal/cb"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
 )
@@ -64,7 +63,7 @@ func processTextContent(cfg *internal.AppConfig, output *api.Output) {
 
 	// clipboard
 	if cfg.Clipout {
-		clip := cb.NewClipboard()
+		clip := util.NewClipboard()
 		if cfg.ClipAppend {
 			if err := clip.Append(content); err != nil {
 				log.Debugf("failed to append content to clipboard: %v\n", err)

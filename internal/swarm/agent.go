@@ -206,6 +206,17 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 }
 
 func (r *Agent) callTool(ctx context.Context, name string, args map[string]any) (*Result, error) {
+	if name == transferAgentName {
+		return transferAgentSub(ctx, r, args)
+	}
+
+	// built-in functions
+	if fn, ok := r.sw.Vars.FuncRegistry[name]; ok {
+		log.Debugf("run function: %s %+v\n", name, args)
+		return fn(ctx, r, name, args)
+	}
+
+	//
 	var out string
 	var err error
 
@@ -222,33 +233,24 @@ func (r *Agent) callTool(ctx context.Context, name string, args map[string]any) 
 	}
 
 	// call mcp server tool
-	parts := strings.SplitN(name, "__", 2)
-	if len(parts) == 2 {
-		server := parts[0]
-		name = parts[1]
-		// call mcp server tool
-		out, err := r.sw.McpServerTool.CallTool(server, name, args)
-		return &api.Result{
-			Value: out,
-		}, err
+	// <server>__name
+	if strings.Contains(name, "__") {
+		parts := strings.SplitN(name, "__", 2)
+		if len(parts) == 2 {
+			server := parts[0]
+			name = parts[1]
+			// call mcp server tool
+			out, err := r.sw.McpServerTool.CallTool(server, name, args)
+			return &api.Result{
+				Value: out,
+			}, err
+		}
 	}
 
-	// built-in functions
-	if fn, ok := r.sw.Vars.FuncRegistry[name]; ok {
-		log.Debugf("run function: %s %+v\n", name, args)
-		return fn(ctx, r, name, args)
-	}
-
-	//
-	switch name {
-	case transferAgentName:
-		return transferAgentSub(ctx, r, args)
-	default:
-		out, err = CallCommandTool(ctx, r, name, args)
-		return &api.Result{
-			Value: out,
-		}, err
-	}
+	out, err = CallSystemTool(r.sw.fs, ctx, r, name, args)
+	return &api.Result{
+		Value: out,
+	}, err
 }
 
 func transferAgentSub(ctx context.Context, agent *Agent, props map[string]any) (*Result, error) {

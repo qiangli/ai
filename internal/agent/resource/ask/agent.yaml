@@ -30,6 +30,7 @@ agents:
     functions:
       - "mcp:*"
       - "agent:*"
+      - "system:*"
 
 models:
   - name: "L1"

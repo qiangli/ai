@@ -3,6 +3,8 @@ package agent
 import (
 	"strings"
 	"testing"
+
+	"github.com/qiangli/ai/internal/util"
 )
 
 func TestConfirm(t *testing.T) {
@@ -25,7 +27,7 @@ func TestConfirm(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			expected, err := confirm(tc.ps, tc.choices, tc.defaultChoice, strings.NewReader(tc.choice))
+			expected, err := util.Confirm(tc.ps, tc.choices, tc.defaultChoice, strings.NewReader(tc.choice))
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}

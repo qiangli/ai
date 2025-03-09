@@ -165,17 +165,28 @@ Total: %v
 	}
 
 	// mcp tools
-	tools, err := swarm.ListTools(cfg.McpServerUrl)
+	tools, err := swarm.ListMcpTools(cfg.McpServerUrl)
 	if err != nil {
 		return err
 	}
 	for k, tool := range tools {
 		for _, v := range tool {
-			list = append(list, fmt.Sprintf("%s__%s: %s\n", k, v.Name, strings.TrimSpace(v.Description)))
+			list = append(list, fmt.Sprintf("mcp %s__%s: %s\n", k, v.Name, strings.TrimSpace(v.Description)))
 		}
 	}
 
+	// system tools
+	sysTools, err := swarm.ListSystemTools()
+	if err != nil {
+		return err
+	}
+
+	for _, tool := range sysTools {
+		list = append(list, fmt.Sprintf("system %s: %s\n", tool.Name, strings.TrimSpace(tool.Description)))
+	}
+
 	sort.Strings(list)
+
 	log.Printf(listTpl, strings.Join(list, "\n"), len(list))
 	return nil
 }

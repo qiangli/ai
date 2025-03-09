@@ -9,15 +9,15 @@ import (
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/api"
-	"github.com/qiangli/ai/internal/cb"
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/util"
 )
 
 const clipMaxLen = 500
 
 const StdinRedirect = "-"
 
-type ClipboardProvider = cb.ClipboardProvider
+type ClipboardProvider = util.ClipboardProvider
 
 // clipboard redirection
 const (
@@ -68,7 +68,7 @@ func GetUserInput(cfg *internal.AppConfig) (*api.UserInput, error) {
 		stdin = os.Stdin
 	}
 
-	input, err := userInput(cfg, stdin, cb.NewClipboard(), NewEditor(cfg.Editor))
+	input, err := userInput(cfg, stdin, util.NewClipboard(), NewEditor(cfg.Editor))
 	if err != nil {
 		return nil, err
 	}
@@ -193,11 +193,11 @@ func PrintInput(cfg *internal.AppConfig, input *api.UserInput) {
 }
 
 func Confirm() error {
-	ps := "Continue? [Y/n] "
+	ps := "Confirm? [Y/n] "
 	choices := []string{"yes", "no"}
 	defaultChoice := "yes"
 
-	answer, err := confirm(ps, choices, defaultChoice, os.Stdin)
+	answer, err := util.Confirm(ps, choices, defaultChoice, os.Stdin)
 	if err != nil {
 		return err
 	}
