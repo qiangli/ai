@@ -10,13 +10,5 @@ agents:
       around: "resolve_workspace"
     functions:
       - "system:*"
-      # - "list_commands"
-      # - "which"
-      # - "man"
-      # - "exec"
-      # - "env"
-      # - "pwd"
-      # - "cd"
-      # - "ls"
-      # - "uname"
+
 ###

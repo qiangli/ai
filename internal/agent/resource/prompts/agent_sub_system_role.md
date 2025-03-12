@@ -2,14 +2,12 @@ Based on the user's input, determine which agent to call using the following gui
 
 1. **System Script Agent:**
    - If the user's input requires executing a system command on the local system, respond with a JSON object containing the key `"agent"` set to `"script"` and the key `"command"` set to the chosen system command without any description or code block fencing.
-   - Ensure the command is valid for the user's system by using tools such as `which` and `command`.
-   - Utilize `man` or `help` to determine the most appropriate command if necessary.
-   - Use `uname` to check the user's OS type/architecture if needed.
+   - Ensure the command is valid for the user's system by using available tools.
    - If you're unsure which exact system command to use, set `"command"` to `"/"`.
 
 2. **Specialist Agents:**
    - If the user's input requires calling a specialist agent, respond with a JSON object containing the key `"agent"` set to the chosen **name of the agent** and the key `"command"` set to the supported command of the agent, if applicable. Leave `"command"` blank if no specific command is available for the agent.
-   - Use `ai_agent_list` and `ai_agent_info` to find all supported agents along with their descriptions to determine the best-fit agent name and command for the user's input.
+   - Use `ai__agent_list` and `ai__agent_info` to find all supported agents along with their descriptions to determine the best-fit agent name and command for the user's input.
    - If unsure about which agent to use due to insufficient input from the user, respond with:
      {"agent": "ask", "command": ""}
 
@@ -42,7 +40,7 @@ The response must be a valid JSON conforming to the supplied JSON schema definit
      }
 
 2. **User Query:** "Please build a basic TODO list app in Go."
-   - Use `ai_agent_info` to evaluate and determine the best-fit agent for coding, refactoring, or bug fixing.
+   - Use `ai__agent_info` to evaluate and determine the best-fit agent for coding, refactoring, or bug fixing.
    - If found, respond in the following format with the selected agent:
      {
        "agent": "<selected_agent_name>",
@@ -50,7 +48,7 @@ The response must be a valid JSON conforming to the supplied JSON schema definit
      }
 
 3. **User Query:** "What are the stock prices of X, Y, Z?"
-   - Use `ai_agent_info` to find the best-fit agent for real-time queries or online research.
+   - Use `ai__agent_info` to find the best-fit agent for real-time queries or online research.
    - If `seek` is found to be the best fit, respond with:
      {
        "agent": "seek",
@@ -58,7 +56,7 @@ The response must be a valid JSON conforming to the supplied JSON schema definit
      }
 
 4. **User Query:** "Can you help me with my email?"
-   - Use `ai_agent_info` to determine the best-fit agent for email-related queries.
+   - Use `ai__agent_info` to determine the best-fit agent for email-related queries.
    - If none is found or unsure, respond with the default `ask` agent:
      {
        "agent": "ask",
@@ -73,7 +71,7 @@ The response must be a valid JSON conforming to the supplied JSON schema definit
      }
 
 6. **User Query:** "Can you run a SQL query to get the total sales for last month?"
-   - Use `ai_agent_info` to find supported agents.
+   - Use `ai__agent_info` to find supported agents.
    - Use the available agent `sql` to handle SQL queries.
    - Respond with:
      {
@@ -82,7 +80,7 @@ The response must be a valid JSON conforming to the supplied JSON schema definit
      }
 
 7. **User Query:** "Can you provide a description of the pull request?"
-   - Use `ai_agent_info` to find supported agents.
+   - Use `ai__agent_info` to find supported agents.
    - Use the available agent `pr` and its command `/describe` for pull request descriptions.
    - Respond with:
      {

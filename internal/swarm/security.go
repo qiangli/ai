@@ -68,7 +68,7 @@ func evaluateCommand(fs vfs.FileSystem, ctx context.Context, agent *Agent, comma
 				Content: query,
 			},
 		},
-		Tools:    agent.Functions,
+		Tools:    agent.Tools,
 		RunTool:  runTool,
 		MaxTurns: 32,
 	}

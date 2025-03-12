@@ -251,13 +251,6 @@ var AgentCommandMap = map[string]AgentConfig{
 		Data:        launch_agent_yaml_data,
 		Overview:    "",
 	},
-	"meta-prompt": {
-		Name:        "meta-prompt",
-		Description: "Generates a system prompt based on the user's input.",
-		Internal:    true,
-		Data:        ask_agent_yaml_data,
-		Overview:    "",
-	},
 	"oh": {
 		Name:        "oh",
 		Description: "Engineering assistant promoting incremental development and detailed refactoring support.",

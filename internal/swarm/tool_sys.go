@@ -12,9 +12,210 @@ import (
 var _os vos.System = &vos.VirtualSystem{}
 var _exec = _os
 
+// type Descriptor struct {
+// 	Name        string
+// 	Description string
+// 	Parameters  map[string]any
+// }
+
+var FSDescriptors = map[string]*Descriptor{
+	vfs.ListRootsToolName: {
+		Name:        vfs.ListRootsToolName,
+		Description: "Returns the list of directories that this server is allowed to access.",
+		Parameters: map[string]any{
+			"type":       "object",
+			"properties": map[string]any{},
+		},
+	},
+	vfs.ListDirectoryToolName: {
+		Name:        vfs.ListDirectoryToolName,
+		Description: "Get a detailed listing of all files and directories in a specified path.",
+		Parameters: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path": map[string]any{
+					"type":        "string",
+					"description": "Path of the directory to list",
+				},
+			},
+			"required": []string{"path"},
+		},
+	},
+	vfs.CreateDirectoryToolName: {
+		Name:        vfs.CreateDirectoryToolName,
+		Description: "Create a new directory or ensure a directory exists.",
+		Parameters: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path": map[string]any{
+					"type":        "string",
+					"description": "Path of the directory to create",
+				},
+			},
+			"required": []string{"path"},
+		},
+	},
+	vfs.RenameFileToolName: {
+		Name:        vfs.RenameFileToolName,
+		Description: "Rename files and directories.",
+		Parameters: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"source": map[string]any{
+					"type":        "string",
+					"description": "Source path of the file or directory",
+				},
+				"destination": map[string]any{
+					"type":        "string",
+					"description": "Destination path",
+				},
+			},
+			"required": []string{"source", "destination"},
+		},
+	},
+	vfs.GetFileInfoToolName: {
+		Name:        vfs.GetFileInfoToolName,
+		Description: "Retrieve detailed metadata about a file or directory.",
+		Parameters: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path": map[string]any{
+					"type":        "string",
+					"description": "Path to the file or directory",
+				},
+			},
+			"required": []string{"path"},
+		},
+	},
+	vfs.ReadFileToolName: {
+		Name:        vfs.ReadFileToolName,
+		Description: "Read the complete contents of a file from the file system.",
+		Parameters: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path": map[string]any{
+					"type":        "string",
+					"description": "Path to the file to read",
+				},
+			},
+			"required": []string{"path"},
+		},
+	},
+	vfs.WriteFileToolName: {
+		Name:        vfs.WriteFileToolName,
+		Description: "Create a new file or overwrite an existing file with new content.",
+		Parameters: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"path": map[string]any{
+					"type":        "string",
+					"description": "Path where to write the file",
+				},
+				"content": map[string]any{
+					"type":        "string",
+					"description": "Content to write to the file",
+				},
+			},
+			"required": []string{"path", "content"},
+		},
+	},
+	vfs.TempDirToolName: {
+		Name:        vfs.TempDirToolName,
+		Description: "Return the default directory to use for temporary files",
+		Parameters:  map[string]any{},
+	},
+}
+
+var OSDescriptors = map[string]*Descriptor{
+	vos.ListCommandsToolName: {
+		Name:        vos.ListCommandsToolName,
+		Description: "List all available command names on the user's path. Use 'which' to get the full path",
+		Parameters:  map[string]any{},
+	},
+	vos.WhichToolName: {
+		Name:        vos.WhichToolName,
+		Description: "Locate a program file on the user's path",
+		Parameters: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"commands": map[string]any{
+					"type": "array",
+					"items": map[string]any{
+						"type": "string",
+					},
+					"description": "List of command names and searches the path for each executable file that would be run had these commands actually been invoked",
+				},
+			},
+			"required": []string{"commands"},
+		},
+	},
+	vos.ManToolName: {
+		Name:        vos.ManToolName,
+		Description: "Find and display online manual documentation page for a command. Not all commands have manual pages",
+		Parameters: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"command": map[string]any{
+					"type":        "string",
+					"description": "The command to get the manual page for",
+				},
+			},
+			"required": []string{"command"},
+		},
+	},
+	vos.ExecToolName: {
+		Name:        vos.ExecToolName,
+		Description: "Execute a command in the user's environment. Restrictions may apply due to security",
+		Parameters: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"command": map[string]any{
+					"type":        "string",
+					"description": "The command to execute",
+				},
+				"args": map[string]any{
+					"type":        "array",
+					"items":       map[string]any{"type": "string"},
+					"description": "The arguments to pass to the command. may be empty",
+				},
+			},
+			"required": []string{"command"},
+		},
+	},
+	vos.CdToolName: {
+		Name:        vos.CdToolName,
+		Description: "Change the current working directory on user's system",
+		Parameters: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"dir": map[string]any{
+					"type":        "string",
+					"description": "The directory to change to",
+				},
+			},
+			"required": []string{"dir"},
+		},
+	},
+	vos.PwdToolName: {
+		Name:        vos.PwdToolName,
+		Description: "Print the current working directory on user's system",
+		Parameters:  map[string]any{},
+	},
+	vos.EnvToolName: {
+		Name:        vos.EnvToolName,
+		Description: "Print environment variables on user's system. Only names are returned for security reasons",
+		Parameters:  map[string]any{},
+	},
+	vos.UnameToolName: {
+		Name:        vos.UnameToolName,
+		Description: "Display information about the current system's operating system and architecture",
+		Parameters:  map[string]any{},
+	},
+}
+
 func ListSystemTools() ([]*ToolFunc, error) {
 	var tools []*ToolFunc
-	for _, v := range vfs.Descriptors {
+	for _, v := range FSDescriptors {
 		tools = append(tools, &ToolFunc{
 			Label:       ToolLabelSystem,
 			Service:     "fs",
@@ -24,7 +225,7 @@ func ListSystemTools() ([]*ToolFunc, error) {
 		})
 	}
 
-	for _, v := range vos.Descriptors {
+	for _, v := range OSDescriptors {
 		tools = append(tools, &ToolFunc{
 			Label:       ToolLabelSystem,
 			Service:     "os",
@@ -34,7 +235,7 @@ func ListSystemTools() ([]*ToolFunc, error) {
 		})
 	}
 
-	for _, v := range miscDescriptors {
+	for _, v := range MiscDescriptors {
 		tools = append(tools, &ToolFunc{
 			Label:       ToolLabelSystem,
 			Service:     "misc",

@@ -28,7 +28,7 @@ const (
 )
 
 // Miscellaneous system tools
-var miscDescriptors = map[string]*Descriptor{
+var MiscDescriptors = map[string]*Descriptor{
 	ReadStdinToolName: {
 		Name:        ReadStdinToolName,
 		Description: "Read input from stdin",

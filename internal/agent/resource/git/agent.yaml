@@ -35,18 +35,6 @@ agents:
     instruction:
       content: "resource:git_message_conventional"
 
-functions:
-  - name: "agent_transfer"
-    description: "Transfer the current task to a specific agent"
-    parameters:
-      type: "object"
-      properties:
-          agent:
-            type: "string"
-            description: "The name of the agent"
-      required:
-        - agent
-
 models:
   - name: "L1"
     description: "Level 1 basic model"

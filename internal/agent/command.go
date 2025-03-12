@@ -179,6 +179,7 @@ Tools are used by agents to perform specific tasks. They are automatically selec
 func listTools(mcpServerUrl string) ([]*swarm.ToolFunc, error) {
 	list := []*swarm.ToolFunc{}
 
+	// agent tools
 	agentTools, err := ListAgentTools()
 	if err != nil {
 		return nil, err
@@ -200,6 +201,13 @@ func listTools(mcpServerUrl string) ([]*swarm.ToolFunc, error) {
 		return nil, err
 	}
 	list = append(list, sysTools...)
+
+	// function tools
+	funcTools, err := ListFuncTools()
+	if err != nil {
+		return nil, err
+	}
+	list = append(list, funcTools...)
 
 	return list, nil
 }

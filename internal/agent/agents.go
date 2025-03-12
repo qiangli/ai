@@ -25,7 +25,6 @@ func init() {
 		if v.Internal {
 			continue
 		}
-		// fn := fmt.Sprintf("agent__%s", strings.ReplaceAll(k, "/", "_"))
 		parts := strings.SplitN(v.Name, "/", 2)
 		var service = parts[0]
 		var toolName string
@@ -68,6 +67,16 @@ func RunSwarm(cfg *internal.AppConfig, input *api.UserInput) error {
 	sw.AdviceMap = adviceMap
 	sw.EntrypointMap = entrypointMap
 	sw.FuncRegistry = funcRegistry
+
+	toolMap := make(map[string]*swarm.ToolFunc)
+	tools, err := listTools(cfg.McpServerUrl)
+	if err != nil {
+		return err
+	}
+	for _, v := range tools {
+		toolMap[v.Name()] = v
+	}
+	sw.ToolMap = toolMap
 
 	showInput(cfg, input)
 

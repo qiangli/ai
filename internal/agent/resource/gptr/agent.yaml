@@ -17,23 +17,6 @@ agents:
     entrypoint: gptr_system_role_prompt
     functions:
       - "mcp:gptr"
-      # - "gptr_generate_report"
-
-functions:
-  - name: "gptr_generate_report"
-    description: "Produce detailed, factual, and unbiased research reports with citations"
-    parameters:
-      type: "object"
-      properties:
-          report_type:
-            type: "string"
-            description: "The type of report to generate. e.g. 'market analysis', 'competitor analysis', etc."
-          tone:
-            type: "string"
-            description: "The tone of the report. e.g. 'formal', 'informal', 'persuasive', etc."
-      required:
-        - report_type
-        - tone
 
 models:
   - name: "L1"

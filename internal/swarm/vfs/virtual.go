@@ -18,7 +18,7 @@ type FileSystem interface {
 	GetFileInfo(string) (*FileInfo, error)
 	ReadFile(string) ([]byte, error)
 	WriteFile(string, []byte) error
-	Describe(string) *Descriptor
+	// Describe(string) *Descriptor
 	TempDir() string
 }
 
@@ -58,119 +58,119 @@ func (f *FileInfo) String() string {
 	)
 }
 
-type Descriptor struct {
-	Name        string
-	Description string
-	Parameters  map[string]any
-}
+// type Descriptor struct {
+// 	Name        string
+// 	Description string
+// 	Parameters  map[string]any
+// }
 
-var Descriptors = map[string]*Descriptor{
-	ListRootsToolName: {
-		Name:        ListRootsToolName,
-		Description: "Returns the list of directories that this server is allowed to access.",
-		Parameters: map[string]any{
-			"type":       "object",
-			"properties": map[string]any{},
-		},
-	},
-	ListDirectoryToolName: {
-		Name:        ListDirectoryToolName,
-		Description: "Get a detailed listing of all files and directories in a specified path.",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"path": map[string]any{
-					"type":        "string",
-					"description": "Path of the directory to list",
-				},
-			},
-			"required": []string{"path"},
-		},
-	},
-	CreateDirectoryToolName: {
-		Name:        CreateDirectoryToolName,
-		Description: "Create a new directory or ensure a directory exists.",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"path": map[string]any{
-					"type":        "string",
-					"description": "Path of the directory to create",
-				},
-			},
-			"required": []string{"path"},
-		},
-	},
-	RenameFileToolName: {
-		Name:        RenameFileToolName,
-		Description: "Rename files and directories.",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"source": map[string]any{
-					"type":        "string",
-					"description": "Source path of the file or directory",
-				},
-				"destination": map[string]any{
-					"type":        "string",
-					"description": "Destination path",
-				},
-			},
-			"required": []string{"source", "destination"},
-		},
-	},
-	GetFileInfoToolName: {
-		Name:        GetFileInfoToolName,
-		Description: "Retrieve detailed metadata about a file or directory.",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"path": map[string]any{
-					"type":        "string",
-					"description": "Path to the file or directory",
-				},
-			},
-			"required": []string{"path"},
-		},
-	},
-	ReadFileToolName: {
-		Name:        ReadFileToolName,
-		Description: "Read the complete contents of a file from the file system.",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"path": map[string]any{
-					"type":        "string",
-					"description": "Path to the file to read",
-				},
-			},
-			"required": []string{"path"},
-		},
-	},
-	WriteFileToolName: {
-		Name:        WriteFileToolName,
-		Description: "Create a new file or overwrite an existing file with new content.",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"path": map[string]any{
-					"type":        "string",
-					"description": "Path where to write the file",
-				},
-				"content": map[string]any{
-					"type":        "string",
-					"description": "Content to write to the file",
-				},
-			},
-			"required": []string{"path", "content"},
-		},
-	},
-	TempDirToolName: {
-		Name:        TempDirToolName,
-		Description: "Return the default directory to use for temporary files",
-		Parameters:  map[string]any{},
-	},
-}
+// var Descriptors = map[string]*Descriptor{
+// 	ListRootsToolName: {
+// 		Name:        ListRootsToolName,
+// 		Description: "Returns the list of directories that this server is allowed to access.",
+// 		Parameters: map[string]any{
+// 			"type":       "object",
+// 			"properties": map[string]any{},
+// 		},
+// 	},
+// 	ListDirectoryToolName: {
+// 		Name:        ListDirectoryToolName,
+// 		Description: "Get a detailed listing of all files and directories in a specified path.",
+// 		Parameters: map[string]any{
+// 			"type": "object",
+// 			"properties": map[string]any{
+// 				"path": map[string]any{
+// 					"type":        "string",
+// 					"description": "Path of the directory to list",
+// 				},
+// 			},
+// 			"required": []string{"path"},
+// 		},
+// 	},
+// 	CreateDirectoryToolName: {
+// 		Name:        CreateDirectoryToolName,
+// 		Description: "Create a new directory or ensure a directory exists.",
+// 		Parameters: map[string]any{
+// 			"type": "object",
+// 			"properties": map[string]any{
+// 				"path": map[string]any{
+// 					"type":        "string",
+// 					"description": "Path of the directory to create",
+// 				},
+// 			},
+// 			"required": []string{"path"},
+// 		},
+// 	},
+// 	RenameFileToolName: {
+// 		Name:        RenameFileToolName,
+// 		Description: "Rename files and directories.",
+// 		Parameters: map[string]any{
+// 			"type": "object",
+// 			"properties": map[string]any{
+// 				"source": map[string]any{
+// 					"type":        "string",
+// 					"description": "Source path of the file or directory",
+// 				},
+// 				"destination": map[string]any{
+// 					"type":        "string",
+// 					"description": "Destination path",
+// 				},
+// 			},
+// 			"required": []string{"source", "destination"},
+// 		},
+// 	},
+// 	GetFileInfoToolName: {
+// 		Name:        GetFileInfoToolName,
+// 		Description: "Retrieve detailed metadata about a file or directory.",
+// 		Parameters: map[string]any{
+// 			"type": "object",
+// 			"properties": map[string]any{
+// 				"path": map[string]any{
+// 					"type":        "string",
+// 					"description": "Path to the file or directory",
+// 				},
+// 			},
+// 			"required": []string{"path"},
+// 		},
+// 	},
+// 	ReadFileToolName: {
+// 		Name:        ReadFileToolName,
+// 		Description: "Read the complete contents of a file from the file system.",
+// 		Parameters: map[string]any{
+// 			"type": "object",
+// 			"properties": map[string]any{
+// 				"path": map[string]any{
+// 					"type":        "string",
+// 					"description": "Path to the file to read",
+// 				},
+// 			},
+// 			"required": []string{"path"},
+// 		},
+// 	},
+// 	WriteFileToolName: {
+// 		Name:        WriteFileToolName,
+// 		Description: "Create a new file or overwrite an existing file with new content.",
+// 		Parameters: map[string]any{
+// 			"type": "object",
+// 			"properties": map[string]any{
+// 				"path": map[string]any{
+// 					"type":        "string",
+// 					"description": "Path where to write the file",
+// 				},
+// 				"content": map[string]any{
+// 					"type":        "string",
+// 					"description": "Content to write to the file",
+// 				},
+// 			},
+// 			"required": []string{"path", "content"},
+// 		},
+// 	},
+// 	TempDirToolName: {
+// 		Name:        TempDirToolName,
+// 		Description: "Return the default directory to use for temporary files",
+// 		Parameters:  map[string]any{},
+// 	},
+// }
 
 type VirtualFS struct {
 	roots []string
@@ -206,12 +206,12 @@ func NewVFS(roots []string) (*VirtualFS, error) {
 	return s, nil
 }
 
-func (s *VirtualFS) Describe(name string) *Descriptor {
-	if desc, ok := Descriptors[name]; ok {
-		return desc
-	}
-	return nil
-}
+// func (s *VirtualFS) Describe(name string) *Descriptor {
+// 	if desc, ok := Descriptors[name]; ok {
+// 		return desc
+// 	}
+// 	return nil
+// }
 
 func (s *VirtualFS) ListRoots() ([]string, error) {
 	return s.roots, nil

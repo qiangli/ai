@@ -12,10 +12,10 @@ import (
 
 const transferAgentName = "agent_transfer"
 const (
-	ToolLabelSystem  = "system"
-	ToolLabelMcp     = "mcp"
-	ToolLabelAgent   = "agent"
-	ToolLabelBuiltin = "builtin"
+	ToolLabelSystem = "system"
+	ToolLabelMcp    = "mcp"
+	ToolLabelAgent  = "agent"
+	ToolLabelFunc   = "func"
 )
 
 type Agent struct {
@@ -38,7 +38,7 @@ type Agent struct {
 	// Vars *Vars
 
 	// Functions that the agent can call
-	Functions map[string]*ToolFunc
+	Tools map[string]*ToolFunc
 
 	Entrypoint Entrypoint
 
@@ -182,7 +182,7 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 		Messages:  history,
 		MaxTurns:  r.MaxTurns,
 		RunTool:   runTool,
-		Tools:     r.Functions,
+		Tools:     r.Tools,
 		//
 		ImageQuality: req.ImageQuality,
 		ImageSize:    req.ImageSize,
@@ -213,16 +213,21 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 
 func (r *Agent) callTool(ctx context.Context, toolName string, args map[string]any) (*Result, error) {
 
-	if toolName == transferAgentName {
-		return transferAgentSub(ctx, r, args)
-	}
+	// if toolName == transferAgentName {
+	// 	return transferAgentSub(ctx, r, args)
+	// }
 
-	v, ok := r.Functions[toolName]
+	v, ok := r.Tools[toolName]
 	if !ok {
 		return nil, fmt.Errorf("no such tool: %s", toolName)
 	}
 
 	switch v.Label {
+	case ToolLabelAgent:
+		return &api.Result{
+			NextAgent: v.Service,
+			State:     api.StateTransfer,
+		}, nil
 	case ToolLabelMcp:
 		out, err := r.sw.McpServerTool.CallTool(v.Service, v.Func, args)
 		return &api.Result{
@@ -233,14 +238,9 @@ func (r *Agent) callTool(ctx context.Context, toolName string, args map[string]a
 		return &api.Result{
 			Value: out,
 		}, err
-	case ToolLabelAgent:
-		return &api.Result{
-			NextAgent: v.Service,
-			State:     api.StateTransfer,
-		}, nil
-	case ToolLabelBuiltin:
+	case ToolLabelFunc:
 		funcName := v.Func
-		if fn, ok := r.sw.Vars.FuncRegistry[funcName]; ok {
+		if fn, ok := r.sw.FuncRegistry[funcName]; ok {
 			return fn(ctx, r, funcName, args)
 		}
 	}
@@ -248,13 +248,14 @@ func (r *Agent) callTool(ctx context.Context, toolName string, args map[string]a
 	return nil, fmt.Errorf("no such tool: %s", toolName)
 }
 
-func transferAgentSub(ctx context.Context, agent *Agent, props map[string]any) (*Result, error) {
-	transferTo, err := GetStrProp("agent", props)
-	if err != nil {
-		return nil, err
-	}
-	return &api.Result{
-		NextAgent: fmt.Sprintf("%s/%s", agent.Name, transferTo),
-		State:     api.StateTransfer,
-	}, nil
-}
+// func transferAgentSub(ctx context.Context, agent *Agent, props map[string]any) (*Result, error) {
+// 	transferTo, err := GetStrProp("agent", props)
+
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &api.Result{
+// 		NextAgent: fmt.Sprintf("%s/%s", agent.Name, transferTo),
+// 		State:     api.StateTransfer,
+// 	}, nil
+// }

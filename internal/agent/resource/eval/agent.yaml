@@ -16,26 +16,6 @@ agents:
     functions:
       - "system:*"
 
-functions:
-  - name: "list_agents"
-    description: "List all supported AI agents"
-    type: "internal"
-    labels:
-      - agent
-  - name: "agent_info"
-    description: "Get information about a specific agent"
-    parameters:
-      type: "object"
-      properties:
-          agent:
-            type: "string"
-            description: "The name of the agent"
-      required:
-        - agent
-    type: "internal"
-    labels:
-      - agent
-
 models:
   - name: "L1"
     description: "Level 1 basic model"

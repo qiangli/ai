@@ -2,7 +2,6 @@ package agent
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net"
 	"net/url"
@@ -24,32 +23,59 @@ import (
 var funcRegistry = map[string]swarm.Function{}
 
 func init() {
-	funcRegistry["gptr_generate_report"] = gptrGenerateReport
+	funcRegistry["agent_transfer"] = agentTransferFunc
 	funcRegistry["list_agents"] = listAgentFunc
 	funcRegistry["agent_info"] = agentInfoFunc
 }
 
-func gptrGenerateReport(ctx context.Context, agent *swarm.Agent, name string, args map[string]any) (*api.Result, error) {
-	var obj gptr.ReportArgs
+var descriptors = []api.Descriptor{
+	{
+		Name:        "list_agents",
+		Description: "List all supported AI agents",
+		Parameters:  nil,
+	},
+	{
+		Name:        "agent_info",
+		Description: "Get information about a specific agent",
+		Parameters: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"agent": map[string]any{
+					"type":        "string",
+					"description": "The name of the agent",
+				},
+			},
+			"required": []any{"agent"},
+		},
+	},
+	{
+		Name:        "agent_transfer",
+		Description: "Transfer the current task to a specific agent",
+		Parameters: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"agent": map[string]any{
+					"type":        "string",
+					"description": "The name of the agent",
+				},
+			},
+			"required": []any{"agent"},
+		},
+	},
+}
 
-	b, err := json.Marshal(args)
-	if err != nil {
-		return nil, err
+func ListFuncTools() ([]*api.ToolFunc, error) {
+	var tools []*api.ToolFunc
+	for _, desc := range descriptors {
+		tools = append(tools, &api.ToolFunc{
+			Label:       swarm.ToolLabelFunc,
+			Service:     "ai",
+			Func:        desc.Name,
+			Description: desc.Description,
+			Parameters:  desc.Parameters,
+		})
 	}
-	err = json.Unmarshal(b, &obj)
-	if err != nil {
-		return nil, err
-	}
-
-	content, err := GenerateReport(ctx, agent.Model, obj.ReportType, obj.Tone, agent.RawInput.Query())
-	if err != nil {
-		return nil, err
-	}
-
-	return &api.Result{
-		Value: content,
-		State: api.StateExit,
-	}, nil
+	return tools, nil
 }
 
 func GenerateReport(ctx context.Context, model *swarm.Model, reportType, tone, input string) (string, error) {
@@ -222,18 +248,19 @@ func OpenHands(ctx context.Context, model *swarm.Model, workspace string, in *ap
 	return oh.Run(ctx, userContent)
 }
 
-func listAgentFunc(ctx context.Context, agent *swarm.Agent, name string, args map[string]any) (*api.Result, error) {
+func listAgentFunc(ctx context.Context, _ *swarm.Agent, _ string, _ map[string]any) (*api.Result, error) {
 	var list []string
 	for k, v := range resource.AgentCommandMap {
 		list = append(list, fmt.Sprintf("%s: %s", k, v.Description))
 	}
+
 	sort.Strings(list)
 	return &api.Result{
 		Value: fmt.Sprintf("Available agents:\n%s\n", strings.Join(list, "\n")),
 	}, nil
 }
 
-func agentInfoFunc(ctx context.Context, agent *swarm.Agent, name string, args map[string]any) (*api.Result, error) {
+func agentInfoFunc(ctx context.Context, _ *swarm.Agent, _ string, args map[string]any) (*api.Result, error) {
 	key, err := swarm.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
@@ -247,5 +274,16 @@ func agentInfoFunc(ctx context.Context, agent *swarm.Agent, name string, args ma
 	}
 	return &api.Result{
 		Value: result,
+	}, nil
+}
+
+func agentTransferFunc(ctx context.Context, _ *swarm.Agent, _ string, args map[string]any) (*swarm.Result, error) {
+	agent, err := swarm.GetStrProp("agent", args)
+	if err != nil {
+		return nil, err
+	}
+	return &api.Result{
+		NextAgent: agent,
+		State:     api.StateTransfer,
 	}, nil
 }

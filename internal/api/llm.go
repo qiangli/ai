@@ -63,6 +63,13 @@ type Message struct {
 	Sender string
 }
 
+// Descriptor is a description of a tool function.
+type Descriptor struct {
+	Name        string
+	Description string
+	Parameters  map[string]any
+}
+
 type ToolFunc struct {
 	Label string
 

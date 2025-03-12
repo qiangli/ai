@@ -40,9 +40,9 @@ type Vars struct {
 
 	Models map[string]*Model
 
-	Functions map[string]*ToolFunc
+	// Functions map[string]*ToolFunc
 
-	FuncRegistry map[string]Function
+	// FuncRegistry map[string]Function
 }
 
 func NewVars() *Vars {

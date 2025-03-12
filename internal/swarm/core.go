@@ -32,8 +32,8 @@ type Swarm struct {
 	DryRunContent string
 
 	McpServerTool *McpServerTool
-	AgentToolMap  map[string]*ToolFunc
 
+	ToolMap      map[string]*ToolFunc
 	FuncRegistry map[string]Function
 
 	// map of agent name to the agent configuration data.
@@ -50,7 +50,6 @@ type Swarm struct {
 
 func NewSwarm(app *AppConfig) (*Swarm, error) {
 	server := NewMcpServerTool(app.McpServerUrl)
-
 	sw := &Swarm{
 		Vars:          NewVars(),
 		History:       []*Message{},
@@ -180,22 +179,22 @@ func (r *Swarm) Load(name string, input *UserInput) error {
 		}
 	}
 
-	// builtin tools
-	var functionMap = make(map[string]*ToolFunc)
-	for _, v := range config.Functions {
-		functionMap[v.Name] = &ToolFunc{
-			Label:       ToolLabelBuiltin,
-			Service:     "func",
-			Func:        v.Name,
-			Description: v.Description,
-			Parameters:  v.Parameters,
-		}
-	}
+	// // builtin tools
+	// var functionMap = make(map[string]*ToolFunc)
+	// for _, v := range config.Functions {
+	// 	functionMap[v.Name] = &ToolFunc{
+	// 		Label:       ToolLabelFunc,
+	// 		Service:     "func",
+	// 		Func:        v.Name,
+	// 		Description: v.Description,
+	// 		Parameters:  v.Parameters,
+	// 	}
+	// }
 
 	//
 	r.Vars.Models = modelMap
-	r.Vars.Functions = functionMap
-	r.Vars.FuncRegistry = r.FuncRegistry
+	// r.Vars.Functions = r.ToolMap
+	// r.Vars.FuncRegistry = r.FuncRegistry
 
 	return nil
 }

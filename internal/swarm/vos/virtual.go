@@ -26,11 +26,11 @@ type System interface {
 	Uname() (string, string)
 }
 
-type Descriptor struct {
-	Name        string
-	Description string
-	Parameters  map[string]any
-}
+// type Descriptor struct {
+// 	Name        string
+// 	Description string
+// 	Parameters  map[string]any
+// }
 
 const (
 	ListCommandsToolName = "list_commands"
@@ -43,92 +43,92 @@ const (
 	UnameToolName        = "uname"
 )
 
-var Descriptors = map[string]*Descriptor{
-	ListCommandsToolName: {
-		Name:        ListCommandsToolName,
-		Description: "List all available command names on the user's path. Use 'which' to get the full path",
-		Parameters:  map[string]any{},
-	},
-	WhichToolName: {
-		Name:        WhichToolName,
-		Description: "Locate a program file on the user's path",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"commands": map[string]any{
-					"type": "array",
-					"items": map[string]any{
-						"type": "string",
-					},
-					"description": "List of command names and searches the path for each executable file that would be run had these commands actually been invoked",
-				},
-			},
-			"required": []string{"commands"},
-		},
-	},
-	ManToolName: {
-		Name:        ManToolName,
-		Description: "Find and display online manual documentation page for a command. Not all commands have manual pages",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"command": map[string]any{
-					"type":        "string",
-					"description": "The command to get the manual page for",
-				},
-			},
-			"required": []string{"command"},
-		},
-	},
-	ExecToolName: {
-		Name:        ExecToolName,
-		Description: "Execute a command in the user's environment. Restrictions may apply due to security",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"command": map[string]any{
-					"type":        "string",
-					"description": "The command to execute",
-				},
-				"args": map[string]any{
-					"type":        "array",
-					"items":       map[string]any{"type": "string"},
-					"description": "The arguments to pass to the command. may be empty",
-				},
-			},
-			"required": []string{"command"},
-		},
-	},
-	CdToolName: {
-		Name:        CdToolName,
-		Description: "Change the current working directory on user's system",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"dir": map[string]any{
-					"type":        "string",
-					"description": "The directory to change to",
-				},
-			},
-			"required": []string{"dir"},
-		},
-	},
-	PwdToolName: {
-		Name:        PwdToolName,
-		Description: "Print the current working directory on user's system",
-		Parameters:  map[string]any{},
-	},
-	EnvToolName: {
-		Name:        EnvToolName,
-		Description: "Print environment variables on user's system. Only names are returned for security reasons",
-		Parameters:  map[string]any{},
-	},
-	UnameToolName: {
-		Name:        UnameToolName,
-		Description: "Display information about the current system's operating system and architecture",
-		Parameters:  map[string]any{},
-	},
-}
+// var Descriptors = map[string]*Descriptor{
+// 	ListCommandsToolName: {
+// 		Name:        ListCommandsToolName,
+// 		Description: "List all available command names on the user's path. Use 'which' to get the full path",
+// 		Parameters:  map[string]any{},
+// 	},
+// 	WhichToolName: {
+// 		Name:        WhichToolName,
+// 		Description: "Locate a program file on the user's path",
+// 		Parameters: map[string]any{
+// 			"type": "object",
+// 			"properties": map[string]any{
+// 				"commands": map[string]any{
+// 					"type": "array",
+// 					"items": map[string]any{
+// 						"type": "string",
+// 					},
+// 					"description": "List of command names and searches the path for each executable file that would be run had these commands actually been invoked",
+// 				},
+// 			},
+// 			"required": []string{"commands"},
+// 		},
+// 	},
+// 	ManToolName: {
+// 		Name:        ManToolName,
+// 		Description: "Find and display online manual documentation page for a command. Not all commands have manual pages",
+// 		Parameters: map[string]any{
+// 			"type": "object",
+// 			"properties": map[string]any{
+// 				"command": map[string]any{
+// 					"type":        "string",
+// 					"description": "The command to get the manual page for",
+// 				},
+// 			},
+// 			"required": []string{"command"},
+// 		},
+// 	},
+// 	ExecToolName: {
+// 		Name:        ExecToolName,
+// 		Description: "Execute a command in the user's environment. Restrictions may apply due to security",
+// 		Parameters: map[string]any{
+// 			"type": "object",
+// 			"properties": map[string]any{
+// 				"command": map[string]any{
+// 					"type":        "string",
+// 					"description": "The command to execute",
+// 				},
+// 				"args": map[string]any{
+// 					"type":        "array",
+// 					"items":       map[string]any{"type": "string"},
+// 					"description": "The arguments to pass to the command. may be empty",
+// 				},
+// 			},
+// 			"required": []string{"command"},
+// 		},
+// 	},
+// 	CdToolName: {
+// 		Name:        CdToolName,
+// 		Description: "Change the current working directory on user's system",
+// 		Parameters: map[string]any{
+// 			"type": "object",
+// 			"properties": map[string]any{
+// 				"dir": map[string]any{
+// 					"type":        "string",
+// 					"description": "The directory to change to",
+// 				},
+// 			},
+// 			"required": []string{"dir"},
+// 		},
+// 	},
+// 	PwdToolName: {
+// 		Name:        PwdToolName,
+// 		Description: "Print the current working directory on user's system",
+// 		Parameters:  map[string]any{},
+// 	},
+// 	EnvToolName: {
+// 		Name:        EnvToolName,
+// 		Description: "Print environment variables on user's system. Only names are returned for security reasons",
+// 		Parameters:  map[string]any{},
+// 	},
+// 	UnameToolName: {
+// 		Name:        UnameToolName,
+// 		Description: "Display information about the current system's operating system and architecture",
+// 		Parameters:  map[string]any{},
+// 	},
+// }
 
 type VirtualSystem struct {
 }

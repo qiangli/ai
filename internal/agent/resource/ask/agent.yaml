@@ -7,14 +7,14 @@ maxTurns: 32
 maxTime: 3600
 
 agents:
-  - name: "meta-prompt"
-    description: "Generates a system prompt based on the user's input."
-    internal: true
-    model: L1
-    instruction:
-      content: "resource:agent_meta_system_role"
-    advices:
-      after: "decode_meta_response"
+  # - name: "meta-prompt"
+  #   description: "Generates a system prompt based on the user's input."
+  #   internal: true
+  #   model: L1
+  #   instruction:
+  #     content: "resource:agent_meta_system_role"
+  #   advices:
+  #     after: "decode_meta_response"
 
   - name: "ask"
     display: "💬 Q&A"
@@ -23,10 +23,6 @@ agents:
     model: L1
     instruction:
       content: "resource:eval_system_role"
-    # instruction:
-    #   content: "vars:system_role_prompt"
-    # dependencies:
-    #   - "meta-prompt"
     functions:
       - "mcp:*"
       - "agent:*"
