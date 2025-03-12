@@ -2,12 +2,13 @@ package swarm
 
 import (
 	"context"
-	// _ "embed"
 	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/briandowns/spinner"
 	"github.com/mark3labs/mcp-go/client"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/tailscale/hujson"
@@ -138,8 +139,14 @@ func (r *McpClientSession) ListTools(ctx context.Context) ([]*ToolFunc, error) {
 
 	funcs := make([]*ToolFunc, 0)
 	for _, v := range tools.Tools {
+		parts := strings.SplitN(v.Name, "__", 2)
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid tool name: %s", v.Name)
+		}
 		funcs = append(funcs, &ToolFunc{
-			Name:        v.Name,
+			Label:       ToolLabelMcp,
+			Service:     parts[0],
+			Func:        parts[1],
 			Description: v.Description,
 			Parameters: map[string]any{
 				"type":       v.InputSchema.Type,
@@ -253,16 +260,9 @@ func (r *McpServerTool) ListTools() (map[string][]*ToolFunc, error) {
 		if err != nil {
 			return nil, err
 		}
-		// TODO better handle proxy
 		for _, v := range funcs {
-			parts := strings.SplitN(v.Name, "__", 2)
-			if len(parts) != 2 {
-				return nil, fmt.Errorf("invalid tool name: %s", v.Name)
-			}
-			name := parts[0]
-			toolName := parts[1]
+			name := v.Service
 			funcs, ok := tools[name]
-			v.Name = toolName
 			if ok {
 				tools[name] = append(funcs, v)
 			} else {
@@ -295,6 +295,10 @@ func (r *McpServerTool) CallTool(server, tool string, args map[string]any) (stri
 		client := &McpClientHelper{
 			ProxyUrl: r.Config.ServerUrl,
 		}
+		sp := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+		sp.Suffix = " calling " + tool
+		sp.Start()
+		defer sp.Stop()
 		return client.CallTool(ctx, tool, args)
 	}
 	return "", fmt.Errorf("no such tool: %s %s", server, tool)

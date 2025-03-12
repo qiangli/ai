@@ -16,8 +16,6 @@ import (
 	"github.com/shirou/gopsutil/v4/disk"
 	"github.com/shirou/gopsutil/v4/mem"
 	"github.com/shirou/gopsutil/v4/process"
-	// "github.com/qiangli/ai/internal/log"
-	// "github.com/qiangli/ai/internal/tool"
 )
 
 // GetFileSystemInfo retrieves information about the file system.

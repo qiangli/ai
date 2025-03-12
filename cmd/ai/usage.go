@@ -42,6 +42,8 @@ Global Options:
 {{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .EnvNames}}
 Environment variables:
   {{.EnvNames}}{{end}}
+
+{{.CommandPath}} /help [info|agents|commands|tools] for more details.
 `
 
 const usageExample = `

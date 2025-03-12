@@ -152,43 +152,56 @@ func collectSystemInfo() (string, error) {
 }
 
 func ListTools(cfg *internal.AppConfig) error {
+
 	const listTpl = `Available tools:
 
 %s
 Total: %v
+
+Tools are used by agents to perform specific tasks. They are automatically selected based on the agent's capabilities and your input message.
 `
 	list := []string{}
 
-	// agent tools
-	for k, v := range agentToolMap {
-		list = append(list, fmt.Sprintf("%s: %s\n", k, strings.TrimSpace(v.Description)))
-	}
-
-	// mcp tools
-	tools, err := swarm.ListMcpTools(cfg.McpServerUrl)
+	tools, err := listTools(cfg.McpServerUrl)
 	if err != nil {
 		return err
 	}
-	for k, tool := range tools {
-		for _, v := range tool {
-			list = append(list, fmt.Sprintf("mcp %s__%s: %s\n", k, v.Name, strings.TrimSpace(v.Description)))
-		}
-	}
-
-	// system tools
-	sysTools, err := swarm.ListSystemTools()
-	if err != nil {
-		return err
-	}
-
-	for _, tool := range sysTools {
-		list = append(list, fmt.Sprintf("system %s: %s\n", tool.Name, strings.TrimSpace(tool.Description)))
+	for _, v := range tools {
+		list = append(list, fmt.Sprintf("%s: %s: %s\n", v.Label, v.Name(), strings.TrimSpace(v.Description)))
 	}
 
 	sort.Strings(list)
 
 	log.Printf(listTpl, strings.Join(list, "\n"), len(list))
 	return nil
+}
+
+func listTools(mcpServerUrl string) ([]*swarm.ToolFunc, error) {
+	list := []*swarm.ToolFunc{}
+
+	agentTools, err := ListAgentTools()
+	if err != nil {
+		return nil, err
+	}
+	list = append(list, agentTools...)
+
+	// mcp tools
+	mcpTools, err := swarm.ListMcpTools(mcpServerUrl)
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range mcpTools {
+		list = append(list, v...)
+	}
+
+	// system tools
+	sysTools, err := swarm.ListSystemTools()
+	if err != nil {
+		return nil, err
+	}
+	list = append(list, sysTools...)
+
+	return list, nil
 }
 
 func HandleCommand(cfg *internal.AppConfig) error {

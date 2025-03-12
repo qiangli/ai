@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 )
 
 const (
@@ -51,7 +52,7 @@ type Request struct {
 	MaxTurns int
 	RunTool  func(ctx context.Context, name string, props map[string]any) (*Result, error)
 
-	Tools []*ToolFunc
+	Tools map[string]*ToolFunc
 }
 
 type Message struct {
@@ -63,9 +64,20 @@ type Message struct {
 }
 
 type ToolFunc struct {
-	Name        string
+	Label string
+
+	// Agent name
+	// MCP server name
+	// Virtual system name
+	Service string
+
+	Func        string
 	Description string
 	Parameters  map[string]any
+}
+
+func (r *ToolFunc) Name() string {
+	return fmt.Sprintf("%s__%s", r.Service, r.Func)
 }
 
 type Response struct {

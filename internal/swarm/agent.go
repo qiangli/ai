@@ -11,6 +11,12 @@ import (
 )
 
 const transferAgentName = "agent_transfer"
+const (
+	ToolLabelSystem  = "system"
+	ToolLabelMcp     = "mcp"
+	ToolLabelAgent   = "agent"
+	ToolLabelBuiltin = "builtin"
+)
 
 type Agent struct {
 	// The name of the agent.
@@ -31,8 +37,8 @@ type Agent struct {
 
 	// Vars *Vars
 
-	// A list of functions that the agent can call
-	Functions []*ToolFunc
+	// Functions that the agent can call
+	Functions map[string]*ToolFunc
 
 	Entrypoint Entrypoint
 
@@ -205,52 +211,41 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 	return nil
 }
 
-func (r *Agent) callTool(ctx context.Context, name string, args map[string]any) (*Result, error) {
-	if name == transferAgentName {
+func (r *Agent) callTool(ctx context.Context, toolName string, args map[string]any) (*Result, error) {
+
+	if toolName == transferAgentName {
 		return transferAgentSub(ctx, r, args)
 	}
 
-	// built-in functions
-	if fn, ok := r.sw.Vars.FuncRegistry[name]; ok {
-		log.Debugf("run function: %s %+v\n", name, args)
-		return fn(ctx, r, name, args)
+	v, ok := r.Functions[toolName]
+	if !ok {
+		return nil, fmt.Errorf("no such tool: %s", toolName)
 	}
 
-	//
-	var out string
-	var err error
-
-	// transfer to agent
-	if strings.HasPrefix(name, "agent__") {
-		v, ok := r.sw.AgentToolMap[name]
-		if !ok {
-			return nil, fmt.Errorf("no such agent tool: %s", name)
-		}
+	switch v.Label {
+	case ToolLabelMcp:
+		out, err := r.sw.McpServerTool.CallTool(v.Service, v.Func, args)
 		return &api.Result{
-			NextAgent: v.Name,
+			Value: out,
+		}, err
+	case ToolLabelSystem:
+		out, err := CallSystemTool(r.sw.fs, ctx, r, v.Func, args)
+		return &api.Result{
+			Value: out,
+		}, err
+	case ToolLabelAgent:
+		return &api.Result{
+			NextAgent: v.Service,
 			State:     api.StateTransfer,
 		}, nil
-	}
-
-	// call mcp server tool
-	// <server>__name
-	if strings.Contains(name, "__") {
-		parts := strings.SplitN(name, "__", 2)
-		if len(parts) == 2 {
-			server := parts[0]
-			name = parts[1]
-			// call mcp server tool
-			out, err := r.sw.McpServerTool.CallTool(server, name, args)
-			return &api.Result{
-				Value: out,
-			}, err
+	case ToolLabelBuiltin:
+		funcName := v.Func
+		if fn, ok := r.sw.Vars.FuncRegistry[funcName]; ok {
+			return fn(ctx, r, funcName, args)
 		}
 	}
 
-	out, err = CallSystemTool(r.sw.fs, ctx, r, name, args)
-	return &api.Result{
-		Value: out,
-	}, err
+	return nil, fmt.Errorf("no such tool: %s", toolName)
 }
 
 func transferAgentSub(ctx context.Context, agent *Agent, props map[string]any) (*Result, error) {

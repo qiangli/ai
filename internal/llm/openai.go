@@ -128,7 +128,7 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	if len(req.Tools) > 0 {
 		tools := make([]openai.ChatCompletionToolParam, 0)
 		for _, f := range req.Tools {
-			tools = append(tools, define(f.Name, f.Description, f.Parameters))
+			tools = append(tools, define(f.Name(), f.Description, f.Parameters))
 		}
 		params.Tools = openai.F(tools)
 	}

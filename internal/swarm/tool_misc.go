@@ -144,21 +144,6 @@ var miscDescriptors = map[string]*Descriptor{
 	},
 }
 
-func ListMiscTools() ([]*ToolFunc, error) {
-	var tools []*ToolFunc
-	for k, v := range miscDescriptors {
-		tools = append(tools, &ToolFunc{
-			Name:        k,
-			Description: v.Description,
-			Parameters:  v.Parameters,
-		})
-	}
-
-	sortTools(tools)
-
-	return tools, nil
-}
-
 func readStdin() (string, error) {
 	data, err := io.ReadAll(os.Stdin)
 	if err != nil {

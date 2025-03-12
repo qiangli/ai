@@ -51,7 +51,7 @@
 			"args": [
 				"--verbose",
 				"--message",
-				"what is fish",
+				"generate a random password"
 			],
 			"showLog": false,
 			"stopOnEntry": false
@@ -93,7 +93,7 @@
 				"--verbose",
 				"/rg",
 				"--message",
-				"find all cats and dogs in files ending in .go for the local repo",
+				"find all cats and dogs in files ending in .go for the local repo"
 			],
 			"showLog": false,
 			"stopOnEntry": false

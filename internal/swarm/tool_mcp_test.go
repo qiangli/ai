@@ -1,25 +1,8 @@
 package swarm
 
 import (
-	"os"
 	"testing"
 )
-
-func TestMcpConfigLoad(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping test in short mode.")
-	}
-
-	os.Setenv("AI_SQL_DB_NAME", "doc")
-	os.Setenv("AI_SQL_DB_USERNAME", "admin")
-	os.Setenv("AI_SQL_DB_PASSWORD", "password")
-
-	var cfg = NewMcpConfig("")
-	err := cfg.LoadFile("resource/mcp_config.jsonc")
-	if err != nil {
-		t.Errorf("load mcp config: %v", err)
-	}
-}
 
 func TestMcpListTools(t *testing.T) {
 	if testing.Short() {
@@ -27,11 +10,6 @@ func TestMcpListTools(t *testing.T) {
 	}
 
 	var serverUrl = "http://localhost:58080/sse"
-	// var cfg = NewMcpConfig(serverUrl)
-	// err := cfg.LoadFile("resource/mcp_config.jsonc")
-	// if err != nil {
-	// 	t.Errorf("load mcp config: %v", err)
-	// }
 
 	server := NewMcpServerTool(serverUrl)
 
@@ -42,7 +20,7 @@ func TestMcpListTools(t *testing.T) {
 
 	for k, tool := range tools {
 		for _, v := range tool {
-			t.Logf("server: %s tools: %s %s\n", k, v.Name, v.Description)
+			t.Logf("[%s] service: %s func: %s %s", k, v.Service, v.Func, v.Description)
 		}
 	}
 	t.Logf("Total: %v", len(tools))
@@ -54,11 +32,6 @@ func TestMcpGetTools(t *testing.T) {
 	}
 
 	var serverUrl = "http://localhost:58080/sse"
-	// var cfg = NewMcpConfig(serverUrl)
-	// err := cfg.LoadFile("resource/mcp_config.jsonc")
-	// if err != nil {
-	// 	t.Errorf("load mcp config: %v", err)
-	// }
 
 	server := NewMcpServerTool(serverUrl)
 
@@ -67,8 +40,8 @@ func TestMcpGetTools(t *testing.T) {
 		t.Errorf("list tools: %v", err)
 	}
 
-	for _, v := range tools {
-		t.Logf("tools: %s %s\n", v.Name, v.Description)
+	for k, v := range tools {
+		t.Logf("[%v] service: %s func: %s %s", k, v.Service, v.Func, v.Description)
 	}
 }
 
@@ -78,11 +51,6 @@ func TestMcpCallTool(t *testing.T) {
 	}
 
 	var serverUrl = "http://localhost:58080/sse"
-	// var cfg = NewMcpConfig(serverUrl)
-	// err := cfg.LoadFile("resource/mcp_config.jsonc")
-	// if err != nil {
-	// 	t.Errorf("load mcp config: %v", err)
-	// }
 
 	server := NewMcpServerTool(serverUrl)
 

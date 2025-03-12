@@ -14,43 +14,37 @@ var _exec = _os
 
 func ListSystemTools() ([]*ToolFunc, error) {
 	var tools []*ToolFunc
-	for k, v := range vfs.Descriptors {
+	for _, v := range vfs.Descriptors {
 		tools = append(tools, &ToolFunc{
-			Name:        k,
+			Label:       ToolLabelSystem,
+			Service:     "fs",
+			Func:        v.Name,
 			Description: v.Description,
 			Parameters:  v.Parameters,
 		})
 	}
 
-	for k, v := range vos.Descriptors {
+	for _, v := range vos.Descriptors {
 		tools = append(tools, &ToolFunc{
-			Name:        k,
+			Label:       ToolLabelSystem,
+			Service:     "os",
+			Func:        v.Name,
 			Description: v.Description,
 			Parameters:  v.Parameters,
 		})
 	}
 
-	for k, v := range miscDescriptors {
+	for _, v := range miscDescriptors {
 		tools = append(tools, &ToolFunc{
-			Name:        k,
+			Label:       ToolLabelSystem,
+			Service:     "misc",
+			Func:        v.Name,
 			Description: v.Description,
 			Parameters:  v.Parameters,
 		})
 	}
-
-	sortTools(tools)
 
 	return tools, nil
-}
-
-func sortTools(tools []*ToolFunc) {
-	for i := range len(tools) - 1 {
-		for j := i + 1; j < len(tools); j++ {
-			if tools[i].Name > tools[j].Name {
-				tools[i], tools[j] = tools[j], tools[i]
-			}
-		}
-	}
 }
 
 func CallSystemTool(fs vfs.FileSystem, ctx context.Context, agent *Agent, name string, props map[string]any) (string, error) {
@@ -234,17 +228,18 @@ func CallSystemTool(fs vfs.FileSystem, ctx context.Context, agent *Agent, name s
 
 // runCommand executes a shell command with args and returns the output
 func runCommand(command string, args []string) (string, error) {
-	out, err := _exec.Command(command, args...).CombinedOutput()
+	var out []byte
+	var err error
+	if len(args) == 0 {
+		// LLM sometime sends command and args as a single string
+		out, err = _exec.Command("sh", "-c", command).CombinedOutput()
+	} else {
+		out, err = _exec.Command(command, args...).CombinedOutput()
+	}
 	if err != nil {
-		return fmt.Sprintf("%s %v", out, err), nil
+		return "", fmt.Errorf("%s %v: %v", command, args, err)
 	}
 	return string(out), nil
-}
-
-// runCommandV executes the shell "command -v" with a list of commands and returns the output
-func runCommandV(commands []string) (string, error) {
-	args := append([]string{"-v"}, commands...)
-	return runCommand("command", args)
 }
 
 func runRestricted(fs vfs.FileSystem, ctx context.Context, agent *Agent, command string, args []string) (string, error) {

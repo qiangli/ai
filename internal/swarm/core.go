@@ -33,7 +33,8 @@ type Swarm struct {
 
 	McpServerTool *McpServerTool
 	AgentToolMap  map[string]*ToolFunc
-	FuncRegistry  map[string]Function
+
+	FuncRegistry map[string]Function
 
 	// map of agent name to the agent configuration data.
 	AgentConfigMap map[string][][]byte
@@ -179,10 +180,13 @@ func (r *Swarm) Load(name string, input *UserInput) error {
 		}
 	}
 
+	// builtin tools
 	var functionMap = make(map[string]*ToolFunc)
 	for _, v := range config.Functions {
 		functionMap[v.Name] = &ToolFunc{
-			Name:        v.Name,
+			Label:       ToolLabelBuiltin,
+			Service:     "func",
+			Func:        v.Name,
 			Description: v.Description,
 			Parameters:  v.Parameters,
 		}

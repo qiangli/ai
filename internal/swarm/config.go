@@ -113,12 +113,15 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 		mcpFunctions := []*ToolFunc{}
 		for server, m := range mcpToolMap {
 			for _, v := range m {
-				fn := fmt.Sprintf("%s__%s", server, v.Name)
-				mcpFunctions = append(mcpFunctions, &ToolFunc{
-					Name:        fn,
-					Description: v.Description,
-					Parameters:  v.Parameters,
-				})
+				// fn := fmt.Sprintf("%s__%s", server, v.Name)
+				// mcpFunctions = append(mcpFunctions, &ToolFunc{
+				// 	Service:        server,
+				// 	Func:           v.Func,
+				// 	Description: v.Description,
+				// 	Parameters:  v.Parameters,
+				// })
+				v.Service = server
+				mcpFunctions = append(mcpFunctions, v)
 			}
 		}
 		return mcpFunctions, nil
@@ -138,26 +141,19 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 		if s == "" || s == "*" {
 			agentFuncs := []*ToolFunc{}
 			// fn:agent__agent_command
-			for fn, v := range r.AgentToolMap {
+			for _, v := range r.AgentToolMap {
 				// skip agent itself
-				if name == v.Name {
+				if name == v.Service {
 					continue
 				}
-				agentFuncs = append(agentFuncs, &ToolFunc{
-					Name:        fn,
-					Description: v.Description,
-				})
+				agentFuncs = append(agentFuncs, v)
 			}
 			return agentFuncs, nil
 		}
-		fn := fmt.Sprintf("agent__%s", strings.ReplaceAll(s, "/", "_"))
-		if v, ok := r.AgentToolMap[fn]; ok {
-			return []*ToolFunc{
-				{
-					Name:        fn,
-					Description: v.Description,
-				},
-			}, nil
+		for _, v := range r.AgentToolMap {
+			if v.Service == s {
+				return []*ToolFunc{v}, nil
+			}
 		}
 		return nil, fmt.Errorf("no such agent tool: %s", s)
 	}
@@ -212,19 +208,19 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 					return nil, err
 				}
 				for _, fn := range mcpFuncs {
-					funcMap[fn.Name] = fn
+					funcMap[fn.Name()] = fn
 				}
 				continue
 			}
 
-			// agent functions
+			// agent tools
 			if strings.HasPrefix(f, "agent:") {
 				agentFuncs, err := getAgentTools(f)
 				if err != nil {
 					return nil, err
 				}
 				for _, fn := range agentFuncs {
-					funcMap[fn.Name] = fn
+					funcMap[fn.Name()] = fn
 				}
 				continue
 			}
@@ -236,7 +232,7 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 					return nil, err
 				}
 				for _, fn := range sysFuncs {
-					funcMap[fn.Name] = fn
+					funcMap[fn.Name()] = fn
 				}
 				continue
 			}
@@ -246,13 +242,10 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 			if !ok {
 				return nil, fmt.Errorf("no such function: %s", f)
 			}
-			funcMap[fn.Name] = fn
+			funcMap[fn.Name()] = fn
 		}
-		functions := []*ToolFunc{}
-		for _, fn := range funcMap {
-			functions = append(functions, fn)
-		}
-		agent.Functions = functions
+
+		agent.Functions = funcMap
 
 		if ac.Advices.Before != "" {
 			if ad, ok := adviceMap[ac.Advices.Before]; ok {

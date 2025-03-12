@@ -2,7 +2,6 @@ package agent
 
 import (
 	_ "embed"
-	"fmt"
 	"strings"
 
 	"github.com/qiangli/ai/internal"
@@ -22,15 +21,25 @@ func init() {
 	}
 
 	// skip internal as tool - e.g launch
-	for k, v := range resourceMap {
+	for _, v := range resourceMap {
 		if v.Internal {
 			continue
 		}
-		fn := fmt.Sprintf("agent__%s", strings.ReplaceAll(k, "/", "_"))
-		agentToolMap[fn] = &api.ToolFunc{
-			Name:        v.Name,
+		// fn := fmt.Sprintf("agent__%s", strings.ReplaceAll(k, "/", "_"))
+		parts := strings.SplitN(v.Name, "/", 2)
+		var service = parts[0]
+		var toolName string
+		if len(parts) == 2 {
+			toolName = parts[1]
+		}
+
+		fn := &api.ToolFunc{
+			Label:       "agent",
+			Service:     service,
+			Func:        toolName,
 			Description: v.Description,
 		}
+		agentToolMap[fn.Name()] = fn
 	}
 }
 
@@ -54,7 +63,6 @@ func RunSwarm(cfg *internal.AppConfig, input *api.UserInput) error {
 	}
 
 	sw.AgentConfigMap = agentConfigMap
-	sw.AgentToolMap = agentToolMap
 	sw.ResourceMap = resourceMap
 	sw.TemplateFuncMap = tplFuncMap
 	sw.AdviceMap = adviceMap
@@ -110,4 +118,13 @@ func processOutput(cfg *internal.AppConfig, message *api.Output) {
 	} else {
 		log.Debugf("Unsupported content type: %s\n", message.ContentType)
 	}
+}
+
+func ListAgentTools() ([]*api.ToolFunc, error) {
+	tools := make([]*api.ToolFunc, 0)
+	for _, v := range agentToolMap {
+		v.Label = "agent"
+		tools = append(tools, v)
+	}
+	return tools, nil
 }
