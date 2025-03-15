@@ -3,14 +3,42 @@ package swarm
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/briandowns/spinner"
 
 	"github.com/qiangli/ai/internal/api"
+	"github.com/qiangli/ai/internal/log"
 )
 
 func CallTool(ctx context.Context, vars *Vars, name string, args map[string]any) (*Result, error) {
+	log.Infof("✨ %s %+v\n", name, args)
+
+	result, err := dispatchTool(ctx, vars, name, args)
+
+	if err != nil {
+		log.Errorf("✗ %s\n", err)
+	} else {
+		log.Infof("✔ %s\n", head(result.Value, 80))
+	}
+
+	return result, err
+}
+
+// head trims the string to the maxLen and replaces newlines with /.
+func head(s string, maxLen int) string {
+	s = strings.ReplaceAll(s, "\n", "\\n")
+	s = strings.Join(strings.Fields(s), " ")
+	s = strings.TrimSpace(s)
+	if len(s) > maxLen {
+		return s[:maxLen] + "..."
+	}
+	return s
+}
+
+func dispatchTool(ctx context.Context, vars *Vars, name string, args map[string]any) (*Result, error) {
+
 	v, ok := vars.ToolMap[name]
 	if !ok {
 		return nil, fmt.Errorf("no such tool: %s", name)

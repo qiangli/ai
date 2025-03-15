@@ -3,11 +3,14 @@ package agent
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/qiangli/ai/internal/agent/resource"
 	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/swarm"
+
+	"github.com/qiangli/ai/internal/util"
 )
 
 const missingWorkspace = "Please specify a workspace base directory."
@@ -28,9 +31,12 @@ func resolveWorkspaceAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Re
 
 	// if the workspace is provided, validate and create if needed and return it
 	if workspace != "" {
-		workspace, err = validatePath(workspace)
+		workspace, err = util.ValidatePath(workspace)
 		if err != nil {
 			return fmt.Errorf("failed to validate workspace: %w", err)
+		}
+		if err := os.MkdirAll(workspace, os.ModePerm); err != nil {
+			return fmt.Errorf("failed to create directory: %w", err)
 		}
 		vars.Workspace = workspace
 		return nil
@@ -73,7 +79,14 @@ func resolveWorkspaceAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Re
 
 	log.Infof("Workspace to use: %s\n", workspace)
 
-	workspace, err = resolveWorkspaceBase(workspace)
+	// check if the workspace path or any of its parent contains a git repository
+	// if so, use the git repository as the workspace
+	workspace, err = util.DetectGitRepo(workspace)
+	if err != nil {
+		return err
+	}
+
+	workspace, err = util.ResolveWorkspace(workspace)
 	if err != nil {
 		return fmt.Errorf("failed to resolve workspace: %w", err)
 	}

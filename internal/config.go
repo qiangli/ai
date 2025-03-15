@@ -75,12 +75,11 @@ type AppConfig struct {
 	//
 	Template string
 
-	Workspace string
-
 	Debug bool
 
-	// Current working directory where AI script is executed
-	WorkDir     string
+	//
+	Workspace string
+
 	Interactive bool
 	MetaPrompt  bool
 

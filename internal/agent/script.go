@@ -69,15 +69,13 @@ func runScript(cfg *internal.AppConfig, script string) error {
 		return err
 	}
 
-	wd := cfg.WorkDir
-
-	log.Debugf("Working directory: %s\n", wd)
+	// log.Debugf("Working directory: %s\n", wd)
 	log.Debugf("Script file: %s\n", tmpFile.Name())
 
 	cmd := exec.Command("bash", tmpFile.Name())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Dir = wd
+	cmd.Dir = os.TempDir()
 
 	return cmd.Run()
 }

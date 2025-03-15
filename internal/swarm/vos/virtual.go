@@ -26,12 +26,6 @@ type System interface {
 	Uname() (string, string)
 }
 
-// type Descriptor struct {
-// 	Name        string
-// 	Description string
-// 	Parameters  map[string]any
-// }
-
 const (
 	ListCommandsToolName = "list_commands"
 	WhichToolName        = "which"

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -18,8 +17,6 @@ type FileSystem interface {
 	GetFileInfo(string) (*FileInfo, error)
 	ReadFile(string) ([]byte, error)
 	WriteFile(string, []byte) error
-	// Describe(string) *Descriptor
-	TempDir() string
 }
 
 const (
@@ -30,7 +27,7 @@ const (
 	GetFileInfoToolName     = "get_file_info"
 	ReadFileToolName        = "read_file"
 	WriteFileToolName       = "write_file"
-	TempDirToolName         = "temp_dir"
+	// TempDirToolName         = "temp_dir"
 )
 
 type FileInfo struct {
@@ -91,10 +88,6 @@ func NewVFS() (*VirtualFS, error) {
 
 	return s, nil
 }
-
-// func (s *VirtualFS) ListRoots() ([]string, error) {
-// 	return s.roots, nil
-// }
 
 func (s *VirtualFS) ListDirectory(path string) ([]string, error) {
 	validPath, err := s.validatePath(path)
@@ -173,24 +166,24 @@ func (s *VirtualFS) WriteFile(path string, content []byte) error {
 	return os.WriteFile(validPath, content, 0644)
 }
 
-func (s *VirtualFS) isTemp(path string) bool {
-	if strings.HasPrefix(path, s.TempDir()) {
-		return true
-	}
-	if strings.HasPrefix(path, "/tmp") {
-		return true
-	}
-	if strings.HasPrefix(path, os.Getenv("TMPDIR")) {
-		return true
-	}
-	return false
-}
+// func (s *VirtualFS) isTemp(path string) bool {
+// 	if strings.HasPrefix(path, s.TempDir()) {
+// 		return true
+// 	}
+// 	if strings.HasPrefix(path, "/tmp") {
+// 		return true
+// 	}
+// 	if strings.HasPrefix(path, os.Getenv("TMPDIR")) {
+// 		return true
+// 	}
+// 	return false
+// }
 
 func (s *VirtualFS) validatePath(path string) (string, error) {
-	// always allow temp directories
-	if s.isTemp(path) {
-		return path, nil
-	}
+	// // always allow temp directories
+	// if s.isTemp(path) {
+	// 	return path, nil
+	// }
 
 	abs, err := filepath.Abs(path)
 	if err != nil {
@@ -222,8 +215,4 @@ func (s *VirtualFS) getFileStats(path string) (*FileInfo, error) {
 		Modified:    info.ModTime(),
 		Accessed:    info.ModTime(),
 	}, nil
-}
-
-func (s *VirtualFS) TempDir() string {
-	return os.TempDir()
 }

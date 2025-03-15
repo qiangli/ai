@@ -8,6 +8,9 @@ var toolsList = []string{
 	"which",
 	"ls",
 	"test",
+	//
+	// TODO git mcp instead of git command
+	"git",
 }
 
 // Read from config

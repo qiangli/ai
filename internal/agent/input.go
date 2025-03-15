@@ -184,12 +184,7 @@ func PrintInput(cfg *internal.AppConfig, input *api.UserInput) {
 	}
 
 	var msg = clipText(input.Query(), clipMaxLen)
-
-	if cfg.Format == "markdown" {
-		renderContent(cfg.Me, msg)
-	} else {
-		showContent(cfg.Me, msg)
-	}
+	renderInputContent(cfg.Me, msg)
 }
 
 func Confirm() error {
@@ -205,4 +200,10 @@ func Confirm() error {
 		return nil
 	}
 	return fmt.Errorf("canceled")
+}
+
+func renderInputContent(display, content string) {
+	md := util.Render(content)
+	log.Infof("\n[%s]\n", display)
+	log.Infoln(md)
 }

@@ -53,7 +53,7 @@ func Bash(cfg *internal.AppConfig) error {
 	c.Env = os.Environ()
 	// Prompt string for the shell
 	// c.Env = append(c.Env, "PS1=ai> ")
-	c.Dir = cfg.WorkDir
+	// c.Dir = os.TempDir()
 
 	// Start the command with a pty.
 	ptmx, err := pty.Start(c)

@@ -15,30 +15,14 @@ import (
 	"github.com/qiangli/ai/internal/util"
 )
 
-func PrintOutput(fileFormat string, output *api.Output) {
-	if fileFormat == "markdown" {
-		renderContent(output.Display, output.Content)
-	} else {
-		showContent(output.Display, output.Content)
+func PrintOutput(format string, output *api.Output) error {
+	s, err := util.FormatContent(format, output)
+	if err != nil {
+		return err
 	}
-}
-
-func renderContent(display, content string) {
-	// show original message if in verbose mode
-	if log.IsVerbose() {
-		log.Infof("\n[%s]\n", display)
-		log.Infoln(content)
-	}
-
-	// TODO: markdown formatting lost if the content is also tee'd to a file
-	md := util.Render(content)
-	log.Infof("\n[%s]\n", display)
-	log.Infoln(md)
-}
-
-func showContent(display, content string) {
-	log.Infof("\n[%s]\n", display)
-	log.Infoln(content)
+	log.Infof("\n[%s]\n", output.Display)
+	log.Infoln(s)
+	return nil
 }
 
 func SaveOutput(filename string, message *api.Output) error {

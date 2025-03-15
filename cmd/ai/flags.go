@@ -428,7 +428,6 @@ func parseConfig(cmd *cobra.Command, args []string) (*internal.AppConfig, error)
 	app.Interactive = viper.GetBool("interactive")
 	noMeta := viper.GetBool("no_meta_prompt")
 	app.MetaPrompt = !noMeta
-	app.WorkDir, _ = os.Getwd()
 
 	app.MaxTurns = viper.GetInt("max_turns")
 	app.MaxTime = viper.GetInt("max_time")

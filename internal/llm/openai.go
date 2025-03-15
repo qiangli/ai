@@ -168,17 +168,18 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 			log.Debugf("\n\n>>> tool call: %v %s props: %+v\n", i, name, props)
 
 			//
-			log.Infof("✨ %s %+v\n", name, props)
+			// log.Infof("✨ %s %+v\n", name, props)
 			out, err := req.RunTool(ctx, name, props)
 			if err != nil {
-				log.Errorf("✗ %s\n", err)
+				// log.Errorf("✗ %s\n", err)
 				// inform LLM of the error
 				out = &api.Result{
 					Value: fmt.Sprintf("%s", err),
 				}
-			} else {
-				log.Infof("✔ %s\n", head(out.Value, 80))
 			}
+			// else {
+			// 	log.Infof("✔ %s\n", head(out.Value, 80))
+			// }
 
 			log.Debugf("\n<<< tool call: %s out: %s\n", name, out)
 			resp.Result = out
@@ -263,13 +264,13 @@ func generateImage(ctx context.Context, req *api.Request) (*api.Response, error)
 	return resp, nil
 }
 
-// head trims the string to the maxLen and replaces newlines with /.
-func head(s string, maxLen int) string {
-	s = strings.ReplaceAll(s, "\n", "\\n")
-	s = strings.Join(strings.Fields(s), " ")
-	s = strings.TrimSpace(s)
-	if len(s) > maxLen {
-		return s[:maxLen] + "..."
-	}
-	return s
-}
+// // head trims the string to the maxLen and replaces newlines with /.
+// func head(s string, maxLen int) string {
+// 	s = strings.ReplaceAll(s, "\n", "\\n")
+// 	s = strings.Join(strings.Fields(s), " ")
+// 	s = strings.TrimSpace(s)
+// 	if len(s) > maxLen {
+// 		return s[:maxLen] + "..."
+// 	}
+// 	return s
+// }

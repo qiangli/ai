@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/kaptinlin/jsonrepair"
@@ -60,88 +58,3 @@ func tryUnmarshal(data string, v any) error {
 	}
 	return json.Unmarshal([]byte(repaired), v)
 }
-
-func resolveWorkspaceBase(workspace string) (string, error) {
-	workspace, err := validatePath(workspace)
-	if err != nil {
-		return "", err
-	}
-
-	// check if the workspace path or any of its parent contains a git repository
-	// if so, use the git repository as the workspace
-	if workspace, err = detectGitRepo(workspace); err != nil {
-		return "", err
-	}
-
-	return workspace, nil
-}
-
-// ValidatePath returns the absolute path of the given path.
-// If the path is empty, it returns an error.
-// If the path is not an absolute path, it converts it to an absolute path.
-// If the path exists, it returns its absolute path.
-func validatePath(path string) (string, error) {
-	if path == "" {
-		return "", fmt.Errorf("path is empty")
-	}
-
-	if !filepath.IsAbs(path) {
-		absPath, err := filepath.Abs(path)
-		if err != nil {
-			return "", fmt.Errorf("failed to get absolute path: %w", err)
-		}
-		path = absPath
-	}
-	if _, err := os.Stat(path); err != nil {
-		if os.IsNotExist(err) {
-			if err := os.MkdirAll(path, os.ModePerm); err != nil {
-				return "", fmt.Errorf("failed to create directory: %w", err)
-			}
-			return path, nil
-		}
-		return "", fmt.Errorf("failed to stat path: %w", err)
-	}
-
-	return path, nil
-}
-
-func detectGitRepo(path string) (string, error) {
-	if path == "" {
-		return "", fmt.Errorf("path is empty")
-	}
-	original := path
-	for {
-		if _, err := os.Stat(filepath.Join(path, ".git")); err == nil {
-			return path, nil
-		}
-		np := filepath.Dir(path)
-		if np == path || np == "/" {
-			break
-		}
-		path = np
-	}
-	return original, nil
-}
-
-// // ListRoots returns a list of root directories.
-// // It includes the current working directory (or parent for git repo) and the temporary directory.
-// func ListRoots() ([]string, error) {
-// 	var roots []string
-// 	wd, err := os.Getwd()
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to get current working directory: %w", err)
-// 	}
-// 	ws, err := resolveWorkspaceBase(wd)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to resolve workspace: %w", err)
-// 	}
-// 	roots = append(roots, ws)
-
-// 	tempDir := os.TempDir()
-// 	if tempDir == "" {
-// 		return nil, fmt.Errorf("failed to get temporary directory")
-// 	}
-// 	roots = append(roots, tempDir)
-
-// 	return roots, nil
-// }

@@ -3,20 +3,16 @@ package swarm
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/qiangli/ai/internal/swarm/vfs"
 	"github.com/qiangli/ai/internal/swarm/vos"
+	"github.com/qiangli/ai/internal/util"
 )
 
 var _os vos.System = &vos.VirtualSystem{}
 var _exec = _os
-
-// type Descriptor struct {
-// 	Name        string
-// 	Description string
-// 	Parameters  map[string]any
-// }
 
 var FSDescriptors = map[string]*Descriptor{
 	// vfs.ListRootsToolName: {
@@ -119,11 +115,6 @@ var FSDescriptors = map[string]*Descriptor{
 			"required": []string{"path", "content"},
 		},
 	},
-	vfs.TempDirToolName: {
-		Name:        vfs.TempDirToolName,
-		Description: "Return the default directory to use for temporary files",
-		Parameters:  map[string]any{},
-	},
 }
 
 var OSDescriptors = map[string]*Descriptor{
@@ -213,6 +204,69 @@ var OSDescriptors = map[string]*Descriptor{
 	},
 }
 
+const (
+	HostHomeDirToolName   = "home_dir"
+	HostTempDirToolName   = "temp_dir"
+	HostRepoDirToolName   = "repo_dir"
+	HostWorkspaceToolName = "workspace"
+)
+
+var HostDescriptors = map[string]*Descriptor{
+	HostHomeDirToolName: {
+		Name:        HostHomeDirToolName,
+		Description: "Return the user's home directory",
+		Parameters:  map[string]any{},
+	},
+	HostTempDirToolName: {
+		Name:        HostTempDirToolName,
+		Description: "Return the default directory to use for temporary files",
+		Parameters:  map[string]any{},
+	},
+	HostWorkspaceToolName: {
+		Name:        HostWorkspaceToolName,
+		Description: "Return the current workspace directory",
+		Parameters:  map[string]any{},
+	},
+	HostRepoDirToolName: {
+		Name:        HostRepoDirToolName,
+		Description: "Return the current repository directory",
+		Parameters:  map[string]any{},
+	},
+}
+
+func workDir() (string, error) {
+	return _os.Getwd()
+}
+
+func homeDir() (string, error) {
+	return os.UserHomeDir()
+}
+
+func tempDir() (string, error) {
+	return os.TempDir(), nil
+}
+
+// default to repo dir if workspace is not provided
+func resolveWorkspaceDir(ws string) (string, error) {
+	if ws != "" {
+		return util.ResolveWorkspace(ws)
+	}
+	return resolveRepoDir()
+}
+
+// resolveRepoDir returns the directory of the current git repository
+func resolveRepoDir() (string, error) {
+	wd, err := workDir()
+	if err != nil {
+		return "", err
+	}
+	dir, err := util.DetectGitRepo(wd)
+	if err != nil {
+		return "", fmt.Errorf("failed to detect git repository: %w", err)
+	}
+	return dir, nil
+}
+
 var systemTools []*ToolFunc
 
 func init() {
@@ -247,6 +301,17 @@ func init() {
 		})
 	}
 
+	// host tools
+	for _, v := range HostDescriptors {
+		tools = append(tools, &ToolFunc{
+			Label:       ToolLabelSystem,
+			Service:     "host",
+			Func:        v.Name,
+			Description: v.Description,
+			Parameters:  v.Parameters,
+		})
+	}
+
 	systemTools = tools
 }
 
@@ -271,12 +336,6 @@ func callSystemTool(ctx context.Context, vars *Vars, name string, args map[strin
 	if v.Service == "fs" {
 		fs := vars.FS
 		switch v.Func {
-		// case vfs.ListRootsToolName:
-		// 	roots, err := fs.ListRoots()
-		// 	if err != nil {
-		// 		return "", err
-		// 	}
-		// 	return strings.Join(roots, "\n"), nil
 		case vfs.ListDirectoryToolName:
 			path, err := getStr("path")
 			if err != nil {
@@ -339,8 +398,6 @@ func callSystemTool(ctx context.Context, vars *Vars, name string, args map[strin
 				return "", err
 			}
 			return "File written successfully", nil
-		case vfs.TempDirToolName:
-			return fs.TempDir(), nil
 		}
 		return "", fmt.Errorf("unknown file system tool: %s", name)
 	}
@@ -383,7 +440,7 @@ func callSystemTool(ctx context.Context, vars *Vars, name string, args map[strin
 			}
 			return "", _os.Chdir(dir)
 		case vos.PwdToolName:
-			return _os.Getwd()
+			return workDir()
 		case vos.EnvToolName:
 			return _os.Env(), nil
 		case vos.UnameToolName:
@@ -391,6 +448,21 @@ func callSystemTool(ctx context.Context, vars *Vars, name string, args map[strin
 			return fmt.Sprintf("OS: %s\nArch: %s", as, arch), nil
 		}
 		return "", fmt.Errorf("unknown os tool: %s", name)
+	}
+
+	// host
+	if v.Service == "host" {
+		switch v.Func {
+		case HostHomeDirToolName:
+			return homeDir()
+		case HostTempDirToolName:
+			return tempDir()
+		case HostWorkspaceToolName:
+			return resolveWorkspaceDir(vars.Workspace)
+		case HostRepoDirToolName:
+			return resolveRepoDir()
+		}
+		return "", fmt.Errorf("unknown host tool: %s", name)
 	}
 
 	// misc
@@ -466,7 +538,7 @@ func runCommand(command string, args []string) (string, error) {
 
 func runRestricted(ctx context.Context, vars *Vars, command string, args []string) (string, error) {
 	if isDenied(command) {
-		return "", fmt.Errorf("%s: Not permitted", command)
+		return "", fmt.Errorf("%s: Not allowed", command)
 	}
 	if isAllowed(command) {
 		return runCommand(command, args)
