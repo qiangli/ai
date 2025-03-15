@@ -38,7 +38,7 @@ type Agent struct {
 	// Vars *Vars
 
 	// Functions that the agent can call
-	Tools map[string]*ToolFunc
+	Tools []*ToolFunc
 
 	Entrypoint Entrypoint
 
@@ -57,9 +57,9 @@ type Agent struct {
 	sw *Swarm
 }
 
-func (r *Agent) Vars() *Vars {
-	return r.sw.Vars
-}
+// func (r *Agent) Vars() *Vars {
+// 	return r.sw.Vars
+// }
 
 func (r *Agent) Serve(req *Request, resp *Response) error {
 	log.Debugf("run agent: %s\n", r.Name)
@@ -170,7 +170,7 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 
 	runTool := func(ctx context.Context, name string, args map[string]any) (*Result, error) {
 		log.Debugf("run tool: %s %+v\n", name, args)
-		return r.callTool(ctx, name, args)
+		return CallTool(ctx, r.sw.Vars, name, args)
 	}
 
 	result, err := llm.Send(ctx, &api.Request{
@@ -210,52 +210,3 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 	r.sw.History = history
 	return nil
 }
-
-func (r *Agent) callTool(ctx context.Context, toolName string, args map[string]any) (*Result, error) {
-
-	// if toolName == transferAgentName {
-	// 	return transferAgentSub(ctx, r, args)
-	// }
-
-	v, ok := r.Tools[toolName]
-	if !ok {
-		return nil, fmt.Errorf("no such tool: %s", toolName)
-	}
-
-	switch v.Label {
-	case ToolLabelAgent:
-		return &api.Result{
-			NextAgent: v.Service,
-			State:     api.StateTransfer,
-		}, nil
-	case ToolLabelMcp:
-		out, err := r.sw.McpServerTool.CallTool(v.Service, v.Func, args)
-		return &api.Result{
-			Value: out,
-		}, err
-	case ToolLabelSystem:
-		out, err := CallSystemTool(r.sw.fs, ctx, r, v.Func, args)
-		return &api.Result{
-			Value: out,
-		}, err
-	case ToolLabelFunc:
-		funcName := v.Func
-		if fn, ok := r.sw.FuncRegistry[funcName]; ok {
-			return fn(ctx, r, funcName, args)
-		}
-	}
-
-	return nil, fmt.Errorf("no such tool: %s", toolName)
-}
-
-// func transferAgentSub(ctx context.Context, agent *Agent, props map[string]any) (*Result, error) {
-// 	transferTo, err := GetStrProp("agent", props)
-
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &api.Result{
-// 		NextAgent: fmt.Sprintf("%s/%s", agent.Name, transferTo),
-// 		State:     api.StateTransfer,
-// 	}, nil
-// }

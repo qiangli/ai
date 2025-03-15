@@ -123,25 +123,25 @@ func detectGitRepo(path string) (string, error) {
 	return original, nil
 }
 
-// listRoots returns a list of root directories.
-// It includes the current working directory (or parent for git repo) and the temporary directory.
-func listRoots() ([]string, error) {
-	var roots []string
-	wd, err := os.Getwd()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get current working directory: %w", err)
-	}
-	ws, err := resolveWorkspaceBase(wd)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve workspace: %w", err)
-	}
-	roots = append(roots, ws)
+// // ListRoots returns a list of root directories.
+// // It includes the current working directory (or parent for git repo) and the temporary directory.
+// func ListRoots() ([]string, error) {
+// 	var roots []string
+// 	wd, err := os.Getwd()
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to get current working directory: %w", err)
+// 	}
+// 	ws, err := resolveWorkspaceBase(wd)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to resolve workspace: %w", err)
+// 	}
+// 	roots = append(roots, ws)
 
-	tempDir := os.TempDir()
-	if tempDir == "" {
-		return nil, fmt.Errorf("failed to get temporary directory")
-	}
-	roots = append(roots, tempDir)
+// 	tempDir := os.TempDir()
+// 	if tempDir == "" {
+// 		return nil, fmt.Errorf("failed to get temporary directory")
+// 	}
+// 	roots = append(roots, tempDir)
 
-	return roots, nil
-}
+// 	return roots, nil
+// }

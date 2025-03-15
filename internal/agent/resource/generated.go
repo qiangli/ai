@@ -9,6 +9,9 @@ var agent_meta_system_role string
 //go:embed prompts/agent_sub_system_role.md
 var agent_sub_system_role string
 
+//go:embed prompts/chdir_system_role.md
+var chdir_system_role string
+
 //go:embed prompts/doc_compose_system_role.md
 var doc_compose_system_role string
 
@@ -99,6 +102,7 @@ var workspace_user_role string
 var Prompts = map[string]string{
 	"agent_meta_system_role":   agent_meta_system_role,
 	"agent_sub_system_role":    agent_sub_system_role,
+	"chdir_system_role":        chdir_system_role,
 	"doc_compose_system_role":  doc_compose_system_role,
 	"docker_input_user_role":   docker_input_user_role,
 	"eval_system_role":         eval_system_role,
@@ -147,6 +151,9 @@ var aider_agent_yaml_data []byte
 //go:embed ask/agent.yaml
 var ask_agent_yaml_data []byte
 
+//go:embed chdir/agent.yaml
+var chdir_agent_yaml_data []byte
+
 //go:embed doc/agent.yaml
 var doc_agent_yaml_data []byte
 
@@ -194,6 +201,13 @@ var AgentCommandMap = map[string]AgentConfig{
 		Internal:    false,
 		Data:        ask_agent_yaml_data,
 		Overview:    "This agent serves as an all-encompassing Q&A platform, enabling users to explore and inquire about a diverse array of topics, from scientific phenomena to cultural practices and technology. Its primary objective is to deliver reliable, relevant, and accessible answers that are both informative and concise. Ideal for learners, educators, and the inquisitive, it offers an invaluable tool for broadening knowledge and swiftly addressing everyday questions. By providing clear and explanatory answers, this agent supports users in their quest for understanding across a wide range of subjects.",
+	},
+	"chdir": {
+		Name:        "chdir",
+		Description: "Evaluate users input and locate the directory on the local system the user intends to change to.",
+		Internal:    false,
+		Data:        chdir_agent_yaml_data,
+		Overview:    "",
 	},
 	"doc": {
 		Name:        "doc",
@@ -310,7 +324,7 @@ var AgentCommandMap = map[string]AgentConfig{
 	"workspace": {
 		Name:        "workspace",
 		Description: "Determines the user's workspace based on user's input.",
-		Internal:    true,
+		Internal:    false,
 		Data:        workspace_agent_yaml_data,
 		Overview:    "",
 	},

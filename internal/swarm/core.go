@@ -31,10 +31,10 @@ type Swarm struct {
 	DryRun        bool
 	DryRunContent string
 
-	McpServerTool *McpServerTool
+	// McpServerTool *McpServerTool
 
-	ToolMap      map[string]*ToolFunc
-	FuncRegistry map[string]Function
+	// ToolMap      map[string]*ToolFunc
+	// FuncRegistry map[string]Function
 
 	// map of agent name to the agent configuration data.
 	AgentConfigMap map[string][][]byte
@@ -45,28 +45,19 @@ type Swarm struct {
 	TemplateFuncMap template.FuncMap
 
 	//
-	fs vfs.FileSystem
+	// fs vfs.FileSystem
 }
 
 func NewSwarm(app *AppConfig) (*Swarm, error) {
-	server := NewMcpServerTool(app.McpServerUrl)
 	sw := &Swarm{
-		Vars:          NewVars(),
-		History:       []*Message{},
-		Stream:        true,
-		AppConfig:     app,
-		McpServerTool: server,
+		AppConfig: app,
+		History:   []*Message{},
+		Stream:    true,
 	}
 
 	if err := sw.initVars(); err != nil {
 		return nil, err
 	}
-
-	fs, err := vfs.NewVFS(app.Roots)
-	if err != nil {
-		return nil, err
-	}
-	sw.fs = fs
 
 	return sw, nil
 }
@@ -106,6 +97,14 @@ func (r *Swarm) loadAgentsConfig(data [][]byte) error {
 }
 
 func (r *Swarm) initVars() error {
+	vars := NewVars()
+
+	app := r.AppConfig
+
+	//
+	server := NewMcpServerTool(app.McpServerUrl)
+	vars.McpServerTool = server
+
 	//
 	sysInfo, err := util.CollectSystemInfo()
 	if err != nil {
@@ -114,7 +113,7 @@ func (r *Swarm) initVars() error {
 
 	//
 	if r.AppConfig.Db != nil {
-		r.Vars.DBCred = &DBCred{
+		vars.DBCred = &DBCred{
 			Host:     r.AppConfig.Db.Host,
 			Port:     r.AppConfig.Db.Port,
 			Username: r.AppConfig.Db.Username,
@@ -122,15 +121,32 @@ func (r *Swarm) initVars() error {
 			DBName:   r.AppConfig.Db.DBName,
 		}
 	}
-	//
-	r.Vars.Arch = sysInfo.Arch
-	r.Vars.OS = sysInfo.OS
-	r.Vars.ShellInfo = sysInfo.ShellInfo
-	r.Vars.OSInfo = sysInfo.OSInfo
-	r.Vars.UserInfo = sysInfo.UserInfo
-	r.Vars.WorkDir = sysInfo.WorkDir
-	r.Vars.Roots = r.AppConfig.Roots
 
+	//
+	vars.Arch = sysInfo.Arch
+	vars.OS = sysInfo.OS
+	vars.ShellInfo = sysInfo.ShellInfo
+	vars.OSInfo = sysInfo.OSInfo
+	vars.UserInfo = sysInfo.UserInfo
+	vars.WorkDir = sysInfo.WorkDir
+	// vars.Roots = r.AppConfig.Roots
+
+	//
+	var modelMap = make(map[api.Level]*api.Model)
+	modelMap[api.L1] = api.Level1(app.LLM)
+	modelMap[api.L2] = api.Level2(app.LLM)
+	modelMap[api.L3] = api.Level3(app.LLM)
+	modelMap[api.LImage] = api.ImageModel(app.LLM)
+	vars.Models = modelMap
+
+	//
+	fs, err := vfs.NewVFS()
+	if err != nil {
+		return err
+	}
+	vars.FS = fs
+
+	r.Vars = vars
 	return nil
 }
 
@@ -153,24 +169,26 @@ func (r *Swarm) Load(name string, input *UserInput) error {
 		return err
 	}
 
+	// override
 	app := r.AppConfig
 	config := r.Config
 
-	var modelMap = make(map[string]*api.Model)
+	var modelMap = make(map[api.Level]*api.Model)
 	for _, m := range config.Models {
 		if m.External {
 			switch m.Name {
 			case "L1":
-				modelMap["L1"] = api.Level1(app.LLM)
+				modelMap[api.L1] = api.Level1(app.LLM)
 			case "L2":
-				modelMap["L2"] = api.Level2(app.LLM)
+				modelMap[api.L2] = api.Level2(app.LLM)
 			case "L3":
-				modelMap["L3"] = api.Level3(app.LLM)
+				modelMap[api.L3] = api.Level3(app.LLM)
 			case "Image":
-				modelMap["Image"] = api.ImageModel(app.LLM)
+				modelMap[api.LImage] = api.ImageModel(app.LLM)
 			}
 		} else {
-			modelMap[m.Name] = &api.Model{
+			l := toModelLevel(m.Name)
+			modelMap[l] = &api.Model{
 				Type:    api.ModelType(m.Type),
 				Name:    m.Model,
 				BaseUrl: m.BaseUrl,
@@ -178,23 +196,7 @@ func (r *Swarm) Load(name string, input *UserInput) error {
 			}
 		}
 	}
-
-	// // builtin tools
-	// var functionMap = make(map[string]*ToolFunc)
-	// for _, v := range config.Functions {
-	// 	functionMap[v.Name] = &ToolFunc{
-	// 		Label:       ToolLabelFunc,
-	// 		Service:     "func",
-	// 		Func:        v.Name,
-	// 		Description: v.Description,
-	// 		Parameters:  v.Parameters,
-	// 	}
-	// }
-
-	//
 	r.Vars.Models = modelMap
-	// r.Vars.Functions = r.ToolMap
-	// r.Vars.FuncRegistry = r.FuncRegistry
 
 	return nil
 }

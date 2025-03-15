@@ -52,7 +52,7 @@ type Request struct {
 	MaxTurns int
 	RunTool  func(ctx context.Context, name string, props map[string]any) (*Result, error)
 
-	Tools map[string]*ToolFunc
+	Tools []*ToolFunc
 }
 
 type Message struct {

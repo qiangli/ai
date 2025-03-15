@@ -22,6 +22,8 @@ import (
 // builtin functions
 var funcRegistry = map[string]swarm.Function{}
 
+const funcServiceName = "ai"
+
 func init() {
 	funcRegistry["agent_transfer"] = agentTransferFunc
 	funcRegistry["list_agents"] = listAgentFunc
@@ -69,7 +71,7 @@ func ListFuncTools() ([]*api.ToolFunc, error) {
 	for _, desc := range descriptors {
 		tools = append(tools, &api.ToolFunc{
 			Label:       swarm.ToolLabelFunc,
-			Service:     "ai",
+			Service:     funcServiceName,
 			Func:        desc.Name,
 			Description: desc.Description,
 			Parameters:  desc.Parameters,
@@ -133,7 +135,7 @@ type WSInput struct {
 	Input        string
 }
 
-func Aider(ctx context.Context, models map[string]*swarm.Model, workspace, sub, input string) error {
+func Aider(ctx context.Context, models map[api.Level]*swarm.Model, workspace, sub, input string) error {
 	log.Infof("using workspace: %s\n", workspace)
 
 	if sub == "" {
@@ -170,7 +172,7 @@ func Aider(ctx context.Context, models map[string]*swarm.Model, workspace, sub, 
 	// better to config the base url and api key (and others) for oh
 
 	// FIXME this wont work if model providers are different
-	model := models["L1"]
+	model := models[api.L1]
 
 	u, err := url.Parse(model.BaseUrl)
 	if err != nil {
@@ -185,11 +187,11 @@ func Aider(ctx context.Context, models map[string]*swarm.Model, workspace, sub, 
 	os.Setenv("OPENAI_API_BASE", u.String())
 	os.Setenv("OPENAI_API_KEY", model.ApiKey)
 
-	os.Setenv("AIDER_WEAK_MODEL", models["L1"].Name)
-	os.Setenv("AIDER_EDITOR_MODEL", models["L2"].Name)
-	os.Setenv("AIDER_MODEL", models["L2"].Name)
+	os.Setenv("AIDER_WEAK_MODEL", models[api.L1].Name)
+	os.Setenv("AIDER_EDITOR_MODEL", models[api.L2].Name)
+	os.Setenv("AIDER_MODEL", models[api.L2].Name)
 	if sub == string(aider.Architect) {
-		os.Setenv("AIDER_MODEL", models["L3"].Name)
+		os.Setenv("AIDER_MODEL", models[api.L3].Name)
 	}
 
 	os.Setenv("AIDER_VERBOSE", fmt.Sprintf("%v", log.IsVerbose()))
@@ -248,7 +250,7 @@ func OpenHands(ctx context.Context, model *swarm.Model, workspace string, in *ap
 	return oh.Run(ctx, userContent)
 }
 
-func listAgentFunc(ctx context.Context, _ *swarm.Agent, _ string, _ map[string]any) (*api.Result, error) {
+func listAgentFunc(ctx context.Context, _ *swarm.Vars, _ string, _ map[string]any) (*api.Result, error) {
 	var list []string
 	for k, v := range resource.AgentCommandMap {
 		list = append(list, fmt.Sprintf("%s: %s", k, v.Description))
@@ -260,7 +262,7 @@ func listAgentFunc(ctx context.Context, _ *swarm.Agent, _ string, _ map[string]a
 	}, nil
 }
 
-func agentInfoFunc(ctx context.Context, _ *swarm.Agent, _ string, args map[string]any) (*api.Result, error) {
+func agentInfoFunc(ctx context.Context, _ *swarm.Vars, _ string, args map[string]any) (*api.Result, error) {
 	key, err := swarm.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
@@ -277,7 +279,7 @@ func agentInfoFunc(ctx context.Context, _ *swarm.Agent, _ string, args map[strin
 	}, nil
 }
 
-func agentTransferFunc(ctx context.Context, _ *swarm.Agent, _ string, args map[string]any) (*swarm.Result, error) {
+func agentTransferFunc(ctx context.Context, _ *swarm.Vars, _ string, args map[string]any) (*swarm.Result, error) {
 	agent, err := swarm.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err

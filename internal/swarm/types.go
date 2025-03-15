@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/qiangli/ai/internal/api"
+	"github.com/qiangli/ai/internal/swarm/vfs"
 )
 
 type UserInput = api.UserInput
@@ -38,10 +39,15 @@ type Vars struct {
 	// per agent
 	Extra map[string]any
 
-	Models map[string]*Model
+	Models map[api.Level]*Model
+
+	//
+	FS            vfs.FileSystem
+	McpServerTool *McpServerTool
+	ToolMap       map[string]*ToolFunc
+	FuncRegistry  map[string]Function
 
 	// Functions map[string]*ToolFunc
-
 	// FuncRegistry map[string]Function
 }
 
@@ -76,7 +82,7 @@ func (r *Vars) GetString(key string) string {
 // Swarm Agents can call functions directly.
 // Function should usually return a string values.
 // If a function returns an Agent, execution will be transferred to that Agent.
-type Function = func(context.Context, *Agent, string, map[string]any) (*Result, error)
+type Function = func(context.Context, *Vars, string, map[string]any) (*Result, error)
 
 type Advice func(*Vars, *Request, *Response, Advice) error
 

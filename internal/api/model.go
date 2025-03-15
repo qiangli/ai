@@ -24,6 +24,7 @@ const (
 	L1
 	L2
 	L3
+	LImage
 )
 
 type LLMConfig struct {

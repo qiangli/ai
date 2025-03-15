@@ -19,14 +19,14 @@ var _exec = _os
 // }
 
 var FSDescriptors = map[string]*Descriptor{
-	vfs.ListRootsToolName: {
-		Name:        vfs.ListRootsToolName,
-		Description: "Returns the list of directories that this server is allowed to access.",
-		Parameters: map[string]any{
-			"type":       "object",
-			"properties": map[string]any{},
-		},
-	},
+	// vfs.ListRootsToolName: {
+	// 	Name:        vfs.ListRootsToolName,
+	// 	Description: "Returns the list of directories that this server is allowed to access.",
+	// 	Parameters: map[string]any{
+	// 		"type":       "object",
+	// 		"properties": map[string]any{},
+	// 	},
+	// },
 	vfs.ListDirectoryToolName: {
 		Name:        vfs.ListDirectoryToolName,
 		Description: "Get a detailed listing of all files and directories in a specified path.",
@@ -213,7 +213,9 @@ var OSDescriptors = map[string]*Descriptor{
 	},
 }
 
-func ListSystemTools() ([]*ToolFunc, error) {
+var systemTools []*ToolFunc
+
+func init() {
 	var tools []*ToolFunc
 	for _, v := range FSDescriptors {
 		tools = append(tools, &ToolFunc{
@@ -245,186 +247,204 @@ func ListSystemTools() ([]*ToolFunc, error) {
 		})
 	}
 
-	return tools, nil
+	systemTools = tools
 }
 
-func CallSystemTool(fs vfs.FileSystem, ctx context.Context, agent *Agent, name string, props map[string]any) (string, error) {
+func ListSystemTools() ([]*ToolFunc, error) {
+	return systemTools, nil
+}
 
+func callSystemTool(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
 	getStr := func(key string) (string, error) {
-		return GetStrProp(key, props)
+		return GetStrProp(key, args)
 	}
 	getArray := func(key string) ([]string, error) {
-		return GetArrayProp(key, props)
+		return GetArrayProp(key, args)
+	}
+
+	v, ok := vars.ToolMap[name]
+	if !ok {
+		return "", fmt.Errorf("no such system tool: %s", name)
 	}
 
 	// vfs
-	switch name {
-	case vfs.ListRootsToolName:
-		roots, err := fs.ListRoots()
-		if err != nil {
-			return "", err
+	if v.Service == "fs" {
+		fs := vars.FS
+		switch v.Func {
+		// case vfs.ListRootsToolName:
+		// 	roots, err := fs.ListRoots()
+		// 	if err != nil {
+		// 		return "", err
+		// 	}
+		// 	return strings.Join(roots, "\n"), nil
+		case vfs.ListDirectoryToolName:
+			path, err := getStr("path")
+			if err != nil {
+				return "", err
+			}
+			list, err := fs.ListDirectory(path)
+			if err != nil {
+				return "", err
+			}
+			return strings.Join(list, "\n"), nil
+		case vfs.CreateDirectoryToolName:
+			path, err := getStr("path")
+			if err != nil {
+				return "", err
+			}
+			return "", fs.CreateDirectory(path)
+		case vfs.RenameFileToolName:
+			source, err := getStr("source")
+			if err != nil {
+				return "", err
+			}
+			dest, err := getStr("destination")
+			if err != nil {
+				return "", err
+			}
+			if err := fs.RenameFile(source, dest); err != nil {
+				return "", err
+			}
+			return "File renamed successfully", nil
+		case vfs.GetFileInfoToolName:
+			path, err := getStr("path")
+			if err != nil {
+				return "", err
+			}
+			info, err := fs.GetFileInfo(path)
+			if err != nil {
+				return "", err
+			}
+			return info.String(), nil
+		case vfs.ReadFileToolName:
+			path, err := getStr("path")
+			if err != nil {
+				return "", err
+			}
+			content, err := fs.ReadFile(path)
+			if err != nil {
+				return "", err
+			}
+			return string(content), nil
+		case vfs.WriteFileToolName:
+			path, err := getStr("path")
+			if err != nil {
+				return "", err
+			}
+			content, err := getStr("content")
+			if err != nil {
+				return "", err
+			}
+			if err := fs.WriteFile(path, []byte(content)); err != nil {
+				return "", err
+			}
+			return "File written successfully", nil
+		case vfs.TempDirToolName:
+			return fs.TempDir(), nil
 		}
-		return strings.Join(roots, "\n"), nil
-	case vfs.ListDirectoryToolName:
-		path, err := getStr("path")
-		if err != nil {
-			return "", err
-		}
-		list, err := fs.ListDirectory(path)
-		if err != nil {
-			return "", err
-		}
-		return strings.Join(list, "\n"), nil
-	case vfs.CreateDirectoryToolName:
-		path, err := getStr("path")
-		if err != nil {
-			return "", err
-		}
-		return "", fs.CreateDirectory(path)
-	case vfs.RenameFileToolName:
-		source, err := getStr("source")
-		if err != nil {
-			return "", err
-		}
-		dest, err := getStr("destination")
-		if err != nil {
-			return "", err
-		}
-		if err := fs.RenameFile(source, dest); err != nil {
-			return "", err
-		}
-		return "File renamed successfully", nil
-	case vfs.GetFileInfoToolName:
-		path, err := getStr("path")
-		if err != nil {
-			return "", err
-		}
-		info, err := fs.GetFileInfo(path)
-		if err != nil {
-			return "", err
-		}
-		return info.String(), nil
-	case vfs.ReadFileToolName:
-		path, err := getStr("path")
-		if err != nil {
-			return "", err
-		}
-		content, err := fs.ReadFile(path)
-		if err != nil {
-			return "", err
-		}
-		return string(content), nil
-	case vfs.WriteFileToolName:
-		path, err := getStr("path")
-		if err != nil {
-			return "", err
-		}
-		content, err := getStr("content")
-		if err != nil {
-			return "", err
-		}
-		if err := fs.WriteFile(path, []byte(content)); err != nil {
-			return "", err
-		}
-		return "File written successfully", nil
-	case vfs.TempDirToolName:
-		return fs.TempDir(), nil
+		return "", fmt.Errorf("unknown file system tool: %s", name)
 	}
 
 	// vos
-	switch name {
-	case vos.ListCommandsToolName:
-		list, err := _os.ListCommands()
-		if err != nil {
-			return "", err
+	if v.Service == "os" {
+		switch v.Func {
+		case vos.ListCommandsToolName:
+			list, err := _os.ListCommands()
+			if err != nil {
+				return "", err
+			}
+			return strings.Join(list, "\n"), nil
+		case vos.WhichToolName:
+			commands, err := getArray("commands")
+			if err != nil {
+				return "", err
+			}
+			return _os.Which(commands)
+		case vos.ManToolName:
+			command, err := getStr("command")
+			if err != nil {
+				return "", err
+			}
+			return _os.Man(command)
+		case vos.ExecToolName:
+			command, err := getStr("command")
+			if err != nil {
+				return "", err
+			}
+			args, err := getArray("args")
+			if err != nil {
+				return "", err
+			}
+			return runRestricted(ctx, vars, command, args)
+		case vos.CdToolName:
+			dir, err := getStr("dir")
+			if err != nil {
+				return "", err
+			}
+			return "", _os.Chdir(dir)
+		case vos.PwdToolName:
+			return _os.Getwd()
+		case vos.EnvToolName:
+			return _os.Env(), nil
+		case vos.UnameToolName:
+			as, arch := _os.Uname()
+			return fmt.Sprintf("OS: %s\nArch: %s", as, arch), nil
 		}
-		return strings.Join(list, "\n"), nil
-	case vos.WhichToolName:
-		commands, err := getArray("commands")
-		if err != nil {
-			return "", err
-		}
-		return _os.Which(commands)
-	case vos.ManToolName:
-		command, err := getStr("command")
-		if err != nil {
-			return "", err
-		}
-		return _os.Man(command)
-	case vos.ExecToolName:
-		command, err := getStr("command")
-		if err != nil {
-			return "", err
-		}
-		args, err := getArray("args")
-		if err != nil {
-			return "", err
-		}
-		return runRestricted(fs, ctx, agent, command, args)
-	case vos.CdToolName:
-		dir, err := getStr("dir")
-		if err != nil {
-			return "", err
-		}
-		return "", _os.Chdir(dir)
-	case vos.PwdToolName:
-		return _os.Getwd()
-	case vos.EnvToolName:
-		return _os.Env(), nil
-	case vos.UnameToolName:
-		as, arch := _os.Uname()
-		return fmt.Sprintf("OS: %s\nArch: %s", as, arch), nil
+		return "", fmt.Errorf("unknown os tool: %s", name)
 	}
 
 	// misc
-	switch name {
-	case ReadStdinToolName:
-		return readStdin()
-	case ReadClipboardToolName:
-		return readClipboard()
-	case ReadClipboardWaitToolName:
-		return readClipboardWait()
-	case WriteStdoutToolName:
-		content, err := getStr("content")
-		if err != nil {
-			return "", err
+	if v.Service == "misc" {
+		switch v.Func {
+		case ReadStdinToolName:
+			return readStdin()
+		case ReadClipboardToolName:
+			return readClipboard()
+		case ReadClipboardWaitToolName:
+			return readClipboardWait()
+		case WriteStdoutToolName:
+			content, err := getStr("content")
+			if err != nil {
+				return "", err
+			}
+			return writeStdout(content)
+		case WriteClipboardToolName:
+			content, err := getStr("content")
+			if err != nil {
+				return "", err
+			}
+			return writeClipboard(content)
+		case WriteClipboardAppendToolName:
+			content, err := getStr("content")
+			if err != nil {
+				return "", err
+			}
+			return writeClipboardAppend(content)
+		case GetUserTextInputToolName:
+			prompt, err := getStr("prompt")
+			if err != nil {
+				return "", err
+			}
+			return getUserTextInput(prompt)
+		case GetUserChoiceInputToolName:
+			prompt, err := getStr("prompt")
+			if err != nil {
+				return "", err
+			}
+			choices, err := getArray("choices")
+			if err != nil {
+				return "", err
+			}
+			defaultChoice, err := getStr("default")
+			if err != nil {
+				return "", err
+			}
+			return getUserChoiceInput(prompt, choices, defaultChoice)
 		}
-		return writeStdout(content)
-	case WriteClipboardToolName:
-		content, err := getStr("content")
-		if err != nil {
-			return "", err
-		}
-		return writeClipboard(content)
-	case WriteClipboardAppendToolName:
-		content, err := getStr("content")
-		if err != nil {
-			return "", err
-		}
-		return writeClipboardAppend(content)
-	case GetUserTextInputToolName:
-		prompt, err := getStr("prompt")
-		if err != nil {
-			return "", err
-		}
-		return getUserTextInput(prompt)
-	case GetUserChoiceInputToolName:
-		prompt, err := getStr("prompt")
-		if err != nil {
-			return "", err
-		}
-		choices, err := getArray("choices")
-		if err != nil {
-			return "", err
-		}
-		defaultChoice, err := getStr("default")
-		if err != nil {
-			return "", err
-		}
-		return getUserChoiceInput(prompt, choices, defaultChoice)
+		return "", fmt.Errorf("unknown misc tool: %s", name)
 	}
 
-	return "", fmt.Errorf("unknown system tool: %s", name)
+	return "", fmt.Errorf("unknown service: %s", name)
 }
 
 // runCommand executes a shell command with args and returns the output
@@ -438,12 +458,13 @@ func runCommand(command string, args []string) (string, error) {
 		out, err = _exec.Command(command, args...).CombinedOutput()
 	}
 	if err != nil {
-		return "", fmt.Errorf("%s %v: %v", command, args, err)
+		// send error with out to assist LLM
+		return "", fmt.Errorf("%s %v: %v\n %s", command, args, err, out)
 	}
 	return string(out), nil
 }
 
-func runRestricted(fs vfs.FileSystem, ctx context.Context, agent *Agent, command string, args []string) (string, error) {
+func runRestricted(ctx context.Context, vars *Vars, command string, args []string) (string, error) {
 	if isDenied(command) {
 		return "", fmt.Errorf("%s: Not permitted", command)
 	}
@@ -451,7 +472,7 @@ func runRestricted(fs vfs.FileSystem, ctx context.Context, agent *Agent, command
 		return runCommand(command, args)
 	}
 
-	safe, err := evaluateCommand(fs, ctx, agent, command, args)
+	safe, err := evaluateCommand(ctx, vars, command, args)
 	if err != nil {
 		return "", err
 	}

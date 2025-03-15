@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 	"text/template"
+
+	"github.com/qiangli/ai/internal/api"
 )
 
 func applyTemplate(tpl string, data any, funcMap template.FuncMap) (string, error) {
@@ -61,4 +63,20 @@ func expandWithDefault(input string) string {
 		}
 		return value
 	})
+}
+
+func toModelLevel(s string) api.Level {
+	switch s {
+	case "L0":
+		return api.L0
+	case "L1":
+		return api.L1
+	case "L2":
+		return api.L2
+	case "L3":
+		return api.L3
+	case "Image":
+		return api.LImage
+	}
+	return api.L0
 }

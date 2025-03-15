@@ -48,13 +48,6 @@ func RunSwarm(cfg *internal.AppConfig, input *api.UserInput) error {
 	name := input.Agent
 	log.Debugf("Running agent %q with swarm\n", name)
 
-	// TODO:
-	roots, err := listRoots()
-	if err != nil {
-		return err
-	}
-	cfg.Roots = roots
-
 	//
 	sw, err := swarm.NewSwarm(cfg)
 	if err != nil {
@@ -66,8 +59,10 @@ func RunSwarm(cfg *internal.AppConfig, input *api.UserInput) error {
 	sw.TemplateFuncMap = tplFuncMap
 	sw.AdviceMap = adviceMap
 	sw.EntrypointMap = entrypointMap
-	sw.FuncRegistry = funcRegistry
 
+	//
+	sw.Vars.FuncRegistry = funcRegistry
+	//
 	toolMap := make(map[string]*swarm.ToolFunc)
 	tools, err := listTools(cfg.McpServerUrl)
 	if err != nil {
@@ -76,7 +71,7 @@ func RunSwarm(cfg *internal.AppConfig, input *api.UserInput) error {
 	for _, v := range tools {
 		toolMap[v.Name()] = v
 	}
-	sw.ToolMap = toolMap
+	sw.Vars.ToolMap = toolMap
 
 	showInput(cfg, input)
 

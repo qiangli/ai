@@ -10,7 +10,6 @@ import (
 	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/llm"
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/internal/swarm/vfs"
 )
 
 //go:embed resource/shell_security_system.md
@@ -27,37 +26,39 @@ type CommandCheck struct {
 }
 
 // evaluateCommand consults LLM to evaluate the safety of a command
-func evaluateCommand(fs vfs.FileSystem, ctx context.Context, agent *Agent, command string, args []string) (bool, error) {
-	instruction, err := applyTemplate(shellSecuritySystemRole, agent.sw.Vars, nil)
+func evaluateCommand(ctx context.Context, vars *Vars, command string, args []string) (bool, error) {
+	instruction, err := applyTemplate(shellSecuritySystemRole, vars, nil)
 	if err != nil {
 		return false, err
 	}
 
-	agent.sw.Vars.Extra["Command"] = command
-	agent.sw.Vars.Extra["Args"] = strings.Join(args, " ")
-	query, err := applyTemplate(shellSecurityUserRole, agent.sw.Vars, nil)
+	vars.Extra["Command"] = command
+	vars.Extra["Args"] = strings.Join(args, " ")
+	query, err := applyTemplate(shellSecurityUserRole, vars, nil)
 	if err != nil {
 		return false, err
 	}
 
 	runTool := func(ctx context.Context, name string, args map[string]any) (*Result, error) {
 		log.Debugf("run tool: %s %+v\n", name, args)
-		out, err := CallSystemTool(fs, ctx, agent, name, args)
-		if err != nil {
-			return &Result{
-				Value: fmt.Sprintf("%s: %v", out, err),
-			}, nil
-		}
-		return &api.Result{
-			Value: out,
-		}, nil
+		out, err := CallTool(ctx, vars, name, args)
+		return out, err
+	}
+
+	// TODO default model
+	model, ok := vars.Models[api.L1]
+	if !ok {
+		model = vars.Models[api.L2]
+	}
+	if model == nil {
+		return false, fmt.Errorf("no model found L1/L2")
 	}
 
 	req := &api.Request{
-		ModelType: agent.Model.Type,
-		Model:     agent.Model.Name,
-		BaseUrl:   agent.Model.BaseUrl,
-		ApiKey:    agent.Model.ApiKey,
+		ModelType: model.Type,
+		Model:     model.Name,
+		BaseUrl:   model.BaseUrl,
+		ApiKey:    model.ApiKey,
 		Messages: []*Message{
 			{
 				Role:    api.RoleSystem,
@@ -68,7 +69,7 @@ func evaluateCommand(fs vfs.FileSystem, ctx context.Context, agent *Agent, comma
 				Content: query,
 			},
 		},
-		Tools:    agent.Tools,
+		Tools:    systemTools,
 		RunTool:  runTool,
 		MaxTurns: 32,
 	}

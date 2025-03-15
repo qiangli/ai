@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
-	"github.com/briandowns/spinner"
 	"github.com/mark3labs/mcp-go/client"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/tailscale/hujson"
@@ -287,19 +285,50 @@ func (r *McpServerTool) GetTools(server string) ([]*ToolFunc, error) {
 	return nil, fmt.Errorf("no such server: %s", server)
 }
 
-func (r *McpServerTool) CallTool(server, tool string, args map[string]any) (string, error) {
-	ctx := context.Background()
-
-	if r.Config.ServerUrl != "" && !strings.HasPrefix(tool, server+"__") {
-		tool = fmt.Sprintf("%s__%s", server, tool)
-		client := &McpClientHelper{
-			ProxyUrl: r.Config.ServerUrl,
-		}
-		sp := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
-		sp.Suffix = " calling " + tool
-		sp.Start()
-		defer sp.Stop()
-		return client.CallTool(ctx, tool, args)
+func (r *McpServerTool) CallTool(ctx context.Context, tool string, args map[string]any) (string, error) {
+	if r.Config.ServerUrl == "" {
+		return "", fmt.Errorf("server url not configured")
 	}
-	return "", fmt.Errorf("no such tool: %s %s", server, tool)
+
+	// ctx := context.Background()
+	client := &McpClientHelper{
+		ProxyUrl: r.Config.ServerUrl,
+	}
+	// sp := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+	// sp.Suffix = " calling " + tool
+	// sp.Start()
+	// defer sp.Stop()
+	return client.CallTool(ctx, tool, args)
+}
+
+func callMcpTool(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+	v, ok := vars.ToolMap[name]
+	if !ok {
+		return "", fmt.Errorf("no such mcp tool: %s", name)
+	}
+	tool := fmt.Sprintf("%s__%s", v.Service, v.Func)
+	out, err := vars.McpServerTool.CallTool(ctx, tool, args)
+	// TODO investigate why the result needs to be parsed
+	// the server implementation returns a valid JSON object, but the client
+	// seems not to parse it correctly
+	// if err != nil {
+	// 	log.Errorf("call mcp tool %s: %v", tool, err)
+	// 	return "", err
+	// }
+	// var result map[string]string
+	// if err := json.Unmarshal([]byte(out), &result); err != nil {
+	// 	log.Errorf("unmarshal mcp tool result: %v", err)
+	// 	return "", err
+	// }
+	// if text, ok := result["text"]; ok {
+	// 	if strings.HasPrefix(text, "Echo:") {
+	// 		str := strings.TrimPrefix(text, "Echo:")
+	// 		if err := json.Unmarshal([]byte(str), &result); err == nil {
+	// 			if str, ok := result["text"]; ok {
+	// 				return str, nil
+	// 			}
+	// 		}
+	// 	}
+	// }
+	return out, err
 }

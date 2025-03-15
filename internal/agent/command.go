@@ -219,8 +219,20 @@ func HandleCommand(cfg *internal.AppConfig) error {
 
 	if cmd != "" {
 		// $ ai /command
-		if strings.HasPrefix(cmd, "/") {
-			name := strings.TrimSpace(cmd[1:])
+		// $ ai @script/command
+		if strings.HasPrefix(cmd, "/") ||
+			cmd == "@script" || strings.HasPrefix(cmd, "@script/") {
+
+			var name string
+			switch {
+			case strings.HasPrefix(cmd, "/"):
+				name = strings.TrimSpace(cmd[1:])
+			case cmd == "@script":
+				break
+			case strings.HasPrefix(cmd, "@script/"):
+				name = strings.TrimSpace(cmd[len("@script/"):])
+			}
+
 			in, err := GetUserInput(cfg)
 			if err != nil {
 				return err

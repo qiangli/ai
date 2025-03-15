@@ -27,6 +27,7 @@ func init() {
 	adviceMap["agent_launch"] = agentLaunchAdvice
 	adviceMap["sub"] = subAdvice
 	adviceMap["image_params"] = imageParamsAdvice
+	adviceMap["chdir_format_path"] = chdirFormatPathAdvice
 }
 
 type AgentDetect struct {
@@ -207,7 +208,7 @@ func aiderAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ s
 }
 
 func ohAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
-	return OpenHands(req.Context(), vars.Models["L2"], vars.Workspace, req.RawInput)
+	return OpenHands(req.Context(), vars.Models[api.L2], vars.Workspace, req.RawInput)
 }
 
 func subAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, next swarm.Advice) error {
@@ -235,7 +236,7 @@ func imageParamsAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Respons
 		return nil
 	}
 
-	model, ok := vars.Models["L1"]
+	model, ok := vars.Models[api.L1]
 	if !ok {
 		log.Debugf("no model found")
 		return nil
@@ -279,5 +280,35 @@ func imageParamsAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Respons
 	if params.Style == "" {
 		req.ImageStyle = params.Style
 	}
+	return nil
+}
+
+// chdir format path after advice
+func chdirFormatPathAdvice(vars *swarm.Vars, _ *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
+	var v struct {
+		Action    string `json:"action"`
+		Success   bool   `json:"success"`
+		Directory string `json:"directory"`
+	}
+
+	msg := resp.LastMessage()
+	if msg == nil {
+		return fmt.Errorf("invalid response: no message")
+	}
+
+	// don't change directory if action is not "chdir" or if it was not successful
+	if err := json.Unmarshal([]byte(msg.Content), &v); err != nil {
+		log.Debugf("chdir_format_path error: %v", err)
+		msg.Content = "./"
+		return nil
+	}
+	if v.Action != "chdir" || !v.Success {
+		msg.Content = "./"
+		return nil
+	}
+	msg.Content = v.Directory
+
+	log.Debugf("chdir_format_path: %+v\n", v)
+
 	return nil
 }

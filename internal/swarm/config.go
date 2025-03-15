@@ -85,7 +85,7 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 
 	getSystemTools := func() ([]*ToolFunc, error) {
 		var list []*ToolFunc
-		for _, v := range r.ToolMap {
+		for _, v := range r.Vars.ToolMap {
 			if v.Label == ToolLabelSystem {
 				list = append(list, v)
 			}
@@ -96,7 +96,7 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 
 	getMcpTools := func(s string) ([]*ToolFunc, error) {
 		var list []*ToolFunc
-		for _, v := range r.ToolMap {
+		for _, v := range r.Vars.ToolMap {
 			if v.Label == ToolLabelMcp {
 				list = append(list, v)
 			}
@@ -145,7 +145,7 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 	// agent:agent/command
 	getAgentTools := func(s string) ([]*ToolFunc, error) {
 		var list []*ToolFunc
-		for _, v := range r.ToolMap {
+		for _, v := range r.Vars.ToolMap {
 			if v.Label == ToolLabelAgent {
 				list = append(list, v)
 			}
@@ -181,7 +181,7 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 	}
 
 	getTool := func(s string) (*ToolFunc, error) {
-		for _, v := range r.ToolMap {
+		for _, v := range r.Vars.ToolMap {
 			if v.Func == s {
 				return v, nil
 			}
@@ -223,7 +223,8 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 			agent.MaxTime = r.AppConfig.MaxTime
 		}
 
-		model, ok := vars.Models[ac.Model]
+		level := toModelLevel(ac.Model)
+		model, ok := vars.Models[level]
 		if !ok {
 			return nil, fmt.Errorf("no such model: %s", ac.Model)
 		}
@@ -276,7 +277,11 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 			funcMap[fn.Name()] = fn
 		}
 
-		agent.Tools = funcMap
+		var funcs []*ToolFunc
+		for _, v := range funcMap {
+			funcs = append(funcs, v)
+		}
+		agent.Tools = funcs
 
 		if ac.Advices.Before != "" {
 			if ad, ok := adviceMap[ac.Advices.Before]; ok {

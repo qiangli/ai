@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/swarm/vfs"
 	"github.com/qiangli/ai/internal/util"
@@ -33,6 +34,11 @@ func TestEvaluateCommand(t *testing.T) {
 	vars.OSInfo = sysInfo.OSInfo
 	vars.UserInfo = sysInfo.UserInfo
 	vars.WorkDir = sysInfo.WorkDir
+	vars.Models = map[api.Level]*Model{
+		api.L1: model,
+		api.L2: model,
+		api.L3: model,
+	}
 
 	tests := []struct {
 		command string
@@ -44,21 +50,24 @@ func TestEvaluateCommand(t *testing.T) {
 		// {"rm", []string{"-rf", "/tmp/test"}, false},
 		// {"find", []string{"./", "-name", "*.txt"}, true},
 		// {"find", []string{"/tmp/test", "-type", "f", "-name", "*.exe", "-exec", "rm", "{}", "\\;"}, false},
+		// {"rg", []string{"telemet(rics|ry)?", "--with-filename", "--ignore-case", "--multiline"}, true},
 	}
-	fs, err := vfs.NewVFS([]string{"/tmp"})
+	fs, err := vfs.NewVFS()
 	if err != nil {
 		t.Errorf("create vfs: %v", err)
 		return
 	}
+	vars.FS = fs
+
+	tools, _ := ListSystemTools()
+	var toolMap = make(map[string]*ToolFunc)
+	for _, tool := range tools {
+		toolMap[tool.Name()] = tool
+	}
+	vars.ToolMap = toolMap
 
 	for _, test := range tests {
-		resp, err := evaluateCommand(fs, context.TODO(), &Agent{
-			Model: model,
-			sw: &Swarm{
-				Vars: vars,
-				fs:   fs,
-			},
-		}, test.command, test.args)
+		resp, err := evaluateCommand(context.TODO(), vars, test.command, test.args)
 		if err != nil {
 			t.Errorf("evaluate command: %v\n%+v", err, resp)
 			return

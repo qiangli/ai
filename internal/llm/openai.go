@@ -14,8 +14,6 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
-var braille = []string{"⣿", "⠉", "⠛", "⠿"}
-
 // https://github.com/openai/openai-go/tree/main/examples
 
 func define(name, description string, parameters map[string]interface{}) openai.ChatCompletionToolParam {
@@ -179,7 +177,7 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 					Value: fmt.Sprintf("%s", err),
 				}
 			} else {
-				log.Infof("✔ done\n")
+				log.Infof("✔ %s\n", head(out.Value, 80))
 			}
 
 			log.Debugf("\n<<< tool call: %s out: %s\n", name, out)
@@ -263,4 +261,15 @@ func generateImage(ctx context.Context, req *api.Request) (*api.Response, error)
 	resp.Content = image.Data[0].B64JSON
 
 	return resp, nil
+}
+
+// head trims the string to the maxLen and replaces newlines with /.
+func head(s string, maxLen int) string {
+	s = strings.ReplaceAll(s, "\n", "\\n")
+	s = strings.Join(strings.Fields(s), " ")
+	s = strings.TrimSpace(s)
+	if len(s) > maxLen {
+		return s[:maxLen] + "..."
+	}
+	return s
 }

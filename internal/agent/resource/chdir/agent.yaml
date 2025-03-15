@@ -1,0 +1,16 @@
+###
+maxTurns: 32
+maxTime: 3600
+
+agents:
+  - name: "chdir"
+    display: "🐝 Change Dir"
+    description: "Evaluate users input and locate the directory on the local system the user intends to change to."
+    instruction:
+      content: "resource:chdir_system_role"
+    model: L1
+    advices:
+      after: "chdir_format_path"
+    functions:
+      - "system:*"
+###

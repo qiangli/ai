@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/user"
 	"path/filepath"
 	"strings"
 
@@ -23,10 +24,6 @@ var prefixedCommands = []string{
 	"/", "@",
 }
 
-// var builtinCommands = []string{
-// 	"setup", "help",
-// }
-
 // check for valid sub command
 func validSub(newArgs []string) bool {
 	for _, v := range prefixedCommands {
@@ -34,11 +31,6 @@ func validSub(newArgs []string) bool {
 			return true
 		}
 	}
-	// for _, v := range builtinCommands {
-	// 	if v == newArgs[0] {
-	// 		return true
-	// 	}
-	// }
 	return false
 }
 
@@ -57,7 +49,8 @@ func newOutputValue(val string, p *string) *outputValue {
 	return (*outputValue)(p)
 }
 func (s *outputValue) Set(val string) error {
-	for _, v := range []string{"raw", "markdown"} {
+	// TODO json
+	for _, v := range []string{"text", "json", "markdown"} {
 		if val == v {
 			*s = outputValue(val)
 			return nil
@@ -218,7 +211,7 @@ func addFlags(cmd *cobra.Command) {
 	flags.Bool("pb-write-append", false, "Append output to the clipboard. Alternatively, append '}}' to the command")
 	flags.StringVarP(&outputFlag, "output", "o", "", "Save final response to a file.")
 
-	flags.Var(newOutputValue("markdown", &formatFlag), "format", "Output format, must be either raw or markdown.")
+	flags.Var(newOutputValue("markdown", &formatFlag), "format", "Output format, must be text, json, or markdown.")
 
 	// mcp
 	flags.String("mcp-server-url", "http://localhost:58080/sse", "MCP server URL")
@@ -334,6 +327,14 @@ func addFlags(cmd *cobra.Command) {
 	rootCmd.SetUsageTemplate(rootUsageTemplate)
 }
 
+func getCurrentUser() string {
+	currentUser, err := user.Current()
+	if err != nil {
+		return "ME"
+	}
+	return strings.ToUpper(currentUser.Username)
+}
+
 func parseConfig(cmd *cobra.Command, args []string) (*internal.AppConfig, error) {
 	var lc internal.LLMConfig
 	var app = internal.AppConfig{
@@ -342,12 +343,19 @@ func parseConfig(cmd *cobra.Command, args []string) (*internal.AppConfig, error)
 		Prompt: viper.GetString("role_prompt"),
 	}
 
-	app.Me = "👤 ME"
+	app.Me = "👤 " + getCurrentUser()
 	app.Files = inputFiles
 	app.Format = formatFlag
 	app.Output = outputFlag
 	app.ConfigFile = viper.ConfigFileUsed()
 	app.CommandPath = cmd.CommandPath()
+
+	//
+	// roots, err := agent.ListRoots()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// app.Roots = roots
 
 	//
 	app.Agent = viper.GetString("agent")

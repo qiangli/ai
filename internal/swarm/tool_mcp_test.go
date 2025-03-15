@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"context"
 	"testing"
 )
 
@@ -53,8 +54,17 @@ func TestMcpCallTool(t *testing.T) {
 	var serverUrl = "http://localhost:58080/sse"
 
 	server := NewMcpServerTool(serverUrl)
+	vars := &Vars{
+		ToolMap: map[string]*ToolFunc{
+			"time__convert_time": {
+				Service: "time",
+				Func:    "convert_time",
+			},
+		},
+		McpServerTool: server,
+	}
 
-	resp, err := server.CallTool("time", "convert_time", map[string]interface{}{
+	resp, err := callMcpTool(context.TODO(), vars, "time__convert_time", map[string]interface{}{
 		"source_timezone": "America/Los_Angeles",
 		"time":            "16:30",
 		"target_timezone": "Asia/Shanghai",

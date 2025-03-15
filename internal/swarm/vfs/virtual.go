@@ -11,7 +11,7 @@ import (
 // FileSystem is a virtual file system that provides a set of operations
 // to interact with the file system in a controlled manner.
 type FileSystem interface {
-	ListRoots() ([]string, error)
+	// ListRoots() ([]string, error)
 	ListDirectory(string) ([]string, error)
 	CreateDirectory(string) error
 	RenameFile(string, string) error
@@ -58,164 +58,43 @@ func (f *FileInfo) String() string {
 	)
 }
 
-// type Descriptor struct {
-// 	Name        string
-// 	Description string
-// 	Parameters  map[string]any
-// }
-
-// var Descriptors = map[string]*Descriptor{
-// 	ListRootsToolName: {
-// 		Name:        ListRootsToolName,
-// 		Description: "Returns the list of directories that this server is allowed to access.",
-// 		Parameters: map[string]any{
-// 			"type":       "object",
-// 			"properties": map[string]any{},
-// 		},
-// 	},
-// 	ListDirectoryToolName: {
-// 		Name:        ListDirectoryToolName,
-// 		Description: "Get a detailed listing of all files and directories in a specified path.",
-// 		Parameters: map[string]any{
-// 			"type": "object",
-// 			"properties": map[string]any{
-// 				"path": map[string]any{
-// 					"type":        "string",
-// 					"description": "Path of the directory to list",
-// 				},
-// 			},
-// 			"required": []string{"path"},
-// 		},
-// 	},
-// 	CreateDirectoryToolName: {
-// 		Name:        CreateDirectoryToolName,
-// 		Description: "Create a new directory or ensure a directory exists.",
-// 		Parameters: map[string]any{
-// 			"type": "object",
-// 			"properties": map[string]any{
-// 				"path": map[string]any{
-// 					"type":        "string",
-// 					"description": "Path of the directory to create",
-// 				},
-// 			},
-// 			"required": []string{"path"},
-// 		},
-// 	},
-// 	RenameFileToolName: {
-// 		Name:        RenameFileToolName,
-// 		Description: "Rename files and directories.",
-// 		Parameters: map[string]any{
-// 			"type": "object",
-// 			"properties": map[string]any{
-// 				"source": map[string]any{
-// 					"type":        "string",
-// 					"description": "Source path of the file or directory",
-// 				},
-// 				"destination": map[string]any{
-// 					"type":        "string",
-// 					"description": "Destination path",
-// 				},
-// 			},
-// 			"required": []string{"source", "destination"},
-// 		},
-// 	},
-// 	GetFileInfoToolName: {
-// 		Name:        GetFileInfoToolName,
-// 		Description: "Retrieve detailed metadata about a file or directory.",
-// 		Parameters: map[string]any{
-// 			"type": "object",
-// 			"properties": map[string]any{
-// 				"path": map[string]any{
-// 					"type":        "string",
-// 					"description": "Path to the file or directory",
-// 				},
-// 			},
-// 			"required": []string{"path"},
-// 		},
-// 	},
-// 	ReadFileToolName: {
-// 		Name:        ReadFileToolName,
-// 		Description: "Read the complete contents of a file from the file system.",
-// 		Parameters: map[string]any{
-// 			"type": "object",
-// 			"properties": map[string]any{
-// 				"path": map[string]any{
-// 					"type":        "string",
-// 					"description": "Path to the file to read",
-// 				},
-// 			},
-// 			"required": []string{"path"},
-// 		},
-// 	},
-// 	WriteFileToolName: {
-// 		Name:        WriteFileToolName,
-// 		Description: "Create a new file or overwrite an existing file with new content.",
-// 		Parameters: map[string]any{
-// 			"type": "object",
-// 			"properties": map[string]any{
-// 				"path": map[string]any{
-// 					"type":        "string",
-// 					"description": "Path where to write the file",
-// 				},
-// 				"content": map[string]any{
-// 					"type":        "string",
-// 					"description": "Content to write to the file",
-// 				},
-// 			},
-// 			"required": []string{"path", "content"},
-// 		},
-// 	},
-// 	TempDirToolName: {
-// 		Name:        TempDirToolName,
-// 		Description: "Return the default directory to use for temporary files",
-// 		Parameters:  map[string]any{},
-// 	},
-// }
-
 type VirtualFS struct {
-	roots []string
+	// roots []string
 }
 
-func NewVFS(roots []string) (*VirtualFS, error) {
-	normalized := make([]string, 0, len(roots))
-	for _, dir := range roots {
-		abs, err := filepath.Abs(dir)
-		if err != nil {
-			return nil, fmt.Errorf("failed to resolve path %s: %w", dir, err)
-		}
+func NewVFS() (*VirtualFS, error) {
+	// normalized := make([]string, 0, len(roots))
+	// for _, dir := range roots {
+	// 	abs, err := filepath.Abs(dir)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("failed to resolve path %s: %w", dir, err)
+	// 	}
 
-		info, err := os.Stat(abs)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"failed to access directory %s: %w",
-				abs,
-				err,
-			)
-		}
-		if !info.IsDir() {
-			return nil, fmt.Errorf("path is not a directory: %s", abs)
-		}
+	// 	info, err := os.Stat(abs)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf(
+	// 			"failed to access directory %s: %w",
+	// 			abs,
+	// 			err,
+	// 		)
+	// 	}
+	// 	if !info.IsDir() {
+	// 		return nil, fmt.Errorf("path is not a directory: %s", abs)
+	// 	}
 
-		normalized = append(normalized, filepath.Clean(abs))
-	}
+	// 	normalized = append(normalized, filepath.Clean(abs))
+	// }
 
 	s := &VirtualFS{
-		roots: normalized,
+		// roots: normalized,
 	}
 
 	return s, nil
 }
 
-// func (s *VirtualFS) Describe(name string) *Descriptor {
-// 	if desc, ok := Descriptors[name]; ok {
-// 		return desc
-// 	}
-// 	return nil
+// func (s *VirtualFS) ListRoots() ([]string, error) {
+// 	return s.roots, nil
 // }
-
-func (s *VirtualFS) ListRoots() ([]string, error) {
-	return s.roots, nil
-}
 
 func (s *VirtualFS) ListDirectory(path string) ([]string, error) {
 	validPath, err := s.validatePath(path)
@@ -230,11 +109,11 @@ func (s *VirtualFS) ListDirectory(path string) ([]string, error) {
 
 	var result []string
 	for _, entry := range entries {
-		suffix := ""
+		prefix := "File"
 		if entry.IsDir() {
-			suffix = "/"
+			prefix = "Direcotory"
 		}
-		result = append(result, fmt.Sprintf("%s%s", entry.Name(), suffix))
+		result = append(result, fmt.Sprintf("%s: %s", prefix, entry.Name()))
 	}
 
 	return result, nil
@@ -307,63 +186,25 @@ func (s *VirtualFS) isTemp(path string) bool {
 	return false
 }
 
-func (s *VirtualFS) validatePath(requestedPath string) (string, error) {
+func (s *VirtualFS) validatePath(path string) (string, error) {
 	// always allow temp directories
-	if s.isTemp(requestedPath) {
-		return requestedPath, nil
+	if s.isTemp(path) {
+		return path, nil
 	}
 
-	abs, err := filepath.Abs(requestedPath)
+	abs, err := filepath.Abs(path)
 	if err != nil {
-		return "", fmt.Errorf("invalid path: %w", err)
+		return "", fmt.Errorf("invalid path %q: %w", path, err)
 	}
 
-	normalized := filepath.Clean(abs)
+	return abs, nil
 
-	allowed := false
-	for _, dir := range s.roots {
-		if strings.HasPrefix(normalized, dir) {
-			allowed = true
-			break
-		}
-	}
-	if !allowed {
-		return "", fmt.Errorf(
-			"access denied - path outside allowed directories: %s",
-			abs,
-		)
-	}
-
-	realPath, err := filepath.EvalSymlinks(abs)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return "", err
-		}
-		parent := filepath.Dir(abs)
-		realParent, err := filepath.EvalSymlinks(parent)
-		if err != nil {
-			return "", fmt.Errorf("parent directory does not exist: %s", parent)
-		}
-		normalizedParent := filepath.Clean(realParent)
-		for _, dir := range s.roots {
-			if strings.HasPrefix(normalizedParent, dir) {
-				return abs, nil
-			}
-		}
-		return "", fmt.Errorf(
-			"access denied - parent directory outside allowed directories",
-		)
-	}
-
-	normalizedReal := filepath.Clean(realPath)
-	for _, dir := range s.roots {
-		if strings.HasPrefix(normalizedReal, dir) {
-			return realPath, nil
-		}
-	}
-	return "", fmt.Errorf(
-		"access denied - symlink target outside allowed directories",
-	)
+	// for _, root := range s.roots {
+	// 	if strings.HasPrefix(abs, root) {
+	// 		return abs, nil
+	// 	}
+	// }
+	// return "", fmt.Errorf("access denied - path outside allowed directories: %s", abs)
 }
 
 func (s *VirtualFS) getFileStats(path string) (*FileInfo, error) {

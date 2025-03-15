@@ -2,7 +2,6 @@
 agents:
   - name: "workspace"
     description: "Determines the user's workspace based on user's input."
-    internal: true
     model: L1
     instruction:
       content: "resource:workspace_system_role"
