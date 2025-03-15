@@ -9,7 +9,7 @@ var toolsList = []string{
 	"ls",
 	"test",
 	//
-	// TODO git mcp instead of git command
+	// TODO git mcp instead?
 	"git",
 }
 

@@ -18,7 +18,8 @@ func CallTool(ctx context.Context, vars *Vars, name string, args map[string]any)
 	result, err := dispatchTool(ctx, vars, name, args)
 
 	if err != nil {
-		log.Errorf("✗ %s\n", err)
+		// log.Infof("❌ %s\n", err)
+		log.Errorf("\033[31m✗\033[0m %s\n", err)
 	} else {
 		log.Infof("✔ %s\n", head(result.Value, 80))
 	}

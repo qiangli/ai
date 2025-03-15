@@ -233,7 +233,7 @@ var AgentCommandMap = map[string]AgentConfig{
 	"git": {
 		Name:        "git",
 		Description: "Automate git commit message creation for clarity and consistency in version control",
-		Internal:    false,
+		Internal:    true,
 		Data:        git_agent_yaml_data,
 		Overview:    "A Git agent is a tool used in software development to aid in creating and managing Git commit messages. It automates and enhances the process, ensuring consistency and clarity in the project's change history. By producing well-structured commit messages, a Git agent helps maintain organized records, facilitates team collaboration, and improves overall efficiency in version control management.",
 	},

@@ -156,7 +156,7 @@ var OSDescriptors = map[string]*Descriptor{
 	},
 	vos.ExecToolName: {
 		Name:        vos.ExecToolName,
-		Description: "Execute a command in the user's environment. Restrictions may apply due to security",
+		Description: "Executes a specified command within the user's environment, allowing optional flags and arguments to be passed via 'args'. Note: some security restrictions may apply.",
 		Parameters: map[string]any{
 			"type": "object",
 			"properties": map[string]any{
