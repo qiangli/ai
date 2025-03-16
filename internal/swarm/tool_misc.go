@@ -17,14 +17,14 @@ type Descriptor struct {
 }
 
 const (
-	ReadStdinToolName            = "read_stdin"
-	ReadClipboardToolName        = "read_clipboard"
-	ReadClipboardWaitToolName    = "read_clipboard_wait"
-	WriteStdoutToolName          = "write_stdout"
-	WriteClipboardToolName       = "write_clipboard"
-	WriteClipboardAppendToolName = "write_clipboard_append"
-	GetUserTextInputToolName     = "get_user_text_input"
-	GetUserChoiceInputToolName   = "get_user_choice_input"
+	ReadStdinToolName              = "read_stdin"
+	WriteStdoutToolName            = "write_stdout"
+	PasteFromClipboardToolName     = "paste_from_clipboard"
+	PasteFromClipboardWaitToolName = "paste_from_clipboard_wait"
+	CopyToClipboardToolName        = "copy_to_clipboard"
+	CopyToClipboardAppendToolName  = "copy_to_clipboard_append"
+	GetUserTextInputToolName       = "get_user_text_input"
+	GetUserChoiceInputToolName     = "get_user_choice_input"
 )
 
 // Miscellaneous system tools
@@ -37,16 +37,16 @@ var MiscDescriptors = map[string]*Descriptor{
 			"properties": map[string]any{},
 		},
 	},
-	ReadClipboardToolName: {
-		Name:        ReadClipboardToolName,
+	PasteFromClipboardToolName: {
+		Name:        PasteFromClipboardToolName,
 		Description: "Read input from the clipboard without waiting for user's confirmation",
 		Parameters: map[string]any{
 			"type":       "object",
 			"properties": map[string]any{},
 		},
 	},
-	ReadClipboardWaitToolName: {
-		Name:        ReadClipboardWaitToolName,
+	PasteFromClipboardWaitToolName: {
+		Name:        PasteFromClipboardWaitToolName,
 		Description: "Read input from the clipboard and wait for user's confirmation",
 		Parameters: map[string]any{
 			"type":       "object",
@@ -67,9 +67,9 @@ var MiscDescriptors = map[string]*Descriptor{
 			"required": []string{"content"},
 		},
 	},
-	WriteClipboardToolName: {
-		Name:        WriteClipboardToolName,
-		Description: "Copy output to the clipboard and overwrite its existing content",
+	CopyToClipboardToolName: {
+		Name:        CopyToClipboardToolName,
+		Description: "Copy content to clipboard and overwrite its original content",
 		Parameters: map[string]any{
 			"type": "object",
 			"properties": map[string]any{
@@ -81,9 +81,9 @@ var MiscDescriptors = map[string]*Descriptor{
 			"required": []string{"content"},
 		},
 	},
-	WriteClipboardAppendToolName: {
-		Name:        WriteClipboardAppendToolName,
-		Description: "Append content to the clipboard",
+	CopyToClipboardAppendToolName: {
+		Name:        CopyToClipboardAppendToolName,
+		Description: "Append content to clipboard",
 		Parameters: map[string]any{
 			"type": "object",
 			"properties": map[string]any{

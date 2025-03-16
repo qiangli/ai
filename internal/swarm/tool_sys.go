@@ -470,9 +470,9 @@ func callSystemTool(ctx context.Context, vars *Vars, name string, args map[strin
 		switch v.Func {
 		case ReadStdinToolName:
 			return readStdin()
-		case ReadClipboardToolName:
+		case PasteFromClipboardToolName:
 			return readClipboard()
-		case ReadClipboardWaitToolName:
+		case PasteFromClipboardWaitToolName:
 			return readClipboardWait()
 		case WriteStdoutToolName:
 			content, err := getStr("content")
@@ -480,13 +480,13 @@ func callSystemTool(ctx context.Context, vars *Vars, name string, args map[strin
 				return "", err
 			}
 			return writeStdout(content)
-		case WriteClipboardToolName:
+		case CopyToClipboardToolName:
 			content, err := getStr("content")
 			if err != nil {
 				return "", err
 			}
 			return writeClipboard(content)
-		case WriteClipboardAppendToolName:
+		case CopyToClipboardAppendToolName:
 			content, err := getStr("content")
 			if err != nil {
 				return "", err

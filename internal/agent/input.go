@@ -88,7 +88,7 @@ func userInput(
 	editor EditorProvider,
 ) (*api.UserInput, error) {
 
-	msg := strings.TrimSpace(strings.Join(cfg.Args, " "))
+	msg := trimInputMessage(strings.Join(cfg.Args, " "))
 
 	isSpecial := func() bool {
 		return cfg.Stdin || cfg.Clipin || stdin != nil
@@ -117,23 +117,38 @@ func userInput(
 
 	// clipboard
 	if cfg.Clipin {
-		if err := clipboard.Clear(); err != nil {
-			return nil, err
-		}
-
 		var data string
 		if cfg.ClipWait {
-			// TODO read-append clipboard content
-			v, err := clipboard.Read()
-			if err != nil {
-				return nil, err
+			// paste-append from clipboard
+			var pb []string
+			for {
+				if err := clipboard.Clear(); err != nil {
+					return nil, err
+				}
+
+				log.Printf("Awaiting clipboard content...\n")
+				v, err := clipboard.Read()
+				if err != nil {
+					return nil, err
+				}
+				log.Printf("%s\n", clipText(v, 100))
+				send, err := pasteConfirm()
+				// user canceled
+				if err != nil {
+					return nil, err
+				}
+				if send {
+					data = strings.Join(pb, "\n")
+					break
+				}
+				// continue appending
+				pb = append(pb, v)
 			}
-			log.Printf("%s\n", clipText(v, 100))
-			if err := Confirm(); err != nil {
-				return nil, err
-			}
-			data = v
 		} else {
+			if err := clipboard.Clear(); err != nil {
+				return nil, err
+			}
+
 			v, err := clipboard.Read()
 			if err != nil {
 				return nil, err
@@ -187,23 +202,47 @@ func PrintInput(cfg *internal.AppConfig, input *api.UserInput) {
 	renderInputContent(cfg.Me, msg)
 }
 
-func Confirm() error {
-	ps := "Confirm? [Y/n] "
-	choices := []string{"yes", "no"}
-	defaultChoice := "yes"
+// pasteConfirm prompts the user to append, send, or cancel the input
+// and returns true if the user chooses to send the input
+func pasteConfirm() (bool, error) {
+	ps := "Append to input, Send, or Cancel? [A/s/c] "
+	choices := []string{"append", "send", "cancel"}
+	defaultChoice := "append"
 
 	answer, err := util.Confirm(ps, choices, defaultChoice, os.Stdin)
 	if err != nil {
-		return err
+		return false, err
 	}
-	if answer == "yes" {
-		return nil
+	if answer == "send" {
+		return true, nil
+	} else if answer == "append" {
+		return false, nil
 	}
-	return fmt.Errorf("canceled")
+	return false, fmt.Errorf("canceled")
 }
 
 func renderInputContent(display, content string) {
 	md := util.Render(content)
 	log.Infof("\n[%s]\n", display)
 	log.Infoln(md)
+}
+
+// trimInputMessage trims the input message by removing leading and trailing spaces
+// and also removes any trailing clipboard redirection markers.
+func trimInputMessage(s string) string {
+	msg := strings.TrimSpace(s)
+	for {
+		old := msg
+
+		msg = strings.TrimSuffix(msg, ClipoutRedirect2)
+		msg = strings.TrimSuffix(msg, ClipinRedirect2)
+		msg = strings.TrimSuffix(msg, ClipoutRedirect)
+		msg = strings.TrimSuffix(msg, ClipinRedirect)
+
+		// If no markers were removed, exit the loop
+		if msg == old {
+			break
+		}
+	}
+	return strings.TrimSpace(msg)
 }
