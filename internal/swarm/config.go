@@ -85,8 +85,8 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 
 	getSystemTools := func() ([]*ToolFunc, error) {
 		var list []*ToolFunc
-		for _, v := range r.Vars.ToolMap {
-			if v.Label == ToolLabelSystem {
+		for _, v := range r.Vars.ToolRegistry {
+			if v.Type == ToolTypeSystem {
 				list = append(list, v)
 			}
 		}
@@ -96,8 +96,8 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 
 	getMcpTools := func(s string) ([]*ToolFunc, error) {
 		var list []*ToolFunc
-		for _, v := range r.Vars.ToolMap {
-			if v.Label == ToolLabelMcp {
+		for _, v := range r.Vars.ToolRegistry {
+			if v.Type == ToolTypeMcp {
 				list = append(list, v)
 			}
 		}
@@ -145,8 +145,8 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 	// agent:agent/command
 	getAgentTools := func(s string) ([]*ToolFunc, error) {
 		var list []*ToolFunc
-		for _, v := range r.Vars.ToolMap {
-			if v.Label == ToolLabelAgent {
+		for _, v := range r.Vars.ToolRegistry {
+			if v.Type == ToolTypeAgent {
 				list = append(list, v)
 			}
 		}
@@ -181,8 +181,8 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 	}
 
 	getTool := func(s string) (*ToolFunc, error) {
-		for _, v := range r.Vars.ToolMap {
-			if v.Func == s {
+		for _, v := range r.Vars.ToolRegistry {
+			if v.Name == s {
 				return v, nil
 			}
 		}
@@ -240,7 +240,7 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 					return nil, err
 				}
 				for _, fn := range mcpFuncs {
-					funcMap[fn.Name()] = fn
+					funcMap[fn.ID()] = fn
 				}
 				continue
 			}
@@ -252,7 +252,7 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 					return nil, err
 				}
 				for _, fn := range agentFuncs {
-					funcMap[fn.Name()] = fn
+					funcMap[fn.ID()] = fn
 				}
 				continue
 			}
@@ -264,7 +264,7 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 					return nil, err
 				}
 				for _, fn := range sysFuncs {
-					funcMap[fn.Name()] = fn
+					funcMap[fn.ID()] = fn
 				}
 				continue
 			}
@@ -274,7 +274,7 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 			if err != nil {
 				return nil, err
 			}
-			funcMap[fn.Name()] = fn
+			funcMap[fn.ID()] = fn
 		}
 
 		var funcs []*ToolFunc

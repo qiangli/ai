@@ -10,11 +10,10 @@ import (
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/agent/resource"
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/internal/swarm"
 	"github.com/qiangli/ai/internal/util"
 )
 
-func AgentHelp(cfg *internal.AppConfig) error {
+func AgentRun(cfg *internal.AppConfig) error {
 	log.Debugf("Agent: %s\n", cfg.Agent)
 
 	in, err := GetUserInput(cfg)
@@ -30,7 +29,7 @@ func AgentHelp(cfg *internal.AppConfig) error {
 	return RunSwarm(cfg, in)
 }
 
-func Info(cfg *internal.AppConfig) error {
+func HelpInfo(cfg *internal.AppConfig) error {
 	const format = `System info:
 
 %v
@@ -82,7 +81,7 @@ func Setup(cfg *internal.AppConfig) error {
 	return nil
 }
 
-func ListAgents(cfg *internal.AppConfig) error {
+func HelpAgents(cfg *internal.AppConfig) error {
 	const format = `Available agents:
 
 %s
@@ -115,7 +114,7 @@ ai message...
 	return nil
 }
 
-func ListCommands(cfg *internal.AppConfig) error {
+func HelpCommands(cfg *internal.AppConfig) error {
 	list, err := util.ListCommands(false)
 	if err != nil {
 		log.Errorf("Error: %v\n", err)
@@ -151,7 +150,7 @@ func collectSystemInfo() (string, error) {
 	return string(jd), nil
 }
 
-func ListTools(cfg *internal.AppConfig) error {
+func HelpTools(cfg *internal.AppConfig) error {
 
 	const listTpl = `Available tools:
 
@@ -167,49 +166,13 @@ Tools are used by agents to perform specific tasks. They are automatically selec
 		return err
 	}
 	for _, v := range tools {
-		list = append(list, fmt.Sprintf("%s: %s: %s\n", v.Label, v.Name(), strings.TrimSpace(v.Description)))
+		list = append(list, fmt.Sprintf("%s: %s: %s\n", v.Type, v.ID(), strings.TrimSpace(v.Description)))
 	}
 
 	sort.Strings(list)
 
 	log.Printf(listTpl, strings.Join(list, "\n"), len(list))
 	return nil
-}
-
-func listTools(mcpServerUrl string) ([]*swarm.ToolFunc, error) {
-	list := []*swarm.ToolFunc{}
-
-	// agent tools
-	agentTools, err := ListAgentTools()
-	if err != nil {
-		return nil, err
-	}
-	list = append(list, agentTools...)
-
-	// mcp tools
-	mcpTools, err := swarm.ListMcpTools(mcpServerUrl)
-	if err != nil {
-		return nil, err
-	}
-	for _, v := range mcpTools {
-		list = append(list, v...)
-	}
-
-	// system tools
-	sysTools, err := swarm.ListSystemTools()
-	if err != nil {
-		return nil, err
-	}
-	list = append(list, sysTools...)
-
-	// function tools
-	funcTools, err := ListFuncTools()
-	if err != nil {
-		return nil, err
-	}
-	list = append(list, funcTools...)
-
-	return list, nil
 }
 
 func HandleCommand(cfg *internal.AppConfig) error {
@@ -253,7 +216,7 @@ func HandleCommand(cfg *internal.AppConfig) error {
 			if name == "" {
 				// auto select
 				// $ ai @ message...
-				return AgentHelp(cfg)
+				return AgentRun(cfg)
 			}
 
 			in, err := GetUserInput(cfg)
@@ -271,5 +234,5 @@ func HandleCommand(cfg *internal.AppConfig) error {
 
 	// auto select the best agent to handle the user query if there is message content
 	// $ ai message...
-	return AgentHelp(cfg)
+	return AgentRun(cfg)
 }

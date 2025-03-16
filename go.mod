@@ -18,13 +18,12 @@ require (
 	github.com/kaptinlin/jsonrepair v0.1.0
 	github.com/lib/pq v1.10.9
 	github.com/mariotoffia/goannoy v0.0.0-20241203082301-c889abef1805
-	github.com/mark3labs/mcp-go v0.8.5
+	github.com/mark3labs/mcp-go v0.13.0
 	github.com/openai/openai-go v0.1.0-alpha.41
 	github.com/shirou/gopsutil/v4 v4.24.11
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
-	github.com/tailscale/hujson v0.0.0-20241010212012-29efb4a0184b
 	github.com/yuin/goldmark v1.7.8
 	golang.org/x/term v0.27.0
 	gopkg.in/yaml.v3 v3.0.1

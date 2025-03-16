@@ -21,7 +21,7 @@ func TestMcpListTools(t *testing.T) {
 
 	for k, tool := range tools {
 		for _, v := range tool {
-			t.Logf("[%s] service: %s func: %s %s", k, v.Service, v.Func, v.Description)
+			t.Logf("[%s] service: %s name: %s %s", k, v.Tool, v.Name, v.Description)
 		}
 	}
 	t.Logf("Total: %v", len(tools))
@@ -42,7 +42,7 @@ func TestMcpGetTools(t *testing.T) {
 	}
 
 	for k, v := range tools {
-		t.Logf("[%v] service: %s func: %s %s", k, v.Service, v.Func, v.Description)
+		t.Logf("[%v] service: %s name: %s %s", k, v.Tool, v.Name, v.Description)
 	}
 }
 
@@ -53,15 +53,16 @@ func TestMcpCallTool(t *testing.T) {
 
 	var serverUrl = "http://localhost:58080/sse"
 
-	server := NewMcpServerTool(serverUrl)
+	// server := NewMcpServerTool(serverUrl)
 	vars := &Vars{
-		ToolMap: map[string]*ToolFunc{
+		ToolRegistry: map[string]*ToolFunc{
 			"time__convert_time": {
-				Service: "time",
-				Func:    "convert_time",
+				Tool: "time",
+				Name: "convert_time",
 			},
 		},
-		McpServerTool: server,
+		McpServerUrl: serverUrl,
+		// McpServerTool: server,
 	}
 
 	resp, err := callMcpTool(context.TODO(), vars, "time__convert_time", map[string]interface{}{

@@ -22,7 +22,7 @@ import (
 // builtin functions
 var funcRegistry = map[string]swarm.Function{}
 
-const funcServiceName = "ai"
+const funcToolName = "ai"
 
 func init() {
 	funcRegistry["agent_transfer"] = agentTransferFunc
@@ -30,7 +30,7 @@ func init() {
 	funcRegistry["agent_info"] = agentInfoFunc
 }
 
-var descriptors = []api.Descriptor{
+var descriptors = []api.ToolDescriptor{
 	{
 		Name:        "list_agents",
 		Description: "List all supported AI agents",
@@ -70,9 +70,9 @@ func ListFuncTools() ([]*api.ToolFunc, error) {
 	var tools []*api.ToolFunc
 	for _, desc := range descriptors {
 		tools = append(tools, &api.ToolFunc{
-			Label:       swarm.ToolLabelFunc,
-			Service:     funcServiceName,
-			Func:        desc.Name,
+			Type:        swarm.ToolTypeFunc,
+			Tool:        funcToolName,
+			Name:        desc.Name,
 			Description: desc.Description,
 			Parameters:  desc.Parameters,
 		})

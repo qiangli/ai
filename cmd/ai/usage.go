@@ -5,26 +5,31 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/qiangli/ai/internal"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-
-	"github.com/qiangli/ai/internal/agent"
 )
 
-const rootUsageTemplate = `Usage:
-  ai [OPTIONS] [@agent] message...{{if .HasExample}}
+const rootUsageTemplate = `AI Command Line Tool
+
+Usage:
+  ai [flags] [@agent] message...{{if .HasExample}}
 
 Examples:
 {{.Example}}{{end}}
 
-{{.CommandPath}} /help [info|agents|commands|tools] for more details.
+Use "{{.CommandPath}} /help [agents|commands|tools|info]" for more information.
 `
 
-const helpTemplate = `AI Command Line Tool
+const usageExample = `
+ai what is fish
+ai / what is fish
+ai @ask what is fish
+`
+
+const helpUsageTemplate = `AI Command Line Tool
 
 Usage:
-  ai [OPTIONS] @agent message...{{if .HasExample}}
+  ai [flags] @agent message...{{if .HasExample}}
 {{.Example}}{{end}}
 
 Miscellaneous:
@@ -33,23 +38,20 @@ Miscellaneous:
   ai /[command]       message... Use script agent for help with command and shell scripts
   ai @[agent/command] message... Engage specialist agent for help with various tasks
 
-  ai /setup                      Setup AI configuration{{if .HasAvailableLocalFlags}}
+  ai /mcp                        Manage MCP server
+  ai /setup                      Setup configuration
+  ai /version                    Print version information
+{{if .HasAvailableLocalFlags}}
 
-Options:
+Flags:
 {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
 
-Global Options:
+Global Flags:
 {{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .EnvNames}}
 Environment variables:
   {{.EnvNames}}{{end}}
 
-{{.CommandPath}} /help [info|agents|commands|tools] for more details.
-`
-
-const usageExample = `
-ai what is fish
-ai / what is fish
-ai @ask what is fish
+Use "{{.CommandPath}} /help [agents|commands|tools|info]" for more information.
 `
 
 const inputInstruction = `
@@ -138,20 +140,7 @@ func getHelpData(cmd *cobra.Command) *HelpData {
 	}
 }
 
-func Help(cfg *internal.AppConfig, cmd *cobra.Command) error {
-	if len(cfg.Args) > 0 {
-		switch cfg.Args[0] {
-		case "agents", "agent":
-			return agent.ListAgents(cfg)
-		case "commands", "command":
-			return agent.ListCommands(cfg)
-		case "tools", "tool":
-			return agent.ListTools(cfg)
-		case "info":
-			return agent.Info(cfg)
-		}
-	}
-
+func Help(cmd *cobra.Command) error {
 	// help
 	trimTrailingWhitespaces := func(s string) string {
 		return strings.TrimRightFunc(s, func(r rune) bool {
@@ -163,7 +152,7 @@ func Help(cfg *internal.AppConfig, cmd *cobra.Command) error {
 
 	tpl, err := template.New("help").Funcs(template.FuncMap{
 		"trimTrailingWhitespaces": trimTrailingWhitespaces,
-	}).Parse(helpTemplate)
+	}).Parse(helpUsageTemplate)
 	if err != nil {
 		return err
 	}
@@ -173,3 +162,35 @@ func Help(cfg *internal.AppConfig, cmd *cobra.Command) error {
 	}
 	return nil
 }
+
+// taken from cobra
+const commandUsageTemplate = `Usage:{{if .Runnable}}
+  ai /{{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
+  ai /{{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}
+
+Aliases:
+  {{.NameAndAliases}}{{end}}{{if .HasExample}}
+
+Examples:
+{{.Example}}{{end}}{{if .HasAvailableSubCommands}}{{$cmds := .Commands}}{{if eq (len .Groups) 0}}
+
+Commands:{{range $cmds}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
+  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{else}}{{range $group := .Groups}}
+
+{{.Title}}{{range $cmds}}{{if (and (eq .GroupID $group.ID) (or .IsAvailableCommand (eq .Name "help")))}}
+  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{if not .AllChildCommandsHaveGroup}}
+
+Additional Commands:{{range $cmds}}{{if (and (eq .GroupID "") (or .IsAvailableCommand (eq .Name "help")))}}
+  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
+
+Flags:
+{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
+
+Global Flags:
+{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
+
+Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
+  {{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
+
+Use "ai /{{.CommandPath}} [command] --help" for more information about a command.{{end}}
+`

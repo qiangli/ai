@@ -6,7 +6,6 @@ import (
 
 	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/internal/swarm/vfs"
 	"github.com/qiangli/ai/internal/util"
 )
 
@@ -52,19 +51,19 @@ func TestEvaluateCommand(t *testing.T) {
 		// {"find", []string{"/tmp/test", "-type", "f", "-name", "*.exe", "-exec", "rm", "{}", "\\;"}, false},
 		// {"rg", []string{"telemet(rics|ry)?", "--with-filename", "--ignore-case", "--multiline"}, true},
 	}
-	fs, err := vfs.NewVFS()
-	if err != nil {
-		t.Errorf("create vfs: %v", err)
-		return
-	}
-	vars.FS = fs
+	// fs, err := vfs.NewVFS()
+	// if err != nil {
+	// 	t.Errorf("create vfs: %v", err)
+	// 	return
+	// }
+	// vars.FS = fs
 
 	tools, _ := ListSystemTools()
 	var toolMap = make(map[string]*ToolFunc)
 	for _, tool := range tools {
-		toolMap[tool.Name()] = tool
+		toolMap[tool.ID()] = tool
 	}
-	vars.ToolMap = toolMap
+	vars.ToolRegistry = toolMap
 
 	for _, test := range tests {
 		resp, err := evaluateCommand(context.TODO(), vars, test.command, test.args)

@@ -12,24 +12,10 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
-func EvalTool(ctx context.Context, vars *Vars, name string, args map[string]any) (*Result, error) {
-	log.Infof("🔒 checking %s %+v\n", name, args)
-
-	result, err := dispatchTool(ctx, vars, name, args)
-
-	if err != nil {
-		log.Errorf("❌ unsafe %s\n", err)
-	} else {
-		log.Infof("✅ safe %s\n", head(result.Value, 80))
-	}
-
-	return result, err
-}
-
-func CallTool(ctx context.Context, vars *Vars, name string, args map[string]any) (*Result, error) {
+func (r *Vars) CallTool(ctx context.Context, name string, args map[string]any) (*Result, error) {
 	log.Infof("✨ %s %+v\n", name, args)
 
-	result, err := dispatchTool(ctx, vars, name, args)
+	result, err := dispatchTool(ctx, r, name, args)
 
 	if err != nil {
 		// log.Infof("❌ %s\n", err)
@@ -54,7 +40,7 @@ func head(s string, maxLen int) string {
 
 func dispatchTool(ctx context.Context, vars *Vars, name string, args map[string]any) (*Result, error) {
 
-	v, ok := vars.ToolMap[name]
+	v, ok := vars.ToolRegistry[name]
 	if !ok {
 		return nil, fmt.Errorf("no such tool: %s", name)
 	}
@@ -63,17 +49,18 @@ func dispatchTool(ctx context.Context, vars *Vars, name string, args map[string]
 	sp := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 	sp.Suffix = " calling " + name + "\n"
 
-	switch v.Label {
-	case ToolLabelAgent:
-		nextAgent := v.Service
-		if v.Func != "" {
-			nextAgent = fmt.Sprintf("%s/%s", v.Service, v.Func)
+	switch v.Type {
+	case ToolTypeAgent:
+		nextAgent := v.Tool
+		if v.Name != "" {
+			nextAgent = fmt.Sprintf("%s/%s", v.Tool, v.Name)
 		}
 		return &api.Result{
 			NextAgent: nextAgent,
 			State:     api.StateTransfer,
 		}, nil
-	case ToolLabelMcp:
+	case ToolTypeMcp:
+		// spinner
 		sp.Start()
 		defer sp.Stop()
 
@@ -81,16 +68,16 @@ func dispatchTool(ctx context.Context, vars *Vars, name string, args map[string]
 		return &api.Result{
 			Value: out,
 		}, err
-	case ToolLabelSystem:
+	case ToolTypeSystem:
 		out, err := callSystemTool(ctx, vars, name, args)
 		return &api.Result{
 			Value: out,
 		}, err
-	case ToolLabelFunc:
-		if fn, ok := vars.FuncRegistry[v.Func]; ok {
-			return fn(ctx, vars, v.Func, args)
+	case ToolTypeFunc:
+		if fn, ok := vars.FuncRegistry[v.Name]; ok {
+			return fn(ctx, vars, v.Name, args)
 		}
 	}
 
-	return nil, fmt.Errorf("no such tool: %s", v.Name())
+	return nil, fmt.Errorf("no such tool: %s", v.ID())
 }

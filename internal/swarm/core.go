@@ -12,7 +12,6 @@ import (
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/internal/swarm/vfs"
 	"github.com/qiangli/ai/internal/util"
 )
 
@@ -55,9 +54,11 @@ func NewSwarm(app *AppConfig) (*Swarm, error) {
 		Stream:    true,
 	}
 
-	if err := sw.initVars(); err != nil {
+	vars, err := InitVars(app)
+	if err != nil {
 		return nil, err
 	}
+	sw.Vars = vars
 
 	return sw, nil
 }
@@ -96,29 +97,28 @@ func (r *Swarm) loadAgentsConfig(data [][]byte) error {
 	return nil
 }
 
-func (r *Swarm) initVars() error {
+func InitVars(app *internal.AppConfig) (*Vars, error) {
 	vars := NewVars()
 
-	app := r.AppConfig
-
 	//
-	server := NewMcpServerTool(app.McpServerUrl)
-	vars.McpServerTool = server
+	// server := NewMcpServerTool(app.McpServerUrl)
+	// vars.McpServerTool = server
+	vars.McpServerUrl = app.McpServerUrl
 
 	//
 	sysInfo, err := util.CollectSystemInfo()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	//
-	if r.AppConfig.Db != nil {
+	if app.Db != nil {
 		vars.DBCred = &DBCred{
-			Host:     r.AppConfig.Db.Host,
-			Port:     r.AppConfig.Db.Port,
-			Username: r.AppConfig.Db.Username,
-			Password: r.AppConfig.Db.Password,
-			DBName:   r.AppConfig.Db.DBName,
+			Host:     app.Db.Host,
+			Port:     app.Db.Port,
+			Username: app.Db.Username,
+			Password: app.Db.Password,
+			DBName:   app.Db.DBName,
 		}
 	}
 
@@ -129,7 +129,6 @@ func (r *Swarm) initVars() error {
 	vars.OSInfo = sysInfo.OSInfo
 	vars.UserInfo = sysInfo.UserInfo
 	vars.WorkDir = sysInfo.WorkDir
-	// vars.Roots = r.AppConfig.Roots
 
 	//
 	var modelMap = make(map[api.Level]*api.Model)
@@ -140,14 +139,13 @@ func (r *Swarm) initVars() error {
 	vars.Models = modelMap
 
 	//
-	fs, err := vfs.NewVFS()
-	if err != nil {
-		return err
-	}
-	vars.FS = fs
+	// fs, err := vfs.NewVFS()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// vars.FS = fs
 
-	r.Vars = vars
-	return nil
+	return vars, nil
 }
 
 func (r *Swarm) Load(name string, input *UserInput) error {

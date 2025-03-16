@@ -1,4 +1,4 @@
-package main
+package agent
 
 import (
 	"bytes"
@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strings"
 
@@ -16,30 +15,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/agent"
-	"github.com/qiangli/ai/internal/util"
 )
-
-var prefixedCommands = []string{
-	"/", "@",
-}
-
-// check for valid sub command
-func validSub(newArgs []string) bool {
-	for _, v := range prefixedCommands {
-		if strings.HasPrefix(newArgs[0], v) {
-			return true
-		}
-	}
-	return false
-}
-
-var cfgFile string
-var formatFlag string
-var outputFlag string
-
-var inputFiles []string
-var docTemplate string
 
 // Output format type
 type outputValue string
@@ -179,18 +155,8 @@ func (s *filesValue) writeAsCSV(vals []string) (string, error) {
 }
 
 func addFlags(cmd *cobra.Command) {
-	defaultCfg := os.Getenv("AI_CONFIG")
-	// default: ~/.ai/config.yaml
-	homeDir := util.HomeDir()
-	if defaultCfg == "" {
-		if homeDir != "" {
-			defaultCfg = filepath.Join(homeDir, ".ai", "config.yaml")
-		}
-	}
-
 	flags := cmd.Flags()
 	//
-	flags.StringVar(&cfgFile, "config", defaultCfg, "config file")
 	flags.String("editor", "vi", "Specify editor to use")
 
 	//
@@ -201,7 +167,7 @@ func addFlags(cmd *cobra.Command) {
 	flags.String("message", "", "Specify input message. Overrides all other input methods")
 
 	flags.String("input", "", "Read input message from a file")
-	flags.VarP(newFilesValue([]string{}, &inputFiles), "file", "", `Read input from files.  May be given multiple times to add multiple file content`)
+	flags.VarP(newFilesValue([]string{}, &internal.InputFiles), "file", "", `Read input from files.  May be given multiple times to add multiple file content`)
 	flags.Bool("stdin", false, "Read input from stdin. Alternatively, append '-' to the command")
 	flags.Bool("pb-read", false, "Read input from the clipboard. Alternatively, append '{' to the command")
 	flags.Bool("pb-read-wait", false, "Read input from the clipboard and wait for confirmation. Alternatively, append '{{' to the command")
@@ -209,9 +175,9 @@ func addFlags(cmd *cobra.Command) {
 	// output
 	flags.Bool("pb-write", false, "Copy output to the clipboard. Alternatively, append '}' to the command")
 	flags.Bool("pb-write-append", false, "Append output to the clipboard. Alternatively, append '}}' to the command")
-	flags.StringVarP(&outputFlag, "output", "o", "", "Save final response to a file.")
+	flags.StringVarP(&internal.OutputFlag, "output", "o", "", "Save final response to a file.")
 
-	flags.Var(newOutputValue("markdown", &formatFlag), "format", "Output format, must be text, json, or markdown.")
+	flags.Var(newOutputValue("markdown", &internal.FormatFlag), "format", "Output format, must be text, json, or markdown.")
 
 	// mcp
 	flags.String("mcp-server-url", "http://localhost:58080/sse", "MCP server URL")
@@ -278,7 +244,7 @@ func addFlags(cmd *cobra.Command) {
 	flags.String("sql-db-name", "", "Database name")
 
 	// doc
-	flags.VarP(newTemplateValue("", &docTemplate), "template", "", "Document template file")
+	flags.VarP(newTemplateValue("", &internal.TemplateFile), "template", "", "Document template file")
 
 	// hide flags
 	flags.MarkHidden("editor")
@@ -321,207 +287,4 @@ func addFlags(cmd *cobra.Command) {
 	viper.SetEnvPrefix("ai")
 	viper.BindEnv("api-key", "AI_API_KEY", "OPENAI_API_KEY")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
-
-	//
-	rootCmd.CompletionOptions.DisableDefaultCmd = true
-	rootCmd.SetUsageTemplate(rootUsageTemplate)
-}
-
-func getCurrentUser() string {
-	currentUser, err := user.Current()
-	if err != nil {
-		return "ME"
-	}
-	return strings.ToUpper(currentUser.Username)
-}
-
-func parseConfig(cmd *cobra.Command, args []string) (*internal.AppConfig, error) {
-	var lc internal.LLMConfig
-	var app = internal.AppConfig{
-		LLM:    &lc,
-		Role:   viper.GetString("role"),
-		Prompt: viper.GetString("role_prompt"),
-	}
-
-	app.Me = "👤 " + getCurrentUser()
-	app.Files = inputFiles
-	app.Format = formatFlag
-	app.Output = outputFlag
-	app.ConfigFile = viper.ConfigFileUsed()
-	app.CommandPath = cmd.CommandPath()
-
-	//
-	// roots, err := agent.ListRoots()
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// app.Roots = roots
-
-	//
-	app.Agent = viper.GetString("agent")
-	if app.Agent == "" {
-		app.Agent = "ask"
-	}
-	app.Message = viper.GetString("message")
-	// read input file if message is empty
-	inputFile := viper.GetString("input")
-	if inputFile != "" && app.Message == "" {
-		b, err := os.ReadFile(inputFile)
-		if err != nil {
-			return nil, errors.New("failed to read input file")
-		} else {
-			app.Message = string(b)
-		}
-	}
-	app.Template = docTemplate
-	app.Workspace = viper.GetString("workspace")
-	app.McpServerUrl = viper.GetString("mcp_server_url")
-
-	// LLM config
-	lc.ApiKey = viper.GetString("api_key")
-	lc.Model = viper.GetString("model")
-	lc.BaseUrl = viper.GetString("base_url")
-
-	lc.L1Model = viper.GetString("l1_model")
-	lc.L1BaseUrl = viper.GetString("l1_base_url")
-	lc.L1ApiKey = viper.GetString("l1_api_key")
-	lc.L2Model = viper.GetString("l2_model")
-	lc.L2BaseUrl = viper.GetString("l2_base_url")
-	lc.L2ApiKey = viper.GetString("l2_api_key")
-	lc.L3Model = viper.GetString("l3_model")
-	lc.L3BaseUrl = viper.GetString("l3_base_url")
-	lc.L3ApiKey = viper.GetString("l3_api_key")
-	if lc.L1Model == "" {
-		lc.L1Model = lc.Model
-	}
-	if lc.L2Model == "" {
-		lc.L2Model = lc.Model
-	}
-	if lc.L3Model == "" {
-		lc.L3Model = lc.Model
-	}
-	if lc.L1ApiKey == "" {
-		lc.L1ApiKey = lc.ApiKey
-	}
-	if lc.L2ApiKey == "" {
-		lc.L2ApiKey = lc.ApiKey
-	}
-	if lc.L3ApiKey == "" {
-		lc.L3ApiKey = lc.ApiKey
-	}
-	if lc.L1BaseUrl == "" {
-		lc.L1BaseUrl = lc.BaseUrl
-	}
-	if lc.L2BaseUrl == "" {
-		lc.L2BaseUrl = lc.BaseUrl
-	}
-	if lc.L3BaseUrl == "" {
-		lc.L3BaseUrl = lc.BaseUrl
-	}
-	lc.ImageModel = viper.GetString("image_model")
-	lc.ImageBaseUrl = viper.GetString("image_base_url")
-	lc.ImageApiKey = viper.GetString("image_api_key")
-
-	//
-	app.Debug = viper.GetBool("verbose")
-	app.Editor = viper.GetString("editor")
-	app.Interactive = viper.GetBool("interactive")
-	noMeta := viper.GetBool("no_meta_prompt")
-	app.MetaPrompt = !noMeta
-
-	app.MaxTurns = viper.GetInt("max_turns")
-	app.MaxTime = viper.GetInt("max_time")
-
-	// special char sequence handling
-	var stdin = viper.GetBool("stdin")
-	var pbRead = viper.GetBool("pb_read")
-	var pbReadWait = viper.GetBool("pb_read_wait")
-	var pbWrite = viper.GetBool("pb_write")
-	var pbWriteAppend = viper.GetBool("pb_write_append")
-	var isStdin, isClipin, isClipWait, isClipout, isClipAppend bool
-
-	newArgs := args
-
-	// parse special char sequence for stdin/clipboard: - = =+
-	if len(args) > 0 {
-		for i := len(args) - 1; i >= 0; i-- {
-			lastArg := args[i]
-
-			if lastArg == agent.StdinRedirect {
-				isStdin = true
-			} else if lastArg == agent.ClipinRedirect {
-				isClipin = true
-			} else if lastArg == agent.ClipinRedirect2 {
-				isClipin = true
-				isClipWait = true
-			} else if lastArg == agent.ClipoutRedirect {
-				isClipout = true
-			} else if lastArg == agent.ClipoutRedirect2 {
-				isClipout = true
-				isClipAppend = true
-			} else {
-				// check for suffix for cases where the special char is not the last arg
-				// but is part of the last arg
-				if strings.HasSuffix(lastArg, agent.StdinRedirect) {
-					isStdin = true
-					args[i] = strings.TrimSuffix(lastArg, agent.StdinRedirect)
-				} else if strings.HasSuffix(lastArg, agent.ClipinRedirect) {
-					isClipin = true
-					args[i] = strings.TrimSuffix(lastArg, agent.ClipinRedirect)
-				} else if strings.HasSuffix(lastArg, agent.ClipinRedirect2) {
-					isClipin = true
-					isClipWait = true
-					args[i] = strings.TrimSuffix(lastArg, agent.ClipinRedirect2)
-				} else if strings.HasSuffix(lastArg, agent.ClipoutRedirect) {
-					isClipout = true
-					args[i] = strings.TrimSuffix(lastArg, agent.ClipoutRedirect)
-				} else if strings.HasSuffix(lastArg, agent.ClipoutRedirect2) {
-					isClipout = true
-					isClipAppend = true
-					args[i] = strings.TrimSuffix(lastArg, agent.ClipoutRedirect2)
-				}
-				newArgs = args[:i+1]
-				break
-			}
-		}
-	}
-
-	isPiped := func() bool {
-		stat, _ := os.Stdin.Stat()
-		return (stat.Mode() & os.ModeCharDevice) == 0
-	}
-
-	app.IsPiped = isPiped()
-	app.Stdin = isStdin || stdin
-	app.Clipin = isClipin || pbRead || pbReadWait
-	app.ClipWait = isClipWait || pbReadWait
-	app.Clipout = isClipout || pbWrite || pbWriteAppend
-	app.ClipAppend = isClipAppend || pbWriteAppend
-
-	// command and args
-	if len(newArgs) > 0 {
-		if validSub(newArgs) {
-			app.Command = newArgs[0]
-			if len(newArgs) > 1 {
-				app.Args = newArgs[1:]
-			}
-		} else {
-			app.Command = ""
-			app.Args = newArgs
-		}
-	}
-
-	// sql db
-	dbCfg := &internal.DBConfig{}
-	dbCfg.Host = viper.GetString("sql.db_host")
-	dbCfg.Port = viper.GetString("sql.db_port")
-	dbCfg.Username = viper.GetString("sql.db_username")
-	dbCfg.Password = viper.GetString("sql.db_password")
-	dbCfg.DBName = viper.GetString("sql.db_name")
-	app.Db = dbCfg
-	//
-	gitConfig := &internal.GitConfig{}
-	app.Git = gitConfig
-
-	return &app, nil
 }

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/qiangli/ai/internal/api"
-	"github.com/qiangli/ai/internal/swarm/vfs"
+	// "github.com/qiangli/ai/internal/swarm/vfs"
 )
 
 type UserInput = api.UserInput
@@ -21,34 +21,37 @@ const (
 )
 
 type Vars struct {
-	OS        string
-	Arch      string
-	ShellInfo map[string]string
-	OSInfo    map[string]string
+	OS        string            `json:"os"`
+	Arch      string            `json:"arch"`
+	ShellInfo map[string]string `json:"shell_info"`
+	OSInfo    map[string]string `json:"os_info"`
 
-	UserInfo map[string]string
+	UserInfo map[string]string `json:"user_info"`
 
-	Workspace string
-	WorkDir   string
-	Env       string
+	Workspace string `json:"workspace"`
+	WorkDir   string `json:"workdir"`
+
+	// EnvType indicates the environment type where the agent is running
+	// It can be "container" for Docker containers or "host" for the host machine
+	EnvType string `json:"env_type"`
 
 	DBCred *DBCred
 
-	Roots []string
+	Roots []string `json:"roots"`
 
 	// per agent
-	Extra map[string]any
+	Extra map[string]any `json:"extra"`
 
-	Models map[api.Level]*Model
+	Models map[api.Level]*Model `json:"models"`
+
+	McpServerUrl string `json:"mcp_server_url"`
 
 	//
-	FS            vfs.FileSystem
-	McpServerTool *McpServerTool
-	ToolMap       map[string]*ToolFunc
-	FuncRegistry  map[string]Function
+	// FS            vfs.FileSystem
+	// McpServerTool *McpServerTool
 
-	// Functions map[string]*ToolFunc
-	// FuncRegistry map[string]Function
+	ToolRegistry map[string]*ToolFunc `json:"tool_registry"`
+	FuncRegistry map[string]Function  `json:"func_registry"`
 }
 
 func NewVars() *Vars {

@@ -27,6 +27,8 @@ type CommandCheck struct {
 
 // evaluateCommand consults LLM to evaluate the safety of a command
 func evaluateCommand(ctx context.Context, vars *Vars, command string, args []string) (bool, error) {
+	log.Infof("🔒 checking %s %+v\n", command, args)
+
 	instruction, err := applyTemplate(shellSecuritySystemRole, vars, nil)
 	if err != nil {
 		return false, err
@@ -41,7 +43,7 @@ func evaluateCommand(ctx context.Context, vars *Vars, command string, args []str
 
 	runTool := func(ctx context.Context, name string, args map[string]any) (*Result, error) {
 		log.Debugf("run tool: %s %+v\n", name, args)
-		out, err := EvalTool(ctx, vars, name, args)
+		out, err := vars.CallTool(ctx, name, args)
 		return out, err
 	}
 
@@ -84,6 +86,12 @@ func evaluateCommand(ctx context.Context, vars *Vars, command string, args []str
 	var check CommandCheck
 	if err := json.Unmarshal([]byte(resp.Content), &check); err != nil {
 		return false, fmt.Errorf("%s %s: %s, %s", command, strings.Join(args, " "), permissionDenied, resp.Content)
+	}
+
+	if check.Safe {
+		log.Infof("✅ safe\n")
+	} else {
+		log.Errorf("❌ unsafe\n")
 	}
 
 	log.Debugf("evaluateCommand:\n%+v\n", check)

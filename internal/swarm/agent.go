@@ -12,10 +12,10 @@ import (
 
 const transferAgentName = "agent_transfer"
 const (
-	ToolLabelSystem = "system"
-	ToolLabelMcp    = "mcp"
-	ToolLabelAgent  = "agent"
-	ToolLabelFunc   = "func"
+	ToolTypeSystem = "system"
+	ToolTypeMcp    = "mcp"
+	ToolTypeAgent  = "agent"
+	ToolTypeFunc   = "func"
 )
 
 type Agent struct {
@@ -170,7 +170,7 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 
 	runTool := func(ctx context.Context, name string, args map[string]any) (*Result, error) {
 		log.Debugf("run tool: %s %+v\n", name, args)
-		return CallTool(ctx, r.sw.Vars, name, args)
+		return r.sw.Vars.CallTool(ctx, name, args)
 	}
 
 	result, err := llm.Send(ctx, &api.Request{

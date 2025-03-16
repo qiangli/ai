@@ -33,12 +33,12 @@ func init() {
 		}
 
 		fn := &api.ToolFunc{
-			Label:       "agent",
-			Service:     service,
-			Func:        toolName,
+			Type:        swarm.ToolTypeAgent,
+			Tool:        service,
+			Name:        toolName,
 			Description: v.Description,
 		}
-		agentToolMap[fn.Name()] = fn
+		agentToolMap[fn.ID()] = fn
 	}
 }
 
@@ -69,9 +69,9 @@ func RunSwarm(cfg *internal.AppConfig, input *api.UserInput) error {
 		return err
 	}
 	for _, v := range tools {
-		toolMap[v.Name()] = v
+		toolMap[v.ID()] = v
 	}
-	sw.Vars.ToolMap = toolMap
+	sw.Vars.ToolRegistry = toolMap
 
 	showInput(cfg, input)
 
@@ -127,8 +127,69 @@ func processOutput(cfg *internal.AppConfig, message *api.Output) {
 func ListAgentTools() ([]*api.ToolFunc, error) {
 	tools := make([]*api.ToolFunc, 0)
 	for _, v := range agentToolMap {
-		v.Label = "agent"
+		v.Type = "agent"
 		tools = append(tools, v)
 	}
 	return tools, nil
+}
+
+// ListTools returns a list of all available tools, including agent, mcp, system, and function tools.
+// This is for CLI
+func listTools(mcpServerUrl string) ([]*swarm.ToolFunc, error) {
+	list := []*swarm.ToolFunc{}
+
+	// agent tools
+	agentTools, err := ListAgentTools()
+	if err != nil {
+		return nil, err
+	}
+	list = append(list, agentTools...)
+
+	// mcp tools
+	mcpTools, err := swarm.ListMcpTools(mcpServerUrl)
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range mcpTools {
+		list = append(list, v...)
+	}
+
+	// system tools
+	sysTools, err := swarm.ListSystemTools()
+	if err != nil {
+		return nil, err
+	}
+	list = append(list, sysTools...)
+
+	// function tools
+	funcTools, err := ListFuncTools()
+	if err != nil {
+		return nil, err
+	}
+	list = append(list, funcTools...)
+
+	return list, nil
+}
+
+// ListTools returns a list of all available tools for exporting (mcp and system tools).
+func ListServiceTools(mcpServerUrl string) ([]*swarm.ToolFunc, error) {
+	list := []*swarm.ToolFunc{}
+
+	// mcp tools
+	mcpTools, err := swarm.ListMcpTools(mcpServerUrl)
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range mcpTools {
+		list = append(list, v...)
+	}
+
+	// system tools
+	sysTools, err := swarm.ListSystemTools()
+	if err != nil {
+		return nil, err
+	}
+	list = append(list, sysTools...)
+
+	return list, nil
 }

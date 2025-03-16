@@ -19,16 +19,16 @@ type FileSystem interface {
 	WriteFile(string, []byte) error
 }
 
-const (
-	ListRootsToolName       = "list_roots"
-	ListDirectoryToolName   = "list_directory"
-	CreateDirectoryToolName = "create_directory"
-	RenameFileToolName      = "rename_file"
-	GetFileInfoToolName     = "get_file_info"
-	ReadFileToolName        = "read_file"
-	WriteFileToolName       = "write_file"
-	// TempDirToolName         = "temp_dir"
-)
+// const (
+// 	ListRootsToolName       = "list_roots"
+// 	ListDirectoryToolName   = "list_directory"
+// 	CreateDirectoryToolName = "create_directory"
+// 	RenameFileToolName      = "rename_file"
+// 	GetFileInfoToolName     = "get_file_info"
+// 	ReadFileToolName        = "read_file"
+// 	WriteFileToolName       = "write_file"
+// 	// TempDirToolName         = "temp_dir"
+// )
 
 type FileInfo struct {
 	IsDirectory bool `json:"isDirectory"`
@@ -59,35 +59,10 @@ type VirtualFS struct {
 	// roots []string
 }
 
-func NewVFS() (*VirtualFS, error) {
-	// normalized := make([]string, 0, len(roots))
-	// for _, dir := range roots {
-	// 	abs, err := filepath.Abs(dir)
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("failed to resolve path %s: %w", dir, err)
-	// 	}
-
-	// 	info, err := os.Stat(abs)
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf(
-	// 			"failed to access directory %s: %w",
-	// 			abs,
-	// 			err,
-	// 		)
-	// 	}
-	// 	if !info.IsDir() {
-	// 		return nil, fmt.Errorf("path is not a directory: %s", abs)
-	// 	}
-
-	// 	normalized = append(normalized, filepath.Clean(abs))
-	// }
-
-	s := &VirtualFS{
-		// roots: normalized,
-	}
-
-	return s, nil
-}
+// func NewVFS() (*VirtualFS) {
+// 	s := &VirtualFS{}
+// 	return s
+// }
 
 func (s *VirtualFS) ListDirectory(path string) ([]string, error) {
 	validPath, err := s.validatePath(path)

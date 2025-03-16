@@ -27,16 +27,16 @@ type System interface {
 	Uname() (string, string)
 }
 
-const (
-	ListCommandsToolName = "list_commands"
-	WhichToolName        = "which"
-	ManToolName          = "man"
-	ExecToolName         = "exec"
-	CdToolName           = "cd"
-	PwdToolName          = "pwd"
-	EnvToolName          = "env"
-	UnameToolName        = "uname"
-)
+// const (
+// 	ListCommandsToolName = "list_commands"
+// 	WhichToolName        = "which"
+// 	ManToolName          = "man"
+// 	ExecToolName         = "exec"
+// 	CdToolName           = "cd"
+// 	PwdToolName          = "pwd"
+// 	EnvToolName          = "env"
+// 	UnameToolName        = "uname"
+// )
 
 type VirtualSystem struct {
 }

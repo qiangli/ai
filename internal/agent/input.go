@@ -15,25 +15,7 @@ import (
 
 const clipMaxLen = 500
 
-const StdinRedirect = "-"
-
 type ClipboardProvider = util.ClipboardProvider
-
-// clipboard redirection
-const (
-	// read from clipboard
-	ClipinRedirect = "{"
-
-	// read from clipboard and wait, allowing multiple copy
-	// until Ctrl-D is entered
-	ClipinRedirect2 = "{{"
-
-	// write to clipboard, overwriting its content
-	ClipoutRedirect = "}"
-
-	// append to clipboard
-	ClipoutRedirect2 = "}}"
-)
 
 type EditorProvider interface {
 	Launch() (string, error)
@@ -234,10 +216,10 @@ func trimInputMessage(s string) string {
 	for {
 		old := msg
 
-		msg = strings.TrimSuffix(msg, ClipoutRedirect2)
-		msg = strings.TrimSuffix(msg, ClipinRedirect2)
-		msg = strings.TrimSuffix(msg, ClipoutRedirect)
-		msg = strings.TrimSuffix(msg, ClipinRedirect)
+		msg = strings.TrimSuffix(msg, internal.ClipoutRedirect2)
+		msg = strings.TrimSuffix(msg, internal.ClipinRedirect2)
+		msg = strings.TrimSuffix(msg, internal.ClipoutRedirect)
+		msg = strings.TrimSuffix(msg, internal.ClipinRedirect)
 
 		// If no markers were removed, exit the loop
 		if msg == old {

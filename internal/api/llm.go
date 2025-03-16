@@ -63,28 +63,37 @@ type Message struct {
 	Sender string
 }
 
-// Descriptor is a description of a tool function.
-type Descriptor struct {
+// ToolDescriptor is a description of a tool function.
+type ToolDescriptor struct {
 	Name        string
 	Description string
 	Parameters  map[string]any
 }
 
 type ToolFunc struct {
-	Label string
+	// ToolDescriptor
+
+	// Label string
+	Type string
 
 	// Agent name
 	// MCP server name
-	// Virtual system name
-	Service string
+	// Virtual file system name
+	// Container name
+	// Virtual machine name
+	Tool string
 
-	Func        string
+	// Func string
+
+	Name        string
 	Description string
 	Parameters  map[string]any
 }
 
-func (r *ToolFunc) Name() string {
-	return fmt.Sprintf("%s__%s", r.Service, r.Func)
+// ID returns a unique identifier for the tool function,
+// combining the tool name and function name.
+func (r *ToolFunc) ID() string {
+	return fmt.Sprintf("%s__%s", r.Tool, r.Name)
 }
 
 type Response struct {

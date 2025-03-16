@@ -14,17 +14,41 @@ import (
 var _os vos.System = &vos.VirtualSystem{}
 var _exec = _os
 
+var _fs vfs.FileSystem = &vfs.VirtualFS{}
+
+const (
+	ListCommandsToolName = "list_commands"
+	WhichToolName        = "which"
+	ManToolName          = "man"
+	ExecToolName         = "exec"
+	CdToolName           = "cd"
+	PwdToolName          = "pwd"
+	EnvToolName          = "env"
+	UnameToolName        = "uname"
+)
+
+const (
+	ListRootsToolName       = "list_roots"
+	ListDirectoryToolName   = "list_directory"
+	CreateDirectoryToolName = "create_directory"
+	RenameFileToolName      = "rename_file"
+	GetFileInfoToolName     = "get_file_info"
+	ReadFileToolName        = "read_file"
+	WriteFileToolName       = "write_file"
+	// TempDirToolName         = "temp_dir"
+)
+
 var FSDescriptors = map[string]*Descriptor{
-	// vfs.ListRootsToolName: {
-	// 	Name:        vfs.ListRootsToolName,
+	// ListRootsToolName: {
+	// 	Name:        ListRootsToolName,
 	// 	Description: "Returns the list of directories that this server is allowed to access.",
 	// 	Parameters: map[string]any{
 	// 		"type":       "object",
 	// 		"properties": map[string]any{},
 	// 	},
 	// },
-	vfs.ListDirectoryToolName: {
-		Name:        vfs.ListDirectoryToolName,
+	ListDirectoryToolName: {
+		Name:        ListDirectoryToolName,
 		Description: "Get a detailed listing of all files and directories in a specified path.",
 		Parameters: map[string]any{
 			"type": "object",
@@ -37,8 +61,8 @@ var FSDescriptors = map[string]*Descriptor{
 			"required": []string{"path"},
 		},
 	},
-	vfs.CreateDirectoryToolName: {
-		Name:        vfs.CreateDirectoryToolName,
+	CreateDirectoryToolName: {
+		Name:        CreateDirectoryToolName,
 		Description: "Create a new directory or ensure a directory exists.",
 		Parameters: map[string]any{
 			"type": "object",
@@ -51,8 +75,8 @@ var FSDescriptors = map[string]*Descriptor{
 			"required": []string{"path"},
 		},
 	},
-	vfs.RenameFileToolName: {
-		Name:        vfs.RenameFileToolName,
+	RenameFileToolName: {
+		Name:        RenameFileToolName,
 		Description: "Rename files and directories.",
 		Parameters: map[string]any{
 			"type": "object",
@@ -69,8 +93,8 @@ var FSDescriptors = map[string]*Descriptor{
 			"required": []string{"source", "destination"},
 		},
 	},
-	vfs.GetFileInfoToolName: {
-		Name:        vfs.GetFileInfoToolName,
+	GetFileInfoToolName: {
+		Name:        GetFileInfoToolName,
 		Description: "Retrieve detailed metadata about a file or directory.",
 		Parameters: map[string]any{
 			"type": "object",
@@ -83,8 +107,8 @@ var FSDescriptors = map[string]*Descriptor{
 			"required": []string{"path"},
 		},
 	},
-	vfs.ReadFileToolName: {
-		Name:        vfs.ReadFileToolName,
+	ReadFileToolName: {
+		Name:        ReadFileToolName,
 		Description: "Read the complete contents of a file from the file system.",
 		Parameters: map[string]any{
 			"type": "object",
@@ -97,8 +121,8 @@ var FSDescriptors = map[string]*Descriptor{
 			"required": []string{"path"},
 		},
 	},
-	vfs.WriteFileToolName: {
-		Name:        vfs.WriteFileToolName,
+	WriteFileToolName: {
+		Name:        WriteFileToolName,
 		Description: "Create a new file or overwrite an existing file with new content.",
 		Parameters: map[string]any{
 			"type": "object",
@@ -118,13 +142,13 @@ var FSDescriptors = map[string]*Descriptor{
 }
 
 var OSDescriptors = map[string]*Descriptor{
-	vos.ListCommandsToolName: {
-		Name:        vos.ListCommandsToolName,
+	ListCommandsToolName: {
+		Name:        ListCommandsToolName,
 		Description: "List all available command names on the user's path. Use 'which' to get the full path",
 		Parameters:  map[string]any{},
 	},
-	vos.WhichToolName: {
-		Name:        vos.WhichToolName,
+	WhichToolName: {
+		Name:        WhichToolName,
 		Description: "Locate a program file on the user's path",
 		Parameters: map[string]any{
 			"type": "object",
@@ -140,8 +164,8 @@ var OSDescriptors = map[string]*Descriptor{
 			"required": []string{"commands"},
 		},
 	},
-	vos.ManToolName: {
-		Name:        vos.ManToolName,
+	ManToolName: {
+		Name:        ManToolName,
 		Description: "Find and display online manual documentation page for a command. Not all commands have manual pages",
 		Parameters: map[string]any{
 			"type": "object",
@@ -154,8 +178,8 @@ var OSDescriptors = map[string]*Descriptor{
 			"required": []string{"command"},
 		},
 	},
-	vos.ExecToolName: {
-		Name:        vos.ExecToolName,
+	ExecToolName: {
+		Name:        ExecToolName,
 		Description: "Executes a specified command within the user's environment, allowing optional flags and arguments to be passed via 'args'. Note: some security restrictions may apply.",
 		Parameters: map[string]any{
 			"type": "object",
@@ -173,8 +197,8 @@ var OSDescriptors = map[string]*Descriptor{
 			"required": []string{"command"},
 		},
 	},
-	vos.CdToolName: {
-		Name:        vos.CdToolName,
+	CdToolName: {
+		Name:        CdToolName,
 		Description: "Change the current working directory on user's system",
 		Parameters: map[string]any{
 			"type": "object",
@@ -187,18 +211,18 @@ var OSDescriptors = map[string]*Descriptor{
 			"required": []string{"dir"},
 		},
 	},
-	vos.PwdToolName: {
-		Name:        vos.PwdToolName,
+	PwdToolName: {
+		Name:        PwdToolName,
 		Description: "Print the current working directory on user's system",
 		Parameters:  map[string]any{},
 	},
-	vos.EnvToolName: {
-		Name:        vos.EnvToolName,
+	EnvToolName: {
+		Name:        EnvToolName,
 		Description: "Print environment variables on user's system. Only names are returned for security reasons",
 		Parameters:  map[string]any{},
 	},
-	vos.UnameToolName: {
-		Name:        vos.UnameToolName,
+	UnameToolName: {
+		Name:        UnameToolName,
 		Description: "Display information about the current system's operating system and architecture",
 		Parameters:  map[string]any{},
 	},
@@ -273,9 +297,9 @@ func init() {
 	var tools []*ToolFunc
 	for _, v := range FSDescriptors {
 		tools = append(tools, &ToolFunc{
-			Label:       ToolLabelSystem,
-			Service:     "fs",
-			Func:        v.Name,
+			Type:        ToolTypeSystem,
+			Tool:        "fs",
+			Name:        v.Name,
 			Description: v.Description,
 			Parameters:  v.Parameters,
 		})
@@ -283,9 +307,9 @@ func init() {
 
 	for _, v := range OSDescriptors {
 		tools = append(tools, &ToolFunc{
-			Label:       ToolLabelSystem,
-			Service:     "os",
-			Func:        v.Name,
+			Type:        ToolTypeSystem,
+			Tool:        "os",
+			Name:        v.Name,
 			Description: v.Description,
 			Parameters:  v.Parameters,
 		})
@@ -293,9 +317,9 @@ func init() {
 
 	for _, v := range MiscDescriptors {
 		tools = append(tools, &ToolFunc{
-			Label:       ToolLabelSystem,
-			Service:     "misc",
-			Func:        v.Name,
+			Type:        ToolTypeSystem,
+			Tool:        "misc",
+			Name:        v.Name,
 			Description: v.Description,
 			Parameters:  v.Parameters,
 		})
@@ -304,9 +328,9 @@ func init() {
 	// host tools
 	for _, v := range HostDescriptors {
 		tools = append(tools, &ToolFunc{
-			Label:       ToolLabelSystem,
-			Service:     "host",
-			Func:        v.Name,
+			Type:        ToolTypeSystem,
+			Tool:        "host",
+			Name:        v.Name,
 			Description: v.Description,
 			Parameters:  v.Parameters,
 		})
@@ -327,32 +351,31 @@ func callSystemTool(ctx context.Context, vars *Vars, name string, args map[strin
 		return GetArrayProp(key, args)
 	}
 
-	v, ok := vars.ToolMap[name]
+	v, ok := vars.ToolRegistry[name]
 	if !ok {
 		return "", fmt.Errorf("no such system tool: %s", name)
 	}
 
 	// vfs
-	if v.Service == "fs" {
-		fs := vars.FS
-		switch v.Func {
-		case vfs.ListDirectoryToolName:
+	if v.Tool == "fs" {
+		switch v.Name {
+		case ListDirectoryToolName:
 			path, err := getStr("path")
 			if err != nil {
 				return "", err
 			}
-			list, err := fs.ListDirectory(path)
+			list, err := _fs.ListDirectory(path)
 			if err != nil {
 				return "", err
 			}
 			return strings.Join(list, "\n"), nil
-		case vfs.CreateDirectoryToolName:
+		case CreateDirectoryToolName:
 			path, err := getStr("path")
 			if err != nil {
 				return "", err
 			}
-			return "", fs.CreateDirectory(path)
-		case vfs.RenameFileToolName:
+			return "", _fs.CreateDirectory(path)
+		case RenameFileToolName:
 			source, err := getStr("source")
 			if err != nil {
 				return "", err
@@ -361,31 +384,31 @@ func callSystemTool(ctx context.Context, vars *Vars, name string, args map[strin
 			if err != nil {
 				return "", err
 			}
-			if err := fs.RenameFile(source, dest); err != nil {
+			if err := _fs.RenameFile(source, dest); err != nil {
 				return "", err
 			}
 			return "File renamed successfully", nil
-		case vfs.GetFileInfoToolName:
+		case GetFileInfoToolName:
 			path, err := getStr("path")
 			if err != nil {
 				return "", err
 			}
-			info, err := fs.GetFileInfo(path)
+			info, err := _fs.GetFileInfo(path)
 			if err != nil {
 				return "", err
 			}
 			return info.String(), nil
-		case vfs.ReadFileToolName:
+		case ReadFileToolName:
 			path, err := getStr("path")
 			if err != nil {
 				return "", err
 			}
-			content, err := fs.ReadFile(path)
+			content, err := _fs.ReadFile(path)
 			if err != nil {
 				return "", err
 			}
 			return string(content), nil
-		case vfs.WriteFileToolName:
+		case WriteFileToolName:
 			path, err := getStr("path")
 			if err != nil {
 				return "", err
@@ -394,7 +417,7 @@ func callSystemTool(ctx context.Context, vars *Vars, name string, args map[strin
 			if err != nil {
 				return "", err
 			}
-			if err := fs.WriteFile(path, []byte(content)); err != nil {
+			if err := _fs.WriteFile(path, []byte(content)); err != nil {
 				return "", err
 			}
 			return "File written successfully", nil
@@ -403,27 +426,27 @@ func callSystemTool(ctx context.Context, vars *Vars, name string, args map[strin
 	}
 
 	// vos
-	if v.Service == "os" {
-		switch v.Func {
-		case vos.ListCommandsToolName:
+	if v.Tool == "os" {
+		switch v.Name {
+		case ListCommandsToolName:
 			list, err := _os.ListCommands()
 			if err != nil {
 				return "", err
 			}
 			return strings.Join(list, "\n"), nil
-		case vos.WhichToolName:
+		case WhichToolName:
 			commands, err := getArray("commands")
 			if err != nil {
 				return "", err
 			}
 			return _os.Which(commands)
-		case vos.ManToolName:
+		case ManToolName:
 			command, err := getStr("command")
 			if err != nil {
 				return "", err
 			}
 			return _os.Man(command)
-		case vos.ExecToolName:
+		case ExecToolName:
 			command, err := getStr("command")
 			if err != nil {
 				return "", err
@@ -433,17 +456,17 @@ func callSystemTool(ctx context.Context, vars *Vars, name string, args map[strin
 				return "", err
 			}
 			return runRestricted(ctx, vars, command, args)
-		case vos.CdToolName:
+		case CdToolName:
 			dir, err := getStr("dir")
 			if err != nil {
 				return "", err
 			}
 			return "", _os.Chdir(dir)
-		case vos.PwdToolName:
+		case PwdToolName:
 			return workDir()
-		case vos.EnvToolName:
+		case EnvToolName:
 			return _os.Env(), nil
-		case vos.UnameToolName:
+		case UnameToolName:
 			as, arch := _os.Uname()
 			return fmt.Sprintf("OS: %s\nArch: %s", as, arch), nil
 		}
@@ -451,8 +474,8 @@ func callSystemTool(ctx context.Context, vars *Vars, name string, args map[strin
 	}
 
 	// host
-	if v.Service == "host" {
-		switch v.Func {
+	if v.Tool == "host" {
+		switch v.Name {
 		case HostHomeDirToolName:
 			return homeDir()
 		case HostTempDirToolName:
@@ -466,8 +489,8 @@ func callSystemTool(ctx context.Context, vars *Vars, name string, args map[strin
 	}
 
 	// misc
-	if v.Service == "misc" {
-		switch v.Func {
+	if v.Tool == "misc" {
+		switch v.Name {
 		case ReadStdinToolName:
 			return readStdin()
 		case PasteFromClipboardToolName:

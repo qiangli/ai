@@ -9,7 +9,7 @@ import (
 
 	"github.com/mark3labs/mcp-go/client"
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/tailscale/hujson"
+	// "github.com/tailscale/hujson"
 
 	"github.com/qiangli/ai/internal/log"
 )
@@ -34,26 +34,26 @@ func NewMcpConfig(serverUrl string) *McpConfig {
 	}
 }
 
-func (c *McpConfig) LoadFile(filename string) error {
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		return err
-	}
-	return c.Load(data)
-}
+// func (c *McpConfig) LoadFile(filename string) error {
+// 	data, err := os.ReadFile(filename)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return c.Load(data)
+// }
 
-func (c *McpConfig) Load(data []byte) error {
-	hu, err := hujson.Standardize(data)
-	if err != nil {
-		return err
-	}
-	ex := expandWithDefault(string(hu))
-	err = json.Unmarshal([]byte(ex), &c)
-	if err != nil {
-		return fmt.Errorf("unmarshal mcp config: %v", err)
-	}
-	return nil
-}
+// func (c *McpConfig) Load(data []byte) error {
+// 	hu, err := hujson.Standardize(data)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	ex := expandWithDefault(string(hu))
+// 	err = json.Unmarshal([]byte(ex), &c)
+// 	if err != nil {
+// 		return fmt.Errorf("unmarshal mcp config: %v", err)
+// 	}
+// 	return nil
+// }
 
 type MCPClient interface {
 	ListTools(context.Context, mcp.ListToolsRequest) (*mcp.ListToolsResult, error)
@@ -142,9 +142,9 @@ func (r *McpClientSession) ListTools(ctx context.Context) ([]*ToolFunc, error) {
 			return nil, fmt.Errorf("invalid tool name: %s", v.Name)
 		}
 		funcs = append(funcs, &ToolFunc{
-			Label:       ToolLabelMcp,
-			Service:     parts[0],
-			Func:        parts[1],
+			Type:        ToolTypeMcp,
+			Tool:        parts[0],
+			Name:        parts[1],
 			Description: v.Description,
 			Parameters: map[string]any{
 				"type":       v.InputSchema.Type,
@@ -255,7 +255,7 @@ func (r *McpServerTool) ListTools() (map[string][]*ToolFunc, error) {
 			return nil, err
 		}
 		for _, v := range funcs {
-			name := v.Service
+			name := v.Tool
 			funcs, ok := tools[name]
 			if ok {
 				tools[name] = append(funcs, v)
@@ -286,45 +286,21 @@ func (r *McpServerTool) CallTool(ctx context.Context, tool string, args map[stri
 		return "", fmt.Errorf("server url not configured")
 	}
 
-	// ctx := context.Background()
 	client := &McpClientHelper{
 		ProxyUrl: r.Config.ServerUrl,
 	}
-	// sp := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
-	// sp.Suffix = " calling " + tool
-	// sp.Start()
-	// defer sp.Stop()
+
 	return client.CallTool(ctx, tool, args)
 }
 
 func callMcpTool(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
-	v, ok := vars.ToolMap[name]
+	v, ok := vars.ToolRegistry[name]
 	if !ok {
 		return "", fmt.Errorf("no such mcp tool: %s", name)
 	}
-	tool := fmt.Sprintf("%s__%s", v.Service, v.Func)
-	out, err := vars.McpServerTool.CallTool(ctx, tool, args)
-	// TODO investigate why the result needs to be parsed
-	// the server implementation returns a valid JSON object, but the client
-	// seems not to parse it correctly
-	// if err != nil {
-	// 	log.Errorf("call mcp tool %s: %v", tool, err)
-	// 	return "", err
-	// }
-	// var result map[string]string
-	// if err := json.Unmarshal([]byte(out), &result); err != nil {
-	// 	log.Errorf("unmarshal mcp tool result: %v", err)
-	// 	return "", err
-	// }
-	// if text, ok := result["text"]; ok {
-	// 	if strings.HasPrefix(text, "Echo:") {
-	// 		str := strings.TrimPrefix(text, "Echo:")
-	// 		if err := json.Unmarshal([]byte(str), &result); err == nil {
-	// 			if str, ok := result["text"]; ok {
-	// 				return str, nil
-	// 			}
-	// 		}
-	// 	}
-	// }
+
+	server := NewMcpServerTool(vars.McpServerUrl)
+
+	out, err := server.CallTool(ctx, v.ID(), args)
 	return out, err
 }

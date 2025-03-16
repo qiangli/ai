@@ -1,84 +1,33 @@
 package main
 
 import (
-	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/qiangli/ai/cmd/agent"
+	"github.com/qiangli/ai/cmd/mcp"
+	"github.com/qiangli/ai/cmd/setup"
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/agent"
+	help "github.com/qiangli/ai/internal/agent"
 	"github.com/qiangli/ai/internal/log"
 )
 
-func Run(cmd *cobra.Command, args []string) error {
-	setLogLevel()
-
-	fileLog, err := setLogOutput()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if fileLog != nil {
-			fileLog.Close()
-		}
-	}()
-
-	cfg, err := parseConfig(cmd, args)
-	if err != nil {
-		return err
-	}
-
-	log.Debugf("Config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.Db)
-
-	// interactive mode
-	// $ ai -i or $ ai --interactive
-	// TODO: implement interactive mode
-	if cfg.Interactive {
-		// return shell.Bash(cfg)
-		return fmt.Errorf("interactive mode not implemented yet")
-	}
-
-	// $ ai
-	if cfg.Command == "" && len(cfg.Args) == 0 && cfg.Message == "" {
-		if !cfg.IsPiped && !cfg.Stdin {
-			return cmd.Help()
-		}
-	}
-
-	// special commands
-	// $ ai setup
-	// $ ai help info|commands|agents|tools
-	switch cfg.Command {
-	case "/setup":
-		return agent.Setup(cfg)
-	case "/help":
-		return Help(cfg, cmd)
-	}
-
-	if err := agent.HandleCommand(cfg); err != nil {
-		log.Errorln(err)
-	}
-
-	return nil
-}
-
-var rootCmd = &cobra.Command{
-	Use:   "ai [OPTIONS] AGENT [message...]",
-	Short: "AI command line tool",
-	Long: `AI Command Line Tool
-
-	`,
+var RootCmd = &cobra.Command{
+	Use:     "ai [OPTIONS] AGENT [message...]",
+	Short:   "AI command line tool",
 	Example: usageExample,
+	Args:    cobra.ArbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return Run(cmd, args)
+		return Help(cmd)
 	},
 }
 
 func initConfig() {
-	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
+	if internal.ConfigFile != "" {
+		viper.SetConfigFile(internal.ConfigFile)
 	} else {
 		home, err := os.UserHomeDir()
 		if err != nil {
@@ -91,46 +40,117 @@ func initConfig() {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Printf("Error reading config file: %s\n", err)
-	}
-}
-
-func setLogLevel() {
-	quiet := viper.GetBool("quiet")
-	if quiet {
-		log.SetLogLevel(log.Quiet)
-		return
-	}
-	debug := viper.GetBool("verbose")
-	if debug {
-		log.SetLogLevel(log.Verbose)
-	}
-
-	// trace
-	log.Trace = viper.GetBool("trace")
-}
-
-func setLogOutput() (*log.FileWriter, error) {
-	pathname := viper.GetString("log")
-	if pathname != "" {
-		f, err := log.NewFileWriter(pathname)
-		if err != nil {
-			return nil, err
-		}
-		log.SetLogOutput(f)
-		return f, nil
-	}
-	return nil, nil
-}
-
-func main() {
-	cobra.OnInitialize(initConfig)
-
-	if err := rootCmd.Execute(); err != nil {
-		internal.Exit(err)
+		log.Printf("Error reading config file: %s\n", err)
 	}
 }
 
 func init() {
-	addFlags(rootCmd)
+	defaultCfg := os.Getenv("AI_CONFIG")
+	// default: ~/.ai/config.yaml
+	if defaultCfg == "" {
+		home, _ := os.UserHomeDir()
+		if home != "" {
+			defaultCfg = filepath.Join(home, ".ai", "config.yaml")
+		}
+	}
+
+	// add config to all root commands
+	RootCmd.PersistentFlags().StringVar(&internal.ConfigFile, "config", defaultCfg, "config file")
+	agent.AgentCmd.PersistentFlags().StringVar(&internal.ConfigFile, "config", defaultCfg, "config file")
+	mcp.McpCmd.PersistentFlags().StringVar(&internal.ConfigFile, "config", defaultCfg, "config file")
+	setup.SetupCmd.PersistentFlags().StringVar(&internal.ConfigFile, "config", defaultCfg, "config file")
+
+	//
+	RootCmd.Flags().SortFlags = true
+	RootCmd.CompletionOptions.DisableDefaultCmd = true
+	RootCmd.SetHelpTemplate(rootUsageTemplate)
+
+	// usage template for sub commands except for agent
+	mcp.McpCmd.SetUsageTemplate(commandUsageTemplate)
+	setup.SetupCmd.SetUsageTemplate(commandUsageTemplate)
+}
+
+// all commands start with slash "/"; otherwise, it is considered as input message
+func main() {
+	cobra.OnInitialize(initConfig)
+
+	args := os.Args
+
+	// $ ai
+	// if no args and no input, show help - short form
+	if len(args) <= 1 {
+		isPiped := func() bool {
+			stat, _ := os.Stdin.Stat()
+			return (stat.Mode() & os.ModeCharDevice) == 0
+		}
+		if !isPiped() {
+			if err := RootCmd.Help(); err != nil {
+				internal.Exit(err)
+			}
+			return
+		}
+	}
+
+	// built in commands
+	// $ ai /help [agents|commands|tools|info]
+	// $ ai /version
+	// $ ai /mcp
+	// $ ai /setup
+	if len(args) > 1 && args[1][0] == '/' {
+		switch args[1] {
+		case "/help":
+			// help -- long form
+			if err := showHelp(args); err != nil {
+				internal.Exit(err)
+			}
+			return
+		case "/version":
+			log.Printf("AI version %s\n", internal.Version)
+			return
+		case "/mcp":
+			os.Args = os.Args[1:]
+			if err := mcp.McpCmd.Execute(); err != nil {
+				internal.Exit(err)
+			}
+			return
+		case "/setup":
+			os.Args = os.Args[1:]
+			if err := setup.SetupCmd.Execute(); err != nil {
+				internal.Exit(err)
+			}
+			return
+		}
+	}
+
+	// ai [AGENT] [message...]
+	agent.AgentCmd.SetUsageFunc(func(cmd *cobra.Command) error {
+		return Help(cmd)
+	})
+	if err := agent.AgentCmd.Execute(); err != nil {
+		internal.Exit(err)
+	}
+}
+
+func showHelp(args []string) error {
+	cfg, err := internal.ParseConfig(args)
+	if err != nil {
+		return err
+	}
+
+	// ai /help [agents|commands|tools|info]
+	if len(args) > 2 {
+		switch args[2] {
+		case "agents", "agent":
+			return help.HelpAgents(cfg)
+		case "commands", "command":
+			return help.HelpCommands(cfg)
+		case "tools", "tool":
+			return help.HelpTools(cfg)
+		case "info":
+			return help.HelpInfo(cfg)
+		}
+	}
+
+	// ai /help with all supported agent flags
+	return Help(agent.AgentCmd)
 }
