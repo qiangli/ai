@@ -187,13 +187,9 @@ func (r *McpClientSession) CallTool(ctx context.Context, tool string, args map[s
 	if err != nil {
 		return "", err
 	}
-	for _, content := range resp.Content {
-		if textContent, ok := content.(mcp.TextContent); ok {
-			return textContent.Text, nil
-		} else {
-			jsonBytes, _ := json.MarshalIndent(content, "", "  ")
-			return string(jsonBytes), nil
-		}
+	for _, v := range resp.Content {
+		jsonBytes, _ := json.MarshalIndent(v, "", "  ")
+		return string(jsonBytes), nil
 	}
 	return "", nil
 }

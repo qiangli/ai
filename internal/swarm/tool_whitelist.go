@@ -1,5 +1,10 @@
 package swarm
 
+import (
+	"slices"
+	"strings"
+)
+
 // always allowed
 var toolsList = []string{
 	"man",
@@ -25,20 +30,12 @@ var denyList = []string{
 
 var whitelist = append(toolsList, allowList...)
 
-func isAllowed(name string) bool {
-	for _, v := range whitelist {
-		if v == name {
-			return true
-		}
-	}
-	return false
+func isAllowed(command string) bool {
+	name := strings.TrimSpace(strings.SplitN(command, " ", 2)[0])
+	return slices.Contains(whitelist, name)
 }
 
-func isDenied(name string) bool {
-	for _, v := range denyList {
-		if v == name {
-			return true
-		}
-	}
-	return false
+func isDenied(command string) bool {
+	name := strings.TrimSpace(strings.SplitN(command, " ", 2)[0])
+	return slices.Contains(denyList, name)
 }

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"sort"
+	"strings"
 
 	"github.com/qiangli/ai/internal/util"
 )
@@ -74,7 +75,8 @@ func (vs *VirtualSystem) Uname() (string, string) {
 	return util.Uname()
 }
 
-func (vs *VirtualSystem) Man(command string) (string, error) {
+func (vs *VirtualSystem) Man(s string) (string, error) {
+	command := strings.TrimSpace(strings.SplitN(s, " ", 2)[0])
 	manCmd := vs.Command("man", command)
 	var manOutput bytes.Buffer
 

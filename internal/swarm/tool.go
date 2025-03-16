@@ -12,6 +12,20 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
+func EvalTool(ctx context.Context, vars *Vars, name string, args map[string]any) (*Result, error) {
+	log.Infof("🔒 checking %s %+v\n", name, args)
+
+	result, err := dispatchTool(ctx, vars, name, args)
+
+	if err != nil {
+		log.Errorf("❌ unsafe %s\n", err)
+	} else {
+		log.Infof("✅ safe %s\n", head(result.Value, 80))
+	}
+
+	return result, err
+}
+
 func CallTool(ctx context.Context, vars *Vars, name string, args map[string]any) (*Result, error) {
 	log.Infof("✨ %s %+v\n", name, args)
 

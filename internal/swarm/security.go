@@ -41,7 +41,7 @@ func evaluateCommand(ctx context.Context, vars *Vars, command string, args []str
 
 	runTool := func(ctx context.Context, name string, args map[string]any) (*Result, error) {
 		log.Debugf("run tool: %s %+v\n", name, args)
-		out, err := CallTool(ctx, vars, name, args)
+		out, err := EvalTool(ctx, vars, name, args)
 		return out, err
 	}
 
