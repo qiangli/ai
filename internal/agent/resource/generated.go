@@ -275,7 +275,7 @@ var AgentCommandMap = map[string]AgentConfig{
 	"pr": {
 		Name:        "pr",
 		Description: "Enhance PR management with automated summaries, reviews, suggestions, and changelog updates.",
-		Internal:    false,
+		Internal:    true,
 		Data:        pr_agent_yaml_data,
 		Overview:    "The PR agent is a robust tool designed to optimize pull request management by automating several key tasks. It generates detailed and accurate summaries, titles, and labels for PR descriptions, reducing manual effort. With its review functionality, developers receive tailored feedback on potential issues, security vulnerabilities, and the overall review process, ensuring high-quality code. Additionally, it offers code suggestions to improve existing code within the PR. The changelog feature further boosts productivity by automatically updating the CHANGELOG.md file, capturing all relevant changes.",
 	},

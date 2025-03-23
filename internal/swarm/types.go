@@ -92,8 +92,9 @@ type Advice func(*Vars, *Request, *Response, Advice) error
 type Entrypoint func(*Vars, *Agent, *UserInput) error
 
 type Request struct {
-	// The name of the active agent
-	Agent string
+	// The name/command of the active agent
+	Agent   string
+	Command string
 
 	Message *Message
 

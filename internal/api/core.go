@@ -26,6 +26,21 @@ type Result struct {
 
 type State int
 
+func (s State) String() string {
+	switch s {
+	case StateUnknown:
+		return "StateUnknown"
+	case StateExit:
+		return "StateExit"
+	case StateTransfer:
+		return "StateTransfer"
+	case StateInputWait:
+		return "StateInputWait"
+	default:
+		return "Unknown"
+	}
+}
+
 const (
 	StateUnknown State = iota
 

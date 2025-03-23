@@ -75,7 +75,7 @@ type AdviceConfig struct {
 	Around string `yaml:"around"`
 }
 
-func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
+func (r *Swarm) Create(name, command string, input *UserInput) (*Agent, error) {
 	if err := r.Load(name, input); err != nil {
 		return nil, err
 	}
@@ -102,13 +102,22 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 		return nil, fmt.Errorf("no such tool: %s", s)
 	}
 
-	getAgentConfig := func(s string) (*AgentConfig, error) {
+	getAgentConfig := func(n, c string) (*AgentConfig, error) {
+		// check for more specific agent first
+		if c != "" {
+			ap := fmt.Sprintf("%s/%s", n, c)
+			for _, a := range config.Agents {
+				if a.Name == ap {
+					return &a, nil
+				}
+			}
+		}
 		for _, a := range config.Agents {
-			if a.Name == s {
+			if a.Name == n {
 				return &a, nil
 			}
 		}
-		return nil, fmt.Errorf("no such agent: %s", s)
+		return nil, fmt.Errorf("no such agent: %s / %s", n, c)
 	}
 
 	newAgent := func(ac *AgentConfig, vars *Vars) (*Agent, error) {
@@ -159,11 +168,11 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 			// type:*
 			parts := strings.SplitN(f, ":", 2)
 			if len(parts) > 0 {
-				mcpFuncs, err := getTools(parts[0])
+				funcs, err := getTools(parts[0])
 				if err != nil {
 					return nil, err
 				}
-				for _, fn := range mcpFuncs {
+				for _, fn := range funcs {
 					funcMap[fn.ID()] = fn
 				}
 				continue
@@ -177,8 +186,24 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 			funcMap[fn.ID()] = fn
 		}
 
+		// FIXME
+		// 1. better handle this to avoid agent calling self as tools
+		// filter out self
+		// agent/command -> agent__command
+		// agent -> agent__
+		// 2. handle namespace to avoid collision of tool names
+		var id string
+		if strings.Contains(ac.Name, "/") {
+			parts := strings.Split(ac.Name, "/")
+			id = fmt.Sprintf("%s__%s", parts[0], parts[1])
+		} else {
+			id = fmt.Sprintf("%s__", ac.Name)
+		}
 		var funcs []*ToolFunc
 		for _, v := range funcMap {
+			if v.Type == ToolTypeAgent && v.ID() == id {
+				continue
+			}
 			funcs = append(funcs, v)
 		}
 		agent.Tools = funcs
@@ -215,8 +240,8 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 		return &agent, nil
 	}
 
-	creator := func(name string, vars *Vars) (*Agent, error) {
-		agentCfg, err := getAgentConfig(name)
+	creator := func(name, command string, vars *Vars) (*Agent, error) {
+		agentCfg, err := getAgentConfig(name, command)
 		if err != nil {
 			return nil, err
 		}
@@ -224,7 +249,7 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 
 		if len(agentCfg.Dependencies) > 0 {
 			for _, dep := range agentCfg.Dependencies {
-				depCfg, err := getAgentConfig(dep)
+				depCfg, err := getAgentConfig(dep, "")
 				if err != nil {
 					return nil, err
 				}
@@ -244,5 +269,5 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 		return agent, nil
 	}
 
-	return creator(name, r.Vars)
+	return creator(name, command, r.Vars)
 }

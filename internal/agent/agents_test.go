@@ -24,7 +24,7 @@ func TestCreateAgent(t *testing.T) {
 	var name = "script"
 	var input = &swarm.UserInput{}
 
-	agent, err := sw.Create(name, input)
+	agent, err := sw.Create(name, "/", input)
 	if err != nil {
 		t.Fatal(err)
 	}

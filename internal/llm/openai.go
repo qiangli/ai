@@ -168,20 +168,14 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 			log.Debugf("\n\n>>> tool call: %v %s props: %+v\n", i, name, props)
 
 			//
-			// log.Infof("✨ %s %+v\n", name, props)
 			out, err := req.RunTool(ctx, name, props)
 			if err != nil {
-				// log.Errorf("✗ %s\n", err)
-				// inform LLM of the error
 				out = &api.Result{
 					Value: fmt.Sprintf("%s", err),
 				}
 			}
-			// else {
-			// 	log.Infof("✔ %s\n", head(out.Value, 80))
-			// }
 
-			log.Debugf("\n<<< tool call: %s out: %s\n", name, out)
+			log.Debugf("\n<<< tool call: %s out: %+v\n", name, out)
 			resp.Result = out
 
 			if out.State == api.StateExit {

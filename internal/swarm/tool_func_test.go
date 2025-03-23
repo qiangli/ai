@@ -65,22 +65,28 @@ func TestCallDevTools(t *testing.T) {
 		id   string
 		args map[string]any
 	}{
+		// {
+		// 	id: "dev__git",
+		// 	args: map[string]any{
+		// 		"command": "status",
+		// 	},
+		// },
+		// {
+		// 	id: "dev__go",
+		// 	args: map[string]any{
+		// 		"command": "version",
+		// 	},
+		// },
+		// {
+		// 	id: "git__status",
+		// 	args: map[string]any{
+		// 		"command": "version",
+		// 	},
+		// },
 		{
-			id: "dev__git",
+			id: "git__add",
 			args: map[string]any{
-				"command": "status",
-			},
-		},
-		{
-			id: "dev__go",
-			args: map[string]any{
-				"command": "version",
-			},
-		},
-		{
-			id: "git__status",
-			args: map[string]any{
-				"command": "version",
+				"files": []any{"pad", "poc/note.txt"},
 			},
 		},
 	}

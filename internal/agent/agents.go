@@ -46,7 +46,8 @@ var resourceMap = resource.Prompts
 
 func RunSwarm(cfg *internal.AppConfig, input *api.UserInput) error {
 	name := input.Agent
-	log.Debugf("Running agent %q with swarm\n", name)
+	command := input.Command
+	log.Debugf("Running agent %q %s with swarm\n", name, command)
 
 	//
 	sw, err := swarm.NewSwarm(cfg)
@@ -77,6 +78,7 @@ func RunSwarm(cfg *internal.AppConfig, input *api.UserInput) error {
 
 	req := &swarm.Request{
 		Agent:    name,
+		Command:  command,
 		RawInput: input,
 	}
 	resp := &swarm.Response{}

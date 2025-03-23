@@ -201,7 +201,7 @@ func (r *Vars) CallTool(ctx context.Context, name string, args map[string]any) (
 		// log.Infof("❌ %s\n", err)
 		log.Errorf("\033[31m✗\033[0m %s\n", err)
 	} else {
-		log.Infof("✔ %s\n", head(result.Value, 80))
+		log.Infof("✔ %s state: %s agent: %s\n", head(result.Value, 80), result.State, result.NextAgent)
 	}
 
 	return result, err

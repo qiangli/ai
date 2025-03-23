@@ -132,7 +132,6 @@ func InitVars(app *internal.AppConfig) (*Vars, error) {
 }
 
 func (r *Swarm) Load(name string, input *UserInput) error {
-	// check if the agent is already loaded
 	if r.Config != nil && len(r.Config.Agents) > 0 {
 		for _, a := range r.Config.Agents {
 			if a.Name == name {
@@ -184,7 +183,7 @@ func (r *Swarm) Load(name string, input *UserInput) error {
 
 func (r *Swarm) Run(req *Request, resp *Response) error {
 	for {
-		agent, err := r.Create(req.Agent, req.RawInput)
+		agent, err := r.Create(req.Agent, req.Command, req.RawInput)
 		if err != nil {
 			return err
 		}

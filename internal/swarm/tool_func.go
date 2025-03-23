@@ -10,10 +10,22 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
+// Default returns the given value if it's non-nil and non-zero value;
+// otherwise, it returns the default value provided.
+func Default(def, value any) any {
+	v := reflect.ValueOf(value)
+	if !v.IsValid() || reflect.DeepEqual(v.Interface(), reflect.Zero(v.Type()).Interface()) {
+		return def
+	}
+	return value
+}
+
 func callDevTool(ctx context.Context, vars *Vars, f *ToolFunc, args map[string]any) (string, error) {
 	funcMap := map[string]any{
-		"join":  strings.Join,
-		"split": strings.Split,
+		"join":    strings.Join,
+		"split":   strings.Split,
+		"trim":    strings.TrimSpace,
+		"default": Default,
 	}
 
 	runCmd := func(cmd string, args ...any) string {
@@ -32,8 +44,23 @@ func callDevTool(ctx context.Context, vars *Vars, f *ToolFunc, args map[string]a
 						nArgs = append(nArgs, s)
 					}
 				}
+			case []any:
+				for _, item := range v {
+					switch i := item.(type) {
+					case string:
+						i = strings.TrimSpace(i)
+						if i != "" {
+							nArgs = append(nArgs, i)
+						}
+					default:
+						log.Errorf("Unsupported item type in []interface{} for command %s: %T", cmd, i)
+					}
+				}
+			default:
+				log.Errorf("Unsupported argument type for command %s: %T", cmd, v)
 			}
 		}
+		log.Debugf("Running command: %s %+v original: %+v\n", cmd, nArgs, args)
 		result, err := runCommand(cmd, nArgs)
 		if err != nil {
 			return fmt.Sprintf("%s %s: %s", cmd, strings.Join(nArgs, " "), err.Error())
