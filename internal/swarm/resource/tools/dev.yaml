@@ -1,6 +1,20 @@
 ###
 kit: dev
-commands: ["git", "go", "docker", "node", "npm", "yarn", "python", "ag", "rg", "jq"]
+commands:
+  [
+    "ag",
+    "docker",
+    "git",
+    "go",
+    "jq",
+    "kubectl",
+    "node",
+    "npm",
+    "python",
+    "rg",
+    "tsh",
+    "yarn",
+  ]
 
 tools:
   - name: "git"
@@ -156,4 +170,40 @@ tools:
             type: "string"
           description: "options or arguments"
     body: "{{jq .args}}"
+    type: "template"
+
+  - name: "tsh"
+    description: "tsh is the command line client for Teleport, a modern security gateway for remotely accessing clusters of Linux servers via SSH. 'tsh help' for more information."
+    parameters:
+      type: "object"
+      properties:
+        command:
+          type: "string"
+          description: "The tsh command to execute. Try 'tsh help [command]' to get help for a given command."
+        args:
+          type: "string"
+          items:
+            type: "string"
+          description: "options or arguments"
+      required:
+        - command
+    body: "{{tsh .command .args}}"
+    type: "template"
+
+  - name: "kubectl"
+    description: "kubectl is a command line tool for controlling Kubernetes clusters. 'kubectl help' for more information."
+    parameters:
+      type: "object"
+      properties:
+        command:
+          type: "string"
+          description: "The kubectl command to execute. 'kubectl help [command]' for more information about a specific command"
+        args:
+          type: "string"
+          items:
+            type: "string"
+          description: "Additional flags or arguments"
+      required:
+        - command
+    body: "{{kubectl .command .args}}"
     type: "template"
