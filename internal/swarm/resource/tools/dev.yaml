@@ -37,3 +37,122 @@ tools:
         - command
     body: "{{go .command .args}}"
     type: "template"
+
+  - name: "docker"
+    description: "Docker is a set of platform as a service products that use OS-level virtualization to deliver software in packages called containers. 'docker help' for a list of available commands."
+    parameters:
+      type: "object"
+      properties:
+        command:
+          type: "string"
+          description: "The docker command to execute. 'docker help <command>' for more information about a command"
+        args:
+          type: "string"
+          items:
+            type: "string"
+          description: "Additional flags or arguments"
+      required:
+        - command
+    body: "{{docker .command .args}}"
+    type: "template"
+
+  - name: "node"
+    description: "Node.js is a server-side JavaScript runtime. 'node --help' for more information."
+    parameters:
+      type: "object"
+      properties:
+        args:
+          type: "string"
+          items:
+            type: "string"
+          description: "options or arguments"
+    body: "{{node .args}}"
+    type: "template"
+
+  - name: "npm"
+    description: "npm is a package manager for JavaScript. 'npm help' for a list of available commands."
+    parameters:
+      type: "object"
+      properties:
+        command:
+          type: "string"
+          description: "The npm command to execute. 'npm help <command>' for more information about a command"
+        args:
+          type: "string"
+          items:
+            type: "string"
+          description: "Additional flags or arguments"
+      required:
+        - command
+    body: "{{npm .command .args}}"
+    type: "template"
+
+  - name: "yarn"
+    description: "Yarn is a package manager for JavaScript. 'yarn help' for a list of available commands."
+    parameters:
+      type: "object"
+      properties:
+        command:
+          type: "string"
+          description: "The yarn command to execute. 'yarn help COMMAND' for more information on specific commands."
+        args:
+          type: "string"
+          items:
+            type: "string"
+          description: "Additional flags or arguments"
+      required:
+        - command
+    body: "{{yarn .command .args}}"
+    type: "template"
+
+  - name: "python"
+    description: "Python is a programming language that lets you work quickly and integrate systems more effectively. 'python --help' for more information."
+    parameters:
+      type: "object"
+      properties:
+        args:
+          type: "string"
+          items:
+            type: "string"
+          description: "options or arguments"
+    body: "{{python .args}}"
+    type: "template"
+
+  - name: "ag"
+    description: "ag (The Silver Searcher) is a code-searching tool similar to ack, but faster. 'ag --help' for more information."
+    parameters:
+      type: "object"
+      properties:
+        args:
+          type: "string"
+          items:
+            type: "string"
+          description: "options or arguments"
+    body: "{{ag .args}}"
+    type: "template"
+
+  - name: "rg"
+    description: "rg (ripgrep) recursively searches the current directory for lines matching a pattern. 'rg --help' for more information."
+    parameters:
+      type: "object"
+      properties:
+        args:
+          type: "string"
+          items:
+            type: "string"
+          description: "options or arguments"
+    body: "{{rg .args}}"
+    type: "template"
+
+  - name: "jq"
+    description: "jq is a command-line JSON processor. 'jq --help' for more information."
+    parameters:
+      type: "object"
+      properties:
+        args:
+          type: "string"
+          items:
+            type: "string"
+          description: "options or arguments"
+    body: "{{jq .args}}"
+    type: "template"

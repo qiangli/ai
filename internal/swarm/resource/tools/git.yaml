@@ -30,7 +30,7 @@ tools:
           description: "Target branch or commit to diff against"
       required:
         - target
-    body: "{{git diff (default 'HEAD' .target)}}"
+    body: "{{git diff .target}}"
     type: "template"
 
   - name: "commit"
@@ -71,7 +71,7 @@ tools:
           description: "Files to add to staging"
       required:
         - files
-    body: "{{git add (join .files ' ')}}"
+    body: "{{git add .files}}"
     type: "template"
 
   - name: "reset"
@@ -145,4 +145,42 @@ tools:
       required:
         - repo_path
     body: "{{git init .directory}}"
+    type: "template"
+
+  - name: "clone"
+    description: "Clone a repository into a new directory"
+    parameters:
+      type: "object"
+      properties:
+        repo_url:
+          type: "string"
+          description: "URL of the repository to clone"
+        directory:
+          type: "string"
+          description: "Directory where the repository will be cloned"
+      required:
+        - repo_url
+    body: "{{git clone .repo_url (default '.' .directory)}}"
+    type: "template"
+  
+  - name: "pull"
+    description: "Fetch from and integrate with another repository or a local branch"
+    parameters:
+      type: "object"
+      properties:
+        remote:
+          type: "string"
+          description: "Remote repository to pull from"
+        branch:
+          type: "string"
+          description: "Branch to pull from"
+      required:
+        - remote
+    body: "{{git pull .remote (default 'main' .branch)}}"
+    type: "template"
+
+  - name: "stash"
+    description: "Stash the changes in a dirty working directory away"
+    parameters: {}
+    body: "{{git stash}}"
     type: "template"

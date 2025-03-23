@@ -3,8 +3,11 @@ package swarm
 import (
 	"context"
 	"fmt"
+	"os/exec"
 	"reflect"
 	"strings"
+
+	"github.com/qiangli/ai/internal/log"
 )
 
 func callDevTool(ctx context.Context, vars *Vars, f *ToolFunc, args map[string]any) (string, error) {
@@ -41,8 +44,12 @@ func callDevTool(ctx context.Context, vars *Vars, f *ToolFunc, args map[string]a
 		return result
 	}
 
-	devTools := []string{"git", "go", "node", "python", "ag", "rg"}
+	devTools := []string{"git", "go", "docker", "node", "npm", "yarn", "python", "ag", "rg", "jq"}
 	for _, v := range devTools {
+		if _, err := exec.LookPath(v); err != nil {
+			log.Errorf("%s not found in PATH", v)
+			continue
+		}
 		funcMap[v] = func(args ...any) string {
 			return runCmd(v, args...)
 		}

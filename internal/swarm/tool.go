@@ -189,6 +189,11 @@ func dispatchTool(ctx context.Context, vars *Vars, name string, args map[string]
 		return &api.Result{
 			Value: out,
 		}, err
+	case ToolTypeTemplate:
+		out, err := callDevTool(ctx, vars, v, args)
+		return &api.Result{
+			Value: out,
+		}, err
 	case ToolTypeFunc:
 		if fn, ok := vars.FuncRegistry[v.Name]; ok {
 			return fn(ctx, vars, v.Name, args)

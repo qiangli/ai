@@ -11,11 +11,13 @@ import (
 )
 
 const transferAgentName = "agent_transfer"
+
 const (
-	ToolTypeSystem = "system"
-	ToolTypeMcp    = "mcp"
-	ToolTypeAgent  = "agent"
-	ToolTypeFunc   = "func"
+	ToolTypeSystem   = "system"
+	ToolTypeTemplate = "template"
+	ToolTypeMcp      = "mcp"
+	ToolTypeAgent    = "agent"
+	ToolTypeFunc     = "func"
 )
 
 type Agent struct {
