@@ -1,0 +1,98 @@
+###
+kit: "misc"
+
+tools:
+  - name: "read_stdin"
+    description: "Read input from stdin"
+    parameters:
+      type: "object"
+      properties: {}
+      required: []
+    type: "system"
+
+  - name: "paste_from_clipboard"
+    description: "Read input from the clipboard without waiting for user's confirmation"
+    parameters:
+      type: "object"
+      properties: {}
+      required: []
+    type: "system"
+
+  - name: "paste_from_clipboard_wait"
+    description: "Read input from the clipboard and wait for user's confirmation"
+    parameters:
+      type: "object"
+      properties: {}
+      required: []
+    type: "system"
+
+  - name: "write_stdout"
+    description: "Write output to stdout/console"
+    parameters:
+      type: "object"
+      properties:
+        content:
+          type: "string"
+          description: "Content to write to the console"
+      required: ["content"]
+    type: "system"
+  
+  - name: "copy_to_clipboard"
+    description: "Copy content to clipboard and overwrite its original content"
+    parameters:
+      type: "object"
+      properties:
+        content:
+          type: "string"
+          description: "Content to write to the clipboard"
+      required: ["content"]
+    type: "system"
+
+  - name: "copy_to_clipboard_append"
+    description: "Append content to clipboard"
+    parameters:
+      type: "object"
+      properties:
+        content:
+          type: "string"
+          description: "Content to append to the clipboard"
+      required: ["content"]
+    type: "system"
+
+  - name: "get_user_text_input"
+    description: "Get additional text input for clarification"
+    parameters:
+      type: "object"
+      properties:
+        prompt:
+          type: "string"
+          description: "Prompt for input"
+          example: "Please provide more details"
+          maxLength: 100
+          minLength: 1
+      required: ["prompt"]
+    type: "system"
+
+  - name: "get_user_choice_input"
+    description: "Get confirmation or approval"
+    parameters:
+      type: "object"
+      properties:
+        prompt:
+          type: "string"
+          description: "Prompt for input"
+          example: "Please confirm the action"
+          maxLength: 100
+          minLength: 1
+        choices:
+          type: "array"
+          items:
+            type: "string"
+          description: "List of options to choose from"
+          example: ["yes", "no"]
+        default:
+          type: "string"
+          description: "Default choice if none is selected"
+          example: "yes"
+      required: ["prompt", "choices", "default"]
+    type: "system"

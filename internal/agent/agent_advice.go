@@ -49,7 +49,7 @@ func agentLaunchAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Respons
 	}
 
 	//
-	req.RawInput.Subcommand = v.Command
+	req.RawInput.Command = v.Command
 	//
 	resp.Result = &swarm.Result{
 		State:     api.StateTransfer,
@@ -91,7 +91,7 @@ func decodeMetaResponseAdvice(vars *swarm.Vars, _ *swarm.Request, resp *swarm.Re
 func scriptUserInputAdvice(vars *swarm.Vars, req *swarm.Request, _ *swarm.Response, _ swarm.Advice) error {
 	in := req.RawInput
 
-	cmd := in.Subcommand
+	cmd := in.Command
 	if cmd != "" {
 		cmd = filepath.Base(cmd)
 	}
@@ -204,7 +204,7 @@ func prFormatAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, 
 }
 
 func aiderAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
-	return Aider(req.Context(), vars.Models, vars.Workspace, req.RawInput.Subcommand, req.RawInput.Query())
+	return Aider(req.Context(), vars.Models, vars.Workspace, req.RawInput.Command, req.RawInput.Query())
 }
 
 func ohAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
@@ -212,7 +212,7 @@ func ohAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swar
 }
 
 func subAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, next swarm.Advice) error {
-	sub := baseCommand(req.RawInput.Subcommand)
+	sub := baseCommand(req.RawInput.Command)
 	if sub != "" {
 		resp.Result = &swarm.Result{
 			State:     api.StateTransfer,

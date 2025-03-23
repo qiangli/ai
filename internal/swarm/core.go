@@ -30,11 +30,6 @@ type Swarm struct {
 	DryRun        bool
 	DryRunContent string
 
-	// McpServerTool *McpServerTool
-
-	// ToolMap      map[string]*ToolFunc
-	// FuncRegistry map[string]Function
-
 	// map of agent name to the agent configuration data.
 	AgentConfigMap map[string][][]byte
 
@@ -42,9 +37,6 @@ type Swarm struct {
 	AdviceMap       map[string]Advice
 	EntrypointMap   map[string]Entrypoint
 	TemplateFuncMap template.FuncMap
-
-	//
-	// fs vfs.FileSystem
 }
 
 func NewSwarm(app *AppConfig) (*Swarm, error) {
@@ -101,8 +93,6 @@ func InitVars(app *internal.AppConfig) (*Vars, error) {
 	vars := NewVars()
 
 	//
-	// server := NewMcpServerTool(app.McpServerUrl)
-	// vars.McpServerTool = server
 	vars.McpServerUrl = app.McpServerUrl
 
 	//
@@ -137,13 +127,6 @@ func InitVars(app *internal.AppConfig) (*Vars, error) {
 	modelMap[api.L3] = api.Level3(app.LLM)
 	modelMap[api.LImage] = api.ImageModel(app.LLM)
 	vars.Models = modelMap
-
-	//
-	// fs, err := vfs.NewVFS()
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// vars.FS = fs
 
 	return vars, nil
 }

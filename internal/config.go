@@ -32,18 +32,108 @@ const (
 
 var Version = "0.0.1" // version of the ai binary
 
-var prefixedCommands = []string{
-	"/", "@",
+// return the agent/command and the rest of the args
+func parseArgs(app *AppConfig, args []string) []string {
+	agent := viper.GetString("agent")
+	if agent == "" {
+		agent = "ask"
+	}
+	newArgs := make([]string, 0, len(args))
+	for i, arg := range args {
+		if arg[0] == '/' || arg[0] == '@' {
+			if arg[0] == '/' {
+				agent = "script" + arg
+			} else {
+				agent = arg[1:]
+			}
+			newArgs = append(newArgs, args[i+1:]...)
+			break
+		}
+		newArgs = append(newArgs, arg)
+	}
+	tool := strings.SplitN(agent, "/", 2)
+
+	app.Agent = tool[0]
+	if len(tool) > 1 {
+		app.Command = tool[1]
+	}
+
+	return newArgs
 }
 
-// check for valid sub command
-func validSub(newArgs []string) bool {
-	for _, v := range prefixedCommands {
-		if strings.HasPrefix(newArgs[0], v) {
-			return true
+// parse special char sequence for stdin/clipboard: - = =+
+// they can be:
+//
+//	at the end of the args or as a suffix to the last arg
+//	in any order
+//	multiple instances
+func parseSpecialChars(app *AppConfig, args []string) []string {
+	// special char sequence handling
+	var stdin = viper.GetBool("stdin")
+	var pbRead = viper.GetBool("pb_read")
+	var pbReadWait = viper.GetBool("pb_read_wait")
+	var pbWrite = viper.GetBool("pb_write")
+	var pbWriteAppend = viper.GetBool("pb_write_append")
+	var isStdin, isClipin, isClipWait, isClipout, isClipAppend bool
+
+	newArgs := make([]string, len(args))
+
+	if len(args) > 0 {
+		for i := len(args) - 1; i >= 0; i-- {
+			lastArg := args[i]
+
+			if lastArg == StdinRedirect {
+				isStdin = true
+			} else if lastArg == ClipinRedirect {
+				isClipin = true
+			} else if lastArg == ClipinRedirect2 {
+				isClipin = true
+				isClipWait = true
+			} else if lastArg == ClipoutRedirect {
+				isClipout = true
+			} else if lastArg == ClipoutRedirect2 {
+				isClipout = true
+				isClipAppend = true
+			} else {
+				// check for suffix for cases where the special char is not the last arg
+				// but is part of the last arg
+				if strings.HasSuffix(lastArg, StdinRedirect) {
+					isStdin = true
+					args[i] = strings.TrimSuffix(lastArg, StdinRedirect)
+				} else if strings.HasSuffix(lastArg, ClipinRedirect) {
+					isClipin = true
+					args[i] = strings.TrimSuffix(lastArg, ClipinRedirect)
+				} else if strings.HasSuffix(lastArg, ClipinRedirect2) {
+					isClipin = true
+					isClipWait = true
+					args[i] = strings.TrimSuffix(lastArg, ClipinRedirect2)
+				} else if strings.HasSuffix(lastArg, ClipoutRedirect) {
+					isClipout = true
+					args[i] = strings.TrimSuffix(lastArg, ClipoutRedirect)
+				} else if strings.HasSuffix(lastArg, ClipoutRedirect2) {
+					isClipout = true
+					isClipAppend = true
+					args[i] = strings.TrimSuffix(lastArg, ClipoutRedirect2)
+				}
+				newArgs = args[:i+1]
+				break
+			}
 		}
 	}
-	return false
+
+	isPiped := func() bool {
+		stat, _ := os.Stdin.Stat()
+		return (stat.Mode() & os.ModeCharDevice) == 0
+	}
+
+	app.IsPiped = isPiped()
+	app.Stdin = isStdin || stdin
+	app.Clipin = isClipin || pbRead || pbReadWait
+	app.ClipWait = isClipWait || pbReadWait
+	app.Clipout = isClipout || pbWrite || pbWriteAppend
+	app.ClipAppend = isClipAppend || pbWriteAppend
+
+	return newArgs
 }
 
 var ConfigFile string
@@ -72,6 +162,8 @@ var DryRun bool
 var DryRunContent string
 
 type AppConfig struct {
+	Version string
+
 	ConfigFile string
 
 	LLM *LLMConfig
@@ -137,12 +229,13 @@ func getCurrentUser() string {
 }
 
 func ParseConfig(args []string) (*AppConfig, error) {
-	var lc LLMConfig
-	var app = AppConfig{
-		LLM:    &lc,
-		Role:   viper.GetString("role"),
-		Prompt: viper.GetString("role_prompt"),
-	}
+	var lc = &LLMConfig{}
+	var app = &AppConfig{}
+
+	app.LLM = lc
+	app.Version = Version
+	app.Role = viper.GetString("role")
+	app.Prompt = viper.GetString("role_prompt")
 
 	app.Me = "👤 " + getCurrentUser()
 	app.Files = InputFiles
@@ -150,11 +243,6 @@ func ParseConfig(args []string) (*AppConfig, error) {
 	app.Output = OutputFlag
 	app.ConfigFile = viper.ConfigFileUsed()
 
-	//
-	app.Agent = viper.GetString("agent")
-	if app.Agent == "" {
-		app.Agent = "ask"
-	}
 	app.Message = viper.GetString("message")
 	// read input file if message is empty
 	inputFile := viper.GetString("input")
@@ -225,84 +313,10 @@ func ParseConfig(args []string) (*AppConfig, error) {
 	app.MaxTurns = viper.GetInt("max_turns")
 	app.MaxTime = viper.GetInt("max_time")
 
-	// special char sequence handling
-	var stdin = viper.GetBool("stdin")
-	var pbRead = viper.GetBool("pb_read")
-	var pbReadWait = viper.GetBool("pb_read_wait")
-	var pbWrite = viper.GetBool("pb_write")
-	var pbWriteAppend = viper.GetBool("pb_write_append")
-	var isStdin, isClipin, isClipWait, isClipout, isClipAppend bool
+	newArgs := parseArgs(app, args)
 
-	newArgs := args
-
-	// parse special char sequence for stdin/clipboard: - = =+
-	if len(args) > 0 {
-		for i := len(args) - 1; i >= 0; i-- {
-			lastArg := args[i]
-
-			if lastArg == StdinRedirect {
-				isStdin = true
-			} else if lastArg == ClipinRedirect {
-				isClipin = true
-			} else if lastArg == ClipinRedirect2 {
-				isClipin = true
-				isClipWait = true
-			} else if lastArg == ClipoutRedirect {
-				isClipout = true
-			} else if lastArg == ClipoutRedirect2 {
-				isClipout = true
-				isClipAppend = true
-			} else {
-				// check for suffix for cases where the special char is not the last arg
-				// but is part of the last arg
-				if strings.HasSuffix(lastArg, StdinRedirect) {
-					isStdin = true
-					args[i] = strings.TrimSuffix(lastArg, StdinRedirect)
-				} else if strings.HasSuffix(lastArg, ClipinRedirect) {
-					isClipin = true
-					args[i] = strings.TrimSuffix(lastArg, ClipinRedirect)
-				} else if strings.HasSuffix(lastArg, ClipinRedirect2) {
-					isClipin = true
-					isClipWait = true
-					args[i] = strings.TrimSuffix(lastArg, ClipinRedirect2)
-				} else if strings.HasSuffix(lastArg, ClipoutRedirect) {
-					isClipout = true
-					args[i] = strings.TrimSuffix(lastArg, ClipoutRedirect)
-				} else if strings.HasSuffix(lastArg, ClipoutRedirect2) {
-					isClipout = true
-					isClipAppend = true
-					args[i] = strings.TrimSuffix(lastArg, ClipoutRedirect2)
-				}
-				newArgs = args[:i+1]
-				break
-			}
-		}
-	}
-
-	isPiped := func() bool {
-		stat, _ := os.Stdin.Stat()
-		return (stat.Mode() & os.ModeCharDevice) == 0
-	}
-
-	app.IsPiped = isPiped()
-	app.Stdin = isStdin || stdin
-	app.Clipin = isClipin || pbRead || pbReadWait
-	app.ClipWait = isClipWait || pbReadWait
-	app.Clipout = isClipout || pbWrite || pbWriteAppend
-	app.ClipAppend = isClipAppend || pbWriteAppend
-
-	// command and args
-	if len(newArgs) > 0 {
-		if validSub(newArgs) {
-			app.Command = newArgs[0]
-			if len(newArgs) > 1 {
-				app.Args = newArgs[1:]
-			}
-		} else {
-			app.Command = ""
-			app.Args = newArgs
-		}
-	}
+	newArgs = parseSpecialChars(app, newArgs)
+	app.Args = newArgs
 
 	// sql db
 	dbCfg := &DBConfig{}
@@ -316,5 +330,17 @@ func ParseConfig(args []string) (*AppConfig, error) {
 	gitConfig := &GitConfig{}
 	app.Git = gitConfig
 
-	return &app, nil
+	return app, nil
+}
+
+func (r *AppConfig) IsStdin() bool {
+	return r.Stdin || r.IsPiped
+}
+
+func (r *AppConfig) IsSpecial() bool {
+	return r.IsStdin() || r.Clipin
+}
+
+func (r *AppConfig) HasInput() bool {
+	return r.Message != "" || len(r.Files) > 0 || len(r.Args) > 0
 }

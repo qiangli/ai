@@ -1,4 +1,4 @@
-package agent
+package main
 
 import (
 	"bytes"
@@ -11,8 +11,6 @@ import (
 
 	"github.com/openai/openai-go"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 
 	"github.com/qiangli/ai/internal"
 )
@@ -154,13 +152,15 @@ func (s *filesValue) writeAsCSV(vals []string) (string, error) {
 	return strings.TrimSuffix(b.String(), "\n"), nil
 }
 
-func addFlags(cmd *cobra.Command) {
+func addAgentFlags(cmd *cobra.Command) {
 	flags := cmd.Flags()
+
+	flags.String("agent", "ask", "Specify the agent/command to use. Same as @agent/command")
+
 	//
 	flags.String("editor", "vi", "Specify editor to use")
 
 	//
-	flags.String("agent", "", "Specify the agent to use. Same as @agent. Auto select if not specified")
 	flags.StringP("workspace", "w", "", "Workspace directory")
 
 	// input
@@ -216,9 +216,9 @@ func addFlags(cmd *cobra.Command) {
 	flags.MarkHidden("image-viewer")
 
 	//
-	flags.Bool("verbose", false, "Show debugging information")
-	flags.Bool("quiet", false, "Operate quietly")
 	flags.String("log", "", "Log all debugging information to a file")
+	flags.Bool("quiet", false, "Operate quietly")
+	flags.Bool("verbose", false, "Show debugging information")
 	flags.Bool("trace", false, "Trace API calls")
 
 	//
@@ -246,6 +246,12 @@ func addFlags(cmd *cobra.Command) {
 	// doc
 	flags.VarP(newTemplateValue("", &internal.TemplateFile), "template", "", "Document template file")
 
+	// mcp - this is for mcp, but we need to define it here
+	flags.Int("port", 0, "Port to run the server")
+	flags.String("host", "localhost", "Host to bind the server")
+	flags.MarkHidden("port")
+	flags.MarkHidden("host")
+
 	// hide flags
 	flags.MarkHidden("editor")
 
@@ -265,26 +271,5 @@ func addFlags(cmd *cobra.Command) {
 	flags.MarkHidden("log")
 
 	flags.MarkHidden("interactive")
-
 	flags.MarkHidden("no-meta-prompt")
-
-	// Bind the flags to viper using underscores
-	flags.VisitAll(func(f *pflag.Flag) {
-		key := strings.ReplaceAll(f.Name, "-", "_")
-		viper.BindPFlag(key, f)
-	})
-
-	// Bind the flags to viper using dots
-	viper.BindPFlag("sql.db-name", flags.Lookup("sql-db-name"))
-	viper.BindPFlag("sql.db-host", flags.Lookup("sql-db-host"))
-	viper.BindPFlag("sql.db-port", flags.Lookup("sql-db-port"))
-	viper.BindPFlag("sql.db-username", flags.Lookup("sql-db-username"))
-	viper.BindPFlag("sql.db-password", flags.Lookup("sql-db-password"))
-
-	viper.BindPFlag("git.short", flags.Lookup("git-short"))
-
-	viper.AutomaticEnv()
-	viper.SetEnvPrefix("ai")
-	viper.BindEnv("api-key", "AI_API_KEY", "OPENAI_API_KEY")
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 }

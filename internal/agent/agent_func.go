@@ -22,7 +22,7 @@ import (
 // builtin functions
 var funcRegistry = map[string]swarm.Function{}
 
-const funcToolName = "ai"
+const funcKitName = "ai"
 
 func init() {
 	funcRegistry["agent_transfer"] = agentTransferFunc
@@ -71,7 +71,7 @@ func ListFuncTools() ([]*api.ToolFunc, error) {
 	for _, desc := range descriptors {
 		tools = append(tools, &api.ToolFunc{
 			Type:        swarm.ToolTypeFunc,
-			Tool:        funcToolName,
+			Kit:         funcKitName,
 			Name:        desc.Name,
 			Description: desc.Description,
 			Parameters:  desc.Parameters,

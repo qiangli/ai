@@ -8,8 +8,10 @@ import (
 )
 
 var SetupCmd = &cobra.Command{
-	Use:   "setup",
-	Short: "Set up AI configuration",
+	Use:                   "setup",
+	Short:                 "Set up AI configuration",
+	DisableFlagsInUseLine: true,
+	DisableSuggestions:    true,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := internal.ParseConfig(args)
 		if err != nil {

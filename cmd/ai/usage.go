@@ -12,7 +12,7 @@ import (
 const rootUsageTemplate = `AI Command Line Tool
 
 Usage:
-  ai [flags] [@agent] message...{{if .HasExample}}
+  ai [OPTIONS] [@AGENT] MESSAGE...{{if .HasExample}}
 
 Examples:
 {{.Example}}{{end}}
@@ -26,27 +26,24 @@ ai / what is fish
 ai @ask what is fish
 `
 
-const helpUsageTemplate = `AI Command Line Tool
-
-Usage:
-  ai [flags] @agent message...{{if .HasExample}}
+const agentUsageTemplate = `Usage:
+  ai [OPTIONS] [@AGENT] MESSAGE...{{if .HasExample}}
 {{.Example}}{{end}}
 
 Miscellaneous:
 
-  ai message...                  Auto select agent for help with any questions
-  ai /[command]       message... Use script agent for help with command and shell scripts
-  ai @[agent/command] message... Engage specialist agent for help with various tasks
+  ai MESSAGE...                  Auto select agent for help with any questions
+  ai /[COMMAND]       MESSAGE... Use script agent for help with command and shell scripts
+  ai @[AGENT/COMMAND] MESSAGE... Engage specialist agent for help with various tasks
 
   ai /mcp                        Manage MCP server
   ai /setup                      Setup configuration
-  ai /version                    Print version information
 {{if .HasAvailableLocalFlags}}
 
-Flags:
+Options:
 {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
 
-Global Flags:
+Global Options:
 {{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .EnvNames}}
 Environment variables:
   {{.EnvNames}}{{end}}
@@ -152,7 +149,7 @@ func Help(cmd *cobra.Command) error {
 
 	tpl, err := template.New("help").Funcs(template.FuncMap{
 		"trimTrailingWhitespaces": trimTrailingWhitespaces,
-	}).Parse(helpUsageTemplate)
+	}).Parse(agentUsageTemplate)
 	if err != nil {
 		return err
 	}
@@ -162,35 +159,3 @@ func Help(cmd *cobra.Command) error {
 	}
 	return nil
 }
-
-// taken from cobra
-const commandUsageTemplate = `Usage:{{if .Runnable}}
-  ai /{{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
-  ai /{{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}
-
-Aliases:
-  {{.NameAndAliases}}{{end}}{{if .HasExample}}
-
-Examples:
-{{.Example}}{{end}}{{if .HasAvailableSubCommands}}{{$cmds := .Commands}}{{if eq (len .Groups) 0}}
-
-Commands:{{range $cmds}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
-  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{else}}{{range $group := .Groups}}
-
-{{.Title}}{{range $cmds}}{{if (and (eq .GroupID $group.ID) (or .IsAvailableCommand (eq .Name "help")))}}
-  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{if not .AllChildCommandsHaveGroup}}
-
-Additional Commands:{{range $cmds}}{{if (and (eq .GroupID "") (or .IsAvailableCommand (eq .Name "help")))}}
-  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
-
-Flags:
-{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
-
-Global Flags:
-{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
-
-Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
-  {{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
-
-Use "ai /{{.CommandPath}} [command] --help" for more information about a command.{{end}}
-`

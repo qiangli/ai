@@ -1,18 +1,17 @@
 package util
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
 // ListCommands returns the full path of the first valid executable command encountered in the PATH
-// environment variable. If nameOnly is true, it returns only the command name.
-func ListCommands(nameOnly bool) ([]string, error) {
+// environment variable.
+func ListCommands() [][]string {
 	pathEnv := os.Getenv("PATH")
 	if pathEnv == "" {
-		return nil, errors.New("PATH environment variable is not set")
+		return [][]string{}
 	}
 
 	uniqueCommands := make(map[string]string) // command name -> full path
@@ -37,16 +36,12 @@ func ListCommands(nameOnly bool) ([]string, error) {
 		}
 	}
 
-	commands := make([]string, 0, len(uniqueCommands))
+	commands := make([][]string, 0, len(uniqueCommands))
 	for name, fullPath := range uniqueCommands {
-		if nameOnly {
-			commands = append(commands, name)
-			continue
-		}
-		commands = append(commands, fullPath)
+		commands = append(commands, []string{name, fullPath})
 	}
 
-	return commands, nil
+	return commands
 }
 
 func IsExecutable(filePath string) bool {

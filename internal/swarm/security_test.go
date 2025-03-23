@@ -58,7 +58,7 @@ func TestEvaluateCommand(t *testing.T) {
 	// }
 	// vars.FS = fs
 
-	tools, _ := ListSystemTools()
+	tools := ListSystemTools()
 	var toolMap = make(map[string]*ToolFunc)
 	for _, tool := range tools {
 		toolMap[tool.ID()] = tool

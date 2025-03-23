@@ -1,0 +1,39 @@
+###
+kit: dev
+
+tools:
+  - name: "git"
+    description: "Git is a revision control system with an unusually rich command set that provides both high-level operations and full access to internals. 'git help -a' for a list of available commands."
+    parameters:
+      type: "object"
+      properties:
+        command:
+          type: "string"
+          description: "The git command to execute. 'git help <command>' for more information about a specific command"
+        args:
+          type: "string"
+          items:
+            type: "string"
+          description: "Additional options or arguments"
+      required:
+        - command
+    body: "{{git .command .args}}"
+    type: "template"
+
+  - name: "go"
+    description: "Go is a tool for managing Go source code. go help for a list of available commands."
+    parameters:
+      type: "object"
+      properties:
+        command:
+          type: "string"
+          description: "The go command to execute. 'go help <command>' for more information about a command"
+        args:
+          type: "string"
+          items:
+            type: "string"
+          description: "Additional flags or arguments"
+      required:
+        - command
+    body: "{{go .command .args}}"
+    type: "template"

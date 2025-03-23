@@ -68,32 +68,33 @@ type ToolDescriptor struct {
 	Name        string
 	Description string
 	Parameters  map[string]any
+
+	Body string
 }
 
 type ToolFunc struct {
-	// ToolDescriptor
-
-	// Label string
 	Type string
 
+	// func class
 	// Agent name
 	// MCP server name
 	// Virtual file system name
 	// Container name
 	// Virtual machine name
-	Tool string
+	Kit string
 
-	// Func string
-
+	// func name
 	Name        string
 	Description string
 	Parameters  map[string]any
+
+	Body string
 }
 
 // ID returns a unique identifier for the tool function,
 // combining the tool name and function name.
 func (r *ToolFunc) ID() string {
-	return fmt.Sprintf("%s__%s", r.Tool, r.Name)
+	return fmt.Sprintf("%s__%s", r.Kit, r.Name)
 }
 
 type Response struct {

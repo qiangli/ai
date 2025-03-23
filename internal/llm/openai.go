@@ -16,7 +16,7 @@ import (
 
 // https://github.com/openai/openai-go/tree/main/examples
 
-func define(name, description string, parameters map[string]interface{}) openai.ChatCompletionToolParam {
+func define(name, description string, parameters map[string]any) openai.ChatCompletionToolParam {
 	return openai.ChatCompletionToolParam{
 		Type: openai.F(openai.ChatCompletionToolTypeFunction),
 		Function: openai.F(openai.FunctionDefinitionParam{

@@ -8,11 +8,14 @@ import (
 )
 
 var McpCmd = &cobra.Command{
-	Use:   "mcp",
-	Short: "Manage MCP server",
+	Use:                   "mcp",
+	Short:                 "Manage MCP server",
+	DisableFlagsInUseLine: true,
+	DisableSuggestions:    true,
 }
 
 func init() {
+	McpCmd.SetUsageTemplate(commandUsageTemplate)
 	McpCmd.Flags().SortFlags = true
 	McpCmd.CompletionOptions.DisableDefaultCmd = true
 }

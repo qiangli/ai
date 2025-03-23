@@ -143,7 +143,7 @@ func (r *McpClientSession) ListTools(ctx context.Context) ([]*ToolFunc, error) {
 		}
 		funcs = append(funcs, &ToolFunc{
 			Type:        ToolTypeMcp,
-			Tool:        parts[0],
+			Kit:         parts[0],
 			Name:        parts[1],
 			Description: v.Description,
 			Parameters: map[string]any{
@@ -242,8 +242,9 @@ func NewMcpServerTool(serverUrl string) *McpServerTool {
 	}
 }
 
+// ListTools retrieves the list of tools from the MCP server keyed by the server name.
 func (r *McpServerTool) ListTools() (map[string][]*ToolFunc, error) {
-	var tools = map[string][]*ToolFunc{}
+	var kits = map[string][]*ToolFunc{}
 	ctx := context.Background()
 
 	if r.Config.ServerUrl != "" {
@@ -255,17 +256,17 @@ func (r *McpServerTool) ListTools() (map[string][]*ToolFunc, error) {
 			return nil, err
 		}
 		for _, v := range funcs {
-			name := v.Tool
-			funcs, ok := tools[name]
+			kit := v.Kit
+			funcs, ok := kits[kit]
 			if ok {
-				tools[name] = append(funcs, v)
+				kits[kit] = append(funcs, v)
 			} else {
-				tools[name] = []*ToolFunc{v}
+				kits[kit] = []*ToolFunc{v}
 			}
 		}
-		return tools, nil
+		return kits, nil
 	}
-	return tools, nil
+	return kits, nil
 }
 
 func (r *McpServerTool) GetTools(server string) ([]*ToolFunc, error) {

@@ -14,7 +14,7 @@ import (
 // System represents the virtual operating system for the tool.
 // It provides the system operations that can be mocked for testing.
 type System interface {
-	ListCommands() ([]string, error)
+	ListCommands() []string
 	Which([]string) (string, error)
 	Man(string) (string, error)
 
@@ -27,32 +27,21 @@ type System interface {
 	Uname() (string, string)
 }
 
-// const (
-// 	ListCommandsToolName = "list_commands"
-// 	WhichToolName        = "which"
-// 	ManToolName          = "man"
-// 	ExecToolName         = "exec"
-// 	CdToolName           = "cd"
-// 	PwdToolName          = "pwd"
-// 	EnvToolName          = "env"
-// 	UnameToolName        = "uname"
-// )
-
 type VirtualSystem struct {
 }
 
-func NewVirtualSystem() *VirtualSystem {
+func NewSystem() *VirtualSystem {
 	return &VirtualSystem{}
 }
 
-func (vs *VirtualSystem) ListCommands() ([]string, error) {
-	list, err := util.ListCommands(true)
-	if err != nil {
-		return nil, err
+func (vs *VirtualSystem) ListCommands() []string {
+	list := util.ListCommands()
+	commands := make([]string, len(list))
+	for i, v := range list {
+		commands[i] = v[0]
 	}
-
-	sort.Strings(list)
-	return list, nil
+	sort.Strings(commands)
+	return commands
 }
 
 func (vs *VirtualSystem) Command(name string, arg ...string) *exec.Cmd {

@@ -21,7 +21,7 @@ func TestMcpListTools(t *testing.T) {
 
 	for k, tool := range tools {
 		for _, v := range tool {
-			t.Logf("[%s] service: %s name: %s %s", k, v.Tool, v.Name, v.Description)
+			t.Logf("[%s] service/name: %s %s", k, v.ID(), v.Description)
 		}
 	}
 	t.Logf("Total: %v", len(tools))
@@ -42,7 +42,7 @@ func TestMcpGetTools(t *testing.T) {
 	}
 
 	for k, v := range tools {
-		t.Logf("[%v] service: %s name: %s %s", k, v.Tool, v.Name, v.Description)
+		t.Logf("[%v] service/name: %s %s", k, v.ID(), v.Description)
 	}
 }
 
@@ -57,7 +57,7 @@ func TestMcpCallTool(t *testing.T) {
 	vars := &Vars{
 		ToolRegistry: map[string]*ToolFunc{
 			"time__convert_time": {
-				Tool: "time",
+				Kit:  "time",
 				Name: "convert_time",
 			},
 		},

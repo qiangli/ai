@@ -90,6 +90,7 @@ func userInput(
 	// stdin takes precedence over clipboard
 	// if both are requested, stdin is used
 	if stdin != nil {
+		log.Promptf("Please enter your input. Ctrl+D to send, Ctrl+C to cancel...\n")
 		data, err := io.ReadAll(stdin)
 		if err != nil {
 			return nil, err
@@ -108,12 +109,12 @@ func userInput(
 					return nil, err
 				}
 
-				log.Printf("Awaiting clipboard content...\n")
+				log.Promptf("Awaiting clipboard content...\n")
 				v, err := clipboard.Read()
 				if err != nil {
 					return nil, err
 				}
-				log.Printf("%s\n", clipText(v, 100))
+				log.Printf("\n%s\n\n", clipText(v, 500))
 				send, err := pasteConfirm()
 				// user canceled
 				if err != nil {
@@ -131,6 +132,7 @@ func userInput(
 				return nil, err
 			}
 
+			log.Promptf("Awaiting clipboard content...\n")
 			v, err := clipboard.Read()
 			if err != nil {
 				return nil, err

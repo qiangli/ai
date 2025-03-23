@@ -33,8 +33,10 @@ var mcpServerUrl string
 var mcpServer *server.MCPServer
 
 var serveCmd = &cobra.Command{
-	Use:   "serve",
-	Short: "Start the MCP server",
+	Use:                   "serve",
+	Short:                 "Start the MCP server",
+	DisableFlagsInUseLine: true,
+	DisableSuggestions:    true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return RunServe(args)
 	},
@@ -111,7 +113,7 @@ func RunServe(args []string) error {
 	return nil
 }
 
-func addFlags(cmd *cobra.Command) {
+func addMcpFlags(cmd *cobra.Command) {
 	var defaultPort = 58888
 	if v := os.Getenv("AI_MCP_PORT"); v != "" {
 		fmt.Sscanf(v, "%d", &defaultPort)
@@ -122,6 +124,7 @@ func addFlags(cmd *cobra.Command) {
 	// flags
 	flags.IntVar(&port, "port", defaultPort, "Port to run the server")
 	flags.StringVar(&host, "host", "localhost", "Host to bind the server")
+
 	flags.StringVar(&mcpServerUrl, "mcp-server-url", "http://localhost:58080/sse", "MCP server URL")
 
 	//
@@ -190,7 +193,7 @@ func addTool(vars *swarm.Vars, toolFunc *api.ToolFunc) error {
 }
 
 func init() {
-	addFlags(serveCmd)
+	addMcpFlags(serveCmd)
 
 	// Bind the flags to viper using underscores
 	serveCmd.Flags().VisitAll(func(f *pflag.Flag) {
@@ -198,7 +201,7 @@ func init() {
 		viper.BindPFlag(key, f)
 	})
 
-	// Bind the flags to viper using dots
+	//
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix("ai")
 	viper.BindEnv("api-key", "AI_API_KEY", "OPENAI_API_KEY")

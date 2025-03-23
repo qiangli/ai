@@ -8,11 +8,14 @@ import (
 	"strings"
 	"text/template"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/qiangli/ai/internal/api"
 )
 
 func applyTemplate(tpl string, data any, funcMap template.FuncMap) (string, error) {
-	t, err := template.New("config").Funcs(funcMap).Parse(tpl)
+	t, err := template.New("swarm").Funcs(funcMap).Parse(tpl)
 	if err != nil {
 		return "", err
 	}
@@ -79,4 +82,16 @@ func toModelLevel(s string) api.Level {
 		return api.LImage
 	}
 	return api.L0
+}
+
+func toPascalCase(name string) string {
+	words := strings.FieldsFunc(name, func(r rune) bool {
+		return r == '_' || r == '-'
+	})
+	tc := cases.Title(language.English)
+
+	for i := range words {
+		words[i] = tc.String(words[i])
+	}
+	return strings.Join(words, "")
 }

@@ -13,8 +13,8 @@ import (
 	"github.com/qiangli/ai/internal/util"
 )
 
-func AgentRun(cfg *internal.AppConfig) error {
-	log.Debugf("Agent: %s\n", cfg.Agent)
+func RunAgent(cfg *internal.AppConfig) error {
+	log.Debugf("Agent: %s %s %v\n", cfg.Agent, cfg.Command, cfg.Args)
 
 	in, err := GetUserInput(cfg)
 	if err != nil {
@@ -25,7 +25,7 @@ func AgentRun(cfg *internal.AppConfig) error {
 	}
 
 	in.Agent = cfg.Agent
-
+	in.Command = cfg.Command
 	return RunSwarm(cfg, in)
 }
 
@@ -115,11 +115,7 @@ ai message...
 }
 
 func HelpCommands(cfg *internal.AppConfig) error {
-	list, err := util.ListCommands(false)
-	if err != nil {
-		log.Errorf("Error: %v\n", err)
-		return err
-	}
+	list := util.ListCommands()
 
 	const listTpl = `Available commands on the system:
 
@@ -133,8 +129,12 @@ ai /command message...
 
 / is shorthand for  @script/
 `
-	sort.Strings(list)
-	log.Printf(listTpl, strings.Join(list, "\n"), len(list))
+	commands := make([]string, len(list))
+	for i, v := range list {
+		commands[i] = fmt.Sprintf("%s: %s", v[0], strings.TrimSpace(v[1]))
+	}
+	sort.Strings(commands)
+	log.Printf(listTpl, strings.Join(commands, "\n"), len(commands))
 	return nil
 }
 
@@ -173,66 +173,4 @@ Tools are used by agents to perform specific tasks. They are automatically selec
 
 	log.Printf(listTpl, strings.Join(list, "\n"), len(list))
 	return nil
-}
-
-func HandleCommand(cfg *internal.AppConfig) error {
-	log.Debugf("HandleCommand: %s %v\n", cfg.Command, cfg.Args)
-
-	cmd := cfg.Command
-
-	if cmd != "" {
-		// $ ai /command
-		// $ ai @script/command
-		if strings.HasPrefix(cmd, "/") ||
-			cmd == "@script" || strings.HasPrefix(cmd, "@script/") {
-
-			var name string
-			switch {
-			case strings.HasPrefix(cmd, "/"):
-				name = strings.TrimSpace(cmd[1:])
-			case cmd == "@script":
-				break
-			case strings.HasPrefix(cmd, "@script/"):
-				name = strings.TrimSpace(cmd[len("@script/"):])
-			}
-
-			in, err := GetUserInput(cfg)
-			if err != nil {
-				return err
-			}
-
-			if name == "" && in.IsEmpty() {
-				return internal.NewUserInputError("no command and message provided")
-			}
-
-			in.Agent = "script"
-			in.Subcommand = name
-			return RunSwarm(cfg, in)
-		}
-
-		// $ ai @agent
-		if strings.HasPrefix(cmd, "@") {
-			name := strings.TrimSpace(cmd[1:])
-			if name == "" {
-				// auto select
-				// $ ai @ message...
-				return AgentRun(cfg)
-			}
-
-			in, err := GetUserInput(cfg)
-			if err != nil {
-				return err
-			}
-			if in.IsEmpty() {
-				return internal.NewUserInputError("no message content")
-			}
-
-			in.Agent = name
-			return RunSwarm(cfg, in)
-		}
-	}
-
-	// auto select the best agent to handle the user query if there is message content
-	// $ ai message...
-	return AgentRun(cfg)
 }

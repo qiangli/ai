@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/swarm/vfs"
 	"github.com/qiangli/ai/internal/swarm/vos"
 	"github.com/qiangli/ai/internal/util"
@@ -16,246 +17,45 @@ var _exec = _os
 
 var _fs vfs.FileSystem = &vfs.VirtualFS{}
 
-const (
-	ListCommandsToolName = "list_commands"
-	WhichToolName        = "which"
-	ManToolName          = "man"
-	ExecToolName         = "exec"
-	CdToolName           = "cd"
-	PwdToolName          = "pwd"
-	EnvToolName          = "env"
-	UnameToolName        = "uname"
-)
+var toolRegistry map[string]*ToolFunc
 
-const (
-	ListRootsToolName       = "list_roots"
-	ListDirectoryToolName   = "list_directory"
-	CreateDirectoryToolName = "create_directory"
-	RenameFileToolName      = "rename_file"
-	GetFileInfoToolName     = "get_file_info"
-	ReadFileToolName        = "read_file"
-	WriteFileToolName       = "write_file"
-	// TempDirToolName         = "temp_dir"
-)
+var systemTools []*ToolFunc
 
-var FSDescriptors = map[string]*Descriptor{
-	// ListRootsToolName: {
-	// 	Name:        ListRootsToolName,
-	// 	Description: "Returns the list of directories that this server is allowed to access.",
-	// 	Parameters: map[string]any{
-	// 		"type":       "object",
-	// 		"properties": map[string]any{},
-	// 	},
-	// },
-	ListDirectoryToolName: {
-		Name:        ListDirectoryToolName,
-		Description: "Get a detailed listing of all files and directories in a specified path.",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"path": map[string]any{
-					"type":        "string",
-					"description": "Path of the directory to list",
-				},
-			},
-			"required": []string{"path"},
-		},
-	},
-	CreateDirectoryToolName: {
-		Name:        CreateDirectoryToolName,
-		Description: "Create a new directory or ensure a directory exists.",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"path": map[string]any{
-					"type":        "string",
-					"description": "Path of the directory to create",
-				},
-			},
-			"required": []string{"path"},
-		},
-	},
-	RenameFileToolName: {
-		Name:        RenameFileToolName,
-		Description: "Rename files and directories.",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"source": map[string]any{
-					"type":        "string",
-					"description": "Source path of the file or directory",
-				},
-				"destination": map[string]any{
-					"type":        "string",
-					"description": "Destination path",
-				},
-			},
-			"required": []string{"source", "destination"},
-		},
-	},
-	GetFileInfoToolName: {
-		Name:        GetFileInfoToolName,
-		Description: "Retrieve detailed metadata about a file or directory.",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"path": map[string]any{
-					"type":        "string",
-					"description": "Path to the file or directory",
-				},
-			},
-			"required": []string{"path"},
-		},
-	},
-	ReadFileToolName: {
-		Name:        ReadFileToolName,
-		Description: "Read the complete contents of a file from the file system.",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"path": map[string]any{
-					"type":        "string",
-					"description": "Path to the file to read",
-				},
-			},
-			"required": []string{"path"},
-		},
-	},
-	WriteFileToolName: {
-		Name:        WriteFileToolName,
-		Description: "Create a new file or overwrite an existing file with new content.",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"path": map[string]any{
-					"type":        "string",
-					"description": "Path where to write the file",
-				},
-				"content": map[string]any{
-					"type":        "string",
-					"description": "Content to write to the file",
-				},
-			},
-			"required": []string{"path", "content"},
-		},
-	},
+func init() {
+	config, err := LoadDefaultToolConfig()
+	if err != nil {
+		log.Errorf("failed to load default tool config: %v", err)
+		return
+	}
+
+	toolRegistry = make(map[string]*ToolFunc)
+
+	for _, v := range config.Tools {
+		log.Debugf("Kit: %s tool: %s - %s", v.Kit, v.Name, v.Description)
+		tool := &ToolFunc{
+			Type:        v.Type,
+			Kit:         v.Kit,
+			Name:        v.Name,
+			Description: v.Description,
+			Parameters:  v.Parameters,
+			Body:        v.Body,
+		}
+		toolRegistry[tool.ID()] = tool
+
+		// TODO this is used for security check by the evalCommand
+		if v.Type == "system" {
+			systemTools = append(systemTools, tool)
+		}
+	}
 }
 
-var OSDescriptors = map[string]*Descriptor{
-	ListCommandsToolName: {
-		Name:        ListCommandsToolName,
-		Description: "List all available command names on the user's path. Use 'which' to get the full path",
-		Parameters:  map[string]any{},
-	},
-	WhichToolName: {
-		Name:        WhichToolName,
-		Description: "Locate a program file on the user's path",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"commands": map[string]any{
-					"type": "array",
-					"items": map[string]any{
-						"type": "string",
-					},
-					"description": "List of command names and searches the path for each executable file that would be run had these commands actually been invoked",
-				},
-			},
-			"required": []string{"commands"},
-		},
-	},
-	ManToolName: {
-		Name:        ManToolName,
-		Description: "Find and display online manual documentation page for a command. Not all commands have manual pages",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"command": map[string]any{
-					"type":        "string",
-					"description": "The command to get the manual page for",
-				},
-			},
-			"required": []string{"command"},
-		},
-	},
-	ExecToolName: {
-		Name:        ExecToolName,
-		Description: "Executes a specified command within the user's environment, allowing optional flags and arguments to be passed via 'args'. Note: some security restrictions may apply.",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"command": map[string]any{
-					"type":        "string",
-					"description": "The command to execute",
-				},
-				"args": map[string]any{
-					"type":        "array",
-					"items":       map[string]any{"type": "string"},
-					"description": "The arguments to pass to the command. may be empty",
-				},
-			},
-			"required": []string{"command"},
-		},
-	},
-	CdToolName: {
-		Name:        CdToolName,
-		Description: "Change the current working directory on user's system",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"dir": map[string]any{
-					"type":        "string",
-					"description": "The directory to change to",
-				},
-			},
-			"required": []string{"dir"},
-		},
-	},
-	PwdToolName: {
-		Name:        PwdToolName,
-		Description: "Print the current working directory on user's system",
-		Parameters:  map[string]any{},
-	},
-	EnvToolName: {
-		Name:        EnvToolName,
-		Description: "Print environment variables on user's system. Only names are returned for security reasons",
-		Parameters:  map[string]any{},
-	},
-	UnameToolName: {
-		Name:        UnameToolName,
-		Description: "Display information about the current system's operating system and architecture",
-		Parameters:  map[string]any{},
-	},
-}
-
-const (
-	HostHomeDirToolName   = "home_dir"
-	HostTempDirToolName   = "temp_dir"
-	HostRepoDirToolName   = "repo_dir"
-	HostWorkspaceToolName = "workspace"
-)
-
-var HostDescriptors = map[string]*Descriptor{
-	HostHomeDirToolName: {
-		Name:        HostHomeDirToolName,
-		Description: "Return the user's home directory",
-		Parameters:  map[string]any{},
-	},
-	HostTempDirToolName: {
-		Name:        HostTempDirToolName,
-		Description: "Return the default directory to use for temporary files",
-		Parameters:  map[string]any{},
-	},
-	HostWorkspaceToolName: {
-		Name:        HostWorkspaceToolName,
-		Description: "Return the current workspace directory",
-		Parameters:  map[string]any{},
-	},
-	HostRepoDirToolName: {
-		Name:        HostRepoDirToolName,
-		Description: "Return the current repository directory",
-		Parameters:  map[string]any{},
-	},
+func ListSystemTools() []*ToolFunc {
+	// return systemTools
+	var tools []*ToolFunc
+	for _, v := range toolRegistry {
+		tools = append(tools, v)
+	}
+	return tools
 }
 
 func workDir() (string, error) {
@@ -289,257 +89,6 @@ func resolveRepoDir() (string, error) {
 		return "", fmt.Errorf("failed to detect git repository: %w", err)
 	}
 	return dir, nil
-}
-
-var systemTools []*ToolFunc
-
-func init() {
-	var tools []*ToolFunc
-	for _, v := range FSDescriptors {
-		tools = append(tools, &ToolFunc{
-			Type:        ToolTypeSystem,
-			Tool:        "fs",
-			Name:        v.Name,
-			Description: v.Description,
-			Parameters:  v.Parameters,
-		})
-	}
-
-	for _, v := range OSDescriptors {
-		tools = append(tools, &ToolFunc{
-			Type:        ToolTypeSystem,
-			Tool:        "os",
-			Name:        v.Name,
-			Description: v.Description,
-			Parameters:  v.Parameters,
-		})
-	}
-
-	for _, v := range MiscDescriptors {
-		tools = append(tools, &ToolFunc{
-			Type:        ToolTypeSystem,
-			Tool:        "misc",
-			Name:        v.Name,
-			Description: v.Description,
-			Parameters:  v.Parameters,
-		})
-	}
-
-	// host tools
-	for _, v := range HostDescriptors {
-		tools = append(tools, &ToolFunc{
-			Type:        ToolTypeSystem,
-			Tool:        "host",
-			Name:        v.Name,
-			Description: v.Description,
-			Parameters:  v.Parameters,
-		})
-	}
-
-	systemTools = tools
-}
-
-func ListSystemTools() ([]*ToolFunc, error) {
-	return systemTools, nil
-}
-
-func callSystemTool(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
-	getStr := func(key string) (string, error) {
-		return GetStrProp(key, args)
-	}
-	getArray := func(key string) ([]string, error) {
-		return GetArrayProp(key, args)
-	}
-
-	v, ok := vars.ToolRegistry[name]
-	if !ok {
-		return "", fmt.Errorf("no such system tool: %s", name)
-	}
-
-	// vfs
-	if v.Tool == "fs" {
-		switch v.Name {
-		case ListDirectoryToolName:
-			path, err := getStr("path")
-			if err != nil {
-				return "", err
-			}
-			list, err := _fs.ListDirectory(path)
-			if err != nil {
-				return "", err
-			}
-			return strings.Join(list, "\n"), nil
-		case CreateDirectoryToolName:
-			path, err := getStr("path")
-			if err != nil {
-				return "", err
-			}
-			return "", _fs.CreateDirectory(path)
-		case RenameFileToolName:
-			source, err := getStr("source")
-			if err != nil {
-				return "", err
-			}
-			dest, err := getStr("destination")
-			if err != nil {
-				return "", err
-			}
-			if err := _fs.RenameFile(source, dest); err != nil {
-				return "", err
-			}
-			return "File renamed successfully", nil
-		case GetFileInfoToolName:
-			path, err := getStr("path")
-			if err != nil {
-				return "", err
-			}
-			info, err := _fs.GetFileInfo(path)
-			if err != nil {
-				return "", err
-			}
-			return info.String(), nil
-		case ReadFileToolName:
-			path, err := getStr("path")
-			if err != nil {
-				return "", err
-			}
-			content, err := _fs.ReadFile(path)
-			if err != nil {
-				return "", err
-			}
-			return string(content), nil
-		case WriteFileToolName:
-			path, err := getStr("path")
-			if err != nil {
-				return "", err
-			}
-			content, err := getStr("content")
-			if err != nil {
-				return "", err
-			}
-			if err := _fs.WriteFile(path, []byte(content)); err != nil {
-				return "", err
-			}
-			return "File written successfully", nil
-		}
-		return "", fmt.Errorf("unknown file system tool: %s", name)
-	}
-
-	// vos
-	if v.Tool == "os" {
-		switch v.Name {
-		case ListCommandsToolName:
-			list, err := _os.ListCommands()
-			if err != nil {
-				return "", err
-			}
-			return strings.Join(list, "\n"), nil
-		case WhichToolName:
-			commands, err := getArray("commands")
-			if err != nil {
-				return "", err
-			}
-			return _os.Which(commands)
-		case ManToolName:
-			command, err := getStr("command")
-			if err != nil {
-				return "", err
-			}
-			return _os.Man(command)
-		case ExecToolName:
-			command, err := getStr("command")
-			if err != nil {
-				return "", err
-			}
-			args, err := getArray("args")
-			if err != nil {
-				return "", err
-			}
-			return runRestricted(ctx, vars, command, args)
-		case CdToolName:
-			dir, err := getStr("dir")
-			if err != nil {
-				return "", err
-			}
-			return "", _os.Chdir(dir)
-		case PwdToolName:
-			return workDir()
-		case EnvToolName:
-			return _os.Env(), nil
-		case UnameToolName:
-			as, arch := _os.Uname()
-			return fmt.Sprintf("OS: %s\nArch: %s", as, arch), nil
-		}
-		return "", fmt.Errorf("unknown os tool: %s", name)
-	}
-
-	// host
-	if v.Tool == "host" {
-		switch v.Name {
-		case HostHomeDirToolName:
-			return homeDir()
-		case HostTempDirToolName:
-			return tempDir()
-		case HostWorkspaceToolName:
-			return resolveWorkspaceDir(vars.Workspace)
-		case HostRepoDirToolName:
-			return resolveRepoDir()
-		}
-		return "", fmt.Errorf("unknown host tool: %s", name)
-	}
-
-	// misc
-	if v.Tool == "misc" {
-		switch v.Name {
-		case ReadStdinToolName:
-			return readStdin()
-		case PasteFromClipboardToolName:
-			return readClipboard()
-		case PasteFromClipboardWaitToolName:
-			return readClipboardWait()
-		case WriteStdoutToolName:
-			content, err := getStr("content")
-			if err != nil {
-				return "", err
-			}
-			return writeStdout(content)
-		case CopyToClipboardToolName:
-			content, err := getStr("content")
-			if err != nil {
-				return "", err
-			}
-			return writeClipboard(content)
-		case CopyToClipboardAppendToolName:
-			content, err := getStr("content")
-			if err != nil {
-				return "", err
-			}
-			return writeClipboardAppend(content)
-		case GetUserTextInputToolName:
-			prompt, err := getStr("prompt")
-			if err != nil {
-				return "", err
-			}
-			return getUserTextInput(prompt)
-		case GetUserChoiceInputToolName:
-			prompt, err := getStr("prompt")
-			if err != nil {
-				return "", err
-			}
-			choices, err := getArray("choices")
-			if err != nil {
-				return "", err
-			}
-			defaultChoice, err := getStr("default")
-			if err != nil {
-				return "", err
-			}
-			return getUserChoiceInput(prompt, choices, defaultChoice)
-		}
-		return "", fmt.Errorf("unknown misc tool: %s", name)
-	}
-
-	return "", fmt.Errorf("unknown service: %s", name)
 }
 
 // runCommand executes a shell command with args and returns the output

@@ -10,7 +10,6 @@ import (
 // FileSystem is a virtual file system that provides a set of operations
 // to interact with the file system in a controlled manner.
 type FileSystem interface {
-	// ListRoots() ([]string, error)
 	ListDirectory(string) ([]string, error)
 	CreateDirectory(string) error
 	RenameFile(string, string) error
@@ -18,17 +17,6 @@ type FileSystem interface {
 	ReadFile(string) ([]byte, error)
 	WriteFile(string, []byte) error
 }
-
-// const (
-// 	ListRootsToolName       = "list_roots"
-// 	ListDirectoryToolName   = "list_directory"
-// 	CreateDirectoryToolName = "create_directory"
-// 	RenameFileToolName      = "rename_file"
-// 	GetFileInfoToolName     = "get_file_info"
-// 	ReadFileToolName        = "read_file"
-// 	WriteFileToolName       = "write_file"
-// 	// TempDirToolName         = "temp_dir"
-// )
 
 type FileInfo struct {
 	IsDirectory bool `json:"isDirectory"`
@@ -56,13 +44,7 @@ func (f *FileInfo) String() string {
 }
 
 type VirtualFS struct {
-	// roots []string
 }
-
-// func NewVFS() (*VirtualFS) {
-// 	s := &VirtualFS{}
-// 	return s
-// }
 
 func (s *VirtualFS) ListDirectory(path string) ([]string, error) {
 	validPath, err := s.validatePath(path)

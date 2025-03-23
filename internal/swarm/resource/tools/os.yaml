@@ -1,0 +1,78 @@
+###
+kit: "os"
+
+tools:
+  - name: "list_commands"
+    description: "List all command names available in the user's PATH. Use 'which' to obtain the full path of a specific command if needed."
+    parameters: {}
+    type: "system"
+
+  - name: "which"
+    description: "Locate a program file on the user's path."
+    parameters:
+      type: "object"
+      properties:
+        commands:
+          type: "array"
+          items:
+            type: "string"
+          description: "List of command names and searches the path for each executable file that would be run had these commands actually been invoked."
+      required:
+        - commands
+    type: "system"
+
+  - name: "man"
+    description: "Find and display online manual documentation page for a command. Not all commands have manual pages."
+    parameters:
+      type: "object"
+      properties:
+        command:
+          type: "string"
+          description: "The command to get the manual page for."
+      required:
+        - command
+    type: "system"
+
+  - name: "exec"
+    description: "Executes a specified command within the user's environment, allowing optional flags and arguments to be passed via 'args'. Note: some security restrictions may apply."
+    parameters:
+      type: "object"
+      properties:
+        command:
+          type: "string"
+          description: "The command to execute."
+        args:
+          type: "array"
+          items:
+            type: "string"
+          description: "The arguments to pass to the command. May be empty."
+      required:
+        - command
+    type: "system"
+
+  - name: "cd"
+    description: "Change the current working directory on user's system."
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "The directory to change to."
+      required:
+        - dir
+    type: "system"
+
+  - name: "pwd"
+    description: "Print the current working directory on user's system."
+    parameters: {}
+    type: "system"
+
+  - name: "env"
+    description: "Print environment variables on user's system. Only names are returned for security reasons."
+    parameters: {}
+    type: "system"
+
+  - name: "uname"
+    description: "Display information about the current system's operating system and architecture."
+    parameters: {}
+    type: "system"

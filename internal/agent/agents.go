@@ -34,7 +34,7 @@ func init() {
 
 		fn := &api.ToolFunc{
 			Type:        swarm.ToolTypeAgent,
-			Tool:        service,
+			Kit:         service,
 			Name:        toolName,
 			Description: v.Description,
 		}
@@ -155,10 +155,7 @@ func listTools(mcpServerUrl string) ([]*swarm.ToolFunc, error) {
 	}
 
 	// system tools
-	sysTools, err := swarm.ListSystemTools()
-	if err != nil {
-		return nil, err
-	}
+	sysTools := swarm.ListSystemTools()
 	list = append(list, sysTools...)
 
 	// function tools
@@ -185,10 +182,7 @@ func ListServiceTools(mcpServerUrl string) ([]*swarm.ToolFunc, error) {
 	}
 
 	// system tools
-	sysTools, err := swarm.ListSystemTools()
-	if err != nil {
-		return nil, err
-	}
+	sysTools := swarm.ListSystemTools()
 	list = append(list, sysTools...)
 
 	return list, nil

@@ -55,7 +55,7 @@
 			"stopOnEntry": false,
 		},
 		{
-			"name": "AI Dry Run",
+			"name": "Dry Run",
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
@@ -69,6 +69,7 @@
 			"args": [
 				"--dry-run",
 				"--verbose",
+				"--config", "/tmp/work/config.yaml",
 				"/",
 				"what",
 				"is",

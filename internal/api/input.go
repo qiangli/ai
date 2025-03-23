@@ -14,8 +14,8 @@ const (
 )
 
 type UserInput struct {
-	Agent      string `json:"agent"`
-	Subcommand string `json:"subcommand"`
+	Agent   string `json:"agent"`
+	Command string `json:"command"`
 
 	Message string `json:"message"`
 	Content string `json:"content"`
