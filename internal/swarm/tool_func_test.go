@@ -77,6 +77,12 @@ func TestCallDevTools(t *testing.T) {
 				"command": "version",
 			},
 		},
+		{
+			id: "git__status",
+			args: map[string]any{
+				"command": "version",
+			},
+		},
 	}
 
 	cfg := &AppConfig{}

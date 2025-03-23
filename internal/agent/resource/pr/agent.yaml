@@ -29,7 +29,7 @@ agents:
       before: "pr_user_input"
       after: "pr_json_to_markdown"
     functions:
-      - "system:*"
+      - "*"
 
   - name: "pr/review"
     description: "Give feedback about the PR, possible issues, security concerns, review effort and more"
@@ -41,7 +41,7 @@ agents:
       before: "pr_user_input"
       after: "pr_json_to_markdown"
     functions:
-      - "system:*"
+      - "*"
 
   - name: "pr/improve"
     description: "Provide code suggestions for improving the PR"
@@ -53,7 +53,7 @@ agents:
       before: "pr_user_input"
       after: "pr_json_to_markdown"
     functions:
-      - "system:*"
+      - "*"
 
   - name: "pr/changelog"
     description: "Update the CHANGELOG.md file with the PR changes"
@@ -65,7 +65,7 @@ agents:
       before: "pr_user_input"
       after: "pr_json_to_markdown"
     functions:
-      - "system:*"
+      - "*"
 
 models:
   - name: "L1"

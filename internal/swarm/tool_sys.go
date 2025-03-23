@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/swarm/vfs"
 	"github.com/qiangli/ai/internal/swarm/vos"
 	"github.com/qiangli/ai/internal/util"
@@ -16,47 +15,6 @@ var _os vos.System = &vos.VirtualSystem{}
 var _exec = _os
 
 var _fs vfs.FileSystem = &vfs.VirtualFS{}
-
-var toolRegistry map[string]*ToolFunc
-
-var systemTools []*ToolFunc
-
-func init() {
-	config, err := LoadDefaultToolConfig()
-	if err != nil {
-		log.Errorf("failed to load default tool config: %v", err)
-		return
-	}
-
-	toolRegistry = make(map[string]*ToolFunc)
-
-	for _, v := range config.Tools {
-		log.Debugf("Kit: %s tool: %s - %s", v.Kit, v.Name, v.Description)
-		tool := &ToolFunc{
-			Type:        v.Type,
-			Kit:         v.Kit,
-			Name:        v.Name,
-			Description: v.Description,
-			Parameters:  v.Parameters,
-			Body:        v.Body,
-		}
-		toolRegistry[tool.ID()] = tool
-
-		// TODO this is used for security check by the evalCommand
-		if v.Type == "system" {
-			systemTools = append(systemTools, tool)
-		}
-	}
-}
-
-func ListSystemTools() []*ToolFunc {
-	// return systemTools
-	var tools []*ToolFunc
-	for _, v := range toolRegistry {
-		tools = append(tools, v)
-	}
-	return tools
-}
 
 func workDir() (string, error) {
 	return _os.Getwd()

@@ -83,101 +83,14 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 	config := r.Config
 	adviceMap := config.AdviceMap
 
-	getSystemTools := func() ([]*ToolFunc, error) {
+	getTools := func(toolType string) ([]*ToolFunc, error) {
 		var list []*ToolFunc
 		for _, v := range r.Vars.ToolRegistry {
-			if v.Type == ToolTypeSystem {
+			if toolType == "*" || v.Type == toolType {
 				list = append(list, v)
 			}
 		}
 		return list, nil
-		// return ListSystemTools()
-	}
-
-	getMcpTools := func(s string) ([]*ToolFunc, error) {
-		var list []*ToolFunc
-		for _, v := range r.Vars.ToolRegistry {
-			if v.Type == ToolTypeMcp {
-				list = append(list, v)
-			}
-		}
-		return list, nil
-
-		// parts := strings.SplitN(s, ":", 2)
-		// if len(parts) == 2 {
-		// 	// mcp:server
-		// 	s = parts[1]
-		// }
-		// var mcpToolMap map[string][]*ToolFunc
-		// var err error
-
-		// if s == "" || s == "*" {
-		// 	mcpToolMap, err = r.McpServerTool.ListTools()
-		// 	if err != nil {
-		// 		return nil, err
-		// 	}
-		// } else {
-		// 	tools, err := r.McpServerTool.GetTools(s)
-		// 	if err != nil {
-		// 		return nil, err
-		// 	}
-		// 	mcpToolMap = map[string][]*ToolFunc{
-		// 		s: tools,
-		// 	}
-		// }
-		// mcpFunctions := []*ToolFunc{}
-		// for server, m := range mcpToolMap {
-		// 	for _, v := range m {
-		// 		// fn := fmt.Sprintf("%s__%s", server, v.Name)
-		// 		// mcpFunctions = append(mcpFunctions, &ToolFunc{
-		// 		// 	Service:        server,
-		// 		// 	Func:           v.Func,
-		// 		// 	Description: v.Description,
-		// 		// 	Parameters:  v.Parameters,
-		// 		// })
-		// 		v.Service = server
-		// 		mcpFunctions = append(mcpFunctions, v)
-		// 	}
-		// }
-		// return mcpFunctions, nil
-	}
-
-	// agent:agent/command
-	getAgentTools := func(s string) ([]*ToolFunc, error) {
-		var list []*ToolFunc
-		for _, v := range r.Vars.ToolRegistry {
-			if v.Type == ToolTypeAgent {
-				list = append(list, v)
-			}
-		}
-		return list, nil
-		// // skip self
-		// if s == name {
-		// 	return nil, nil
-		// }
-		// parts := strings.SplitN(s, ":", 2)
-		// if len(parts) == 2 {
-		// 	// agent:agent/command
-		// 	s = parts[1]
-		// }
-		// if s == "" || s == "*" {
-		// 	agentFuncs := []*ToolFunc{}
-		// 	// fn:agent__agent_command
-		// 	for _, v := range r.AgentToolMap {
-		// 		// skip agent itself
-		// 		if name == v.Service {
-		// 			continue
-		// 		}
-		// 		agentFuncs = append(agentFuncs, v)
-		// 	}
-		// 	return agentFuncs, nil
-		// }
-		// for _, v := range r.AgentToolMap {
-		// 	if v.Service == s {
-		// 		return []*ToolFunc{v}, nil
-		// 	}
-		// }
-		// return nil, fmt.Errorf("no such agent tool: %s", s)
 	}
 
 	getTool := func(s string) (*ToolFunc, error) {
@@ -233,37 +146,24 @@ func (r *Swarm) Create(name string, input *UserInput) (*Agent, error) {
 		// tools
 		funcMap := make(map[string]*ToolFunc)
 		for _, f := range ac.Functions {
-			// mcp:server
-			if strings.HasPrefix(f, "mcp:") {
-				mcpFuncs, err := getMcpTools(f)
+			if f == "*" {
+				funcs, err := getTools("*")
+				if err != nil {
+					return nil, err
+				}
+				for _, fn := range funcs {
+					funcMap[fn.ID()] = fn
+				}
+				continue
+			}
+			// type:*
+			parts := strings.SplitN(f, ":", 2)
+			if len(parts) > 0 {
+				mcpFuncs, err := getTools(parts[0])
 				if err != nil {
 					return nil, err
 				}
 				for _, fn := range mcpFuncs {
-					funcMap[fn.ID()] = fn
-				}
-				continue
-			}
-
-			// agent tools
-			if strings.HasPrefix(f, "agent:") {
-				agentFuncs, err := getAgentTools(f)
-				if err != nil {
-					return nil, err
-				}
-				for _, fn := range agentFuncs {
-					funcMap[fn.ID()] = fn
-				}
-				continue
-			}
-
-			// system tools
-			if strings.HasPrefix(f, "system:") {
-				sysFuncs, err := getSystemTools()
-				if err != nil {
-					return nil, err
-				}
-				for _, fn := range sysFuncs {
 					funcMap[fn.ID()] = fn
 				}
 				continue

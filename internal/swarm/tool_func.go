@@ -44,8 +44,8 @@ func callDevTool(ctx context.Context, vars *Vars, f *ToolFunc, args map[string]a
 		return result
 	}
 
-	devTools := []string{"git", "go", "docker", "node", "npm", "yarn", "python", "ag", "rg", "jq"}
-	for _, v := range devTools {
+	// Add system commands to the function map
+	for _, v := range toolSystemCommands {
 		if _, err := exec.LookPath(v); err != nil {
 			log.Errorf("%s not found in PATH", v)
 			continue

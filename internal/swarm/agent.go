@@ -12,14 +12,6 @@ import (
 
 const transferAgentName = "agent_transfer"
 
-const (
-	ToolTypeSystem   = "system"
-	ToolTypeTemplate = "template"
-	ToolTypeMcp      = "mcp"
-	ToolTypeAgent    = "agent"
-	ToolTypeFunc     = "func"
-)
-
 type Agent struct {
 	// The name of the agent.
 	Name string

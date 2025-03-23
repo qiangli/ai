@@ -1,23 +1,24 @@
 ###
 kit: git
+commands: ["git"]
 
 tools:
   - name: "status"
     description: "Show the working tree status"
     parameters: {}
-    body: "{{git status}}"
+    body: '{{git "status"}}'
     type: "template"
 
   - name: "diff_unstaged"
     description: "Show changes in the working directory that are not yet staged"
     parameters: {}
-    body: "{{git diff}}"  
+    body: '{{git "diff"}}'
     type: "template"
 
   - name: "diff_staged"
     description: "Show changes that are staged for commit"
     parameters: {}
-    body: "{{git diff --cached}}"
+    body: '{{git "diff" "--cached"}}'
     type: "template"
 
   - name: "diff"
@@ -30,7 +31,7 @@ tools:
           description: "Target branch or commit to diff against"
       required:
         - target
-    body: "{{git diff .target}}"
+    body: '{{git "diff" .target}}'
     type: "template"
 
   - name: "commit"
@@ -43,7 +44,7 @@ tools:
           description: "Commit message"
       required:
         - message
-    body: "{{git commit -m .message}}"
+    body: '{{git "commit" "-m" .message}}'
     type: "template"
   
   - name: "amend"
@@ -56,7 +57,7 @@ tools:
           description: "New commit message to replace the last one"
       required:
         - message
-    body: "{{git commit --amend -m .message}}"
+    body: '{{git "commit" "--amend" "-m" .message}}'
     type: "template"
 
   - name: "add"
@@ -71,13 +72,13 @@ tools:
           description: "Files to add to staging"
       required:
         - files
-    body: "{{git add .files}}"
+    body: '{{git "add" .files}}'
     type: "template"
 
   - name: "reset"
     description: "Unstage all staged changes"
     parameters: {}
-    body: "{{git reset}}"
+    body: '{{git "reset"}}'
     type: "template"
 
   - name: "log"
@@ -89,7 +90,7 @@ tools:
           type: "integer"
           description: "Maximum number of commits to show"
           default: 10
-    body: "{{git log --max-count (default 10 .max_count)}}"
+    body: '{{git "log" "--max-count" (default 10 .max_count)}}'
     type: "template"
 
   - name: "create_branch"
@@ -105,7 +106,7 @@ tools:
           description: "Base branch to create new branch from"
       required:
         - branch_name
-    body: "{{git checkout -b .branch_name (default 'HEAD' .base_branch)}}"
+    body: '{{git "checkout" "-b" .branch_name (default "HEAD" .base_branch)}}'
     type: "template"
 
   - name: "checkout"
@@ -118,7 +119,7 @@ tools:
           description: "Branch to checkout"
       required:
         - branch_name
-    body: "{{git checkout .branch_name}}"
+    body: '{{git "checkout" .branch_name}}'
     type: "template"
 
   - name: "show"
@@ -131,7 +132,7 @@ tools:
           description: "Revision or commit to show"
       required:
         - revision
-    body: "{{git show .revision}}"
+    body: '{{git "show" .revision}}'
     type: "template"
 
   - name: "init"
@@ -144,7 +145,7 @@ tools:
           description: "Path where the new repository will be initialized"
       required:
         - repo_path
-    body: "{{git init .directory}}"
+    body: '{{git "init" .directory}}'
     type: "template"
 
   - name: "clone"
@@ -160,7 +161,7 @@ tools:
           description: "Directory where the repository will be cloned"
       required:
         - repo_url
-    body: "{{git clone .repo_url (default '.' .directory)}}"
+    body: '{{git "clone" .repo_url (default "."" .directory)}}'
     type: "template"
   
   - name: "pull"
@@ -176,11 +177,11 @@ tools:
           description: "Branch to pull from"
       required:
         - remote
-    body: "{{git pull .remote (default 'main' .branch)}}"
+    body: '{{git "pull" .remote (default "main" .branch)}}'
     type: "template"
 
   - name: "stash"
     description: "Stash the changes in a dirty working directory away"
     parameters: {}
-    body: "{{git stash}}"
+    body: '{{git "stash"}}'
     type: "template"

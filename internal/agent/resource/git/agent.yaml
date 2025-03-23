@@ -28,7 +28,7 @@ agents:
     instruction:
       content: "resource:git_message_short"
     functions:
-      - "system:*"
+      - "*"
 
   # https://www.conventionalcommits.org/en/v1.0.0/#summary
   - name: "git/conventional"
@@ -38,7 +38,7 @@ agents:
     instruction:
       content: "resource:git_message_conventional"
     functions:
-      - "system:*"
+      - "*"
 
 models:
   - name: "L1"

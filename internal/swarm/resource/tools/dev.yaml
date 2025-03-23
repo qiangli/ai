@@ -1,5 +1,6 @@
 ###
 kit: dev
+commands: ["git", "go", "docker", "node", "npm", "yarn", "python", "ag", "rg", "jq"]
 
 tools:
   - name: "git"

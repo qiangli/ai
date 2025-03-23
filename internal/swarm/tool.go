@@ -17,6 +17,66 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
+const (
+	ToolTypeSystem   = "system"
+	ToolTypeTemplate = "template"
+	ToolTypeMcp      = "mcp"
+	ToolTypeAgent    = "agent"
+	ToolTypeFunc     = "func"
+)
+
+var toolRegistry map[string]*ToolFunc
+var toolSystemCommands []string
+
+var systemTools []*ToolFunc
+
+func init() {
+	config, err := LoadDefaultToolConfig()
+	if err != nil {
+		log.Errorf("failed to load default tool config: %v", err)
+		return
+	}
+
+	toolRegistry = make(map[string]*ToolFunc)
+	for _, v := range config.Tools {
+		log.Debugf("Kit: %s tool: %s - %s", v.Kit, v.Name, v.Description)
+		tool := &ToolFunc{
+			Type:        v.Type,
+			Kit:         v.Kit,
+			Name:        v.Name,
+			Description: v.Description,
+			Parameters:  v.Parameters,
+			Body:        v.Body,
+		}
+		toolRegistry[tool.ID()] = tool
+
+		// TODO this is used for security check by the evalCommand
+		if v.Type == "system" {
+			systemTools = append(systemTools, tool)
+		}
+
+	}
+
+	// required system commands
+	commandMap := make(map[string]bool)
+	for _, v := range config.Commands {
+		commandMap[v] = true
+	}
+	toolSystemCommands = make([]string, 0, len(commandMap))
+	for k := range commandMap {
+		toolSystemCommands = append(toolSystemCommands, k)
+	}
+}
+
+func ListTools() []*ToolFunc {
+	// return systemTools
+	var tools []*ToolFunc
+	for _, v := range toolRegistry {
+		tools = append(tools, v)
+	}
+	return tools
+}
+
 type ToolConfig struct {
 	Kit string `yaml:"kit"`
 
@@ -29,7 +89,11 @@ type ToolConfig struct {
 }
 
 type ToolsConfig struct {
-	Kit   string        `yaml:"kit"`
+	Kit string `yaml:"kit"`
+
+	// system commands used by tools
+	Commands []string `yaml:"commands"`
+
 	Tools []*ToolConfig `yaml:"tools"`
 }
 

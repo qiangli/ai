@@ -154,8 +154,8 @@ func listTools(mcpServerUrl string) ([]*swarm.ToolFunc, error) {
 		list = append(list, v...)
 	}
 
-	// system tools
-	sysTools := swarm.ListSystemTools()
+	// system and misc tools
+	sysTools := swarm.ListTools()
 	list = append(list, sysTools...)
 
 	// function tools
@@ -181,8 +181,8 @@ func ListServiceTools(mcpServerUrl string) ([]*swarm.ToolFunc, error) {
 		list = append(list, v...)
 	}
 
-	// system tools
-	sysTools := swarm.ListSystemTools()
+	// system and misc tools
+	sysTools := swarm.ListTools()
 	list = append(list, sysTools...)
 
 	return list, nil
