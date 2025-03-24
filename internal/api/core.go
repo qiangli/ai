@@ -31,10 +31,10 @@ func (r *Result) String() string {
 		sb.WriteString(r.State.String())
 	}
 	if r.NextAgent != "" {
-		sb.WriteString(fmt.Sprintf("%s\n", r.NextAgent))
+		sb.WriteString(fmt.Sprintf(" %s\n", r.NextAgent))
 	}
 	if r.Value != "" {
-		sb.WriteString(fmt.Sprintf("Value: %s\n", r.Value))
+		sb.WriteString(fmt.Sprintf(" %s\n", r.Value))
 	}
 	return strings.TrimSpace(sb.String())
 }
