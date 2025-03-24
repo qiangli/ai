@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"testing"
 	"time"
 
@@ -62,10 +61,10 @@ func TestServerListTools(t *testing.T) {
 	listReq := mcp.ListToolsRequest{}
 	tools, err := client.ListTools(ctx, listReq)
 	if err != nil {
-		log.Fatalf("Failed to list tools: %v", err)
+		t.Fatalf("Failed to list tools: %v", err)
 	}
 	for _, tool := range tools.Tools {
-		log.Printf("- %s: %s\n", tool.Name, tool.Description)
+		t.Logf("- %s: %s\n", tool.Name, tool.Description)
 	}
 }
 

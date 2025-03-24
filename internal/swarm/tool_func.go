@@ -37,6 +37,18 @@ func callDevTool(ctx context.Context, vars *Vars, f *ToolFunc, args map[string]a
 				if v != "" {
 					nArgs = append(nArgs, v)
 				}
+			case int:
+				nArgs = append(nArgs, fmt.Sprintf("%d", v))
+			case int64:
+				nArgs = append(nArgs, fmt.Sprintf("%d", v))
+			case float64:
+				nArgs = append(nArgs, fmt.Sprintf("%f", v))
+			case bool:
+				if v {
+					nArgs = append(nArgs, "true")
+				} else {
+					nArgs = append(nArgs, "false")
+				}
 			case []string:
 				for _, s := range v {
 					s = strings.TrimSpace(s)
@@ -52,12 +64,28 @@ func callDevTool(ctx context.Context, vars *Vars, f *ToolFunc, args map[string]a
 						if i != "" {
 							nArgs = append(nArgs, i)
 						}
+					case int:
+						nArgs = append(nArgs, fmt.Sprintf("%d", i))
+					case int64:
+						nArgs = append(nArgs, fmt.Sprintf("%d", i))
+					case float64:
+						nArgs = append(nArgs, fmt.Sprintf("%f", i))
+					case bool:
+						if i {
+							nArgs = append(nArgs, "true")
+						} else {
+							nArgs = append(nArgs, "false")
+						}
+					case nil:
+						// Ignore nil values
 					default:
-						log.Errorf("Unsupported item type in []interface{} for command %s: %T", cmd, i)
+						return fmt.Sprintf("Unsupported item type in []interface{} for command %s: %T\n", cmd, i)
 					}
 				}
+			case nil:
+				// Ignore nil values
 			default:
-				log.Errorf("Unsupported argument type for command %s: %T", cmd, v)
+				return fmt.Sprintf("Unsupported argument type for command %s: %T\n", cmd, v)
 			}
 		}
 		log.Debugf("Running command: %s %+v original: %+v\n", cmd, nArgs, args)

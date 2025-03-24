@@ -3,6 +3,7 @@ package agent
 import (
 	"bytes"
 	"encoding/base64"
+	"fmt"
 	"image"
 	"image/png"
 	"os"
@@ -21,7 +22,7 @@ func PrintOutput(format string, output *api.Output) error {
 		return err
 	}
 	log.Infof("\n[%s]\n", output.Display)
-	log.Infoln(s)
+	log.Println(s)
 	return nil
 }
 
@@ -82,7 +83,9 @@ func processTextContent(cfg *internal.AppConfig, output *api.Output) {
 			snippets = append(snippets, v.Code)
 		}
 		// show code snippets
-		log.Printf(codeTpl, strings.Join(snippets, "\n"))
+		PrintOutput(cfg.Format, &api.Output{
+			Content: fmt.Sprintf(codeTpl, strings.Join(snippets, "\n")),
+		})
 	}
 }
 

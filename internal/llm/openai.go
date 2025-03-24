@@ -139,8 +139,12 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 
 	for tries := range maxTurns {
 		log.Debugf("*** sending request to %s ***: %v of %v\n", req.BaseUrl, tries, maxTurns)
+		for _, v := range params.Messages.Value {
+			log.Debugf(">>> message: %+v\n", v)
+		}
 
 		log.Infof("[%v] @%s %s %s\n", tries, req.Agent, req.Model, req.BaseUrl)
+
 		completion, err := client.Chat.Completions.New(ctx, params)
 		if err != nil {
 			log.Errorf("✗ %s\n", err)
@@ -257,14 +261,3 @@ func generateImage(ctx context.Context, req *api.Request) (*api.Response, error)
 
 	return resp, nil
 }
-
-// // head trims the string to the maxLen and replaces newlines with /.
-// func head(s string, maxLen int) string {
-// 	s = strings.ReplaceAll(s, "\n", "\\n")
-// 	s = strings.Join(strings.Fields(s), " ")
-// 	s = strings.TrimSpace(s)
-// 	if len(s) > maxLen {
-// 		return s[:maxLen] + "..."
-// 	}
-// 	return s
-// }

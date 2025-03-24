@@ -2,12 +2,15 @@ package swarm
 
 import (
 	"testing"
+
+	"github.com/qiangli/ai/internal"
 )
 
 func TestLoadToolConfig(t *testing.T) {
 	base := "resource/tools"
 
-	config, err := LoadToolConfig(base)
+	app := &internal.AppConfig{}
+	config, err := LoadToolConfig(app, base)
 	if err != nil {
 		t.Fatalf("failed to load tool files: %v", err)
 	}
@@ -24,7 +27,8 @@ func TestLoadToolConfig(t *testing.T) {
 }
 
 func TestLoadDefaultToolConfig(t *testing.T) {
-	config, err := LoadDefaultToolConfig()
+	app := &internal.AppConfig{}
+	config, err := LoadDefaultToolConfig(app)
 	if err != nil {
 		t.Fatalf("failed to load default tool config: %v", err)
 	}

@@ -6,7 +6,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:                   "ai [OPTIONS] [@AGENT] MESSAGE...",
-	Short:                 "AI command line tool",
+	Short:                 "AI Command Line Tool",
 	Example:               usageExample,
 	DisableFlagsInUseLine: true,
 	DisableSuggestions:    true,

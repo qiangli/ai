@@ -7,20 +7,18 @@ maxTurns: 32
 maxTime: 3600
 
 agents:
-  - name: "launch"
+  - name: "agent"
     display: "🚀 Agent"
     description: "Dispatch to the most appropriate agent based on the user's input."
     model: L1
     internal: true
     instruction:
       content: "resource:agent_sub_system_role"
-    advices:
-      after: "agent_launch"
     functions:
       - "list_agents"
       - "agent_info"
-      - "system:*"
-
+      - "agent_transfer"
+      
 models:
   - name: "L1"
     description: "Level 1 basic model"

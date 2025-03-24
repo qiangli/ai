@@ -21,8 +21,8 @@ var docker_input_user_role string
 //go:embed prompts/eval_system_role.md
 var eval_system_role string
 
-//go:embed prompts/git_message_conventional.md
-var git_message_conventional string
+//go:embed prompts/git_message_long.md
+var git_message_long string
 
 //go:embed prompts/git_message_short.md
 var git_message_short string
@@ -106,7 +106,7 @@ var Prompts = map[string]string{
 	"doc_compose_system_role":  doc_compose_system_role,
 	"docker_input_user_role":   docker_input_user_role,
 	"eval_system_role":         eval_system_role,
-	"git_message_conventional": git_message_conventional,
+	"git_message_long":         git_message_long,
 	"git_message_short":        git_message_short,
 	"git_sub_system_role":      git_sub_system_role,
 	"gptr_sub_system_role":     gptr_sub_system_role,
@@ -145,6 +145,9 @@ type AgentConfig struct {
 	Data        []byte
 }
 
+//go:embed agent/agent.yaml
+var agent_agent_yaml_data []byte
+
 //go:embed aider/agent.yaml
 var aider_agent_yaml_data []byte
 
@@ -169,9 +172,6 @@ var git_agent_yaml_data []byte
 //go:embed gptr/agent.yaml
 var gptr_agent_yaml_data []byte
 
-//go:embed launch/agent.yaml
-var launch_agent_yaml_data []byte
-
 //go:embed oh/agent.yaml
 var oh_agent_yaml_data []byte
 
@@ -188,6 +188,13 @@ var sql_agent_yaml_data []byte
 var workspace_agent_yaml_data []byte
 
 var AgentCommandMap = map[string]AgentConfig{
+	"agent": {
+		Name:        "agent",
+		Description: "Dispatch to the most appropriate agent based on the user's input.",
+		Internal:    true,
+		Data:        agent_agent_yaml_data,
+		Overview:    "",
+	},
 	"aider": {
 		Name:        "aider",
 		Description: "Integrate LLMs for collaborative coding, refactoring, bug fixing, and test development.",
@@ -232,14 +239,14 @@ var AgentCommandMap = map[string]AgentConfig{
 	},
 	"git": {
 		Name:        "git",
-		Description: "Automate git commit message creation for clarity and consistency in version control",
+		Description: "Generate git commit message based on users input and the provided diffs.",
 		Internal:    true,
 		Data:        git_agent_yaml_data,
-		Overview:    "A Git agent is a tool used in software development to aid in creating and managing Git commit messages. It automates and enhances the process, ensuring consistency and clarity in the project's change history. By producing well-structured commit messages, a Git agent helps maintain organized records, facilitates team collaboration, and improves overall efficiency in version control management.",
+		Overview:    "",
 	},
-	"git/conventional": {
-		Name:        "git/conventional",
-		Description: "Generate concise git commit messages based on the provided diffs using the Conventional Commits specification",
+	"git/long": {
+		Name:        "git/long",
+		Description: "Generate git commit messages based on the provided diffs using the Conventional Commits specification",
 		Internal:    false,
 		Data:        git_agent_yaml_data,
 		Overview:    "",
@@ -257,13 +264,6 @@ var AgentCommandMap = map[string]AgentConfig{
 		Internal:    false,
 		Data:        gptr_agent_yaml_data,
 		Overview:    "The agent is a comprehensive tool designed for advanced digital exploration and research. It serves users seeking insights from diverse online sources, whether for academic research, competitive business analysis, or trend monitoring. Leveraging search technologies, it efficiently navigates the internet to provide accurate, timely, and contextually relevant information. With autonomous capabilities, it creates detailed, factual reports complete with citations, tackling issues like misinformation. Customizable and user-friendly, the tool aggregates data from over multiple sources, making digital content access and analysis reliable and efficient.",
-	},
-	"launch": {
-		Name:        "launch",
-		Description: "Dispatch to the most appropriate agent based on the user's input.",
-		Internal:    true,
-		Data:        launch_agent_yaml_data,
-		Overview:    "",
 	},
 	"oh": {
 		Name:        "oh",

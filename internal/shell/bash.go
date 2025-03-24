@@ -47,7 +47,7 @@ func Bash(cfg *internal.AppConfig) error {
 		return err
 	}
 
-	// log.Printf(usage, cfg.CommandPath)
+	// log.Infof(usage, cfg.CommandPath)
 
 	c := exec.Command(bin, args...)
 	c.Env = os.Environ()

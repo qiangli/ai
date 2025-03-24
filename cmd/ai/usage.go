@@ -7,6 +7,9 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
+	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/agent"
 )
 
 const rootUsageTemplate = `AI Command Line Tool
@@ -26,7 +29,9 @@ ai / what is fish
 ai @ask what is fish
 `
 
-const agentUsageTemplate = `Usage:
+const agentUsageTemplate = `AI Command Line Tool
+
+Usage:
   ai [OPTIONS] [@AGENT] MESSAGE...{{if .HasExample}}
 {{.Example}}{{end}}
 
@@ -137,7 +142,27 @@ func getHelpData(cmd *cobra.Command) *HelpData {
 	}
 }
 
-func Help(cmd *cobra.Command) error {
+func Help(cmd *cobra.Command, args []string) error {
+	if len(args) > 0 {
+		cfg, err := internal.ParseConfig(args)
+		if err != nil {
+			return err
+		}
+		agent.InitApp(cfg)
+		for _, v := range args {
+			switch v {
+			case "agents", "agent":
+				return agent.HelpAgents(cfg)
+			case "commands", "command":
+				return agent.HelpCommands(cfg)
+			case "tools", "tool":
+				return agent.HelpTools(cfg)
+			case "info":
+				return agent.HelpInfo(cfg)
+			}
+		}
+	}
+
 	// help
 	trimTrailingWhitespaces := func(s string) string {
 		return strings.TrimRightFunc(s, func(r rune) bool {

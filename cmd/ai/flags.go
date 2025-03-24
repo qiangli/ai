@@ -220,6 +220,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.Bool("quiet", false, "Operate quietly")
 	flags.Bool("verbose", false, "Show debugging information")
 	flags.Bool("trace", false, "Trace API calls")
+	flags.Bool("internal", false, "Enable internal agents and tools")
 
 	//
 	flags.String("role", "system", "Specify the role for the prompt")

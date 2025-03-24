@@ -208,7 +208,8 @@ type AppConfig struct {
 	//
 	Template string
 
-	Debug bool
+	Debug    bool
+	Internal bool
 
 	//
 	Workspace string
@@ -305,6 +306,8 @@ func ParseConfig(args []string) (*AppConfig, error) {
 
 	//
 	app.Debug = viper.GetBool("verbose")
+	app.Internal = viper.GetBool("internal")
+
 	app.Editor = viper.GetString("editor")
 	app.Interactive = viper.GetBool("interactive")
 	noMeta := viper.GetBool("no_meta_prompt")

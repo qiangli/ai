@@ -24,7 +24,7 @@ func init() {
 	adviceMap["resolve_workspace"] = resolveWorkspaceAdvice
 	adviceMap["aider"] = aiderAdvice
 	adviceMap["openhands"] = ohAdvice
-	adviceMap["agent_launch"] = agentLaunchAdvice
+	// adviceMap["agent_launch"] = agentLaunchAdvice
 	adviceMap["sub"] = subAdvice
 	adviceMap["image_params"] = imageParamsAdvice
 	adviceMap["chdir_format_path"] = chdirFormatPathAdvice
@@ -35,31 +35,31 @@ type AgentDetect struct {
 	Command string `json:"command"`
 }
 
-// agent after advice
-func agentLaunchAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
-	var v AgentDetect
-	msg := resp.LastMessage()
-	if msg == nil {
-		return fmt.Errorf("invalid response: no message")
-	}
+// // agent after advice
+// func agentLaunchAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
+// 	var v AgentDetect
+// 	msg := resp.LastMessage()
+// 	if msg == nil {
+// 		return fmt.Errorf("invalid response: no message")
+// 	}
 
-	if err := json.Unmarshal([]byte(msg.Content), &v); err != nil {
-		log.Debugf("decode_meta_response error: %v", err)
-		return nil
-	}
+// 	if err := json.Unmarshal([]byte(msg.Content), &v); err != nil {
+// 		log.Debugf("decode_meta_response error: %v", err)
+// 		return nil
+// 	}
 
-	//
-	req.RawInput.Command = v.Command
-	//
-	resp.Result = &swarm.Result{
-		State:     api.StateTransfer,
-		NextAgent: v.Agent,
-	}
+// 	//
+// 	req.RawInput.Command = v.Command
+// 	//
+// 	resp.Result = &swarm.Result{
+// 		State:     api.StateTransfer,
+// 		NextAgent: v.Agent,
+// 	}
 
-	log.Debugf("dispatching: %+v\n", v)
+// 	log.Debugf("dispatching: %+v\n", v)
 
-	return nil
-}
+// 	return nil
+// }
 
 type metaResponse struct {
 	Service    string `json:"service"`
@@ -211,6 +211,8 @@ func ohAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swar
 	return OpenHands(req.Context(), vars.Models[api.L2], vars.Workspace, req.RawInput)
 }
 
+// subAdvice is an around advice that checks if a subcommand is specified.
+// skip LLM if it is and go directly to the next sub agent.
 func subAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, next swarm.Advice) error {
 	sub := baseCommand(req.RawInput.Command)
 	if sub != "" {

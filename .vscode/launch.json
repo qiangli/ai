@@ -50,6 +50,11 @@
 			},
 			"args": [
 				"/help",
+				"tools",
+				"--internal",
+				"--verbose",
+				"message",
+				"what is cooking",
 			],
 			"showLog": false,
 			"stopOnEntry": false,
@@ -178,7 +183,7 @@
 			},
 			"args": [
 				"--verbose",
-				"@git/short",
+				"@git",
 				"--message",
 				"write a short commit message for the code changes",
 			],

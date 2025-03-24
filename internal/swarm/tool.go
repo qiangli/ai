@@ -13,6 +13,7 @@ import (
 	"github.com/briandowns/spinner"
 	"gopkg.in/yaml.v3"
 
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
 )
@@ -30,8 +31,8 @@ var toolSystemCommands []string
 
 var systemTools []*ToolFunc
 
-func init() {
-	config, err := LoadDefaultToolConfig()
+func InitTools(app *internal.AppConfig) {
+	config, err := LoadDefaultToolConfig(app)
 	if err != nil {
 		log.Errorf("failed to load default tool config: %v", err)
 		return
@@ -54,7 +55,6 @@ func init() {
 		if v.Type == "system" {
 			systemTools = append(systemTools, tool)
 		}
-
 	}
 
 	// required system commands
@@ -101,7 +101,7 @@ type ToolsConfig struct {
 //go:embed resource/tools/*.yaml
 var resourceTools embed.FS
 
-func LoadDefaultToolConfig() (*ToolsConfig, error) {
+func LoadDefaultToolConfig(app *internal.AppConfig) (*ToolsConfig, error) {
 	base := "resource/tools"
 	dirs, err := resourceTools.ReadDir(base)
 	if err != nil {
@@ -121,10 +121,10 @@ func LoadDefaultToolConfig() (*ToolsConfig, error) {
 		}
 		data = append(data, f)
 	}
-	return LoadToolData(data)
+	return LoadToolData(app, data)
 }
 
-func LoadToolConfig(base string) (*ToolsConfig, error) {
+func LoadToolConfig(app *internal.AppConfig, base string) (*ToolsConfig, error) {
 	dirs, err := os.ReadDir(base)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read testdata directory: %v", err)
@@ -137,10 +137,10 @@ func LoadToolConfig(base string) (*ToolsConfig, error) {
 		}
 		files = append(files, filepath.Join(base, dir.Name()))
 	}
-	return LoadToolFiles(files)
+	return LoadToolFiles(app, files)
 }
 
-func LoadToolFiles(file []string) (*ToolsConfig, error) {
+func LoadToolFiles(app *internal.AppConfig, file []string) (*ToolsConfig, error) {
 	var data [][]byte
 	for _, f := range file {
 		d, err := os.ReadFile(f)
@@ -152,10 +152,10 @@ func LoadToolFiles(file []string) (*ToolsConfig, error) {
 		}
 		data = append(data, d)
 	}
-	return LoadToolData(data)
+	return LoadToolData(app, data)
 }
 
-func LoadToolData(data [][]byte) (*ToolsConfig, error) {
+func LoadToolData(app *internal.AppConfig, data [][]byte) (*ToolsConfig, error) {
 	merged := &ToolsConfig{}
 
 	for _, v := range data {

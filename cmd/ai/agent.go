@@ -42,8 +42,8 @@ func init() {
 	addAgentFlags(AgentCmd)
 	AgentCmd.Flags().SortFlags = true
 	AgentCmd.CompletionOptions.DisableDefaultCmd = true
-	AgentCmd.SetUsageFunc(func(cmd *cobra.Command) error {
-		return Help(cmd)
+	AgentCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		Help(cmd, args)
 	})
 
 	// Bind the flags to viper using underscores
@@ -97,7 +97,7 @@ func Run(cmd *cobra.Command, args []string) error {
 	}
 
 	// $ ai
-	// if no args and no input, show help - short form
+	// if no args and no input, show help
 	if !cfg.HasInput() && !cfg.IsSpecial() {
 		if err := cmd.Help(); err != nil {
 			return err
@@ -137,20 +137,4 @@ func setLogOutput() (*log.FileWriter, error) {
 		return f, nil
 	}
 	return nil, nil
-}
-
-func showHelp(cfg *internal.AppConfig, sub string) error {
-	// ai /help [agents|commands|tools|info]
-	switch sub {
-	case "agents", "agent":
-		return agent.HelpAgents(cfg)
-	case "commands", "command":
-		return agent.HelpCommands(cfg)
-	case "tools", "tool":
-		return agent.HelpTools(cfg)
-	case "info":
-		return agent.HelpInfo(cfg)
-	}
-
-	return AgentCmd.Help()
 }

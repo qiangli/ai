@@ -14,7 +14,7 @@ import (
 var agentConfigMap = map[string][][]byte{}
 var agentToolMap = map[string]*swarm.ToolFunc{}
 
-func init() {
+func initAgents(app *internal.AppConfig) {
 	resourceMap := resource.AgentCommandMap
 	for k, v := range resourceMap {
 		agentConfigMap[k] = [][]byte{resource.CommonData, v.Data}
@@ -22,7 +22,7 @@ func init() {
 
 	// skip internal as tool - e.g launch
 	for _, v := range resourceMap {
-		if v.Internal {
+		if !app.Internal && v.Internal {
 			continue
 		}
 		parts := strings.SplitN(v.Name, "/", 2)
@@ -44,12 +44,20 @@ func init() {
 
 var resourceMap = resource.Prompts
 
+// init agents/tools
+func InitApp(app *internal.AppConfig) {
+	initAgents(app)
+	swarm.InitTools(app)
+}
+
 func RunSwarm(cfg *internal.AppConfig, input *api.UserInput) error {
 	name := input.Agent
 	command := input.Command
 	log.Debugf("Running agent %q %s with swarm\n", name, command)
 
 	//
+	InitApp(cfg)
+
 	sw, err := swarm.NewSwarm(cfg)
 	if err != nil {
 		return err

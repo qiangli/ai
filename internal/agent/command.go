@@ -69,7 +69,7 @@ AI Environment:
 	}
 	sort.Strings(filteredEnvs)
 
-	log.Printf(format, info, cfg.LLM.Model, cfg.LLM.BaseUrl, cfg.LLM.ApiKey, string(jc), strings.Join(filteredEnvs, "\n"))
+	log.Infof(format, info, cfg.LLM.Model, cfg.LLM.BaseUrl, cfg.LLM.ApiKey, string(jc), strings.Join(filteredEnvs, "\n"))
 	return nil
 }
 
@@ -109,7 +109,7 @@ ai message...
 		buf.WriteString(dict[k].Description)
 		buf.WriteString("\n")
 	}
-	log.Printf(format, buf.String(), len(keys))
+	log.Infof(format, buf.String(), len(keys))
 
 	return nil
 }
@@ -134,7 +134,7 @@ ai /command message...
 		commands[i] = fmt.Sprintf("%s: %s", v[0], strings.TrimSpace(v[1]))
 	}
 	sort.Strings(commands)
-	log.Printf(listTpl, strings.Join(commands, "\n"), len(commands))
+	log.Infof(listTpl, strings.Join(commands, "\n"), len(commands))
 	return nil
 }
 
@@ -171,6 +171,6 @@ Tools are used by agents to perform specific tasks. They are automatically selec
 
 	sort.Strings(list)
 
-	log.Printf(listTpl, strings.Join(list, "\n"), len(list))
+	log.Infof(listTpl, strings.Join(list, "\n"), len(list))
 	return nil
 }

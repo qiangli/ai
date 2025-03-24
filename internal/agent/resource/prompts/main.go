@@ -164,7 +164,7 @@ func loadAgentsFromDirectory(root string) error {
 		if !info.IsDir() && filepath.Ext(path) == ".yaml" {
 			err = loadAgentsFromFile(root, path)
 			if err != nil {
-				log.Printf("Failed to load file %s: %v", path, err)
+				log.Fatalf("Failed to load file %s: %v", path, err)
 			}
 		}
 		return nil

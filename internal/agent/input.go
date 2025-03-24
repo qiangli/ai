@@ -114,7 +114,7 @@ func userInput(
 				if err != nil {
 					return nil, err
 				}
-				log.Printf("\n%s\n\n", clipText(v, 500))
+				log.Infof("\n%s\n\n", clipText(v, 500))
 				send, err := pasteConfirm()
 				// user canceled
 				if err != nil {

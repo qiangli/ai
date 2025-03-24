@@ -10,6 +10,7 @@ import (
 func TestCreateAgent(t *testing.T) {
 	var cfg = &internal.AppConfig{}
 
+	initAgents(cfg)
 	sw, err := swarm.NewSwarm(cfg)
 	if err != nil {
 		t.Fatal(err)

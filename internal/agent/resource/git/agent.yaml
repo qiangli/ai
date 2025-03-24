@@ -10,8 +10,7 @@ agents:
   - name: "git"
     display: "🐝 Git"
     internal: true
-    description: "Automate git commit message creation for clarity and consistency in version control"
-    overview: "A Git agent is a tool used in software development to aid in creating and managing Git commit messages. It automates and enhances the process, ensuring consistency and clarity in the project's change history. By producing well-structured commit messages, a Git agent helps maintain organized records, facilitates team collaboration, and improves overall efficiency in version control management."
+    description: "Generate git commit message based on users input and the provided diffs."
     model: L1
     instruction:
       content: "resource:git_sub_system_role"
@@ -31,12 +30,12 @@ agents:
       - "*"
 
   # https://www.conventionalcommits.org/en/v1.0.0/#summary
-  - name: "git/conventional"
-    display: "📜 Git Conventional"
-    description: "Generate concise git commit messages based on the provided diffs using the Conventional Commits specification"
+  - name: "git/long"
+    display: "📜 Git long"
+    description: "Generate git commit messages based on the provided diffs using the Conventional Commits specification"
     model: L1
     instruction:
-      content: "resource:git_message_conventional"
+      content: "resource:git_message_long"
     functions:
       - "*"
 

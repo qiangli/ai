@@ -166,16 +166,18 @@ func (r *Swarm) Create(name, command string, input *UserInput) (*Agent, error) {
 				continue
 			}
 			// type:*
-			parts := strings.SplitN(f, ":", 2)
-			if len(parts) > 0 {
-				funcs, err := getTools(parts[0])
-				if err != nil {
-					return nil, err
+			if strings.Contains(f, ":") {
+				parts := strings.SplitN(f, ":", 2)
+				if len(parts) > 0 {
+					funcs, err := getTools(parts[0])
+					if err != nil {
+						return nil, err
+					}
+					for _, fn := range funcs {
+						funcMap[fn.ID()] = fn
+					}
+					continue
 				}
-				for _, fn := range funcs {
-					funcMap[fn.ID()] = fn
-				}
-				continue
 			}
 
 			// builtin functions

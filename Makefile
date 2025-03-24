@@ -23,7 +23,7 @@ tidy: ## Tidy
 	@go mod tidy && go fmt ./... && go vet ./...
 
 git-message: ## Generate commit message and copy the message to clipboard
-	@git diff origin/main|go run ./cmd/ai --dry-run=false @git/conventional =+
+	@git diff origin/main|go run ./cmd/ai --quiet @git/long }
 
 git-commit: git-message ## Generate and commit with the message
 	@git commit -m "$$(pbpaste)"

@@ -263,16 +263,18 @@ func listAgentFunc(ctx context.Context, _ *swarm.Vars, _ string, _ map[string]an
 }
 
 func agentInfoFunc(ctx context.Context, _ *swarm.Vars, _ string, args map[string]any) (*api.Result, error) {
-	key, err := swarm.GetStrProp("agent", args)
+	agent, err := swarm.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
 	}
 	var result string
-	if v, ok := resource.AgentCommandMap[key]; ok {
+	if v, ok := resource.AgentCommandMap[agent]; ok {
 		result = v.Overview
 		if result == "" {
 			result = v.Description
 		}
+	} else {
+		return nil, fmt.Errorf("unknown agent: %s", agent)
 	}
 	return &api.Result{
 		Value: result,
@@ -283,6 +285,9 @@ func agentTransferFunc(ctx context.Context, _ *swarm.Vars, _ string, args map[st
 	agent, err := swarm.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
+	}
+	if _, ok := resource.AgentCommandMap[agent]; !ok {
+		return nil, fmt.Errorf("unknown agent: %s", agent)
 	}
 	return &api.Result{
 		NextAgent: agent,

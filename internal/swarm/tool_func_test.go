@@ -77,21 +77,22 @@ func TestCallDevTools(t *testing.T) {
 				"command": "version",
 			},
 		},
-		// {
-		// 	id: "git__status",
-		// 	args: map[string]any{
-		// 		"command": "version",
-		// 	},
-		// },
-		// {
-		// 	id: "git__add",
-		// 	args: map[string]any{
-		// 		"files": []any{"pad", "poc/note.txt"},
-		// 	},
-		// },
+		{
+			id: "git__status",
+			args: map[string]any{
+				"command": "version",
+			},
+		},
+		{
+			id: "git__add",
+			args: map[string]any{
+				"files": []any{"pad", "poc/note.txt"},
+			},
+		},
 	}
 
 	cfg := &AppConfig{}
+	InitTools(cfg)
 
 	ctx := context.Background()
 	vars, _ := InitVars(cfg)

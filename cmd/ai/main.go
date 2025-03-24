@@ -27,7 +27,7 @@ func initConfig() {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Printf("Error reading config file: %s\n", err)
+		log.Errorf("Error reading config file: %s\n", err)
 	}
 }
 
@@ -51,20 +51,17 @@ func main() {
 		}
 	}
 
-	// built in commands
+	// intercept custom commands
 	// $ ai /help [agents|commands|tools|info]
 	// $ ai /mcp
 	// $ ai /setup
 	for _, arg := range args {
 		switch arg {
 		case "/help":
-			// help -- long form
-			cfg := &internal.AppConfig{}
-			sub := ""
-			if len(args) > 2 {
-				sub = args[2]
-			}
-			if err := showHelp(cfg, sub); err != nil {
+			// trigger built-in help command
+			args = append([]string{"--help"}, os.Args[1:]...)
+			AgentCmd.SetArgs(args)
+			if err := AgentCmd.Execute(); err != nil {
 				internal.Exit(err)
 			}
 			return

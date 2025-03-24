@@ -6,12 +6,12 @@ import (
 	"os"
 )
 
-var printLogger = NewPrinter(os.Stdout, 0)
+var printLogger Printer = NewPrinter(os.Stdout, 0)
 
-var promptLogger = NewPrinter(os.Stderr, 0)
 var debugLogger Printer = NewPrinter(os.Stderr, 500)
-var infoLogger = NewPrinter(os.Stderr, 0)
-var errLogger = NewPrinter(os.Stderr, 0)
+var infoLogger Printer = NewPrinter(os.Stderr, 0)
+var errLogger Printer = NewPrinter(os.Stderr, 0)
+var promptLogger Printer = NewPrinter(os.Stderr, 0)
 
 type Printer interface {
 	Printf(string, ...interface{})
@@ -176,15 +176,14 @@ func SetLogLevel(level Level) {
 	printLogger.SetEnabled(true)
 
 	// stderr
-	debugLogger.SetEnabled(false)
-	infoLogger.SetEnabled(false)
-	errLogger.SetEnabled(false)
-	promptLogger.SetEnabled(false)
-
 	switch level {
 	case Quiet:
-		return
+		debugLogger.SetEnabled(false)
+		infoLogger.SetEnabled(false)
+		errLogger.SetEnabled(false)
+		promptLogger.SetEnabled(false)
 	case Normal:
+		debugLogger.SetEnabled(false)
 		infoLogger.SetEnabled(true)
 		errLogger.SetEnabled(true)
 		promptLogger.SetEnabled(true)
@@ -206,12 +205,14 @@ func SetLogLevel(level Level) {
 
 func SetLogOutput(w io.Writer) {
 	printLogger.SetLogger(w)
+
 	debugLogger.SetLogger(w)
 	infoLogger.SetLogger(w)
 	errLogger.SetLogger(w)
 	promptLogger.SetLogger(w)
 }
 
+// Set log level to Normal by default
 func init() {
 	SetLogLevel(Normal)
 }
