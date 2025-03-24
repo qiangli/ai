@@ -89,7 +89,8 @@ type ToolConfig struct {
 }
 
 type ToolsConfig struct {
-	Kit string `yaml:"kit"`
+	Kit      string `yaml:"kit"`
+	Internal bool   `yaml:"internal"`
 
 	// system commands used by tools
 	Commands []string `yaml:"commands"`
@@ -162,6 +163,10 @@ func LoadToolData(data [][]byte) (*ToolsConfig, error) {
 		if err := yaml.Unmarshal(v, cfg); err != nil {
 			return nil, err
 		}
+		// skip internal tools
+		if cfg.Internal {
+			continue
+		}
 		// update kit if not set
 		for _, tool := range cfg.Tools {
 			if tool.Kit == "" {
@@ -198,10 +203,9 @@ func (r *Vars) CallTool(ctx context.Context, name string, args map[string]any) (
 	result, err := dispatchTool(ctx, r, name, args)
 
 	if err != nil {
-		// log.Infof("❌ %s\n", err)
 		log.Errorf("\033[31m✗\033[0m %s\n", err)
 	} else {
-		log.Infof("✔ %s state: %s agent: %s\n", head(result.Value, 80), result.State, result.NextAgent)
+		log.Infof("✔ %s \n", head(result.String(), 180))
 	}
 
 	return result, err
@@ -209,7 +213,7 @@ func (r *Vars) CallTool(ctx context.Context, name string, args map[string]any) (
 
 // head trims the string to the maxLen and replaces newlines with /.
 func head(s string, maxLen int) string {
-	s = strings.ReplaceAll(s, "\n", "\\n")
+	s = strings.ReplaceAll(s, "\n", "/")
 	s = strings.Join(strings.Fields(s), " ")
 	s = strings.TrimSpace(s)
 	if len(s) > maxLen {

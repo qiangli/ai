@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"strings"
 )
 
 const (
@@ -24,20 +25,34 @@ type Result struct {
 	NextAgent string
 }
 
+func (r *Result) String() string {
+	var sb strings.Builder
+	if r.State != StateUnknown {
+		sb.WriteString(r.State.String())
+	}
+	if r.NextAgent != "" {
+		sb.WriteString(fmt.Sprintf("%s\n", r.NextAgent))
+	}
+	if r.Value != "" {
+		sb.WriteString(fmt.Sprintf("Value: %s\n", r.Value))
+	}
+	return strings.TrimSpace(sb.String())
+}
+
 type State int
 
 func (s State) String() string {
 	switch s {
 	case StateUnknown:
-		return "StateUnknown"
+		return "DEFAULT"
 	case StateExit:
-		return "StateExit"
+		return "EXIT"
 	case StateTransfer:
-		return "StateTransfer"
+		return "TRANSFER"
 	case StateInputWait:
-		return "StateInputWait"
+		return "INPUT_WAIT"
 	default:
-		return "Unknown"
+		return "INVALID"
 	}
 }
 

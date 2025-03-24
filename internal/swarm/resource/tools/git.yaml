@@ -1,5 +1,6 @@
 ###
 kit: git
+internal: true
 commands: ["git"]
 
 tools:

@@ -188,20 +188,16 @@ func (r *Swarm) Create(name, command string, input *UserInput) (*Agent, error) {
 
 		// FIXME
 		// 1. better handle this to avoid agent calling self as tools
-		// filter out self
-		// agent/command -> agent__command
-		// agent -> agent__
+		// filter out all agent tools from the agent itself
 		// 2. handle namespace to avoid collision of tool names
-		var id string
-		if strings.Contains(ac.Name, "/") {
-			parts := strings.Split(ac.Name, "/")
-			id = fmt.Sprintf("%s__%s", parts[0], parts[1])
-		} else {
-			id = fmt.Sprintf("%s__", ac.Name)
+		agentName := ac.Name
+		if strings.Contains(agentName, "/") {
+			parts := strings.SplitN(agentName, "/", 2)
+			agentName = parts[0]
 		}
 		var funcs []*ToolFunc
 		for _, v := range funcMap {
-			if v.Type == ToolTypeAgent && v.ID() == id {
+			if v.Type == ToolTypeAgent && v.Kit == agentName {
 				continue
 			}
 			funcs = append(funcs, v)
