@@ -1,0 +1,16 @@
+kit: "loc"
+
+tools:
+  - name: "fetch_location"
+    description: "Get detailed location information based on type parameters"
+    internal: true
+    parameters:
+      type: "object"
+      properties:
+        type:
+          type: "string"
+          description: "Supported types: ip, country, country_code, region, city, latitude, longitude, timezone, isp, asn"
+      required:
+        - type
+    type: "func"
+

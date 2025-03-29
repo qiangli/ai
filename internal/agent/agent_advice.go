@@ -17,7 +17,7 @@ import (
 var adviceMap = map[string]swarm.Advice{}
 
 func init() {
-	adviceMap["decode_meta_response"] = decodeMetaResponseAdvice
+	// adviceMap["decode_meta_response"] = decodeMetaResponseAdvice
 	adviceMap["script_user_input"] = scriptUserInputAdvice
 	adviceMap["pr_user_input"] = prUserInputAdvice
 	adviceMap["pr_json_to_markdown"] = prFormatAdvice
@@ -30,10 +30,10 @@ func init() {
 	adviceMap["chdir_format_path"] = chdirFormatPathAdvice
 }
 
-type AgentDetect struct {
-	Agent   string `json:"agent"`
-	Command string `json:"command"`
-}
+// type AgentDetect struct {
+// 	Agent   string `json:"agent"`
+// 	Command string `json:"command"`
+// }
 
 // // agent after advice
 // func agentLaunchAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
@@ -61,31 +61,31 @@ type AgentDetect struct {
 // 	return nil
 // }
 
-type metaResponse struct {
-	Service    string `json:"service"`
-	RolePrompt string `json:"system_role_prompt"`
-}
+// type metaResponse struct {
+// 	Service    string `json:"service"`
+// 	RolePrompt string `json:"system_role_prompt"`
+// }
 
-// meta prompt after advice
-func decodeMetaResponseAdvice(vars *swarm.Vars, _ *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
-	var v metaResponse
-	msg := resp.LastMessage()
-	if msg == nil {
-		return fmt.Errorf("invalid response: no message")
-	}
+// // meta prompt after advice
+// func decodeMetaResponseAdvice(vars *swarm.Vars, _ *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
+// 	var v metaResponse
+// 	msg := resp.LastMessage()
+// 	if msg == nil {
+// 		return fmt.Errorf("invalid response: no message")
+// 	}
 
-	if err := json.Unmarshal([]byte(msg.Content), &v); err != nil {
-		log.Debugf("decode_meta_response error: %v", err)
-		return nil
-	}
+// 	if err := json.Unmarshal([]byte(msg.Content), &v); err != nil {
+// 		log.Debugf("decode_meta_response error: %v", err)
+// 		return nil
+// 	}
 
-	vars.Extra["service"] = v.Service
-	vars.Extra["system_role_prompt"] = v.RolePrompt
+// 	vars.Extra["service"] = v.Service
+// 	vars.Extra["system_role_prompt"] = v.RolePrompt
 
-	log.Debugf("decode_meta_response: %+v\n", v)
+// 	log.Debugf("decode_meta_response: %+v\n", v)
 
-	return nil
-}
+// 	return nil
+// }
 
 // script user input before advice
 func scriptUserInputAdvice(vars *swarm.Vars, req *swarm.Request, _ *swarm.Response, _ swarm.Advice) error {

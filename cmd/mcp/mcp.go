@@ -25,9 +25,6 @@ func setLogLevel() {
 	if debug {
 		log.SetLogLevel(log.Verbose)
 	}
-
-	// trace
-	log.Trace = viper.GetBool("trace")
 }
 
 func setLogOutput() (*log.FileWriter, error) {

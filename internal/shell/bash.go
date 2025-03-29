@@ -16,16 +16,6 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
-const usage = `AI Command Line Tool
-
-Usage:
-  [ai] message...
-  [ai] /[binary] [message...]
-  [ai] @[agent] [message...]
-
-Use "%s help" for more info.
-`
-
 func Bash(cfg *internal.AppConfig) error {
 	var name string
 	var args []string

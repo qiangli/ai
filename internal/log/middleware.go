@@ -26,7 +26,7 @@ func Middleware(dryRun bool, dryrunContent string) option.Middleware {
 	return func(req *http.Request, next option.MiddlewareNext) (*http.Response, error) {
 		start := time.Now()
 
-		if Trace {
+		if IsVerbose() {
 			reqData, _ := httputil.DumpRequest(req, true)
 			Debugln(">>>REQUEST:\n", string(reqData))
 		}
@@ -44,7 +44,7 @@ func Middleware(dryRun bool, dryrunContent string) option.Middleware {
 			resp, err = next(req)
 		}
 
-		if Trace {
+		if IsVerbose() {
 			resData, _ := httputil.DumpResponse(resp, true)
 			Debugln("<<<RESPONSE:\n", string(resData))
 		}

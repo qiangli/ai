@@ -1,23 +1,23 @@
-package ddg
+package bing
 
 import (
 	"context"
 	"testing"
 )
 
-func TestNewClient(t *testing.T) {
+func TestSearch(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
 
 	t.Parallel()
 
-	cli := New(1, "test")
+	maxResults := 3
+
+	cli := New(maxResults)
 	if cli == nil {
 		t.Error("expected cli not to be nil")
 	}
-	cli.userAgent = SafariUserAgent
-	cli.maxResults = 5
 
 	query := "Help me plan an adventure to California"
 	ctx := context.Background()
@@ -25,5 +25,5 @@ func TestNewClient(t *testing.T) {
 	if err != nil {
 		t.Errorf("expected no error, got %v", err)
 	}
-	t.Logf("result: %+v", result)
+	t.Logf("result: %s", result)
 }

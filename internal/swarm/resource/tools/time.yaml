@@ -1,0 +1,8 @@
+kit: "time"
+
+tools:
+  - name: "what_time_is_it"
+    description: "Return the current time string based on the client's IP using World Time API"
+    parameters: {}
+    type: "func"
+

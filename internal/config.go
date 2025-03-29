@@ -3,8 +3,10 @@ package internal
 import (
 	_ "embed"
 	"errors"
+	"fmt"
 	"os"
 	"os/user"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -208,17 +210,28 @@ type AppConfig struct {
 	//
 	Template string
 
+	Log      string
 	Debug    bool
+	Quiet    bool
 	Internal bool
 
 	//
 	Workspace string
+	Repo      string
+	Home      string
+	Temp      string
 
 	Interactive bool
-	MetaPrompt  bool
+	Watch       bool
+
+	// MetaPrompt  bool
 
 	MaxTime  int
 	MaxTurns int
+
+	//
+	Stdout string
+	Stderr string
 }
 
 func getCurrentUser() string {
@@ -256,7 +269,33 @@ func ParseConfig(args []string) (*AppConfig, error) {
 		}
 	}
 	app.Template = TemplateFile
-	app.Workspace = viper.GetString("workspace")
+
+	//
+	home, err := homeDir()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get home directory: %w", err)
+	}
+	app.Home = home
+
+	temp, err := tempDir()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get temp directory: %w", err)
+	}
+	app.Temp = temp
+
+	ws := viper.GetString("workspace")
+	ws, err = resolveWorkspaceDir(ws)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve workspace: %w", err)
+	}
+	app.Workspace = ws
+
+	repo, err := resolveRepoDir(ws)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve repo directory: %w", err)
+	}
+	app.Repo = repo
+
 	app.McpServerUrl = viper.GetString("mcp_server_url")
 
 	// LLM config
@@ -305,13 +344,17 @@ func ParseConfig(args []string) (*AppConfig, error) {
 	lc.ImageApiKey = viper.GetString("image_api_key")
 
 	//
+	app.Log = viper.GetString("log")
 	app.Debug = viper.GetBool("verbose")
+	app.Quiet = viper.GetBool("quiet")
 	app.Internal = viper.GetBool("internal")
 
 	app.Editor = viper.GetString("editor")
 	app.Interactive = viper.GetBool("interactive")
-	noMeta := viper.GetBool("no_meta_prompt")
-	app.MetaPrompt = !noMeta
+	app.Watch = viper.GetBool("watch")
+
+	// noMeta := viper.GetBool("no_meta_prompt")
+	// app.MetaPrompt = !noMeta
 
 	app.MaxTurns = viper.GetInt("max_turns")
 	app.MaxTime = viper.GetInt("max_time")
@@ -346,4 +389,94 @@ func (r *AppConfig) IsSpecial() bool {
 
 func (r *AppConfig) HasInput() bool {
 	return r.Message != "" || len(r.Files) > 0 || len(r.Args) > 0
+}
+
+// default to current working dir if workspace is not provided
+func resolveWorkspaceDir(ws string) (string, error) {
+	if ws != "" {
+		return ensureWorkspace(ws)
+	}
+	return os.Getwd()
+}
+
+// resolveRepoDir returns the directory of the current git repository
+func resolveRepoDir(ws string) (string, error) {
+	if ws == "" {
+		wd, err := os.Getwd()
+		if err != nil {
+			return "", err
+		}
+		ws = wd
+	}
+	dir, err := detectGitRepo(ws)
+	if err != nil {
+		return "", fmt.Errorf("failed to detect git repository: %w", err)
+	}
+	return dir, nil
+}
+
+func homeDir() (string, error) {
+	return os.UserHomeDir()
+}
+
+func tempDir() (string, error) {
+	return os.TempDir(), nil
+}
+
+func detectGitRepo(path string) (string, error) {
+	if path == "" {
+		return "", fmt.Errorf("path is empty")
+	}
+	original := path
+	for {
+		if _, err := os.Stat(filepath.Join(path, ".git")); err == nil {
+			return path, nil
+		}
+		np := filepath.Dir(path)
+		if np == path || np == "/" {
+			break
+		}
+		path = np
+	}
+	return original, nil
+}
+
+func ensureWorkspace(ws string) (string, error) {
+	workspace, err := validatePath(ws)
+	if err != nil {
+		return "", err
+	}
+
+	// ensure the workspace directory exists
+	if err := os.MkdirAll(workspace, os.ModePerm); err != nil {
+		return "", fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	return workspace, nil
+}
+
+// ValidatePath returns the absolute path of the given path.
+// If the path is empty, it returns an error.
+// If the path is not an absolute path, it converts it to an absolute path.
+// If the path exists, it returns its absolute path.
+func validatePath(path string) (string, error) {
+	if path == "" {
+		return "", fmt.Errorf("path is empty")
+	}
+
+	if !filepath.IsAbs(path) {
+		absPath, err := filepath.Abs(path)
+		if err != nil {
+			return "", fmt.Errorf("failed to get absolute path: %w", err)
+		}
+		path = absPath
+	}
+	if _, err := os.Stat(path); err != nil {
+		if os.IsNotExist(err) {
+			return path, nil
+		}
+		return "", fmt.Errorf("failed to stat path: %w", err)
+	}
+
+	return path, nil
 }

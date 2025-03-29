@@ -3,14 +3,11 @@ package agent
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/qiangli/ai/internal/agent/resource"
 	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/swarm"
-
-	"github.com/qiangli/ai/internal/util"
 )
 
 const missingWorkspace = "Please specify a workspace base directory."
@@ -21,26 +18,25 @@ type WorkspaceCheck struct {
 }
 
 // resolveWorkspaceAdvice resolves the workspace base path.
-// If the workspace is provided, validate and create if needed and return it.
-// If the workspace is not provided, it tries to detect the workspace from the input using LLM.
+// Detect the workspace from the input using LLM.
 // If the workspace or its parent is a git repo (inside a git repo), use that as the workspace.
 // func resolveWorkspaceBase(ctx context.Context, cfg *internal.LLMConfig, workspace string, input string) (string, error) {
 func resolveWorkspaceAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, next swarm.Advice) error {
-	var workspace = vars.Workspace
-	var err error
+	// var workspace = vars.Workspace
+	// var err error
 
-	// if the workspace is provided, validate and create if needed and return it
-	if workspace != "" {
-		workspace, err = util.ValidatePath(workspace)
-		if err != nil {
-			return fmt.Errorf("failed to validate workspace: %w", err)
-		}
-		if err := os.MkdirAll(workspace, os.ModePerm); err != nil {
-			return fmt.Errorf("failed to create directory: %w", err)
-		}
-		vars.Workspace = workspace
-		return nil
-	}
+	// // if the workspace is provided, validate and create if needed and return it
+	// if workspace != "" {
+	// 	workspace, err = util.ValidatePath(workspace)
+	// 	if err != nil {
+	// 		return fmt.Errorf("failed to validate workspace: %w", err)
+	// 	}
+	// 	if err := os.MkdirAll(workspace, os.ModePerm); err != nil {
+	// 		return fmt.Errorf("failed to create directory: %w", err)
+	// 	}
+	// 	vars.Workspace = workspace
+	// 	return nil
+	// }
 
 	//
 	tpl, ok := resource.Prompts["workspace_user_role"]
@@ -75,22 +71,24 @@ func resolveWorkspaceAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Re
 
 	log.Debugf("workspace check: %+v\n", wsCheck)
 
-	workspace = wsCheck.WorkspaceBase
+	workspace := wsCheck.WorkspaceBase
 
 	log.Infof("Workspace to use: %s\n", workspace)
 
-	// check if the workspace path or any of its parent contains a git repository
-	// if so, use the git repository as the workspace
-	workspace, err = util.DetectGitRepo(workspace)
-	if err != nil {
-		return err
-	}
+	// // check if the workspace path or any of its parent contains a git repository
+	// // if so, use the git repository as the workspace
+	// workspace, err = util.DetectGitRepo(workspace)
+	// if err != nil {
+	// 	return err
+	// }
 
-	workspace, err = util.ResolveWorkspace(workspace)
-	if err != nil {
-		return fmt.Errorf("failed to resolve workspace: %w", err)
-	}
-	vars.Workspace = workspace
+	// workspace, err = util.ResolveWorkspace(workspace)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to resolve workspace: %w", err)
+	// }
+	// vars.Workspace = workspace
+
+	vars.Extra["workspace_base"] = workspace
 
 	return nil
 }

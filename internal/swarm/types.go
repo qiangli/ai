@@ -29,7 +29,11 @@ type Vars struct {
 	UserInfo map[string]string `json:"user_info"`
 
 	Workspace string `json:"workspace"`
-	WorkDir   string `json:"workdir"`
+	Repo      string `json:"repo"`
+	Home      string `json:"home"`
+	Temp      string `json:"temp"`
+
+	// WorkDir   string `json:"workdir"`
 
 	// EnvType indicates the environment type where the agent is running
 	// It can be "container" for Docker containers or "host" for the host machine

@@ -155,8 +155,6 @@ const (
 
 var logLevel Level
 
-var Trace bool
-
 func IsVerbose() bool {
 	return logLevel == Verbose
 }

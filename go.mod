@@ -16,6 +16,7 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-git/go-git/v5 v5.14.0
 	github.com/gocolly/colly v1.2.0
+	github.com/gofrs/flock v0.12.1
 	github.com/google/uuid v1.6.0
 	github.com/kaptinlin/jsonrepair v0.1.0
 	github.com/lib/pq v1.10.9
@@ -26,6 +27,7 @@ require (
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
+	github.com/weppos/publicsuffix-go v0.40.2
 	github.com/yuin/goldmark v1.7.8
 	golang.org/x/term v0.29.0
 	golang.org/x/text v0.22.0

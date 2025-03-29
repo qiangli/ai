@@ -40,7 +40,10 @@ func InitTools(app *internal.AppConfig) {
 
 	toolRegistry = make(map[string]*ToolFunc)
 	for _, v := range config.Tools {
-		log.Debugf("Kit: %s tool: %s - %s", v.Kit, v.Name, v.Description)
+		log.Debugf("Kit: %s tool: %s - %s internal: %v", v.Kit, v.Name, v.Description, v.Internal)
+		if v.Internal && !app.Internal {
+			continue
+		}
 		tool := &ToolFunc{
 			Type:        v.Type,
 			Kit:         v.Kit,
@@ -86,6 +89,8 @@ type ToolConfig struct {
 	Parameters  map[string]any `yaml:"parameters"`
 
 	Body string `yaml:"body"`
+
+	Internal bool `yaml:"internal"`
 }
 
 type ToolsConfig struct {
@@ -159,21 +164,21 @@ func LoadToolData(app *internal.AppConfig, data [][]byte) (*ToolsConfig, error) 
 	merged := &ToolsConfig{}
 
 	for _, v := range data {
-		cfg := &ToolsConfig{}
-		if err := yaml.Unmarshal(v, cfg); err != nil {
+		tc := &ToolsConfig{}
+		if err := yaml.Unmarshal(v, tc); err != nil {
 			return nil, err
 		}
 		// skip internal tools
-		if cfg.Internal {
+		if tc.Internal && !app.Internal {
 			continue
 		}
 		// update kit if not set
-		for _, tool := range cfg.Tools {
+		for _, tool := range tc.Tools {
 			if tool.Kit == "" {
-				tool.Kit = cfg.Kit
+				tool.Kit = tc.Kit
 			}
 		}
-		if err := mergo.Merge(merged, cfg, mergo.WithAppendSlice); err != nil {
+		if err := mergo.Merge(merged, tc, mergo.WithAppendSlice); err != nil {
 			return nil, err
 		}
 	}
@@ -198,7 +203,7 @@ func LoadTools(config ToolsConfig) (map[string]*api.ToolFunc, error) {
 }
 
 func (r *Vars) CallTool(ctx context.Context, name string, args map[string]any) (*Result, error) {
-	log.Infof("✨ %s %+v\n", name, args)
+	log.Infof("⚡ %s %+v\n", name, args)
 
 	result, err := dispatchTool(ctx, r, name, args)
 
@@ -258,7 +263,7 @@ func dispatchTool(ctx context.Context, vars *Vars, name string, args map[string]
 			Value: out,
 		}, err
 	case ToolTypeTemplate:
-		out, err := callDevTool(ctx, vars, v, args)
+		out, err := callTplTool(ctx, vars, v, args)
 		return &api.Result{
 			Value: out,
 		}, err
@@ -266,6 +271,10 @@ func dispatchTool(ctx context.Context, vars *Vars, name string, args map[string]
 		if fn, ok := vars.FuncRegistry[v.Name]; ok {
 			return fn(ctx, vars, v.Name, args)
 		}
+		out, err := callFuncTool(ctx, vars, v, args)
+		return &api.Result{
+			Value: out,
+		}, err
 	}
 
 	return nil, fmt.Errorf("no such tool: %s", v.ID())

@@ -113,12 +113,17 @@ func InitVars(app *internal.AppConfig) (*Vars, error) {
 	}
 
 	//
+	vars.Workspace = app.Workspace
+	vars.Repo = app.Repo
+	vars.Home = app.Home
+	vars.Temp = app.Temp
+
+	//
 	vars.Arch = sysInfo.Arch
 	vars.OS = sysInfo.OS
 	vars.ShellInfo = sysInfo.ShellInfo
 	vars.OSInfo = sysInfo.OSInfo
 	vars.UserInfo = sysInfo.UserInfo
-	vars.WorkDir = sysInfo.WorkDir
 
 	//
 	var modelMap = make(map[api.Level]*api.Model)

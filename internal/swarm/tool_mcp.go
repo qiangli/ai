@@ -295,6 +295,8 @@ func (r *McpServerTool) CallTool(ctx context.Context, tool string, args map[stri
 }
 
 func callMcpTool(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+	log.Debugf("🎖️ calling MCP tool: %s with args: %+v\n", name, args)
+
 	v, ok := vars.ToolRegistry[name]
 	if !ok {
 		return "", fmt.Errorf("no such mcp tool: %s", name)

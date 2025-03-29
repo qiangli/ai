@@ -314,7 +314,7 @@ type SystemInfo struct {
 	UserInfo map[string]string
 
 	EnvVarNames string
-	WorkDir     string
+	// WorkDir     string
 }
 
 func CollectSystemInfo() (*SystemInfo, error) {
@@ -342,11 +342,11 @@ func CollectSystemInfo() (*SystemInfo, error) {
 	// Collect environment variables
 	info.EnvVarNames = GetEnvVarNames()
 
-	// Get working directory
-	info.WorkDir, err = os.Getwd()
-	if err != nil {
-		errs = append(errs, fmt.Errorf("error getting working directory: %v", err))
-	}
+	// // Get working directory
+	// info.WorkDir, err = os.Getwd()
+	// if err != nil {
+	// 	errs = append(errs, fmt.Errorf("error getting working directory: %v", err))
+	// }
 
 	// Get current user
 	u, err := user.Current()

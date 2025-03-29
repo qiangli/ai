@@ -1,0 +1,51 @@
+kit: "web"
+
+tools:
+  - name: "fetch_content"
+    description: "Fetch and parse content from a webpage URL"
+    parameters:
+      type: "object"
+      properties:
+        url:
+          type: "string"
+          description: "The webpage URL to fetch content from"
+      required:
+        - url
+    type: "func"
+
+  - name: "ddg_search"
+    description: "Search the web using DuckDuckGo and return formatted results"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The search query string"
+        max_results:
+          type: "integer"
+          description: "Maximum number of results to return"
+          default: 5
+          minimum: 1
+          maximum: 10
+      required:
+        - query
+    type: "func"
+
+  - name: "bing_search"
+    description: "Search the web using Bing and return formatted results"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The search query string"
+        max_results:
+          type: "integer"
+          description: "Maximum number of results to return"
+          default: 5
+          minimum: 1
+          maximum: 10
+      required:
+        - query
+    type: "func"
+

@@ -11,10 +11,12 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+
+	"github.com/qiangli/ai/internal/web"
 )
 
-const SafariUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
-const EdgeUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0"
+// const SafariUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+// const EdgeUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0"
 
 var (
 	ErrNoGoodResult = errors.New("no good search results found")
@@ -36,14 +38,14 @@ type Result struct {
 
 // New initializes a Client with arguments for setting a max
 // results per search query and a value for the user agent header.
-func New(maxResults int, userAgent string) *Client {
-	if maxResults == 0 {
+func New(maxResults int) *Client {
+	if maxResults <= 0 {
 		maxResults = 1
 	}
 
 	return &Client{
 		maxResults: maxResults,
-		userAgent:  userAgent,
+		userAgent:  web.UserAgent(),
 	}
 }
 
@@ -94,24 +96,24 @@ func (client *Client) Search(ctx context.Context, query string) (string, error) 
 			break
 		}
 		node := sel.Eq(i)
-		titleNode := node.Find(".result__a")
+		linkNode := node.Find(".result__a")
+		title := linkNode.Text()
+		ref := linkNode.AttrOr("href", "")
 
-		info := node.Find(".result__snippet").Text()
-		title := titleNode.Text()
-		ref := ""
-
-		if len(titleNode.Nodes) > 0 && len(titleNode.Nodes[0].Attr) > 2 {
-			ref, err = url.QueryUnescape(
-				strings.TrimPrefix(
-					titleNode.Nodes[0].Attr[2].Val,
-					"/l/?kh=-1&uddg=",
-				),
-			)
-			if err != nil {
-				return "", err
-			}
+		if title == "" || ref == "" {
+			continue
+		}
+		parts := strings.SplitN(ref, "uddg=", 2)
+		if len(parts) > 1 {
+			ref, err = url.QueryUnescape(parts[1])
+		} else {
+			ref, err = url.QueryUnescape(ref)
+		}
+		if err != nil {
+			continue
 		}
 
+		info := node.Find(".result__snippet").Text()
 		results = append(results, Result{title, info, ref})
 	}
 
@@ -124,10 +126,14 @@ func (client *Client) SetMaxResults(n int) {
 
 // formatResults will return a structured string with the results.
 func (client *Client) formatResults(results []Result) string {
-	formattedResults := ""
+	if len(results) == 0 {
+		return "No results were found for your search query. This could be due to DuckDuckGo's bot detection or the query returned no matches. Please try rephrasing your search or try again in a few minutes."
+	}
 
-	for _, result := range results {
-		formattedResults += fmt.Sprintf("Title: %s\nDescription: %s\nURL: %s\n\n", result.Title, result.Info, result.Ref)
+	formattedResults := fmt.Sprintf("Found %d search results:\n\n", len(results))
+
+	for i, result := range results {
+		formattedResults += fmt.Sprintf("%d. Title: %s\nDescription: %s\nURL: %s\n\n", (i + 1), result.Title, result.Info, result.Ref)
 	}
 
 	return formattedResults

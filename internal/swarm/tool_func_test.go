@@ -102,7 +102,7 @@ func TestCallDevTools(t *testing.T) {
 		if !ok {
 			t.Fatalf("tool %s not found in registry", tt.id)
 		}
-		result, err := callDevTool(ctx, vars, tf, tt.args)
+		result, err := callTplTool(ctx, vars, tf, tt.args)
 		if err != nil {
 			t.Fatalf("failed to call dev tool %s: %v", tt.id, err)
 		}

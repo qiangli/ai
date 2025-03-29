@@ -32,7 +32,7 @@ func TestEvaluateCommand(t *testing.T) {
 	vars.ShellInfo = sysInfo.ShellInfo
 	vars.OSInfo = sysInfo.OSInfo
 	vars.UserInfo = sysInfo.UserInfo
-	vars.WorkDir = sysInfo.WorkDir
+	// vars.WorkDir = sysInfo.WorkDir
 	vars.Models = map[api.Level]*Model{
 		api.L1: model,
 		api.L2: model,

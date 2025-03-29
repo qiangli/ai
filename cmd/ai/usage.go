@@ -65,8 +65,9 @@ There are multiple ways to interact with this AI tool.
 
 + Read from standard input:
 
-  ai @agent -
   ai @agent --stdin
+  ai @agent -
+
 Ctrl+D to send, Ctrl+C to cancel.
 
 + Here document:
@@ -77,7 +78,6 @@ eof
 
 + Piping input:
 
-  echo "What is Unix?" | ai @agent [message...]
   git diff origin/main | ai @agent [message...]
 
 + File redirection:
@@ -86,13 +86,13 @@ eof
 
 + Reading from system clipboard:
 
+  ai @agent [message...] --pb-read
   ai @agent [message...] {
-Use system copy (Ctrl+C on Unix) to send selected contents.
-Ctrl+C to cancel.
-
+  ai @agent [message...] --pb-read-wait
   ai @agent [message...] {{
-Use system copy (Ctrl+C on Unix) to copy and press enter or "Y" to send.
-Ctrl+C or enter "N" to cancel
+
+Use system copy (Ctrl+C on Unix) to add selected contents.
+Ctrl+C to cancel.
 
 + Composing with text editor:
 

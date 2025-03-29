@@ -13,6 +13,7 @@ import (
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/agent"
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/watch"
 )
 
 var AgentCmd = &cobra.Command{
@@ -69,9 +70,14 @@ func init() {
 }
 
 func Run(cmd *cobra.Command, args []string) error {
-	setLogLevel()
+	cfg, err := internal.ParseConfig(args)
+	if err != nil {
+		return err
+	}
 
-	fileLog, err := setLogOutput()
+	log.Debugf("Config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.Db)
+
+	fileLog, err := setLogOutput(cfg.Log)
 	if err != nil {
 		return err
 	}
@@ -80,13 +86,15 @@ func Run(cmd *cobra.Command, args []string) error {
 			fileLog.Close()
 		}
 	}()
+	setLogLevel(cfg)
 
-	cfg, err := internal.ParseConfig(args)
-	if err != nil {
-		return err
+	// watch
+	if cfg.Watch {
+		if err := watch.WatchRepo(cfg); err != nil {
+			log.Errorln(err)
+		}
+		return nil
 	}
-
-	log.Debugf("Config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.Db)
 
 	// interactive mode
 	// $ ai -i or $ ai --interactive
@@ -111,25 +119,19 @@ func Run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func setLogLevel() {
-	quiet := viper.GetBool("quiet")
-	if quiet {
+func setLogLevel(app *internal.AppConfig) {
+	if app.Quiet {
 		log.SetLogLevel(log.Quiet)
 		return
 	}
-	debug := viper.GetBool("verbose")
-	if debug {
+	if app.Debug {
 		log.SetLogLevel(log.Verbose)
 	}
-
-	// trace
-	log.Trace = viper.GetBool("trace")
 }
 
-func setLogOutput() (*log.FileWriter, error) {
-	pathname := viper.GetString("log")
-	if pathname != "" {
-		f, err := log.NewFileWriter(pathname)
+func setLogOutput(path string) (*log.FileWriter, error) {
+	if path != "" {
+		f, err := log.NewFileWriter(path)
 		if err != nil {
 			return nil, err
 		}

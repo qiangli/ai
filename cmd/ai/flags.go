@@ -168,16 +168,16 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	flags.String("input", "", "Read input message from a file")
 	flags.VarP(newFilesValue([]string{}, &internal.InputFiles), "file", "", `Read input from files.  May be given multiple times to add multiple file content`)
-	flags.Bool("stdin", false, "Read input from stdin. Alternatively, append '-' to the command")
-	flags.Bool("pb-read", false, "Read input from the clipboard. Alternatively, append '{' to the command")
-	flags.Bool("pb-read-wait", false, "Read input from the clipboard and wait for confirmation. Alternatively, append '{{' to the command")
+	flags.Bool("stdin", false, "Read input message from stdin. Alternatively, use '-'")
+	flags.Bool("pb-read", false, "Read input from the clipboard. Alternatively, use '{'")
+	flags.Bool("pb-read-wait", false, "Read input from the clipboard and wait for confirmation. Alternatively, use '{{'")
 
 	// output
-	flags.Bool("pb-write", false, "Copy output to the clipboard. Alternatively, append '}' to the command")
-	flags.Bool("pb-write-append", false, "Append output to the clipboard. Alternatively, append '}}' to the command")
+	flags.Bool("pb-write", false, "Copy output to the clipboard. Alternatively, use '}'")
+	flags.Bool("pb-write-append", false, "Append output to the clipboard. Alternatively, use '}}'")
 	flags.StringVarP(&internal.OutputFlag, "output", "o", "", "Save final response to a file.")
 
-	flags.Var(newOutputValue("markdown", &internal.FormatFlag), "format", "Output format, must be text, json, or markdown.")
+	flags.Var(newOutputValue("markdown", &internal.FormatFlag), "format", "Output format, one of text, json, or markdown.")
 
 	// mcp
 	flags.String("mcp-server-url", "http://localhost:58080/sse", "MCP server URL")
@@ -217,9 +217,8 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	//
 	flags.String("log", "", "Log all debugging information to a file")
-	flags.Bool("quiet", false, "Operate quietly")
-	flags.Bool("verbose", false, "Show debugging information")
-	flags.Bool("trace", false, "Trace API calls")
+	flags.Bool("quiet", false, "Operate quietly. Only show final response")
+	flags.Bool("verbose", false, "Show progress and debugging information")
 	flags.Bool("internal", false, "Enable internal agents and tools")
 
 	//
@@ -229,9 +228,11 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.BoolVar(&internal.DryRun, "dry-run", false, "Enable dry run mode. No API call will be made")
 	flags.StringVar(&internal.DryRunContent, "dry-run-content", "", "Content returned for dry run")
 
-	flags.Bool("no-meta-prompt", false, "Disable auto generation of system prompt")
+	// flags.Bool("no-meta-prompt", false, "Disable auto generation of system prompt")
 
 	flags.BoolP("interactive", "i", false, "Interactive mode to run, edit, or copy generated code")
+
+	flags.Bool("watch", false, "Watch the workspace directory and respond to embedded ai requests in files")
 
 	flags.Int("max-turns", 32, "Max number of turns")
 	flags.Int("max-time", 3600, "Max number of seconds for timeout")
@@ -268,9 +269,8 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("dry-run")
 	flags.MarkHidden("dry-run-content")
 
-	flags.MarkHidden("trace")
 	flags.MarkHidden("log")
 
 	flags.MarkHidden("interactive")
-	flags.MarkHidden("no-meta-prompt")
+	// flags.MarkHidden("no-meta-prompt")
 }

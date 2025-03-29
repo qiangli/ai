@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/internal/log"
+	utool "github.com/qiangli/ai/internal/tool"
+	webtool "github.com/qiangli/ai/internal/web/tool"
 )
 
 // Default returns the given value if it's non-nil and non-zero value;
@@ -20,7 +22,7 @@ func Default(def, value any) any {
 	return value
 }
 
-func callDevTool(ctx context.Context, vars *Vars, f *ToolFunc, args map[string]any) (string, error) {
+func callTplTool(ctx context.Context, vars *Vars, f *ToolFunc, args map[string]any) (string, error) {
 	funcMap := map[string]any{
 		"join":    strings.Join,
 		"split":   strings.Split,
@@ -302,7 +304,7 @@ func (r *SystemKit) Cd(ctx context.Context, vars *Vars, name string, args map[st
 }
 
 func (r *SystemKit) Pwd(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
-	return workDir()
+	return _os.Getwd()
 }
 
 func (r *SystemKit) Env(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
@@ -315,16 +317,16 @@ func (r *SystemKit) Uname(ctx context.Context, vars *Vars, name string, args map
 }
 
 func (r *SystemKit) HomeDir(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
-	return homeDir()
+	return vars.Home, nil
 }
 func (r *SystemKit) TempDir(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
-	return tempDir()
+	return vars.Temp, nil
 }
 func (r *SystemKit) WorkspaceDir(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
-	return resolveWorkspaceDir(vars.Workspace)
+	return vars.Workspace, nil
 }
 func (r *SystemKit) RepoDir(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
-	return resolveRepoDir()
+	return vars.Repo, nil
 }
 
 func (r *SystemKit) ReadStdin(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
@@ -385,4 +387,78 @@ func (r *SystemKit) GetUserChoiceInput(ctx context.Context, vars *Vars, name str
 		return "", err
 	}
 	return getUserChoiceInput(prompt, choices, defaultChoice)
+}
+
+type FuncKit struct {
+}
+
+func (r *FuncKit) WhatTimeIsIt(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+	return utool.WhatTimeIsIt()
+}
+
+func (r *FuncKit) WhoAmI(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+	return utool.WhoAmI()
+}
+
+func (r *FuncKit) FetchLocation(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+	return utool.FetchLocation()
+}
+
+func (r *FuncKit) FetchContent(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+	link, err := GetStrProp("url", args)
+	if err != nil {
+		return "", err
+	}
+	return webtool.Fetch(ctx, link)
+}
+
+// Search the web using DuckDuckGo.
+func (r *FuncKit) DdgSearch(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+	query, err := GetStrProp("query", args)
+	if err != nil {
+		return "", err
+	}
+	max, err := GetIntProp("max_results", args)
+	if err != nil {
+		return "", err
+	}
+	if max <= 0 {
+		max = 1
+	}
+	if max > 10 {
+		max = 10
+	}
+	return webtool.DDG(ctx, query, max)
+}
+
+// Search the web using Bing.
+func (r *FuncKit) BingSearch(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+	query, err := GetStrProp("query", args)
+	if err != nil {
+		return "", err
+	}
+	max, err := GetIntProp("max_results", args)
+	if err != nil {
+		return "", err
+	}
+	if max <= 0 {
+		max = 1
+	}
+	if max > 10 {
+		max = 10
+	}
+	return webtool.Bing(ctx, query, max)
+}
+
+func callFuncTool(ctx context.Context, vars *Vars, f *ToolFunc, args map[string]any) (string, error) {
+	tool := &FuncKit{}
+	callArgs := []any{ctx, vars, f.Name, args}
+	v, err := CallKit(tool, f.Kit, f.Name, callArgs...)
+	if err != nil {
+		return "", fmt.Errorf("failed to call function tool %s %s: %w", f.Kit, f.Name, err)
+	}
+	if s, ok := v.(string); ok {
+		return s, nil
+	}
+	return fmt.Sprintf("%v", v), nil
 }

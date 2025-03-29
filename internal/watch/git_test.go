@@ -2,12 +2,19 @@ package watch
 
 import (
 	"testing"
+
+	"github.com/qiangli/ai/internal"
 )
 
-func TestWatchGit(t *testing.T) {
-	// err := WatchGit("/tmp/ws")
+func TestWatchRepo(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 
-	err := WatchGit("../../../ai")
+	err := WatchRepo(&internal.AppConfig{
+		Workspace: "../../../ai",
+	})
+
 	if err != nil {
 		t.Errorf("Error watching git repository: %v", err)
 	}

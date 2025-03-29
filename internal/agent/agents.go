@@ -112,7 +112,10 @@ func RunSwarm(cfg *internal.AppConfig, input *api.UserInput) error {
 			ContentType: v.ContentType,
 			Content:     v.Content,
 		}
+
 		processOutput(cfg, out)
+
+		cfg.Stdout = cfg.Stdout + v.Content
 	}
 
 	log.Debugf("Agent task completed: %s %v\n", cfg.Command, cfg.Args)

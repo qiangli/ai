@@ -91,9 +91,7 @@ Usage:
 
 ai @agent message...
 
-Not sure which agent to use? Simply enter your message and AI will choose the most appropriate one for you:
-
-ai message...
+Not sure which agent to use? Simply enter your message and AI will choose the most appropriate one for you.
 `
 	dict := resource.AgentCommandMap
 	var keys []string

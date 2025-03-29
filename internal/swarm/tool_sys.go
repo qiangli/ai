@@ -3,51 +3,17 @@ package swarm
 import (
 	"context"
 	"fmt"
-	"os"
+	"strconv"
 	"strings"
 
 	"github.com/qiangli/ai/internal/swarm/vfs"
 	"github.com/qiangli/ai/internal/swarm/vos"
-	"github.com/qiangli/ai/internal/util"
 )
 
 var _os vos.System = &vos.VirtualSystem{}
 var _exec = _os
 
 var _fs vfs.FileSystem = &vfs.VirtualFS{}
-
-func workDir() (string, error) {
-	return _os.Getwd()
-}
-
-func homeDir() (string, error) {
-	return os.UserHomeDir()
-}
-
-func tempDir() (string, error) {
-	return os.TempDir(), nil
-}
-
-// default to repo dir if workspace is not provided
-func resolveWorkspaceDir(ws string) (string, error) {
-	if ws != "" {
-		return util.ResolveWorkspace(ws)
-	}
-	return resolveRepoDir()
-}
-
-// resolveRepoDir returns the directory of the current git repository
-func resolveRepoDir() (string, error) {
-	wd, err := workDir()
-	if err != nil {
-		return "", err
-	}
-	dir, err := util.DetectGitRepo(wd)
-	if err != nil {
-		return "", fmt.Errorf("failed to detect git repository: %w", err)
-	}
-	return dir, nil
-}
 
 // runCommand executes a shell command with args and returns the output
 func runCommand(command string, args []string) (string, error) {
@@ -117,6 +83,31 @@ func GetStrProp(key string, props map[string]any) (string, error) {
 		return "", fmt.Errorf("property '%s' must be a string", key)
 	}
 	return str, nil
+}
+
+func GetIntProp(key string, props map[string]any) (int, error) {
+	val, ok := props[key]
+	if !ok {
+		if isRequired(key, props) {
+			return 0, fmt.Errorf("missing property: %s", key)
+		}
+		return 0, nil
+	}
+	switch v := val.(type) {
+	case int:
+		return v, nil
+	case int32:
+		return int(v), nil
+	case int64:
+		return int(v), nil
+	case float32:
+		return int(v), nil
+	case float64:
+		return int(v), nil
+	default:
+		s := fmt.Sprintf("%v", val)
+		return strconv.Atoi(s)
+	}
 }
 
 func GetArrayProp(key string, props map[string]any) ([]string, error) {
