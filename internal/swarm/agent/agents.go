@@ -4,17 +4,16 @@ import (
 	_ "embed"
 	"strings"
 
-	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/agent/resource"
-	"github.com/qiangli/ai/internal/api"
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/swarm"
+	"github.com/qiangli/ai/internal/swarm/agent/resource"
 )
 
 var agentConfigMap = map[string][][]byte{}
-var agentToolMap = map[string]*swarm.ToolFunc{}
+var agentToolMap = map[string]*api.ToolFunc{}
 
-func initAgents(app *internal.AppConfig) {
+func initAgents(app *api.AppConfig) {
 	resourceMap := resource.AgentCommandMap
 	for k, v := range resourceMap {
 		agentConfigMap[k] = [][]byte{resource.CommonData, v.Data}
@@ -45,12 +44,12 @@ func initAgents(app *internal.AppConfig) {
 var resourceMap = resource.Prompts
 
 // init agents/tools
-func InitApp(app *internal.AppConfig) {
+func InitApp(app *api.AppConfig) {
 	initAgents(app)
 	swarm.InitTools(app)
 }
 
-func RunSwarm(cfg *internal.AppConfig, input *api.UserInput) error {
+func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	name := input.Agent
 	command := input.Command
 	log.Debugf("Running agent %q %s with swarm\n", name, command)
@@ -72,7 +71,7 @@ func RunSwarm(cfg *internal.AppConfig, input *api.UserInput) error {
 	//
 	sw.Vars.FuncRegistry = funcRegistry
 	//
-	toolMap := make(map[string]*swarm.ToolFunc)
+	toolMap := make(map[string]*api.ToolFunc)
 	tools, err := listTools(cfg.McpServerUrl)
 	if err != nil {
 		return err
@@ -84,12 +83,12 @@ func RunSwarm(cfg *internal.AppConfig, input *api.UserInput) error {
 
 	showInput(cfg, input)
 
-	req := &swarm.Request{
+	req := &api.Request{
 		Agent:    name,
 		Command:  command,
 		RawInput: input,
 	}
-	resp := &swarm.Response{}
+	resp := &api.Response{}
 
 	if err := sw.Run(req, resp); err != nil {
 		return err
@@ -123,11 +122,11 @@ func RunSwarm(cfg *internal.AppConfig, input *api.UserInput) error {
 	return nil
 }
 
-func showInput(cfg *internal.AppConfig, input *api.UserInput) {
+func showInput(cfg *api.AppConfig, input *api.UserInput) {
 	PrintInput(cfg, input)
 }
 
-func processOutput(cfg *internal.AppConfig, message *api.Output) {
+func processOutput(cfg *api.AppConfig, message *api.Output) {
 	if message.ContentType == api.ContentTypeText || message.ContentType == "" {
 		processTextContent(cfg, message)
 	} else if message.ContentType == api.ContentTypeB64JSON {
@@ -148,8 +147,8 @@ func ListAgentTools() ([]*api.ToolFunc, error) {
 
 // ListTools returns a list of all available tools, including agent, mcp, system, and function tools.
 // This is for CLI
-func listTools(mcpServerUrl string) ([]*swarm.ToolFunc, error) {
-	list := []*swarm.ToolFunc{}
+func listTools(mcpServerUrl string) ([]*api.ToolFunc, error) {
+	list := []*api.ToolFunc{}
 
 	// agent tools
 	agentTools, err := ListAgentTools()
@@ -182,8 +181,8 @@ func listTools(mcpServerUrl string) ([]*swarm.ToolFunc, error) {
 }
 
 // ListTools returns a list of all available tools for exporting (mcp and system tools).
-func ListServiceTools(mcpServerUrl string) ([]*swarm.ToolFunc, error) {
-	list := []*swarm.ToolFunc{}
+func ListServiceTools(mcpServerUrl string) ([]*api.ToolFunc, error) {
+	list := []*api.ToolFunc{}
 
 	// mcp tools
 	mcpTools, err := swarm.ListMcpTools(mcpServerUrl)

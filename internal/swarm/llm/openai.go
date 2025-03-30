@@ -9,8 +9,8 @@ import (
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
 )
 
@@ -86,11 +86,11 @@ func DeveloperMessage(content string) openai.ChatCompletionMessageParamUnion {
 	}
 }
 
-func Send(ctx context.Context, req *api.Request) (*api.Response, error) {
+func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	log.Debugf(">>>OPENAI:\n type: %s model: %s, messages: %v tools: %v\n\n", req.ModelType, req.Model, len(req.Messages), len(req.Tools))
 
 	var err error
-	var resp *api.Response
+	var resp *api.LLMResponse
 
 	switch req.ModelType {
 	case api.ModelTypeImage:
@@ -108,7 +108,7 @@ func Send(ctx context.Context, req *api.Request) (*api.Response, error) {
 	return resp, nil
 }
 
-func call(ctx context.Context, req *api.Request) (*api.Response, error) {
+func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	messages := make([]openai.ChatCompletionMessageParamUnion, 0)
 	for _, v := range req.Messages {
 		msg := buildMessage("", v.Role, v.Content)
@@ -135,7 +135,7 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	if maxTurns == 0 {
 		maxTurns = 3
 	}
-	resp := &api.Response{}
+	resp := &api.LLMResponse{}
 
 	for tries := range maxTurns {
 		log.Debugf("*** sending request to %s ***: %v of %v\n", req.BaseUrl, tries, maxTurns)
@@ -196,7 +196,7 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	return resp, nil
 }
 
-func generateImage(ctx context.Context, req *api.Request) (*api.Response, error) {
+func generateImage(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	messages := make([]string, 0)
 	for _, v := range req.Messages {
 		messages = append(messages, v.Content)
@@ -206,7 +206,7 @@ func generateImage(ctx context.Context, req *api.Request) (*api.Response, error)
 	prompt := strings.Join(messages, "\n")
 	model := req.Model
 
-	resp := &api.Response{
+	resp := &api.LLMResponse{
 		ContentType: api.ContentTypeB64JSON,
 	}
 

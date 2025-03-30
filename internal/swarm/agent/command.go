@@ -7,13 +7,14 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/agent/resource"
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/swarm/agent/resource"
 	"github.com/qiangli/ai/internal/util"
 )
 
-func RunAgent(cfg *internal.AppConfig) error {
+func RunAgent(cfg *api.AppConfig) error {
 	log.Debugf("Agent: %s %s %v\n", cfg.Agent, cfg.Command, cfg.Args)
 
 	in, err := GetUserInput(cfg)
@@ -29,7 +30,7 @@ func RunAgent(cfg *internal.AppConfig) error {
 	return RunSwarm(cfg, in)
 }
 
-func HelpInfo(cfg *internal.AppConfig) error {
+func HelpInfo(cfg *api.AppConfig) error {
 	const format = `System info:
 
 %v
@@ -73,7 +74,7 @@ AI Environment:
 	return nil
 }
 
-func Setup(cfg *internal.AppConfig) error {
+func Setup(cfg *api.AppConfig) error {
 	if err := setupConfig(cfg); err != nil {
 		log.Errorf("Error: %v\n", err)
 		return err
@@ -81,7 +82,7 @@ func Setup(cfg *internal.AppConfig) error {
 	return nil
 }
 
-func HelpAgents(cfg *internal.AppConfig) error {
+func HelpAgents(cfg *api.AppConfig) error {
 	const format = `Available agents:
 
 %s
@@ -112,7 +113,7 @@ Not sure which agent to use? Simply enter your message and AI will choose the mo
 	return nil
 }
 
-func HelpCommands(cfg *internal.AppConfig) error {
+func HelpCommands(cfg *api.AppConfig) error {
 	list := util.ListCommands()
 
 	const listTpl = `Available commands on the system:
@@ -148,7 +149,7 @@ func collectSystemInfo() (string, error) {
 	return string(jd), nil
 }
 
-func HelpTools(cfg *internal.AppConfig) error {
+func HelpTools(cfg *api.AppConfig) error {
 
 	const listTpl = `Available tools:
 

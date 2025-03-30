@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/qiangli/ai/internal/api"
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
 )
@@ -14,7 +14,7 @@ func TestEvaluateCommand(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	model := &Model{
+	model := &api.Model{
 		Name:    "gpt-4o-mini",
 		BaseUrl: "http://localhost:4000",
 		ApiKey:  "sk-1234",
@@ -22,7 +22,7 @@ func TestEvaluateCommand(t *testing.T) {
 
 	log.SetLogLevel(log.Verbose)
 
-	var vars = NewVars()
+	var vars = api.NewVars()
 	sysInfo, err := util.CollectSystemInfo()
 	if err != nil {
 		t.Errorf("collect system info: %v", err)
@@ -33,7 +33,7 @@ func TestEvaluateCommand(t *testing.T) {
 	vars.OSInfo = sysInfo.OSInfo
 	vars.UserInfo = sysInfo.UserInfo
 	// vars.WorkDir = sysInfo.WorkDir
-	vars.Models = map[api.Level]*Model{
+	vars.Models = map[api.Level]*api.Model{
 		api.L1: model,
 		api.L2: model,
 		api.L3: model,
@@ -59,7 +59,7 @@ func TestEvaluateCommand(t *testing.T) {
 	// vars.FS = fs
 
 	tools := ListTools()
-	var toolMap = make(map[string]*ToolFunc)
+	var toolMap = make(map[string]*api.ToolFunc)
 	for _, tool := range tools {
 		toolMap[tool.ID()] = tool
 	}

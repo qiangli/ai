@@ -3,6 +3,8 @@ package swarm
 import (
 	"context"
 	"testing"
+
+	"github.com/qiangli/ai/api"
 )
 
 func TestCallSystemTool(t *testing.T) {
@@ -41,13 +43,13 @@ func TestCallSystemTool(t *testing.T) {
 		},
 	}
 
-	cfg := &AppConfig{}
+	cfg := &api.AppConfig{}
 
 	ctx := context.Background()
 	vars, _ := InitVars(cfg)
 
 	for _, tt := range tests {
-		tf := &ToolFunc{
+		tf := &api.ToolFunc{
 			Kit:        tt.kit,
 			Name:       tt.name,
 			Parameters: map[string]any{},
@@ -91,7 +93,7 @@ func TestCallDevTools(t *testing.T) {
 		},
 	}
 
-	cfg := &AppConfig{}
+	cfg := &api.AppConfig{}
 	InitTools(cfg)
 
 	ctx := context.Background()

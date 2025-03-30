@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/swarm/vfs"
 	"github.com/qiangli/ai/internal/swarm/vos"
 )
@@ -32,7 +33,7 @@ func runCommand(command string, args []string) (string, error) {
 	return string(out), nil
 }
 
-func runRestricted(ctx context.Context, vars *Vars, command string, args []string) (string, error) {
+func runRestricted(ctx context.Context, vars *api.Vars, command string, args []string) (string, error) {
 	if isDenied(command) {
 		return "", fmt.Errorf("%s: Not allowed", command)
 	}

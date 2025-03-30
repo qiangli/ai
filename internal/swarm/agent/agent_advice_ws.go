@@ -4,10 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/qiangli/ai/internal/agent/resource"
-	"github.com/qiangli/ai/internal/api"
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/internal/swarm"
+	"github.com/qiangli/ai/internal/swarm/agent/resource"
 )
 
 const missingWorkspace = "Please specify a workspace base directory."
@@ -21,7 +20,7 @@ type WorkspaceCheck struct {
 // Detect the workspace from the input using LLM.
 // If the workspace or its parent is a git repo (inside a git repo), use that as the workspace.
 // func resolveWorkspaceBase(ctx context.Context, cfg *internal.LLMConfig, workspace string, input string) (string, error) {
-func resolveWorkspaceAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, next swarm.Advice) error {
+func resolveWorkspaceAdvice(vars *api.Vars, req *api.Request, resp *api.Response, next api.Advice) error {
 	// var workspace = vars.Workspace
 	// var err error
 
@@ -50,7 +49,7 @@ func resolveWorkspaceAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Re
 		return err
 	}
 
-	msg := &swarm.Message{
+	msg := &api.Message{
 		Role:    api.RoleUser,
 		Content: query,
 		Sender:  req.Agent,

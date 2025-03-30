@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/api"
 )
 
 type MockClipboard struct {
@@ -48,43 +48,43 @@ func TestUserInput(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		cfg     *internal.AppConfig
+		cfg     *api.AppConfig
 		stdin   string
 		want    string
 		wantErr bool
 	}{
 		{
 			name: "Command Line Args",
-			cfg:  &internal.AppConfig{Args: []string{"hello", "world"}},
+			cfg:  &api.AppConfig{Args: []string{"hello", "world"}},
 			want: "hello world",
 		},
 		{
 			name:    "From Stdin",
-			cfg:     &internal.AppConfig{Stdin: true},
+			cfg:     &api.AppConfig{Stdin: true},
 			stdin:   "input from stdin",
 			want:    "input from stdin",
 			wantErr: false,
 		},
 		{
 			name:    "From Args + Stdin",
-			cfg:     &internal.AppConfig{Stdin: true, Args: []string{"hello", "world"}},
+			cfg:     &api.AppConfig{Stdin: true, Args: []string{"hello", "world"}},
 			stdin:   "input from stdin",
 			want:    "###\nhello world\n###\ninput from stdin",
 			wantErr: false,
 		},
 		{
 			name: "From Clipboard",
-			cfg:  &internal.AppConfig{Clipin: true},
+			cfg:  &api.AppConfig{Clipin: true},
 			want: "clipboard content",
 		},
 		{
 			name: "From Args + Clipboard",
-			cfg:  &internal.AppConfig{Clipin: true, Args: []string{"hello", "world"}},
+			cfg:  &api.AppConfig{Clipin: true, Args: []string{"hello", "world"}},
 			want: "###\nhello world\n###\nclipboard content",
 		},
 		{
 			name: "From Editor",
-			cfg:  &internal.AppConfig{Editor: "vim"},
+			cfg:  &api.AppConfig{Editor: "vim"},
 			want: "editor content",
 		},
 	}
@@ -98,7 +98,7 @@ func TestUserInput(t *testing.T) {
 			}
 
 			input, err := userInput(
-				&internal.AppConfig{
+				&api.AppConfig{
 					Args:   tt.cfg.Args,
 					Stdin:  tt.cfg.Stdin,
 					Clipin: tt.cfg.Clipin,

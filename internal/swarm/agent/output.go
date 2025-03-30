@@ -10,8 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/api"
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
 )
@@ -41,7 +40,7 @@ func SaveOutput(filename string, message *api.Output) error {
 	return os.WriteFile(filename, []byte(message.Content), os.ModePerm)
 }
 
-func processTextContent(cfg *internal.AppConfig, output *api.Output) {
+func processTextContent(cfg *api.AppConfig, output *api.Output) {
 	content := output.Content
 	doc := util.ParseMarkdown(content)
 	total := len(doc.CodeBlocks)
@@ -89,7 +88,7 @@ func processTextContent(cfg *internal.AppConfig, output *api.Output) {
 	}
 }
 
-func processImageContent(cfg *internal.AppConfig, message *api.Output) {
+func processImageContent(cfg *api.AppConfig, message *api.Output) {
 	var imageFile string
 	if cfg.Output != "" {
 		imageFile = cfg.Output

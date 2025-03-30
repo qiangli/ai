@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/log"
 	utool "github.com/qiangli/ai/internal/tool"
 	webtool "github.com/qiangli/ai/internal/web/tool"
@@ -22,7 +23,7 @@ func Default(def, value any) any {
 	return value
 }
 
-func callTplTool(ctx context.Context, vars *Vars, f *ToolFunc, args map[string]any) (string, error) {
+func callTplTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (string, error) {
 	funcMap := map[string]any{
 		"join":    strings.Join,
 		"split":   strings.Split,
@@ -135,7 +136,7 @@ func callTplTool(ctx context.Context, vars *Vars, f *ToolFunc, args map[string]a
 type SystemKit struct {
 }
 
-func callSystemTool(ctx context.Context, vars *Vars, f *ToolFunc, args map[string]any) (string, error) {
+func callSystemTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (string, error) {
 	tool := &SystemKit{}
 	callArgs := []any{ctx, vars, f.Name, args}
 	v, err := CallKit(tool, f.Kit, f.Name, callArgs...)
@@ -179,7 +180,6 @@ func CallKit(tool any, kit string, method string, args ...any) (any, error) {
 	return v, err
 }
 
-// func callSystemfunc(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
 func (r *SystemKit) getStr(key string, args map[string]any) (string, error) {
 	return GetStrProp(key, args)
 }
@@ -188,7 +188,7 @@ func (r *SystemKit) getArray(key string, args map[string]any) ([]string, error) 
 	return GetArrayProp(key, args)
 }
 
-func (r *SystemKit) ListDirectory(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) ListDirectory(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	path, err := r.getStr("path", args)
 	if err != nil {
 		return "", err
@@ -200,7 +200,7 @@ func (r *SystemKit) ListDirectory(ctx context.Context, vars *Vars, name string, 
 	return strings.Join(list, "\n"), nil
 }
 
-func (r *SystemKit) CreateDirectory(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) CreateDirectory(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	path, err := r.getStr("path", args)
 	if err != nil {
 		return "", err
@@ -208,7 +208,7 @@ func (r *SystemKit) CreateDirectory(ctx context.Context, vars *Vars, name string
 	return "", _fs.CreateDirectory(path)
 }
 
-func (r *SystemKit) RenameFile(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) RenameFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	source, err := r.getStr("source", args)
 	if err != nil {
 		return "", err
@@ -223,7 +223,7 @@ func (r *SystemKit) RenameFile(ctx context.Context, vars *Vars, name string, arg
 	return "File renamed successfully", nil
 }
 
-func (r *SystemKit) GetFileInfo(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) GetFileInfo(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	path, err := r.getStr("path", args)
 	if err != nil {
 		return "", err
@@ -235,7 +235,7 @@ func (r *SystemKit) GetFileInfo(ctx context.Context, vars *Vars, name string, ar
 	return info.String(), nil
 }
 
-func (r *SystemKit) ReadFile(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	path, err := r.getStr("path", args)
 	if err != nil {
 		return "", err
@@ -247,7 +247,7 @@ func (r *SystemKit) ReadFile(ctx context.Context, vars *Vars, name string, args 
 	return string(content), nil
 }
 
-func (r *SystemKit) WriteFile(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) WriteFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	path, err := r.getStr("path", args)
 	if err != nil {
 		return "", err
@@ -262,12 +262,12 @@ func (r *SystemKit) WriteFile(ctx context.Context, vars *Vars, name string, args
 	return "File written successfully", nil
 }
 
-func (r *SystemKit) ListCommands(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) ListCommands(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	list := _os.ListCommands()
 	return strings.Join(list, "\n"), nil
 }
 
-func (r *SystemKit) Which(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) Which(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	commands, err := r.getArray("commands", args)
 	if err != nil {
 		return "", err
@@ -275,7 +275,7 @@ func (r *SystemKit) Which(ctx context.Context, vars *Vars, name string, args map
 	return _os.Which(commands)
 }
 
-func (r *SystemKit) Man(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) Man(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	command, err := r.getStr("command", args)
 	if err != nil {
 		return "", err
@@ -283,7 +283,7 @@ func (r *SystemKit) Man(ctx context.Context, vars *Vars, name string, args map[s
 	return _os.Man(command)
 }
 
-func (r *SystemKit) Exec(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	command, err := r.getStr("command", args)
 	if err != nil {
 		return "", err
@@ -295,7 +295,7 @@ func (r *SystemKit) Exec(ctx context.Context, vars *Vars, name string, args map[
 	return runRestricted(ctx, vars, command, argsList)
 }
 
-func (r *SystemKit) Cd(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) Cd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	dir, err := r.getStr("dir", args)
 	if err != nil {
 		return "", err
@@ -303,45 +303,45 @@ func (r *SystemKit) Cd(ctx context.Context, vars *Vars, name string, args map[st
 	return "", _os.Chdir(dir)
 }
 
-func (r *SystemKit) Pwd(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) Pwd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	return _os.Getwd()
 }
 
-func (r *SystemKit) Env(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) Env(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	return _os.Env(), nil
 }
 
-func (r *SystemKit) Uname(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) Uname(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	os, arch := _os.Uname()
 	return fmt.Sprintf("OS: %s\nArch: %s", os, arch), nil
 }
 
-func (r *SystemKit) HomeDir(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) HomeDir(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	return vars.Home, nil
 }
-func (r *SystemKit) TempDir(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) TempDir(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	return vars.Temp, nil
 }
-func (r *SystemKit) WorkspaceDir(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) WorkspaceDir(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	return vars.Workspace, nil
 }
-func (r *SystemKit) RepoDir(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) RepoDir(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	return vars.Repo, nil
 }
 
-func (r *SystemKit) ReadStdin(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) ReadStdin(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	return readStdin()
 }
 
-func (r *SystemKit) PasteFromClipboard(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) PasteFromClipboard(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	return readClipboard()
 }
 
-func (r *SystemKit) PasteFromClipboardWait(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) PasteFromClipboardWait(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	return readClipboardWait()
 }
 
-func (r *SystemKit) WriteStdout(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) WriteStdout(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	content, err := r.getStr("content", args)
 	if err != nil {
 		return "", err
@@ -349,7 +349,7 @@ func (r *SystemKit) WriteStdout(ctx context.Context, vars *Vars, name string, ar
 	return writeStdout(content)
 }
 
-func (r *SystemKit) CopyToClipboard(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) CopyToClipboard(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	content, err := r.getStr("content", args)
 	if err != nil {
 		return "", err
@@ -357,7 +357,7 @@ func (r *SystemKit) CopyToClipboard(ctx context.Context, vars *Vars, name string
 	return writeClipboard(content)
 }
 
-func (r *SystemKit) CopyToClipboardAppend(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) CopyToClipboardAppend(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	content, err := r.getStr("content", args)
 	if err != nil {
 		return "", err
@@ -365,7 +365,7 @@ func (r *SystemKit) CopyToClipboardAppend(ctx context.Context, vars *Vars, name 
 	return writeClipboardAppend(content)
 }
 
-func (r *SystemKit) GetUserTextInput(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) GetUserTextInput(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	prompt, err := r.getStr("prompt", args)
 	if err != nil {
 		return "", err
@@ -373,7 +373,7 @@ func (r *SystemKit) GetUserTextInput(ctx context.Context, vars *Vars, name strin
 	return getUserTextInput(prompt)
 }
 
-func (r *SystemKit) GetUserChoiceInput(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) GetUserChoiceInput(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	prompt, err := r.getStr("prompt", args)
 	if err != nil {
 		return "", err
@@ -392,19 +392,19 @@ func (r *SystemKit) GetUserChoiceInput(ctx context.Context, vars *Vars, name str
 type FuncKit struct {
 }
 
-func (r *FuncKit) WhatTimeIsIt(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *FuncKit) WhatTimeIsIt(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	return utool.WhatTimeIsIt()
 }
 
-func (r *FuncKit) WhoAmI(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *FuncKit) WhoAmI(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	return utool.WhoAmI()
 }
 
-func (r *FuncKit) FetchLocation(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *FuncKit) FetchLocation(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	return utool.FetchLocation()
 }
 
-func (r *FuncKit) FetchContent(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *FuncKit) FetchContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	link, err := GetStrProp("url", args)
 	if err != nil {
 		return "", err
@@ -413,7 +413,7 @@ func (r *FuncKit) FetchContent(ctx context.Context, vars *Vars, name string, arg
 }
 
 // Search the web using DuckDuckGo.
-func (r *FuncKit) DdgSearch(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *FuncKit) DdgSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	query, err := GetStrProp("query", args)
 	if err != nil {
 		return "", err
@@ -432,7 +432,7 @@ func (r *FuncKit) DdgSearch(ctx context.Context, vars *Vars, name string, args m
 }
 
 // Search the web using Bing.
-func (r *FuncKit) BingSearch(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func (r *FuncKit) BingSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	query, err := GetStrProp("query", args)
 	if err != nil {
 		return "", err
@@ -450,7 +450,7 @@ func (r *FuncKit) BingSearch(ctx context.Context, vars *Vars, name string, args 
 	return webtool.Bing(ctx, query, max)
 }
 
-func callFuncTool(ctx context.Context, vars *Vars, f *ToolFunc, args map[string]any) (string, error) {
+func callFuncTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (string, error) {
 	tool := &FuncKit{}
 	callArgs := []any{ctx, vars, f.Name, args}
 	v, err := CallKit(tool, f.Kit, f.Name, callArgs...)

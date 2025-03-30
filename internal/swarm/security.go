@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/qiangli/ai/internal/api"
-	"github.com/qiangli/ai/internal/llm"
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/swarm/llm"
 )
 
 //go:embed resource/shell_security_system.md
@@ -26,7 +26,7 @@ type CommandCheck struct {
 }
 
 // evaluateCommand consults LLM to evaluate the safety of a command
-func evaluateCommand(ctx context.Context, vars *Vars, command string, args []string) (bool, error) {
+func evaluateCommand(ctx context.Context, vars *api.Vars, command string, args []string) (bool, error) {
 	log.Infof("🔒 checking %s %+v\n", command, args)
 
 	instruction, err := applyTemplate(shellSecuritySystemRole, vars, nil)
@@ -41,9 +41,9 @@ func evaluateCommand(ctx context.Context, vars *Vars, command string, args []str
 		return false, err
 	}
 
-	runTool := func(ctx context.Context, name string, args map[string]any) (*Result, error) {
+	runTool := func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
 		log.Debugf("run tool: %s %+v\n", name, args)
-		out, err := vars.CallTool(ctx, name, args)
+		out, err := CallTool(ctx, vars, name, args)
 		return out, err
 	}
 
@@ -56,12 +56,12 @@ func evaluateCommand(ctx context.Context, vars *Vars, command string, args []str
 		return false, fmt.Errorf("no model found L1/L2")
 	}
 
-	req := &api.Request{
+	req := &api.LLMRequest{
 		ModelType: model.Type,
 		Model:     model.Name,
 		BaseUrl:   model.BaseUrl,
 		ApiKey:    model.ApiKey,
-		Messages: []*Message{
+		Messages: []*api.Message{
 			{
 				Role:    api.RoleSystem,
 				Content: instruction,

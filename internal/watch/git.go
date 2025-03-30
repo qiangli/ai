@@ -7,12 +7,12 @@ import (
 
 	git "github.com/go-git/go-git/v5"
 
-	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/agent"
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/swarm/agent"
 )
 
-func WatchRepo(cfg *internal.AppConfig) error {
+func WatchRepo(cfg *api.AppConfig) error {
 	repoPath := filepath.Clean(cfg.Repo)
 
 	log.Debugf("Watching git repository: %s\n", repoPath)

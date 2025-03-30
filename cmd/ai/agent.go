@@ -10,9 +10,11 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/agent"
+
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/swarm/agent"
 	"github.com/qiangli/ai/internal/watch"
 )
 
@@ -119,7 +121,7 @@ func Run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func setLogLevel(app *internal.AppConfig) {
+func setLogLevel(app *api.AppConfig) {
 	if app.Quiet {
 		log.SetLogLevel(log.Quiet)
 		return

@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/agent"
+	"github.com/qiangli/ai/internal/swarm/agent"
 )
 
 const rootUsageTemplate = `AI Command Line Tool

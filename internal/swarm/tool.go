@@ -13,8 +13,7 @@ import (
 	"github.com/briandowns/spinner"
 	"gopkg.in/yaml.v3"
 
-	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/api"
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/log"
 )
 
@@ -26,25 +25,25 @@ const (
 	ToolTypeFunc     = "func"
 )
 
-var toolRegistry map[string]*ToolFunc
+var toolRegistry map[string]*api.ToolFunc
 var toolSystemCommands []string
 
-var systemTools []*ToolFunc
+var systemTools []*api.ToolFunc
 
-func InitTools(app *internal.AppConfig) {
+func InitTools(app *api.AppConfig) {
 	config, err := LoadDefaultToolConfig(app)
 	if err != nil {
 		log.Errorf("failed to load default tool config: %v", err)
 		return
 	}
 
-	toolRegistry = make(map[string]*ToolFunc)
+	toolRegistry = make(map[string]*api.ToolFunc)
 	for _, v := range config.Tools {
 		log.Debugf("Kit: %s tool: %s - %s internal: %v", v.Kit, v.Name, v.Description, v.Internal)
 		if v.Internal && !app.Internal {
 			continue
 		}
-		tool := &ToolFunc{
+		tool := &api.ToolFunc{
 			Type:        v.Type,
 			Kit:         v.Kit,
 			Name:        v.Name,
@@ -71,9 +70,8 @@ func InitTools(app *internal.AppConfig) {
 	}
 }
 
-func ListTools() []*ToolFunc {
-	// return systemTools
-	var tools []*ToolFunc
+func ListTools() []*api.ToolFunc {
+	var tools []*api.ToolFunc
 	for _, v := range toolRegistry {
 		tools = append(tools, v)
 	}
@@ -106,7 +104,7 @@ type ToolsConfig struct {
 //go:embed resource/tools/*.yaml
 var resourceTools embed.FS
 
-func LoadDefaultToolConfig(app *internal.AppConfig) (*ToolsConfig, error) {
+func LoadDefaultToolConfig(app *api.AppConfig) (*ToolsConfig, error) {
 	base := "resource/tools"
 	dirs, err := resourceTools.ReadDir(base)
 	if err != nil {
@@ -129,7 +127,7 @@ func LoadDefaultToolConfig(app *internal.AppConfig) (*ToolsConfig, error) {
 	return LoadToolData(app, data)
 }
 
-func LoadToolConfig(app *internal.AppConfig, base string) (*ToolsConfig, error) {
+func LoadToolConfig(app *api.AppConfig, base string) (*ToolsConfig, error) {
 	dirs, err := os.ReadDir(base)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read testdata directory: %v", err)
@@ -145,7 +143,7 @@ func LoadToolConfig(app *internal.AppConfig, base string) (*ToolsConfig, error) 
 	return LoadToolFiles(app, files)
 }
 
-func LoadToolFiles(app *internal.AppConfig, file []string) (*ToolsConfig, error) {
+func LoadToolFiles(app *api.AppConfig, file []string) (*ToolsConfig, error) {
 	var data [][]byte
 	for _, f := range file {
 		d, err := os.ReadFile(f)
@@ -160,7 +158,7 @@ func LoadToolFiles(app *internal.AppConfig, file []string) (*ToolsConfig, error)
 	return LoadToolData(app, data)
 }
 
-func LoadToolData(app *internal.AppConfig, data [][]byte) (*ToolsConfig, error) {
+func LoadToolData(app *api.AppConfig, data [][]byte) (*ToolsConfig, error) {
 	merged := &ToolsConfig{}
 
 	for _, v := range data {
@@ -202,10 +200,10 @@ func LoadTools(config ToolsConfig) (map[string]*api.ToolFunc, error) {
 	return toolRegistry, nil
 }
 
-func (r *Vars) CallTool(ctx context.Context, name string, args map[string]any) (*Result, error) {
+func CallTool(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
 	log.Infof("⚡ %s %+v\n", name, args)
 
-	result, err := dispatchTool(ctx, r, name, args)
+	result, err := dispatchTool(ctx, vars, name, args)
 
 	if err != nil {
 		log.Errorf("\033[31m✗\033[0m %s\n", err)
@@ -227,7 +225,7 @@ func head(s string, maxLen int) string {
 	return s
 }
 
-func dispatchTool(ctx context.Context, vars *Vars, name string, args map[string]any) (*Result, error) {
+func dispatchTool(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
 
 	v, ok := vars.ToolRegistry[name]
 	if !ok {

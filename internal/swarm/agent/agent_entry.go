@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/agent/resource"
 	"github.com/qiangli/ai/internal/db"
 	"github.com/qiangli/ai/internal/docker/gptr"
-	"github.com/qiangli/ai/internal/swarm"
+	"github.com/qiangli/ai/internal/swarm/agent/resource"
 )
 
-var entrypointMap = map[string]swarm.Entrypoint{}
+var entrypointMap = map[string]api.Entrypoint{}
 
 func init() {
 	entrypointMap["pr_system_role_prompt"] = prPromptEntrypoint
@@ -21,7 +21,7 @@ func init() {
 }
 
 // PR entrypoint that generates and updates the instruction/system role prompt
-func prPromptEntrypoint(vars *swarm.Vars, agent *swarm.Agent, input *swarm.UserInput) error {
+func prPromptEntrypoint(vars *api.Vars, agent *api.Agent, input *api.UserInput) error {
 	sub := baseCommand(agent.Name)
 	schema := fmt.Sprintf("pr_%s_schema", sub)
 	example := fmt.Sprintf("pr_%s_example", sub)
@@ -36,7 +36,7 @@ func prPromptEntrypoint(vars *swarm.Vars, agent *swarm.Agent, input *swarm.UserI
 	return nil
 }
 
-func gptrPromptEntrypoint(vars *swarm.Vars, agent *swarm.Agent, input *swarm.UserInput) error {
+func gptrPromptEntrypoint(vars *api.Vars, agent *api.Agent, input *api.UserInput) error {
 	data := map[string]any{
 		"ReportTypes": gptr.ReportTypes,
 		"Tones":       gptr.Tones,
@@ -45,7 +45,7 @@ func gptrPromptEntrypoint(vars *swarm.Vars, agent *swarm.Agent, input *swarm.Use
 	return nil
 }
 
-func sqlPromptEntrypoint(vars *swarm.Vars, agent *swarm.Agent, input *swarm.UserInput) error {
+func sqlPromptEntrypoint(vars *api.Vars, agent *api.Agent, input *api.UserInput) error {
 	data, err := db.GetDBInfo(vars.DBCred)
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func sqlPromptEntrypoint(vars *swarm.Vars, agent *swarm.Agent, input *swarm.User
 	return nil
 }
 
-func docComposeEntrypoint(vars *swarm.Vars, agent *swarm.Agent, input *swarm.UserInput) error {
+func docComposeEntrypoint(vars *api.Vars, agent *api.Agent, input *api.UserInput) error {
 	// read the template
 	var temp []byte
 	if input.Template == "" {

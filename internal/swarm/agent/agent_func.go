@@ -10,17 +10,17 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/qiangli/ai/internal/agent/resource"
-	"github.com/qiangli/ai/internal/api"
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/docker/aider"
 	"github.com/qiangli/ai/internal/docker/gptr"
 	"github.com/qiangli/ai/internal/docker/oh"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/swarm"
+	"github.com/qiangli/ai/internal/swarm/agent/resource"
 )
 
 // builtin functions
-var funcRegistry = map[string]swarm.Function{}
+var funcRegistry = map[string]api.Function{}
 
 const funcKitName = "ai"
 
@@ -80,7 +80,7 @@ func ListFuncTools() ([]*api.ToolFunc, error) {
 	return tools, nil
 }
 
-func GenerateReport(ctx context.Context, model *swarm.Model, reportType, tone, input string) (string, error) {
+func GenerateReport(ctx context.Context, model *api.Model, reportType, tone, input string) (string, error) {
 	// FIXME: This is a hack
 	// better to config the base url and api key (and others) for gptr
 	u, err := url.Parse(model.BaseUrl)
@@ -135,7 +135,7 @@ type WSInput struct {
 	Input        string
 }
 
-func Aider(ctx context.Context, models map[api.Level]*swarm.Model, workspace, sub, input string) error {
+func Aider(ctx context.Context, models map[api.Level]*api.Model, workspace, sub, input string) error {
 	log.Infof("using workspace: %s\n", workspace)
 
 	if sub == "" {
@@ -199,7 +199,7 @@ func Aider(ctx context.Context, models map[api.Level]*swarm.Model, workspace, su
 	return aider.Run(ctx, aider.ChatMode(sub), userContent)
 }
 
-func OpenHands(ctx context.Context, model *swarm.Model, workspace string, in *api.UserInput) error {
+func OpenHands(ctx context.Context, model *api.Model, workspace string, in *api.UserInput) error {
 	log.Infof("using workspace: %s\n", workspace)
 
 	if workspace == "" {
@@ -250,7 +250,7 @@ func OpenHands(ctx context.Context, model *swarm.Model, workspace string, in *ap
 	return oh.Run(ctx, userContent)
 }
 
-func listAgentFunc(ctx context.Context, _ *swarm.Vars, _ string, _ map[string]any) (*api.Result, error) {
+func listAgentFunc(ctx context.Context, _ *api.Vars, _ string, _ map[string]any) (*api.Result, error) {
 	var list []string
 	for k, v := range resource.AgentCommandMap {
 		list = append(list, fmt.Sprintf("%s: %s", k, v.Description))
@@ -262,7 +262,7 @@ func listAgentFunc(ctx context.Context, _ *swarm.Vars, _ string, _ map[string]an
 	}, nil
 }
 
-func agentInfoFunc(ctx context.Context, _ *swarm.Vars, _ string, args map[string]any) (*api.Result, error) {
+func agentInfoFunc(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
 	agent, err := swarm.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
@@ -281,7 +281,7 @@ func agentInfoFunc(ctx context.Context, _ *swarm.Vars, _ string, args map[string
 	}, nil
 }
 
-func agentTransferFunc(ctx context.Context, _ *swarm.Vars, _ string, args map[string]any) (*swarm.Result, error) {
+func agentTransferFunc(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
 	agent, err := swarm.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err

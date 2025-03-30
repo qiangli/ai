@@ -12,11 +12,11 @@ import (
 	"github.com/creack/pty"
 	"golang.org/x/term"
 
-	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/log"
 )
 
-func Bash(cfg *internal.AppConfig) error {
+func Bash(cfg *api.AppConfig) error {
 	var name string
 	var args []string
 

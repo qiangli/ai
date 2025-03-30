@@ -6,11 +6,12 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal"
 )
 
 // Use the configFileContent variable in your application as needed
-func setupConfig(cfg *internal.AppConfig) error {
+func setupConfig(cfg *api.AppConfig) error {
 	if _, err := os.Stat(cfg.ConfigFile); errors.Is(err, os.ErrNotExist) {
 		dir := filepath.Dir(cfg.ConfigFile)
 		if err := os.MkdirAll(dir, os.ModePerm); err != nil {

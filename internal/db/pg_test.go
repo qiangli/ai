@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/qiangli/ai/internal/api"
+	"github.com/qiangli/ai/api"
 )
 
 // https://github.com/jfcg/sorty/issues/6

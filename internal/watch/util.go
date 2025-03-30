@@ -9,7 +9,7 @@ import (
 
 	"github.com/gofrs/flock"
 
-	"github.com/qiangli/ai/internal/api"
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/log"
 )
 

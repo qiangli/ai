@@ -12,11 +12,11 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/agent"
-	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/swarm"
+	"github.com/qiangli/ai/internal/swarm/agent"
 )
 
 type ServerConfig struct {
@@ -77,7 +77,7 @@ func RunServe(args []string) error {
 	)
 
 	// Add tools
-	var app = &internal.AppConfig{}
+	var app = &api.AppConfig{}
 	vars, err := swarm.InitVars(app)
 	if err != nil {
 		return fmt.Errorf("failed to initialize vars: %v", err)
@@ -133,7 +133,7 @@ func addMcpFlags(cmd *cobra.Command) {
 	flags.Bool("trace", false, "Trace API calls")
 }
 
-func addTool(vars *swarm.Vars, toolFunc *api.ToolFunc) error {
+func addTool(vars *api.Vars, toolFunc *api.ToolFunc) error {
 	toSchema := func(m map[string]any) mcp.ToolInputSchema {
 		var s mcp.ToolInputSchema
 		if m == nil {
@@ -168,7 +168,7 @@ func addTool(vars *swarm.Vars, toolFunc *api.ToolFunc) error {
 	handler := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		log.Debugf("Calling tool [%s] with params: %+v\n", req.Params.Name, req.Params.Arguments)
 
-		v, err := vars.CallTool(ctx, req.Params.Name, req.Params.Arguments)
+		v, err := swarm.CallTool(ctx, vars, req.Params.Name, req.Params.Arguments)
 
 		log.Debugf("Tool [%s] returned: %+v\n", req.Params.Name, v)
 

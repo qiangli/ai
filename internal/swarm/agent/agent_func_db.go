@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/qiangli/ai/internal/api"
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/db"
 	"github.com/qiangli/ai/internal/swarm"
 )
@@ -59,7 +59,7 @@ func sqlQuery(ctx context.Context, cred *api.DBCred, query string) (*api.Result,
 	}, nil
 }
 
-func sqlDBQuery(ctx context.Context, vars *swarm.Vars, name string, args map[string]any) (*api.Result, error) {
+func sqlDBQuery(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
 	query, err := swarm.GetStrProp("query", args)
 	if err != nil {
 		return nil, err
@@ -67,26 +67,26 @@ func sqlDBQuery(ctx context.Context, vars *swarm.Vars, name string, args map[str
 	return sqlQuery(ctx, vars.DBCred, query)
 }
 
-func sqlDBVersion(ctx context.Context, vars *swarm.Vars, name string, args map[string]any) (*api.Result, error) {
+func sqlDBVersion(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
 	return sqlQuery(ctx, vars.DBCred, versionQuery)
 }
 
-func sqlDBAllDatabases(ctx context.Context, vars *swarm.Vars, name string, args map[string]any) (*api.Result, error) {
+func sqlDBAllDatabases(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
 	return sqlQuery(ctx, vars.DBCred, allDatabasesQuery)
 }
 
-func sqlDBAllTables(ctx context.Context, vars *swarm.Vars, name string, args map[string]any) (*api.Result, error) {
+func sqlDBAllTables(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
 	return sqlQuery(ctx, vars.DBCred, allTablesQuery)
 }
 
-func sqlDBAllViews(ctx context.Context, vars *swarm.Vars, name string, args map[string]any) (*api.Result, error) {
+func sqlDBAllViews(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
 	return sqlQuery(ctx, vars.DBCred, allViewsQuery)
 }
-func sqlDBAllSequences(ctx context.Context, vars *swarm.Vars, name string, args map[string]any) (*api.Result, error) {
+func sqlDBAllSequences(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
 	return sqlQuery(ctx, vars.DBCred, allSequencesQuery)
 }
 
-func sqlDBAllColumns(ctx context.Context, vars *swarm.Vars, name string, args map[string]any) (*api.Result, error) {
+func sqlDBAllColumns(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
 	schema, err := swarm.GetStrProp("schema", args)
 	if err != nil {
 		return nil, err

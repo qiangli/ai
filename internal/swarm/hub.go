@@ -10,7 +10,7 @@ import (
 // User interface
 // Input
 // Output
-type Input = UserInput
+// type Input = UserInput
 type Output struct {
 	// The last agent that processed the output content.
 	Agent string `json:"agent"`

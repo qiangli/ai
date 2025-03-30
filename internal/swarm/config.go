@@ -3,79 +3,80 @@ package swarm
 import (
 	"fmt"
 	"strings"
-	"text/template"
+
+	"github.com/qiangli/ai/api"
 )
 
-type UserConfig struct {
-	Name    string `yaml:"name"`
-	Display string `yaml:"display"`
-}
+// type UserConfig struct {
+// 	Name    string `yaml:"name"`
+// 	Display string `yaml:"display"`
+// }
 
-type AgentsConfig struct {
-	User      UserConfig       `yaml:"user"`
-	Agents    []AgentConfig    `yaml:"agents"`
-	Functions []FunctionConfig `yaml:"functions"`
-	Models    []ModelConfig    `yaml:"models"`
+// type AgentsConfig struct {
+// 	User      UserConfig       `yaml:"user"`
+// 	Agents    []AgentConfig    `yaml:"agents"`
+// 	Functions []FunctionConfig `yaml:"functions"`
+// 	Models    []ModelConfig    `yaml:"models"`
 
-	MaxTurns int `yaml:"maxTurns"`
-	MaxTime  int `yaml:"maxTime"`
+// 	MaxTurns int `yaml:"maxTurns"`
+// 	MaxTime  int `yaml:"maxTime"`
 
-	ResourceMap     map[string]string     `yaml:"-"`
-	AdviceMap       map[string]Advice     `yaml:"-"`
-	EntrypointMap   map[string]Entrypoint `yaml:"-"`
-	TemplateFuncMap template.FuncMap      `yaml:"-"`
-}
+// 	ResourceMap     map[string]string     `yaml:"-"`
+// 	AdviceMap       map[string]Advice     `yaml:"-"`
+// 	EntrypointMap   map[string]Entrypoint `yaml:"-"`
+// 	TemplateFuncMap template.FuncMap      `yaml:"-"`
+// }
 
-type AgentConfig struct {
-	Name        string `yaml:"name"`
-	Display     string `yaml:"display"`
-	Description string `yaml:"description"`
+// type AgentConfig struct {
+// 	Name        string `yaml:"name"`
+// 	Display     string `yaml:"display"`
+// 	Description string `yaml:"description"`
 
-	//
-	Instruction PromptConfig `yaml:"instruction"`
+// 	//
+// 	Instruction PromptConfig `yaml:"instruction"`
 
-	Model string `yaml:"model"`
+// 	Model string `yaml:"model"`
 
-	Entrypoint string `yaml:"entrypoint"`
+// 	Entrypoint string `yaml:"entrypoint"`
 
-	Functions []string `yaml:"functions"`
+// 	Functions []string `yaml:"functions"`
 
-	Dependencies []string `yaml:"dependencies"`
+// 	Dependencies []string `yaml:"dependencies"`
 
-	Advices AdviceConfig `yaml:"advices"`
-}
+// 	Advices AdviceConfig `yaml:"advices"`
+// }
 
-type PromptConfig struct {
-	Role    string `yaml:"role"`
-	Content string `yaml:"content"`
-}
+// type PromptConfig struct {
+// 	Role    string `yaml:"role"`
+// 	Content string `yaml:"content"`
+// }
 
-type FunctionConfig struct {
-	Label   string `yaml:"label"`
-	Service string `yaml:"service"`
+// type FunctionConfig struct {
+// 	Label   string `yaml:"label"`
+// 	Service string `yaml:"service"`
 
-	Name        string         `yaml:"name"`
-	Description string         `yaml:"description"`
-	Parameters  map[string]any `yaml:"parameters"`
-}
+// 	Name        string         `yaml:"name"`
+// 	Description string         `yaml:"description"`
+// 	Parameters  map[string]any `yaml:"parameters"`
+// }
 
-type ModelConfig struct {
-	Name        string `yaml:"name"`
-	Type        string `yaml:"type"`
-	Description string `yaml:"description"`
-	Model       string `yaml:"model"`
-	BaseUrl     string `yaml:"baseUrl"`
-	ApiKey      string `yaml:"apiKey"`
-	External    bool   `yaml:"external"`
-}
+// type ModelConfig struct {
+// 	Name        string `yaml:"name"`
+// 	Type        string `yaml:"type"`
+// 	Description string `yaml:"description"`
+// 	Model       string `yaml:"model"`
+// 	BaseUrl     string `yaml:"baseUrl"`
+// 	ApiKey      string `yaml:"apiKey"`
+// 	External    bool   `yaml:"external"`
+// }
 
-type AdviceConfig struct {
-	Before string `yaml:"before"`
-	After  string `yaml:"after"`
-	Around string `yaml:"around"`
-}
+// type AdviceConfig struct {
+// 	Before string `yaml:"before"`
+// 	After  string `yaml:"after"`
+// 	Around string `yaml:"around"`
+// }
 
-func (r *Swarm) Create(name, command string, input *UserInput) (*Agent, error) {
+func (r *Swarm) Create(name, command string, input *api.UserInput) (*Agent, error) {
 	if err := r.Load(name, input); err != nil {
 		return nil, err
 	}
@@ -83,8 +84,8 @@ func (r *Swarm) Create(name, command string, input *UserInput) (*Agent, error) {
 	config := r.Config
 	adviceMap := config.AdviceMap
 
-	getTools := func(toolType string) ([]*ToolFunc, error) {
-		var list []*ToolFunc
+	getTools := func(toolType string) ([]*api.ToolFunc, error) {
+		var list []*api.ToolFunc
 		for _, v := range r.Vars.ToolRegistry {
 			if toolType == "*" || v.Type == toolType {
 				list = append(list, v)
@@ -93,7 +94,7 @@ func (r *Swarm) Create(name, command string, input *UserInput) (*Agent, error) {
 		return list, nil
 	}
 
-	getTool := func(s string) (*ToolFunc, error) {
+	getTool := func(s string) (*api.ToolFunc, error) {
 		for _, v := range r.Vars.ToolRegistry {
 			if v.Name == s {
 				return v, nil
@@ -102,7 +103,7 @@ func (r *Swarm) Create(name, command string, input *UserInput) (*Agent, error) {
 		return nil, fmt.Errorf("no such tool: %s", s)
 	}
 
-	getAgentConfig := func(n, c string) (*AgentConfig, error) {
+	getAgentConfig := func(n, c string) (*api.AgentConfig, error) {
 		// check for more specific agent first
 		if c != "" {
 			ap := fmt.Sprintf("%s/%s", n, c)
@@ -120,7 +121,7 @@ func (r *Swarm) Create(name, command string, input *UserInput) (*Agent, error) {
 		return nil, fmt.Errorf("no such agent: %s / %s", n, c)
 	}
 
-	newAgent := func(ac *AgentConfig, vars *Vars) (*Agent, error) {
+	newAgent := func(ac *api.AgentConfig, vars *api.Vars) (*Agent, error) {
 		agent := Agent{
 			Name:        ac.Name,
 			Display:     ac.Display,
@@ -153,7 +154,7 @@ func (r *Swarm) Create(name, command string, input *UserInput) (*Agent, error) {
 		agent.Model = model
 
 		// tools
-		funcMap := make(map[string]*ToolFunc)
+		funcMap := make(map[string]*api.ToolFunc)
 		for _, f := range ac.Functions {
 			if f == "*" {
 				funcs, err := getTools("*")
@@ -197,7 +198,7 @@ func (r *Swarm) Create(name, command string, input *UserInput) (*Agent, error) {
 			parts := strings.SplitN(agentName, "/", 2)
 			agentName = parts[0]
 		}
-		var funcs []*ToolFunc
+		var funcs []*api.ToolFunc
 		for _, v := range funcMap {
 			if v.Type == ToolTypeAgent && v.Kit == agentName {
 				continue
@@ -238,7 +239,7 @@ func (r *Swarm) Create(name, command string, input *UserInput) (*Agent, error) {
 		return &agent, nil
 	}
 
-	creator := func(name, command string, vars *Vars) (*Agent, error) {
+	creator := func(name, command string, vars *api.Vars) (*Agent, error) {
 		agentCfg, err := getAgentConfig(name, command)
 		if err != nil {
 			return nil, err

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/qiangli/ai/internal/api"
+	"github.com/qiangli/ai/api"
 )
 
 func TestSqlQuery(t *testing.T) {

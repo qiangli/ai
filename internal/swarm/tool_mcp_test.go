@@ -3,6 +3,8 @@ package swarm
 import (
 	"context"
 	"testing"
+
+	"github.com/qiangli/ai/api"
 )
 
 func TestMcpListTools(t *testing.T) {
@@ -54,8 +56,8 @@ func TestMcpCallTool(t *testing.T) {
 	var serverUrl = "http://localhost:58080/sse"
 
 	// server := NewMcpServerTool(serverUrl)
-	vars := &Vars{
-		ToolRegistry: map[string]*ToolFunc{
+	vars := &api.Vars{
+		ToolRegistry: map[string]*api.ToolFunc{
 			"time__convert_time": {
 				Kit:  "time",
 				Name: "convert_time",

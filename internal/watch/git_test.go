@@ -3,7 +3,7 @@ package watch
 import (
 	"testing"
 
-	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/api"
 )
 
 func TestWatchRepo(t *testing.T) {
@@ -11,7 +11,7 @@ func TestWatchRepo(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	err := WatchRepo(&internal.AppConfig{
+	err := WatchRepo(&api.AppConfig{
 		Workspace: "../../../ai",
 	})
 

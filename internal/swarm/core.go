@@ -3,46 +3,44 @@ package swarm
 import (
 	"context"
 	"errors"
-	"text/template"
 	"time"
 
 	"dario.cat/mergo"
 	"gopkg.in/yaml.v3"
 
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
 )
 
-type AppConfig = internal.AppConfig
-type Swarm struct {
-	AppConfig *AppConfig
+// type Swarm struct {
+// 	AppConfig *api.AppConfig
 
-	History []*Message
-	Vars    *Vars
-	Stream  bool
+// 	History []*Message
+// 	Vars    *Vars
+// 	Stream  bool
 
-	//
-	Config *AgentsConfig
+// 	//
+// 	Config *AgentsConfig
 
-	//
-	DryRun        bool
-	DryRunContent string
+// 	//
+// 	DryRun        bool
+// 	DryRunContent string
 
-	// map of agent name to the agent configuration data.
-	AgentConfigMap map[string][][]byte
+// 	// map of agent name to the agent configuration data.
+// 	AgentConfigMap map[string][][]byte
 
-	ResourceMap     map[string]string
-	AdviceMap       map[string]Advice
-	EntrypointMap   map[string]Entrypoint
-	TemplateFuncMap template.FuncMap
-}
+// 	ResourceMap     map[string]string
+// 	AdviceMap       map[string]Advice
+// 	EntrypointMap   map[string]Entrypoint
+// 	TemplateFuncMap template.FuncMap
+// }
 
-func NewSwarm(app *AppConfig) (*Swarm, error) {
+func NewSwarm(app *api.AppConfig) (*Swarm, error) {
 	sw := &Swarm{
 		AppConfig: app,
-		History:   []*Message{},
+		History:   []*api.Message{},
 		Stream:    true,
 	}
 
@@ -56,11 +54,11 @@ func NewSwarm(app *AppConfig) (*Swarm, error) {
 }
 
 // loadAgentsConfig loads the agent configuration from the provided YAML data.
-func loadAgentsConfig(data [][]byte) (*AgentsConfig, error) {
-	merged := &AgentsConfig{}
+func loadAgentsConfig(data [][]byte) (*api.AgentsConfig, error) {
+	merged := &api.AgentsConfig{}
 
 	for _, v := range data {
-		cfg := &AgentsConfig{}
+		cfg := &api.AgentsConfig{}
 		if err := yaml.Unmarshal(v, cfg); err != nil {
 			return nil, err
 		}
@@ -70,6 +68,31 @@ func loadAgentsConfig(data [][]byte) (*AgentsConfig, error) {
 		}
 	}
 	return merged, nil
+}
+
+type Swarm struct {
+	AppConfig *api.AppConfig
+
+	Ctx context.Context
+
+	History []*api.Message
+	Vars    *api.Vars
+	Stream  bool
+
+	//
+	Config *api.AgentsConfig
+
+	//
+	DryRun        bool
+	DryRunContent string
+
+	// map of agent name to the agent configuration data.
+	AgentConfigMap map[string][][]byte
+
+	ResourceMap     map[string]string
+	AdviceMap       map[string]api.Advice
+	EntrypointMap   map[string]api.Entrypoint
+	TemplateFuncMap api.TemplateFuncMap
 }
 
 func (r *Swarm) loadAgentsConfig(data [][]byte) error {
@@ -89,8 +112,8 @@ func (r *Swarm) loadAgentsConfig(data [][]byte) error {
 	return nil
 }
 
-func InitVars(app *internal.AppConfig) (*Vars, error) {
-	vars := NewVars()
+func InitVars(app *api.AppConfig) (*api.Vars, error) {
+	vars := api.NewVars()
 
 	//
 	vars.McpServerUrl = app.McpServerUrl
@@ -103,7 +126,7 @@ func InitVars(app *internal.AppConfig) (*Vars, error) {
 
 	//
 	if app.Db != nil {
-		vars.DBCred = &DBCred{
+		vars.DBCred = &api.DBCred{
 			Host:     app.Db.Host,
 			Port:     app.Db.Port,
 			Username: app.Db.Username,
@@ -136,7 +159,7 @@ func InitVars(app *internal.AppConfig) (*Vars, error) {
 	return vars, nil
 }
 
-func (r *Swarm) Load(name string, input *UserInput) error {
+func (r *Swarm) Load(name string, input *api.UserInput) error {
 	if r.Config != nil && len(r.Config.Agents) > 0 {
 		for _, a := range r.Config.Agents {
 			if a.Name == name {
@@ -186,7 +209,7 @@ func (r *Swarm) Load(name string, input *UserInput) error {
 	return nil
 }
 
-func (r *Swarm) Run(req *Request, resp *Response) error {
+func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	for {
 		agent, err := r.Create(req.Agent, req.Command, req.RawInput)
 		if err != nil {
@@ -195,7 +218,10 @@ func (r *Swarm) Run(req *Request, resp *Response) error {
 		agent.sw = r
 
 		if agent.Entrypoint != nil {
-			if err := agent.Entrypoint(r.Vars, agent, req.RawInput); err != nil {
+			if err := agent.Entrypoint(r.Vars, &api.Agent{
+				Name:    agent.Name,
+				Display: agent.Display,
+			}, req.RawInput); err != nil {
 				return err
 			}
 		}
@@ -234,7 +260,7 @@ type maxLogHandler struct {
 	max  int
 }
 
-func (h *maxLogHandler) Serve(r *Request, w *Response) error {
+func (h *maxLogHandler) Serve(r *api.Request, w *api.Response) error {
 
 	log.Debugf("req: %+v\n", r)
 	if r.Message != nil {
@@ -278,7 +304,7 @@ type timeoutHandler struct {
 	dt      time.Duration
 }
 
-func (h *timeoutHandler) Serve(r *Request, w *Response) error {
+func (h *timeoutHandler) Serve(r *api.Request, w *api.Response) error {
 	ctx, cancelCtx := context.WithTimeout(r.Context(), h.dt)
 	defer cancelCtx()
 
@@ -305,7 +331,7 @@ func (h *timeoutHandler) Serve(r *Request, w *Response) error {
 	case <-done:
 		return nil
 	case <-ctx.Done():
-		w.Messages = []*Message{{Content: h.content}}
+		w.Messages = []*api.Message{{Content: h.content}}
 		w.Agent = nil
 	}
 

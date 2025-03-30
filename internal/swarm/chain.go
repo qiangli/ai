@@ -1,9 +1,13 @@
 // Adapted from https://github.com/justinas/alice/blob/master/chain.go
 package swarm
 
+import (
+	"github.com/qiangli/ai/api"
+)
+
 type emptyHandler struct{}
 
-func (h *emptyHandler) Serve(r *Request, w *Response) error {
+func (h *emptyHandler) Serve(r *api.Request, w *api.Response) error {
 	return nil
 }
 
@@ -32,17 +36,17 @@ func (h *emptyHandler) Serve(r *Request, w *Response) error {
 // the client sees an interrupted response but the server doesn't log
 // an error, panic with the value [ErrAbortHandler].
 type Handler interface {
-	Serve(*Request, *Response) error
+	Serve(*api.Request, *api.Response) error
 }
 
 // The HandlerFunc type is an adapter to allow the use of
 // ordinary functions as handlers. If f is a function
 // with the appropriate signature, HandlerFunc(f) is a
 // [Handler] that calls f.
-type HandlerFunc func(*Request, *Response) error
+type HandlerFunc func(*api.Request, *api.Response) error
 
 // Serve calls f(w, r).
-func (f HandlerFunc) Serve(r *Request, w *Response) error {
+func (f HandlerFunc) Serve(r *api.Request, w *api.Response) error {
 	return f(r, w)
 }
 

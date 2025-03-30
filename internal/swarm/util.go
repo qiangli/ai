@@ -11,7 +11,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"github.com/qiangli/ai/internal/api"
+	"github.com/qiangli/ai/api"
 )
 
 func applyTemplate(tpl string, data any, funcMap template.FuncMap) (string, error) {

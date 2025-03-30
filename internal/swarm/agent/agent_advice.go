@@ -6,15 +6,14 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/qiangli/ai/internal/agent/resource"
-	"github.com/qiangli/ai/internal/agent/resource/pr"
-	"github.com/qiangli/ai/internal/api"
-	"github.com/qiangli/ai/internal/llm"
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/internal/swarm"
+	"github.com/qiangli/ai/internal/swarm/agent/resource"
+	"github.com/qiangli/ai/internal/swarm/agent/resource/pr"
+	"github.com/qiangli/ai/internal/swarm/llm"
 )
 
-var adviceMap = map[string]swarm.Advice{}
+var adviceMap = map[string]api.Advice{}
 
 func init() {
 	// adviceMap["decode_meta_response"] = decodeMetaResponseAdvice
@@ -36,7 +35,7 @@ func init() {
 // }
 
 // // agent after advice
-// func agentLaunchAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
+// func agentLaunchAdvice(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
 // 	var v AgentDetect
 // 	msg := resp.LastMessage()
 // 	if msg == nil {
@@ -51,7 +50,7 @@ func init() {
 // 	//
 // 	req.RawInput.Command = v.Command
 // 	//
-// 	resp.Result = &swarm.Result{
+// 	resp.Result = &api.Result{
 // 		State:     api.StateTransfer,
 // 		NextAgent: v.Agent,
 // 	}
@@ -67,7 +66,7 @@ func init() {
 // }
 
 // // meta prompt after advice
-// func decodeMetaResponseAdvice(vars *swarm.Vars, _ *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
+// func decodeMetaResponseAdvice(vars *api.Vars, _ *api.Request, resp *api.Response, _ api.Advice) error {
 // 	var v metaResponse
 // 	msg := resp.LastMessage()
 // 	if msg == nil {
@@ -88,7 +87,7 @@ func init() {
 // }
 
 // script user input before advice
-func scriptUserInputAdvice(vars *swarm.Vars, req *swarm.Request, _ *swarm.Response, _ swarm.Advice) error {
+func scriptUserInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ api.Advice) error {
 	in := req.RawInput
 
 	cmd := in.Command
@@ -106,7 +105,7 @@ func scriptUserInputAdvice(vars *swarm.Vars, req *swarm.Request, _ *swarm.Respon
 	if err != nil {
 		return err
 	}
-	req.Message = &swarm.Message{
+	req.Message = &api.Message{
 		Role:    api.RoleUser,
 		Content: content,
 		Sender:  req.Agent,
@@ -116,7 +115,7 @@ func scriptUserInputAdvice(vars *swarm.Vars, req *swarm.Request, _ *swarm.Respon
 }
 
 // PR user input before advice
-func prUserInputAdvice(vars *swarm.Vars, req *swarm.Request, _ *swarm.Response, _ swarm.Advice) error {
+func prUserInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ api.Advice) error {
 	in := req.RawInput
 
 	tpl, ok := resource.Prompts["pr_user_role"]
@@ -134,7 +133,7 @@ func prUserInputAdvice(vars *swarm.Vars, req *swarm.Request, _ *swarm.Response, 
 	if err != nil {
 		return err
 	}
-	req.Message = &swarm.Message{
+	req.Message = &api.Message{
 		Role:    api.RoleUser,
 		Content: content,
 		Sender:  req.Agent,
@@ -144,7 +143,7 @@ func prUserInputAdvice(vars *swarm.Vars, req *swarm.Request, _ *swarm.Response, 
 }
 
 // PR format after advice
-func prFormatAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
+func prFormatAdvice(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
 	name := baseCommand(req.Agent)
 	var tplName = fmt.Sprintf("pr_%s_format", name)
 	tpl, ok := resource.Prompts[tplName]
@@ -203,20 +202,20 @@ func prFormatAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, 
 	return nil
 }
 
-func aiderAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
+func aiderAdvice(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
 	return Aider(req.Context(), vars.Models, vars.Workspace, req.RawInput.Command, req.RawInput.Query())
 }
 
-func ohAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
+func ohAdvice(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
 	return OpenHands(req.Context(), vars.Models[api.L2], vars.Workspace, req.RawInput)
 }
 
 // subAdvice is an around advice that checks if a subcommand is specified.
 // skip LLM if it is and go directly to the next sub agent.
-func subAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, next swarm.Advice) error {
+func subAdvice(vars *api.Vars, req *api.Request, resp *api.Response, next api.Advice) error {
 	sub := baseCommand(req.RawInput.Command)
 	if sub != "" {
-		resp.Result = &swarm.Result{
+		resp.Result = &api.Result{
 			State:     api.StateTransfer,
 			NextAgent: fmt.Sprintf("%s/%s", req.Agent, sub),
 		}
@@ -231,7 +230,7 @@ type ImageParams struct {
 	Style   string `json:"style"`
 }
 
-func imageParamsAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Response, next swarm.Advice) error {
+func imageParamsAdvice(vars *api.Vars, req *api.Request, resp *api.Response, next api.Advice) error {
 	// skip if all image params are already set
 	if req.ImageQuality != "" && req.ImageSize != "" && req.ImageStyle != "" {
 		log.Debugf("skip image params advice as all are already set")
@@ -255,7 +254,7 @@ func imageParamsAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Respons
 		},
 	}
 
-	result, err := llm.Send(ctx, &api.Request{
+	result, err := llm.Send(ctx, &api.LLMRequest{
 		ModelType: model.Type,
 		BaseUrl:   model.BaseUrl,
 		ApiKey:    model.ApiKey,
@@ -286,7 +285,7 @@ func imageParamsAdvice(vars *swarm.Vars, req *swarm.Request, resp *swarm.Respons
 }
 
 // chdir format path after advice
-func chdirFormatPathAdvice(vars *swarm.Vars, _ *swarm.Request, resp *swarm.Response, _ swarm.Advice) error {
+func chdirFormatPathAdvice(vars *api.Vars, _ *api.Request, resp *api.Response, _ api.Advice) error {
 	var v struct {
 		Action    string `json:"action"`
 		Success   bool   `json:"success"`

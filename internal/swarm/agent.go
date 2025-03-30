@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/qiangli/ai/internal/api"
-	"github.com/qiangli/ai/internal/llm"
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/swarm/llm"
 )
 
 const transferAgentName = "agent_transfer"
@@ -19,7 +19,7 @@ type Agent struct {
 	Display string
 
 	// The model to be used by the agent
-	Model *Model
+	Model *api.Model
 
 	// The role of the agent. default is "system"
 	Role string
@@ -27,21 +27,21 @@ type Agent struct {
 	// Instructions for the agent, can be a string or a callable returning a string
 	Instruction string
 
-	RawInput *UserInput
+	RawInput *api.UserInput
 
 	// Vars *Vars
 
 	// Functions that the agent can call
-	Tools []*ToolFunc
+	Tools []*api.ToolFunc
 
-	Entrypoint Entrypoint
+	Entrypoint api.Entrypoint
 
 	Dependencies []*Agent
 
 	// advices
-	BeforeAdvice Advice
-	AfterAdvice  Advice
-	AroundAdvice Advice
+	BeforeAdvice api.Advice
+	AfterAdvice  api.Advice
+	AroundAdvice api.Advice
 
 	//
 	MaxTurns int
@@ -51,11 +51,18 @@ type Agent struct {
 	sw *Swarm
 }
 
-// func (r *Agent) Vars() *Vars {
-// 	return r.sw.Vars
-// }
+func (r *Agent) Vars() *api.Vars {
+	return r.sw.Vars
+}
 
-func (r *Agent) Serve(req *Request, resp *Response) error {
+// type Agent struct {
+// 	api.Agent
+
+// 	sw *Swarm
+// }
+// 	// The name of the agent.
+
+func (r *Agent) Serve(req *api.Request, resp *api.Response) error {
 	log.Debugf("run agent: %s\n", r.Name)
 
 	ctx := req.Context()
@@ -63,12 +70,12 @@ func (r *Agent) Serve(req *Request, resp *Response) error {
 	// dependencies
 	if len(r.Dependencies) > 0 {
 		for _, dep := range r.Dependencies {
-			depReq := &Request{
+			depReq := &api.Request{
 				Agent:    dep.Name,
 				RawInput: req.RawInput,
 				Message:  req.Message,
 			}
-			depResp := &Response{}
+			depResp := &api.Response{}
 			if err := r.sw.Run(depReq, depResp); err != nil {
 				return err
 			}
@@ -77,7 +84,7 @@ func (r *Agent) Serve(req *Request, resp *Response) error {
 	}
 
 	// advices
-	noop := func(vars *Vars, _ *Request, _ *Response, _ Advice) error {
+	noop := func(vars *api.Vars, _ *api.Request, _ *api.Response, _ api.Advice) error {
 		return nil
 	}
 	if r.BeforeAdvice != nil {
@@ -86,7 +93,7 @@ func (r *Agent) Serve(req *Request, resp *Response) error {
 		}
 	}
 	if r.AroundAdvice != nil {
-		next := func(vars *Vars, req *Request, resp *Response, _ Advice) error {
+		next := func(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
 			return r.runLoop(ctx, req, resp)
 		}
 		if err := r.AroundAdvice(r.sw.Vars, req, resp, next); err != nil {
@@ -106,10 +113,10 @@ func (r *Agent) Serve(req *Request, resp *Response) error {
 	return nil
 }
 
-func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error {
+func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Response) error {
 	// "resource:" prefix is used to refer to a resource
 	// "vars:" prefix is used to refer to a variable
-	apply := func(s string, vars *Vars) (string, error) {
+	apply := func(s string, vars *api.Vars) (string, error) {
 		if strings.HasPrefix(s, "resource:") {
 			v, ok := r.sw.Config.ResourceMap[s[9:]]
 			if !ok {
@@ -124,7 +131,7 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 		return s, nil
 	}
 
-	var history []*Message
+	var history []*api.Message
 
 	// system role prompt as first message
 	if r.Instruction != "" {
@@ -138,7 +145,7 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 		if role == "" {
 			role = api.RoleSystem
 		}
-		history = append(history, &Message{
+		history = append(history, &api.Message{
 			Role:    role,
 			Content: content,
 			Sender:  r.Name,
@@ -148,7 +155,7 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 	// history = append(history, r.sw.History...)
 
 	if req.Message == nil {
-		req.Message = &Message{
+		req.Message = &api.Message{
 			Role:    api.RoleUser,
 			Content: req.RawInput.Query(),
 			Sender:  r.Name,
@@ -162,12 +169,12 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 		agentRole = api.RoleAssistant
 	}
 
-	runTool := func(ctx context.Context, name string, args map[string]any) (*Result, error) {
+	runTool := func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
 		log.Debugf("run tool: %s %+v\n", name, args)
-		return r.sw.Vars.CallTool(ctx, name, args)
+		return CallTool(ctx, r.sw.Vars, name, args)
 	}
 
-	result, err := llm.Send(ctx, &api.Request{
+	result, err := llm.Send(ctx, &api.LLMRequest{
 		Agent:     r.Name,
 		ModelType: r.Model.Type,
 		BaseUrl:   r.Model.BaseUrl,
@@ -187,7 +194,7 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 	}
 
 	if result.Result == nil || result.Result.State != api.StateTransfer {
-		message := Message{
+		message := api.Message{
 			ContentType: result.ContentType,
 			Role:        result.Role,
 			Content:     result.Content,
@@ -198,7 +205,10 @@ func (r *Agent) runLoop(ctx context.Context, req *Request, resp *Response) error
 
 	resp.Messages = history[initLen:]
 
-	resp.Agent = r
+	resp.Agent = &api.Agent{
+		Name:    r.Name,
+		Display: r.Display,
+	}
 	resp.Result = result.Result
 
 	r.sw.History = history

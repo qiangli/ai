@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/agent"
+	"github.com/qiangli/ai/internal/swarm/agent"
 )
 
 var SetupCmd = &cobra.Command{

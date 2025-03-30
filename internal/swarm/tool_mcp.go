@@ -11,10 +11,11 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	// "github.com/tailscale/hujson"
 
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/log"
 )
 
-func ListMcpTools(serverUrl string) (map[string][]*ToolFunc, error) {
+func ListMcpTools(serverUrl string) (map[string][]*api.ToolFunc, error) {
 	tools := NewMcpServerTool(serverUrl)
 	return tools.ListTools()
 }
@@ -128,20 +129,20 @@ func (r *McpClientSession) Connect(ctx context.Context) error {
 	return nil
 }
 
-func (r *McpClientSession) ListTools(ctx context.Context) ([]*ToolFunc, error) {
+func (r *McpClientSession) ListTools(ctx context.Context) ([]*api.ToolFunc, error) {
 	toolsRequest := mcp.ListToolsRequest{}
 	tools, err := r.client.ListTools(ctx, toolsRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	funcs := make([]*ToolFunc, 0)
+	funcs := make([]*api.ToolFunc, 0)
 	for _, v := range tools.Tools {
 		parts := strings.SplitN(v.Name, "__", 2)
 		if len(parts) != 2 {
 			return nil, fmt.Errorf("invalid tool name: %s", v.Name)
 		}
-		funcs = append(funcs, &ToolFunc{
+		funcs = append(funcs, &api.ToolFunc{
 			Type:        ToolTypeMcp,
 			Kit:         parts[0],
 			Name:        parts[1],
@@ -156,16 +157,16 @@ func (r *McpClientSession) ListTools(ctx context.Context) ([]*ToolFunc, error) {
 	return funcs, nil
 }
 
-func (r *McpClientSession) GetTools(ctx context.Context, server string) ([]*FunctionConfig, error) {
+func (r *McpClientSession) GetTools(ctx context.Context, server string) ([]*api.FunctionConfig, error) {
 	toolsRequest := mcp.ListToolsRequest{}
 	tools, err := r.client.ListTools(ctx, toolsRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	funcs := make([]*FunctionConfig, 0)
+	funcs := make([]*api.FunctionConfig, 0)
 	for _, v := range tools.Tools {
-		funcs = append(funcs, &FunctionConfig{
+		funcs = append(funcs, &api.FunctionConfig{
 			Name:        v.Name,
 			Description: v.Description,
 			Parameters: map[string]any{
@@ -206,7 +207,7 @@ type McpClientHelper struct {
 	ServerConfig *McpServerConfig
 }
 
-func (r *McpClientHelper) ListTools(ctx context.Context) ([]*ToolFunc, error) {
+func (r *McpClientHelper) ListTools(ctx context.Context) ([]*api.ToolFunc, error) {
 	clientSession := &McpClientSession{
 		baseUrl: r.ProxyUrl,
 		cfg:     r.ServerConfig,
@@ -243,8 +244,8 @@ func NewMcpServerTool(serverUrl string) *McpServerTool {
 }
 
 // ListTools retrieves the list of tools from the MCP server keyed by the server name.
-func (r *McpServerTool) ListTools() (map[string][]*ToolFunc, error) {
-	var kits = map[string][]*ToolFunc{}
+func (r *McpServerTool) ListTools() (map[string][]*api.ToolFunc, error) {
+	var kits = map[string][]*api.ToolFunc{}
 	ctx := context.Background()
 
 	if r.Config.ServerUrl != "" {
@@ -261,7 +262,7 @@ func (r *McpServerTool) ListTools() (map[string][]*ToolFunc, error) {
 			if ok {
 				kits[kit] = append(funcs, v)
 			} else {
-				kits[kit] = []*ToolFunc{v}
+				kits[kit] = []*api.ToolFunc{v}
 			}
 		}
 		return kits, nil
@@ -269,7 +270,7 @@ func (r *McpServerTool) ListTools() (map[string][]*ToolFunc, error) {
 	return kits, nil
 }
 
-func (r *McpServerTool) GetTools(server string) ([]*ToolFunc, error) {
+func (r *McpServerTool) GetTools(server string) ([]*api.ToolFunc, error) {
 	tools, err := r.ListTools()
 	if err != nil {
 		return nil, err
@@ -294,7 +295,7 @@ func (r *McpServerTool) CallTool(ctx context.Context, tool string, args map[stri
 	return client.CallTool(ctx, tool, args)
 }
 
-func callMcpTool(ctx context.Context, vars *Vars, name string, args map[string]any) (string, error) {
+func callMcpTool(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	log.Debugf("🎖️ calling MCP tool: %s with args: %+v\n", name, args)
 
 	v, ok := vars.ToolRegistry[name]

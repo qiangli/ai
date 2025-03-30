@@ -64,7 +64,7 @@ const (
 	StateInputWait
 )
 
-type Request struct {
+type LLMRequest struct {
 	Agent string
 
 	ModelType ModelType
@@ -127,7 +127,7 @@ func (r *ToolFunc) ID() string {
 	return fmt.Sprintf("%s__%s", r.Kit, r.Name)
 }
 
-type Response struct {
+type LLMResponse struct {
 	ContentType string
 	Content     string
 

@@ -11,7 +11,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/qiangli/ai/internal/api"
+	"github.com/qiangli/ai/api"
 )
 
 const StdinRedirect = "-"
@@ -35,7 +35,7 @@ const (
 var Version = "0.0.1" // version of the ai binary
 
 // return the agent/command and the rest of the args
-func parseArgs(app *AppConfig, args []string) []string {
+func parseArgs(app *api.AppConfig, args []string) []string {
 	agent := viper.GetString("agent")
 	if agent == "" {
 		agent = "ask"
@@ -69,7 +69,7 @@ func parseArgs(app *AppConfig, args []string) []string {
 //	at the end of the args or as a suffix to the last arg
 //	in any order
 //	multiple instances
-func parseSpecialChars(app *AppConfig, args []string) []string {
+func parseSpecialChars(app *api.AppConfig, args []string) []string {
 	// special char sequence handling
 	var stdin = viper.GetBool("stdin")
 	var pbRead = viper.GetBool("pb_read")
@@ -145,12 +145,6 @@ var FormatFlag string
 var OutputFlag string
 var TemplateFile string
 
-type DBConfig = api.DBCred
-type LLMConfig = api.LLMConfig
-
-type GitConfig struct {
-}
-
 //go:embed ai.yaml
 var configFileContent string
 
@@ -163,77 +157,6 @@ func GetDefaultConfig() string {
 var DryRun bool
 var DryRunContent string
 
-type AppConfig struct {
-	Version string
-
-	ConfigFile string
-
-	LLM *LLMConfig
-
-	Git *GitConfig
-	Db  *DBConfig
-
-	Role   string
-	Prompt string
-
-	Agent   string
-	Command string
-	Args    []string
-
-	// --message takes precedence over all other forms of input
-	Message string
-
-	Editor string
-
-	Clipin   bool
-	ClipWait bool
-
-	Clipout    bool
-	ClipAppend bool
-
-	IsPiped bool
-	Stdin   bool
-
-	Files []string
-
-	// MCP server url
-	McpServerUrl string
-
-	// Output format: raw or markdown
-	Format string
-
-	// Save output to file
-	Output string
-
-	Me string
-
-	//
-	Template string
-
-	Log      string
-	Debug    bool
-	Quiet    bool
-	Internal bool
-
-	//
-	Workspace string
-	Repo      string
-	Home      string
-	Temp      string
-
-	Interactive bool
-	Watch       bool
-
-	// MetaPrompt  bool
-
-	MaxTime  int
-	MaxTurns int
-
-	//
-	Stdout string
-	Stderr string
-}
-
 func getCurrentUser() string {
 	currentUser, err := user.Current()
 	if err != nil {
@@ -242,9 +165,9 @@ func getCurrentUser() string {
 	return strings.ToUpper(currentUser.Username)
 }
 
-func ParseConfig(args []string) (*AppConfig, error) {
-	var lc = &LLMConfig{}
-	var app = &AppConfig{}
+func ParseConfig(args []string) (*api.AppConfig, error) {
+	var lc = &api.LLMConfig{}
+	var app = &api.AppConfig{}
 
 	app.LLM = lc
 	app.Version = Version
@@ -365,7 +288,7 @@ func ParseConfig(args []string) (*AppConfig, error) {
 	app.Args = newArgs
 
 	// sql db
-	dbCfg := &DBConfig{}
+	dbCfg := &api.DBCred{}
 	dbCfg.Host = viper.GetString("sql.db_host")
 	dbCfg.Port = viper.GetString("sql.db_port")
 	dbCfg.Username = viper.GetString("sql.db_username")
@@ -373,22 +296,10 @@ func ParseConfig(args []string) (*AppConfig, error) {
 	dbCfg.DBName = viper.GetString("sql.db_name")
 	app.Db = dbCfg
 	//
-	gitConfig := &GitConfig{}
+	gitConfig := &api.GitConfig{}
 	app.Git = gitConfig
 
 	return app, nil
-}
-
-func (r *AppConfig) IsStdin() bool {
-	return r.Stdin || r.IsPiped
-}
-
-func (r *AppConfig) IsSpecial() bool {
-	return r.IsStdin() || r.Clipin
-}
-
-func (r *AppConfig) HasInput() bool {
-	return r.Message != "" || len(r.Files) > 0 || len(r.Args) > 0
 }
 
 // default to current working dir if workspace is not provided

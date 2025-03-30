@@ -3,12 +3,12 @@ package agent
 import (
 	"testing"
 
-	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/swarm"
 )
 
 func TestCreateAgent(t *testing.T) {
-	var cfg = &internal.AppConfig{}
+	var cfg = &api.AppConfig{}
 
 	initAgents(cfg)
 	sw, err := swarm.NewSwarm(cfg)
@@ -23,7 +23,7 @@ func TestCreateAgent(t *testing.T) {
 	sw.EntrypointMap = entrypointMap
 
 	var name = "script"
-	var input = &swarm.UserInput{}
+	var input = &api.UserInput{}
 
 	agent, err := sw.Create(name, "/", input)
 	if err != nil {

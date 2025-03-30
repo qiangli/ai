@@ -7,8 +7,8 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/api"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
 )
@@ -35,7 +35,7 @@ func (e *Editor) Launch() (string, error) {
 	return LaunchEditor(e.editor)
 }
 
-func GetUserInput(cfg *internal.AppConfig) (*api.UserInput, error) {
+func GetUserInput(cfg *api.AppConfig) (*api.UserInput, error) {
 	if cfg.Message != "" {
 		return &api.UserInput{
 			Message:  cfg.Message,
@@ -64,7 +64,7 @@ func GetUserInput(cfg *internal.AppConfig) (*api.UserInput, error) {
 }
 
 func userInput(
-	cfg *internal.AppConfig,
+	cfg *api.AppConfig,
 	stdin io.Reader,
 	clipboard ClipboardProvider,
 	editor EditorProvider,
@@ -177,7 +177,7 @@ func LaunchEditor(editor string) (string, error) {
 }
 
 // PrintInput prints the user message or intent only
-func PrintInput(cfg *internal.AppConfig, input *api.UserInput) {
+func PrintInput(cfg *api.AppConfig, input *api.UserInput) {
 	if input == nil {
 		return
 	}
