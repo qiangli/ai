@@ -11,7 +11,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/qiangli/ai/api"
+	"github.com/qiangli/ai/swarm/api"
 )
 
 const StdinRedirect = "-"

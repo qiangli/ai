@@ -12,11 +12,11 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/internal/swarm"
-	"github.com/qiangli/ai/internal/swarm/agent"
+	"github.com/qiangli/ai/swarm"
+	"github.com/qiangli/ai/swarm/agent"
+	"github.com/qiangli/ai/swarm/api"
 )
 
 type ServerConfig struct {

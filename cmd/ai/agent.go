@@ -10,12 +10,12 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/swarm/api"
 
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/internal/swarm/agent"
 	"github.com/qiangli/ai/internal/watch"
+	"github.com/qiangli/ai/swarm/agent"
 )
 
 var AgentCmd = &cobra.Command{

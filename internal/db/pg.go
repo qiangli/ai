@@ -8,7 +8,7 @@ import (
 
 	_ "github.com/lib/pq"
 
-	"github.com/qiangli/ai/api"
+	"github.com/qiangli/ai/swarm/api"
 )
 
 type Queryable interface {

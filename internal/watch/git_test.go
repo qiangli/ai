@@ -3,7 +3,7 @@ package watch
 import (
 	"testing"
 
-	"github.com/qiangli/ai/api"
+	"github.com/qiangli/ai/swarm/api"
 )
 
 func TestWatchRepo(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/qiangli/ai/api"
+	"github.com/qiangli/ai/swarm/api"
 )
 
 func GetDBInfo(cfg *api.DBCred) (map[string]string, error) {

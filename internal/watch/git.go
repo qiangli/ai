@@ -7,9 +7,9 @@ import (
 
 	git "github.com/go-git/go-git/v5"
 
-	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/internal/swarm/agent"
+	"github.com/qiangli/ai/swarm/agent"
+	"github.com/qiangli/ai/swarm/api"
 )
 
 func WatchRepo(cfg *api.AppConfig) error {

@@ -12,8 +12,8 @@ import (
 	"github.com/creack/pty"
 	"golang.org/x/term"
 
-	"github.com/qiangli/ai/api"
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/swarm/api"
 )
 
 func Bash(cfg *api.AppConfig) error {

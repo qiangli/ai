@@ -3,7 +3,7 @@ package util
 import (
 	"encoding/json"
 
-	"github.com/qiangli/ai/api"
+	"github.com/qiangli/ai/swarm/api"
 )
 
 func FormatContent(format string, out *api.Output) (string, error) {
