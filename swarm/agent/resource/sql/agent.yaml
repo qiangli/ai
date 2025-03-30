@@ -1,16 +1,15 @@
 ###
-user:
-  name: "me"
-  display: "👤 User"
+# user:
+#   name: "me"
+#   display: "👤 User"
 
-maxTurns: 32
-maxTime: 3600
+# maxTurns: 32
+# maxTime: 3600
 
 agents:
   - name: "sql"
     display: "📊 SQL"
     description: "Streamline SQL query generation, helping users derive insights without SQL expertise."
-    overview: "This SQL agent streamlines query generation, enabling users to derive insights from databases by asking questions without requiring SQL expertise. It integrates with databases like PostgreSQL, ensuring security and efficiency through privacy and improved accuracy with continuous training. Designed for both enthusiasts and professionals, the tool assists in writing, modifying, and optimizing SQL queries, offering guidance on a wide range of tasks from schema management to complex query execution. By simplifying SQL interactions, it accelerates query development, aids debugging, and boosts productivity, serving both beginners and expert database administrators alike."
     model: L1
     instruction:
       content: "resource:sql_system_role"

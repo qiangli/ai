@@ -3,94 +3,123 @@ package swarm
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
-	"dario.cat/mergo"
-	"gopkg.in/yaml.v3"
-
-	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
+	"github.com/qiangli/ai/swarm/agent/resource"
 	"github.com/qiangli/ai/swarm/api"
 )
 
 type Swarm struct {
-	AppConfig *api.AppConfig
+	// AppConfig *api.AppConfig
 
-	Ctx context.Context
-
-	History []*api.Message
-	Vars    *api.Vars
-	Stream  bool
+	// History []*api.Message
+	Vars *api.Vars
+	// Stream  bool
 
 	//
-	Config *api.AgentsConfig
+	// Config *api.AgentsConfig
 
 	//
-	DryRun        bool
-	DryRunContent string
+	// DryRun        bool
+	// DryRunContent string
 
 	// map of agent name to the agent configuration data.
-	AgentConfigMap map[string][][]byte
+	// AgentConfigMap map[string][][]byte
 
-	ResourceMap     map[string]string
-	AdviceMap       map[string]api.Advice
-	EntrypointMap   map[string]api.Entrypoint
-	TemplateFuncMap api.TemplateFuncMap
+	// ResourceMap     map[string]string
+	// AdviceMap       map[string]api.Advice
+	// EntrypointMap   map[string]api.Entrypoint
+	// TemplateFuncMap api.TemplateFuncMap
 }
 
-func NewSwarm(app *api.AppConfig) (*Swarm, error) {
-	sw := &Swarm{
-		AppConfig: app,
-		History:   []*api.Message{},
-		Stream:    true,
+func New(vars *api.Vars) *Swarm {
+	return &Swarm{
+		Vars: vars,
 	}
-
-	vars, err := InitVars(app)
-	if err != nil {
-		return nil, err
-	}
-	sw.Vars = vars
-
-	return sw, nil
 }
 
-// loadAgentsConfig loads the agent configuration from the provided YAML data.
-func loadAgentsConfig(data [][]byte) (*api.AgentsConfig, error) {
-	merged := &api.AgentsConfig{}
+// func NewSwarm(app *api.AppConfig) (*Swarm, error) {
+// 	sw := &Swarm{
+// 		AppConfig: app,
+// 		History:   []*api.Message{},
+// 		Stream:    true,
+// 	}
 
-	for _, v := range data {
-		cfg := &api.AgentsConfig{}
-		if err := yaml.Unmarshal(v, cfg); err != nil {
-			return nil, err
+// 	vars, err := InitVars(app)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	sw.Vars = vars
+
+// 	return sw, nil
+// }
+
+// func NewSwarm(vars *api.Vars) *Swarm {
+// 	sw := &Swarm{
+// 		Vars: vars,
+// 		// AppConfig: app,
+// 		// History:   []*api.Message{},
+// 		// Stream:    true,
+// 	}
+
+// 	// vars, err := InitVars(app)
+// 	// if err != nil {
+// 	// 	return nil, err
+// 	// }
+// 	// sw.Vars = vars
+
+// 	return sw
+// }
+
+var agentConfigMap = map[string][][]byte{}
+var agentToolMap = map[string]*api.ToolFunc{}
+
+func initToolAgents(app *api.AppConfig) error {
+	resourceMap := resource.AgentCommandMap
+	for k, v := range resourceMap {
+		agentConfigMap[k] = [][]byte{resource.CommonData, v.Data}
+	}
+
+	// skip internal as tool - e.g launch
+	for _, v := range resourceMap {
+		if !app.Internal && v.Internal {
+			continue
+		}
+		parts := strings.SplitN(v.Name, "/", 2)
+		var service = parts[0]
+		var toolName string
+		if len(parts) == 2 {
+			toolName = parts[1]
 		}
 
-		if err := mergo.Merge(merged, cfg, mergo.WithAppendSlice); err != nil {
-			return nil, err
+		fn := &api.ToolFunc{
+			Type:        ToolTypeAgent,
+			Kit:         service,
+			Name:        toolName,
+			Description: v.Description,
 		}
+		agentToolMap[fn.ID()] = fn
 	}
-	return merged, nil
-}
-
-func (r *Swarm) loadAgentsConfig(data [][]byte) error {
-	merged, err := loadAgentsConfig(data)
-	if err != nil {
-		return err
-	}
-	merged.ResourceMap = r.ResourceMap
-	merged.TemplateFuncMap = r.TemplateFuncMap
-
-	// TODO per agent?
-	merged.AdviceMap = r.AdviceMap
-	merged.EntrypointMap = r.EntrypointMap
-
-	r.Config = merged
-
 	return nil
 }
 
+// var resourceMap = resource.Prompts
+
 func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	vars := api.NewVars()
+
+	if err := initDefaultAgents(app); err != nil {
+		return nil, err
+	}
+	if err := initToolAgents(app); err != nil {
+		return nil, err
+	}
+	if err := initTools(app); err != nil {
+		return nil, err
+	}
 
 	//
 	vars.McpServerUrl = app.McpServerUrl
@@ -133,66 +162,87 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	modelMap[api.LImage] = api.ImageModel(app.LLM)
 	vars.Models = modelMap
 
+	//
+	// vars.AgentConfigMap = agentConfigMap
+
+	vars.ResourceMap = resource.Prompts
+	vars.TemplateFuncMap = tplFuncMap
+	vars.AdviceMap = adviceMap
+	vars.EntrypointMap = entrypointMap
+	//
+	vars.FuncRegistry = funcRegistry
+
+	//
+	toolMap := make(map[string]*api.ToolFunc)
+	tools, err := listTools(app)
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range tools {
+		toolMap[v.ID()] = v
+	}
+	vars.ToolRegistry = toolMap
+
 	return vars, nil
 }
 
-func (r *Swarm) Load(name string, input *api.UserInput) error {
-	if r.Config != nil && len(r.Config.Agents) > 0 {
-		for _, a := range r.Config.Agents {
-			if a.Name == name {
-				return nil
-			}
-		}
-	}
+// func (r *Swarm) Load(name string, input *api.UserInput) error {
+// 	if r.Config != nil && len(r.Config.Agents) > 0 {
+// 		for _, a := range r.Config.Agents {
+// 			if a.Name == name {
+// 				return nil
+// 			}
+// 		}
+// 	}
 
-	data, ok := r.AgentConfigMap[name]
-	if !ok {
-		return internal.NewUserInputError("not supported yet: " + name)
-	}
-	err := r.loadAgentsConfig(data)
-	if err != nil {
-		return err
-	}
+// 	data, ok := r.AgentConfigMap[name]
+// 	if !ok {
+// 		return internal.NewUserInputError("not supported yet: " + name)
+// 	}
+// 	err := loadAgentsConfig(data)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	// override
-	app := r.AppConfig
-	config := r.Config
+// 	// override
+// 	app := r.AppConfig
+// 	config := r.Config
 
-	var modelMap = make(map[api.Level]*api.Model)
-	for _, m := range config.Models {
-		if m.External {
-			switch m.Name {
-			case "L1":
-				modelMap[api.L1] = api.Level1(app.LLM)
-			case "L2":
-				modelMap[api.L2] = api.Level2(app.LLM)
-			case "L3":
-				modelMap[api.L3] = api.Level3(app.LLM)
-			case "Image":
-				modelMap[api.LImage] = api.ImageModel(app.LLM)
-			}
-		} else {
-			l := toModelLevel(m.Name)
-			modelMap[l] = &api.Model{
-				Type:    api.ModelType(m.Type),
-				Name:    m.Model,
-				BaseUrl: m.BaseUrl,
-				ApiKey:  m.ApiKey,
-			}
-		}
-	}
-	r.Vars.Models = modelMap
+// 	var modelMap = make(map[api.Level]*api.Model)
+// 	for _, m := range config.Models {
+// 		if m.External {
+// 			switch m.Name {
+// 			case "L1":
+// 				modelMap[api.L1] = api.Level1(app.LLM)
+// 			case "L2":
+// 				modelMap[api.L2] = api.Level2(app.LLM)
+// 			case "L3":
+// 				modelMap[api.L3] = api.Level3(app.LLM)
+// 			case "Image":
+// 				modelMap[api.LImage] = api.ImageModel(app.LLM)
+// 			}
+// 		} else {
+// 			l := toModelLevel(m.Name)
+// 			modelMap[l] = &api.Model{
+// 				Type:    api.ModelType(m.Type),
+// 				Name:    m.Model,
+// 				BaseUrl: m.BaseUrl,
+// 				ApiKey:  m.ApiKey,
+// 			}
+// 		}
+// 	}
+// 	r.Vars.Models = modelMap
 
-	return nil
-}
+// 	return nil
+// }
 
 func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	for {
-		agent, err := r.Create(req.Agent, req.Command, req.RawInput)
+		agent, err := CreateAgent(r.Vars, req.Agent, req.Command, req.RawInput)
 		if err != nil {
 			return err
 		}
-		agent.sw = r
+		// agent.sw = r
 
 		if agent.Entrypoint != nil {
 			if err := agent.Entrypoint(r.Vars, &api.Agent{
@@ -206,7 +256,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		timeout := TimeoutHandler(agent, time.Duration(agent.MaxTime)*time.Second, "timed out")
 		maxlog := MaxLogHandler(500)
 
-		chain := New(maxlog).Then(timeout)
+		chain := NewChain(maxlog).Then(timeout)
 
 		if err := chain.Serve(req, resp); err != nil {
 			return err

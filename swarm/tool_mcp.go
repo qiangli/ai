@@ -16,9 +16,9 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-func ListMcpTools(serverUrl string) (map[string][]*api.ToolFunc, error) {
-	tools := NewMcpServerTool(serverUrl)
-	return tools.ListTools()
+func listMcpTools(serverUrl string) (map[string][]*api.ToolFunc, error) {
+	mcpTools := NewMcpServerTool(serverUrl)
+	return mcpTools.ListTools()
 }
 
 type McpConfig struct {

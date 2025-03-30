@@ -67,7 +67,7 @@ type Chain struct {
 // memorizing the given list of middleware constructors.
 // New serves no other function,
 // constructors are only called upon a call to Then().
-func New(constructors ...Constructor) Chain {
+func NewChain(constructors ...Constructor) Chain {
 	return Chain{append(([]Constructor)(nil), constructors...)}
 }
 

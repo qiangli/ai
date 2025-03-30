@@ -94,7 +94,7 @@ func TestCallDevTools(t *testing.T) {
 	}
 
 	cfg := &api.AppConfig{}
-	InitTools(cfg)
+	initTools(cfg)
 
 	ctx := context.Background()
 	vars, _ := InitVars(cfg)

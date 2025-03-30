@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
 	"sort"
 	"strings"
 	"text/template"
@@ -9,7 +12,11 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/swarm/agent"
+	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/util"
+	"github.com/qiangli/ai/swarm"
+	"github.com/qiangli/ai/swarm/agent/resource"
+	"github.com/qiangli/ai/swarm/api"
 )
 
 const rootUsageTemplate = `AI Command Line Tool
@@ -148,17 +155,17 @@ func Help(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		agent.InitApp(cfg)
+		// agent.InitApp(cfg)
 		for _, v := range args {
 			switch v {
 			case "agents", "agent":
-				return agent.HelpAgents(cfg)
+				return HelpAgents(cfg)
 			case "commands", "command":
-				return agent.HelpCommands(cfg)
+				return HelpCommands(cfg)
 			case "tools", "tool":
-				return agent.HelpTools(cfg)
+				return HelpTools(cfg)
 			case "info":
-				return agent.HelpInfo(cfg)
+				return HelpInfo(cfg)
 			}
 		}
 	}
@@ -182,5 +189,149 @@ func Help(cmd *cobra.Command, args []string) error {
 	if err := tpl.Execute(cmd.OutOrStdout(), data); err != nil {
 		return nil
 	}
+	return nil
+}
+
+func HelpInfo(cfg *api.AppConfig) error {
+	const format = `System info:
+
+%v
+
+LLM:
+
+Default Model: %s
+Base URL: %s
+API Key: %s
+
+AI default configuration:
+
+%v
+
+AI Environment:
+
+%v
+`
+	info, err := collectSystemInfo()
+	if err != nil {
+		return err
+	}
+
+	jc, err := json.MarshalIndent(cfg, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	// Get the current environment variables
+	envs := os.Environ()
+	var filteredEnvs []string
+	for _, v := range envs {
+		if strings.HasPrefix(v, "AI_") {
+			filteredEnvs = append(filteredEnvs, v)
+		}
+	}
+	sort.Strings(filteredEnvs)
+
+	log.Infof(format, info, cfg.LLM.Model, cfg.LLM.BaseUrl, cfg.LLM.ApiKey, string(jc), strings.Join(filteredEnvs, "\n"))
+	return nil
+}
+
+// func Setup(cfg *api.AppConfig) error {
+// 	if err := setupConfig(cfg); err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
+
+func HelpAgents(cfg *api.AppConfig) error {
+	const format = `Available agents:
+
+%s
+Total: %v
+
+Usage:
+
+ai @agent message...
+
+Not sure which agent to use? Simply enter your message and AI will choose the most appropriate one for you.
+`
+	dict := resource.AgentCommandMap
+	var keys []string
+	for k := range dict {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var buf strings.Builder
+	for _, k := range keys {
+		buf.WriteString(k)
+		buf.WriteString(":\t")
+		buf.WriteString(dict[k].Description)
+		buf.WriteString("\n")
+	}
+	log.Infof(format, buf.String(), len(keys))
+
+	return nil
+}
+
+func HelpCommands(cfg *api.AppConfig) error {
+	list := util.ListCommands()
+
+	const listTpl = `Available commands on the system:
+
+%s
+
+Total: %v
+
+Usage:
+
+ai /command message...
+
+/ is shorthand for  @script/
+`
+	commands := make([]string, len(list))
+	for i, v := range list {
+		commands[i] = fmt.Sprintf("%s: %s", v[0], strings.TrimSpace(v[1]))
+	}
+	sort.Strings(commands)
+	log.Infof(listTpl, strings.Join(commands, "\n"), len(commands))
+	return nil
+}
+
+func collectSystemInfo() (string, error) {
+	info, err := util.CollectSystemInfo()
+	if err != nil {
+		return "", err
+	}
+	jd, err := json.MarshalIndent(info, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	return string(jd), nil
+}
+
+func HelpTools(cfg *api.AppConfig) error {
+
+	const listTpl = `Available tools:
+
+%s
+Total: %v
+
+Tools are used by agents to perform specific tasks. They are automatically selected based on the agent's capabilities and your input message.
+`
+	list := []string{}
+
+	vars, err := swarm.InitVars(cfg)
+	if err != nil {
+		return err
+	}
+	tools := vars.ListTools()
+
+	for _, v := range tools {
+		list = append(list, fmt.Sprintf("%s: %s: %s\n", v.Type, v.ID(), strings.TrimSpace(v.Description)))
+	}
+
+	sort.Strings(list)
+
+	log.Infof(listTpl, strings.Join(list, "\n"), len(list))
 	return nil
 }

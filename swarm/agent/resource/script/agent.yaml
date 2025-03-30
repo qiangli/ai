@@ -1,16 +1,15 @@
 ###
-user:
-  name: "me"
-  display: "👤 User"
+# user:
+#   name: "me"
+#   display: "👤 User"
 
-maxTurns: 32
-maxTime: 3600
+# maxTurns: 32
+# maxTime: 3600
 
 agents:
   - name: "script"
     display: "🖥️ Script"
     description: "Assist with scripting, command execution, and troubleshooting shell tasks."
-    overview: "The Script agent is a versatile tool that assists users in executing system commands, creating shell scripts, and troubleshooting various scripting tasks. By providing guidance on command syntax, script structure, and error handling, it simplifies the process of writing and executing scripts. Whether you are a novice or an experienced script writer, this agent offers valuable support in automating tasks, managing system configurations, and troubleshooting common scripting issues. It serves as a reliable companion for script development and execution, enhancing productivity and efficiency in system administration and automation."
     model: L2
     instruction:
       content: "resource:script_system_role"

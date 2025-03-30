@@ -58,7 +58,10 @@ func TestEvaluateCommand(t *testing.T) {
 	// }
 	// vars.FS = fs
 
-	tools := ListTools()
+	tools, err := listTools(&api.AppConfig{})
+	if err != nil {
+		t.Errorf("list tools: %v", err)
+	}
 	var toolMap = make(map[string]*api.ToolFunc)
 	for _, tool := range tools {
 		toolMap[tool.ID()] = tool

@@ -2,52 +2,49 @@ package agent
 
 import (
 	_ "embed"
-	"strings"
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm"
-	"github.com/qiangli/ai/swarm/agent/resource"
 	"github.com/qiangli/ai/swarm/api"
 )
 
-var agentConfigMap = map[string][][]byte{}
-var agentToolMap = map[string]*api.ToolFunc{}
+// var agentConfigMap = map[string][][]byte{}
+// var agentToolMap = map[string]*api.ToolFunc{}
 
-func initAgents(app *api.AppConfig) {
-	resourceMap := resource.AgentCommandMap
-	for k, v := range resourceMap {
-		agentConfigMap[k] = [][]byte{resource.CommonData, v.Data}
-	}
+// func initAgents(app *api.AppConfig) {
+// 	resourceMap := resource.AgentCommandMap
+// 	for k, v := range resourceMap {
+// 		agentConfigMap[k] = [][]byte{resource.CommonData, v.Data}
+// 	}
 
-	// skip internal as tool - e.g launch
-	for _, v := range resourceMap {
-		if !app.Internal && v.Internal {
-			continue
-		}
-		parts := strings.SplitN(v.Name, "/", 2)
-		var service = parts[0]
-		var toolName string
-		if len(parts) == 2 {
-			toolName = parts[1]
-		}
+// 	// skip internal as tool - e.g launch
+// 	for _, v := range resourceMap {
+// 		if !app.Internal && v.Internal {
+// 			continue
+// 		}
+// 		parts := strings.SplitN(v.Name, "/", 2)
+// 		var service = parts[0]
+// 		var toolName string
+// 		if len(parts) == 2 {
+// 			toolName = parts[1]
+// 		}
 
-		fn := &api.ToolFunc{
-			Type:        swarm.ToolTypeAgent,
-			Kit:         service,
-			Name:        toolName,
-			Description: v.Description,
-		}
-		agentToolMap[fn.ID()] = fn
-	}
-}
+// 		fn := &api.ToolFunc{
+// 			Type:        swarm.ToolTypeAgent,
+// 			Kit:         service,
+// 			Name:        toolName,
+// 			Description: v.Description,
+// 		}
+// 		agentToolMap[fn.ID()] = fn
+// 	}
+// }
 
-var resourceMap = resource.Prompts
+// // var resourceMap = resource.Prompts
 
-// init agents/tools
-func InitApp(app *api.AppConfig) {
-	initAgents(app)
-	swarm.InitTools(app)
-}
+// // // init agents/tools
+// // func InitApp(app *api.AppConfig) {
+// // 	initAgents(app)
+// // }
 
 func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	name := input.Agent
@@ -55,31 +52,34 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	log.Debugf("Running agent %q %s with swarm\n", name, command)
 
 	//
-	InitApp(cfg)
+	// InitApp(cfg)
 
-	sw, err := swarm.NewSwarm(cfg)
+	// sw, err := swarm.NewSwarm(cfg)
+	vars, err := swarm.InitVars(cfg)
 	if err != nil {
 		return err
 	}
 
-	sw.AgentConfigMap = agentConfigMap
-	sw.ResourceMap = resourceMap
-	sw.TemplateFuncMap = tplFuncMap
-	sw.AdviceMap = adviceMap
-	sw.EntrypointMap = entrypointMap
+	// vars.AgentConfigMap = agentConfigMap
 
+	// vars.ResourceMap = resource.Prompts
+
+	// vars.TemplateFuncMap = tplFuncMap
+	// vars.AdviceMap = adviceMap
+	// vars.EntrypointMap = entrypointMap
 	//
-	sw.Vars.FuncRegistry = funcRegistry
-	//
-	toolMap := make(map[string]*api.ToolFunc)
-	tools, err := listTools(cfg.McpServerUrl)
-	if err != nil {
-		return err
-	}
-	for _, v := range tools {
-		toolMap[v.ID()] = v
-	}
-	sw.Vars.ToolRegistry = toolMap
+	// vars.FuncRegistry = funcRegistry
+
+	// //
+	// toolMap := make(map[string]*api.ToolFunc)
+	// tools, err := listTools(cfg.McpServerUrl)
+	// if err != nil {
+	// 	return err
+	// }
+	// for _, v := range tools {
+	// 	toolMap[v.ID()] = v
+	// }
+	// vars.ToolRegistry = toolMap
 
 	showInput(cfg, input)
 
@@ -90,6 +90,7 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	}
 	resp := &api.Response{}
 
+	sw := swarm.New(vars)
 	if err := sw.Run(req, resp); err != nil {
 		return err
 	}
@@ -136,66 +137,66 @@ func processOutput(cfg *api.AppConfig, message *api.Output) {
 	}
 }
 
-func ListAgentTools() ([]*api.ToolFunc, error) {
-	tools := make([]*api.ToolFunc, 0)
-	for _, v := range agentToolMap {
-		v.Type = "agent"
-		tools = append(tools, v)
-	}
-	return tools, nil
-}
+// func ListAgentTools() ([]*api.ToolFunc, error) {
+// 	tools := make([]*api.ToolFunc, 0)
+// 	// for _, v := range agentToolMap {
+// 	// 	v.Type = "agent"
+// 	// 	tools = append(tools, v)
+// 	// }
+// 	return tools, nil
+// }
 
-// ListTools returns a list of all available tools, including agent, mcp, system, and function tools.
-// This is for CLI
-func listTools(mcpServerUrl string) ([]*api.ToolFunc, error) {
-	list := []*api.ToolFunc{}
+// // ListTools returns a list of all available tools, including agent, mcp, system, and function tools.
+// // This is for CLI
+// func listTools(mcpServerUrl string) ([]*api.ToolFunc, error) {
+// 	list := []*api.ToolFunc{}
 
-	// agent tools
-	agentTools, err := ListAgentTools()
-	if err != nil {
-		return nil, err
-	}
-	list = append(list, agentTools...)
+// 	// agent tools
+// 	agentTools, err := ListAgentTools()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	list = append(list, agentTools...)
 
-	// mcp tools
-	mcpTools, err := swarm.ListMcpTools(mcpServerUrl)
-	if err != nil {
-		return nil, err
-	}
-	for _, v := range mcpTools {
-		list = append(list, v...)
-	}
+// 	// mcp tools
+// 	mcpTools, err := swarm.ListMcpTools(mcpServerUrl)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	for _, v := range mcpTools {
+// 		list = append(list, v...)
+// 	}
 
-	// system and misc tools
-	sysTools := swarm.ListTools()
-	list = append(list, sysTools...)
+// 	// system and misc tools
+// 	sysTools := swarm.ListTools()
+// 	list = append(list, sysTools...)
 
-	// function tools
-	funcTools, err := ListFuncTools()
-	if err != nil {
-		return nil, err
-	}
-	list = append(list, funcTools...)
+// 	// function tools
+// 	funcTools, err := ListFuncTools()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	list = append(list, funcTools...)
 
-	return list, nil
-}
+// 	return list, nil
+// }
 
-// ListTools returns a list of all available tools for exporting (mcp and system tools).
-func ListServiceTools(mcpServerUrl string) ([]*api.ToolFunc, error) {
-	list := []*api.ToolFunc{}
+// // ListTools returns a list of all available tools for exporting (mcp and system tools).
+// func ListServiceTools(mcpServerUrl string) ([]*api.ToolFunc, error) {
+// 	list := []*api.ToolFunc{}
 
-	// mcp tools
-	mcpTools, err := swarm.ListMcpTools(mcpServerUrl)
-	if err != nil {
-		return nil, err
-	}
-	for _, v := range mcpTools {
-		list = append(list, v...)
-	}
+// 	// mcp tools
+// 	mcpTools, err := swarm.ListMcpTools(mcpServerUrl)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	for _, v := range mcpTools {
+// 		list = append(list, v...)
+// 	}
 
-	// system and misc tools
-	sysTools := swarm.ListTools()
-	list = append(list, sysTools...)
+// 	// system and misc tools
+// 	sysTools := swarm.ListTools()
+// 	list = append(list, sysTools...)
 
-	return list, nil
-}
+// 	return list, nil
+// }

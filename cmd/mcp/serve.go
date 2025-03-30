@@ -15,7 +15,6 @@ import (
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm"
-	"github.com/qiangli/ai/swarm/agent"
 	"github.com/qiangli/ai/swarm/api"
 )
 
@@ -62,11 +61,13 @@ func RunServe(args []string) error {
 
 	log.Debugf("config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.Db)
 
-	//
-	toolsMap, err := agent.ListServiceTools(mcpServerUrl)
+	// TODO: Handle the cases local vs mcp
+	// toolsMap, err := agent.ListServiceTools(mcpServerUrl)
+	vars, err := swarm.InitVars(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to list tools: %v", err)
 	}
+	toolsMap := vars.ListTools()
 
 	mcpServer = server.NewMCPServer(
 		"Stargate",
@@ -76,14 +77,14 @@ func RunServe(args []string) error {
 		server.WithLogging(),
 	)
 
-	// Add tools
-	var app = &api.AppConfig{}
-	vars, err := swarm.InitVars(app)
-	if err != nil {
-		return fmt.Errorf("failed to initialize vars: %v", err)
-	}
-	vars.ToolRegistry = make(map[string]*api.ToolFunc)
-	vars.McpServerUrl = mcpServerUrl
+	// // Add tools
+	// var app = &api.AppConfig{}
+	// vars, err := swarm.InitVars(app)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to initialize vars: %v", err)
+	// }
+	// vars.ToolRegistry = make(map[string]*api.ToolFunc)
+	// vars.McpServerUrl = mcpServerUrl
 
 	for i, v := range toolsMap {
 		log.Debugf("tool [%v]: %s %v\n", i, v.ID(), v)

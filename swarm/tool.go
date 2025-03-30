@@ -30,19 +30,21 @@ var toolSystemCommands []string
 
 var systemTools []*api.ToolFunc
 
-func InitTools(app *api.AppConfig) {
+func initTools(app *api.AppConfig) error {
 	config, err := LoadDefaultToolConfig(app)
 	if err != nil {
 		log.Errorf("failed to load default tool config: %v", err)
-		return
+		return err
 	}
 
 	toolRegistry = make(map[string]*api.ToolFunc)
 	for _, v := range config.Tools {
+
 		log.Debugf("Kit: %s tool: %s - %s internal: %v", v.Kit, v.Name, v.Description, v.Internal)
 		if v.Internal && !app.Internal {
 			continue
 		}
+
 		tool := &api.ToolFunc{
 			Type:        v.Type,
 			Kit:         v.Kit,
@@ -68,9 +70,11 @@ func InitTools(app *api.AppConfig) {
 	for k := range commandMap {
 		toolSystemCommands = append(toolSystemCommands, k)
 	}
+
+	return nil
 }
 
-func ListTools() []*api.ToolFunc {
+func listDefaultTools() []*api.ToolFunc {
 	var tools []*api.ToolFunc
 	for _, v := range toolRegistry {
 		tools = append(tools, v)
@@ -78,34 +82,35 @@ func ListTools() []*api.ToolFunc {
 	return tools
 }
 
-type ToolConfig struct {
-	Kit string `yaml:"kit"`
+// type ToolConfig struct {
+// 	Kit string `yaml:"kit"`
 
-	Type        string         `yaml:"type"`
-	Name        string         `yaml:"name"`
-	Description string         `yaml:"description"`
-	Parameters  map[string]any `yaml:"parameters"`
+// 	Type        string         `yaml:"type"`
+// 	Name        string         `yaml:"name"`
+// 	Description string         `yaml:"description"`
+// 	Parameters  map[string]any `yaml:"parameters"`
 
-	Body string `yaml:"body"`
+// 	Body string `yaml:"body"`
 
-	Internal bool `yaml:"internal"`
-}
+// 	Internal bool `yaml:"internal"`
+// }
 
-type ToolsConfig struct {
-	Kit      string `yaml:"kit"`
-	Internal bool   `yaml:"internal"`
+// type ToolsConfig struct {
+// 	Kit      string `yaml:"kit"`
+// 	Internal bool   `yaml:"internal"`
 
-	// system commands used by tools
-	Commands []string `yaml:"commands"`
+// 	// system commands used by tools
+// 	Commands []string `yaml:"commands"`
 
-	Tools []*ToolConfig `yaml:"tools"`
-}
+// 	Tools []*ToolConfig `yaml:"tools"`
+// }
 
 //go:embed resource/tools/*.yaml
 var resourceTools embed.FS
 
-func LoadDefaultToolConfig(app *api.AppConfig) (*ToolsConfig, error) {
-	base := "resource/tools"
+func LoadDefaultToolConfig(app *api.AppConfig) (*api.ToolsConfig, error) {
+	const base = "resource/tools"
+
 	dirs, err := resourceTools.ReadDir(base)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read testdata directory: %v", err)
@@ -115,7 +120,7 @@ func LoadDefaultToolConfig(app *api.AppConfig) (*ToolsConfig, error) {
 		if dir.IsDir() {
 			continue
 		}
-		f, err := resourceTools.ReadFile(base + "/" + dir.Name())
+		f, err := resourceTools.ReadFile(filepath.Join(base, dir.Name()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to read tool file %s: %w", dir.Name(), err)
 		}
@@ -127,7 +132,7 @@ func LoadDefaultToolConfig(app *api.AppConfig) (*ToolsConfig, error) {
 	return LoadToolData(app, data)
 }
 
-func LoadToolConfig(app *api.AppConfig, base string) (*ToolsConfig, error) {
+func LoadToolConfig(app *api.AppConfig, base string) (*api.ToolsConfig, error) {
 	dirs, err := os.ReadDir(base)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read testdata directory: %v", err)
@@ -143,7 +148,7 @@ func LoadToolConfig(app *api.AppConfig, base string) (*ToolsConfig, error) {
 	return LoadToolFiles(app, files)
 }
 
-func LoadToolFiles(app *api.AppConfig, file []string) (*ToolsConfig, error) {
+func LoadToolFiles(app *api.AppConfig, file []string) (*api.ToolsConfig, error) {
 	var data [][]byte
 	for _, f := range file {
 		d, err := os.ReadFile(f)
@@ -158,16 +163,17 @@ func LoadToolFiles(app *api.AppConfig, file []string) (*ToolsConfig, error) {
 	return LoadToolData(app, data)
 }
 
-func LoadToolData(app *api.AppConfig, data [][]byte) (*ToolsConfig, error) {
-	merged := &ToolsConfig{}
+func LoadToolData(app *api.AppConfig, data [][]byte) (*api.ToolsConfig, error) {
+	merged := &api.ToolsConfig{}
 
 	for _, v := range data {
-		tc := &ToolsConfig{}
+		tc := &api.ToolsConfig{}
 		if err := yaml.Unmarshal(v, tc); err != nil {
 			return nil, err
 		}
 		// skip internal tools
 		if tc.Internal && !app.Internal {
+			log.Debugf("Skipping internal tools: %v", tc)
 			continue
 		}
 		// update kit if not set
@@ -183,7 +189,7 @@ func LoadToolData(app *api.AppConfig, data [][]byte) (*ToolsConfig, error) {
 	return merged, nil
 }
 
-func LoadTools(config ToolsConfig) (map[string]*api.ToolFunc, error) {
+func LoadTools(config api.ToolsConfig) (map[string]*api.ToolFunc, error) {
 	toolRegistry := make(map[string]*api.ToolFunc)
 	for _, toolConfig := range config.Tools {
 		tool := &api.ToolFunc{
@@ -277,3 +283,67 @@ func dispatchTool(ctx context.Context, vars *api.Vars, name string, args map[str
 
 	return nil, fmt.Errorf("no such tool: %s", v.ID())
 }
+
+func listAgentTools() ([]*api.ToolFunc, error) {
+	tools := make([]*api.ToolFunc, 0)
+	for _, v := range agentToolMap {
+		v.Type = "agent"
+		tools = append(tools, v)
+	}
+	return tools, nil
+}
+
+// listTools returns a list of all available tools, including agent, mcp, system, and function tools.
+// This is for CLI
+func listTools(app *api.AppConfig) ([]*api.ToolFunc, error) {
+	list := []*api.ToolFunc{}
+
+	// agent tools
+	agentTools, err := listAgentTools()
+	if err != nil {
+		return nil, err
+	}
+	list = append(list, agentTools...)
+
+	// mcp tools
+	mcpTools, err := listMcpTools(app.McpServerUrl)
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range mcpTools {
+		list = append(list, v...)
+	}
+
+	// system and misc tools
+	sysTools := listDefaultTools()
+	list = append(list, sysTools...)
+
+	// function tools
+	funcTools, err := ListFuncTools()
+	if err != nil {
+		return nil, err
+	}
+	list = append(list, funcTools...)
+
+	return list, nil
+}
+
+// // ListServiceTools returns a list of all available tools for exporting (mcp and system tools).
+// func ListServiceTools(mcpServerUrl string) ([]*api.ToolFunc, error) {
+// 	list := []*api.ToolFunc{}
+
+// 	// mcp tools
+// 	mcpTools, err := listMcpTools(mcpServerUrl)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	for _, v := range mcpTools {
+// 		list = append(list, v...)
+// 	}
+
+// 	// system and misc tools
+// 	sysTools := listDefaultTools()
+// 	list = append(list, sysTools...)
+
+// 	return list, nil
+// }

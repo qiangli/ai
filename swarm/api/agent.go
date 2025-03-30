@@ -6,13 +6,17 @@ import (
 
 type TemplateFuncMap = template.FuncMap
 
-type UserConfig struct {
-	Name    string `yaml:"name"`
-	Display string `yaml:"display"`
-}
+// type UserConfig struct {
+// 	Name    string `yaml:"name"`
+// 	Display string `yaml:"display"`
+// }
 
 type AgentsConfig struct {
-	User      UserConfig       `yaml:"user"`
+	// default agent name
+	Name string `yaml:"name"`
+
+	Internal bool `yaml:"internal"`
+
 	Agents    []AgentConfig    `yaml:"agents"`
 	Functions []FunctionConfig `yaml:"functions"`
 	Models    []ModelConfig    `yaml:"models"`
@@ -20,16 +24,19 @@ type AgentsConfig struct {
 	MaxTurns int `yaml:"maxTurns"`
 	MaxTime  int `yaml:"maxTime"`
 
-	ResourceMap     map[string]string     `yaml:"-"`
-	AdviceMap       map[string]Advice     `yaml:"-"`
-	EntrypointMap   map[string]Entrypoint `yaml:"-"`
-	TemplateFuncMap TemplateFuncMap       `yaml:"-"`
+	// //
+	// ResourceMap     map[string]string     `yaml:"-"`
+	// AdviceMap       map[string]Advice     `yaml:"-"`
+	// EntrypointMap   map[string]Entrypoint `yaml:"-"`
+	// TemplateFuncMap TemplateFuncMap       `yaml:"-"`
 }
 
 type AgentConfig struct {
 	Name        string `yaml:"name"`
 	Display     string `yaml:"display"`
 	Description string `yaml:"description"`
+
+	Internal bool `yaml:"internal"`
 
 	//
 	Instruction PromptConfig `yaml:"instruction"`

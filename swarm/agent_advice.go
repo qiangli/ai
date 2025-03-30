@@ -1,4 +1,4 @@
-package agent
+package swarm
 
 import (
 	"encoding/json"
@@ -98,7 +98,7 @@ func scriptUserInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ 
 	if !ok {
 		return fmt.Errorf("no such prompt: script_user_role")
 	}
-	content, err := applyTemplate(tpl, map[string]any{
+	content, err := applyDefaultTemplate(tpl, map[string]any{
 		"Command": cmd,
 		"Message": in.Query(),
 	})
@@ -129,7 +129,7 @@ func prUserInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ api.
 		"changelog":   "", // TODO: add changelog
 		"today":       time.Now().Format("2006-01-02"),
 	}
-	content, err := applyTemplate(tpl, data)
+	content, err := applyDefaultTemplate(tpl, data)
 	if err != nil {
 		return err
 	}
@@ -156,24 +156,24 @@ func prFormatAdvice(vars *api.Vars, req *api.Request, resp *api.Response, _ api.
 		if err := tryUnmarshal(resp, &data); err != nil {
 			return "", fmt.Errorf("error unmarshaling response: %w", err)
 		}
-		return applyTemplate(tpl, &data)
+		return applyDefaultTemplate(tpl, &data)
 	}
 	formatPrCodeSuggestion := func(resp string) (string, error) {
 		var data pr.PRCodeSuggestions
 		if err := tryUnmarshal(resp, &data); err != nil {
 			return "", fmt.Errorf("error unmarshaling response: %w", err)
 		}
-		return applyTemplate(tpl, data.CodeSuggestions)
+		return applyDefaultTemplate(tpl, data.CodeSuggestions)
 	}
 	formatPrReview := func(resp string) (string, error) {
 		var data pr.PRReview
 		if err := tryUnmarshal(resp, &data); err != nil {
 			return "", fmt.Errorf("error unmarshaling response: %w", err)
 		}
-		return applyTemplate(tpl, &data.Review)
+		return applyDefaultTemplate(tpl, &data.Review)
 	}
 	formatPrChangelog := func(resp string) (string, error) {
-		return applyTemplate(tpl, &pr.PRChangelog{
+		return applyDefaultTemplate(tpl, &pr.PRChangelog{
 			Changelog: resp,
 			Today:     time.Now().Format("2006-01-02"),
 		})

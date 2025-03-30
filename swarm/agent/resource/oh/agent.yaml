@@ -1,16 +1,15 @@
 ###
-user:
-  name: "me"
-  display: "👤 User"
+# user:
+#   name: "me"
+#   display: "👤 User"
 
-maxTurns: 32
-maxTime: 3600
+# maxTurns: 32
+# maxTime: 3600
 
 agents:
   - name: "oh"
     display: "🔍 OpenHands"
     description: "Engineering assistant promoting incremental development and detailed refactoring support."
-    overview: "OpenHands is an engineering assistant tool that simplifies tasks by encouraging an incremental approach. Start with basic exercises like creating a 'hello world' script and progressively improve your project. It's ideal for greenfield projects, allowing you to begin with simple tasks such as developing a React TODO app and gradually adding features. OpenHands effectively integrates new code into existing systems and supports step-by-step code refactoring. For troubleshooting, detailed context is essential. The best outcomes are achieved by approaching tasks in small steps, providing specific details, sharing context, and making frequent commits."
     model: L1
     instruction:
       content: "Your are a coding assistant."

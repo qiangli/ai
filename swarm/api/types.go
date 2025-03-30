@@ -18,6 +18,8 @@ const (
 )
 
 type Vars struct {
+	Config *AppConfig `json:"config"`
+
 	OS        string            `json:"os"`
 	Arch      string            `json:"arch"`
 	ShellInfo map[string]string `json:"shell_info"`
@@ -53,6 +55,23 @@ type Vars struct {
 
 	ToolRegistry map[string]*ToolFunc `json:"tool_registry"`
 	FuncRegistry map[string]Function  `json:"func_registry"`
+
+	//
+	ResourceMap     map[string]string
+	AdviceMap       map[string]Advice
+	EntrypointMap   map[string]Entrypoint
+	TemplateFuncMap TemplateFuncMap
+
+	// conversation history
+	History []*Message
+}
+
+func (r *Vars) ListTools() []*ToolFunc {
+	tools := make([]*ToolFunc, 0, len(r.ToolRegistry))
+	for _, tool := range r.ToolRegistry {
+		tools = append(tools, tool)
+	}
+	return tools
 }
 
 func NewVars() *Vars {

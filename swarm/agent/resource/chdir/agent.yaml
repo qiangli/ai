@@ -1,6 +1,6 @@
 ###
-maxTurns: 32
-maxTime: 3600
+# maxTurns: 32
+# maxTime: 3600
 
 agents:
   - name: "chdir"

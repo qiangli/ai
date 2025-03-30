@@ -1,4 +1,4 @@
-package agent
+package swarm
 
 import (
 	"context"
@@ -14,7 +14,6 @@ import (
 	"github.com/qiangli/ai/internal/docker/gptr"
 	"github.com/qiangli/ai/internal/docker/oh"
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/agent/resource"
 	"github.com/qiangli/ai/swarm/api"
 )
@@ -70,7 +69,7 @@ func ListFuncTools() ([]*api.ToolFunc, error) {
 	var tools []*api.ToolFunc
 	for _, desc := range descriptors {
 		tools = append(tools, &api.ToolFunc{
-			Type:        swarm.ToolTypeFunc,
+			Type:        ToolTypeFunc,
 			Kit:         funcKitName,
 			Name:        desc.Name,
 			Description: desc.Description,
@@ -154,7 +153,7 @@ func Aider(ctx context.Context, models map[api.Level]*api.Model, workspace, sub,
 	if !ok {
 		return fmt.Errorf("no such prompt: docker_input_user_role")
 	}
-	userContent, err := applyTemplate(tpl, &WSInput{
+	userContent, err := applyDefaultTemplate(tpl, &WSInput{
 		Env:          env,
 		HostDir:      hostDir,
 		ContainerDir: containerDir,
@@ -215,7 +214,7 @@ func OpenHands(ctx context.Context, model *api.Model, workspace string, in *api.
 	if !ok {
 		return fmt.Errorf("no such prompt: docker_input_user_role")
 	}
-	userContent, err := applyTemplate(tpl, &WSInput{
+	userContent, err := applyDefaultTemplate(tpl, &WSInput{
 		Env:          env,
 		HostDir:      hostDir,
 		ContainerDir: containerDir,
@@ -263,7 +262,7 @@ func listAgentFunc(ctx context.Context, _ *api.Vars, _ string, _ map[string]any)
 }
 
 func agentInfoFunc(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	agent, err := swarm.GetStrProp("agent", args)
+	agent, err := GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +281,7 @@ func agentInfoFunc(ctx context.Context, _ *api.Vars, _ string, args map[string]a
 }
 
 func agentTransferFunc(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	agent, err := swarm.GetStrProp("agent", args)
+	agent, err := GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
 	}

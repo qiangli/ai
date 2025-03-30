@@ -1,4 +1,4 @@
-package agent
+package swarm
 
 import (
 	"encoding/json"
@@ -42,7 +42,7 @@ func resolveWorkspaceAdvice(vars *api.Vars, req *api.Request, resp *api.Response
 	if !ok {
 		return fmt.Errorf("failed to get template: %s", "ws_base_user_role")
 	}
-	query, err := applyTemplate(tpl, map[string]string{
+	query, err := applyDefaultTemplate(tpl, map[string]string{
 		"Input": req.RawInput.Intent(),
 	})
 	if err != nil {

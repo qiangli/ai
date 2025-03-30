@@ -1,11 +1,10 @@
-package agent
+package swarm
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/qiangli/ai/internal/db"
-	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 )
 
@@ -60,7 +59,7 @@ func sqlQuery(ctx context.Context, cred *api.DBCred, query string) (*api.Result,
 }
 
 func sqlDBQuery(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
-	query, err := swarm.GetStrProp("query", args)
+	query, err := GetStrProp("query", args)
 	if err != nil {
 		return nil, err
 	}
@@ -87,11 +86,11 @@ func sqlDBAllSequences(ctx context.Context, vars *api.Vars, name string, args ma
 }
 
 func sqlDBAllColumns(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
-	schema, err := swarm.GetStrProp("schema", args)
+	schema, err := GetStrProp("schema", args)
 	if err != nil {
 		return nil, err
 	}
-	table, err := swarm.GetStrProp("table", args)
+	table, err := GetStrProp("table", args)
 	if err != nil {
 		return nil, err
 	}
