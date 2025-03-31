@@ -1,14 +1,12 @@
 package swarm
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/db"
 	"github.com/qiangli/ai/internal/docker/gptr"
 	"github.com/qiangli/ai/swarm/api"
-	resource "github.com/qiangli/ai/swarm/resource/agents"
 )
 
 var entrypointMap = map[string]api.Entrypoint{}
@@ -22,13 +20,7 @@ func init() {
 
 // PR entrypoint that generates and updates the instruction/system role prompt
 func prPromptEntrypoint(vars *api.Vars, agent *api.Agent, input *api.UserInput) error {
-	sub := baseCommand(agent.Name)
-	schema := fmt.Sprintf("pr_%s_schema", sub)
-	example := fmt.Sprintf("pr_%s_example", sub)
-
 	data := map[string]any{
-		"Schema":         resource.Prompts[schema],
-		"Example":        resource.Prompts[example],
 		"MaxFiles":       8,
 		"MaxSuggestions": 8,
 	}
@@ -46,7 +38,7 @@ func gptrPromptEntrypoint(vars *api.Vars, agent *api.Agent, input *api.UserInput
 }
 
 func sqlPromptEntrypoint(vars *api.Vars, agent *api.Agent, input *api.UserInput) error {
-	data, err := db.GetDBInfo(vars.DBCred)
+	data, err := db.GetDBInfo(vars.Config.DBCred)
 	if err != nil {
 		return err
 	}

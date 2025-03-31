@@ -11,13 +11,13 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func TestServerListTools(t *testing.T) {
+func TestSseListTools(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping test in short mode")
 	}
 
-	baseUrl := "http://localhost:58888"
-	client, err := client.NewSSEMCPClient(baseUrl + "/sse")
+	mcpUrl := "http://localhost:5048/sse"
+	client, err := client.NewSSEMCPClient(mcpUrl)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
@@ -64,17 +64,18 @@ func TestServerListTools(t *testing.T) {
 		t.Fatalf("Failed to list tools: %v", err)
 	}
 	for _, tool := range tools.Tools {
-		t.Logf("- %s: %s\n", tool.Name, tool.Description)
+		fmt.Printf("- %s: %s\n", tool.Name, tool.Description)
 	}
+	t.Log("done.")
 }
 
-func TestServerCallTool(t *testing.T) {
+func TestSseCallTool(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping test in short mode")
 	}
 
-	baseUrl := "http://localhost:58888"
-	client, err := client.NewSSEMCPClient(baseUrl + "/sse")
+	mcpUrl := "http://localhost:5048/sse"
+	client, err := client.NewSSEMCPClient(mcpUrl)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
@@ -155,4 +156,61 @@ func TestServerCallTool(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestStdioListTools(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping test in short mode")
+	}
+	// go run ./cmd/ai /mcp serve --transport stdio
+	c, err := client.NewStdioMCPClient(
+		"go",
+		[]string{},
+		"run",
+		"./cmd/ai",
+		"/mcp",
+		"serve",
+		"--transport",
+		"stdio",
+		"--verbose",
+	)
+
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+	defer c.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Initialize the client
+	fmt.Println("Initializing client...")
+	initRequest := mcp.InitializeRequest{}
+	initRequest.Params.ProtocolVersion = mcp.LATEST_PROTOCOL_VERSION
+	initRequest.Params.ClientInfo = mcp.Implementation{
+		Name:    "example-client",
+		Version: "1.0.0",
+	}
+
+	initResult, err := c.Initialize(ctx, initRequest)
+	if err != nil {
+		t.Fatalf("Failed to initialize: %v", err)
+	}
+	t.Logf(
+		"Initialized with server: %s %s\n\n",
+		initResult.ServerInfo.Name,
+		initResult.ServerInfo.Version,
+	)
+
+	// List Tools
+	fmt.Println("Listing available tools...")
+	toolsRequest := mcp.ListToolsRequest{}
+	tools, err := c.ListTools(ctx, toolsRequest)
+	if err != nil {
+		t.Fatalf("Failed to list tools: %v", err)
+	}
+	for _, tool := range tools.Tools {
+		fmt.Printf("- %s: %s\n", tool.Name, tool.Description)
+	}
+	t.Log("done.")
 }

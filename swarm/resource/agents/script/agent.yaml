@@ -6,11 +6,13 @@ agents:
     description: "Assist with scripting, command execution, and troubleshooting shell tasks."
     model: L2
     instruction:
-      content: "resource:script_system_role"
+      content: "resource:script_system_role.md"
+      type: "tpl"
     advices:
       before: "script_user_input"
     functions:
-      - "*"
+      - "system:*"
+      - "shell:*"
 
 models:
   - name: "L1"

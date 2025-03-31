@@ -272,12 +272,11 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.Quiet = viper.GetBool("quiet")
 	app.Internal = viper.GetBool("internal")
 
+	app.Unsafe = viper.GetBool("unsafe")
+
 	app.Editor = viper.GetString("editor")
 	app.Interactive = viper.GetBool("interactive")
 	app.Watch = viper.GetBool("watch")
-
-	// noMeta := viper.GetBool("no_meta_prompt")
-	// app.MetaPrompt = !noMeta
 
 	app.MaxTurns = viper.GetInt("max_turns")
 	app.MaxTime = viper.GetInt("max_time")
@@ -294,7 +293,7 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	dbCfg.Username = viper.GetString("sql.db_username")
 	dbCfg.Password = viper.GetString("sql.db_password")
 	dbCfg.DBName = viper.GetString("sql.db_name")
-	app.Db = dbCfg
+	app.DBCred = dbCfg
 	//
 	gitConfig := &api.GitConfig{}
 	app.Git = gitConfig
@@ -302,12 +301,19 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	return app, nil
 }
 
-// default to current working dir if workspace is not provided
+// resolveWorkspaceDir returns the workspace directory.
+// If the workspace is not provided, it returns the current working directory
+// or the directory of the git repository containing the current working directory
+// if it is in a git repository.
 func resolveWorkspaceDir(ws string) (string, error) {
 	if ws != "" {
 		return ensureWorkspace(ws)
 	}
-	return os.Getwd()
+	ws, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	return resolveRepoDir(ws)
 }
 
 // resolveRepoDir returns the directory of the current git repository
@@ -334,6 +340,9 @@ func tempDir() (string, error) {
 	return os.TempDir(), nil
 }
 
+// detectGitRepo returns the directory of the git repository
+// containing the given path.
+// If the path is not in a git repository, it returns the original path.
 func detectGitRepo(path string) (string, error) {
 	if path == "" {
 		return "", fmt.Errorf("path is empty")

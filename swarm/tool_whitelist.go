@@ -7,6 +7,7 @@ import (
 
 // always allowed
 var toolsList = []string{
+	// core
 	"man",
 	"col",
 	"command",
@@ -14,8 +15,17 @@ var toolsList = []string{
 	"ls",
 	"test",
 	//
-	// TODO git mcp instead?
+	// TODO yaml config
 	"git",
+	"zstd",
+	"unzstd",
+	"tar",
+	"unzip",
+	"zip",
+	"gzip",
+	"gunzip",
+	"curl",
+	"wget",
 }
 
 // Read from config

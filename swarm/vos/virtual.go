@@ -36,9 +36,9 @@ func NewSystem() *VirtualSystem {
 
 func (vs *VirtualSystem) ListCommands() []string {
 	list := util.ListCommands()
-	commands := make([]string, len(list))
-	for i, v := range list {
-		commands[i] = v[0]
+	var commands []string
+	for k := range list {
+		commands = append(commands, k)
 	}
 	sort.Strings(commands)
 	return commands

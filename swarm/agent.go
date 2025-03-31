@@ -19,32 +19,37 @@ import (
 const defaultMaxTurns = 32
 const defaultMaxTime = 3600
 
+//go:embed resource/agents
+var resourceAgents embed.FS
+
+const resourceBase = "resource/agents"
+
 var agentRegistry map[string]*api.AgentsConfig
 
 func initDefaultAgents(app *api.AppConfig) error {
 	agentRegistry = make(map[string]*api.AgentsConfig)
 
-	config, err := LoadDefaultAgentConfig(app)
+	config, err := LoadDefaultAgentsConfig(app)
 	if err != nil {
-		log.Errorf("failed to load default tool config: %v", err)
+		log.Errorf("failed to load default tool config: %v\n", err)
 		return err
 	}
 
 	for name, v := range config {
-		log.Debugf("Registering agent: %s with %d configurations", name, len(v.Agents))
+		log.Debugf("Registering agent: %s with %d configurations\n", name, len(v.Agents))
 		if len(v.Agents) == 0 {
-			log.Infof("No agent configurations found for: %s", name)
+			log.Debugf("No agent configurations found for: %s\n", name)
 			continue
 		}
 		// Register the agent configurations
 		for _, agent := range v.Agents {
 			if _, exists := agentRegistry[agent.Name]; exists {
-				log.Infof("Duplicate agent name found: %s, skipping registration", agent.Name)
+				log.Debugf("Duplicate agent name found: %s, skipping registration\n", agent.Name)
 				continue
 			}
 			// Register the agents configuration
 			agentRegistry[agent.Name] = v
-			log.Debugf("Registered agent: %s", agent.Name)
+			log.Debugf("Registered agent: %s\n", agent.Name)
 			if v.MaxTurns == 0 {
 				v.MaxTurns = defaultMaxTurns
 			}
@@ -53,7 +58,11 @@ func initDefaultAgents(app *api.AppConfig) error {
 			}
 		}
 	}
-	log.Infof("Initialized %d agent configurations", len(agentRegistry))
+	if len(agentRegistry) == 0 {
+		log.Debugf("No agent configurations found in default agents\n")
+		return fmt.Errorf("no agent configurations found in default agents")
+	}
+	log.Debugf("Initialized %d agent configurations\n", len(agentRegistry))
 
 	return nil
 }
@@ -71,11 +80,10 @@ type Agent struct {
 	Role string
 
 	// Instructions for the agent, can be a string or a callable returning a string
-	Instruction string
+	Instruction     string
+	InstructionType string // file ext
 
 	RawInput *api.UserInput
-
-	// Vars *Vars
 
 	// Functions that the agent can call
 	Tools []*api.ToolFunc
@@ -94,30 +102,27 @@ type Agent struct {
 	MaxTime  int
 
 	//
+	ResourceMap string
+
+	//
 	Vars *api.Vars
 }
 
-//go:embed resource/agents
-var resourceAgents embed.FS
-
-func LoadDefaultAgentConfig(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
-	const base = "resource/agents"
-	dirs, err := resourceAgents.ReadDir(base)
+func LoadAgentsAsset(app *api.AppConfig, as AssetStore, root string) (map[string]*api.AgentsConfig, error) {
+	dirs, err := as.ReadDir(root)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read agent resource directory: %w", err)
 	}
 
-	var agents = make(map[string]*api.AgentsConfig)
+	var groups = make(map[string]*api.AgentsConfig)
 
 	for _, dir := range dirs {
 		if !dir.IsDir() {
 			continue
 		}
-		name := filepath.Join(base, dir.Name(), "agent.yaml")
-		// check file exists
-		f, err := resourceAgents.ReadFile(name)
-		// check if the file exists
-
+		base := filepath.Join(root, dir.Name())
+		name := filepath.Join(base, "agent.yaml")
+		f, err := as.ReadFile(name)
 		if err != nil {
 			if os.IsNotExist(err) {
 				continue
@@ -125,31 +130,43 @@ func LoadDefaultAgentConfig(app *api.AppConfig) (map[string]*api.AgentsConfig, e
 			return nil, fmt.Errorf("failed to read agent file %s: %w", dir.Name(), err)
 		}
 		if len(f) == 0 {
-			log.Infof("agent file is empty %s", name)
+			log.Debugf("agent file is empty %s\n", name)
 			continue
 		}
-		agent, err := loadAgentsData(app, [][]byte{f})
+		group, err := loadAgentsData(app, [][]byte{f})
 		if err != nil {
 			return nil, fmt.Errorf("failed to load agent data from %s: %w", dir.Name(), err)
 		}
-		if agent == nil {
-			log.Infof("no agent found in %s", dir.Name())
+		if group == nil {
+			log.Debugf("no agent found in %s\n", dir.Name())
 			continue
 		}
-		// TODO read instruction file if exists
-		// use the name of the directory as the default agent name if not specified
-		if agent.Name == "" {
-			agent.Name = dir.Name()
+		group.BaseDir = base
+		// use the name of the directory as the group name if not specified
+		if group.Name == "" {
+			group.Name = dir.Name()
 		}
-		if _, exists := agents[agent.Name]; exists {
-			// if the agent name already exists, log a warning and skip
-			log.Infof("duplicate agent name found: %s in %s, skipping", agent.Name, dir.Name())
+		if _, exists := groups[group.Name]; exists {
+			log.Debugf("duplicate agent name found: %s in %s, skipping\n", group.Name, dir.Name())
 			continue
 		}
-		agents[agent.Name] = agent
+		groups[group.Name] = group
 	}
 
-	return agents, nil
+	return groups, nil
+}
+
+func LoadDefaultAgentsConfig(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
+	return LoadAgentsAsset(app, resourceAgents, resourceBase)
+}
+
+func LoadAgentsConfig(app *api.AppConfig, base string) (map[string]*api.AgentsConfig, error) {
+	fs := &FileStore{}
+	abs, err := filepath.Abs(base)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get absolute path for %s: %w", base, err)
+	}
+	return LoadAgentsAsset(app, fs, abs)
 }
 
 // loadAgentsConfig loads the agent configuration from the provided YAML data.
@@ -163,7 +180,7 @@ func loadAgentsData(app *api.AppConfig, data [][]byte) (*api.AgentsConfig, error
 		}
 		if cfg.Internal && !app.Internal {
 			// skip internal agents if the app is not internal
-			log.Debugf("skip internal agent: %s", cfg.Name)
+			log.Debugf("skip internal agent: %s\n", cfg.Name)
 			continue
 		}
 
@@ -183,12 +200,17 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*A
 	// config := r.Config
 	adviceMap := vars.AdviceMap
 
-	getTools := func(toolType string) ([]*api.ToolFunc, error) {
+	getTools := func(toolType string, kit string) ([]*api.ToolFunc, error) {
 		var list []*api.ToolFunc
 		for _, v := range vars.ToolRegistry {
-			if toolType == "*" || v.Type == toolType {
-				list = append(list, v)
+			if toolType == "*" || toolType == "" || v.Type == toolType {
+				if kit == "*" || kit == "" || v.Kit == kit {
+					list = append(list, v)
+				}
 			}
+		}
+		if len(list) == 0 {
+			return nil, fmt.Errorf("no such tool: %s / %s", toolType, kit)
 		}
 		return list, nil
 	}
@@ -202,7 +224,7 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*A
 		return nil, fmt.Errorf("no such tool: %s", s)
 	}
 
-	getAgentConfig := func(n, c string) (*api.AgentConfig, error) {
+	findAgentConfig := func(n, c string) (*api.AgentConfig, error) {
 		// check for more specific agent first
 		if c != "" {
 			ap := fmt.Sprintf("%s/%s", n, c)
@@ -220,12 +242,63 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*A
 		return nil, fmt.Errorf("no such agent: %s / %s", n, c)
 	}
 
+	getAgentConfig := func(n, c string) (*api.AgentConfig, error) {
+		a, err := findAgentConfig(n, c)
+		if err != nil {
+			return nil, err
+		}
+		// read the instruction
+		ps := a.Instruction.Content
+		defaultType := func(s string) string {
+			if strings.HasSuffix(s, ".tpl") {
+				return "tpl"
+			}
+			if strings.HasSuffix(s, ".tpl.md") {
+				return "tpl"
+			}
+			return filepath.Ext(s)
+		}
+		switch {
+		case strings.HasPrefix(ps, "file:"):
+			parts := strings.SplitN(a.Instruction.Content, ":", 2)
+			fileName := strings.TrimSpace(parts[1])
+			if fileName == "" {
+				return nil, fmt.Errorf("empty file path in instruction for agent: %s", a.Name)
+			}
+			filePath := filepath.Join(config.BaseDir, fileName)
+			content, err := os.ReadFile(filePath)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read instruction file %s for agent %s: %w", filePath, a.Name, err)
+			}
+			a.Instruction.Content = string(content)
+			if a.Instruction.Type == "" {
+				a.Instruction.Type = defaultType(filePath)
+			}
+			log.Debugf("Loaded instruction from file for agent %s: %s\n", a.Name, filePath)
+		case strings.HasPrefix(ps, "resource:"):
+			parts := strings.SplitN(a.Instruction.Content, ":", 2)
+			resourceName := strings.TrimSpace(parts[1])
+			filePath := config.BaseDir + "/" + resourceName
+			content, err := resourceAgents.ReadFile(filePath)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read resource instruction file %s for agent %s: %w", resourceName, a.Name, err)
+			}
+			a.Instruction.Content = string(content)
+			if a.Instruction.Type == "" {
+				a.Instruction.Type = defaultType(filePath)
+			}
+			log.Debugf("Loaded instruction from resource for agent %s: %s\n", a.Name, resourceName)
+		}
+		return a, nil
+	}
+
 	newAgent := func(ac *api.AgentConfig, vars *api.Vars) (*Agent, error) {
 		agent := Agent{
-			Name:        ac.Name,
-			Display:     ac.Display,
-			Role:        ac.Instruction.Role,
-			Instruction: ac.Instruction.Content,
+			Name:            ac.Name,
+			Display:         ac.Display,
+			Role:            ac.Instruction.Role,
+			Instruction:     ac.Instruction.Content,
+			InstructionType: ac.Instruction.Type,
 			// Vars:        vars,
 			RawInput: input,
 			MaxTurns: config.MaxTurns,
@@ -242,8 +315,9 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*A
 		// tools
 		funcMap := make(map[string]*api.ToolFunc)
 		for _, f := range ac.Functions {
-			if f == "*" {
-				funcs, err := getTools("*")
+			// all
+			if f == "*" || f == "*:" || f == "*:*" {
+				funcs, err := getTools("*", "*")
 				if err != nil {
 					return nil, err
 				}
@@ -253,10 +327,15 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*A
 				continue
 			}
 			// type:*
+			// type:kit
 			if strings.Contains(f, ":") {
 				parts := strings.SplitN(f, ":", 2)
 				if len(parts) > 0 {
-					funcs, err := getTools(parts[0])
+					kit := "*"
+					if len(parts) > 1 && len(parts[1]) > 0 {
+						kit = parts[1]
+					}
+					funcs, err := getTools(parts[0], kit)
 					if err != nil {
 						return nil, err
 					}
@@ -267,7 +346,7 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*A
 				}
 			}
 
-			// builtin functions
+			// function by name
 			fn, err := getTool(f)
 			if err != nil {
 				return nil, err
@@ -320,6 +399,17 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*A
 			} else {
 				return nil, fmt.Errorf("no such entrypoint: %s", ac.Entrypoint)
 			}
+		}
+
+		//
+		vars.ResourceMap[agentName] = &api.Resource{
+			ID: ac.Name,
+			Content: func(key string) ([]byte, error) {
+				if config.Source == "file" {
+					return os.ReadFile(filepath.Join(config.BaseDir, key))
+				}
+				return resourceAgents.ReadFile(config.BaseDir + "/" + key)
+			},
 		}
 
 		return &agent, nil
@@ -419,14 +509,17 @@ func (r *Agent) Serve(req *api.Request, resp *api.Response) error {
 func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Response) error {
 	// "resource:" prefix is used to refer to a resource
 	// "vars:" prefix is used to refer to a variable
-	apply := func(s string, vars *api.Vars) (string, error) {
-		if strings.HasPrefix(s, "resource:") {
-			v, ok := vars.ResourceMap[s[9:]]
-			if !ok {
-				return "", fmt.Errorf("no such resource: %s", s[9:])
+	apply := func(ext, s string, vars *api.Vars) (string, error) {
+		// type: default to file ext if not provided
+		if ext != "" {
+			switch {
+			case strings.HasPrefix(ext, ".tpl."), ext == ".tpl", ext == "tpl":
+				return applyTemplate(s, vars, vars.TemplateFuncMap)
 			}
-			return applyTemplate(v, vars, vars.TemplateFuncMap)
+			return s, nil
 		}
+
+		//
 		if strings.HasPrefix(s, "vars:") {
 			v := vars.GetString(s[5:])
 			return v, nil
@@ -439,7 +532,7 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 	// system role prompt as first message
 	if r.Instruction != "" {
 		// update the request instruction
-		content, err := apply(r.Instruction, r.Vars)
+		content, err := apply(r.InstructionType, r.Instruction, r.Vars)
 		if err != nil {
 			return err
 		}

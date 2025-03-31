@@ -7,21 +7,22 @@ agents:
     description: "Generate git commit message based on users input and the provided diffs."
     model: L1
     instruction:
-      content: "resource:git_sub_system_role"
+      content: "resource:git_sub_system_role.md"
     advices:
       around: "sub"
     functions:
       - "agent_transfer"
-
+      
   # prompt adapted from https://github.com/Aider-AI/aider/blob/main/aider/prompts.py
   - name: "git/short"
     display: "🖊️ Git short"
     description: "Generate concise, one-line git commit messages based on the provided diffs."
     model: L1
     instruction:
-      content: "resource:git_message_short"
+      content: "resource:git_message_short.md"
     functions:
-      - "*"
+      - "shell:git"
+      - "system:*"
 
   # https://www.conventionalcommits.org/en/v1.0.0/#summary
   - name: "git/long"
@@ -29,9 +30,10 @@ agents:
     description: "Generate git commit messages based on the provided diffs using the Conventional Commits specification"
     model: L1
     instruction:
-      content: "resource:git_message_long"
+      content: "resource:git_message_long.md"
     functions:
-      - "*"
+      - "shell:git"
+      - "system:*"
 
 models:
   - name: "L1"

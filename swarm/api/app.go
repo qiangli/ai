@@ -11,8 +11,8 @@ type AppConfig struct {
 
 	LLM *LLMConfig
 
-	Git *GitConfig
-	Db  *DBCred
+	Git    *GitConfig
+	DBCred *DBCred
 
 	Role   string
 	Prompt string
@@ -55,6 +55,8 @@ type AppConfig struct {
 	Debug    bool
 	Quiet    bool
 	Internal bool
+
+	Unsafe bool
 
 	//
 	Workspace string
@@ -117,4 +119,14 @@ func (d *DBCred) DSN() string {
 
 func (d *DBCred) IsValid() bool {
 	return d.Username != "" && d.Password != ""
+}
+
+func (d *DBCred) Clone() *DBCred {
+	return &DBCred{
+		Host:     d.Host,
+		Port:     d.Port,
+		Username: d.Username,
+		Password: d.Password,
+		DBName:   d.DBName,
+	}
 }

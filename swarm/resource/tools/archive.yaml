@@ -1,0 +1,74 @@
+###
+kit: "archive"
+
+tools:
+  - name: "gzip"
+    description: "The gzip program compresses and decompresses files using Lempel-Ziv coding (LZ77. 'gzip --help' for more information."
+    parameters:
+      type: "object"
+      properties:
+        options:
+          type: "array"
+          items:
+            type: "string"
+          description: |
+            options
+              -d --decompress      uncompress files
+              -f --force           force overwriting & compress links
+              -v --verbose         print extra statistics
+            'gzip --help' for more options
+        files:
+          type: "array"
+          items:
+            type: "string"
+          description: "files to decompress"
+      required:
+        - files
+    body: "gzip {{spread .options}} {{spread .files}}"
+    type: "shell"
+
+  - name: "zstd"
+    description: "Compress or decompress .zst files. 'zstd --help' for more information."
+    parameters:
+      type: "object"
+      properties:
+        options:
+          type: "array"
+          items:
+            type: "string"
+          description: |
+            options
+              -o OUTPUT                     Write output to a single file, OUTPUT.
+              -d, --decompress              Perform decompression.
+              -f, --force                   Disable input and output checks.
+              -v, --verbose                 Enable verbose output
+              -z, --compress                Compress. This is the default operation mode
+            'zstd --help' for more options
+        files:
+          type: "array"
+          items:
+            type: "string"
+          description: "INPUT file(s) to compress or decompress"
+      required:
+        - files
+    body: "zstd {{spread .options}} {{spread .files}}"
+    type: "shell"
+
+  - name: "tar"
+    description: "manipulate archive files. 'tar --help' for more information."
+    parameters:
+      type: "object"
+      properties:
+        options:
+          type: "array"
+          items:
+            type: "string"
+          description: |
+            First option must be a mode specifier:
+              -c Create  -r Add/Replace  -t List  -u Update  -x Extract
+            Common Options:
+              -f <filename>  Location of archive
+              -v    Verbose
+            'tar --help' for more options
+    body: "tar {{spread .options}}"
+    type: "shell"

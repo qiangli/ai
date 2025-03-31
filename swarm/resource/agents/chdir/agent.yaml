@@ -5,7 +5,7 @@ agents:
     display: "🐝 Change Dir"
     description: "Evaluate users input and locate the directory on the local system the user intends to change to."
     instruction:
-      content: "resource:chdir_system_role"
+      content: "resource:chdir_system_role.md"
     model: L1
     advices:
       after: "chdir_format_path"

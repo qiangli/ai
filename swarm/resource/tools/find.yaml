@@ -1,0 +1,95 @@
+###
+kit: "find"
+# commands: ["ack", "ag", "fd", "find", "grep", "locate", "rg"]
+
+tools:
+  - name: "find"
+    description: "Find recursively descends the directory tree for each path listed"
+    parameters:
+      type: "object"
+      properties:
+        args:
+          type: "array"
+          items:
+            type: "string"
+          description: "options or arguments"
+    body: "find {{spread .args}}"
+    type: "shell"
+
+  - name: "locate"
+    description: "The locate program searches a database for all pathnames which match the specified pattern"
+    parameters:
+      type: "object"
+      properties:
+        args:
+          type: "array"
+          items:
+            type: "string"
+          description: "options or arguments"
+    body: "locate {{spread .args}}"
+    type: "shell"
+
+  - name: "grep"
+    description: "The grep utility searches any given input files, selecting lines that match one or more patterns. exit status: 1 No lines were selected. >1 An error occurred."
+    parameters:
+      type: "object"
+      properties:
+        args:
+          type: "array"
+          items:
+            type: "string"
+          description: "options or arguments"
+    body: "grep {{spread .args}}"
+    type: "shell"
+
+  - name: "ag"
+    description: "ag (The Silver Searcher) is a code-searching tool similar to ack, but faster. 'ag --help' for more information."
+    parameters:
+      type: "object"
+      properties:
+        args:
+          type: "array"
+          items:
+            type: "string"
+          description: "options or arguments"
+    body: "ag {{spread .args}}"
+    type: "shell"
+
+  - name: "rg"
+    description: "ripgrep (rg) recursively searches the current directory for a regex pattern. 'rg --help' for help"
+    parameters:
+      type: "object"
+      properties:
+        args:
+          type: "array"
+          items:
+            type: "string"
+          description: "options or arguments"
+    body: "rg {{spread .args}}"
+    type: "shell"
+
+  - name: "ack"
+    description: "ack is designed as an alternative to grep for programmers. The full ack manual is available by running 'ack --man'"
+    parameters:
+      type: "object"
+      properties:
+        args:
+          type: "array"
+          items:
+            type: "string"
+          description: "options or arguments"
+    body: "ack {{spread .args}}"
+    type: "shell"
+
+  - name: "fd"
+    description: "fd is a simple, fast and user-friendly alternative to 'find'. 'fd --help' for help."
+    parameters:
+      type: "object"
+      properties:
+        args:
+          type: "array"
+          items:
+            type: "string"
+          description: "options or arguments"
+    body: "fd {{spread .args}}"
+    type: "shell"

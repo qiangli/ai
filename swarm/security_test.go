@@ -23,6 +23,7 @@ func TestEvaluateCommand(t *testing.T) {
 	log.SetLogLevel(log.Verbose)
 
 	var vars = api.NewVars()
+	vars.Config = &api.AppConfig{}
 	sysInfo, err := util.CollectSystemInfo()
 	if err != nil {
 		t.Errorf("collect system info: %v", err)
@@ -50,13 +51,11 @@ func TestEvaluateCommand(t *testing.T) {
 		// {"find", []string{"./", "-name", "*.txt"}, true},
 		// {"find", []string{"/tmp/test", "-type", "f", "-name", "*.exe", "-exec", "rm", "{}", "\\;"}, false},
 		// {"rg", []string{"telemet(rics|ry)?", "--with-filename", "--ignore-case", "--multiline"}, true},
+		// {"find", []string{"./", "-type", "f", "|", "xargs", "grep", "-l", "xyz"}, true},
+		// wrong
+		// {"find", []string{"./", "-type", "f", "-name", "*.yaml", "-exec", "awk", "/items:/{if(!match($0,/^type: array/)){print FILENAME}}", "{}", "+", "|", "sort", "-u"}, false},
+		{"find", []string{"./", "-name", "*.sql", "-exec", "grep", "-l", "s3_files", "{}", "\\;"}, true},
 	}
-	// fs, err := vfs.NewVFS()
-	// if err != nil {
-	// 	t.Errorf("create vfs: %v", err)
-	// 	return
-	// }
-	// vars.FS = fs
 
 	tools, err := listTools(&api.AppConfig{})
 	if err != nil {

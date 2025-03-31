@@ -1,39 +1,37 @@
 ###
-kit: dev
-commands:
-  [
-    "ag",
-    "docker",
-    "git",
-    "go",
-    "jq",
-    "kubectl",
-    "node",
-    "npm",
-    "python",
-    "rg",
-    "tsh",
-    "yarn",
-  ]
+kit: "dev"
+# commands:
+#   [
+#     "docker",
+#     "git",
+#     "go",
+#     "jq",
+#     "kubectl",
+#     "node",
+#     "npm",
+#     "python",
+#     "tsh",
+#     "yarn",
+#   ]
 
 tools:
-  - name: "git"
-    description: "Git is a revision control system with an unusually rich command set that provides both high-level operations and full access to internals. 'git help -a' for a list of available commands."
-    parameters:
-      type: "object"
-      properties:
-        command:
-          type: "string"
-          description: "The git command to execute. 'git help <command>' for more information about a specific command"
-        args:
-          type: "string"
-          items:
-            type: "string"
-          description: "Additional options or arguments"
-      required:
-        - command
-    body: "{{git .command .args}}"
-    type: "template"
+  # - name: "git"
+  #   description: "Git is a revision control system with an unusually rich command set that provides both high-level operations and full access to internals. 'git help -a' for a list of available commands."
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       command:
+  #         type: "string"
+  #         description: "The git command to execute. 'git help <command>' for more information about a specific command"
+  #       args:
+  #         type: "array"
+  #         items:
+  #           type: "string"
+  #         description: "Additional options or arguments"
+  #     required:
+  #       - command
+  #   body: "git {{.command}} {{spread .args}}"
+  #   type: "shell"
 
   - name: "go"
     description: "Go is a tool for managing Go source code. go help for a list of available commands."
@@ -44,14 +42,14 @@ tools:
           type: "string"
           description: "The go command to execute. 'go help <command>' for more information about a command"
         args:
-          type: "string"
+          type: "array"
           items:
             type: "string"
           description: "Additional flags or arguments"
       required:
         - command
-    body: "{{go .command .args}}"
-    type: "template"
+    body: "go {{.command}} {{spread .args}}"
+    type: "shell"
 
   - name: "docker"
     description: "Docker is a set of platform as a service products that use OS-level virtualization to deliver software in packages called containers. 'docker help' for a list of available commands."
@@ -62,14 +60,14 @@ tools:
           type: "string"
           description: "The docker command to execute. 'docker help <command>' for more information about a command"
         args:
-          type: "string"
+          type: "array"
           items:
             type: "string"
           description: "Additional flags or arguments"
       required:
         - command
-    body: "{{docker .command .args}}"
-    type: "template"
+    body: "docker {{.command}} {{spread .args}}"
+    type: "shell"
 
   - name: "node"
     description: "Node.js is a server-side JavaScript runtime. 'node --help' for more information."
@@ -77,12 +75,12 @@ tools:
       type: "object"
       properties:
         args:
-          type: "string"
+          type: "array"
           items:
             type: "string"
           description: "options or arguments"
-    body: "{{node .args}}"
-    type: "template"
+    body: "node {{spread .args}}"
+    type: "shell"
 
   - name: "npm"
     description: "npm is a package manager for JavaScript. 'npm help' for a list of available commands."
@@ -93,14 +91,14 @@ tools:
           type: "string"
           description: "The npm command to execute. 'npm help <command>' for more information about a command"
         args:
-          type: "string"
+          type: "array"
           items:
             type: "string"
           description: "Additional flags or arguments"
       required:
         - command
-    body: "{{npm .command .args}}"
-    type: "template"
+    body: "npm {{.command}} {{spread .args}}"
+    type: "shell"
 
   - name: "yarn"
     description: "Yarn is a package manager for JavaScript. 'yarn help' for a list of available commands."
@@ -111,14 +109,14 @@ tools:
           type: "string"
           description: "The yarn command to execute. 'yarn help COMMAND' for more information on specific commands."
         args:
-          type: "string"
+          type: "array"
           items:
             type: "string"
           description: "Additional flags or arguments"
       required:
         - command
-    body: "{{yarn .command .args}}"
-    type: "template"
+    body: "yarn {{.command}} {{spread .args}}"
+    type: "shell"
 
   - name: "python"
     description: "Python is a programming language that lets you work quickly and integrate systems more effectively. 'python --help' for more information."
@@ -126,38 +124,12 @@ tools:
       type: "object"
       properties:
         args:
-          type: "string"
+          type: "array"
           items:
             type: "string"
           description: "options or arguments"
-    body: "{{python .args}}"
-    type: "template"
-
-  - name: "ag"
-    description: "ag (The Silver Searcher) is a code-searching tool similar to ack, but faster. 'ag --help' for more information."
-    parameters:
-      type: "object"
-      properties:
-        args:
-          type: "string"
-          items:
-            type: "string"
-          description: "options or arguments"
-    body: "{{ag .args}}"
-    type: "template"
-
-  - name: "rg"
-    description: "rg (ripgrep) recursively searches the current directory for lines matching a pattern. 'rg --help' for more information."
-    parameters:
-      type: "object"
-      properties:
-        args:
-          type: "string"
-          items:
-            type: "string"
-          description: "options or arguments"
-    body: "{{rg .args}}"
-    type: "template"
+    body: "python {{spread .args}}"
+    type: "shell"
 
   - name: "jq"
     description: "jq is a command-line JSON processor. 'jq --help' for more information."
@@ -165,12 +137,12 @@ tools:
       type: "object"
       properties:
         args:
-          type: "string"
+          type: "array"
           items:
             type: "string"
           description: "options or arguments"
-    body: "{{jq .args}}"
-    type: "template"
+    body: "jq {{spread .args}}"
+    type: "shell"
 
   - name: "tsh"
     description: "tsh is the command line client for Teleport, a modern security gateway for remotely accessing clusters of Linux servers via SSH. 'tsh help' for more information."
@@ -181,14 +153,14 @@ tools:
           type: "string"
           description: "The tsh command to execute. Try 'tsh help [command]' to get help for a given command."
         args:
-          type: "string"
+          type: "array"
           items:
             type: "string"
           description: "options or arguments"
       required:
         - command
-    body: "{{tsh .command .args}}"
-    type: "template"
+    body: "tsh {{.command}}  {{spread .args}}"
+    type: "shell"
 
   - name: "kubectl"
     description: "kubectl is a command line tool for controlling Kubernetes clusters. 'kubectl help' for more information."
@@ -199,11 +171,11 @@ tools:
           type: "string"
           description: "The kubectl command to execute. 'kubectl help [command]' for more information about a specific command"
         args:
-          type: "string"
+          type: "array"
           items:
             type: "string"
           description: "Additional flags or arguments"
       required:
         - command
-    body: "{{kubectl .command .args}}"
-    type: "template"
+    body: "kubectl {{.command}} {{spread .args}}"
+    type: "shell"

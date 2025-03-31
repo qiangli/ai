@@ -2,12 +2,12 @@ package swarm
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"net"
 	"net/url"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/qiangli/ai/internal/docker/aider"
@@ -15,69 +15,10 @@ import (
 	"github.com/qiangli/ai/internal/docker/oh"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
-	resource "github.com/qiangli/ai/swarm/resource/agents"
 )
 
-// builtin functions
-var funcRegistry = map[string]api.Function{}
-
-const funcKitName = "ai"
-
-func init() {
-	funcRegistry["agent_transfer"] = agentTransferFunc
-	funcRegistry["list_agents"] = listAgentFunc
-	funcRegistry["agent_info"] = agentInfoFunc
-}
-
-var descriptors = []api.ToolDescriptor{
-	{
-		Name:        "list_agents",
-		Description: "List all supported AI agents",
-		Parameters:  nil,
-	},
-	{
-		Name:        "agent_info",
-		Description: "Get information about a specific agent",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"agent": map[string]any{
-					"type":        "string",
-					"description": "The name of the agent",
-				},
-			},
-			"required": []any{"agent"},
-		},
-	},
-	{
-		Name:        "agent_transfer",
-		Description: "Transfer the current task to a specific agent",
-		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"agent": map[string]any{
-					"type":        "string",
-					"description": "The name of the agent",
-				},
-			},
-			"required": []any{"agent"},
-		},
-	},
-}
-
-func ListFuncTools() ([]*api.ToolFunc, error) {
-	var tools []*api.ToolFunc
-	for _, desc := range descriptors {
-		tools = append(tools, &api.ToolFunc{
-			Type:        ToolTypeFunc,
-			Kit:         funcKitName,
-			Name:        desc.Name,
-			Description: desc.Description,
-			Parameters:  desc.Parameters,
-		})
-	}
-	return tools, nil
-}
+//go:embed resource/agents/prompts/docker_input_user_role.md
+var dockerInputUserRole string
 
 func GenerateReport(ctx context.Context, model *api.Model, reportType, tone, input string) (string, error) {
 	// FIXME: This is a hack
@@ -149,11 +90,11 @@ func Aider(ctx context.Context, models map[api.Level]*api.Model, workspace, sub,
 	containerDir := aider.WorkspaceInSandbox
 	env := "container"
 
-	tpl, ok := resource.Prompts["docker_input_user_role"]
-	if !ok {
-		return fmt.Errorf("no such prompt: docker_input_user_role")
-	}
-	userContent, err := applyDefaultTemplate(tpl, &WSInput{
+	// tpl, ok := resource.Prompts["docker_input_user_role"]
+	// if !ok {
+	// 	return fmt.Errorf("no such prompt: docker_input_user_role")
+	// }
+	userContent, err := applyDefaultTemplate(dockerInputUserRole, &WSInput{
 		Env:          env,
 		HostDir:      hostDir,
 		ContainerDir: containerDir,
@@ -210,11 +151,11 @@ func OpenHands(ctx context.Context, model *api.Model, workspace string, in *api.
 	containerDir := oh.WorkspaceInSandbox
 	env := "container"
 
-	tpl, ok := resource.Prompts["docker_input_user_role"]
-	if !ok {
-		return fmt.Errorf("no such prompt: docker_input_user_role")
-	}
-	userContent, err := applyDefaultTemplate(tpl, &WSInput{
+	// tpl, ok := resource.Prompts["docker_input_user_role"]
+	// if !ok {
+	// 	return fmt.Errorf("no such prompt: docker_input_user_role")
+	// }
+	userContent, err := applyDefaultTemplate(dockerInputUserRole, &WSInput{
 		Env:          env,
 		HostDir:      hostDir,
 		ContainerDir: containerDir,
@@ -247,49 +188,4 @@ func OpenHands(ctx context.Context, model *api.Model, workspace string, in *api.
 	os.Setenv("DEBUG", fmt.Sprintf("%v", log.IsVerbose()))
 
 	return oh.Run(ctx, userContent)
-}
-
-func listAgentFunc(ctx context.Context, _ *api.Vars, _ string, _ map[string]any) (*api.Result, error) {
-	var list []string
-	for k, v := range resource.AgentCommandMap {
-		list = append(list, fmt.Sprintf("%s: %s", k, v.Description))
-	}
-
-	sort.Strings(list)
-	return &api.Result{
-		Value: fmt.Sprintf("Available agents:\n%s\n", strings.Join(list, "\n")),
-	}, nil
-}
-
-func agentInfoFunc(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	agent, err := GetStrProp("agent", args)
-	if err != nil {
-		return nil, err
-	}
-	var result string
-	if v, ok := resource.AgentCommandMap[agent]; ok {
-		result = v.Overview
-		if result == "" {
-			result = v.Description
-		}
-	} else {
-		return nil, fmt.Errorf("unknown agent: %s", agent)
-	}
-	return &api.Result{
-		Value: result,
-	}, nil
-}
-
-func agentTransferFunc(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	agent, err := GetStrProp("agent", args)
-	if err != nil {
-		return nil, err
-	}
-	if _, ok := resource.AgentCommandMap[agent]; !ok {
-		return nil, fmt.Errorf("unknown agent: %s", agent)
-	}
-	return &api.Result{
-		NextAgent: agent,
-		State:     api.StateTransfer,
-	}, nil
 }

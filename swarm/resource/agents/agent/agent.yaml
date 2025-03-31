@@ -4,9 +4,8 @@ agents:
     display: "🚀 Agent"
     description: "Dispatch to the most appropriate agent based on the user's input."
     model: L1
-    internal: true
     instruction:
-      content: "resource:agent_sub_system_role"
+      content: "resource:agent_sub_system_role.md"
     functions:
       - "list_agents"
       - "agent_info"

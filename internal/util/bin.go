@@ -8,13 +8,13 @@ import (
 
 // ListCommands returns the full path of the first valid executable command encountered in the PATH
 // environment variable.
-func ListCommands() [][]string {
+func ListCommands() map[string]string {
 	pathEnv := os.Getenv("PATH")
 	if pathEnv == "" {
-		return [][]string{}
+		return map[string]string{}
 	}
 
-	uniqueCommands := make(map[string]string) // command name -> full path
+	uniq := make(map[string]string) // command name -> full path
 	paths := strings.Split(pathEnv, string(os.PathListSeparator))
 
 	for _, pathDir := range paths {
@@ -22,26 +22,20 @@ func ListCommands() [][]string {
 		if err != nil {
 			continue
 		}
-
 		for _, file := range files {
-			commandName := file.Name()
-			fullPath := filepath.Join(pathDir, commandName)
+			name := file.Name()
+			fullPath := filepath.Join(pathDir, name)
 
 			// Check if the file is executable and the command hasn't been registered yet
 			if !file.IsDir() && IsExecutable(fullPath) {
-				if _, exists := uniqueCommands[commandName]; !exists {
-					uniqueCommands[commandName] = fullPath
+				if _, exists := uniq[name]; !exists {
+					uniq[name] = fullPath
 				}
 			}
 		}
 	}
 
-	commands := make([][]string, 0, len(uniqueCommands))
-	for name, fullPath := range uniqueCommands {
-		commands = append(commands, []string{name, fullPath})
-	}
-
-	return commands
+	return uniq
 }
 
 func IsExecutable(filePath string) bool {

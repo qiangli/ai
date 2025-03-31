@@ -53,18 +53,19 @@ func TestMcpCallTool(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	var serverUrl = "http://localhost:58080/sse"
+	var app = &api.AppConfig{
+		McpServerUrl: "http://localhost:58080/sse",
+	}
 
 	// server := NewMcpServerTool(serverUrl)
 	vars := &api.Vars{
+		Config: app,
 		ToolRegistry: map[string]*api.ToolFunc{
 			"time__convert_time": {
 				Kit:  "time",
 				Name: "convert_time",
 			},
 		},
-		McpServerUrl: serverUrl,
-		// McpServerTool: server,
 	}
 
 	resp, err := callMcpTool(context.TODO(), vars, "time__convert_time", map[string]interface{}{

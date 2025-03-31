@@ -214,3 +214,13 @@ func SetLogOutput(w io.Writer) {
 func init() {
 	SetLogLevel(Normal)
 }
+
+var trace bool
+
+func IsTrace() bool {
+	return trace
+}
+
+func SetTrace(b bool) {
+	trace = b
+}

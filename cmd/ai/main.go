@@ -59,8 +59,10 @@ func main() {
 		switch arg {
 		case "/help":
 			// trigger built-in help command
-			args = append([]string{"--help"}, os.Args[1:]...)
-			AgentCmd.SetArgs(args)
+			nArgs := append([]string{"--help"}, os.Args[1:]...)
+			AgentCmd.SetArgs(nArgs)
+			// for showing all config options as usual
+			initConfig()
 			if err := AgentCmd.Execute(); err != nil {
 				internal.Exit(err)
 			}

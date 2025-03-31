@@ -3,13 +3,13 @@ package swarm
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm/api"
-	resource "github.com/qiangli/ai/swarm/resource/agents"
 )
 
 type Swarm struct {
@@ -22,17 +22,24 @@ func New(vars *api.Vars) *Swarm {
 	}
 }
 
-var agentConfigMap = map[string][][]byte{}
+// var agentConfigMap = map[string][][]byte{}
 var agentToolMap = map[string]*api.ToolFunc{}
 
-func initToolAgents(app *api.AppConfig) error {
-	resourceMap := resource.AgentCommandMap
-	for k, v := range resourceMap {
-		agentConfigMap[k] = [][]byte{resource.CommonData, v.Data}
+func initAgentTools(app *api.AppConfig) error {
+	if len(agentRegistry) == 0 {
+		return fmt.Errorf("agent registry not initialized")
 	}
-
 	// skip internal as tool - e.g launch
-	for _, v := range resourceMap {
+	agents := make(map[string]*api.AgentConfig)
+	for _, v := range agentRegistry {
+		for _, agent := range v.Agents {
+			if v.Internal && !app.Internal {
+				continue
+			}
+			agents[agent.Name] = &agent
+		}
+	}
+	for _, v := range agents {
 		if !app.Internal && v.Internal {
 			continue
 		}
@@ -60,7 +67,7 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	if err := initDefaultAgents(app); err != nil {
 		return nil, err
 	}
-	if err := initToolAgents(app); err != nil {
+	if err := initAgentTools(app); err != nil {
 		return nil, err
 	}
 	if err := initTools(app); err != nil {
@@ -68,24 +75,7 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	}
 
 	//
-	vars.McpServerUrl = app.McpServerUrl
-
-	//
-	sysInfo, err := util.CollectSystemInfo()
-	if err != nil {
-		return nil, err
-	}
-
-	//
-	if app.Db != nil {
-		vars.DBCred = &api.DBCred{
-			Host:     app.Db.Host,
-			Port:     app.Db.Port,
-			Username: app.Db.Username,
-			Password: app.Db.Password,
-			DBName:   app.Db.DBName,
-		}
-	}
+	vars.Config = app
 
 	//
 	vars.Workspace = app.Workspace
@@ -94,6 +84,11 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	vars.Temp = app.Temp
 
 	//
+	sysInfo, err := util.CollectSystemInfo()
+	if err != nil {
+		return nil, err
+	}
+
 	vars.Arch = sysInfo.Arch
 	vars.OS = sysInfo.OS
 	vars.ShellInfo = sysInfo.ShellInfo
@@ -109,15 +104,14 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	vars.Models = modelMap
 
 	//
-	// vars.AgentConfigMap = agentConfigMap
+	vars.ResourceMap = make(map[string]*api.Resource)
 
-	vars.ResourceMap = resource.Prompts
 	vars.TemplateFuncMap = tplFuncMap
 	vars.AdviceMap = adviceMap
 	vars.EntrypointMap = entrypointMap
-	//
-	vars.FuncRegistry = funcRegistry
 
+	//
+	vars.AgentRegistry = agentRegistry
 	//
 	toolMap := make(map[string]*api.ToolFunc)
 	tools, err := listTools(app)
@@ -138,7 +132,6 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		if err != nil {
 			return err
 		}
-		// agent.sw = r
 
 		if agent.Entrypoint != nil {
 			if err := agent.Entrypoint(r.Vars, &api.Agent{
@@ -243,7 +236,9 @@ func (h *timeoutHandler) Serve(r *api.Request, w *api.Response) error {
 			}
 		}()
 
-		h.next.Serve(r, w)
+		if err := h.next.Serve(r, w); err != nil {
+			panicChan <- err
+		}
 
 		close(done)
 	}()

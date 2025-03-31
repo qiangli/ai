@@ -7,7 +7,11 @@ agents:
     description: "Enhance PR management with automated summaries, reviews, suggestions, and changelog updates."
     model: L1
     instruction:
-      content: "resource:pr_sub_system_role"
+      content: "resource:pr_sub_system_role.md"
+      type: "tpl"
+    resources:
+      - name: "pr_user_role.md"
+        content: "resource:pr_user_role.md"
     advices:
       around: "sub"
     functions:
@@ -17,49 +21,69 @@ agents:
     description: "Generate PR description - title, type, summary, code walkthrough and labels"
     model: L1
     instruction:
-      content: "resource:pr_describe_system_role"
+      content: "resource:pr_describe_system_role.md"
+      type: "tpl"
+    resources:
+      - name: "pr_describe_format.md"
+        content: "resource:pr_describe_format.md"
     entrypoint: pr_system_role_prompt
     advices:
       before: "pr_user_input"
       after: "pr_json_to_markdown"
     functions:
-      - "*"
+      - "shell:git"
+      - "system:*"
 
   - name: "pr/review"
     description: "Give feedback about the PR, possible issues, security concerns, review effort and more"
     model: L1
     instruction:
-      content: "resource:pr_review_system_role"
+      content: "resource:pr_review_system_role.md"
+      type: "tpl"
+    resources:
+      - name: "pr_review_format.md"
+        content: "resource:pr_review_format.md"
     entrypoint: pr_system_role_prompt
     advices:
       before: "pr_user_input"
       after: "pr_json_to_markdown"
     functions:
-      - "*"
+      - "shell:git"
+      - "system:*"
 
   - name: "pr/improve"
     description: "Provide code suggestions for improving the PR"
     model: L1
     instruction:
-      content: "resource:pr_improve_system_role"
+      content: "resource:pr_improve_system_role.md"
+      type: "tpl"
+    resources:
+      - name: "pr_improve_format.md"
+        content: "resource:pr_improve_format.md"
     entrypoint: pr_system_role_prompt
     advices:
       before: "pr_user_input"
       after: "pr_json_to_markdown"
     functions:
-      - "*"
+      - "shell:git"
+      - "system:*"
 
   - name: "pr/changelog"
     description: "Update the CHANGELOG.md file with the PR changes"
     model: L1
     instruction:
-      content: "resource:pr_changelog_system_role"
+      content: "resource:pr_changelog_system_role.md"
+      type: "tpl"
+    resources:
+      - name: "pr_changelog_format.md"
+        content: "resource:pr_changelog_format.md"
     entrypoint: pr_system_role_prompt
     advices:
       before: "pr_user_input"
       after: "pr_json_to_markdown"
     functions:
-      - "*"
+      - "shell:git"
+      - "system:*"
 
 models:
   - name: "L1"

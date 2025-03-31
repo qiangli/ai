@@ -22,14 +22,11 @@ type ServerConfig struct {
 	Port         int
 	Host         string
 	McpServerUrl string
+	Transport    string
 	Debug        bool
 }
 
-var port int
-var host string
-var mcpServerUrl string
-
-var mcpServer *server.MCPServer
+var config = &ServerConfig{}
 
 var serveCmd = &cobra.Command{
 	Use:                   "serve",
@@ -59,63 +56,53 @@ func RunServe(args []string) error {
 		return err
 	}
 
-	log.Debugf("config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.Db)
+	log.Debugf("config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.DBCred)
 
-	// TODO: Handle the cases local vs mcp
-	// toolsMap, err := agent.ListServiceTools(mcpServerUrl)
 	vars, err := swarm.InitVars(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to list tools: %v", err)
 	}
-	toolsMap := vars.ListTools()
 
-	mcpServer = server.NewMCPServer(
+	mcpServer := server.NewMCPServer(
 		"Stargate",
 		"1.0.0",
-		// server.WithResourceCapabilities(true, true),
-		// server.WithPromptCapabilities(true),
+		server.WithResourceCapabilities(false, false),
+		server.WithPromptCapabilities(false),
+		server.WithToolCapabilities(true),
 		server.WithLogging(),
 	)
 
-	// // Add tools
-	// var app = &api.AppConfig{}
-	// vars, err := swarm.InitVars(app)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to initialize vars: %v", err)
-	// }
-	// vars.ToolRegistry = make(map[string]*api.ToolFunc)
-	// vars.McpServerUrl = mcpServerUrl
-
+	toolsMap := vars.ListTools()
 	for i, v := range toolsMap {
 		log.Debugf("tool [%v]: %s %v\n", i, v.ID(), v)
 
-		if err := addTool(vars, v); err != nil {
+		if err := addTool(mcpServer, vars, v); err != nil {
 			log.Infof("failed to add tool [%v]: %v", i, err)
 		}
-
-		if _, ok := vars.ToolRegistry[v.ID()]; ok {
-			log.Infof("tool [%s] already exists, skipping...\n", v.ID())
-			continue
-		}
-		vars.ToolRegistry[v.ID()] = v
 	}
 
-	baseURL := fmt.Sprintf("http://%s:%v", host, port)
-	addr := fmt.Sprintf(":%v", port)
+	if config.Transport == "sse" {
+		baseURL := fmt.Sprintf("http://%s:%v", config.Host, config.Port)
+		addr := fmt.Sprintf(":%v", config.Port)
 
-	sse := server.NewSSEServer(mcpServer, server.WithBaseURL(baseURL))
+		sse := server.NewSSEServer(mcpServer, server.WithBaseURL(baseURL))
 
-	log.Infof("SSE server listening on :%d\n", port)
+		log.Infof("SSE server listening on :%d\n", config.Port)
 
-	if err := sse.Start(addr); err != nil {
-		return fmt.Errorf("server error: %v", err)
+		if err := sse.Start(addr); err != nil {
+			return fmt.Errorf("sse server error: %v", err)
+		}
+	} else {
+		if err := server.ServeStdio(mcpServer); err != nil {
+			return fmt.Errorf("stdio server error: %v", err)
+		}
 	}
 
 	return nil
 }
 
 func addMcpFlags(cmd *cobra.Command) {
-	var defaultPort = 58888
+	var defaultPort = 5048
 	if v := os.Getenv("AI_MCP_PORT"); v != "" {
 		fmt.Sscanf(v, "%d", &defaultPort)
 	}
@@ -123,18 +110,19 @@ func addMcpFlags(cmd *cobra.Command) {
 	flags := cmd.Flags()
 
 	// flags
-	flags.IntVar(&port, "port", defaultPort, "Port to run the server")
-	flags.StringVar(&host, "host", "localhost", "Host to bind the server")
+	flags.IntVar(&config.Port, "port", defaultPort, "Port to run the server")
+	flags.StringVar(&config.Host, "host", "localhost", "Host to bind the server")
 
-	flags.StringVar(&mcpServerUrl, "mcp-server-url", "http://localhost:58080/sse", "MCP server URL")
+	flags.Var(newTransportValue("sse", &config.Transport), "transport", "Transport protocol to use: sse or stdio")
+
+	flags.StringVar(&config.McpServerUrl, "mcp-server-url", "http://localhost:58080/sse", "MCP server URL")
 
 	//
 	flags.String("log", "", "Log all debugging information to a file")
 	flags.Bool("verbose", false, "Show debugging information")
-	flags.Bool("trace", false, "Trace API calls")
 }
 
-func addTool(vars *api.Vars, toolFunc *api.ToolFunc) error {
+func addTool(server *server.MCPServer, vars *api.Vars, toolFunc *api.ToolFunc) error {
 	toSchema := func(m map[string]any) mcp.ToolInputSchema {
 		var s mcp.ToolInputSchema
 		if m == nil {
@@ -188,7 +176,7 @@ func addTool(vars *api.Vars, toolFunc *api.ToolFunc) error {
 		return result, nil
 	}
 
-	mcpServer.AddTool(tool, handler)
+	server.AddTool(tool, handler)
 
 	return nil
 }

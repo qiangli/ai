@@ -2,12 +2,17 @@
 agents:
   - name: "workspace"
     description: "Determines the user's workspace based on user's input."
+    parameters:
+      type: "object"
+      properties:
+        workspace:
+          type: "string"
+          description: "The workspace to be resolved. optional, if provided, it will be used instead"
     model: L1
     instruction:
-      content: "resource:workspace_system_role"
+      content: "resource:workspace_system_role.md"
     advices:
       around: "resolve_workspace"
     functions:
       - "system:*"
-
 ###

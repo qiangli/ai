@@ -5,12 +5,46 @@ agents:
     description: "Create a polished document by integrating draft materials into the provided template."
     model: L2
     instruction:
-      content: "resource:doc_compose_system_role"
+      content: "resource:doc_compose_system_role.md"
+      type: "tpl"
     entrypoint: "doc_compose_entry"
     functions:
       - "system:*"
- 
+      - "mcp:gptr"
+    
+  - name: "doc/archive"
+    display: "📚 Archive"
+    description: "Compress or decompress files using various tools"
+    model: L1
+    instruction:
+      content: |
+        Your role is to facilitate file compression and decompression tasks based
+        on user instructions. Follow these guidelines:
+
+        + Compress files
+          When a user requests compression, identify the list of files and the
+          desired archive format (e.g., zip, tar.gz). Execute the compression 
+          using the appropriate tool with the given file paths and archive name.
+
+        + Decompress files
+          When a user requests decompression, identify the archive file and extract
+          its contents to the specified directory or current location. Utilize the
+          correct extraction command based on the archive type.
+
+        + Additional notes
+          Ensure you verify that the commands are executed correctly and notify the
+          user of the task status. Use the available tools in the environment and
+          handle any errors gracefully, providing users with informative feedback if
+          issues arise.
+      type: "text"
+    functions:
+      - "shell:archive"
+      - "system:*"
+
 models:
+  - name: "L1"
+    description: "Level 1 regular model"
+    external: true
   - name: "L2"
     description: "Level 2 regular model"
     external: true

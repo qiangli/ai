@@ -27,6 +27,11 @@ type CommandCheck struct {
 
 // evaluateCommand consults LLM to evaluate the safety of a command
 func evaluateCommand(ctx context.Context, vars *api.Vars, command string, args []string) (bool, error) {
+	if vars.Config.Unsafe {
+		log.Infof("⚠️ unsafe mode - skipping security check\n")
+		return true, nil
+	}
+
 	log.Infof("🔒 checking %s %+v\n", command, args)
 
 	instruction, err := applyTemplate(shellSecuritySystemRole, vars, nil)

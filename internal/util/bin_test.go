@@ -7,7 +7,7 @@ import (
 func TestListCommand(t *testing.T) {
 	list := ListCommands()
 	t.Log(list)
-	for _, cmd := range list {
-		t.Logf("command: %s, path: %s", cmd[0], cmd[1])
+	for k, v := range list {
+		t.Logf("command: %s, path: %s", k, v)
 	}
 }

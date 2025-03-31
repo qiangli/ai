@@ -1,5 +1,5 @@
 ###
-kit: "misc"
+kit: "io"
 
 tools:
   - name: "read_stdin"

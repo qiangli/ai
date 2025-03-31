@@ -304,7 +304,7 @@ func callMcpTool(ctx context.Context, vars *api.Vars, name string, args map[stri
 		return "", fmt.Errorf("no such mcp tool: %s", name)
 	}
 
-	server := NewMcpServerTool(vars.McpServerUrl)
+	server := NewMcpServerTool(vars.Config.McpServerUrl)
 
 	out, err := server.CallTool(ctx, v.ID(), args)
 	return out, err

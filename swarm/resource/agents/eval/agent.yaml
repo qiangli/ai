@@ -5,7 +5,7 @@ agents:
     display: "🐝 Eval"
     description: "Evaluate and test tools."
     instruction:
-      content: "resource:eval_system_role"
+      content: "resource:eval_system_role.md"
     model: L1
     functions:
       - "system:*"

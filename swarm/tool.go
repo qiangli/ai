@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,6 +21,8 @@ import (
 const (
 	ToolTypeSystem   = "system"
 	ToolTypeTemplate = "template"
+	ToolTypeShell    = "shell"
+	ToolTypeSql      = "sql"
 	ToolTypeMcp      = "mcp"
 	ToolTypeAgent    = "agent"
 	ToolTypeFunc     = "func"
@@ -31,7 +34,7 @@ var toolSystemCommands []string
 var systemTools []*api.ToolFunc
 
 func initTools(app *api.AppConfig) error {
-	config, err := LoadDefaultToolConfig(app)
+	config, err := LoadDefaultToolsConfig(app)
 	if err != nil {
 		log.Errorf("failed to load default tool config: %v", err)
 		return err
@@ -85,10 +88,24 @@ func listDefaultTools() []*api.ToolFunc {
 //go:embed resource/tools/*.yaml
 var resourceTools embed.FS
 
-func LoadDefaultToolConfig(app *api.AppConfig) (*api.ToolsConfig, error) {
-	const base = "resource/tools"
+type AssetStore interface {
+	ReadDir(name string) ([]fs.DirEntry, error)
+	ReadFile(name string) ([]byte, error)
+}
 
-	dirs, err := resourceTools.ReadDir(base)
+type FileStore struct {
+}
+
+func (fs *FileStore) ReadDir(name string) ([]fs.DirEntry, error) {
+	return os.ReadDir(name)
+}
+
+func (fs *FileStore) ReadFile(name string) ([]byte, error) {
+	return os.ReadFile(name)
+}
+
+func LoadToolsAsset(app *api.AppConfig, as AssetStore, base string) (*api.ToolsConfig, error) {
+	dirs, err := as.ReadDir(base)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read testdata directory: %v", err)
 	}
@@ -97,7 +114,7 @@ func LoadDefaultToolConfig(app *api.AppConfig) (*api.ToolsConfig, error) {
 		if dir.IsDir() {
 			continue
 		}
-		f, err := resourceTools.ReadFile(filepath.Join(base, dir.Name()))
+		f, err := as.ReadFile(filepath.Join(base, dir.Name()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to read tool file %s: %w", dir.Name(), err)
 		}
@@ -109,35 +126,13 @@ func LoadDefaultToolConfig(app *api.AppConfig) (*api.ToolsConfig, error) {
 	return LoadToolData(app, data)
 }
 
-func LoadToolConfig(app *api.AppConfig, base string) (*api.ToolsConfig, error) {
-	dirs, err := os.ReadDir(base)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read testdata directory: %v", err)
-	}
-
-	var files []string
-	for _, dir := range dirs {
-		if dir.IsDir() {
-			continue
-		}
-		files = append(files, filepath.Join(base, dir.Name()))
-	}
-	return LoadToolFiles(app, files)
+func LoadDefaultToolsConfig(app *api.AppConfig) (*api.ToolsConfig, error) {
+	return LoadToolsAsset(app, resourceTools, "resource/tools")
 }
 
-func LoadToolFiles(app *api.AppConfig, file []string) (*api.ToolsConfig, error) {
-	var data [][]byte
-	for _, f := range file {
-		d, err := os.ReadFile(f)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read tool file %s: %w", f, err)
-		}
-		if len(d) == 0 {
-			continue
-		}
-		data = append(data, d)
-	}
-	return LoadToolData(app, data)
+func LoadToolsConfig(app *api.AppConfig, base string) (*api.ToolsConfig, error) {
+	fs := &FileStore{}
+	return LoadToolsAsset(app, fs, base)
 }
 
 func LoadToolData(app *api.AppConfig, data [][]byte) (*api.ToolsConfig, error) {
@@ -150,7 +145,7 @@ func LoadToolData(app *api.AppConfig, data [][]byte) (*api.ToolsConfig, error) {
 		}
 		// skip internal tools
 		if tc.Internal && !app.Internal {
-			log.Debugf("Skipping internal tools: %v", tc)
+			log.Debugf("Skipping internal tools: %v\n", tc)
 			continue
 		}
 		// update kit if not set
@@ -243,14 +238,15 @@ func dispatchTool(ctx context.Context, vars *api.Vars, name string, args map[str
 		return &api.Result{
 			Value: out,
 		}, err
-	case ToolTypeTemplate:
+	case ToolTypeTemplate, ToolTypeShell, ToolTypeSql:
 		out, err := callTplTool(ctx, vars, v, args)
 		return &api.Result{
 			Value: out,
 		}, err
 	case ToolTypeFunc:
-		if fn, ok := vars.FuncRegistry[v.Name]; ok {
-			return fn(ctx, vars, v.Name, args)
+		// TODO
+		if v.Name == "agent_transfer" {
+			return callAgentTransfer(ctx, vars, v.Name, args)
 		}
 		out, err := callFuncTool(ctx, vars, v, args)
 		return &api.Result{
@@ -294,13 +290,6 @@ func listTools(app *api.AppConfig) ([]*api.ToolFunc, error) {
 	// system and misc tools
 	sysTools := listDefaultTools()
 	list = append(list, sysTools...)
-
-	// function tools
-	funcTools, err := ListFuncTools()
-	if err != nil {
-		return nil, err
-	}
-	list = append(list, funcTools...)
 
 	return list, nil
 }

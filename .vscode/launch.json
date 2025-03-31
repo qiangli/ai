@@ -50,8 +50,8 @@
 			},
 			"args": [
 				"/help",
-				"tools",
-				"--internal",
+				"agents",
+				// "--internal",
 				"--verbose",
 				"message",
 				"what is cooking",
@@ -84,7 +84,7 @@
 			"stopOnEntry": false,
 		},
 		{
-			"name": "Auto select agent",
+			"name": "Default (no agent)",
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
@@ -97,6 +97,27 @@
 			},
 			"args": [
 				"--verbose",
+				"--message",
+				"code review"
+			],
+			"showLog": false,
+			"stopOnEntry": false
+		},
+		{
+			"name": "Agent",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/ai/",
+			"env": {
+				"AI_MODEL": "gpt4o-mini",
+				"AI_API_KEY": "sk-1234",
+				"AI_BASE_URL": "http://localhost:4000",
+				"AI_DEBUG": "true",
+			},
+			"args": [
+				"--verbose",
+				"@agent",
 				"--message",
 				"generate a random password"
 			],
@@ -125,6 +146,27 @@
 			"stopOnEntry": false
 		},
 		{
+			"name": "Web",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/ai/",
+			"env": {
+				"AI_MODEL": "gpt4o-mini",
+				"AI_API_KEY": "sk-1234",
+				"AI_BASE_URL": "http://localhost:4000",
+				"AI_DEBUG": "true",
+			},
+			"args": [
+				"--verbose",
+				"@web",
+				"--message",
+				"what is the stock price of nvidia today"
+			],
+			"showLog": false,
+			"stopOnEntry": false
+		},
+		{
 			"name": "Script",
 			"type": "go",
 			"request": "launch",
@@ -139,6 +181,27 @@
 			"args": [
 				"--verbose",
 				"/rg",
+				"--message",
+				"find all cats and dogs in files ending in .go for the local repo"
+			],
+			"showLog": false,
+			"stopOnEntry": false
+		},
+		{
+			"name": "Find",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/ai/",
+			"env": {
+				"AI_MODEL": "gpt4o-mini",
+				"AI_API_KEY": "sk-1234",
+				"AI_BASE_URL": "http://localhost:4000",
+				"AI_DEBUG": "true",
+			},
+			"args": [
+				"--verbose",
+				"@find",
 				"--message",
 				"find all cats and dogs in files ending in .go for the local repo"
 			],
@@ -170,7 +233,7 @@
 			"stopOnEntry": false
 		},
 		{
-			"name": "Git message",
+			"name": "Git",
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
@@ -186,6 +249,27 @@
 				"@git/short",
 				"--message",
 				"write a short commit message for the code changes",
+			],
+			"showLog": false,
+			"stopOnEntry": false
+		},
+		{
+			"name": "PR",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/ai/",
+			"env": {
+				"AI_MODEL": "gpt4o-mini",
+				"AI_API_KEY": "sk-1234",
+				"AI_BASE_URL": "http://localhost:4000",
+				"AI_DEBUG": "true",
+			},
+			"args": [
+				"--verbose",
+				"@pr/review",
+				"--message",
+				"review the code changes",
 			],
 			"showLog": false,
 			"stopOnEntry": false

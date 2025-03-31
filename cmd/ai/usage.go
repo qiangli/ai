@@ -11,12 +11,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
-	resource "github.com/qiangli/ai/swarm/resource/agents"
 )
 
 const rootUsageTemplate = `AI Command Line Tool
@@ -150,22 +148,26 @@ func getHelpData(cmd *cobra.Command) *HelpData {
 }
 
 func Help(cmd *cobra.Command, args []string) error {
+	cfg, err := setupAppConfig(args)
+	if err != nil {
+		return err
+	}
+	vars, err := swarm.InitVars(cfg)
+	if err != nil {
+		return err
+	}
+
 	if len(args) > 0 {
-		cfg, err := internal.ParseConfig(args)
-		if err != nil {
-			return err
-		}
-		// agent.InitApp(cfg)
 		for _, v := range args {
 			switch v {
 			case "agents", "agent":
-				return HelpAgents(cfg)
+				return HelpAgents(vars)
 			case "commands", "command":
-				return HelpCommands(cfg)
+				return HelpCommands()
 			case "tools", "tool":
-				return HelpTools(cfg)
+				return HelpTools(vars)
 			case "info":
-				return HelpInfo(cfg)
+				return HelpInfo(vars)
 			}
 		}
 	}
@@ -192,7 +194,7 @@ func Help(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func HelpInfo(cfg *api.AppConfig) error {
+func HelpInfo(vars *api.Vars) error {
 	const format = `System info:
 
 %v
@@ -216,7 +218,7 @@ AI Environment:
 		return err
 	}
 
-	jc, err := json.MarshalIndent(cfg, "", "  ")
+	ac, err := json.MarshalIndent(vars.Config, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -231,18 +233,13 @@ AI Environment:
 	}
 	sort.Strings(filteredEnvs)
 
-	log.Infof(format, info, cfg.LLM.Model, cfg.LLM.BaseUrl, cfg.LLM.ApiKey, string(jc), strings.Join(filteredEnvs, "\n"))
+	cfg := vars.Config
+
+	log.Infof(format, info, cfg.LLM.Model, cfg.LLM.BaseUrl, cfg.LLM.ApiKey, string(ac), strings.Join(filteredEnvs, "\n"))
 	return nil
 }
 
-// func Setup(cfg *api.AppConfig) error {
-// 	if err := setupConfig(cfg); err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
-
-func HelpAgents(cfg *api.AppConfig) error {
+func HelpAgents(vars *api.Vars) error {
 	const format = `Available agents:
 
 %s
@@ -250,15 +247,21 @@ Total: %v
 
 Usage:
 
-ai @agent message...
+ai --agent AGENT MESSAGE...
+ai @AGENT        MESSAGE...
 
-Not sure which agent to use? Simply enter your message and AI will choose the most appropriate one for you.
+or
+
+ai MESSAGE...
+
+and AI will choose the most appropriate agent based on your message.
 `
-	dict := resource.AgentCommandMap
-	var keys []string
+	dict := vars.ListAgents()
+	keys := make([]string, 0)
 	for k := range dict {
 		keys = append(keys, k)
 	}
+
 	sort.Strings(keys)
 
 	var buf strings.Builder
@@ -273,9 +276,7 @@ Not sure which agent to use? Simply enter your message and AI will choose the mo
 	return nil
 }
 
-func HelpCommands(cfg *api.AppConfig) error {
-	list := util.ListCommands()
-
+func HelpCommands() error {
 	const listTpl = `Available commands on the system:
 
 %s
@@ -284,15 +285,18 @@ Total: %v
 
 Usage:
 
-ai /command message...
+ai /COMMAND MESSAGE...
 
 / is shorthand for  @script/
 `
-	commands := make([]string, len(list))
-	for i, v := range list {
-		commands[i] = fmt.Sprintf("%s: %s", v[0], strings.TrimSpace(v[1]))
+	list := util.ListCommands()
+
+	var commands []string
+	for k, v := range list {
+		commands = append(commands, fmt.Sprintf("%s: %s", k, v))
 	}
 	sort.Strings(commands)
+
 	log.Infof(listTpl, strings.Join(commands, "\n"), len(commands))
 	return nil
 }
@@ -309,7 +313,7 @@ func collectSystemInfo() (string, error) {
 	return string(jd), nil
 }
 
-func HelpTools(cfg *api.AppConfig) error {
+func HelpTools(vars *api.Vars) error {
 
 	const listTpl = `Available tools:
 
@@ -318,16 +322,25 @@ Total: %v
 
 Tools are used by agents to perform specific tasks. They are automatically selected based on the agent's capabilities and your input message.
 `
+	var subs = []string{"agent", "func", "mcp", "system", "template"}
+	var sub string
+	for _, v := range os.Args {
+		for _, s := range subs {
+			if strings.HasPrefix(s, v) {
+				sub = s
+				break
+			}
+		}
+	}
+
 	list := []string{}
 
-	vars, err := swarm.InitVars(cfg)
-	if err != nil {
-		return err
-	}
 	tools := vars.ListTools()
 
 	for _, v := range tools {
-		list = append(list, fmt.Sprintf("%s: %s: %s\n", v.Type, v.ID(), strings.TrimSpace(v.Description)))
+		if sub == "" || v.Type == sub {
+			list = append(list, fmt.Sprintf("%s: %s: %s\n", v.Type, v.ID(), strings.TrimSpace(v.Description)))
+		}
 	}
 
 	sort.Strings(list)

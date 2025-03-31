@@ -220,6 +220,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.Bool("quiet", false, "Operate quietly. Only show final response")
 	flags.Bool("verbose", false, "Show progress and debugging information")
 	flags.Bool("internal", false, "Enable internal agents and tools")
+	flags.Bool("unsafe", false, "Skip command security check to allow unsafe operations. Use with caution")
 
 	//
 	flags.String("role", "system", "Specify the role for the prompt")
@@ -272,5 +273,4 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("log")
 
 	flags.MarkHidden("interactive")
-	// flags.MarkHidden("no-meta-prompt")
 }

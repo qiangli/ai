@@ -5,9 +5,12 @@ agents:
     description: "Deliver concise, reliable answers on a wide range of topics."
     model: L1
     instruction:
-      content: "resource:eval_system_role"
+      content: "resource:ask_system_role.md"
     functions:
-      - "*"
+      - "list_agents"
+      - "agent_info"
+      - "agent_transfer"
+      - "agent:*"
 
 models:
   - name: "L1"

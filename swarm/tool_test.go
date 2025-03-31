@@ -6,11 +6,11 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-func TestLoadToolConfig(t *testing.T) {
+func TestLoadToolsConfig(t *testing.T) {
 	base := "resource/tools"
 
 	app := &api.AppConfig{}
-	config, err := LoadToolConfig(app, base)
+	config, err := LoadToolsConfig(app, base)
 	if err != nil {
 		t.Fatalf("failed to load tool files: %v", err)
 	}
@@ -26,9 +26,9 @@ func TestLoadToolConfig(t *testing.T) {
 	}
 }
 
-func TestLoadDefaultToolConfig(t *testing.T) {
+func TestLoadDefaultToolsConfig(t *testing.T) {
 	app := &api.AppConfig{}
-	config, err := LoadDefaultToolConfig(app)
+	config, err := LoadDefaultToolsConfig(app)
 	if err != nil {
 		t.Fatalf("failed to load default tool config: %v", err)
 	}

@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/vfs"
 	"github.com/qiangli/ai/swarm/vos"
@@ -18,6 +19,8 @@ var _fs vfs.FileSystem = &vfs.VirtualFS{}
 
 // runCommand executes a shell command with args and returns the output
 func runCommand(command string, args []string) (string, error) {
+	log.Debugf("🏃 %s (%d) %+v\n", command, len(args), args)
+
 	var out []byte
 	var err error
 	if len(args) == 0 {
@@ -27,9 +30,11 @@ func runCommand(command string, args []string) (string, error) {
 		out, err = _exec.Command(command, args...).CombinedOutput()
 	}
 	if err != nil {
-		// send error with out to assist LLM
-		return "", fmt.Errorf("%s %v: %v\n %s", command, args, err, out)
+		log.Errorf("❌ %s: %+v\n", command, err)
+		return "", fmt.Errorf("%v\n%s", err, clip(string(out), 500))
 	}
+
+	log.Debugf("🎉 %s: %s\n", command, out)
 	return string(out), nil
 }
 

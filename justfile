@@ -31,3 +31,7 @@ git-amend: git-message
 
 install: build test
     go install ./cmd/ai
+
+# Update all dependencies
+update:
+    go get -u ./...

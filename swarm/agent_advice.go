@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm"
-	resource "github.com/qiangli/ai/swarm/resource/agents"
 	pr "github.com/qiangli/ai/swarm/resource/agents/pr"
 )
 
@@ -37,11 +37,12 @@ func scriptUserInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ 
 	if cmd != "" {
 		cmd = filepath.Base(cmd)
 	}
-	tpl, ok := resource.Prompts["script_user_role"]
-	if !ok {
-		return fmt.Errorf("no such prompt: script_user_role")
+
+	tpl, err := vars.Resource(req.Agent, "script_user_role.md")
+	if err != nil {
+		return err
 	}
-	content, err := applyDefaultTemplate(tpl, map[string]any{
+	content, err := applyDefaultTemplate(string(tpl), map[string]any{
 		"Command": cmd,
 		"Message": in.Query(),
 	})
@@ -59,20 +60,19 @@ func scriptUserInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ 
 
 // PR user input before advice
 func prUserInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ api.Advice) error {
-	in := req.RawInput
-
-	tpl, ok := resource.Prompts["pr_user_role"]
-	if !ok {
-		return fmt.Errorf("no such prompt: script_user_role")
+	tpl, err := vars.Resource(req.Agent, "pr_user_role.md")
+	if err != nil {
+		return err
 	}
 
+	in := req.RawInput
 	data := map[string]any{
 		"instruction": in.Message,
 		"diff":        in.Content,
 		"changelog":   "", // TODO: add changelog
 		"today":       time.Now().Format("2006-01-02"),
 	}
-	content, err := applyDefaultTemplate(tpl, data)
+	content, err := applyDefaultTemplate(string(tpl), data)
 	if err != nil {
 		return err
 	}
@@ -87,19 +87,27 @@ func prUserInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ api.
 
 // PR format after advice
 func prFormatAdvice(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
-	name := baseCommand(req.Agent)
-	var tplName = fmt.Sprintf("pr_%s_format", name)
-	tpl, ok := resource.Prompts[tplName]
-	if !ok {
-		return fmt.Errorf("no such prompt resource: %s", tplName)
+	cmd := req.Command
+	if cmd == "" {
+		parts := strings.SplitN(req.Agent, "/", 2)
+		if len(parts) != 2 {
+			return fmt.Errorf("invalid agent: %s", req.Agent)
+		}
+		cmd = parts[1]
 	}
+	var tplName = fmt.Sprintf("pr_%s_format.md", cmd)
+	b, err := vars.Resource(req.Agent, tplName)
+	if err != nil {
+		return err
+	}
+	tpl := string(b)
 
 	formatPrDescription := func(resp string) (string, error) {
 		var data pr.PRDescription
 		if err := tryUnmarshal(resp, &data); err != nil {
 			return "", fmt.Errorf("error unmarshaling response: %w", err)
 		}
-		return applyDefaultTemplate(tpl, &data)
+		return applyDefaultTemplate(string(tpl), &data)
 	}
 	formatPrCodeSuggestion := func(resp string) (string, error) {
 		var data pr.PRCodeSuggestions
@@ -124,8 +132,8 @@ func prFormatAdvice(vars *api.Vars, req *api.Request, resp *api.Response, _ api.
 
 	msg := resp.LastMessage()
 	var content = msg.Content
-	var err error
-	switch name {
+	// var err error
+	switch cmd {
 	case "describe":
 		content, err = formatPrDescription(content)
 	case "review":
@@ -135,7 +143,7 @@ func prFormatAdvice(vars *api.Vars, req *api.Request, resp *api.Response, _ api.
 	case "changelog":
 		content, err = formatPrChangelog(content)
 	default:
-		return fmt.Errorf("unknown agent/subcommand: %s", name)
+		return fmt.Errorf("unknown agent command: %s for %s", cmd, req.Agent)
 	}
 	if err != nil {
 		return err
@@ -186,10 +194,16 @@ func imageParamsAdvice(vars *api.Vars, req *api.Request, resp *api.Response, nex
 		return nil
 	}
 	ctx := req.Context()
+
+	content, err := vars.Resource(req.Agent, "image_param_system_role.md")
+	if err != nil {
+		return err
+	}
+
 	var msgs = []*api.Message{
 		{
 			Role:    api.RoleSystem,
-			Content: resource.Prompts["image_param_system_role"],
+			Content: string(content),
 		},
 		{
 			Role:    api.RoleUser,
@@ -253,6 +267,58 @@ func chdirFormatPathAdvice(vars *api.Vars, _ *api.Request, resp *api.Response, _
 	msg.Content = v.Directory
 
 	log.Debugf("chdir_format_path: %+v\n", v)
+
+	return nil
+}
+
+const missingWorkspace = "Please specify a workspace base directory."
+
+type WorkspaceCheck struct {
+	WorkspaceBase string `json:"workspace_base"`
+	Detected      bool   `json:"detected"`
+}
+
+// resolveWorkspaceAdvice resolves the workspace base path.
+// Detect the workspace from the input using LLM.
+func resolveWorkspaceAdvice(vars *api.Vars, req *api.Request, resp *api.Response, next api.Advice) error {
+	tpl, err := vars.Resource(req.Agent, "workspace_user_role.md")
+	if err != nil {
+		return err
+	}
+
+	query, err := applyDefaultTemplate(string(tpl), map[string]string{
+		"Input": req.RawInput.Intent(),
+	})
+	if err != nil {
+		return err
+	}
+
+	msg := &api.Message{
+		Role:    api.RoleUser,
+		Content: query,
+		Sender:  req.Agent,
+	}
+	req.Message = msg
+	if err := next(vars, req, resp, next); err != nil {
+		return err
+	}
+	result := resp.LastMessage()
+
+	var wsCheck WorkspaceCheck
+	if err := json.Unmarshal([]byte(result.Content), &wsCheck); err != nil {
+		return fmt.Errorf("%s: %w", missingWorkspace, err)
+	}
+	if !wsCheck.Detected {
+		return fmt.Errorf("%s", missingWorkspace)
+	}
+
+	log.Debugf("workspace check: %+v\n", wsCheck)
+
+	workspace := wsCheck.WorkspaceBase
+
+	log.Infof("Workspace to use: %s\n", workspace)
+
+	vars.Extra["workspace_base"] = workspace
 
 	return nil
 }

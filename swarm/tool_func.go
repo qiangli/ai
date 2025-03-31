@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os/exec"
 	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/qiangli/ai/internal/log"
@@ -23,83 +24,136 @@ func Default(def, value any) any {
 	return value
 }
 
+// Spread concatenates the elements to create a single string.
+func Spread(val any) string {
+	if val == nil {
+		return ""
+	}
+	var result = ""
+	var items []string
+	items, ok := val.([]string)
+	if !ok {
+		ar, ok := val.([]any)
+		if ok {
+			for _, v := range ar {
+				if s, ok := v.(string); ok {
+					items = append(items, s)
+				} else {
+					return fmt.Sprintf("%v", v)
+				}
+			}
+		} else {
+			return fmt.Sprintf("%v", val)
+		}
+	}
+
+	for _, v := range items {
+		if result != "" {
+			result += " "
+		}
+		item := fmt.Sprintf("%v", v)
+		// Escape double quotes and quote item if it contains spaces
+		if strings.Contains(item, " ") {
+			item = "\"" + strings.ReplaceAll(item, "\"", "\\\"") + "\""
+		} else {
+			item = strings.ReplaceAll(item, "\"", "\\\"")
+		}
+
+		result += item
+	}
+	return result
+}
+
 func callTplTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (string, error) {
 	funcMap := map[string]any{
 		"join":    strings.Join,
 		"split":   strings.Split,
 		"trim":    strings.TrimSpace,
 		"default": Default,
+		"spread":  Spread,
 	}
 
-	runCmd := func(cmd string, args ...any) string {
-		nArgs := []string{}
-		for _, arg := range args {
-			switch v := arg.(type) {
-			case string:
-				v = strings.TrimSpace(v)
-				if v != "" {
-					nArgs = append(nArgs, v)
-				}
-			case int:
-				nArgs = append(nArgs, fmt.Sprintf("%d", v))
-			case int64:
-				nArgs = append(nArgs, fmt.Sprintf("%d", v))
-			case float64:
-				nArgs = append(nArgs, fmt.Sprintf("%f", v))
-			case bool:
-				if v {
-					nArgs = append(nArgs, "true")
-				} else {
-					nArgs = append(nArgs, "false")
-				}
-			case []string:
-				for _, s := range v {
-					s = strings.TrimSpace(s)
-					if s != "" {
-						nArgs = append(nArgs, s)
-					}
-				}
-			case []any:
-				for _, item := range v {
-					switch i := item.(type) {
-					case string:
-						i = strings.TrimSpace(i)
-						if i != "" {
-							nArgs = append(nArgs, i)
-						}
-					case int:
-						nArgs = append(nArgs, fmt.Sprintf("%d", i))
-					case int64:
-						nArgs = append(nArgs, fmt.Sprintf("%d", i))
-					case float64:
-						nArgs = append(nArgs, fmt.Sprintf("%f", i))
-					case bool:
-						if i {
-							nArgs = append(nArgs, "true")
-						} else {
-							nArgs = append(nArgs, "false")
-						}
-					case nil:
-						// Ignore nil values
-					default:
-						return fmt.Sprintf("Unsupported item type in []interface{} for command %s: %T\n", cmd, i)
-					}
-				}
-			case nil:
-				// Ignore nil values
-			default:
-				return fmt.Sprintf("Unsupported argument type for command %s: %T\n", cmd, v)
-			}
-		}
-		log.Debugf("Running command: %s %+v original: %+v\n", cmd, nArgs, args)
-		result, err := runCommand(cmd, nArgs)
+	runCmd := func(cmd string, args ...string) (string, error) {
+		// nArgs := []string{}
+		// for _, arg := range args {
+		// 	switch v := arg.(type) {
+		// 	case string:
+		// 		v = strings.TrimSpace(v)
+		// 		if v != "" {
+		// 			nArgs = append(nArgs, v)
+		// 		}
+		// 	case int:
+		// 		nArgs = append(nArgs, fmt.Sprintf("%d", v))
+		// 	case int64:
+		// 		nArgs = append(nArgs, fmt.Sprintf("%d", v))
+		// 	case float64:
+		// 		nArgs = append(nArgs, fmt.Sprintf("%f", v))
+		// 	case bool:
+		// 		if v {
+		// 			nArgs = append(nArgs, "true")
+		// 		} else {
+		// 			nArgs = append(nArgs, "false")
+		// 		}
+		// 	case []string:
+		// 		for _, s := range v {
+		// 			s = strings.TrimSpace(s)
+		// 			if s != "" {
+		// 				nArgs = append(nArgs, s)
+		// 			}
+		// 		}
+		// 	case []any:
+		// 		for _, item := range v {
+		// 			switch i := item.(type) {
+		// 			case string:
+		// 				i = strings.TrimSpace(i)
+		// 				if i != "" {
+		// 					nArgs = append(nArgs, i)
+		// 				}
+		// 			case int:
+		// 				nArgs = append(nArgs, fmt.Sprintf("%d", i))
+		// 			case int64:
+		// 				nArgs = append(nArgs, fmt.Sprintf("%d", i))
+		// 			case float64:
+		// 				nArgs = append(nArgs, fmt.Sprintf("%f", i))
+		// 			case bool:
+		// 				if i {
+		// 					nArgs = append(nArgs, "true")
+		// 				} else {
+		// 					nArgs = append(nArgs, "false")
+		// 				}
+		// 			case nil:
+		// 				// Ignore nil values
+		// 			default:
+		// 				return "", fmt.Errorf("unsupported item type in []any for command %s: %T", cmd, item)
+		// 			}
+		// 		}
+		// 	case nil:
+		// 		// Ignore nil values
+		// 	default:
+		// 		return "", fmt.Errorf("unsupported argument type for command %s: %T", cmd, v)
+		// 	}
+		// }
+
+		// log.Debugf("command: %s %+v (%d) original: %+v (%d)\n", cmd, nArgs, len(nArgs), args, len(args))
+
+		// TODO args from LLM are not reliable.
+		// result, err := runCommand(cmd, nArgs)
+		// if err != nil {
+		// 	if len(args) == 1 {
+		// 		cmdline := fmt.Sprintf("%s %s", cmd, strings.Join(nArgs, " "))
+		// 		result, err = runCommand(cmdline, nil)
+		// 	}
+		// }
+
+		result, err := runCommand(cmd, args)
+
 		if err != nil {
-			return fmt.Sprintf("%s %s: %s", cmd, strings.Join(nArgs, " "), err.Error())
+			return result, err
 		}
 		if result == "" {
-			return fmt.Sprintf("%s executed successfully", cmd)
+			return fmt.Sprintf("%s executed successfully", cmd), nil
 		}
-		return result
+		return result, nil
 	}
 
 	// Add system commands to the function map
@@ -108,7 +162,7 @@ func callTplTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[
 			log.Errorf("%s not found in PATH", v)
 			continue
 		}
-		funcMap[v] = func(args ...any) string {
+		funcMap[v] = func(args ...string) (string, error) {
 			return runCmd(v, args...)
 		}
 	}
@@ -119,15 +173,23 @@ func callTplTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[
 	if f.Body != "" {
 		body, err = applyTemplate(f.Body, args, funcMap)
 		if err != nil {
-			return "", fmt.Errorf("failed to apply function body %s: %w", f.Name, err)
+			return "", err
 		}
 	}
 
 	switch f.Type {
-	case "template":
+	case ToolTypeTemplate:
 		return body, nil
-	case "shell":
-		return runRestricted(ctx, vars, body, []string{})
+	case ToolTypeSql:
+		cred, err := dbCred(vars, args)
+		if err != nil {
+			return "", err
+		}
+		return sqlQuery(ctx, cred, body)
+	case ToolTypeShell:
+		cmdline := strings.TrimSpace(body)
+		return runCommand(cmdline, nil)
+		// return runRestricted(ctx, vars, body, []string{})
 	}
 
 	return "", fmt.Errorf("unknown function type %s for tool %s", f.Type, f.Name)
@@ -410,6 +472,45 @@ func (r *FuncKit) FetchContent(ctx context.Context, vars *api.Vars, name string,
 		return "", err
 	}
 	return webtool.Fetch(ctx, link)
+}
+
+func (r *FuncKit) ListAgents(ctx context.Context, vars *api.Vars, _ string, _ map[string]any) (string, error) {
+	var list []string
+	dict := vars.ListAgents()
+	for k, v := range dict {
+		list = append(list, fmt.Sprintf("%s: %s", k, v.Description))
+	}
+
+	sort.Strings(list)
+	return fmt.Sprintf("Available agents:\n%s\n", strings.Join(list, "\n")), nil
+}
+
+func (r *FuncKit) AgentInfo(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
+	agent, err := GetStrProp("agent", args)
+	if err != nil {
+		return "", err
+	}
+	dict := vars.ListAgents()
+	if v, ok := dict[agent]; ok {
+		return fmt.Sprintf("Agent: %s\nDescription: %s\n", v.Name, v.Description), nil
+	}
+	return "", fmt.Errorf("unknown agent: %s", agent)
+}
+
+// TODO
+func callAgentTransfer(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	agent, err := GetStrProp("agent", args)
+	if err != nil {
+		return nil, err
+	}
+	dict := vars.ListAgents()
+	if _, ok := dict[agent]; ok {
+		return &api.Result{
+			NextAgent: agent,
+			State:     api.StateTransfer,
+		}, nil
+	}
+	return nil, fmt.Errorf("unknown agent: %s", agent)
 }
 
 // Search the web using DuckDuckGo.

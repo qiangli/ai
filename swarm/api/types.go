@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"strings"
 )
 
 // type UserInput = api.UserInput
@@ -38,7 +39,7 @@ type Vars struct {
 	// It can be "container" for Docker containers or "host" for the host machine
 	EnvType string `json:"env_type"`
 
-	DBCred *DBCred
+	// DBCred *DBCred `json:"db"`
 
 	Roots []string `json:"roots"`
 
@@ -47,17 +48,18 @@ type Vars struct {
 
 	Models map[Level]*Model `json:"models"`
 
-	McpServerUrl string `json:"mcp_server_url"`
+	// McpServerUrl string `json:"mcp_server_url"`
 
 	//
 	// FS            vfs.FileSystem
 	// McpServerTool *McpServerTool
 
-	ToolRegistry map[string]*ToolFunc `json:"tool_registry"`
-	FuncRegistry map[string]Function  `json:"func_registry"`
+	ToolRegistry  map[string]*ToolFunc     `json:"tool_registry"`
+	AgentRegistry map[string]*AgentsConfig `json:"agent_registry"`
 
-	//
-	ResourceMap     map[string]string
+	// agent -> Resources
+	ResourceMap map[string]*Resource
+
 	AdviceMap       map[string]Advice
 	EntrypointMap   map[string]Entrypoint
 	TemplateFuncMap TemplateFuncMap
@@ -66,12 +68,45 @@ type Vars struct {
 	History []*Message
 }
 
+func (r *Vars) Resource(agent, name string) ([]byte, error) {
+	key := strings.SplitN(agent, "/", 2)[0]
+	res, ok := r.ResourceMap[key]
+	if !ok {
+		return nil, fmt.Errorf("no resource found for %q", agent)
+	}
+	b, err := res.Content(name)
+	if err != nil {
+		return nil, fmt.Errorf("error loading %s for %s: %w", name, agent, err)
+	}
+	return b, nil
+}
+
+type Resource struct {
+	ID string `json:"id"`
+
+	// key: scheme:path.type
+	Content func(string) ([]byte, error) `json:"content"`
+}
+
 func (r *Vars) ListTools() []*ToolFunc {
 	tools := make([]*ToolFunc, 0, len(r.ToolRegistry))
 	for _, tool := range r.ToolRegistry {
 		tools = append(tools, tool)
 	}
 	return tools
+}
+
+func (r *Vars) ListAgents() map[string]*AgentConfig {
+	agents := make(map[string]*AgentConfig)
+	for _, v := range r.AgentRegistry {
+		for _, agent := range v.Agents {
+			if v.Internal && !r.Config.Internal {
+				continue
+			}
+			agents[agent.Name] = &agent
+		}
+	}
+	return agents
 }
 
 func NewVars() *Vars {
@@ -112,8 +147,9 @@ type Advice func(*Vars, *Request, *Response, Advice) error
 type Entrypoint func(*Vars, *Agent, *UserInput) error
 
 type Agent struct {
-	Name    string
-	Display string
+	Name        string
+	Display     string
+	Description string
 }
 
 type Request struct {

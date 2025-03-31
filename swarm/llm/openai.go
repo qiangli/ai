@@ -15,75 +15,23 @@ import (
 )
 
 // https://github.com/openai/openai-go/tree/main/examples
-
-func define(name, description string, parameters map[string]any) openai.ChatCompletionToolParam {
+func defineTool(name, description string, parameters map[string]any) openai.ChatCompletionToolParam {
 	return openai.ChatCompletionToolParam{
-		Type: openai.F(openai.ChatCompletionToolTypeFunction),
-		Function: openai.F(openai.FunctionDefinitionParam{
-			Name:        openai.String(name),
+		Function: openai.FunctionDefinitionParam{
+			Name:        name,
 			Description: openai.String(description),
-			Parameters:  openai.F(openai.FunctionParameters(parameters)),
-		}),
+			Parameters:  openai.FunctionParameters(parameters),
+		},
 	}
 }
 
-func NewClient(apiKey, baseUrl string) *openai.Client {
+func NewClient(apiKey, baseUrl string) openai.Client {
 	client := openai.NewClient(
 		option.WithAPIKey(apiKey),
 		option.WithBaseURL(baseUrl),
 		option.WithMiddleware(log.Middleware(internal.DryRun, internal.DryRunContent)),
 	)
 	return client
-}
-
-// https://platform.openai.com/docs/guides/text-generation#developer-messages
-func buildRoleMessage(role string, content string) openai.ChatCompletionMessageParamUnion {
-	switch role {
-	case "system":
-		return openai.SystemMessage(content)
-	case "assistant":
-		return openai.AssistantMessage(content)
-	case "user":
-		return openai.UserMessage(content)
-	case "tool":
-		return openai.ToolMessage("", content)
-	// case "function":
-	// 	return openai.FunctionMessage("", content)
-	case "developer":
-		// return DeveloperMessage(content)
-		return openai.SystemMessage(content)
-	default:
-		return nil
-	}
-}
-
-func buildMessage(id string, role string, content string) openai.ChatCompletionMessageParamUnion {
-	switch role {
-	case "system":
-		return openai.SystemMessage(content)
-	case "assistant":
-		return openai.AssistantMessage(content)
-	case "user":
-		return openai.UserMessage(content)
-	case "tool":
-		return openai.ToolMessage(id, content)
-	// case "function":
-	// 	return openai.FunctionMessage("", content)
-	case "developer":
-		// return DeveloperMessage(content)
-		return openai.SystemMessage(content)
-	default:
-		return nil
-	}
-}
-
-func DeveloperMessage(content string) openai.ChatCompletionMessageParamUnion {
-	return openai.ChatCompletionDeveloperMessageParam{
-		Role: openai.F(openai.ChatCompletionDeveloperMessageParamRoleDeveloper),
-		Content: openai.F([]openai.ChatCompletionContentPartTextParam{
-			openai.TextPart(content),
-		}),
-	}
 }
 
 func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
@@ -109,26 +57,39 @@ func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 }
 
 func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
-	messages := make([]openai.ChatCompletionMessageParamUnion, 0)
-	for _, v := range req.Messages {
-		msg := buildMessage("", v.Role, v.Content)
-		messages = append(messages, msg)
-	}
-
 	client := NewClient(req.ApiKey, req.BaseUrl)
 
 	params := openai.ChatCompletionNewParams{
-		Messages: openai.F(messages),
-		Seed:     openai.Int(0),
-		Model:    openai.F(req.Model),
+		Seed:  openai.Int(0),
+		Model: req.Model,
 	}
 
-	if len(req.Tools) > 0 {
-		tools := make([]openai.ChatCompletionToolParam, 0)
-		for _, f := range req.Tools {
-			tools = append(tools, define(f.ID(), f.Description, f.Parameters))
+	var messages []openai.ChatCompletionMessageParamUnion
+	for _, v := range req.Messages {
+		// https://platform.openai.com/docs/guides/text-generation#developer-messages
+		switch v.Role {
+		case "system":
+			messages = append(messages, openai.SystemMessage(v.Content))
+		case "assistant":
+			messages = append(messages, openai.AssistantMessage(v.Content))
+		case "user":
+			messages = append(messages, openai.UserMessage(v.Content))
+		// case "tool":
+		// 	return openai.ToolMessage(content, id), nil
+		case "developer":
+			messages = append(messages, openai.DeveloperMessage(v.Content))
+		default:
+			return nil, fmt.Errorf("role not supported: %s", v.Role)
 		}
-		params.Tools = openai.F(tools)
+	}
+	params.Messages = messages
+
+	if len(req.Tools) > 0 {
+		var tools []openai.ChatCompletionToolParam
+		for _, f := range req.Tools {
+			tools = append(tools, defineTool(f.ID(), f.Description, f.Parameters))
+		}
+		params.Tools = tools
 	}
 
 	maxTurns := req.MaxTurns
@@ -138,8 +99,8 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	resp := &api.LLMResponse{}
 
 	for tries := range maxTurns {
-		log.Debugf("*** sending request to %s ***: %v of %v\n", req.BaseUrl, tries, maxTurns)
-		for _, v := range params.Messages.Value {
+		log.Debugf("📡 *** sending request to %s ***: %v of %v\n", req.BaseUrl, tries, maxTurns)
+		for _, v := range params.Messages {
 			log.Debugf(">>> message: %+v\n", v)
 		}
 
@@ -160,8 +121,7 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 			break
 		}
 
-		params.Messages.Value = append(params.Messages.Value, completion.Choices[0].Message)
-
+		params.Messages = append(params.Messages, completion.Choices[0].Message.ToParam())
 		for i, toolCall := range toolCalls {
 			var name = toolCall.Function.Name
 			var props map[string]interface{}
@@ -189,7 +149,8 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 			if out.State == api.StateTransfer {
 				return resp, nil
 			}
-			params.Messages.Value = append(params.Messages.Value, openai.ToolMessage(toolCall.ID, out.Value))
+
+			params.Messages = append(params.Messages, openai.ToolMessage(out.Value, toolCall.ID))
 		}
 	}
 
@@ -244,12 +205,12 @@ func generateImage(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, 
 	}
 
 	image, err := client.Images.Generate(ctx, openai.ImageGenerateParams{
-		Prompt:         openai.String(prompt),
-		Model:          openai.F(model),
-		ResponseFormat: openai.F(imageFormat),
-		Quality:        openai.F(imageQuality),
-		Size:           openai.F(imageSize),
-		Style:          openai.F(imageStyle),
+		Prompt:         prompt,
+		Model:          model,
+		ResponseFormat: imageFormat,
+		Quality:        imageQuality,
+		Size:           imageSize,
+		Style:          imageStyle,
 		N:              openai.Int(1),
 	})
 	if err != nil {

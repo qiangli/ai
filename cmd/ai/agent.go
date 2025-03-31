@@ -72,23 +72,10 @@ func init() {
 }
 
 func Run(cmd *cobra.Command, args []string) error {
-	cfg, err := internal.ParseConfig(args)
+	cfg, err := setupAppConfig(args)
 	if err != nil {
 		return err
 	}
-
-	log.Debugf("Config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.Db)
-
-	fileLog, err := setLogOutput(cfg.Log)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if fileLog != nil {
-			fileLog.Close()
-		}
-	}()
-	setLogLevel(cfg)
 
 	// watch
 	if cfg.Watch {
@@ -141,4 +128,26 @@ func setLogOutput(path string) (*log.FileWriter, error) {
 		return f, nil
 	}
 	return nil, nil
+}
+
+func setupAppConfig(args []string) (*api.AppConfig, error) {
+	cfg, err := internal.ParseConfig(args)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Debugf("Config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.DBCred)
+
+	fileLog, err := setLogOutput(cfg.Log)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if fileLog != nil {
+			fileLog.Close()
+		}
+	}()
+	setLogLevel(cfg)
+
+	return cfg, nil
 }
