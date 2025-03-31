@@ -1,10 +1,4 @@
 ###
-# user:
-#   name: "test"
-#   display: "👤 Tester"
-
-# maxTurns: 32
-# maxTime: 3600
 
 agents:
   - name: "eval"

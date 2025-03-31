@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/swarm/agent/resource"
 	"github.com/qiangli/ai/swarm/api"
+	resource "github.com/qiangli/ai/swarm/resource/agents"
 )
 
 const missingWorkspace = "Please specify a workspace base directory."
@@ -73,19 +73,6 @@ func resolveWorkspaceAdvice(vars *api.Vars, req *api.Request, resp *api.Response
 	workspace := wsCheck.WorkspaceBase
 
 	log.Infof("Workspace to use: %s\n", workspace)
-
-	// // check if the workspace path or any of its parent contains a git repository
-	// // if so, use the git repository as the workspace
-	// workspace, err = util.DetectGitRepo(workspace)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// workspace, err = util.ResolveWorkspace(workspace)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to resolve workspace: %w", err)
-	// }
-	// vars.Workspace = workspace
 
 	vars.Extra["workspace_base"] = workspace
 

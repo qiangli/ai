@@ -183,7 +183,7 @@
 			},
 			"args": [
 				"--verbose",
-				"@git",
+				"@git/short",
 				"--message",
 				"write a short commit message for the code changes",
 			],

@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/swarm/agent/resource"
-	"github.com/qiangli/ai/swarm/agent/resource/pr"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm"
+	resource "github.com/qiangli/ai/swarm/resource/agents"
+	pr "github.com/qiangli/ai/swarm/resource/agents/pr"
 )
 
 var adviceMap = map[string]api.Advice{}
@@ -28,63 +28,6 @@ func init() {
 	adviceMap["image_params"] = imageParamsAdvice
 	adviceMap["chdir_format_path"] = chdirFormatPathAdvice
 }
-
-// type AgentDetect struct {
-// 	Agent   string `json:"agent"`
-// 	Command string `json:"command"`
-// }
-
-// // agent after advice
-// func agentLaunchAdvice(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
-// 	var v AgentDetect
-// 	msg := resp.LastMessage()
-// 	if msg == nil {
-// 		return fmt.Errorf("invalid response: no message")
-// 	}
-
-// 	if err := json.Unmarshal([]byte(msg.Content), &v); err != nil {
-// 		log.Debugf("decode_meta_response error: %v", err)
-// 		return nil
-// 	}
-
-// 	//
-// 	req.RawInput.Command = v.Command
-// 	//
-// 	resp.Result = &api.Result{
-// 		State:     api.StateTransfer,
-// 		NextAgent: v.Agent,
-// 	}
-
-// 	log.Debugf("dispatching: %+v\n", v)
-
-// 	return nil
-// }
-
-// type metaResponse struct {
-// 	Service    string `json:"service"`
-// 	RolePrompt string `json:"system_role_prompt"`
-// }
-
-// // meta prompt after advice
-// func decodeMetaResponseAdvice(vars *api.Vars, _ *api.Request, resp *api.Response, _ api.Advice) error {
-// 	var v metaResponse
-// 	msg := resp.LastMessage()
-// 	if msg == nil {
-// 		return fmt.Errorf("invalid response: no message")
-// 	}
-
-// 	if err := json.Unmarshal([]byte(msg.Content), &v); err != nil {
-// 		log.Debugf("decode_meta_response error: %v", err)
-// 		return nil
-// 	}
-
-// 	vars.Extra["service"] = v.Service
-// 	vars.Extra["system_role_prompt"] = v.RolePrompt
-
-// 	log.Debugf("decode_meta_response: %+v\n", v)
-
-// 	return nil
-// }
 
 // script user input before advice
 func scriptUserInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ api.Advice) error {

@@ -7,8 +7,8 @@ import (
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/db"
 	"github.com/qiangli/ai/internal/docker/gptr"
-	"github.com/qiangli/ai/swarm/agent/resource"
 	"github.com/qiangli/ai/swarm/api"
+	resource "github.com/qiangli/ai/swarm/resource/agents"
 )
 
 var entrypointMap = map[string]api.Entrypoint{}

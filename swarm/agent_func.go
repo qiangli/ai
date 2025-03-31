@@ -14,8 +14,8 @@ import (
 	"github.com/qiangli/ai/internal/docker/gptr"
 	"github.com/qiangli/ai/internal/docker/oh"
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/swarm/agent/resource"
 	"github.com/qiangli/ai/swarm/api"
+	resource "github.com/qiangli/ai/swarm/resource/agents"
 )
 
 // builtin functions

@@ -8,31 +8,12 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
-	"github.com/qiangli/ai/swarm/agent/resource"
 	"github.com/qiangli/ai/swarm/api"
+	resource "github.com/qiangli/ai/swarm/resource/agents"
 )
 
 type Swarm struct {
-	// AppConfig *api.AppConfig
-
-	// History []*api.Message
 	Vars *api.Vars
-	// Stream  bool
-
-	//
-	// Config *api.AgentsConfig
-
-	//
-	// DryRun        bool
-	// DryRunContent string
-
-	// map of agent name to the agent configuration data.
-	// AgentConfigMap map[string][][]byte
-
-	// ResourceMap     map[string]string
-	// AdviceMap       map[string]api.Advice
-	// EntrypointMap   map[string]api.Entrypoint
-	// TemplateFuncMap api.TemplateFuncMap
 }
 
 func New(vars *api.Vars) *Swarm {
@@ -40,39 +21,6 @@ func New(vars *api.Vars) *Swarm {
 		Vars: vars,
 	}
 }
-
-// func NewSwarm(app *api.AppConfig) (*Swarm, error) {
-// 	sw := &Swarm{
-// 		AppConfig: app,
-// 		History:   []*api.Message{},
-// 		Stream:    true,
-// 	}
-
-// 	vars, err := InitVars(app)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	sw.Vars = vars
-
-// 	return sw, nil
-// }
-
-// func NewSwarm(vars *api.Vars) *Swarm {
-// 	sw := &Swarm{
-// 		Vars: vars,
-// 		// AppConfig: app,
-// 		// History:   []*api.Message{},
-// 		// Stream:    true,
-// 	}
-
-// 	// vars, err := InitVars(app)
-// 	// if err != nil {
-// 	// 	return nil, err
-// 	// }
-// 	// sw.Vars = vars
-
-// 	return sw
-// }
 
 var agentConfigMap = map[string][][]byte{}
 var agentToolMap = map[string]*api.ToolFunc{}
@@ -105,8 +53,6 @@ func initToolAgents(app *api.AppConfig) error {
 	}
 	return nil
 }
-
-// var resourceMap = resource.Prompts
 
 func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	vars := api.NewVars()
@@ -185,56 +131,6 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 
 	return vars, nil
 }
-
-// func (r *Swarm) Load(name string, input *api.UserInput) error {
-// 	if r.Config != nil && len(r.Config.Agents) > 0 {
-// 		for _, a := range r.Config.Agents {
-// 			if a.Name == name {
-// 				return nil
-// 			}
-// 		}
-// 	}
-
-// 	data, ok := r.AgentConfigMap[name]
-// 	if !ok {
-// 		return internal.NewUserInputError("not supported yet: " + name)
-// 	}
-// 	err := loadAgentsConfig(data)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	// override
-// 	app := r.AppConfig
-// 	config := r.Config
-
-// 	var modelMap = make(map[api.Level]*api.Model)
-// 	for _, m := range config.Models {
-// 		if m.External {
-// 			switch m.Name {
-// 			case "L1":
-// 				modelMap[api.L1] = api.Level1(app.LLM)
-// 			case "L2":
-// 				modelMap[api.L2] = api.Level2(app.LLM)
-// 			case "L3":
-// 				modelMap[api.L3] = api.Level3(app.LLM)
-// 			case "Image":
-// 				modelMap[api.LImage] = api.ImageModel(app.LLM)
-// 			}
-// 		} else {
-// 			l := toModelLevel(m.Name)
-// 			modelMap[l] = &api.Model{
-// 				Type:    api.ModelType(m.Type),
-// 				Name:    m.Model,
-// 				BaseUrl: m.BaseUrl,
-// 				ApiKey:  m.ApiKey,
-// 			}
-// 		}
-// 	}
-// 	r.Vars.Models = modelMap
-
-// 	return nil
-// }
 
 func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	for {

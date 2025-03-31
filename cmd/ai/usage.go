@@ -15,8 +15,8 @@ import (
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm"
-	"github.com/qiangli/ai/swarm/agent/resource"
 	"github.com/qiangli/ai/swarm/api"
+	resource "github.com/qiangli/ai/swarm/resource/agents"
 )
 
 const rootUsageTemplate = `AI Command Line Tool

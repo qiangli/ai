@@ -94,15 +94,14 @@ type Agent struct {
 	MaxTime  int
 
 	//
-	// sw *Swarm
 	Vars *api.Vars
 }
 
-//go:embed agent/resource
+//go:embed resource/agents
 var resourceAgents embed.FS
 
 func LoadDefaultAgentConfig(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
-	const base = "agent/resource"
+	const base = "resource/agents"
 	dirs, err := resourceAgents.ReadDir(base)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read agent resource directory: %w", err)
@@ -175,28 +174,6 @@ func loadAgentsData(app *api.AppConfig, data [][]byte) (*api.AgentsConfig, error
 	return merged, nil
 }
 
-// func loadAgentsData(data [][]byte) (*api.AgentsConfig, error) {
-// 	merged, err := loadAgentsConfig(data)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// merged.ResourceMap = r.ResourceMap
-// 	// merged.TemplateFuncMap = r.TemplateFuncMap
-
-// 	// // TODO per agent?
-// 	// merged.AdviceMap = r.AdviceMap
-// 	// merged.EntrypointMap = r.EntrypointMap
-
-// 	// r.Config = merged
-
-// 	return merged, nil
-// }
-
-// func (r *Agent) Vars() *api.Vars {
-// 	return r.sw.Vars
-// }
-
 func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*Agent, error) {
 	config, err := LoadAgents(vars.Config, name, input)
 	if err != nil {
@@ -254,20 +231,6 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*A
 			MaxTurns: config.MaxTurns,
 			MaxTime:  config.MaxTime,
 		}
-
-		// override from command line flags
-		// if r.AppConfig.Role != "" {
-		// 	agent.Role = r.AppConfig.Role
-		// }
-		// if r.AppConfig.Prompt != "" {
-		// 	agent.Instruction = r.AppConfig.Prompt
-		// }
-		// if r.AppConfig.MaxTurns != 0 {
-		// 	agent.MaxTurns = r.AppConfig.MaxTurns
-		// }
-		// if r.AppConfig.MaxTime != 0 {
-		// 	agent.MaxTime = r.AppConfig.MaxTime
-		// }
 
 		level := toModelLevel(ac.Model)
 		model, ok := vars.Models[level]

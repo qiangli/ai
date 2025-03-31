@@ -82,29 +82,6 @@ func listDefaultTools() []*api.ToolFunc {
 	return tools
 }
 
-// type ToolConfig struct {
-// 	Kit string `yaml:"kit"`
-
-// 	Type        string         `yaml:"type"`
-// 	Name        string         `yaml:"name"`
-// 	Description string         `yaml:"description"`
-// 	Parameters  map[string]any `yaml:"parameters"`
-
-// 	Body string `yaml:"body"`
-
-// 	Internal bool `yaml:"internal"`
-// }
-
-// type ToolsConfig struct {
-// 	Kit      string `yaml:"kit"`
-// 	Internal bool   `yaml:"internal"`
-
-// 	// system commands used by tools
-// 	Commands []string `yaml:"commands"`
-
-// 	Tools []*ToolConfig `yaml:"tools"`
-// }
-
 //go:embed resource/tools/*.yaml
 var resourceTools embed.FS
 
@@ -327,23 +304,3 @@ func listTools(app *api.AppConfig) ([]*api.ToolFunc, error) {
 
 	return list, nil
 }
-
-// // ListServiceTools returns a list of all available tools for exporting (mcp and system tools).
-// func ListServiceTools(mcpServerUrl string) ([]*api.ToolFunc, error) {
-// 	list := []*api.ToolFunc{}
-
-// 	// mcp tools
-// 	mcpTools, err := listMcpTools(mcpServerUrl)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	for _, v := range mcpTools {
-// 		list = append(list, v...)
-// 	}
-
-// 	// system and misc tools
-// 	sysTools := listDefaultTools()
-// 	list = append(list, sysTools...)
-
-// 	return list, nil
-// }
