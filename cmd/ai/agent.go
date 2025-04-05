@@ -46,7 +46,10 @@ func init() {
 	AgentCmd.Flags().SortFlags = true
 	AgentCmd.CompletionOptions.DisableDefaultCmd = true
 	AgentCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
-		Help(cmd, args)
+		err := Help(cmd, args)
+		if err != nil {
+			internal.Exit(err)
+		}
 	})
 
 	// Bind the flags to viper using underscores
