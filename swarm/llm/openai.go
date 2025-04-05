@@ -35,7 +35,7 @@ func NewClient(apiKey, baseUrl string) openai.Client {
 }
 
 func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
-	log.Debugf(">>>OPENAI:\n type: %s model: %s, messages: %v tools: %v\n\n", req.ModelType, req.Model, len(req.Messages), len(req.Tools))
+	log.Debugf(">>>OPENAI:\n Model type: %s Model: %s, Messages: %v Tools: %v\n\n", req.ModelType, req.Model, len(req.Messages), len(req.Tools))
 
 	var err error
 	var resp *api.LLMResponse
@@ -52,7 +52,7 @@ func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 		return nil, err
 	}
 
-	log.Debugf("<<<OPENAI:\n type: %s transfer: %+v, content: %v\n\n", resp.ContentType, resp.Result, len(resp.Content))
+	log.Debugf("<<<OPENAI:\n Content type: %s Content: %v\n\n", resp.ContentType, len(resp.Content))
 	return resp, nil
 }
 
@@ -94,24 +94,21 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 
 	maxTurns := req.MaxTurns
 	if maxTurns == 0 {
-		maxTurns = 3
+		maxTurns = 1
 	}
 	resp := &api.LLMResponse{}
 
 	for tries := range maxTurns {
-		log.Debugf("📡 *** sending request to %s ***: %v of %v\n", req.BaseUrl, tries, maxTurns)
-		for _, v := range params.Messages {
-			log.Debugf(">>> message: %+v\n", v)
-		}
+		log.Infof("⚡ @%s [%v] %s %s\n", req.Agent, tries, req.Model, req.BaseUrl)
 
-		log.Infof("[%v] @%s %s %s\n", tries, req.Agent, req.Model, req.BaseUrl)
+		log.Debugf("📡 *** sending request to %s ***: %v of %v\n%+v\n\n", req.BaseUrl, tries, maxTurns, req)
 
 		completion, err := client.Chat.Completions.New(ctx, params)
 		if err != nil {
 			log.Errorf("✗ %s\n", err)
 			return nil, err
 		}
-		log.Infof("⣿ %v\n", completion.Choices[0].FinishReason)
+		log.Infof("(%v)\n", completion.Choices[0].FinishReason)
 
 		toolCalls := completion.Choices[0].Message.ToolCalls
 

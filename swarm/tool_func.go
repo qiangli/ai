@@ -159,7 +159,7 @@ func callTplTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[
 	// Add system commands to the function map
 	for _, v := range toolSystemCommands {
 		if _, err := exec.LookPath(v); err != nil {
-			log.Errorf("%s not found in PATH", v)
+			log.Errorf("%s not found in PATH\n", v)
 			continue
 		}
 		funcMap[v] = func(args ...string) (string, error) {

@@ -78,7 +78,7 @@ func evaluateCommand(ctx context.Context, vars *api.Vars, command string, args [
 		},
 		Tools:    systemTools,
 		RunTool:  runTool,
-		MaxTurns: 32,
+		MaxTurns: vars.Config.MaxTurns,
 	}
 
 	log.Debugf("evaluateCommand:\n%s %v\n", command, args)

@@ -184,13 +184,13 @@ type ImageParams struct {
 func imageParamsAdvice(vars *api.Vars, req *api.Request, resp *api.Response, next api.Advice) error {
 	// skip if all image params are already set
 	if req.ImageQuality != "" && req.ImageSize != "" && req.ImageStyle != "" {
-		log.Debugf("skip image params advice as all are already set")
+		log.Debugf("skip image params advice as all are already set\n")
 		return nil
 	}
 
 	model, ok := vars.Models[api.L1]
 	if !ok {
-		log.Debugf("no model found")
+		log.Debugf("no model found\n")
 		return nil
 	}
 	ctx := req.Context()
@@ -219,13 +219,13 @@ func imageParamsAdvice(vars *api.Vars, req *api.Request, resp *api.Response, nex
 		Messages:  msgs,
 	})
 	if err != nil {
-		log.Errorf("error sending request: %v", err)
+		log.Errorf("error sending request: %v\n", err)
 		return nil
 	}
 
 	var params ImageParams
 	if err := json.Unmarshal([]byte(result.Content), &params); err != nil {
-		log.Debugf("error unmarshaling response: %v", err)
+		log.Debugf("error unmarshaling response: %v\n", err)
 		return nil
 	}
 
@@ -256,7 +256,7 @@ func chdirFormatPathAdvice(vars *api.Vars, _ *api.Request, resp *api.Response, _
 
 	// don't change directory if action is not "chdir" or if it was not successful
 	if err := json.Unmarshal([]byte(msg.Content), &v); err != nil {
-		log.Debugf("chdir_format_path error: %v", err)
+		log.Debugf("chdir_format_path error: %v\n", err)
 		msg.Content = "./"
 		return nil
 	}

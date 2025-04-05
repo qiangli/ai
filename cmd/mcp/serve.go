@@ -77,7 +77,7 @@ func RunServe(args []string) error {
 		log.Debugf("tool [%v]: %s %v\n", i, v.ID(), v)
 
 		if err := addTool(mcpServer, vars, v); err != nil {
-			log.Infof("failed to add tool [%v]: %v", i, err)
+			log.Infof("failed to add tool [%v]: %v\n", i, err)
 		}
 	}
 

@@ -72,7 +72,6 @@ type LLMRequest struct {
 	ApiKey    string
 	Model     string
 
-	// History  []*Message
 	Messages []*Message
 
 	ImageQuality string
@@ -83,6 +82,29 @@ type LLMRequest struct {
 	RunTool  func(ctx context.Context, name string, props map[string]any) (*Result, error)
 
 	Tools []*ToolFunc
+}
+
+func (r *LLMRequest) String() string {
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("Agent: %s\n", r.Agent))
+	sb.WriteString(fmt.Sprintf("Model: %s\n", r.Model))
+	sb.WriteString(fmt.Sprintf("BaseUrl: %s\n", r.BaseUrl))
+	sb.WriteString(fmt.Sprintf("ApiKey set: %v\n", r.ApiKey != ""))
+	sb.WriteString(fmt.Sprintf("ModelType: %s\n", r.ModelType))
+	if r.ModelType == ModelTypeImage {
+		sb.WriteString(fmt.Sprintf("ImageQuality: %s\n", r.ImageQuality))
+		sb.WriteString(fmt.Sprintf("ImageSize: %s\n", r.ImageSize))
+		sb.WriteString(fmt.Sprintf("ImageStyle: %s\n", r.ImageStyle))
+	}
+	sb.WriteString(fmt.Sprintf("MaxTurns: %d\n", r.MaxTurns))
+	sb.WriteString(fmt.Sprintf("RunTool set: %v\n", r.RunTool != nil))
+	sb.WriteString(fmt.Sprintf("Tools count: %d\n", len(r.Tools)))
+
+	sb.WriteString(fmt.Sprintf("Messages count: %d\n", len(r.Messages)))
+	// for _, m := range r.Messages {
+	// 	sb.WriteString(clipText(m.Content, 80))
+	// }
+	return sb.String()
 }
 
 type Message struct {

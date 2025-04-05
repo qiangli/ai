@@ -80,7 +80,7 @@ func parseFile(path string, prefix string) (string, error) {
 		}
 		if len(prefix) == 0 || strings.HasPrefix(line, prefix) {
 			if re.MatchString(line) {
-				log.Debugf("found ai command: %s", line)
+				log.Debugf("found ai command: %s\n", line)
 				return line, nil
 			}
 		}

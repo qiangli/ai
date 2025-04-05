@@ -16,7 +16,7 @@ import (
 	"github.com/qiangli/ai/swarm/llm"
 )
 
-const defaultMaxTurns = 32
+const defaultMaxTurns = 15
 const defaultMaxTime = 3600
 
 //go:embed resource/agents

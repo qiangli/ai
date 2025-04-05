@@ -36,14 +36,14 @@ var systemTools []*api.ToolFunc
 func initTools(app *api.AppConfig) error {
 	config, err := LoadDefaultToolsConfig(app)
 	if err != nil {
-		log.Errorf("failed to load default tool config: %v", err)
+		log.Errorf("failed to load default tool config: %v\n", err)
 		return err
 	}
 
 	toolRegistry = make(map[string]*api.ToolFunc)
 	for _, v := range config.Tools {
+		log.Debugf("Kit: %s tool: %s - %s internal: %v\n", v.Kit, v.Name, v.Description, v.Internal)
 
-		log.Debugf("Kit: %s tool: %s - %s internal: %v", v.Kit, v.Name, v.Description, v.Internal)
 		if v.Internal && !app.Internal {
 			continue
 		}
@@ -179,7 +179,7 @@ func LoadTools(config api.ToolsConfig) (map[string]*api.ToolFunc, error) {
 }
 
 func CallTool(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
-	log.Infof("⚡ %s %+v\n", name, args)
+	log.Infof("⣿ %s %+v\n", name, args)
 
 	result, err := dispatchTool(ctx, vars, name, args)
 

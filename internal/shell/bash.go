@@ -37,8 +37,6 @@ func Bash(cfg *api.AppConfig) error {
 		return err
 	}
 
-	// log.Infof(usage, cfg.CommandPath)
-
 	c := exec.Command(bin, args...)
 	c.Env = os.Environ()
 	// Prompt string for the shell
@@ -59,7 +57,7 @@ func Bash(cfg *api.AppConfig) error {
 	go func() {
 		for range ch {
 			if err := pty.InheritSize(os.Stdin, ptmx); err != nil {
-				log.Infof("error resizing pty: %s", err)
+				log.Infof("error resizing pty: %s\n", err)
 			}
 		}
 	}()
