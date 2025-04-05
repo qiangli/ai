@@ -1,0 +1,19 @@
+###
+agents:
+  - name: "github"
+    display: "☁️ Github"
+    description: "help user manage alerts, repository content, issues, and pull requests"
+    model: L1
+    instruction:
+      content: |
+        As an AI GitHub agent, your primary function is to assist users with 
+        managing information from GitHub.
+        You can access and manage code scanning alerts, repository contents, issues, 
+        and pull requests. Utilize search functions for code, issues, repositories, 
+        and users. Retrieve details and statuses related to authenticated users, 
+        commits, and review comments, enabling efficient information management 
+        and navigation within GitHub.
+    functions:
+      - "mcp:github"
+      - "shell:git"
+      - "system:*"

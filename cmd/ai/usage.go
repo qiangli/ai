@@ -42,10 +42,6 @@ Usage:
 
 Miscellaneous:
 
-  ai MESSAGE...                  Auto select agent for help with any questions
-  ai /[COMMAND]       MESSAGE... Use script agent for help with command and shell scripts
-  ai @[AGENT/COMMAND] MESSAGE... Engage specialist agent for help with various tasks
-
   ai /mcp                        Manage MCP server
   ai /setup                      Setup configuration
 {{if .HasAvailableLocalFlags}}
@@ -247,14 +243,21 @@ Total: %v
 
 Usage:
 
-ai --agent AGENT MESSAGE...
-ai @AGENT        MESSAGE...
+ai [OPTIONS] @AGENT[/COMMAND] MESSAGE...
+ai [OPTIONS] --agent AGENT[/COMMAND] MESSAGE...  Engage specialist agent for help with various tasks
+
+ai [OPTIONS] /[COMMAND] MESSAGE...
+ai [OPTIONS] @shell/COMMAND  MESSAGE...          Use shell agent for help with command and scripts
 
 or
 
-ai MESSAGE...
+ai [OPTIONS] MESSAGE...
+ai [OPTIONS] MESSAGE... [@AGENT[/COMMAND]]
 
-and AI will choose the most appropriate agent based on your message.
+AI will choose an appropriate agent based on your message if no agent is specified.
+
+* if you specify agents both at the beginning and end of the message, the last one will be used.
+* you may specify command options anywhere in the message. if you need to include options as part of your message, use quotes or escape them.
 `
 	dict := vars.ListAgents()
 	keys := make([]string, 0)
@@ -287,7 +290,7 @@ Usage:
 
 ai /COMMAND MESSAGE...
 
-/ is shorthand for  @script/
+/ is shorthand for  @shell/
 `
 	list := util.ListCommands()
 

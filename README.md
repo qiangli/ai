@@ -189,12 +189,12 @@ pr/changelog:	Update the CHANGELOG.md file with the PR changes
 pr/describe:	Generate PR description - title, type, summary, code walkthrough and labels
 pr/improve:	Provide code suggestions for improving the PR
 pr/review:	Give feedback about the PR, possible issues, security concerns, review effort and more
-script:	Assist with scripting, command execution, and troubleshooting shell tasks.
+shell:	Assist with scripting, command execution, and troubleshooting shell tasks.
 sql:	Streamline SQL query generation, helping users derive insights without SQL expertise.
 workspace:	Determines the user's workspace based on user's input.
 
 
-/ is shorthand for @script
+/ is shorthand for @shell
 
 Not sure which agent to use? Simply enter your message and AI will choose the most appropriate one for you:
 

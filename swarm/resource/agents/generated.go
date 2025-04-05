@@ -52,6 +52,9 @@ var find_agent_yaml_data []byte
 //go:embed git/agent.yaml
 var git_agent_yaml_data []byte
 
+//go:embed github/agent.yaml
+var github_agent_yaml_data []byte
+
 //go:embed gptr/agent.yaml
 var gptr_agent_yaml_data []byte
 
@@ -61,8 +64,8 @@ var oh_agent_yaml_data []byte
 //go:embed pr/agent.yaml
 var pr_agent_yaml_data []byte
 
-//go:embed script/agent.yaml
-var script_agent_yaml_data []byte
+//go:embed shell/agent.yaml
+var shell_agent_yaml_data []byte
 
 //go:embed sql/agent.yaml
 var sql_agent_yaml_data []byte
@@ -158,6 +161,13 @@ var AgentCommandMap = map[string]AgentConfig{
 		Data:        git_agent_yaml_data,
 		Overview:    "",
 	},
+	"github": {
+		Name:        "github",
+		Description: "help user manage alerts, repository content, issues, and pull requests",
+		Internal:    false,
+		Data:        github_agent_yaml_data,
+		Overview:    "",
+	},
 	"gptr": {
 		Name:        "gptr",
 		Description: "Deliver live, realtime, accurate, relevant insights from diverse online sources.",
@@ -207,11 +217,11 @@ var AgentCommandMap = map[string]AgentConfig{
 		Data:        pr_agent_yaml_data,
 		Overview:    "",
 	},
-	"script": {
-		Name:        "script",
+	"shell": {
+		Name:        "shell",
 		Description: "Assist with scripting, command execution, and troubleshooting shell tasks.",
 		Internal:    false,
-		Data:        script_agent_yaml_data,
+		Data:        shell_agent_yaml_data,
 		Overview:    "",
 	},
 	"sql": {

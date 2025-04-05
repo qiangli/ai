@@ -34,41 +34,71 @@ const (
 
 var Version = "0.0.1" // version of the ai binary
 
-// return the agent/command and the rest of the args
 func parseArgs(app *api.AppConfig, args []string) []string {
-	agent := viper.GetString("agent")
-	if agent == "" {
-		agent = "ask"
-	}
-	newArgs := make([]string, 0, len(args))
-	for i, arg := range args {
-		if arg[0] == '/' || arg[0] == '@' {
-			if arg[0] == '/' {
-				agent = "script" + arg
-			} else {
-				agent = arg[1:]
-			}
-			newArgs = append(newArgs, args[i+1:]...)
-			break
-		}
-		newArgs = append(newArgs, arg)
-	}
-	tool := strings.SplitN(agent, "/", 2)
-
-	app.Agent = tool[0]
-	if len(tool) > 1 {
-		app.Command = tool[1]
-	}
-
+	newArgs := parseAgentArgs(app, args)
+	newArgs = parseSpecialChars(app, newArgs)
 	return newArgs
 }
 
-// parse special char sequence for stdin/clipboard: - = =+
-// they can be:
-//
-//	at the end of the args or as a suffix to the last arg
-//	in any order
-//	multiple instances
+// return the agent/command and the rest of the args
+func parseAgentArgs(app *api.AppConfig, args []string) []string {
+	defaultAgent := viper.GetString("agent")
+	if defaultAgent == "" {
+		defaultAgent = "ask"
+	}
+	shellAgent := "shell"
+
+	// first or last arg could be the agent/command
+	// the last takes precedence
+	var arg string
+	isAgent := func(s string) bool {
+		return strings.HasPrefix(s, "/") || strings.HasPrefix(s, "@")
+	}
+	switch len(args) {
+	case 0:
+		// no args, use default agent
+	case 1:
+		if isAgent(args[0]) {
+			arg = args[0]
+			args = args[1:]
+		}
+	default:
+		if isAgent(args[0]) {
+			arg = args[0]
+			args = args[1:]
+		}
+		if isAgent(args[len(args)-1]) {
+			arg = args[len(args)-1]
+			args = args[:len(args)-1]
+		}
+	}
+
+	var agent string
+	if arg != "" {
+		if arg[0] == '/' {
+			agent = shellAgent + arg
+		} else {
+			agent = arg[1:]
+		}
+	}
+	if agent == "" {
+		agent = defaultAgent
+	}
+
+	parts := strings.SplitN(agent, "/", 2)
+	app.Agent = parts[0]
+	if len(parts) > 1 {
+		app.Command = parts[1]
+	}
+
+	return args
+}
+
+// parse special char sequence for stdin/clipboard
+// they can:
+// + be at the end of the args or as a suffix to the last one
+// + be in any order
+// + be multiple instances
 func parseSpecialChars(app *api.AppConfig, args []string) []string {
 	// special char sequence handling
 	var stdin = viper.GetBool("stdin")
@@ -281,10 +311,7 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.MaxTurns = viper.GetInt("max_turns")
 	app.MaxTime = viper.GetInt("max_time")
 
-	newArgs := parseArgs(app, args)
-
-	newArgs = parseSpecialChars(app, newArgs)
-	app.Args = newArgs
+	app.Args = parseArgs(app, args)
 
 	// sql db
 	dbCfg := &api.DBCred{}

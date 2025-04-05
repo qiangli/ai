@@ -61,7 +61,8 @@ func main() {
 			// trigger built-in help command
 			nArgs := append([]string{"--help"}, os.Args[1:]...)
 			AgentCmd.SetArgs(nArgs)
-			// for showing all config options as usual
+			// hack: for showing all config options as usual
+			// cobra is not calling initConfig() for help command
 			initConfig()
 			if err := AgentCmd.Execute(); err != nil {
 				internal.Exit(err)

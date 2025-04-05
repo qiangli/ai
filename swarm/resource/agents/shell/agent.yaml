@@ -1,8 +1,8 @@
 ###
 
 agents:
-  - name: "script"
-    display: "🖥️ Script"
+  - name: "shell"
+    display: "🖥️ Shell"
     description: "Assist with scripting, command execution, and troubleshooting shell tasks."
     model: L2
     instruction:
