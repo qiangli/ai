@@ -24,6 +24,9 @@ git diff origin main|ai @ask generate commit message for git
 ai / What tools could I use to search for a pattern in files
 
 ai --help
+
+#
+tsh ssh --tty user@host ai -i
 ```
 
 ## Test

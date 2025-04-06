@@ -200,6 +200,13 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*A
 	// config := r.Config
 	adviceMap := vars.AdviceMap
 
+	// TODO - check if the tool type is enabled
+	// by default all tools are enabled
+	// except mcp which is enabled only if the mcp server url is set
+	isEnabled := func(toolType string) bool {
+		return toolType != "mcp" || vars.Config.McpServerUrl != ""
+	}
+
 	getTools := func(toolType string, kit string) ([]*api.ToolFunc, error) {
 		var list []*api.ToolFunc
 		for _, v := range vars.ToolRegistry {
@@ -210,7 +217,9 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*A
 			}
 		}
 		if len(list) == 0 {
-			return nil, fmt.Errorf("no such tool: %s / %s", toolType, kit)
+			if isEnabled(toolType) {
+				return nil, fmt.Errorf("no such tool: %s / %s", toolType, kit)
+			}
 		}
 		return list, nil
 	}
@@ -351,7 +360,9 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*A
 			if err != nil {
 				return nil, err
 			}
-			funcMap[fn.ID()] = fn
+			if fn != nil {
+				funcMap[fn.ID()] = fn
+			}
 		}
 
 		// FIXME

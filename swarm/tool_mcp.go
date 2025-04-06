@@ -89,7 +89,6 @@ func (r *McpClientSession) createSSEClient(ctx context.Context, baseUrl string) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create SSE client: %v", err)
 	}
-	defer client.Close()
 
 	// Start the client
 	if err := client.Start(ctx); err != nil {

@@ -74,78 +74,7 @@ func callTplTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[
 	}
 
 	runCmd := func(cmd string, args ...string) (string, error) {
-		// nArgs := []string{}
-		// for _, arg := range args {
-		// 	switch v := arg.(type) {
-		// 	case string:
-		// 		v = strings.TrimSpace(v)
-		// 		if v != "" {
-		// 			nArgs = append(nArgs, v)
-		// 		}
-		// 	case int:
-		// 		nArgs = append(nArgs, fmt.Sprintf("%d", v))
-		// 	case int64:
-		// 		nArgs = append(nArgs, fmt.Sprintf("%d", v))
-		// 	case float64:
-		// 		nArgs = append(nArgs, fmt.Sprintf("%f", v))
-		// 	case bool:
-		// 		if v {
-		// 			nArgs = append(nArgs, "true")
-		// 		} else {
-		// 			nArgs = append(nArgs, "false")
-		// 		}
-		// 	case []string:
-		// 		for _, s := range v {
-		// 			s = strings.TrimSpace(s)
-		// 			if s != "" {
-		// 				nArgs = append(nArgs, s)
-		// 			}
-		// 		}
-		// 	case []any:
-		// 		for _, item := range v {
-		// 			switch i := item.(type) {
-		// 			case string:
-		// 				i = strings.TrimSpace(i)
-		// 				if i != "" {
-		// 					nArgs = append(nArgs, i)
-		// 				}
-		// 			case int:
-		// 				nArgs = append(nArgs, fmt.Sprintf("%d", i))
-		// 			case int64:
-		// 				nArgs = append(nArgs, fmt.Sprintf("%d", i))
-		// 			case float64:
-		// 				nArgs = append(nArgs, fmt.Sprintf("%f", i))
-		// 			case bool:
-		// 				if i {
-		// 					nArgs = append(nArgs, "true")
-		// 				} else {
-		// 					nArgs = append(nArgs, "false")
-		// 				}
-		// 			case nil:
-		// 				// Ignore nil values
-		// 			default:
-		// 				return "", fmt.Errorf("unsupported item type in []any for command %s: %T", cmd, item)
-		// 			}
-		// 		}
-		// 	case nil:
-		// 		// Ignore nil values
-		// 	default:
-		// 		return "", fmt.Errorf("unsupported argument type for command %s: %T", cmd, v)
-		// 	}
-		// }
-
-		// log.Debugf("command: %s %+v (%d) original: %+v (%d)\n", cmd, nArgs, len(nArgs), args, len(args))
-
-		// TODO args from LLM are not reliable.
-		// result, err := runCommand(cmd, nArgs)
-		// if err != nil {
-		// 	if len(args) == 1 {
-		// 		cmdline := fmt.Sprintf("%s %s", cmd, strings.Join(nArgs, " "))
-		// 		result, err = runCommand(cmdline, nil)
-		// 	}
-		// }
-
-		result, err := runCommand(cmd, args)
+		result, err := execCommand(cmd, args, vars.Config.Debug)
 
 		if err != nil {
 			return result, err
@@ -188,8 +117,7 @@ func callTplTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[
 		return sqlQuery(ctx, cred, body)
 	case ToolTypeShell:
 		cmdline := strings.TrimSpace(body)
-		return runCommand(cmdline, nil)
-		// return runRestricted(ctx, vars, body, []string{})
+		return execCommand(cmdline, nil, vars.Config.Debug)
 	}
 
 	return "", fmt.Errorf("unknown function type %s for tool %s", f.Type, f.Name)

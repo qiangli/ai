@@ -10,7 +10,6 @@ import (
 	"os/user"
 	"runtime"
 	"strings"
-	"syscall"
 
 	"github.com/shirou/gopsutil/v4/cpu"
 	"github.com/shirou/gopsutil/v4/disk"
@@ -18,23 +17,23 @@ import (
 	"github.com/shirou/gopsutil/v4/process"
 )
 
-// GetFileSystemInfo retrieves information about the file system.
-func GetFileSystemInfo(path string) (total uint64, free uint64, err error) {
-	var stat syscall.Statfs_t
+// // GetFileSystemInfo retrieves information about the file system.
+// func GetFileSystemInfo(path string) (total uint64, free uint64, err error) {
+// 	var stat syscall.Statfs_t
 
-	err = syscall.Statfs(path, &stat)
-	if err != nil {
-		return 0, 0, err
-	}
+// 	err = syscall.Statfs(path, &stat)
+// 	if err != nil {
+// 		return 0, 0, err
+// 	}
 
-	// Calculate total space in bytes
-	total = stat.Blocks * uint64(stat.Bsize)
+// 	// Calculate total space in bytes
+// 	total = stat.Blocks * uint64(stat.Bsize)
 
-	// Calculate free space in bytes
-	free = stat.Bfree * uint64(stat.Bsize)
+// 	// Calculate free space in bytes
+// 	free = stat.Bfree * uint64(stat.Bsize)
 
-	return total, free, nil
-}
+// 	return total, free, nil
+// }
 
 func GetRunningProcesses() ([]string, error) {
 	var processInfo []string

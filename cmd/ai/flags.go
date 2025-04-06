@@ -180,7 +180,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.Var(newOutputValue("markdown", &internal.FormatFlag), "format", "Output format, one of text, json, or markdown.")
 
 	// mcp
-	flags.String("mcp-server-url", "http://localhost:58080/sse", "MCP server URL")
+	flags.String("mcp-server-url", "", "MCP server URL")
 
 	// LLM
 	flags.String("api-key", "", "LLM API key")
@@ -272,5 +272,5 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	flags.MarkHidden("log")
 
-	flags.MarkHidden("interactive")
+	// flags.MarkHidden("interactive")
 }

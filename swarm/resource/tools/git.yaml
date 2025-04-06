@@ -68,6 +68,21 @@ tools:
     body: 'git commit -m "{{.message}}"'
     type: "shell"
   
+  - name: "add"
+    description: "Add file contents to the staging area"
+    parameters:
+      type: "object"
+      properties:
+        files:
+          type: "array"
+          items:
+            type: "string"
+          description: "Files to add to staging"
+      required:
+        - files
+    body: 'git add {{spread .files}}'
+    type: "shell"
+
   - name: "amend"
     description: "Amend the last commit with new changes"
     parameters:
@@ -81,26 +96,11 @@ tools:
     body: 'git commit --amend -m "{{.message}}"'
     type: "shell"
 
-  # - name: "add"
-  #   description: "Add file contents to the staging area"
-  #   parameters:
-  #     type: "object"
-  #     properties:
-  #       files:
-  #         type: "array"
-  #         items:
-  #           type: "string"
-  #         description: "Files to add to staging"
-  #     required:
-  #       - files
-  #   body: 'git add {{spread .files}}'
-  #   type: "shell"
-
-  # - name: "reset"
-  #   description: "Unstage all staged changes"
-  #   parameters: {}
-  #   body: 'git reset'
-  #   type: "shell"
+  - name: "reset"
+    description: "Unstage all staged changes"
+    parameters: {}
+    body: 'git reset'
+    type: "shell"
 
   - name: "log"
     description: "Show the commit logs"
@@ -114,34 +114,34 @@ tools:
     body: 'git log --max-count {{(default 10 .max_count)}}'
     type: "shell"
 
-  # - name: "create_branch"
-  #   description: "Creates a new branch from an optional base branch"
-  #   parameters:
-  #     type: "object"
-  #     properties:
-  #       branch_name:
-  #         type: "string"
-  #         description: "Name of the new branch"
-  #       base_branch:
-  #         type: "string"
-  #         description: "Base branch to create new branch from"
-  #     required:
-  #       - branch_name
-  #   body: 'git checkout -b {{.branch_name}} {{(default "HEAD" .base_branch)}}'
-  #   type: "shell"
+  - name: "create_branch"
+    description: "Creates a new branch from an optional base branch"
+    parameters:
+      type: "object"
+      properties:
+        branch_name:
+          type: "string"
+          description: "Name of the new branch"
+        base_branch:
+          type: "string"
+          description: "Base branch to create new branch from"
+      required:
+        - branch_name
+    body: 'git checkout -b {{.branch_name}} {{(default "HEAD" .base_branch)}}'
+    type: "shell"
 
-  # - name: "checkout"
-  #   description: "Switch branches"
-  #   parameters:
-  #     type: "object"
-  #     properties:
-  #       branch_name:
-  #         type: "string"
-  #         description: "Branch to checkout"
-  #     required:
-  #       - branch_name
-  #   body: 'git checkout {{.branch_name}}'
-  #   type: "shell"
+  - name: "checkout"
+    description: "Switch branches"
+    parameters:
+      type: "object"
+      properties:
+        branch_name:
+          type: "string"
+          description: "Branch to checkout"
+      required:
+        - branch_name
+    body: 'git checkout {{.branch_name}}'
+    type: "shell"
 
   - name: "show"
     description: "Show the contents of a commit"
@@ -156,18 +156,18 @@ tools:
     body: 'git show {{.revision}}'
     type: "shell"
 
-  # - name: "init"
-  #   description: "Initialize a new Git repository"
-  #   parameters:
-  #     type: "object"
-  #     properties:
-  #       directory:
-  #         type: "string"
-  #         description: "Path where the new repository will be initialized"
-  #     required:
-  #       - repo_path
-  #   body: 'git init {{.directory}}'
-  #   type: "shell"
+  - name: "init"
+    description: "Initialize a new Git repository"
+    parameters:
+      type: "object"
+      properties:
+        directory:
+          type: "string"
+          description: "Path where the new repository will be initialized"
+      required:
+        - repo_path
+    body: 'git init {{.directory}}'
+    type: "shell"
 
   # - name: "clone"
   #   description: "Clone a repository into a new directory"

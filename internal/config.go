@@ -52,21 +52,26 @@ func parseAgentArgs(app *api.AppConfig, args []string) []string {
 	// the last takes precedence
 	var arg string
 	isAgent := func(s string) bool {
-		return strings.HasPrefix(s, "/") || strings.HasPrefix(s, "@")
+		return strings.HasPrefix(s, "@")
+	}
+	isSlash := func(s string) bool {
+		return strings.HasPrefix(s, "/")
 	}
 	switch len(args) {
 	case 0:
 		// no args, use default agent
 	case 1:
-		if isAgent(args[0]) {
+		if isSlash(args[0]) || isAgent(args[0]) {
 			arg = args[0]
 			args = args[1:]
 		}
 	default:
-		if isAgent(args[0]) {
+		if isSlash(args[0]) || isAgent(args[0]) {
 			arg = args[0]
 			args = args[1:]
 		}
+		// agent check only
+		// slash could file path
 		if isAgent(args[len(args)-1]) {
 			arg = args[len(args)-1]
 			args = args[:len(args)-1]
@@ -249,8 +254,6 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	}
 	app.Repo = repo
 
-	app.McpServerUrl = viper.GetString("mcp_server_url")
-
 	// LLM config
 	lc.ApiKey = viper.GetString("api_key")
 	lc.Model = viper.GetString("model")
@@ -312,6 +315,9 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.MaxTime = viper.GetInt("max_time")
 
 	app.Args = parseArgs(app, args)
+
+	// mcp
+	app.McpServerUrl = viper.GetString("mcp.server_url")
 
 	// sql db
 	dbCfg := &api.DBCred{}

@@ -14,7 +14,12 @@ base_url: "http://localhost:4000/"
 # Specify the language model to use
 model: "gpt-4o-mini"
 
-## Agents
+## mcp
+mcp:
+  #server_url: "http://localhost:58080/sse"
+  server_url: ""
+
+##
 sql:
   db_name: "postgres"
   db_host: "localhost"

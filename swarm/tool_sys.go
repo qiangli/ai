@@ -1,8 +1,11 @@
 package swarm
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"fmt"
+	"os/exec"
 	"strconv"
 	"strings"
 
@@ -30,7 +33,7 @@ func runCommand(command string, args []string) (string, error) {
 		out, err = _exec.Command(command, args...).CombinedOutput()
 	}
 	if err != nil {
-		log.Errorf("❌ %s: %+v\n", command, err)
+		log.Errorf("\033[31m✗\033[0m %s: %+v\n", command, err)
 		return "", fmt.Errorf("%v\n%s", err, clip(string(out), 500))
 	}
 
@@ -38,12 +41,72 @@ func runCommand(command string, args []string) (string, error) {
 	return string(out), nil
 }
 
+// runCommandVerbose executes a shell command with arguments,
+// prints stdout/stderr in real-time, and returns the combined output and error.
+func runCommandVerbose(command string, args []string) (string, error) {
+	log.Debugf("🏃 %s (%d) %+v\n", command, len(args), args)
+
+	var cmd *exec.Cmd
+	if len(args) == 0 {
+		// LLM sometime sends command and args as a single string
+		cmd = _exec.Command("sh", "-c", command)
+	} else {
+		cmd = _exec.Command(command, args...)
+	}
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", fmt.Errorf("error obtaining stdout pipe: %v", err)
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return "", fmt.Errorf("error obtaining stderr pipe: %v", err)
+	}
+
+	var outBuf, errBuf bytes.Buffer
+
+	scanOutput := func(scanner *bufio.Scanner, prefix string, buf *bytes.Buffer) {
+		for scanner.Scan() {
+			line := scanner.Text()
+			buf.WriteString(line + "\n")
+			log.Debugf("%s %s: %s\n", prefix, command, line)
+		}
+	}
+
+	outScanner := bufio.NewScanner(stdout)
+	errScanner := bufio.NewScanner(stderr)
+
+	if err = cmd.Start(); err != nil {
+		return "", fmt.Errorf("error starting command: %v", err)
+	}
+
+	go scanOutput(outScanner, "stdout", &outBuf)
+	go scanOutput(errScanner, "stderr", &errBuf)
+
+	err = cmd.Wait()
+
+	out := outBuf.String() + errBuf.String()
+	if err != nil {
+		log.Errorf("\033[31m✗\033[0m %s: %+v\n", command, err)
+		return "", fmt.Errorf("%v\n%s", err, clip(out, 500))
+	}
+
+	log.Debugf("🎉 %s: %s\n", command, out)
+	return out, nil
+}
+
+func execCommand(command string, args []string, verbose bool) (string, error) {
+	if verbose {
+		return runCommandVerbose(command, args)
+	}
+	return runCommand(command, args)
+}
+
 func runRestricted(ctx context.Context, vars *api.Vars, command string, args []string) (string, error) {
 	if isDenied(command) {
 		return "", fmt.Errorf("%s: Not allowed", command)
 	}
 	if isAllowed(command) {
-		return runCommand(command, args)
+		return execCommand(command, args, vars.Config.Debug)
 	}
 
 	safe, err := evaluateCommand(ctx, vars, command, args)
@@ -51,7 +114,7 @@ func runRestricted(ctx context.Context, vars *api.Vars, command string, args []s
 		return "", err
 	}
 	if safe {
-		return runCommand(command, args)
+		return execCommand(command, args, vars.Config.Debug)
 	}
 
 	return "", fmt.Errorf("%s %s: Not permitted", command, strings.Join(args, " "))

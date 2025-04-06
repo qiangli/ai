@@ -94,9 +94,9 @@ func evaluateCommand(ctx context.Context, vars *api.Vars, command string, args [
 	}
 
 	if check.Safe {
-		log.Infof("✅ safe\n")
+		log.Infof("✔ safe\n")
 	} else {
-		log.Errorf("❌ unsafe\n")
+		log.Errorf("\033[31m✗\033[0m unsafe\n")
 	}
 
 	log.Debugf("evaluateCommand:\n%+v\n", check)

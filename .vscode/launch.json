@@ -167,7 +167,7 @@
 			"stopOnEntry": false
 		},
 		{
-			"name": "Script",
+			"name": "Shell",
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",

@@ -99,13 +99,13 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	resp := &api.LLMResponse{}
 
 	for tries := range maxTurns {
-		log.Infof("⚡ @%s [%v] %s %s\n", req.Agent, tries, req.Model, req.BaseUrl)
+		log.Infof("\033[33m⚡\033[0m @%s [%v] %s %s\n", req.Agent, tries, req.Model, req.BaseUrl)
 
 		log.Debugf("📡 *** sending request to %s ***: %v of %v\n%+v\n\n", req.BaseUrl, tries, maxTurns, req)
 
 		completion, err := client.Chat.Completions.New(ctx, params)
 		if err != nil {
-			log.Errorf("✗ %s\n", err)
+			log.Errorf("\033[31m✗\033[0m %s\n", err)
 			return nil, err
 		}
 		log.Infof("(%v)\n", completion.Choices[0].FinishReason)

@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/qiangli/ai/swarm/api"
 )
@@ -53,4 +56,12 @@ func splitVersion(s string) (string, string) {
 		return dialect, version
 	}
 	return "", ""
+}
+
+func genUID() string {
+	return uuid.New().String()
+}
+
+func currentTS() string {
+	return time.Now().Format("2006-01-02 15:04:05")
 }

@@ -38,16 +38,6 @@ func TestParseConfig(t *testing.T) {
 			expectedArgs: []string{"a", "test"},
 		},
 		{
-			args:         []string{"test", "/"},
-			expected:     []string{"shell", ""},
-			expectedArgs: []string{"test"},
-		},
-		{
-			args:         []string{"this", "is", "a", "test", "/which"},
-			expected:     []string{"shell", "which"},
-			expectedArgs: []string{"this", "is", "a", "test"},
-		},
-		{
 			args:         []string{"@"},
 			expected:     []string{"ask", ""},
 			expectedArgs: []string{},
@@ -70,6 +60,11 @@ func TestParseConfig(t *testing.T) {
 		{
 			args:         []string{"test", "@"},
 			expected:     []string{"ask", ""},
+			expectedArgs: []string{"test"},
+		},
+		{
+			args:         []string{"test", "@shell/"},
+			expected:     []string{"shell", ""},
 			expectedArgs: []string{"test"},
 		},
 		{

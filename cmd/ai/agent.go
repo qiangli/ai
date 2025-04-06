@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,7 +13,9 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/shell"
 	"github.com/qiangli/ai/internal/watch"
+	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/agent"
 )
 
@@ -60,6 +61,9 @@ func init() {
 
 	// Bind the flags to viper using dots
 	flags := AgentCmd.Flags()
+
+	viper.BindPFlag("mcp.server-url", flags.Lookup("mcp-server-url"))
+
 	viper.BindPFlag("sql.db-name", flags.Lookup("sql-db-name"))
 	viper.BindPFlag("sql.db-host", flags.Lookup("sql-db-host"))
 	viper.BindPFlag("sql.db-port", flags.Lookup("sql-db-port"))
@@ -80,6 +84,13 @@ func Run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	vars, err := swarm.InitVars(cfg)
+	if err != nil {
+		return err
+	}
+
+	log.Debugf("Initialized variables: %+v\n", vars)
+
 	// watch
 	if cfg.Watch {
 		if err := watch.WatchRepo(cfg); err != nil {
@@ -92,8 +103,8 @@ func Run(cmd *cobra.Command, args []string) error {
 	// $ ai -i or $ ai --interactive
 	// TODO: implement interactive mode
 	if cfg.Interactive {
-		// return shell.Bash(cfg)
-		return fmt.Errorf("interactive mode not implemented yet")
+		return shell.Shell(vars)
+		// return fmt.Errorf("interactive mode not implemented yet")
 	}
 
 	// $ ai

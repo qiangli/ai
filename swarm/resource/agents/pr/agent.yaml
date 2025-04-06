@@ -32,7 +32,7 @@ agents:
       after: "pr_json_to_markdown"
     functions:
       - "shell:git"
-      - "mcp:github"
+      # - "mcp:github"
       - "system:*"
 
   - name: "pr/review"
@@ -50,7 +50,7 @@ agents:
       after: "pr_json_to_markdown"
     functions:
       - "shell:git"
-      - "mcp:github"
+      # - "mcp:github"
       - "system:*"
 
   - name: "pr/improve"
@@ -68,7 +68,7 @@ agents:
       after: "pr_json_to_markdown"
     functions:
       - "shell:git"
-      - "mcp:github"
+      # - "mcp:github"
       - "system:*"
 
   - name: "pr/changelog"
@@ -86,7 +86,7 @@ agents:
       after: "pr_json_to_markdown"
     functions:
       - "shell:git"
-      - "mcp:github"
+      # - "mcp:github"
       - "system:*"
 
 models:
