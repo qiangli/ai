@@ -16,14 +16,12 @@ import (
 var adviceMap = map[string]api.Advice{}
 
 func init() {
-	// adviceMap["decode_meta_response"] = decodeMetaResponseAdvice
 	adviceMap["script_user_input"] = scriptUserInputAdvice
 	adviceMap["pr_user_input"] = prUserInputAdvice
 	adviceMap["pr_json_to_markdown"] = prFormatAdvice
 	adviceMap["resolve_workspace"] = resolveWorkspaceAdvice
 	adviceMap["aider"] = aiderAdvice
 	adviceMap["openhands"] = ohAdvice
-	// adviceMap["agent_launch"] = agentLaunchAdvice
 	adviceMap["sub"] = subAdvice
 	adviceMap["image_params"] = imageParamsAdvice
 	adviceMap["chdir_format_path"] = chdirFormatPathAdvice

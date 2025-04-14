@@ -57,7 +57,6 @@ func TestMcpCallTool(t *testing.T) {
 		McpServerUrl: "http://localhost:58080/sse",
 	}
 
-	// server := NewMcpServerTool(serverUrl)
 	vars := &api.Vars{
 		Config: app,
 		ToolRegistry: map[string]*api.ToolFunc{

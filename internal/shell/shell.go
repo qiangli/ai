@@ -19,6 +19,7 @@ import (
 var commandRegistry map[string]string
 var agentRegistry map[string]*api.AgentConfig
 var aliasRegistry map[string]string
+var visitedRegistry map[string]bool
 
 func Shell(vars *api.Vars) error {
 	cfg := vars.Config
@@ -43,6 +44,13 @@ func Shell(vars *api.Vars) error {
 	commandRegistry = util.ListCommands()
 	agentRegistry = vars.ListAgents()
 	aliasRegistry, _ = listAlias(shellBin)
+	visitedRegistry = make(map[string]bool)
+	if wd, err := os.Getwd(); err != nil {
+		return err
+	} else {
+		visitedRegistry[wd] = true
+		log.Debugf("current working directory: %s\n", wd)
+	}
 
 	//
 	oldState, err := term.GetState(int(os.Stdin.Fd()))
@@ -91,13 +99,15 @@ func Shell(vars *api.Vars) error {
 
 		cmdArgs := strings.SplitN(input, " ", 2)
 
+		// command args
 		var command = cmdArgs[0]
 		var args string
 		if len(cmdArgs) > 1 {
 			args = cmdArgs[1]
 		}
 
-		// built-in commands
+		// built-in commands:
+		// help, history, exit
 		if strings.Compare("help", command) == 0 {
 			help()
 			continue
@@ -108,7 +118,8 @@ func Shell(vars *api.Vars) error {
 			return nil
 		}
 
-		// simulate shell commands
+		// simulate shell commands:
+		// alias, source, env
 		if strings.Compare("alias", command) == 0 {
 			if err := runAlias(args); err != nil {
 				commandErr(command, err)
@@ -131,16 +142,28 @@ func Shell(vars *api.Vars) error {
 			continue
 		}
 
-		//
+		// ai
+		var special = []string{"/help", "/setup", "/mcp"}
 		isAgent := func(s string) bool {
 			return strings.HasPrefix(s, "@")
 		}
 		isSlash := func(s string) bool {
 			return strings.HasPrefix(s, "/")
 		}
+		// alias commands
+		isAlias := func(s string) bool {
+			_, ok := aliasRegistry[s]
+			return ok
+		}
 
+		// ai
+		// /[cmd] ...
+		// /help /setup /mcp
+		// @[agent] ...
+		// ... @[agent]
 		agentCmd := func(s string, parts []string) string {
 			args := parts
+
 			if args[0] == "ai" {
 				args = args[1:]
 			}
@@ -148,7 +171,7 @@ func Shell(vars *api.Vars) error {
 				args = args[:len(args)-1]
 			}
 
-			var special = []string{"/help", "/setup", "/mcp"}
+			//
 			for _, cmd := range special {
 				if strings.Compare(cmd, s) == 0 {
 					return fmt.Sprintf("ai %s %s", s, strings.Join(args, " "))
@@ -162,12 +185,6 @@ func Shell(vars *api.Vars) error {
 				cmd = fmt.Sprintf("ai %s %s", s, strings.Join(args, " "))
 			}
 			return cmd
-		}
-
-		// alias commands
-		isAlias := func(s string) bool {
-			_, ok := aliasRegistry[s]
-			return ok
 		}
 
 		var modified = input

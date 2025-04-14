@@ -36,6 +36,7 @@ func execCommand(shellBin, original string) error {
 		if err := os.Setenv("PWD", abs); err != nil {
 			return err
 		}
+		visitedRegistry[abs] = true
 		return nil
 	}
 	if len(parsed) > 0 && parsed[0][0] == "cd" {
@@ -76,12 +77,7 @@ func execCommand(shellBin, original string) error {
 var commandSeps = []string{">>", "<<", ">", "<", "&&", "&", "||", "|", ";"}
 
 var isSep = func(s string) bool {
-	for _, sep := range commandSeps {
-		if s == sep {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(commandSeps, s)
 }
 
 func parseCommand(original string) ([][]string, error) {

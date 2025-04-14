@@ -23,9 +23,16 @@ function build_ai() {
 ##
 tidy
 
-for os in linux darwin windows; do
-	for arch in amd64 arm64; do
+os_list=("linux" "darwin" "windows")
+arch_list=("amd64" "arm64")
+
+# os_list=("darwin")
+# arch_list=("arm64")
+
+for os in "${os_list[@]}"; do
+	for arch in "${arch_list[@]}"; do
 		echo "Building for $os/$arch"
-		build_ai $os $arch
+		build_ai "$os" "$arch"
+		echo "Build completed for $os/$arch"
 	done
 done
