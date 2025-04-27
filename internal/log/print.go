@@ -6,17 +6,18 @@ import (
 	"os"
 )
 
-var printLogger Printer = NewPrinter(os.Stdout, 0)
+var printLogger Printer = NewPrinter(os.Stdout, false, 0)
 
-var debugLogger Printer = NewPrinter(os.Stderr, 500)
-var infoLogger Printer = NewPrinter(os.Stderr, 0)
-var errLogger Printer = NewPrinter(os.Stderr, 0)
-var promptLogger Printer = NewPrinter(os.Stderr, 0)
+var debugLogger Printer = NewPrinter(os.Stderr, false, 500)
+
+var infoLogger Printer = NewPrinter(os.Stderr, false, 0)
+var errLogger Printer = NewPrinter(os.Stderr, false, 0)
+var promptLogger Printer = NewPrinter(os.Stderr, false, 0)
 
 type Printer interface {
-	Printf(string, ...interface{})
-	Print(...interface{})
-	Println(...interface{})
+	Printf(string, ...any)
+	Print(...any)
+	Println(...any)
 
 	SetEnabled(bool)
 	IsEnabled() bool
@@ -24,10 +25,10 @@ type Printer interface {
 	SetLogger(io.Writer)
 }
 
-func NewPrinter(w io.Writer, max int) Printer {
+func NewPrinter(w io.Writer, enabled bool, max int) Printer {
 	return &printer{
 		out: w,
-		on:  true,
+		on:  enabled,
 		max: max,
 	}
 }

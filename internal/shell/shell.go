@@ -29,7 +29,6 @@ type VisitedRegistry struct {
 }
 
 func (r *VisitedRegistry) Visit(abs string) {
-	log.Debugf("visit path: %s\n", abs)
 	if abs == "" {
 		return
 	}
@@ -44,14 +43,13 @@ func (r *VisitedRegistry) Visit(abs string) {
 	if abs == rel {
 		visited = abs
 	} else {
-		rel = strings.TrimPrefix(rel, "/")
+		rel = strings.TrimPrefix(rel, string(filepath.Separator))
 		if rel == "" {
 			return
 		}
 		visited = fmt.Sprintf("~%s%s", string(filepath.Separator), rel)
 	}
 	r.visited[visited] = true
-	log.Debugf("visit path added: %s\n", visited)
 }
 
 func (r *VisitedRegistry) List() []string {
@@ -59,7 +57,6 @@ func (r *VisitedRegistry) List() []string {
 	for k := range r.visited {
 		list = append(list, k)
 	}
-	log.Debugf("visited list: %v\n", list)
 	return list
 }
 
@@ -194,6 +191,7 @@ func Shell(vars *api.Vars) error {
 				runHistory(args)
 				continue
 			}
+
 			// history command
 			num := command[1:]
 			hist, err := getHistory(num)
@@ -201,6 +199,7 @@ func Shell(vars *api.Vars) error {
 				commandErr(command, err)
 				continue
 			}
+
 			// fall through, not to continue
 			// may need further processing for builtin/agent/alias commands
 			log.Debugf("history command: %q, args: %q\n", hist, args)

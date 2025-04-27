@@ -2,16 +2,18 @@ package shell
 
 import (
 	"os"
+	"os/user"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 
 	"github.com/c-bata/go-prompt"
-
-	"github.com/qiangli/ai/internal/log"
 )
 
-var filePathCompleter = FilePathCompleter{}
+var filePathCompleter = FilePathCompleter{
+	IgnoreCase: true,
+}
 
 // unique remove prompt suggestion duplicates
 func unique(s []prompt.Suggest) []prompt.Suggest {
@@ -36,7 +38,9 @@ func Completer(d prompt.Document) []prompt.Suggest {
 		"env",
 		"source",
 	}
-	s := []prompt.Suggest{}
+
+	var s []prompt.Suggest
+
 	for _, cmd := range builtin {
 		s = append(s, prompt.Suggest{Text: cmd, Description: "ai shell"})
 	}
@@ -55,18 +59,22 @@ func Completer(d prompt.Document) []prompt.Suggest {
 	for k := range aliasRegistry {
 		s = append(s, prompt.Suggest{Text: k, Description: "alias"})
 	}
+	s = prompt.FilterHasPrefix(unique(s), d.CurrentLine(), true)
 
 	var isCd = IsCdCmd(d)
+
+	// only show visited paths for cd command
+	var visited []prompt.Suggest
+	var files []prompt.Suggest
+
 	if isCd {
-		log.Debugf("\n is cd command: %s\n%+v\n", d.CurrentLineBeforeCursor(), visitedRegistry.visited)
-		// only show visited paths for cd command
-		for k := range visitedRegistry.visited {
-			s = append(s, prompt.Suggest{Text: k, Description: "visited"})
+		for _, k := range visitedRegistry.List() {
+			visited = append(visited, prompt.Suggest{Text: k, Description: "visited"})
 		}
 	}
 
 	var w = d.GetWordBeforeCursor()
-	// only match the last word (sub dir)
+	// only partially match the last word (sub dir)
 	if len(w) > 0 {
 		if strings.HasSuffix(w, string(os.PathSeparator)) {
 			w = ""
@@ -75,8 +83,7 @@ func Completer(d prompt.Document) []prompt.Suggest {
 		}
 		w = strings.ToLower(w)
 	}
-
-	filePathCompleter.Filter = func(fi os.DirEntry) bool {
+	filter := func(fi os.DirEntry) bool {
 		// only show directories for cd command
 		if isCd && !fi.IsDir() {
 			return false
@@ -86,85 +93,82 @@ func Completer(d prompt.Document) []prompt.Suggest {
 		}
 		return strings.Contains(strings.ToLower(fi.Name()), w)
 	}
+	files = filePathCompleter.Complete(d, filter)
 
-	completions := filePathCompleter.Complete(d)
-	completions = append(completions, prompt.FilterHasPrefix(unique(s), d.CurrentLine(), true)...)
+	completions := slices.Concat(files, visited, s)
 	return completions
 }
 
 func IsCdCmd(pd prompt.Document) bool {
-	var isCd = false
-
-	isCmdDir := func(s string) bool {
-		return slices.Contains([]string{"cd"}, s)
-	}
-	// TODO compound command handling
 	cmdArgs := strings.Fields(pd.CurrentLineBeforeCursor())
 	if len(cmdArgs) > 0 {
-		cmd := cmdArgs[0]
-		if isCmdDir(cmd) {
-			isCd = true
-		} else if len(aliasRegistry) > 0 {
-			for k, v := range aliasRegistry {
-				if k == cmd {
-					part := strings.Fields(v)
-					if len(part) > 0 && isCmdDir(part[0]) {
-						isCd = true
-					}
-				}
-			}
-		}
+		return slices.Contains([]string{"cd"}, cmdArgs[0])
 	}
-
-	return isCd
+	return false
 }
 
+// https://github.com/c-bata/go-prompt/blob/master/completer/file.go
+var (
+	// FilePathCompletionSeparator holds separate characters.
+	FilePathCompletionSeparator = string([]byte{' ', os.PathSeparator})
+)
+
+// FilePathCompleter is a completer for your local file system.
+// Please caution that you need to set OptionCompletionWordSeparator(completer.FilePathCompletionSeparator)
+// when you use this completer.
 type FilePathCompleter struct {
-	Filter func(fi os.DirEntry) bool
+	IgnoreCase bool
 }
 
-func (c *FilePathCompleter) Complete(pd prompt.Document) []prompt.Suggest {
-	base := filepath.Clean(os.Getenv("PWD"))
-	if abs, err := filepath.Abs(base); err == nil {
-		base = abs
+func cleanFilePath(path string) (dir, base string, err error) {
+	var endsWithSeparator bool
+	if len(path) >= 1 && path[len(path)-1] == os.PathSeparator {
+		endsWithSeparator = true
 	}
 
-	// return a valid directory of the given input
-	check := func(p string) string {
-		var dir string
-		if fi, err := os.Stat(p); err == nil {
-			if fi.IsDir() {
-				dir = p
-			} else {
-				dir = filepath.Dir(p)
-			}
-		} else {
-			p = filepath.Dir(p)
-			if fi, err := os.Stat(p); err == nil {
-				if fi.IsDir() {
-					dir = p
-				}
-			}
+	if runtime.GOOS != "windows" && len(path) >= 2 && path[0:2] == "~/" {
+		me, err := user.Current()
+		if err != nil {
+			return "", "", err
 		}
-		return dir
+		path = filepath.Join(me.HomeDir, path[1:])
 	}
-	dir := base
-	// resolve subdir
-	w := pd.GetWordBeforeCursor()
-	if w != "" {
-		if p := check(filepath.Join(base, w)); p != "" {
-			dir = p
+	path = filepath.Clean(os.ExpandEnv(path))
+	dir = filepath.Dir(path)
+	base = filepath.Base(path)
+
+	if endsWithSeparator {
+		dir = path + string(os.PathSeparator) // Append slash(in POSIX) if path ends with slash.
+		base = ""                             // Set empty string if path ends with separator.
+	}
+	return dir, base, nil
+}
+
+// Complete returns suggestions from your local file system.
+func (c *FilePathCompleter) Complete(d prompt.Document, filter func(os.DirEntry) bool) []prompt.Suggest {
+	var err error
+	var dir, base string
+
+	w := d.GetWordBeforeCursor()
+	if len(w) > 0 {
+		dir, base, err = cleanFilePath(w)
+		if err != nil {
+			return nil
 		}
+	} else {
+		dir = "."
 	}
 
 	files, err := os.ReadDir(dir)
-	if err != nil {
-		return []prompt.Suggest{}
+	if err != nil && os.IsNotExist(err) {
+		return nil
+	} else if err != nil {
+		return nil
 	}
 
 	suggests := make([]prompt.Suggest, 0, len(files))
 	for _, f := range files {
-		if c.Filter != nil && !c.Filter(f) {
+		if filter != nil && !filter(f) {
 			continue
 		}
 		var desc string
@@ -175,5 +179,6 @@ func (c *FilePathCompleter) Complete(pd prompt.Document) []prompt.Suggest {
 		}
 		suggests = append(suggests, prompt.Suggest{Text: f.Name(), Description: desc})
 	}
-	return suggests
+
+	return prompt.FilterHasPrefix(suggests, base, c.IgnoreCase)
 }
