@@ -27,15 +27,6 @@ func unique(s []prompt.Suggest) []prompt.Suggest {
 }
 
 func Completer(d prompt.Document) []prompt.Suggest {
-	var builtin = []string{
-		"help",
-		"exit",
-		"history",
-		"clear",
-		"alias",
-		"env",
-		"source",
-	}
 
 	var s []prompt.Suggest
 
