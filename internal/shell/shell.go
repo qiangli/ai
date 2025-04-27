@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/c-bata/go-prompt"
@@ -19,7 +20,86 @@ import (
 var commandRegistry map[string]string
 var agentRegistry map[string]*api.AgentConfig
 var aliasRegistry map[string]string
-var visitedRegistry map[string]bool
+var visitedRegistry *VisitedRegistry
+
+type VisitedRegistry struct {
+	home string
+
+	visited map[string]bool
+}
+
+func (r *VisitedRegistry) Visit(abs string) {
+	log.Debugf("visit path: %s\n", abs)
+	if abs == "" {
+		return
+	}
+	if abs == r.home {
+		return
+	}
+	rel := strings.TrimPrefix(abs, r.home)
+	if rel == "" {
+		return
+	}
+	var visited string
+	if abs == rel {
+		visited = abs
+	} else {
+		rel = strings.TrimPrefix(rel, "/")
+		if rel == "" {
+			return
+		}
+		visited = fmt.Sprintf("~%s%s", string(filepath.Separator), rel)
+	}
+	r.visited[visited] = true
+	log.Debugf("visit path added: %s\n", visited)
+}
+
+func (r *VisitedRegistry) List() []string {
+	var list []string
+	for k := range r.visited {
+		list = append(list, k)
+	}
+	log.Debugf("visited list: %v\n", list)
+	return list
+}
+
+func NewVisitedRegistry() (*VisitedRegistry, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	abs, err := filepath.Abs(home)
+	if err != nil {
+		return nil, err
+	}
+
+	return &VisitedRegistry{
+		home:    abs,
+		visited: make(map[string]bool),
+	}, nil
+}
+
+// Chdir changes the current working directory to the specified path.
+// This is required to update the PWD environment variable
+func Chdir(dir string) error {
+	log.Debugf("chdir to: %s\n", dir)
+
+	abs, err := filepath.Abs(dir)
+	if err != nil {
+		return err
+	}
+	if err := os.Chdir(abs); err != nil {
+		return err
+	}
+	if err := os.Setenv("PWD", abs); err != nil {
+		return err
+	}
+
+	visitedRegistry.Visit(abs)
+
+	log.Debugf("chdir changed to: %s\n", abs)
+	return nil
+}
 
 func Shell(vars *api.Vars) error {
 	cfg := vars.Config
@@ -43,13 +123,13 @@ func Shell(vars *api.Vars) error {
 	//
 	commandRegistry = util.ListCommands()
 	agentRegistry = vars.ListAgents()
-	aliasRegistry, _ = listAlias(shellBin)
-	visitedRegistry = make(map[string]bool)
-	if wd, err := os.Getwd(); err != nil {
+	aliasRegistry, err = listAlias(shellBin)
+	if err != nil {
 		return err
-	} else {
-		visitedRegistry[wd] = true
-		log.Debugf("current working directory: %s\n", wd)
+	}
+	visitedRegistry, err = NewVisitedRegistry()
+	if err != nil {
+		return err
 	}
 
 	//

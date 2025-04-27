@@ -7,16 +7,18 @@ import (
 	"strings"
 
 	"github.com/c-bata/go-prompt"
+
+	"github.com/qiangli/ai/internal/log"
 )
 
 var filePathCompleter = FilePathCompleter{}
 
 // unique remove prompt suggestion duplicates
-func unique(intSlice []prompt.Suggest) []prompt.Suggest {
+func unique(s []prompt.Suggest) []prompt.Suggest {
 	keys := make(map[prompt.Suggest]bool)
 	list := []prompt.Suggest{}
-	for _, entry := range intSlice {
-		if _, value := keys[entry]; !value {
+	for _, entry := range s {
+		if _, ok := keys[entry]; !ok {
 			keys[entry] = true
 			list = append(list, entry)
 		}
@@ -53,8 +55,14 @@ func Completer(d prompt.Document) []prompt.Suggest {
 	for k := range aliasRegistry {
 		s = append(s, prompt.Suggest{Text: k, Description: "alias"})
 	}
-	for k := range visitedRegistry {
-		s = append(s, prompt.Suggest{Text: k, Description: "visited"})
+
+	var isCd = IsCdCmd(d)
+	if isCd {
+		log.Debugf("\n is cd command: %s\n%+v\n", d.CurrentLineBeforeCursor(), visitedRegistry.visited)
+		// only show visited paths for cd command
+		for k := range visitedRegistry.visited {
+			s = append(s, prompt.Suggest{Text: k, Description: "visited"})
+		}
 	}
 
 	var w = d.GetWordBeforeCursor()
@@ -68,12 +76,30 @@ func Completer(d prompt.Document) []prompt.Suggest {
 		w = strings.ToLower(w)
 	}
 
+	filePathCompleter.Filter = func(fi os.DirEntry) bool {
+		// only show directories for cd command
+		if isCd && !fi.IsDir() {
+			return false
+		}
+		if w == "" {
+			return true
+		}
+		return strings.Contains(strings.ToLower(fi.Name()), w)
+	}
+
+	completions := filePathCompleter.Complete(d)
+	completions = append(completions, prompt.FilterHasPrefix(unique(s), d.CurrentLine(), true)...)
+	return completions
+}
+
+func IsCdCmd(pd prompt.Document) bool {
 	var isCd = false
+
 	isCmdDir := func(s string) bool {
 		return slices.Contains([]string{"cd"}, s)
 	}
 	// TODO compound command handling
-	cmdArgs := strings.Fields(d.CurrentLineBeforeCursor())
+	cmdArgs := strings.Fields(pd.CurrentLineBeforeCursor())
 	if len(cmdArgs) > 0 {
 		cmd := cmdArgs[0]
 		if isCmdDir(cmd) {
@@ -90,19 +116,7 @@ func Completer(d prompt.Document) []prompt.Suggest {
 		}
 	}
 
-	filePathCompleter.Filter = func(fi os.DirEntry) bool {
-		if isCd && !fi.IsDir() {
-			return false
-		}
-		if w == "" {
-			return true
-		}
-		return strings.Contains(strings.ToLower(fi.Name()), w)
-	}
-
-	completions := filePathCompleter.Complete(d)
-	completions = append(completions, prompt.FilterHasPrefix(unique(s), d.CurrentLine(), true)...)
-	return completions
+	return isCd
 }
 
 type FilePathCompleter struct {
@@ -115,11 +129,9 @@ func (c *FilePathCompleter) Complete(pd prompt.Document) []prompt.Suggest {
 		base = abs
 	}
 
-	dir := base
-	// resolve subdir
-	w := pd.GetWordBeforeCursor()
-	if w != "" {
-		p := filepath.Join(base, w)
+	// return a valid directory of the given input
+	check := func(p string) string {
+		var dir string
 		if fi, err := os.Stat(p); err == nil {
 			if fi.IsDir() {
 				dir = p
@@ -133,6 +145,15 @@ func (c *FilePathCompleter) Complete(pd prompt.Document) []prompt.Suggest {
 					dir = p
 				}
 			}
+		}
+		return dir
+	}
+	dir := base
+	// resolve subdir
+	w := pd.GetWordBeforeCursor()
+	if w != "" {
+		if p := check(filepath.Join(base, w)); p != "" {
+			dir = p
 		}
 	}
 

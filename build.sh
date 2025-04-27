@@ -17,22 +17,39 @@ function build_ai() {
 
 	CLI_FLAGS=""
 
-	CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -o bin/$binary -ldflags="-w -extldflags '-static' $CLI_FLAGS" ./cmd/ai
+	CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -o "bin/$binary" -ldflags="-w -extldflags '-static' $CLI_FLAGS" ./cmd/ai
+}
+
+function build_all() {
+	local os_list=("linux" "darwin" "windows")
+	local arch_list=("amd64" "arm64")
+
+	for os in "${os_list[@]}"; do
+		for arch in "${arch_list[@]}"; do
+			echo "Building for $os/$arch"
+			build_ai "$os" "$arch"
+			echo "Build completed for $os/$arch"
+		done
+	done
+}
+
+function build() {
+	local os
+	local arch
+	os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+	arch="$(uname -m)"
+
+	build_ai "${os}" "${arch}"
+	echo "Build completed for ${os} ${arch}"
 }
 
 ##
 tidy
 
-os_list=("linux" "darwin" "windows")
-arch_list=("amd64" "arm64")
+#
+if [[ $1 == "all" ]]; then
+	build_all
+else
+	build
+fi
 
-# os_list=("darwin")
-# arch_list=("arm64")
-
-for os in "${os_list[@]}"; do
-	for arch in "${arch_list[@]}"; do
-		echo "Building for $os/$arch"
-		build_ai "$os" "$arch"
-		echo "Build completed for $os/$arch"
-	done
-done

@@ -25,31 +25,18 @@ func execCommand(shellBin, original string) error {
 	// Handle special case for "cd" command
 	// assume single argument for "cd" command
 	// update PWD environment variable as needed
-	cd := func(dir string) error {
-		abs, err := filepath.Abs(dir)
-		if err != nil {
-			return err
-		}
-		if err := os.Chdir(abs); err != nil {
-			return err
-		}
-		if err := os.Setenv("PWD", abs); err != nil {
-			return err
-		}
-		visitedRegistry[abs] = true
-		return nil
-	}
+
 	if len(parsed) > 0 && parsed[0][0] == "cd" {
 		if len(parsed[0]) > 1 {
 			dir := parsed[0][1]
 			dir = subst(dir)
-			return cd(dir)
+			return Chdir(dir)
 		}
 		user, err := user.Current()
 		if err != nil {
 			return err
 		}
-		return cd(user.HomeDir)
+		return Chdir(user.HomeDir)
 	}
 
 	var modified []string

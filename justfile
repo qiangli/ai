@@ -9,6 +9,9 @@ generate:
 build: tidy generate
     ./build.sh
 
+build-all: tidy generate
+    ./build.sh all
+
 test:
     go test -short ./...
 
