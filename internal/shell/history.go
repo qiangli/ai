@@ -27,3 +27,12 @@ func updateHistory(command string) {
 func getCommandHist() []string {
 	return history
 }
+
+func getHistory(num string) (string, error) {
+	total := len(history)
+	n, err := strconv.Atoi(num)
+	if err != nil || n > total || n < 1 {
+		return "", fmt.Errorf("invalid history number %v", num)
+	}
+	return history[n-1], nil
+}

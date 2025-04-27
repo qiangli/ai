@@ -186,6 +186,29 @@ func Shell(vars *api.Vars) error {
 			args = cmdArgs[1]
 		}
 
+		log.Debugf("command: %q, args: %q\n", command, args)
+
+		// execute history command
+		if strings.HasPrefix(command, "!") {
+			if command == "!" {
+				runHistory(args)
+				continue
+			}
+			// history command
+			num := command[1:]
+			hist, err := getHistory(num)
+			if err != nil {
+				commandErr(command, err)
+				continue
+			}
+			// fall through, not to continue
+			// may need further processing for builtin/agent/alias commands
+			log.Debugf("history command: %q, args: %q\n", hist, args)
+			input = fmt.Sprintf("%s %s", hist, args)
+			command = hist
+			log.Debugf("proceed to run modified history !%s: command %q, input: %q\n", num, command, input)
+		}
+
 		// built-in commands:
 		// help, history, exit
 		if strings.Compare("help", command) == 0 {
@@ -198,7 +221,7 @@ func Shell(vars *api.Vars) error {
 			return nil
 		}
 
-		// simulate shell commands:
+		// simulate builtin shell commands:
 		// alias, source, env
 		if strings.Compare("alias", command) == 0 {
 			if err := runAlias(args); err != nil {
@@ -222,7 +245,7 @@ func Shell(vars *api.Vars) error {
 			continue
 		}
 
-		// ai
+		// ai commands
 		var special = []string{"/help", "/setup", "/mcp"}
 		isAgent := func(s string) bool {
 			return strings.HasPrefix(s, "@")
