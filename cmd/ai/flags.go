@@ -229,9 +229,10 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.BoolVar(&internal.DryRun, "dry-run", false, "Enable dry run mode. No API call will be made")
 	flags.StringVar(&internal.DryRunContent, "dry-run-content", "", "Content returned for dry run")
 
-	// flags.Bool("no-meta-prompt", false, "Disable auto generation of system prompt")
+	//
 
-	flags.BoolP("interactive", "i", false, "Interactive mode to run, edit, or copy generated code")
+	flags.BoolP("interactive", "i", false, "Interactive mode")
+	flags.String("shell", os.Getenv("SHELL"), "Shell to use for interactive mode")
 
 	flags.Bool("watch", false, "Watch the workspace directory and respond to embedded ai requests in files")
 
@@ -271,6 +272,4 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("dry-run-content")
 
 	flags.MarkHidden("log")
-
-	// flags.MarkHidden("interactive")
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"os/user"
 	"path/filepath"
 	"strings"
@@ -310,6 +311,16 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.Editor = viper.GetString("editor")
 	app.Interactive = viper.GetBool("interactive")
 	app.Watch = viper.GetBool("watch")
+
+	shell := viper.GetString("shell")
+	if shell == "" {
+		shell = "bash"
+	}
+	shellBin, _ := exec.LookPath(shell)
+	if shellBin == "" {
+		shellBin = "/bin/bash"
+	}
+	app.Shell = shellBin
 
 	app.MaxTurns = viper.GetInt("max_turns")
 	app.MaxTime = viper.GetInt("max_time")

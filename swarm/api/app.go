@@ -65,6 +65,7 @@ type AppConfig struct {
 	Temp      string
 
 	Interactive bool
+	Shell       string
 	Watch       bool
 
 	// MetaPrompt  bool

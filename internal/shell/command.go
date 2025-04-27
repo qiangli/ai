@@ -25,7 +25,6 @@ func execCommand(shellBin, original string) error {
 	// Handle special case for "cd" command
 	// assume single argument for "cd" command
 	// update PWD environment variable as needed
-
 	if len(parsed) > 0 && parsed[0][0] == "cd" {
 		if len(parsed[0]) > 1 {
 			dir := parsed[0][1]
