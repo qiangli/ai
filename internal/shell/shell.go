@@ -15,7 +15,6 @@ import (
 )
 
 func Shell(vars *api.Vars) error {
-	shellBin := vars.Config.Shell
 
 	initRegistry(vars)
 
@@ -27,6 +26,8 @@ func Shell(vars *api.Vars) error {
 	defer func() { _ = term.Restore(int(os.Stdin.Fd()), oldState) }() // Best effort.
 
 	// command loop
+	shellBin := vars.Config.Shell
+
 	prompter, err := createPrompter()
 	if err != nil {
 		return err

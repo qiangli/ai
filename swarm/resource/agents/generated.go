@@ -46,6 +46,9 @@ var draw_agent_yaml_data []byte
 //go:embed eval/agent.yaml
 var eval_agent_yaml_data []byte
 
+//go:embed exec/agent.yaml
+var exec_agent_yaml_data []byte
+
 //go:embed find/agent.yaml
 var find_agent_yaml_data []byte
 
@@ -131,6 +134,13 @@ var AgentCommandMap = map[string]AgentConfig{
 		Description: "Evaluate and test tools.",
 		Internal:    false,
 		Data:        eval_agent_yaml_data,
+		Overview:    "",
+	},
+	"exec": {
+		Name:        "exec",
+		Description: "Execute commands based on user instructions",
+		Internal:    false,
+		Data:        exec_agent_yaml_data,
 		Overview:    "",
 	},
 	"find": {

@@ -34,6 +34,8 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	if err != nil {
 		return err
 	}
+	// TODO: this is for custom agent instruction defined in yaml
+	vars.UserInput = input
 
 	showInput(cfg, input)
 

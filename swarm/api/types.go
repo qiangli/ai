@@ -28,6 +28,8 @@ type Vars struct {
 
 	UserInfo map[string]string `json:"user_info"`
 
+	UserInput *UserInput `json:"user_input"`
+
 	Workspace string `json:"workspace"`
 	Repo      string `json:"repo"`
 	Home      string `json:"home"`
