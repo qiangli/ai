@@ -1,0 +1,24 @@
+kit: "task"
+
+tools:
+  - name: "task_complete"
+    description: "Call this tool when the task given by the user is complete"
+    internal: false
+    parameters:
+      type: "object"
+      properties: {}
+    type: "func"
+  
+  - name: "ask_question"
+    description: "Ask a question to the user to get more info required to solve or clarify the problem"
+    parameters:
+      type: "object"
+      properties:
+        question:
+          type: "string"
+          description: "The question for information and clarification"
+          maxLength: 500
+          minLength: 1
+      required: ["question"]
+    type: "func"
+

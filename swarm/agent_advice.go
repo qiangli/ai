@@ -16,6 +16,7 @@ import (
 var adviceMap = map[string]api.Advice{}
 
 func init() {
+	adviceMap["user_input"] = userInputAdvice
 	adviceMap["script_user_input"] = scriptUserInputAdvice
 	adviceMap["pr_user_input"] = prUserInputAdvice
 	adviceMap["pr_json_to_markdown"] = prFormatAdvice
@@ -25,6 +26,27 @@ func init() {
 	adviceMap["sub"] = subAdvice
 	adviceMap["image_params"] = imageParamsAdvice
 	adviceMap["chdir_format_path"] = chdirFormatPathAdvice
+}
+
+// user input before advice
+// TODO move to agent yaml config
+func userInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ api.Advice) error {
+	tpl, err := vars.Resource(req.Agent, "user_role.md")
+	if err != nil {
+		return err
+	}
+
+	content, err := applyDefaultTemplate(string(tpl), vars)
+	if err != nil {
+		return err
+	}
+	req.Message = &api.Message{
+		Role:    api.RoleUser,
+		Content: content,
+		Sender:  req.Agent,
+	}
+
+	return nil
 }
 
 // script user input before advice

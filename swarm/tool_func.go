@@ -479,6 +479,19 @@ func (r *FuncKit) BingSearch(ctx context.Context, vars *api.Vars, name string, a
 	return webtool.Bing(ctx, query, max)
 }
 
+func (r *FuncKit) AskQuestion(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	question, err := GetStrProp("question", args)
+	if err != nil {
+		return "", err
+	}
+	return getUserTextInput(question)
+}
+
+func (r *FuncKit) TaskComplete(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	log.Infof("✌️ task completed %s", name)
+	return "Task completed", nil
+}
+
 func callFuncTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (string, error) {
 	tool := &FuncKit{}
 	callArgs := []any{ctx, vars, f.Name, args}

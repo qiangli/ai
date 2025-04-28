@@ -61,6 +61,9 @@ var github_agent_yaml_data []byte
 //go:embed gptr/agent.yaml
 var gptr_agent_yaml_data []byte
 
+//go:embed mcp/agent.yaml
+var mcp_agent_yaml_data []byte
+
 //go:embed oh/agent.yaml
 var oh_agent_yaml_data []byte
 
@@ -183,6 +186,13 @@ var AgentCommandMap = map[string]AgentConfig{
 		Description: "Deliver live, realtime, accurate, relevant insights from diverse online sources.",
 		Internal:    false,
 		Data:        gptr_agent_yaml_data,
+		Overview:    "",
+	},
+	"mcp": {
+		Name:        "mcp",
+		Description: "Simple MCP agent",
+		Internal:    false,
+		Data:        mcp_agent_yaml_data,
 		Overview:    "",
 	},
 	"oh": {

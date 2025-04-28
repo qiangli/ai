@@ -2,7 +2,7 @@
 
 agents:
   - name: "eval"
-    display: "🐝 Eval"
+    display: "⚙️ Eval"
     description: "Evaluate and test tools."
     instruction:
       content: "resource:eval_system_role.md"

@@ -11,7 +11,6 @@ import (
 	"golang.org/x/term"
 
 	"github.com/qiangli/ai/internal/log"
-	fm "github.com/qiangli/ai/internal/shell/explore"
 	"github.com/qiangli/ai/swarm/api"
 )
 
@@ -263,7 +262,7 @@ func help() {
 		{"alias [name[=value]", "set or print aliases"},
 		{"env [name[=value]", "export or print environment"},
 		{"source [file]", "set alias and environment from file"},
-		{"explore [path]", "explore file system"},
+		{"explore [--cd] [path]", "explore file system"},
 		{"/help", "help for ai"},
 		{"/mcp", "manage MCP server"},
 		{"/setup", "setup ai configuration"},
@@ -278,36 +277,4 @@ func help() {
 	for _, item := range items {
 		fmt.Printf("  \033[0;32m%-*s\033[0m  │  %s\n", width, item.name, item.description)
 	}
-}
-
-var exploreConfig = &fm.Config{
-	Editor:        "vim",
-	OpenWith:      "txt:less -N;go:vim;md:glow -p",
-	MainColor:     "#0000FF",
-	WithHighlight: true,
-	StatusBar:     "Size() + ' ' + Mode()",
-	ShowIcons:     false, // fNerd Fonts required
-	DirOnly:       false,
-	Preview:       true,
-	HideHidden:    false,
-	WithBorder:    true,
-	Fuzzy:         true,
-}
-
-func runExplore(p string) error {
-	if p != "" {
-		p = os.ExpandEnv(p)
-		if strings.HasPrefix(p, "~") {
-			home, err := os.UserHomeDir()
-			if err != nil {
-				return fmt.Errorf("get home dir: %w", err)
-			}
-			p = strings.Replace(p, "~", home, 1)
-		}
-		if _, err := os.Stat(p); err != nil {
-			return fmt.Errorf("path %q not found: %w", p, err)
-		}
-	}
-	_, err := fm.Explore(p, exploreConfig)
-	return err
 }

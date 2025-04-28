@@ -79,10 +79,19 @@ func NewVisitedRegistry() (*VisitedRegistry, error) {
 		return nil, err
 	}
 
-	return &VisitedRegistry{
+	reg := &VisitedRegistry{
 		home:    abs,
 		visited: make(map[string]bool),
-	}, nil
+	}
+
+	// init with current working directory
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	reg.Visit(wd)
+
+	return reg, nil
 }
 
 // Chdir changes the current working directory to the specified path.

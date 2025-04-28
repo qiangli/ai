@@ -10,7 +10,11 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/alexflint/go-arg"
+	"github.com/mattn/go-shellwords"
+
 	"github.com/qiangli/ai/internal/log"
+	fm "github.com/qiangli/ai/internal/shell/explore"
 )
 
 func execCommand(shellBin, original string) error {
@@ -286,4 +290,66 @@ func showEnv() {
 	for _, k := range keys {
 		fmt.Println("  \033[0;32m" + k + "\033[0;33m=\033[0m" + envMap[k])
 	}
+}
+
+var exploreConfig = &fm.Config{
+	Editor:        "vim",
+	OpenWith:      "txt:less -N;go:vim;md:glow -p",
+	MainColor:     "#0000FF",
+	WithHighlight: true,
+	StatusBar:     "Size() + ' ' + Mode()",
+	ShowIcons:     false, // fNerd Fonts required
+	DirOnly:       false,
+	Preview:       true,
+	HideHidden:    false,
+	WithBorder:    true,
+	Fuzzy:         true,
+}
+
+func runExplore(s string) error {
+	var opts struct {
+		Path  string `arg:"positional"`
+		Chdir bool   `arg:"-C,--cd" help:"chdir to the last visited path"`
+	}
+	parser, err := arg.NewParser(arg.Config{}, &opts)
+	if err != nil {
+		return err
+	}
+	args, err := shellwords.Parse(s)
+	if err != nil {
+		return err
+	}
+
+	if err := parser.Parse(args); err != nil {
+		return err
+	}
+
+	p := opts.Path
+
+	if p != "" {
+		p = os.ExpandEnv(p)
+		if strings.HasPrefix(p, "~") {
+			home, err := os.UserHomeDir()
+			if err != nil {
+				return fmt.Errorf("get home dir: %w", err)
+			}
+			p = strings.Replace(p, "~", home, 1)
+		}
+		if _, err := os.Stat(p); err != nil {
+			return fmt.Errorf("path %q not found: %w", p, err)
+		}
+	}
+
+	visited, err := fm.Explore(p, exploreConfig)
+	if err != nil {
+		return err
+	}
+	if opts.Chdir {
+		if err := Chdir(visited); err != nil {
+			return err
+		}
+	} else {
+		visitedRegistry.Visit(visited)
+	}
+	return nil
 }
