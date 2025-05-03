@@ -13,11 +13,11 @@ import (
 // pager prints the given output "page by page" using the size of the
 // current terminal. Navigation keys:
 //
-//		Space / Enter : forward one page
+//		n Space/Enter : forward one page
 //		b             : back one page
 //		q             : quit / cancel
 //		<number>      : jump to that page number (1-based)
-//	 Arrow keys    : navigate using up/down
+//	 Arrow keys       : navigate using up/down
 //
 // The implementation now uses raw mode to better handle arrow keys.
 func pager(output string) error {
@@ -51,7 +51,6 @@ func pager(output string) error {
 	current := 0
 	numBuffer := ""
 
-	ESC := byte(0x1b)
 	SPACE := byte(0x20)
 	CTRL_C := byte(0x03)
 	CTRL_D := byte(0x04)
@@ -66,7 +65,7 @@ func pager(output string) error {
 		for _, line := range lines[start:end] {
 			fmt.Printf("\033[1G%s\n", line)
 		}
-		fmt.Printf("\033[1G-- Page %d/%d -- b: back, n: next, q: quit >", current+1, totalPages)
+		fmt.Printf("\033[1G-- %d/%d -- b: back, n: next, q: quit #num > ", current+1, totalPages)
 
 		input, err := reader.ReadByte()
 		if err != nil {
@@ -75,7 +74,7 @@ func pager(output string) error {
 		}
 
 		switch input {
-		case 'q', 'Q', ESC, CTRL_C, CTRL_D:
+		case 'q', 'Q', CTRL_C, CTRL_D:
 			fmt.Printf("\n\033[1G\n")
 			return nil
 		case 'b', 'B':
@@ -86,7 +85,7 @@ func pager(output string) error {
 			if current < totalPages-1 {
 				current++
 			} else {
-				return nil
+				current = totalPages - 1
 			}
 		case 0x1b:
 			next, _ := reader.Peek(2)
