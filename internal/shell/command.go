@@ -1,16 +1,19 @@
 package shell
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"os/user"
-	"path/filepath"
 	"slices"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/alexflint/go-arg"
+	glob "github.com/bmatcuk/doublestar/v4"
 	"github.com/mattn/go-shellwords"
 
 	"github.com/qiangli/ai/internal/log"
@@ -57,11 +60,75 @@ func execCommand(shellBin, original string) error {
 	command := strings.Join(modified, " ")
 	log.Debugf("Executing command: %q\n", command)
 
+	// cmd := exec.Command(shellBin, "-c", command)
+	// cmd.Stdout = os.Stdout
+	// cmd.Stderr = os.Stderr
+	// cmd.Stdin = os.Stdin
+	// return cmd.Run()
+	defer func() {
+		// add command as stdin and signal end of processing
+		wordCompleter.Capture(0, command)
+		wordCompleter.Capture(99, "\n")
+	}()
+
+	if err := RunAndCapture(shellBin, command, wordCompleter.Capture); err != nil {
+		return err
+	}
+	return nil
+}
+
+func RunAndCapture(shellBin, command string, capture func(which int, line string) error) error {
 	cmd := exec.Command(shellBin, "-c", command)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
-	return cmd.Run()
+
+	stdoutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	stderrPipe, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	streamHandler := func(which int, pipe io.ReadCloser, output *os.File) {
+		defer wg.Done()
+
+		reader := bufio.NewReader(pipe)
+		var buf strings.Builder
+		for {
+			b, err := reader.ReadByte()
+			if b != 0 {
+				output.Write([]byte{b})
+			}
+			if err != nil {
+				if buf.Len() > 0 {
+					// On EOF, capture the remaining partial line
+					_ = capture(which, buf.String())
+				}
+				break
+			}
+			if b == '\n' {
+				_ = capture(which, buf.String())
+				buf.Reset()
+			} else {
+				buf.WriteByte(b)
+			}
+		}
+	}
+
+	go streamHandler(1, stdoutPipe, os.Stdout)
+	go streamHandler(2, stderrPipe, os.Stderr)
+
+	wg.Wait()
+
+	return cmd.Wait()
 }
 
 var commandSeps = []string{">>", "<<", ">", "<", "&&", "&", "||", "|", ";"}
@@ -84,6 +151,7 @@ func parseCommand(original string) ([][]string, error) {
 			return args, nil
 		}
 
+		// args[0] is the command name
 		if needsExpand(args[0]) {
 			if err := substAll(args); err != nil {
 				return nil, err
@@ -144,49 +212,46 @@ func parseCommand(original string) ([][]string, error) {
 }
 
 func substAll(args []string) error {
-	user, err := user.Current()
-	if err != nil {
-		return err
-	}
-
-	// expand environment variables
 	for i, arg := range args {
-		if strings.Contains(arg, "$") {
-			args[i] = os.ExpandEnv(arg)
+		p, err := expandPath(arg)
+		if err != nil {
+			return err
 		}
-	}
-
-	// expand tilde (~) for home directory
-	for i, arg := range args {
-		if strings.HasPrefix(arg, "~") {
-			args[i] = strings.Replace(arg, "~", user.HomeDir, 1)
-		}
-	}
-
-	// globbing
-	for i, arg := range args {
-		if strings.Contains(arg, "*") || strings.Contains(arg, "?") {
-			matches, err := filepath.Glob(arg)
-			if err != nil {
-				continue
-			}
-			if len(matches) > 0 {
-				args[i] = strings.Join(matches, " ")
-			} else {
-				args[i] = arg
-			}
+		if len(p) > 0 {
+			args[i] = strings.Join(p, string(os.PathListSeparator))
 		}
 	}
 	return nil
 }
 
-// subst replaces environment variables and expands tilde (~) in the given string.
+func expandPath(s string) ([]string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil, fmt.Errorf("get home dir: %w", err)
+	}
+
+	var p = s
+
+	// expand environment variables
+	if strings.Contains(p, "$") {
+		p = os.ExpandEnv(p)
+	}
+	// expand tilde (~) for home directory
+	if strings.HasPrefix(p, "~") {
+		p = strings.Replace(p, "~", home, 1)
+	}
+
+	// globbing
+	// golang filepath.Glob(p) not working for some patterns supported by shell
+	return glob.FilepathGlob(p)
+}
+
 func subst(s string) string {
-	args := []string{s}
-	if err := substAll(args); err != nil {
+	p, err := expandPath(s)
+	if err != nil || len(p) == 0 {
 		return s
 	}
-	return args[0]
+	return strings.Join(p, string(os.PathListSeparator))
 }
 
 func runHistory(args string) error {
@@ -297,50 +362,91 @@ var exploreConfig = &fm.Config{
 	OpenWith:      "txt:less -N;go:vim;md:glow -p",
 	MainColor:     "#0000FF",
 	WithHighlight: true,
-	StatusBar:     "Size() + ' ' + Mode()",
+	StatusBar:     "Mode() + ' ' + Size() + ' ' + ModTime()",
 	ShowIcons:     false, // fNerd Fonts required
 	DirOnly:       false,
 	Preview:       true,
 	HideHidden:    false,
 	WithBorder:    true,
 	Fuzzy:         true,
+	SortBy:        fm.SortByName,
+	Reverse:       false,
 }
 
 func runExplore(s string) error {
 	var opts struct {
-		Path  string `arg:"positional"`
-		Chdir bool   `arg:"-C,--cd" help:"chdir to the last visited path"`
+		Path    string `arg:"positional"`
+		Chdir   bool   `arg:"-C,--cd" help:"chdir to the last visited path"`
+		SortBy  string `arg:"-s,--sort" help:"sort by name, time, or size"`
+		Reverse bool   `arg:"-r,--reverse" help:"reverse the order of the sort"`
+		Help    bool   `arg:"-h,--help" help:"show help"`
 	}
+
+	usage := func() {
+		fmt.Println("Usage: explore [options] [path]")
+		fmt.Println("Options:")
+		fmt.Println("  -C, --cd       chdir to the last visited path")
+		fmt.Println("  -s, --sort     sort by name, time, or size")
+		fmt.Println("  -r, --reverse  reverse the order of the sort")
+		fmt.Println("  -h, --help     show help")
+		fmt.Println("")
+		showExploreKeyBindings()
+		fmt.Println("")
+	}
+
 	parser, err := arg.NewParser(arg.Config{}, &opts)
 	if err != nil {
 		return err
 	}
+
 	args, err := shellwords.Parse(s)
 	if err != nil {
 		return err
 	}
 
-	if err := parser.Parse(args); err != nil {
+	err = parser.Parse(args)
+	switch {
+	case err == arg.ErrHelp:
+		usage()
+		return nil
+	case err != nil:
 		return err
 	}
 
+	switch opts.SortBy {
+	case "name":
+		exploreConfig.SortBy = fm.SortByName
+	case "time":
+		exploreConfig.SortBy = fm.SortByModTime
+	case "size":
+		exploreConfig.SortBy = fm.SortBySize
+	default:
+		if opts.SortBy != "" {
+			usage()
+			return nil
+		}
+	}
+
+	//
 	p := opts.Path
 
 	if p != "" {
-		p = os.ExpandEnv(p)
-		if strings.HasPrefix(p, "~") {
-			home, err := os.UserHomeDir()
-			if err != nil {
-				return fmt.Errorf("get home dir: %w", err)
-			}
-			p = strings.Replace(p, "~", home, 1)
+		if ex, err := expandPath(p); err == nil && len(ex) > 0 {
+			p = ex[0]
 		}
 		if _, err := os.Stat(p); err != nil {
 			return fmt.Errorf("path %q not found: %w", p, err)
 		}
+	} else {
+		var err error
+		p, err = os.Getwd()
+		if err != nil {
+			return err
+		}
 	}
 
-	visited, err := fm.Explore(p, exploreConfig)
+	exploreConfig.Roots = []string{p}
+	visited, err := fm.Explore(exploreConfig)
 	if err != nil {
 		return err
 	}

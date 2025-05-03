@@ -204,23 +204,8 @@ func GetShellInfo() (map[string]string, error) {
 	// Get the shell name from the path
 	shellName := shellPath[strings.LastIndex(shellPath, "/")+1:]
 
-	// Create a map to handle shell version commands
-	shellVersionCommands := map[string]string{
-		"bash": "bash --version",
-		"zsh":  "zsh --version",
-		"tsh":  "tsh --version",
-		"sh":   "sh --version", // or "sh -c 'echo $0'"
-		// Add other shells and their version commands as needed
-	}
-
-	// Find the version command for the current shell
-	versionCommand, exists := shellVersionCommands[shellName]
-	if !exists {
-		return nil, fmt.Errorf("shell version command not defined for shell: %s", shellName)
-	}
-
 	// Execute the version command
-	cmd := exec.Command("sh", "-c", versionCommand)
+	cmd := exec.Command(shellPath, "--version")
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err := cmd.Run()

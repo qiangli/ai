@@ -10,12 +10,12 @@ import (
 	"github.com/expr-lang/expr/vm"
 )
 
-func compile(code string) *vm.Program {
+func compile(code string) (*vm.Program, error) {
 	p, err := expr.Compile(code, expr.Env(Env{}))
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return p
+	return p, nil
 }
 
 type Env struct {

@@ -12,6 +12,8 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"slices"
+	"sort"
 	. "strings"
 	"time"
 	"unicode/utf8"
@@ -57,18 +59,14 @@ type Config struct {
 	HideHidden bool
 	WithBorder bool
 	Fuzzy      bool
+
+	SortBy  int
+	Reverse bool
+
+	Roots []string
 }
 
-func Explore(startPath string, cfg *Config) (string, error) {
-	startPath = path.Clean(startPath)
-	if startPath == "" {
-		var err error
-		startPath, err = os.Getwd()
-		if err != nil {
-			return "", err
-		}
-	}
-
+func Explore(cfg *Config) (string, error) {
 	parseOpenWith(cfg.OpenWith)
 	mainColor = lipgloss.Color(cfg.MainColor)
 	withHighlight = cfg.WithHighlight
@@ -80,9 +78,15 @@ func Explore(startPath string, cfg *Config) (string, error) {
 		termWidth:  80,
 		termHeight: 60,
 		positions:  make(map[string]position),
+		sortBy:     cfg.SortBy,
+		reverse:    cfg.Reverse,
 	}
 
-	m.statusBar = compile(cfg.StatusBar)
+	var err error
+	m.statusBar, err = compile(cfg.StatusBar)
+	if err != nil {
+		return "", err
+	}
 
 	showIcons = cfg.ShowIcons
 	parseIcons()
@@ -100,7 +104,8 @@ func Explore(startPath string, cfg *Config) (string, error) {
 	output := termenv.NewOutput(os.Stderr)
 	lipgloss.SetColorProfile(output.ColorProfile())
 
-	m.path = startPath
+	m.path = ""
+	m.roots = cfg.Roots
 	m.list()
 
 	opts := []tea.ProgramOption{
@@ -121,12 +126,18 @@ func Explore(startPath string, cfg *Config) (string, error) {
 		return m.path, nil
 	}
 
+	if m.exitCode == 2 {
+		return "", nil
+	}
+
 	return "", fmt.Errorf("exit code: %v", m.exitCode)
 }
 
 type model struct {
-	path                  string              // Current dir path we are looking at.
-	files                 []fs.DirEntry       // Files we are looking at.
+	path  string        // Current dir path we are looking at.
+	roots []string      // Roots of the file system.
+	files []fs.DirEntry // Files we are looking at.
+
 	err                   error               // Error while listing files.
 	c, r                  int                 // Selector position in columns and rows.
 	columns, rows         int                 // Displayed amount of rows and columns.
@@ -149,7 +160,17 @@ type model struct {
 	showHelp              bool                // Show help
 	statusBar             *vm.Program         // Status bar program.
 	quitting              bool                // Whether we are quitting the program.
+
+	//
+	sortBy  int
+	reverse bool
 }
+
+const (
+	SortByName = iota
+	SortByModTime
+	SortBySize
+)
 
 type position struct {
 	c, r   int
@@ -253,7 +274,13 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if !ok {
 				return m, nil
 			}
-			if fi := fileInfo(filePath); fi.IsDir() {
+			// it could happen that file was removed after previous step
+			fi, err := fileInfo(filePath)
+			if err != nil {
+				m.err = err
+				return m, nil
+			}
+			if fi.IsDir() {
 				// Enter subdirectory.
 				m.path = filePath
 				if p, ok := m.positions[m.path]; ok {
@@ -684,7 +711,18 @@ func (m *model) list() {
 	var err error
 	m.files = nil
 
-	// ReadDir already returns files and dirs sorted by filename.
+	if m.path == "" {
+		if len(m.roots) == 0 {
+			m.path, err = os.Getwd()
+			if err != nil {
+				m.err = err
+				return
+			}
+		} else {
+			m.path = m.roots[0]
+		}
+	}
+
 	files, err := os.ReadDir(m.path)
 	if err != nil {
 		m.err = err
@@ -693,20 +731,38 @@ func (m *model) list() {
 		m.err = nil
 	}
 
-files:
+	memo := make(map[string]bool)
+	for _, toDelete := range m.toBeDeleted {
+		memo[toDelete.path] = true
+	}
+
 	for _, file := range files {
 		if m.hideHidden && HasPrefix(file.Name(), ".") {
-			continue files
+			continue
 		}
 		if dirOnly && !file.IsDir() {
-			continue files
+			continue
 		}
-		for _, toDelete := range m.toBeDeleted {
-			if path.Join(m.path, file.Name()) == toDelete.path {
-				continue files
-			}
+		if _, ok := memo[path.Join(m.path, file.Name())]; ok {
+			continue
 		}
 		m.files = append(m.files, file)
+	}
+
+	// Sort files by modification time.
+	if len(m.files) > 0 {
+		sort.SliceStable(m.files, func(i, j int) bool {
+			if m.sortBy == SortByModTime {
+				return sortByModTime(m.files[i], m.files[j])
+			}
+			if m.sortBy == SortBySize {
+				return sortByFileSize(m.files[i], m.files[j])
+			}
+			return sortByFilename(m.files[i], m.files[j])
+		})
+		if m.reverse {
+			slices.Reverse(m.files)
+		}
 	}
 }
 

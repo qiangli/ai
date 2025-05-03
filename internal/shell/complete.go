@@ -2,11 +2,12 @@ package shell
 
 import (
 	"os"
-	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/c-bata/go-prompt"
+	"github.com/kballard/go-shellquote"
 )
 
 var filePathCompleter = FilePathCompleter{
@@ -62,29 +63,22 @@ func Completer(d prompt.Document) []prompt.Suggest {
 		}
 	}
 
-	var w = d.GetWordBeforeCursor()
-	// only partially match the last word (sub dir)
-	if len(w) > 0 {
-		if strings.HasSuffix(w, string(os.PathSeparator)) {
-			w = ""
-		} else {
-			w = filepath.Base(w)
-		}
-		w = strings.ToLower(w)
-	}
 	filter := func(fi os.DirEntry) bool {
 		// only show directories for cd command
 		if isCd && !fi.IsDir() {
 			return false
 		}
-		if w == "" {
-			return true
+		// ignore hidden files
+		if fi.Name()[0] == '.' {
+			return false
 		}
-		return strings.Contains(strings.ToLower(fi.Name()), w)
+		return true
 	}
 	files = filePathCompleter.Complete(d, filter)
 
-	completions := slices.Concat(files, visited, s)
+	words := wordCompleter.Complete(d)
+
+	completions := slices.Concat(files, visited, s, words)
 	return completions
 }
 
@@ -94,4 +88,115 @@ func IsCdCmd(pd prompt.Document) bool {
 		return slices.Contains([]string{"cd"}, cmdArgs[0])
 	}
 	return false
+}
+
+var wordCompleter = NewWordCompleter(100, 3)
+
+func (wc *WordCompleter) Complete(d prompt.Document) []prompt.Suggest {
+	const maxN = 100
+
+	word := d.GetWordBeforeCursor()
+	if wc.ignoreCase {
+		word = strings.ToUpper(word)
+	}
+	suggestions := make([]prompt.Suggest, 0)
+	for _, wf := range wc.counter.TopN(maxN) {
+		if strings.Contains(strings.ToUpper(wf.Word), word) {
+			suggestions = append(suggestions, prompt.Suggest{Text: wf.Word, Description: "word"})
+		}
+	}
+	return suggestions
+}
+
+type WordCompleter struct {
+	ignoreCase bool
+
+	counter *WordCounter
+	headN   int
+	tailM   int
+
+	headCount int
+	tailBuf   []string
+	tailPos   int
+
+	mu sync.Mutex
+}
+
+func NewWordCompleter(headN, tailM int) *WordCompleter {
+	return &WordCompleter{
+		counter:    NewWordCounter(),
+		headN:      headN,
+		tailM:      tailM,
+		headCount:  0,
+		tailPos:    0,
+		tailBuf:    make([]string, tailM),
+		ignoreCase: true,
+	}
+}
+
+// Capture captures lines; processes first N synchronously,
+// buffers last M, and processes buffer when which == 99
+func (wc *WordCompleter) Capture(which int, line string) error {
+	const minLength = 7
+
+	if which == 99 {
+		wc.mu.Lock()
+		defer wc.mu.Unlock()
+
+		// process tail buffer in order
+		numTail := wc.tailM
+		if wc.headCount > wc.headN {
+			if wc.headCount-wc.headN < wc.tailM {
+				numTail = wc.headCount - wc.headN
+			}
+		} else {
+			numTail = 0
+		}
+		start := wc.tailPos
+		for i := 0; i < numTail; i++ {
+			idx := (start + i) % wc.tailM
+			wc.processLine(wc.tailBuf[idx], minLength)
+		}
+		return nil
+	}
+
+	wc.mu.Lock()
+	defer wc.mu.Unlock()
+
+	wc.headCount++
+	if wc.headCount <= wc.headN {
+		// process synchronously
+		wc.processLine(line, minLength)
+	} else if wc.tailM > 0 {
+		// Buffer in circular tail buffer
+		wc.tailBuf[wc.tailPos] = line
+		wc.tailPos = (wc.tailPos + 1) % wc.tailM
+	}
+	return nil
+}
+
+func (wc *WordCompleter) processLine(line string, minLength int) {
+	parts, err := shellquote.Split(line)
+	if err != nil {
+		return
+	}
+	var words []string
+	for _, word := range parts {
+		if len(word) < minLength {
+			continue
+		}
+		words = append(words, word)
+	}
+	if len(words) > 0 {
+		wc.counter.AddWords(words)
+	}
+}
+
+func (wc *WordCompleter) Show(top int) {
+	wc.mu.Lock()
+	defer wc.mu.Unlock()
+
+	for _, wf := range wc.counter.TopN(top) {
+		println(wf.Word, wf.Count)
+	}
 }

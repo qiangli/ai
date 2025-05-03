@@ -3,6 +3,7 @@ package shell
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/c-bata/go-prompt"
@@ -18,11 +19,14 @@ func Shell(vars *api.Vars) error {
 
 	initRegistry(vars)
 
+	initRc(vars)
+
 	//
 	oldState, err := term.GetState(int(os.Stdin.Fd()))
 	if err != nil {
 		return err
 	}
+	// TODO ctrl+C catch signal to ensure this is called
 	defer func() { _ = term.Restore(int(os.Stdin.Fd()), oldState) }() // Best effort.
 
 	// command loop
@@ -65,6 +69,7 @@ func Shell(vars *api.Vars) error {
 
 		log.Debugf("input command: %q\n", input)
 
+		// cmd + args
 		cmdArgs := strings.SplitN(input, " ", 2)
 
 		// command args
@@ -102,7 +107,7 @@ func Shell(vars *api.Vars) error {
 		// built-in commands:
 		// help, history, exit
 		if strings.Compare("help", command) == 0 {
-			help()
+			help(args)
 			continue
 		} else if strings.Compare("history", command) == 0 {
 			runHistory(args)
@@ -146,6 +151,9 @@ func Shell(vars *api.Vars) error {
 		isAgent := func(s string) bool {
 			return strings.HasPrefix(s, "@")
 		}
+		// NOTE full path system command will no longer work (directly)
+		// e.g. /bin/ls will be: ai @shell/bin/ls ...
+		// command may be interpreted and executed via tools call by LLM
 		isSlash := func(s string) bool {
 			return strings.HasPrefix(s, "/")
 		}
@@ -241,40 +249,15 @@ func commandErr(command string, err error) {
 	fmt.Printf("\033[31m✗\033[0m %s: %s\n", command, err.Error())
 }
 
-var builtin = []string{
-	"help",
-	"exit",
-	"history",
-	"clear",
-	"alias",
-	"env",
-	"source",
-	"explore",
-}
-
-func help() {
-	var items = []struct {
-		name        string
-		description string
-	}{
-		{"exit", "exit ai shell"},
-		{"history [-c]", "display or clear command history"},
-		{"alias [name[=value]", "set or print aliases"},
-		{"env [name[=value]", "export or print environment"},
-		{"source [file]", "set alias and environment from file"},
-		{"explore [--cd] [path]", "explore file system"},
-		{"/help", "help for ai"},
-		{"/mcp", "manage MCP server"},
-		{"/setup", "setup ai configuration"},
+func initRc(vars *api.Vars) error {
+	rc := filepath.Join(filepath.Dir(vars.Config.ConfigFile), "rc.sh")
+	if _, err := os.Stat(rc); err != nil && os.IsNotExist(err) {
+		return nil
+	} else if err != nil {
+		return nil
 	}
-
-	width := 0
-	for _, item := range items {
-		if len(item.name) > width {
-			width = len(item.name)
-		}
+	if err := runSource(vars.Config.Shell, rc); err != nil {
+		return err
 	}
-	for _, item := range items {
-		fmt.Printf("  \033[0;32m%-*s\033[0m  │  %s\n", width, item.name, item.description)
-	}
+	return nil
 }

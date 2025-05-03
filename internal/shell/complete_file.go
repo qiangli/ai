@@ -82,5 +82,7 @@ func (c *FilePathCompleter) Complete(d prompt.Document, filter func(os.DirEntry)
 		suggests = append(suggests, prompt.Suggest{Text: f.Name(), Description: desc})
 	}
 
-	return prompt.FilterHasPrefix(suggests, base, c.IgnoreCase)
+	// return prompt.FilterFuzzy(suggests, base, c.IgnoreCase)
+	// return prompt.FilterHasPrefix(suggests, base, c.IgnoreCase)
+	return prompt.FilterContains(suggests, base, c.IgnoreCase)
 }

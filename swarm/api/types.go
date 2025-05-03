@@ -236,6 +236,11 @@ func (r *Request) Clone(ctx context.Context) *Request {
 	return r2
 }
 
+type ResponseWriter interface {
+	AddMessage(*Response, *Agent)
+	SetResult(*Result)
+}
+
 type Response struct {
 	// A list of message objects generated during the conversation
 	// with a sender field indicating which Agent the message originated from.

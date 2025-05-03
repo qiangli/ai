@@ -16,7 +16,7 @@ type Model struct {
 }
 
 // Level represents the "intelligence" level of the model. i.e. basic, regular, advanced
-// for example, OpenAI: gpt-4o-mini, gpt-4o, gpt-o1
+// for example, OpenAI: gpt-4.1-mini, gpt-4.1, o3
 type Level int
 
 const (
