@@ -59,44 +59,35 @@ func execCommand(shellBin, original string) error {
 	log.Debugf("modified command: %+v\n", modified)
 
 	// Execute the command
-	command := strings.Join(modified, " ")
+	capture := wordCompleter.Capture
+
+	cmdline := strings.Join(modified, " ")
+	command, page := RemovePageSuffix(cmdline)
 	log.Debugf("Executing command: %q\n", command)
 
-	// cmd := exec.Command(shellBin, "-c", command)
-	// cmd.Stdout = os.Stdout
-	// cmd.Stderr = os.Stderr
-	// cmd.Stdin = os.Stdin
-	// return cmd.Run()
-	defer func() {
-		// add command as stdin and signal end of processing
-		wordCompleter.Capture(0, command)
-		wordCompleter.Capture(99, "\n")
-	}()
-
-	if err := RunAndCapture(shellBin, command, wordCompleter.Capture); err != nil {
-		return err
+	if page {
+		err = RunAndCapture(shellBin, command, capture)
+	} else {
+		err = RunPtyCapture(shellBin, command, capture)
 	}
-	return nil
+
+	// add command as stdin and signal end of processing
+	capture(0, command)
+	capture(99, "\n")
+
+	return err
 }
 
-// RemoveMoreLessSuffix removes a "| more" or "| less" suffix from the command.
-// Returns the new command and true if a suffix was removed, otherwise returns the original command and false.
-func RemoveMoreLessSuffix(command string) (string, bool) {
-	re := regexp.MustCompile(`(?i)\|\s*(more|less)\b\s*(.*)$`)
-	matches := re.FindStringSubmatch(command)
-	if matches != nil {
-		trimmed := strings.TrimSpace(matches[2])
-		if trimmed != "" {
-			return strings.TrimSpace(command[:matches[0][0]]) + " | " + trimmed, true
-		}
-		return strings.TrimSpace(command[:len(command)-len(matches[0])]), true
-	}
-	return command, false
+func RunNoCapture(shellBin, command string) error {
+	cmd := exec.Command(shellBin, "-c", command)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+	return cmd.Run()
 }
 
-func RunAndCapture(shellBin, line string, capture func(which int, line string) error) error {
-	command, moreOrLess := RemoveMoreLessSuffix(line)
-
+// RunAndCapture runs a command and captures its output line by line.
+func RunAndCapture(shellBin, command string, capture func(which int, line string) error) error {
 	cmd := exec.Command(shellBin, "-c", command)
 	cmd.Stdin = os.Stdin
 
@@ -116,39 +107,47 @@ func RunAndCapture(shellBin, line string, capture func(which int, line string) e
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	streamHandler := func(which int, pipe io.ReadCloser, output io.Writer) {
+	streamHandler := func(which int, in io.ReadCloser, out io.Writer) {
 		defer wg.Done()
 
-		reader := bufio.NewReader(pipe)
+		reader := bufio.NewReader(in)
 		var buf strings.Builder
+
+		chunk := make([]byte, 4096)
 		for {
-			b, err := reader.ReadByte()
-			if b != 0 {
-				output.Write([]byte{b})
+			n, err := reader.Read(chunk)
+			if n > 0 {
+				start := 0
+				for i := 0; i < n; i++ {
+					b := chunk[i]
+					if b != 0 {
+						out.Write([]byte{b})
+					}
+					if b == '\n' {
+						// write any buffered bytes plus line
+						buf.Write(chunk[start:i])
+						_ = capture(which, buf.String())
+						buf.Reset()
+						start = i + 1
+					}
+				}
+				// buffer any partial line at end of chunk
+				if start < n {
+					buf.Write(chunk[start:n])
+				}
 			}
 			if err != nil {
 				if buf.Len() > 0 {
-					// On EOF, capture the remaining partial line
 					_ = capture(which, buf.String())
 				}
 				break
 			}
-			if b == '\n' {
-				_ = capture(which, buf.String())
-				buf.Reset()
-			} else {
-				buf.WriteByte(b)
-			}
 		}
 	}
 
-	var stdoutBuffer bytes.Buffer
-	if moreOrLess {
-		stdoutTee := io.MultiWriter(os.Stdout, &stdoutBuffer)
-		go streamHandler(1, stdoutPipe, stdoutTee)
-	} else {
-		go streamHandler(1, stdoutPipe, os.Stdout)
-	}
+	var out bytes.Buffer
+	tee := io.MultiWriter(os.Stdout, &out)
+	go streamHandler(1, stdoutPipe, tee)
 
 	go streamHandler(2, stderrPipe, os.Stderr)
 
@@ -157,10 +156,24 @@ func RunAndCapture(shellBin, line string, capture func(which int, line string) e
 	if err := cmd.Wait(); err != nil {
 		return err
 	}
-	if moreOrLess {
-		pager(stdoutBuffer.String())
+
+	return pager(out.String())
+}
+
+// RemovePageSuffix removes a "| page" command suffix.
+// Returns the new command and true if a suffix was removed, otherwise returns the original command and false.
+func RemovePageSuffix(command string) (string, bool) {
+	// re := regexp.MustCompile(`(?i)\|\s*(more|less)\b\s*(.*)$`)
+	re := regexp.MustCompile(`(?i)\|\s*(page)\b\s*(.*)$`)
+	matches := re.FindStringSubmatch(command)
+	if matches != nil {
+		trimmed := strings.TrimSpace(matches[2])
+		if trimmed != "" {
+			return strings.TrimSpace(command[:matches[0][0]]) + " | " + trimmed, true
+		}
+		return strings.TrimSpace(command[:len(command)-len(matches[0])]), true
 	}
-	return nil
+	return command, false
 }
 
 var commandSeps = []string{">>", "<<", ">", "<", "&&", "&", "||", "|", ";"}

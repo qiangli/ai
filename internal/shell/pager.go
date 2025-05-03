@@ -10,16 +10,16 @@ import (
 	"golang.org/x/term"
 )
 
-// pager prints the given output "page by page" using the size of the
-// current terminal. Navigation keys:
+// pager divides and prints the given output "page by page" using the size of the
+// current terminal.
+//
+// Navigation keys:
 //
 //		n Space/Enter : forward one page
 //		b             : back one page
 //		q             : quit / cancel
 //		<number>      : jump to that page number (1-based)
 //	 Arrow keys       : navigate using up/down
-//
-// The implementation now uses raw mode to better handle arrow keys.
 func pager(output string) error {
 	width, height, err := term.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
