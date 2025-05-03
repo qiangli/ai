@@ -2,11 +2,13 @@ package shell
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"os/user"
+	"regexp"
 	"slices"
 	"sort"
 	"strings"
@@ -77,7 +79,24 @@ func execCommand(shellBin, original string) error {
 	return nil
 }
 
-func RunAndCapture(shellBin, command string, capture func(which int, line string) error) error {
+// RemoveMoreLessSuffix removes a "| more" or "| less" suffix from the command.
+// Returns the new command and true if a suffix was removed, otherwise returns the original command and false.
+func RemoveMoreLessSuffix(command string) (string, bool) {
+	re := regexp.MustCompile(`(?i)\|\s*(more|less)\b\s*(.*)$`)
+	matches := re.FindStringSubmatch(command)
+	if matches != nil {
+		trimmed := strings.TrimSpace(matches[2])
+		if trimmed != "" {
+			return strings.TrimSpace(command[:matches[0][0]]) + " | " + trimmed, true
+		}
+		return strings.TrimSpace(command[:len(command)-len(matches[0])]), true
+	}
+	return command, false
+}
+
+func RunAndCapture(shellBin, line string, capture func(which int, line string) error) error {
+	command, moreOrLess := RemoveMoreLessSuffix(line)
+
 	cmd := exec.Command(shellBin, "-c", command)
 	cmd.Stdin = os.Stdin
 
@@ -97,7 +116,7 @@ func RunAndCapture(shellBin, command string, capture func(which int, line string
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	streamHandler := func(which int, pipe io.ReadCloser, output *os.File) {
+	streamHandler := func(which int, pipe io.ReadCloser, output io.Writer) {
 		defer wg.Done()
 
 		reader := bufio.NewReader(pipe)
@@ -123,12 +142,25 @@ func RunAndCapture(shellBin, command string, capture func(which int, line string
 		}
 	}
 
-	go streamHandler(1, stdoutPipe, os.Stdout)
+	var stdoutBuffer bytes.Buffer
+	if moreOrLess {
+		stdoutTee := io.MultiWriter(os.Stdout, &stdoutBuffer)
+		go streamHandler(1, stdoutPipe, stdoutTee)
+	} else {
+		go streamHandler(1, stdoutPipe, os.Stdout)
+	}
+
 	go streamHandler(2, stderrPipe, os.Stderr)
 
 	wg.Wait()
 
-	return cmd.Wait()
+	if err := cmd.Wait(); err != nil {
+		return err
+	}
+	if moreOrLess {
+		pager(stdoutBuffer.String())
+	}
+	return nil
 }
 
 var commandSeps = []string{">>", "<<", ">", "<", "&&", "&", "||", "|", ";"}
