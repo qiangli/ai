@@ -23,7 +23,7 @@ func TestAddWord(t *testing.T) {
 		"cd /tmp",
 	}
 
-	var counter = NewWordCounter()
+	var counter = DefaultWordCounter()
 
 	Capture := func(which int, line string) error {
 		words := strings.Fields(line)
@@ -31,8 +31,8 @@ func TestAddWord(t *testing.T) {
 		return nil
 	}
 
-	TopN := func(n int) []WordFreq {
-		return counter.TopN(n)
+	TopN := func(word string, n int) []WordFreq {
+		return counter.Suggest(word, n)
 	}
 
 	for _, line := range lines {
@@ -42,8 +42,8 @@ func TestAddWord(t *testing.T) {
 		}
 	}
 
-	top := TopN(5)
+	top := TopN("", 5)
 	for _, wf := range top {
-		t.Logf("%-18s (freq: %-2d, score: %d)\n", wf.Word, wf.Count, wf.Score)
+		t.Logf("%-18s (freq: %-2d, recent, %d, score: %f)\n", wf.Word, wf.Count, wf.Recent, wf.Score)
 	}
 }

@@ -93,17 +93,15 @@ func IsCdCmd(pd prompt.Document) bool {
 var wordCompleter = NewWordCompleter(100, 3)
 
 func (wc *WordCompleter) Complete(d prompt.Document) []prompt.Suggest {
-	const maxN = 100
+	const maxN = 5
 
 	word := d.GetWordBeforeCursor()
 	if wc.ignoreCase {
 		word = strings.ToUpper(word)
 	}
 	suggestions := make([]prompt.Suggest, 0)
-	for _, wf := range wc.counter.TopN(maxN) {
-		if strings.Contains(strings.ToUpper(wf.Word), word) {
-			suggestions = append(suggestions, prompt.Suggest{Text: wf.Word, Description: "word"})
-		}
+	for _, wf := range wc.counter.Suggest(word, maxN) {
+		suggestions = append(suggestions, prompt.Suggest{Text: wf.Word, Description: "word"})
 	}
 	return suggestions
 }
@@ -124,7 +122,7 @@ type WordCompleter struct {
 
 func NewWordCompleter(headN, tailM int) *WordCompleter {
 	return &WordCompleter{
-		counter:    NewWordCounter(),
+		counter:    DefaultWordCounter(),
 		headN:      headN,
 		tailM:      tailM,
 		headCount:  0,
@@ -192,11 +190,11 @@ func (wc *WordCompleter) processLine(line string, minLength int) {
 	}
 }
 
-func (wc *WordCompleter) Show(top int) {
+func (wc *WordCompleter) Show(word string, top int) {
 	wc.mu.Lock()
 	defer wc.mu.Unlock()
 
-	for _, wf := range wc.counter.TopN(top) {
+	for _, wf := range wc.counter.Suggest(word, top) {
 		println(wf.Word, wf.Count)
 	}
 }

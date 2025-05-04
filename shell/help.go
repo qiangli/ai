@@ -91,6 +91,7 @@ var builtin = []string{
 }
 
 func help(s string) {
+	// subcommand args
 	cmdArgs := strings.SplitN(s, " ", 2)
 	var cmd, args string
 	if len(cmdArgs) > 0 {
@@ -102,14 +103,19 @@ func help(s string) {
 	if cmd != "" {
 		switch {
 		case strings.HasPrefix(cmd, "word"):
+			// [topN] [text]
 			parts := strings.Fields(args)
 			n := 10
-			if len(parts) > 1 {
-				if i, err := strconv.Atoi(parts[1]); err == nil {
+			w := ""
+			if len(parts) > 0 {
+				if i, err := strconv.Atoi(parts[0]); err == nil {
 					n = i
 				}
 			}
-			wordCompleter.Show(n)
+			if len(parts) > 1 {
+				w = parts[1]
+			}
+			wordCompleter.Show(w, n)
 			return
 		case strings.HasPrefix(cmd, "key"):
 			showAiShellKeyBindings()

@@ -23,7 +23,8 @@ function build_ai() {
 }
 
 function build_all() {
-	local os_list=("linux" "darwin" "windows")
+	# local os_list=("linux" "darwin" "windows")
+	local os_list=("linux" "darwin")
 	local arch_list=("amd64" "arm64")
 
 	for os in "${os_list[@]}"; do

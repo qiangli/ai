@@ -185,4 +185,4 @@ require (
 	modernc.org/memory v1.10.0 // indirect
 )
 
-replace github.com/zyedidia/micro/v2 => github.com/qiangli/micro/v2 v2.0.4
+replace github.com/zyedidia/micro/v2 => github.com/qiangli/micro/v2 v2.0.5
