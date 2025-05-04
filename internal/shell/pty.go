@@ -13,6 +13,8 @@ import (
 	"github.com/creack/pty"
 	"golang.org/x/sys/unix"
 	"golang.org/x/term"
+
+	"github.com/qiangli/ai/internal/log"
 )
 
 func RunPtyCapture(shellBin, command string, capture func(int, string) error) error {
@@ -42,24 +44,13 @@ func RunPtyCapture(shellBin, command string, capture func(int, string) error) er
 	ch <- syscall.SIGWINCH                        // Initial resize.
 	defer func() { signal.Stop(ch); close(ch) }() // Cleanup signals when done.
 
-	// Set stdin in raw mode.
-	oldState, err := term.MakeRaw(int(stdin.Fd()))
-	if err != nil {
-		return err
-	}
-	defer func() { _ = term.Restore(int(stdin.Fd()), oldState) }() // Best effort.
-
-	// non blocking read
-	// TODO windows
 	fd := int(stdin.Fd())
-	origFlags, err := unix.FcntlInt(uintptr(fd), unix.F_GETFL, 0)
+	// Set stdin in raw mode.
+	oldState, err := term.MakeRaw(fd)
 	if err != nil {
 		return err
 	}
-	_, err = unix.FcntlInt(uintptr(fd), unix.F_SETFL, origFlags|unix.O_NONBLOCK)
-	if err != nil {
-		return err
-	}
+	defer func() { _ = term.Restore(fd, oldState) }() // Best effort.
 
 	var done int32
 
@@ -70,6 +61,25 @@ func RunPtyCapture(shellBin, command string, capture func(int, string) error) er
 	// keep reading from stdin and write to ptmx until done
 	// _, _ = io.Copy(ptmx, stdin)
 	in := func() {
+		// non blocking read
+		// TODO windows
+		origFlags, err := unix.FcntlInt(uintptr(fd), unix.F_GETFL, 0)
+		if err != nil {
+			log.Debugf("stdin fcntl get flags error: %s\n", err)
+			return
+		}
+		defer func() {
+			_, _ = unix.FcntlInt(uintptr(fd), unix.F_SETFL, origFlags)
+			log.Debugf("stdin restore original flags %+v\n", origFlags)
+		}()
+
+		newFlags := origFlags | unix.O_NONBLOCK
+		_, err = unix.FcntlInt(uintptr(fd), unix.F_SETFL, newFlags)
+		if err != nil {
+			log.Debugf("stdin fcntl set flags error: %s\n", err)
+			return
+		}
+
 		buf := make([]byte, 1024)
 		for {
 			n, err := stdin.Read(buf)

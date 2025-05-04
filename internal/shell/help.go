@@ -114,6 +114,7 @@ func help(s string) {
 		{"env [name[=value]", "export or print environment"},
 		{"source [file]", "set alias and environment from file"},
 		{"explore [--help] [path]", "explore local file system"},
+		{"| page", "similar to more or less"},
 		{"help", "help for ai shell"},
 		{"@[agent]", "agent command"},
 		{"/[command]", "slash (shell agent) command"},
