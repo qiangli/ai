@@ -138,6 +138,12 @@ func Shell(vars *api.Vars) error {
 			}
 			updateHistory(input)
 			continue
+		} else if strings.Compare("edit", command) == 0 {
+			if err := runEdit(args); err != nil {
+				commandErr(command, err)
+			}
+			updateHistory(input)
+			continue
 		} else if strings.Compare("explore", command) == 0 {
 			if err := runExplore(args); err != nil {
 				commandErr(command, err)

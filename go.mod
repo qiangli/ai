@@ -45,6 +45,7 @@ require (
 	github.com/spf13/viper v1.20.1
 	github.com/weppos/publicsuffix-go v0.40.2
 	github.com/yuin/goldmark v1.7.11
+	github.com/zyedidia/micro/v2 v2.0.14
 	golang.org/x/sys v0.32.0
 	golang.org/x/term v0.31.0
 	golang.org/x/text v0.24.0
@@ -64,6 +65,7 @@ require (
 	github.com/antchfx/xpath v1.3.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
+	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/charmbracelet/colorprofile v0.3.1 // indirect
 	github.com/charmbracelet/x/ansi v0.8.0 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.13 // indirect
@@ -82,6 +84,8 @@ require (
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
+	github.com/gdamore/encoding v1.0.1 // indirect
+	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.6.2 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
@@ -106,6 +110,9 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-tty v0.0.7 // indirect
+	github.com/micro-editor/json5 v1.0.1-micro // indirect
+	github.com/micro-editor/tcell/v2 v2.0.11 // indirect
+	github.com/micro-editor/terminal v0.0.0-20250324214352-e587e959c6b5 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
@@ -149,7 +156,11 @@ require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	github.com/yuin/goldmark-emoji v1.0.6 // indirect
+	github.com/yuin/gopher-lua v1.1.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
+	github.com/zyedidia/clipper v0.1.1 // indirect
+	github.com/zyedidia/glob v0.0.0-20170209203856-dd4023a66dc3 // indirect
+	github.com/zyedidia/poller v1.0.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0 // indirect
 	go.opentelemetry.io/otel v1.35.0 // indirect
@@ -166,8 +177,12 @@ require (
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/src-d/go-billy.v4 v4.3.2 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gotest.tools/v3 v3.5.1 // indirect
+	layeh.com/gopher-luar v1.0.11 // indirect
 	modernc.org/libc v1.64.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.10.0 // indirect
 )
+
+replace github.com/zyedidia/micro/v2 => github.com/qiangli/micro/v2 v2.0.4

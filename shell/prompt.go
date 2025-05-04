@@ -16,8 +16,8 @@ import (
 func createPrompter() (func(), error) {
 	const app = "ai"
 	const ps = ">"
-	const dirPs = "\033[0;35m%s\033[0;34m\033[0;36m/%s \033[0;32m%s\033[0;34m%s\033[0m"
-	const repoPs = "\033[0;35m%s@\033[0;33m%s\033[0;34m\033[0;36m/%s \033[0;32m%s\033[0;34m%s\033[0m"
+	const dirPs = "\033[0;35m%s\033[0;34m\033[0;36m/%s \033[0;32m%s\033[0;34m%s \033[0m"
+	const repoPs = "\033[0;35m%s@\033[0;33m%s\033[0;34m\033[0;36m/%s \033[0;32m%s\033[0;34m%s \033[0m"
 
 	hostname, err := os.Hostname()
 	if err != nil {

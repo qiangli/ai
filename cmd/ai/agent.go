@@ -13,8 +13,8 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/internal/shell"
 	"github.com/qiangli/ai/internal/watch"
+	"github.com/qiangli/ai/shell"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/agent"
 )

@@ -13,12 +13,13 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/alexflint/go-arg"
+	arg "github.com/alexflint/go-arg"
 	glob "github.com/bmatcuk/doublestar/v4"
 	"github.com/mattn/go-shellwords"
 
 	"github.com/qiangli/ai/internal/log"
-	fm "github.com/qiangli/ai/internal/shell/explore"
+	edit "github.com/qiangli/ai/shell/edit"
+	fm "github.com/qiangli/ai/shell/explore"
 )
 
 func execCommand(shellBin, original string) error {
@@ -91,73 +92,6 @@ func RunAndCapture(shellBin, command string, capture func(which int, line string
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 
-	// stdoutPipe, err := cmd.StdoutPipe()
-	// if err != nil {
-	// 	return err
-	// }
-	// stderrPipe, err := cmd.StderrPipe()
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if err := cmd.Start(); err != nil {
-	// 	return err
-	// }
-
-	// var wg sync.WaitGroup
-	// wg.Add(2)
-
-	// streamHandler := func(which int, in io.ReadCloser, out io.Writer) {
-	// 	defer wg.Done()
-
-	// 	reader := bufio.NewReader(in)
-	// 	var buf strings.Builder
-
-	// 	chunk := make([]byte, 4096)
-	// 	for {
-	// 		n, err := reader.Read(chunk)
-	// 		if n > 0 {
-	// 			start := 0
-	// 			for i := 0; i < n; i++ {
-	// 				b := chunk[i]
-	// 				if b != 0 {
-	// 					out.Write([]byte{b})
-	// 				}
-	// 				if b == '\n' {
-	// 					// write any buffered bytes plus line
-	// 					buf.Write(chunk[start:i])
-	// 					_ = capture(which, buf.String())
-	// 					buf.Reset()
-	// 					start = i + 1
-	// 				}
-	// 			}
-	// 			// buffer any partial line at end of chunk
-	// 			if start < n {
-	// 				buf.Write(chunk[start:n])
-	// 			}
-	// 		}
-	// 		if err != nil {
-	// 			if buf.Len() > 0 {
-	// 				_ = capture(which, buf.String())
-	// 			}
-	// 			break
-	// 		}
-	// 	}
-	// }
-
-	// var out bytes.Buffer
-	// tee := io.MultiWriter(os.Stdout, &out)
-	// go streamHandler(1, stdoutPipe, tee)
-
-	// go streamHandler(2, stderrPipe, os.Stderr)
-
-	// wg.Wait()
-
-	// if err := cmd.Wait(); err != nil {
-	// 	return err
-	// }
-
-	// return pager(out.String())
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return err
@@ -175,7 +109,6 @@ func RunAndCapture(shellBin, command string, capture func(which int, line string
 			if err != nil {
 				break
 			}
-			// write any buffered bytes plus line
 			_ = capture(1, string(line))
 			tee.Write(line)
 		}
@@ -531,4 +464,41 @@ func runExplore(s string) error {
 		visitedRegistry.Visit(visited)
 	}
 	return nil
+}
+
+func runEdit(s string) error {
+	var opts struct {
+		File []string `arg:"positional"`
+		Help bool     `arg:"-h,--help" help:"show help"`
+	}
+
+	usage := func() {
+		fmt.Println("Usage: edit [file]")
+		fmt.Println("Options:")
+		fmt.Println("  -h, --help     show help")
+		fmt.Println("")
+		showEditKeyBindings()
+		fmt.Println("")
+	}
+
+	parser, err := arg.NewParser(arg.Config{}, &opts)
+	if err != nil {
+		return err
+	}
+
+	args, err := shellwords.Parse(s)
+	if err != nil {
+		return err
+	}
+
+	err = parser.Parse(args)
+	switch {
+	case err == arg.ErrHelp:
+		usage()
+		return nil
+	case err != nil:
+		return err
+	}
+
+	return edit.Edit(opts.File)
 }

@@ -64,6 +64,22 @@ func showExploreKeyBindings() {
 	// fmt.Println("  .             Hide hidden files")
 }
 
+func showEditKeyBindings() {
+	fmt.Println("  \033[0;32mKey Bindings:\033[0m")
+	fmt.Println("  Ctrl + q      Quit")
+	fmt.Println("  Ctrl + g      Help")
+	fmt.Println("  Ctrl + e      Run command")
+	fmt.Println("  Ctrl + o      Open")
+	fmt.Println("  Ctrl + s      Save")
+	fmt.Println("  Ctrl + z      Undo")
+	fmt.Println("  Ctrl + y      Redo")
+	fmt.Println("  Ctrl + x      Cut")
+	fmt.Println("  Ctrl + c      Copy")
+	fmt.Println("  Ctrl + v      Paste")
+	fmt.Println("  Ctrl + f      Find")
+	fmt.Println("  Ctrl + a      Select all")
+}
+
 var builtin = []string{
 	"help",
 	"exit",
@@ -113,6 +129,7 @@ func help(s string) {
 		{"alias [name[=value]", "set or print aliases"},
 		{"env [name[=value]", "export or print environment"},
 		{"source [file]", "set alias and environment from file"},
+		{"edit [file]", "text editor"},
 		{"explore [--help] [path]", "explore local file system"},
 		{"| page", "similar to more or less"},
 		{"help", "help for ai shell"},
