@@ -34,6 +34,13 @@ func Completer(d prompt.Document) []prompt.Suggest {
 	for _, cmd := range builtin {
 		s = append(s, prompt.Suggest{Text: cmd, Description: "ai shell"})
 	}
+	for k := range agentRegistry {
+		s = append(s, prompt.Suggest{Text: "@" + k, Description: "agent"})
+	}
+
+	for k := range aliasRegistry {
+		s = append(s, prompt.Suggest{Text: k, Description: "alias"})
+	}
 
 	hist := getCommandHist()
 	for _, command := range hist {
@@ -43,43 +50,32 @@ func Completer(d prompt.Document) []prompt.Suggest {
 	for k := range commandRegistry {
 		s = append(s, prompt.Suggest{Text: k, Description: "command"})
 	}
-	for k := range agentRegistry {
-		s = append(s, prompt.Suggest{Text: "@" + k, Description: "agent"})
-	}
-	for k := range aliasRegistry {
-		s = append(s, prompt.Suggest{Text: k, Description: "alias"})
-	}
-	s = prompt.FilterHasPrefix(unique(s), d.CurrentLine(), true)
+
+	//TODO CurrentLine bug if RunTtyCapture?
+	// s = prompt.FilterHasPrefix(s, d.CurrentLine(), true)
+	s = prompt.FilterHasPrefix(s, d.CurrentLineBeforeCursor(), true)
 
 	var isCd = IsCdCmd(d)
-
 	// only show visited paths for cd command
 	var visited []prompt.Suggest
 	var files []prompt.Suggest
-
 	if isCd {
 		for _, k := range visitedRegistry.List() {
 			visited = append(visited, prompt.Suggest{Text: k, Description: "cd"})
 		}
 	}
-
 	filter := func(fi os.DirEntry) bool {
 		// only show directories for cd command
 		if isCd && !fi.IsDir() {
 			return false
 		}
-		// ignore hidden files
-		if fi.Name()[0] == '.' {
-			return false
-		}
 		return true
 	}
 	files = filePathCompleter.Complete(d, filter)
-
 	words := wordCompleter.Complete(d)
 
 	completions := slices.Concat(files, visited, s, words)
-	return completions
+	return unique(completions)
 }
 
 func IsCdCmd(pd prompt.Document) bool {

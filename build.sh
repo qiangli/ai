@@ -25,7 +25,7 @@ function build_ai() {
 function build_all() {
 	# local os_list=("linux" "darwin" "windows")
 	local os_list=("linux" "darwin")
-	local arch_list=("amd64" "arm64")
+	local arch_list=("arm64", "amd64")
 
 	for os in "${os_list[@]}"; do
 		for arch in "${arch_list[@]}"; do
@@ -40,7 +40,8 @@ function build() {
 	local os
 	local arch
 	os="$(uname -s | tr '[:upper:]' '[:lower:]')"
-	arch="$(uname -m)"
+	# arch="$(uname -m)"
+	arch=amd64
 
 	build_ai "${os}" "${arch}"
 	echo "Build completed for ${os} ${arch}"

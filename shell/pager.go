@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/sys/unix"
 	"golang.org/x/term"
 )
 
@@ -38,10 +37,10 @@ func pager(output string) error {
 	totalPages := (totalLines + pageSize - 1) / pageSize
 
 	// NOTE: return?
-	// if totalPages <= 1 {
-	// 	fmt.Print(output)
-	// 	return nil
-	// }
+	if totalPages <= 1 {
+		fmt.Print(output)
+		return nil
+	}
 
 	fd := int(os.Stdin.Fd())
 
@@ -52,24 +51,24 @@ func pager(output string) error {
 	}
 	defer func() { _ = term.Restore(fd, oldState) }() // Best effort.
 
-	// set to blocking mode to read input
-	// some util may set stdin to non-blocking mode, e.g cat
-	// Get original flags
-	origFlags, err := unix.FcntlInt(uintptr(fd), unix.F_GETFL, 0)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		// Restore original flags
-		_, _ = unix.FcntlInt(uintptr(fd), unix.F_SETFL, origFlags)
-	}()
-	// Clear O_NONBLOCK flag
-	newFlags := origFlags &^ unix.O_NONBLOCK
-	// Set flags back (blocking mode)
-	_, err = unix.FcntlInt(uintptr(fd), unix.F_SETFL, newFlags)
-	if err != nil {
-		return err
-	}
+	// // set to blocking mode to read input
+	// // some util may set stdin to non-blocking mode, e.g cat
+	// // Get original flags
+	// origFlags, err := unix.FcntlInt(uintptr(fd), unix.F_GETFL, 0)
+	// if err != nil {
+	// 	return err
+	// }
+	// defer func() {
+	// 	// Restore original flags
+	// 	_, _ = unix.FcntlInt(uintptr(fd), unix.F_SETFL, origFlags)
+	// }()
+	// // Clear O_NONBLOCK flag
+	// newFlags := origFlags &^ unix.O_NONBLOCK
+	// // Set flags back (blocking mode)
+	// _, err = unix.FcntlInt(uintptr(fd), unix.F_SETFL, newFlags)
+	// if err != nil {
+	// 	return err
+	// }
 
 	reader := bufio.NewReader(os.Stdin)
 	current := 0

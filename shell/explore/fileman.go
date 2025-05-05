@@ -46,8 +46,6 @@ var (
 )
 
 type Config struct {
-	Editor string
-
 	OpenWith      string
 	MainColor     string
 	WithHighlight bool
@@ -847,9 +845,8 @@ func (m *model) open() tea.Cmd {
 	var commandString string
 	if commandString, ok = openWith[extension(filePath)]; ok {
 	} else {
-		commandString = lookup([]string{"WALK_EDITOR", "EDITOR"}, "less")
+		commandString = lookup([]string{"WALK_EDITOR", "EDITOR"}, "ai -i -- edit")
 	}
-
 	commandSlice := append(Split(commandString, " "), filePath)
 	execCmd := exec.Command(commandSlice[0], commandSlice[1:]...)
 	return tea.ExecProcess(execCmd, func(err error) tea.Msg {

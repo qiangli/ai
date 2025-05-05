@@ -5,14 +5,18 @@
 ## LLM
 
 # API key for the language model
-api_key: "sk-1234"
+api_key: "sk-"
 
 # Base URL for the API
-# base_url: "https://api.openai.com/v1/"
-base_url: "http://localhost:4000/"
+base_url: "https://api.openai.com/v1/"
+# base_url: "http://localhost:4000/"
 
 # Specify the language model to use
-model: "gpt-4.1-mini"
+# model: "gpt-4.1-mini"
+model: "gpt-4o-mini"
+l1_model: "gpt-4o-mini"
+l2_model: "gpt-4.1"
+l3_model: "gpt-o4-mini"
 
 ## mcp
 mcp:

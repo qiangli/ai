@@ -243,7 +243,7 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	flags.Bool("watch", false, "Watch the workspace directory and respond to embedded ai requests in files")
 
-	flags.Int("max-turns", 32, "Max number of turns")
+	flags.Int("max-turns", 16, "Max number of turns")
 	flags.Int("max-time", 3600, "Max number of seconds for timeout")
 
 	// agent specific flags

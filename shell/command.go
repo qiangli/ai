@@ -4,13 +4,13 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"os/user"
 	"regexp"
 	"slices"
 	"sort"
+	"strconv"
 	"strings"
 
 	arg "github.com/alexflint/go-arg"
@@ -22,7 +22,7 @@ import (
 	fm "github.com/qiangli/ai/shell/explore"
 )
 
-func execCommand(shellBin, original string) error {
+func execCommand(shellBin, original string, save bool) error {
 	log.Debugf("original command: %q\n", original)
 
 	parsed, err := parseCommand(original)
@@ -40,6 +40,17 @@ func execCommand(shellBin, original string) error {
 			dir = subst(dir)
 			return Chdir(dir)
 		}
+
+		// default to GET_ROOT or HOME if no argument is provided
+		// if the the current working directory is a subdirectory of the git, cd to git root
+		// otherwise, cd to home directory
+		wd, _ := os.Getwd()
+		gitRoot := os.Getenv(gitRootEnv)
+		if strings.HasPrefix(wd, gitRoot) && len(wd) > len(gitRoot) {
+			Chdir(gitRoot)
+			return nil
+		}
+
 		user, err := user.Current()
 		if err != nil {
 			return err
@@ -58,17 +69,22 @@ func execCommand(shellBin, original string) error {
 
 	log.Debugf("modified command: %+v\n", modified)
 
-	// Execute the command
-	capture := wordCompleter.Capture
-
+	//
 	cmdline := strings.Join(modified, " ")
 	command, page := RemovePageSuffix(cmdline)
 	log.Debugf("Executing command: %q\n", command)
 
-	if page {
-		err = RunAndCapture(shellBin, command, capture)
+	// Execute the command
+	capture := wordCompleter.Capture
+
+	// TODO command: set tty=on|off
+	ttyOn, _ := strconv.ParseBool(os.Getenv("AI_TTY"))
+	if !ttyOn {
+		err = RunAndCapture(shellBin, command, page, save, capture)
 	} else {
+		//TODO: experimental, still buggy
 		err = RunPtyCapture(shellBin, command, capture)
+		// err = RunNoCapture(shellBin, command)
 	}
 
 	// add command as stdin and signal end of processing
@@ -87,11 +103,40 @@ func RunNoCapture(shellBin, command string) error {
 }
 
 // RunAndCapture runs a command and captures its output line by line.
-func RunAndCapture(shellBin, command string, capture func(which int, line string) error) error {
+func RunAndCapture(shellBin, command string, page, save bool, capture func(which int, line string) error) error {
+	log.Debugf("RunAndCapture: %q page: %v\n", command, page)
+
+	// TTY=1 key=val ... cmd args
+	parts := strings.Split(command, " ")
+	var ttyOn bool
+	for _, part := range parts {
+		if strings.Contains(part, "=") {
+			kv := strings.SplitN(part, "=", 2)
+			if len(kv) == 2 {
+				k := strings.TrimSpace(kv[0])
+				v := strings.TrimSpace(kv[1])
+				if k == "AI_TTY" {
+					ttyOn, _ = strconv.ParseBool(v)
+					break
+				}
+			}
+			continue
+		}
+		break
+	}
+
+	log.Debugf("Running command: %q page: %v tty: %v\n", command, page, ttyOn)
+
 	cmd := exec.Command(shellBin, "-c", command)
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 
+	if ttyOn {
+		cmd.Stdout = os.Stdout
+		return cmd.Run()
+	}
+
+	// only capture the output if tty is off
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return err
@@ -100,17 +145,40 @@ func RunAndCapture(shellBin, command string, capture func(which int, line string
 		return err
 	}
 
+	// a copy of the output verbatim
 	var out bytes.Buffer
-	tee := io.MultiWriter(os.Stdout, &out)
 	go func() {
 		reader := bufio.NewReader(stdout)
+		var lineBuf []byte
+		buf := make([]byte, 4096)
 		for {
-			line, err := reader.ReadBytes('\n')
+			n, err := reader.Read(buf)
+			if n > 0 {
+				data := buf[:n]
+				// Write output immediately
+				out.Write(data)
+				os.Stdout.Write(data)
+				// Buffer data for capture
+				start := 0
+				for i, b := range data {
+					if b == '\n' {
+						lineBuf = append(lineBuf, data[start:i+1]...)
+						_ = capture(1, string(lineBuf))
+						lineBuf = lineBuf[:0]
+						start = i + 1
+					}
+				}
+				if start < n {
+					lineBuf = append(lineBuf, data[start:]...)
+				}
+			}
 			if err != nil {
 				break
 			}
-			_ = capture(1, string(line))
-			tee.Write(line)
+		}
+		// Capture any remaining data as the last line
+		if len(lineBuf) > 0 {
+			_ = capture(1, string(lineBuf))
 		}
 	}()
 
@@ -118,14 +186,31 @@ func RunAndCapture(shellBin, command string, capture func(which int, line string
 		return err
 	}
 
-	return pager(out.String())
+	clip := func(s string, max int) string {
+		if len(s) > max {
+			return s[:max]
+		}
+		return s
+	}
+
+	outText := out.String()
+	if save {
+		os.Setenv("OUT", clip(outText, 32000))
+	}
+
+	// // TODO run more/less if they are requested
+	// command | page
+	if page {
+		return pager(outText)
+	}
+
+	return nil
 }
 
 // RemovePageSuffix removes a "| page" command suffix.
 // Returns the new command and true if a suffix was removed, otherwise returns the original command and false.
 func RemovePageSuffix(command string) (string, bool) {
-	// re := regexp.MustCompile(`(?i)\|\s*(more|less)\b\s*(.*)$`)
-	re := regexp.MustCompile(`(?i)\|\s*(page)\b\s*(.*)$`)
+	re := regexp.MustCompile(`(?i)\|\s*(page|more|less)\b\s*(.*)$`)
 	matches := re.FindStringSubmatch(command)
 	if matches != nil {
 		trimmed := strings.TrimSpace(matches[2])
@@ -364,8 +449,8 @@ func showEnv() {
 }
 
 var exploreConfig = &fm.Config{
-	Editor:        "vim",
-	OpenWith:      "txt:less -N;go:vim;md:glow -p",
+	// OpenWith:      "txt:less -N;go:vim;md:glow -p",
+	OpenWith:      "",
 	MainColor:     "#0000FF",
 	WithHighlight: true,
 	StatusBar:     "Mode() + ' ' + Size() + ' ' + ModTime()",

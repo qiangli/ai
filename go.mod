@@ -46,7 +46,6 @@ require (
 	github.com/weppos/publicsuffix-go v0.40.2
 	github.com/yuin/goldmark v1.7.11
 	github.com/zyedidia/micro/v2 v2.0.14
-	golang.org/x/sys v0.32.0
 	golang.org/x/term v0.31.0
 	golang.org/x/text v0.24.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
@@ -172,6 +171,7 @@ require (
 	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0 // indirect
 	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
+	golang.org/x/sys v0.32.0 // indirect
 	golang.org/x/time v0.8.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect

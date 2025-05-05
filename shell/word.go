@@ -293,7 +293,7 @@ const (
 	wDup  float64 = 0.20 // ← new: stutter penalty weight
 )
 
-/* k-gram duplicate ratio 0‥1 ──────────────────────────────────────────*/
+// k-gram duplicate ratio 0‥1
 func dupRatio(s string, k int) float64 {
 	n := len(s)
 	if n < k+1 {

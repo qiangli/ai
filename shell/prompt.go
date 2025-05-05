@@ -13,6 +13,15 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
+const (
+	// HOME
+	userHomeEnv = "HOME"
+	// GIT_ROOT
+	gitRootEnv = "GIT_ROOT"
+	// // WORKSPACE
+	// workspaceEnv = "WORKSPACE"
+)
+
 func createPrompter() (func(), error) {
 	const app = "ai"
 	const ps = ">"
@@ -36,6 +45,9 @@ func createPrompter() (func(), error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// set HOME
+	os.Setenv(userHomeEnv, home)
 
 	return func() {
 		where := hostname
@@ -81,6 +93,10 @@ func createPrompter() (func(), error) {
 		worktree, err := repo.Worktree()
 		if err == nil {
 			repoDir := worktree.Filesystem.Root()
+
+			// set GIT_ROOT
+			os.Setenv(gitRootEnv, repoDir)
+
 			if strings.HasPrefix(dir, repoDir) {
 				baseDir, _ = filepath.Rel(repoDir, dir)
 				log.Debugf("repoDir: %s\n", repoDir)

@@ -91,6 +91,23 @@ var builtin = []string{
 }
 
 func help(s string) {
+	var items = []struct {
+		name        string
+		description string
+	}{
+		{"exit", "exit ai shell"},
+		{"history [-c]", "display or clear command history"},
+		{"alias [name[=value]", "set or print aliases"},
+		{"env [name[=value]", "export or print environment"},
+		{"source [file]", "set alias and environment from file"},
+		{"edit [file]", "text editor"},
+		{"explore [--help] [path]", "explore local file system"},
+		{"| page", "similar to more or less"},
+		{"help", "help for ai shell"},
+		{"@[agent]", "agent command"},
+		{"/[command]", "slash (shell agent) command"},
+	}
+
 	// subcommand args
 	cmdArgs := strings.SplitN(s, " ", 2)
 	var cmd, args string
@@ -102,6 +119,12 @@ func help(s string) {
 	}
 	if cmd != "" {
 		switch {
+		case cmd == "edit":
+			runEdit("--help")
+			return
+		case cmd == "explore":
+			runExplore("--help")
+			return
 		case strings.HasPrefix(cmd, "word"):
 			// [topN] [text]
 			parts := strings.Fields(args)
@@ -126,23 +149,6 @@ func help(s string) {
 	}
 
 	// default help
-	var items = []struct {
-		name        string
-		description string
-	}{
-		{"exit", "exit ai shell"},
-		{"history [-c]", "display or clear command history"},
-		{"alias [name[=value]", "set or print aliases"},
-		{"env [name[=value]", "export or print environment"},
-		{"source [file]", "set alias and environment from file"},
-		{"edit [file]", "text editor"},
-		{"explore [--help] [path]", "explore local file system"},
-		{"| page", "similar to more or less"},
-		{"help", "help for ai shell"},
-		{"@[agent]", "agent command"},
-		{"/[command]", "slash (shell agent) command"},
-	}
-
 	width := 0
 	for _, item := range items {
 		if len(item.name) > width {
