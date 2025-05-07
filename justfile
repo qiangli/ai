@@ -6,7 +6,7 @@ default:
 generate:
     go generate ./...
 
-build: tidy generate
+build:
     ./build.sh
 
 build-all: tidy generate

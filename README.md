@@ -9,24 +9,28 @@ This AI tool assists you with all the tasks beyond file editing on your system c
 ```bash
 git clone https://github.com/qiangli/ai.git
 cd ai
-make build
-make install
+# make build
+# just build
+./build.sh
 ```
 
 ## Run
 
 ```bash
+# command line
 ai [OPTIONS] AGENT [message...]
 
+#
 ai @ask "What is the capital of France?"
-git diff origin main|ai @ask generate commit message for git
-
+git diff origin main|ai @git/long commit message
 ai / What tools could I use to search for a pattern in files
 
 ai --help
 
-#
-tsh ssh --tty user@host ai -i
+# interactive shell
+ai -i
+
+ssh --tty user@host ai -i
 ```
 
 ## Test
@@ -37,32 +41,17 @@ No API calls will be made in `dry-run` mode.
 ai --dry-run --dry-run-content "fake data" ...
 ```
 
-Default system prompts can be replaced for testing and evaluation.
-
-```bash
-ai --role "system" --role-content "custom prompt" ...
-```
-
 ## Debug
-
-```json
-//https://github.com/jfcg/sorty/issues/6
-// go test -c -o bin/test  ./internal/db
-{
-    "name": "TestGetByVector",
-    "type": "go",
-    "request": "launch",
-    "mode": "exec",
-    "program": "./bin/test",
-    "args": ["-test.run", "^TestGetByVector$"],
-},
-```
 
 ```bash
 ai --verbose ...
+
+ai /help info
 ```
 
 ## Usage
+
+### Command line
 
 ```bash
 $ ai
@@ -72,7 +61,7 @@ $ ai
 AI Command Line Tool
 
 Usage:
-  ai [OPTIONS] [AGENT] message...
+  ai [OPTIONS] [@AGENT] MESSAGE...
 
 Examples:
 
@@ -81,127 +70,144 @@ ai / what is fish
 ai @ask what is fish
 
 
-Use ai help [info|agents|commands|tools] for more details.
+Use "ai /help [agents|commands|tools|info]" for more information.
 ```
 
 ```bash
-$ ai help
+$ ai /help
 ```
 
 ```text
+ai /help
 AI Command Line Tool
 
 Usage:
-  ai [OPTIONS] AGENT message...
+  ai [OPTIONS] [@AGENT] MESSAGE...
 
-There are multiple ways to interact with the AI tool.
+There are multiple ways to interact with this AI tool.
 
 + Command line input:
 
-  ai AGENT what is fish?
+  ai @agent what is fish?
 
 + Read from standard input:
 
-  ai AGENT -
+  ai @agent --stdin
+  ai @agent -
+
 Ctrl+D to send, Ctrl+C to cancel.
 
 + Here document:
 
-  ai AGENT <<eof
+  ai @agent <<eof
 what is the weather today?
 eof
 
 + Piping input:
 
-  echo "What is Unix?" | ai AGENT
-  git diff origin main | ai AGENT [message...]
-  curl -sL https://en.wikipedia.org/wiki/Artificial_intelligence | head -100 | ai AGENT [message...]
+  git diff origin/main | ai @agent [message...]
 
 + File redirection:
 
-  ai AGENT [message...] < file.txt
+  ai @agent [message...] < file.txt
 
 + Reading from system clipboard:
 
-  ai AGENT [message...] =
-Use system copy (Ctrl+C on Unix) to send selected contents.
+  ai @agent [message...] --pb-read
+  ai @agent [message...] {
+  ai @agent [message...] --pb-read-wait
+  ai @agent [message...] {{
+
+Use system copy (Ctrl+C on Unix) to add selected contents.
 Ctrl+C to cancel.
 
 + Composing with text editor:
 
   export AI_EDITOR=nano # default: vi
-  ai AGENT
+  ai @agent
 
-
-Agent:
-  /[command]       [message...] Get help with system command and shell scripting tasks
-  @[agent/command] [message...] Engage specialist agents for assistance with complex tasks
 
 Miscellaneous:
-  setup                   Setup the AI configuration
+
+  ai /mcp                        Manage MCP server
+  ai /setup                      Setup configuration
+
 
 Options:
+      --agent string            Specify the agent/command to use. Same as @agent/command (default "ask")
       --api-key string          LLM API key
       --base-url string         LLM Base URL (default "https://api.openai.com/v1/")
-      --config string           config file (default "/Users/qiang.li/.ai/config.yaml")
-      --doc-template string     Document template file
-      --editor string           Specify editor to use (default "vi")
+      --config string           config file (default "/Users/liqiang/.ai/config.yaml")
       --file string             Read input from files.  May be given multiple times to add multiple file content
-      --format string           Output format, must be either raw or markdown. (default "markdown")
+      --format string           Output format, one of text, json, or markdown. (default "markdown")
   -h, --help                    help for ai
       --image-model string      Image LLM model (default "dall-e-3")
-      --l1-model string         Level1 basic LLM model (default "gpt-4o-mini")
-      --l2-model string         Level2 standard LLM model (default "gpt-4o")
-      --l3-model string         Level3 advanced LLM model (default "o1-mini")
+      --input string            Read input message from a file
+  -i, --interactive             Interactive mode
+      --internal                Enable internal agents and tools
+      --l1-model string         Level1 basic LLM model (default "gpt-4.1-mini")
+      --l2-model string         Level2 standard LLM model (default "gpt-4.1")
+      --l3-model string         Level3 advanced LLM model (default "o4-mini")
       --max-time int            Max number of seconds for timeout (default 3600)
-      --max-turns int           Max number of turns (default 32)
-      --mcp-server-url string   MCP server URL (default "http://localhost:58080/sse")
-      --model string            LLM model (default "gpt-4o")
+      --max-turns int           Max number of turns (default 16)
+      --mcp-server-url string   MCP server URL
+      --message string          Specify input message. Overrides all other input methods
+      --model string            LLM model (default "gpt-4.1")
   -o, --output string           Save final response to a file.
-      --pb-read                 Read input from the clipboard. Alternatively, append '=' to the command
-      --pb-write                Copy output to the clipboard. Alternatively, append '=+' to the command
-      --quiet                   Operate quietly
-      --verbose                 Show debugging information
+      --pb-read                 Read input from the clipboard. Alternatively, use '{'
+      --pb-read-wait            Read input from the clipboard and wait for confirmation. Alternatively, use '{{'
+      --pb-write                Copy output to the clipboard. Alternatively, use '}'
+      --pb-write-append         Append output to the clipboard. Alternatively, use '}}'
+      --quiet                   Operate quietly. Only show final response
+      --shell string            Shell to use for interactive mode (default "/bin/bash")
+      --stdin                   Read input message from stdin. Alternatively, use '-'
+      --template string         Document template file
+      --unsafe                  Skip command security check to allow unsafe operations. Use with caution
+      --verbose                 Show progress and debugging information
+  -v, --version                 version for ai
+      --watch                   Watch the workspace directory and respond to embedded ai requests in files
   -w, --workspace string        Workspace directory
 
 Environment variables:
-  AI_API_KEY, AI_BASE_URL, AI_CONFIG, AI_DOC_TEMPLATE, AI_DRY_RUN, AI_DRY_RUN_CONTENT, AI_EDITOR, AI_FILE, AI_FORMAT, AI_HELP, AI_IMAGE_API_KEY, AI_IMAGE_BASE_URL, AI_IMAGE_MODEL, AI_IMAGE_VIEWER, AI_INTERACTIVE, AI_L1_API_KEY, AI_L1_BASE_URL, AI_L1_MODEL, AI_L2_API_KEY, AI_L2_BASE_URL, AI_L2_MODEL, AI_L3_API_KEY, AI_L3_BASE_URL, AI_L3_MODEL, AI_LOG, AI_MAX_TIME, AI_MAX_TURNS, AI_MCP_SERVER_URL, AI_MESSAGE, AI_MODEL, AI_NO_META_PROMPT, AI_OUTPUT, AI_PB_READ, AI_PB_WRITE, AI_QUIET, AI_ROLE, AI_ROLE_PROMPT, AI_SQL_DB_HOST, AI_SQL_DB_NAME, AI_SQL_DB_PASSWORD, AI_SQL_DB_PORT, AI_SQL_DB_USERNAME, AI_TRACE, AI_VERBOSE, AI_WORKSPACE
+  AI_AGENT, AI_API_KEY, AI_BASE_URL, AI_CONFIG, AI_DRY_RUN, AI_DRY_RUN_CONTENT, AI_EDITOR, AI_FILE, AI_FORMAT, AI_HELP, AI_HOST, AI_IMAGE_API_KEY, AI_IMAGE_BASE_URL, AI_IMAGE_MODEL, AI_IMAGE_VIEWER, AI_INPUT, AI_INTERACTIVE, AI_INTERNAL, AI_L1_API_KEY, AI_L1_BASE_URL, AI_L1_MODEL, AI_L2_API_KEY, AI_L2_BASE_URL, AI_L2_MODEL, AI_L3_API_KEY, AI_L3_BASE_URL, AI_L3_MODEL, AI_LOG, AI_MAX_TIME, AI_MAX_TURNS, AI_MCP_SERVER_URL, AI_MESSAGE, AI_MODEL, AI_OUTPUT, AI_PB_READ, AI_PB_READ_WAIT, AI_PB_WRITE, AI_PB_WRITE_APPEND, AI_PORT, AI_QUIET, AI_ROLE, AI_ROLE_PROMPT, AI_SHELL, AI_SQL_DB_HOST, AI_SQL_DB_NAME, AI_SQL_DB_PASSWORD, AI_SQL_DB_PORT, AI_SQL_DB_USERNAME, AI_STDIN, AI_TEMPLATE, AI_UNSAFE, AI_VERBOSE, AI_VERSION, AI_WATCH, AI_WORKSPACE
+
+Use "ai /help [agents|commands|tools|info]" for more information.
 ```
+
+### Interactive shell
 
 ```bash
-$ ai help agents
+ai -i
 ```
 
-```text
-Available agents:
+```
+ai.git@main/. ai> help
+  exit                     │  exit ai shell
+  history [-c]             │  display or clear command history
+  alias [name[=value]      │  set or print aliases
+  env [name[=value]        │  export or print environment
+  source [file]            │  set alias and environment from file
+  edit [file]              │  text editor
+  explore [--help] [path]  │  explore local file system
+  | page                   │  similar to more or less
+  help                     │  help for ai shell
+  @[agent]                 │  agent command
+  /[command]               │  slash (shell agent) command
 
-aider:	Integrate LLMs for collaborative coding, refactoring, bug fixing, and test development.
-ask:	Deliver concise, reliable answers on a wide range of topics.
-doc:	Create a polished document by integrating draft materials into the provided template.
-draw:	Generate images based on user input, providing visual representations of text-based descriptions.
-eval:	Evaluate and test tools.
-git:	Automate git commit message creation for clarity and consistency in version control
-git/conventional:	Generate concise git commit messages based on the provided diffs using the Conventional Commits specification
-git/short:	Generate concise, one-line git commit messages based on the provided diffs.
-gptr:	Deliver live, realtime, accurate, relevant insights from diverse online sources.
-launch:	Dispatch to the most appropriate agent based on the user's input.
-meta-prompt:	Generates a system prompt based on the user's input.
-oh:	Engineering assistant promoting incremental development and detailed refactoring support.
-pr:	Enhance PR management with automated summaries, reviews, suggestions, and changelog updates.
-pr/changelog:	Update the CHANGELOG.md file with the PR changes
-pr/describe:	Generate PR description - title, type, summary, code walkthrough and labels
-pr/improve:	Provide code suggestions for improving the PR
-pr/review:	Give feedback about the PR, possible issues, security concerns, review effort and more
-shell:	Assist with scripting, command execution, and troubleshooting shell tasks.
-sql:	Streamline SQL query generation, helping users derive insights without SQL expertise.
-workspace:	Determines the user's workspace based on user's input.
+  Key Bindings:
+  Ctrl + A	Go to the beginning of the line (Home)
+  Ctrl + E	Go to the end of the line (End)
+  Ctrl + P	Previous command (Up arrow)
+  Ctrl + N	Next command (Down arrow)
+  Ctrl + F	Forward one character
+  Ctrl + B	Backward one character
+  Ctrl + D	Delete character under the cursor
+  Ctrl + H	Delete character before the cursor (Backspace)
+  Ctrl + W	Cut the word before the cursor to the clipboard
+  Ctrl + K	Cut the line after the cursor to the clipboard
+  Ctrl + U	Cut the line before the cursor to the clipboard
+  Ctrl + L	Clear the screen
 
-
-/ is shorthand for @shell
-
-Not sure which agent to use? Simply enter your message and AI will choose the most appropriate one for you:
-
-ai "message..."
 ```
 
 ## Credits

@@ -13,7 +13,7 @@ help: Makefile
 generate:
 	@go generate ./...
 
-build: generate ## Build
+build: ## Build
 	@./build.sh
 
 test:  ## Test

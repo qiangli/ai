@@ -6,6 +6,10 @@ function tidy() {
 	go vet ./...
 }
 
+function generate() {
+	go generate ./...
+}
+
 function build_ai() {
 	local os=$1
 	local arch=$2
@@ -40,8 +44,10 @@ function build() {
 	local os
 	local arch
 	os="$(uname -s | tr '[:upper:]' '[:lower:]')"
-	# arch="$(uname -m)"
-	arch=amd64
+	arch="$(uname -m)"
+	if [[ "$arch" == "x86_64" ]]; then                                                            
+      arch="amd64"                                                                                
+    fi                                                                                            
 
 	build_ai "${os}" "${arch}"
 	echo "Build completed for ${os} ${arch}"
@@ -49,6 +55,7 @@ function build() {
 
 ##
 tidy
+generate
 
 #
 if [[ $1 == "all" ]]; then
