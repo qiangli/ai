@@ -234,10 +234,7 @@ func dispatchTool(ctx context.Context, vars *api.Vars, name string, args map[str
 			Value: out,
 		}, err
 	case ToolTypeSystem:
-		out, err := callSystemTool(ctx, vars, v, args)
-		return &api.Result{
-			Value: out,
-		}, err
+		return callSystemTool(ctx, vars, v, args)
 	case ToolTypeTemplate, ToolTypeShell, ToolTypeSql:
 		out, err := callTplTool(ctx, vars, v, args)
 		return &api.Result{

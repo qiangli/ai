@@ -62,10 +62,7 @@ func evaluateCommand(ctx context.Context, vars *api.Vars, command string, args [
 	}
 
 	req := &api.LLMRequest{
-		ModelType: model.Type,
-		Model:     model.Name,
-		BaseUrl:   model.BaseUrl,
-		ApiKey:    model.ApiKey,
+		Model: model,
 		Messages: []*api.Message{
 			{
 				Role:    api.RoleSystem,

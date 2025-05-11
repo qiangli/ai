@@ -1,4 +1,4 @@
-package llm
+package openai
 
 import (
 	"context"
@@ -35,33 +35,29 @@ func NewClient(apiKey, baseUrl string) openai.Client {
 }
 
 func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
-	log.Debugf(">>>OPENAI:\n Model type: %s Model: %s, Messages: %v Tools: %v\n\n", req.ModelType, req.Model, len(req.Messages), len(req.Tools))
+	log.Debugf(">>>OPENAI:\n req: %+v\n\n", req)
 
 	var err error
 	var resp *api.LLMResponse
 
-	switch req.ModelType {
+	switch req.Model.Type {
 	case api.ModelTypeImage:
 		resp, err = generateImage(ctx, req)
 	default:
 		resp, err = call(ctx, req)
 	}
 
-	if err != nil {
-		log.Errorf("***OPENAI: %s\n\n", err)
-		return nil, err
-	}
-
-	log.Debugf("<<<OPENAI:\n Content type: %s Content: %v\n\n", resp.ContentType, len(resp.Content))
-	return resp, nil
+	log.Debugf("<<<OPENAI:\n resp: %+v err: %v\n\n", resp, err)
+	return resp, err
 }
 
 func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
-	client := NewClient(req.ApiKey, req.BaseUrl)
+	client := NewClient(req.Model.ApiKey, req.Model.BaseUrl)
+	model := req.Model.Model()
 
 	params := openai.ChatCompletionNewParams{
 		Seed:  openai.Int(0),
-		Model: req.Model,
+		Model: model,
 	}
 
 	var messages []openai.ChatCompletionMessageParamUnion
@@ -99,9 +95,9 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	resp := &api.LLMResponse{}
 
 	for tries := range maxTurns {
-		log.Infof("\033[33m⚡\033[0m @%s [%v] %s %s\n", req.Agent, tries, req.Model, req.BaseUrl)
+		log.Infof("\033[33m⚡\033[0m @%s [%v] %s %s\n", req.Agent, tries, model, req.Model.BaseUrl)
 
-		log.Debugf("📡 *** sending request to %s ***: %v of %v\n%+v\n\n", req.BaseUrl, tries, maxTurns, req)
+		log.Debugf("📡 *** sending request to %s ***: %v of %v\n%+v\n\n", req.Model.BaseUrl, tries, maxTurns, req)
 
 		completion, err := client.Chat.Completions.New(ctx, params)
 		if err != nil {
@@ -160,15 +156,15 @@ func generateImage(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, 
 		messages = append(messages, v.Content)
 	}
 
-	client := NewClient(req.ApiKey, req.BaseUrl)
+	client := NewClient(req.Model.ApiKey, req.Model.BaseUrl)
 	prompt := strings.Join(messages, "\n")
-	model := req.Model
+	model := req.Model.Model()
 
 	resp := &api.LLMResponse{
 		ContentType: api.ContentTypeB64JSON,
 	}
 
-	log.Infof("@%s %s %s\n", req.Agent, req.Model, req.BaseUrl)
+	log.Infof("@%s %s %s\n", req.Agent, req.Model, req.Model.BaseUrl)
 
 	var imageFormat = openai.ImageGenerateParamsResponseFormatB64JSON
 

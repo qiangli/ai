@@ -232,11 +232,8 @@ func imageParamsAdvice(vars *api.Vars, req *api.Request, resp *api.Response, nex
 	}
 
 	result, err := llm.Send(ctx, &api.LLMRequest{
-		ModelType: model.Type,
-		BaseUrl:   model.BaseUrl,
-		ApiKey:    model.ApiKey,
-		Model:     model.Name,
-		Messages:  msgs,
+		Model:    model,
+		Messages: msgs,
 	})
 	if err != nil {
 		log.Errorf("error sending request: %v\n", err)

@@ -1,5 +1,9 @@
 package api
 
+import (
+	"strings"
+)
+
 type ModelType string
 
 const (
@@ -13,6 +17,24 @@ type Model struct {
 	Name    string
 	BaseUrl string
 	ApiKey  string
+}
+
+func (r *Model) Model() string {
+	_, m := r.split()
+	return m
+}
+
+func (r *Model) Provider() string {
+	p, _ := r.split()
+	return p
+}
+
+func (r *Model) split() (string, string) {
+	parts := strings.SplitN(r.Name, "/", 2)
+	if len(parts) == 2 {
+		return parts[0], parts[1]
+	}
+	return "", r.Name
 }
 
 // Level represents the "intelligence" level of the model. i.e. basic, regular, advanced

@@ -68,8 +68,8 @@ tools:
           type: "string"
           description: "Prompt for input"
           example: "Please provide more details"
-          maxLength: 100
-          minLength: 1
+          # maxLength: 100
+          # minLength: 1
       required: ["prompt"]
     type: "system"
 
@@ -82,8 +82,8 @@ tools:
           type: "string"
           description: "Prompt for input"
           example: "Please confirm the action"
-          maxLength: 100
-          minLength: 1
+          # maxLength: 100
+          # minLength: 1
         choices:
           type: "array"
           items:

@@ -582,15 +582,12 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 	}
 
 	result, err := llm.Send(ctx, &api.LLMRequest{
-		Agent:     r.Name,
-		ModelType: r.Model.Type,
-		BaseUrl:   r.Model.BaseUrl,
-		ApiKey:    r.Model.ApiKey,
-		Model:     r.Model.Name,
-		Messages:  history,
-		MaxTurns:  r.MaxTurns,
-		RunTool:   runTool,
-		Tools:     r.Tools,
+		Agent:    r.Name,
+		Model:    r.Model,
+		Messages: history,
+		MaxTurns: r.MaxTurns,
+		RunTool:  runTool,
+		Tools:    r.Tools,
 		//
 		ImageQuality: req.ImageQuality,
 		ImageSize:    req.ImageSize,

@@ -3,12 +3,12 @@ package swarm
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"fmt"
 	"image"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
+	"net/http"
 	"os/exec"
 	"reflect"
 	"sort"
@@ -132,17 +132,24 @@ func callTplTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[
 type SystemKit struct {
 }
 
-func callSystemTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (string, error) {
+func callSystemTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (*api.Result, error) {
 	tool := &SystemKit{}
 	callArgs := []any{ctx, vars, f.Name, args}
 	v, err := CallKit(tool, f.Kit, f.Name, callArgs...)
 	if err != nil {
-		return "", fmt.Errorf("failed to call system tool %s %s: %w", f.Kit, f.Name, err)
+		return nil, fmt.Errorf("failed to call system tool %s %s: %w", f.Kit, f.Name, err)
 	}
+
+	var result api.Result
 	if s, ok := v.(string); ok {
-		return s, nil
+		result.Value = s
+	} else if c, ok := v.(*FileContent); ok {
+		result.Value = string(c.Content)
+		result.MimeType = c.MimeType
+	} else {
+		result.Value = fmt.Sprintf("%v", v)
 	}
-	return fmt.Sprintf("%v", v), nil
+	return &result, nil
 }
 
 func CallKit(tool any, kit string, method string, args ...any) (any, error) {
@@ -231,14 +238,19 @@ func (r *SystemKit) GetFileInfo(ctx context.Context, vars *api.Vars, name string
 	return info.String(), nil
 }
 
-func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+type FileContent struct {
+	MimeType string
+	Content  []byte
+}
+
+func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*FileContent, error) {
 	path, err := r.getStr("path", args)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	raw, err := _fs.ReadFile(path)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	isImage := func(data []byte) bool {
@@ -250,17 +262,15 @@ func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, a
 		return img.Width > 0 && img.Height > 0
 	}
 
-	var content string
+	var c FileContent
+	c.Content = raw
 
-	// encoding
 	// TODO other types
 	if isImage(raw) {
-		content = base64.StdEncoding.EncodeToString(raw)
-	} else {
-		content = string(raw)
+		c.MimeType = http.DetectContentType(raw)
 	}
 
-	return string(content), nil
+	return &c, nil
 }
 
 func (r *SystemKit) WriteFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -272,7 +282,6 @@ func (r *SystemKit) WriteFile(ctx context.Context, vars *api.Vars, name string, 
 	if err != nil {
 		return "", err
 	}
-	// TODO decoding?
 	if err := _fs.WriteFile(path, []byte(content)); err != nil {
 		return "", err
 	}
