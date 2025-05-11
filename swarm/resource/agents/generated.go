@@ -40,6 +40,9 @@ var ask_agent_yaml_data []byte
 //go:embed chdir/agent.yaml
 var chdir_agent_yaml_data []byte
 
+//go:embed code/agent.yaml
+var code_agent_yaml_data []byte
+
 //go:embed doc/agent.yaml
 var doc_agent_yaml_data []byte
 
@@ -112,6 +115,27 @@ Name: "chdir",
 Description: "Evaluate users input and locate the directory on the local system the user intends to change to.",
 Internal: false,
 Data: chdir_agent_yaml_data,
+Overview: "",
+},
+	"code": {
+Name: "code",
+Description: "Convert screenshot, mockup and Figma design into clean, functional code.",
+Internal: true,
+Data: code_agent_yaml_data,
+Overview: "",
+},
+	"code/html-css": {
+Name: "code/html-css",
+Description: "Convert screenshot, mockup and Figma design into single page app using CSS, HTML and JS",
+Internal: false,
+Data: code_agent_yaml_data,
+Overview: "",
+},
+	"code/html-tailwind": {
+Name: "code/html-tailwind",
+Description: "Convert screenshot, mockup and Figma design into single page app using Tailwind, HTML and JS",
+Internal: false,
+Data: code_agent_yaml_data,
 Overview: "",
 },
 	"doc": {

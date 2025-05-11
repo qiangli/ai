@@ -1,8 +1,14 @@
 package swarm
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"os/exec"
 	"reflect"
 	"sort"
@@ -230,10 +236,30 @@ func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, a
 	if err != nil {
 		return "", err
 	}
-	content, err := _fs.ReadFile(path)
+	raw, err := _fs.ReadFile(path)
 	if err != nil {
 		return "", err
 	}
+
+	isImage := func(data []byte) bool {
+		reader := bytes.NewReader(data)
+		img, _, err := image.DecodeConfig(reader)
+		if err != nil {
+			return false
+		}
+		return img.Width > 0 && img.Height > 0
+	}
+
+	var content string
+
+	// encoding
+	// TODO other types
+	if isImage(raw) {
+		content = base64.StdEncoding.EncodeToString(raw)
+	} else {
+		content = string(raw)
+	}
+
 	return string(content), nil
 }
 
@@ -246,6 +272,7 @@ func (r *SystemKit) WriteFile(ctx context.Context, vars *api.Vars, name string, 
 	if err != nil {
 		return "", err
 	}
+	// TODO decoding?
 	if err := _fs.WriteFile(path, []byte(content)); err != nil {
 		return "", err
 	}

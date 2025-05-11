@@ -1,0 +1,43 @@
+###
+
+agents:
+  - name: "code"
+    display: "🤖 Code"
+    internal: true
+    description: "Convert screenshot, mockup and Figma design into clean, functional code."
+    model: L1
+    instruction:
+      content: "resource:code_sub_system_role.md"
+    advices:
+      around: "sub"
+    functions:
+      - "agent_transfer"
+
+  # prompt adapted from https://github.com/abi/screenshot-to-code/tree/main/backend/prompts
+  - name: "code/html-css"
+    display: "🎨 Code html-css"
+    description: "Convert screenshot, mockup and Figma design into single page app using CSS, HTML and JS"
+    instruction:
+      content: "resource:html_css_system_role.md"
+    model: L2
+    functions:
+      - "system:*"
+
+  # prompt adapted from https://github.com/abi/screenshot-to-code/tree/main/backend/prompts
+  - name: "code/html-tailwind"
+    display: "💨 Code html-tailwind"
+    description: "Convert screenshot, mockup and Figma design into single page app using Tailwind, HTML and JS"
+    instruction:
+      content: "resource:html_tailwind_system_role.md"
+    model: L2
+    functions:
+      - "system:*"
+
+models:
+  - name: "L1"
+    description: "Level 1 basic model"
+    external: true
+  - name: "L2"
+    description: "Level 2 regular model"
+    external: true
+###
