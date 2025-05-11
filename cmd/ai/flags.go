@@ -15,11 +15,11 @@ import (
 )
 
 const (
-	DefaultLlmModel = "gpt-4.1"
-	L1LlmModel      = "gpt-4.1-mini"
-	L2LlmModel      = "gpt-4.1"
-	L3LlmModel      = "o4-mini"
-	ImageLlmModel   = "dall-e-3"
+	DefaultLlmModel = "gpt-4.1-mini"
+	// L1LlmModel      = "gpt-4.1-mini"
+	// L2LlmModel      = "gpt-4.1"
+	// L3LlmModel      = "o4-mini"
+	ImageLlmModel = "dall-e-3"
 )
 
 // Output format type
@@ -195,15 +195,15 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.String("base-url", "https://api.openai.com/v1/", "LLM Base URL")
 
 	flags.String("l1-api-key", "", "Level1 basic LLM API key")
-	flags.String("l1-model", L1LlmModel, "Level1 basic LLM model")
+	flags.String("l1-model", "", "Level1 basic LLM model")
 	flags.String("l1-base-url", "", "Level1 basic LLM Base URL")
 
 	flags.String("l2-api-key", "", "Level2 standard LLM API key")
-	flags.String("l2-model", L2LlmModel, "Level2 standard LLM model")
+	flags.String("l2-model", "", "Level2 standard LLM model")
 	flags.String("l2-base-url", "", "Level2 standard LLM Base URL")
 
 	flags.String("l3-api-key", "", "Level3 advanced LLM API key")
-	flags.String("l3-model", L3LlmModel, "Level3 advanced LLM model")
+	flags.String("l3-model", "", "Level3 advanced LLM model")
 	flags.String("l3-base-url", "", "Level3 advanced LLM Base URL")
 
 	flags.String("image-api-key", "", "Image LLM API key")

@@ -7,8 +7,8 @@ import (
 
 	git "github.com/go-git/go-git/v5"
 
+	"github.com/qiangli/ai/agent"
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/swarm/agent"
 	"github.com/qiangli/ai/swarm/api"
 )
 

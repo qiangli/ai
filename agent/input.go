@@ -121,6 +121,7 @@ func userInput(
 					return nil, err
 				}
 				if send {
+					pb = append(pb, v)
 					data = strings.Join(pb, "\n")
 					break
 				}

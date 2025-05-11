@@ -27,8 +27,10 @@ func Shell(vars *api.Vars) error {
 	if err != nil {
 		return err
 	}
-	// TODO ctrl+C catch signal to ensure this is called
-	defer func() { _ = term.Restore(int(os.Stdin.Fd()), oldState) }() // Best effort.
+	restoreState := func() {
+		_ = term.Restore(int(os.Stdin.Fd()), oldState)
+	}
+	defer restoreState()
 
 	// run sub commands
 	if len(vars.Config.Args) > 0 {
@@ -59,11 +61,21 @@ func Shell(vars *api.Vars) error {
 			prompt.OptionMaxSuggestion(6),
 			prompt.OptionTitle("ai"),
 			prompt.OptionCompletionWordSeparator(completer.FilePathCompletionSeparator),
-			prompt.OptionAddKeyBind(prompt.KeyBind{
-				Key: prompt.ControlC,
-				Fn: func(buf *prompt.Buffer) {
-					prompter()
-				}}),
+			prompt.OptionAddKeyBind(
+				prompt.KeyBind{
+					Key: prompt.ControlD,
+					Fn: func(prompt_toolkit *prompt.Buffer) {
+						prompter()
+					},
+				},
+				prompt.KeyBind{
+					Key: prompt.ControlC,
+					Fn: func(_ *prompt.Buffer) {
+						restoreState()
+						os.Exit(0)
+					},
+				},
+			),
 			prompt.OptionPreviewSuggestionTextColor(prompt.DefaultColor),
 			prompt.OptionScrollbarBGColor(prompt.DefaultColor),
 		)
