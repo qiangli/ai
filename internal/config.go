@@ -256,9 +256,40 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.Repo = repo
 
 	// LLM config
+	// default
 	lc.ApiKey = viper.GetString("api_key")
 	lc.Model = viper.GetString("model")
 	lc.BaseUrl = viper.GetString("base_url")
+	lc.ImageModel = viper.GetString("image_model")
+
+	// openai
+	if lc.ApiKey == "" {
+		if e, ok := os.LookupEnv("OPENAI_API_KEY"); ok {
+			lc.ApiKey = e
+			if lc.BaseUrl == "" {
+				lc.BaseUrl = "https://api.openai.com/v1/"
+			}
+			if lc.Model == "" {
+				lc.Model = "gpt-4o-mini"
+			}
+			if lc.ImageModel == "" {
+				lc.ImageModel = "dall-e-3"
+			}
+		}
+	}
+	// gemini
+	if lc.ApiKey == "" {
+		if e, ok := os.LookupEnv("GEMINI_API_KEY"); ok {
+			lc.ApiKey = e
+			// lc.BaseUrl not required
+			if lc.Model == "" {
+				lc.Model = "gemini-2.0-flash-lite"
+			}
+			if lc.ImageModel == "" {
+				lc.ImageModel = "imagen-3.0-generate-002"
+			}
+		}
+	}
 
 	lc.L1Model = viper.GetString("l1_model")
 	lc.L1BaseUrl = viper.GetString("l1_base_url")
@@ -269,6 +300,7 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	lc.L3Model = viper.GetString("l3_model")
 	lc.L3BaseUrl = viper.GetString("l3_base_url")
 	lc.L3ApiKey = viper.GetString("l3_api_key")
+
 	if lc.L1Model == "" {
 		lc.L1Model = lc.Model
 	}
@@ -278,6 +310,7 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	if lc.L3Model == "" {
 		lc.L3Model = lc.Model
 	}
+
 	if lc.L1ApiKey == "" {
 		lc.L1ApiKey = lc.ApiKey
 	}
@@ -287,6 +320,7 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	if lc.L3ApiKey == "" {
 		lc.L3ApiKey = lc.ApiKey
 	}
+
 	if lc.L1BaseUrl == "" {
 		lc.L1BaseUrl = lc.BaseUrl
 	}
@@ -296,9 +330,15 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	if lc.L3BaseUrl == "" {
 		lc.L3BaseUrl = lc.BaseUrl
 	}
-	lc.ImageModel = viper.GetString("image_model")
+
 	lc.ImageBaseUrl = viper.GetString("image_base_url")
 	lc.ImageApiKey = viper.GetString("image_api_key")
+	if lc.ImageApiKey == "" {
+		lc.ImageApiKey = lc.ApiKey
+	}
+	if lc.ImageBaseUrl == "" {
+		lc.ImageBaseUrl = lc.BaseUrl
+	}
 
 	//
 	app.Log = viper.GetString("log")

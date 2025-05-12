@@ -59,6 +59,17 @@ tools:
           description: "Path to the file to read"
       required: ["path"]
     type: "system"
+  
+  - name: "read_encode_file"
+    description: "Read the complete contents of a file from the file system and encode the content using base64 representation."
+    parameters:
+      type: "object"
+      properties:
+        path:
+          type: "string"
+          description: "Path to the file to read"
+      required: ["path"]
+    type: "system"
 
   - name: "write_file"
     description: "Create a new file or overwrite an existing file with new content."

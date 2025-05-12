@@ -15,11 +15,11 @@ import (
 )
 
 const (
-	DefaultLlmModel = "gpt-4.1-mini"
-	// L1LlmModel      = "gpt-4.1-mini"
-	// L2LlmModel      = "gpt-4.1"
-	// L3LlmModel      = "o4-mini"
-	ImageLlmModel = "dall-e-3"
+// DefaultLlmModel = "gpt-4.1-mini"
+// L1LlmModel      = "gpt-4.1-mini"
+// L2LlmModel      = "gpt-4.1"
+// L3LlmModel      = "o4-mini"
+// ImageLlmModel = "dall-e-3"
 )
 
 // Output format type
@@ -191,8 +191,8 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	// LLM
 	flags.String("api-key", "", "LLM API key")
-	flags.String("model", DefaultLlmModel, "LLM model")
-	flags.String("base-url", "https://api.openai.com/v1/", "LLM Base URL")
+	flags.String("model", "", "LLM model")
+	flags.String("base-url", "", "LLM Base URL")
 
 	flags.String("l1-api-key", "", "Level1 basic LLM API key")
 	flags.String("l1-model", "", "Level1 basic LLM model")
@@ -207,7 +207,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.String("l3-base-url", "", "Level3 advanced LLM Base URL")
 
 	flags.String("image-api-key", "", "Image LLM API key")
-	flags.String("image-model", ImageLlmModel, "Image LLM model")
+	flags.String("image-model", "", "Image LLM model")
 	flags.String("image-base-url", "", "Image LLM Base URL")
 	flags.String("image-viewer", "", "Image viewer")
 

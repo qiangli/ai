@@ -14,6 +14,8 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
+// https://platform.openai.com/docs/models
+
 // https://github.com/openai/openai-go/tree/main/examples
 func defineTool(name, description string, parameters map[string]any) openai.ChatCompletionToolParam {
 	return openai.ChatCompletionToolParam{

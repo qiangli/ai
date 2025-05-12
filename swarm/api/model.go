@@ -29,6 +29,9 @@ func (r *Model) Provider() string {
 	return p
 }
 
+// <provider>/<model>
+// openai/gpt-4.1-mini
+// gemini/gemini-2.0-flash
 func (r *Model) split() (string, string) {
 	parts := strings.SplitN(r.Name, "/", 2)
 	if len(parts) == 2 {

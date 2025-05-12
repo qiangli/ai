@@ -11,24 +11,10 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-func NewClient(ctx context.Context, apiKey, _ string) (*genai.Client, error) {
-	// GOOGLE_GEMINI_BASE_URL
-	client, err := genai.NewClient(ctx, &genai.ClientConfig{
-		APIKey:  apiKey,
-		Backend: genai.BackendGeminiAPI,
-	})
-	return client, err
-}
+// https://ai.google.dev/gemini-api/docs/models
 
-func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
-	log.Debugf(">>>GEMINI:\n req: %+v\n\n", req)
-
-	resp, err := call(ctx, req)
-
-	log.Debugf("<<<GEMINI:\n resp: %+v err: %v\n\n", resp, err)
-	return resp, err
-}
-
+// https://ai.google.dev/gemini-api/docs/function-calling?example=meeting
+// https://github.com/google-gemini/api-examples/blob/main/go/function_calling.go
 func defineTool(name, description string, parameters map[string]any) (*genai.FunctionDeclaration, error) {
 	var schema *genai.Schema
 
@@ -70,6 +56,24 @@ func defineTool(name, description string, parameters map[string]any) (*genai.Fun
 		Description: description,
 		Parameters:  schema,
 	}, nil
+}
+
+func NewClient(ctx context.Context, apiKey, _ string) (*genai.Client, error) {
+	// GOOGLE_GEMINI_BASE_URL
+	client, err := genai.NewClient(ctx, &genai.ClientConfig{
+		APIKey:  apiKey,
+		Backend: genai.BackendGeminiAPI,
+	})
+	return client, err
+}
+
+func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
+	log.Debugf(">>>GEMINI:\n req: %+v\n\n", req)
+
+	resp, err := call(ctx, req)
+
+	log.Debugf("<<<GEMINI:\n resp: %+v err: %v\n\n", resp, err)
+	return resp, err
 }
 
 func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
@@ -141,7 +145,7 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	model := req.Model.Model()
 
 	for tries := range maxTurns {
-		log.Infof("\033[33m⚡\033[0m @%s [%v] %s %s\n", req.Agent, tries, req.Model, req.Model.BaseUrl)
+		log.Infof("\033[33m⚡\033[0m @%s [%v] %s %s\n", req.Agent, tries, model, req.Model.BaseUrl)
 
 		log.Debugf("📡 *** sending request to %s ***: %v of %v\n%+v\n\n", req.Model.BaseUrl, tries, maxTurns, req)
 
@@ -152,6 +156,7 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 		}
 		log.Infof("(%v)\n", "done")
 
+		// https://ai.google.dev/gemini-api/docs/function-calling?example=meeting
 		toolCalls := completion.FunctionCalls()
 		if len(toolCalls) == 0 {
 			resp.Role = ""

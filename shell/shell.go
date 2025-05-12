@@ -16,6 +16,18 @@ import (
 )
 
 func Shell(vars *api.Vars) error {
+	// // handle CTRL+C (SIGINT)
+	// signalCh := make(chan os.Signal, 1)
+	// signal.Notify(signalCh, os.Interrupt)
+	// go func() {
+	// 	for sig := range signalCh {
+	// 		if sig == os.Interrupt {
+	// 			log.Debugln("CTRL+C pressed, exiting...")
+	// 			os.Exit(0)
+	// 		}
+	// 	}
+	// }()
+
 	os.Setenv("SHELL", vars.Config.Shell)
 
 	initRegistry(vars)

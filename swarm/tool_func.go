@@ -3,6 +3,7 @@ package swarm
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"image"
 	_ "image/gif"
@@ -271,6 +272,21 @@ func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, a
 	}
 
 	return &c, nil
+}
+
+func (r *SystemKit) ReadEncodeFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	path, err := r.getStr("path", args)
+	if err != nil {
+		return "", err
+	}
+	raw, err := _fs.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+
+	encoded := base64.StdEncoding.EncodeToString(raw)
+
+	return encoded, nil
 }
 
 func (r *SystemKit) WriteFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {

@@ -20,6 +20,11 @@ cd ai
 # command line
 ai [OPTIONS] AGENT [message...]
 
+# setup (optional)
+# minimum requirement: OPENAI_API_KEY or GEMINI_API_KEY is set
+ai /setup
+ai /help info
+
 #
 ai @ask "What is the capital of France?"
 git diff origin main|ai @git/long commit message

@@ -4,19 +4,33 @@
 
 ## LLM
 
-# API key for the language model
-api_key: "sk-"
+## API key for the language model
+# default:
+# GEMINI_API_KEY
+# OPENAI_API_KEY
+#
+#api_key: ""
 
-# Base URL for the API
+## Base URL for the API
 base_url: "https://api.openai.com/v1/"
-# base_url: "http://localhost:4000/"
+#base_url: "http://localhost:4000/"
 
-# Specify the language model to use
-# model: "gpt-4.1-mini"
+## Specify the language model to use
+
+## openai
+#model: "gpt-4.1-mini"
 model: "gpt-4o-mini"
-l1_model: "gpt-4o-mini"
-l2_model: "gpt-4.1"
-l3_model: "gpt-o4-mini"
+#l1_model: "gpt-4o-mini"
+#l2_model: "gpt-4.1"
+#l3_model: "gpt-o4-mini"
+#image-model: "dall-e-3"
+
+## gemini
+#model: "gemini-2.0-flash-lite"
+#l1_model: "gemini-2.0-flash-lite"
+#l2_model: "gemini-2.0-flash"
+#l3_model: "gemini-2.5-pro-preview-05-06"
+#image-model: "imagen-3.0-generate-002"
 
 ## mcp
 mcp:
@@ -34,16 +48,16 @@ sql:
 ## Debugging
 
 # Enable verbose console output for debugging
-debug: true
+debug: false
 
 # Log all debugging info to a file
-# log_file: "/tmp/ai.log"
+#log_file: "/tmp/ai.log"
 
 # Enable dry run mode which simulates API calls
-dry_run: true
+#dry_run: false
 
 # Content of the file will be returned for dry run
-dry_run_content: "fake!"
+#dry_run_content: "fake!"
 
 ## Editor
 
