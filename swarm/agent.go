@@ -558,9 +558,14 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 			Sender:  r.Name,
 		})
 	}
-	// FIXME: this is confusing LLM?
-	// history = append(history, r.sw.History...)
 
+	// history
+	if len(r.Vars.History) > 0 {
+		log.Debugf("using %v messaages from history", len(r.Vars.History))
+		history = append(history, r.Vars.History...)
+	}
+
+	// user query
 	if req.Message == nil {
 		req.Message = &api.Message{
 			Role:    api.RoleUser,
@@ -571,6 +576,7 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 	history = append(history, req.Message)
 
 	initLen := len(history)
+
 	agentRole := r.Role
 	if agentRole == "" {
 		agentRole = api.RoleAssistant
@@ -608,14 +614,13 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 	}
 
 	resp.Messages = history[initLen:]
-
 	resp.Agent = &api.Agent{
 		Name:    r.Name,
 		Display: r.Display,
 	}
 	resp.Result = result.Result
 
-	// r.Vars.History = history
-	r.Vars.History = append(r.Vars.History, history...)
+	//
+	r.Vars.History = history
 	return nil
 }

@@ -34,6 +34,14 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	if err != nil {
 		return err
 	}
+
+	history, err := cfg.LoadHistory()
+	if err != nil {
+		log.Debugf("error loading history: %v", err)
+	}
+	vars.History = history
+	initLen := len(history)
+
 	// TODO: this is for custom agent instruction defined in yaml
 	vars.UserInput = input
 
@@ -47,6 +55,11 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	resp := &api.Response{}
 
 	sw := swarm.New(vars)
+
+	if len(vars.History) > 0 {
+		log.Infof("\033[33m○\033[0m recalling %v messages in memory\n", len(vars.History))
+	}
+
 	if err := sw.Run(req, resp); err != nil {
 		return err
 	}
@@ -72,6 +85,12 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 		processOutput(cfg, out)
 
 		cfg.Stdout = cfg.Stdout + v.Content
+	}
+
+	if len(vars.History) > initLen {
+		if err := cfg.StoreHistory(vars.History[initLen:]); err != nil {
+			log.Debugf("error saving history: %v", err)
+		}
 	}
 
 	log.Debugf("Agent task completed: %s %v\n", cfg.Command, cfg.Args)

@@ -1,8 +1,13 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
+	"sort"
 	"strings"
+	"time"
 )
 
 type AppConfig struct {
@@ -52,6 +57,11 @@ type AppConfig struct {
 	//
 	Template string
 
+	// conversation history
+	New        bool
+	MaxHistory int
+	MaxSpan    int
+
 	Log      string
 	Debug    bool
 	Quiet    bool
@@ -78,6 +88,95 @@ type AppConfig struct {
 	//
 	Stdout string
 	Stderr string
+}
+
+func (r *AppConfig) LoadHistory() ([]*Message, error) {
+	var history []*Message
+
+	if r.New {
+		return nil, nil
+	}
+
+	dir := filepath.Join(filepath.Dir(r.ConfigFile), "history")
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return history, err
+	}
+
+	// Collect .json files and their infos
+	type fileInfo struct {
+		name string
+		mod  time.Time
+	}
+	var files []fileInfo
+
+	old := time.Now().Add(-time.Duration(r.MaxSpan) * time.Minute)
+
+	for _, entry := range entries {
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".json") {
+			fullPath := filepath.Join(dir, entry.Name())
+			info, err := os.Stat(fullPath)
+			if err == nil {
+				if info.ModTime().Before(old) {
+					continue
+				}
+				files = append(files, fileInfo{name: fullPath, mod: info.ModTime()})
+			}
+		}
+	}
+
+	// Sort by mod time DESC (most recent first)
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].mod.After(files[j].mod)
+	})
+
+	for _, fi := range files {
+		data, err := os.ReadFile(fi.name)
+		if err != nil {
+			continue
+		}
+		var msgs []*Message
+		if err := json.Unmarshal(data, &msgs); err != nil {
+			continue
+		}
+		for i := len(msgs) - 1; i >= 0; i-- {
+			history = append(history, msgs[i])
+			if r.MaxHistory > 0 && len(history) >= r.MaxHistory {
+				result := history[:r.MaxHistory]
+				reverseMessages(result)
+				return result, nil
+			}
+		}
+	}
+
+	reverseMessages(history)
+	return history, nil
+}
+
+func reverseMessages(msgs []*Message) {
+	for left, right := 0, len(msgs)-1; left < right; left, right = left+1, right-1 {
+		msgs[left], msgs[right] = msgs[right], msgs[left]
+	}
+}
+
+func (r *AppConfig) StoreHistory(messages []*Message) error {
+	dir := filepath.Join(filepath.Dir(r.ConfigFile), "history")
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
+	// filename
+	now := time.Now()
+	filename := fmt.Sprintf("%s-%d.json", now.Format("2006-01-02"), now.UnixNano())
+	path := filepath.Join(dir, filename)
+
+	data, err := json.MarshalIndent(messages, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(path, data, 0644)
 }
 
 func (r *AppConfig) IsStdin() bool {

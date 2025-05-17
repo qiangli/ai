@@ -341,6 +341,11 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	}
 
 	//
+	app.New = viper.GetBool("new")
+	app.MaxHistory = viper.GetInt("max_history")
+	app.MaxSpan = viper.GetInt("max_span")
+
+	//
 	app.Log = viper.GetString("log")
 	app.Debug = viper.GetBool("verbose")
 	app.Quiet = viper.GetBool("quiet")

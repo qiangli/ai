@@ -15,7 +15,7 @@ agents:
 
   # prompt adapted from https://github.com/abi/screenshot-to-code/tree/main/backend/prompts
   - name: "code/html-css"
-    display: "🎨 Code html-css"
+    display: "⚛️ Code html-css"
     description: "Convert screenshot, mockup and Figma design into single page app using CSS, HTML and JS"
     instruction:
       content: "resource:html_css_system_role.md"
@@ -23,12 +23,30 @@ agents:
     functions:
       - "system:*"
 
-  # prompt adapted from https://github.com/abi/screenshot-to-code/tree/main/backend/prompts
+  #
   - name: "code/html-tailwind"
-    display: "💨 Code html-tailwind"
+    display: "⚛️ Code html-tailwind"
     description: "Convert screenshot, mockup and Figma design into single page app using Tailwind, HTML and JS"
     instruction:
       content: "resource:html_tailwind_system_role.md"
+    model: L2
+    functions:
+      - "system:*"
+
+  - name: "code/react-tailwind"
+    display: "⚛️ Code react-tailwind"
+    description: "Convert screenshot, mockup and Figma design into single page app using using React and Tailwind CSS"
+    instruction:
+      content: "resource:react_tailwind_system_role.md"
+    model: L2
+    functions:
+      - "system:*"
+
+  - name: "code/svg"
+    display: "⚛️ Code svg"
+    description: "Take a screenshot and generate code for a SVG that looks exactly like the screenshot"
+    instruction:
+      content: "resource:svg_system_role.md"
     model: L2
     functions:
       - "system:*"

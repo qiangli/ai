@@ -186,6 +186,16 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	flags.Var(newOutputValue("markdown", &internal.FormatFlag), "format", "Output format, one of text, json, or markdown.")
 
+	// history
+	// TODO auto adjust based on relevance of messages to the current query
+	flags.Bool("new", false, "Start a new converston thread")
+	flags.Int("max-history", 3, "Max number of historic messages")
+	flags.Int("max-span", 5, "How far in minutes to go back in time for historic messages")
+
+	flags.MarkHidden("new")
+	flags.MarkHidden("max-history")
+	flags.MarkHidden("max-span")
+
 	// mcp
 	flags.String("mcp-server-url", "", "MCP server URL")
 
