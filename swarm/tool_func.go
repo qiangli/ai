@@ -137,12 +137,14 @@ func callSystemTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args m
 		return nil, fmt.Errorf("failed to call system tool %s %s: %w", f.Kit, f.Name, err)
 	}
 
+	// TODO change Value type to any?
 	var result api.Result
 	if s, ok := v.(string); ok {
 		result.Value = s
 	} else if c, ok := v.(*FileContent); ok {
 		result.Value = string(c.Content)
 		result.MimeType = c.MimeType
+		result.Message = c.Message
 	} else {
 		result.Value = fmt.Sprintf("%v", v)
 	}

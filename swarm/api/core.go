@@ -20,6 +20,7 @@ type Result struct {
 
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types
 	MimeType string
+	Message  string
 
 	// The current agent instance
 	State State

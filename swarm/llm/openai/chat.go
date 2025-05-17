@@ -9,6 +9,7 @@ import (
 
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
+	"github.com/openai/openai-go/packages/param"
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
@@ -146,23 +147,9 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 				return resp, nil
 			}
 
-			// https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
-			// data:[<media-type>][;base64],<data>
-			dataURL := func(raw string) string {
-				encoded := base64.StdEncoding.EncodeToString([]byte(raw))
-				d := fmt.Sprintf("data:image/png;base64,%s", encoded)
-				return d
-			}
-			// TODO this is ok for now as read_file is the only func call that returns a mime type
-			// image
 			if out.MimeType != "" {
-				params.Messages = append(params.Messages, openai.ToolMessage("file read successfully. The file content is included as data URL in the user message.", toolCall.ID))
-				parts := []openai.ChatCompletionContentPartUnionParam{
-					openai.ImageContentPart(openai.ChatCompletionContentPartImageImageURLParam{
-						URL: dataURL(out.Value),
-					}),
-				}
-				params.Messages = append(params.Messages, openai.UserMessage(parts))
+				params.Messages = append(params.Messages, openai.ToolMessage(fmt.Sprintf("%s\nThe file content is included as data URL in the user message.", out.Message), toolCall.ID))
+				params.Messages = append(params.Messages, openai.UserMessage(toContentPart(out)))
 			} else {
 				params.Messages = append(params.Messages, openai.ToolMessage(out.Value, toolCall.ID))
 			}
@@ -170,6 +157,42 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	}
 
 	return resp, nil
+}
+
+func toContentPart(out *api.Result) []openai.ChatCompletionContentPartUnionParam {
+	// https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
+	// data:[<media-type>][;base64],<data>
+	dataURL := func(mime, raw string) string {
+		encoded := base64.StdEncoding.EncodeToString([]byte(raw))
+		d := fmt.Sprintf("data:%s;base64,%s", mime, encoded)
+		return d
+	}
+
+	// https://mimesniff.spec.whatwg.org/
+	switch {
+	case strings.HasPrefix(out.MimeType, "text/"):
+		return []openai.ChatCompletionContentPartUnionParam{
+			openai.TextContentPart(out.Value),
+		}
+	case strings.HasPrefix(out.MimeType, "image/"):
+		return []openai.ChatCompletionContentPartUnionParam{
+			openai.ImageContentPart(openai.ChatCompletionContentPartImageImageURLParam{
+				URL: dataURL(out.MimeType, out.Value),
+			}),
+		}
+	case strings.HasPrefix(out.MimeType, "audio/"):
+		return []openai.ChatCompletionContentPartUnionParam{
+			openai.InputAudioContentPart(openai.ChatCompletionContentPartInputAudioInputAudioParam{
+				Data: dataURL(out.MimeType, out.Value),
+			}),
+		}
+	default:
+		return []openai.ChatCompletionContentPartUnionParam{
+			openai.FileContentPart(openai.ChatCompletionContentPartFileFileParam{
+				FileData: param.NewOpt(dataURL(out.MimeType, out.Value)),
+			}),
+		}
+	}
 }
 
 func generateImage(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
