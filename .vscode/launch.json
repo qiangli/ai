@@ -20,17 +20,20 @@
 			"mode": "auto",
 			"program": "${workspaceFolder}/cmd/ai/",
 			"env": {
-				"AI_L2_MODEL": "gemini-2.0-flash",
-				"AI_L2_API_KEY": "${env:GEMINI_API_KEY}",
-				"AI_L2_BASE_URL": "https://generativelanguage.googleapis.com/v1beta/openai/",
+				"AI_L2_MODEL": "gpt-4.1",
+				"AI_L2_API_KEY": "${env:OPENAI_API_KEY}",
+				"AI_L2_BASE_URL": "https://api.openai.com/v1/",
+				// "AI_L2_MODEL": "gemini-2.0-flash",
+				// "AI_L2_API_KEY": "${env:GEMINI_API_KEY}",
+				// "AI_L2_BASE_URL": "https://generativelanguage.googleapis.com/v1beta/openai/",
 				"AI_DEBUG": "true",
 			},
 			"args": [
 				"--agent",
-				"code/html-css",
+				"code/html-tailwind",
 				"--verbose",
 				"--message",
-				"convert app.png in the /tmp folder into a css html based spa and save the final result as app.html in the temporary directory, use fs_read_file to get the image"
+				"convert app.png in the /tmp/test folder into html based spa and save the final result as app.html in the same directory, use fs_read_file to get the image. Ensure the generated code closely match the original image including icon, text, and layout"
 			],
 			"showLog": false,
 			"stopOnEntry": false,

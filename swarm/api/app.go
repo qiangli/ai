@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"strings"
 )
 
 type AppConfig struct {
@@ -65,6 +66,7 @@ type AppConfig struct {
 	Temp      string
 
 	Interactive bool
+	Editing     bool
 	Shell       string
 	Watch       bool
 
@@ -88,6 +90,13 @@ func (r *AppConfig) IsSpecial() bool {
 
 func (r *AppConfig) HasInput() bool {
 	return r.Message != "" || len(r.Files) > 0 || len(r.Args) > 0
+}
+
+func (r *AppConfig) GetQuery() string {
+	if r.Message != "" {
+		return r.Message
+	}
+	return strings.Join(r.Args, " ")
 }
 
 type GitConfig struct {

@@ -129,8 +129,8 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 			ToolConfig: &genai.ToolConfig{
 				FunctionCallingConfig: &genai.FunctionCallingConfig{
 					// The mode equivalent to FunctionCallingConfigMode.ANY in JS.
-					// Mode: genai.FunctionCallingConfigModeAny,
-					Mode: genai.FunctionCallingConfigModeAuto,
+					Mode: genai.FunctionCallingConfigModeAny,
+					// Mode: genai.FunctionCallingConfigModeAuto,
 				},
 			},
 		}

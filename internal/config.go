@@ -349,6 +349,7 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.Unsafe = viper.GetBool("unsafe")
 
 	app.Editor = viper.GetString("editor")
+	app.Editing = viper.GetBool("edit")
 	app.Interactive = viper.GetBool("interactive")
 	app.Watch = viper.GetBool("watch")
 

@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -145,7 +146,26 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 				return resp, nil
 			}
 
-			params.Messages = append(params.Messages, openai.ToolMessage(out.Value, toolCall.ID))
+			// https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
+			// data:[<media-type>][;base64],<data>
+			dataURL := func(raw string) string {
+				encoded := base64.StdEncoding.EncodeToString([]byte(raw))
+				d := fmt.Sprintf("data:image/png;base64,%s", encoded)
+				return d
+			}
+			// TODO this is ok for now as read_file is the only func call that returns a mime type
+			// image
+			if out.MimeType != "" {
+				params.Messages = append(params.Messages, openai.ToolMessage("file read successfully. The file content is included as data URL in the user message.", toolCall.ID))
+				parts := []openai.ChatCompletionContentPartUnionParam{
+					openai.ImageContentPart(openai.ChatCompletionContentPartImageImageURLParam{
+						URL: dataURL(out.Value),
+					}),
+				}
+				params.Messages = append(params.Messages, openai.UserMessage(parts))
+			} else {
+				params.Messages = append(params.Messages, openai.ToolMessage(out.Value, toolCall.ID))
+			}
 		}
 	}
 
