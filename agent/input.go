@@ -145,12 +145,21 @@ func userInput(
 
 	// no message and no special input
 	// editor
-	log.Debugf("Using editor: %s\n", cfg.Editor)
-	content, err := editor.Launch()
+	if cfg.Editor != "" {
+		log.Debugf("Using editor: %s\n", cfg.Editor)
+		c, err := editor.Launch()
+		if err != nil {
+			return nil, err
+		}
+		return cat("", c), nil
+	}
+
+	c, _, err := SimpleEditor(cfg, "")
 	if err != nil {
 		return nil, err
 	}
-	return cat("", content), nil
+
+	return cat("", c), nil
 }
 
 func LaunchEditor(editor string) (string, error) {

@@ -56,6 +56,7 @@ function build() {
 ##
 tidy
 generate
+go fmt ./...
 
 #
 if [[ $1 == "all" ]]; then

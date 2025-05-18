@@ -36,7 +36,7 @@ func Generate() {
 	// generateAgentConfigMap(outputFile, parent)
 }
 
-const generated = `//DO NOT EDIT. This file is generated.
+const generated = `// DO NOT EDIT. This file is generated.
 package resource
 
 import _ "embed"

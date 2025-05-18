@@ -16,7 +16,7 @@ import (
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/watch"
 	"github.com/qiangli/ai/shell"
-	"github.com/qiangli/ai/shell/edit"
+	// "github.com/qiangli/ai/shell/edit"
 	"github.com/qiangli/ai/swarm"
 )
 
@@ -110,10 +110,14 @@ func Run(cmd *cobra.Command, args []string) error {
 
 	// editing
 	if cfg.Editing {
-		s := cfg.GetQuery()
-		s, err := openEditor(s)
+		q := cfg.GetQuery()
+
+		s, canceled, err := agent.SimpleEditor(cfg, q)
 		if err != nil {
 			return err
+		}
+		if canceled {
+			return nil
 		}
 		//
 		cfg.Message = s
@@ -182,34 +186,34 @@ func setupAppConfig(args []string) (*api.AppConfig, error) {
 	return cfg, nil
 }
 
-func openEditor(s string) (string, error) {
-	tmpfile, err := os.CreateTemp("", "*.txt")
-	if err != nil {
-		return "", err
-	}
-	defer os.Remove(tmpfile.Name())
+// func openAIEditor(s string) (string, error) {
+// 	tmpfile, err := os.CreateTemp("", "*.txt")
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	defer os.Remove(tmpfile.Name())
 
-	lines := splitByLength(s, 75)
-	if _, err := tmpfile.WriteString(strings.Join(lines, "\n")); err != nil {
-		tmpfile.Close()
-		return "", err
-	}
-	if err := tmpfile.Close(); err != nil {
-		return "", err
-	}
+// 	lines := splitByLength(s, 75)
+// 	if _, err := tmpfile.WriteString(strings.Join(lines, "\n")); err != nil {
+// 		tmpfile.Close()
+// 		return "", err
+// 	}
+// 	if err := tmpfile.Close(); err != nil {
+// 		return "", err
+// 	}
 
-	//
-	if err := edit.Edit([]string{tmpfile.Name()}); err != nil {
-		return "", err
-	}
+// 	//
+// 	if err := edit.Edit([]string{tmpfile.Name()}); err != nil {
+// 		return "", err
+// 	}
 
-	edited, err := os.ReadFile(tmpfile.Name())
-	if err != nil {
-		return "", err
-	}
+// 	edited, err := os.ReadFile(tmpfile.Name())
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	return string(edited), nil
-}
+// 	return string(edited), nil
+// }
 
 // split s into length of around 80 char delimited by space
 func splitByLength(s string, limit int) []string {
