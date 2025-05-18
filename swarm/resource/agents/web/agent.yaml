@@ -9,11 +9,9 @@ agents:
         Your task is to search the internet for specific topics and retrieve the content from the URL
         based on user's query using the available tools
     functions:
-      - "bing_search"
-      - "ddg_search"
+      - "func:web"
       - "mcp:searxng"
       - "mcp:google"
-      - "fetch_content"
       - "mcp:fetcher"
       - "mcp:fetch"
       - "system:fs"

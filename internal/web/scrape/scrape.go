@@ -95,8 +95,6 @@ func (s Scraper) Description() string {
 // The function takes a context.Context object for managing the execution
 // context and a string input representing the URL of the website to be scraped.
 // It returns a string containing the scraped data and an error if any.
-//
-//nolint:all
 func (s Scraper) Call(ctx context.Context, input string) (string, error) {
 	u, err := url.ParseRequestURI(input)
 	if err != nil {

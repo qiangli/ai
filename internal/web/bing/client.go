@@ -12,6 +12,8 @@ import (
 	"github.com/qiangli/ai/internal/web"
 )
 
+const searchURL = "https://www.bing.com/search?q=%s"
+
 var (
 	ErrNoGoodResult = errors.New("no good search results found")
 	ErrAPIResponse  = errors.New("bing responded with error")
@@ -53,7 +55,7 @@ func (client *Client) newRequest(ctx context.Context, queryURL string) (*http.Re
 }
 
 func (client *Client) Search(ctx context.Context, query string) (string, error) {
-	queryURL := fmt.Sprintf("https://www.bing.com/search?q=%s", url.QueryEscape(query))
+	queryURL := fmt.Sprintf(searchURL, url.QueryEscape(query))
 
 	request, err := client.newRequest(ctx, queryURL)
 	if err != nil {
@@ -75,7 +77,8 @@ func (client *Client) Search(ctx context.Context, query string) (string, error) 
 		return "", fmt.Errorf("new document error: %w", err)
 	}
 
-	results := []Result{}
+	var results []*Result
+
 	sel := doc.Find(".b_algo")
 
 	for i := range sel.Nodes {
@@ -94,7 +97,7 @@ func (client *Client) Search(ctx context.Context, query string) (string, error) 
 		if title == "" || ref == "" {
 			continue
 		}
-		results = append(results, Result{title, info, ref})
+		results = append(results, &Result{title, info, ref})
 	}
 
 	return client.formatResults(results), nil
@@ -104,7 +107,7 @@ func (client *Client) SetMaxResults(n int) {
 	client.maxResults = n
 }
 
-func (client *Client) formatResults(results []Result) string {
+func (client *Client) formatResults(results []*Result) string {
 	if len(results) == 0 {
 		return "No results were found for your search query. This could be due to bing's bot detection or the query returned no matches. Please try rephrasing your search or try again in a few minutes."
 	}

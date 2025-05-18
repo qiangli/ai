@@ -41,10 +41,30 @@ func initTools(app *api.AppConfig) error {
 	}
 
 	toolRegistry = make(map[string]*api.ToolFunc)
+
+	conditionMet := func(c *api.ToolCondition) bool {
+		if c == nil {
+			return true
+		}
+		if len(c.Env) > 0 {
+			for _, v := range c.Env {
+				if _, ok := os.LookupEnv(v); !ok {
+					return false
+				}
+			}
+		}
+		return true
+	}
+
 	for _, v := range config.Tools {
 		log.Debugf("Kit: %s tool: %s - %s internal: %v\n", v.Kit, v.Name, v.Description, v.Internal)
 
 		if v.Internal && !app.Internal {
+			continue
+		}
+
+		// condition check
+		if !conditionMet(v.Condition) {
 			continue
 		}
 

@@ -14,7 +14,15 @@ type ToolConfig struct {
 	Description string         `yaml:"description"`
 	Parameters  map[string]any `yaml:"parameters"`
 
+	Condition *ToolCondition `yaml:"condition"`
+
 	Body string `yaml:"body"`
+}
+
+// TODO condidtion needs to be met for tools to be enabled
+type ToolCondition struct {
+	// required env list
+	Env []string `yaml:"env"`
 }
 
 type ToolsConfig struct {

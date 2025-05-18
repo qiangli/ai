@@ -5,6 +5,7 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/web/bing"
+	"github.com/qiangli/ai/internal/web/brave"
 	"github.com/qiangli/ai/internal/web/ddg"
 	"github.com/qiangli/ai/internal/web/scrape"
 )
@@ -33,8 +34,15 @@ func DDG(ctx context.Context, query string, maxResults int) (string, error) {
 }
 
 func Bing(ctx context.Context, query string, maxResults int) (string, error) {
-	log.Infof("🔎 bing query: %q max: %d\n", query, maxResults)
+	log.Infof("🅱️ bing query: %q max: %d\n", query, maxResults)
 
 	cli := bing.New(maxResults)
+	return cli.Search(ctx, query)
+}
+
+func Brave(ctx context.Context, apiKey, query string, maxResults int) (string, error) {
+	log.Infof("🦁 brave query: %q max: %d\n", query, maxResults)
+
+	cli := brave.New(apiKey, maxResults)
 	return cli.Search(ctx, query)
 }
