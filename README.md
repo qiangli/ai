@@ -2,7 +2,9 @@
 
 As a software engineer, I need two types of tools for my daily tasks: one for working inside a file and the other outside.
 
-This AI tool assists you with all the tasks beyond file editing on your system complementing Continue, Cline and the like.
+This AI tool assists you with all the tasks beyond file editing on your system complementing [Continue](https://github.com/openaide/awesome/tree/main/docker/continue), [Cline](https://github.com/openaide/awesome/tree/main/docker/continue) and [the like](https://github.com/openaide/awesome).
+
+Specialist agents - such as shell, web, git, pr, code, and sql - will empower you to be much more productive...
 
 ## Build
 
@@ -20,21 +22,26 @@ cd ai
 # command line
 ai [OPTIONS] AGENT [message...]
 
+ai --help
+
 # setup (optional)
-# minimum requirement: OPENAI_API_KEY or GEMINI_API_KEY is set
+# minimum requirement: OPENAI_API_KEY or GEMINI_API_KEY environment variable is set
 ai /setup
 ai /help info
 
-#
-ai @ask "What is the capital of France?"
-git diff origin main|ai @git/long commit message
-ai / What tools could I use to search for a pattern in files
+# @ask is optional and the default agent by default
+ai @ask what is the capital of France?
 
-ai --help
+# generate a commit message based on the diff from stdin
+git diff origin main | ai @git/long commit message
+
+# / is short for @shell/
+ai / What tools could I use to search for a pattern in files
 
 # interactive shell
 ai -i
 
+# run ai (interative) over ssh
 ssh --tty user@host ai -i
 ```
 
@@ -150,9 +157,9 @@ Options:
       --input string            Read input message from a file
   -i, --interactive             Interactive mode
       --internal                Enable internal agents and tools
-      --l1-model string         Level1 basic LLM model (default "gpt-4.1-mini")
-      --l2-model string         Level2 standard LLM model (default "gpt-4.1")
-      --l3-model string         Level3 advanced LLM model (default "o4-mini")
+      --l1-model string         Level1 basic LLM model
+      --l2-model string         Level2 standard LLM model
+      --l3-model string         Level3 advanced LLM model
       --max-time int            Max number of seconds for timeout (default 3600)
       --max-turns int           Max number of turns (default 16)
       --mcp-server-url string   MCP server URL
@@ -217,10 +224,11 @@ ai.git@main/. ai> help
 
 ## Credits
 
-+ @git System role prompt adapted from [Aider](https://github.com/Aider-AI/aider.git)
++ @code system role prompts adapted from [screenshot-to-code](https://github.com/abi/screenshot-to-code)
++ @git system role prompt adapted from [Aider](https://github.com/Aider-AI/aider.git)
 + @pr  system role prompt adapted from [PR Agent](https://github.com/qodo-ai/pr-agent.git)
 + @sql system role prompt adapted from [Vanna](https://github.com/vanna-ai/vanna.git)
 
-+ @code runs [Aider](https://github.com/Aider-AI/aider.git) in docker
++ @aider runs [Aider](https://github.com/Aider-AI/aider.git) in docker
 + @oh runs [OpenHands](https://github.com/All-Hands-AI/OpenHands.git) in docker
-+ @seek runs [GPT Researcher](https://github.com/assafelovic/gpt-researcher.git) in docker
++ @gptr runs [GPT Researcher](https://github.com/assafelovic/gpt-researcher.git) in docker

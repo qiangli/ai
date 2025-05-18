@@ -57,7 +57,7 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	sw := swarm.New(vars)
 
 	if len(vars.History) > 0 {
-		log.Infof("\033[33m○\033[0m recalling %v messages in memory\n", len(vars.History))
+		log.Infof("\033[33m⣿\033[0m recalling %v messages in memory less than %v minutes old\n", len(vars.History), cfg.MaxSpan)
 	}
 
 	if err := sw.Run(req, resp); err != nil {

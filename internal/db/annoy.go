@@ -1,6 +1,7 @@
 // https://github.com/mariotoffia/goannoy
 // https://github.com/spotify/annoy
 
+// https://github.com/blevesearch/bleve/blob/master/docs/vectors.md
 package db
 
 // import (
