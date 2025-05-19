@@ -38,11 +38,11 @@ type MockEditor struct {
 	content string
 }
 
-func (e *MockEditor) Launch() (string, error) {
+func (e *MockEditor) Launch(_ string) (string, error) {
 	return e.content, nil
 }
 
-func TestUserInput(t *testing.T) {
+func TestGetUserInput(t *testing.T) {
 	cp := &MockClipboard{content: "clipboard content"}
 	ed := &MockEditor{content: "editor content"}
 
@@ -53,6 +53,11 @@ func TestUserInput(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
+		{
+			name: "Command Line Message",
+			cfg:  &api.AppConfig{Message: "hello world", Args: []string{"this", "is", "ignored"}},
+			want: "hello world",
+		},
 		{
 			name: "Command Line Args",
 			cfg:  &api.AppConfig{Args: []string{"hello", "world"}},
@@ -84,8 +89,22 @@ func TestUserInput(t *testing.T) {
 		},
 		{
 			name: "From Editor",
-			cfg:  &api.AppConfig{Editor: "vim"},
+			cfg:  &api.AppConfig{Editor: "vim", Editing: true},
 			want: "editor content",
+		},
+		{
+			name:    "Stdin takes precedence over clipboard",
+			cfg:     &api.AppConfig{Stdin: true, Editor: "vim"},
+			stdin:   "input from stdin",
+			want:    "input from stdin",
+			wantErr: false,
+		},
+		{
+			name:    "Stdin-clipin and editing",
+			cfg:     &api.AppConfig{Stdin: true, Editor: "vim", Editing: true},
+			stdin:   "input from stdin",
+			want:    "editor content",
+			wantErr: false,
 		},
 	}
 
@@ -97,17 +116,8 @@ func TestUserInput(t *testing.T) {
 				reader = strings.NewReader(tt.stdin)
 			}
 
-			input, err := userInput(
-				&api.AppConfig{
-					Args:   tt.cfg.Args,
-					Stdin:  tt.cfg.Stdin,
-					Clipin: tt.cfg.Clipin,
-					Editor: tt.cfg.Editor,
-				},
-				reader,
-				cp,
-				ed,
-			)
+			input, err := getUserInput(tt.cfg, reader, cp, ed)
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("user input error = %v, wantErr %v", err, tt.wantErr)
 				return

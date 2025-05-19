@@ -15,7 +15,7 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-const defaultEditor = "ai -i edit"
+const DefaultEditor = "ai -i edit"
 
 const StdinRedirect = "-"
 
@@ -356,9 +356,6 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.Unsafe = viper.GetBool("unsafe")
 
 	app.Editor = viper.GetString("editor")
-	if app.Editor == "" {
-		app.Editor = defaultEditor
-	}
 	app.Editing = viper.GetBool("edit")
 	app.Interactive = viper.GetBool("interactive")
 	app.Watch = viper.GetBool("watch")

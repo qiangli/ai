@@ -1,8 +1,40 @@
 kit: "time"
 
 tools:
-  - name: "what_time_is_it"
-    description: "Return the current time string based on the client's IP using World Time API"
+  # - name: "world_time"
+  #   description: "Return the local-time for a given timezone string based on the client's IP using World Time API service"
+  #   parameters: {}
+  #   type: "func"
+
+  - name: "get_local_timezone"
+    description: "return the system's local time zone"
     parameters: {}
     type: "func"
 
+  - name: "get_current_time"
+    description: "Get current time in a specific timezones"
+    parameters:
+      type: "object"
+      properties:
+        timezone:
+          type: "string"
+          description: "IANA timezone name (e.g., 'America/New_York', 'Europe/London'). Use 'get_local_timezone' tool to get local timezone if no timezone provided by the user."
+      required: ["timezone"]
+    type: "func"
+
+  - name: "convert_time"
+    description: "Convert time between timezones"
+    parameters:
+      type: object
+      properties:
+        source_timezone:
+          type: string
+          description: "Source IANA timezone name (e.g., 'America/New_York', 'Europe/London'). Use 'get_local_timezone' tool to get local timezone if no source timezone provided by the user."
+        time:
+          type: string
+          description: "Time to convert in 24-hour format (HH:MM)"
+        target_timezone:
+          type: string
+          description: "Target IANA timezone name (e.g., 'Asia/Tokyo', 'America/San_Francisco'). Use 'get_local_timezone' tool to get local timezone if no target timezone provided by the user."
+      required: ["source_timezone", "time", "target_timezone"]
+    type: "func"

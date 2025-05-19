@@ -470,6 +470,7 @@ func runExplore(s string) error {
 		Chdir   bool   `arg:"-C,--cd" help:"chdir to the last visited path"`
 		SortBy  string `arg:"-s,--sort" help:"sort by name, time, or size"`
 		Reverse bool   `arg:"-r,--reverse" help:"reverse the order of the sort"`
+		All     bool   `arg:"-a,--all" help:"include directory entries whose names begin with a dot (.)"`
 		Help    bool   `arg:"-h,--help" help:"show help"`
 	}
 
@@ -537,6 +538,7 @@ func runExplore(s string) error {
 	}
 
 	exploreConfig.Roots = []string{p}
+	exploreConfig.HideHidden = !opts.All
 	visited, err := fm.Explore(exploreConfig)
 	if err != nil {
 		return err

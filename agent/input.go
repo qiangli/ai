@@ -15,28 +15,36 @@ import (
 
 const clipMaxLen = 500
 
-type ClipboardProvider = util.ClipboardProvider
+// type ClipboardProvider = util.ClipboardProvider
 
-type EditorProvider interface {
-	Launch() (string, error)
-}
+// type EditorProvider interface {
+// 	Launch() (string, error)
+// }
 
 type Editor struct {
-	content string
-	editor  string
+	editor string
 }
 
-func NewEditor(editor string) EditorProvider {
+func NewEditor(editor string) *Editor {
 	return &Editor{
 		editor: editor,
 	}
 }
 
-func (e *Editor) Launch() (string, error) {
-	return LaunchEditor(e.editor, e.content)
+func (e *Editor) Launch(content string) (string, error) {
+	return LaunchEditor(e.editor, content)
 }
 
+// GetUserInput collects user input for the agent.
+// It prefers a direct message from the command line flag (--message),
+// otherwise, it determines the input source (stdin, editor, clipboard)
+// and collects input accordingly. It also
+// attaches any provided files or template info if provided.
 func GetUserInput(cfg *api.AppConfig) (*api.UserInput, error) {
+	return getUserInput(cfg, nil, nil, nil)
+}
+
+func getUserInput(cfg *api.AppConfig, stdin io.Reader, clipper api.ClipboardProvider, editor api.EditorProvider) (*api.UserInput, error) {
 	if cfg.Message != "" {
 		return &api.UserInput{
 			Message:  cfg.Message,
@@ -45,17 +53,17 @@ func GetUserInput(cfg *api.AppConfig) (*api.UserInput, error) {
 		}, nil
 	}
 
-	// stdin with | or <
-	var stdin io.Reader
-	if cfg.Stdin || cfg.IsPiped {
-		stdin = os.Stdin
+	if clipper == nil {
+		clipper = util.NewClipboard()
+	}
+	if editor == nil {
+		editor = NewEditor(cfg.Editor)
 	}
 
-	input, err := userInput(cfg, stdin, util.NewClipboard(), NewEditor(cfg.Editor))
+	input, err := userInput(cfg, stdin, clipper, editor)
 	if err != nil {
 		return nil, err
 	}
-
 	//
 	input.Files = cfg.Files
 	input.Template = cfg.Template
@@ -67,40 +75,29 @@ func GetUserInput(cfg *api.AppConfig) (*api.UserInput, error) {
 func userInput(
 	cfg *api.AppConfig,
 	stdin io.Reader,
-	clipboard ClipboardProvider,
-	editor EditorProvider,
+	clipboard api.ClipboardProvider,
+	editor api.EditorProvider,
 ) (*api.UserInput, error) {
+	var msg = trimInputMessage(strings.Join(cfg.Args, " "))
 
-	msg := trimInputMessage(strings.Join(cfg.Args, " "))
-
-	isSpecial := func() bool {
-		return cfg.Stdin || cfg.Clipin || stdin != nil
-	}()
-
-	// read from command line
-	if len(msg) > 0 && !isSpecial {
-		return &api.UserInput{Message: msg}, nil
-	}
-
-	cat := func(msg, data string) *api.UserInput {
-		m := strings.TrimSpace(msg)
-		d := strings.TrimSpace(data)
-		return &api.UserInput{Message: m, Content: d}
-	}
-
-	// stdin takes precedence over clipboard
-	// if both are requested, stdin is used
-	if stdin != nil {
+	// stdin
+	var stdinData string
+	if cfg.IsStdin() {
+		if stdin == nil {
+			stdin = os.Stdin
+		}
 		log.Promptf("Please enter your input. Ctrl+D to send, Ctrl+C to cancel...\n")
 		data, err := io.ReadAll(stdin)
 		if err != nil {
 			return nil, err
 		}
-		return cat(msg, string(data)), nil
+
+		stdinData = strings.TrimSpace(string(data))
 	}
 
 	// clipboard
-	if cfg.Clipin {
+	var clipinData string
+	if cfg.IsClipin() {
 		var data string
 		if cfg.ClipWait {
 			// paste-append from clipboard
@@ -141,26 +138,49 @@ func userInput(
 			}
 			data = v
 		}
-		return cat(msg, data), nil
+
+		clipinData = strings.TrimSpace(data)
 	}
 
-	// no message and no special input
-	// editor
+	cat := func(a, b, sep string) string {
+		if a != "" && b == "" {
+			return a
+		} else if a == "" && b != "" {
+			return b
+		} else if stdinData != "" && clipinData != "" {
+			return a + sep + b
+		}
+		return ""
+	}
+
+	var content = cat(stdinData, clipinData, "\n")
+
+	//
+	if !cfg.Editing {
+		return &api.UserInput{Message: msg, Content: content}, nil
+	}
+
+	// send all inputs to the editor
+	content = cat(msg, content, "\n")
+
 	if cfg.Editor != "" {
 		log.Debugf("Using editor: %s\n", cfg.Editor)
-		c, err := editor.Launch()
+		data, err := editor.Launch(content)
 		if err != nil {
 			return nil, err
 		}
-		return cat("", c), nil
+		return &api.UserInput{Content: data}, nil
 	}
 
-	c, _, err := SimpleEditor(cfg, "")
+	data, canceled, err := SimpleEditor(cfg.Me, content)
 	if err != nil {
 		return nil, err
 	}
+	if canceled {
+		return &api.UserInput{}, nil
+	}
 
-	return cat("", c), nil
+	return &api.UserInput{Content: data}, nil
 }
 
 func LaunchEditor(editor string, content string) (string, error) {
@@ -172,10 +192,7 @@ func LaunchEditor(editor string, content string) (string, error) {
 
 	//
 	if len(content) > 0 {
-		// screen width?
-		const width = 75
-		lines := wrapByLength(content, width)
-		if _, err := tmpfile.WriteString(strings.Join(lines, "\n")); err != nil {
+		if _, err := tmpfile.WriteString(content); err != nil {
 			tmpfile.Close()
 			return "", err
 		}
@@ -208,7 +225,7 @@ func LaunchEditor(editor string, content string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return (string(edited)), nil
+	return string(edited), nil
 }
 
 // split s into length of around 80 char delimited by space

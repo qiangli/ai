@@ -13,11 +13,25 @@ const (
 	ContentTypeB64JSON = string(openai.ImageGenerateParamsResponseFormatB64JSON)
 )
 
+type ClipboardProvider interface {
+	Clear() error
+	Read() (string, error)
+	Get() (string, error)
+	Write(string) error
+	Append(string) error
+}
+
+type EditorProvider interface {
+	Launch(string) (string, error)
+}
+
 type UserInput struct {
 	Agent   string `json:"agent"`
 	Command string `json:"command"`
 
+	// query - command line args
 	Message string `json:"message"`
+	// query - stdin/editor
 	Content string `json:"content"`
 
 	Template string `json:"template"`

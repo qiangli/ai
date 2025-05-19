@@ -6,8 +6,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
-
-	"github.com/qiangli/ai/swarm/api"
 )
 
 type errMsg error
@@ -16,17 +14,18 @@ type model struct {
 	textarea textarea.Model
 	err      error
 
-	cfg *api.AppConfig
+	title string
 
 	canceled bool
 }
 
-func SimpleEditor(cfg *api.AppConfig, text string) (string, bool, error) {
+func SimpleEditor(title, content string) (string, bool, error) {
 	m := initialModel()
-	m.cfg = cfg
+	m.title = title
 
-	if len(text) > 0 {
-		m.textarea.SetValue(text)
+	//
+	if len(content) > 0 {
+		m.textarea.SetValue(content)
 	}
 
 	p := tea.NewProgram(m, tea.WithMouseAllMotion())
@@ -84,8 +83,9 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	case tea.MouseMsg:
-	// We handle errors just like any other message
+		//TODO notworking
 	case errMsg:
+		// We handle errors just like any other message
 		m.err = msg
 		return m, nil
 	}
@@ -104,5 +104,5 @@ func (m *model) View() string {
 ←↑↓→ Move cursor, Ctrl+D send, Ctrl+C cancel
 
 `
-	return fmt.Sprintf(layout, m.cfg.Me, m.textarea.View())
+	return fmt.Sprintf(layout, m.title, m.textarea.View())
 }

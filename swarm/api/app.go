@@ -184,8 +184,12 @@ func (r *AppConfig) IsStdin() bool {
 	return r.Stdin || r.IsPiped
 }
 
+func (r *AppConfig) IsClipin() bool {
+	return r.Clipin
+}
+
 func (r *AppConfig) IsSpecial() bool {
-	return r.IsStdin() || r.Clipin
+	return r.IsStdin() || r.IsClipin()
 }
 
 func (r *AppConfig) HasInput() bool {

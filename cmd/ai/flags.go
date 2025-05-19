@@ -165,7 +165,8 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.String("agent", "ask", "Specify the agent/command to use. Same as @agent/command")
 
 	//
-	flags.String("editor", "", "Specify editor to use")
+	flags.String("editor", "", "Specify the editor to use")
+	flags.BoolP("edit", "e", false, "Launch editor")
 
 	//
 	flags.StringP("workspace", "w", "", "Workspace directory")
@@ -247,9 +248,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.StringVar(&internal.DryRunContent, "dry-run-content", "", "Content returned for dry run")
 
 	//
-
 	flags.BoolP("interactive", "i", false, "Interactive mode")
-	flags.BoolP("edit", "e", false, "Launch editor")
 	flags.String("shell", os.Getenv("SHELL"), "Shell to use for interactive mode")
 
 	flags.Bool("watch", false, "Watch the workspace directory and respond to embedded ai requests in files")
@@ -275,9 +274,6 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("host")
 
 	// hide flags
-	flags.MarkHidden("editor")
-	flags.MarkHidden("edit")
-
 	flags.MarkHidden("sql-db-host")
 	flags.MarkHidden("sql-db-port")
 	flags.MarkHidden("sql-db-username")

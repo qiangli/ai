@@ -319,10 +319,6 @@ func (r *SystemKit) GetUserChoiceInput(ctx context.Context, vars *api.Vars, name
 type FuncKit struct {
 }
 
-func (r *FuncKit) WhatTimeIsIt(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	return utool.WhatTimeIsIt()
-}
-
 func (r *FuncKit) WhoAmI(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	return utool.WhoAmI()
 }

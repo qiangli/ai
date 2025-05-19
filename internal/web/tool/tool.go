@@ -11,17 +11,19 @@ import (
 	"github.com/qiangli/ai/internal/web/scrape"
 )
 
+const maxPageSize = 8000
+
 // Fetch and parse content from a webpage
 func Fetch(ctx context.Context, url string) (string, error) {
-	log.Infof("🌐 fetching url: %q\n", url)
+	log.Infof("○ fetching url: %q\n", url)
 
 	scraper, err := scrape.New()
 	if err != nil {
 		return "", err
 	}
 	result, err := scraper.Fetch(ctx, url)
-	if len(result) > 8000 {
-		result = result[:8000]
+	if len(result) > maxPageSize {
+		result = result[:maxPageSize]
 	}
 	return result, err
 }

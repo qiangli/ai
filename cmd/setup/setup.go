@@ -51,8 +51,12 @@ func setupConfig(cfg *api.AppConfig) error {
 	}
 
 	//
+	editor := cfg.Editor
+	if editor == "" {
+		editor = internal.DefaultEditor
+	}
 	// support simple args for editor command line
-	cmdArgs := strings.Fields(cfg.Editor)
+	cmdArgs := strings.Fields(editor)
 	var bin string
 	var args []string
 	bin = cmdArgs[0]

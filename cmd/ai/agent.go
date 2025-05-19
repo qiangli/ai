@@ -91,7 +91,7 @@ func Run(cmd *cobra.Command, args []string) error {
 
 	log.Debugf("Initialized variables: %+v\n", vars)
 
-	// watch
+	// watch mode
 	if cfg.Watch {
 		if err := watch.WatchRepo(cfg); err != nil {
 			log.Errorln(err)
@@ -101,46 +101,13 @@ func Run(cmd *cobra.Command, args []string) error {
 
 	// interactive mode
 	// $ ai -i or $ ai --interactive
-	// TODO: implement interactive mode
 	if cfg.Interactive {
 		return shell.Shell(vars)
-		// return fmt.Errorf("interactive mode not implemented yet")
-	}
-
-	// editing
-	if cfg.Editing {
-		q := cfg.GetQuery()
-
-		if cfg.Editor != "" {
-			s, err := agent.LaunchEditor(cfg.Editor, q)
-			if err != nil {
-				return err
-			}
-			if len(s) == 0 {
-				return nil
-			}
-			cfg.Message = s
-		} else {
-			// TODO mouse support
-			s, canceled, err := agent.SimpleEditor(cfg, q)
-			if err != nil {
-				return err
-			}
-			if canceled || len(s) == 0 {
-				return nil
-			}
-			cfg.Message = s
-		}
-
-		if err := agent.RunAgent(cfg); err != nil {
-			return err
-		}
-		return nil
 	}
 
 	// $ ai
 	// if no args and no input, show help
-	if !cfg.HasInput() && !cfg.IsSpecial() {
+	if !cfg.HasInput() && !cfg.IsSpecial() && !cfg.Editing {
 		if err := cmd.Help(); err != nil {
 			return err
 		}
