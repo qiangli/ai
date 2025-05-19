@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -49,7 +50,18 @@ func setupConfig(cfg *api.AppConfig) error {
 		}
 	}
 
-	cmd := exec.Command(cfg.Editor, cfg.ConfigFile)
+	//
+	// support simple args for editor command line
+	cmdArgs := strings.Fields(cfg.Editor)
+	var bin string
+	var args []string
+	bin = cmdArgs[0]
+	if len(cmdArgs) > 1 {
+		args = cmdArgs[1:]
+	}
+	args = append(args, cfg.ConfigFile)
+
+	cmd := exec.Command(bin, args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

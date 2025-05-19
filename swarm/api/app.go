@@ -30,6 +30,7 @@ type AppConfig struct {
 	// --message takes precedence over all other forms of input
 	Message string
 
+	// command line
 	Editor string
 
 	Clipin   bool

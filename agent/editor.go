@@ -29,7 +29,7 @@ func SimpleEditor(cfg *api.AppConfig, text string) (string, bool, error) {
 		m.textarea.SetValue(text)
 	}
 
-	p := tea.NewProgram(m)
+	p := tea.NewProgram(m, tea.WithMouseAllMotion())
 	if _, err := p.Run(); err != nil {
 		return "", true, err
 	}
@@ -71,9 +71,6 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEsc:
-			if m.textarea.Focused() {
-				m.textarea.Blur()
-			}
 		case tea.KeyCtrlC:
 			m.canceled = true
 			return m, tea.Quit
@@ -86,6 +83,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, cmd)
 			}
 		}
+	case tea.MouseMsg:
 	// We handle errors just like any other message
 	case errMsg:
 		m.err = msg

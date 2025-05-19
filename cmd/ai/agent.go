@@ -16,7 +16,6 @@ import (
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/watch"
 	"github.com/qiangli/ai/shell"
-	// "github.com/qiangli/ai/shell/edit"
 	"github.com/qiangli/ai/swarm"
 )
 
@@ -112,15 +111,27 @@ func Run(cmd *cobra.Command, args []string) error {
 	if cfg.Editing {
 		q := cfg.GetQuery()
 
-		s, canceled, err := agent.SimpleEditor(cfg, q)
-		if err != nil {
-			return err
+		if cfg.Editor != "" {
+			s, err := agent.LaunchEditor(cfg.Editor, q)
+			if err != nil {
+				return err
+			}
+			if len(s) == 0 {
+				return nil
+			}
+			cfg.Message = s
+		} else {
+			// TODO mouse support
+			s, canceled, err := agent.SimpleEditor(cfg, q)
+			if err != nil {
+				return err
+			}
+			if canceled || len(s) == 0 {
+				return nil
+			}
+			cfg.Message = s
 		}
-		if canceled {
-			return nil
-		}
-		//
-		cfg.Message = s
+
 		if err := agent.RunAgent(cfg); err != nil {
 			return err
 		}
@@ -184,57 +195,4 @@ func setupAppConfig(args []string) (*api.AppConfig, error) {
 	setLogLevel(cfg)
 
 	return cfg, nil
-}
-
-// func openAIEditor(s string) (string, error) {
-// 	tmpfile, err := os.CreateTemp("", "*.txt")
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	defer os.Remove(tmpfile.Name())
-
-// 	lines := splitByLength(s, 75)
-// 	if _, err := tmpfile.WriteString(strings.Join(lines, "\n")); err != nil {
-// 		tmpfile.Close()
-// 		return "", err
-// 	}
-// 	if err := tmpfile.Close(); err != nil {
-// 		return "", err
-// 	}
-
-// 	//
-// 	if err := edit.Edit([]string{tmpfile.Name()}); err != nil {
-// 		return "", err
-// 	}
-
-// 	edited, err := os.ReadFile(tmpfile.Name())
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	return string(edited), nil
-// }
-
-// split s into length of around 80 char delimited by space
-func splitByLength(s string, limit int) []string {
-	words := strings.Fields(s)
-	var lines []string
-	var buf strings.Builder
-
-	for _, word := range words {
-		// If adding this word would exceed the limit, start a new line
-		if buf.Len() > 0 && buf.Len()+len(word)+1 > limit {
-			lines = append(lines, buf.String())
-			buf.Reset()
-		}
-		if buf.Len() > 0 {
-			buf.WriteByte(' ')
-		}
-		buf.WriteString(word)
-	}
-	// Add the last line if any
-	if buf.Len() > 0 {
-		lines = append(lines, buf.String())
-	}
-	return lines
 }

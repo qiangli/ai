@@ -22,7 +22,8 @@ type EditorProvider interface {
 }
 
 type Editor struct {
-	editor string
+	content string
+	editor  string
 }
 
 func NewEditor(editor string) EditorProvider {
@@ -32,7 +33,7 @@ func NewEditor(editor string) EditorProvider {
 }
 
 func (e *Editor) Launch() (string, error) {
-	return LaunchEditor(e.editor)
+	return LaunchEditor(e.editor, e.content)
 }
 
 func GetUserInput(cfg *api.AppConfig) (*api.UserInput, error) {
@@ -162,14 +163,39 @@ func userInput(
 	return cat("", c), nil
 }
 
-func LaunchEditor(editor string) (string, error) {
-	tmpFile, err := os.CreateTemp("", "ai_*.txt")
+func LaunchEditor(editor string, content string) (string, error) {
+	tmpfile, err := os.CreateTemp("", "ai_*.txt")
 	if err != nil {
 		return "", err
 	}
-	defer os.Remove(tmpFile.Name())
+	defer os.Remove(tmpfile.Name())
 
-	cmd := exec.Command(editor, tmpFile.Name())
+	//
+	if len(content) > 0 {
+		// screen width?
+		const width = 75
+		lines := wrapByLength(content, width)
+		if _, err := tmpfile.WriteString(strings.Join(lines, "\n")); err != nil {
+			tmpfile.Close()
+			return "", err
+		}
+		if err := tmpfile.Close(); err != nil {
+			return "", err
+		}
+	}
+
+	// open editor
+	// support simple args for editor command line
+	cmdArgs := strings.Fields(editor)
+	var bin string
+	var args []string
+	bin = cmdArgs[0]
+	if len(cmdArgs) > 1 {
+		args = cmdArgs[1:]
+	}
+	args = append(args, tmpfile.Name())
+
+	cmd := exec.Command(bin, args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -178,12 +204,35 @@ func LaunchEditor(editor string) (string, error) {
 		return "", err
 	}
 
-	content, err := os.ReadFile(tmpFile.Name())
+	edited, err := os.ReadFile(tmpfile.Name())
 	if err != nil {
 		return "", err
 	}
+	return (string(edited)), nil
+}
 
-	return (string(content)), nil
+// split s into length of around 80 char delimited by space
+func wrapByLength(s string, limit int) []string {
+	words := strings.Fields(s)
+	var lines []string
+	var buf strings.Builder
+
+	for _, word := range words {
+		// If adding this word would exceed the limit, start a new line
+		if buf.Len() > 0 && buf.Len()+len(word)+1 > limit {
+			lines = append(lines, buf.String())
+			buf.Reset()
+		}
+		if buf.Len() > 0 {
+			buf.WriteByte(' ')
+		}
+		buf.WriteString(word)
+	}
+	// Add the last line if any
+	if buf.Len() > 0 {
+		lines = append(lines, buf.String())
+	}
+	return lines
 }
 
 // PrintInput prints the user message or intent only
