@@ -17,8 +17,9 @@ import (
 const searchURL = "https://api.search.brave.com/res/v1/web/search?count=%v&q=%s"
 
 var (
-	ErrNoGoodResult = errors.New("no good search results found")
-	ErrAPIResponse  = errors.New("brave api responded with error")
+	NoResult = "No results were found for your search query. This could be due to Brave's bot detection or the query returned no matches. Please try rephrasing your search or try again in a few minutes."
+
+	ErrAPIResponse = errors.New("brave api responded with error")
 )
 
 // https://api-dashboard.search.brave.com/app/documentation/web-search/responses
@@ -161,7 +162,7 @@ func (client *Client) SetMaxResults(n int) {
 // formatResults will return a structured string with the results.
 func (client *Client) formatResults(results []*Result) string {
 	if len(results) == 0 {
-		return "No results were found for your search query. This could be due to brave's bot detection or the query returned no matches. Please try rephrasing your search or try again in a few minutes."
+		return NoResult
 	}
 
 	formattedResults := fmt.Sprintf("Found %d search results:\n\n", len(results))

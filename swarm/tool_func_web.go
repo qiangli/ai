@@ -74,3 +74,27 @@ func (r *FuncKit) BraveSearch(ctx context.Context, vars *api.Vars, name string, 
 	apiKey := os.Getenv("BRAVE_API_KEY")
 	return webtool.Brave(ctx, apiKey, query, max)
 }
+
+// Search the web using Google.
+func (r *FuncKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	query, err := GetStrProp("query", args)
+	if err != nil {
+		return "", err
+	}
+	max, err := GetIntProp("max_results", args)
+	if err != nil {
+		return "", err
+	}
+	if max <= 0 {
+		max = 1
+	}
+	if max > 10 {
+		max = 10
+	}
+	// TODO move to app confg?
+
+	apiKey := os.Getenv("GOOGLE_API_KEY")
+	seID := os.Getenv("GOOGLE_SEARCH_ENGINE_ID")
+
+	return webtool.Google(ctx, apiKey, seID, query, max)
+}

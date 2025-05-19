@@ -15,8 +15,9 @@ import (
 const searchURL = "https://www.bing.com/search?q=%s"
 
 var (
-	ErrNoGoodResult = errors.New("no good search results found")
-	ErrAPIResponse  = errors.New("bing responded with error")
+	NoResult = "No results were found for your search query. This could be due to Bing's bot detection or the query returned no matches. Please try rephrasing your search or try again in a few minutes."
+
+	ErrAPIResponse = errors.New("bing responded with error")
 )
 
 type Client struct {
@@ -109,7 +110,7 @@ func (client *Client) SetMaxResults(n int) {
 
 func (client *Client) formatResults(results []*Result) string {
 	if len(results) == 0 {
-		return "No results were found for your search query. This could be due to bing's bot detection or the query returned no matches. Please try rephrasing your search or try again in a few minutes."
+		return NoResult
 	}
 
 	formattedResults := fmt.Sprintf("Found %d search results:\n\n", len(results))

@@ -17,12 +17,10 @@ import (
 
 const searchURL = "https://html.duckduckgo.com/html/?q=%s"
 
-// const SafariUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
-// const EdgeUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0"
-
 var (
-	ErrNoGoodResult = errors.New("no good search results found")
-	ErrAPIResponse  = errors.New("duckduckgo api responded with error")
+	NoResult = "No results were found for your search query. This could be due to DuckDuckGo's bot detection or the query returned no matches. Please try rephrasing your search or try again in a few minutes."
+
+	ErrAPIResponse = errors.New("duckduckgo api responded with error")
 )
 
 // Client defines an HTTP client for communicating with duckduckgo.
@@ -130,7 +128,7 @@ func (client *Client) SetMaxResults(n int) {
 // formatResults will return a structured string with the results.
 func (client *Client) formatResults(results []*Result) string {
 	if len(results) == 0 {
-		return "No results were found for your search query. This could be due to DuckDuckGo's bot detection or the query returned no matches. Please try rephrasing your search or try again in a few minutes."
+		return NoResult
 	}
 
 	formattedResults := fmt.Sprintf("Found %d search results:\n\n", len(results))

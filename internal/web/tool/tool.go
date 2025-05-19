@@ -7,6 +7,7 @@ import (
 	"github.com/qiangli/ai/internal/web/bing"
 	"github.com/qiangli/ai/internal/web/brave"
 	"github.com/qiangli/ai/internal/web/ddg"
+	"github.com/qiangli/ai/internal/web/google"
 	"github.com/qiangli/ai/internal/web/scrape"
 )
 
@@ -44,5 +45,12 @@ func Brave(ctx context.Context, apiKey, query string, maxResults int) (string, e
 	log.Infof("🦁 brave query: %q max: %d\n", query, maxResults)
 
 	cli := brave.New(apiKey, maxResults)
+	return cli.Search(ctx, query)
+}
+
+func Google(ctx context.Context, apiKey, searchEngineID, query string, maxResults int) (string, error) {
+	log.Infof("🅖 google query: %q max: %d\n", query, maxResults)
+
+	cli := google.New(apiKey, searchEngineID, maxResults)
 	return cli.Search(ctx, query)
 }
