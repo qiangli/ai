@@ -30,6 +30,19 @@ func Shell(vars *api.Vars) error {
 
 	os.Setenv("SHELL", vars.Config.Shell)
 
+	// run sub commands
+	if len(vars.Config.Args) > 0 {
+		input := strings.Join(vars.Config.Args, " ")
+		dispatch(vars.Config.Shell, input)
+		return nil
+	}
+
+	// command loop
+	if !interactive() {
+		return nil
+	}
+
+	//
 	initRegistry(vars)
 
 	initRc(vars)
@@ -43,18 +56,6 @@ func Shell(vars *api.Vars) error {
 		_ = term.Restore(int(os.Stdin.Fd()), oldState)
 	}
 	defer restoreState()
-
-	// run sub commands
-	if len(vars.Config.Args) > 0 {
-		input := strings.Join(vars.Config.Args, " ")
-		dispatch(vars.Config.Shell, input)
-		return nil
-	}
-
-	// command loop
-	if !interactive() {
-		return nil
-	}
 
 	prompter, err := createPrompter()
 	if err != nil {
@@ -206,6 +207,12 @@ func dispatch(shellBin, input string) bool {
 		return true
 	} else if strings.Compare("explore", command) == 0 {
 		if err := runExplore(args); err != nil {
+			commandErr(command, err)
+		}
+		updateHistory(input)
+		return true
+	} else if strings.Compare("page", command) == 0 {
+		if err := runSub(input); err != nil {
 			commandErr(command, err)
 		}
 		updateHistory(input)

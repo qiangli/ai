@@ -1,4 +1,4 @@
-package shell
+package pager
 
 import (
 	"bufio"
@@ -10,7 +10,7 @@ import (
 	"golang.org/x/term"
 )
 
-// pager divides and prints the given output "page by page" using the size of the
+// Pager divides and prints the given output "page by page" using the size of the
 // current terminal.
 //
 // Navigation keys:
@@ -20,14 +20,14 @@ import (
 //		q             : quit / cancel
 //		<number>      : jump to that page number (1-based)
 //	 Arrow keys       : navigate using up/down
-func pager(output string) error {
+func Pager(content string) error {
 	width, height, err := term.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
 		width, height = 80, 24
 	}
 	_ = width
 
-	lines := strings.Split(output, "\n")
+	lines := strings.Split(content, "\n")
 	totalLines := len(lines)
 
 	pageSize := height - 1
@@ -38,7 +38,7 @@ func pager(output string) error {
 
 	// NOTE: return?
 	if totalPages <= 1 {
-		fmt.Print(output)
+		fmt.Print(content)
 		return nil
 	}
 
@@ -50,25 +50,6 @@ func pager(output string) error {
 		return err
 	}
 	defer func() { _ = term.Restore(fd, oldState) }() // Best effort.
-
-	// // set to blocking mode to read input
-	// // some util may set stdin to non-blocking mode, e.g cat
-	// // Get original flags
-	// origFlags, err := unix.FcntlInt(uintptr(fd), unix.F_GETFL, 0)
-	// if err != nil {
-	// 	return err
-	// }
-	// defer func() {
-	// 	// Restore original flags
-	// 	_, _ = unix.FcntlInt(uintptr(fd), unix.F_SETFL, origFlags)
-	// }()
-	// // Clear O_NONBLOCK flag
-	// newFlags := origFlags &^ unix.O_NONBLOCK
-	// // Set flags back (blocking mode)
-	// _, err = unix.FcntlInt(uintptr(fd), unix.F_SETFL, newFlags)
-	// if err != nil {
-	// 	return err
-	// }
 
 	reader := bufio.NewReader(os.Stdin)
 	current := 0

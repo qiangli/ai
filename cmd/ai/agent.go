@@ -102,7 +102,10 @@ func Run(cmd *cobra.Command, args []string) error {
 	// interactive mode
 	// $ ai -i or $ ai --interactive
 	if cfg.Interactive {
-		return shell.Shell(vars)
+		if err := shell.Shell(vars); err != nil {
+			log.Errorln(err)
+		}
+		return nil
 	}
 
 	// $ ai

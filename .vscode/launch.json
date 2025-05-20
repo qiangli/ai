@@ -248,14 +248,15 @@
 			"args": [
 				"--interactive",
 				"--",
-				"explore",
-				"--help"
+				"page",
+				"--scroll",
+				"--file=README.md"
 			],
 			"showLog": false,
 			"stopOnEntry": false
 		},
 		{
-			"name": "Shell agent",
+			"name": "Agent @shell/",
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",

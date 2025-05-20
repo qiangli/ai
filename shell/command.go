@@ -201,7 +201,7 @@ func RunAndCapture(shellBin, command string, page, save bool, capture func(which
 	// // TODO run more/less if they are requested
 	// command | page
 	if page {
-		return pager(outText)
+		return Pager(outText)
 	}
 
 	return nil

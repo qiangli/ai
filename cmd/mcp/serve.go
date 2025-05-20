@@ -157,7 +157,7 @@ func addTool(server *server.MCPServer, vars *api.Vars, toolFunc *api.ToolFunc) e
 	handler := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		log.Debugf("Calling tool [%s] with params: %+v\n", req.Params.Name, req.Params.Arguments)
 
-		v, err := swarm.CallTool(ctx, vars, req.Params.Name, req.Params.Arguments)
+		v, err := swarm.CallTool(ctx, vars, req.Params.Name, req.GetArguments())
 
 		log.Debugf("Tool [%s] returned: %+v\n", req.Params.Name, v)
 
