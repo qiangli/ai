@@ -28,24 +28,27 @@ var toolsList = []string{
 	"wget",
 }
 
-// Read from config
+// TODO Read from config
 var allowList = []string{}
 
-// Read from config
+// TODO Read from config
 var denyList = []string{
-	"env",
-	"printenv",
 	"rm",
 }
 
-var whitelist = append(toolsList, allowList...)
-
-func isAllowed(command string) bool {
+func isAllowed(allowed []string, command string) bool {
 	name := strings.TrimSpace(strings.SplitN(command, " ", 2)[0])
+	if allowed == nil {
+		allowed = allowList
+	}
+	var whitelist = append(toolsList, allowed...)
 	return slices.Contains(whitelist, name)
 }
 
-func isDenied(command string) bool {
+func isDenied(denied []string, command string) bool {
 	name := strings.TrimSpace(strings.SplitN(command, " ", 2)[0])
-	return slices.Contains(denyList, name)
+	if denied == nil {
+		denied = denyList
+	}
+	return slices.Contains(denied, name)
 }

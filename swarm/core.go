@@ -43,18 +43,20 @@ func initAgentTools(app *api.AppConfig) error {
 		if !app.Internal && v.Internal {
 			continue
 		}
+
 		parts := strings.SplitN(v.Name, "/", 2)
 		var service = parts[0]
 		var toolName string
 		if len(parts) == 2 {
 			toolName = parts[1]
 		}
-
+		state := api.ParseState(v.State)
 		fn := &api.ToolFunc{
 			Type:        ToolTypeAgent,
 			Kit:         service,
 			Name:        toolName,
 			Description: v.Description,
+			State:       state,
 		}
 		agentToolMap[fn.ID()] = fn
 	}

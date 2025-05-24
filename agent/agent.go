@@ -35,12 +35,8 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 		return err
 	}
 
-	history, err := cfg.LoadHistory()
-	if err != nil {
-		log.Debugf("error loading history: %v", err)
-	}
-	vars.History = history
-	initLen := len(history)
+	vars.History = cfg.History
+	initLen := len(cfg.History)
 
 	// TODO: this is for custom agent instruction defined in yaml
 	vars.UserInput = input

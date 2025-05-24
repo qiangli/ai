@@ -145,7 +145,7 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	model := req.Model.Model()
 
 	for tries := range maxTurns {
-		log.Infof("\033[33m⚡\033[0m @%s [%v] %s %s\n", req.Agent, tries, model, req.Model.BaseUrl)
+		log.Infof("\033[33mⒼ\033[0m @%s [%v] %s %s\n", req.Agent, tries, model, req.Model.BaseUrl)
 
 		log.Debugf("📡 *** sending request to %s ***: %v of %v\n%+v\n\n", req.Model.BaseUrl, tries, maxTurns, req)
 

@@ -19,6 +19,8 @@ func FormatContent(format string, out *api.Output) (string, error) {
 		return string(obj), nil
 	case "text":
 		return out.Content, nil
+	case "raw":
+		return out.Content, nil
 	default:
 		return out.Content, nil
 	}

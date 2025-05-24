@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/qiangli/ai/bubble"
+	"github.com/qiangli/ai/bubble/confirm"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/vfs"
@@ -102,10 +104,16 @@ func execCommand(command string, args []string, verbose bool) (string, error) {
 }
 
 func runRestricted(ctx context.Context, vars *api.Vars, command string, args []string) (string, error) {
-	if isDenied(command) {
+	if isDenied(vars.Config.DenyList, command) {
+		log.Errorf("\n\033[31m✗\033[0m restricted\n")
+		log.Infof("%s %v\n\n", command, strings.Join(args, " "))
+		if answer, err := bubble.Confirm("Continue?"); err == nil && answer == confirm.Yes {
+			return execCommand(command, args, vars.Config.Debug)
+		}
+
 		return "", fmt.Errorf("%s: Not allowed", command)
 	}
-	if isAllowed(command) {
+	if isAllowed(vars.Config.AllowList, command) {
 		return execCommand(command, args, vars.Config.Debug)
 	}
 

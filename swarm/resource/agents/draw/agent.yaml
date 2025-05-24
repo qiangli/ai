@@ -3,6 +3,7 @@
 agents:
   - name: "draw"
     display: "🐝 Draw"
+    state: "transfer"
     description: "Generate images based on user input, providing visual representations of text-based descriptions."
     model: Image
     advices:

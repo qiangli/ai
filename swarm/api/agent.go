@@ -28,7 +28,8 @@ type AgentConfig struct {
 	Display     string `yaml:"display"`
 	Description string `yaml:"description"`
 
-	Internal bool `yaml:"internal"`
+	Internal bool   `yaml:"internal"`
+	State    string `yaml:"state"`
 
 	//
 	Instruction InstructionConfig `yaml:"instruction"`

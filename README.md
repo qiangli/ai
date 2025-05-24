@@ -90,7 +90,6 @@ $ ai /help
 ```
 
 ```text
-ai /help
 AI Command Line Tool
 
 Usage:
@@ -146,42 +145,39 @@ Miscellaneous:
 
 
 Options:
-      --agent string            Specify the agent/command to use. Same as @agent/command (default "ask")
-      --api-key string          LLM API key
-      --base-url string         LLM Base URL (default "https://api.openai.com/v1/")
-      --config string           config file (default "/Users/liqiang/.ai/config.yaml")
-      --file string             Read input from files.  May be given multiple times to add multiple file content
-      --format string           Output format, one of text, json, or markdown. (default "markdown")
-  -h, --help                    help for ai
-      --image-model string      Image LLM model (default "dall-e-3")
-      --input string            Read input message from a file
-  -i, --interactive             Interactive mode
-      --internal                Enable internal agents and tools
-      --l1-model string         Level1 basic LLM model
-      --l2-model string         Level2 standard LLM model
-      --l3-model string         Level3 advanced LLM model
-      --max-time int            Max number of seconds for timeout (default 3600)
-      --max-turns int           Max number of turns (default 16)
-      --mcp-server-url string   MCP server URL
-      --message string          Specify input message. Overrides all other input methods
-      --model string            LLM model (default "gpt-4.1")
-  -o, --output string           Save final response to a file.
-      --pb-read                 Read input from the clipboard. Alternatively, use '{'
-      --pb-read-wait            Read input from the clipboard and wait for confirmation. Alternatively, use '{{'
-      --pb-write                Copy output to the clipboard. Alternatively, use '}'
-      --pb-write-append         Append output to the clipboard. Alternatively, use '}}'
-      --quiet                   Operate quietly. Only show final response
-      --shell string            Shell to use for interactive mode (default "/bin/bash")
-      --stdin                   Read input message from stdin. Alternatively, use '-'
-      --template string         Document template file
-      --unsafe                  Skip command security check to allow unsafe operations. Use with caution
-      --verbose                 Show progress and debugging information
-  -v, --version                 version for ai
-      --watch                   Watch the workspace directory and respond to embedded ai requests in files
-  -w, --workspace string        Workspace directory
+  -a, --agent string         Specify the agent to use or @agent
+      --allow string         List of comma separated system commands allowed for tool calls
+      --api-key string       LLM API key
+      --base-url string      LLM Base URL
+      --config string        config file (default "/Users/liqiang/.ai/config.yaml")
+      --deny string          List of comma separated system commands disallowed for tool calls. Approval is required to proceed. Ignored if 'unsafe' is true (default "rm")
+  -e, --edit                 Launch editor
+      --editor string        Specify the editor to use. default: builtin
+      --format string        Output format: raw, text, json, or markdown. (default "markdown")
+  -h, --help                 help for ai
+      --image-model string   Image LLM model
+      --input string         Read input message from a file
+  -i, --interactive          Interactive mode
+      --l1-model string      Level1 basic LLM model
+      --l2-model string      Level2 standard LLM model
+      --l3-model string      Level3 advanced LLM model
+      --max-turns int        Max number of turns (default 16)
+      --model string         LLM default model
+  -n, --new                  Start a new converston
+      --output string        Save final response to a file.
+      --pb-read              Read input from clipboard or '{'
+      --pb-read-wait         Read input from clipboard and wait or '{{'
+      --pb-write             Copy output to clipboard or '}'
+      --pb-write-append      Append output to clipboard or '}}'
+      --quiet                Operate quietly. Only show final response
+      --shell string         Shell to use for interactive mode (default "/bin/bash")
+      --stdin                Read input from stdin or '-'
+      --unsafe               Skip command security check to allow unsafe operations. Use with caution
+      --verbose              Show progress and debugging information
+  -v, --version              version for ai
 
 Environment variables:
-  AI_AGENT, AI_API_KEY, AI_BASE_URL, AI_CONFIG, AI_DRY_RUN, AI_DRY_RUN_CONTENT, AI_EDITOR, AI_FILE, AI_FORMAT, AI_HELP, AI_HOST, AI_IMAGE_API_KEY, AI_IMAGE_BASE_URL, AI_IMAGE_MODEL, AI_IMAGE_VIEWER, AI_INPUT, AI_INTERACTIVE, AI_INTERNAL, AI_L1_API_KEY, AI_L1_BASE_URL, AI_L1_MODEL, AI_L2_API_KEY, AI_L2_BASE_URL, AI_L2_MODEL, AI_L3_API_KEY, AI_L3_BASE_URL, AI_L3_MODEL, AI_LOG, AI_MAX_TIME, AI_MAX_TURNS, AI_MCP_SERVER_URL, AI_MESSAGE, AI_MODEL, AI_OUTPUT, AI_PB_READ, AI_PB_READ_WAIT, AI_PB_WRITE, AI_PB_WRITE_APPEND, AI_PORT, AI_QUIET, AI_ROLE, AI_ROLE_PROMPT, AI_SHELL, AI_SQL_DB_HOST, AI_SQL_DB_NAME, AI_SQL_DB_PASSWORD, AI_SQL_DB_PORT, AI_SQL_DB_USERNAME, AI_STDIN, AI_TEMPLATE, AI_UNSAFE, AI_VERBOSE, AI_VERSION, AI_WATCH, AI_WORKSPACE
+  AI_AGENT, AI_ALLOW, AI_API_KEY, AI_BASE_URL, AI_CONFIG, AI_CONTENT, AI_DENY, AI_DRY_RUN, AI_DRY_RUN_CONTENT, AI_EDIT, AI_EDITOR, AI_FILE, AI_FORMAT, AI_HELP, AI_HOST, AI_IMAGE_API_KEY, AI_IMAGE_BASE_URL, AI_IMAGE_MODEL, AI_IMAGE_VIEWER, AI_INPUT, AI_INTERACTIVE, AI_INTERNAL, AI_L1_API_KEY, AI_L1_BASE_URL, AI_L1_MODEL, AI_L2_API_KEY, AI_L2_BASE_URL, AI_L2_MODEL, AI_L3_API_KEY, AI_L3_BASE_URL, AI_L3_MODEL, AI_LOG, AI_MAX_HISTORY, AI_MAX_SPAN, AI_MAX_TIME, AI_MAX_TURNS, AI_MCP_SERVER_URL, AI_MESSAGE, AI_MODEL, AI_NEW, AI_OUTPUT, AI_PB_READ, AI_PB_READ_WAIT, AI_PB_WRITE, AI_PB_WRITE_APPEND, AI_PORT, AI_QUIET, AI_ROLE, AI_ROLE_PROMPT, AI_SHELL, AI_SQL_DB_HOST, AI_SQL_DB_NAME, AI_SQL_DB_PASSWORD, AI_SQL_DB_PORT, AI_SQL_DB_USERNAME, AI_STDIN, AI_TEMPLATE, AI_UNSAFE, AI_VERBOSE, AI_VERSION, AI_WATCH, AI_WORKSPACE
 
 Use "ai /help [agents|commands|tools|info]" for more information.
 ```

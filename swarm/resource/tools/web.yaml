@@ -2,7 +2,7 @@ kit: "web"
 
 tools:
   - name: "fetch_content"
-    description: "Fetch and parse content from a webpage URL"
+    description: "Fetch and process content from webpage URL and convert HTML to text"
     parameters:
       type: "object"
       properties:
@@ -11,6 +11,20 @@ tools:
           description: "The webpage URL to fetch content from"
       required:
         - url
+    type: "func"
+
+  - name: "download_content"
+    description: "Download content from a given URL and save locally as is"
+    parameters:
+      type: "object"
+      properties:
+        url:
+          type: "string"
+          description: "The URL to download content from"
+        file:
+          type: "string"
+          description: "The full file path to save the content to"
+      required: ["url", "file"]
     type: "func"
 
   - name: "ddg_search"

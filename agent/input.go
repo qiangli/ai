@@ -48,6 +48,7 @@ func getUserInput(cfg *api.AppConfig, stdin io.Reader, clipper api.ClipboardProv
 	if cfg.Message != "" {
 		return &api.UserInput{
 			Message:  cfg.Message,
+			Content:  cfg.Content,
 			Files:    cfg.Files,
 			Template: cfg.Template,
 		}, nil

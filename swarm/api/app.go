@@ -27,8 +27,9 @@ type AppConfig struct {
 	Command string
 	Args    []string
 
-	// --message takes precedence over all other forms of input
+	// --message takes precedence, skip stdin
 	Message string
+	Content string
 
 	// command line
 	Editor string
@@ -63,12 +64,16 @@ type AppConfig struct {
 	MaxHistory int
 	MaxSpan    int
 
+	History []*Message
+
 	Log      string
 	Debug    bool
 	Quiet    bool
 	Internal bool
 
-	Unsafe bool
+	DenyList  []string
+	AllowList []string
+	Unsafe    bool
 
 	//
 	Workspace string
@@ -91,20 +96,22 @@ type AppConfig struct {
 	Stderr string
 }
 
-func (r *AppConfig) LoadHistory() ([]*Message, error) {
+func (r *AppConfig) LoadHistory() error {
 	var history []*Message
 
 	if r.New {
-		return nil, nil
+		return nil
 	}
 
 	dir := filepath.Join(filepath.Dir(r.ConfigFile), "history")
 
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return history, err
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
 	}
-
 	// Collect .json files and their infos
 	type fileInfo struct {
 		name string
@@ -146,13 +153,15 @@ func (r *AppConfig) LoadHistory() ([]*Message, error) {
 			if r.MaxHistory > 0 && len(history) >= r.MaxHistory {
 				result := history[:r.MaxHistory]
 				reverseMessages(result)
-				return result, nil
+				r.History = result
+				return nil
 			}
 		}
 	}
 
 	reverseMessages(history)
-	return history, nil
+	r.History = history
+	return nil
 }
 
 func reverseMessages(msgs []*Message) {

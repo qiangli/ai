@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -13,6 +14,7 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 
 	"github.com/qiangli/ai/agent"
+	"github.com/qiangli/ai/bubble"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/watch"
 	"github.com/qiangli/ai/shell"
@@ -102,6 +104,61 @@ func Run(cmd *cobra.Command, args []string) error {
 	// interactive mode
 	// $ ai -i or $ ai --interactive
 	if cfg.Interactive {
+		// bubble
+		if len(cfg.Args) > 0 && cfg.Args[0] == "bubble" {
+			// _, err := bubble.BubbleGum(cfg.Args[1:])
+			if len(cfg.Args) < 3 {
+				bubble.Help()
+				return nil
+			}
+			sub := cfg.Args[1]
+			prompt := cfg.Args[2]
+
+			var err error
+			var result string
+			switch sub {
+			case "confirm":
+				result, err = bubble.Confirm(prompt)
+			case "choose":
+				if len(cfg.Args) < 5 {
+					log.Errorln("Not enough args")
+					return nil
+				}
+				multi, _ := strconv.ParseBool(cfg.Args[4])
+				result, err = bubble.Choose(prompt, cfg.Args[4:], multi)
+			case "file":
+				var p string
+				if len(cfg.Args) > 3 {
+					p = cfg.Args[3]
+				}
+				result, err = bubble.PickFile(prompt, p)
+			case "write":
+				var placeholder, value string
+				if len(cfg.Args) > 3 {
+					placeholder = cfg.Args[3]
+				}
+				if len(cfg.Args) > 4 {
+					value = cfg.Args[4]
+				}
+				result, err = bubble.Write(prompt, placeholder, value)
+			case "edit":
+				var placeholder, value string
+				if len(cfg.Args) > 3 {
+					placeholder = cfg.Args[3]
+				}
+				if len(cfg.Args) > 4 {
+					value = cfg.Args[4]
+				}
+				result, err = bubble.Edit(prompt, placeholder, value)
+			}
+			if err != nil {
+				log.Errorln(err)
+			}
+			log.Println(result)
+			return nil
+		}
+
+		//
 		if err := shell.Shell(vars); err != nil {
 			log.Errorln(err)
 		}

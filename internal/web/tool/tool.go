@@ -2,6 +2,10 @@ package tool
 
 import (
 	"context"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/web/bing"
@@ -12,6 +16,28 @@ import (
 )
 
 const maxPageSize = 8000
+
+func Download(ctx context.Context, url, file string) (string, error) {
+	log.Infof("💾 downloading %q to %q \n", url, file)
+
+	out, err := os.Create(file)
+	if err != nil {
+		return "", err
+	}
+	defer out.Close()
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%q downloaded succesfully. saved locally as %q", url, file), nil
+}
 
 // Fetch and parse content from a webpage
 func Fetch(ctx context.Context, url string) (string, error) {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -42,7 +43,7 @@ func initTools(app *api.AppConfig) error {
 
 	toolRegistry = make(map[string]*api.ToolFunc)
 
-	conditionMet := func(c *api.ToolCondition) bool {
+	conditionMet := func(name string, c *api.ToolCondition) bool {
 		if c == nil {
 			return true
 		}
@@ -51,6 +52,21 @@ func initTools(app *api.AppConfig) error {
 				if _, ok := os.LookupEnv(v); !ok {
 					return false
 				}
+			}
+		}
+		if c.Lookup != nil {
+			_, err := exec.LookPath(name)
+			if err != nil {
+				return false
+			}
+		}
+		if len(c.Shell) > 0 {
+			// get current shell name
+			shellPath := os.Getenv("SHELL")
+			shellName := filepath.Base(shellPath)
+			_, ok := c.Shell[shellName]
+			if !ok {
+				return false
 			}
 		}
 		return true
@@ -64,7 +80,7 @@ func initTools(app *api.AppConfig) error {
 		}
 
 		// condition check
-		if !conditionMet(v.Condition) {
+		if !conditionMet(v.Name, v.Condition) {
 			continue
 		}
 
@@ -240,10 +256,13 @@ func dispatchTool(ctx context.Context, vars *api.Vars, name string, args map[str
 		if v.Name != "" {
 			nextAgent = fmt.Sprintf("%s/%s", v.Kit, v.Name)
 		}
-		return &api.Result{
-			NextAgent: nextAgent,
-			State:     api.StateTransfer,
-		}, nil
+		if v.State != api.StateDefault {
+			return &api.Result{
+				NextAgent: nextAgent,
+				State:     v.State,
+			}, nil
+		}
+		return callAgent(ctx, vars, nextAgent, args)
 	case ToolTypeMcp:
 		// spinner
 		sp.Start()

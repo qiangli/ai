@@ -376,7 +376,7 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*A
 		}
 		var funcs []*api.ToolFunc
 		for _, v := range funcMap {
-			if v.Type == ToolTypeAgent && v.Kit == agentName {
+			if v.Type == ToolTypeAgent && v.Name == agentName {
 				continue
 			}
 			funcs = append(funcs, v)

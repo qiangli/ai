@@ -1,0 +1,12 @@
+diff --git a/internal/config.go b/internal/config.go
+index c0fa372..02aeff6 100644
+--- a/internal/config.go
++++ b/internal/config.go
+@@ -219,6 +219,7 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
+        app.ConfigFile = viper.ConfigFileUsed()
+ 
+        app.Message = viper.GetString("message")
++       app.Content = viper.GetString("content")
+        // read input file if message is empty
+        inputFile := viper.GetString("input")
+        if inputFile != "" && app.Message == "" {

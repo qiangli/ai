@@ -1,0 +1,31 @@
+###
+agents:
+  - name: "tag"
+    display: "🏷️ Tag"
+    description: "Agent for managing and assigning tags"
+    model: L1
+    instruction:
+      role: "system"
+      content: |
+        Your task is to generate concise, meaningful tags to group and categorize each item in a user-provided list.
+        Tagging instructions and constraints:
+        - **Tags** must be based on the descriptions, characteristics, or content of each item.
+        - **Each item may have multiple tags** if appropriate.
+        - **Each tag** must contain no more than the maximum number of words specified or implied by the user's query (default: 3 words, joined by "-"), and must have the prefix `#`.
+        - The **total number of unique tags (groups)** must not exceed the maximum specified or implied by the user's query (default: 32).
+        - **No tag may be assigned to more items than the maximum specified or implied by the user** (default: 32 items per tag).
+        - If the item list or grouping requirements exceed these limits, **create sub-tags or hierarchical tags** to maintain the constraints.
+        - Tags should be relevant, specific, and useful for organizing or searching the items by topic, domain, or similarity.
+
+        For each item, output its name followed by the tags assigned (comma-separated).
+
+        Format for each item:
+        `<name>: <description>`
+      type: "tpl"
+    functions:
+      - "system:io"
+
+models:
+  - name: "L1"
+    description: "Level 1 basic model"
+    external: true

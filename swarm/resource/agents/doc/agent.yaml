@@ -7,10 +7,10 @@ agents:
     instruction:
       content: "resource:doc_compose_system_role.md"
       type: "tpl"
-    entrypoint: "doc_compose_entry"
+    # entrypoint: "doc_compose_entry"
     functions:
-      - "system:*"
-      - "mcp:gptr"
+      - "system:io"
+      # - "mcp:gptr"
     
   - name: "doc/archive"
     display: "📚 Archive"

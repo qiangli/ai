@@ -12,6 +12,7 @@ agents:
       - "agent_transfer"
       - "agent:*"
       - "func:time"
+      - "func:loc"
 
 models:
   - name: "L1"

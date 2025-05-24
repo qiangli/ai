@@ -79,6 +79,9 @@ var shell_agent_yaml_data []byte
 //go:embed sql/agent.yaml
 var sql_agent_yaml_data []byte
 
+//go:embed tag/agent.yaml
+var tag_agent_yaml_data []byte
+
 //go:embed web/agent.yaml
 var web_agent_yaml_data []byte
 
@@ -243,7 +246,7 @@ var AgentCommandMap = map[string]AgentConfig{
 	"pr": {
 		Name:        "pr",
 		Description: "Enhance PR management with automated summaries, reviews, suggestions, and changelog updates.",
-		Internal:    false,
+		Internal:    true,
 		Data:        pr_agent_yaml_data,
 		Overview:    "",
 	},
@@ -287,6 +290,13 @@ var AgentCommandMap = map[string]AgentConfig{
 		Description: "Streamline SQL query generation, helping users derive insights without SQL expertise.",
 		Internal:    false,
 		Data:        sql_agent_yaml_data,
+		Overview:    "",
+	},
+	"tag": {
+		Name:        "tag",
+		Description: "Agent for managing and assigning tags",
+		Internal:    false,
+		Data:        tag_agent_yaml_data,
 		Overview:    "",
 	},
 	"web": {

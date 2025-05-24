@@ -256,8 +256,8 @@ ai [OPTIONS] MESSAGE... [@AGENT[/COMMAND]]
 
 AI will choose an appropriate agent based on your message if no agent is specified.
 
-* if you specify agents both at the beginning and end of the message, the last one will be used.
-* you may specify command options anywhere in the message. if you need to include options as part of your message, use quotes or escape them.
+* If you specify agents at both the beginning and end of a message, the last one takes precedence.
+* You can place command options anywhere in your message. To include options as part of the message, use quotes or escape '\'.
 `
 	dict := vars.ListAgents()
 	keys := make([]string, 0)

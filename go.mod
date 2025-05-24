@@ -11,6 +11,7 @@ require (
 	github.com/alecthomas/chroma/v2 v2.18.0
 	github.com/alecthomas/kong v1.11.0
 	github.com/alexflint/go-arg v1.5.1
+	github.com/anthropics/anthropic-sdk-go v1.2.0
 	github.com/antonmedv/clipboard v1.0.1
 	github.com/atotto/clipboard v0.1.4
 	github.com/bmatcuk/doublestar/v4 v4.8.1
@@ -22,6 +23,8 @@ require (
 	github.com/charmbracelet/gum v0.16.0
 	github.com/charmbracelet/lipgloss v1.1.1-0.20250404203927-76690c660834
 	github.com/charmbracelet/x/ansi v0.9.2
+	github.com/charmbracelet/x/editor v0.1.0
+	github.com/charmbracelet/x/term v0.2.1
 	github.com/creack/pty v1.1.24
 	github.com/docker/docker v28.1.1+incompatible
 	github.com/expr-lang/expr v1.17.3
@@ -77,7 +80,6 @@ require (
 	github.com/charmbracelet/colorprofile v0.3.1 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.13 // indirect
 	github.com/charmbracelet/x/exp/slice v0.0.0-20250519230239-a4806feb0618 // indirect
-	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.4.1 // indirect

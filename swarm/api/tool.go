@@ -23,6 +23,12 @@ type ToolConfig struct {
 type ToolCondition struct {
 	// required env list
 	Env []string `yaml:"env"`
+
+	// found on PATH
+	Lookup *string `yaml:"lookup"`
+
+	// shell required
+	Shell map[string]any `yaml:"shell"`
 }
 
 type ToolsConfig struct {
@@ -47,6 +53,8 @@ type ToolDescriptor struct {
 
 type ToolFunc struct {
 	Type string
+
+	State State
 
 	// func class
 	// Agent name

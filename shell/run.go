@@ -76,7 +76,7 @@ func parseKong(sub any, args []string) (*kong.Context, error) {
 func Pager(content string) error {
 	return pager.Pager(content)
 	// sub := &Sub{}
-	// args := []string{"page", "--scroll=false"}
+	// args := []string{"page"}
 	// ctx, err := parseKong(sub, args)
 	// if err != nil {
 	// 	return err

@@ -28,28 +28,17 @@ func (o *Options) Run() error {
 		o.Content = data
 	}
 	if !o.Scroll {
-		return Pager(o.Content)
+		return o.Paginate()
 	}
-	return o.Pager()
+	return o.ScrollPage()
 }
 
-func (o *Options) Pager() error {
+func (o *Options) ScrollPage() error {
 	vp := viewport.New(o.Style.Width, o.Style.Height)
 	vp.Style = o.Style.ToLipgloss()
 
 	if o.Content == "" {
 		return nil
-		// d, err := stdin.Read()
-		// if err != nil {
-		// 	return fmt.Errorf("unable to read stdin")
-		// }
-		// if d != "" {
-		// 	// Sanitize the input from stdin by removing backspace sequences.
-		// 	backspace := regexp.MustCompile(".\x08")
-		// 	o.Content = backspace.ReplaceAllString(d, "")
-		// } else {
-		// 	return fmt.Errorf("provide some content to display")
-		// }
 	}
 
 	m := model{

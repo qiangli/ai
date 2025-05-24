@@ -99,7 +99,7 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	resp := &api.LLMResponse{}
 
 	for tries := range maxTurns {
-		log.Infof("\033[33m⚡\033[0m @%s [%v] %s %s\n", req.Agent, tries, model, req.Model.BaseUrl)
+		log.Infof("\033[33mⓄ\033[0m @%s [%v] %s %s\n", req.Agent, tries, model, req.Model.BaseUrl)
 
 		log.Debugf("📡 *** sending request to %s ***: %v of %v\n%+v\n\n", req.Model.BaseUrl, tries, maxTurns, req)
 
@@ -119,6 +119,7 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 		}
 
 		params.Messages = append(params.Messages, completion.Choices[0].Message.ToParam())
+
 		for i, toolCall := range toolCalls {
 			var name = toolCall.Function.Name
 			var props map[string]interface{}
@@ -147,7 +148,9 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 				return resp, nil
 			}
 
-			if out.MimeType != "" {
+			if out.MimeType != "" && !strings.HasPrefix(out.MimeType, "text/") {
+				// TODO this is a hack and seems to work for non text parts
+				// investigate this may fail for multi tool calls unless this is the last
 				params.Messages = append(params.Messages, openai.ToolMessage(fmt.Sprintf("%s\nThe file content is included as data URL in the user message.", out.Message), toolCall.ID))
 				params.Messages = append(params.Messages, openai.UserMessage(toContentPart(out)))
 			} else {

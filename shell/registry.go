@@ -14,6 +14,7 @@ import (
 var commandRegistry map[string]string
 var agentRegistry map[string]*api.AgentConfig
 var aliasRegistry map[string]string
+
 var visitedRegistry *VisitedRegistry
 
 func initRegistry(vars *api.Vars) (err error) {

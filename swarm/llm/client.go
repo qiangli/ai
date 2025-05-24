@@ -7,6 +7,7 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/llm/anthropic"
 	"github.com/qiangli/ai/swarm/llm/gemini"
 	"github.com/qiangli/ai/swarm/llm/openai"
 )
@@ -23,10 +24,17 @@ func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 
 	provider := req.Model.Provider()
 	model := req.Model.Model()
+
+	//
 	if provider == "" {
 		provider = "openai"
-		if strings.HasPrefix(model, "gemini-") {
+		switch {
+		case strings.HasPrefix(model, "gemini-"):
 			provider = "gemini"
+		case strings.HasPrefix(model, "claude-"):
+			provider = "anthropic"
+		default:
+			log.Debugf("model provider is unknown, assuming openai")
 		}
 	}
 
@@ -39,6 +47,8 @@ func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 		resp, err = gemini.Send(ctx, req)
 	case "openai":
 		resp, err = openai.Send(ctx, req)
+	case "anthropic":
+		resp, err = anthropic.Send(ctx, req)
 	default:
 		resp, err = openai.Send(ctx, req)
 	}

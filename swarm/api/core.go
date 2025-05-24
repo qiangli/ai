@@ -22,7 +22,7 @@ type Result struct {
 	MimeType string
 	Message  string
 
-	// The current agent instance
+	// The agent state
 	State State
 
 	// The agent name to transfer to for StateTransfer
@@ -31,7 +31,7 @@ type Result struct {
 
 func (r *Result) String() string {
 	var sb strings.Builder
-	if r.State != StateUnknown {
+	if r.State != StateDefault {
 		sb.WriteString(r.State.String())
 	}
 	if r.NextAgent != "" {
@@ -45,9 +45,9 @@ func (r *Result) String() string {
 
 type State int
 
-func (s State) String() string {
-	switch s {
-	case StateUnknown:
+func (r State) String() string {
+	switch r {
+	case StateDefault:
 		return "DEFAULT"
 	case StateExit:
 		return "EXIT"
@@ -55,13 +55,29 @@ func (s State) String() string {
 		return "TRANSFER"
 	case StateInputWait:
 		return "INPUT_WAIT"
+	}
+	return "DEFAULT"
+}
+
+func (r State) Equal(s string) bool {
+	return strings.ToUpper(s) == r.String()
+}
+
+func ParseState(s string) State {
+	switch strings.ToUpper(s) {
+	case "EXIT":
+		return StateExit
+	case "TRANSFER":
+		return StateTransfer
+	case "INPUT_WAIT":
+		return StateInputWait
 	default:
-		return "INVALID"
+		return StateDefault
 	}
 }
 
 const (
-	StateUnknown State = iota
+	StateDefault State = iota
 
 	StateExit
 	StateTransfer

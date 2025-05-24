@@ -16,6 +16,18 @@ func (r *FuncKit) FetchContent(ctx context.Context, vars *api.Vars, name string,
 	return webtool.Fetch(ctx, link)
 }
 
+func (r *FuncKit) DownloadContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	link, err := GetStrProp("url", args)
+	if err != nil {
+		return "", err
+	}
+	file, err := GetStrProp("file", args)
+	if err != nil {
+		return "", err
+	}
+	return webtool.Download(ctx, link, file)
+}
+
 // Search the web using DuckDuckGo.
 func (r *FuncKit) DdgSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	query, err := GetStrProp("query", args)

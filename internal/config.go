@@ -37,18 +37,14 @@ const (
 
 var Version = "0.0.1" // version of the ai binary
 
-func parseArgs(app *api.AppConfig, args []string) []string {
-	newArgs := parseAgentArgs(app, args)
+func parseArgs(app *api.AppConfig, args []string, defaultAgent string) []string {
+	newArgs := parseAgentArgs(app, args, defaultAgent)
 	newArgs = parseSpecialChars(app, newArgs)
 	return newArgs
 }
 
 // return the agent/command and the rest of the args
-func parseAgentArgs(app *api.AppConfig, args []string) []string {
-	defaultAgent := viper.GetString("agent")
-	if defaultAgent == "" {
-		defaultAgent = "ask"
-	}
+func parseAgentArgs(app *api.AppConfig, args []string, defaultAgent string) []string {
 	shellAgent := "shell"
 
 	// first or last arg could be the agent/command
@@ -89,6 +85,7 @@ func parseAgentArgs(app *api.AppConfig, args []string) []string {
 			agent = arg[1:]
 		}
 	}
+
 	if agent == "" {
 		agent = defaultAgent
 	}
@@ -219,6 +216,7 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.ConfigFile = viper.ConfigFileUsed()
 
 	app.Message = viper.GetString("message")
+	app.Content = viper.GetString("content")
 	// read input file if message is empty
 	inputFile := viper.GetString("input")
 	if inputFile != "" && app.Message == "" {
@@ -265,30 +263,43 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	lc.ImageModel = viper.GetString("image_model")
 
 	// openai
+	// if lc.ApiKey == "" {
+	// 	if e, ok := os.LookupEnv("OPENAI_API_KEY"); ok {
+	// 		lc.ApiKey = e
+	// 		if lc.BaseUrl == "" {
+	// 			lc.BaseUrl = "https://api.openai.com/v1/"
+	// 		}
+	// 		if lc.Model == "" {
+	// 			lc.Model = "gpt-4o-mini"
+	// 		}
+	// 		if lc.ImageModel == "" {
+	// 			lc.ImageModel = "dall-e-3"
+	// 		}
+	// 	}
+	// }
+	// // gemini
+	// if lc.ApiKey == "" {
+	// 	if e, ok := os.LookupEnv("GEMINI_API_KEY"); ok {
+	// 		lc.ApiKey = e
+	// 		lc.BaseUrl = ""
+	// 		if lc.Model == "" {
+	// 			lc.Model = "gemini-2.0-flash-lite"
+	// 		}
+	// 		if lc.ImageModel == "" {
+	// 			lc.ImageModel = "imagen-3.0-generate-002"
+	// 		}
+	// 	}
+	// }
+	// anthropic
 	if lc.ApiKey == "" {
-		if e, ok := os.LookupEnv("OPENAI_API_KEY"); ok {
+		if e, ok := os.LookupEnv("ANTHROPIC_API_KEY"); ok {
 			lc.ApiKey = e
-			if lc.BaseUrl == "" {
-				lc.BaseUrl = "https://api.openai.com/v1/"
-			}
+			lc.BaseUrl = ""
 			if lc.Model == "" {
-				lc.Model = "gpt-4o-mini"
+				lc.Model = "claude-3-5-haiku-latest"
 			}
 			if lc.ImageModel == "" {
-				lc.ImageModel = "dall-e-3"
-			}
-		}
-	}
-	// gemini
-	if lc.ApiKey == "" {
-		if e, ok := os.LookupEnv("GEMINI_API_KEY"); ok {
-			lc.ApiKey = e
-			// lc.BaseUrl not required
-			if lc.Model == "" {
-				lc.Model = "gemini-2.0-flash-lite"
-			}
-			if lc.ImageModel == "" {
-				lc.ImageModel = "imagen-3.0-generate-002"
+				lc.ImageModel = ""
 			}
 		}
 	}
@@ -354,6 +365,19 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.Internal = viper.GetBool("internal")
 
 	app.Unsafe = viper.GetBool("unsafe")
+	toList := func(s string) []string {
+		sa := strings.Split(s, ",")
+		var list []string
+		for _, v := range sa {
+			list = append(list, strings.TrimSpace(v))
+		}
+		if len(list) > 0 {
+			return list
+		}
+		return nil
+	}
+	app.DenyList = toList(viper.GetString("deny"))
+	app.AllowList = toList(viper.GetString("allow"))
 
 	app.Editor = viper.GetString("editor")
 	app.Editing = viper.GetBool("edit")
@@ -373,7 +397,22 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.MaxTurns = viper.GetInt("max_turns")
 	app.MaxTime = viper.GetInt("max_time")
 
-	app.Args = parseArgs(app, args)
+	//
+	if err := app.LoadHistory(); err != nil {
+		return nil, fmt.Errorf("error loading history: %v", err)
+	}
+
+	// default agent:
+	// --agent, hisotry, "ask"
+	var defaultAgent = viper.GetString("agent")
+	if defaultAgent == "" && len(app.History) > 0 {
+		last := app.History[len(app.History)-1]
+		defaultAgent = last.Sender
+	}
+	if defaultAgent == "" {
+		defaultAgent = "ask"
+	}
+	app.Args = parseArgs(app, args, defaultAgent)
 
 	// mcp
 	app.McpServerUrl = viper.GetString("mcp.server_url")

@@ -157,8 +157,11 @@
 			"program": "${workspaceFolder}/cmd/ai/",
 			"env": {
 				"AI_MODEL": "gpt4o-mini",
-				"AI_API_KEY": "sk-1234",
-				"AI_BASE_URL": "http://localhost:4000",
+				// "AI_API_KEY": "sk-1234",
+				// "AI_BASE_URL": "http://localhost:4000",
+				"AI_L2_MODEL": "gpt-4.1",
+				"AI_API_KEY": "${env:OPENAI_API_KEY}",
+				"AI_BASE_URL": "https://api.openai.com/v1/",
 				"AI_DEBUG": "true",
 			},
 			"args": [
@@ -177,9 +180,11 @@
 			"mode": "auto",
 			"program": "${workspaceFolder}/cmd/ai/",
 			"env": {
-				"AI_MODEL": "gpt4o-mini",
-				"AI_API_KEY": "sk-1234",
-				"AI_BASE_URL": "http://localhost:4000",
+				// "AI_MODEL": "gpt4o-mini",
+				// "AI_API_KEY": "sk-1234",
+				// "AI_BASE_URL": "http://localhost:4000",
+				"AI_MODEL": "claude-3-5-haiku-latest",
+				"AI_API_KEY": "${env:ANTHROPIC_API_KEY}",
 				"AI_DEBUG": "true",
 			},
 			"args": [
@@ -329,16 +334,22 @@
 			"program": "${workspaceFolder}/cmd/ai/",
 			"env": {
 				"AI_MODEL": "gpt4o-mini",
-				"AI_API_KEY": "sk-1234",
-				"AI_BASE_URL": "http://localhost:4000",
+				// "AI_API_KEY": "sk-1234",
+				// "AI_BASE_URL": "http://localhost:4000",
+				// "AI_DEBUG": "true",
+				"AI_API_KEY": "${env:OPENAI_API_KEY}",
+				"AI_BASE_URL": "https://api.openai.com/v1/",
 				"AI_DEBUG": "true",
 			},
 			"args": [
 				"--verbose",
-				"@git/short",
+				"@git",
 				"--message",
 				"write a short commit message for the code changes",
+				"--input",
+				"git.diff"
 			],
+			"cwd": "internal/testdata",
 			"showLog": false,
 			"stopOnEntry": false
 		},

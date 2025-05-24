@@ -548,7 +548,9 @@ func runExplore(s string) error {
 			return err
 		}
 	} else {
-		visitedRegistry.Visit(visited)
+		if visitedRegistry != nil {
+			visitedRegistry.Visit(visited)
+		}
 	}
 	return nil
 }

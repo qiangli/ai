@@ -3,7 +3,7 @@ kit: "loc"
 tools:
   - name: "fetch_location"
     description: "Get detailed location information based on type parameters"
-    internal: true
+    # internal: true
     parameters:
       type: "object"
       properties:

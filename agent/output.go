@@ -3,7 +3,6 @@ package agent
 import (
 	"bytes"
 	"encoding/base64"
-	"fmt"
 	"image"
 	"image/png"
 	"os"
@@ -20,8 +19,14 @@ func PrintOutput(format string, output *api.Output) error {
 	if err != nil {
 		return err
 	}
-	log.Infof("\n[%s]\n", output.Display)
-	log.Println(s)
+
+	if isOutputTTY() {
+		log.Infof("\n[%s]\n", output.Display)
+		log.Println(s)
+	} else {
+		log.Println(s)
+	}
+
 	return nil
 }
 
@@ -42,8 +47,10 @@ func SaveOutput(filename string, message *api.Output) error {
 
 func processTextContent(cfg *api.AppConfig, output *api.Output) {
 	content := output.Content
-	doc := util.ParseMarkdown(content)
-	total := len(doc.CodeBlocks)
+
+	//
+	// doc := util.ParseMarkdown(content)
+	// total := len(doc.CodeBlocks)
 
 	// clipboard
 	if cfg.Clipout {
@@ -59,33 +66,33 @@ func processTextContent(cfg *api.AppConfig, output *api.Output) {
 		}
 	}
 
-	// process code blocks
-	isPiped := func() bool {
-		stat, err := os.Stdout.Stat()
-		if err != nil {
-			return false
-		}
-		return (stat.Mode() & os.ModeCharDevice) == 0
-	}()
-
-	PrintOutput(cfg.Format, output)
 	if cfg.Output != "" {
 		SaveOutput(cfg.Output, output)
 	}
 
-	if total > 0 && isPiped {
-		// if there are code blocks and stdout is redirected
-		// we send the code blocks to the stdout
-		const codeTpl = "%s\n"
-		var snippets []string
-		for _, v := range doc.CodeBlocks {
-			snippets = append(snippets, v.Code)
-		}
-		// show code snippets
-		PrintOutput(cfg.Format, &api.Output{
-			Content: fmt.Sprintf(codeTpl, strings.Join(snippets, "\n")),
-		})
-	}
+	// isPiped := func() bool {
+	// 	stat, err := os.Stdout.Stat()
+	// 	if err != nil {
+	// 		return false
+	// 	}
+	// 	return (stat.Mode() & os.ModeCharDevice) == 0
+	// }()
+
+	PrintOutput(cfg.Format, output)
+
+	// if total > 0 && isPiped {
+	// 	// if there are code blocks and stdout is redirected
+	// 	// we send the code blocks to the stdout
+	// 	const codeTpl = "%s\n"
+	// 	var snippets []string
+	// 	for _, v := range doc.CodeBlocks {
+	// 		snippets = append(snippets, v.Code)
+	// 	}
+	// 	// show code snippets
+	// 	PrintOutput(cfg.Format, &api.Output{
+	// 		Content: fmt.Sprintf(codeTpl, strings.Join(snippets, "\n")),
+	// 	})
+	// }
 }
 
 func processImageContent(cfg *api.AppConfig, message *api.Output) {

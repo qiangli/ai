@@ -31,7 +31,7 @@ func newOutputValue(val string, p *string) *outputValue {
 }
 func (s *outputValue) Set(val string) error {
 	// TODO json
-	for _, v := range []string{"text", "json", "markdown"} {
+	for _, v := range []string{"raw", "text", "json", "markdown"} {
 		if val == v {
 			*s = outputValue(val)
 			return nil
@@ -162,47 +162,59 @@ func (s *filesValue) writeAsCSV(vals []string) (string, error) {
 func addAgentFlags(cmd *cobra.Command) {
 	flags := cmd.Flags()
 
-	flags.String("agent", "ask", "Specify the agent/command to use. Same as @agent/command")
+	// --agent agent/command or @agent/command
+	flags.StringP("agent", "a", "", "Specify the agent to use or @agent")
 
 	//
-	flags.String("editor", "", "Specify the editor to use")
+	flags.String("editor", "", "Specify the editor to use. default: builtin")
 	flags.BoolP("edit", "e", false, "Launch editor")
 
-	//
-	flags.StringP("workspace", "w", "", "Workspace directory")
+	// mainly when stdin is not desirable or possible
+	// e.g. for testing or in vscode debug mode
+	flags.String("message", "", "Specify input message. Skip stdin")
+	flags.String("content", "", "Specify input content. Skip stdin")
 
-	// input
-	flags.String("message", "", "Specify input message. Overrides all other input methods")
+	flags.MarkHidden("message")
+	flags.MarkHidden("content")
 
 	flags.String("input", "", "Read input message from a file")
-	flags.VarP(newFilesValue([]string{}, &internal.InputFiles), "file", "", `Read input from files.  May be given multiple times to add multiple file content`)
-	flags.Bool("stdin", false, "Read input message from stdin. Alternatively, use '-'")
-	flags.Bool("pb-read", false, "Read input from the clipboard. Alternatively, use '{'")
-	flags.Bool("pb-read-wait", false, "Read input from the clipboard and wait for confirmation. Alternatively, use '{{'")
+	flags.VarP(newFilesValue([]string{}, &internal.InputFiles), "file", "", `Read file inputs.  May be given multiple times.`)
+	flags.Bool("stdin", false, "Read input from stdin or '-'")
+	flags.Bool("pb-read", false, "Read input from clipboard or '{'")
+	flags.Bool("pb-read-wait", false, "Read input from clipboard and wait or '{{'")
+
+	flags.MarkHidden("file")
 
 	// output
-	flags.Bool("pb-write", false, "Copy output to the clipboard. Alternatively, use '}'")
-	flags.Bool("pb-write-append", false, "Append output to the clipboard. Alternatively, use '}}'")
-	flags.StringVarP(&internal.OutputFlag, "output", "o", "", "Save final response to a file.")
+	flags.StringVar(&internal.OutputFlag, "output", "", "Save final response to a file.")
+	flags.Bool("pb-write", false, "Copy output to clipboard or '}'")
+	flags.Bool("pb-write-append", false, "Append output to clipboard or '}}'")
 
-	flags.Var(newOutputValue("markdown", &internal.FormatFlag), "format", "Output format, one of text, json, or markdown.")
+	flags.Var(newOutputValue("markdown", &internal.FormatFlag), "format", "Output format: raw, text, json, or markdown.")
+
+	// security
+	flags.String("deny", "rm", "List of comma separated system commands disallowed for tool calls. Approval is required to proceed. Ignored if 'unsafe' is true")
+	flags.String("allow", "", "List of comma separated system commands allowed for tool calls")
+	flags.Bool("unsafe", false, "Skip command security check to allow unsafe operations. Use with caution")
 
 	// history
 	// TODO auto adjust based on relevance of messages to the current query
-	flags.Bool("new", false, "Start a new converston thread")
+	flags.BoolP("new", "n", false, "Start a new converston")
 	flags.Int("max-history", 3, "Max number of historic messages")
-	flags.Int("max-span", 5, "How far in minutes to go back in time for historic messages")
+	flags.Int("max-span", 480, "How far in minutes to go back in time for historic messages")
 
-	flags.MarkHidden("new")
+	//
 	flags.MarkHidden("max-history")
 	flags.MarkHidden("max-span")
 
 	// mcp
 	flags.String("mcp-server-url", "", "MCP server URL")
 
+	flags.MarkHidden("mcp-server-url")
+
 	// LLM
 	flags.String("api-key", "", "LLM API key")
-	flags.String("model", "", "LLM model")
+	flags.String("model", "", "LLM default model")
 	flags.String("base-url", "", "LLM Base URL")
 
 	flags.String("l1-api-key", "", "Level1 basic LLM API key")
@@ -225,6 +237,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("l1-api-key")
 	flags.MarkHidden("l2-api-key")
 	flags.MarkHidden("l3-api-key")
+
 	flags.MarkHidden("l1-base-url")
 	flags.MarkHidden("l2-base-url")
 	flags.MarkHidden("l3-base-url")
@@ -235,10 +248,12 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	//
 	flags.String("log", "", "Log all debugging information to a file")
+
 	flags.Bool("quiet", false, "Operate quietly. Only show final response")
 	flags.Bool("verbose", false, "Show progress and debugging information")
 	flags.Bool("internal", false, "Enable internal agents and tools")
-	flags.Bool("unsafe", false, "Skip command security check to allow unsafe operations. Use with caution")
+
+	flags.MarkHidden("internal")
 
 	//
 	flags.String("role", "system", "Specify the role for the prompt")
@@ -247,14 +262,28 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.BoolVar(&internal.DryRun, "dry-run", false, "Enable dry run mode. No API call will be made")
 	flags.StringVar(&internal.DryRunContent, "dry-run-content", "", "Content returned for dry run")
 
+	flags.MarkHidden("log")
+
+	flags.MarkHidden("role")
+	flags.MarkHidden("role-prompt")
+
+	flags.MarkHidden("dry-run")
+	flags.MarkHidden("dry-run-content")
+
 	//
 	flags.BoolP("interactive", "i", false, "Interactive mode")
 	flags.String("shell", os.Getenv("SHELL"), "Shell to use for interactive mode")
 
+	flags.StringP("workspace", "w", "", "Workspace directory")
 	flags.Bool("watch", false, "Watch the workspace directory and respond to embedded ai requests in files")
+
+	flags.MarkHidden("workspace")
+	flags.MarkHidden("watch")
 
 	flags.Int("max-turns", 16, "Max number of turns")
 	flags.Int("max-time", 3600, "Max number of seconds for timeout")
+
+	flags.MarkHidden("max-time")
 
 	// agent specific flags
 	// db
@@ -264,27 +293,21 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.String("sql-db-password", "", "Database password")
 	flags.String("sql-db-name", "", "Database name")
 
-	// doc
-	flags.VarP(newTemplateValue("", &internal.TemplateFile), "template", "", "Document template file")
-
-	// mcp - this is for mcp, but we need to define it here
-	flags.Int("port", 0, "Port to run the server")
-	flags.String("host", "localhost", "Host to bind the server")
-	flags.MarkHidden("port")
-	flags.MarkHidden("host")
-
-	// hide flags
 	flags.MarkHidden("sql-db-host")
 	flags.MarkHidden("sql-db-port")
 	flags.MarkHidden("sql-db-username")
 	flags.MarkHidden("sql-db-password")
 	flags.MarkHidden("sql-db-name")
 
-	flags.MarkHidden("role")
-	flags.MarkHidden("role-prompt")
+	// doc
+	flags.VarP(newTemplateValue("", &internal.TemplateFile), "template", "", "Document template file")
 
-	flags.MarkHidden("dry-run")
-	flags.MarkHidden("dry-run-content")
+	flags.MarkHidden("template")
 
-	flags.MarkHidden("log")
+	// mcp - this is for mcp, but we need to define it here
+	flags.Int("port", 0, "Port to run the server")
+	flags.String("host", "localhost", "Host to bind the server")
+
+	flags.MarkHidden("port")
+	flags.MarkHidden("host")
 }

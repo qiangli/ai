@@ -2,22 +2,24 @@
 
 agents:
   - name: "pr"
-    display: "🐝 PR"
-    # internal: true
+    display: "🚀 PR"
+    internal: true
     description: "Enhance PR management with automated summaries, reviews, suggestions, and changelog updates."
     model: L1
     instruction:
       content: "resource:pr_sub_system_role.md"
       type: "tpl"
-    resources:
-      - name: "pr_user_role.md"
-        content: "resource:pr_user_role.md"
-    advices:
-      around: "sub"
+    # resources:
+    #   - name: "pr_user_role.md"
+    #     content: "resource:pr_user_role.md"
+    # advices:
+    #   around: "sub"
     functions:
-      - "agent_transfer"
+      # - "agent_transfer"
+      - "agent:pr"
 
   - name: "pr/describe"
+    display: "🔀 PR describe"
     description: "Generate PR description - title, type, summary, code walkthrough and labels"
     model: L1
     instruction:
@@ -36,6 +38,7 @@ agents:
       - "system:*"
 
   - name: "pr/review"
+    display: "🔀 PR review"
     description: "Give feedback about the PR, possible issues, security concerns, review effort and more"
     model: L1
     instruction:
@@ -54,6 +57,7 @@ agents:
       - "system:*"
 
   - name: "pr/improve"
+    display: "🔀 PR improve"
     description: "Provide code suggestions for improving the PR"
     model: L1
     instruction:
@@ -72,6 +76,7 @@ agents:
       - "system:*"
 
   - name: "pr/changelog"
+    display: "🔀 PR changelog"
     description: "Update the CHANGELOG.md file with the PR changes"
     model: L1
     instruction:

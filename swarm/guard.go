@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/qiangli/ai/bubble"
+	"github.com/qiangli/ai/bubble/confirm"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm"
@@ -93,7 +95,11 @@ func evaluateCommand(ctx context.Context, vars *api.Vars, command string, args [
 	if check.Safe {
 		log.Infof("✔ safe\n")
 	} else {
-		log.Errorf("\033[31m✗\033[0m unsafe\n")
+		log.Errorf("\n\033[31m✗\033[0m unsafe\n")
+		log.Infof("%s %v\n\n", command, strings.Join(args, " "))
+		if answer, err := bubble.Confirm("Continue?"); err == nil && answer == confirm.Yes {
+			check.Safe = true
+		}
 	}
 
 	log.Debugf("evaluateCommand:\n%+v\n", check)
