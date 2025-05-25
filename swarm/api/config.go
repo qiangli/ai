@@ -33,7 +33,7 @@ type AppConfig struct {
 	Message string
 	Content string
 
-	// command line
+	// editor binary and args. e.g vim [options]
 	Editor string
 
 	Clipin   bool

@@ -179,7 +179,19 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	flags.String("input", "", "Read input message from a file")
 	flags.VarP(newFilesValue([]string{}, &internal.InputFiles), "file", "", `Read file inputs.  May be given multiple times.`)
+
+	// TODO
+	// for certain flags, auto add to user query?
+	// image file is located at {{.image}}
+	// .ai/prompts/
+	// image.md
+	// template.md
+	// file.md
+	// workspace.md
+	// flags.String("image", "", "Path to input image file")
+
 	flags.Bool("stdin", false, "Read input from stdin or '-'")
+
 	flags.Bool("pb-read", false, "Read input from clipboard or '{'")
 	flags.Bool("pb-read-wait", false, "Read input from clipboard and wait or '{{'")
 
@@ -193,13 +205,13 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.Var(newOutputValue("markdown", &internal.FormatFlag), "format", "Output format: raw, text, json, or markdown.")
 
 	// security
-	flags.String("deny", "rm", "List of comma separated system commands disallowed for tool calls. Approval is required to proceed. Ignored if 'unsafe' is true")
+	flags.String("deny", "rm,sudo", "List of comma separated system commands disallowed for tool calls. Approval is required to proceed. Ignored if 'unsafe' is true")
 	flags.String("allow", "", "List of comma separated system commands allowed for tool calls")
 	flags.Bool("unsafe", false, "Skip command security check to allow unsafe operations. Use with caution")
 
 	// history
 	// TODO auto adjust based on relevance of messages to the current query
-	flags.BoolP("new", "n", false, "Start a new converston")
+	flags.BoolP("new", "n", false, "Start a new conversation")
 	flags.Int("max-history", 3, "Max number of historic messages")
 	flags.Int("max-span", 480, "How far in minutes to go back in time for historic messages")
 
@@ -214,10 +226,11 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	// LLM
 	flags.String("api-key", "", "LLM API key")
+	flags.String("provider", "", "LLM provider")
 	flags.String("model", "", "LLM default model")
 	flags.String("base-url", "", "LLM Base URL")
 
-	flags.StringP("models", "m", "", "LLM model alias")
+	flags.StringP("models", "m", "", "LLM model alias defined in the models directory")
 
 	flags.String("l1-api-key", "", "Level1 basic LLM API key")
 	flags.String("l1-model", "", "Level1 basic LLM model")
@@ -235,7 +248,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	// flags.String("image-model", "", "Image LLM model")
 	// flags.String("image-base-url", "", "Image LLM Base URL")
 
-	flags.String("image-viewer", "", "Image viewer")
+	// flags.MarkHidden("provider")
 
 	// flags.MarkHidden("l1-model")
 	// flags.MarkHidden("l2-model")
@@ -253,6 +266,8 @@ func addAgentFlags(cmd *cobra.Command) {
 	// flags.MarkHidden("image-api-key")
 	// flags.MarkHidden("image-base-url")
 
+	flags.String("image-viewer", "", "Image viewer")
+
 	flags.MarkHidden("image-viewer")
 
 	//
@@ -265,8 +280,8 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("internal")
 
 	//
-	flags.String("role", "system", "Specify the role for the prompt")
-	flags.String("role-prompt", "", "Specify the content for the prompt")
+	flags.String("role", "system", "Specify a role for the prompt")
+	flags.String("prompt", "", "Provide instructions for the role")
 
 	flags.BoolVar(&internal.DryRun, "dry-run", false, "Enable dry run mode. No API call will be made")
 	flags.StringVar(&internal.DryRunContent, "dry-run-content", "", "Content returned for dry run")
@@ -274,7 +289,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("log")
 
 	flags.MarkHidden("role")
-	flags.MarkHidden("role-prompt")
+	flags.MarkHidden("prompt")
 
 	flags.MarkHidden("dry-run")
 	flags.MarkHidden("dry-run-content")

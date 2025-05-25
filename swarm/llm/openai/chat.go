@@ -77,10 +77,10 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 			messages = append(messages, openai.UserMessage(v.Content))
 		// case "tool":
 		// 	return openai.ToolMessage(content, id), nil
-		case "developer":
-			messages = append(messages, openai.DeveloperMessage(v.Content))
+		// case "developer":
+		// 	messages = append(messages, openai.DeveloperMessage(v.Content))
 		default:
-			return nil, fmt.Errorf("role not supported: %s", v.Role)
+			log.Errorf("role not supported: %s", v.Role)
 		}
 	}
 	params.Messages = messages

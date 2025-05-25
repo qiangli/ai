@@ -34,6 +34,7 @@ var allowList = []string{}
 // TODO Read from config
 var denyList = []string{
 	"rm",
+	"sudo",
 }
 
 func isAllowed(allowed []string, command string) bool {

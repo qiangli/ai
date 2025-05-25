@@ -86,12 +86,13 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 
 	for _, v := range req.Messages {
 		switch v.Role {
-		case "system":
+		case "system", "assistant":
 			messages = append(messages, genai.NewContentFromText(v.Content, genai.RoleModel))
 		case "user":
 			messages = append(messages, genai.NewContentFromText(v.Content, genai.RoleUser))
 		default:
-			return nil, fmt.Errorf("role not supported: %s", v.Role)
+			// just ignore and move on
+			log.Errorf("role not supported: %s", v.Role)
 		}
 	}
 

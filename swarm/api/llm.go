@@ -22,9 +22,10 @@ type Message struct {
 }
 
 type LLMConfig struct {
-	Model   string
-	BaseUrl string
-	ApiKey  string
+	Provider string
+	Model    string
+	BaseUrl  string
+	ApiKey   string
 
 	// model aliases
 	Models map[model.Level]*model.Model
@@ -54,7 +55,7 @@ func (r *LLMRequest) String() string {
 		sb.WriteString(fmt.Sprintf("Model: %s\n", r.Model.Name))
 		sb.WriteString(fmt.Sprintf("BaseUrl: %s\n", r.Model.BaseUrl))
 		sb.WriteString(fmt.Sprintf("ApiKey set: %v\n", r.Model.ApiKey != ""))
-		sb.WriteString(fmt.Sprintf("ModelType: %s\n", r.Model.Type))
+		sb.WriteString(fmt.Sprintf("Type: %s\n", r.Model.Type))
 		if r.Model.Type == model.OutputTypeImage {
 			sb.WriteString(fmt.Sprintf("ImageQuality: %s\n", r.ImageQuality))
 			sb.WriteString(fmt.Sprintf("ImageSize: %s\n", r.ImageSize))

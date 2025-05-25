@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/qiangli/ai/cmd/history"
 	"github.com/qiangli/ai/cmd/mcp"
 	"github.com/qiangli/ai/cmd/setup"
 	"github.com/qiangli/ai/internal"
@@ -55,6 +56,7 @@ func main() {
 	// $ ai /help [agents|commands|tools|info]
 	// $ ai /mcp
 	// $ ai /setup
+	// $ ai /history
 	for _, arg := range args {
 		switch arg {
 		case "/help":
@@ -77,6 +79,12 @@ func main() {
 		case "/setup":
 			os.Args = os.Args[1:]
 			if err := setup.SetupCmd.Execute(); err != nil {
+				internal.Exit(err)
+			}
+			return
+		case "/history":
+			os.Args = os.Args[1:]
+			if err := history.HistoryCmd.Execute(); err != nil {
 				internal.Exit(err)
 			}
 			return

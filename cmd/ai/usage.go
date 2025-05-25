@@ -97,8 +97,8 @@ Ctrl+C to cancel.
 
 + Composing with text editor:
 
-  export AI_EDITOR=nano # default: vi
-  ai @agent
+  export AI_EDITOR=nano # default: builtin
+  ai @agent -e
 `
 
 type HelpData struct {

@@ -464,6 +464,10 @@ var exploreConfig = &fm.Config{
 	Reverse:       false,
 }
 
+func Explore(args []string) error {
+	return runExplore(strings.Join(args, " "))
+}
+
 func runExplore(s string) error {
 	var opts struct {
 		Path    string `arg:"positional"`

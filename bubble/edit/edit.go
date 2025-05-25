@@ -29,7 +29,7 @@ func (k keymap) ShortHelp() []key.Binding {
 			key.WithKeys("up", "down", "right", "left"),
 			key.WithHelp("←↓↑→", "navigate"),
 		),
-		k.Submit,
+		k.Quit,
 		k.Abort,
 	}
 }
@@ -42,11 +42,10 @@ func defaultKeymap() keymap {
 	// )
 	return keymap{
 		KeyMap: km,
-		Quit: key.NewBinding(
-			key.WithKeys("esc"),
-			key.WithHelp("esc", "quit"),
-		),
-
+		// Quit: key.NewBinding(
+		// 	key.WithKeys("esc"),
+		// 	key.WithHelp("esc", "quit"),
+		// ),
 		Abort: key.NewBinding(
 			key.WithKeys("ctrl+c"),
 			key.WithHelp("ctrl+c", "cancel"),
@@ -55,9 +54,13 @@ func defaultKeymap() keymap {
 		// 	key.WithKeys("ctrl+e"),
 		// 	key.WithHelp("ctrl+e", "open editor"),
 		// ),
-		Submit: key.NewBinding(
-			key.WithKeys("enter"),
-			key.WithHelp("enter", "submit"),
+		// Submit: key.NewBinding(
+		// 	key.WithKeys("enter"),
+		// 	key.WithHelp("enter", "submit"),
+		// ),
+		Quit: key.NewBinding(
+			key.WithKeys("ctrl+d"),
+			key.WithHelp("ctrl+d", "submit"),
 		),
 	}
 }
@@ -131,6 +134,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case tea.KeyCtrlD:
 			m.canceled = false
+			// block if no content, force ctrl+c to quit
 			if len(m.textarea.Value()) > 0 {
 				return m, tea.Quit
 			}

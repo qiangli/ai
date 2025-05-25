@@ -104,6 +104,10 @@ func execCommand(command string, args []string, verbose bool) (string, error) {
 }
 
 func runRestricted(ctx context.Context, vars *api.Vars, command string, args []string) (string, error) {
+	if isAllowed(vars.Config.AllowList, command) {
+		return execCommand(command, args, vars.Config.Debug)
+	}
+
 	if isDenied(vars.Config.DenyList, command) {
 		log.Errorf("\n\033[31m✗\033[0m restricted\n")
 		log.Infof("%s %v\n\n", command, strings.Join(args, " "))
@@ -112,9 +116,6 @@ func runRestricted(ctx context.Context, vars *api.Vars, command string, args []s
 		}
 
 		return "", fmt.Errorf("%s: Not allowed", command)
-	}
-	if isAllowed(vars.Config.AllowList, command) {
-		return execCommand(command, args, vars.Config.Debug)
 	}
 
 	safe, err := evaluateCommand(ctx, vars, command, args)

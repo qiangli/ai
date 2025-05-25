@@ -76,7 +76,7 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 		case "user":
 			messages = append(messages, anthropic.NewUserMessage(anthropic.NewTextBlock(v.Content)))
 		default:
-			return nil, fmt.Errorf("role not supported: %s", v.Role)
+			log.Errorf("role not supported: %s", v.Role)
 		}
 	}
 

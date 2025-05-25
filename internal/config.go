@@ -206,7 +206,7 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 
 	app.Version = Version
 	app.Role = viper.GetString("role")
-	app.Prompt = viper.GetString("role_prompt")
+	app.Prompt = viper.GetString("prompt")
 
 	app.Me = "👤 " + getCurrentUser()
 	app.Files = InputFiles
@@ -277,8 +277,20 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.LLM = lc
 	// default
 	lc.ApiKey = viper.GetString("api_key")
+	lc.Provider = viper.GetString("provider")
 	lc.Model = viper.GetString("model")
 	lc.BaseUrl = viper.GetString("base_url")
+
+	// <provider>/<model>
+	modelName := func(n string) string {
+		if strings.Contains(n, "/") {
+			return n
+		}
+		if lc.Provider == "" {
+			return "openai/" + n
+		}
+		return lc.Provider + "/" + n
+	}
 
 	//
 	alias := viper.GetString("models")
@@ -312,25 +324,25 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 		case lc.ApiKey != "" && lc.Model != "":
 			// assume openai compatible
 			m = model.Model{
-				Name:    lc.Model,
+				Name:    modelName(lc.Model),
 				BaseUrl: lc.BaseUrl,
 				ApiKey:  lc.ApiKey,
 			}
 		case os.Getenv("OPENAI_API_KEY") != "":
 			m = model.Model{
-				Name:    "gpt-4.1-mini",
+				Name:    "openai/gpt-4.1-mini",
 				BaseUrl: "https://api.openai.com/v1/",
 				ApiKey:  os.Getenv("OPENAI_API_KEY"),
 			}
 		case os.Getenv("GEMINI_API_KEY") != "":
 			m = model.Model{
-				Name:    "gemini-2.0-flash-lite",
+				Name:    "gemini/gemini-2.0-flash-lite",
 				BaseUrl: "",
 				ApiKey:  os.Getenv("GEMINI_API_KEY"),
 			}
 		case os.Getenv("ANTHROPIC_API_KEY") != "":
 			m = model.Model{
-				Name:    "claude-3-5-haiku-latest",
+				Name:    "anthropic/claude-3-5-haiku-latest",
 				BaseUrl: "",
 				ApiKey:  os.Getenv("ANTHROPIC_API_KEY"),
 			}
@@ -356,7 +368,7 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 				v.ApiKey = k
 			}
 			if n != "" {
-				v.Name = n
+				v.Name = modelName(n)
 			}
 			if u != "" {
 				v.BaseUrl = u
@@ -364,7 +376,7 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 			app.LLM.Models[l] = v
 		} else {
 			app.LLM.Models[l] = &model.Model{
-				Name:    n,
+				Name:    modelName(n),
 				ApiKey:  k,
 				BaseUrl: u,
 			}

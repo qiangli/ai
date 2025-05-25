@@ -538,6 +538,18 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 		return s, nil
 	}
 
+	nvl := func(a string, b ...string) string {
+		if a != "" {
+			return a
+		}
+		for _, v := range b {
+			if v != "" {
+				return v
+			}
+		}
+		return ""
+	}
+
 	var history []*api.Message
 
 	// system role prompt as first message
@@ -548,12 +560,8 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 			return err
 		}
 
-		role := r.Role
-		if role == "" {
-			role = api.RoleSystem
-		}
 		history = append(history, &api.Message{
-			Role:    role,
+			Role:    nvl(r.Role, api.RoleSystem),
 			Content: content,
 			Sender:  r.Name,
 			Models:  r.Vars.Config.Models,
@@ -579,11 +587,6 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 
 	initLen := len(history)
 
-	agentRole := r.Role
-	if agentRole == "" {
-		agentRole = api.RoleAssistant
-	}
-
 	runTool := func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
 		log.Debugf("run tool: %s %+v\n", name, args)
 		return CallTool(ctx, r.Vars, name, args)
@@ -608,7 +611,7 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 	if result.Result == nil || result.Result.State != api.StateTransfer {
 		message := api.Message{
 			ContentType: result.ContentType,
-			Role:        result.Role,
+			Role:        nvl(result.Role, api.RoleAssistant),
 			Content:     result.Content,
 			Sender:      r.Name,
 			Models:      r.Vars.Config.Models,
