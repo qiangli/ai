@@ -4,14 +4,9 @@ import (
 	"context"
 	"fmt"
 	"strings"
-)
 
-// type UserInput = api.UserInput
-// type Message = api.Message
-// type ToolFunc = api.ToolFunc
-// type DBCred = api.DBCred
-// type Model = api.Model
-// type Result = api.Result
+	"github.com/qiangli/ai/swarm/api/model"
+)
 
 const (
 	VarsEnvContainer = "container"
@@ -48,7 +43,7 @@ type Vars struct {
 	// per agent
 	Extra map[string]any `json:"extra"`
 
-	Models map[Level]*Model `json:"models"`
+	Models map[model.Level]*model.Model `json:"models"`
 
 	// McpServerUrl string `json:"mcp_server_url"`
 

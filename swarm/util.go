@@ -12,8 +12,6 @@ import (
 	"github.com/kaptinlin/jsonrepair"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-
-	"github.com/qiangli/ai/swarm/api"
 )
 
 func isLoopback(hostport string) bool {
@@ -89,21 +87,21 @@ func expandWithDefault(input string) string {
 	})
 }
 
-func toModelLevel(s string) api.Level {
-	switch s {
-	case "L0":
-		return api.L0
-	case "L1":
-		return api.L1
-	case "L2":
-		return api.L2
-	case "L3":
-		return api.L3
-	case "Image":
-		return api.LImage
-	}
-	return api.L0
-}
+// func toModelLevel(s string) model.Level {
+// 	switch s {
+// 	case "L0":
+// 		return model.L0
+// 	case "L1":
+// 		return model.L1
+// 	case "L2":
+// 		return model.L2
+// 	case "L3":
+// 		return model.L3
+// 	case "Image":
+// 		return model.Image
+// 	}
+// 	return model.L0
+// }
 
 func toPascalCase(name string) string {
 	words := strings.FieldsFunc(name, func(r rune) bool {

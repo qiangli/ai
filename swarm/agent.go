@@ -13,6 +13,7 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/api/model"
 	"github.com/qiangli/ai/swarm/llm"
 )
 
@@ -74,7 +75,7 @@ type Agent struct {
 	Display string
 
 	// The model to be used by the agent
-	Model *api.Model
+	Model *model.Model
 
 	// The role of the agent. default is "system"
 	Role string
@@ -314,8 +315,7 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*A
 			MaxTime:  config.MaxTime,
 		}
 
-		level := toModelLevel(ac.Model)
-		model, ok := vars.Models[level]
+		model, ok := vars.Models[model.Level(ac.Model)]
 		if !ok {
 			return nil, fmt.Errorf("no such model: %s", ac.Model)
 		}

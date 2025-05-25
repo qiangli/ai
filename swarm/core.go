@@ -98,12 +98,14 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	vars.UserInfo = sysInfo.UserInfo
 
 	//
-	var modelMap = make(map[api.Level]*api.Model)
-	modelMap[api.L1] = api.Level1(app.LLM)
-	modelMap[api.L2] = api.Level2(app.LLM)
-	modelMap[api.L3] = api.Level3(app.LLM)
-	modelMap[api.LImage] = api.ImageModel(app.LLM)
-	vars.Models = modelMap
+	// var modelMap = make(map[model.Level]*model.Model)
+	// modelMap[model.L1] = api.Level1(app.LLM)
+	// modelMap[model.L2] = api.Level2(app.LLM)
+	// modelMap[model.L3] = api.Level3(app.LLM)
+	// modelMap[model.Image] = api.ImageModel(app.LLM)
+	if app.LLM != nil {
+		vars.Models = app.LLM.Models
+	}
 
 	//
 	vars.ResourceMap = make(map[string]*api.Resource)

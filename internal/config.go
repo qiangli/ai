@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/api/model"
 )
 
 const DefaultEditor = "ai -i edit"
@@ -201,10 +202,8 @@ func getCurrentUser() string {
 }
 
 func ParseConfig(args []string) (*api.AppConfig, error) {
-	var lc = &api.LLMConfig{}
 	var app = &api.AppConfig{}
 
-	app.LLM = lc
 	app.Version = Version
 	app.Role = viper.GetString("role")
 	app.Prompt = viper.GetString("role_prompt")
@@ -256,101 +255,63 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.Repo = repo
 
 	// LLM config
+	var lc = &api.LLMConfig{}
+	app.LLM = lc
 	// default
 	lc.ApiKey = viper.GetString("api_key")
 	lc.Model = viper.GetString("model")
 	lc.BaseUrl = viper.GetString("base_url")
-	lc.ImageModel = viper.GetString("image_model")
 
-	// openai
-	// if lc.ApiKey == "" {
-	// 	if e, ok := os.LookupEnv("OPENAI_API_KEY"); ok {
-	// 		lc.ApiKey = e
-	// 		if lc.BaseUrl == "" {
-	// 			lc.BaseUrl = "https://api.openai.com/v1/"
-	// 		}
-	// 		if lc.Model == "" {
-	// 			lc.Model = "gpt-4o-mini"
-	// 		}
-	// 		if lc.ImageModel == "" {
-	// 			lc.ImageModel = "dall-e-3"
-	// 		}
-	// 	}
-	// }
-	// // gemini
-	// if lc.ApiKey == "" {
-	// 	if e, ok := os.LookupEnv("GEMINI_API_KEY"); ok {
-	// 		lc.ApiKey = e
-	// 		lc.BaseUrl = ""
-	// 		if lc.Model == "" {
-	// 			lc.Model = "gemini-2.0-flash-lite"
-	// 		}
-	// 		if lc.ImageModel == "" {
-	// 			lc.ImageModel = "imagen-3.0-generate-002"
-	// 		}
-	// 	}
-	// }
-	// anthropic
-	if lc.ApiKey == "" {
-		if e, ok := os.LookupEnv("ANTHROPIC_API_KEY"); ok {
-			lc.ApiKey = e
-			lc.BaseUrl = ""
-			if lc.Model == "" {
-				lc.Model = "claude-3-5-haiku-latest"
-			}
-			if lc.ImageModel == "" {
-				lc.ImageModel = ""
-			}
+	models := viper.GetString("models")
+	if models != "" {
+		modelDir := filepath.Join(filepath.Dir(app.ConfigFile), "models")
+		mc, err := model.LoadModels(modelDir)
+		if err != nil {
+			return nil, err
+		}
+		if m, ok := mc[models]; ok {
+			app.LLM.Models = m.Models
 		}
 	}
 
-	lc.L1Model = viper.GetString("l1_model")
-	lc.L1BaseUrl = viper.GetString("l1_base_url")
-	lc.L1ApiKey = viper.GetString("l1_api_key")
-	lc.L2Model = viper.GetString("l2_model")
-	lc.L2BaseUrl = viper.GetString("l2_base_url")
-	lc.L2ApiKey = viper.GetString("l2_api_key")
-	lc.L3Model = viper.GetString("l3_model")
-	lc.L3BaseUrl = viper.GetString("l3_base_url")
-	lc.L3ApiKey = viper.GetString("l3_api_key")
+	// no models are configured
+	// setup defaults
+	if len(app.LLM.Models) == 0 {
+		// assume open ai compatible
+		var m *model.Model
+		switch {
+		case lc.ApiKey != "" && lc.Model != "":
+			m = &model.Model{
+				Name:    lc.Model,
+				BaseUrl: lc.BaseUrl,
+				ApiKey:  lc.ApiKey,
+			}
+		case os.Getenv("OPENAI_API_KEY") != "":
+			m = &model.Model{
+				Name:    "gpt-4.1-mini",
+				BaseUrl: "https://api.openai.com/v1/",
+				ApiKey:  os.Getenv("OPENAI_API_KEY"),
+			}
+		case os.Getenv("GEMINI_API_KEY") != "":
+			m = &model.Model{
+				Name:    "gemini-2.0-flash-lite",
+				BaseUrl: "",
+				ApiKey:  os.Getenv("GEMINI_API_KEY"),
+			}
+		case os.Getenv("ANTHROPIC_API_KEY") != "":
+			m = &model.Model{
+				Name:    "claude-3-5-haiku-latest",
+				BaseUrl: "",
+				ApiKey:  os.Getenv("ANTHROPIC_API_KEY"),
+			}
+		default:
+			return nil, fmt.Errorf("no LLM found")
+		}
 
-	if lc.L1Model == "" {
-		lc.L1Model = lc.Model
-	}
-	if lc.L2Model == "" {
-		lc.L2Model = lc.Model
-	}
-	if lc.L3Model == "" {
-		lc.L3Model = lc.Model
-	}
-
-	if lc.L1ApiKey == "" {
-		lc.L1ApiKey = lc.ApiKey
-	}
-	if lc.L2ApiKey == "" {
-		lc.L2ApiKey = lc.ApiKey
-	}
-	if lc.L3ApiKey == "" {
-		lc.L3ApiKey = lc.ApiKey
-	}
-
-	if lc.L1BaseUrl == "" {
-		lc.L1BaseUrl = lc.BaseUrl
-	}
-	if lc.L2BaseUrl == "" {
-		lc.L2BaseUrl = lc.BaseUrl
-	}
-	if lc.L3BaseUrl == "" {
-		lc.L3BaseUrl = lc.BaseUrl
-	}
-
-	lc.ImageBaseUrl = viper.GetString("image_base_url")
-	lc.ImageApiKey = viper.GetString("image_api_key")
-	if lc.ImageApiKey == "" {
-		lc.ImageApiKey = lc.ApiKey
-	}
-	if lc.ImageBaseUrl == "" {
-		lc.ImageBaseUrl = lc.BaseUrl
+		models := make(map[model.Level]*model.Model)
+		models[model.L1] = m
+		models[model.L2] = m
+		models[model.L3] = m
 	}
 
 	//

@@ -15,15 +15,16 @@ import (
 	"github.com/qiangli/ai/internal/docker/oh"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/api/model"
 )
 
 //go:embed resource/agents/prompts/docker_input_user_role.md
 var dockerInputUserRole string
 
-func GenerateReport(ctx context.Context, model *api.Model, reportType, tone, input string) (string, error) {
+func GenerateReport(ctx context.Context, m *model.Model, reportType, tone, input string) (string, error) {
 	// FIXME: This is a hack
 	// better to config the base url and api key (and others) for gptr
-	u, err := url.Parse(model.BaseUrl)
+	u, err := url.Parse(m.BaseUrl)
 	if err != nil {
 		return "", err
 	}
@@ -33,7 +34,7 @@ func GenerateReport(ctx context.Context, model *api.Model, reportType, tone, inp
 		u.Host = "host.docker.internal:" + port
 	}
 	os.Setenv("OPENAI_API_BASE", u.String())
-	os.Setenv("OPENAI_API_KEY", model.ApiKey)
+	os.Setenv("OPENAI_API_KEY", m.ApiKey)
 
 	tempDir, err := os.MkdirTemp("", "gptr")
 	if err != nil {
@@ -75,7 +76,7 @@ type WSInput struct {
 	Input        string
 }
 
-func Aider(ctx context.Context, models map[api.Level]*api.Model, workspace, sub, input string) error {
+func Aider(ctx context.Context, models map[model.Level]*model.Model, workspace, sub, input string) error {
 	log.Infof("using workspace: %s\n", workspace)
 
 	if sub == "" {
@@ -112,9 +113,9 @@ func Aider(ctx context.Context, models map[api.Level]*api.Model, workspace, sub,
 	// better to config the base url and api key (and others) for oh
 
 	// FIXME this wont work if model providers are different
-	model := models[api.L1]
+	m := models[model.L1]
 
-	u, err := url.Parse(model.BaseUrl)
+	u, err := url.Parse(m.BaseUrl)
 	if err != nil {
 		return fmt.Errorf("failed to parse base url: %w", err)
 	}
@@ -125,13 +126,13 @@ func Aider(ctx context.Context, models map[api.Level]*api.Model, workspace, sub,
 	}
 
 	os.Setenv("OPENAI_API_BASE", u.String())
-	os.Setenv("OPENAI_API_KEY", model.ApiKey)
+	os.Setenv("OPENAI_API_KEY", m.ApiKey)
 
-	os.Setenv("AIDER_WEAK_MODEL", models[api.L1].Name)
-	os.Setenv("AIDER_EDITOR_MODEL", models[api.L2].Name)
-	os.Setenv("AIDER_MODEL", models[api.L2].Name)
+	os.Setenv("AIDER_WEAK_MODEL", models[model.L1].Name)
+	os.Setenv("AIDER_EDITOR_MODEL", models[model.L2].Name)
+	os.Setenv("AIDER_MODEL", models[model.L2].Name)
 	if sub == string(aider.Architect) {
-		os.Setenv("AIDER_MODEL", models[api.L3].Name)
+		os.Setenv("AIDER_MODEL", models[model.L3].Name)
 	}
 
 	os.Setenv("AIDER_VERBOSE", fmt.Sprintf("%v", log.IsVerbose()))
@@ -139,7 +140,7 @@ func Aider(ctx context.Context, models map[api.Level]*api.Model, workspace, sub,
 	return aider.Run(ctx, aider.ChatMode(sub), userContent)
 }
 
-func OpenHands(ctx context.Context, model *api.Model, workspace string, in *api.UserInput) error {
+func OpenHands(ctx context.Context, model *model.Model, workspace string, in *api.UserInput) error {
 	log.Infof("using workspace: %s\n", workspace)
 
 	if workspace == "" {

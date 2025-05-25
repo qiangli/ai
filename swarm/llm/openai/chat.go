@@ -14,6 +14,7 @@ import (
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/api/model"
 )
 
 // https://platform.openai.com/docs/models
@@ -45,7 +46,7 @@ func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	var resp *api.LLMResponse
 
 	switch req.Model.Type {
-	case api.ModelTypeImage:
+	case model.OutputTypeImage:
 		resp, err = generateImage(ctx, req)
 	default:
 		resp, err = call(ctx, req)

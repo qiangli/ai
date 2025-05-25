@@ -11,6 +11,7 @@ import (
 	"github.com/qiangli/ai/bubble/confirm"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/api/model"
 	"github.com/qiangli/ai/swarm/llm"
 )
 
@@ -55,16 +56,16 @@ func evaluateCommand(ctx context.Context, vars *api.Vars, command string, args [
 	}
 
 	// TODO default model
-	model, ok := vars.Models[api.L1]
+	m, ok := vars.Models[model.L1]
 	if !ok {
-		model = vars.Models[api.L2]
+		m = vars.Models[model.L2]
 	}
-	if model == nil {
+	if m == nil {
 		return false, fmt.Errorf("no model found L1/L2")
 	}
 
 	req := &api.LLMRequest{
-		Model: model,
+		Model: m,
 		Messages: []*api.Message{
 			{
 				Role:    api.RoleSystem,

@@ -1,55 +1,7 @@
 package api
 
 import (
-	"strings"
-)
-
-type ModelType string
-
-const (
-	ModelTypeUnknown ModelType = ""
-	ModelTypeText    ModelType = "text"
-	ModelTypeImage   ModelType = "image"
-)
-
-type Model struct {
-	Type    ModelType
-	Name    string
-	BaseUrl string
-	ApiKey  string
-}
-
-func (r *Model) Model() string {
-	_, m := r.split()
-	return m
-}
-
-func (r *Model) Provider() string {
-	p, _ := r.split()
-	return p
-}
-
-// <provider>/<model>
-// openai/gpt-4.1-mini
-// gemini/gemini-2.0-flash
-func (r *Model) split() (string, string) {
-	parts := strings.SplitN(r.Name, "/", 2)
-	if len(parts) == 2 {
-		return parts[0], parts[1]
-	}
-	return "", r.Name
-}
-
-// Level represents the "intelligence" level of the model. i.e. basic, regular, advanced
-// for example, OpenAI: gpt-4.1-mini, gpt-4.1, o3
-type Level int
-
-const (
-	L0 Level = iota
-	L1
-	L2
-	L3
-	LImage
+	"github.com/qiangli/ai/swarm/api/model"
 )
 
 type LLMConfig struct {
@@ -57,116 +9,110 @@ type LLMConfig struct {
 	BaseUrl string
 	ApiKey  string
 
-	L1Model   string
-	L1BaseUrl string
-	L1ApiKey  string
+	// model aliases
+	Models map[model.Level]*model.Model
 
-	L2Model   string
-	L2BaseUrl string
-	L2ApiKey  string
+	// L1 *model.Model
+	// L2 *model.Model
+	// L3 *model.Model
 
-	L3Model   string
-	L3BaseUrl string
-	L3ApiKey  string
-
-	ImageModel   string
-	ImageBaseUrl string
-	ImageApiKey  string
+	// Image *model.Model
 }
 
-func (cfg *LLMConfig) Clone() *LLMConfig {
-	n := &LLMConfig{
-		ApiKey:  cfg.ApiKey,
-		BaseUrl: cfg.BaseUrl,
-		Model:   cfg.Model,
-	}
-	return n
-}
+// func (cfg *LLMConfig) Clone() *LLMConfig {
+// 	n := &LLMConfig{
+// 		ApiKey:  cfg.ApiKey,
+// 		BaseUrl: cfg.BaseUrl,
+// 		Model:   cfg.Model,
+// 	}
+// 	return n
+// }
 
-func Level1(cfg *LLMConfig) *Model {
-	return CreateModel(cfg, L1)
-}
+// func Level1(cfg *LLMConfig) *model.Model {
+// 	return CreateModel(cfg, model.L1)
+// }
 
-func Level2(cfg *LLMConfig) *Model {
-	return CreateModel(cfg, L2)
-}
+// func Level2(cfg *LLMConfig) *model.Model {
+// 	return CreateModel(cfg, model.L2)
+// }
 
-func Level3(cfg *LLMConfig) *Model {
-	return CreateModel(cfg, L3)
-}
+// func Level3(cfg *LLMConfig) *model.Model {
+// 	return CreateModel(cfg, model.L3)
+// }
 
-func ImageModel(cfg *LLMConfig) *Model {
-	if cfg == nil {
-		return &Model{}
-	}
-	model := &Model{
-		Type:    ModelTypeImage,
-		Name:    cfg.ImageModel,
-		BaseUrl: cfg.BaseUrl,
-		ApiKey:  cfg.ApiKey,
-	}
-	if cfg.ImageApiKey != "" {
-		model.ApiKey = cfg.ImageApiKey
-	}
-	if cfg.ImageBaseUrl != "" {
-		model.BaseUrl = cfg.ImageBaseUrl
-	}
+// func ImageModel(cfg *LLMConfig) *model.Model {
+// 	return cfg.Image
+// 	// if cfg == nil {
+// 	// 	return &model.Model{}
+// 	// }
+// 	// model := &model.Model{
+// 	// 	// Type:    ModelTypeImage,
+// 	// 	Name:    cfg.ImageModel,
+// 	// 	BaseUrl: cfg.BaseUrl,
+// 	// 	ApiKey:  cfg.ApiKey,
+// 	// }
+// 	// if cfg.ImageApiKey != "" {
+// 	// 	model.ApiKey = cfg.ImageApiKey
+// 	// }
+// 	// if cfg.ImageBaseUrl != "" {
+// 	// 	model.BaseUrl = cfg.ImageBaseUrl
+// 	// }
 
-	return model
-}
+// 	// return model
+// }
 
-// CreateModel creates a model with the given configuration and optional level
-func CreateModel(cfg *LLMConfig, opt ...Level) *Model {
-	if cfg == nil {
-		return &Model{}
-	}
-	model := &Model{
-		Type:    ModelTypeText,
-		Name:    cfg.Model,
-		BaseUrl: cfg.BaseUrl,
-		ApiKey:  cfg.ApiKey,
-	}
+// // CreateModel creates a model with the given configuration and optional level
+// func CreateModel(cfg *LLMConfig, opt ...model.Level) *model.Model {
+// 	if cfg == nil {
+// 		return &model.Model{}
+// 	}
+// 	m := &model.Model{
+// 		// Type:    ModelTypeText,
+// 		Name:    cfg.Model,
+// 		BaseUrl: cfg.BaseUrl,
+// 		ApiKey:  cfg.ApiKey,
+// 	}
 
-	// default level
-	level := L0
-	if len(opt) > 0 {
-		level = opt[0]
-	}
+// 	// default level
+// 	level := model.L0
+// 	if len(opt) > 0 {
+// 		level = opt[0]
+// 	}
 
-	switch level {
-	case L0:
-		return model
-	case L1:
-		if cfg.L1ApiKey != "" {
-			model.ApiKey = cfg.L1ApiKey
-		}
-		if cfg.L1Model != "" {
-			model.Name = cfg.L1Model
-		}
-		if cfg.L1BaseUrl != "" {
-			model.BaseUrl = cfg.L1BaseUrl
-		}
-	case L2:
-		if cfg.L2ApiKey != "" {
-			model.ApiKey = cfg.L2ApiKey
-		}
-		if cfg.L2Model != "" {
-			model.Name = cfg.L2Model
-		}
-		if cfg.L2BaseUrl != "" {
-			model.BaseUrl = cfg.L2BaseUrl
-		}
-	case L3:
-		if cfg.L3ApiKey != "" {
-			model.ApiKey = cfg.L3ApiKey
-		}
-		if cfg.L3Model != "" {
-			model.Name = cfg.L3Model
-		}
-		if cfg.L3BaseUrl != "" {
-			model.BaseUrl = cfg.L3BaseUrl
-		}
-	}
+// 	switch level {
+// 	case model.L0:
+// 		return m
+// 	case model.L1:
+// 		if cfg.L1ApiKey != "" {
+// 			m.ApiKey = cfg.L1ApiKey
+// 		}
+// 		if cfg.L1Model != "" {
+// 			m.Name = cfg.L1Model
+// 		}
+// 		if cfg.L1BaseUrl != "" {
+// 			m.BaseUrl = cfg.L1BaseUrl
+// 		}
+// 	case model.L2:
+// 		if cfg.L2ApiKey != "" {
+// 			m.ApiKey = cfg.L2ApiKey
+// 		}
+// 		if cfg.L2Model != "" {
+// 			m.Name = cfg.L2Model
+// 		}
+// 		if cfg.L2BaseUrl != "" {
+// 			m.BaseUrl = cfg.L2BaseUrl
+// 		}
+// 	case model.L3:
+// 		if cfg.L3ApiKey != "" {
+// 			m.ApiKey = cfg.L3ApiKey
+// 		}
+// 		if cfg.L3Model != "" {
+// 			m.Name = cfg.L3Model
+// 		}
+// 		if cfg.L3BaseUrl != "" {
+// 			m.BaseUrl = cfg.L3BaseUrl
+// 		}
+// 	}
 
-	return model
-}
+// 	return m
+// }

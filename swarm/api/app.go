@@ -8,6 +8,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/qiangli/ai/swarm/api/model"
 )
 
 type AppConfig struct {
@@ -94,6 +96,14 @@ type AppConfig struct {
 	//
 	Stdout string
 	Stderr string
+}
+
+func LoadModels(base string) (map[string]*model.ModelsConfig, error) {
+	m, err := model.LoadModels(base)
+	if err != nil {
+		return nil, err
+	}
+	return m, err
 }
 
 func (r *AppConfig) LoadHistory() error {

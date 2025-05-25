@@ -9,6 +9,7 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/api/model"
 	"github.com/qiangli/ai/swarm/llm"
 	pr "github.com/qiangli/ai/swarm/resource/agents/pr"
 )
@@ -178,7 +179,7 @@ func aiderAdvice(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Adv
 }
 
 func ohAdvice(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
-	return OpenHands(req.Context(), vars.Models[api.L2], vars.Workspace, req.RawInput)
+	return OpenHands(req.Context(), vars.Models[model.L2], vars.Workspace, req.RawInput)
 }
 
 // subAdvice is an around advice that checks if a subcommand is specified.
@@ -208,7 +209,7 @@ func imageParamsAdvice(vars *api.Vars, req *api.Request, resp *api.Response, nex
 		return nil
 	}
 
-	model, ok := vars.Models[api.L1]
+	model, ok := vars.Models[model.L1]
 	if !ok {
 		log.Debugf("no model found\n")
 		return nil
