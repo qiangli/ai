@@ -1,6 +1,7 @@
 package model
 
 import (
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -67,6 +68,8 @@ const (
 	Image Level = "Image"
 )
 
+var Levels = []Level{L1, L2, L3, Image}
+
 type Model struct {
 	Features map[Feature]bool `yaml:"features"`
 
@@ -88,6 +91,18 @@ func (r *Model) Model() string {
 func (r *Model) Provider() string {
 	p, _ := r.split()
 	return p
+}
+
+func (r *Model) Clone() *Model {
+	clone := &Model{
+		Features: make(map[Feature]bool, len(r.Features)),
+		Type:     r.Type,
+		Name:     r.Name,
+		BaseUrl:  r.BaseUrl,
+		ApiKey:   r.ApiKey,
+	}
+	maps.Copy(clone.Features, r.Features)
+	return clone
 }
 
 // [<provider>/]<model>

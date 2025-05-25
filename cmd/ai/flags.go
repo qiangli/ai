@@ -219,17 +219,17 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	flags.StringP("models", "m", "", "LLM model alias")
 
-	// flags.String("l1-api-key", "", "Level1 basic LLM API key")
-	// flags.String("l1-model", "", "Level1 basic LLM model")
-	// flags.String("l1-base-url", "", "Level1 basic LLM Base URL")
+	flags.String("l1-api-key", "", "Level1 basic LLM API key")
+	flags.String("l1-model", "", "Level1 basic LLM model")
+	flags.String("l1-base-url", "", "Level1 basic LLM Base URL")
 
-	// flags.String("l2-api-key", "", "Level2 standard LLM API key")
-	// flags.String("l2-model", "", "Level2 standard LLM model")
-	// flags.String("l2-base-url", "", "Level2 standard LLM Base URL")
+	flags.String("l2-api-key", "", "Level2 standard LLM API key")
+	flags.String("l2-model", "", "Level2 standard LLM model")
+	flags.String("l2-base-url", "", "Level2 standard LLM Base URL")
 
-	// flags.String("l3-api-key", "", "Level3 advanced LLM API key")
-	// flags.String("l3-model", "", "Level3 advanced LLM model")
-	// flags.String("l3-base-url", "", "Level3 advanced LLM Base URL")
+	flags.String("l3-api-key", "", "Level3 advanced LLM API key")
+	flags.String("l3-model", "", "Level3 advanced LLM model")
+	flags.String("l3-base-url", "", "Level3 advanced LLM Base URL")
 
 	// flags.String("image-api-key", "", "Image LLM API key")
 	// flags.String("image-model", "", "Image LLM model")
@@ -241,13 +241,13 @@ func addAgentFlags(cmd *cobra.Command) {
 	// flags.MarkHidden("l2-model")
 	// flags.MarkHidden("l3-model")
 
-	// flags.MarkHidden("l1-api-key")
-	// flags.MarkHidden("l2-api-key")
-	// flags.MarkHidden("l3-api-key")
+	flags.MarkHidden("l1-api-key")
+	flags.MarkHidden("l2-api-key")
+	flags.MarkHidden("l3-api-key")
 
-	// flags.MarkHidden("l1-base-url")
-	// flags.MarkHidden("l2-base-url")
-	// flags.MarkHidden("l3-base-url")
+	flags.MarkHidden("l1-base-url")
+	flags.MarkHidden("l2-base-url")
+	flags.MarkHidden("l3-base-url")
 
 	// flags.MarkHidden("image-model")
 	// flags.MarkHidden("image-api-key")

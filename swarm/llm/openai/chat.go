@@ -186,13 +186,13 @@ func toContentPart(out *api.Result) []openai.ChatCompletionContentPartUnionParam
 		}
 	case strings.HasPrefix(out.MimeType, "audio/"):
 		return []openai.ChatCompletionContentPartUnionParam{
-			openai.InputAudioContentPart(openai.ChatCompletionInputAudioDataParam{
+			openai.InputAudioContentPart(openai.ChatCompletionContentPartInputAudioInputAudioParam{
 				Data: dataURL(out.MimeType, out.Value),
 			}),
 		}
 	default:
 		return []openai.ChatCompletionContentPartUnionParam{
-			openai.FileContentPart(openai.ChatCompletionFileContentPartParam{
+			openai.FileContentPart(openai.ChatCompletionContentPartFileFileParam{
 				FileData: param.NewOpt(dataURL(out.MimeType, out.Value)),
 			}),
 		}

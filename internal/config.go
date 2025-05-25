@@ -280,17 +280,17 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	lc.Model = viper.GetString("model")
 	lc.BaseUrl = viper.GetString("base_url")
 
-	// models alias (or filename)
-	models := viper.GetString("models")
+	//
+	alias := viper.GetString("models")
 	// use same models to continue the conversation
 	// if not set
-	if models == "" {
+	if alias == "" {
 		if len(app.History) > 0 {
 			last := app.History[len(app.History)-1]
-			models = last.Models
+			alias = last.Models
 		}
 	}
-	app.Models = models
+	app.Models = alias
 
 	//
 	modelBase := filepath.Join(filepath.Dir(app.ConfigFile), "models")
@@ -298,50 +298,81 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	if models != "" {
-		if m, ok := modelCfg[models]; ok {
+	if alias != "" {
+		if m, ok := modelCfg[alias]; ok {
 			app.LLM.Models = m.Models
 		}
 	}
 
 	// if no models, setup defaults
 	if len(app.LLM.Models) == 0 {
-		var m *model.Model
+		// all levels share same config
+		var m model.Model
 		switch {
 		case lc.ApiKey != "" && lc.Model != "":
 			// assume openai compatible
-			m = &model.Model{
+			m = model.Model{
 				Name:    lc.Model,
 				BaseUrl: lc.BaseUrl,
 				ApiKey:  lc.ApiKey,
 			}
 		case os.Getenv("OPENAI_API_KEY") != "":
-			m = &model.Model{
+			m = model.Model{
 				Name:    "gpt-4.1-mini",
 				BaseUrl: "https://api.openai.com/v1/",
 				ApiKey:  os.Getenv("OPENAI_API_KEY"),
 			}
 		case os.Getenv("GEMINI_API_KEY") != "":
-			m = &model.Model{
+			m = model.Model{
 				Name:    "gemini-2.0-flash-lite",
 				BaseUrl: "",
 				ApiKey:  os.Getenv("GEMINI_API_KEY"),
 			}
 		case os.Getenv("ANTHROPIC_API_KEY") != "":
-			m = &model.Model{
+			m = model.Model{
 				Name:    "claude-3-5-haiku-latest",
 				BaseUrl: "",
 				ApiKey:  os.Getenv("ANTHROPIC_API_KEY"),
 			}
 		default:
-			return nil, fmt.Errorf("no LLM found")
 		}
 
 		// TODO improve to allow any alias other than L*
 		models := make(map[model.Level]*model.Model)
-		models[model.L1] = m
-		models[model.L2] = m
-		models[model.L3] = m
+		models[model.L1] = m.Clone()
+		models[model.L2] = m.Clone()
+		models[model.L3] = m.Clone()
+
+		app.LLM.Models = models
+	}
+	// update or add model from command line flags
+	for _, l := range model.Levels {
+		s := strings.ToLower(string(l))
+		k := viper.GetString(s + "_api_key")
+		n := viper.GetString(s + "_model")
+		u := viper.GetString(s + "_base_url")
+		if v, ok := app.LLM.Models[l]; ok {
+			if k != "" {
+				v.ApiKey = k
+			}
+			if n != "" {
+				v.Name = n
+			}
+			if u != "" {
+				v.BaseUrl = u
+			}
+			app.LLM.Models[l] = v
+		} else {
+			app.LLM.Models[l] = &model.Model{
+				Name:    n,
+				ApiKey:  k,
+				BaseUrl: u,
+			}
+		}
+	}
+	// model config is required
+	if len(app.LLM.Models) == 0 {
+		return nil, fmt.Errorf("No LLM configuration found")
 	}
 
 	//
@@ -381,12 +412,8 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.Shell = shellBin
 
 	// default agent:
-	// --agent, hisotry, "ask"
+	// --agent, "ask"
 	var defaultAgent = viper.GetString("agent")
-	if defaultAgent == "" && len(app.History) > 0 {
-		last := app.History[len(app.History)-1]
-		defaultAgent = last.Sender
-	}
 	if defaultAgent == "" {
 		defaultAgent = "ask"
 	}
