@@ -556,6 +556,7 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 			Role:    role,
 			Content: content,
 			Sender:  r.Name,
+			Models:  r.Vars.Config.Models,
 		})
 	}
 
@@ -571,6 +572,7 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 			Role:    api.RoleUser,
 			Content: req.RawInput.Query(),
 			Sender:  r.Name,
+			Models:  r.Vars.Config.Models,
 		}
 	}
 	history = append(history, req.Message)
@@ -609,6 +611,7 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 			Role:        result.Role,
 			Content:     result.Content,
 			Sender:      r.Name,
+			Models:      r.Vars.Config.Models,
 		}
 		history = append(history, &message)
 	}

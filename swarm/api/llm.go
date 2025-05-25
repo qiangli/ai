@@ -8,83 +8,27 @@ import (
 	"github.com/qiangli/ai/swarm/api/model"
 )
 
-const (
-	RoleSystem    = "system"
-	RoleAssistant = "assistant"
-	RoleUser      = "user"
-	RoleTool      = "tool"
-)
+type Message struct {
+	ContentType string
+	Content     string
 
-// Result encapsulates the possible return values for agent/function.
-type Result struct {
-	// The result value as a string
-	Value string
+	Role string
 
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types
-	MimeType string
-	Message  string
+	// agent name
+	Sender string
 
-	// The agent state
-	State State
-
-	// The agent name to transfer to for StateTransfer
-	NextAgent string
+	// model alias
+	Models string
 }
 
-func (r *Result) String() string {
-	var sb strings.Builder
-	if r.State != StateDefault {
-		sb.WriteString(r.State.String())
-	}
-	if r.NextAgent != "" {
-		sb.WriteString(fmt.Sprintf(" %s\n", r.NextAgent))
-	}
-	if r.Value != "" {
-		sb.WriteString(fmt.Sprintf(" %s\n", r.Value))
-	}
-	return strings.TrimSpace(sb.String())
+type LLMConfig struct {
+	Model   string
+	BaseUrl string
+	ApiKey  string
+
+	// model aliases
+	Models map[model.Level]*model.Model
 }
-
-type State int
-
-func (r State) String() string {
-	switch r {
-	case StateDefault:
-		return "DEFAULT"
-	case StateExit:
-		return "EXIT"
-	case StateTransfer:
-		return "TRANSFER"
-	case StateInputWait:
-		return "INPUT_WAIT"
-	}
-	return "DEFAULT"
-}
-
-func (r State) Equal(s string) bool {
-	return strings.ToUpper(s) == r.String()
-}
-
-func ParseState(s string) State {
-	switch strings.ToUpper(s) {
-	case "EXIT":
-		return StateExit
-	case "TRANSFER":
-		return StateTransfer
-	case "INPUT_WAIT":
-		return StateInputWait
-	default:
-		return StateDefault
-	}
-}
-
-const (
-	StateDefault State = iota
-
-	StateExit
-	StateTransfer
-	StateInputWait
-)
 
 type LLMRequest struct {
 	Agent string
@@ -126,14 +70,6 @@ func (r *LLMRequest) String() string {
 	// 	sb.WriteString(clipText(m.Content, 80))
 	// }
 	return sb.String()
-}
-
-type Message struct {
-	ContentType string
-	Content     string
-
-	Role   string
-	Sender string
 }
 
 type LLMResponse struct {

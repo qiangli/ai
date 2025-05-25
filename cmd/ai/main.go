@@ -27,7 +27,7 @@ func initConfig() {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Errorf("Error reading config file: %s\n", err)
+		log.Debugf("Error reading config file: %s\n", err)
 	}
 }
 

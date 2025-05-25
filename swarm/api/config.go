@@ -67,6 +67,7 @@ type AppConfig struct {
 	MaxSpan    int
 
 	History []*Message
+	Models  string
 
 	Log      string
 	Debug    bool
@@ -106,21 +107,19 @@ func LoadModels(base string) (map[string]*model.ModelsConfig, error) {
 	return m, err
 }
 
-func (r *AppConfig) LoadHistory() error {
-	var history []*Message
-
-	if r.New {
-		return nil
+func LoadHistory(base string, maxHistory, maxSpan int) ([]*Message, error) {
+	if maxHistory <= 0 || maxSpan <= 0 {
+		return nil, nil
 	}
 
-	dir := filepath.Join(filepath.Dir(r.ConfigFile), "history")
+	var history []*Message
 
-	entries, err := os.ReadDir(dir)
+	entries, err := os.ReadDir(base)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil
+			return nil, nil
 		}
-		return err
+		return nil, err
 	}
 	// Collect .json files and their infos
 	type fileInfo struct {
@@ -129,11 +128,11 @@ func (r *AppConfig) LoadHistory() error {
 	}
 	var files []fileInfo
 
-	old := time.Now().Add(-time.Duration(r.MaxSpan) * time.Minute)
+	old := time.Now().Add(-time.Duration(maxSpan) * time.Minute)
 
 	for _, entry := range entries {
 		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".json") {
-			fullPath := filepath.Join(dir, entry.Name())
+			fullPath := filepath.Join(base, entry.Name())
 			info, err := os.Stat(fullPath)
 			if err == nil {
 				if info.ModTime().Before(old) {
@@ -160,18 +159,16 @@ func (r *AppConfig) LoadHistory() error {
 		}
 		for i := len(msgs) - 1; i >= 0; i-- {
 			history = append(history, msgs[i])
-			if r.MaxHistory > 0 && len(history) >= r.MaxHistory {
-				result := history[:r.MaxHistory]
+			if maxHistory > 0 && len(history) >= maxHistory {
+				result := history[:maxHistory]
 				reverseMessages(result)
-				r.History = result
-				return nil
+				return result, nil
 			}
 		}
 	}
 
 	reverseMessages(history)
-	r.History = history
-	return nil
+	return history, nil
 }
 
 func reverseMessages(msgs []*Message) {

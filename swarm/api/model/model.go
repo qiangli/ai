@@ -105,6 +105,9 @@ func (r *Model) split() (string, string) {
 func LoadModels(base string) (map[string]*ModelsConfig, error) {
 	files, err := os.ReadDir(base)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
 		return nil, err
 	}
 

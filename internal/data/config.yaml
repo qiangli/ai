@@ -1,0 +1,35 @@
+###
+# AI Command Line Tool Configuration
+###
+
+## openai compatible
+#api_key: ""
+#base_url: "https://api.openai.com/v1/"
+#model: "gpt-4.1-mini"
+
+## mcp
+# mcp:
+#   #server_url: "http://localhost:58080/sse"
+#   server_url: ""
+
+##
+# sql:
+#   db_name: "postgres"
+#   db_host: "localhost"
+#   db_port: 5432
+#   db_username: ""
+#   db_password: ""
+
+## Debugging
+
+# Enable verbose console output for debugging
+# debug: false
+
+# Log all debugging info to a file
+#log_file: "/tmp/ai.log"
+
+## Editor
+# Specify the editor to use for composing messages
+# editor: "vi"
+
+###

@@ -2,6 +2,7 @@ package setup
 
 import (
 	"errors"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -39,17 +40,47 @@ func init() {
 
 // Use the configFileContent variable in your application as needed
 func setupConfig(cfg *api.AppConfig) error {
+
 	if _, err := os.Stat(cfg.ConfigFile); errors.Is(err, os.ErrNotExist) {
-		dir := filepath.Dir(cfg.ConfigFile)
-		if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		base := filepath.Dir(cfg.ConfigFile)
+		if err := os.MkdirAll(base, os.ModePerm); err != nil {
 			return err
 		}
-		content := internal.GetDefaultConfig()
-		if err := os.WriteFile(cfg.ConfigFile, []byte(content), 0644); err != nil {
+		cfgData := internal.GetConfigData()
+		err = fs.WalkDir(cfgData, ".", func(relPath string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+
+			stripped := relPath
+			if strings.HasPrefix(relPath, "data/") {
+				stripped = strings.TrimPrefix(relPath, "data/")
+			}
+			fullPath := filepath.Join(base, stripped)
+
+			if d.IsDir() {
+				return nil
+			}
+
+			if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+				return err
+			}
+
+			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+				data, err := cfgData.ReadFile(relPath)
+				if err != nil {
+					return err
+				}
+				if err := os.WriteFile(fullPath, data, 0600); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+		if err != nil {
 			return err
 		}
 	}
-
 	//
 	editor := cfg.Editor
 	if editor == "" {

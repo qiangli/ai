@@ -1,7 +1,7 @@
 package internal
 
 import (
-	_ "embed"
+	"embed"
 	"errors"
 	"fmt"
 	"os"
@@ -181,11 +181,11 @@ var FormatFlag string
 var OutputFlag string
 var TemplateFile string
 
-//go:embed ai.yaml
-var configFileContent string
+//go:embed data/*
+var configData embed.FS
 
-func GetDefaultConfig() string {
-	return configFileContent
+func GetConfigData() embed.FS {
+	return configData
 }
 
 // global flags
@@ -254,6 +254,24 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	}
 	app.Repo = repo
 
+	//
+	app.New = viper.GetBool("new")
+	app.MaxHistory = viper.GetInt("max_history")
+	app.MaxSpan = viper.GetInt("max_span")
+
+	app.MaxTurns = viper.GetInt("max_turns")
+	app.MaxTime = viper.GetInt("max_time")
+
+	//
+	if !app.New {
+		historyBase := filepath.Join(filepath.Dir(app.ConfigFile), "history")
+		messages, err := api.LoadHistory(historyBase, app.MaxHistory, app.MaxSpan)
+		if err != nil {
+			return nil, fmt.Errorf("error loading history: %v", err)
+		}
+		app.History = messages
+	}
+
 	// LLM config
 	var lc = &api.LLMConfig{}
 	app.LLM = lc
@@ -262,25 +280,36 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	lc.Model = viper.GetString("model")
 	lc.BaseUrl = viper.GetString("base_url")
 
+	// models alias (or filename)
 	models := viper.GetString("models")
-	if models != "" {
-		modelDir := filepath.Join(filepath.Dir(app.ConfigFile), "models")
-		mc, err := model.LoadModels(modelDir)
-		if err != nil {
-			return nil, err
+	// use same models to continue the conversation
+	// if not set
+	if models == "" {
+		if len(app.History) > 0 {
+			last := app.History[len(app.History)-1]
+			models = last.Models
 		}
-		if m, ok := mc[models]; ok {
+	}
+	app.Models = models
+
+	//
+	modelBase := filepath.Join(filepath.Dir(app.ConfigFile), "models")
+	modelCfg, err := model.LoadModels(modelBase)
+	if err != nil {
+		return nil, err
+	}
+	if models != "" {
+		if m, ok := modelCfg[models]; ok {
 			app.LLM.Models = m.Models
 		}
 	}
 
-	// no models are configured
-	// setup defaults
+	// if no models, setup defaults
 	if len(app.LLM.Models) == 0 {
-		// assume open ai compatible
 		var m *model.Model
 		switch {
 		case lc.ApiKey != "" && lc.Model != "":
+			// assume openai compatible
 			m = &model.Model{
 				Name:    lc.Model,
 				BaseUrl: lc.BaseUrl,
@@ -308,16 +337,12 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 			return nil, fmt.Errorf("no LLM found")
 		}
 
+		// TODO improve to allow any alias other than L*
 		models := make(map[model.Level]*model.Model)
 		models[model.L1] = m
 		models[model.L2] = m
 		models[model.L3] = m
 	}
-
-	//
-	app.New = viper.GetBool("new")
-	app.MaxHistory = viper.GetInt("max_history")
-	app.MaxSpan = viper.GetInt("max_span")
 
 	//
 	app.Log = viper.GetString("log")
@@ -354,14 +379,6 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 		shellBin = "/bin/bash"
 	}
 	app.Shell = shellBin
-
-	app.MaxTurns = viper.GetInt("max_turns")
-	app.MaxTime = viper.GetInt("max_time")
-
-	//
-	if err := app.LoadHistory(); err != nil {
-		return nil, fmt.Errorf("error loading history: %v", err)
-	}
 
 	// default agent:
 	// --agent, hisotry, "ask"
