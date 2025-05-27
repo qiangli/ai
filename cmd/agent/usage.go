@@ -1,4 +1,4 @@
-package main
+package agent
 
 import (
 	"encoding/json"
@@ -16,23 +16,6 @@ import (
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 )
-
-const rootUsageTemplate = `AI Command Line Tool
-
-Usage:
-  ai [OPTIONS] [@AGENT] MESSAGE...{{if .HasExample}}
-
-Examples:
-{{.Example}}{{end}}
-
-Use "{{.CommandPath}} /help [agents|commands|tools|info]" for more information.
-`
-
-const usageExample = `
-ai what is fish
-ai / what is fish
-ai @ask what is fish
-`
 
 const agentUsageTemplate = `AI Command Line Tool
 

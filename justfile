@@ -22,7 +22,7 @@ tidy:
 
 # Generate a git commit message
 git-message:
-    git diff origin/main | go run ./cmd/ai --quiet --format=text @git/long }
+    git diff origin/main | go run ./cmd --quiet --format=text @git/long }
 
 # git commit
 git-commit: git-message
@@ -33,7 +33,7 @@ git-amend: git-message
     git commit --amend -m "$(pbpaste)"
 
 install: build test
-    go install ./cmd/ai
+    go install ./cmd
 
 # Update all dependencies
 update:

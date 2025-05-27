@@ -21,7 +21,7 @@ function build_ai() {
 
 	CLI_FLAGS=""
 
-	CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -o "bin/$binary" -ldflags="-w -extldflags '-static' $CLI_FLAGS" ./cmd/ai
+	CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -o "bin/$binary" -ldflags="-w -extldflags '-static' $CLI_FLAGS" ./cmd
 
 	ln -sf "$binary" "bin/ai"
 }

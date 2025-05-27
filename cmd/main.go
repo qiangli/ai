@@ -2,16 +2,51 @@ package main
 
 import (
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/qiangli/ai/cmd/agent"
 	"github.com/qiangli/ai/cmd/history"
 	"github.com/qiangli/ai/cmd/mcp"
 	"github.com/qiangli/ai/cmd/setup"
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
 )
+
+const rootUsageTemplate = `AI Command Line Tool
+
+Usage:
+  ai [OPTIONS] [@AGENT] MESSAGE...{{if .HasExample}}
+
+Examples:
+{{.Example}}{{end}}
+
+Use "{{.CommandPath}} /help [agents|commands|tools|info]" for more information.
+`
+
+const usageExample = `
+ai what is fish
+ai / what is fish
+ai @ask what is fish
+`
+
+var rootCmd = &cobra.Command{
+	Use:                   "ai [OPTIONS] [@AGENT] MESSAGE...",
+	Short:                 "AI Command Line Tool",
+	Example:               usageExample,
+	DisableFlagsInUseLine: true,
+	DisableSuggestions:    true,
+	Args:                  cobra.ArbitraryArgs,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return cmd.Help()
+	},
+}
+
+func init() {
+	rootCmd.SetHelpTemplate(rootUsageTemplate)
+}
 
 func initConfig() {
 	if internal.ConfigFile != "" {
@@ -53,20 +88,26 @@ func main() {
 	}
 
 	// intercept custom commands
+	// $ ai @[agent]
 	// $ ai /help [agents|commands|tools|info]
 	// $ ai /mcp
 	// $ ai /setup
 	// $ ai /history
 	for _, arg := range args {
+		// @agent
+		if strings.HasPrefix(arg, "@") {
+			break
+		}
 		switch arg {
 		case "/help":
+			// agent detailed help
 			// trigger built-in help command
 			nArgs := append([]string{"--help"}, os.Args[1:]...)
-			AgentCmd.SetArgs(nArgs)
+			agent.AgentCmd.SetArgs(nArgs)
 			// hack: for showing all config options as usual
 			// cobra is not calling initConfig() for help command
 			initConfig()
-			if err := AgentCmd.Execute(); err != nil {
+			if err := agent.AgentCmd.Execute(); err != nil {
 				internal.Exit(err)
 			}
 			return
@@ -89,10 +130,16 @@ func main() {
 			}
 			return
 		}
+
+		// @shell/
+		// NOTE path starts with "/" requires escape/quotes
+		if strings.HasPrefix(arg, "/") {
+			break
+		}
 	}
 
 	// $ ai [@AGENT] MESSAGE...
-	if err := AgentCmd.Execute(); err != nil {
+	if err := agent.AgentCmd.Execute(); err != nil {
 		internal.Exit(err)
 	}
 }
