@@ -33,7 +33,7 @@ git-amend: git-message
     git commit --amend -m "$(pbpaste)"
 
 install: build test
-    go install ./cmd
+    go build -o "$(go env GOPATH)/bin/ai" ./cmd
 
 # Update all dependencies
 update:

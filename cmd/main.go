@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -22,6 +21,10 @@ Usage:
 
 Examples:
 {{.Example}}{{end}}
+
+Miscellaneous:
+  ai /mcp                        Manage MCP server
+  ai /setup                      Setup configuration
 
 Use "{{.CommandPath}} /help [agents|commands|tools|info]" for more information.
 `
@@ -88,54 +91,41 @@ func main() {
 	}
 
 	// intercept custom commands
-	// $ ai @[agent]
 	// $ ai /help [agents|commands|tools|info]
 	// $ ai /mcp
 	// $ ai /setup
 	// $ ai /history
-	for _, arg := range args {
-		// @agent
-		if strings.HasPrefix(arg, "@") {
-			break
+	switch args[1] {
+	case "/help":
+		// agent detailed help
+		// trigger built-in help command
+		nArgs := append([]string{"--help"}, os.Args[1:]...)
+		agent.AgentCmd.SetArgs(nArgs)
+		// hack: for showing all config options as usual
+		// cobra is not calling initConfig() for help command
+		initConfig()
+		if err := agent.AgentCmd.Execute(); err != nil {
+			internal.Exit(err)
 		}
-		switch arg {
-		case "/help":
-			// agent detailed help
-			// trigger built-in help command
-			nArgs := append([]string{"--help"}, os.Args[1:]...)
-			agent.AgentCmd.SetArgs(nArgs)
-			// hack: for showing all config options as usual
-			// cobra is not calling initConfig() for help command
-			initConfig()
-			if err := agent.AgentCmd.Execute(); err != nil {
-				internal.Exit(err)
-			}
-			return
-		case "/mcp":
-			os.Args = os.Args[1:]
-			if err := mcp.McpCmd.Execute(); err != nil {
-				internal.Exit(err)
-			}
-			return
-		case "/setup":
-			os.Args = os.Args[1:]
-			if err := setup.SetupCmd.Execute(); err != nil {
-				internal.Exit(err)
-			}
-			return
-		case "/history":
-			os.Args = os.Args[1:]
-			if err := history.HistoryCmd.Execute(); err != nil {
-				internal.Exit(err)
-			}
-			return
+		return
+	case "/mcp":
+		os.Args = os.Args[1:]
+		if err := mcp.McpCmd.Execute(); err != nil {
+			internal.Exit(err)
 		}
-
-		// @shell/
-		// NOTE path starts with "/" requires escape/quotes
-		if strings.HasPrefix(arg, "/") {
-			break
+		return
+	case "/setup":
+		os.Args = os.Args[1:]
+		if err := setup.SetupCmd.Execute(); err != nil {
+			internal.Exit(err)
 		}
+		return
+	case "/history":
+		os.Args = os.Args[1:]
+		if err := history.HistoryCmd.Execute(); err != nil {
+			internal.Exit(err)
+		}
+		return
 	}
 
 	// $ ai [@AGENT] MESSAGE...

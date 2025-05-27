@@ -22,11 +22,6 @@ const agentUsageTemplate = `AI Command Line Tool
 Usage:
   ai [OPTIONS] [@AGENT] MESSAGE...{{if .HasExample}}
 {{.Example}}{{end}}
-
-Miscellaneous:
-
-  ai /mcp                        Manage MCP server
-  ai /setup                      Setup configuration
 {{if .HasAvailableLocalFlags}}
 
 Options:

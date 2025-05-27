@@ -38,6 +38,7 @@ var serveCmd = &cobra.Command{
 	},
 }
 
+// https://github.com/mark3labs/mcp-go/blob/main/examples/everything/main.go
 func RunServe(args []string) error {
 	setLogLevel()
 
