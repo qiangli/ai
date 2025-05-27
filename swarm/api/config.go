@@ -47,8 +47,9 @@ type AppConfig struct {
 
 	Files []string
 
-	// MCP server url
-	McpServerUrl string
+	// MCP server
+	McpServerRoot string
+	McpServers    map[string]*McpServerConfig
 
 	// Output format: raw or markdown
 	Format string

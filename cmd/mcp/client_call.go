@@ -19,8 +19,43 @@ var clientCallCmd = &cobra.Command{
 	Long:  `This command calls tool.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		setLogLevel()
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
 
-		return CallTool(cmd, args)
+		name, _ := cmd.Flags().GetString("name")
+		arguments, _ := cmd.Flags().GetString("arguments")
+		server, _ := cmd.Flags().GetString("server")
+		cmdArgs, _ := cmd.Flags().GetString("args")
+		config.Server = server
+		config.Args = strings.Fields(cmdArgs)
+
+		var params map[string]any
+		if arguments != "" {
+			if err := json.Unmarshal([]byte(arguments), &params); err != nil {
+				return err
+			}
+		}
+		if params == nil {
+			params = make(map[string]any)
+		}
+
+		// command line args: name=value
+		for _, nv := range args {
+			parts := strings.SplitN(nv, "=", 2)
+			var n = parts[0]
+			var v string
+			if len(parts) > 1 {
+				v = parts[1]
+			}
+			params[n] = v
+		}
+
+		result, err := CallTool(ctx, config, name, params)
+		if err != nil {
+			return err
+		}
+		printToolResult(result)
+		return nil
 	},
 }
 
@@ -32,63 +67,31 @@ func init() {
 	clientCmd.AddCommand(clientCallCmd)
 }
 
-func CallTool(cmd *cobra.Command, args []string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	c, err := NewMcpClient(ctx, args)
+func CallTool(ctx context.Context, config *ServerConfig, name string, params map[string]any) (*mcp.CallToolResult, error) {
+	c, err := NewMcpClient(ctx, config)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer c.Close()
 
-	c.OnNotification(func(notification mcp.JSONRPCNotification) {
-		log.Debugf("Received notification: %s\n", notification.Method)
-	})
-
 	if _, err := InitMcpRequest(ctx, c); err != nil {
-		return err
+		return nil, err
 	}
-
-	name, _ := cmd.Flags().GetString("name")
-	arguments, _ := cmd.Flags().GetString("arguments")
 
 	if name == "" {
-		return fmt.Errorf("missing tool name")
-	}
-
-	var paramArgs map[string]any
-	if arguments != "" {
-		if err := json.Unmarshal([]byte(arguments), &paramArgs); err != nil {
-			return err
-		}
-	}
-	if paramArgs == nil {
-		paramArgs = make(map[string]any)
-	}
-
-	// command line args: name=value
-	for _, nv := range args {
-		parts := strings.SplitN(nv, "=", 2)
-		var n = parts[0]
-		var v string
-		if len(parts) > 1 {
-			v = parts[1]
-		}
-		paramArgs[n] = v
+		return nil, fmt.Errorf("missing tool name")
 	}
 
 	req := mcp.CallToolRequest{}
 	req.Params.Name = name
-	req.Params.Arguments = paramArgs
+	req.Params.Arguments = params
 
 	result, err := c.CallTool(ctx, req)
 	if err != nil {
-		return fmt.Errorf("failed to read file: %v", err)
+		return nil, fmt.Errorf("failed to read file: %v", err)
 	}
-	printToolResult(result)
 
-	return nil
+	return result, nil
 }
 
 func printToolResult(result *mcp.CallToolResult) {

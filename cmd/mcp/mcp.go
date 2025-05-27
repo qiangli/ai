@@ -7,6 +7,27 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
+// var updated during build
+var ServerName = "Stargate"
+var ServerVersion = "0.0.1"
+
+type ServerConfig struct {
+	Port         int
+	Host         string
+	McpServerUrl string
+	Transport    string
+	Debug        bool
+
+	//
+	ServersRoot string
+
+	// stdio
+	Server string
+	Args   []string
+}
+
+var config = &ServerConfig{}
+
 var McpCmd = &cobra.Command{
 	Use:                   "mcp",
 	Short:                 "Manage MCP server",

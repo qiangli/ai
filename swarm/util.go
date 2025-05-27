@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"os"
+	// "os"
 	"strings"
 	"text/template"
 
@@ -76,16 +76,16 @@ func structToMap(input any) (map[string]any, error) {
 	return resultMap, nil
 }
 
-func expandWithDefault(input string) string {
-	return os.Expand(input, func(key string) string {
-		parts := strings.SplitN(key, ":-", 2)
-		value := os.Getenv(parts[0])
-		if value == "" && len(parts) > 1 {
-			return parts[1]
-		}
-		return value
-	})
-}
+// func expandWithDefault(input string) string {
+// 	return os.Expand(input, func(key string) string {
+// 		parts := strings.SplitN(key, ":-", 2)
+// 		value := os.Getenv(parts[0])
+// 		if value == "" && len(parts) > 1 {
+// 			return parts[1]
+// 		}
+// 		return value
+// 	})
+// }
 
 // func toModelLevel(s string) model.Level {
 // 	switch s {

@@ -203,9 +203,9 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*A
 
 	// TODO - check if the tool type is enabled
 	// by default all tools are enabled
-	// except mcp which is enabled only if the mcp server url is set
+	// except mcp which is enabled only if the mcp server root is set
 	isEnabled := func(toolType string) bool {
-		return toolType != "mcp" || vars.Config.McpServerUrl != ""
+		return toolType != "mcp" || vars.Config.McpServerRoot != ""
 	}
 
 	getTools := func(toolType string, kit string) ([]*api.ToolFunc, error) {

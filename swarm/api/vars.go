@@ -30,13 +30,9 @@ type Vars struct {
 	Home      string `json:"home"`
 	Temp      string `json:"temp"`
 
-	// WorkDir   string `json:"workdir"`
-
 	// EnvType indicates the environment type where the agent is running
 	// It can be "container" for Docker containers or "host" for the host machine
 	EnvType string `json:"env_type"`
-
-	// DBCred *DBCred `json:"db"`
 
 	Roots []string `json:"roots"`
 
@@ -45,12 +41,7 @@ type Vars struct {
 
 	Models map[model.Level]*model.Model `json:"models"`
 
-	// McpServerUrl string `json:"mcp_server_url"`
-
 	//
-	// FS            vfs.FileSystem
-	// McpServerTool *McpServerTool
-
 	ToolRegistry  map[string]*ToolFunc     `json:"tool_registry"`
 	AgentRegistry map[string]*AgentsConfig `json:"agent_registry"`
 

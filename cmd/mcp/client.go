@@ -40,25 +40,33 @@ func init() {
 	// flags
 	flags.VarP(newTransportValue("http", &config.Transport), "transport", "t", "Transport protocol to use: http or stdio")
 	flags.StringVar(&config.McpServerUrl, "url", mcpUrl, "URL for HTTP transport")
+	flags.String("server", "", "MCP server name")
+	flags.String("args", "", "MCP stdio args")
 
 	//
 	McpCmd.AddCommand(clientCmd)
 }
 
 // Create client based on transport type
-func NewMcpClient(ctx context.Context, args []string) (*client.Client, error) {
+func NewMcpClient(ctx context.Context, config *ServerConfig) (*client.Client, error) {
 
 	var c *client.Client
 
 	if config.Transport == "stdio" {
-		log.Debugln("Initializing stdio client...")
-		command := args[0]
-		cmdArgs := args[1:]
+		log.Debugln("Initializing stdio client %+v", config.Args)
+		if len(config.Args) == 0 {
+			return nil, fmt.Errorf("missing args for stdio client")
+		}
+		var command = config.Args[0]
+		var cmdArgs []string
+		if len(config.Args) > 1 {
+			cmdArgs = config.Args[1:]
+		}
 		stdioTransport := transport.NewStdio(command, nil, cmdArgs...)
 
 		c = client.NewClient(stdioTransport)
 
-		if stderr, ok := client.GetStderr(c); ok {
+		if stderr, ok := client.GetStderr(c); ok && stderr != nil {
 			go func() {
 				buf := make([]byte, 4096)
 				for {
@@ -91,7 +99,6 @@ func NewMcpClient(ctx context.Context, args []string) (*client.Client, error) {
 }
 
 func InitMcpRequest(ctx context.Context, c *client.Client) (*mcp.InitializeResult, error) {
-	// Initialize the client
 	log.Debugln("Initializing client...")
 	initRequest := mcp.InitializeRequest{}
 	initRequest.Params.ProtocolVersion = mcp.LATEST_PROTOCOL_VERSION

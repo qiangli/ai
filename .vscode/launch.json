@@ -18,7 +18,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_L2_MODEL": "gpt-4.1",
 				"AI_L2_API_KEY": "${env:OPENAI_API_KEY}",
@@ -43,7 +43,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -66,7 +66,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -75,7 +75,7 @@
 			},
 			"args": [
 				"/help",
-				"info",
+				"tools",
 				"-m",
 				"none",
 				"--l1-base-url",
@@ -85,8 +85,10 @@
 				"--l1-model",
 				"gpt-4o-mini",
 				"--verbose",
+				"--mcp-server-root",
+				"${env:HOME}/workspace/openaide/awesome/docker/mcp-servers/stargate/config/",
 				"message",
-				"what is cooking",
+				"what is cooking"
 			],
 			"showLog": false,
 			"stopOnEntry": false,
@@ -96,7 +98,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -120,7 +122,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -140,7 +142,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt4o",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -161,7 +163,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				// "AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -185,7 +187,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				// "AI_MODEL": "gpt-4o-mini",
 				// "AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -208,7 +210,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -229,7 +231,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt4o",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -250,7 +252,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -272,7 +274,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -293,7 +295,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -314,7 +316,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -338,7 +340,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				// "AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -365,7 +367,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -386,7 +388,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -407,7 +409,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -417,6 +419,12 @@
 			"args": [
 				"--verbose",
 				"@sql",
+				"--sql-db-name",
+				"postgres",
+				"--sql-db-host",
+				"localhost",
+				"--sql-db-port",
+				"5432",
 				"--message",
 				"git me all tables in metastore"
 			],
@@ -428,7 +436,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -452,7 +460,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
@@ -473,7 +481,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/ai/",
+			"program": "${workspaceFolder}/cmd/",
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",

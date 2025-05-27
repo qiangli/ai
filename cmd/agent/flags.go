@@ -220,9 +220,9 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("max-span")
 
 	// mcp
-	flags.String("mcp-server-url", "", "MCP server URL")
+	flags.String("mcp-server-root", "", "MCP server config base directory")
 
-	flags.MarkHidden("mcp-server-url")
+	flags.MarkHidden("mcp-server-root")
 
 	// LLM
 	flags.String("api-key", "", "LLM API key")

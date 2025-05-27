@@ -64,13 +64,13 @@ func init() {
 	// Bind the flags to viper using dots
 	flags := AgentCmd.Flags()
 
-	viper.BindPFlag("mcp.server-url", flags.Lookup("mcp-server-url"))
+	viper.BindPFlag("mcp.server_root", flags.Lookup("mcp-server-root"))
 
-	viper.BindPFlag("sql.db-name", flags.Lookup("sql-db-name"))
-	viper.BindPFlag("sql.db-host", flags.Lookup("sql-db-host"))
-	viper.BindPFlag("sql.db-port", flags.Lookup("sql-db-port"))
-	viper.BindPFlag("sql.db-username", flags.Lookup("sql-db-username"))
-	viper.BindPFlag("sql.db-password", flags.Lookup("sql-db-password"))
+	viper.BindPFlag("sql.db_name", flags.Lookup("sql-db-name"))
+	viper.BindPFlag("sql.db_host", flags.Lookup("sql-db-host"))
+	viper.BindPFlag("sql.db_port", flags.Lookup("sql-db-port"))
+	viper.BindPFlag("sql.db_username", flags.Lookup("sql-db-username"))
+	viper.BindPFlag("sql.db_password", flags.Lookup("sql-db-password"))
 
 	//
 	viper.AutomaticEnv()

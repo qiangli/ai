@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
@@ -18,8 +19,23 @@ var clientListCmd = &cobra.Command{
 	Long:  `This command lists all tools.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		setLogLevel()
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
 
-		return ListTools(args)
+		server, _ := cmd.Flags().GetString("server")
+		cmdArgs, _ := cmd.Flags().GetString("args")
+		config.Server = server
+		config.Args = strings.Fields(cmdArgs)
+		result, err := ListTools(ctx, config)
+		if err != nil {
+			return err
+		}
+		log.Infof("Tools available: %d\n", len(result.Tools))
+		for i, tool := range result.Tools {
+			schema, _ := json.MarshalIndent(tool.InputSchema, "", "  ")
+			log.Infof("  %d. %s - %s\n%s\n\n", i+1, tool.Name, tool.Description, string(schema))
+		}
+		return nil
 	},
 }
 
@@ -28,23 +44,17 @@ func init() {
 	clientCmd.AddCommand(clientListCmd)
 }
 
-func ListTools(args []string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
+func ListTools(ctx context.Context, config *ServerConfig) (*mcp.ListToolsResult, error) {
 
-	c, err := NewMcpClient(ctx, args)
+	c, err := NewMcpClient(ctx, config)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer c.Close()
 
-	c.OnNotification(func(notification mcp.JSONRPCNotification) {
-		log.Debugf("Received notification: %s\n", notification.Method)
-	})
-
 	result, err := InitMcpRequest(ctx, c)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if result.Capabilities.Tools != nil {
@@ -52,31 +62,11 @@ func ListTools(args []string) error {
 		toolsRequest := mcp.ListToolsRequest{}
 		toolsResult, err := c.ListTools(ctx, toolsRequest)
 		if err != nil {
-			return fmt.Errorf("failed to list tools: %v", err)
+			return nil, fmt.Errorf("failed to list tools: %v", err)
 		} else {
-			log.Infof("Tools available: %d\n", len(toolsResult.Tools))
-			for i, tool := range toolsResult.Tools {
-				schema, _ := json.MarshalIndent(tool.InputSchema, "", "  ")
-				log.Infof("  %d. %s - %s\n%s\n\n", i+1, tool.Name, tool.Description, string(schema))
-			}
+			return toolsResult, nil
 		}
 	}
 
-	// List available resources if the server supports them
-	if result.Capabilities.Resources != nil {
-		log.Debugln("Fetching available resources...")
-		resourcesRequest := mcp.ListResourcesRequest{}
-		resourcesResult, err := c.ListResources(ctx, resourcesRequest)
-		if err != nil {
-			return fmt.Errorf("failed to list resources: %v", err)
-		} else {
-			log.Debugf("Resources available: %d\n", len(resourcesResult.Resources))
-			for i, resource := range resourcesResult.Resources {
-				log.Infof("  %d. %s - %s\n", i+1, resource.URI, resource.Name)
-			}
-		}
-	}
-
-	log.Debugln("Done. shutting down...")
-	return nil
+	return nil, fmt.Errorf("Tools not supported")
 }

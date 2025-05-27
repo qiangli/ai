@@ -2,6 +2,7 @@ package internal
 
 import (
 	"embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
+	"github.com/tailscale/hujson"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/api/model"
@@ -432,7 +434,14 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.Args = parseArgs(app, args, defaultAgent)
 
 	// mcp
-	app.McpServerUrl = viper.GetString("mcp.server_url")
+	app.McpServerRoot = viper.GetString("mcp.server_root")
+	if app.McpServerRoot != "" {
+		mcp := NewMcpServersConfig(app.McpServerRoot)
+		if err := mcp.LoadAll(); err != nil {
+			return nil, err
+		}
+		app.McpServers = mcp.ServersConfig
+	}
 
 	// sql db
 	dbCfg := &api.DBCred{}
@@ -547,4 +556,74 @@ func validatePath(path string) (string, error) {
 	}
 
 	return path, nil
+}
+
+type McpServersConfig struct {
+	ServersRoot string
+
+	ServersConfig map[string]*api.McpServerConfig `json:"mcpServers"`
+}
+
+func NewMcpServersConfig(root string) *McpServersConfig {
+	return &McpServersConfig{
+		ServersRoot:   root,
+		ServersConfig: make(map[string]*api.McpServerConfig),
+	}
+}
+
+func (r *McpServersConfig) LoadAll() error {
+	entries, err := os.ReadDir(r.ServersRoot)
+	if err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		if entry.Type().IsRegular() {
+			name := entry.Name()
+			ext := filepath.Ext(name)
+			if ext == ".jsonc" || ext == ".json" {
+				configPath := filepath.Join(r.ServersRoot, name)
+				if err := r.LoadFile(configPath); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func (r *McpServersConfig) LoadFile(filename string) error {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	return r.LoadData(data)
+}
+
+func (r *McpServersConfig) LoadData(data []byte) error {
+	hu, err := hujson.Standardize(data)
+	if err != nil {
+		return err
+	}
+	ex := expandWithDefault(string(hu))
+	err = json.Unmarshal([]byte(ex), r)
+	if err != nil {
+		return fmt.Errorf("unmarshal mcp config: %v", err)
+	}
+
+	// set server name for each config
+	for k, v := range r.ServersConfig {
+		v.Server = k
+	}
+	return nil
+}
+
+func expandWithDefault(input string) string {
+	return os.Expand(input, func(key string) string {
+		parts := strings.SplitN(key, ":-", 2)
+		value := os.Getenv(parts[0])
+		if value == "" && len(parts) > 1 {
+			return parts[1]
+		}
+		return value
+	})
 }

@@ -9,8 +9,7 @@
 
 ## mcp
 # mcp:
-#   #server_url: "http://localhost:58080/sse"
-#   server_url: ""
+#   server_root: ""
 
 ##
 # sql:

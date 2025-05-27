@@ -315,12 +315,12 @@ func listTools(app *api.AppConfig) ([]*api.ToolFunc, error) {
 	list = append(list, agentTools...)
 
 	// mcp tools
-	mcpTools, err := listMcpTools(app.McpServerUrl)
+	mcpTools, err := listMcpTools(app.McpServers)
 	if err != nil {
 		return nil, err
 	}
 	for _, v := range mcpTools {
-		list = append(list, v...)
+		list = append(list, v)
 	}
 
 	// system and misc tools

@@ -18,20 +18,6 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-// var updated during build
-var ServerName = "Stargate"
-var ServerVersion = "0.0.1"
-
-type ServerConfig struct {
-	Port         int
-	Host         string
-	McpServerUrl string
-	Transport    string
-	Debug        bool
-}
-
-var config = &ServerConfig{}
-
 var serveCmd = &cobra.Command{
 	Use:                   "serve",
 	Short:                 "Start the MCP server",
@@ -131,18 +117,39 @@ func NewMCPServer(cfg *api.AppConfig) (*server.MCPServer, error) {
 		server.WithHooks(hooks),
 	)
 
+	// load ai tools
 	toolsMap := vars.ListTools()
 	for i, v := range toolsMap {
-		log.Debugf("tool [%v]: %s %v\n", i, v.ID(), v)
+		log.Debugf("tool [%v]: %s %+v\n", i, v.ID(), v)
+		handler := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			log.Debugf("Calling tool [%s] with params: %+v\n", req.Params.Name, req.Params.Arguments)
 
-		if err := addTool(mcpServer, vars, v); err != nil {
+			v, err := swarm.CallTool(ctx, vars, req.Params.Name, req.GetArguments())
+
+			log.Debugf("Tool [%s] returned: %+v\n", req.Params.Name, v)
+
+			if err != nil {
+				return nil, err
+			}
+			result := &mcp.CallToolResult{
+				Content: []mcp.Content{
+					mcp.TextContent{
+						Type: "text",
+						Text: v.Value,
+					},
+				},
+			}
+			return result, nil
+		}
+		if err := addTool(mcpServer, v, handler); err != nil {
 			log.Infof("failed to add tool [%v]: %v\n", i, err)
 		}
 	}
+
 	return mcpServer, nil
 }
 
-func addTool(server *server.MCPServer, vars *api.Vars, toolFunc *api.ToolFunc) error {
+func addTool(server *server.MCPServer, toolFunc *api.ToolFunc, handler func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error)) error {
 	toSchema := func(m map[string]any) mcp.ToolInputSchema {
 		var s = mcp.ToolInputSchema{
 			Type:       "object",
@@ -186,28 +193,6 @@ func addTool(server *server.MCPServer, vars *api.Vars, toolFunc *api.ToolFunc) e
 		},
 	}
 
-	handler := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		log.Debugf("Calling tool [%s] with params: %+v\n", req.Params.Name, req.Params.Arguments)
-
-		v, err := swarm.CallTool(ctx, vars, req.Params.Name, req.GetArguments())
-
-		log.Debugf("Tool [%s] returned: %+v\n", req.Params.Name, v)
-
-		if err != nil {
-			return nil, err
-		}
-
-		result := &mcp.CallToolResult{
-			Content: []mcp.Content{
-				mcp.TextContent{
-					Type: "text",
-					Text: v.Value,
-				},
-			},
-		}
-		return result, nil
-	}
-
 	server.AddTool(tool, handler)
 
 	return nil
@@ -246,12 +231,7 @@ func addMcpFlags(cmd *cobra.Command) {
 	// flags
 	flags.IntVar(&config.Port, "port", defaultPort, "Port to run the server")
 	flags.StringVar(&config.Host, "host", defaultHost, "Host to bind the server")
+	flags.StringVar(&config.ServersRoot, "root", "", "MCP server config root")
 
 	flags.VarP(newTransportValue("http", &config.Transport), "transport", "t", "Transport protocol to use: http or stdio")
-
-	// flags.StringVar(&config.McpServerUrl, "mcp-server-url", "", "MCP server URL")
-
-	//
-	// flags.String("log", "", "Log all debugging information to a file")
-	// flags.Bool("verbose", false, "Show debugging information")
 }
