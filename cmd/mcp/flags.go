@@ -13,13 +13,13 @@ func newTransportValue(val string, p *string) *transportValue {
 }
 
 func (s *transportValue) Set(val string) error {
-	for _, v := range []string{"stdio", "sse"} {
+	for _, v := range []string{"stdio", "http"} {
 		if val == v {
 			*s = transportValue(val)
 			return nil
 		}
 	}
-	return fmt.Errorf("invalid transport: %v. supported: stdio, sse", val)
+	return fmt.Errorf("invalid transport: %v. supported: stdio, http", val)
 }
 func (s *transportValue) Type() string {
 	return "string"

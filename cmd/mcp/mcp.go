@@ -18,6 +18,17 @@ func init() {
 	McpCmd.SetUsageTemplate(commandUsageTemplate)
 	McpCmd.Flags().SortFlags = true
 	McpCmd.CompletionOptions.DisableDefaultCmd = true
+
+	//
+	flags := McpCmd.PersistentFlags()
+	flags.String("log", "", "Log all debugging information to a file")
+	flags.Bool("verbose", false, "Show debugging information")
+
+	flags.MarkHidden("log")
+
+	viper.BindPFlag("log", flags.Lookup("log"))
+	viper.BindPFlag("verbose", flags.Lookup("verbose"))
+
 }
 
 func setLogLevel() {

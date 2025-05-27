@@ -18,6 +18,10 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
+// var updated during build
+var ServerName = "Stargate"
+var ServerVersion = "0.0.1"
+
 type ServerConfig struct {
 	Port         int
 	Host         string
@@ -34,64 +38,42 @@ var serveCmd = &cobra.Command{
 	DisableFlagsInUseLine: true,
 	DisableSuggestions:    true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return RunServe(args)
+		setLogLevel()
+
+		fileLog, err := setLogOutput()
+		if err != nil {
+			return err
+		}
+		defer func() {
+			if fileLog != nil {
+				fileLog.Close()
+			}
+		}()
+
+		return Serve(args)
 	},
 }
 
 // https://github.com/mark3labs/mcp-go/blob/main/examples/everything/main.go
-func RunServe(args []string) error {
-	setLogLevel()
-
-	fileLog, err := setLogOutput()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if fileLog != nil {
-			fileLog.Close()
-		}
-	}()
-
+func Serve(args []string) error {
 	cfg, err := internal.ParseConfig(args)
 	if err != nil {
 		return err
 	}
 
-	log.Debugf("config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.DBCred)
-
-	vars, err := swarm.InitVars(cfg)
+	mcpServer, err := NewMCPServer(cfg)
 	if err != nil {
-		return fmt.Errorf("failed to list tools: %v", err)
+		return err
 	}
 
-	mcpServer := server.NewMCPServer(
-		"Stargate",
-		"1.0.0",
-		server.WithResourceCapabilities(false, false),
-		server.WithPromptCapabilities(false),
-		server.WithToolCapabilities(true),
-		server.WithLogging(),
-	)
+	if config.Transport == "http" {
+		addr := fmt.Sprintf("%s:%v", config.Host, config.Port)
 
-	toolsMap := vars.ListTools()
-	for i, v := range toolsMap {
-		log.Debugf("tool [%v]: %s %v\n", i, v.ID(), v)
+		httpServer := server.NewStreamableHTTPServer(mcpServer)
+		log.Infof("http server listening on :%s/mcp\n", addr)
 
-		if err := addTool(mcpServer, vars, v); err != nil {
-			log.Infof("failed to add tool [%v]: %v\n", i, err)
-		}
-	}
-
-	if config.Transport == "sse" {
-		baseURL := fmt.Sprintf("http://%s:%v", config.Host, config.Port)
-		addr := fmt.Sprintf(":%v", config.Port)
-
-		sse := server.NewSSEServer(mcpServer, server.WithBaseURL(baseURL))
-
-		log.Infof("SSE server listening on :%d\n", config.Port)
-
-		if err := sse.Start(addr); err != nil {
-			return fmt.Errorf("sse server error: %v", err)
+		if err := httpServer.Start(addr); err != nil {
+			return fmt.Errorf("http server error: %v", err)
 		}
 	} else {
 		if err := server.ServeStdio(mcpServer); err != nil {
@@ -102,30 +84,71 @@ func RunServe(args []string) error {
 	return nil
 }
 
-func addMcpFlags(cmd *cobra.Command) {
-	var defaultPort = 5048
-	if v := os.Getenv("AI_MCP_PORT"); v != "" {
-		fmt.Sscanf(v, "%d", &defaultPort)
+func NewMCPServer(cfg *api.AppConfig) (*server.MCPServer, error) {
+	log.Debugf("config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.DBCred)
+
+	vars, err := swarm.InitVars(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list tools: %v", err)
 	}
 
-	flags := cmd.Flags()
+	hooks := &server.Hooks{}
 
-	// flags
-	flags.IntVar(&config.Port, "port", defaultPort, "Port to run the server")
-	flags.StringVar(&config.Host, "host", "localhost", "Host to bind the server")
+	hooks.AddBeforeAny(func(ctx context.Context, id any, method mcp.MCPMethod, message any) {
+		log.Debugf("beforeAny: %s, %v, %v\n", method, id, message)
+	})
+	hooks.AddOnSuccess(func(ctx context.Context, id any, method mcp.MCPMethod, message any, result any) {
+		log.Debugf("onSuccess: %s, %v, %v, %v\n", method, id, message, result)
+	})
+	hooks.AddOnError(func(ctx context.Context, id any, method mcp.MCPMethod, message any, err error) {
+		log.Debugf("onError: %s, %v, %v, %v\n", method, id, message, err)
+	})
+	hooks.AddBeforeInitialize(func(ctx context.Context, id any, message *mcp.InitializeRequest) {
+		log.Debugf("beforeInitialize: %v, %v\n", id, message)
+	})
+	hooks.AddOnRequestInitialization(func(ctx context.Context, id any, message any) error {
+		log.Debugf("AddOnRequestInitialization: %v, %v\n", id, message)
+		// authorization verification and other preprocessing tasks are performed.
+		return nil
+	})
+	hooks.AddAfterInitialize(func(ctx context.Context, id any, message *mcp.InitializeRequest, result *mcp.InitializeResult) {
+		log.Debugf("afterInitialize: %v, %v, %v\n", id, message, result)
+	})
+	hooks.AddAfterCallTool(func(ctx context.Context, id any, message *mcp.CallToolRequest, result *mcp.CallToolResult) {
+		log.Debugf("afterCallTool: %v, %v, %v\n", id, message, result)
+	})
+	hooks.AddBeforeCallTool(func(ctx context.Context, id any, message *mcp.CallToolRequest) {
+		log.Debugf("beforeCallTool: %v, %v\n", id, message)
+	})
 
-	flags.Var(newTransportValue("sse", &config.Transport), "transport", "Transport protocol to use: sse or stdio")
+	mcpServer := server.NewMCPServer(
+		ServerName,
+		ServerVersion,
+		server.WithResourceCapabilities(false, false),
+		server.WithPromptCapabilities(false),
+		server.WithToolCapabilities(true),
+		server.WithLogging(),
+		server.WithHooks(hooks),
+	)
 
-	flags.StringVar(&config.McpServerUrl, "mcp-server-url", "http://localhost:58080/sse", "MCP server URL")
+	toolsMap := vars.ListTools()
+	for i, v := range toolsMap {
+		log.Debugf("tool [%v]: %s %v\n", i, v.ID(), v)
 
-	//
-	flags.String("log", "", "Log all debugging information to a file")
-	flags.Bool("verbose", false, "Show debugging information")
+		if err := addTool(mcpServer, vars, v); err != nil {
+			log.Infof("failed to add tool [%v]: %v\n", i, err)
+		}
+	}
+	return mcpServer, nil
 }
 
 func addTool(server *server.MCPServer, vars *api.Vars, toolFunc *api.ToolFunc) error {
 	toSchema := func(m map[string]any) mcp.ToolInputSchema {
-		var s mcp.ToolInputSchema
+		var s = mcp.ToolInputSchema{
+			Type:       "object",
+			Properties: make(map[string]any),
+			Required:   nil,
+		}
 		if m == nil {
 			return s
 		}
@@ -149,10 +172,18 @@ func addTool(server *server.MCPServer, vars *api.Vars, toolFunc *api.ToolFunc) e
 		return s
 	}
 
+	// mcp.NewTool()
 	tool := mcp.Tool{
 		Name:        toolFunc.ID(),
 		Description: toolFunc.Description,
 		InputSchema: toSchema(toolFunc.Parameters),
+		Annotations: mcp.ToolAnnotation{
+			Title:           "",
+			ReadOnlyHint:    mcp.ToBoolPtr(false),
+			DestructiveHint: mcp.ToBoolPtr(true),
+			IdempotentHint:  mcp.ToBoolPtr(false),
+			OpenWorldHint:   mcp.ToBoolPtr(true),
+		},
 	}
 
 	handler := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -198,4 +229,29 @@ func init() {
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 
 	McpCmd.AddCommand(serveCmd)
+}
+
+func addMcpFlags(cmd *cobra.Command) {
+	var defaultPort = 5048
+	if v := os.Getenv("AI_MCP_PORT"); v != "" {
+		fmt.Sscanf(v, "%d", &defaultPort)
+	}
+	var defaultHost = "localhost"
+	if v := os.Getenv("AI_MCP_HOST"); v != "" {
+		fmt.Sscanf(v, "%d", &defaultPort)
+	}
+
+	flags := cmd.Flags()
+
+	// flags
+	flags.IntVar(&config.Port, "port", defaultPort, "Port to run the server")
+	flags.StringVar(&config.Host, "host", defaultHost, "Host to bind the server")
+
+	flags.VarP(newTransportValue("http", &config.Transport), "transport", "t", "Transport protocol to use: http or stdio")
+
+	// flags.StringVar(&config.McpServerUrl, "mcp-server-url", "", "MCP server URL")
+
+	//
+	// flags.String("log", "", "Log all debugging information to a file")
+	// flags.Bool("verbose", false, "Show debugging information")
 }

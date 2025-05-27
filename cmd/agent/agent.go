@@ -77,7 +77,6 @@ func init() {
 	viper.SetEnvPrefix("ai")
 	viper.BindEnv("api-key", "AI_API_KEY", "OPENAI_API_KEY")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
-
 }
 
 func Run(cmd *cobra.Command, args []string) error {
