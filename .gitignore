@@ -35,3 +35,7 @@ __debug_bin*
 #
 .DS_Store
 .test.swp
+
+#docs
+node_modules
+vocs/docs/dist
