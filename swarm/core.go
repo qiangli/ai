@@ -81,7 +81,7 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 
 	//
 	vars.Workspace = app.Workspace
-	vars.Repo = app.Repo
+	// vars.Repo = app.Repo
 	vars.Home = app.Home
 	vars.Temp = app.Temp
 

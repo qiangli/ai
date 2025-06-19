@@ -250,11 +250,11 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	}
 	app.Workspace = ws
 
-	repo, err := resolveRepoDir(ws)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve repo directory: %w", err)
-	}
-	app.Repo = repo
+	// repo, err := resolveRepoDir(ws)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to resolve repo directory: %w", err)
+	// }
+	// app.Repo = repo
 
 	//
 	app.New = viper.GetBool("new")

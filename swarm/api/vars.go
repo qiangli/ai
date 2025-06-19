@@ -26,9 +26,9 @@ type Vars struct {
 	UserInput *UserInput `json:"user_input"`
 
 	Workspace string `json:"workspace"`
-	Repo      string `json:"repo"`
-	Home      string `json:"home"`
-	Temp      string `json:"temp"`
+	// Repo      string `json:"repo"`
+	Home string `json:"home"`
+	Temp string `json:"temp"`
 
 	// EnvType indicates the environment type where the agent is running
 	// It can be "container" for Docker containers or "host" for the host machine

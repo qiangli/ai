@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ai /bash \
+# todo /bash \
 what \
 is \
 fish?

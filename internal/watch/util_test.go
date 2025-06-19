@@ -13,11 +13,11 @@ func TestParseFile(t *testing.T) {
 		prefix   string
 		expected string
 	}{
-		{"testdata/file.go", "//", "// ai @agent what is fish?"},
-		{"testdata/file.md", ">", ">ai @ask what is fish?"},
-		{"testdata/file.py", "#", "# ai what is fish?"},
-		{"testdata/file.sh", "#", "# ai /bash what is fish?"},
-		{"testdata/multi.sh", "#", "# ai /bash what is fish?"},
+		{"testdata/file.go", "//", "// TODO @agent what is fish?"},
+		{"testdata/file.md", ">", ">todo @ask what is fish?"},
+		{"testdata/file.py", "#", "# TODO what is fish?"},
+		{"testdata/file.sh", "#", "# todo /bash what is fish?"},
+		{"testdata/multi.sh", "#", "# todo /bash what is fish?"},
 	}
 
 	for _, test := range tests {
@@ -40,15 +40,16 @@ func TestParseUserInput(t *testing.T) {
 	tests := []struct {
 		line   string
 		prefix string
+
 		// expected
 		agent   string
 		command string
 		content string
 	}{
-		{"// ai @agent what is fish?", "//", "agent", "", "what is fish?"},
-		{">ai @ask what is fish?", ">", "ask", "", "what is fish?"},
-		{"# ai what is fish?", "#", "", "", "what is fish?"},
-		{"# ai /bash what is fish?", "#", "script", "/bash", "what is fish?"},
+		{"// todo @agent what is fish?", "//", "agent", "", "what is fish?"},
+		{">todo @ask what is fish?", ">", "ask", "", "what is fish?"},
+		{"# todo what is fish?", "#", "", "", "what is fish?"},
+		{"# todo /bash what is fish?", "#", "script", "/bash", "what is fish?"},
 	}
 
 	for _, test := range tests {

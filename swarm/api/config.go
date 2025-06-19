@@ -81,9 +81,9 @@ type AppConfig struct {
 
 	//
 	Workspace string
-	Repo      string
-	Home      string
-	Temp      string
+	// Repo      string
+	Home string
+	Temp string
 
 	Interactive bool
 	Editing     bool

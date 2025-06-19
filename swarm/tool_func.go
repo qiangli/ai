@@ -253,7 +253,8 @@ func (r *SystemKit) WorkspaceDir(ctx context.Context, vars *api.Vars, name strin
 	return vars.Workspace, nil
 }
 func (r *SystemKit) RepoDir(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	return vars.Repo, nil
+	return vars.Workspace, nil
+	// return vars.Repo, nil
 }
 
 type FuncKit struct {

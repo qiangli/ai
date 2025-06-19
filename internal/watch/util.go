@@ -14,6 +14,8 @@ import (
 )
 
 func parseFile(path string, prefix string) (string, error) {
+	log.Debugf("parseFile: %q\nprefix: %q\n", path, prefix)
+
 	file, err := os.Open(path)
 	if err != nil {
 		return "", fmt.Errorf("failed to open file: %w", err)
@@ -71,7 +73,8 @@ func parseFile(path string, prefix string) (string, error) {
 		// return "", fmt.Errorf("no line found")
 	}
 
-	re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(prefix) + `\s*ai\s+.*`)
+	// re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(prefix) + `\s*ai\s+.*`)
+	re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(prefix) + `\s*(?i:(?:todo))\s+.*`)
 
 	for {
 		line, err := readLine()
@@ -94,7 +97,10 @@ func parseFile(path string, prefix string) (string, error) {
 }
 
 func parseUserInput(line string, prefix string) (*api.UserInput, error) {
-	re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(prefix) + `\s*ai\s+(.*)`)
+	log.Debugf("parseUserInput: %q\nprefix: %q\n", line, prefix)
+
+	// re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(prefix) + `\s*ai\s+(.*)`)
+	re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(prefix) + `\s*(?i:(?:todo))\s+(.*)`)
 
 	matches := re.FindStringSubmatch(line)
 	if matches == nil {

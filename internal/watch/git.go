@@ -13,7 +13,7 @@ import (
 )
 
 func WatchRepo(cfg *api.AppConfig) error {
-	repoPath := filepath.Clean(cfg.Repo)
+	repoPath := filepath.Clean(cfg.Workspace)
 
 	log.Debugf("Watching git repository: %s\n", repoPath)
 
@@ -31,10 +31,12 @@ func WatchRepo(cfg *api.AppConfig) error {
 
 	// TODO custom prefix for different file types
 	prefixMap := map[string]string{
-		".go": "//",
-		".py": "#",
-		".sh": "#",
-		".md": ">",
+		".go":  "//",
+		".py":  "#",
+		".ts":  "//",
+		".tsx": "//",
+		".sh":  "#",
+		".md":  ">",
 	}
 
 	run := func(path string) {
