@@ -17,6 +17,10 @@ func WatchRepo(cfg *api.AppConfig) error {
 
 	log.Debugf("Watching git repository: %s\n", repoPath)
 
+	if err := os.Chdir(repoPath); err != nil {
+		return err
+	}
+
 	repo, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return err
