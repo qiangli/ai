@@ -47,20 +47,11 @@ func parseFile(path string, prefix string) (string, error) {
 	// read line and the next until the next line is empty
 	readLine := func() (string, error) {
 		var line, next string
-		// if !scanner.Scan() {
-		// 	return "", fmt.Errorf("no line found")
-		// }
-		// line = strings.TrimSpace(scanner.Text())
 		line, err = readMulti()
 		if err != nil {
 			return "", err
 		}
 		for {
-			// next
-			// if !scanner.Scan() {
-			// 	break
-			// }
-			// next = strings.TrimSpace(scanner.Text())
 			next, err = readMulti()
 			if err != nil {
 				return "", err
@@ -70,7 +61,6 @@ func parseFile(path string, prefix string) (string, error) {
 			}
 			line = next
 		}
-		// return "", fmt.Errorf("no line found")
 	}
 
 	// re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(prefix) + `\s*ai\s+.*`)
@@ -158,4 +148,11 @@ func replaceContentInFile(path, line string, prefix string, content string) erro
 	result := strings.Replace(string(original), line+"\n", line+"\n"+prefix+"\n"+content+"\n", 1)
 
 	return os.WriteFile(path, []byte(result), 0644)
+}
+
+func clipText(text string, maxLen int) string {
+	if len(text) > maxLen {
+		return strings.TrimSpace(text[:maxLen]) + "\n..."
+	}
+	return text
 }

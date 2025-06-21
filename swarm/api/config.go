@@ -89,6 +89,7 @@ type AppConfig struct {
 	Editing     bool
 	Shell       string
 	Watch       bool
+	ClipWatch   bool
 
 	// MetaPrompt  bool
 

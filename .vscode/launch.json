@@ -227,6 +227,35 @@
 			"stopOnEntry": false
 		},
 		{
+			"name": "SWE",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/",
+			"env": {
+				// "AI_MODEL": "gpt-4o-mini",
+				// "AI_API_KEY": "${env:OPENAI_API_KEY}",
+				// "AI_BASE_URL": "http://localhost:4000",
+				// "AI_L2_MODEL": "gpt-4.1",
+				"AI_API_KEY": "${env:OPENAI_API_KEY}",
+				"AI_BASE_URL": "https://api.openai.com/v1/",
+				"AI_DEBUG": "true",
+			},
+			"args": [
+				"--verbose",
+				"--agent",
+				"swe",
+				"--l2-model",
+				"openai/gpt-4.1",
+				"--max-history",
+				"0",
+				"--message",
+				"write hello world in python"
+			],
+			"showLog": false,
+			"stopOnEntry": false
+		},
+		{
 			"name": "Exec",
 			"type": "go",
 			"request": "launch",

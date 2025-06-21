@@ -12,6 +12,16 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
+// TODO custom prefix for different file types
+var prefixMap = map[string]string{
+	".go":  "//",
+	".py":  "#",
+	".ts":  "//",
+	".tsx": "//",
+	".sh":  "#",
+	".md":  ">",
+}
+
 func WatchRepo(cfg *api.AppConfig) error {
 	repoPath := filepath.Clean(cfg.Workspace)
 
@@ -32,16 +42,6 @@ func WatchRepo(cfg *api.AppConfig) error {
 	}
 
 	sizeMemo := make(map[string]int64)
-
-	// TODO custom prefix for different file types
-	prefixMap := map[string]string{
-		".go":  "//",
-		".py":  "#",
-		".ts":  "//",
-		".tsx": "//",
-		".sh":  "#",
-		".md":  ">",
-	}
 
 	run := func(path string) {
 		ext := filepath.Ext(path)

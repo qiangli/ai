@@ -79,6 +79,9 @@ var shell_agent_yaml_data []byte
 //go:embed sql/agent.yaml
 var sql_agent_yaml_data []byte
 
+//go:embed swe/agent.yaml
+var swe_agent_yaml_data []byte
+
 //go:embed tag/agent.yaml
 var tag_agent_yaml_data []byte
 
@@ -290,6 +293,13 @@ var AgentCommandMap = map[string]AgentConfig{
 		Description: "Streamline SQL query generation, helping users derive insights without SQL expertise.",
 		Internal:    false,
 		Data:        sql_agent_yaml_data,
+		Overview:    "",
+	},
+	"swe": {
+		Name:        "swe",
+		Description: "Act as an expert software developer",
+		Internal:    false,
+		Data:        swe_agent_yaml_data,
 		Overview:    "",
 	},
 	"tag": {

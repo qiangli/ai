@@ -250,12 +250,6 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	}
 	app.Workspace = ws
 
-	// repo, err := resolveRepoDir(ws)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to resolve repo directory: %w", err)
-	// }
-	// app.Repo = repo
-
 	//
 	app.New = viper.GetBool("new")
 	app.MaxHistory = viper.GetInt("max_history")
@@ -414,6 +408,7 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.Editing = viper.GetBool("edit")
 	app.Interactive = viper.GetBool("interactive")
 	app.Watch = viper.GetBool("watch")
+	app.ClipWatch = viper.GetBool("pb_watch")
 
 	shell := viper.GetString("shell")
 	if shell == "" {

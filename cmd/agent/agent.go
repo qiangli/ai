@@ -99,6 +99,12 @@ func Run(cmd *cobra.Command, args []string) error {
 		}
 		return nil
 	}
+	if cfg.ClipWatch {
+		if err := watch.WatchClipboard(cfg); err != nil {
+			log.Errorln(err)
+		}
+		return nil
+	}
 
 	// interactive mode
 	// $ ai -i or $ ai --interactive

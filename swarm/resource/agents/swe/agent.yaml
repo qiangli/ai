@@ -1,0 +1,16 @@
+###
+agents:
+  - name: "swe"
+    display: "🤖 SWE"
+    description: "Act as an expert software developer"
+    model: L2
+    instruction:
+      content: "resource:swe_system_role.md"
+    functions:
+      - "func:web"
+
+models:
+  - name: "L2"
+    description: "Level 2 regular model"
+    external: true
+###

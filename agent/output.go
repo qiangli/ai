@@ -48,10 +48,6 @@ func SaveOutput(filename string, message *api.Output) error {
 func processTextContent(cfg *api.AppConfig, output *api.Output) {
 	content := output.Content
 
-	//
-	// doc := util.ParseMarkdown(content)
-	// total := len(doc.CodeBlocks)
-
 	// clipboard
 	if cfg.Clipout {
 		clip := util.NewClipboard()
@@ -70,29 +66,7 @@ func processTextContent(cfg *api.AppConfig, output *api.Output) {
 		SaveOutput(cfg.Output, output)
 	}
 
-	// isPiped := func() bool {
-	// 	stat, err := os.Stdout.Stat()
-	// 	if err != nil {
-	// 		return false
-	// 	}
-	// 	return (stat.Mode() & os.ModeCharDevice) == 0
-	// }()
-
 	PrintOutput(cfg.Format, output)
-
-	// if total > 0 && isPiped {
-	// 	// if there are code blocks and stdout is redirected
-	// 	// we send the code blocks to the stdout
-	// 	const codeTpl = "%s\n"
-	// 	var snippets []string
-	// 	for _, v := range doc.CodeBlocks {
-	// 		snippets = append(snippets, v.Code)
-	// 	}
-	// 	// show code snippets
-	// 	PrintOutput(cfg.Format, &api.Output{
-	// 		Content: fmt.Sprintf(codeTpl, strings.Join(snippets, "\n")),
-	// 	})
-	// }
 }
 
 func processImageContent(cfg *api.AppConfig, message *api.Output) {
