@@ -1,7 +1,6 @@
 package watch
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 	"time"
@@ -25,11 +24,23 @@ func WatchClipboard(cfg *api.AppConfig) error {
 		return strings.HasPrefix(s, marker)
 	}
 
+	isOn := func(s string) bool {
+		re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(trigger) + `\s*(?i:(?:on))\s*`)
+		return re.MatchString(s)
+	}
+
+	isOff := func(s string) bool {
+		re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(trigger) + `\s*(?i:(?:off))\s*`)
+		return re.MatchString(s)
+	}
+
 	re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(trigger) + `\s*(?i:(?:todo))\s+.*`)
 	isTodo := func(s string) bool {
 		return re.MatchString(s)
 	}
 
+	//
+	var watching = true
 	clipboard := util.NewClipboard()
 
 	if err := clipboard.Clear(); err != nil {
@@ -41,7 +52,7 @@ func WatchClipboard(cfg *api.AppConfig) error {
 		var in *api.UserInput
 		var pb []string
 		for {
-			log.Promptf("Watching...\n")
+			log.Promptf("Watching %v...\n", watching)
 			v, err := clipboard.Read()
 			if err != nil {
 				return nil, err
@@ -49,9 +60,29 @@ func WatchClipboard(cfg *api.AppConfig) error {
 
 			line := clipText(v, 100)
 
-			// skip if the content is a response
+			// skip and retain the content if it is a response
 			if isMarker(line) {
 				time.Sleep(interval)
+				continue
+			}
+
+			//
+			if err := clipboard.Clear(); err != nil {
+				return nil, err
+			}
+
+			if isOff(line) {
+				watching = false
+				continue
+			}
+
+			if isOn(line) {
+				watching = true
+				continue
+			}
+
+			// ignore if not watching
+			if !watching {
 				continue
 			}
 
@@ -97,36 +128,30 @@ func WatchClipboard(cfg *api.AppConfig) error {
 		return nil
 	}
 
-	bell := func(n int) {
-		for i := 0; i < n; i++ {
-			fmt.Print("\a")
-		}
-	}
-
 	run := func() {
 		in, err := readInput()
 		if err != nil {
 			log.Errorf("Error reading from clipboard: %s\n", err)
-			bell(2)
 			return
 		}
 
-		//
-		bell(1)
+		// run
 		cfg.Format = "text"
 		if err := agent.RunSwarm(cfg, in); err != nil {
 			log.Errorf("Error running agent: %s\n", err)
-			bell(2)
+			util.Alert(err.Error())
 			return
 		}
 
 		//success
-		bell(1)
 		log.Infof("ai executed successfully\n")
 		if err := writeOutput(cfg.Stdout); err != nil {
 			log.Debugf("failed to copy content to clipboard: %v\n", err)
-			bell(2)
+			util.Alert(err.Error())
+			return
 		}
+
+		util.Notify("Done")
 	}
 
 	ticker := time.NewTicker(interval)
