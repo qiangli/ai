@@ -249,8 +249,10 @@
 				"openai/gpt-4.1",
 				"--max-history",
 				"0",
+				"--file",
+				"${workspaceFolder}/internal/testdata/code-question.png",
 				"--message",
-				"write hello world in python"
+				"write the code in go"
 			],
 			"showLog": false,
 			"stopOnEntry": false

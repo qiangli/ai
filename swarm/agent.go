@@ -476,7 +476,7 @@ func (r *Agent) Serve(req *api.Request, resp *api.Response) error {
 			depReq := &api.Request{
 				Agent:    dep.Name,
 				RawInput: req.RawInput,
-				Message:  req.Message,
+				Messages: req.Messages,
 			}
 			depResp := &api.Response{}
 			sw := New(r.Vars)
@@ -575,15 +575,26 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 	}
 
 	// user query
-	if req.Message == nil {
-		req.Message = &api.Message{
+	if req.Messages == nil {
+		messages, err := req.RawInput.FileMessages()
+		if err != nil {
+			return err
+		}
+		for i, v := range messages {
+			v.Sender = r.Name
+			v.Models = r.Vars.Config.Models
+			messages[i] = v
+		}
+
+		req.Messages = messages
+		req.Messages = append(req.Messages, &api.Message{
 			Role:    api.RoleUser,
 			Content: req.RawInput.Query(),
 			Sender:  r.Name,
 			Models:  r.Vars.Config.Models,
-		}
+		})
 	}
-	history = append(history, req.Message)
+	history = append(history, req.Messages...)
 
 	initLen := len(history)
 

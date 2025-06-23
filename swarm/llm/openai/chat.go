@@ -74,7 +74,11 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 		case "assistant":
 			messages = append(messages, openai.AssistantMessage(v.Content))
 		case "user":
-			messages = append(messages, openai.UserMessage(v.Content))
+			if v.ContentType != "" {
+				messages = append(messages, openai.UserMessage(toContentPart(v.ContentType, []byte(v.Content))))
+			} else {
+				messages = append(messages, openai.UserMessage(v.Content))
+			}
 		// case "tool":
 		// 	return openai.ToolMessage(content, id), nil
 		// case "developer":
@@ -153,7 +157,7 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 				// TODO this is a hack and seems to work for non text parts
 				// investigate this may fail for multi tool calls unless this is the last
 				params.Messages = append(params.Messages, openai.ToolMessage(fmt.Sprintf("%s\nThe file content is included as data URL in the user message.", out.Message), toolCall.ID))
-				params.Messages = append(params.Messages, openai.UserMessage(toContentPart(out)))
+				params.Messages = append(params.Messages, openai.UserMessage(toContentPart(out.MimeType, []byte(out.Value))))
 			} else {
 				params.Messages = append(params.Messages, openai.ToolMessage(out.Value, toolCall.ID))
 			}
@@ -163,41 +167,50 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	return resp, nil
 }
 
-func toContentPart(out *api.Result) []openai.ChatCompletionContentPartUnionParam {
-	// https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
-	// data:[<media-type>][;base64],<data>
-	dataURL := func(mime, raw string) string {
-		encoded := base64.StdEncoding.EncodeToString([]byte(raw))
-		d := fmt.Sprintf("data:%s;base64,%s", mime, encoded)
-		return d
-	}
+// https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
+// data:[<media-type>][;base64],<data>
+func dataURL(mime string, raw []byte) string {
+	encoded := base64.StdEncoding.EncodeToString(raw)
+	d := fmt.Sprintf("data:%s;base64,%s", mime, encoded)
+	return d
+}
 
+func toContentPart(mimeType string, raw []byte) []openai.ChatCompletionContentPartUnionParam {
 	// https://mimesniff.spec.whatwg.org/
 	switch {
-	case strings.HasPrefix(out.MimeType, "text/"):
+	case strings.HasPrefix(mimeType, "text/"):
 		return []openai.ChatCompletionContentPartUnionParam{
-			openai.TextContentPart(out.Value),
+			openai.TextContentPart(string(raw)),
 		}
-	case strings.HasPrefix(out.MimeType, "image/"):
+	case strings.HasPrefix(mimeType, "image/"):
 		return []openai.ChatCompletionContentPartUnionParam{
 			openai.ImageContentPart(openai.ChatCompletionContentPartImageImageURLParam{
-				URL: dataURL(out.MimeType, out.Value),
+				URL: dataURL(mimeType, raw),
 			}),
 		}
-	case strings.HasPrefix(out.MimeType, "audio/"):
+	case strings.HasPrefix(mimeType, "audio/"):
 		return []openai.ChatCompletionContentPartUnionParam{
 			openai.InputAudioContentPart(openai.ChatCompletionContentPartInputAudioInputAudioParam{
-				Data: dataURL(out.MimeType, out.Value),
+				Data: dataURL(mimeType, raw),
 			}),
 		}
 	default:
 		return []openai.ChatCompletionContentPartUnionParam{
 			openai.FileContentPart(openai.ChatCompletionContentPartFileFileParam{
-				FileData: param.NewOpt(dataURL(out.MimeType, out.Value)),
+				FileData: param.NewOpt(dataURL(mimeType, raw)),
 			}),
 		}
 	}
 }
+
+// func NewContentPart(filePath string) ([]openai.ChatCompletionContentPartUnionParam, error) {
+// 	raw, err := os.ReadFile(filePath)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	mimeType := http.DetectContentType(raw)
+// 	return toContentPart(mimeType, raw), nil
+// }
 
 func generateImage(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	messages := make([]string, 0)

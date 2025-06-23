@@ -90,7 +90,7 @@ func parseUserInput(line string, prefix string) (*api.UserInput, error) {
 	log.Debugf("parseUserInput: %q\nprefix: %q\n", line, prefix)
 
 	// re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(prefix) + `\s*ai\s+(.*)`)
-	re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(prefix) + `\s*(?i:(?:todo))\s+(.*)`)
+	re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(prefix) + `\s*(?i:(?:todo))(?:\s+(.*))?$`)
 
 	matches := re.FindStringSubmatch(line)
 	if matches == nil {
@@ -99,7 +99,7 @@ func parseUserInput(line string, prefix string) (*api.UserInput, error) {
 
 	line = strings.TrimSpace(matches[1])
 	if len(line) == 0 {
-		return nil, fmt.Errorf("empty line after processing")
+		return &api.UserInput{}, nil
 	}
 
 	if line[0] == '@' {

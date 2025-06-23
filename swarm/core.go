@@ -178,8 +178,8 @@ type maxLogHandler struct {
 func (h *maxLogHandler) Serve(r *api.Request, w *api.Response) error {
 
 	log.Debugf("req: %+v\n", r)
-	if r.Message != nil {
-		log.Debugf("%s %s\n", r.Message.Role, clip(r.Message.Content, h.max))
+	if len(r.Messages) > 0 {
+		log.Debugf("%s %s\n", r.Messages[0].Role, clip(r.Messages[0].Content, h.max))
 	}
 
 	err := h.next.Serve(r, w)

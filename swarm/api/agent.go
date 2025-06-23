@@ -147,7 +147,7 @@ type Request struct {
 	Agent   string
 	Command string
 
-	Message *Message
+	Messages []*Message
 
 	RawInput *UserInput
 
@@ -218,7 +218,7 @@ func (r *Request) Clone(ctx context.Context) *Request {
 	*r2 = *r
 	r2.ctx = ctx
 	r2.Agent = r.Agent
-	r2.Message = r.Message
+	r2.Messages = r.Messages
 	r2.RawInput = r.RawInput
 
 	return r2

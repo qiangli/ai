@@ -24,6 +24,11 @@ func WatchClipboard(cfg *api.AppConfig) error {
 		return strings.HasPrefix(s, marker)
 	}
 
+	isReset := func(s string) bool {
+		re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(trigger) + `\s*(?i:(?:reset))\s*`)
+		return re.MatchString(s)
+	}
+
 	isOn := func(s string) bool {
 		re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(trigger) + `\s*(?i:(?:on))\s*`)
 		return re.MatchString(s)
@@ -34,9 +39,18 @@ func WatchClipboard(cfg *api.AppConfig) error {
 		return re.MatchString(s)
 	}
 
-	re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(trigger) + `\s*(?i:(?:todo))\s+.*`)
 	isTodo := func(s string) bool {
+		re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(trigger) + `\s*(?i:(?:todo))\s*`)
 		return re.MatchString(s)
+	}
+
+	readLine := func(s string) string {
+		for i := 0; i < len(s); i++ {
+			if s[i] == '\n' {
+				return s[:i]
+			}
+		}
+		return s
 	}
 
 	//
@@ -52,32 +66,36 @@ func WatchClipboard(cfg *api.AppConfig) error {
 		var in *api.UserInput
 		var pb []string
 		for {
-			log.Promptf("Watching %v...\n", watching)
+			log.Promptf("Watching %v [%v]...\n", watching, len(pb))
+			time.Sleep(interval)
+
 			v, err := clipboard.Read()
 			if err != nil {
 				return nil, err
 			}
 
-			line := clipText(v, 100)
+			line := readLine(v)
 
 			// skip and retain the content if it is a response
 			if isMarker(line) {
-				time.Sleep(interval)
 				continue
 			}
 
-			//
-			if err := clipboard.Clear(); err != nil {
-				return nil, err
+			if isReset(line) {
+				pb = []string{}
+				clipboard.Clear()
+				continue
 			}
 
 			if isOff(line) {
 				watching = false
+				clipboard.Clear()
 				continue
 			}
 
 			if isOn(line) {
 				watching = true
+				clipboard.Clear()
 				continue
 			}
 
@@ -86,7 +104,10 @@ func WatchClipboard(cfg *api.AppConfig) error {
 				continue
 			}
 
-			log.Infof("\n%s\n\n", line)
+			log.Infof("%s\n\n", line)
+
+			// new prompt or content
+			clipboard.Clear()
 
 			// embedded request
 			if isTodo(line) {

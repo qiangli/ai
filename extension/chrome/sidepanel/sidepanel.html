@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Side Panel</title>
+  <link rel="stylesheet" type="text/css" href="sidepanel.css" />
+</head>
+
+<body>
+  <div>
+    <input type="input" id="input-selector" placeholder='.class #id tag' name="selector" value=".copy-protection" />
+    <textarea id="input-content" placeholder='' cols="30" rows="16">
+    </textarea>
+    <button id="button-get-content" class="primary">Get</button>
+    <button id="button-copy-content" class="primary">Copy</button>
+    <button id="button-clear-content" class="secondary">Clear</button>
+  </div>
+  <div>
+    <p>
+      <img id="screenshot-img" src="white.png" height="100" style="border: black solid 1px" />
+    </p>
+    <button id="button-screenshot">Take Screenshot</button>
+  </div>
+  <div>
+    <textarea id="input-prompt" placeholder='Enter here...' cols="30" rows="5">
+      ###
+      Complete the following code per the question.
+      ###
+      // code
+    </textarea>
+    <button id="button-copy-prompt" class="primary">Copy</button>
+    <button id="button-clear-prompt" class="secondary">Clear</button>
+  </div>
+  <hr />
+  <div>
+    <button id="button-go" class="primary">Go</button>
+    <button id="button-get" class="primary">Get</button>
+    <br />
+    <button id="button-reset" class="secondary">Reset</button>
+    <button id="button-on" class="secondary">On</button>
+    <button id="button-off" class="secondary">Off</button>
+  </div>
+  <div id="response" class="text" hidden></div>
+  <div id="loading" class="text" hidden><span class="blink">...</span></div>
+  <div id="error" class="text" hidden></div>
+
+  <script src="sidepanel.js"></script>
+  <script src="clipboard.js"></script>
+  <script src="screenshot.js"></script>
+</body>
+
+</html>

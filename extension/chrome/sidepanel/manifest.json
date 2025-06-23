@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Side Panel",
+  "version": "1.0",
+  "description": "Show side panel",
+  "icons": {
+    "16": "images/icon16.png",
+    "32": "images/icon32.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "action": {
+    "default_title": "Click to open panel"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "permissions": [
+    "activeTab",
+    "clipboardRead",
+    "clipboardWrite",
+    "scripting",
+    "sidePanel",
+    "tabs"
+  ],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+B",
+        "mac": "Command+B"
+      }
+    }
+  },
+  "host_permissions": [
+    "<all_urls>"
+  ]
+}

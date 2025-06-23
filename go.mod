@@ -9,7 +9,7 @@ require (
 	github.com/BourgeoisBear/rasterm v1.1.1
 	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/alecthomas/chroma/v2 v2.18.0
-	github.com/alecthomas/kong v1.11.0
+	github.com/alecthomas/kong v1.12.0
 	github.com/alexflint/go-arg v1.5.1
 	github.com/anthropics/anthropic-sdk-go v1.4.0
 	github.com/antonmedv/clipboard v1.0.1
@@ -20,31 +20,33 @@ require (
 	github.com/charmbracelet/bubbles v0.21.0
 	github.com/charmbracelet/bubbletea v1.3.5
 	github.com/charmbracelet/glamour v0.10.0
-	github.com/charmbracelet/gum v0.16.1
+	github.com/charmbracelet/gum v0.16.2
 	github.com/charmbracelet/lipgloss v1.1.1-0.20250404203927-76690c660834
-	github.com/charmbracelet/x/ansi v0.9.2
+	github.com/charmbracelet/x/ansi v0.9.3
 	github.com/charmbracelet/x/editor v0.1.0
+	github.com/charmbracelet/x/exp/slice v0.0.0-20250623112707-45752038d08d
 	github.com/charmbracelet/x/term v0.2.1
 	github.com/creack/pty v1.1.24
-	github.com/docker/docker v28.2.2+incompatible
+	github.com/docker/docker v28.3.0+incompatible
 	github.com/expr-lang/expr v1.17.5
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gen2brain/beeep v0.11.1
 	github.com/getkin/kin-openapi v0.132.0
-	github.com/go-git/go-git/v5 v5.16.1
+	github.com/go-git/go-git/v5 v5.16.2
 	github.com/gocolly/colly v1.2.0
 	github.com/gofrs/flock v0.12.1
 	github.com/google/uuid v1.6.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/kaptinlin/jsonrepair v0.1.1
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lib/pq v1.10.9
-	github.com/mark3labs/mcp-go v0.31.0
+	github.com/mark3labs/mcp-go v0.32.0
 	github.com/mattn/go-isatty v0.0.20
 	github.com/mattn/go-runewidth v0.0.16
 	github.com/mattn/go-shellwords v1.0.12
 	github.com/muesli/termenv v0.16.0
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-	github.com/openai/openai-go v1.3.0
+	github.com/openai/openai-go v1.7.0
 	github.com/sahilm/fuzzy v0.1.1
 	github.com/shirou/gopsutil/v4 v4.25.5
 	github.com/spf13/cobra v1.9.1
@@ -56,11 +58,11 @@ require (
 	github.com/zyedidia/micro/v2 v2.0.14
 	golang.org/x/term v0.32.0
 	golang.org/x/text v0.26.0
-	google.golang.org/api v0.236.0
-	google.golang.org/genai v1.10.0
+	google.golang.org/api v0.238.0
+	google.golang.org/genai v1.12.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v3 v3.0.1
-	modernc.org/sqlite v1.37.1
+	modernc.org/sqlite v1.38.0
 )
 
 require (
@@ -82,7 +84,6 @@ require (
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/charmbracelet/colorprofile v0.3.1 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.13 // indirect
-	github.com/charmbracelet/x/exp/slice v0.0.0-20250603201427-c31516f43444 // indirect
 	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
@@ -108,7 +109,7 @@ require (
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-openapi/jsonpointer v0.21.1 // indirect
 	github.com/go-openapi/swag v0.23.1 // indirect
-	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -119,7 +120,6 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
 	github.com/googleapis/gax-go/v2 v2.14.2 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
-	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackmordaunt/icns/v3 v3.0.1 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
@@ -194,7 +194,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.36.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.39.0 // indirect
-	golang.org/x/exp v0.0.0-20250606033433-dcc06ee1d476 // indirect
+	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b // indirect
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sync v0.15.0 // indirect
@@ -208,7 +208,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gotest.tools/v3 v3.5.1 // indirect
 	layeh.com/gopher-luar v1.0.11 // indirect
-	modernc.org/libc v1.65.10 // indirect
+	modernc.org/libc v1.66.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 )

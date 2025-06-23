@@ -50,6 +50,7 @@ func TestParseUserInput(t *testing.T) {
 		{">todo @ask what is fish?", ">", "ask", "", "what is fish?"},
 		{"# todo what is fish?", "#", "", "", "what is fish?"},
 		{"# todo /bash what is fish?", "#", "script", "/bash", "what is fish?"},
+		{"#todo", "#", "", "", ""},
 	}
 
 	for _, test := range tests {

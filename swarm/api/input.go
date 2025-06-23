@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 
@@ -72,6 +73,27 @@ func (r *UserInput) FileContent() (string, error) {
 		}
 	}
 	return b.String(), nil
+}
+
+func (r *UserInput) FileMessages() ([]*Message, error) {
+	var messages []*Message
+
+	if len(r.Files) > 0 {
+		for _, f := range r.Files {
+			raw, err := os.ReadFile(f)
+			if err != nil {
+				return nil, err
+
+			}
+			mimeType := http.DetectContentType(raw)
+			messages = append(messages, &Message{
+				ContentType: mimeType,
+				Content:     string(raw),
+				Role:        RoleUser,
+			})
+		}
+	}
+	return messages, nil
 }
 
 // Intent returns a clipped version of the query.

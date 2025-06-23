@@ -41,11 +41,11 @@ func userInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ api.Ad
 	if err != nil {
 		return err
 	}
-	req.Message = &api.Message{
+	req.Messages = []*api.Message{&api.Message{
 		Role:    api.RoleUser,
 		Content: content,
 		Sender:  req.Agent,
-	}
+	}}
 
 	return nil
 }
@@ -70,11 +70,11 @@ func scriptUserInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ 
 	if err != nil {
 		return err
 	}
-	req.Message = &api.Message{
+	req.Messages = []*api.Message{&api.Message{
 		Role:    api.RoleUser,
 		Content: content,
 		Sender:  req.Agent,
-	}
+	}}
 
 	return nil
 }
@@ -97,11 +97,11 @@ func prUserInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ api.
 	if err != nil {
 		return err
 	}
-	req.Message = &api.Message{
+	req.Messages = []*api.Message{&api.Message{
 		Role:    api.RoleUser,
 		Content: content,
 		Sender:  req.Agent,
-	}
+	}}
 
 	return nil
 }
@@ -311,12 +311,16 @@ func resolveWorkspaceAdvice(vars *api.Vars, req *api.Request, resp *api.Response
 		return err
 	}
 
-	msg := &api.Message{
+	// msg := &api.Message{
+	// 	Role:    api.RoleUser,
+	// 	Content: query,
+	// 	Sender:  req.Agent,
+	// }
+	req.Messages = []*api.Message{&api.Message{
 		Role:    api.RoleUser,
 		Content: query,
 		Sender:  req.Agent,
-	}
-	req.Message = msg
+	}}
 	if err := next(vars, req, resp, next); err != nil {
 		return err
 	}
