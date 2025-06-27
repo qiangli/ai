@@ -88,8 +88,12 @@ type AppConfig struct {
 	Interactive bool
 	Editing     bool
 	Shell       string
-	Watch       bool
-	ClipWatch   bool
+
+	Watch     bool
+	ClipWatch bool
+
+	Hub        bool
+	HubAddress string
 
 	// MetaPrompt  bool
 

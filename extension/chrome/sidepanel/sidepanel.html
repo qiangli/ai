@@ -8,40 +8,29 @@
 
 <body>
   <div>
-    <input type="input" id="input-selector" placeholder='.class #id tag' name="selector" value=".copy-protection" />
-    <textarea id="input-content" placeholder='' cols="30" rows="16">
-    </textarea>
-    <button id="button-get-content" class="primary">Get</button>
-    <button id="button-copy-content" class="primary">Copy</button>
-    <button id="button-clear-content" class="secondary">Clear</button>
+    <button id="toggle-hub">
+      <img id="hub-icon" src="images/socket-inactive.png" alt="Hub Status" 
+        style="vertical-align:middle; width:20px; height:20px; margin-right:0px;">
+    </button>
+    Toggle hub service
   </div>
   <div>
-    <p>
-      <img id="screenshot-img" src="white.png" height="100" style="border: black solid 1px" />
+    <p id="screenshot" hidden>
+      <img id="screenshot-img" src="images/white.png" height="180" style="border: black solid 1px; width: 100%;" />
     </p>
-    <button id="button-screenshot">Take Screenshot</button>
+    <input type="input" id="input-selector" placeholder='.class #id tag' name="selector" value=".copy-protection" />
+    <button id="button-get-content" class="primary" title="Get page text content">Get</button><button id="button-screenshot" title="Take screenshot"><img src="images/camera.png" style="height: 12px;"/></button>
   </div>
   <div>
-    <textarea id="input-prompt" placeholder='Enter here...' cols="30" rows="5">
-      ###
-      Complete the following code per the question.
-      ###
-      // code
+    <textarea id="input-prompt" placeholder='Enter instructions here...' cols="30" rows="5">
     </textarea>
-    <button id="button-copy-prompt" class="primary">Copy</button>
-    <button id="button-clear-prompt" class="secondary">Clear</button>
+    <button id="button-send" class="primary">Send</button>
+    <button id="button-copy" class="secondary" hidden>Copy</button>
+    <button id="button-reset" class="secondary">Reset</button>
   </div>
   <hr />
-  <div>
-    <button id="button-go" class="primary">Go</button>
-    <button id="button-get" class="primary">Get</button>
-    <br />
-    <button id="button-reset" class="secondary">Reset</button>
-    <button id="button-on" class="secondary">On</button>
-    <button id="button-off" class="secondary">Off</button>
-  </div>
-  <div id="response" class="text" hidden></div>
-  <div id="loading" class="text" hidden><span class="blink">...</span></div>
+  <pre id="response" class="text" hidden></pre>
+  <div id="loading" class="text" hidden><span class="blink">......</span></div>
   <div id="error" class="text" hidden></div>
 
   <script src="sidepanel.js"></script>

@@ -1,0 +1,87 @@
+
+chrome.sidePanel
+    .setPanelBehavior({ openPanelOnActionClick: true })
+    .catch((error) => console.error(error));
+
+
+chrome.action.onClicked.addListener(async () => {
+    console.log("web socket", webSocket)
+    if (webSocket) {
+        disconnect();
+    } else {
+        connect();
+        keepAlive();
+    }
+});
+
+
+// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+ 
+//   // ... handle other message types ...
+// });
+
+
+// const wsUrl = 'ws://localhost:58080/hub';
+// let ws;
+
+// function connectWebSocket() {
+//   ws = new WebSocket(wsUrl);
+
+//   ws.onopen = () => {
+//     console.log('WebSocket connected');
+//   };
+
+//   ws.onmessage = async (event) => {
+//     console.log('WebSocket message received:', event.data);
+//     if (event.data === 'take_screenshot') {
+//       await captureScreenshot();
+//     }
+//   };
+
+//   ws.onclose = () => {
+//     console.log('WebSocket disconnected, retrying in 5 seconds...');
+//     setTimeout(connectWebSocket, 5000);
+//   };
+
+//   ws.onerror = (error) => {
+//     console.error('WebSocket error:', error);
+//     ws.close();
+//   };
+// }
+
+// async function captureScreenshot() {
+//   try {
+//     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+//     if (tabs.length === 0) return;
+
+//     const tab = tabs[0];
+//     const imageUri = await chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' });
+
+//     // Convert data URL to Blob                                                               
+//     const response = await fetch(imageUri);
+//     const blob = await response.blob();
+
+//     const formData = new FormData();
+//     formData.append('file', blob, 'screenshot.png');
+
+//     // POST to your HTTP endpoint                                                             
+//     const uploadUrl = 'http://localhost/upload';
+
+//     const uploadResponse = await fetch(uploadUrl, {
+//       method: 'POST',
+//       body: formData,
+//     });
+
+//     if (uploadResponse.ok) {
+//       console.log('Upload successful');
+//     } else {
+//       console.error('Upload failed', uploadResponse.statusText);
+//     }
+
+//   } catch (error) {
+//     console.error('Error capturing or uploading screenshot:', error);
+//   }
+// }
+
+// // Start WebSocket connection                                                                 
+// connectWebSocket();

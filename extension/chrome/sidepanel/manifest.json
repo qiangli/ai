@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Side Panel",
-  "version": "1.0",
-  "description": "Show side panel",
+  "name": "AI Side Panel",
+  "version": "1.0.0",
+  "description": "A helpful AI assistant that works on your local host, ssh servers, docker instances, kubernetes pods...",
   "icons": {
     "16": "images/icon16.png",
     "32": "images/icon32.png",
@@ -10,10 +10,11 @@
     "128": "images/icon128.png"
   },
   "background": {
-    "service_worker": "service-worker.js"
+    "service_worker": "service-worker.js",
+    "type": "module"
   },
   "action": {
-    "default_title": "Click to open panel"
+    "default_title": "Click to open side panel"
   },
   "side_panel": {
     "default_path": "sidepanel.html"

@@ -299,8 +299,11 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.String("shell", os.Getenv("SHELL"), "Shell to use for interactive mode")
 
 	flags.StringP("workspace", "w", "", "Workspace directory")
+	// TODO
 	flags.Bool("watch", false, "Watch the workspace directory and respond to embedded ai requests in files")
 	flags.Bool("pb-watch", false, "Watch system clipboard and respond to embedded ai requests. Copy output to clipboard")
+	flags.Bool("hub", false, "Start hub services")
+	flags.String("hub-address", "localhost:58080", "Hub service host:port")
 
 	flags.MarkHidden("workspace")
 	flags.MarkHidden("watch")

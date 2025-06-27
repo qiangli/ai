@@ -99,11 +99,12 @@ func showInput(cfg *api.AppConfig, input *api.UserInput) {
 }
 
 func processOutput(cfg *api.AppConfig, message *api.Output) {
-	if message.ContentType == api.ContentTypeText || message.ContentType == "" {
+	switch message.ContentType {
+	case api.ContentTypeText, "":
 		processTextContent(cfg, message)
-	} else if message.ContentType == api.ContentTypeB64JSON {
+	case api.ContentTypeB64JSON:
 		processImageContent(cfg, message)
-	} else {
+	default:
 		log.Debugf("Unsupported content type: %s\n", message.ContentType)
 	}
 }

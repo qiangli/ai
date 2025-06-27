@@ -1,11 +1,10 @@
-package server
+package hub
 
 import (
 	"encoding/json"
 	"net/http"
 	"time"
 
-	"github.com/charmbracelet/x/exp/slice"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 
@@ -23,7 +22,7 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 
 	// Maximum message size allowed from peer.
-	maxMessageSize = 512
+	maxMessageSize = 1024 * 1024 * 20
 )
 
 // upgrader upgrades HTTP connections to WebSocket
@@ -62,10 +61,6 @@ func (c *Client) readPump() {
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 
-	isValid := func(s string) bool {
-		return slice.ContainsAny([]string{"broadcast", "private", "register", "unregister"}, s)
-	}
-
 	genId := func() string {
 		return uuid.New().String()
 	}
@@ -80,6 +75,7 @@ func (c *Client) readPump() {
 
 	for {
 		msgType, data, err := c.conn.ReadMessage()
+		log.Debugf("readPump msgType: %v err: %v\n", msgType, err)
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Errorf("error: %v", err)
@@ -88,20 +84,24 @@ func (c *Client) readPump() {
 		}
 
 		if msgType != websocket.TextMessage {
-			log.Debugf("message type: %v", msgType)
+			log.Debugf("message type: %v\n", msgType)
 			continue
 		}
 
 		var msg Message
 		if err := json.Unmarshal(data, &msg); err != nil {
-			log.Errorf("unmarshal:", err)
+			log.Errorf("unmarshal: %v\n", err)
 			continue
 		}
+
+		//
+		if msg.Type == "heartbeat" {
+			log.Debugf("heartbeat %s\n", c.ID)
+			continue
+		}
+
 		if msg.Type == "" {
 			msg.Type = "broadcast"
-		}
-		if !isValid(msg.Type) {
-			continue
 		}
 
 		msg.Timestamp = time.Now()
@@ -110,7 +110,7 @@ func (c *Client) readPump() {
 		if msg.Type == "register" {
 			if c.ID != "" {
 				// ignore
-				log.Debugf("already registered")
+				log.Debugf("already registered\n")
 				continue
 			}
 			register(msg.Sender)
@@ -119,7 +119,7 @@ func (c *Client) readPump() {
 
 		// optional
 		if msg.Type == "unregister" {
-			log.Debugf("unregister received")
+			log.Debugf("unregister received\n")
 			break
 		}
 
@@ -160,7 +160,7 @@ func (c *Client) writePump() {
 
 			data, err := json.Marshal(msg)
 			if err != nil {
-				log.Errorf("marshal %v", err)
+				log.Errorf("marshal %v\n", err)
 				continue
 			}
 
@@ -172,7 +172,7 @@ func (c *Client) writePump() {
 				if msg, ok := <-c.msg; ok {
 					data, err := json.Marshal(msg)
 					if err != nil {
-						log.Errorf("marshal %v", err)
+						log.Errorf("marshal %v\n", err)
 						continue
 					}
 					w.Write(data)
@@ -193,6 +193,7 @@ func (c *Client) writePump() {
 
 // serveWs handles websocket requests from the peer.
 func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
+	log.Debugf("serveWs remoteAddr: %v\n", r.RemoteAddr)
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)

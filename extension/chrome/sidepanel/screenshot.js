@@ -1,6 +1,11 @@
+// console.log("screenshot.js")
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'displayScreenshot' && message.imageUri) {
-    document.getElementById("screenshot-img").src = message.imageUri;
-  }
-});
+const screenshotImageId = "screenshot-img"
+
+function setScreenshotUrl(imageUri) {
+    document.getElementById(screenshotImageId).src = imageUri;
+}
+
+function getScreenshotUrl() {
+    return document.getElementById(screenshotImageId).src;
+}

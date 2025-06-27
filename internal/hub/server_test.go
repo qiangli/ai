@@ -1,7 +1,9 @@
-package server
+package hub
 
 import (
 	"testing"
+
+	"github.com/qiangli/ai/swarm/api"
 )
 
 func TestServer(t *testing.T) {
@@ -9,7 +11,10 @@ func TestServer(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	StartServer("localhost:58080")
+	cfg := &api.AppConfig{
+		HubAddress: "localhost:58080",
+	}
+	StartServer(cfg)
 }
 
 func TestSendMessage(t *testing.T) {
@@ -17,7 +22,7 @@ func TestSendMessage(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	const wsUrl = "ws://localhost:58080/ws"
+	const wsUrl = "ws://localhost:58080/hub"
 
 	tests := []struct {
 		messages []string

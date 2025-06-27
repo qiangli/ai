@@ -5,13 +5,40 @@
 	"version": "0.2.0",
 	"configurations": [
 		// go test -c -o bin/test  ./internal/db
+		// {
+		// 	"name": "TestGetByVector",
+		// 	"type": "go",
+		// 	"request": "launch",
+		// 	"mode": "exec",
+		// 	"program": "./bin/test",
+		// 	"args": ["-test.run", "^TestGetByVector$"],
+		// },
 		{
-			"name": "TestGetByVector",
+			"name": "Hub",
 			"type": "go",
 			"request": "launch",
-			"mode": "exec",
-			"program": "./bin/test",
-			"args": ["-test.run", "^TestGetByVector$"],
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/",
+			"env": {
+				// "AI_MODEL": "gpt-4o-mini",
+				// "AI_API_KEY": "${env:OPENAI_API_KEY}",
+				// "AI_BASE_URL": "http://localhost:4000",
+				// "AI_L2_MODEL": "gpt-4.1",
+				"AI_API_KEY": "${env:OPENAI_API_KEY}",
+				"AI_BASE_URL": "https://api.openai.com/v1/",
+				"AI_DEBUG": "true",
+			},
+			"args": [
+				"--verbose",
+				"--agent",
+				"swe",
+				"--l2-model",
+				"openai/gpt-4.1",
+				"--new",
+				"--hub"
+			],
+			"showLog": false,
+			"stopOnEntry": false
 		},
 		{
 			"name": "Code",

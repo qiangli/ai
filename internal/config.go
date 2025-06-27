@@ -407,8 +407,11 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.Editor = viper.GetString("editor")
 	app.Editing = viper.GetBool("edit")
 	app.Interactive = viper.GetBool("interactive")
+
 	app.Watch = viper.GetBool("watch")
 	app.ClipWatch = viper.GetBool("pb_watch")
+	app.Hub = viper.GetBool("hub")
+	app.HubAddress = viper.GetString("hub_address")
 
 	shell := viper.GetString("shell")
 	if shell == "" {

@@ -15,6 +15,7 @@ import (
 
 	"github.com/qiangli/ai/agent"
 	"github.com/qiangli/ai/bubble"
+	"github.com/qiangli/ai/internal/hub"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/watch"
 	"github.com/qiangli/ai/shell"
@@ -91,6 +92,12 @@ func Run(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Debugf("Initialized variables: %+v\n", vars)
+
+	// hub service
+	if cfg.Hub {
+		hub.StartServer(cfg)
+		return nil
+	}
 
 	// watch mode
 	if cfg.Watch {

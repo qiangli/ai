@@ -40,6 +40,9 @@ type UserInput struct {
 	Files []string `json:"files"`
 
 	Extra map[string]any `json:"extra"`
+
+	// cached file contents
+	Messages []*Message `json:"-"`
 }
 
 func (r *UserInput) IsEmpty() bool {
@@ -76,6 +79,10 @@ func (r *UserInput) FileContent() (string, error) {
 }
 
 func (r *UserInput) FileMessages() ([]*Message, error) {
+	if len(r.Messages) > 0 {
+		return r.Messages, nil
+	}
+
 	var messages []*Message
 
 	if len(r.Files) > 0 {
@@ -93,6 +100,7 @@ func (r *UserInput) FileMessages() ([]*Message, error) {
 			})
 		}
 	}
+	r.Messages = messages
 	return messages, nil
 }
 

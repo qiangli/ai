@@ -1,3 +1,5 @@
+// console.log("clipboard.js")
+
 // Write to clipboard
 async function writeToClipboard(text) {
     try {
