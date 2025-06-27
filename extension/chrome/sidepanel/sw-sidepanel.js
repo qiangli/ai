@@ -17,7 +17,7 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
                 sendResponse({ success: true, data: imageUri });
             }).catch((error) => {
                 console.error('Error capturing screenshot:', error);
-                sendResponse({ error: error.message });
+                sendResponse({ error: error });
             });
         }).catch((error) => {
             sendResponse({ error: error.message });

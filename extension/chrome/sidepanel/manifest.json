@@ -19,6 +19,16 @@
   "side_panel": {
     "default_path": "sidepanel.html"
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content-script.js"
+      ]
+    }
+  ],
   "permissions": [
     "activeTab",
     "clipboardRead",

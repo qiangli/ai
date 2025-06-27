@@ -172,12 +172,12 @@ func addAgentFlags(cmd *cobra.Command) {
 	// mainly when stdin is not desirable or possible
 	// e.g. for testing or in vscode debug mode
 	flags.String("message", "", "Specify input message. Skip stdin")
-	flags.String("content", "", "Specify input content. Skip stdin")
+	// flags.String("content", "", "Specify input content. Skip stdin")
 
 	flags.MarkHidden("message")
-	flags.MarkHidden("content")
+	// flags.MarkHidden("content")
+	// flags.String("input", "", "Read input message from a file")
 
-	flags.String("input", "", "Read input message from a file")
 	flags.VarP(newFilesValue([]string{}, &internal.InputFiles), "file", "", `Read file inputs.  May be given multiple times.`)
 
 	// TODO
@@ -190,17 +190,17 @@ func addAgentFlags(cmd *cobra.Command) {
 	// workspace.md
 	// flags.String("image", "", "Path to input image file")
 
-	flags.Bool("stdin", false, "Read input from stdin or '-'")
+	flags.Bool("stdin", false, "Read input from stdin. '-'")
 
-	flags.Bool("pb-read", false, "Read input from clipboard or '{'")
-	flags.Bool("pb-read-wait", false, "Read input from clipboard and wait or '{{'")
+	flags.Bool("pb-read", false, "Read input from clipboard. '{'")
+	flags.Bool("pb-tail", false, "Read input from clipboard and wait. '{{'")
 
 	flags.MarkHidden("file")
 
 	// output
 	flags.StringVar(&internal.OutputFlag, "output", "", "Save final response to a file.")
-	flags.Bool("pb-write", false, "Copy output to clipboard or '}'")
-	flags.Bool("pb-write-append", false, "Append output to clipboard or '}}'")
+	flags.Bool("pb-write", false, "Copy output to clipboard. '}'")
+	flags.Bool("pb-append", false, "Append output to clipboard. '}}'")
 
 	flags.Var(newOutputValue("markdown", &internal.FormatFlag), "format", "Output format: raw, text, json, or markdown.")
 
@@ -281,7 +281,7 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	//
 	flags.String("role", "system", "Specify a role for the prompt")
-	flags.String("prompt", "", "Provide instructions for the role")
+	flags.String("prompt", "", "Specify context instruction")
 
 	flags.BoolVar(&internal.DryRun, "dry-run", false, "Enable dry run mode. No API call will be made")
 	flags.StringVar(&internal.DryRunContent, "dry-run-content", "", "Content returned for dry run")
@@ -299,11 +299,16 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.String("shell", os.Getenv("SHELL"), "Shell to use for interactive mode")
 
 	flags.StringP("workspace", "w", "", "Workspace directory")
+
 	// TODO
 	flags.Bool("watch", false, "Watch the workspace directory and respond to embedded ai requests in files")
 	flags.Bool("pb-watch", false, "Watch system clipboard and respond to embedded ai requests. Copy output to clipboard")
+
 	flags.Bool("hub", false, "Start hub services")
 	flags.String("hub-address", "localhost:58080", "Hub service host:port")
+
+	// special inputs
+	flags.Bool("screenshot", false, "Take screenshot of the active tab in Chrome")
 
 	flags.MarkHidden("workspace")
 	flags.MarkHidden("watch")

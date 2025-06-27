@@ -1,9 +1,5 @@
 // console.log('sidepanel.js');
 
-// document.getElementById('toggle-hub').onclick = () => {
-//     chrome.runtime.sendMessage({ action: "toggle-hub" });
-// }
-
 function setHubIcon(active) {
     const icon = document.getElementById('hub-icon');
     icon.src = active ? 'images/socket-active.png' : 'images/socket-inactive.png';
@@ -42,42 +38,54 @@ const elementResponse = document.body.querySelector('#response');
 const elementLoading = document.body.querySelector('#loading');
 const elementError = document.body.querySelector('#error');
 
-// extract page content from selector
 buttonGetContent.addEventListener('click', async () => {
     try {
         const value = inputSelector.value;
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        const [{ result: textArray }] = await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            func: (selector) => {
-                function getTexts(doc) {
-                    let result = [];
-                    try {
-                        // Get matching elements in this doc
-                        result = Array.from(doc.querySelectorAll(selector))
-                            .map(node => node.innerText)
-                            .filter(Boolean);
-                        // Recursively check iframes (same-origin only)
-                        for (const iframe of Array.from(doc.querySelectorAll('iframe'))) {
-                            try {
-                                if (iframe.contentDocument) {
-                                    result = result.concat(getTexts(iframe.contentDocument));
-                                }
-                            } catch (e) {
-                                // Cross-origin, skip
-                            }
-                        }
-                    } catch (err) {
-                        // doc might not be accessible, skip
-                    }
-                    return result;
-                }
-                return getTexts(document);
-            },
-            args: [value]
-        });
 
-        const content = textArray.join('\n');
+        let content;
+
+        if (!value) {
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                files: ["content-script.js"]
+            });
+            const response = await chrome.tabs.sendMessage(tab.id, { action: 'get-selection' });
+            content = response?.text ?? "";
+        } else {
+            const [{ result: textArray }] = await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: (selector) => {
+                    function getTexts(doc) {
+                        let result = [];
+                        try {
+                            // Get matching elements in this doc
+                            result = Array.from(doc.querySelectorAll(selector))
+                                .map(node => node.innerText)
+                                .filter(Boolean);
+                            // Recursively check iframes (same-origin only)
+                            for (const iframe of Array.from(doc.querySelectorAll('iframe'))) {
+                                try {
+                                    if (iframe.contentDocument) {
+                                        result = result.concat(getTexts(iframe.contentDocument));
+                                    }
+                                } catch (e) {
+                                    // Cross-origin, skip
+                                }
+                            }
+                        } catch (err) {
+                            // doc might not be accessible, skip
+                        }
+                        return result;
+                    }
+                    return getTexts(document);
+                },
+                args: [value]
+            });
+
+            content = textArray.join('\n');
+        }
+
         if (inputPrompt.value != "") {
             inputPrompt.value = inputPrompt.value + "\n" + content;
         } else {
@@ -89,7 +97,12 @@ buttonGetContent.addEventListener('click', async () => {
 });
 
 buttonScreenshot.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: 'capture-screenshot' }, async (response) => {
+    chrome.runtime.sendMessage({ action: 'capture-screenshot' }, (response) => {
+        if (chrome.runtime.lastError) {
+            console.error(chrome.runtime.lastError.message);
+            showError(chrome.runtime.lastError.message);
+            return;
+        }
         if (response && response.success) {
             show(screenshot);
             setScreenshotUrl(response.data);
@@ -136,7 +149,7 @@ buttonSend.addEventListener('click', () => {
             // wait for real response
             showLoading()
         } else {
-            console.error("WebSocket send error:", response && response.error);
+            console.error("Websocket send error:", response && response.error);
             if (response.error) {
                 showError(response.error);
             }
@@ -166,13 +179,10 @@ chrome.runtime.onMessage.addListener((response) => {
         console.log("handle-message", response)
 
         if (response.data) {
-            try {
-                data = JSON.parse(response.data);
-                showResponse(data.payload);
-            } catch (e) {
-                console.error('Failed to parse payload:', e);
-                showError(e)
-            }
+            showResponse(response.data.payload);
+        }
+        if (response.error) {
+            showError(error)
         }
     }
 });

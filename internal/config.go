@@ -3,7 +3,6 @@ package internal
 import (
 	"embed"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -111,9 +110,9 @@ func parseSpecialChars(app *api.AppConfig, args []string) []string {
 	// special char sequence handling
 	var stdin = viper.GetBool("stdin")
 	var pbRead = viper.GetBool("pb_read")
-	var pbReadWait = viper.GetBool("pb_read_wait")
+	var pbReadWait = viper.GetBool("pb_tail")
 	var pbWrite = viper.GetBool("pb_write")
-	var pbWriteAppend = viper.GetBool("pb_write_append")
+	var pbWriteAppend = viper.GetBool("pb_append")
 	var isStdin, isClipin, isClipWait, isClipout, isClipAppend bool
 
 	newArgs := make([]string, len(args))
@@ -216,19 +215,24 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.Output = OutputFlag
 	app.ConfigFile = viper.ConfigFileUsed()
 
+	//
 	app.Message = viper.GetString("message")
-	app.Content = viper.GetString("content")
+
+	// app.Content = viper.GetString("content")
 	// read input file if message is empty
-	inputFile := viper.GetString("input")
-	if inputFile != "" && app.Message == "" {
-		b, err := os.ReadFile(inputFile)
-		if err != nil {
-			return nil, errors.New("failed to read input file")
-		} else {
-			app.Message = string(b)
-		}
-	}
+	// inputFile := viper.GetString("input")
+	// if inputFile != "" && app.Message == "" {
+	// 	b, err := os.ReadFile(inputFile)
+	// 	if err != nil {
+	// 		return nil, errors.New("failed to read input file")
+	// 	} else {
+	// 		app.Message = string(b)
+	// 	}
+	// }
+
 	app.Template = TemplateFile
+
+	app.Screenshot = viper.GetBool("screenshot")
 
 	//
 	home, err := homeDir()
@@ -410,6 +414,7 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 
 	app.Watch = viper.GetBool("watch")
 	app.ClipWatch = viper.GetBool("pb_watch")
+
 	app.Hub = viper.GetBool("hub")
 	app.HubAddress = viper.GetString("hub_address")
 

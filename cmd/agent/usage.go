@@ -67,7 +67,7 @@ eof
 
   ai @agent [message...] --pb-read
   ai @agent [message...] {
-  ai @agent [message...] --pb-read-wait
+  ai @agent [message...] --pb-tail
   ai @agent [message...] {{
 
 Use system copy (Ctrl+C on Unix) to add selected contents.

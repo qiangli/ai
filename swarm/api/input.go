@@ -32,9 +32,11 @@ type UserInput struct {
 
 	// query - command line args
 	Message string `json:"message"`
-	// query - stdin/editor
+
+	// query - clipboard/stdin/editor
 	Content string `json:"content"`
 
+	// TODO deprecate
 	Template string `json:"template"`
 
 	Files []string `json:"files"`
@@ -45,10 +47,12 @@ type UserInput struct {
 	Messages []*Message `json:"-"`
 }
 
+// No user input.
 func (r *UserInput) IsEmpty() bool {
 	return r.Message == "" && r.Content == "" && len(r.Files) == 0
 }
 
+// Text input from command line args, clipboard, stdin, or editor
 func (r *UserInput) Query() string {
 	switch {
 	case r.Message == "" && r.Content == "":

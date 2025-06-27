@@ -42,7 +42,7 @@ function connect() {
 
     webSocket.onmessage = (event) => {
         console.log("onmessage", event.data);
-        chrome.runtime.sendMessage({ action: 'handle-message', data: event.data });
+        dispatchMessage(event);
     };
 
     webSocket.onclose = () => {
@@ -52,7 +52,7 @@ function connect() {
     };
 
     webSocket.onerror = (e) => {
-        console.error('WebSocket error:', e);
+        console.error('Websocket error:', e);
         // Attempt cleanup on error
         cleanup();
     };
@@ -91,20 +91,67 @@ function cleanup() {
         keepAliveIntervalId = null;
     }
     // chrome.action.setIcon({ path: 'images/socket-inactive.png' });
-    console.log('WebSocket cleaned up/disconnected.');
+    console.log('Websocket cleaned up/disconnected.');
+}
+
+function dispatchMessage(event) {
+    try {
+        const message = JSON.parse(event.data);
+        switch (message.action) {
+            case 'screenshot':
+                captureScreenshot(message);
+                break;
+            default:
+                chrome.runtime.sendMessage({ action: 'handle-message', data: message });
+        }
+    } catch (e) {
+        console.error('Failed to parse payload:', e);
+        chrome.runtime.sendMessage({ action: 'handle-message', error: e });
+    }
+}
+
+function captureScreenshot(request) {
+    let msg = {
+        type: "response",
+        reference: request.id,
+        sender: "chrome",
+        recipient: request.sender,
+        code: "",
+        payload: ""
+    };
+
+    chrome.runtime.sendMessage({ action: 'capture-screenshot' }, (response) => {
+        if (chrome.runtime.lastError) {
+            console.error('Screenshot capture error:', chrome.runtime.lastError.message);
+            msg.code = "500";
+            msg.payload = chrome.runtime.lastError.message;
+        } else if (response && response.success) {
+            msg.code = "200";
+            msg.payload = response.data; // base64 image url
+        } else {
+            console.error('Screenshot capture failed', response);
+            msg.code = "500";
+            msg.payload = response && response.error ? response.error : "Unknown error";
+        }
+        try {
+            webSocket.send(JSON.stringify(msg));
+        } catch (e) {
+            console.error("webSocket.send error:", e);
+        }
+    });
 }
 
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     if (message.action === 'send-message') {
         try {
             if (!webSocket) {
-                throw new Error('WebSocket connection not established');
+                throw new Error('Websocket connection not established');
             }
             const data = JSON.stringify(message.data)
             webSocket.send(data);
             sendResponse({ success: true });
         } catch (error) {
-            console.error('Failed to send message over WebSocket:', error);
+            console.error('Failed to send message over Websocket:', error);
             sendResponse({ error: error.message });
         }
         return true;

@@ -123,6 +123,8 @@ func (c *Client) readPump() {
 			break
 		}
 
+		// TODO there is a data race here
+		// message may be processed before the client is auto registered
 		if c.ID == "" {
 			// auto register
 			register(msg.Sender)

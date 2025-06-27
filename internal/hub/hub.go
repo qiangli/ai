@@ -7,9 +7,14 @@ import (
 	"time"
 
 	"github.com/qiangli/ai/agent"
+	hubapi "github.com/qiangli/ai/internal/hub/api"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
 )
+
+type Message = hubapi.Message
+type Payload = hubapi.Payload
+type ContentPart = hubapi.ContentPart
 
 // Hub maintains the set of active clients and broadcasts messages to the
 // clients.
@@ -70,7 +75,7 @@ func (h *Hub) run() {
 			switch msg.Type {
 			case "broadcast":
 				h.broadcastMessage(msg)
-			case "private":
+			case "private", "request", "response":
 				h.sendPrivateMessage(msg)
 			case "hub":
 				h.respond(msg)
@@ -83,7 +88,7 @@ func (h *Hub) run() {
 
 // broadcastMessage sends msg to all clients except the sender
 func (h *Hub) broadcastMessage(msg *Message) {
-	log.Debugf("broadcastMessage ID: %s sender: %s recipient: %s\n", msg.ID, msg.Sender, msg.Recipient)
+	log.Debugf("broadcastMessage %s\n", msg)
 
 	sender := msg.Sender
 	for id, client := range h.clients {
@@ -102,7 +107,7 @@ func (h *Hub) broadcastMessage(msg *Message) {
 
 // sendPrivateMessage delivers msg to the specified recipient
 func (h *Hub) sendPrivateMessage(msg *Message) {
-	log.Debugf("sendPrivateMessage ID: %s sender: %s recipient: %s\n", msg.ID, msg.Sender, msg.Recipient)
+	log.Debugf("sendPrivateMessage %s\n", msg)
 
 	if client, ok := h.clients[msg.Recipient]; ok {
 		select {
@@ -115,7 +120,7 @@ func (h *Hub) sendPrivateMessage(msg *Message) {
 }
 
 func (h *Hub) respond(req *Message) {
-	log.Debugf("hub respond ID: %s sender: %s recipient: %s\n", req.ID, req.Sender, req.Recipient)
+	log.Debugf("hub respond %s\n", req)
 
 	if client, ok := h.clients[req.Sender]; ok {
 		// process message

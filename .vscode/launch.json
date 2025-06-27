@@ -41,6 +41,30 @@
 			"stopOnEntry": false
 		},
 		{
+			"name": "Screenshot",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/",
+			"env": {
+				"AI_MODEL": "gpt-4o-mini",
+				"AI_API_KEY": "${env:OPENAI_API_KEY}",
+				// "AI_BASE_URL": "http://localhost:4000",
+				// "AI_MODEL": "claude-3-5-haiku-latest",
+				// "AI_API_KEY": "${env:ANTHROPIC_API_KEY}",
+				"AI_DEBUG": "true",
+			},
+			"args": [
+				"--verbose=true",
+				"@ask",
+				"--screenshot",
+				"--message",
+				"Give the final anwser for problem"
+			],
+			"showLog": false,
+			"stopOnEntry": false
+		},
+		{
 			"name": "Code",
 			"type": "go",
 			"request": "launch",
@@ -81,8 +105,10 @@
 				"/mcp",
 				"--verbose",
 				"--log=/tmp/work/mcp.log",
-				"--port", "58888",
-				"--host", "localhost",
+				"--port",
+				"58888",
+				"--host",
+				"localhost",
 				"serve"
 			],
 			"showLog": false,
@@ -135,7 +161,8 @@
 			"args": [
 				"--dry-run",
 				"--verbose",
-				"--config", "/tmp/work/config.yaml",
+				"--config",
+				"/tmp/work/config.yaml",
 				"/",
 				"what",
 				"is",
@@ -384,8 +411,10 @@
 			"args": [
 				"--verbose",
 				"@eval",
-				"--role", "system",
-				"--role-prompt", "you are a coding assistant. you solve all problems in python.",
+				"--role",
+				"system",
+				"--role-prompt",
+				"you are a coding assistant. you solve all problems in python.",
 				"--message",
 				"find all occurances of VFS in the current project"
 				// "What is the current time in New York?",
@@ -504,9 +533,12 @@
 			"args": [
 				"--verbose",
 				"@doc",
-				"--template", "/tmp/work/template.md",
-				"--file", "/tmp/work/sample.txt",
-				"--log", "/tmp/work/log.txt",
+				"--template",
+				"/tmp/work/template.md",
+				"--file",
+				"/tmp/work/sample.txt",
+				"--log",
+				"/tmp/work/log.txt",
 				"--message",
 				"please help write per the template",
 			],

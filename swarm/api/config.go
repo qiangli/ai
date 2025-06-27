@@ -22,6 +22,7 @@ type AppConfig struct {
 	Git    *GitConfig
 	DBCred *DBCred
 
+	// system
 	Role   string
 	Prompt string
 
@@ -30,8 +31,14 @@ type AppConfig struct {
 	Args    []string
 
 	// --message takes precedence, skip stdin
+	// command line arguments
 	Message string
-	Content string
+
+	// // message from clipboard, stdin, and editor
+	// Content string
+
+	// // input file
+	// Input string
 
 	// editor binary and args. e.g vim [options]
 	Editor string
@@ -47,6 +54,9 @@ type AppConfig struct {
 
 	Files []string
 
+	// Treated as file
+	Screenshot bool
+
 	// MCP server
 	McpServerRoot string
 	McpServers    map[string]*McpServerConfig
@@ -54,7 +64,7 @@ type AppConfig struct {
 	// Output format: raw or markdown
 	Format string
 
-	// Save output to file
+	// output file for saving response
 	Output string
 
 	Me string

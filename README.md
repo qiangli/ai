@@ -126,7 +126,7 @@ eof
 
   ai @agent [message...] --pb-read
   ai @agent [message...] {
-  ai @agent [message...] --pb-read-wait
+  ai @agent [message...] --pb-tail
   ai @agent [message...] {{
 
 Use system copy (Ctrl+C on Unix) to add selected contents.
@@ -165,19 +165,19 @@ Options:
       --model string         LLM default model
   -n, --new                  Start a new converston
       --output string        Save final response to a file.
-      --pb-read              Read input from clipboard or '{'
-      --pb-read-wait         Read input from clipboard and wait or '{{'
-      --pb-write             Copy output to clipboard or '}'
-      --pb-write-append      Append output to clipboard or '}}'
+      --pb-read              Read input from clipboard. '{'
+      --pb-tail              Read input from clipboard and wait. '{{'
+      --pb-write             Copy output to clipboard. '}'
+      --pb-append            Append output to clipboard. '}}'
       --quiet                Operate quietly. Only show final response
       --shell string         Shell to use for interactive mode (default "/bin/bash")
-      --stdin                Read input from stdin or '-'
+      --stdin                Read input from stdin. '-'
       --unsafe               Skip command security check to allow unsafe operations. Use with caution
       --verbose              Show progress and debugging information
   -v, --version              version for ai
 
 Environment variables:
-  AI_AGENT, AI_ALLOW, AI_API_KEY, AI_BASE_URL, AI_CONFIG, AI_CONTENT, AI_DENY, AI_DRY_RUN, AI_DRY_RUN_CONTENT, AI_EDIT, AI_EDITOR, AI_FILE, AI_FORMAT, AI_HELP, AI_HOST, AI_IMAGE_API_KEY, AI_IMAGE_BASE_URL, AI_IMAGE_MODEL, AI_IMAGE_VIEWER, AI_INPUT, AI_INTERACTIVE, AI_INTERNAL, AI_L1_API_KEY, AI_L1_BASE_URL, AI_L1_MODEL, AI_L2_API_KEY, AI_L2_BASE_URL, AI_L2_MODEL, AI_L3_API_KEY, AI_L3_BASE_URL, AI_L3_MODEL, AI_LOG, AI_MAX_HISTORY, AI_MAX_SPAN, AI_MAX_TIME, AI_MAX_TURNS, AI_MCP_SERVER_URL, AI_MESSAGE, AI_MODEL, AI_NEW, AI_OUTPUT, AI_PB_READ, AI_PB_READ_WAIT, AI_PB_WRITE, AI_PB_WRITE_APPEND, AI_PORT, AI_QUIET, AI_ROLE, AI_ROLE_PROMPT, AI_SHELL, AI_SQL_DB_HOST, AI_SQL_DB_NAME, AI_SQL_DB_PASSWORD, AI_SQL_DB_PORT, AI_SQL_DB_USERNAME, AI_STDIN, AI_TEMPLATE, AI_UNSAFE, AI_VERBOSE, AI_VERSION, AI_WATCH, AI_WORKSPACE
+  AI_AGENT, AI_ALLOW, AI_API_KEY, AI_BASE_URL, AI_CONFIG, AI_CONTENT, AI_DENY, AI_DRY_RUN, AI_DRY_RUN_CONTENT, AI_EDIT, AI_EDITOR, AI_FILE, AI_FORMAT, AI_HELP, AI_HOST, AI_IMAGE_API_KEY, AI_IMAGE_BASE_URL, AI_IMAGE_MODEL, AI_IMAGE_VIEWER, AI_INPUT, AI_INTERACTIVE, AI_INTERNAL, AI_L1_API_KEY, AI_L1_BASE_URL, AI_L1_MODEL, AI_L2_API_KEY, AI_L2_BASE_URL, AI_L2_MODEL, AI_L3_API_KEY, AI_L3_BASE_URL, AI_L3_MODEL, AI_LOG, AI_MAX_HISTORY, AI_MAX_SPAN, AI_MAX_TIME, AI_MAX_TURNS, AI_MCP_SERVER_URL, AI_MESSAGE, AI_MODEL, AI_NEW, AI_OUTPUT, AI_PB_READ, AI_PB_TAIL, AI_PB_WRITE, AI_PB_APPEND, AI_PORT, AI_QUIET, AI_ROLE, AI_ROLE_PROMPT, AI_SHELL, AI_SQL_DB_HOST, AI_SQL_DB_NAME, AI_SQL_DB_PASSWORD, AI_SQL_DB_PORT, AI_SQL_DB_USERNAME, AI_STDIN, AI_TEMPLATE, AI_UNSAFE, AI_VERBOSE, AI_VERSION, AI_WATCH, AI_WORKSPACE
 
 Use "ai /help [agents|commands|tools|info]" for more information.
 ```
