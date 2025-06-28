@@ -43,6 +43,15 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 
 	showInput(cfg, input)
 
+	// take screenshot
+	if cfg.Screenshot {
+		if img, err := takeScreenshot(cfg); err != nil {
+			return err
+		} else {
+			input.Files = append(input.Files, img)
+		}
+	}
+
 	req := &api.Request{
 		Agent:    name,
 		Command:  command,

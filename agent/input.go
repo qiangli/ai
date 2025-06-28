@@ -45,15 +45,6 @@ func GetUserInput(cfg *api.AppConfig) (*api.UserInput, error) {
 }
 
 func getUserInput(cfg *api.AppConfig, stdin io.Reader, clipper api.ClipboardProvider, editor api.EditorProvider) (*api.UserInput, error) {
-	// take screenshot
-	if cfg.Screenshot {
-		if img, err := takeScreenshot(cfg); err != nil {
-			return nil, err
-		} else {
-			cfg.Files = append(cfg.Files, img)
-		}
-	}
-
 	if cfg.Message != "" {
 		input := &api.UserInput{
 			Message: cfg.Message,

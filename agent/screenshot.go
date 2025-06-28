@@ -2,18 +2,21 @@ package agent
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 
 	hubapi "github.com/qiangli/ai/internal/hub/api"
+	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
 )
 
@@ -22,23 +25,33 @@ type Payload = hubapi.Payload
 type ContentPart = hubapi.ContentPart
 
 func takeScreenshot(cfg *api.AppConfig) (string, error) {
-	hubUrl, err := getHubUrl(cfg.HubAddress)
-	if err != nil {
-		return "", err
-	}
+	log.Infof("⣿ taking screenshot: %s\n", cfg.HubAddress)
 
-	const filePerm = 0644
-	data, err := requestScreenshot(hubUrl)
-	if err != nil {
-		return "", err
-	}
 	imgFile := filepath.Join(cfg.Temp, "screenshot.png")
 
-	err = os.WriteFile(imgFile, data, filePerm)
+	screenshot := func() error {
+		hubUrl, err := getHubUrl(cfg.HubAddress)
+		if err != nil {
+			return err
+		}
+
+		data, err := requestScreenshot(hubUrl)
+		if err != nil {
+			return err
+		}
+
+		const filePerm = 0644
+		return os.WriteFile(imgFile, data, filePerm)
+	}
+
+	err := screenshot()
+
 	if err != nil {
+		log.Errorf("\033[31m✗\033[0m %s\n", err)
 		return "", err
 	}
 
+	log.Infof("✔ %s \n", imgFile)
 	return imgFile, nil
 }
 
@@ -110,13 +123,11 @@ func requestScreenshot(wsUrl string) ([]byte, error) {
 	}
 
 	// wait for response
+	const maxWait = 30
 	resultCh := make(chan []byte)
 	errorCh := make(chan error)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(maxWait)*time.Second)
 	defer cancel()
-
-	defer close(resultCh)
-	defer close(errorCh)
 
 	go func() {
 		for {
@@ -135,7 +146,16 @@ func requestScreenshot(wsUrl string) ([]byte, error) {
 			}
 			if resp.Reference == id {
 				if resp.Code == "200" {
-					resultCh <- []byte(resp.Payload)
+					base64data := resp.Payload
+					if commaIdx := strings.Index(base64data, ","); commaIdx != -1 {
+						base64data = base64data[commaIdx+1:]
+					}
+					decoded, err := base64.StdEncoding.DecodeString(base64data)
+					if err != nil {
+						errorCh <- err
+					} else {
+						resultCh <- decoded
+					}
 				} else {
 					errorCh <- fmt.Errorf("failed to take screenshot %s", resp.Payload)
 				}

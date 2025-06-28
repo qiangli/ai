@@ -28,7 +28,7 @@ type Message struct {
 	// reqeust/response
 	Payload string `json:"payload"`
 
-	Timestamp time.Time `json:"timestamp"`
+	Timestamp *time.Time `json:"timestamp"`
 }
 
 func (r *Message) String() string {

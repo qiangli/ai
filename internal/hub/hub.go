@@ -58,12 +58,14 @@ func (h *Hub) run() {
 		select {
 		case client := <-h.register:
 			h.clients[client.ID] = client
+			now := time.Now()
 			msg := &Message{
 				Type:      "response",
 				Sender:    "hub",
 				Recipient: client.ID,
-				Payload:   "200 registration successful",
-				Timestamp: time.Now(),
+				Code:      "200",
+				Payload:   "registration successful",
+				Timestamp: &now,
 			}
 			h.sendPrivateMessage(msg)
 		case client := <-h.unregister:
@@ -124,11 +126,12 @@ func (h *Hub) respond(req *Message) {
 
 	if client, ok := h.clients[req.Sender]; ok {
 		// process message
+		now := time.Now()
 		resp := &Message{
 			Type:      "response",
 			Sender:    "hub",
 			Recipient: client.ID,
-			Timestamp: time.Now(),
+			Timestamp: &now,
 		}
 		if req.Recipient == "ai" {
 			resp.Payload = h.ai(req.Payload)
@@ -181,7 +184,7 @@ func (h *Hub) ai(data string) string {
 	// run
 	cfg.Format = "text"
 	if err := agent.RunSwarm(cfg, in); err != nil {
-		log.Errorf("Error running agent: %s\n", err)
+		log.Errorf("error running agent: %s\n", err)
 		return err.Error()
 	}
 

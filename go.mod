@@ -45,7 +45,7 @@ require (
 	github.com/mattn/go-shellwords v1.0.12
 	github.com/muesli/termenv v0.16.0
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-	github.com/openai/openai-go v1.7.0
+	github.com/openai/openai-go v1.8.2
 	github.com/sahilm/fuzzy v0.1.1
 	github.com/shirou/gopsutil/v4 v4.25.5
 	github.com/spf13/cobra v1.9.1
@@ -58,7 +58,7 @@ require (
 	golang.org/x/term v0.32.0
 	golang.org/x/text v0.26.0
 	google.golang.org/api v0.239.0
-	google.golang.org/genai v1.12.0
+	google.golang.org/genai v1.13.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.38.0
@@ -83,7 +83,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/charmbracelet/colorprofile v0.3.1 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.13 // indirect
-	github.com/charmbracelet/x/exp/slice v0.0.0-20250623112707-45752038d08d // indirect
+	github.com/charmbracelet/x/exp/slice v0.0.0-20250627134340-c144409e381c // indirect
 	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect

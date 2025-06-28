@@ -174,15 +174,27 @@ buttonReset.addEventListener('click', () => {
     elementError.textContent = '';
 });
 
-chrome.runtime.onMessage.addListener((response) => {
-    if (response.action === 'handle-message') {
-        console.log("handle-message", response)
+chrome.runtime.onMessage.addListener((message) => {
+    if (message.action === 'handle-message') {
+        console.log("handle-message", message)
 
-        if (response.data) {
-            showResponse(response.data.payload);
+        // message
+        if (message.data) {
+            showResponse(`${message.data.code} ${message.data.payload}`);
         }
-        if (response.error) {
-            showError(error)
+        if (message.error) {
+            showError(message.error)
+        }
+    }
+
+    if (message.action === 'handle-socket') {
+        console.log("handle-socket", message)
+
+        setHubIcon(message.active);
+        hide(elementError);
+
+        if (message.error) {
+            showError(message.error)
         }
     }
 });
@@ -195,6 +207,7 @@ function showLoading() {
 
 function showResponse(response) {
     hide(elementLoading);
+    hide(elementError);
     show(elementResponse);
 
     // Make sure to preserve line breaks in the response

@@ -22,7 +22,7 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 
 	// Maximum message size allowed from peer.
-	maxMessageSize = 1024 * 1024 * 20
+	maxMessageSize = 1024 * 1024 * 10
 )
 
 // upgrader upgrades HTTP connections to WebSocket
@@ -57,7 +57,7 @@ func (c *Client) readPump() {
 		}
 		c.conn.Close()
 	}()
-	c.conn.SetReadLimit(maxMessageSize)
+	// c.conn.SetReadLimit(maxMessageSize)
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 
@@ -103,8 +103,10 @@ func (c *Client) readPump() {
 		if msg.Type == "" {
 			msg.Type = "broadcast"
 		}
-
-		msg.Timestamp = time.Now()
+		if msg.Timestamp == nil {
+			now := time.Now()
+			msg.Timestamp = &now
+		}
 
 		// required
 		if msg.Type == "register" {

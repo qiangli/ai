@@ -9,7 +9,7 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
         chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
             if (tabs.length === 0) {
                 sendResponse({ error: 'No active tab' });
-                return;
+                return true;
             }
             const tab = tabs[0];
             chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' }).then((imageUri) => {
