@@ -139,6 +139,8 @@ function dispatchMessage(event) {
             case 'screenshot':
                 captureScreenshot(message);
                 break;
+            case 'voice':
+                captureVoice(message);
             default:
                 chrome.runtime.sendMessage({ action: 'handle-message', data: message });
         }
@@ -165,6 +167,17 @@ function captureScreenshot(request) {
     }).catch((error) => {
         console.error('error querying tabs:', error);
         sendWebsocketResponse(request, "500", error.message);
+    });
+}
+
+function captureVoice(request) {
+    chrome.runtime.sendMessage({ action: 'transcribe-voice' }, (response) => {
+        console.log("response", response)
+        if (response.data) {
+            sendWebsocketResponse(request, "200", response.data);
+        } else {
+            sendWebsocketResponse(request, "500", response.error);
+        }
     });
 }
 
