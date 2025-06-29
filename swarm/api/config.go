@@ -57,6 +57,9 @@ type AppConfig struct {
 	// Treated as file
 	Screenshot bool
 
+	// Treated as input text
+	Voice bool
+
 	// MCP server
 	McpServerRoot string
 	McpServers    map[string]*McpServerConfig
@@ -220,8 +223,12 @@ func (r *AppConfig) IsClipin() bool {
 	return r.Clipin
 }
 
+func (r *AppConfig) IsMedia() bool {
+	return r.Screenshot || r.Voice
+}
+
 func (r *AppConfig) IsSpecial() bool {
-	return r.IsStdin() || r.IsClipin()
+	return r.IsStdin() || r.IsClipin() || r.IsMedia()
 }
 
 func (r *AppConfig) HasInput() bool {

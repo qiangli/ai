@@ -25,7 +25,7 @@ type Payload = hubapi.Payload
 type ContentPart = hubapi.ContentPart
 
 func takeScreenshot(cfg *api.AppConfig) (string, error) {
-	log.Infof("⣿ taking screenshot: %s\n", cfg.HubAddress)
+	log.Debugf("⣿ taking screenshot: %s\n", cfg.HubAddress)
 
 	imgFile := filepath.Join(cfg.Temp, "screenshot.png")
 
@@ -121,6 +121,9 @@ func requestScreenshot(wsUrl string) ([]byte, error) {
 	if err := send(screenshot); err != nil {
 		return nil, err
 	}
+
+	//
+	log.Infof("📸 Taking screenshot...\n")
 
 	// wait for response
 	const maxWait = 30

@@ -197,6 +197,10 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	flags.MarkHidden("file")
 
+	// special inputs
+	flags.Bool("screenshot", false, "Take screenshot of the active tab in Chrome (CRX)")
+	flags.Bool("voice", false, "Transcribe voice using speech recognition in Chrome (CRX)")
+
 	// output
 	flags.StringVar(&internal.OutputFlag, "output", "", "Save final response to a file.")
 	flags.Bool("pb-write", false, "Copy output to clipboard. '}'")
@@ -306,9 +310,6 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	flags.Bool("hub", false, "Start hub services")
 	flags.String("hub-address", "localhost:58080", "Hub service host:port")
-
-	// special inputs
-	flags.Bool("screenshot", false, "Take screenshot of the active tab in Chrome")
 
 	flags.MarkHidden("workspace")
 	flags.MarkHidden("watch")

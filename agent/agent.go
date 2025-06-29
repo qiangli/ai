@@ -16,6 +16,7 @@ func RunAgent(cfg *api.AppConfig) error {
 	if err != nil {
 		return err
 	}
+
 	if in.IsEmpty() {
 		return internal.NewUserInputError("no query provided")
 	}
@@ -42,15 +43,6 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	vars.UserInput = input
 
 	showInput(cfg, input)
-
-	// take screenshot
-	if cfg.Screenshot {
-		if img, err := takeScreenshot(cfg); err != nil {
-			return err
-		} else {
-			input.Files = append(input.Files, img)
-		}
-	}
 
 	req := &api.Request{
 		Agent:    name,

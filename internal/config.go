@@ -233,6 +233,7 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.Template = TemplateFile
 
 	app.Screenshot = viper.GetBool("screenshot")
+	app.Voice = viper.GetBool("voice")
 
 	//
 	home, err := homeDir()
