@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Tray</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background: #ffffff;
+    color: #333333;
+  }
+  #app {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    box-sizing: border-box;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  h1 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+  }
+  .controls {
+    display: flex;
+    gap: 8px;
+  }
+  button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    color: #555555;
+    user-select: none;
+  }
+  button:hover {
+    color: #000000;
+  }
+  #screenshot {
+    margin-top: 24px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    max-width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+  }
+</style>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>AI Tray</h1>
+      <div class="controls">
+        <button id="pin-btn" title="Pin/Unpin to tray">📌</button>
+        <button id="close-btn" title="Close">✖</button>
+      </div>
+    </header>
+    <button id="capture-btn">Take Screenshot</button>
+    <img id="screenshot" alt="Screenshot preview" />
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    const pinBtn = document.getElementById('pin-btn');
+    const closeBtn = document.getElementById('close-btn');
+    const captureBtn = document.getElementById('capture-btn');
+    const screenshotImg = document.getElementById('screenshot');
+
+    pinBtn.addEventListener('click', () => {
+      ipcRenderer.send('toggle-pin');
+    });
+
+    closeBtn.addEventListener('click', () => {
+      ipcRenderer.send('close-window');
+    });
+
+    captureBtn.addEventListener('click', async () => {
+      const dataUrl = await ipcRenderer.invoke('take-screenshot');
+      screenshotImg.src = dataUrl;
+      screenshotImg.alt = 'Desktop screenshot captured image';
+    });
+
+    ipcRenderer.on('pin-status', (_, pinned) => {
+      if (pinned) {
+        pinBtn.style.color = '#000000';
+        pinBtn.title = 'Unpin from tray';
+      } else {
+        pinBtn.style.color = '#555555';
+        pinBtn.title = 'Pin to tray';
+      }
+    });
+
+    // Initialize pin button state
+    pinBtn.style.color = '#000000';
+    pinBtn.title = 'Unpin from tray';
+  </script>
+</body>
+</html>
