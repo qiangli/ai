@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === "tab-switched") {
+    if (message.action === "tab-switched") {
         const url = message.url || '';
         updateSelector(url);
     }
@@ -31,18 +31,7 @@ function updateSelector(url) {
     if (!url) {
         return
     }
-
-    const selectorMap = {
-        'testdome.com': '.copy-protection',
-    };
-
-    let selectorValue = "body";
-    for (const domain in selectorMap) {
-        if (url.includes(domain)) {
-            selectorValue = selectorMap[domain];
-            break;
-        }
-    }
+    const selectorValue = getDefaultSelector(url, "body");
     document.getElementById('input-selector').value = selectorValue;
 }
 
@@ -51,7 +40,6 @@ document.getElementById('toggle-hub').addEventListener('click', () => {
         if (response && typeof response.active === "boolean") {
             setHubIcon(response.active);
         }
-        // If necessary, handle cases where response is missing or malformed.
     });
 });
 
@@ -72,19 +60,20 @@ const elementError = document.body.querySelector('#error');
 
 buttonGetContent.addEventListener('click', async () => {
     try {
-        const value = inputSelector.value;
+        const value = inputSelector.value || 'body';
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
         let content;
 
-        if (!value) {
-            await chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                files: ["content-script.js"]
-            });
-            const response = await chrome.tabs.sendMessage(tab.id, { action: 'get-selection' });
-            content = response?.text ?? "";
-        } else {
+        // check if any selected text
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ["content-script.js"]
+        });
+        const response = await chrome.tabs.sendMessage(tab.id, { action: 'get-selection' });
+        content = response?.text ?? "";
+
+        if (!content) {
             const [{ result: textArray }] = await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
                 func: (selector) => {
@@ -202,7 +191,8 @@ buttonReset.addEventListener('click', () => {
     hide(elementLoading);
 
     setScreenshotUrl("");
-    inputSelector.value = '';
+    // reset to default?
+    // inputSelector.value = '';
     inputPrompt.value = '';
     elementResponse.textContent = '';
     elementError.textContent = '';
@@ -252,12 +242,4 @@ function showError(error) {
     hide(elementResponse);
     hide(elementLoading);
     elementError.textContent = error;
-}
-
-function show(element) {
-    element.removeAttribute('hidden');
-}
-
-function hide(element) {
-    element.setAttribute('hidden', '');
 }

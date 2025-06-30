@@ -29,7 +29,7 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
     const tab = await chrome.tabs.get(activeInfo.tabId);
     chrome.runtime.sendMessage({
-        type: "tab-switched",
+        action: "tab-switched",
         url: tab.url
     });
 });
@@ -37,7 +37,7 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === "complete" && tab.active) {
         chrome.runtime.sendMessage({
-            type: "tab-switched",
+            action: "tab-switched",
             url: tab.url
         });
     }

@@ -1,7 +1,27 @@
 // console.log('sw-websocket.js')
+// TODO 
+// import './shared.js';
 
-// ... existing headers ...
+// default selectors for the domain
+const selectorMap = {
+    'leetcode.com': '[data-track-load="description_content"]',
+    'codeforces.com': '.problem-statement',
+    'codechef.com': '#problem-statement',
+    'geeksforgeeks.org': '.problems_problem_content__Xm_eO',
+    'interviewbit.com': '.p-statement',
+    'testdome.com': '.copy-protection',
+};
 
+function getDefaultSelector(url, val) {
+    for (const domain in selectorMap) {
+        if (url.includes(domain)) {
+            return selectorMap[domain];
+        }
+    }
+    return val;
+}
+
+//
 const TEN_SECONDS_MS = 10 * 1000;
 const INITIAL_BACKOFF = 3000;      // start at 3s
 const MAX_BACKOFF = 60 * 1000;     // max 1 minute
@@ -139,8 +159,12 @@ function dispatchMessage(event) {
             case 'screenshot':
                 captureScreenshot(message);
                 break;
+            case 'get-selection':
+                getSelection(message);
+                break;
             case 'voice':
                 captureVoice(message);
+                break;
             default:
                 chrome.runtime.sendMessage({ action: 'handle-message', data: message });
         }
@@ -170,6 +194,68 @@ function captureScreenshot(request) {
     });
 }
 
+async function getSelection(request) {
+    try {
+        let value = request.payload;
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+        let content;
+
+        if (!value) {
+            const url = tab?.url || '';
+            value = getDefaultSelector(url, 'body')
+        }
+
+        // check if any selected text
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ["content-script.js"]
+        });
+        const response = await chrome.tabs.sendMessage(tab.id, { action: 'get-selection' });
+        content = response?.text ?? "";
+
+        if (!content) {
+            const [{ result: textArray }] = await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: (selector) => {
+                    function getTexts(doc) {
+                        let result = [];
+                        try {
+                            // Get matching elements in this doc
+                            result = Array.from(doc.querySelectorAll(selector))
+                                .map(node => node.innerText)
+                                .filter(Boolean);
+                            // Recursively check iframes (same-origin only)
+                            for (const iframe of Array.from(doc.querySelectorAll('iframe'))) {
+                                try {
+                                    if (iframe.contentDocument) {
+                                        result = result.concat(getTexts(iframe.contentDocument));
+                                    }
+                                } catch (e) {
+                                    // Cross-origin, skip
+                                }
+                            }
+                        } catch (err) {
+                            // doc might not be accessible, skip
+                        }
+                        return result;
+                    }
+                    return getTexts(document);
+                },
+                args: [value]
+            });
+
+            content = textArray.join('\n');
+        }
+
+        console.log("selection", content);
+        sendWebsocketResponse(request, "200", content);
+    } catch (e) {
+        console.error('error getting text selection:', e);
+        sendWebsocketResponse(request, "500", e.message);
+    }
+}
+
 function captureVoice(request) {
     chrome.runtime.sendMessage({ action: 'transcribe-voice' }, (response) => {
         console.log("response", response)
@@ -192,7 +278,7 @@ function sendWebsocketResponse(request, code, payload) {
                 code: code,
                 payload: payload,
             }));
-            console.log("screenshot sent");
+            console.log("message sent");
         } else {
             throw new Error('Websocket connection not established');
         }

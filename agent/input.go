@@ -15,12 +15,6 @@ import (
 
 const clipMaxLen = 500
 
-// type ClipboardProvider = util.ClipboardProvider
-
-// type EditorProvider interface {
-// 	Launch() (string, error)
-// }
-
 type Editor struct {
 	editor string
 }
