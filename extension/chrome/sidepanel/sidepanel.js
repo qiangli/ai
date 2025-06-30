@@ -12,7 +12,39 @@ document.addEventListener('DOMContentLoaded', () => {
             setHubIcon(response.active);
         }
     });
+
+    // init selector
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+        const url = tabs[0]?.url || '';
+        updateSelector(url);
+    });
 });
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === "tab-switched") {
+        const url = message.url || '';
+        updateSelector(url);
+    }
+});
+
+function updateSelector(url) {
+    if (!url) {
+        return
+    }
+
+    const selectorMap = {
+        'testdome.com': '.copy-protection',
+    };
+
+    let selectorValue = "body";
+    for (const domain in selectorMap) {
+        if (url.includes(domain)) {
+            selectorValue = selectorMap[domain];
+            break;
+        }
+    }
+    document.getElementById('input-selector').value = selectorValue;
+}
 
 document.getElementById('toggle-hub').addEventListener('click', () => {
     chrome.runtime.sendMessage({ action: "toggle-hub" }, function (response) {
@@ -123,7 +155,7 @@ buttonSend.addEventListener('click', () => {
     const prompt = inputPrompt.value.trim();
 
     const parts = [];
-    if (imageUrl) {
+    if (imageUrl && imageUrl.startsWith("data:")) {
         parts.push({
             contentType: "image/png",
             content: imageUrl,
@@ -165,11 +197,13 @@ buttonCopy.addEventListener('click', () => {
 
 buttonReset.addEventListener('click', () => {
     hide(screenshot)
-    inputPrompt.value = '';
-    //
     hide(elementError);
     hide(elementResponse);
     hide(elementLoading);
+
+    setScreenshotUrl("");
+    inputSelector.value = '';
+    inputPrompt.value = '';
     elementResponse.textContent = '';
     elementError.textContent = '';
 });
@@ -210,19 +244,7 @@ function showResponse(response) {
     hide(elementError);
     show(elementResponse);
 
-    // Make sure to preserve line breaks in the response
-    elementResponse.textContent = response;
-    // const paragraphs = response.split(/\r?\n/);
-    // for (let i = 0; i < paragraphs.length; i++) {
-    //     const paragraph = paragraphs[i];
-    //     if (paragraph) {
-    //         elementResponse.appendChild(document.createTextNode(paragraph));
-    //     }
-    //     // Don't add a new line after the final paragraph
-    //     if (i < paragraphs.length - 1) {
-    //         elementResponse.appendChild(document.createElement('BR'));
-    //     }
-    // }
+    elementResponse.value = response;
 }
 
 function showError(error) {

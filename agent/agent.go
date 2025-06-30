@@ -72,6 +72,10 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	}
 
 	results := resp.Messages
+
+	// TODO output as funtion return value
+	cfg.Stdout = ""
+
 	for _, v := range results {
 		out := &api.Output{
 			Display:     display,
