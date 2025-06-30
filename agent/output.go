@@ -66,7 +66,20 @@ func processTextContent(cfg *api.AppConfig, output *api.Output) {
 		SaveOutput(cfg.Output, output)
 	}
 
+	if cfg.Format == "tts" {
+		SpeakOutput(cfg, output)
+		return
+	}
 	PrintOutput(cfg.Format, output)
+}
+
+func SpeakOutput(cfg *api.AppConfig, output *api.Output) {
+	var s = output.Content
+	log.Println(s)
+	err := speak(cfg, s)
+	if err != nil {
+		log.Println(err.Error())
+	}
 }
 
 func processImageContent(cfg *api.AppConfig, message *api.Output) {

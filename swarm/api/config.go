@@ -19,6 +19,8 @@ type AppConfig struct {
 
 	LLM *LLMConfig
 
+	TTS *TTSConfig
+
 	Git    *GitConfig
 	DBCred *DBCred
 
@@ -282,4 +284,12 @@ func (d *DBCred) Clone() *DBCred {
 		Password: d.Password,
 		DBName:   d.DBName,
 	}
+}
+
+type TTSConfig struct {
+	Provider string
+
+	Model   string
+	BaseUrl string
+	ApiKey  string
 }

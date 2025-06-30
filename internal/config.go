@@ -388,6 +388,21 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 		return nil, fmt.Errorf("No LLM configuration found")
 	}
 
+	// TODO
+	tts := &api.TTSConfig{}
+	tts.ApiKey = viper.GetString("tts_api_key")
+	tts.Provider = viper.GetString("tts_provider")
+	tts.Model = viper.GetString("tts_model")
+	tts.BaseUrl = viper.GetString("tts_base_url")
+	if tts.ApiKey == "" {
+		tts.ApiKey = os.Getenv("OPENAI_API_KEY")
+	}
+	if tts.Model == "" {
+		tts.Model = "gpt-4o-mini-tts"
+	}
+
+	app.TTS = tts
+
 	//
 	app.Log = viper.GetString("log")
 	app.Debug = viper.GetBool("verbose")

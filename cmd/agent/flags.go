@@ -31,7 +31,7 @@ func newOutputValue(val string, p *string) *outputValue {
 }
 func (s *outputValue) Set(val string) error {
 	// TODO json
-	for _, v := range []string{"raw", "text", "json", "markdown"} {
+	for _, v := range []string{"raw", "text", "json", "markdown", "tts"} {
 		if val == v {
 			*s = outputValue(val)
 			return nil
@@ -206,7 +206,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.Bool("pb-write", false, "Copy output to clipboard. '}'")
 	flags.Bool("pb-append", false, "Append output to clipboard. '}}'")
 
-	flags.Var(newOutputValue("markdown", &internal.FormatFlag), "format", "Output format: raw, text, json, or markdown.")
+	flags.Var(newOutputValue("markdown", &internal.FormatFlag), "format", "Output format: raw, text, json, markdown, or tts.")
 
 	// security
 	flags.String("deny", "rm,sudo", "List of comma separated system commands disallowed for tool calls. Approval is required to proceed. Ignored if 'unsafe' is true")
@@ -247,6 +247,11 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.String("l3-api-key", "", "Level3 advanced LLM API key")
 	flags.String("l3-model", "", "Level3 advanced LLM model")
 	flags.String("l3-base-url", "", "Level3 advanced LLM Base URL")
+
+	flags.String("tts-provider", "", "TTS provider")
+	flags.String("tts-api-key", "", "TTS API key")
+	flags.String("tts-model", "", "TTS model")
+	flags.String("tts-base-url", "", "TTS Base URL")
 
 	// flags.String("image-api-key", "", "Image LLM API key")
 	// flags.String("image-model", "", "Image LLM model")
