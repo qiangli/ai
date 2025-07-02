@@ -6,8 +6,20 @@ import (
 	"time"
 )
 
+const (
+	TypeHeartbeat = "heartbeat"
+	TypePriate    = "private"
+	TypeBroadcast = "broadcast"
+	TypeHub       = "hub"
+	TypeRequest   = "request"
+	TypeResponse  = "response"
+
+	//
+	TypeRegister   = "register"
+	TypeUnregister = "unregister"
+)
+
 type Message struct {
-	// private broadcast hub request response
 	Type string `json:"type"`
 
 	ID string `json:"id"`
@@ -25,7 +37,7 @@ type Message struct {
 	// reply status code 100 200 400 500
 	Code string `json:"code"`
 
-	// reqeust/response
+	// request/response
 	Payload string `json:"payload"`
 
 	Timestamp *time.Time `json:"timestamp"`

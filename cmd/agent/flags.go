@@ -229,12 +229,12 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("mcp-server-root")
 
 	// LLM
-	flags.String("api-key", "", "LLM API key")
+	flags.StringP("models", "m", "", "LLM model alias defined in the models directory")
+
 	flags.String("provider", "", "LLM provider")
+	flags.String("api-key", "", "LLM API key")
 	flags.String("model", "", "LLM default model")
 	flags.String("base-url", "", "LLM Base URL")
-
-	flags.StringP("models", "m", "", "LLM model alias defined in the models directory")
 
 	flags.String("l1-api-key", "", "Level1 basic LLM API key")
 	flags.String("l1-model", "", "Level1 basic LLM model")
@@ -257,7 +257,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	// flags.String("image-model", "", "Image LLM model")
 	// flags.String("image-base-url", "", "Image LLM Base URL")
 
-	// flags.MarkHidden("provider")
+	flags.MarkHidden("provider")
 
 	// flags.MarkHidden("l1-model")
 	// flags.MarkHidden("l2-model")

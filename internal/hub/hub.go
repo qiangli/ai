@@ -21,7 +21,7 @@ type ContentPart = hubapi.ContentPart
 // https://github.com/gorilla/websocket/blob/main/examples/chat/hub.go
 type Hub struct {
 	// Registered clients.
-	clients map[string]*Client
+	clients map[*Client]bool
 
 	// Inbound messages from the clients.
 	message chan *Message
@@ -49,7 +49,7 @@ func newHub(cfg *api.AppConfig) *Hub {
 		message:    make(chan *Message),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
-		clients:    make(map[string]*Client),
+		clients:    make(map[*Client]bool),
 	}
 }
 
@@ -57,20 +57,10 @@ func (h *Hub) run() {
 	for {
 		select {
 		case client := <-h.register:
-			h.clients[client.ID] = client
-			now := time.Now()
-			msg := &Message{
-				Type:      "response",
-				Sender:    "hub",
-				Recipient: client.ID,
-				Code:      "200",
-				Payload:   "registration successful",
-				Timestamp: &now,
-			}
-			h.sendPrivateMessage(msg)
+			h.clients[client] = true
 		case client := <-h.unregister:
-			if _, ok := h.clients[client.ID]; ok {
-				delete(h.clients, client.ID)
+			if _, ok := h.clients[client]; ok {
+				delete(h.clients, client)
 				close(client.msg)
 			}
 		case msg := <-h.message:
@@ -88,21 +78,16 @@ func (h *Hub) run() {
 	}
 }
 
-// broadcastMessage sends msg to all clients except the sender
+// broadcastMessage sends msg to all clients including the sender
 func (h *Hub) broadcastMessage(msg *Message) {
 	log.Debugf("broadcastMessage %s\n", msg)
 
-	sender := msg.Sender
-	for id, client := range h.clients {
-		// skip self
-		if id == sender {
-			continue
-		}
+	for client := range h.clients {
 		select {
 		case client.msg <- msg:
 		default:
 			close(client.msg)
-			delete(h.clients, client.ID)
+			delete(h.clients, client)
 		}
 	}
 }
@@ -111,12 +96,14 @@ func (h *Hub) broadcastMessage(msg *Message) {
 func (h *Hub) sendPrivateMessage(msg *Message) {
 	log.Debugf("sendPrivateMessage %s\n", msg)
 
-	if client, ok := h.clients[msg.Recipient]; ok {
-		select {
-		case client.msg <- msg:
-		default:
-			close(client.msg)
-			delete(h.clients, client.ID)
+	for client := range h.clients {
+		if client.ID == msg.Recipient {
+			select {
+			case client.msg <- msg:
+			default:
+				close(client.msg)
+				delete(h.clients, client)
+			}
 		}
 	}
 }
@@ -124,23 +111,27 @@ func (h *Hub) sendPrivateMessage(msg *Message) {
 func (h *Hub) respond(req *Message) {
 	log.Debugf("hub respond %s\n", req)
 
-	if client, ok := h.clients[req.Sender]; ok {
-		// process message
-		now := time.Now()
-		resp := &Message{
-			Type:      "response",
-			Sender:    "hub",
-			Recipient: client.ID,
-			Timestamp: &now,
-		}
-		if req.Recipient == "ai" {
-			resp.Payload = h.ai(req.Payload)
-		}
-		select {
-		case client.msg <- resp:
-		default:
-			close(client.msg)
-			delete(h.clients, client.ID)
+	for client := range h.clients {
+		if client.ID == req.Sender {
+			// process message
+			now := time.Now()
+			resp := &Message{
+				Type:      "response",
+				Sender:    "hub",
+				Recipient: client.ID,
+				Reference: req.ID,
+				Timestamp: &now,
+			}
+			// TODO add more service (specail named recipient)
+			if req.Recipient == "ai" {
+				resp.Payload = h.ai(req.Payload)
+			}
+			select {
+			case client.msg <- resp:
+			default:
+				close(client.msg)
+				delete(h.clients, client)
+			}
 		}
 	}
 }

@@ -50,25 +50,8 @@ func DecodeImage(base64data string) ([]byte, error) {
 
 // Send Recipient/Action/Payload
 func SendRequest(wsUrl string, prompt string, request *Message) (*Message, error) {
-	u, err := url.Parse(wsUrl)
-	if err != nil {
-		return nil, err
-	}
-
-	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-
 	var id = uuid.New().String()
 	var sender = uuid.New().String()
-
-	register := &Message{
-		Type:    "register",
-		Sender:  sender,
-		Payload: "",
-	}
 
 	message := &Message{
 		Type:   "request",
@@ -80,26 +63,50 @@ func SendRequest(wsUrl string, prompt string, request *Message) (*Message, error
 		Payload:   request.Payload,
 	}
 
+	resp, err := SendMessage(wsUrl, prompt, message)
+	if err != nil {
+		return nil, err
+	}
+	if resp.Code == "200" {
+		return resp, nil
+	}
+	return nil, fmt.Errorf("failed: %s %s", resp.Code, resp.Payload)
+}
+
+func SendMessage(wsUrl string, prompt string, message *Message) (*Message, error) {
+	u, err := url.Parse(wsUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
 	send := func(msg *Message) error {
-		req, err := json.Marshal(msg)
+		data, err := json.Marshal(msg)
 		if err != nil {
 			return err
 		}
-		if err := conn.WriteMessage(websocket.TextMessage, req); err != nil {
+		if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
 			return err
 		}
 		return nil
 	}
 
-	if err := send(register); err != nil {
-		return nil, err
+	// ID is required for a response
+	if message.ID == "" {
+		message.ID = uuid.New().String()
 	}
 
 	if err := send(message); err != nil {
 		return nil, err
 	}
 
-	// TODO a more robust solution is to check a ready confirmation from the recipient
+	// TODO a more robust solution is to check a ready confirmation
+	// from the recipient e.g. for voice input
 	if prompt != "" {
 		log.Info(prompt)
 	}
@@ -121,17 +128,16 @@ func SendRequest(wsUrl string, prompt string, request *Message) (*Message, error
 			if msgType != websocket.TextMessage {
 				continue
 			}
+
+			log.Debugf("send memsage msgType %v %s", msgType, string(data))
+
 			var resp Message
 			if err := json.Unmarshal(data, &resp); err != nil {
 				errorCh <- err
 				return
 			}
-			if resp.Reference == id {
-				if resp.Code == "200" {
-					resultCh <- &resp
-				} else {
-					errorCh <- fmt.Errorf("failed to take screenshot %s", resp.Payload)
-				}
+			if resp.Reference == message.ID {
+				resultCh <- &resp
 				return
 			}
 		}
@@ -143,6 +149,6 @@ func SendRequest(wsUrl string, prompt string, request *Message) (*Message, error
 	case err := <-errorCh:
 		return nil, err
 	case <-ctx.Done():
-		return nil, fmt.Errorf("timeout waiting for screenshot response")
+		return nil, fmt.Errorf("timeout waiting for response")
 	}
 }

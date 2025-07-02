@@ -57,6 +57,7 @@ func (c *Client) readPump() {
 		}
 		c.conn.Close()
 	}()
+
 	// c.conn.SetReadLimit(maxMessageSize)
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
@@ -65,12 +66,24 @@ func (c *Client) readPump() {
 		return uuid.New().String()
 	}
 
-	register := func(sender string) {
+	register := func(req *Message) {
+		sender := req.Sender
 		if sender == "" {
 			sender = genId()
 		}
 		c.ID = sender
-		c.hub.register <- c
+
+		now := time.Now()
+		msg := &Message{
+			Type:      "response",
+			Sender:    "hub",
+			Recipient: c.ID,
+			Reference: req.ID,
+			Code:      "200",
+			Payload:   "registration successful",
+			Timestamp: &now,
+		}
+		c.hub.message <- msg
 	}
 
 	for {
@@ -108,14 +121,14 @@ func (c *Client) readPump() {
 			msg.Timestamp = &now
 		}
 
-		// required
+		//
 		if msg.Type == "register" {
 			if c.ID != "" {
 				// ignore
 				log.Debugf("already registered\n")
 				continue
 			}
-			register(msg.Sender)
+			register(&msg)
 			continue
 		}
 
@@ -125,11 +138,9 @@ func (c *Client) readPump() {
 			break
 		}
 
-		// TODO there is a data race here
-		// message may be processed before the client is auto registered
-		if c.ID == "" {
-			// auto register
-			register(msg.Sender)
+		// update client ID
+		if c.ID == "" && msg.Sender != "" {
+			c.ID = msg.Sender
 		}
 
 		c.hub.message <- &msg
@@ -204,6 +215,7 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	client := &Client{hub: hub, conn: conn, msg: make(chan *Message, 256)}
+	client.hub.register <- client
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.

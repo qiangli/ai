@@ -272,8 +272,13 @@ func PrintInput(cfg *api.AppConfig, input *api.UserInput) {
 	if input == nil {
 		return
 	}
+	log.Debugf("UserInput:\n%s\n", input.String())
 
+	// query and files for info only
 	var msg = clipText(input.Query(), clipMaxLen)
+	for _, v := range input.Files {
+		msg += fmt.Sprintf("\n+ %s", v)
+	}
 	renderInputContent(cfg.Me, msg)
 }
 

@@ -277,8 +277,9 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	var lc = &api.LLMConfig{}
 	app.LLM = lc
 	// default
-	lc.ApiKey = viper.GetString("api_key")
 	lc.Provider = viper.GetString("provider")
+
+	lc.ApiKey = viper.GetString("api_key")
 	lc.Model = viper.GetString("model")
 	lc.BaseUrl = viper.GetString("base_url")
 

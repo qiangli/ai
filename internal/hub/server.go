@@ -5,27 +5,17 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 
-	"github.com/gorilla/websocket"
-
+	hubapi "github.com/qiangli/ai/internal/hub/api"
+	hubws "github.com/qiangli/ai/internal/hub/ws"
 	"github.com/qiangli/ai/swarm/api"
 )
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("AI Hub"))
-}
-
-func healthHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
-}
-
 func StartServer(cfg *api.AppConfig) {
 	address := cfg.HubAddress
+	hubUrl := fmt.Sprintf("ws://%s/hub", address)
 	settings := &Settings{
-		HubUrl:   fmt.Sprintf("ws://%s/hub", address),
+		HubUrl:   hubUrl,
 		HubState: 1,
 	}
 
@@ -41,12 +31,14 @@ func StartServer(cfg *api.AppConfig) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(settings)
 	})
+	http.HandleFunc("/message", createMessageHandler(hubUrl))
 
 	http.HandleFunc("/hub", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
 	})
 
-	log.Printf("WebSocket server listening on %s/hub\n", address)
+	log.Printf("Server listening on %s\n", address)
+	log.Printf("Websocket: %s\n", hubUrl)
 	err := http.ListenAndServe(address, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
@@ -54,25 +46,13 @@ func StartServer(cfg *api.AppConfig) {
 }
 
 func SendMessage(wsURL string, message string) (string, error) {
-	u, err := url.Parse(wsURL)
+	var req hubapi.Message
+	if err := json.Unmarshal([]byte(message), &req); err != nil {
+		return "", err
+	}
+	resp, err := hubws.SendMessage(wsURL, "", &req)
 	if err != nil {
 		return "", err
 	}
-
-	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
-	if err != nil {
-		return "", err
-	}
-	defer conn.Close()
-
-	if err := conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
-		return "", err
-	}
-
-	_, data, err := conn.ReadMessage()
-	if err != nil {
-		return "", nil
-	}
-
-	return string(data), nil
+	return resp.Payload, nil
 }

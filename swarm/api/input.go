@@ -47,6 +47,21 @@ type UserInput struct {
 	Messages []*Message `json:"-"`
 }
 
+func (r *UserInput) String() string {
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("Agent: %s/%s\n", r.Agent, r.Command))
+	sb.WriteString(fmt.Sprintf("Message#: %v\n", len(r.Message)))
+	sb.WriteString(fmt.Sprintf("Content#: %v\n", len(r.Content)))
+	sb.WriteString(fmt.Sprintf("Intent: %s\n", r.Intent()))
+	sb.WriteString(fmt.Sprintf("Files: %v\n", r.Files))
+	sb.WriteString(fmt.Sprintf("Messages#: %v\n", len(r.Messages)))
+	for _, v := range r.Messages {
+		sb.WriteString(fmt.Sprintf("ContentType: %s Content#: %v\n", v.ContentType, len(v.Content)))
+	}
+
+	return sb.String()
+}
+
 // No user input.
 func (r *UserInput) IsEmpty() bool {
 	return r.Message == "" && r.Content == "" && len(r.Files) == 0
