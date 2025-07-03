@@ -218,6 +218,25 @@ ai.git@main/. ai> help
 
 ```
 
+### AI Side Panel for Chrome
+
+Start AI in Hub service mode
+
+```bash
+ai --hub --agent swe --l2-model openai/gpt-4.1 --verbose --new
+```
+
+Install AI Side Panel Chrome extension
+
+```
+> chrome://extensions/
+> Load uppacked
+> extension/chrome/side/panel
+```
+
+AI Side Panel [screenshot](vocs/docs/images/ai-side-panel.png)
+
+
 ## Credits
 
 + @code system role prompts adapted from [screenshot-to-code](https://github.com/abi/screenshot-to-code)
