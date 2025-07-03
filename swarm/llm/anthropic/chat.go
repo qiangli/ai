@@ -163,11 +163,14 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 				}
 
 				if out.MimeType == "" || strings.HasPrefix(out.MimeType, "text/") {
-					toolResults = append(toolResults, anthropic.NewToolResultBlock(block.ID, out.Value, isErr))
+					if out.MimeType == "" {
+						out.MimeType = "text/plain"
+					}
+					toolResults = append(toolResults, newToolResultBlock(block.ID, out.Value, out.MimeType, isErr))
 				} else if strings.HasPrefix(out.MimeType, "image/") {
-					toolResults = append(toolResults, newToolImageResultBlock(block.ID, out.Value, out.MimeType, isErr))
+					toolResults = append(toolResults, newToolResultBlock(block.ID, out.Value, out.MimeType, isErr))
 				} else {
-					toolResults = append(toolResults, anthropic.NewToolResultBlock(block.ID, fmt.Sprintf("mimetype not supported: %s", out.MimeType), true))
+					toolResults = append(toolResults, newToolResultBlock(block.ID, fmt.Sprintf("mimetype not supported: %s", out.MimeType), "text/plain", true))
 				}
 
 			default:
@@ -188,22 +191,33 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	return resp, nil
 }
 
-func newToolImageResultBlock(toolUseID string, content, mime string, isError bool) anthropic.ContentBlockParamUnion {
+func newToolResultBlock(toolUseID string, content, mimeType string, isError bool) anthropic.ContentBlockParamUnion {
 	toolBlock := anthropic.ToolResultBlockParam{
 		ToolUseID: toolUseID,
-		Content: []anthropic.ToolResultBlockParamContentUnion{
+		IsError:   anthropic.Bool(isError),
+	}
+	switch {
+	case strings.HasPrefix(mimeType, "text/"):
+		toolBlock.Content = []anthropic.ToolResultBlockParamContentUnion{
+			{
+				OfText: &anthropic.TextBlockParam{
+					Text: content,
+				},
+			},
+		}
+	case strings.HasPrefix(mimeType, "image/"):
+		toolBlock.Content = []anthropic.ToolResultBlockParamContentUnion{
 			{
 				OfImage: &anthropic.ImageBlockParam{
 					Source: anthropic.ImageBlockParamSourceUnion{
 						OfBase64: &anthropic.Base64ImageSourceParam{
 							Data:      content,
-							MediaType: anthropic.Base64ImageSourceMediaType(mime),
+							MediaType: anthropic.Base64ImageSourceMediaType(mimeType),
 						},
 					},
 				},
 			},
-		},
-		IsError: anthropic.Bool(isError),
+		}
 	}
 	return anthropic.ContentBlockParamUnion{OfToolResult: &toolBlock}
 }

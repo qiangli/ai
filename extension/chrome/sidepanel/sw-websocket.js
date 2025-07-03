@@ -47,14 +47,17 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
     }
 });
 
-// ... existing code ...
-
 function connect(userInitiated = false) {
     if (webSocket && (webSocket.readyState === WebSocket.CONNECTING || webSocket.readyState === WebSocket.OPEN)) return;
 
     cleanup();
 
-    webSocket = new WebSocket('ws://localhost:58080/hub');
+    try {
+        webSocket = new WebSocket('ws://localhost:58080/hub');
+    } catch (e) {
+        console.warn("websocket", e);
+    }
+
     webSocket.onopen = () => {
         reconnectBackoff = INITIAL_BACKOFF; // Reset backoff
         chrome.runtime.sendMessage({ action: 'handle-socket', active: true });
@@ -74,7 +77,7 @@ function connect(userInitiated = false) {
     };
 
     webSocket.onerror = (e) => {
-        console.error('[WS] WebSocket error:', e);
+        console.warn('[WS] WebSocket error:', e);
         handleDisconnect(false);
     };
 

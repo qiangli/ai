@@ -127,6 +127,19 @@ buttonScreenshot.addEventListener('click', () => {
         if (response && response.success) {
             show(screenshot);
             setScreenshotUrl(response.data);
+
+            // download link
+            screenshot.addEventListener('click', () => {
+                const downloadLink = document.createElement('a');
+                downloadLink.href = response.data;
+
+                const timestamp = new Date().toISOString().replace(/[:\.]/g, '-');
+                const filename = `chrome-screenshot-${timestamp}.png`
+                downloadLink.download = filename;
+
+                downloadLink.click();
+                showResponse('screenshot saved as ' + filename);
+            }, { once: true });
         } else {
             console.error('Screenshot capture failed', response && response.error);
             if (response) {

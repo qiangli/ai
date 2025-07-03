@@ -8,10 +8,10 @@ require (
 	dario.cat/mergo v1.0.2
 	github.com/BourgeoisBear/rasterm v1.1.1
 	github.com/PuerkitoBio/goquery v1.10.3
-	github.com/alecthomas/chroma/v2 v2.18.0
+	github.com/alecthomas/chroma/v2 v2.19.0
 	github.com/alecthomas/kong v1.12.0
 	github.com/alexflint/go-arg v1.5.1
-	github.com/anthropics/anthropic-sdk-go v1.4.0
+	github.com/anthropics/anthropic-sdk-go v1.5.0
 	github.com/antonmedv/clipboard v1.0.1
 	github.com/atotto/clipboard v0.1.4
 	github.com/bmatcuk/doublestar/v4 v4.8.1
@@ -26,7 +26,7 @@ require (
 	github.com/charmbracelet/x/editor v0.1.0
 	github.com/charmbracelet/x/term v0.2.1
 	github.com/creack/pty v1.1.24
-	github.com/docker/docker v28.3.0+incompatible
+	github.com/docker/docker v28.3.1+incompatible
 	github.com/ebitengine/oto/v3 v3.3.3
 	github.com/expr-lang/expr v1.17.5
 	github.com/fsnotify/fsnotify v1.9.0
@@ -48,7 +48,7 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/openai/openai-go v1.8.2
 	github.com/sahilm/fuzzy v0.1.1
-	github.com/shirou/gopsutil/v4 v4.25.5
+	github.com/shirou/gopsutil/v4 v4.25.6
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.20.1
@@ -58,8 +58,8 @@ require (
 	github.com/zyedidia/micro/v2 v2.0.14
 	golang.org/x/term v0.32.0
 	golang.org/x/text v0.26.0
-	google.golang.org/api v0.239.0
-	google.golang.org/genai v1.13.0
+	google.golang.org/api v0.240.0
+	google.golang.org/genai v1.14.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.38.0
@@ -84,7 +84,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/charmbracelet/colorprofile v0.3.1 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.13 // indirect
-	github.com/charmbracelet/x/exp/slice v0.0.0-20250630141444-821143405392 // indirect
+	github.com/charmbracelet/x/exp/slice v0.0.0-20250702191427-5bdfc8f2e4ff // indirect
 	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
