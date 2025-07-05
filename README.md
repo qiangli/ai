@@ -6,6 +6,18 @@ This AI tool assists you with all the tasks beyond file editing on your system c
 
 Specialist agents - such as shell, web, git, pr, code, and sql - will empower you to be much more productive...
 
+- [AI Command Line Tool](#ai-command-line-tool)
+  - [Build](#build)
+  - [Run](#run)
+  - [Test](#test)
+  - [Debug](#debug)
+  - [Usage](#usage)
+    - [Command line](#command-line)
+    - [Interactive shell](#interactive-shell)
+    - [AI Side Panel for Chrome](#ai-side-panel-for-chrome)
+  - [Credits](#credits)
+
+
 ## Build
 
 ```bash
