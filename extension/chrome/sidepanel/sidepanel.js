@@ -43,11 +43,8 @@ document.getElementById('toggle-hub').addEventListener('click', () => {
     });
 });
 
-
 const inputSelector = document.body.querySelector('#input-selector');
 const buttonGetContent = document.body.querySelector('#button-get-content');
-const screenshot = document.body.querySelector('#screenshot');
-const buttonScreenshot = document.body.querySelector('#button-screenshot');
 
 const inputPrompt = document.body.querySelector('#input-prompt');
 const buttonSend = document.body.querySelector('#button-send');
@@ -115,38 +112,6 @@ buttonGetContent.addEventListener('click', async () => {
     } catch (e) {
         showError(e);
     }
-});
-
-buttonScreenshot.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: 'capture-screenshot' }, (response) => {
-        if (chrome.runtime.lastError) {
-            console.error(chrome.runtime.lastError.message);
-            showError(chrome.runtime.lastError.message);
-            return;
-        }
-        if (response && response.success) {
-            show(screenshot);
-            setScreenshotUrl(response.data);
-
-            // download link
-            screenshot.addEventListener('click', () => {
-                const downloadLink = document.createElement('a');
-                downloadLink.href = response.data;
-
-                const timestamp = new Date().toISOString().replace(/[:\.]/g, '-');
-                const filename = `chrome-screenshot-${timestamp}.png`
-                downloadLink.download = filename;
-
-                downloadLink.click();
-                showResponse('screenshot saved as ' + filename);
-            }, { once: true });
-        } else {
-            console.error('Screenshot capture failed', response && response.error);
-            if (response) {
-                showError(response.error);
-            }
-        }
-    });
 });
 
 // user prompt

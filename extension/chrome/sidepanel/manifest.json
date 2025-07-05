@@ -37,10 +37,15 @@
     "sidePanel",
     "tabs"
   ],
-   "web_accessible_resources": [
+  "web_accessible_resources": [
     {
-      "resources": ["perm/request.html", "perm/request.js"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "perm/request.html",
+        "perm/request.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
   "commands": {

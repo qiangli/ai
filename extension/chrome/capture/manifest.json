@@ -1,0 +1,17 @@
+{
+  "name": "Tab Capture",
+  "description": "Records the current tab.",
+  "version": "1.0.0",
+  "manifest_version": 3,
+  "minimum_chrome_version": "116",
+  "action": {
+    "default_icon": "images/recording-off.png"
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "permissions": [
+    "tabCapture",
+    "offscreen"
+  ]
+}
