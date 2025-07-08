@@ -7,9 +7,9 @@ import (
 )
 
 func voiceInput(cfg *api.AppConfig) (string, error) {
-	log.Debugf("⣿ voice input: %s\n", cfg.HubAddress)
+	log.Debugf("⣿ voice input: %s\n", cfg.Hub.Address)
 
-	wsUrl, err := hubws.GetHubUrl(cfg.HubAddress)
+	wsUrl, err := hubws.GetHubUrl(cfg.Hub.Address)
 	if err != nil {
 		return "", err
 	}

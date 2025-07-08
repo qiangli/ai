@@ -205,6 +205,9 @@ func getCurrentUser() string {
 func ParseConfig(args []string) (*api.AppConfig, error) {
 	var app = &api.AppConfig{}
 
+	app.ConfigFile = viper.ConfigFileUsed()
+	app.Base = filepath.Dir(app.ConfigFile)
+
 	app.Version = Version
 	app.Role = viper.GetString("role")
 	app.Prompt = viper.GetString("prompt")
@@ -213,7 +216,6 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.Files = InputFiles
 	app.Format = FormatFlag
 	app.Output = OutputFlag
-	app.ConfigFile = viper.ConfigFileUsed()
 
 	//
 	app.Message = viper.GetString("message")
@@ -265,8 +267,8 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 
 	//
 	if !app.New {
-		historyBase := filepath.Join(filepath.Dir(app.ConfigFile), "history")
-		messages, err := api.LoadHistory(historyBase, app.MaxHistory, app.MaxSpan)
+		historyDir := filepath.Join(app.Base, "history")
+		messages, err := api.LoadHistory(historyDir, app.MaxHistory, app.MaxSpan)
 		if err != nil {
 			return nil, fmt.Errorf("error loading history: %v", err)
 		}
@@ -307,7 +309,7 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.Models = alias
 
 	//
-	modelBase := filepath.Join(filepath.Dir(app.ConfigFile), "models")
+	modelBase := filepath.Join(app.Base, "models")
 	modelCfg, err := model.LoadModels(modelBase)
 	if err != nil {
 		return nil, err
@@ -432,8 +434,17 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	app.Watch = viper.GetBool("watch")
 	app.ClipWatch = viper.GetBool("pb_watch")
 
-	app.Hub = viper.GetBool("hub")
-	app.HubAddress = viper.GetString("hub_address")
+	// Hub services
+	hub := &api.HubConfig{}
+	hub.Enable = viper.GetBool("hub")
+	hub.Address = viper.GetString("hub_address")
+	hub.Pg = viper.GetBool("hub_pg")
+	hub.PgAddress = viper.GetString("hub_pg_address")
+	hub.Mysql = viper.GetBool("hub_mysql")
+	hub.MysqlAddress = viper.GetString("hub_mysql_address")
+	hub.Redis = viper.GetBool("hub_redis")
+	hub.RedisAddress = viper.GetString("hub_redis_address")
+	app.Hub = hub
 
 	shell := viper.GetString("shell")
 	if shell == "" {

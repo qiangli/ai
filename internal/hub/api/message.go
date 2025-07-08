@@ -59,6 +59,11 @@ func (r *Message) String() string {
 }
 
 type Payload struct {
+	Version string `json:"version"`
+
+	Format   string `json:"format"`
+	Messages string `json:"messages"`
+
 	Content string         `json:"content"`
 	Parts   []*ContentPart `json:"parts"`
 }

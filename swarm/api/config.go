@@ -95,6 +95,8 @@ type AppConfig struct {
 	Unsafe    bool
 
 	//
+	Base string
+
 	Workspace string
 	// Repo      string
 	Home string
@@ -107,8 +109,10 @@ type AppConfig struct {
 	Watch     bool
 	ClipWatch bool
 
-	Hub        bool
-	HubAddress string
+	// Hub        bool
+	// HubAddress string
+
+	Hub *HubConfig
 
 	// MetaPrompt  bool
 
@@ -292,4 +296,18 @@ type TTSConfig struct {
 	Model   string
 	BaseUrl string
 	ApiKey  string
+}
+
+type HubConfig struct {
+	Enable  bool
+	Address string
+
+	Pg        bool
+	PgAddress string
+
+	Mysql        bool
+	MysqlAddress string
+
+	Redis        bool
+	RedisAddress string
 }

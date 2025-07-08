@@ -13,8 +13,12 @@ func TestServer(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
+	hubConfig := &api.HubConfig{
+		Enable:  true,
+		Address: "localhost:58080",
+	}
 	cfg := &api.AppConfig{
-		HubAddress: "localhost:58080",
+		Hub: hubConfig,
 	}
 	StartServer(cfg)
 }

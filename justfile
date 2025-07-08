@@ -15,6 +15,10 @@ build-all: tidy generate
 test:
     go test -short ./...
 
+# Start hub services
+hub:
+    ai --hub --hub-address ":58080" --hub-pg-address ":15432" --hub-mysql=false --hub-mysql-address ":3306" --hub-redis-address ":6379" --agent swe --verbose
+
 tidy:
     go mod tidy
     go fmt ./...

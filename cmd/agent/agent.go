@@ -94,8 +94,10 @@ func Run(cmd *cobra.Command, args []string) error {
 	log.Debugf("Initialized variables: %+v\n", vars)
 
 	// hub service
-	if cfg.Hub {
-		hub.StartServer(cfg)
+	if cfg.Hub.Enable {
+		if err := hub.StartServer(cfg); err != nil {
+			log.Errorln(err)
+		}
 		return nil
 	}
 

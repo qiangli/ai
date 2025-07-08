@@ -10,12 +10,12 @@ import (
 )
 
 func takeScreenshot(cfg *api.AppConfig) (string, error) {
-	log.Debugf("⣿ taking screenshot: %s\n", cfg.HubAddress)
+	log.Debugf("⣿ taking screenshot: %s\n", cfg.Hub.Address)
 
 	imgFile := filepath.Join(cfg.Temp, "screenshot.png")
 
 	screenshot := func() error {
-		wsUrl, err := hubws.GetHubUrl(cfg.HubAddress)
+		wsUrl, err := hubws.GetHubUrl(cfg.Hub.Address)
 		if err != nil {
 			return err
 		}

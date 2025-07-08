@@ -313,9 +313,21 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.Bool("watch", false, "Watch the workspace directory and respond to embedded ai requests in files")
 	flags.Bool("pb-watch", false, "Watch system clipboard and respond to embedded ai requests. Copy output to clipboard")
 
+	// services
 	flags.Bool("hub", false, "Start hub services")
-	flags.String("hub-address", "localhost:58080", "Hub service host:port")
+	flags.String("hub-address", ":58080", "Hub service host:port")
 
+	// the following will only start if hub server is enabled
+	flags.Bool("hub-pg", true, "Start postgres server")
+	flags.String("hub-pg-address", ":5432", "Postgres server host:port")
+
+	flags.Bool("hub-mysql", true, "Start mysql server")
+	flags.String("hub-mysql-address", ":3306", "MySQL server host:port")
+
+	flags.Bool("hub-redis", true, "Start redis server")
+	flags.String("hub-redis-address", ":6379", "Redis server host:port")
+
+	//
 	flags.MarkHidden("workspace")
 	flags.MarkHidden("watch")
 	flags.MarkHidden("pb-watch")

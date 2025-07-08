@@ -6,6 +6,8 @@ import (
 	"database/sql"
 
 	_ "modernc.org/sqlite"
+
+	"github.com/qiangli/ai/internal/log"
 )
 
 type DataStore struct {
@@ -13,6 +15,8 @@ type DataStore struct {
 }
 
 func NewDB(dsn string) (*DataStore, error) {
+	log.Debugf("opening sqlite db: %s", dsn)
+
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, err
