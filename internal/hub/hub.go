@@ -182,6 +182,8 @@ func (h *Hub) respond(req *Message) {
 }
 
 func (h *Hub) doAI(data string) (ActionStatus, string) {
+	log.Debugf("hub doAI: %v", data)
+
 	cfg := h.cfg
 
 	in := &api.UserInput{
@@ -241,6 +243,8 @@ type KVPayload struct {
 }
 
 func (h *Hub) doKV(data string) (ActionStatus, string) {
+	log.Debugf("hub doAI: %v", data)
+
 	var payload KVPayload
 	if err := json.Unmarshal([]byte(data), &payload); err != nil {
 		return StatusError, err.Error()

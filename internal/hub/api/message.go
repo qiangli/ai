@@ -52,7 +52,7 @@ func (r *Message) String() string {
 	sb.WriteString(fmt.Sprintf("Recipient: %s\n", r.Recipient))
 	sb.WriteString(fmt.Sprintf("Action: %s\n", r.Action))
 	sb.WriteString(fmt.Sprintf("Code: %s\n", r.Code))
-	sb.WriteString(fmt.Sprintf("Payload: %v bytes\n", len(r.Payload)))
+	sb.WriteString(fmt.Sprintf("Payload: %v bytes: %s\n", len(r.Payload), clipText(r.Payload, 100)))
 	sb.WriteString(fmt.Sprintf("Timestamp: %v\n", r.Timestamp))
 
 	return sb.String()
@@ -73,4 +73,11 @@ type ContentPart struct {
 	ContentType string `json:"contentType"`
 	Content     string `json:"content"`
 	URL         string `json:"url"`
+}
+
+func clipText(text string, maxLen int) string {
+	if len(text) > maxLen {
+		return text[:maxLen] + "..."
+	}
+	return text
 }

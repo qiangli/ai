@@ -15,9 +15,9 @@ build-all: tidy generate
 test:
     go test -short ./...
 
-# Start hub services
-hub:
-    ai --hub --hub-address ":58080" --hub-pg-address ":15432" --hub-mysql=false --hub-mysql-address ":3306" --hub-redis-address ":6379" --agent swe --verbose
+# Start hub services with 'ask' agent in debug mode (verbose)
+hub flag_args='':
+    ai --agent ask --verbose --hub --hub-address ":58080" --hub-pg-address ":25432" --hub-mysql-address ":3306" --hub-redis-address ":6379" {{flag_args}}
 
 tidy:
     go mod tidy

@@ -61,7 +61,7 @@ func (p *PgLiteBackend) Run() error {
 		switch qmsg := msg.(type) {
 		case *pgproto3.Query:
 			query := qmsg.String
-			log.Debugf("Received query: %s", query)
+			log.Debugf("Received query: %s\n", query)
 			p.responder(p.backend, p.db, query)
 			continue
 		case *pgproto3.Terminate:
@@ -69,12 +69,14 @@ func (p *PgLiteBackend) Run() error {
 				p.db.Close()
 				p.db = nil
 			}
-			log.Debugf("Client terminated connection")
+			log.Debugf("Client terminated connection\n")
 			return nil
 		case *pgproto3.Parse:
 			name := qmsg.Name
 			query := qmsg.Query
-			fmt.Printf("Received Parse: %v, Name: %s\n", query, name)
+
+			log.Debugf("Received Parse: %v, Name: %s\n", query, name)
+
 			p.preparedStatements[name] = query
 			p.backend.Send(&pgproto3.ParseComplete{})
 			p.backend.Flush()
@@ -142,8 +144,7 @@ func (p *PgLiteBackend) Run() error {
 			p.backend.Send(&pgproto3.CommandComplete{CommandTag: []byte("DESCRIBE")})
 			p.backend.Flush()
 		case *pgproto3.Sync:
-			log.Debugf("Received Sync")
-
+			log.Debugf("Received Sync\n")
 			// Send a ReadyForQuery response, indicating processing is complete
 			p.backend.Send(&pgproto3.ReadyForQuery{TxStatus: 'I'})
 			p.backend.Flush()
@@ -157,12 +158,12 @@ func (p *PgLiteBackend) Run() error {
 			case 'S': // Statement
 				if _, exists := p.preparedStatements[name]; exists {
 					delete(p.preparedStatements, name)
-					log.Debugf("Closed statement: %s", name)
+					log.Debugf("Closed statement: %s\n", name)
 				}
 			case 'P': // Portal
 				if _, exists := p.activePortals[name]; exists {
 					delete(p.activePortals, name)
-					log.Debugf("Closed portal: %s", name)
+					log.Debugf("Closed portal: %s\n", name)
 				}
 			}
 
@@ -171,7 +172,7 @@ func (p *PgLiteBackend) Run() error {
 			p.backend.Flush()
 		case *pgproto3.Flush:
 			// Handle Flush message
-			log.Debugf("Received Flush")
+			log.Debugf("Received Flush\n")
 			p.backend.Flush()
 		default:
 			return fmt.Errorf("received message other than Query from client: %#v", msg)
@@ -469,69 +470,69 @@ func sendFatal(be *pgproto3.Backend, err error) {
 	be.Flush()
 }
 
-func commandTag(query string) string {
-	q := strings.ToUpper(query)
-	if strings.HasPrefix(q, "SELECT") {
-		return fmt.Sprintf("SELECT %d", 0) // Row count not tracked here
-	} else if strings.HasPrefix(q, "INSERT") {
-		return "INSERT 0 1"
-	} else if strings.HasPrefix(q, "UPDATE") {
-		return "UPDATE 0"
-	} else if strings.HasPrefix(q, "DELETE") {
-		return "DELETE 0"
-	} else {
-		return "COMMAND"
-	}
-}
+// func commandTag(query string) string {
+// 	q := strings.ToUpper(query)
+// 	if strings.HasPrefix(q, "SELECT") {
+// 		return fmt.Sprintf("SELECT %d", 0) // Row count not tracked here
+// 	} else if strings.HasPrefix(q, "INSERT") {
+// 		return "INSERT 0 1"
+// 	} else if strings.HasPrefix(q, "UPDATE") {
+// 		return "UPDATE 0"
+// 	} else if strings.HasPrefix(q, "DELETE") {
+// 		return "DELETE 0"
+// 	} else {
+// 		return "COMMAND"
+// 	}
+// }
 
-func information_schema(query string) bool {
-	if strings.Contains(query, "information_schema") {
-		log.Debugf("Query is related to information_schema: %s", query)
-		return true
-	}
-	return false
-}
+// func information_schema(query string) bool {
+// 	if strings.Contains(query, "information_schema") {
+// 		log.Debugf("Query is related to information_schema: %s", query)
+// 		return true
+// 	}
+// 	return false
+// }
 
-var schemaMap = map[string][]string{
-	// PostgreSQL default schemas and tables
-	"pg_catalog":         {},
-	"information_schema": {},
-	// Add more default system tables if necessary
-	"versioning_info": {"version_id", "version_name", "applied_on"},
-	"user_account":    {"user_id", "username", "email", "created_at"},
-	"table_metadata":  {"table_id", "table_name", "schema_name", "created_at"},
-}
+// var schemaMap = map[string][]string{
+// 	// PostgreSQL default schemas and tables
+// 	"pg_catalog":         {},
+// 	"information_schema": {},
+// 	// Add more default system tables if necessary
+// 	"versioning_info": {"version_id", "version_name", "applied_on"},
+// 	"user_account":    {"user_id", "username", "email", "created_at"},
+// 	"table_metadata":  {"table_id", "table_name", "schema_name", "created_at"},
+// }
 
-func initializeSchemaMap(db *sql.DB) error {
-	// schemaMap will be populated with user-defined tables and columns from SQLite
-	// via the `initializeSchemaMap` function.
+// func initializeSchemaMap(db *sql.DB) error {
+// 	// schemaMap will be populated with user-defined tables and columns from SQLite
+// 	// via the `initializeSchemaMap` function.
 
-	// Initialize dynamic schemaMap using the SQLite database
-	rows, err := db.Query(`
-		SELECT m.name AS table_name, p.name AS column_name
-		FROM sqlite_master m
-		JOIN pragma_table_info((m.name)) p
-		WHERE m.type='table'
-		ORDER BY m.name, p.cid;
-	`)
-	if err != nil {
-		return fmt.Errorf("error retrieving schema: %w", err)
-	}
-	defer rows.Close()
+// 	// Initialize dynamic schemaMap using the SQLite database
+// 	rows, err := db.Query(`
+// 		SELECT m.name AS table_name, p.name AS column_name
+// 		FROM sqlite_master m
+// 		JOIN pragma_table_info((m.name)) p
+// 		WHERE m.type='table'
+// 		ORDER BY m.name, p.cid;
+// 	`)
+// 	if err != nil {
+// 		return fmt.Errorf("error retrieving schema: %w", err)
+// 	}
+// 	defer rows.Close()
 
-	for rows.Next() {
-		var tableName, columnName string
-		if err := rows.Scan(&tableName, &columnName); err != nil {
-			return fmt.Errorf("error scanning schema row: %w", err)
-		}
-		schemaMap[tableName] = append(schemaMap[tableName], columnName)
-	}
-	if err := rows.Err(); err != nil {
-		return fmt.Errorf("error iterating schema rows: %w", err)
-	}
+// 	for rows.Next() {
+// 		var tableName, columnName string
+// 		if err := rows.Scan(&tableName, &columnName); err != nil {
+// 			return fmt.Errorf("error scanning schema row: %w", err)
+// 		}
+// 		schemaMap[tableName] = append(schemaMap[tableName], columnName)
+// 	}
+// 	if err := rows.Err(); err != nil {
+// 		return fmt.Errorf("error iterating schema rows: %w", err)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func StartPG(address string, dbname string) {
 	// conn, err := sql.Open("file::memory:?mode=memory&cache=shared")
