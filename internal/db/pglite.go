@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgproto3"
 	_ "github.com/lib/pq"
+	"github.com/xwb1989/sqlparser"
 
 	"github.com/qiangli/ai/internal/log"
 )
@@ -338,10 +339,14 @@ func mustEncode(buf []byte, err error) []byte {
 
 func handleQuery(be *pgproto3.Backend, db *sql.DB, query string) {
 	query = strings.TrimSpace(query)
+	stmt, err := sqlparser.Parse(query)
+	if err != nil {
+		sendError(be, err)
+		return
+	}
 
-	Q := strings.ToUpper(query)
-	switch {
-	case strings.HasPrefix(Q, "SET"):
+	switch stmt.(type) {
+	case *sqlparser.Set:
 		result, err := db.Exec(query)
 		if err != nil {
 			sendError(be, err)
@@ -350,8 +355,14 @@ func handleQuery(be *pgproto3.Backend, db *sql.DB, query string) {
 		affeted, _ := result.RowsAffected()
 		resp := fmt.Sprintf("%v rows affected", affeted)
 		be.Send(&pgproto3.CommandComplete{CommandTag: []byte(resp)})
-	case strings.HasPrefix(Q, "SELECT"):
+	case *sqlparser.Select:
 		executeQuery(be, db, query, nil)
+	case *sqlparser.Begin:
+		// TODO
+	case *sqlparser.Rollback:
+		// TODO
+	case *sqlparser.Commit:
+		// TODO
 	default:
 		// For non-select queries, just execute
 		result, err := db.Exec(query)

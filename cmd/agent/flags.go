@@ -327,6 +327,9 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.Bool("hub-redis", true, "Start redis server")
 	flags.String("hub-redis-address", ":6379", "Redis server host:port")
 
+	flags.Bool("hub-terminal", true, "Start web terminal server")
+	flags.String("hub-terminal-address", ":58088", "Web terminal server host:port")
+
 	//
 	flags.MarkHidden("workspace")
 	flags.MarkHidden("watch")

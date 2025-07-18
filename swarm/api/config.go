@@ -310,4 +310,7 @@ type HubConfig struct {
 
 	Redis        bool
 	RedisAddress string
+
+	Terminal        bool
+	TerminalAddress string
 }

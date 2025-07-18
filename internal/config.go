@@ -444,6 +444,8 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	hub.MysqlAddress = viper.GetString("hub_mysql_address")
 	hub.Redis = viper.GetBool("hub_redis")
 	hub.RedisAddress = viper.GetString("hub_redis_address")
+	hub.Terminal = viper.GetBool("hub_terminal")
+	hub.TerminalAddress = viper.GetString("hub_terminal_address")
 	app.Hub = hub
 
 	shell := viper.GetString("shell")

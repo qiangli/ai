@@ -9,8 +9,8 @@ import (
 	hubapi "github.com/qiangli/ai/internal/hub/api"
 	hubws "github.com/qiangli/ai/internal/hub/ws"
 	"github.com/qiangli/ai/internal/hub/ws/bridge"
-
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/xterm"
 	"github.com/qiangli/ai/swarm/api"
 )
 
@@ -48,6 +48,9 @@ func StartServer(cfg *api.AppConfig) error {
 	}
 	if cfg.Hub.Pg || cfg.Hub.Mysql {
 		go bridge.Start()
+	}
+	if cfg.Hub.Terminal {
+		go xterm.Start(cfg)
 	}
 
 	mux := http.NewServeMux()

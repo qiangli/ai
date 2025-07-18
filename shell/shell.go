@@ -71,7 +71,7 @@ func Shell(vars *api.Vars) error {
 			prompt.OptionHistory(getCommandHist()),
 			prompt.OptionSuggestionBGColor(prompt.DefaultColor),
 			prompt.OptionInputTextColor(prompt.Cyan),
-			prompt.OptionMaxSuggestion(6),
+			prompt.OptionMaxSuggestion(0),
 			prompt.OptionTitle("ai"),
 			prompt.OptionCompletionWordSeparator(completer.FilePathCompletionSeparator),
 			prompt.OptionAddKeyBind(
