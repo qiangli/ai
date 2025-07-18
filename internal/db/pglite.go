@@ -100,7 +100,6 @@ func (p *PGLite) Run() error {
 				paramValues[i] = string(paramVal)
 			}
 
-			// Store the portal information
 			p.activePortals[portalName] = &activePortal{statementName: statementName, params: paramValues}
 
 			p.send(&pgproto3.BindComplete{})
@@ -132,7 +131,6 @@ func (p *PGLite) Run() error {
 			switch objectType {
 			case 'S': // Statement
 				if query, exists := p.preparedStatements[name]; exists {
-					// Determine fields based on the actual query analysis
 					fields, err := getQueryMetadata(p.db, query)
 					if err != nil {
 						p.sendError(err)
@@ -162,7 +160,6 @@ func (p *PGLite) Run() error {
 
 			log.Debugf("process Close: name: %s object type %c\n", name, objectType)
 
-			// Perform the close operation based on the type
 			switch objectType {
 			case 'S': // Statement
 				if _, exists := p.preparedStatements[name]; exists {
@@ -268,6 +265,7 @@ func (p *PGLite) handleStartup() error {
 		if dbname == "" {
 			dbname = p.dbname
 		}
+		// pg clients:
 		// "pgAdmin 4 - DB:postgres"
 		// "psql"
 		appname := smsg.Parameters["application_name"]
@@ -347,7 +345,6 @@ func mustEncode(buf []byte, err error) []byte {
 }
 
 func (p *PGLite) handleQuery(query string) {
-	query = strings.TrimSpace(query)
 	log.Debugf("handleQuery: %q\n", query)
 
 	stmt, err := sqlparser.Parse(query)
@@ -543,10 +540,7 @@ func (p *PGLite) sendFatal(err error) {
 
 // mainly for DDL
 func commandTag(query string) string {
-	q := strings.ToUpper(query)
-
-	log.Debugf("commandTag: %s", q)
-
+	q := strings.ToUpper(strings.TrimSpace(query))
 	var tag string
 
 	fields := strings.Fields(q)
@@ -568,7 +562,7 @@ func commandTag(query string) string {
 		}
 	}
 
-	log.Debugf("tag created: %q\n", tag)
+	log.Debugf("commandTag tag created: %q for %s\n", tag, q)
 
 	return tag
 }

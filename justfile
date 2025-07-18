@@ -42,3 +42,6 @@ install: build test
 # Update all dependencies
 update:
     go get -u ./...
+
+clean-cache:
+    go clean -modcache
