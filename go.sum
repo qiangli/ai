@@ -1,7 +1,7 @@
-cloud.google.com/go v0.121.3 h1:84RD+hQXNdY5Sw/MWVAx5O9Aui/rd5VQ9HEcdN19afo=
-cloud.google.com/go v0.121.3/go.mod h1:6vWF3nJWRrEUv26mMB3FEIU/o1MQNVPG1iHdisa2SJc=
-cloud.google.com/go/auth v0.16.2 h1:QvBAGFPLrDeoiNjyfVunhQ10HKNYuOwZ5noee0M5df4=
-cloud.google.com/go/auth v0.16.2/go.mod h1:sRBas2Y1fB1vZTdurouM0AzuYQBMZinrUYL8EufhtEA=
+cloud.google.com/go v0.121.4 h1:cVvUiY0sX0xwyxPwdSU2KsF9knOVmtRyAMt8xou0iTs=
+cloud.google.com/go v0.121.4/go.mod h1:XEBchUiHFJbz4lKBZwYBDHV/rSyfFktk737TLDU089s=
+cloud.google.com/go/auth v0.16.3 h1:kabzoQ9/bobUmnseYnBO6qQG7q4a/CffFRlJSxv2wCc=
+cloud.google.com/go/auth v0.16.3/go.mod h1:NucRGjaXfzP1ltpcQ7On/VTZ0H4kWB5Jy+Y9Dnm76fA=
 cloud.google.com/go/auth/oauth2adapt v0.2.8 h1:keo8NaayQZ6wimpNSmW5OPc283g65QNIiLpZnkHRbnc=
 cloud.google.com/go/auth/oauth2adapt v0.2.8/go.mod h1:XQ9y31RkqZCcwJWNSx2Xvric3RrU88hAYYbjDWYDL+c=
 cloud.google.com/go/compute/metadata v0.2.0/go.mod h1:zFmK7XCadkQkj6TtorcaGlCW1hT1fIilQDwofLpJ20k=
@@ -60,8 +60,8 @@ github.com/antchfx/xmlquery v1.4.4/go.mod h1:AEPEEPYE9GnA2mj5Ur2L5Q5/2PycJ0N9Fus
 github.com/antchfx/xpath v1.3.3/go.mod h1:i54GszH55fYfBmoZXapTHN8T8tkcHfRgLyVwwqzXNcs=
 github.com/antchfx/xpath v1.3.4 h1:1ixrW1VnXd4HurCj7qnqnR0jo14g8JMe20Fshg1Vgz4=
 github.com/antchfx/xpath v1.3.4/go.mod h1:i54GszH55fYfBmoZXapTHN8T8tkcHfRgLyVwwqzXNcs=
-github.com/anthropics/anthropic-sdk-go v1.5.0 h1:VNd0jVxmWQnYmHcXBuezVE8U9sQePrz/ZsUbpO1UMt8=
-github.com/anthropics/anthropic-sdk-go v1.5.0/go.mod h1:3qSNQ5NrAmjC8A2ykuruSQttfqfdEYNZY5o8c0XSHB8=
+github.com/anthropics/anthropic-sdk-go v1.6.1 h1:vhODpy0PBtqJkQIGo8R10P1xWPb32pSKAHygw7KVoAI=
+github.com/anthropics/anthropic-sdk-go v1.6.1/go.mod h1:3qSNQ5NrAmjC8A2ykuruSQttfqfdEYNZY5o8c0XSHB8=
 github.com/antonmedv/clipboard v1.0.1 h1:z9rRBhSKt4lDb6uNcMykUmNbspk/6v07JeiTaOfYYOY=
 github.com/antonmedv/clipboard v1.0.1/go.mod h1:3jcOUCdraVHehZaOsMaJZoE92MxURt5fovC1gDAiZ2s=
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5 h1:0CwZNZbxp69SHPdPJAN/hZIm0C4OItdklCFmMRWYpio=

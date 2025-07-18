@@ -13,11 +13,10 @@ import (
 	"github.com/qiangli/ai/internal/log"
 )
 
-type PgLiteBackend struct {
-	backend   *pgproto3.Backend
-	conn      net.Conn
-	responder func(*pgproto3.Backend, *sql.DB, string)
-	dbname    string
+type PGLite struct {
+	backend *pgproto3.Backend
+	conn    net.Conn
+	dbname  string
 
 	db                 *sql.DB
 	preparedStatements map[string]string
@@ -29,12 +28,11 @@ type activePortal struct {
 	params        []interface{}
 }
 
-func NewPgLiteBackend(conn net.Conn, dbname string, responder func(*pgproto3.Backend, *sql.DB, string)) *PgLiteBackend {
+func NewPGLite(conn net.Conn, dbname string) *PGLite {
 	backend := pgproto3.NewBackend(conn, conn)
-	connHandler := &PgLiteBackend{
+	connHandler := &PGLite{
 		backend:            backend,
 		conn:               conn,
-		responder:          responder,
 		dbname:             dbname,
 		preparedStatements: make(map[string]string),
 		activePortals:      make(map[string]*activePortal),
@@ -43,7 +41,7 @@ func NewPgLiteBackend(conn net.Conn, dbname string, responder func(*pgproto3.Bac
 	return connHandler
 }
 
-func (p *PgLiteBackend) Run() error {
+func (p *PGLite) Run() error {
 	defer p.Close()
 
 	err := p.handleStartup()
@@ -57,13 +55,15 @@ func (p *PgLiteBackend) Run() error {
 			return fmt.Errorf("error receiving message: %w", err)
 		}
 
-		log.Debugf("Received message %v\n", msg)
+		log.Debugf("Received: %T %#v\n", msg, msg)
 
 		switch qmsg := msg.(type) {
 		case *pgproto3.Query:
 			query := qmsg.String
-			log.Debugf("Received query: %s\n", query)
-			p.responder(p.backend, p.db, query)
+
+			log.Debugf("process query: %s\n", query)
+
+			p.handleQuery(query)
 			continue
 		case *pgproto3.Terminate:
 			if p.db != nil {
@@ -76,19 +76,21 @@ func (p *PgLiteBackend) Run() error {
 			name := qmsg.Name
 			query := qmsg.Query
 
-			log.Debugf("Received Parse: %v, Name: %s\n", query, name)
+			log.Debugf("process Parse: %v, Name: %s\n", query, name)
 
 			p.preparedStatements[name] = query
-			p.backend.Send(&pgproto3.ParseComplete{})
-			p.backend.Flush()
+			p.send(&pgproto3.ParseComplete{})
+			p.flush()
 			continue
 		case *pgproto3.Bind:
 			portalName := qmsg.DestinationPortal
 			statementName := qmsg.PreparedStatement
 
+			log.Debugf("process Bind: %v, Name: %s\n", portalName, statementName)
+
 			// Check if the prepared statement exists
 			if _, exists := p.preparedStatements[statementName]; !exists {
-				sendError(p.backend, fmt.Errorf("prepared statement not found: %s", statementName))
+				p.sendError(fmt.Errorf("prepared statement not found: %s", statementName))
 				continue
 			}
 
@@ -101,27 +103,31 @@ func (p *PgLiteBackend) Run() error {
 			// Store the portal information
 			p.activePortals[portalName] = &activePortal{statementName: statementName, params: paramValues}
 
-			p.backend.Send(&pgproto3.BindComplete{})
-			p.backend.Flush()
+			p.send(&pgproto3.BindComplete{})
+			p.flush()
 
 		case *pgproto3.Execute:
 			portalName := qmsg.Portal
 			portal, exists := p.activePortals[portalName]
+
+			log.Debugf("process Execute: %v, Name: %s exists: %v \n", portalName, portal, exists)
+
 			if !exists {
-				sendError(p.backend, fmt.Errorf("portal not found: %s", portalName))
+				p.sendError(fmt.Errorf("portal not found: %s", portalName))
 				continue
 			}
 
 			query := p.preparedStatements[portal.statementName]
 
-			executeQuery(p.backend, p.db, query, portal.params)
+			p.executeQuery(query, portal.params)
 
 			// Optionally, you can remove the portal once executed if it's single-use
 			// delete(p.activePortals, portalName)
 		case *pgproto3.Describe:
 			name := qmsg.Name
 			objectType := qmsg.ObjectType
-			fmt.Printf("Received Describe: object type %v, name %v\n", objectType, name)
+
+			fmt.Printf("process Describe: object name %v, type %v\n", name, objectType)
 
 			switch objectType {
 			case 'S': // Statement
@@ -129,30 +135,32 @@ func (p *PgLiteBackend) Run() error {
 					// Determine fields based on the actual query analysis
 					fields, err := getQueryMetadata(p.db, query)
 					if err != nil {
-						sendError(p.backend, err)
+						p.sendError(err)
 					} else {
-						p.backend.Send(&pgproto3.RowDescription{Fields: fields})
+						p.send(&pgproto3.RowDescription{Fields: fields})
 						continue
 					}
 				} else {
-					sendError(p.backend, fmt.Errorf("prepared statement not found: %s", name))
+					p.sendError(fmt.Errorf("prepared statement not found: %s", name))
 				}
 			case 'P': // Portal
 				// For simplicity, return no data as we're not managing portals here
-				p.backend.Send(&pgproto3.NoData{})
+				p.send(&pgproto3.NoData{})
 			}
 
-			p.backend.Send(&pgproto3.CommandComplete{CommandTag: []byte("DESCRIBE")})
-			p.backend.Flush()
+			p.send(&pgproto3.CommandComplete{CommandTag: []byte("DESCRIBE")})
+			p.flush()
 		case *pgproto3.Sync:
-			log.Debugf("Received Sync\n")
+			log.Debugf("process Sync\n")
+
 			// Send a ReadyForQuery response, indicating processing is complete
-			p.backend.Send(&pgproto3.ReadyForQuery{TxStatus: 'I'})
-			p.backend.Flush()
+			p.send(&pgproto3.ReadyForQuery{TxStatus: 'I'})
+			p.flush()
 		case *pgproto3.Close:
-			objectType := qmsg.ObjectType
 			name := qmsg.Name
-			log.Debugf("Received Close: object type %c, name %v\n", objectType, name)
+			objectType := qmsg.ObjectType
+
+			log.Debugf("process Close: name: %s object type %c\n", name, objectType)
 
 			// Perform the close operation based on the type
 			switch objectType {
@@ -169,13 +177,16 @@ func (p *PgLiteBackend) Run() error {
 			}
 
 			// Send CloseComplete message
-			p.backend.Send(&pgproto3.CloseComplete{})
-			p.backend.Flush()
+			p.send(&pgproto3.CloseComplete{})
+			p.flush()
 		case *pgproto3.Flush:
 			// Handle Flush message
-			log.Debugf("Received Flush\n")
-			p.backend.Flush()
+			log.Debugf("process                                                                Flush\n")
+
+			p.flush()
 		default:
+			log.Debugf("Not supported: %#v\n", msg)
+
 			return fmt.Errorf("received message other than Query from client: %#v", msg)
 		}
 	}
@@ -184,14 +195,12 @@ func (p *PgLiteBackend) Run() error {
 // Helper function to retrieve query metadata
 func getQueryMetadata(db *sql.DB, query string) ([]pgproto3.FieldDescription, error) {
 	// This function should prepare a statement, execute an empty query to get metadata, and return FieldDescriptions
-
 	stmt, err := db.Prepare(query)
 	if err != nil {
 		return nil, err
 	}
 	defer stmt.Close()
 
-	// Assuming we execute to just get the schema
 	rows, err := stmt.Query()
 	if err != nil {
 		return nil, err
@@ -214,7 +223,7 @@ func getQueryMetadata(db *sql.DB, query string) ([]pgproto3.FieldDescription, er
 	return fields, nil
 }
 
-func (p *PgLiteBackend) handleStartup() error {
+func (p *PGLite) handleStartup() error {
 	// &{196608 map[client_encoding:UTF8 database:postgres user:postgres]}
 	// &{196608 map[application_name:psql client_encoding:SQL_ASCII database:postgres user:postgres]}
 	// &{196608 map[client_encoding:UTF8 database:postgres user:postgres]}
@@ -233,7 +242,7 @@ func (p *PgLiteBackend) handleStartup() error {
 		if err != nil {
 			return nil, fmt.Errorf("error sending password request: %w", err)
 		}
-		p.backend.Flush()
+		p.flush()
 		// Receive password
 		pwdMsg, err := p.backend.Receive()
 		if err != nil {
@@ -270,12 +279,12 @@ func (p *PgLiteBackend) handleStartup() error {
 		if password == "" {
 			pwd, err := auth()
 			if err != nil {
-				sendError(p.backend, err)
+				p.sendError(err)
 				return err
 			}
 
 			if !validate(pwd.Password) {
-				sendFatal(p.backend, fmt.Errorf("password authentication failed for user %q", user))
+				p.sendFatal(fmt.Errorf("password authentication failed for user %q", user))
 				return fmt.Errorf("authentication failed: invalid password")
 			}
 
@@ -304,7 +313,7 @@ func (p *PgLiteBackend) handleStartup() error {
 		}
 		return p.handleStartup()
 	case *pgproto3.GSSEncRequest:
-		log.Debugf("Received GSSEncRequest message")
+		log.Debugln("Received GSSEncRequest message")
 		// Respond with 'N' to indicate that GSS encryption is not supported
 		_, err = p.conn.Write([]byte("N"))
 		if err != nil {
@@ -312,7 +321,7 @@ func (p *PgLiteBackend) handleStartup() error {
 		}
 		return p.handleStartup()
 	case *pgproto3.CancelRequest:
-		log.Debugf("Received CancelRequest message")
+		log.Debugln("Received CancelRequest message")
 		return p.Close()
 	default:
 		return fmt.Errorf("unknown startup message: %v", smsg)
@@ -321,7 +330,7 @@ func (p *PgLiteBackend) handleStartup() error {
 	return nil
 }
 
-func (p *PgLiteBackend) Close() error {
+func (p *PGLite) Close() error {
 	if p.conn != nil {
 		err := p.conn.Close()
 		p.conn = nil
@@ -337,57 +346,92 @@ func mustEncode(buf []byte, err error) []byte {
 	return buf
 }
 
-func handleQuery(be *pgproto3.Backend, db *sql.DB, query string) {
+func (p *PGLite) handleQuery(query string) {
 	query = strings.TrimSpace(query)
+	log.Debugf("handleQuery: %q\n", query)
+
 	stmt, err := sqlparser.Parse(query)
 	if err != nil {
-		sendError(be, err)
+		log.Errorf("error parsing query: %s\n", query)
+		// parser fails to parse some types of query.
+		// best effort
+		_, err := p.db.Exec(query)
+		if err != nil {
+			p.sendError(err)
+			return
+		}
+		resp := commandTag(query)
+
+		p.send(&pgproto3.CommandComplete{CommandTag: []byte(resp)})
+		p.send(&pgproto3.ReadyForQuery{TxStatus: 'I'})
+		p.flush()
 		return
 	}
 
 	switch stmt.(type) {
-	case *sqlparser.Set:
-		result, err := db.Exec(query)
+	case *sqlparser.Select:
+		p.executeQuery(query, nil)
+	case *sqlparser.DDL:
+		// DDL represents a CREATE, ALTER, DROP, RENAME or TRUNCATE statement.
+		_, err := p.db.Exec(query)
 		if err != nil {
-			sendError(be, err)
+			p.sendError(err)
 			return
 		}
-		affeted, _ := result.RowsAffected()
-		resp := fmt.Sprintf("%v rows affected", affeted)
-		be.Send(&pgproto3.CommandComplete{CommandTag: []byte(resp)})
-	case *sqlparser.Select:
-		executeQuery(be, db, query, nil)
-	case *sqlparser.Begin:
-		// TODO
-	case *sqlparser.Rollback:
-		// TODO
-	case *sqlparser.Commit:
-		// TODO
+		resp := commandTag(query)
+		p.send(&pgproto3.CommandComplete{CommandTag: []byte(resp)})
+	case *sqlparser.DBDDL:
+		// DBDDL represents a CREATE, DROP database statement.
+		p.sendError(fmt.Errorf("not supported. Query: %s", query))
+		return
 	default:
 		// For non-select queries, just execute
-		result, err := db.Exec(query)
+		// insert/update/delete
+		result, err := p.db.Exec(query)
 		if err != nil {
-			sendError(be, err)
+			p.sendError(err)
 			return
 		}
-		affeted, _ := result.RowsAffected()
-		resp := fmt.Sprintf("%v rows affected", affeted)
-		be.Send(&pgproto3.CommandComplete{CommandTag: []byte(resp)})
+		affected, _ := result.RowsAffected()
+		var resp string
+
+		// Determine the command tag based on operation
+		switch stmt.(type) {
+		case *sqlparser.Insert:
+			resp = fmt.Sprintf("INSERT 0 %v", affected)
+		case *sqlparser.Update:
+			resp = fmt.Sprintf("UPDATE %v", affected)
+		case *sqlparser.Delete:
+			resp = fmt.Sprintf("DELETE %v", affected)
+		case *sqlparser.Set:
+			resp = fmt.Sprintf("%v rows affected", affected)
+		case *sqlparser.Begin:
+			resp = "BEGIN"
+		case *sqlparser.Rollback:
+			resp = "ROLLBACK"
+		case *sqlparser.Commit:
+			resp = "COMMIT"
+		default:
+			// ?
+			resp = "COMMAND"
+		}
+		p.send(&pgproto3.CommandComplete{CommandTag: []byte(resp)})
 	}
 
-	be.Send(&pgproto3.ReadyForQuery{TxStatus: 'I'})
-	be.Flush()
+	p.send(&pgproto3.ReadyForQuery{TxStatus: 'I'})
+	p.flush()
 }
 
-func executeQuery(be *pgproto3.Backend, db *sql.DB, query string, params []any) {
-	stmt, err := db.Prepare(query)
+func (p *PGLite) executeQuery(query string, params []any) {
+	log.Debugf("executeQuery: %q\n", query)
+
+	stmt, err := p.db.Prepare(query)
 	if err != nil {
-		sendError(be, err)
+		p.sendError(fmt.Errorf("error prepariing query: %s", err))
 		return
 	}
 	defer stmt.Close()
 	//
-	log.Debugf("query: %v\n", query)
 	var rows *sql.Rows
 
 	if len(params) > 0 {
@@ -396,14 +440,14 @@ func executeQuery(be *pgproto3.Backend, db *sql.DB, query string, params []any) 
 		rows, err = stmt.Query()
 	}
 	if err != nil {
-		sendError(be, err)
+		p.sendError(err)
 		return
 	}
 	defer rows.Close()
 
 	cols, err := rows.Columns()
 	if err != nil {
-		sendError(be, err)
+		p.sendError(err)
 		return
 	}
 	// Send RowDescription
@@ -419,24 +463,24 @@ func executeQuery(be *pgproto3.Backend, db *sql.DB, query string, params []any) 
 			Format:               0, // text format
 		}
 	}
-	be.Send(&pgproto3.RowDescription{Fields: fields})
+	p.send(&pgproto3.RowDescription{Fields: fields})
 
 	rowCount := 0
 	for rows.Next() {
 		values, err := rowsValues(rows, len(cols))
 		if err != nil {
-			sendError(be, err)
+			p.sendError(err)
 			return
 		}
-		be.Send(&pgproto3.DataRow{Values: values})
+		p.send(&pgproto3.DataRow{Values: values})
 		rowCount++
 	}
 	if err := rows.Err(); err != nil {
-		sendError(be, err)
+		p.sendError(err)
 		return
 	}
 
-	be.Send(&pgproto3.CommandComplete{CommandTag: []byte(fmt.Sprintf("SELECT %d", rowCount))})
+	p.send(&pgproto3.CommandComplete{CommandTag: []byte(fmt.Sprintf("SELECT %d", rowCount))})
 }
 
 func rowsValues(rows *sql.Rows, numCols int) ([][]byte, error) {
@@ -463,87 +507,71 @@ func rowsValues(rows *sql.Rows, numCols int) ([][]byte, error) {
 	return result, nil
 }
 
-func sendError(be *pgproto3.Backend, err error) {
-	be.Send(&pgproto3.ErrorResponse{
+func (p *PGLite) flush() {
+	log.Debugln("flush")
+
+	p.backend.Flush()
+}
+
+func (p *PGLite) send(msg pgproto3.BackendMessage) {
+	log.Debugf("send: %#v\n", msg)
+
+	p.backend.Send(msg)
+}
+
+func (p *PGLite) sendError(err error) {
+	log.Debugf("sendError: %v\n", err)
+
+	p.backend.Send(&pgproto3.ErrorResponse{
 		Severity: "ERROR",
 		Message:  err.Error(),
 	})
-	be.Send(&pgproto3.ReadyForQuery{TxStatus: 'I'})
-	be.Flush()
+	p.backend.Send(&pgproto3.ReadyForQuery{TxStatus: 'I'})
+	p.backend.Flush()
 }
 
-func sendFatal(be *pgproto3.Backend, err error) {
-	be.Send(&pgproto3.ErrorResponse{
+func (p *PGLite) sendFatal(err error) {
+	log.Debugf("sendFatal: %v\n", err)
+
+	p.backend.Send(&pgproto3.ErrorResponse{
 		Severity: "FATAL",
 		Message:  err.Error(),
 	})
-	be.Send(&pgproto3.ReadyForQuery{TxStatus: 'I'})
-	be.Flush()
+	p.backend.Send(&pgproto3.ReadyForQuery{TxStatus: 'I'})
+	p.backend.Flush()
 }
 
-// func commandTag(query string) string {
-// 	q := strings.ToUpper(query)
-// 	if strings.HasPrefix(q, "SELECT") {
-// 		return fmt.Sprintf("SELECT %d", 0) // Row count not tracked here
-// 	} else if strings.HasPrefix(q, "INSERT") {
-// 		return "INSERT 0 1"
-// 	} else if strings.HasPrefix(q, "UPDATE") {
-// 		return "UPDATE 0"
-// 	} else if strings.HasPrefix(q, "DELETE") {
-// 		return "DELETE 0"
-// 	} else {
-// 		return "COMMAND"
-// 	}
-// }
+// mainly for DDL
+func commandTag(query string) string {
+	q := strings.ToUpper(query)
 
-// func information_schema(query string) bool {
-// 	if strings.Contains(query, "information_schema") {
-// 		log.Debugf("Query is related to information_schema: %s", query)
-// 		return true
-// 	}
-// 	return false
-// }
+	log.Debugf("commandTag: %s", q)
 
-// var schemaMap = map[string][]string{
-// 	// PostgreSQL default schemas and tables
-// 	"pg_catalog":         {},
-// 	"information_schema": {},
-// 	// Add more default system tables if necessary
-// 	"versioning_info": {"version_id", "version_name", "applied_on"},
-// 	"user_account":    {"user_id", "username", "email", "created_at"},
-// 	"table_metadata":  {"table_id", "table_name", "schema_name", "created_at"},
-// }
+	var tag string
 
-// func initializeSchemaMap(db *sql.DB) error {
-// 	// schemaMap will be populated with user-defined tables and columns from SQLite
-// 	// via the `initializeSchemaMap` function.
+	fields := strings.Fields(q)
+	switch len(fields) {
+	case 0:
+		tag = ""
+	case 1:
+		tag = fields[0]
+	default:
+		switch fields[0] {
+		case "CREATE", "ALTER", "DROP":
+			tag = fmt.Sprintf("%s %s", fields[0], fields[1])
+		case "RENAME", "TRUNCATE":
+			tag = fmt.Sprintf("%s %s", fields[0], fields[1])
+		case "DO":
+			tag = "DO"
+		default:
+			tag = fields[0]
+		}
+	}
 
-// 	// Initialize dynamic schemaMap using the SQLite database
-// 	rows, err := db.Query(`
-// 		SELECT m.name AS table_name, p.name AS column_name
-// 		FROM sqlite_master m
-// 		JOIN pragma_table_info((m.name)) p
-// 		WHERE m.type='table'
-// 		ORDER BY m.name, p.cid;
-// 	`)
-// 	if err != nil {
-// 		return fmt.Errorf("error retrieving schema: %w", err)
-// 	}
-// 	defer rows.Close()
+	log.Debugf("tag created: %q\n", tag)
 
-// 	for rows.Next() {
-// 		var tableName, columnName string
-// 		if err := rows.Scan(&tableName, &columnName); err != nil {
-// 			return fmt.Errorf("error scanning schema row: %w", err)
-// 		}
-// 		schemaMap[tableName] = append(schemaMap[tableName], columnName)
-// 	}
-// 	if err := rows.Err(); err != nil {
-// 		return fmt.Errorf("error iterating schema rows: %w", err)
-// 	}
-
-// 	return nil
-// }
+	return tag
+}
 
 func StartPG(address string, dbname string) {
 	// conn, err := sql.Open("file::memory:?mode=memory&cache=shared")
@@ -554,11 +582,6 @@ func StartPG(address string, dbname string) {
 	// }
 
 	// defer db.Close()
-
-	// err = initializeSchemaMap(db)
-	// if err != nil {
-	// 	log.Fatalf("failed to initialize schema map: %v", err)
-	// }
 
 	ln, err := net.Listen("tcp", address)
 	if err != nil {
@@ -576,10 +599,7 @@ func StartPG(address string, dbname string) {
 
 		log.Debugf("Accepted connection from: %v\n", conn.RemoteAddr())
 
-		pg := NewPgLiteBackend(conn, dbname, func(be *pgproto3.Backend, db *sql.DB, query string) {
-			handleQuery(be, db, query)
-		})
-
+		pg := NewPGLite(conn, dbname)
 		go func() {
 			err := pg.Run()
 			if err != nil {

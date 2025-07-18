@@ -13,7 +13,7 @@ require (
 	github.com/alecthomas/kong v1.12.0
 	github.com/alexflint/go-arg v1.6.0
 	github.com/alicebob/miniredis/v2 v2.35.0
-	github.com/anthropics/anthropic-sdk-go v1.5.0
+	github.com/anthropics/anthropic-sdk-go v1.6.1
 	github.com/antonmedv/clipboard v1.0.1
 	github.com/atotto/clipboard v0.1.4
 	github.com/bmatcuk/doublestar/v4 v4.9.0
@@ -75,8 +75,8 @@ require (
 )
 
 require (
-	cloud.google.com/go v0.121.3 // indirect
-	cloud.google.com/go/auth v0.16.2 // indirect
+	cloud.google.com/go v0.121.4 // indirect
+	cloud.google.com/go/auth v0.16.3 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
 	cloud.google.com/go/compute/metadata v0.7.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
