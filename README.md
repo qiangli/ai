@@ -6,7 +6,7 @@ This AI tool assists you with all the tasks beyond file editing on your system c
 
 Specialist agents - such as shell, web, git, pr, code, and sql - will empower you to be much more productive...
 
-If you prefer graphical UI, this tool can serve as backend hub service to the web widget, browser/vscode extensions, and desktop app, including a web terminal: [AI Chatbot](https://github.com/qiangli/chatbot)Conversation history is shared among all the different UIs so LLMs won't lose the context when switching the interfaces.
+If you prefer graphical UI, this tool can serve as backend hub service to the web widget, browser/vscode extensions, and desktop app, including a web terminal: [AI Chatbot](https://github.com/qiangli/chatbot) Conversation history is shared among all the different UIs so LLMs won't lose the context when switching the interfaces.
 
 
 - [AI Command Line Tool](#ai-command-line-tool)
@@ -17,7 +17,8 @@ If you prefer graphical UI, this tool can serve as backend hub service to the we
   - [Usage](#usage)
     - [Command line](#command-line)
     - [Interactive shell](#interactive-shell)
-    - [AI Side Panel for Chrome](#ai-side-panel-for-chrome)
+    - [AI Hub service](#ai-hub-service)
+    - [AI Graphical UI](#ai-graphical-ui)
   - [Credits](#credits)
 
 
@@ -233,23 +234,22 @@ ai.git@main/. ai> help
 
 ```
 
-### AI Side Panel for Chrome
+### AI Hub service
 
 Start AI in Hub service mode
 
 ```bash
-ai --hub --agent swe --l2-model openai/gpt-4.1 --verbose --new
+# example:
+# ai --hub --agent swe --l2-model openai/gpt-4.1 --verbose --new
+#
+# ai --agent ask --verbose --hub --hub-address ":58080" --hub-pg-address ":25432" --hub-mysql-address ":3306" --hub-redis-address ":6379"
+just hub
 ```
 
-Install AI Side Panel Chrome extension
+### AI Graphical UI
 
-```
-> chrome://extensions/
-> Load uppacked
-> extension/chrome/side/panel
-```
+Please see Chatbot at [https://github.com/qiangli/chatbot](https://github.com/qiangli/chatbot)
 
-AI Side Panel [screenshot](vocs/docs/images/ai-side-panel.png)
 
 
 ## Credits

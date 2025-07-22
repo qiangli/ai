@@ -220,18 +220,6 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	//
 	app.Message = viper.GetString("message")
 
-	// app.Content = viper.GetString("content")
-	// read input file if message is empty
-	// inputFile := viper.GetString("input")
-	// if inputFile != "" && app.Message == "" {
-	// 	b, err := os.ReadFile(inputFile)
-	// 	if err != nil {
-	// 		return nil, errors.New("failed to read input file")
-	// 	} else {
-	// 		app.Message = string(b)
-	// 	}
-	// }
-
 	app.Template = TemplateFile
 
 	app.Screenshot = viper.GetBool("screenshot")

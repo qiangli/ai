@@ -31,24 +31,25 @@ func (e *Editor) Launch(content string) (string, error) {
 
 // GetUserInput collects user input for the agent.
 // It prefers a direct message from the command line flag (--message),
-// otherwise, it determines the input source (stdin, editor, clipboard)
+// otherwise, it determines the input source (stdin, clipboard, editor)
 // and collects input accordingly. It also
-// attaches any provided files or template info if provided.
+// attaches any provided files or template file if provided.
 func GetUserInput(cfg *api.AppConfig) (*api.UserInput, error) {
 	return getUserInput(cfg, nil, nil, nil)
 }
 
 func getUserInput(cfg *api.AppConfig, stdin io.Reader, clipper api.ClipboardProvider, editor api.EditorProvider) (*api.UserInput, error) {
+	// --message flag - ignore the rest (mainly intended for testing)
 	if cfg.Message != "" {
 		input := &api.UserInput{
-			Message: cfg.Message,
-			// Content:  cfg.Content,
+			Message:  cfg.Message,
 			Files:    cfg.Files,
 			Template: cfg.Template,
 		}
 		return input, nil
 	}
 
+	// collecting message content from various sources
 	if clipper == nil {
 		clipper = util.NewClipboard()
 	}
@@ -60,12 +61,14 @@ func getUserInput(cfg *api.AppConfig, stdin io.Reader, clipper api.ClipboardProv
 	if err != nil {
 		return nil, err
 	}
-	//
+
+	// attachments
 	input.Files = cfg.Files
 	input.Template = cfg.Template
 
 	// special inputs
-	// take screenshot
+
+	// take screenshot - append to file list
 	if cfg.Screenshot {
 		if img, err := takeScreenshot(cfg); err != nil {
 			return nil, err
@@ -74,7 +77,7 @@ func getUserInput(cfg *api.AppConfig, stdin io.Reader, clipper api.ClipboardProv
 		}
 	}
 
-	// get voice input
+	// get voice input - append to message
 	if cfg.Voice {
 		if txt, err := voiceInput(cfg); err != nil {
 			return nil, err
@@ -175,7 +178,7 @@ func userInput(
 		return &api.UserInput{Message: msg, Content: content}, nil
 	}
 
-	// send all inputs to the editor
+	// send all collected inputs to the editor and start the editor
 	content = cat(msg, content, "\n")
 
 	if cfg.Editor != "" {
@@ -241,30 +244,6 @@ func LaunchEditor(editor string, content string) (string, error) {
 		return "", err
 	}
 	return string(edited), nil
-}
-
-// split s into length of around 80 char delimited by space
-func wrapByLength(s string, limit int) []string {
-	words := strings.Fields(s)
-	var lines []string
-	var buf strings.Builder
-
-	for _, word := range words {
-		// If adding this word would exceed the limit, start a new line
-		if buf.Len() > 0 && buf.Len()+len(word)+1 > limit {
-			lines = append(lines, buf.String())
-			buf.Reset()
-		}
-		if buf.Len() > 0 {
-			buf.WriteByte(' ')
-		}
-		buf.WriteString(word)
-	}
-	// Add the last line if any
-	if buf.Len() > 0 {
-		lines = append(lines, buf.String())
-	}
-	return lines
 }
 
 // PrintInput prints the user message or intent only

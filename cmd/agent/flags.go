@@ -172,30 +172,20 @@ func addAgentFlags(cmd *cobra.Command) {
 	// mainly when stdin is not desirable or possible
 	// e.g. for testing or in vscode debug mode
 	flags.String("message", "", "Specify input message. Skip stdin")
-	// flags.String("content", "", "Specify input content. Skip stdin")
 
 	flags.MarkHidden("message")
-	// flags.MarkHidden("content")
-	// flags.String("input", "", "Read input message from a file")
 
+	// TODO further research: user role instruction/tool calls seem to work better and are preferred
 	flags.VarP(newFilesValue([]string{}, &internal.InputFiles), "file", "", `Read file inputs.  May be given multiple times.`)
+	flags.MarkHidden("file")
+	// doc agent
+	flags.VarP(newTemplateValue("", &internal.TemplateFile), "template", "", "Document template file")
+	flags.MarkHidden("template")
 
-	// TODO
-	// for certain flags, auto add to user query?
-	// image file is located at {{.image}}
-	// .ai/prompts/
-	// image.md
-	// template.md
-	// file.md
-	// workspace.md
-	// flags.String("image", "", "Path to input image file")
-
+	// use flags in case when special chars do not work
 	flags.Bool("stdin", false, "Read input from stdin. '-'")
-
 	flags.Bool("pb-read", false, "Read input from clipboard. '{'")
 	flags.Bool("pb-tail", false, "Read input from clipboard and wait. '{{'")
-
-	flags.MarkHidden("file")
 
 	// special inputs
 	flags.Bool("screenshot", false, "Take screenshot of the active tab in Chrome (CRX)")
@@ -203,6 +193,8 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	// output
 	flags.StringVar(&internal.OutputFlag, "output", "", "Save final response to a file.")
+
+	// use flags
 	flags.Bool("pb-write", false, "Copy output to clipboard. '}'")
 	flags.Bool("pb-append", false, "Append output to clipboard. '}}'")
 
@@ -214,7 +206,10 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.Bool("unsafe", false, "Skip command security check to allow unsafe operations. Use with caution")
 
 	// history
-	// TODO auto adjust based on relevance of messages to the current query
+	// TODO
+	// auto adjust based on relevance of messages to the current query
+	// embedding/rag
+	// summerization
 	flags.BoolP("new", "n", false, "Start a new conversation")
 	flags.Int("max-history", 3, "Max number of historic messages")
 	flags.Int("max-span", 480, "How far in minutes to go back in time for historic messages")
@@ -225,10 +220,10 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	// mcp
 	flags.String("mcp-server-root", "", "MCP server config base directory")
-
 	flags.MarkHidden("mcp-server-root")
 
 	// LLM
+	// a set of models grouped under one name for convenience from potentially different service providers
 	flags.StringP("models", "m", "", "LLM model alias defined in the models directory")
 
 	flags.String("provider", "", "LLM provider")
@@ -300,6 +295,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("role")
 	flags.MarkHidden("prompt")
 
+	// TODO deprecate?
 	flags.MarkHidden("dry-run")
 	flags.MarkHidden("dry-run-content")
 
@@ -307,6 +303,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.BoolP("interactive", "i", false, "Interactive mode")
 	flags.String("shell", os.Getenv("SHELL"), "Shell to use for interactive mode")
 
+	// better tool call support instead?
 	flags.StringP("workspace", "w", "", "Workspace directory")
 
 	// TODO
@@ -353,11 +350,6 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("sql-db-username")
 	flags.MarkHidden("sql-db-password")
 	flags.MarkHidden("sql-db-name")
-
-	// doc
-	flags.VarP(newTemplateValue("", &internal.TemplateFile), "template", "", "Document template file")
-
-	flags.MarkHidden("template")
 
 	// mcp - this is for mcp, but we need to define it here
 	flags.Int("port", 0, "Port to run the server")

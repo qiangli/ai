@@ -36,12 +36,6 @@ type AppConfig struct {
 	// command line arguments
 	Message string
 
-	// // message from clipboard, stdin, and editor
-	// Content string
-
-	// // input file
-	// Input string
-
 	// editor binary and args. e.g vim [options]
 	Editor string
 
