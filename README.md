@@ -6,6 +6,9 @@ This AI tool assists you with all the tasks beyond file editing on your system c
 
 Specialist agents - such as shell, web, git, pr, code, and sql - will empower you to be much more productive...
 
+If you prefer graphical UI, this tool can serve as backend hub service to the web widget, browser/vscode extensions, and desktop app, including a web terminal: [AI Chatbot](https://github.com/qiangli/chatbot)Conversation history is shared among all the different UIs so LLMs won't lose the context when switching the interfaces.
+
+
 - [AI Command Line Tool](#ai-command-line-tool)
   - [Build](#build)
   - [Run](#run)
