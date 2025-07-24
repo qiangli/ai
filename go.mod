@@ -63,13 +63,13 @@ require (
 	github.com/tailscale/hujson v0.0.0-20250605163823-992244df8c5a
 	github.com/weppos/publicsuffix-go v0.40.2
 	github.com/xwb1989/sqlparser v0.0.0-20180606152119-120387863bf2
-	github.com/yuin/goldmark v1.7.12
+	github.com/yuin/goldmark v1.7.13
 	github.com/zyedidia/micro/v2 v2.0.14
 	go.etcd.io/bbolt v1.4.2
 	golang.org/x/term v0.33.0
 	golang.org/x/text v0.27.0
-	google.golang.org/api v0.242.0
-	google.golang.org/genai v1.16.0
+	google.golang.org/api v0.243.0
+	google.golang.org/genai v1.17.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.38.0
@@ -240,7 +240,7 @@ require (
 	google.golang.org/genproto v0.0.0-20250603155806-513f23925822 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250603155806-513f23925822 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250721164621-a45f3dfb1074 // indirect
-	google.golang.org/grpc v1.73.0 // indirect
+	google.golang.org/grpc v1.74.2 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/src-d/go-billy.v4 v4.3.2 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect

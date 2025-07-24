@@ -95,7 +95,6 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	}
 
 	log.Debugf("Agent task completed: %s %v\n", cfg.Command, cfg.Args)
-
 	return nil
 }
 
