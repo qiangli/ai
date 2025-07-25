@@ -290,8 +290,6 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.BoolVar(&internal.DryRun, "dry-run", false, "Enable dry run mode. No API call will be made")
 	flags.StringVar(&internal.DryRunContent, "dry-run-content", "", "Content returned for dry run")
 
-	flags.MarkHidden("log")
-
 	flags.MarkHidden("role")
 	flags.MarkHidden("prompt")
 

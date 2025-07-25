@@ -5,9 +5,11 @@ import (
 
 	"github.com/mattn/go-shellwords"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"github.com/spf13/pflag"
+	fangs "github.com/spf13/viper"
 
 	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
 )
 
@@ -17,18 +19,35 @@ func parseFlags(line string, cfg *api.AppConfig) error {
 		return err
 	}
 
+	viper := fangs.New()
+	if cfg.ConfigFile != "" {
+		viper.SetConfigFile(cfg.ConfigFile)
+		viper.AutomaticEnv()
+		if err := viper.ReadInConfig(); err != nil {
+			log.Debugf("Error reading config file: %s\n", err)
+			return err
+		}
+	}
+
 	var run = func(cmd *cobra.Command, args []string) error {
-		parseAgentFlags(cmd, cfg)
-		internal.ParseArgs(cfg, args, cfg.Agent)
+		internal.ParseConfig(viper, cfg, args)
 		return nil
 	}
 	var agentCmd = &cobra.Command{
 		Args: cobra.ArbitraryArgs,
 		RunE: run,
 	}
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
+
 	addAgentFlags(agentCmd, cfg)
 	agentCmd.SetArgs(args)
+
+	// Bind the flags to viper using underscores
+	agentCmd.Flags().VisitAll(func(f *pflag.Flag) {
+		key := strings.ReplaceAll(f.Name, "-", "_")
+		viper.BindPFlag(key, f)
+	})
+
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 
 	return agentCmd.Execute()
 }
@@ -42,6 +61,8 @@ func addAgentFlags(cmd *cobra.Command, cfg *api.AppConfig) {
 
 	// --agent agent/command or @agent/command
 	flags.StringP("agent", "a", cfg.Agent, "Specify the agent to use or @agent")
+
+	flags.String("format", cfg.Format, "Output format: raw, text, json, markdown, or tts.")
 
 	// security
 	flags.Bool("unsafe", cfg.Unsafe, "Skip command security check to allow unsafe operations. Use with caution")
@@ -74,45 +95,4 @@ func addAgentFlags(cmd *cobra.Command, cfg *api.AppConfig) {
 	//
 	flags.Int("max-turns", cfg.MaxTurns, "Max number of turns")
 	flags.Int("max-time", cfg.MaxTime, "Max number of seconds for timeout")
-}
-func parseAgentFlags(cmd *cobra.Command, cfg *api.AppConfig) {
-	flags := cmd.Flags()
-
-	// --agent agent/command or @agent/command
-	cfg.Agent, _ = flags.GetString("agent")
-
-	// security
-	cfg.Unsafe, _ = flags.GetBool("unsafe")
-
-	// conversation
-	cfg.New, _ = flags.GetBool("new")
-	cfg.MaxHistory, _ = flags.GetInt("max-history")
-	cfg.MaxSpan, _ = flags.GetInt("max-span")
-
-	// LLM
-	internal.ParseLLM(cfg)
-	// cfg.Models, _ = flags.GetString("models")
-	// cfg.LLM.Provider, _ = flags.GetString("provider")
-	// cfg.LLM.ApiKey, _ = flags.GetString("api-key")
-	// cfg.LLM.Model, _ = flags.GetString("model")
-	// cfg.LLM.BaseUrl, _ = flags.GetString("base-url")
-
-	// // TODO redesign to simlify the model handling
-	// // use the same model for all levels for now
-	// var m = &model.Model{}
-	// if cfg.LLM.Models == nil {
-	// 	cfg.LLM.Models = make(map[model.Level]*model.Model)
-	// }
-	// cfg.LLM.Models[model.L1] = m
-	// cfg.LLM.Models[model.L2] = m
-	// cfg.LLM.Models[model.L3] = m
-
-	// // TTS
-	// cfg.TTS.Provider, _ = flags.GetString("tts-provider")
-	// cfg.TTS.ApiKey, _ = flags.GetString("tts-api-key")
-	// cfg.TTS.Model, _ = flags.GetString("tts-model")
-	// cfg.TTS.BaseUrl, _ = flags.GetString("tts-base-url")
-	//
-	cfg.MaxTurns, _ = flags.GetInt("max-turns")
-	cfg.MaxTime, _ = flags.GetInt("max-time")
 }

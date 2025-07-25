@@ -14,14 +14,17 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
+var viper = internal.V
+
 var SetupCmd = &cobra.Command{
 	Use:                   "setup",
 	Short:                 "Set up AI configuration",
 	DisableFlagsInUseLine: true,
 	DisableSuggestions:    true,
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg, err := internal.ParseConfig(args)
-		if err != nil {
+		var cfg = &api.AppConfig{}
+
+		if err := internal.ParseConfig(viper, cfg, args); err != nil {
 			internal.Exit(err)
 		}
 		if err := setupConfig(cfg); err != nil {

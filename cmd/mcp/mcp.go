@@ -2,10 +2,12 @@ package mcp
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
+	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
 )
+
+var viper = internal.V
 
 // var updated during build
 var ServerName = "Stargate"

@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/qiangli/ai/cmd/agent"
 	"github.com/qiangli/ai/cmd/history"
@@ -13,6 +12,8 @@ import (
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
 )
+
+var viper = internal.V
 
 const rootUsageTemplate = `AI Command Line Tool
 

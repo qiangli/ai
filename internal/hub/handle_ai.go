@@ -30,6 +30,9 @@ func (h *Hub) handleAI(data string) (ActionStatus, string) {
 	}
 	cfg := h.cfg.Clone()
 
+	// default to text for chatbots
+	cfg.Format = "text"
+
 	var payload Payload
 	if err := json.Unmarshal([]byte(data), &payload); err != nil {
 		return StatusError, err.Error()
@@ -43,10 +46,10 @@ func (h *Hub) handleAI(data string) (ActionStatus, string) {
 			return StatusError, err.Error()
 		}
 		content = strings.Join(cfg.Args, " ")
-	}
-
-	if cfg.New {
-		cfg.History = nil
+		if cfg.New {
+			cfg.History = nil
+		}
+		// TODO other cfg may require updates
 	}
 
 	in := &api.UserInput{
@@ -88,7 +91,6 @@ func (h *Hub) handleAI(data string) (ActionStatus, string) {
 	in.Messages = messages
 
 	// run
-	cfg.Format = "text"
 	if err := agent.RunSwarm(cfg, in); err != nil {
 		log.Errorf("error running agent: %s\n", err)
 		return StatusError, err.Error()

@@ -3,9 +3,15 @@ package internal
 import (
 	"fmt"
 	"testing"
+
+	fangs "github.com/spf13/viper"
+
+	"github.com/qiangli/ai/swarm/api"
 )
 
 func TestParseConfig(t *testing.T) {
+	var viper *fangs.Viper = fangs.New()
+
 	tests := []struct {
 		args []string
 		// agent/command
@@ -76,7 +82,9 @@ func TestParseConfig(t *testing.T) {
 
 	for i, test := range tests {
 		t.Run(fmt.Sprintf("test - %d", i), func(t *testing.T) {
-			cfg, err := ParseConfig(test.args)
+			var cfg = &api.AppConfig{}
+
+			err := ParseConfig(viper, cfg, test.args)
 			if err != nil {
 				t.Fatalf("expected no error, got %v", err)
 			}

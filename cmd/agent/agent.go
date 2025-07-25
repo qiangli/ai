@@ -8,7 +8,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/swarm/api"
@@ -21,6 +20,8 @@ import (
 	"github.com/qiangli/ai/shell"
 	"github.com/qiangli/ai/swarm"
 )
+
+var viper = internal.V
 
 var AgentCmd = &cobra.Command{
 	Use:                   "ai [OPTIONS] [@AGENT] MESSAGE...",
@@ -217,7 +218,8 @@ func setLogOutput(path string) (*log.FileWriter, error) {
 }
 
 func setupAppConfig(args []string) (*api.AppConfig, error) {
-	cfg, err := internal.ParseConfig(args)
+	var cfg = &api.AppConfig{}
+	err := internal.ParseConfig(viper, cfg, args)
 	if err != nil {
 		return nil, err
 	}

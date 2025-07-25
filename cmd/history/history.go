@@ -13,14 +13,17 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
+var viper = internal.V
+
 var HistoryCmd = &cobra.Command{
 	Use:                   "history",
 	Short:                 "Show AI conversion history",
 	DisableFlagsInUseLine: true,
 	DisableSuggestions:    true,
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg, err := internal.ParseConfig(args)
-		if err != nil {
+		var cfg = &api.AppConfig{}
+
+		if err := internal.ParseConfig(viper, cfg, args); err != nil {
 			internal.Exit(err)
 		}
 		if err := historyConfig(cfg); err != nil {

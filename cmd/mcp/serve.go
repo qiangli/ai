@@ -10,7 +10,6 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
@@ -42,8 +41,9 @@ var serveCmd = &cobra.Command{
 
 // https://github.com/mark3labs/mcp-go/blob/main/examples/everything/main.go
 func Serve(args []string) error {
-	cfg, err := internal.ParseConfig(args)
-	if err != nil {
+	var cfg = &api.AppConfig{}
+
+	if err := internal.ParseConfig(viper, cfg, args); err != nil {
 		return err
 	}
 
