@@ -31,6 +31,21 @@ type LLMConfig struct {
 	Models map[model.Level]*model.Model
 }
 
+func (config *LLMConfig) Clone() *LLMConfig {
+	modelsCopy := make(map[model.Level]*model.Model, len(config.Models))
+	for k, v := range config.Models {
+		modelsCopy[k] = v // shallow copy of the values
+	}
+
+	return &LLMConfig{
+		Provider: config.Provider,
+		Model:    config.Model,
+		BaseUrl:  config.BaseUrl,
+		ApiKey:   config.ApiKey,
+		Models:   modelsCopy,
+	}
+}
+
 type LLMRequest struct {
 	Agent string
 

@@ -3,6 +3,7 @@ package hub
 import (
 	"encoding/base64"
 	"encoding/json"
+	"regexp"
 	"strings"
 
 	"github.com/qiangli/ai/internal/agent"
@@ -10,25 +11,63 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-func (h *Hub) doAI(data string) (ActionStatus, string) {
-	log.Debugf("hub doAI: %v", data)
-
-	cfg := h.cfg
-
-	in := &api.UserInput{
-		Agent:   cfg.Agent,
-		Command: cfg.Command,
+func triggerAI(content string) (string, bool) {
+	const prefix = ""
+	const triggerWord = "ai"
+	re := regexp.MustCompile(`^\s*` + regexp.QuoteMeta(prefix) + `\s*(?i:` + regexp.QuoteMeta(triggerWord) + `)\s+(.*)`)
+	match := re.FindStringSubmatch(content)
+	if len(match) < 2 {
+		return content, false
 	}
+	return match[1], true
+}
+
+func (h *Hub) handleAI(data string) (ActionStatus, string) {
+	log.Debugf("handle AI: size %v\n", len(data))
+
+	if h.cfg == nil {
+		h.cfg = &api.AppConfig{}
+	}
+	cfg := h.cfg.Clone()
 
 	var payload Payload
 	if err := json.Unmarshal([]byte(data), &payload); err != nil {
 		return StatusError, err.Error()
 	}
 
-	in.Content = payload.Content
+	var content = payload.Content
+	// detect trigger "ai" - case insensitive
+	if line, ok := triggerAI(content); ok {
+		log.Debugf("embedded ai command found: %s\n", line)
+		if err := parseFlags(line, cfg); err != nil {
+			return StatusError, err.Error()
+		}
+		content = strings.Join(cfg.Args, " ")
+	}
+
+	if cfg.New {
+		cfg.History = nil
+	}
+
+	in := &api.UserInput{
+		Agent:   cfg.Agent,
+		Command: cfg.Command,
+		Content: content,
+	}
+
+	log.Debugf("new cfg: %+v\n", cfg)
+	log.Debugf("content: %s\n", content)
 
 	var messages []*api.Message
 	for _, v := range payload.Parts {
+		if strings.HasPrefix(v.ContentType, "text/") {
+			messages = append(messages, &api.Message{
+				ContentType: v.ContentType,
+				Content:     v.Content,
+				Role:        api.RoleUser,
+			})
+			continue
+		}
 		// TODO optimize and skip this step
 		// LLM use the same encoding for multi media data
 		// data:[<media-type>][;base64],<data>

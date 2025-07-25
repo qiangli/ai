@@ -17,8 +17,8 @@ type KVPayload struct {
 	Action string `json:"action"`
 }
 
-func (h *Hub) doKV(data string) (ActionStatus, string) {
-	log.Debugf("hub doKV: %v", data)
+func (h *Hub) handleKV(data string) (ActionStatus, string) {
+	log.Debugf("handle KV: %v", data)
 
 	var payload KVPayload
 	if err := json.Unmarshal([]byte(data), &payload); err != nil {

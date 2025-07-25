@@ -39,10 +39,10 @@ const (
 
 var Version = "0.0.1" // version of the ai binary
 
-func parseArgs(app *api.AppConfig, args []string, defaultAgent string) []string {
+func ParseArgs(app *api.AppConfig, args []string, defaultAgent string) {
 	newArgs := parseAgentArgs(app, args, defaultAgent)
 	newArgs = parseSpecialChars(app, newArgs)
-	return newArgs
+	app.Args = newArgs
 }
 
 // return the agent/command and the rest of the args
@@ -202,67 +202,7 @@ func getCurrentUser() string {
 	return strings.ToUpper(currentUser.Username)
 }
 
-func ParseConfig(args []string) (*api.AppConfig, error) {
-	var app = &api.AppConfig{}
-
-	app.ConfigFile = viper.ConfigFileUsed()
-	app.Base = filepath.Dir(app.ConfigFile)
-
-	app.Version = Version
-	app.Role = viper.GetString("role")
-	app.Prompt = viper.GetString("prompt")
-
-	app.Me = "👤 " + getCurrentUser()
-	app.Files = InputFiles
-	app.Format = FormatFlag
-	app.Output = OutputFlag
-
-	//
-	app.Message = viper.GetString("message")
-
-	app.Template = TemplateFile
-
-	app.Screenshot = viper.GetBool("screenshot")
-	app.Voice = viper.GetBool("voice")
-
-	//
-	home, err := homeDir()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get home directory: %w", err)
-	}
-	app.Home = home
-
-	temp, err := tempDir()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get temp directory: %w", err)
-	}
-	app.Temp = temp
-
-	ws := viper.GetString("workspace")
-	ws, err = resolveWorkspaceDir(ws)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve workspace: %w", err)
-	}
-	app.Workspace = ws
-
-	//
-	app.New = viper.GetBool("new")
-	app.MaxHistory = viper.GetInt("max_history")
-	app.MaxSpan = viper.GetInt("max_span")
-
-	app.MaxTurns = viper.GetInt("max_turns")
-	app.MaxTime = viper.GetInt("max_time")
-
-	//
-	if !app.New {
-		historyDir := filepath.Join(app.Base, "history")
-		messages, err := api.LoadHistory(historyDir, app.MaxHistory, app.MaxSpan)
-		if err != nil {
-			return nil, fmt.Errorf("error loading history: %v", err)
-		}
-		app.History = messages
-	}
-
+func ParseLLM(app *api.AppConfig) error {
 	// LLM config
 	var lc = &api.LLMConfig{}
 	app.LLM = lc
@@ -300,7 +240,7 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	modelBase := filepath.Join(app.Base, "models")
 	modelCfg, err := model.LoadModels(modelBase)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if alias != "" {
 		if m, ok := modelCfg[alias]; ok {
@@ -376,7 +316,7 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	}
 	// model config is required
 	if len(app.LLM.Models) == 0 {
-		return nil, fmt.Errorf("No LLM configuration found")
+		return fmt.Errorf("No LLM configuration found")
 	}
 
 	// TODO
@@ -393,6 +333,74 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	}
 
 	app.TTS = tts
+
+	return nil
+}
+
+func ParseConfig(args []string) (*api.AppConfig, error) {
+	var app = &api.AppConfig{}
+
+	app.ConfigFile = viper.ConfigFileUsed()
+	app.Base = filepath.Dir(app.ConfigFile)
+
+	app.Version = Version
+	app.Role = viper.GetString("role")
+	app.Prompt = viper.GetString("prompt")
+
+	app.Me = "👤 " + getCurrentUser()
+	app.Files = InputFiles
+	app.Format = FormatFlag
+	app.Output = OutputFlag
+
+	//
+	app.Message = viper.GetString("message")
+
+	app.Template = TemplateFile
+
+	app.Screenshot = viper.GetBool("screenshot")
+	app.Voice = viper.GetBool("voice")
+
+	//
+	home, err := homeDir()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get home directory: %w", err)
+	}
+	app.Home = home
+
+	temp, err := tempDir()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get temp directory: %w", err)
+	}
+	app.Temp = temp
+
+	ws := viper.GetString("workspace")
+	ws, err = resolveWorkspaceDir(ws)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve workspace: %w", err)
+	}
+	app.Workspace = ws
+
+	//
+	app.New = viper.GetBool("new")
+	app.MaxHistory = viper.GetInt("max_history")
+	app.MaxSpan = viper.GetInt("max_span")
+
+	app.MaxTurns = viper.GetInt("max_turns")
+	app.MaxTime = viper.GetInt("max_time")
+
+	//
+	if !app.New {
+		historyDir := filepath.Join(app.Base, "history")
+		messages, err := api.LoadHistory(historyDir, app.MaxHistory, app.MaxSpan)
+		if err != nil {
+			return nil, fmt.Errorf("error loading history: %v", err)
+		}
+		app.History = messages
+	}
+
+	if err := ParseLLM(app); err != nil {
+		return nil, err
+	}
 
 	//
 	app.Log = viper.GetString("log")
@@ -452,7 +460,8 @@ func ParseConfig(args []string) (*api.AppConfig, error) {
 	if defaultAgent == "" {
 		defaultAgent = "ask"
 	}
-	app.Args = parseArgs(app, args, defaultAgent)
+	//
+	ParseArgs(app, args, defaultAgent)
 
 	// mcp
 	app.McpServerRoot = viper.GetString("mcp.server_root")

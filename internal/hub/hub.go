@@ -158,11 +158,11 @@ func (h *Hub) respond(req *Message) {
 			// TODO add more service (reserved name recipient)
 			switch {
 			case req.Recipient == "ai":
-				code, result := h.doAI(req.Payload)
+				code, result := h.handleAI(req.Payload)
 				resp.Code = string(code)
 				resp.Payload = result
 			case req.Recipient == "kv":
-				code, result := h.doKV(req.Payload)
+				code, result := h.handleKV(req.Payload)
 				resp.Code = string(code)
 				resp.Payload = result
 			}

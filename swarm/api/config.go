@@ -103,12 +103,7 @@ type AppConfig struct {
 	Watch     bool
 	ClipWatch bool
 
-	// Hub        bool
-	// HubAddress string
-
 	Hub *HubConfig
-
-	// MetaPrompt  bool
 
 	MaxTime  int
 	MaxTurns int
@@ -116,6 +111,74 @@ type AppConfig struct {
 	//
 	Stdout string
 	Stderr string
+}
+
+// Clone is a shallow copy of member fields of the configration
+func (cfg *AppConfig) Clone() *AppConfig {
+	if cfg.LLM == nil {
+		cfg.LLM = &LLMConfig{}
+	}
+	if cfg.TTS == nil {
+		cfg.TTS = &TTSConfig{}
+	}
+	var llm = cfg.LLM.Clone()
+	var tts = cfg.TTS.Clone()
+	return &AppConfig{
+		Version:       cfg.Version,
+		ConfigFile:    cfg.ConfigFile,
+		LLM:           llm,
+		TTS:           tts,
+		Git:           cfg.Git,
+		DBCred:        cfg.DBCred,
+		Role:          cfg.Role,
+		Prompt:        cfg.Prompt,
+		Agent:         cfg.Agent,
+		Command:       cfg.Command,
+		Args:          append([]string(nil), cfg.Args...),
+		Message:       cfg.Message,
+		Editor:        cfg.Editor,
+		Clipin:        cfg.Clipin,
+		ClipWait:      cfg.ClipWait,
+		Clipout:       cfg.Clipout,
+		ClipAppend:    cfg.ClipAppend,
+		IsPiped:       cfg.IsPiped,
+		Stdin:         cfg.Stdin,
+		Files:         append([]string(nil), cfg.Files...),
+		Screenshot:    cfg.Screenshot,
+		Voice:         cfg.Voice,
+		McpServerRoot: cfg.McpServerRoot,
+		McpServers:    cfg.McpServers,
+		Format:        cfg.Format,
+		Output:        cfg.Output,
+		Me:            cfg.Me,
+		Template:      cfg.Template,
+		New:           cfg.New,
+		MaxHistory:    cfg.MaxHistory,
+		MaxSpan:       cfg.MaxSpan,
+		History:       cfg.History,
+		Models:        cfg.Models,
+		Log:           cfg.Log,
+		Debug:         cfg.Debug,
+		Quiet:         cfg.Quiet,
+		Internal:      cfg.Internal,
+		DenyList:      append([]string(nil), cfg.DenyList...),
+		AllowList:     append([]string(nil), cfg.AllowList...),
+		Unsafe:        cfg.Unsafe,
+		Base:          cfg.Base,
+		Workspace:     cfg.Workspace,
+		Home:          cfg.Home,
+		Temp:          cfg.Temp,
+		Interactive:   cfg.Interactive,
+		Editing:       cfg.Editing,
+		Shell:         cfg.Shell,
+		Watch:         cfg.Watch,
+		ClipWatch:     cfg.ClipWatch,
+		Hub:           cfg.Hub,
+		MaxTime:       cfg.MaxTime,
+		MaxTurns:      cfg.MaxTurns,
+		Stdout:        cfg.Stdout,
+		Stderr:        cfg.Stderr,
+	}
 }
 
 func LoadModels(base string) (map[string]*model.ModelsConfig, error) {
@@ -290,6 +353,15 @@ type TTSConfig struct {
 	Model   string
 	BaseUrl string
 	ApiKey  string
+}
+
+func (config *TTSConfig) Clone() *TTSConfig {
+	return &TTSConfig{
+		Provider: config.Provider,
+		Model:    config.Model,
+		BaseUrl:  config.BaseUrl,
+		ApiKey:   config.ApiKey,
+	}
 }
 
 type HubConfig struct {
