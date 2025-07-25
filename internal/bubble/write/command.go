@@ -11,8 +11,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	// "github.com/charmbracelet/gum/cursor"
 
-	"github.com/qiangli/ai/bubble/util/stdin"
-	"github.com/qiangli/ai/bubble/util/timeout"
+	"github.com/qiangli/ai/internal/bubble/util/stdin"
+	"github.com/qiangli/ai/internal/bubble/util/timeout"
 )
 
 // Run provides a shell script interface for the text area bubble.

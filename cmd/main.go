@@ -128,6 +128,7 @@ func main() {
 		return
 	}
 
+	// ai /ai ...
 	// $ ai [@AGENT] MESSAGE...
 	if err := agent.AgentCmd.Execute(); err != nil {
 		internal.Exit(err)

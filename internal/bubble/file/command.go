@@ -10,7 +10,7 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/qiangli/ai/bubble/util/timeout"
+	"github.com/qiangli/ai/internal/bubble/util/timeout"
 )
 
 // Run is the interface to picking a file.

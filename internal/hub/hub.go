@@ -1,14 +1,9 @@
 package hub
 
 import (
-	"encoding/base64"
-	"encoding/json"
-	"fmt"
 	"path/filepath"
-	"strings"
 	"time"
 
-	"github.com/qiangli/ai/agent"
 	ds "github.com/qiangli/ai/internal/db"
 	hubapi "github.com/qiangli/ai/internal/hub/api"
 	"github.com/qiangli/ai/internal/log"
@@ -179,124 +174,4 @@ func (h *Hub) respond(req *Message) {
 			}
 		}
 	}
-}
-
-func (h *Hub) doAI(data string) (ActionStatus, string) {
-	log.Debugf("hub doAI: %v", data)
-
-	cfg := h.cfg
-
-	in := &api.UserInput{
-		Agent:   cfg.Agent,
-		Command: cfg.Command,
-	}
-
-	var payload Payload
-	if err := json.Unmarshal([]byte(data), &payload); err != nil {
-		return StatusError, err.Error()
-	}
-
-	in.Content = payload.Content
-
-	var messages []*api.Message
-	for _, v := range payload.Parts {
-		// TODO optimize and skip this step
-		// LLM use the same encoding for multi media data
-		// data:[<media-type>][;base64],<data>
-		ca := strings.SplitN(v.Content, ",", 2)
-		if len(ca) != 2 {
-			return StatusError, "invalid multi media content"
-		}
-		raw, err := base64.StdEncoding.DecodeString(ca[1])
-		if err != nil {
-			return StatusError, err.Error()
-		}
-		messages = append(messages, &api.Message{
-			ContentType: v.ContentType,
-			Content:     string(raw),
-			Role:        api.RoleUser,
-		})
-	}
-	in.Messages = messages
-
-	// run
-	cfg.Format = "text"
-	if err := agent.RunSwarm(cfg, in); err != nil {
-		log.Errorf("error running agent: %s\n", err)
-		return StatusError, err.Error()
-	}
-
-	//success
-	log.Infof("ai executed successfully\n")
-
-	return StatusOK, cfg.Stdout
-}
-
-type KVPayload struct {
-	Bucket string `json:"bucket"`
-
-	Key   string `json:"key"`
-	Value string `json:"value"`
-
-	// bucket: create/drop key-value: set/get/remove
-	Action string `json:"action"`
-}
-
-func (h *Hub) doKV(data string) (ActionStatus, string) {
-	log.Debugf("hub doAI: %v", data)
-
-	var payload KVPayload
-	if err := json.Unmarshal([]byte(data), &payload); err != nil {
-		return StatusError, err.Error()
-	}
-
-	//
-	var bucket = payload.Bucket
-	var key = payload.Key
-	var val = payload.Value
-
-	if bucket == "" {
-		return StatusError, "missing bucket name"
-	}
-	switch payload.Action {
-	case "create":
-		if err := h.kvStore.Create(bucket); err != nil {
-			return StatusError, err.Error()
-		}
-		return StatusOK, fmt.Sprintf("bucket %q created", bucket)
-	case "drop":
-		if err := h.kvStore.Drop(bucket); err != nil {
-			return StatusError, err.Error()
-		}
-		return StatusOK, fmt.Sprintf("bucket %q removed", bucket)
-	}
-
-	if key == "" {
-		return StatusError, "missing key"
-	}
-	switch payload.Action {
-	case "set":
-		err := h.kvStore.Put(bucket, key, val)
-		if err != nil {
-			return StatusError, err.Error()
-		}
-		return StatusOK, "Done"
-	case "get":
-		val, err := h.kvStore.Get(bucket, key)
-		if err != nil {
-			return StatusError, err.Error()
-		}
-		if val == nil {
-			return StatusNotFound, fmt.Sprintf("Not found: %s in %s", key, bucket)
-		}
-		return StatusOK, *val
-	case "remove":
-		err := h.kvStore.Delete(bucket, key)
-		if err != nil {
-			return StatusError, err.Error()
-		}
-		return StatusOK, "Done"
-	}
-
-	return StatusError, fmt.Sprintf("Action not supported: %s", payload.Action)
 }

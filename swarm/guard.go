@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/qiangli/ai/bubble"
-	"github.com/qiangli/ai/bubble/confirm"
+	"github.com/qiangli/ai/internal/bubble"
+	"github.com/qiangli/ai/internal/bubble/confirm"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/api/model"

@@ -3,7 +3,7 @@ package swarm
 import (
 	"context"
 
-	"github.com/qiangli/ai/bubble"
+	"github.com/qiangli/ai/internal/bubble"
 	"github.com/qiangli/ai/swarm/api"
 )
 

@@ -8,11 +8,11 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 
-	"github.com/qiangli/ai/bubble/choose"
-	"github.com/qiangli/ai/bubble/confirm"
-	"github.com/qiangli/ai/bubble/edit"
-	"github.com/qiangli/ai/bubble/file"
-	"github.com/qiangli/ai/bubble/write"
+	"github.com/qiangli/ai/internal/bubble/choose"
+	"github.com/qiangli/ai/internal/bubble/confirm"
+	"github.com/qiangli/ai/internal/bubble/edit"
+	"github.com/qiangli/ai/internal/bubble/file"
+	"github.com/qiangli/ai/internal/bubble/write"
 )
 
 // color index

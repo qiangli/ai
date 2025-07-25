@@ -13,9 +13,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/qiangli/ai/bubble/util/stdin"
-	"github.com/qiangli/ai/bubble/util/timeout"
-	"github.com/qiangli/ai/bubble/util/tty"
+	"github.com/qiangli/ai/internal/bubble/util/stdin"
+	"github.com/qiangli/ai/internal/bubble/util/timeout"
+	"github.com/qiangli/ai/internal/bubble/util/tty"
 )
 
 // Run provides a shell script interface for choosing between different through

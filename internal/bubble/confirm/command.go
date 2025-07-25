@@ -8,8 +8,8 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/qiangli/ai/bubble/util/stdin"
-	"github.com/qiangli/ai/bubble/util/timeout"
+	"github.com/qiangli/ai/internal/bubble/util/stdin"
+	"github.com/qiangli/ai/internal/bubble/util/timeout"
 )
 
 const Yes = "yes"

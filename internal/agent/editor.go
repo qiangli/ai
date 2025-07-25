@@ -1,7 +1,7 @@
 package agent
 
 import (
-	"github.com/qiangli/ai/bubble"
+	"github.com/qiangli/ai/internal/bubble"
 )
 
 func SimpleEditor(title, content string) (string, bool, error) {

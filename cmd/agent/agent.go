@@ -13,8 +13,8 @@ import (
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/swarm/api"
 
-	"github.com/qiangli/ai/agent"
-	"github.com/qiangli/ai/bubble"
+	"github.com/qiangli/ai/internal/agent"
+	"github.com/qiangli/ai/internal/bubble"
 	"github.com/qiangli/ai/internal/hub"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/watch"
