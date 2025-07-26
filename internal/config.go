@@ -207,6 +207,11 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	hub.RedisAddress = viper.GetString("hub_redis_address")
 	hub.Terminal = viper.GetBool("hub_terminal")
 	hub.TerminalAddress = viper.GetString("hub_terminal_address")
+	hub.LLMProxy = viper.GetBool("hub_llm_proxy")
+	hub.LLMProxyAddress = viper.GetString("hub_llm_proxy_address")
+	hub.LLMProxySecret = viper.GetString("hub_llm_proxy_secret")
+	hub.LLMProxyApiKey = viper.GetString("hub_llm_proxy_api_key")
+	//
 	app.Hub = hub
 
 	shell := viper.GetString("shell")

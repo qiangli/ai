@@ -10,6 +10,7 @@ import (
 	hubws "github.com/qiangli/ai/internal/hub/ws"
 	"github.com/qiangli/ai/internal/hub/ws/bridge"
 	"github.com/qiangli/ai/internal/log"
+	llmproxy "github.com/qiangli/ai/internal/proxy/llm"
 	"github.com/qiangli/ai/internal/xterm"
 	"github.com/qiangli/ai/swarm/api"
 )
@@ -51,6 +52,9 @@ func StartServer(cfg *api.AppConfig) error {
 	}
 	if cfg.Hub.Terminal {
 		go xterm.Start(cfg)
+	}
+	if cfg.Hub.LLMProxy {
+		go llmproxy.Start(cfg)
 	}
 
 	mux := http.NewServeMux()

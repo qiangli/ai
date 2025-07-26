@@ -427,4 +427,9 @@ type HubConfig struct {
 
 	Terminal        bool
 	TerminalAddress string
+
+	LLMProxy        bool
+	LLMProxyAddress string
+	LLMProxySecret  string
+	LLMProxyApiKey  string
 }
