@@ -190,7 +190,7 @@ func userInput(
 		return &api.UserInput{Content: data}, nil
 	}
 
-	data, canceled, err := SimpleEditor(cfg.Me, content)
+	data, canceled, err := SimpleEditor(cfg.Me.Display, content)
 	if err != nil {
 		return nil, err
 	}
@@ -280,9 +280,9 @@ func pasteConfirm() (bool, error) {
 	return false, fmt.Errorf("canceled")
 }
 
-func renderInputContent(display, content string) {
+func renderInputContent(me *api.User, content string) {
 	md := util.Render(content)
-	log.Infof("\n[%s]\n", display)
+	log.Infof("\n[%s]\n", me.Display)
 	log.Infoln(md)
 }
 

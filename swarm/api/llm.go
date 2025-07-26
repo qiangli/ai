@@ -8,19 +8,6 @@ import (
 	"github.com/qiangli/ai/swarm/api/model"
 )
 
-type Message struct {
-	ContentType string
-	Content     string
-
-	Role string
-
-	// agent name
-	Sender string
-
-	// model alias
-	Models string
-}
-
 type LLMConfig struct {
 	Provider string
 	Model    string

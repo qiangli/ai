@@ -37,6 +37,8 @@ func Shell(vars *api.Vars) error {
 		return nil
 	}
 
+	// interactive mode
+
 	// command loop
 	if !interactive() {
 		return nil

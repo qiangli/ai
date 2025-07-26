@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/qiangli/ai/swarm/api/model"
 )
 
@@ -66,7 +68,7 @@ type AppConfig struct {
 	// output file for saving response
 	Output string
 
-	Me string
+	Me *User
 
 	//
 	Template string
@@ -76,8 +78,14 @@ type AppConfig struct {
 	MaxHistory int
 	MaxSpan    int
 
+	// chat id to continue the conersation
+	// <config_base>/chat/<id>.json
+	ChatID string
+
+	//<config_base>/chat/<id>/*.json
 	History []*Message
-	Models  string
+
+	Models string
 
 	Log      string
 	Debug    bool
@@ -153,6 +161,7 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		Me:            cfg.Me,
 		Template:      cfg.Template,
 		New:           cfg.New,
+		ChatID:        cfg.ChatID,
 		MaxHistory:    cfg.MaxHistory,
 		MaxSpan:       cfg.MaxSpan,
 		History:       cfg.History,
@@ -187,6 +196,39 @@ func LoadModels(base string) (map[string]*model.ModelsConfig, error) {
 		return nil, err
 	}
 	return m, err
+}
+
+func FindLastChatID(base string) (string, error) {
+	entries, err := os.ReadDir(base)
+	if err != nil {
+		return "", err
+	}
+
+	var latestTime time.Time
+	var latestDir string
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			// Validate if the directory name is a valid UUID
+			if _, err := uuid.Parse(entry.Name()); err != nil {
+				continue
+			}
+			info, err := os.Stat(filepath.Join(base, entry.Name()))
+			if err != nil {
+				continue
+			}
+			if info.ModTime().After(latestTime) {
+				latestTime = info.ModTime()
+				latestDir = entry.Name()
+			}
+		}
+	}
+
+	if latestDir == "" {
+		return "", fmt.Errorf("not found")
+	}
+
+	return latestDir, nil
 }
 
 func LoadHistory(base string, maxHistory, maxSpan int) ([]*Message, error) {
@@ -240,7 +282,14 @@ func LoadHistory(base string, maxHistory, maxSpan int) ([]*Message, error) {
 			continue
 		}
 		for i := len(msgs) - 1; i >= 0; i-- {
-			history = append(history, msgs[i])
+			// TODO multimedia?
+			// only use text message for now
+			for _, msg := range msgs {
+				if msg.ContentType == "" || strings.HasPrefix(msg.ContentType, "text/") {
+					history = append(history, msg)
+				}
+			}
+
 			if maxHistory > 0 && len(history) >= maxHistory {
 				result := history[:maxHistory]
 				reverseMessages(result)
@@ -259,16 +308,15 @@ func reverseMessages(msgs []*Message) {
 	}
 }
 
-func (r *AppConfig) StoreHistory(messages []*Message) error {
-	dir := filepath.Join(filepath.Dir(r.ConfigFile), "history")
-	if err := os.MkdirAll(dir, 0755); err != nil {
+func StoreHistory(base string, messages []*Message) error {
+	if err := os.MkdirAll(base, 0755); err != nil {
 		return err
 	}
 
 	// filename
 	now := time.Now()
 	filename := fmt.Sprintf("%s-%d.json", now.Format("2006-01-02"), now.UnixNano())
-	path := filepath.Join(dir, filename)
+	path := filepath.Join(base, filename)
 
 	data, err := json.MarshalIndent(messages, "", "  ")
 	if err != nil {

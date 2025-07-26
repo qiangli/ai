@@ -10,9 +10,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/google/uuid"
 	fangs "github.com/spf13/viper"
 	"github.com/tailscale/hujson"
 
+	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
 )
 
@@ -72,9 +74,9 @@ var DryRunContent string
 func getCurrentUser() string {
 	currentUser, err := user.Current()
 	if err != nil {
-		return "ME"
+		return "unkown"
 	}
-	return strings.ToUpper(currentUser.Username)
+	return currentUser.Username
 }
 
 func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
@@ -85,7 +87,13 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	app.Role = viper.GetString("role")
 	app.Prompt = viper.GetString("prompt")
 
-	app.Me = "👤 " + getCurrentUser()
+	// TODO read from user.json
+	user := getCurrentUser()
+	app.Me = &api.User{
+		Username: user,
+		Display:  "👤 " + strings.ToUpper(user),
+	}
+
 	app.Files = InputFiles
 	app.Format = FormatFlag
 	app.Output = OutputFlag
@@ -120,6 +128,7 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 
 	//
 	app.New = viper.GetBool("new")
+	app.ChatID = viper.GetString("chat")
 	app.MaxHistory = viper.GetInt("max_history")
 	app.MaxSpan = viper.GetInt("max_span")
 
@@ -128,12 +137,30 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 
 	//
 	if !app.New {
-		historyDir := filepath.Join(app.Base, "history")
-		messages, err := api.LoadHistory(historyDir, app.MaxHistory, app.MaxSpan)
-		if err != nil {
-			return fmt.Errorf("error loading history: %v", err)
+		baseDir := filepath.Join(app.Base, "chat")
+
+		var cid = app.ChatID
+		if cid == "" {
+			if last, err := api.FindLastChatID(baseDir); err == nil {
+				cid = last
+			}
 		}
-		app.History = messages
+
+		if cid != "" {
+			chatDir := filepath.Join(baseDir, cid)
+			log.Debugf("Loading old conversation from %s", chatDir)
+			messages, err := api.LoadHistory(chatDir, app.MaxHistory, app.MaxSpan)
+			if err != nil {
+				return fmt.Errorf("error loading history: %v", err)
+			}
+			app.ChatID = cid
+			app.History = messages
+		}
+	}
+
+	// ensure chat id is assigned
+	if app.ChatID == "" {
+		app.ChatID = uuid.New().String()
 	}
 
 	if err := ParseLLM(viper, app); err != nil {

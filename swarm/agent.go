@@ -7,8 +7,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"dario.cat/mergo"
+	"github.com/google/uuid"
 	"gopkg.in/yaml.v3"
 
 	"github.com/qiangli/ai/internal/log"
@@ -550,9 +552,11 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 		return ""
 	}
 
+	var chatID = r.Vars.Config.ChatID
 	var history []*api.Message
 
-	// system role prompt as first message
+	// 1. New System Message
+	// System role prompt as first message
 	if r.Instruction != "" {
 		// update the request instruction
 		content, err := apply(r.InstructionType, r.Instruction, r.Vars)
@@ -561,26 +565,42 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 		}
 
 		history = append(history, &api.Message{
+			ID:      uuid.NewString(),
+			ChatID:  chatID,
+			Created: time.Now(),
+			//
 			Role:    nvl(r.Role, api.RoleSystem),
 			Content: content,
 			Sender:  r.Name,
 			Models:  r.Vars.Config.Models,
 		})
+		log.Debugf("Added new system role message: %v\n", len(history))
 	}
 
-	// history
+	// 2. Historical Messages - skip system role
 	if len(r.Vars.History) > 0 {
 		log.Debugf("using %v messaages from history", len(r.Vars.History))
-		history = append(history, r.Vars.History...)
+		for _, msg := range r.Vars.History {
+			if msg.Role != api.RoleSystem {
+				history = append(history, msg)
+				log.Debugf("Added historical non system role message: %v\n", len(history))
+			}
+		}
 	}
 
-	// user query
+	// 3. New User Message
 	if req.Messages == nil {
+		// contentType/content
 		messages, err := req.RawInput.FileMessages()
 		if err != nil {
 			return err
 		}
 		for i, v := range messages {
+			v.ID = uuid.NewString()
+			v.ChatID = chatID
+			v.Created = time.Now()
+			//
+			v.Role = api.RoleUser
 			v.Sender = r.Name
 			v.Models = r.Vars.Config.Models
 			messages[i] = v
@@ -588,6 +608,10 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 
 		req.Messages = messages
 		req.Messages = append(req.Messages, &api.Message{
+			ID:      uuid.NewString(),
+			ChatID:  chatID,
+			Created: time.Now(),
+			//
 			Role:    api.RoleUser,
 			Content: req.RawInput.Query(),
 			Sender:  r.Name,
@@ -595,7 +619,9 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 		})
 	}
 	history = append(history, req.Messages...)
+	log.Debugf("Added new user role message: %v\n", len(history))
 
+	// Request
 	initLen := len(history)
 
 	runTool := func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
@@ -619,8 +645,13 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 		return err
 	}
 
+	// Response
 	if result.Result == nil || result.Result.State != api.StateTransfer {
 		message := api.Message{
+			ID:      uuid.NewString(),
+			ChatID:  chatID,
+			Created: time.Now(),
+			//
 			ContentType: result.ContentType,
 			Role:        nvl(result.Role, api.RoleAssistant),
 			Content:     result.Content,
@@ -631,6 +662,7 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 	}
 
 	resp.Messages = history[initLen:]
+	// TODO merge Agent type with api.User
 	resp.Agent = &api.Agent{
 		Name:    r.Name,
 		Display: r.Display,

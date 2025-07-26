@@ -115,7 +115,6 @@ func (r *UserInput) FileMessages() ([]*Message, error) {
 			messages = append(messages, &Message{
 				ContentType: mimeType,
 				Content:     string(raw),
-				Role:        RoleUser,
 			})
 		}
 	}

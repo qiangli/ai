@@ -3,6 +3,8 @@ package agent
 import (
 	_ "embed"
 
+	"path/filepath"
+
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm"
@@ -89,8 +91,10 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	}
 
 	if len(vars.History) > initLen {
-		if err := cfg.StoreHistory(vars.History[initLen:]); err != nil {
-			log.Debugf("error saving history: %v", err)
+		chatDir := filepath.Join(cfg.Base, "chat", cfg.ChatID)
+		log.Debugf("Saving conversation to %s", chatDir)
+		if err := api.StoreHistory(chatDir, vars.History[initLen:]); err != nil {
+			log.Errorf("error saving conversation history: %v", err)
 		}
 	}
 

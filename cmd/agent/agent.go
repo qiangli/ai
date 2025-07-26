@@ -44,11 +44,17 @@ func init() {
 			defaultCfg = filepath.Join(home, ".ai", "config.yaml")
 		}
 	}
-	AgentCmd.PersistentFlags().StringVar(&internal.ConfigFile, "config", defaultCfg, "config file")
+
+	pflags := AgentCmd.PersistentFlags()
+	pflags.StringVar(&internal.ConfigFile, "config", defaultCfg, "config file")
+	pflags.MarkHidden("config")
 
 	//
 	addAgentFlags(AgentCmd)
-	AgentCmd.Flags().SortFlags = true
+
+	flags := AgentCmd.Flags()
+	flags.SortFlags = true
+
 	AgentCmd.CompletionOptions.DisableDefaultCmd = true
 	AgentCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
 		err := Help(cmd, args)
@@ -58,14 +64,12 @@ func init() {
 	})
 
 	// Bind the flags to viper using underscores
-	AgentCmd.Flags().VisitAll(func(f *pflag.Flag) {
+	flags.VisitAll(func(f *pflag.Flag) {
 		key := strings.ReplaceAll(f.Name, "-", "_")
 		viper.BindPFlag(key, f)
 	})
 
 	// Bind the flags to viper using dots
-	flags := AgentCmd.Flags()
-
 	viper.BindPFlag("mcp.server_root", flags.Lookup("mcp-server-root"))
 
 	viper.BindPFlag("sql.db_name", flags.Lookup("sql-db-name"))
