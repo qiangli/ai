@@ -3,8 +3,10 @@ package hub
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 
 	hubws "github.com/qiangli/ai/internal/hub/ws"
+	"github.com/qiangli/ai/internal/log"
 )
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
@@ -15,6 +17,16 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("OK"))
+}
+
+func shutdownHandler(w http.ResponseWriter, r *http.Request) {
+	log.Infof("shutdown requested. %+v", r.Header)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
+	if flusher, ok := w.(http.Flusher); ok {
+		flusher.Flush()
+	}
+	os.Exit(0)
 }
 
 func createMessageHandler(wsUrl string) func(w http.ResponseWriter, r *http.Request) {

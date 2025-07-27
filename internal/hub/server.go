@@ -19,7 +19,7 @@ func StartServer(cfg *api.AppConfig) error {
 	// add signal handler
 
 	if !cfg.Hub.Enable {
-		log.Infof("Hub service is disabled")
+		log.Infoln("Hub service is disabled")
 		return nil
 	}
 	address := cfg.Hub.Address
@@ -63,6 +63,7 @@ func StartServer(cfg *api.AppConfig) error {
 
 	mux.HandleFunc("/", homeHandler)
 	mux.HandleFunc("/health", healthHandler)
+	mux.HandleFunc("/shutdown", shutdownHandler)
 	mux.HandleFunc("/settings", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")

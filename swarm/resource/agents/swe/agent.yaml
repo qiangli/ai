@@ -8,6 +8,8 @@ agents:
       content: "resource:swe_system_role.md"
     functions:
       - "func:web"
+      - "system:*"
+      - "shell:*"
 
 models:
   - name: "L2"

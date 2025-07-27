@@ -47,7 +47,7 @@ func historyConfig(cfg *api.AppConfig) error {
 		return fmt.Errorf("Configuration not found")
 	}
 	base := filepath.Dir(cfg.ConfigFile)
-	histRoot := filepath.Join(base, "history")
+	histRoot := filepath.Join(base, "chat")
 	var args = []string{"--sort", "time"}
 	if flagReverse {
 		args = append(args, "--reverse")

@@ -1,12 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"os"
+	"os/exec"
+	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/qiangli/ai/cmd/agent"
 	"github.com/qiangli/ai/cmd/history"
+	"github.com/qiangli/ai/cmd/hub"
 	"github.com/qiangli/ai/cmd/mcp"
 	"github.com/qiangli/ai/cmd/setup"
 	"github.com/qiangli/ai/internal"
@@ -24,6 +28,7 @@ Examples:
 {{.Example}}{{end}}
 
 Miscellaneous:
+  ai /hub                        Manage Hub services
   ai /mcp                        Manage MCP server
   ai /setup                      Setup configuration
 
@@ -35,6 +40,12 @@ ai what is fish
 ai / what is fish
 ai @ask what is fish
 `
+
+var agentCmd = agent.AgentCmd
+var setupCmd = setup.SetupCmd
+var mcpCmd = mcp.McpCmd
+var historyCmd = history.HistoryCmd
+var hubCmd = hub.HubCmd
 
 var rootCmd = &cobra.Command{
 	Use:                   "ai [OPTIONS] [@AGENT] MESSAGE...",
@@ -76,8 +87,8 @@ func main() {
 
 	args := os.Args
 
+	// if no args and no input (piped), show help - short form
 	// $ ai
-	// if no args and no input, show help - short form
 	if len(args) <= 1 {
 		isPiped := func() bool {
 			stat, _ := os.Stdin.Stat()
@@ -89,49 +100,89 @@ func main() {
 			}
 			return
 		}
+	} else {
+		// intercept builtin commands
+		// $ ai /help [agents|commands|tools|info]
+		//
+		// $ ai /agent
+		// $ ai /setup
+		// $ ai /hub
+		// $ ai /mcp
+		// $ ai /history
+		// $ ai /!<system-command>
+		switch args[1] {
+		case "/help":
+			// agent detailed help
+			// trigger built-in help command
+			nArgs := append([]string{"--help"}, os.Args[1:]...)
+			agentCmd.SetArgs(nArgs)
+			// hack: for showing all config options as usual
+			// cobra is not calling initConfig() for help command
+			initConfig()
+			if err := agentCmd.Execute(); err != nil {
+				internal.Exit(err)
+			}
+			return
+		case "/agent":
+			os.Args = os.Args[1:]
+			if err := agentCmd.Execute(); err != nil {
+				internal.Exit(err)
+			}
+			return
+		case "/setup":
+			os.Args = os.Args[1:]
+			if err := setupCmd.Execute(); err != nil {
+				internal.Exit(err)
+			}
+			return
+		case "/hub":
+			os.Args = os.Args[1:]
+			if err := hubCmd.Execute(); err != nil {
+				internal.Exit(err)
+			}
+			return
+		case "/mcp":
+			os.Args = os.Args[1:]
+			if err := mcpCmd.Execute(); err != nil {
+				internal.Exit(err)
+			}
+			return
+		case "/history":
+			os.Args = os.Args[1:]
+			if err := historyCmd.Execute(); err != nil {
+				internal.Exit(err)
+			}
+			return
+		default:
+			// /!<command> args...
+			if strings.HasPrefix(args[1], "/!") {
+				if len(args[1]) > 2 {
+					out := runCommand(args[1][2:], os.Args[1:])
+					log.Infoln(out)
+				} else {
+					log.Infoln("command not specified: /!<cmmand>")
+				}
+				return
+			}
+		}
 	}
 
-	// intercept custom commands
-	// $ ai /help [agents|commands|tools|info]
-	// $ ai /mcp
-	// $ ai /setup
-	// $ ai /history
-	switch args[1] {
-	case "/help":
-		// agent detailed help
-		// trigger built-in help command
-		nArgs := append([]string{"--help"}, os.Args[1:]...)
-		agent.AgentCmd.SetArgs(nArgs)
-		// hack: for showing all config options as usual
-		// cobra is not calling initConfig() for help command
-		initConfig()
-		if err := agent.AgentCmd.Execute(); err != nil {
-			internal.Exit(err)
-		}
-		return
-	case "/mcp":
-		os.Args = os.Args[1:]
-		if err := mcp.McpCmd.Execute(); err != nil {
-			internal.Exit(err)
-		}
-		return
-	case "/setup":
-		os.Args = os.Args[1:]
-		if err := setup.SetupCmd.Execute(); err != nil {
-			internal.Exit(err)
-		}
-		return
-	case "/history":
-		os.Args = os.Args[1:]
-		if err := history.HistoryCmd.Execute(); err != nil {
-			internal.Exit(err)
-		}
-		return
-	}
-
-	// ai /ai ...
+	// ai [/agent] ...
 	// $ ai [@AGENT] MESSAGE...
-	if err := agent.AgentCmd.Execute(); err != nil {
+	// $ ai [--agent AGENT] MESSAGE...
+	if err := agentCmd.Execute(); err != nil {
 		internal.Exit(err)
 	}
+}
+
+func runCommand(bin string, args []string) string {
+	cmd := exec.Command(bin, args...)
+	var out, stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+		return stderr.String()
+	}
+	return out.String()
 }

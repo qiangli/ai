@@ -163,7 +163,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags := cmd.Flags()
 
 	// --agent agent/command or @agent/command
-	flags.StringP("agent", "a", "", "Specify the agent to use or @agent")
+	flags.StringP("agent", "a", "ask", "Specify the agent to use. @<agent>")
 
 	//
 	flags.String("editor", "", "Specify the editor to use. default: builtin")
@@ -174,22 +174,18 @@ func addAgentFlags(cmd *cobra.Command) {
 	// mainly when stdin is not desirable or possible
 	// e.g. for testing or in vscode debug mode
 	flags.String("message", "", "Specify input message. Skip stdin")
-
 	flags.MarkHidden("message")
 
 	// TODO further research: user role instruction/tool calls seem to work better and are preferred
 	flags.VarP(newFilesValue([]string{}, &internal.InputFiles), "file", "", `Read file inputs.  May be given multiple times.`)
-
 	flags.MarkHidden("file")
 
 	// doc agent
 	flags.VarP(newTemplateValue("", &internal.TemplateFile), "template", "", "Document template file")
-
 	flags.MarkHidden("template")
 
 	// use flags in case when special chars do not work
 	flags.Bool("stdin", false, "Read input from stdin. '-'")
-	flags.MarkHidden("stdin")
 
 	flags.Bool("pb-read", false, "Read input from clipboard. '{'")
 	flags.Bool("pb-tail", false, "Read input from clipboard and wait. '{{'")
@@ -348,28 +344,28 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("watch")
 	flags.MarkHidden("pb-watch")
 
-	// services
-	flags.Bool("hub", false, "Start hub services")
-	flags.String("hub-address", ":58080", "Hub service host:port")
+	// // services
+	// flags.Bool("hub", false, "Start hub services")
+	// flags.String("hub-address", ":58080", "Hub service host:port")
 
-	// the following will only start if hub server is enabled
-	flags.Bool("hub-pg", true, "Start postgres server")
-	flags.String("hub-pg-address", ":5432", "Postgres server host:port")
+	// // the following will only start if hub server is enabled
+	// flags.Bool("hub-pg", true, "Start postgres server")
+	// flags.String("hub-pg-address", ":5432", "Postgres server host:port")
 
-	flags.Bool("hub-mysql", true, "Start mysql server")
-	flags.String("hub-mysql-address", ":3306", "MySQL server host:port")
+	// flags.Bool("hub-mysql", true, "Start mysql server")
+	// flags.String("hub-mysql-address", ":3306", "MySQL server host:port")
 
-	flags.Bool("hub-redis", true, "Start redis server")
-	flags.String("hub-redis-address", ":6379", "Redis server host:port")
+	// flags.Bool("hub-redis", true, "Start redis server")
+	// flags.String("hub-redis-address", ":6379", "Redis server host:port")
 
-	flags.Bool("hub-terminal", true, "Start web terminal server")
-	flags.String("hub-terminal-address", ":58088", "Web terminal server host:port")
+	// flags.Bool("hub-terminal", true, "Start web terminal server")
+	// flags.String("hub-terminal-address", ":58088", "Web terminal server host:port")
 
-	flags.Bool("hub-llm-proxy", true, "Start LLM proxy server")
-	flags.String("hub-llm-proxy-address", ":8000", "LLM proxy server host:port")
-	flags.String("hub-llm-proxy-secret", "sk-secret", "LLM proxy server secret for local access")
-	// TODO use values from models
-	flags.String("hub-llm-proxy-api-key", "", "OpenAI api key")
+	// flags.Bool("hub-llm-proxy", true, "Start LLM proxy server")
+	// flags.String("hub-llm-proxy-address", ":8000", "LLM proxy server host:port")
+	// flags.String("hub-llm-proxy-secret", "sk-secret", "LLM proxy server secret for local access")
+	// // TODO use values from models
+	// flags.String("hub-llm-proxy-api-key", "", "OpenAI api key")
 
 	// TODO move to individual config file
 	// agent specific flags

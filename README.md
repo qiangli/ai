@@ -98,6 +98,11 @@ ai / what is fish
 ai @ask what is fish
 
 
+Miscellaneous:
+  ai /hub                        Manage Hub services
+  ai /mcp                        Manage MCP server
+  ai /setup                      Setup configuration
+
 Use "ai /help [agents|commands|tools|info]" for more information.
 ```
 
@@ -150,50 +155,35 @@ Ctrl+C to cancel.
 
 + Composing with text editor:
 
-  export AI_EDITOR=nano # default: vi
-  ai @agent
+  export AI_EDITOR=nano # default: builtin
+  ai @agent -e
 
-
-Miscellaneous:
-
-  ai /mcp                        Manage MCP server
-  ai /setup                      Setup configuration
 
 
 Options:
-  -a, --agent string         Specify the agent to use or @agent
-      --allow string         List of comma separated system commands allowed for tool calls
-      --api-key string       LLM API key
-      --base-url string      LLM Base URL
-      --config string        config file (default "/Users/liqiang/.ai/config.yaml")
-      --deny string          List of comma separated system commands disallowed for tool calls. Approval is required to proceed. Ignored if 'unsafe' is true (default "rm")
-  -e, --edit                 Launch editor
-      --editor string        Specify the editor to use. default: builtin
-      --format string        Output format: raw, text, json, or markdown. (default "markdown")
-  -h, --help                 help for ai
-      --image-model string   Image LLM model
-      --input string         Read input message from a file
-  -i, --interactive          Interactive mode
-      --l1-model string      Level1 basic LLM model
-      --l2-model string      Level2 standard LLM model
-      --l3-model string      Level3 advanced LLM model
-      --max-turns int        Max number of turns (default 16)
-      --model string         LLM default model
-  -n, --new                  Start a new converston
-      --output string        Save final response to a file.
-      --pb-read              Read input from clipboard. '{'
-      --pb-tail              Read input from clipboard and wait. '{{'
-      --pb-write             Copy output to clipboard. '}'
-      --pb-append            Append output to clipboard. '}}'
-      --quiet                Operate quietly. Only show final response
-      --shell string         Shell to use for interactive mode (default "/bin/bash")
-      --stdin                Read input from stdin. '-'
-      --unsafe               Skip command security check to allow unsafe operations. Use with caution
-      --verbose              Show progress and debugging information
-  -v, --version              version for ai
+  -a, --agent string    Specify the agent to use. @<agent> (default "ask")
+      --chat string     Continue conversation with the chat id
+  -e, --edit            Launch editor
+      --format string   Output format: raw, text, json, markdown, or tts. (default "markdown")
+  -h, --help            help for ai
+  -i, --interactive     Interactive mode
+      --log string      Log all debugging information to a file
+      --max-turns int   Max number of turns (default 16)
+  -m, --models string   LLM model alias defined in the models directory
+  -n, --new             Start a new conversation
+      --output string   Save final response to a file.
+      --pb-append       Append output to clipboard. '}}'
+      --pb-read         Read input from clipboard. '{'
+      --pb-tail         Read input from clipboard and wait. '{{'
+      --pb-write        Copy output to clipboard. '}'
+      --quiet           Operate quietly. Only show final response
+      --stdin           Read input from stdin. '-'
+      --unsafe          Skip command security check to allow unsafe operations. Use with caution
+      --verbose         Show progress and debugging information
+  -v, --version         version for ai
 
 Environment variables:
-  AI_AGENT, AI_ALLOW, AI_API_KEY, AI_BASE_URL, AI_CONFIG, AI_CONTENT, AI_DENY, AI_DRY_RUN, AI_DRY_RUN_CONTENT, AI_EDIT, AI_EDITOR, AI_FILE, AI_FORMAT, AI_HELP, AI_HOST, AI_IMAGE_API_KEY, AI_IMAGE_BASE_URL, AI_IMAGE_MODEL, AI_IMAGE_VIEWER, AI_INPUT, AI_INTERACTIVE, AI_INTERNAL, AI_L1_API_KEY, AI_L1_BASE_URL, AI_L1_MODEL, AI_L2_API_KEY, AI_L2_BASE_URL, AI_L2_MODEL, AI_L3_API_KEY, AI_L3_BASE_URL, AI_L3_MODEL, AI_LOG, AI_MAX_HISTORY, AI_MAX_SPAN, AI_MAX_TIME, AI_MAX_TURNS, AI_MCP_SERVER_URL, AI_MESSAGE, AI_MODEL, AI_NEW, AI_OUTPUT, AI_PB_READ, AI_PB_TAIL, AI_PB_WRITE, AI_PB_APPEND, AI_PORT, AI_QUIET, AI_ROLE, AI_ROLE_PROMPT, AI_SHELL, AI_SQL_DB_HOST, AI_SQL_DB_NAME, AI_SQL_DB_PASSWORD, AI_SQL_DB_PORT, AI_SQL_DB_USERNAME, AI_STDIN, AI_TEMPLATE, AI_UNSAFE, AI_VERBOSE, AI_VERSION, AI_WATCH, AI_WORKSPACE
+  AI_AGENT, AI_ALLOW, AI_API_KEY, AI_BASE_URL, AI_CHAT, AI_CONFIG, AI_DENY, AI_DRY_RUN, AI_DRY_RUN_CONTENT, AI_EDIT, AI_EDITOR, AI_FILE, AI_FORMAT, AI_HELP, AI_HOST, AI_IMAGE_VIEWER, AI_INTERACTIVE, AI_INTERNAL, AI_L1_API_KEY, AI_L1_BASE_URL, AI_L1_MODEL, AI_L2_API_KEY, AI_L2_BASE_URL, AI_L2_MODEL, AI_L3_API_KEY, AI_L3_BASE_URL, AI_L3_MODEL, AI_LOG, AI_MAX_HISTORY, AI_MAX_SPAN, AI_MAX_TIME, AI_MAX_TURNS, AI_MCP_SERVER_ROOT, AI_MESSAGE, AI_MODEL, AI_MODELS, AI_NEW, AI_OUTPUT, AI_PB_APPEND, AI_PB_READ, AI_PB_TAIL, AI_PB_WATCH, AI_PB_WRITE, AI_PORT, AI_PROMPT, AI_PROVIDER, AI_QUIET, AI_ROLE, AI_SCREENSHOT, AI_SHELL, AI_SQL_DB_HOST, AI_SQL_DB_NAME, AI_SQL_DB_PASSWORD, AI_SQL_DB_PORT, AI_SQL_DB_USERNAME, AI_STDIN, AI_TEMPLATE, AI_TTS_API_KEY, AI_TTS_BASE_URL, AI_TTS_MODEL, AI_TTS_PROVIDER, AI_UNSAFE, AI_VERBOSE, AI_VERSION, AI_VOICE, AI_WATCH, AI_WORKSPACE
 
 Use "ai /help [agents|commands|tools|info]" for more information.
 ```
