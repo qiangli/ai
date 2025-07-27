@@ -82,6 +82,9 @@ func OpenAiModels(ctx context.Context, reqCtx *app.RequestContext) {
 	reqCtx.Response.SetBody(response.Body())
 }
 func OpenAiV1ChatCompletions(ctx context.Context, reqCtx *app.RequestContext) {
+	uri := reqCtx.URI()
+	log.Infof("uri: %s\n", uri.String())
+
 	// Read request body and headers
 	body, _ := reqCtx.Body()
 	// Decode the body into a map
@@ -95,7 +98,7 @@ func OpenAiV1ChatCompletions(ctx context.Context, reqCtx *app.RequestContext) {
 
 	updateAuth(headers)
 
-	//headers.put("host", "api.openai.com");
+	//
 	headers["Host"] = "api.openai.com"
 
 	log.Debugf("body: %v\n", string(body))

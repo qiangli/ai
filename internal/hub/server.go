@@ -16,6 +16,8 @@ import (
 )
 
 func StartServer(cfg *api.AppConfig) error {
+	// add signal handler
+
 	if !cfg.Hub.Enable {
 		log.Infof("Hub service is disabled")
 		return nil

@@ -1,6 +1,8 @@
 package llm
 
 import (
+	"os"
+
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/config"
 	"github.com/qiangli/ai/internal/proxy/llm/handler"
@@ -18,7 +20,15 @@ func Start(cfg *api.AppConfig) {
 			o.Addr = cfg.Hub.LLMProxyAddress
 		},
 	}
+
 	s := server.Default(addr)
+	s.SetCustomSignalWaiter(func(err chan error) error {
+		msg := <-err
+		log.Debugf("LLM proxy exiting %v\n", msg)
+		os.Exit(0)
+		return nil
+	})
+
 	s.GET("/", handler.Ping)
 	s.GET("/ping", handler.Ping)
 

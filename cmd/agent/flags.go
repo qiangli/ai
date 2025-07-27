@@ -366,7 +366,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.String("hub-terminal-address", ":58088", "Web terminal server host:port")
 
 	flags.Bool("hub-llm-proxy", true, "Start LLM proxy server")
-	flags.String("hub-llm-proxy-address", ":4000", "LLM proxy server host:port")
+	flags.String("hub-llm-proxy-address", ":8000", "LLM proxy server host:port")
 	flags.String("hub-llm-proxy-secret", "sk-secret", "LLM proxy server secret for local access")
 	// TODO use values from models
 	flags.String("hub-llm-proxy-api-key", "", "OpenAI api key")
