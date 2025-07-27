@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/vfs"
 )
 
 func (r *SystemKit) ListDirectory(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -96,4 +97,29 @@ func (r *SystemKit) WriteFile(ctx context.Context, vars *api.Vars, name string, 
 		return "", err
 	}
 	return "File written successfully", nil
+}
+
+func (r *SystemKit) SearchFiles(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	pattern, err := r.getStr("pattern", args)
+	if err != nil {
+		return "", err
+	}
+	path, err := r.getStr("path", args)
+	if err != nil {
+		return "", err
+	}
+	// options
+	exclude, err := r.getArray("exclude", args)
+	if err != nil {
+		return "", err
+	}
+	options := &vfs.SearchOptions{
+		Regexp:     true,
+		IgnoreCase: true,
+		WordRegexp: false,
+		Exclude:    exclude,
+		Follow:     false,
+		Hidden:     true,
+	}
+	return _fs.SearchFiles(pattern, path, options)
 }

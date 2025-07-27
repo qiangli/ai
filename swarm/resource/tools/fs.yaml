@@ -73,3 +73,22 @@ tools:
           description: "Content to write to the file"
       required: ["path", "content"]
     type: "system"
+  
+  - name: "search_files"
+    description: "Recursively search for a regex pattern within files in a specified directory path."
+    parameters:
+      type: "object"
+      properties:
+        pattern:
+          type: "string"
+          description: "Regular expression to match within files."
+        path:
+          type: "string"
+          description: "Directory path to search, including all its subdirectories."
+        exclude:
+          type: "array"
+          items:
+            type: "string"
+          description: "List of filename patterns to exclude from the search."
+      required: ["pattern", "path"]
+    type: "system"

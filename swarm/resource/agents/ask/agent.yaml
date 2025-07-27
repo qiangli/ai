@@ -11,8 +11,8 @@ agents:
       - "agent_info"
       - "agent_transfer"
       - "agent:*"
-      - "func:time"
-      - "func:loc"
+      # - "func:time"
+      # - "func:loc"
 
 models:
   - name: "L1"

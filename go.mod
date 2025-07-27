@@ -57,6 +57,7 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/openai/openai-go v1.11.1
 	github.com/pkg/errors v0.9.1
+	github.com/qiangli/filesearch v0.0.0-20250727212022-dcfddd1c92de
 	github.com/sahilm/fuzzy v0.1.1
 	github.com/shirou/gopsutil/v4 v4.25.6
 	github.com/sorenisanerd/gotty v1.5.0
@@ -86,6 +87,7 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	git.sr.ht/~jackmordaunt/go-toast v1.1.2 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
+	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.3.0 // indirect
 	github.com/alexflint/go-scalar v1.2.0 // indirect
@@ -158,6 +160,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackmordaunt/icns/v3 v3.0.1 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
+	github.com/jessevdk/go-flags v1.6.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
@@ -180,6 +183,10 @@ require (
 	github.com/moby/sys/atomicwriter v0.1.0 // indirect
 	github.com/moby/term v0.5.2 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
+	github.com/monochromegane/conflag v0.0.0-20151130130520-6d68c9aa4183 // indirect
+	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
+	github.com/monochromegane/go-home v0.0.0-20151024104835-25d9dda59392 // indirect
+	github.com/monochromegane/terminal v0.0.0-20161222050454-9bc47e2707d9 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
@@ -204,6 +211,7 @@ require (
 	github.com/sergeymakinen/go-bmp v1.0.0 // indirect
 	github.com/sergeymakinen/go-ico v1.0.0-beta.0 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
+	github.com/shiena/ansicolor v0.0.0-20230509054315-a9deabde6e02 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/skeema/knownhosts v1.3.1 // indirect

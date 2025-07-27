@@ -31,108 +31,108 @@ tools:
     condition:
       lookup: true
   
-  - name: "info"
-    description: |
-      Provides detailed information about commands.
-    parameters:
-      type: "object"
-      properties:
-        command:
-          type: "string"
-          description: "The command to provide information for"
-      required:
-        - command
-    body: "info {{.command}}"
-    type: "shell"
-    condition:
-      lookup: true
+  # - name: "info"
+  #   description: |
+  #     Provides detailed information about commands.
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       command:
+  #         type: "string"
+  #         description: "The command to provide information for"
+  #     required:
+  #       - command
+  #   body: "info {{.command}}"
+  #   type: "shell"
+  #   condition:
+  #     lookup: true
   
-  - name: "whatis"
-    description: |
-      Shows a short description of a command.
-    parameters:
-      type: "object"
-      properties:
-        command:
-          type: "string"
-          description: "The command to show description for"
-      required:
-        - command
-    body: "whatis {{.command}}"
-    type: "shell"
-    condition:
-      lookup: true
+  # - name: "whatis"
+  #   description: |
+  #     Shows a short description of a command.
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       command:
+  #         type: "string"
+  #         description: "The command to show description for"
+  #     required:
+  #       - command
+  #   body: "whatis {{.command}}"
+  #   type: "shell"
+  #   condition:
+  #     lookup: true
   
-  - name: "apropos"
-    description: |
-      Searches the manual page names and descriptions for a keyword.
-    parameters:
-      type: "object"
-      properties:
-        keyword:
-          type: "string"
-          description: "The keyword to search for"
-      required:
-        - keyword
-    body: "apropos {{.keyword}}"
-    type: "shell"
-    condition:
-      lookup: true
+  # - name: "apropos"
+  #   description: |
+  #     Searches the manual page names and descriptions for a keyword.
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       keyword:
+  #         type: "string"
+  #         description: "The keyword to search for"
+  #     required:
+  #       - keyword
+  #   body: "apropos {{.keyword}}"
+  #   type: "shell"
+  #   condition:
+  #     lookup: true
   
-  - name: "type"
-    description: |
-      Displays the kind of command a specified command is.
-    parameters:
-      type: "object"
-      properties:
-        command:
-          type: "string"
-          description: "The command to display the find for"
-      required:
-        - command
-    body: "type {{.command}}"
-    type: "shell"
-    condition:
-      lookup: true
+  # - name: "type"
+  #   description: |
+  #     Displays the kind of command a specified command is.
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       command:
+  #         type: "string"
+  #         description: "The command to display the find for"
+  #     required:
+  #       - command
+  #   body: "type {{.command}}"
+  #   type: "shell"
+  #   condition:
+  #     lookup: true
   
-  - name: "which"
-    description: |
-      Returns the path to the executable of a command.
-    parameters:
-      type: "object"
-      properties:
-        command:
-          type: "string"
-          description: "The command to return the path for"
-      required:
-        - command
-    body: "which {{.command}}"
-    type: "shell"
-    condition:
-      lookup: true
+  # - name: "which"
+  #   description: |
+  #     Returns the path to the executable of a command.
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       command:
+  #         type: "string"
+  #         description: "The command to return the path for"
+  #     required:
+  #       - command
+  #   body: "which {{.command}}"
+  #   type: "shell"
+  #   condition:
+  #     lookup: true
   
-  - name: "whereis"
-    description: |
-      Locates the binary, source, and manual page files for a command.
-    parameters:
-      type: "object"
-      properties:
-        command:
-          type: "string"
-          description: "The command to locate"
-      required:
-        - command
-    body: "whereis {{.command}}"
-    type: "shell"
-    condition:
-      lookup: true
+  # - name: "whereis"
+  #   description: |
+  #     Locates the binary, source, and manual page files for a command.
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       command:
+  #         type: "string"
+  #         description: "The command to locate"
+  #     required:
+  #       - command
+  #   body: "whereis {{.command}}"
+  #   type: "shell"
+  #   condition:
+  #     lookup: true
   
-  - name: "compgen"
-    description: |
-      Lists all available commands, functions, and aliases.
-    parameters: {}
-    body: "compgen -c"
-    type: "shell"
-    condition:
-      shell:
-        bash:
+  # - name: "compgen"
+  #   description: |
+  #     Lists all available commands, functions, and aliases.
+  #   parameters: {}
+  #   body: "compgen -c"
+  #   type: "shell"
+  #   condition:
+  #     shell:
+  #       bash:

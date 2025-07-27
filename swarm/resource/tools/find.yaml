@@ -16,18 +16,18 @@ tools:
     body: "find {{spread .args}}"
     type: "shell"
 
-  - name: "locate"
-    description: "The locate program searches a database for all pathnames which match the specified pattern"
-    parameters:
-      type: "object"
-      properties:
-        args:
-          type: "array"
-          items:
-            type: "string"
-          description: "options or arguments"
-    body: "locate {{spread .args}}"
-    type: "shell"
+  # - name: "locate"
+  #   description: "The locate program searches a database for all pathnames which match the specified pattern"
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       args:
+  #         type: "array"
+  #         items:
+  #           type: "string"
+  #         description: "options or arguments"
+  #   body: "locate {{spread .args}}"
+  #   type: "shell"
 
   - name: "grep"
     description: "The grep utility searches any given input files, selecting lines that match one or more patterns. exit status: 1 No lines were selected. >1 An error occurred."
@@ -81,15 +81,15 @@ tools:
     body: "ack {{spread .args}}"
     type: "shell"
 
-  - name: "fd"
-    description: "fd is a simple, fast and user-friendly alternative to 'find'. 'fd --help' for help."
-    parameters:
-      type: "object"
-      properties:
-        args:
-          type: "array"
-          items:
-            type: "string"
-          description: "options or arguments"
-    body: "fd {{spread .args}}"
-    type: "shell"
+  # - name: "fd"
+  #   description: "fd is a simple, fast and user-friendly alternative to 'find'. 'fd --help' for help."
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       args:
+  #         type: "array"
+  #         items:
+  #           type: "string"
+  #         description: "options or arguments"
+  #   body: "fd {{spread .args}}"
+  #   type: "shell"

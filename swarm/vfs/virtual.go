@@ -16,6 +16,29 @@ type FileSystem interface {
 	GetFileInfo(string) (*FileInfo, error)
 	ReadFile(string) ([]byte, error)
 	WriteFile(string, []byte) error
+	// EditFile
+	SearchFiles(pattern string, path string, options *SearchOptions) (string, error)
+}
+
+type SearchOptions struct {
+	// Parse PATTERN as a regular expression
+	// Accepted syntax is the same
+	// as https://github.com/google/re2/wiki/Syntax
+	Regexp bool
+	// Match case insensitively
+	IgnoreCase bool
+	// Only match whole words
+	WordRegexp bool
+	// Ignore files/directories matching pattern
+	Exclude []string
+	// Limit search to filenames matching PATTERN
+	FileSearchRegexp string
+	// Search up to 'Depth' directories deep (default: 25)
+	Depth int
+	// Follow symlinks
+	Follow bool
+	// Search hidden files and directories
+	Hidden bool
 }
 
 type FileInfo struct {
@@ -123,38 +146,13 @@ func (s *VirtualFS) WriteFile(path string, content []byte) error {
 	return os.WriteFile(validPath, content, 0644)
 }
 
-// func (s *VirtualFS) isTemp(path string) bool {
-// 	if strings.HasPrefix(path, s.TempDir()) {
-// 		return true
-// 	}
-// 	if strings.HasPrefix(path, "/tmp") {
-// 		return true
-// 	}
-// 	if strings.HasPrefix(path, os.Getenv("TMPDIR")) {
-// 		return true
-// 	}
-// 	return false
-// }
-
 func (s *VirtualFS) validatePath(path string) (string, error) {
-	// // always allow temp directories
-	// if s.isTemp(path) {
-	// 	return path, nil
-	// }
-
 	abs, err := filepath.Abs(path)
 	if err != nil {
 		return "", fmt.Errorf("invalid path %q: %w", path, err)
 	}
 
 	return abs, nil
-
-	// for _, root := range s.roots {
-	// 	if strings.HasPrefix(abs, root) {
-	// 		return abs, nil
-	// 	}
-	// }
-	// return "", fmt.Errorf("access denied - path outside allowed directories: %s", abs)
 }
 
 func (s *VirtualFS) getFileStats(path string) (*FileInfo, error) {
@@ -172,4 +170,11 @@ func (s *VirtualFS) getFileStats(path string) (*FileInfo, error) {
 		Modified:    info.ModTime(),
 		Accessed:    info.ModTime(),
 	}, nil
+}
+
+func (s *VirtualFS) SearchFiles(pattern string, path string, options *SearchOptions) (string, error) {
+	if options == nil {
+		options = &SearchOptions{}
+	}
+	return Search(pattern, path, options)
 }
