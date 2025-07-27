@@ -229,11 +229,10 @@ ai.git@main/. ai> help
 Start AI in Hub service mode
 
 ```bash
-# example:
-# ai --hub --agent swe --l2-model openai/gpt-4.1 --verbose --new
-#
-# ai --agent ask --verbose --hub --hub-address ":58080" --hub-pg-address ":25432" --hub-mysql-address ":3306" --hub-redis-address ":6379"
+# ai /hub start --address ":58080" --pg-address ":25432" --mysql-address ":3306" --redis-address ":6379" --llm-proxy-address ":8000"
 just hub
+
+# ai /hub stop
 ```
 
 ### AI Graphical UI

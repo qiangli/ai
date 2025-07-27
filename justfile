@@ -17,7 +17,7 @@ test:
 
 # Start hub services with 'ask' agent in debug mode (verbose)
 hub flag_args='':
-    ai --agent ask --verbose --hub --hub-address ":58080" --hub-pg-address ":25432" --hub-mysql-address ":3306" --hub-redis-address ":6379" --hub-llm-proxy-address ":8000" {{flag_args}}
+    ai /hub start --address ":58080" --pg-address ":25432" --mysql-address ":3306" --redis-address ":6379" --llm-proxy-address ":8000" {{flag_args}}
 
 tidy:
     go mod tidy

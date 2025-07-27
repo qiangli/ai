@@ -195,25 +195,6 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	app.Watch = viper.GetBool("watch")
 	app.ClipWatch = viper.GetBool("pb_watch")
 
-	// // Hub services
-	// hub := &api.HubConfig{}
-	// hub.Enable = viper.GetBool("hub")
-	// hub.Address = viper.GetString("hub_address")
-	// hub.Pg = viper.GetBool("hub_pg")
-	// hub.PgAddress = viper.GetString("hub_pg_address")
-	// hub.Mysql = viper.GetBool("hub_mysql")
-	// hub.MysqlAddress = viper.GetString("hub_mysql_address")
-	// hub.Redis = viper.GetBool("hub_redis")
-	// hub.RedisAddress = viper.GetString("hub_redis_address")
-	// hub.Terminal = viper.GetBool("hub_terminal")
-	// hub.TerminalAddress = viper.GetString("hub_terminal_address")
-	// hub.LLMProxy = viper.GetBool("hub_llm_proxy")
-	// hub.LLMProxyAddress = viper.GetString("hub_llm_proxy_address")
-	// hub.LLMProxySecret = viper.GetString("hub_llm_proxy_secret")
-	// hub.LLMProxyApiKey = viper.GetString("hub_llm_proxy_api_key")
-	// //
-	// app.Hub = hub
-
 	shell := viper.GetString("shell")
 	if shell == "" {
 		shell = "bash"

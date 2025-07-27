@@ -344,29 +344,6 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("watch")
 	flags.MarkHidden("pb-watch")
 
-	// // services
-	// flags.Bool("hub", false, "Start hub services")
-	// flags.String("hub-address", ":58080", "Hub service host:port")
-
-	// // the following will only start if hub server is enabled
-	// flags.Bool("hub-pg", true, "Start postgres server")
-	// flags.String("hub-pg-address", ":5432", "Postgres server host:port")
-
-	// flags.Bool("hub-mysql", true, "Start mysql server")
-	// flags.String("hub-mysql-address", ":3306", "MySQL server host:port")
-
-	// flags.Bool("hub-redis", true, "Start redis server")
-	// flags.String("hub-redis-address", ":6379", "Redis server host:port")
-
-	// flags.Bool("hub-terminal", true, "Start web terminal server")
-	// flags.String("hub-terminal-address", ":58088", "Web terminal server host:port")
-
-	// flags.Bool("hub-llm-proxy", true, "Start LLM proxy server")
-	// flags.String("hub-llm-proxy-address", ":8000", "LLM proxy server host:port")
-	// flags.String("hub-llm-proxy-secret", "sk-secret", "LLM proxy server secret for local access")
-	// // TODO use values from models
-	// flags.String("hub-llm-proxy-api-key", "", "OpenAI api key")
-
 	// TODO move to individual config file
 	// agent specific flags
 	// db
