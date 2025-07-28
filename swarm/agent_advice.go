@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
-	"strings"
-	"time"
+	// "strings"
+	// "time"
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/api/model"
 	"github.com/qiangli/ai/swarm/llm"
-	pr "github.com/qiangli/ai/swarm/resource/agents/pr"
+	// pr "github.com/qiangli/ai/swarm/resource/agents/pr"
 )
 
 var adviceMap = map[string]api.Advice{}
@@ -19,14 +19,14 @@ var adviceMap = map[string]api.Advice{}
 func init() {
 	adviceMap["user_input"] = userInputAdvice
 	adviceMap["script_user_input"] = scriptUserInputAdvice
-	adviceMap["pr_user_input"] = prUserInputAdvice
-	adviceMap["pr_json_to_markdown"] = prFormatAdvice
-	adviceMap["resolve_workspace"] = resolveWorkspaceAdvice
-	adviceMap["aider"] = aiderAdvice
-	adviceMap["openhands"] = ohAdvice
+	// adviceMap["pr_user_input"] = prUserInputAdvice
+	// adviceMap["pr_json_to_markdown"] = prFormatAdvice
+	// adviceMap["resolve_workspace"] = resolveWorkspaceAdvice
+	// adviceMap["aider"] = aiderAdvice
+	// adviceMap["openhands"] = ohAdvice
 	adviceMap["sub"] = subAdvice
-	adviceMap["image_params"] = imageParamsAdvice
-	adviceMap["chdir_format_path"] = chdirFormatPathAdvice
+	// adviceMap["image_params"] = imageParamsAdvice
+	// adviceMap["chdir_format_path"] = chdirFormatPathAdvice
 }
 
 // user input before advice
@@ -79,108 +79,108 @@ func scriptUserInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ 
 	return nil
 }
 
-// PR user input before advice
-func prUserInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ api.Advice) error {
-	tpl, err := vars.Resource(req.Agent, "pr_user_role.md")
-	if err != nil {
-		return err
-	}
+// // PR user input before advice
+// func prUserInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ api.Advice) error {
+// 	tpl, err := vars.Resource(req.Agent, "pr_user_role.md")
+// 	if err != nil {
+// 		return err
+// 	}
 
-	in := req.RawInput
-	data := map[string]any{
-		"instruction": in.Message,
-		"diff":        in.Content,
-		"changelog":   "", // TODO: add changelog
-		"today":       time.Now().Format("2006-01-02"),
-	}
-	content, err := applyDefaultTemplate(string(tpl), data)
-	if err != nil {
-		return err
-	}
-	req.Messages = []*api.Message{&api.Message{
-		Role:    api.RoleUser,
-		Content: content,
-		Sender:  req.Agent,
-	}}
+// 	in := req.RawInput
+// 	data := map[string]any{
+// 		"instruction": in.Message,
+// 		"diff":        in.Content,
+// 		"changelog":   "", // TODO: add changelog
+// 		"today":       time.Now().Format("2006-01-02"),
+// 	}
+// 	content, err := applyDefaultTemplate(string(tpl), data)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	req.Messages = []*api.Message{&api.Message{
+// 		Role:    api.RoleUser,
+// 		Content: content,
+// 		Sender:  req.Agent,
+// 	}}
 
-	return nil
-}
+// 	return nil
+// }
 
-// PR format after advice
-func prFormatAdvice(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
-	cmd := req.Command
-	if cmd == "" {
-		parts := strings.SplitN(req.Agent, "/", 2)
-		if len(parts) != 2 {
-			return fmt.Errorf("invalid agent: %s", req.Agent)
-		}
-		cmd = parts[1]
-	}
-	var tplName = fmt.Sprintf("pr_%s_format.md", cmd)
-	b, err := vars.Resource(req.Agent, tplName)
-	if err != nil {
-		return err
-	}
-	tpl := string(b)
+// // PR format after advice
+// func prFormatAdvice(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
+// 	cmd := req.Command
+// 	if cmd == "" {
+// 		parts := strings.SplitN(req.Agent, "/", 2)
+// 		if len(parts) != 2 {
+// 			return fmt.Errorf("invalid agent: %s", req.Agent)
+// 		}
+// 		cmd = parts[1]
+// 	}
+// 	var tplName = fmt.Sprintf("pr_%s_format.md", cmd)
+// 	b, err := vars.Resource(req.Agent, tplName)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	tpl := string(b)
 
-	formatPrDescription := func(resp string) (string, error) {
-		var data pr.PRDescription
-		if err := tryUnmarshal(resp, &data); err != nil {
-			return "", fmt.Errorf("error unmarshaling response: %w", err)
-		}
-		return applyDefaultTemplate(string(tpl), &data)
-	}
-	formatPrCodeSuggestion := func(resp string) (string, error) {
-		var data pr.PRCodeSuggestions
-		if err := tryUnmarshal(resp, &data); err != nil {
-			return "", fmt.Errorf("error unmarshaling response: %w", err)
-		}
-		return applyDefaultTemplate(tpl, data.CodeSuggestions)
-	}
-	formatPrReview := func(resp string) (string, error) {
-		var data pr.PRReview
-		if err := tryUnmarshal(resp, &data); err != nil {
-			return "", fmt.Errorf("error unmarshaling response: %w", err)
-		}
-		return applyDefaultTemplate(tpl, &data.Review)
-	}
-	formatPrChangelog := func(resp string) (string, error) {
-		return applyDefaultTemplate(tpl, &pr.PRChangelog{
-			Changelog: resp,
-			Today:     time.Now().Format("2006-01-02"),
-		})
-	}
+// 	formatPrDescription := func(resp string) (string, error) {
+// 		var data pr.PRDescription
+// 		if err := tryUnmarshal(resp, &data); err != nil {
+// 			return "", fmt.Errorf("error unmarshaling response: %w", err)
+// 		}
+// 		return applyDefaultTemplate(string(tpl), &data)
+// 	}
+// 	formatPrCodeSuggestion := func(resp string) (string, error) {
+// 		var data pr.PRCodeSuggestions
+// 		if err := tryUnmarshal(resp, &data); err != nil {
+// 			return "", fmt.Errorf("error unmarshaling response: %w", err)
+// 		}
+// 		return applyDefaultTemplate(tpl, data.CodeSuggestions)
+// 	}
+// 	formatPrReview := func(resp string) (string, error) {
+// 		var data pr.PRReview
+// 		if err := tryUnmarshal(resp, &data); err != nil {
+// 			return "", fmt.Errorf("error unmarshaling response: %w", err)
+// 		}
+// 		return applyDefaultTemplate(tpl, &data.Review)
+// 	}
+// 	formatPrChangelog := func(resp string) (string, error) {
+// 		return applyDefaultTemplate(tpl, &pr.PRChangelog{
+// 			Changelog: resp,
+// 			Today:     time.Now().Format("2006-01-02"),
+// 		})
+// 	}
 
-	msg := resp.LastMessage()
-	var content = msg.Content
-	// var err error
-	switch cmd {
-	case "describe":
-		content, err = formatPrDescription(content)
-	case "review":
-		content, err = formatPrReview(content)
-	case "improve":
-		content, err = formatPrCodeSuggestion(content)
-	case "changelog":
-		content, err = formatPrChangelog(content)
-	default:
-		return fmt.Errorf("unknown agent command: %s for %s", cmd, req.Agent)
-	}
-	if err != nil {
-		return err
-	}
-	msg.Content = content
+// 	msg := resp.LastMessage()
+// 	var content = msg.Content
+// 	// var err error
+// 	switch cmd {
+// 	case "describe":
+// 		content, err = formatPrDescription(content)
+// 	case "review":
+// 		content, err = formatPrReview(content)
+// 	case "improve":
+// 		content, err = formatPrCodeSuggestion(content)
+// 	case "changelog":
+// 		content, err = formatPrChangelog(content)
+// 	default:
+// 		return fmt.Errorf("unknown agent command: %s for %s", cmd, req.Agent)
+// 	}
+// 	if err != nil {
+// 		return err
+// 	}
+// 	msg.Content = content
 
-	return nil
-}
+// 	return nil
+// }
 
-func aiderAdvice(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
-	return Aider(req.Context(), vars.Models, vars.Workspace, req.RawInput.Command, req.RawInput.Query())
-}
+// func aiderAdvice(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
+// 	return Aider(req.Context(), vars.Models, vars.Workspace, req.RawInput.Command, req.RawInput.Query())
+// }
 
-func ohAdvice(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
-	return OpenHands(req.Context(), vars.Models[model.L2], vars.Workspace, req.RawInput)
-}
+// func ohAdvice(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
+// 	return OpenHands(req.Context(), vars.Models[model.L2], vars.Workspace, req.RawInput)
+// }
 
 // subAdvice is an around advice that checks if a subcommand is specified.
 // skip LLM if it is and go directly to the next sub agent.

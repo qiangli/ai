@@ -66,7 +66,7 @@ func initAgentTools(app *api.AppConfig) error {
 func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	vars := api.NewVars()
 
-	if err := initDefaultAgents(app); err != nil {
+	if err := initAgents(app); err != nil {
 		return nil, err
 	}
 	if err := initAgentTools(app); err != nil {

@@ -176,7 +176,7 @@ func ParseLLM(viper *fangs.Viper, app *api.AppConfig) error {
 	}
 	app.Models = alias
 
-	//
+	// load models from app base
 	modelBase := filepath.Join(app.Base, "models")
 	modelCfg, err := model.LoadModels(modelBase)
 	if err != nil {

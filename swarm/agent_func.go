@@ -18,7 +18,7 @@ import (
 	"github.com/qiangli/ai/swarm/api/model"
 )
 
-//go:embed resource/agents/prompts/docker_input_user_role.md
+//go:embed resource/docker_input_user_role.md
 var dockerInputUserRole string
 
 func GenerateReport(ctx context.Context, m *model.Model, reportType, tone, input string) (string, error) {

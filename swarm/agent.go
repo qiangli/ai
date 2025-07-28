@@ -29,10 +29,10 @@ const resourceBase = "resource/agents"
 
 var agentRegistry map[string]*api.AgentsConfig
 
-func initDefaultAgents(app *api.AppConfig) error {
+func initAgents(app *api.AppConfig) error {
 	agentRegistry = make(map[string]*api.AgentsConfig)
 
-	config, err := LoadDefaultAgentsConfig(app)
+	config, err := LoadAgentsConfig(app)
 	if err != nil {
 		log.Errorf("failed to load default tool config: %v\n", err)
 		return err
@@ -61,6 +61,7 @@ func initDefaultAgents(app *api.AppConfig) error {
 			}
 		}
 	}
+
 	if len(agentRegistry) == 0 {
 		log.Debugf("No agent configurations found in default agents\n")
 		return fmt.Errorf("no agent configurations found in default agents")
@@ -111,13 +112,11 @@ type Agent struct {
 	Vars *api.Vars
 }
 
-func LoadAgentsAsset(app *api.AppConfig, as AssetStore, root string) (map[string]*api.AgentsConfig, error) {
+func LoadAgentsAsset(app *api.AppConfig, as AssetStore, root string, groups map[string]*api.AgentsConfig) error {
 	dirs, err := as.ReadDir(root)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read agent resource directory: %w", err)
+		return fmt.Errorf("failed to read agent resource directory: %w", err)
 	}
-
-	var groups = make(map[string]*api.AgentsConfig)
 
 	for _, dir := range dirs {
 		if !dir.IsDir() {
@@ -130,7 +129,7 @@ func LoadAgentsAsset(app *api.AppConfig, as AssetStore, root string) (map[string
 			if os.IsNotExist(err) {
 				continue
 			}
-			return nil, fmt.Errorf("failed to read agent file %s: %w", dir.Name(), err)
+			return fmt.Errorf("failed to read agent file %s: %w", dir.Name(), err)
 		}
 		if len(f) == 0 {
 			log.Debugf("agent file is empty %s\n", name)
@@ -138,7 +137,7 @@ func LoadAgentsAsset(app *api.AppConfig, as AssetStore, root string) (map[string
 		}
 		group, err := loadAgentsData(app, [][]byte{f})
 		if err != nil {
-			return nil, fmt.Errorf("failed to load agent data from %s: %w", dir.Name(), err)
+			return fmt.Errorf("failed to load agent data from %s: %w", dir.Name(), err)
 		}
 		if group == nil {
 			log.Debugf("no agent found in %s\n", dir.Name())
@@ -156,20 +155,34 @@ func LoadAgentsAsset(app *api.AppConfig, as AssetStore, root string) (map[string
 		groups[group.Name] = group
 	}
 
+	return nil
+}
+
+func LoadAgentsConfig(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
+	var groups = make(map[string]*api.AgentsConfig)
+	// default
+	if err := LoadResourceAgentsConfig(app, groups); err != nil {
+		return nil, err
+	}
+	// external/custom
+	if err := LoadFileAgentsConfig(app, groups); err != nil {
+		log.Errorf("failed to load custom agents: %v", err)
+	}
 	return groups, nil
 }
 
-func LoadDefaultAgentsConfig(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
-	return LoadAgentsAsset(app, resourceAgents, resourceBase)
+func LoadResourceAgentsConfig(app *api.AppConfig, groups map[string]*api.AgentsConfig) error {
+	return LoadAgentsAsset(app, resourceAgents, resourceBase, groups)
 }
 
-func LoadAgentsConfig(app *api.AppConfig, base string) (map[string]*api.AgentsConfig, error) {
+func LoadFileAgentsConfig(app *api.AppConfig, groups map[string]*api.AgentsConfig) error {
 	fs := &FileStore{}
-	abs, err := filepath.Abs(base)
+	abs, err := filepath.Abs(app.Base)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get absolute path for %s: %w", base, err)
+		return fmt.Errorf("failed to get absolute path for %s: %w", app.Base, err)
 	}
-	return LoadAgentsAsset(app, fs, abs)
+	agentsDir := filepath.Join(abs, "agents")
+	return LoadAgentsAsset(app, fs, agentsDir, groups)
 }
 
 // loadAgentsConfig loads the agent configuration from the provided YAML data.

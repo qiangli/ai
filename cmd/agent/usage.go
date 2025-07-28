@@ -319,6 +319,9 @@ Tools are used by agents to perform specific tasks. They are automatically selec
 	tools := vars.ListTools()
 
 	for _, v := range tools {
+		if v.Type == "agent" {
+			continue
+		}
 		if sub == "" || v.Type == sub {
 			list = append(list, fmt.Sprintf("%s: %s: %s\n", v.Type, v.ID(), strings.TrimSpace(v.Description)))
 		}

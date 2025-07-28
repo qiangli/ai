@@ -35,7 +35,7 @@ var toolSystemCommands []string
 var systemTools []*api.ToolFunc
 
 func initTools(app *api.AppConfig) error {
-	config, err := LoadDefaultToolsConfig(app)
+	kits, err := LoadToolsConfig(app)
 	if err != nil {
 		log.Errorf("failed to load default tool config: %v\n", err)
 		return err
@@ -72,39 +72,48 @@ func initTools(app *api.AppConfig) error {
 		return true
 	}
 
-	for _, v := range config.Tools {
-		log.Debugf("Kit: %s tool: %s - %s internal: %v\n", v.Kit, v.Name, v.Description, v.Internal)
+	for _, config := range kits {
+		for _, v := range config.Tools {
+			log.Debugf("Kit: %s tool: %s - %s internal: %v\n", v.Kit, v.Name, v.Description, v.Internal)
 
-		if v.Internal && !app.Internal {
-			continue
+			if v.Internal && !app.Internal {
+				continue
+			}
+
+			// condition check
+			if !conditionMet(v.Name, v.Condition) {
+				continue
+			}
+
+			tool := &api.ToolFunc{
+				Type:        v.Type,
+				Kit:         v.Kit,
+				Name:        v.Name,
+				Description: v.Description,
+				Parameters:  v.Parameters,
+				Body:        v.Body,
+			}
+
+			// override
+			toolRegistry[tool.ID()] = tool
+
+			// TODO this is used for security check by the evalCommand
+			if v.Type == "system" {
+				systemTools = append(systemTools, tool)
+			}
 		}
 
-		// condition check
-		if !conditionMet(v.Name, v.Condition) {
-			continue
-		}
-
-		tool := &api.ToolFunc{
-			Type:        v.Type,
-			Kit:         v.Kit,
-			Name:        v.Name,
-			Description: v.Description,
-			Parameters:  v.Parameters,
-			Body:        v.Body,
-		}
-		toolRegistry[tool.ID()] = tool
-
-		// TODO this is used for security check by the evalCommand
-		if v.Type == "system" {
-			systemTools = append(systemTools, tool)
-		}
 	}
 
+	//
 	// required system commands
 	commandMap := make(map[string]bool)
-	for _, v := range config.Commands {
-		commandMap[v] = true
+	for _, config := range kits {
+		for _, v := range config.Commands {
+			commandMap[v] = true
+		}
 	}
+
 	toolSystemCommands = make([]string, 0, len(commandMap))
 	for k := range commandMap {
 		toolSystemCommands = append(toolSystemCommands, k)
@@ -140,35 +149,53 @@ func (fs *FileStore) ReadFile(name string) ([]byte, error) {
 	return os.ReadFile(name)
 }
 
-func LoadToolsAsset(app *api.AppConfig, as AssetStore, base string) (*api.ToolsConfig, error) {
+func LoadToolsAsset(app *api.AppConfig, as AssetStore, base string, kits map[string]*api.ToolsConfig) error {
 	dirs, err := as.ReadDir(base)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read testdata directory: %v", err)
+		return fmt.Errorf("failed to read testdata directory: %v", err)
 	}
-	var data [][]byte
 	for _, dir := range dirs {
 		if dir.IsDir() {
 			continue
 		}
 		f, err := as.ReadFile(filepath.Join(base, dir.Name()))
 		if err != nil {
-			return nil, fmt.Errorf("failed to read tool file %s: %w", dir.Name(), err)
+			return fmt.Errorf("failed to read tool file %s: %w", dir.Name(), err)
 		}
 		if len(f) == 0 {
 			continue
 		}
-		data = append(data, f)
+		kit, err := LoadToolData(app, [][]byte{f})
+		if err != nil {
+			return err
+		}
+		kits[kit.Kit] = kit
 	}
-	return LoadToolData(app, data)
+
+	return nil
 }
 
-func LoadDefaultToolsConfig(app *api.AppConfig) (*api.ToolsConfig, error) {
-	return LoadToolsAsset(app, resourceTools, "resource/tools")
+func LoadToolsConfig(app *api.AppConfig) (map[string]*api.ToolsConfig, error) {
+	var kits = make(map[string]*api.ToolsConfig)
+	// default
+	if err := LoadResourceToolsConfig(app, kits); err != nil {
+		return nil, err
+	}
+	// external/custom
+	if err := LoadFileToolsConfig(app, kits); err != nil {
+		log.Errorf("failed to load custom tools: %v", err)
+	}
+	return kits, nil
 }
 
-func LoadToolsConfig(app *api.AppConfig, base string) (*api.ToolsConfig, error) {
+func LoadResourceToolsConfig(app *api.AppConfig, kits map[string]*api.ToolsConfig) error {
+	return LoadToolsAsset(app, resourceTools, "resource/tools", kits)
+}
+
+func LoadFileToolsConfig(app *api.AppConfig, kits map[string]*api.ToolsConfig) error {
 	fs := &FileStore{}
-	return LoadToolsAsset(app, fs, base)
+	toolsDir := filepath.Join(app.Base, "tools")
+	return LoadToolsAsset(app, fs, toolsDir, kits)
 }
 
 func LoadToolData(app *api.AppConfig, data [][]byte) (*api.ToolsConfig, error) {

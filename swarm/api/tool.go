@@ -32,8 +32,10 @@ type ToolCondition struct {
 }
 
 type ToolsConfig struct {
+	// default kit name for ToolConfig
 	Kit string `yaml:"kit"`
 
+	// kit config is discarded if true
 	Internal bool `yaml:"internal"`
 
 	// system commands used by tools

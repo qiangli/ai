@@ -7,7 +7,7 @@ agents:
     description: "Generate git commit message based on users input and the provided diffs."
     model: L1
     instruction:
-      content: "resource:git_sub_system_role.md"
+      content: "file:git_sub_system_role.md"
     # advices:
     #   around: "sub"
     # functions:
@@ -23,7 +23,7 @@ agents:
     description: "Generate concise, one-line git commit messages based on the provided diffs."
     model: L1
     instruction:
-      content: "resource:git_message_short.md"
+      content: "file:git_message_short.md"
     functions:
       - "shell:git"
       - "system:*"
@@ -34,7 +34,7 @@ agents:
     description: "Generate git commit messages based on the provided diffs using the Conventional Commits specification"
     model: L1
     instruction:
-      content: "resource:git_message_long.md"
+      content: "file:git_message_long.md"
     functions:
       - "shell:git"
       - "system:*"
