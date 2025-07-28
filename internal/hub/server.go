@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"path/filepath"
 
 	"github.com/qiangli/ai/internal/db"
 	hubapi "github.com/qiangli/ai/internal/hub/api"
@@ -34,7 +35,7 @@ func StartServer(cfg *api.AppConfig) error {
 
 	// start websocket service
 	if err := hub.Start(); err != nil {
-		log.Errorf("Hub service: %v ", err)
+		log.Errorf("Hub service: %v\n", err)
 		return err
 	}
 	defer hub.Stop()
@@ -71,6 +72,17 @@ func StartServer(cfg *api.AppConfig) error {
 	})
 	mux.HandleFunc("/message", createMessageHandler(hubUrl))
 
+	// TODO
+	// agentic app at <base>/web/
+	log.Infof("agent resource: %+v\n", cfg.AgentResource)
+	if cfg.AgentResource != nil {
+		appRoot := cfg.AgentResource.Root
+		appDir := filepath.Join(cfg.Base, appRoot)
+		mux.Handle("/app/", http.StripPrefix("/app/", http.FileServer(http.Dir(appDir))))
+		mux.Handle("/resource/", http.StripPrefix("/resource/", createWebStoreHandler(appDir)))
+	}
+
+	// websocket
 	mux.HandleFunc("/hub", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
 	})

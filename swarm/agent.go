@@ -112,7 +112,7 @@ type Agent struct {
 	Vars *api.Vars
 }
 
-func LoadAgentsAsset(app *api.AppConfig, as AssetStore, root string, groups map[string]*api.AgentsConfig) error {
+func LoadAgentsAsset(app *api.AppConfig, as api.AssetStore, root string, groups map[string]*api.AgentsConfig) error {
 	dirs, err := as.ReadDir(root)
 	if err != nil {
 		return fmt.Errorf("failed to read agent resource directory: %w", err)
@@ -164,9 +164,13 @@ func LoadAgentsConfig(app *api.AppConfig) (map[string]*api.AgentsConfig, error) 
 	if err := LoadResourceAgentsConfig(app, groups); err != nil {
 		return nil, err
 	}
+	// web
+	if err := LoadWebAgentsConfig(app, groups); err != nil {
+		log.Errorf("failed load agents from web resources: %v\n", err)
+	}
 	// external/custom
 	if err := LoadFileAgentsConfig(app, groups); err != nil {
-		log.Errorf("failed to load custom agents: %v", err)
+		log.Errorf("failed to load custom agents: %v\n", err)
 	}
 	return groups, nil
 }
@@ -183,6 +187,21 @@ func LoadFileAgentsConfig(app *api.AppConfig, groups map[string]*api.AgentsConfi
 	}
 	agentsDir := filepath.Join(abs, "agents")
 	return LoadAgentsAsset(app, fs, agentsDir, groups)
+}
+
+func LoadWebAgentsConfig(app *api.AppConfig, groups map[string]*api.AgentsConfig) error {
+	if app.AgentResource == nil {
+		return nil
+	}
+	for _, base := range app.AgentResource.Bases {
+		ws := &WebStore{
+			Base: base,
+		}
+		if err := LoadAgentsAsset(app, ws, "agents", groups); err != nil {
+			log.Errorf("failed to load config. base: %s error: %v\n", base, err)
+		}
+	}
+	return nil
 }
 
 // loadAgentsConfig loads the agent configuration from the provided YAML data.

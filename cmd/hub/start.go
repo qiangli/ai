@@ -19,16 +19,35 @@ var startCmd = &cobra.Command{
 	DisableFlagsInUseLine: false,
 	DisableSuggestions:    true,
 	Run: func(cmd *cobra.Command, args []string) {
-		var cfg = &api.AppConfig{}
-
-		if err := internal.ParseConfig(viper, cfg, args); err != nil {
-			internal.Exit(err)
-		}
-		parseStartFlags(cfg)
-		if err := hub.StartServer(cfg); err != nil {
-			internal.Exit(err)
-		}
+		err := Serve(args)
+		internal.Exit(err)
 	},
+}
+
+func Serve(args []string) error {
+	var cfg = &api.AppConfig{}
+
+	if err := internal.ParseConfig(viper, cfg, args); err != nil {
+		return err
+	}
+	parseStartFlags(cfg)
+	//
+
+	fileLog, err := setLogOutput(cfg.Log)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if fileLog != nil {
+			fileLog.Close()
+		}
+	}()
+	setLogLevel(cfg)
+
+	if err := hub.StartServer(cfg); err != nil {
+		return err
+	}
+	return nil
 }
 
 func init() {
@@ -76,6 +95,12 @@ func addStartFlags(flags *pflag.FlagSet) {
 	flags.String("llm-proxy-secret", "sk-secret", "LLM proxy server secret for local access")
 	// TODO use values from models
 	flags.String("llm-proxy-api-key", "", "OpenAI api key")
+
+	flags.String("agent-resource", "", "Resource configuration")
+
+	//
+	flags.String("log", "", "Log all debugging information to a file")
+	flags.Bool("verbose", false, "Show progress and debugging information")
 }
 
 func parseStartFlags(app *api.AppConfig) {

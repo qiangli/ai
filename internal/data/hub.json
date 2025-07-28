@@ -1,0 +1,19 @@
+{
+  "program": "ai",
+  "args": [
+    "--agent",
+    "ask",
+    "--verbose",
+    "--log",
+    "/tmp/hub.log",
+    "--hub",
+    "--hub-address",
+    ":58080",
+    "--hub-pg-address",
+    ":25432",
+    "--hub-mysql-address",
+    ":3306",
+    "--hub-redis-address",
+    ":6379"
+  ]
+}

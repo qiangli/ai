@@ -2,9 +2,13 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"html/template"
+	"os"
 	"strings"
+
+	"github.com/qiangli/ai/internal/log"
 )
 
 const (
@@ -282,4 +286,25 @@ func (r *Result) String() string {
 		sb.WriteString(fmt.Sprintf(" %s\n", r.Value))
 	}
 	return strings.TrimSpace(sb.String())
+}
+
+type AgentResource struct {
+	Root string
+	// web resource base url
+	// http://localhost:58080/resource/
+	Bases []string
+}
+
+func LoadAgentResource(p string) (*AgentResource, error) {
+	log.Infof("Loading agent resource: %s\n", p)
+	var ar AgentResource
+	data, err := os.ReadFile(p)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(data, &ar); err != nil {
+		return nil, err
+	}
+	log.Infof("Agent resource loaded: %+v\n", ar)
+	return &ar, nil
 }

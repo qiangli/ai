@@ -26,6 +26,8 @@ type AppConfig struct {
 	Git    *GitConfig
 	DBCred *DBCred
 
+	AgentResource *AgentResource
+
 	// system
 	Role   string
 	Prompt string
@@ -136,6 +138,7 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		ConfigFile:    cfg.ConfigFile,
 		LLM:           llm,
 		TTS:           tts,
+		AgentResource: cfg.AgentResource,
 		Git:           cfg.Git,
 		DBCred:        cfg.DBCred,
 		Role:          cfg.Role,

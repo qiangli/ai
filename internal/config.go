@@ -225,6 +225,14 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 		app.McpServers = mcp.ServersConfig
 	}
 
+	// resource
+	resource := viper.GetString("agent_resource")
+	ar, err := api.LoadAgentResource(filepath.Join(app.Base, resource))
+	if err != nil {
+		return nil
+	}
+	app.AgentResource = ar
+
 	// sql db
 	dbCfg := &api.DBCred{}
 	dbCfg.Host = viper.GetString("sql.db_host")

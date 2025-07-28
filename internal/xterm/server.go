@@ -12,7 +12,7 @@ import (
 // https://github.com/sorenisanerd/gotty.git
 func Start(cfg *api.AppConfig) error {
 	if !cfg.Hub.Terminal {
-		log.Debugf("Hub terminal service is disabled")
+		log.Debugf("Hub terminal service is disabled\n")
 		return nil
 	}
 
@@ -35,7 +35,7 @@ func Start(cfg *api.AppConfig) error {
 
 	ctx := context.Background()
 
-	log.Debugln("Web terminal is starting ...")
+	log.Debugln("Web terminal is starting ...\n")
 
 	errs := make(chan error, 1)
 	go func() {

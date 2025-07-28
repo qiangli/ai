@@ -12,7 +12,7 @@ func StartRedis(addr string) {
 
 	err := m.StartAddr(addr)
 	if err != nil {
-		log.Errorf("failed to start redis: %v", err)
+		log.Errorf("failed to start redis: %v\n", err)
 		return
 	}
 	defer m.Close()

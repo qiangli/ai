@@ -11,18 +11,18 @@ import (
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("AI Hub"))
+	w.Write([]byte("AI Hub\n"))
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
+	w.Write([]byte("OK\n"))
 }
 
 func shutdownHandler(w http.ResponseWriter, r *http.Request) {
 	log.Infof("shutdown requested. %+v", r.Header)
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
+	w.Write([]byte("OK\n"))
 	if flusher, ok := w.(http.Flusher); ok {
 		flusher.Flush()
 	}

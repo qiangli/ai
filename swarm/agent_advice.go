@@ -9,8 +9,8 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/api/model"
-	"github.com/qiangli/ai/swarm/llm"
+	// "github.com/qiangli/ai/swarm/api/model"
+	// "github.com/qiangli/ai/swarm/llm"
 	// pr "github.com/qiangli/ai/swarm/resource/agents/pr"
 )
 
@@ -202,62 +202,62 @@ type ImageParams struct {
 	Style   string `json:"style"`
 }
 
-func imageParamsAdvice(vars *api.Vars, req *api.Request, resp *api.Response, next api.Advice) error {
-	// skip if all image params are already set
-	if req.ImageQuality != "" && req.ImageSize != "" && req.ImageStyle != "" {
-		log.Debugf("skip image params advice as all are already set\n")
-		return nil
-	}
+// func imageParamsAdvice(vars *api.Vars, req *api.Request, resp *api.Response, next api.Advice) error {
+// 	// skip if all image params are already set
+// 	if req.ImageQuality != "" && req.ImageSize != "" && req.ImageStyle != "" {
+// 		log.Debugf("skip image params advice as all are already set\n")
+// 		return nil
+// 	}
 
-	model, ok := vars.Models[model.L1]
-	if !ok {
-		log.Debugf("no model found\n")
-		return nil
-	}
-	ctx := req.Context()
+// 	model, ok := vars.Models[model.L1]
+// 	if !ok {
+// 		log.Debugf("no model found\n")
+// 		return nil
+// 	}
+// 	ctx := req.Context()
 
-	content, err := vars.Resource(req.Agent, "image_param_system_role.md")
-	if err != nil {
-		return err
-	}
+// 	content, err := vars.Resource(req.Agent, "image_param_system_role.md")
+// 	if err != nil {
+// 		return err
+// 	}
 
-	var msgs = []*api.Message{
-		{
-			Role:    api.RoleSystem,
-			Content: string(content),
-		},
-		{
-			Role:    api.RoleUser,
-			Content: req.RawInput.Intent(),
-		},
-	}
+// 	var msgs = []*api.Message{
+// 		{
+// 			Role:    api.RoleSystem,
+// 			Content: string(content),
+// 		},
+// 		{
+// 			Role:    api.RoleUser,
+// 			Content: req.RawInput.Intent(),
+// 		},
+// 	}
 
-	result, err := llm.Send(ctx, &api.LLMRequest{
-		Model:    model,
-		Messages: msgs,
-	})
-	if err != nil {
-		log.Errorf("error sending request: %v\n", err)
-		return nil
-	}
+// 	result, err := llm.Send(ctx, &api.LLMRequest{
+// 		Model:    model,
+// 		Messages: msgs,
+// 	})
+// 	if err != nil {
+// 		log.Errorf("error sending request: %v\n", err)
+// 		return nil
+// 	}
 
-	var params ImageParams
-	if err := json.Unmarshal([]byte(result.Content), &params); err != nil {
-		log.Debugf("error unmarshaling response: %v\n", err)
-		return nil
-	}
+// 	var params ImageParams
+// 	if err := json.Unmarshal([]byte(result.Content), &params); err != nil {
+// 		log.Debugf("error unmarshaling response: %v\n", err)
+// 		return nil
+// 	}
 
-	if params.Quality == "" {
-		req.ImageQuality = params.Quality
-	}
-	if params.Size == "" {
-		req.ImageSize = params.Size
-	}
-	if params.Style == "" {
-		req.ImageStyle = params.Style
-	}
-	return nil
-}
+// 	if params.Quality == "" {
+// 		req.ImageQuality = params.Quality
+// 	}
+// 	if params.Size == "" {
+// 		req.ImageSize = params.Size
+// 	}
+// 	if params.Style == "" {
+// 		req.ImageStyle = params.Style
+// 	}
+// 	return nil
+// }
 
 // chdir format path after advice
 func chdirFormatPathAdvice(vars *api.Vars, _ *api.Request, resp *api.Response, _ api.Advice) error {

@@ -92,6 +92,6 @@ func Start() {
 
 	log.Infof("Websocket bridge listening on%s...\n", addr)
 	if err := http.ListenAndServe(addr, mux); err != nil {
-		log.Errorf("failed to start: %v", err)
+		log.Errorf("failed to start: %v\n", err)
 	}
 }

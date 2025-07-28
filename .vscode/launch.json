@@ -128,7 +128,8 @@
 			},
 			"args": [
 				"/help",
-				"tools",
+				"agents",
+				"--agent-resource=agent-resource.json",
 				"-m",
 				"none",
 				"--l1-base-url",

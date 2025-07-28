@@ -4,7 +4,6 @@ import (
 	"context"
 	"embed"
 	"fmt"
-	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -133,23 +132,7 @@ func listDefaultTools() []*api.ToolFunc {
 //go:embed resource/tools/*.yaml
 var resourceTools embed.FS
 
-type AssetStore interface {
-	ReadDir(name string) ([]fs.DirEntry, error)
-	ReadFile(name string) ([]byte, error)
-}
-
-type FileStore struct {
-}
-
-func (fs *FileStore) ReadDir(name string) ([]fs.DirEntry, error) {
-	return os.ReadDir(name)
-}
-
-func (fs *FileStore) ReadFile(name string) ([]byte, error) {
-	return os.ReadFile(name)
-}
-
-func LoadToolsAsset(app *api.AppConfig, as AssetStore, base string, kits map[string]*api.ToolsConfig) error {
+func LoadToolsAsset(app *api.AppConfig, as api.AssetStore, base string, kits map[string]*api.ToolsConfig) error {
 	dirs, err := as.ReadDir(base)
 	if err != nil {
 		return fmt.Errorf("failed to read testdata directory: %v", err)
@@ -181,9 +164,13 @@ func LoadToolsConfig(app *api.AppConfig) (map[string]*api.ToolsConfig, error) {
 	if err := LoadResourceToolsConfig(app, kits); err != nil {
 		return nil, err
 	}
+	// web
+	if err := LoadWebToolsConfig(app, kits); err != nil {
+		log.Error("failed to load tools from web resource: %v\n", err)
+	}
 	// external/custom
 	if err := LoadFileToolsConfig(app, kits); err != nil {
-		log.Errorf("failed to load custom tools: %v", err)
+		log.Errorf("failed to load custom tools: %v\n", err)
 	}
 	return kits, nil
 }
@@ -196,6 +183,21 @@ func LoadFileToolsConfig(app *api.AppConfig, kits map[string]*api.ToolsConfig) e
 	fs := &FileStore{}
 	toolsDir := filepath.Join(app.Base, "tools")
 	return LoadToolsAsset(app, fs, toolsDir, kits)
+}
+
+func LoadWebToolsConfig(app *api.AppConfig, kits map[string]*api.ToolsConfig) error {
+	if app.AgentResource == nil {
+		return nil
+	}
+	for _, base := range app.AgentResource.Bases {
+		ws := &WebStore{
+			Base: base,
+		}
+		if err := LoadToolsAsset(app, ws, "tools", kits); err != nil {
+			log.Errorf("failed to load from %s error: %v\n", base, err)
+		}
+	}
+	return nil
 }
 
 func LoadToolData(app *api.AppConfig, data [][]byte) (*api.ToolsConfig, error) {

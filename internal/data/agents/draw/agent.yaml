@@ -6,8 +6,10 @@ agents:
     state: "transfer"
     description: "Generate images based on user input, providing visual representations of text-based descriptions."
     model: Image
-    advices:
-      before: "image_params"
+    instruction:
+      content: "file:image_param_system_role.md"
+    # advices:
+    #   before: "image_params"
 
 models:
   - name: "Image"
