@@ -12,7 +12,7 @@ func TestLoadAgentsConfig(t *testing.T) {
 	}
 	cfg, err := LoadAgentsConfig(app)
 	if err != nil {
-		t.Fatalf("Failed to load agent config from %s: %v", resourceBase, err)
+		t.Fatalf("Failed to load agent config: %v", err)
 	}
 
 	for _, v := range cfg {

@@ -361,7 +361,7 @@
 			"stopOnEntry": false
 		},
 		{
-			"name": "Agent @shell/",
+			"name": "Shell",
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
@@ -369,17 +369,19 @@
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
-				"AI_BASE_URL": "http://localhost:4000",
+				"AI_BASE_URL": "http://localhost:8000",
 				"AI_DEBUG": "true",
 			},
 			"args": [
 				"--verbose",
 				"/rg",
+				// "@shell/rg",
 				"--message",
 				"find all cats and dogs in files ending in .go for the local repo"
 			],
 			"showLog": false,
-			"stopOnEntry": false
+			"stopOnEntry": false,
+			"showGlobalVariables": false
 		},
 		{
 			"name": "Find",
@@ -437,18 +439,19 @@
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				// "AI_API_KEY": "${env:OPENAI_API_KEY}",
-				// "AI_BASE_URL": "http://localhost:4000",
+				"AI_BASE_URL": "http://localhost:8000/v1",
 				// "AI_DEBUG": "true",
-				"AI_API_KEY": "${env:OPENAI_API_KEY}",
-				"AI_BASE_URL": "https://api.openai.com/v1/",
+				// "AI_API_KEY": "${env:OPENAI_API_KEY}",
+				// "AI_BASE_URL": "https://api.openai.com/v1/",
 				"AI_DEBUG": "true",
 			},
 			"args": [
 				"--verbose",
 				"@git",
+				"--new",
 				"--message",
 				"write a short commit message for the code changes",
-				"--input",
+				"--file",
 				"git.diff"
 			],
 			"cwd": "internal/testdata",
@@ -485,12 +488,13 @@
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
-				"AI_BASE_URL": "http://localhost:4000",
+				"AI_BASE_URL": "http://localhost:8000/v1",
 				"AI_DEBUG": "true",
 			},
 			"args": [
 				"--verbose",
 				"@draw",
+				"--new",
 				"--message",
 				"draw a german shepherd dog sleeping on the floor with size 512, visially pleasing and high quality",
 			],
@@ -506,7 +510,7 @@
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
-				"AI_BASE_URL": "http://localhost:4000",
+				"AI_BASE_URL": "http://localhost:8000/v1",
 				"AI_DEBUG": "true",
 			},
 			"args": [

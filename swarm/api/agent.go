@@ -64,9 +64,9 @@ type TemplateFuncMap = template.FuncMap
 
 type Agent struct {
 	// The name of the agent.
-	Name        string
-	Display     string
-	Description string
+	Name    string
+	Display string
+	// Description string
 
 	// The model to be used by the agent
 	Model *model.Model
@@ -75,8 +75,9 @@ type Agent struct {
 	Role string
 
 	// Instructions for the agent, can be a string or a callable returning a string
-	Instruction string
+	// Instruction string
 	// InstructionType string // file ext
+	// Instruction *InstructionConfig
 
 	RawInput *UserInput
 
@@ -102,7 +103,7 @@ type Agent struct {
 	//
 	// Vars *Vars
 
-	Store AssetStore
+	Config *AgentConfig
 }
 
 type AgentsConfig struct {
@@ -111,15 +112,15 @@ type AgentsConfig struct {
 
 	Internal bool `yaml:"internal"`
 
-	Agents    []AgentConfig    `yaml:"agents"`
-	Functions []FunctionConfig `yaml:"functions"`
-	Models    []ModelConfig    `yaml:"models"`
+	Agents    []*AgentConfig    `yaml:"agents"`
+	Functions []*FunctionConfig `yaml:"functions"`
+	Models    []*ModelConfig    `yaml:"models"`
 
 	MaxTurns int `yaml:"maxTurns"`
 	MaxTime  int `yaml:"maxTime"`
 
-	BaseDir string `yaml:"-"`
-	Source  string `yaml:"-"`
+	// BaseDir string `yaml:"-"`
+	// Source  string `yaml:"-"`
 }
 
 type AgentConfig struct {
@@ -131,7 +132,7 @@ type AgentConfig struct {
 	State    string `yaml:"state"`
 
 	//
-	Instruction InstructionConfig `yaml:"instruction"`
+	Instruction *InstructionConfig `yaml:"instruction"`
 
 	Model string `yaml:"model"`
 
@@ -141,15 +142,22 @@ type AgentConfig struct {
 
 	Dependencies []string `yaml:"dependencies"`
 
-	Advices AdviceConfig `yaml:"advices"`
+	Advices *AdviceConfig `yaml:"advices"`
 
 	Store AssetStore `yaml:"-"`
+	// relative to root
+	BaseDir string `yaml:"-"`
 }
 
 type InstructionConfig struct {
-	Role    string `yaml:"role"`
+	Role string `yaml:"role"`
+	// TODO add new field
+	// Source ? resource/file/cloud...
+	// prefix supported: file: resource:
 	Content string `yaml:"content"`
-	Type    string `yaml:"type"`
+	// template or not
+	// tpl
+	Type string `yaml:"type"`
 }
 
 type FunctionConfig struct {
@@ -185,12 +193,6 @@ type Function = func(context.Context, *Vars, string, map[string]any) (*Result, e
 type Advice func(*Vars, *Request, *Response, Advice) error
 
 type Entrypoint func(*Vars, *Agent, *UserInput) error
-
-// type Agent struct {
-// 	Name    string
-// 	Display string
-// 	// Description string
-// }
 
 type Request struct {
 	// The name/command of the active agent

@@ -93,12 +93,12 @@ func Run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	vars, err := swarm.InitVars(cfg)
-	if err != nil {
-		return err
-	}
+	// vars, err := swarm.InitVars(cfg)
+	// if err != nil {
+	// 	return err
+	// }
 
-	log.Debugf("Initialized variables: %+v\n", vars)
+	// log.Debugf("Initialized variables: %+v\n", vars)
 
 	// // hub service
 	// if cfg.Hub.Enable {
@@ -179,7 +179,12 @@ func Run(cmd *cobra.Command, args []string) error {
 			return nil
 		}
 
-		//
+		// TODO move to inside shell
+		vars, err := swarm.InitVars(cfg)
+		if err != nil {
+			return err
+		}
+
 		if err := shell.Shell(vars); err != nil {
 			log.Errorln(err)
 		}

@@ -2,7 +2,6 @@ package swarm
 
 import (
 	"context"
-	"embed"
 	"fmt"
 	"os"
 	"os/exec"
@@ -129,9 +128,6 @@ func listDefaultTools() []*api.ToolFunc {
 	return tools
 }
 
-//go:embed resource/tools/*.yaml
-var resourceTools embed.FS
-
 func LoadToolsAsset(app *api.AppConfig, as api.AssetStore, base string, kits map[string]*api.ToolsConfig) error {
 	dirs, err := as.ReadDir(base)
 	if err != nil {
@@ -176,13 +172,21 @@ func LoadToolsConfig(app *api.AppConfig) (map[string]*api.ToolsConfig, error) {
 }
 
 func LoadResourceToolsConfig(app *api.AppConfig, kits map[string]*api.ToolsConfig) error {
-	return LoadToolsAsset(app, resourceTools, "resource/tools", kits)
+	rs := &ResourceStore{
+		Base: "resource",
+	}
+	return LoadToolsAsset(app, rs, "tools", kits)
 }
 
 func LoadFileToolsConfig(app *api.AppConfig, kits map[string]*api.ToolsConfig) error {
-	fs := &FileStore{}
-	toolsDir := filepath.Join(app.Base, "tools")
-	return LoadToolsAsset(app, fs, toolsDir, kits)
+	abs, err := filepath.Abs(app.Base)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path for %s: %w", app.Base, err)
+	}
+	fs := &FileStore{
+		Base: abs,
+	}
+	return LoadToolsAsset(app, fs, "tools", kits)
 }
 
 func LoadWebToolsConfig(app *api.AppConfig, kits map[string]*api.ToolsConfig) error {

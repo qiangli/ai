@@ -2,7 +2,6 @@ package swarm
 
 import (
 	"context"
-	"embed"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -21,11 +20,6 @@ import (
 
 const defaultMaxTurns = 15
 const defaultMaxTime = 3600
-
-//go:embed resource/agents
-var resourceAgents embed.FS
-
-const resourceBase = "resource/agents"
 
 var agentRegistry map[string]*api.AgentsConfig
 
@@ -71,51 +65,10 @@ func initAgents(app *api.AppConfig) error {
 	return nil
 }
 
-// type Agent struct {
-// 	// The name of the agent.
-// 	Name string
-
-// 	Display string
-
-// 	// The model to be used by the agent
-// 	Model *model.Model
-
-// 	// The role of the agent. default is "system"
-// 	Role string
-
-// 	// Instructions for the agent, can be a string or a callable returning a string
-// 	Instruction string
-// 	// InstructionType string // file ext
-
-// 	RawInput *api.UserInput
-
-// 	// Functions that the agent can call
-// 	Tools []*api.ToolFunc
-
-// 	Entrypoint api.Entrypoint
-
-// 	Dependencies []*Agent
-
-// 	// advices
-// 	BeforeAdvice api.Advice
-// 	AfterAdvice  api.Advice
-// 	AroundAdvice api.Advice
-
-// 	//
-// 	MaxTurns int
-// 	MaxTime  int
-
-// 	//
-// 	ResourceMap string
-
-// 	//
-// 	Vars *api.Vars
-// }
-
 func LoadAgentsAsset(app *api.AppConfig, as api.AssetStore, root string, groups map[string]*api.AgentsConfig) error {
 	dirs, err := as.ReadDir(root)
 	if err != nil {
-		return fmt.Errorf("failed to read agent resource directory: %w", err)
+		return fmt.Errorf("failed to read agent resource directory: %v", err)
 	}
 
 	for _, dir := range dirs {
@@ -143,7 +96,7 @@ func LoadAgentsAsset(app *api.AppConfig, as api.AssetStore, root string, groups 
 			log.Debugf("no agent found in %s\n", dir.Name())
 			continue
 		}
-		group.BaseDir = base
+		// group.BaseDir = base
 		// use the name of the directory as the group name if not specified
 		if group.Name == "" {
 			group.Name = dir.Name()
@@ -151,6 +104,11 @@ func LoadAgentsAsset(app *api.AppConfig, as api.AssetStore, root string, groups 
 		if _, exists := groups[group.Name]; exists {
 			log.Debugf("duplicate agent name found: %s in %s, skipping\n", group.Name, dir.Name())
 			continue
+		}
+		// keep store loader for loading extra resources later
+		for _, v := range group.Agents {
+			v.Store = as
+			v.BaseDir = base
 		}
 		groups[group.Name] = group
 	}
@@ -176,17 +134,21 @@ func LoadAgentsConfig(app *api.AppConfig) (map[string]*api.AgentsConfig, error) 
 }
 
 func LoadResourceAgentsConfig(app *api.AppConfig, groups map[string]*api.AgentsConfig) error {
-	return LoadAgentsAsset(app, resourceAgents, resourceBase, groups)
+	rs := &ResourceStore{
+		Base: "resource",
+	}
+	return LoadAgentsAsset(app, rs, "agents", groups)
 }
 
 func LoadFileAgentsConfig(app *api.AppConfig, groups map[string]*api.AgentsConfig) error {
-	fs := &FileStore{}
 	abs, err := filepath.Abs(app.Base)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute path for %s: %w", app.Base, err)
 	}
-	agentsDir := filepath.Join(abs, "agents")
-	return LoadAgentsAsset(app, fs, agentsDir, groups)
+	fs := &FileStore{
+		Base: abs,
+	}
+	return LoadAgentsAsset(app, fs, "agents", groups)
 }
 
 func LoadWebAgentsConfig(app *api.AppConfig, groups map[string]*api.AgentsConfig) error {
@@ -274,13 +236,13 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 			ap := fmt.Sprintf("%s/%s", n, c)
 			for _, a := range config.Agents {
 				if a.Name == ap {
-					return &a, nil
+					return a, nil
 				}
 			}
 		}
 		for _, a := range config.Agents {
 			if a.Name == n {
-				return &a, nil
+				return a, nil
 			}
 		}
 		return nil, fmt.Errorf("no such agent: %s / %s", n, c)
@@ -292,62 +254,50 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 			return nil, err
 		}
 
-		// // read the instruction
-		// ps := a.Instruction.Content
-		// defaultType := func(s string) string {
-		// 	if strings.HasSuffix(s, ".tpl") {
-		// 		return "tpl"
-		// 	}
-		// 	if strings.HasSuffix(s, ".tpl.md") {
-		// 		return "tpl"
-		// 	}
-		// 	return filepath.Ext(s)
-		// }
-		// //
-		// switch {
-		// case strings.HasPrefix(ps, "file:"):
-		// 	parts := strings.SplitN(a.Instruction.Content, ":", 2)
-		// 	fileName := strings.TrimSpace(parts[1])
-		// 	if fileName == "" {
-		// 		return nil, fmt.Errorf("empty file path in instruction for agent: %s", a.Name)
-		// 	}
-		// 	filePath := filepath.Join(config.BaseDir, fileName)
-		// 	content, err := os.ReadFile(filePath)
-		// 	if err != nil {
-		// 		return nil, fmt.Errorf("failed to read instruction file %s for agent %s: %w", filePath, a.Name, err)
-		// 	}
-		// 	a.Instruction.Content = string(content)
-		// 	if a.Instruction.Type == "" {
-		// 		a.Instruction.Type = defaultType(filePath)
-		// 	}
-		// 	log.Debugf("Loaded instruction from file for agent %s: %s\n", a.Name, filePath)
-		// case strings.HasPrefix(ps, "resource:"):
-		// 	parts := strings.SplitN(a.Instruction.Content, ":", 2)
-		// 	resourceName := strings.TrimSpace(parts[1])
-		// 	if resourceName == "" {
-		// 		return nil, fmt.Errorf("empty resource name in instruction for agent: %s", a.Name)
-		// 	}
-		// 	filePath := config.BaseDir + "/" + resourceName
-		// 	content, err := resourceAgents.ReadFile(filePath)
-		// 	if err != nil {
-		// 		return nil, fmt.Errorf("failed to read resource instruction file %s for agent %s: %w", resourceName, a.Name, err)
-		// 	}
-		// 	a.Instruction.Content = string(content)
-		// 	if a.Instruction.Type == "" {
-		// 		a.Instruction.Type = defaultType(filePath)
-		// 	}
-		// 	log.Debugf("Loaded instruction from resource for agent %s: %s\n", a.Name, resourceName)
-		// }
+		// read the instruction
+		if a.Instruction != nil {
+			ps := a.Instruction.Content
+
+			switch {
+			case strings.HasPrefix(ps, "file:"):
+				parts := strings.SplitN(a.Instruction.Content, ":", 2)
+				resource := strings.TrimSpace(parts[1])
+				if resource == "" {
+					return nil, fmt.Errorf("empty file in instruction for agent: %s", a.Name)
+				}
+				relPath := a.Store.Resolve(a.BaseDir, resource)
+				content, err := a.Store.ReadFile(relPath)
+				if err != nil {
+					return nil, fmt.Errorf("failed to read instruction from file %q for agent %q: %w", resource, a.Name, err)
+				}
+				a.Instruction.Content = string(content)
+				log.Debugf("Loaded instruction from file %q for agent %q\n", resource, a.Name)
+			case strings.HasPrefix(ps, "resource:"):
+				parts := strings.SplitN(a.Instruction.Content, ":", 2)
+				resource := strings.TrimSpace(parts[1])
+				if resource == "" {
+					return nil, fmt.Errorf("empty resource name in instruction for agent %q", a.Name)
+				}
+				relPath := a.Store.Resolve(a.BaseDir, resource)
+				content, err := a.Store.ReadFile(relPath)
+				if err != nil {
+					return nil, fmt.Errorf("failed to read instruction from resource %q for agent %q: %w", resource, a.Name, err)
+				}
+				a.Instruction.Content = string(content)
+				log.Debugf("Loaded instruction from resource %q for agent %q\n", resource, a.Name)
+			}
+		}
 		return a, nil
 	}
 
 	newAgent := func(ac *api.AgentConfig, vars *api.Vars) (*api.Agent, error) {
 		agent := api.Agent{
-			Name:        ac.Name,
-			Display:     ac.Display,
-			Role:        ac.Instruction.Role,
-			Instruction: ac.Instruction.Content,
-			Store:       ac.Store,
+			Name:    ac.Name,
+			Display: ac.Display,
+			// Role:        ac.Instruction.Role,
+			// Instruction: ac.Instruction.Content,
+			// Instruction: ac.Instruction,
+			Config: ac,
 			// InstructionType: ac.Instruction.Type,
 			// Vars:        vars,
 			RawInput: input,
@@ -423,25 +373,27 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 		}
 		agent.Tools = funcs
 
-		if ac.Advices.Before != "" {
-			if ad, ok := adviceMap[ac.Advices.Before]; ok {
-				agent.BeforeAdvice = ad
-			} else {
-				return nil, fmt.Errorf("no such advice: %s", ac.Advices.Before)
+		if ac.Advices != nil {
+			if ac.Advices.Before != "" {
+				if ad, ok := adviceMap[ac.Advices.Before]; ok {
+					agent.BeforeAdvice = ad
+				} else {
+					return nil, fmt.Errorf("no such advice: %s", ac.Advices.Before)
+				}
 			}
-		}
-		if ac.Advices.After != "" {
-			if ad, ok := adviceMap[ac.Advices.After]; ok {
-				agent.AfterAdvice = ad
-			} else {
-				return nil, fmt.Errorf("no such advice: %s", ac.Advices.After)
+			if ac.Advices.After != "" {
+				if ad, ok := adviceMap[ac.Advices.After]; ok {
+					agent.AfterAdvice = ad
+				} else {
+					return nil, fmt.Errorf("no such advice: %s", ac.Advices.After)
+				}
 			}
-		}
-		if ac.Advices.Around != "" {
-			if ad, ok := adviceMap[ac.Advices.Around]; ok {
-				agent.AroundAdvice = ad
-			} else {
-				return nil, fmt.Errorf("no such advice: %s", ac.Advices.Around)
+			if ac.Advices.Around != "" {
+				if ad, ok := adviceMap[ac.Advices.Around]; ok {
+					agent.AroundAdvice = ad
+				} else {
+					return nil, fmt.Errorf("no such advice: %s", ac.Advices.Around)
+				}
 			}
 		}
 		if ac.Entrypoint != "" {
@@ -453,15 +405,15 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 		}
 
 		//
-		vars.ResourceMap[agentName] = &api.Resource{
-			ID: ac.Name,
-			Content: func(key string) ([]byte, error) {
-				if config.Source == "file" {
-					return os.ReadFile(filepath.Join(config.BaseDir, key))
-				}
-				return resourceAgents.ReadFile(config.BaseDir + "/" + key)
-			},
-		}
+		// vars.ResourceMap[agentName] = &api.Resource{
+		// 	ID: ac.Name,
+		// 	Content: func(key string) ([]byte, error) {
+		// 		if config.Source == "file" {
+		// 			return os.ReadFile(filepath.Join(config.BaseDir, key))
+		// 		}
+		// 		return resourceAgents.ReadFile(config.BaseDir + "/" + key)
+		// 	},
+		// }
 
 		return &agent, nil
 	}
@@ -574,23 +526,11 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.Response) error {
 	var r = h.agent
 
-	// "resource:" prefix is used to refer to a resource
-	// --"vars:" prefix is used to refer to a variable
+	// apply template/load
 	apply := func(ext, s string, vars *api.Vars) (string, error) {
-		// type: default to file ext if not provided
-		if ext != "" {
-			switch {
-			case strings.HasPrefix(ext, ".tpl."), ext == ".tpl", ext == "tpl":
-				return applyTemplate(s, vars, vars.TemplateFuncMap)
-			}
-			return s, nil
-		}
-
 		//
-		if strings.HasPrefix(s, "vars:") {
-			return "", fmt.Errorf("not supported %s", s)
-			// v := vars.GetString(s[5:])
-			// return v, nil
+		if ext == "tpl" {
+			return applyTemplate(s, vars, vars.TemplateFuncMap)
 		}
 		return s, nil
 	}
@@ -612,9 +552,10 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 
 	// 1. New System Message
 	// System role prompt as first message
-	if r.Instruction != "" {
+	if r.Config != nil && r.Config.Instruction != nil {
 		// update the request instruction
-		content, err := apply("r.InstructionType", r.Instruction, h.vars)
+		instruction := r.Config.Instruction
+		content, err := apply(instruction.Type, instruction.Content, h.vars)
 		if err != nil {
 			return err
 		}
@@ -624,7 +565,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 			ChatID:  chatID,
 			Created: time.Now(),
 			//
-			Role:    nvl(r.Role, api.RoleSystem),
+			Role:    nvl(instruction.Role, api.RoleSystem),
 			Content: content,
 			Sender:  r.Name,
 			Models:  h.vars.Config.Models,

@@ -8,8 +8,6 @@ agents:
     instruction:
       content: "resource:script_system_role.md"
       type: "tpl"
-    advices:
-      before: "script_user_input"
     functions:
       - "system:*"
 

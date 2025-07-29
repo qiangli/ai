@@ -157,4 +157,5 @@ func (r *FileInfo) Sys() any {
 type AssetStore interface {
 	ReadDir(name string) ([]DirEntry, error)
 	ReadFile(name string) ([]byte, error)
+	Resolve(parent string, name string) string
 }

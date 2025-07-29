@@ -1,13 +1,13 @@
 package swarm
 
 import (
-	"encoding/json"
+	// "encoding/json"
 	"fmt"
-	"path/filepath"
+	// "path/filepath"
 	// "strings"
 	// "time"
 
-	"github.com/qiangli/ai/internal/log"
+	// "github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
 	// "github.com/qiangli/ai/swarm/api/model"
 	// "github.com/qiangli/ai/swarm/llm"
@@ -17,8 +17,8 @@ import (
 var adviceMap = map[string]api.Advice{}
 
 func init() {
-	adviceMap["user_input"] = userInputAdvice
-	adviceMap["script_user_input"] = scriptUserInputAdvice
+	// adviceMap["user_input"] = userInputAdvice
+	// adviceMap["script_user_input"] = scriptUserInputAdvice
 	// adviceMap["pr_user_input"] = prUserInputAdvice
 	// adviceMap["pr_json_to_markdown"] = prFormatAdvice
 	// adviceMap["resolve_workspace"] = resolveWorkspaceAdvice
@@ -31,53 +31,53 @@ func init() {
 
 // user input before advice
 // TODO move to agent yaml config
-func userInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ api.Advice) error {
-	tpl, err := vars.Resource(req.Agent, "user_role.md")
-	if err != nil {
-		return err
-	}
+// func userInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ api.Advice) error {
+// 	tpl, err := vars.Resource(req.Agent, "user_role.md")
+// 	if err != nil {
+// 		return err
+// 	}
 
-	content, err := applyDefaultTemplate(string(tpl), vars)
-	if err != nil {
-		return err
-	}
-	req.Messages = []*api.Message{&api.Message{
-		Role:    api.RoleUser,
-		Content: content,
-		Sender:  req.Agent,
-	}}
+// 	content, err := applyDefaultTemplate(string(tpl), vars)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	req.Messages = []*api.Message{&api.Message{
+// 		Role:    api.RoleUser,
+// 		Content: content,
+// 		Sender:  req.Agent,
+// 	}}
 
-	return nil
-}
+// 	return nil
+// }
 
-// script user input before advice
-func scriptUserInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ api.Advice) error {
-	in := req.RawInput
+// // script user input before advice
+// func scriptUserInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ api.Advice) error {
+// 	in := req.RawInput
 
-	cmd := in.Command
-	if cmd != "" {
-		cmd = filepath.Base(cmd)
-	}
+// 	cmd := in.Command
+// 	if cmd != "" {
+// 		cmd = filepath.Base(cmd)
+// 	}
 
-	tpl, err := vars.Resource(req.Agent, "script_user_role.md")
-	if err != nil {
-		return err
-	}
-	content, err := applyDefaultTemplate(string(tpl), map[string]any{
-		"Command": cmd,
-		"Message": in.Query(),
-	})
-	if err != nil {
-		return err
-	}
-	req.Messages = []*api.Message{&api.Message{
-		Role:    api.RoleUser,
-		Content: content,
-		Sender:  req.Agent,
-	}}
+// 	tpl, err := vars.Resource(req.Agent, "script_user_role.md")
+// 	if err != nil {
+// 		return err
+// 	}
+// 	content, err := applyDefaultTemplate(string(tpl), map[string]any{
+// 		"Command": cmd,
+// 		"Message": in.Query(),
+// 	})
+// 	if err != nil {
+// 		return err
+// 	}
+// 	req.Messages = []*api.Message{&api.Message{
+// 		Role:    api.RoleUser,
+// 		Content: content,
+// 		Sender:  req.Agent,
+// 	}}
 
-	return nil
-}
+// 	return nil
+// }
 
 // // PR user input before advice
 // func prUserInputAdvice(vars *api.Vars, req *api.Request, _ *api.Response, _ api.Advice) error {
@@ -298,49 +298,49 @@ type WorkspaceCheck struct {
 
 // resolveWorkspaceAdvice resolves the workspace base path.
 // Detect the workspace from the input using LLM.
-func resolveWorkspaceAdvice(vars *api.Vars, req *api.Request, resp *api.Response, next api.Advice) error {
-	tpl, err := vars.Resource(req.Agent, "workspace_user_role.md")
-	if err != nil {
-		return err
-	}
+// func resolveWorkspaceAdvice(vars *api.Vars, req *api.Request, resp *api.Response, next api.Advice) error {
+// 	tpl, err := vars.Resource(req.Agent, "workspace_user_role.md")
+// 	if err != nil {
+// 		return err
+// 	}
 
-	query, err := applyDefaultTemplate(string(tpl), map[string]string{
-		"Input": req.RawInput.Intent(),
-	})
-	if err != nil {
-		return err
-	}
+// 	query, err := applyDefaultTemplate(string(tpl), map[string]string{
+// 		"Input": req.RawInput.Intent(),
+// 	})
+// 	if err != nil {
+// 		return err
+// 	}
 
-	// msg := &api.Message{
-	// 	Role:    api.RoleUser,
-	// 	Content: query,
-	// 	Sender:  req.Agent,
-	// }
-	req.Messages = []*api.Message{&api.Message{
-		Role:    api.RoleUser,
-		Content: query,
-		Sender:  req.Agent,
-	}}
-	if err := next(vars, req, resp, next); err != nil {
-		return err
-	}
-	result := resp.LastMessage()
+// 	// msg := &api.Message{
+// 	// 	Role:    api.RoleUser,
+// 	// 	Content: query,
+// 	// 	Sender:  req.Agent,
+// 	// }
+// 	req.Messages = []*api.Message{&api.Message{
+// 		Role:    api.RoleUser,
+// 		Content: query,
+// 		Sender:  req.Agent,
+// 	}}
+// 	if err := next(vars, req, resp, next); err != nil {
+// 		return err
+// 	}
+// 	result := resp.LastMessage()
 
-	var wsCheck WorkspaceCheck
-	if err := json.Unmarshal([]byte(result.Content), &wsCheck); err != nil {
-		return fmt.Errorf("%s: %w", missingWorkspace, err)
-	}
-	if !wsCheck.Detected {
-		return fmt.Errorf("%s", missingWorkspace)
-	}
+// 	var wsCheck WorkspaceCheck
+// 	if err := json.Unmarshal([]byte(result.Content), &wsCheck); err != nil {
+// 		return fmt.Errorf("%s: %w", missingWorkspace, err)
+// 	}
+// 	if !wsCheck.Detected {
+// 		return fmt.Errorf("%s", missingWorkspace)
+// 	}
 
-	log.Debugf("workspace check: %+v\n", wsCheck)
+// 	log.Debugf("workspace check: %+v\n", wsCheck)
 
-	workspace := wsCheck.WorkspaceBase
+// 	workspace := wsCheck.WorkspaceBase
 
-	log.Infof("Workspace to use: %s\n", workspace)
+// 	log.Infof("Workspace to use: %s\n", workspace)
 
-	vars.Extra["workspace_base"] = workspace
+// 	vars.Extra["workspace_base"] = workspace
 
-	return nil
-}
+// 	return nil
+// }

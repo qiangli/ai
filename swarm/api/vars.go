@@ -2,7 +2,7 @@ package api
 
 import (
 	"fmt"
-	"strings"
+	// "strings"
 
 	"github.com/qiangli/ai/swarm/api/model"
 )
@@ -46,7 +46,7 @@ type Vars struct {
 	AgentRegistry map[string]*AgentsConfig `json:"agent_registry"`
 
 	// agent -> Resources
-	ResourceMap map[string]*Resource
+	// ResourceMap map[string]*Resource
 
 	AdviceMap       map[string]Advice
 	EntrypointMap   map[string]Entrypoint
@@ -56,18 +56,18 @@ type Vars struct {
 	History []*Message
 }
 
-func (r *Vars) Resource(agent, name string) ([]byte, error) {
-	key := strings.SplitN(agent, "/", 2)[0]
-	res, ok := r.ResourceMap[key]
-	if !ok {
-		return nil, fmt.Errorf("no resource found for %q", agent)
-	}
-	b, err := res.Content(name)
-	if err != nil {
-		return nil, fmt.Errorf("error loading %s for %s: %w", name, agent, err)
-	}
-	return b, nil
-}
+// func (r *Vars) Resource(agent, name string) ([]byte, error) {
+// 	key := strings.SplitN(agent, "/", 2)[0]
+// 	res, ok := r.ResourceMap[key]
+// 	if !ok {
+// 		return nil, fmt.Errorf("no resource found for %q", agent)
+// 	}
+// 	b, err := res.Content(name)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error loading %s for %s: %w", name, agent, err)
+// 	}
+// 	return b, nil
+// }
 
 type Resource struct {
 	ID string `json:"id"`
@@ -91,7 +91,7 @@ func (r *Vars) ListAgents() map[string]*AgentConfig {
 			if v.Internal && !r.Config.Internal {
 				continue
 			}
-			agents[agent.Name] = &agent
+			agents[agent.Name] = agent
 		}
 	}
 	return agents

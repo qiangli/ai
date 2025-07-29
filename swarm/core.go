@@ -36,7 +36,7 @@ func initAgentTools(app *api.AppConfig) error {
 			if v.Internal && !app.Internal {
 				continue
 			}
-			agents[agent.Name] = &agent
+			agents[agent.Name] = agent
 		}
 	}
 	for _, v := range agents {
@@ -103,7 +103,7 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	}
 
 	//
-	vars.ResourceMap = make(map[string]*api.Resource)
+	// vars.ResourceMap = make(map[string]*api.Resource)
 
 	vars.TemplateFuncMap = tplFuncMap
 	vars.AdviceMap = adviceMap

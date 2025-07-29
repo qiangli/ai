@@ -1,33 +1,63 @@
 package swarm
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/qiangli/ai/swarm/api"
 )
 
+//go:embed resource/*
+var resourceFS embed.FS
+
+type ResourceStore struct {
+	Base string
+}
+
+func (rs *ResourceStore) ReadDir(name string) ([]api.DirEntry, error) {
+	p := fmt.Sprintf("%s/%s", rs.Base, name)
+	return resourceFS.ReadDir(p)
+}
+
+func (rs *ResourceStore) ReadFile(name string) ([]byte, error) {
+	p := fmt.Sprintf("%s/%s", rs.Base, name)
+	return resourceFS.ReadFile(p)
+}
+
+func (rs *ResourceStore) Resolve(dir, name string) string {
+	return fmt.Sprintf("%s/%s", dir, name)
+}
+
 type FileStore struct {
+	Base string
 }
 
 func (fs *FileStore) ReadDir(name string) ([]api.DirEntry, error) {
-	return os.ReadDir(name)
+	p := filepath.Join(fs.Base, name)
+	return os.ReadDir(p)
 }
 
 func (fs *FileStore) ReadFile(name string) ([]byte, error) {
-	return os.ReadFile(name)
+	p := filepath.Join(fs.Base, name)
+	return os.ReadFile(p)
+}
+
+func (fs *FileStore) Resolve(dir, name string) string {
+	return filepath.Join(dir, name)
 }
 
 type WebStore struct {
 	Base string
 }
 
-func (r *WebStore) ReadDir(name string) ([]api.DirEntry, error) {
+func (ws *WebStore) ReadDir(name string) ([]api.DirEntry, error) {
 	// Construct the URL
-	url := fmt.Sprintf("%s/%s", r.Base, name)
+	url := fmt.Sprintf("%s/%s", ws.Base, name)
 
 	// Make the HTTP GET request
 	resp, err := http.Get(url)
@@ -49,9 +79,9 @@ func (r *WebStore) ReadDir(name string) ([]api.DirEntry, error) {
 	return entries, nil
 }
 
-func (r *WebStore) ReadFile(name string) ([]byte, error) {
+func (ws *WebStore) ReadFile(name string) ([]byte, error) {
 	// Construct the URL
-	url := fmt.Sprintf("%s/%s", r.Base, name)
+	url := fmt.Sprintf("%s/%s", ws.Base, name)
 
 	// Make the HTTP GET request
 	resp, err := http.Get(url)
@@ -67,4 +97,8 @@ func (r *WebStore) ReadFile(name string) ([]byte, error) {
 	}
 
 	return content, nil
+}
+
+func (ws *WebStore) Resolve(base, name string) string {
+	return fmt.Sprintf("%s/%s", base, name)
 }

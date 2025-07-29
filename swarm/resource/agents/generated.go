@@ -25,9 +25,6 @@ var ask_agent_yaml_data []byte
 //go:embed shell/agent.yaml
 var shell_agent_yaml_data []byte
 
-//go:embed swe/agent.yaml
-var swe_agent_yaml_data []byte
-
 //go:embed web/agent.yaml
 var web_agent_yaml_data []byte
 
@@ -51,13 +48,6 @@ var AgentCommandMap = map[string]AgentConfig{
 		Description: "Assist with scripting, command execution, and troubleshooting shell tasks.",
 		Internal:    false,
 		Data:        shell_agent_yaml_data,
-		Overview:    "",
-	},
-	"swe": {
-		Name:        "swe",
-		Description: "Act as an expert software developer",
-		Internal:    false,
-		Data:        swe_agent_yaml_data,
 		Overview:    "",
 	},
 	"web": {
