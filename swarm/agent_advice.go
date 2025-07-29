@@ -260,34 +260,34 @@ type ImageParams struct {
 // }
 
 // chdir format path after advice
-func chdirFormatPathAdvice(vars *api.Vars, _ *api.Request, resp *api.Response, _ api.Advice) error {
-	var v struct {
-		Action    string `json:"action"`
-		Success   bool   `json:"success"`
-		Directory string `json:"directory"`
-	}
+// func chdirFormatPathAdvice(vars *api.Vars, _ *api.Request, resp *api.Response, _ api.Advice) error {
+// 	var v struct {
+// 		Action    string `json:"action"`
+// 		Success   bool   `json:"success"`
+// 		Directory string `json:"directory"`
+// 	}
 
-	msg := resp.LastMessage()
-	if msg == nil {
-		return fmt.Errorf("invalid response: no message")
-	}
+// 	msg := resp.LastMessage()
+// 	if msg == nil {
+// 		return fmt.Errorf("invalid response: no message")
+// 	}
 
-	// don't change directory if action is not "chdir" or if it was not successful
-	if err := json.Unmarshal([]byte(msg.Content), &v); err != nil {
-		log.Debugf("chdir_format_path error: %v\n", err)
-		msg.Content = "./"
-		return nil
-	}
-	if v.Action != "chdir" || !v.Success {
-		msg.Content = "./"
-		return nil
-	}
-	msg.Content = v.Directory
+// 	// don't change directory if action is not "chdir" or if it was not successful
+// 	if err := json.Unmarshal([]byte(msg.Content), &v); err != nil {
+// 		log.Debugf("chdir_format_path error: %v\n", err)
+// 		msg.Content = "./"
+// 		return nil
+// 	}
+// 	if v.Action != "chdir" || !v.Success {
+// 		msg.Content = "./"
+// 		return nil
+// 	}
+// 	msg.Content = v.Directory
 
-	log.Debugf("chdir_format_path: %+v\n", v)
+// 	log.Debugf("chdir_format_path: %+v\n", v)
 
-	return nil
-}
+// 	return nil
+// }
 
 const missingWorkspace = "Please specify a workspace base directory."
 

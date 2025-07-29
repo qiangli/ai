@@ -71,46 +71,46 @@ func initAgents(app *api.AppConfig) error {
 	return nil
 }
 
-type Agent struct {
-	// The name of the agent.
-	Name string
+// type Agent struct {
+// 	// The name of the agent.
+// 	Name string
 
-	Display string
+// 	Display string
 
-	// The model to be used by the agent
-	Model *model.Model
+// 	// The model to be used by the agent
+// 	Model *model.Model
 
-	// The role of the agent. default is "system"
-	Role string
+// 	// The role of the agent. default is "system"
+// 	Role string
 
-	// Instructions for the agent, can be a string or a callable returning a string
-	Instruction     string
-	InstructionType string // file ext
+// 	// Instructions for the agent, can be a string or a callable returning a string
+// 	Instruction string
+// 	// InstructionType string // file ext
 
-	RawInput *api.UserInput
+// 	RawInput *api.UserInput
 
-	// Functions that the agent can call
-	Tools []*api.ToolFunc
+// 	// Functions that the agent can call
+// 	Tools []*api.ToolFunc
 
-	Entrypoint api.Entrypoint
+// 	Entrypoint api.Entrypoint
 
-	Dependencies []*Agent
+// 	Dependencies []*Agent
 
-	// advices
-	BeforeAdvice api.Advice
-	AfterAdvice  api.Advice
-	AroundAdvice api.Advice
+// 	// advices
+// 	BeforeAdvice api.Advice
+// 	AfterAdvice  api.Advice
+// 	AroundAdvice api.Advice
 
-	//
-	MaxTurns int
-	MaxTime  int
+// 	//
+// 	MaxTurns int
+// 	MaxTime  int
 
-	//
-	ResourceMap string
+// 	//
+// 	ResourceMap string
 
-	//
-	Vars *api.Vars
-}
+// 	//
+// 	Vars *api.Vars
+// }
 
 func LoadAgentsAsset(app *api.AppConfig, as api.AssetStore, root string, groups map[string]*api.AgentsConfig) error {
 	dirs, err := as.ReadDir(root)
@@ -226,7 +226,7 @@ func loadAgentsData(app *api.AppConfig, data [][]byte) (*api.AgentsConfig, error
 	return merged, nil
 }
 
-func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*Agent, error) {
+func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*api.Agent, error) {
 	config, err := LoadAgents(vars.Config, name, input)
 	if err != nil {
 		return nil, err
@@ -291,58 +291,64 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*A
 		if err != nil {
 			return nil, err
 		}
-		// read the instruction
-		ps := a.Instruction.Content
-		defaultType := func(s string) string {
-			if strings.HasSuffix(s, ".tpl") {
-				return "tpl"
-			}
-			if strings.HasSuffix(s, ".tpl.md") {
-				return "tpl"
-			}
-			return filepath.Ext(s)
-		}
-		switch {
-		case strings.HasPrefix(ps, "file:"):
-			parts := strings.SplitN(a.Instruction.Content, ":", 2)
-			fileName := strings.TrimSpace(parts[1])
-			if fileName == "" {
-				return nil, fmt.Errorf("empty file path in instruction for agent: %s", a.Name)
-			}
-			filePath := filepath.Join(config.BaseDir, fileName)
-			content, err := os.ReadFile(filePath)
-			if err != nil {
-				return nil, fmt.Errorf("failed to read instruction file %s for agent %s: %w", filePath, a.Name, err)
-			}
-			a.Instruction.Content = string(content)
-			if a.Instruction.Type == "" {
-				a.Instruction.Type = defaultType(filePath)
-			}
-			log.Debugf("Loaded instruction from file for agent %s: %s\n", a.Name, filePath)
-		case strings.HasPrefix(ps, "resource:"):
-			parts := strings.SplitN(a.Instruction.Content, ":", 2)
-			resourceName := strings.TrimSpace(parts[1])
-			filePath := config.BaseDir + "/" + resourceName
-			content, err := resourceAgents.ReadFile(filePath)
-			if err != nil {
-				return nil, fmt.Errorf("failed to read resource instruction file %s for agent %s: %w", resourceName, a.Name, err)
-			}
-			a.Instruction.Content = string(content)
-			if a.Instruction.Type == "" {
-				a.Instruction.Type = defaultType(filePath)
-			}
-			log.Debugf("Loaded instruction from resource for agent %s: %s\n", a.Name, resourceName)
-		}
+
+		// // read the instruction
+		// ps := a.Instruction.Content
+		// defaultType := func(s string) string {
+		// 	if strings.HasSuffix(s, ".tpl") {
+		// 		return "tpl"
+		// 	}
+		// 	if strings.HasSuffix(s, ".tpl.md") {
+		// 		return "tpl"
+		// 	}
+		// 	return filepath.Ext(s)
+		// }
+		// //
+		// switch {
+		// case strings.HasPrefix(ps, "file:"):
+		// 	parts := strings.SplitN(a.Instruction.Content, ":", 2)
+		// 	fileName := strings.TrimSpace(parts[1])
+		// 	if fileName == "" {
+		// 		return nil, fmt.Errorf("empty file path in instruction for agent: %s", a.Name)
+		// 	}
+		// 	filePath := filepath.Join(config.BaseDir, fileName)
+		// 	content, err := os.ReadFile(filePath)
+		// 	if err != nil {
+		// 		return nil, fmt.Errorf("failed to read instruction file %s for agent %s: %w", filePath, a.Name, err)
+		// 	}
+		// 	a.Instruction.Content = string(content)
+		// 	if a.Instruction.Type == "" {
+		// 		a.Instruction.Type = defaultType(filePath)
+		// 	}
+		// 	log.Debugf("Loaded instruction from file for agent %s: %s\n", a.Name, filePath)
+		// case strings.HasPrefix(ps, "resource:"):
+		// 	parts := strings.SplitN(a.Instruction.Content, ":", 2)
+		// 	resourceName := strings.TrimSpace(parts[1])
+		// 	if resourceName == "" {
+		// 		return nil, fmt.Errorf("empty resource name in instruction for agent: %s", a.Name)
+		// 	}
+		// 	filePath := config.BaseDir + "/" + resourceName
+		// 	content, err := resourceAgents.ReadFile(filePath)
+		// 	if err != nil {
+		// 		return nil, fmt.Errorf("failed to read resource instruction file %s for agent %s: %w", resourceName, a.Name, err)
+		// 	}
+		// 	a.Instruction.Content = string(content)
+		// 	if a.Instruction.Type == "" {
+		// 		a.Instruction.Type = defaultType(filePath)
+		// 	}
+		// 	log.Debugf("Loaded instruction from resource for agent %s: %s\n", a.Name, resourceName)
+		// }
 		return a, nil
 	}
 
-	newAgent := func(ac *api.AgentConfig, vars *api.Vars) (*Agent, error) {
-		agent := Agent{
-			Name:            ac.Name,
-			Display:         ac.Display,
-			Role:            ac.Instruction.Role,
-			Instruction:     ac.Instruction.Content,
-			InstructionType: ac.Instruction.Type,
+	newAgent := func(ac *api.AgentConfig, vars *api.Vars) (*api.Agent, error) {
+		agent := api.Agent{
+			Name:        ac.Name,
+			Display:     ac.Display,
+			Role:        ac.Instruction.Role,
+			Instruction: ac.Instruction.Content,
+			Store:       ac.Store,
+			// InstructionType: ac.Instruction.Type,
 			// Vars:        vars,
 			RawInput: input,
 			MaxTurns: config.MaxTurns,
@@ -460,12 +466,12 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*A
 		return &agent, nil
 	}
 
-	creator := func(vars *api.Vars, name, command string) (*Agent, error) {
+	creator := func(vars *api.Vars, name, command string) (*api.Agent, error) {
 		agentCfg, err := getAgentConfig(name, command)
 		if err != nil {
 			return nil, err
 		}
-		var deps []*Agent
+		var deps []*api.Agent
 
 		if len(agentCfg.Dependencies) > 0 {
 			for _, dep := range agentCfg.Dependencies {
@@ -485,7 +491,7 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*A
 			return nil, err
 		}
 		agent.Dependencies = deps
-		agent.Vars = vars
+		// agent.Vars = vars
 		return agent, nil
 	}
 
@@ -499,7 +505,21 @@ func LoadAgents(app *api.AppConfig, name string, input *api.UserInput) (*api.Age
 	return nil, fmt.Errorf("no agent configurations found for: %s", name)
 }
 
-func (r *Agent) Serve(req *api.Request, resp *api.Response) error {
+// AgentHandler
+func AgentHandler(vars *api.Vars, agent *api.Agent) Handler {
+	return &agentHandler{
+		vars:  vars,
+		agent: agent,
+	}
+}
+
+type agentHandler struct {
+	agent *api.Agent
+	vars  *api.Vars
+}
+
+func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
+	var r = h.agent
 	log.Debugf("run agent: %s\n", r.Name)
 
 	ctx := req.Context()
@@ -513,7 +533,7 @@ func (r *Agent) Serve(req *api.Request, resp *api.Response) error {
 				Messages: req.Messages,
 			}
 			depResp := &api.Response{}
-			sw := New(r.Vars)
+			sw := New(h.vars)
 			if err := sw.Run(depReq, depResp); err != nil {
 				return err
 			}
@@ -526,24 +546,24 @@ func (r *Agent) Serve(req *api.Request, resp *api.Response) error {
 		return nil
 	}
 	if r.BeforeAdvice != nil {
-		if err := r.BeforeAdvice(r.Vars, req, resp, noop); err != nil {
+		if err := r.BeforeAdvice(h.vars, req, resp, noop); err != nil {
 			return err
 		}
 	}
 	if r.AroundAdvice != nil {
 		next := func(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
-			return r.runLoop(ctx, req, resp)
+			return h.runLoop(ctx, req, resp)
 		}
-		if err := r.AroundAdvice(r.Vars, req, resp, next); err != nil {
+		if err := r.AroundAdvice(h.vars, req, resp, next); err != nil {
 			return err
 		}
 	} else {
-		if err := r.runLoop(ctx, req, resp); err != nil {
+		if err := h.runLoop(ctx, req, resp); err != nil {
 			return err
 		}
 	}
 	if r.AfterAdvice != nil {
-		if err := r.AfterAdvice(r.Vars, req, resp, noop); err != nil {
+		if err := r.AfterAdvice(h.vars, req, resp, noop); err != nil {
 			return err
 		}
 	}
@@ -551,9 +571,11 @@ func (r *Agent) Serve(req *api.Request, resp *api.Response) error {
 	return nil
 }
 
-func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Response) error {
+func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.Response) error {
+	var r = h.agent
+
 	// "resource:" prefix is used to refer to a resource
-	// "vars:" prefix is used to refer to a variable
+	// --"vars:" prefix is used to refer to a variable
 	apply := func(ext, s string, vars *api.Vars) (string, error) {
 		// type: default to file ext if not provided
 		if ext != "" {
@@ -566,8 +588,9 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 
 		//
 		if strings.HasPrefix(s, "vars:") {
-			v := vars.GetString(s[5:])
-			return v, nil
+			return "", fmt.Errorf("not supported %s", s)
+			// v := vars.GetString(s[5:])
+			// return v, nil
 		}
 		return s, nil
 	}
@@ -584,14 +607,14 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 		return ""
 	}
 
-	var chatID = r.Vars.Config.ChatID
+	var chatID = h.vars.Config.ChatID
 	var history []*api.Message
 
 	// 1. New System Message
 	// System role prompt as first message
 	if r.Instruction != "" {
 		// update the request instruction
-		content, err := apply(r.InstructionType, r.Instruction, r.Vars)
+		content, err := apply("r.InstructionType", r.Instruction, h.vars)
 		if err != nil {
 			return err
 		}
@@ -604,15 +627,15 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 			Role:    nvl(r.Role, api.RoleSystem),
 			Content: content,
 			Sender:  r.Name,
-			Models:  r.Vars.Config.Models,
+			Models:  h.vars.Config.Models,
 		})
 		log.Debugf("Added new system role message: %v\n", len(history))
 	}
 
 	// 2. Historical Messages - skip system role
-	if len(r.Vars.History) > 0 {
-		log.Debugf("using %v messaages from history", len(r.Vars.History))
-		for _, msg := range r.Vars.History {
+	if len(h.vars.History) > 0 {
+		log.Debugf("using %v messaages from history", len(h.vars.History))
+		for _, msg := range h.vars.History {
 			if msg.Role != api.RoleSystem {
 				history = append(history, msg)
 				log.Debugf("Added historical non system role message: %v\n", len(history))
@@ -634,7 +657,7 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 			//
 			v.Role = api.RoleUser
 			v.Sender = r.Name
-			v.Models = r.Vars.Config.Models
+			v.Models = h.vars.Config.Models
 			messages[i] = v
 		}
 
@@ -647,7 +670,7 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 			Role:    api.RoleUser,
 			Content: req.RawInput.Query(),
 			Sender:  r.Name,
-			Models:  r.Vars.Config.Models,
+			Models:  h.vars.Config.Models,
 		})
 	}
 	history = append(history, req.Messages...)
@@ -658,7 +681,7 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 
 	runTool := func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
 		log.Debugf("run tool: %s %+v\n", name, args)
-		return CallTool(ctx, r.Vars, name, args)
+		return CallTool(ctx, h.vars, name, args)
 	}
 
 	result, err := llm.Send(ctx, &api.LLMRequest{
@@ -688,7 +711,7 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 			Role:        nvl(result.Role, api.RoleAssistant),
 			Content:     result.Content,
 			Sender:      r.Name,
-			Models:      r.Vars.Config.Models,
+			Models:      h.vars.Config.Models,
 		}
 		history = append(history, &message)
 	}
@@ -702,6 +725,6 @@ func (r *Agent) runLoop(ctx context.Context, req *api.Request, resp *api.Respons
 	resp.Result = result.Result
 
 	//
-	r.Vars.History = history
+	h.vars.History = history
 	return nil
 }

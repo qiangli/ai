@@ -141,7 +141,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 			}
 		}
 
-		timeout := TimeoutHandler(agent, time.Duration(agent.MaxTime)*time.Second, "timed out")
+		timeout := TimeoutHandler(AgentHandler(r.Vars, agent), time.Duration(agent.MaxTime)*time.Second, "timed out")
 		maxlog := MaxLogHandler(500)
 
 		chain := NewChain(maxlog).Then(timeout)

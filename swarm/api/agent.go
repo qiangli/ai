@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/swarm/api/model"
 )
 
 const (
@@ -61,6 +62,49 @@ const (
 
 type TemplateFuncMap = template.FuncMap
 
+type Agent struct {
+	// The name of the agent.
+	Name        string
+	Display     string
+	Description string
+
+	// The model to be used by the agent
+	Model *model.Model
+
+	// The role of the agent. default is "system"
+	Role string
+
+	// Instructions for the agent, can be a string or a callable returning a string
+	Instruction string
+	// InstructionType string // file ext
+
+	RawInput *UserInput
+
+	// Functions that the agent can call
+	Tools []*ToolFunc
+
+	Entrypoint Entrypoint
+
+	Dependencies []*Agent
+
+	// advices
+	BeforeAdvice Advice
+	AfterAdvice  Advice
+	AroundAdvice Advice
+
+	//
+	MaxTurns int
+	MaxTime  int
+
+	//
+	ResourceMap string
+
+	//
+	// Vars *Vars
+
+	Store AssetStore
+}
+
 type AgentsConfig struct {
 	// agent group name
 	Name string `yaml:"name"`
@@ -98,6 +142,8 @@ type AgentConfig struct {
 	Dependencies []string `yaml:"dependencies"`
 
 	Advices AdviceConfig `yaml:"advices"`
+
+	Store AssetStore `yaml:"-"`
 }
 
 type InstructionConfig struct {
@@ -140,11 +186,11 @@ type Advice func(*Vars, *Request, *Response, Advice) error
 
 type Entrypoint func(*Vars, *Agent, *UserInput) error
 
-type Agent struct {
-	Name        string
-	Display     string
-	Description string
-}
+// type Agent struct {
+// 	Name    string
+// 	Display string
+// 	// Description string
+// }
 
 type Request struct {
 	// The name/command of the active agent
