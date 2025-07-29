@@ -51,7 +51,7 @@ func Serve(args []string) error {
 }
 
 func init() {
-	addStartFlags(startCmd.Flags())
+	addStartFlags(startCmd)
 	startCmd.CompletionOptions.DisableDefaultCmd = true
 
 	// Bind the flags to viper using underscores
@@ -61,15 +61,16 @@ func init() {
 	})
 
 	//
-	viper.AutomaticEnv()
-	viper.SetEnvPrefix("ai")
-	viper.BindEnv("api-key", "AI_API_KEY", "OPENAI_API_KEY")
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
+	// viper.AutomaticEnv()
+	// viper.SetEnvPrefix("ai")
+	// viper.BindEnv("api-key", "AI_API_KEY", "OPENAI_API_KEY")
+	// viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 
 	HubCmd.AddCommand(startCmd)
 }
 
-func addStartFlags(flags *pflag.FlagSet) {
+func addStartFlags(cmd *cobra.Command) {
+	flags := cmd.Flags()
 	flags.SortFlags = true
 
 	// services
@@ -96,9 +97,19 @@ func addStartFlags(flags *pflag.FlagSet) {
 	// TODO use values from models
 	flags.String("llm-proxy-api-key", "", "OpenAI api key")
 
-	flags.String("agent-resource", "", "Resource configuration")
+	flags.String("agent-resource", "agent-resource.json", "Resource configuration")
 
-	//
+	// agent flags
+	flags.StringP("agent", "a", "ask", "Specify the agent to use. @<agent>")
+	flags.String("format", "markdown", "Output format: raw, text, json, markdown, or tts.")
+	flags.BoolP("new", "n", false, "Start a new conversation")
+	flags.String("chat", "", "Continue conversation with the chat id")
+	flags.Int("max-history", 3, "Max number of historic messages")
+	flags.Int("max-span", 480, "How far in minutes to go back in time for historic messages")
+	flags.Int("max-turns", 16, "Max number of turns")
+	// flags.Int("max-time", 3600, "Max number of seconds for timeout")
+	flags.StringP("models", "m", "", "LLM model alias defined in the models directory")
+
 	flags.String("log", "", "Log all debugging information to a file")
 	flags.Bool("verbose", false, "Show progress and debugging information")
 }

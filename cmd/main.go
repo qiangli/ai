@@ -63,27 +63,31 @@ func init() {
 	rootCmd.SetHelpTemplate(rootUsageTemplate)
 }
 
-func initConfig() {
-	if internal.ConfigFile != "" {
-		viper.SetConfigFile(internal.ConfigFile)
-	} else {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			internal.Exit(err)
-		}
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".ai")
-	}
+// // init viper
+// func initConfig() {
+// 	defaultCfg := os.Getenv("AI_CONFIG")
+// 	if defaultCfg == "" {
+// 		if home, err := os.UserHomeDir(); err == nil {
+// 			defaultCfg = filepath.Join(home, ".ai", "config.yaml")
+// 		}
+// 	}
+// 	if defaultCfg != "" {
+// 		viper.SetConfigFile(defaultCfg)
+// 	}
 
-	viper.AutomaticEnv()
+// 	viper.AutomaticEnv()
+// 	viper.SetEnvPrefix("ai")
+// 	viper.BindEnv("api-key", "AI_API_KEY", "OPENAI_API_KEY")
+// 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 
-	if err := viper.ReadInConfig(); err != nil {
-		log.Debugf("Error reading config file: %s\n", err)
-	}
-}
+// 	if err := viper.ReadInConfig(); err != nil {
+// 		log.Debugf("Error reading config file: %s\n", err)
+// 	}
+// }
 
 func main() {
-	cobra.OnInitialize(initConfig)
+	// cobra.OnInitialize(initConfig)
+	internal.InitConfig(viper)
 
 	args := os.Args
 
@@ -118,7 +122,7 @@ func main() {
 			agentCmd.SetArgs(nArgs)
 			// hack: for showing all config options as usual
 			// cobra is not calling initConfig() for help command
-			initConfig()
+			// initConfig()
 			if err := agentCmd.Execute(); err != nil {
 				internal.Exit(err)
 			}

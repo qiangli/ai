@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
+	"sort"
 	"strings"
 
 	fangs "github.com/spf13/viper"
 
+	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/api/model"
 )
@@ -274,5 +277,53 @@ func ParseLLM(viper *fangs.Viper, app *api.AppConfig) error {
 
 	app.TTS = tts
 
+	return nil
+}
+
+func PrintAIEnv() {
+	// Get the current environment variables
+	envs := os.Environ()
+	var filteredEnvs []string
+	for _, v := range envs {
+		if strings.HasPrefix(v, "AI_") {
+			filteredEnvs = append(filteredEnvs, v)
+		}
+	}
+	sort.Strings(filteredEnvs)
+	log.Debugf("AI env: %v", filteredEnvs)
+}
+
+var validFormats = []string{"raw", "text", "json", "markdown", "tts"}
+
+func isValidFormat(format string) bool {
+	return slices.Contains(validFormats, format)
+}
+
+// init viper
+func InitConfig(viper *fangs.Viper) {
+	defaultCfg := os.Getenv("AI_CONFIG")
+	if defaultCfg == "" {
+		if home, err := os.UserHomeDir(); err == nil {
+			defaultCfg = filepath.Join(home, ".ai", "config.yaml")
+		}
+	}
+	if defaultCfg != "" {
+		viper.SetConfigFile(defaultCfg)
+	}
+
+	viper.AutomaticEnv()
+	viper.SetEnvPrefix("ai")
+	viper.BindEnv("api-key", "AI_API_KEY", "OPENAI_API_KEY")
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Debugf("Error reading config file: %s\n", err)
+	}
+}
+
+func Validate(app *api.AppConfig) error {
+	if app.Format != "" && !isValidFormat(app.Format) {
+		return fmt.Errorf("invalid format: %s", app.Format)
+	}
 	return nil
 }

@@ -1,13 +1,13 @@
 package agent
 
 import (
-	"bytes"
-	"encoding/csv"
-	"errors"
-	"fmt"
+	// "bytes"
+	// "encoding/csv"
+	// "errors"
+	// "fmt"
 	"os"
-	"path/filepath"
-	"strings"
+	// "path/filepath"
+	// "strings"
 
 	"github.com/spf13/cobra"
 
@@ -22,142 +22,142 @@ const (
 // ImageLlmModel = "dall-e-3"
 )
 
-// Output format type
-type outputValue string
+// // Output format type
+// type outputValue string
 
-func newOutputValue(val string, p *string) *outputValue {
-	*p = val
-	return (*outputValue)(p)
-}
-func (s *outputValue) Set(val string) error {
-	// TODO json
-	for _, v := range []string{"raw", "text", "json", "markdown", "tts"} {
-		if val == v {
-			*s = outputValue(val)
-			return nil
-		}
-	}
-	return fmt.Errorf("invalid output format: %v. supported: raw, markdown", val)
-}
-func (s *outputValue) Type() string {
-	return "string"
-}
-func (s *outputValue) String() string { return string(*s) }
+// func newOutputValue(val string, p *string) *outputValue {
+// 	*p = val
+// 	return (*outputValue)(p)
+// }
+// func (s *outputValue) Set(val string) error {
+// 	// TODO json
+// 	for _, v := range []string{"raw", "text", "json", "markdown", "tts"} {
+// 		if val == v {
+// 			*s = outputValue(val)
+// 			return nil
+// 		}
+// 	}
+// 	return fmt.Errorf("invalid output format: %v. supported: raw, markdown", val)
+// }
+// func (s *outputValue) Type() string {
+// 	return "string"
+// }
+// func (s *outputValue) String() string { return string(*s) }
 
-// Template type
-type templateValue string
+// // Template type
+// type templateValue string
 
-func newTemplateValue(val string, p *string) *templateValue {
-	*p = val
-	return (*templateValue)(p)
-}
-func (s *templateValue) Set(val string) error {
-	matches, err := filepath.Glob(val)
-	if err != nil {
-		return errors.New("error during file globbing")
-	}
-	if len(matches) != 1 {
-		return errors.New("exactly one file must be provided")
-	}
+// func newTemplateValue(val string, p *string) *templateValue {
+// 	*p = val
+// 	return (*templateValue)(p)
+// }
+// func (s *templateValue) Set(val string) error {
+// 	matches, err := filepath.Glob(val)
+// 	if err != nil {
+// 		return errors.New("error during file globbing")
+// 	}
+// 	if len(matches) != 1 {
+// 		return errors.New("exactly one file must be provided")
+// 	}
 
-	fileInfo, err := os.Stat(matches[0])
-	if err != nil {
-		return err
-	}
-	if fileInfo.IsDir() {
-		return errors.New("a file is required")
-	}
+// 	fileInfo, err := os.Stat(matches[0])
+// 	if err != nil {
+// 		return err
+// 	}
+// 	if fileInfo.IsDir() {
+// 		return errors.New("a file is required")
+// 	}
 
-	*s = templateValue(matches[0])
-	return nil
-}
+// 	*s = templateValue(matches[0])
+// 	return nil
+// }
 
-func (s *templateValue) Type() string {
-	return "string"
-}
+// func (s *templateValue) Type() string {
+// 	return "string"
+// }
 
-func (s *templateValue) String() string { return string(*s) }
+// func (s *templateValue) String() string { return string(*s) }
 
-// Files type
-type filesValue struct {
-	value   *[]string
-	changed bool
-}
+// // Files type
+// type filesValue struct {
+// 	value   *[]string
+// 	changed bool
+// }
 
-func newFilesValue(val []string, p *[]string) *filesValue {
-	ssv := new(filesValue)
-	ssv.value = p
-	*ssv.value = val
-	return ssv
-}
+// func newFilesValue(val []string, p *[]string) *filesValue {
+// 	ssv := new(filesValue)
+// 	ssv.value = p
+// 	*ssv.value = val
+// 	return ssv
+// }
 
-func (s *filesValue) Set(val string) error {
-	matches, err := filepath.Glob(val)
-	if err != nil {
-		return fmt.Errorf("error processing glob pattern: %w", err)
-	}
+// func (s *filesValue) Set(val string) error {
+// 	matches, err := filepath.Glob(val)
+// 	if err != nil {
+// 		return fmt.Errorf("error processing glob pattern: %w", err)
+// 	}
 
-	if matches == nil {
-		// no matches ignore
-		return nil
-	}
+// 	if matches == nil {
+// 		// no matches ignore
+// 		return nil
+// 	}
 
-	if !s.changed {
-		*s.value = matches
-		s.changed = true
-	} else {
-		*s.value = append(*s.value, matches...)
-	}
-	return nil
-}
-func (s *filesValue) Append(val string) error {
-	*s.value = append(*s.value, val)
-	return nil
-}
+// 	if !s.changed {
+// 		*s.value = matches
+// 		s.changed = true
+// 	} else {
+// 		*s.value = append(*s.value, matches...)
+// 	}
+// 	return nil
+// }
+// func (s *filesValue) Append(val string) error {
+// 	*s.value = append(*s.value, val)
+// 	return nil
+// }
 
-func (s *filesValue) Replace(val []string) error {
-	out := make([]string, len(val))
-	for i, d := range val {
-		var err error
-		out[i] = d
-		if err != nil {
-			return err
-		}
-	}
-	*s.value = out
-	return nil
-}
+// func (s *filesValue) Replace(val []string) error {
+// 	out := make([]string, len(val))
+// 	for i, d := range val {
+// 		var err error
+// 		out[i] = d
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
+// 	*s.value = out
+// 	return nil
+// }
 
-func (s *filesValue) GetSlice() []string {
-	out := make([]string, len(*s.value))
-	if s.value != nil {
-		copy(out, *s.value)
-	}
-	return out
-}
+// func (s *filesValue) GetSlice() []string {
+// 	out := make([]string, len(*s.value))
+// 	if s.value != nil {
+// 		copy(out, *s.value)
+// 	}
+// 	return out
+// }
 
-func (s *filesValue) Type() string {
-	return "string"
-}
+// func (s *filesValue) Type() string {
+// 	return "string"
+// }
 
-func (s *filesValue) String() string {
-	if len(*s.value) == 0 {
-		return ""
-	}
-	str, _ := s.writeAsCSV(*s.value)
-	return "[" + str + "]"
-}
+// func (s *filesValue) String() string {
+// 	if len(*s.value) == 0 {
+// 		return ""
+// 	}
+// 	str, _ := s.writeAsCSV(*s.value)
+// 	return "[" + str + "]"
+// }
 
-func (s *filesValue) writeAsCSV(vals []string) (string, error) {
-	b := &bytes.Buffer{}
-	w := csv.NewWriter(b)
-	err := w.Write(vals)
-	if err != nil {
-		return "", err
-	}
-	w.Flush()
-	return strings.TrimSuffix(b.String(), "\n"), nil
-}
+// func (s *filesValue) writeAsCSV(vals []string) (string, error) {
+// 	b := &bytes.Buffer{}
+// 	w := csv.NewWriter(b)
+// 	err := w.Write(vals)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	w.Flush()
+// 	return strings.TrimSuffix(b.String(), "\n"), nil
+// }
 
 func addAgentFlags(cmd *cobra.Command) {
 	flags := cmd.Flags()
@@ -177,11 +177,13 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("message")
 
 	// TODO further research: user role instruction/tool calls seem to work better and are preferred
-	flags.VarP(newFilesValue([]string{}, &internal.InputFiles), "file", "", `Read file inputs.  May be given multiple times.`)
+	// flags.VarP(newFilesValue([]string{}, &internal.InputFiles), "file", "", `Read file inputs.  May be given multiple times.`)
+	flags.StringArray("file", nil, `Read file inputs.  May be given multiple times.`)
 	flags.MarkHidden("file")
 
 	// doc agent
-	flags.VarP(newTemplateValue("", &internal.TemplateFile), "template", "", "Document template file")
+	// flags.VarP(newTemplateValue("", &internal.TemplateFile), "template", "", "Document template file")
+	flags.String("template", "", "Document template file")
 	flags.MarkHidden("template")
 
 	// use flags in case when special chars do not work
@@ -198,13 +200,15 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("voice")
 
 	// output
-	flags.StringVar(&internal.OutputFlag, "output", "", "Save final response to a file.")
+	// flags.StringVar(&internal.OutputFlag, "output", "", "Save final response to a file.")
+	flags.String("output", "", "Save final response to a file.")
 
 	// use flags
 	flags.Bool("pb-write", false, "Copy output to clipboard. '}'")
 	flags.Bool("pb-append", false, "Append output to clipboard. '}}'")
 
-	flags.Var(newOutputValue("markdown", &internal.FormatFlag), "format", "Output format: raw, text, json, markdown, or tts.")
+	// flags.Var(newOutputValue("markdown", &internal.FormatFlag), "format", "Output format: raw, text, json, markdown, or tts.")
+	flags.String("format", "markdown", "Output format: raw, text, json, markdown, or tts.")
 
 	// security
 	flags.String("deny", "rm,sudo", "List of comma separated system commands disallowed for tool calls. Approval is required to proceed. Ignored if 'unsafe' is true")
@@ -240,7 +244,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("mcp-server-root")
 
 	// resource
-	flags.String("agent-resource", "", "Resource configuration")
+	flags.String("agent-resource", "agent-resource.json", "Resource configuration")
 	flags.MarkHidden("agent-resource")
 
 	// LLM

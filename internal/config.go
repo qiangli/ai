@@ -52,12 +52,12 @@ const (
 
 var Version = "0.0.1" // version of the ai binary
 
-var ConfigFile string
+// var ConfigFile string
 
-var InputFiles []string
-var FormatFlag string
-var OutputFlag string
-var TemplateFile string
+// var InputFiles []string
+// var FormatFlag string
+// var OutputFlag string
+// var TemplateFile string
 
 //go:embed data/*
 var configData embed.FS
@@ -94,14 +94,14 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 		Display:  "👤 " + strings.ToUpper(user),
 	}
 
-	app.Files = InputFiles
-	app.Format = FormatFlag
-	app.Output = OutputFlag
+	app.Files = viper.GetStringSlice("file")
+	app.Format = viper.GetString("format")
+	app.Output = viper.GetString("output")
 
 	//
 	app.Message = viper.GetString("message")
 
-	app.Template = TemplateFile
+	app.Template = viper.GetString("template")
 
 	app.Screenshot = viper.GetBool("screenshot")
 	app.Voice = viper.GetBool("voice")

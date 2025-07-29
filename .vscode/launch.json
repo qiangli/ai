@@ -29,13 +29,14 @@
 				"AI_DEBUG": "true",
 			},
 			"args": [
+				"/hub",
+				"start",
 				"--verbose",
 				"--agent",
 				"swe",
-				"--l2-model",
-				"openai/gpt-4.1",
-				"--new",
-				"--hub"
+				"--models",
+				"openai",
+				"--new"
 			],
 			"showLog": false,
 			"stopOnEntry": false
@@ -125,6 +126,8 @@
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
 				"AI_BASE_URL": "http://localhost:4000",
 				"AI_DEBUG": "true",
+				"AI_AGENT": "git",
+				"AI_FORMAT": "raw"
 			},
 			"args": [
 				"/help",
@@ -250,6 +253,8 @@
 				"AI_MODEL": "claude-3-5-haiku-latest",
 				"AI_API_KEY": "${env:ANTHROPIC_API_KEY}",
 				"AI_DEBUG": "true",
+				"AI_FORMAT": "raw",
+				"AI_AGENT": "shell"
 			},
 			"args": [
 				"--verbose=false",

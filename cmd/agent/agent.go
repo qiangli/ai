@@ -2,7 +2,6 @@ package agent
 
 import (
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -10,14 +9,13 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/swarm/api"
-
 	"github.com/qiangli/ai/internal/agent"
 	"github.com/qiangli/ai/internal/bubble"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/watch"
 	"github.com/qiangli/ai/shell"
 	"github.com/qiangli/ai/swarm"
+	"github.com/qiangli/ai/swarm/api"
 )
 
 var viper = internal.V
@@ -36,16 +34,16 @@ var AgentCmd = &cobra.Command{
 
 func init() {
 	defaultCfg := os.Getenv("AI_CONFIG")
-	// default: ~/.ai/config.yaml
-	if defaultCfg == "" {
-		home, _ := os.UserHomeDir()
-		if home != "" {
-			defaultCfg = filepath.Join(home, ".ai", "config.yaml")
-		}
-	}
+	// // default: ~/.ai/config.yaml
+	// if defaultCfg == "" {
+	// 	home, _ := os.UserHomeDir()
+	// 	if home != "" {
+	// 		defaultCfg = filepath.Join(home, ".ai", "config.yaml")
+	// 	}
+	// }
 
 	pflags := AgentCmd.PersistentFlags()
-	pflags.StringVar(&internal.ConfigFile, "config", defaultCfg, "config file")
+	pflags.String("config", defaultCfg, "config file")
 	pflags.MarkHidden("config")
 
 	//
@@ -55,6 +53,7 @@ func init() {
 	flags.SortFlags = true
 
 	AgentCmd.CompletionOptions.DisableDefaultCmd = true
+
 	AgentCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
 		err := Help(cmd, args)
 		if err != nil {
@@ -78,15 +77,19 @@ func init() {
 	viper.BindPFlag("sql.db_password", flags.Lookup("sql-db-password"))
 
 	//
-	viper.AutomaticEnv()
-	viper.SetEnvPrefix("ai")
-	viper.BindEnv("api-key", "AI_API_KEY", "OPENAI_API_KEY")
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
+	// viper.AutomaticEnv()
+	// viper.SetEnvPrefix("ai")
+	// viper.BindEnv("api-key", "AI_API_KEY", "OPENAI_API_KEY")
+	// viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 }
 
 func Run(cmd *cobra.Command, args []string) error {
 	cfg, err := setupAppConfig(args)
 	if err != nil {
+		return err
+	}
+
+	if err := internal.Validate(cfg); err != nil {
 		return err
 	}
 
@@ -228,6 +231,7 @@ func setupAppConfig(args []string) (*api.AppConfig, error) {
 	}
 
 	log.Debugf("Config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.DBCred)
+	internal.PrintAIEnv()
 
 	fileLog, err := setLogOutput(cfg.Log)
 	if err != nil {

@@ -83,7 +83,6 @@ func TestParseConfig(t *testing.T) {
 	for i, test := range tests {
 		t.Run(fmt.Sprintf("test - %d", i), func(t *testing.T) {
 			var cfg = &api.AppConfig{}
-
 			err := ParseConfig(viper, cfg, test.args)
 			if err != nil {
 				t.Fatalf("expected no error, got %v", err)
