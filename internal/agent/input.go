@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/qiangli/ai/internal"
@@ -246,7 +247,7 @@ func LaunchEditor(editor string, content string) (string, error) {
 	return string(edited), nil
 }
 
-// PrintInput prints the user message or intent only
+// PrintInput prints the user input
 func PrintInput(cfg *api.AppConfig, input *api.UserInput) {
 	if input == nil {
 		return
@@ -259,6 +260,43 @@ func PrintInput(cfg *api.AppConfig, input *api.UserInput) {
 		msg += fmt.Sprintf("\n+ %s", v)
 	}
 	renderInputContent(cfg.Me, msg)
+
+	// attachments
+	for _, v := range input.Files {
+		ext := filepath.Ext(v)
+		var emoji string
+		// TODO more extensions
+		switch ext {
+		case "txt", "yaml", "yml", "md":
+			emoji = "📄"
+		case "png", "jpg", "jpeg", "gif", "webp":
+			emoji = "🖼️"
+		default:
+			emoji = "💾"
+		}
+		log.Infof("\033[33m%s\033[0m Attachment File: %s\n", emoji, v)
+	}
+	for _, v := range input.Messages {
+		var emoji string
+		ps := strings.SplitN(v.ContentType, "/", 2)
+		switch ps[0] {
+		case "text":
+			emoji = "📄"
+		case "image":
+			emoji = "🖼️"
+		default:
+			emoji = "💾"
+		}
+		var content string
+		if v.ContentType == "" || strings.HasPrefix(v.ContentType, "text/") {
+			content = clipText(v.Content, 100)
+		} else if strings.HasPrefix(v.ContentType, "image/") && strings.HasPrefix(v.Content, "data:") {
+			content = clipText(v.Content, 100)
+		} else {
+			content = "[binary]"
+		}
+		log.Infof("\033[33m%s\033[0m Attachment Type: %s Len: %v Content: %s\n", emoji, v.ContentType, len(v.Content), content)
+	}
 }
 
 // pasteConfirm prompts the user to append, send, or cancel the input
