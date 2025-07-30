@@ -49,9 +49,6 @@ func GetConfigData() embed.FS {
 
 // global flags
 
-var DryRun bool
-var DryRunContent string
-
 var V *fangs.Viper
 
 func init() {
@@ -91,8 +88,12 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	//
 
 	app.Version = Version
-	app.Role = viper.GetString("role")
-	app.Prompt = viper.GetString("prompt")
+
+	// app.Role = viper.GetString("role")
+	// app.Prompt = viper.GetString("prompt")
+
+	app.DryRun = viper.GetBool("dry_run")
+	app.DryRunContent = viper.GetString("dry_run_content")
 
 	// TODO read from user.json
 	user := getCurrentUser()
@@ -176,6 +177,7 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 
 	//
 	app.Log = viper.GetString("log")
+	app.Trace = viper.GetBool("trace")
 	app.Debug = viper.GetBool("verbose")
 	app.Quiet = viper.GetBool("quiet")
 	app.Internal = viper.GetBool("internal")

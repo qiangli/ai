@@ -159,18 +159,17 @@
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
-				"AI_BASE_URL": "http://localhost:4000",
+				"AI_BASE_URL": "http://localhost:8000/v1",
 				"AI_DEBUG": "true",
 			},
 			"args": [
-				"--dry-run",
+				"--dry-run=false",
+				"--dry-run-content",
+				"test",
 				"--verbose",
-				"--config",
-				"/tmp/work/config.yaml",
 				"/",
-				"what",
-				"is",
-				"cooking"
+				"--message",
+				"what is coooking"
 			],
 			"showLog": false,
 			"stopOnEntry": false,

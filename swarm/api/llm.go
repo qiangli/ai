@@ -48,6 +48,9 @@ type LLMRequest struct {
 	RunTool  func(ctx context.Context, name string, props map[string]any) (*Result, error)
 
 	Tools []*ToolFunc
+
+	// Experimenal
+	Vars *Vars
 }
 
 func (r *LLMRequest) String() string {

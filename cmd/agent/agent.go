@@ -211,6 +211,13 @@ func setLogLevel(app *api.AppConfig) {
 		log.SetLogLevel(log.Quiet)
 		return
 	}
+
+	if app.Trace {
+		log.SetTrace(true)
+		log.SetLogLevel(log.Verbose)
+		return
+	}
+
 	if app.Debug {
 		log.SetLogLevel(log.Verbose)
 	}

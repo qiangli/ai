@@ -344,7 +344,7 @@ type AgentResource struct {
 }
 
 func LoadAgentResource(p string) (*AgentResource, error) {
-	log.Infof("Loading agent resource: %s\n", p)
+	log.Debugf("Loading agent resource: %s\n", p)
 	var ar AgentResource
 	data, err := os.ReadFile(p)
 	if err != nil {
@@ -353,6 +353,6 @@ func LoadAgentResource(p string) (*AgentResource, error) {
 	if err := json.Unmarshal(data, &ar); err != nil {
 		return nil, err
 	}
-	log.Infof("Agent resource loaded: %+v\n", ar)
+	log.Debugf("Agent resource loaded: %+v\n", ar)
 	return &ar, nil
 }

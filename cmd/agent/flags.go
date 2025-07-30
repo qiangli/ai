@@ -10,8 +10,7 @@ import (
 	// "strings"
 
 	"github.com/spf13/cobra"
-
-	"github.com/qiangli/ai/internal"
+	// "github.com/qiangli/ai/internal"
 )
 
 const (
@@ -314,6 +313,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.String("log", "", "Log all debugging information to a file")
 	flags.Bool("quiet", false, "Operate quietly. Only show final response")
 	flags.Bool("verbose", false, "Show progress and debugging information")
+	flags.Bool("trace", false, "Turn on tracing")
 
 	//
 	flags.Bool("internal", false, "Enable internal agents and tools")
@@ -321,16 +321,14 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("internal")
 
 	//
-	flags.String("role", "system", "Specify a role for the prompt")
-	flags.String("prompt", "", "Specify context instruction")
+	// flags.String("role", "system", "Specify a role for the prompt")
+	// flags.String("prompt", "", "Specify context instruction")
+	// flags.MarkHidden("role")
+	// flags.MarkHidden("prompt")
 
-	flags.MarkHidden("role")
-	flags.MarkHidden("prompt")
-
-	// TODO deprecate?
-	flags.BoolVar(&internal.DryRun, "dry-run", false, "Enable dry run mode. No API call will be made")
-	flags.StringVar(&internal.DryRunContent, "dry-run-content", "", "Content returned for dry run")
-
+	//
+	flags.Bool("dry-run", false, "Enable dry run mode. No API call will be made")
+	flags.String("dry-run-content", "", "Content returned for dry run")
 	flags.MarkHidden("dry-run")
 	flags.MarkHidden("dry-run-content")
 

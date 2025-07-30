@@ -30,11 +30,11 @@ func defineTool(name, description string, parameters map[string]any) openai.Chat
 	}
 }
 
-func NewClient(apiKey, baseUrl string) openai.Client {
+func NewClient(model *model.Model, vars *api.Vars) openai.Client {
 	client := openai.NewClient(
-		option.WithAPIKey(apiKey),
-		option.WithBaseURL(baseUrl),
-		option.WithMiddleware(middleware.Middleware()),
+		option.WithAPIKey(model.ApiKey),
+		option.WithBaseURL(model.BaseUrl),
+		option.WithMiddleware(middleware.Middleware(model, vars)),
 	)
 	return client
 }
@@ -57,7 +57,7 @@ func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 }
 
 func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
-	client := NewClient(req.Model.ApiKey, req.Model.BaseUrl)
+	client := NewClient(req.Model, req.Vars)
 	model := req.Model.Model()
 
 	params := openai.ChatCompletionNewParams{
@@ -221,7 +221,7 @@ func generateImage(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, 
 		messages = append(messages, v.Content)
 	}
 
-	client := NewClient(req.Model.ApiKey, req.Model.BaseUrl)
+	client := NewClient(req.Model, req.Vars)
 	prompt := strings.Join(messages, "\n")
 	model := req.Model.Model()
 

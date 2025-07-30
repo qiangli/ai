@@ -1,13 +1,10 @@
 package swarm
 
 import (
-	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm/api"
 )
@@ -158,99 +155,4 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		}
 		return nil
 	}
-}
-
-// MaxLogHandler returns a [Handler] that logs the request and response
-func MaxLogHandler(n int) func(Handler) Handler {
-	return func(next Handler) Handler {
-		return &maxLogHandler{
-			next: next,
-			max:  n,
-		}
-	}
-}
-
-type maxLogHandler struct {
-	next Handler
-	max  int
-}
-
-func (h *maxLogHandler) Serve(r *api.Request, w *api.Response) error {
-
-	log.Debugf("req: %+v\n", r)
-	if len(r.Messages) > 0 {
-		log.Debugf("%s %s\n", r.Messages[0].Role, clip(r.Messages[0].Content, h.max))
-	}
-
-	err := h.next.Serve(r, w)
-
-	log.Debugf("resp: %+v\n", w)
-	if w.Messages != nil {
-		for _, m := range w.Messages {
-			log.Debugf("%s %s\n", m.Role, clip(m.Content, h.max))
-		}
-	}
-
-	return err
-}
-
-// TimeoutHandler returns a [Handler] that runs h with the given time limit.
-//
-// The new Handler calls h.Serve to handle each request, but if a
-// call runs for longer than its time limit, the handler responds with
-// a timeout error.
-// After such a timeout, writes by h to its [Response] will return
-// [ErrHandlerTimeout].
-func TimeoutHandler(next Handler, dt time.Duration, msg string) Handler {
-	return &timeoutHandler{
-		next:    next,
-		content: msg,
-		dt:      dt,
-	}
-}
-
-// ErrHandlerTimeout is returned on [Response]
-// in handlers which have timed out.
-var ErrHandlerTimeout = errors.New("Handler timeout")
-
-type timeoutHandler struct {
-	next    Handler
-	content string
-	dt      time.Duration
-}
-
-func (h *timeoutHandler) Serve(r *api.Request, w *api.Response) error {
-	ctx, cancelCtx := context.WithTimeout(r.Context(), h.dt)
-	defer cancelCtx()
-
-	r = r.WithContext(ctx)
-
-	done := make(chan struct{})
-	panicChan := make(chan any, 1)
-
-	go func() {
-		defer func() {
-			if p := recover(); p != nil {
-				panicChan <- p
-			}
-		}()
-
-		if err := h.next.Serve(r, w); err != nil {
-			panicChan <- err
-		}
-
-		close(done)
-	}()
-
-	select {
-	case p := <-panicChan:
-		return p.(error)
-	case <-done:
-		return nil
-	case <-ctx.Done():
-		w.Messages = []*api.Message{{Content: h.content}}
-		w.Agent = nil
-	}
-
-	return ErrHandlerTimeout
 }

@@ -29,8 +29,8 @@ type AppConfig struct {
 	AgentResource *AgentResource
 
 	// system
-	Role   string
-	Prompt string
+	// Role   string
+	// Prompt string
 
 	Agent   string
 	Command string
@@ -89,9 +89,13 @@ type AppConfig struct {
 
 	Models string
 
-	Log      string
-	Debug    bool
-	Quiet    bool
+	Log string
+
+	// TODO change to log level?
+	Trace bool
+	Debug bool
+	Quiet bool
+
 	Internal bool
 
 	DenyList  []string
@@ -121,6 +125,10 @@ type AppConfig struct {
 	//
 	Stdout string
 	Stderr string
+
+	// dry run
+	DryRun        bool
+	DryRunContent string
 }
 
 // Clone is a shallow copy of member fields of the configration
@@ -141,8 +149,8 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		AgentResource: cfg.AgentResource,
 		Git:           cfg.Git,
 		DBCred:        cfg.DBCred,
-		Role:          cfg.Role,
-		Prompt:        cfg.Prompt,
+		// Role:          cfg.Role,
+		// Prompt:        cfg.Prompt,
 		Agent:         cfg.Agent,
 		Command:       cfg.Command,
 		Args:          append([]string(nil), cfg.Args...),

@@ -12,6 +12,7 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/api/model"
 	"github.com/qiangli/ai/swarm/middleware"
 )
 
@@ -43,11 +44,11 @@ func defineTool(name, description string, parameters map[string]any) (*anthropic
 	}, nil
 }
 
-func NewClient(apiKey, baseUrl string) anthropic.Client {
+func NewClient(model *model.Model, vars *api.Vars) anthropic.Client {
 	client := anthropic.NewClient(
-		option.WithAPIKey(apiKey),
-		option.WithBaseURL(baseUrl),
-		option.WithMiddleware(middleware.Middleware()),
+		option.WithAPIKey(model.ApiKey),
+		option.WithBaseURL(model.BaseUrl),
+		option.WithMiddleware(middleware.Middleware(model, vars)),
 	)
 	return client
 }
@@ -62,7 +63,7 @@ func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 }
 
 func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
-	client := anthropic.NewClient()
+	client := NewClient(req.Model, req.Vars)
 	model := anthropic.Model(req.Model.Model())
 
 	var system []anthropic.TextBlockParam

@@ -131,7 +131,7 @@ func listDefaultTools() []*api.ToolFunc {
 func LoadToolsAsset(app *api.AppConfig, as api.AssetStore, base string, kits map[string]*api.ToolsConfig) error {
 	dirs, err := as.ReadDir(base)
 	if err != nil {
-		return fmt.Errorf("failed to read testdata directory: %v", err)
+		return fmt.Errorf("failed to read directory: %v", err)
 	}
 	for _, dir := range dirs {
 		if dir.IsDir() {
@@ -198,7 +198,7 @@ func LoadWebToolsConfig(app *api.AppConfig, kits map[string]*api.ToolsConfig) er
 			Base: base,
 		}
 		if err := LoadToolsAsset(app, ws, "tools", kits); err != nil {
-			log.Errorf("failed to load from %s error: %v\n", base, err)
+			log.Errorf("failed to load tools from %q error: %v\n", base, err)
 		}
 	}
 	return nil

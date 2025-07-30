@@ -92,7 +92,7 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 
 	if len(vars.History) > initLen {
 		chatDir := filepath.Join(cfg.Base, "chat", cfg.ChatID)
-		log.Debugf("Saving conversation to %s", chatDir)
+		log.Debugf("Saving conversation to %s\n", chatDir)
 		if err := api.StoreHistory(chatDir, vars.History[initLen:]); err != nil {
 			log.Errorf("error saving conversation history: %v", err)
 		}
@@ -103,10 +103,18 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 }
 
 func showInput(cfg *api.AppConfig, input *api.UserInput) {
+	if log.IsTrace() {
+		log.Debugf("input: %+v\n", input)
+	}
+
 	PrintInput(cfg, input)
 }
 
 func processOutput(cfg *api.AppConfig, message *api.Output) {
+	if log.IsTrace() {
+		log.Debugf("output: %+v\n", message)
+	}
+
 	switch message.ContentType {
 	case api.ContentTypeText, "":
 		processTextContent(cfg, message)

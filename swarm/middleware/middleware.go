@@ -9,8 +9,9 @@ import (
 
 	"github.com/openai/openai-go/option"
 
-	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/api/model"
 )
 
 type stringReadCloser struct {
@@ -25,7 +26,7 @@ func NewStringReadCloser(s string) io.ReadCloser {
 	return stringReadCloser{strings.NewReader(s)}
 }
 
-func Middleware() option.Middleware {
+func Middleware(model *model.Model, vars *api.Vars) option.Middleware {
 	return func(req *http.Request, next option.MiddlewareNext) (*http.Response, error) {
 		start := time.Now()
 
@@ -37,11 +38,8 @@ func Middleware() option.Middleware {
 		var resp *http.Response
 		var err error
 
-		if internal.DryRun {
-			resp = &http.Response{
-				StatusCode: 200,
-				Body:       NewStringReadCloser(internal.DryRunContent),
-			}
+		if vars.Config.DryRun {
+			resp, err = fake(req, model, vars)
 		} else {
 			// Call the next middleware in the chain.
 			resp, err = next(req)
