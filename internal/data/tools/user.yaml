@@ -1,8 +1,0 @@
-kit: "user"
-
-tools:
-  - name: "who_am_i"
-    description: "Return the username of the current system user as my identity"
-    parameters: {}
-    type: "func"
-

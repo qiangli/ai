@@ -63,6 +63,7 @@ func NewClient(ctx context.Context, apiKey, _ string) (*genai.Client, error) {
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{
 		APIKey:  apiKey,
 		Backend: genai.BackendGeminiAPI,
+		// TODO middleware?
 	})
 	return client, err
 }

@@ -5,7 +5,7 @@ agents:
     description: "Act as an expert software developer"
     model: L2
     instruction:
-      content: "resource:swe_system_role.md"
+      content: "file:swe_system_role.md"
     functions:
       - "func:web"
       - "system:*"

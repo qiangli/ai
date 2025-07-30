@@ -10,9 +10,9 @@ import (
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
 
-	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/middleware"
 )
 
 // https://github.com/anthropics/anthropic-sdk-go
@@ -47,7 +47,7 @@ func NewClient(apiKey, baseUrl string) anthropic.Client {
 	client := anthropic.NewClient(
 		option.WithAPIKey(apiKey),
 		option.WithBaseURL(baseUrl),
-		option.WithMiddleware(log.Middleware(internal.DryRun, internal.DryRunContent)),
+		option.WithMiddleware(middleware.Middleware()),
 	)
 	return client
 }

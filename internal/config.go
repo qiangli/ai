@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"strings"
 
@@ -16,19 +15,8 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/api/model"
 )
-
-var V *fangs.Viper
-
-func init() {
-	V = fangs.New()
-}
-
-func ParseArgs(viper *fangs.Viper, app *api.AppConfig, args []string, defaultAgent string) {
-	newArgs := ParseAgentArgs(app, args, defaultAgent)
-	newArgs = ParseSpecialChars(viper, app, newArgs)
-	app.Args = newArgs
-}
 
 const DefaultEditor = "ai -i edit"
 
@@ -52,13 +40,6 @@ const (
 
 var Version = "0.0.1" // version of the ai binary
 
-// var ConfigFile string
-
-// var InputFiles []string
-// var FormatFlag string
-// var OutputFlag string
-// var TemplateFile string
-
 //go:embed data/*
 var configData embed.FS
 
@@ -71,17 +52,43 @@ func GetConfigData() embed.FS {
 var DryRun bool
 var DryRunContent string
 
-func getCurrentUser() string {
-	currentUser, err := user.Current()
-	if err != nil {
-		return "unkown"
+var V *fangs.Viper
+
+func init() {
+	V = fangs.New()
+}
+
+// init viper
+func InitConfig(viper *fangs.Viper) {
+	defaultCfg := os.Getenv("AI_CONFIG")
+	if defaultCfg == "" {
+		if home, err := os.UserHomeDir(); err == nil {
+			defaultCfg = filepath.Join(home, ".ai", "config.yaml")
+		}
 	}
-	return currentUser.Username
+	if defaultCfg != "" {
+		viper.SetConfigFile(defaultCfg)
+	}
+
+	viper.AutomaticEnv()
+	viper.SetEnvPrefix("ai")
+	viper.BindEnv("api-key", "AI_API_KEY", "OPENAI_API_KEY")
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Debugf("Error reading config file: %s\n", err)
+	}
 }
 
 func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	app.ConfigFile = viper.ConfigFileUsed()
 	app.Base = filepath.Dir(app.ConfigFile)
+
+	log.Debugf("configure file: %s\n", app.ConfigFile)
+	log.Debugf("base: %s\n", app.Base)
+	printAIEnv()
+
+	//
 
 	app.Version = Version
 	app.Role = viper.GetString("role")
@@ -245,107 +252,15 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	gitConfig := &api.GitConfig{}
 	app.Git = gitConfig
 
+	log.Debug("parsed: %+v\n", app)
+
 	return nil
 }
 
-// resolveWorkspaceDir returns the workspace directory.
-// If the workspace is not provided, it returns the current working directory
-// or the directory of the git repository containing the current working directory
-// if it is in a git repository.
-func resolveWorkspaceDir(ws string) (string, error) {
-	if ws != "" {
-		return ensureWorkspace(ws)
-	}
-	ws, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	return resolveRepoDir(ws)
-}
-
-// resolveRepoDir returns the directory of the current git repository
-func resolveRepoDir(ws string) (string, error) {
-	if ws == "" {
-		wd, err := os.Getwd()
-		if err != nil {
-			return "", err
-		}
-		ws = wd
-	}
-	dir, err := detectGitRepo(ws)
-	if err != nil {
-		return "", fmt.Errorf("failed to detect git repository: %w", err)
-	}
-	return dir, nil
-}
-
-func homeDir() (string, error) {
-	return os.UserHomeDir()
-}
-
-func tempDir() (string, error) {
-	return os.TempDir(), nil
-}
-
-// detectGitRepo returns the directory of the git repository
-// containing the given path.
-// If the path is not in a git repository, it returns the original path.
-func detectGitRepo(path string) (string, error) {
-	if path == "" {
-		return "", fmt.Errorf("path is empty")
-	}
-	original := path
-	for {
-		if _, err := os.Stat(filepath.Join(path, ".git")); err == nil {
-			return path, nil
-		}
-		np := filepath.Dir(path)
-		if np == path || np == "/" {
-			break
-		}
-		path = np
-	}
-	return original, nil
-}
-
-func ensureWorkspace(ws string) (string, error) {
-	workspace, err := validatePath(ws)
-	if err != nil {
-		return "", err
-	}
-
-	// ensure the workspace directory exists
-	if err := os.MkdirAll(workspace, os.ModePerm); err != nil {
-		return "", fmt.Errorf("failed to create directory: %w", err)
-	}
-
-	return workspace, nil
-}
-
-// ValidatePath returns the absolute path of the given path.
-// If the path is empty, it returns an error.
-// If the path is not an absolute path, it converts it to an absolute path.
-// If the path exists, it returns its absolute path.
-func validatePath(path string) (string, error) {
-	if path == "" {
-		return "", fmt.Errorf("path is empty")
-	}
-
-	if !filepath.IsAbs(path) {
-		absPath, err := filepath.Abs(path)
-		if err != nil {
-			return "", fmt.Errorf("failed to get absolute path: %w", err)
-		}
-		path = absPath
-	}
-	if _, err := os.Stat(path); err != nil {
-		if os.IsNotExist(err) {
-			return path, nil
-		}
-		return "", fmt.Errorf("failed to stat path: %w", err)
-	}
-
-	return path, nil
+func ParseArgs(viper *fangs.Viper, app *api.AppConfig, args []string, defaultAgent string) {
+	newArgs := ParseAgentArgs(app, args, defaultAgent)
+	newArgs = ParseSpecialChars(viper, app, newArgs)
+	app.Args = newArgs
 }
 
 type McpServersConfig struct {
@@ -407,13 +322,267 @@ func (r *McpServersConfig) LoadData(data []byte) error {
 	return nil
 }
 
-func expandWithDefault(input string) string {
-	return os.Expand(input, func(key string) string {
-		parts := strings.SplitN(key, ":-", 2)
-		value := os.Getenv(parts[0])
-		if value == "" && len(parts) > 1 {
-			return parts[1]
+// return the agent/command and the rest of the args
+func ParseAgentArgs(app *api.AppConfig, args []string, defaultAgent string) []string {
+	shellAgent := "shell"
+
+	// first or last arg could be the agent/command
+	// the last takes precedence
+	var arg string
+	isAgent := func(s string) bool {
+		return strings.HasPrefix(s, "@")
+	}
+	isSlash := func(s string) bool {
+		return strings.HasPrefix(s, "/")
+	}
+	switch len(args) {
+	case 0:
+		// no args, use default agent
+	case 1:
+		if isSlash(args[0]) || isAgent(args[0]) {
+			arg = args[0]
+			args = args[1:]
 		}
-		return value
-	})
+	default:
+		if isSlash(args[0]) || isAgent(args[0]) {
+			arg = args[0]
+			args = args[1:]
+		}
+		// agent check only
+		// slash could file path
+		if isAgent(args[len(args)-1]) {
+			arg = args[len(args)-1]
+			args = args[:len(args)-1]
+		}
+	}
+
+	var agent string
+	if arg != "" {
+		if arg[0] == '/' {
+			agent = shellAgent + arg
+		} else {
+			agent = arg[1:]
+		}
+	}
+
+	if agent == "" {
+		agent = defaultAgent
+	}
+
+	parts := strings.SplitN(agent, "/", 2)
+	app.Agent = parts[0]
+	if len(parts) > 1 {
+		app.Command = parts[1]
+	}
+
+	return args
+}
+
+// parse special char sequence for stdin/clipboard
+// they can:
+// + be at the end of the args or as a suffix to the last one
+// + be in any order
+// + be multiple instances
+func ParseSpecialChars(viper *fangs.Viper, app *api.AppConfig, args []string) []string {
+	// special char sequence handling
+	var stdin = viper.GetBool("stdin")
+	var pbRead = viper.GetBool("pb_read")
+	var pbReadWait = viper.GetBool("pb_tail")
+	var pbWrite = viper.GetBool("pb_write")
+	var pbWriteAppend = viper.GetBool("pb_append")
+	var isStdin, isClipin, isClipWait, isClipout, isClipAppend bool
+
+	newArgs := make([]string, len(args))
+
+	if len(args) > 0 {
+		for i := len(args) - 1; i >= 0; i-- {
+			lastArg := args[i]
+
+			if lastArg == StdinRedirect {
+				isStdin = true
+			} else if lastArg == ClipinRedirect {
+				isClipin = true
+			} else if lastArg == ClipinRedirect2 {
+				isClipin = true
+				isClipWait = true
+			} else if lastArg == ClipoutRedirect {
+				isClipout = true
+			} else if lastArg == ClipoutRedirect2 {
+				isClipout = true
+				isClipAppend = true
+			} else {
+				// check for suffix for cases where the special char is not the last arg
+				// but is part of the last arg
+				if strings.HasSuffix(lastArg, StdinRedirect) {
+					isStdin = true
+					args[i] = strings.TrimSuffix(lastArg, StdinRedirect)
+				} else if strings.HasSuffix(lastArg, ClipinRedirect) {
+					isClipin = true
+					args[i] = strings.TrimSuffix(lastArg, ClipinRedirect)
+				} else if strings.HasSuffix(lastArg, ClipinRedirect2) {
+					isClipin = true
+					isClipWait = true
+					args[i] = strings.TrimSuffix(lastArg, ClipinRedirect2)
+				} else if strings.HasSuffix(lastArg, ClipoutRedirect) {
+					isClipout = true
+					args[i] = strings.TrimSuffix(lastArg, ClipoutRedirect)
+				} else if strings.HasSuffix(lastArg, ClipoutRedirect2) {
+					isClipout = true
+					isClipAppend = true
+					args[i] = strings.TrimSuffix(lastArg, ClipoutRedirect2)
+				}
+				newArgs = args[:i+1]
+				break
+			}
+		}
+	}
+
+	isPiped := func() bool {
+		stat, _ := os.Stdin.Stat()
+		return (stat.Mode() & os.ModeCharDevice) == 0
+	}
+
+	app.IsPiped = isPiped()
+	app.Stdin = isStdin || stdin
+	app.Clipin = isClipin || pbRead || pbReadWait
+	app.ClipWait = isClipWait || pbReadWait
+	app.Clipout = isClipout || pbWrite || pbWriteAppend
+	app.ClipAppend = isClipAppend || pbWriteAppend
+
+	return newArgs
+}
+
+func ParseLLM(viper *fangs.Viper, app *api.AppConfig) error {
+	// LLM config
+	var lc = &api.LLMConfig{}
+	app.LLM = lc
+	// default
+	lc.Provider = viper.GetString("provider")
+
+	lc.ApiKey = viper.GetString("api_key")
+	lc.Model = viper.GetString("model")
+	lc.BaseUrl = viper.GetString("base_url")
+
+	// <provider>/<model>
+	modelName := func(n string) string {
+		if strings.Contains(n, "/") {
+			return n
+		}
+		if lc.Provider == "" {
+			return "openai/" + n
+		}
+		return lc.Provider + "/" + n
+	}
+
+	//
+	alias := viper.GetString("models")
+	// use same models to continue the conversation
+	// if not set
+	if alias == "" {
+		if len(app.History) > 0 {
+			last := app.History[len(app.History)-1]
+			alias = last.Models
+		}
+	}
+	app.Models = alias
+
+	// load models from app base
+	modelBase := filepath.Join(app.Base, "models")
+	modelCfg, err := model.LoadModels(modelBase)
+	if err != nil {
+		return err
+	}
+	if alias != "" {
+		if m, ok := modelCfg[alias]; ok {
+			app.LLM.Models = m.Models
+		}
+	}
+
+	// if no models, setup defaults
+	if len(app.LLM.Models) == 0 {
+		// all levels share same config
+		var m model.Model
+		switch {
+		case lc.ApiKey != "" && lc.Model != "":
+			// assume openai compatible
+			m = model.Model{
+				Name:    modelName(lc.Model),
+				BaseUrl: lc.BaseUrl,
+				ApiKey:  lc.ApiKey,
+			}
+		case os.Getenv("OPENAI_API_KEY") != "":
+			m = model.Model{
+				Name:    "openai/gpt-4.1-mini",
+				BaseUrl: "https://api.openai.com/v1/",
+				ApiKey:  os.Getenv("OPENAI_API_KEY"),
+			}
+		case os.Getenv("GEMINI_API_KEY") != "":
+			m = model.Model{
+				Name:    "gemini/gemini-2.0-flash-lite",
+				BaseUrl: "",
+				ApiKey:  os.Getenv("GEMINI_API_KEY"),
+			}
+		case os.Getenv("ANTHROPIC_API_KEY") != "":
+			m = model.Model{
+				Name:    "anthropic/claude-3-5-haiku-latest",
+				BaseUrl: "",
+				ApiKey:  os.Getenv("ANTHROPIC_API_KEY"),
+			}
+		default:
+		}
+
+		// TODO improve to allow any alias other than L*
+		models := make(map[model.Level]*model.Model)
+		models[model.L1] = m.Clone()
+		models[model.L2] = m.Clone()
+		models[model.L3] = m.Clone()
+
+		app.LLM.Models = models
+	}
+	// update or add model from command line flags
+	for _, l := range model.Levels {
+		s := strings.ToLower(string(l))
+		k := viper.GetString(s + "_api_key")
+		n := viper.GetString(s + "_model")
+		u := viper.GetString(s + "_base_url")
+		if v, ok := app.LLM.Models[l]; ok {
+			if k != "" {
+				v.ApiKey = k
+			}
+			if n != "" {
+				v.Name = modelName(n)
+			}
+			if u != "" {
+				v.BaseUrl = u
+			}
+			app.LLM.Models[l] = v
+		} else {
+			app.LLM.Models[l] = &model.Model{
+				Name:    modelName(n),
+				ApiKey:  k,
+				BaseUrl: u,
+			}
+		}
+	}
+	// model config is required
+	if len(app.LLM.Models) == 0 {
+		return fmt.Errorf("No LLM configuration found")
+	}
+
+	// TODO
+	tts := &api.TTSConfig{}
+	tts.ApiKey = viper.GetString("tts_api_key")
+	tts.Provider = viper.GetString("tts_provider")
+	tts.Model = viper.GetString("tts_model")
+	tts.BaseUrl = viper.GetString("tts_base_url")
+	if tts.ApiKey == "" {
+		tts.ApiKey = os.Getenv("OPENAI_API_KEY")
+	}
+	if tts.Model == "" {
+		tts.Model = "gpt-4o-mini-tts"
+	}
+
+	app.TTS = tts
+
+	return nil
 }

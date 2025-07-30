@@ -236,7 +236,6 @@ func setupAppConfig(args []string) (*api.AppConfig, error) {
 	}
 
 	log.Debugf("Config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.DBCred)
-	internal.PrintAIEnv()
 
 	fileLog, err := setLogOutput(cfg.Log)
 	if err != nil {

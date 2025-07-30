@@ -11,10 +11,10 @@ import (
 	"github.com/openai/openai-go/option"
 	"github.com/openai/openai-go/packages/param"
 
-	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/api/model"
+	"github.com/qiangli/ai/swarm/middleware"
 )
 
 // https://platform.openai.com/docs/models
@@ -34,7 +34,7 @@ func NewClient(apiKey, baseUrl string) openai.Client {
 	client := openai.NewClient(
 		option.WithAPIKey(apiKey),
 		option.WithBaseURL(baseUrl),
-		option.WithMiddleware(log.Middleware(internal.DryRun, internal.DryRunContent)),
+		option.WithMiddleware(middleware.Middleware()),
 	)
 	return client
 }

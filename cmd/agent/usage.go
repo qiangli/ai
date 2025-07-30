@@ -94,6 +94,7 @@ type HelpData struct {
 func getHelpData(cmd *cobra.Command) *HelpData {
 	const envPrefix = "AI_"
 
+	// AI_XXX env
 	flagToEnv := make(map[string]string)
 	cmd.Flags().VisitAll(func(flag *pflag.Flag) {
 		n := envPrefix + strings.ToUpper(strings.ReplaceAll(flag.Name, "-", "_"))
