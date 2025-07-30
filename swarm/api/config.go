@@ -28,9 +28,12 @@ type AppConfig struct {
 
 	AgentResource *AgentResource
 
-	// system
-	// Role   string
-	// Prompt string
+	AgentRegistry map[string]*AgentsConfig
+	AgentToolMap  map[string]*ToolFunc
+
+	ToolRegistry       map[string]*ToolFunc
+	ToolSystemCommands []string
+	SystemTools        []*ToolFunc
 
 	Agent   string
 	Command string

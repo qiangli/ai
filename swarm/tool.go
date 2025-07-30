@@ -27,11 +27,6 @@ const (
 	ToolTypeFunc     = "func"
 )
 
-var toolRegistry map[string]*api.ToolFunc
-var toolSystemCommands []string
-
-var systemTools []*api.ToolFunc
-
 func initTools(app *api.AppConfig) error {
 	kits, err := LoadToolsConfig(app)
 	if err != nil {
@@ -39,7 +34,7 @@ func initTools(app *api.AppConfig) error {
 		return err
 	}
 
-	toolRegistry = make(map[string]*api.ToolFunc)
+	app.ToolRegistry = make(map[string]*api.ToolFunc)
 
 	conditionMet := func(name string, c *api.ToolCondition) bool {
 		if c == nil {
@@ -93,11 +88,11 @@ func initTools(app *api.AppConfig) error {
 			}
 
 			// override
-			toolRegistry[tool.ID()] = tool
+			app.ToolRegistry[tool.ID()] = tool
 
 			// TODO this is used for security check by the evalCommand
 			if v.Type == "system" {
-				systemTools = append(systemTools, tool)
+				app.SystemTools = append(app.SystemTools, tool)
 			}
 		}
 
@@ -112,17 +107,17 @@ func initTools(app *api.AppConfig) error {
 		}
 	}
 
-	toolSystemCommands = make([]string, 0, len(commandMap))
+	app.ToolSystemCommands = make([]string, 0, len(commandMap))
 	for k := range commandMap {
-		toolSystemCommands = append(toolSystemCommands, k)
+		app.ToolSystemCommands = append(app.ToolSystemCommands, k)
 	}
 
 	return nil
 }
 
-func listDefaultTools() []*api.ToolFunc {
+func listDefaultTools(app *api.AppConfig) []*api.ToolFunc {
 	var tools []*api.ToolFunc
-	for _, v := range toolRegistry {
+	for _, v := range app.ToolRegistry {
 		tools = append(tools, v)
 	}
 	return tools
@@ -326,9 +321,9 @@ func dispatchTool(ctx context.Context, vars *api.Vars, name string, args map[str
 	return nil, fmt.Errorf("no such tool: %s", v.ID())
 }
 
-func listAgentTools() ([]*api.ToolFunc, error) {
+func listAgentTools(app *api.AppConfig) ([]*api.ToolFunc, error) {
 	tools := make([]*api.ToolFunc, 0)
-	for _, v := range agentToolMap {
+	for _, v := range app.AgentToolMap {
 		v.Type = "agent"
 		tools = append(tools, v)
 	}
@@ -341,7 +336,7 @@ func listTools(app *api.AppConfig) ([]*api.ToolFunc, error) {
 	list := []*api.ToolFunc{}
 
 	// agent tools
-	agentTools, err := listAgentTools()
+	agentTools, err := listAgentTools(app)
 	if err != nil {
 		return nil, err
 	}
@@ -357,7 +352,7 @@ func listTools(app *api.AppConfig) ([]*api.ToolFunc, error) {
 	}
 
 	// system and misc tools
-	sysTools := listDefaultTools()
+	sysTools := listDefaultTools(app)
 	list = append(list, sysTools...)
 
 	return list, nil

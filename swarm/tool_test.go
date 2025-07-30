@@ -126,7 +126,7 @@ func TestCallDevTools(t *testing.T) {
 	vars, _ := InitVars(cfg)
 
 	for _, tt := range tests {
-		tf, ok := toolRegistry[tt.id]
+		tf, ok := cfg.ToolRegistry[tt.id]
 		if !ok {
 			t.Fatalf("tool %s not found in registry", tt.id)
 		}
@@ -158,7 +158,7 @@ func TestCallFindTools(t *testing.T) {
 	vars, _ := InitVars(cfg)
 
 	for _, tt := range tests {
-		tf, ok := toolRegistry[tt.id]
+		tf, ok := cfg.ToolRegistry[tt.id]
 		if !ok {
 			t.Fatalf("tool %s not found in registry", tt.id)
 		}
@@ -193,7 +193,7 @@ func TestCallShellTools(t *testing.T) {
 	vars, _ := InitVars(cfg)
 
 	for _, tt := range tests {
-		tf, ok := toolRegistry[tt.id]
+		tf, ok := cfg.ToolRegistry[tt.id]
 		if !ok {
 			t.Fatalf("tool %s not found in registry", tt.id)
 		}
@@ -236,7 +236,7 @@ func TestCallSqlTools(t *testing.T) {
 	vars.Config.DBCred = cred
 
 	for _, tt := range tests {
-		tf, ok := toolRegistry[tt.id]
+		tf, ok := cfg.ToolRegistry[tt.id]
 		if !ok {
 			t.Fatalf("tool %s not found in registry", tt.id)
 		}

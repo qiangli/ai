@@ -19,16 +19,14 @@ func New(vars *api.Vars) *Swarm {
 	}
 }
 
-// var agentConfigMap = map[string][][]byte{}
-var agentToolMap = map[string]*api.ToolFunc{}
-
 func initAgentTools(app *api.AppConfig) error {
-	if len(agentRegistry) == 0 {
+	if len(app.AgentRegistry) == 0 {
 		return fmt.Errorf("agent registry not initialized")
 	}
+	app.AgentToolMap = make(map[string]*api.ToolFunc)
 	// skip internal as tool - e.g launch
 	agents := make(map[string]*api.AgentConfig)
-	for _, v := range agentRegistry {
+	for _, v := range app.AgentRegistry {
 		for _, agent := range v.Agents {
 			if v.Internal && !app.Internal {
 				continue
@@ -55,7 +53,7 @@ func initAgentTools(app *api.AppConfig) error {
 			Description: v.Description,
 			State:       state,
 		}
-		agentToolMap[fn.ID()] = fn
+		app.AgentToolMap[fn.ID()] = fn
 	}
 	return nil
 }
@@ -106,8 +104,8 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	vars.AdviceMap = adviceMap
 	vars.EntrypointMap = entrypointMap
 
-	//
-	vars.AgentRegistry = agentRegistry
+	// TODO remove?
+	vars.AgentRegistry = app.AgentRegistry
 	//
 	toolMap := make(map[string]*api.ToolFunc)
 	tools, err := listTools(app)

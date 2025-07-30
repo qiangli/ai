@@ -17,10 +17,8 @@ import (
 const defaultMaxTurns = 15
 const defaultMaxTime = 3600
 
-var agentRegistry map[string]*api.AgentsConfig
-
 func initAgents(app *api.AppConfig) error {
-	agentRegistry = make(map[string]*api.AgentsConfig)
+	app.AgentRegistry = make(map[string]*api.AgentsConfig)
 
 	config, err := LoadAgentsConfig(app)
 	if err != nil {
@@ -36,12 +34,12 @@ func initAgents(app *api.AppConfig) error {
 		}
 		// Register the agent configurations
 		for _, agent := range v.Agents {
-			if _, exists := agentRegistry[agent.Name]; exists {
+			if _, exists := app.AgentRegistry[agent.Name]; exists {
 				log.Debugf("Duplicate agent name found: %s, skipping registration\n", agent.Name)
 				continue
 			}
 			// Register the agents configuration
-			agentRegistry[agent.Name] = v
+			app.AgentRegistry[agent.Name] = v
 			log.Debugf("Registered agent: %s\n", agent.Name)
 			if v.MaxTurns == 0 {
 				v.MaxTurns = defaultMaxTurns
@@ -52,13 +50,32 @@ func initAgents(app *api.AppConfig) error {
 		}
 	}
 
-	if len(agentRegistry) == 0 {
+	if len(app.AgentRegistry) == 0 {
 		log.Debugf("No agent configurations found in default agents\n")
 		return fmt.Errorf("no agent configurations found in default agents")
 	}
-	log.Debugf("Initialized %d agent configurations\n", len(agentRegistry))
+	log.Debugf("Initialized %d agent configurations\n", len(app.AgentRegistry))
 
 	return nil
+}
+
+func LoadAgentsConfig(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
+	var groups = make(map[string]*api.AgentsConfig)
+	// default
+	if err := LoadResourceAgentsConfig(app, groups); err != nil {
+		return nil, err
+	}
+
+	// external/custom
+	if err := LoadFileAgentsConfig(app, groups); err != nil {
+		log.Errorf("failed to load custom agents: %v\n", err)
+	}
+
+	// web
+	if err := LoadWebAgentsConfig(app, groups); err != nil {
+		log.Errorf("failed load agents from web resources: %v\n", err)
+	}
+	return groups, nil
 }
 
 func LoadAgentsAsset(app *api.AppConfig, as api.AssetStore, root string, groups map[string]*api.AgentsConfig) error {
@@ -110,23 +127,6 @@ func LoadAgentsAsset(app *api.AppConfig, as api.AssetStore, root string, groups 
 	}
 
 	return nil
-}
-
-func LoadAgentsConfig(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
-	var groups = make(map[string]*api.AgentsConfig)
-	// default
-	if err := LoadResourceAgentsConfig(app, groups); err != nil {
-		return nil, err
-	}
-	// web
-	if err := LoadWebAgentsConfig(app, groups); err != nil {
-		log.Errorf("failed load agents from web resources: %v\n", err)
-	}
-	// external/custom
-	if err := LoadFileAgentsConfig(app, groups); err != nil {
-		log.Errorf("failed to load custom agents: %v\n", err)
-	}
-	return groups, nil
 }
 
 func LoadResourceAgentsConfig(app *api.AppConfig, groups map[string]*api.AgentsConfig) error {
@@ -400,17 +400,6 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 			}
 		}
 
-		//
-		// vars.ResourceMap[agentName] = &api.Resource{
-		// 	ID: ac.Name,
-		// 	Content: func(key string) ([]byte, error) {
-		// 		if config.Source == "file" {
-		// 			return os.ReadFile(filepath.Join(config.BaseDir, key))
-		// 		}
-		// 		return resourceAgents.ReadFile(config.BaseDir + "/" + key)
-		// 	},
-		// }
-
 		return &agent, nil
 	}
 
@@ -447,7 +436,7 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 }
 
 func LoadAgents(app *api.AppConfig, name string, input *api.UserInput) (*api.AgentsConfig, error) {
-	if config, exists := agentRegistry[name]; exists {
+	if config, exists := app.AgentRegistry[name]; exists {
 		return config, nil
 	}
 	return nil, fmt.Errorf("no agent configurations found for: %s", name)

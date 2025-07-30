@@ -76,7 +76,7 @@ func evaluateCommand(ctx context.Context, vars *api.Vars, command string, args [
 				Content: query,
 			},
 		},
-		Tools:    systemTools,
+		Tools:    vars.Config.SystemTools,
 		RunTool:  runTool,
 		MaxTurns: vars.Config.MaxTurns,
 	}
