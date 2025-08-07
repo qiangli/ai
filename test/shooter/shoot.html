@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sky Shooter</title>
+<style>
+  :root{--bg1:#0f1724;--bg2:#2b3a67;--accent:#ffb86b;--accent2:#7be4ff}
+  *{box-sizing:border-box;font-family:Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg1),#091327);color:#e6f0ff}
+  #gameWrap{position:relative;width:100%;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  canvas#game{background:transparent;display:block}
+  .ui{position:absolute;left:20px;top:20px;z-index:20}
+  .ui h1{margin:0;font-size:20px;letter-spacing:1px}
+  .hud{position:absolute;right:20px;top:20px;text-align:right;color:#dff}
+  .hud .score{font-size:20px;font-weight:700}
+  .controls{position:absolute;left:50%;transform:translateX(-50%);bottom:18px;z-index:20;display:flex;gap:10px}
+  .btn{background:linear-gradient(180deg,var(--accent2),#7be4ff33);border:0;padding:10px 14px;border-radius:10px;color:#022;cursor:pointer;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,0.35)}
+  .btn.ghost{background:transparent;border:1px solid #7be4ff44;color:#dff}
+  .panel{position:absolute;left:20px;bottom:20px;background:linear-gradient(180deg,#0b2741aa,#041422aa);padding:10px;border-radius:10px;backdrop-filter: blur(6px);box-shadow:0 6px 20px rgba(2,6,23,0.7)}
+  .panel small{opacity:0.8}
+  .overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:40}
+  .overlay .card{background:linear-gradient(180deg,#ffffff11,#00000022);padding:20px;border-radius:16px;text-align:center;backdrop-filter: blur(6px);border:1px solid #ffffff11}
+  .title{font-size:36px;margin:0 0 8px;background:linear-gradient(90deg,#fff,#7be4ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .bigScore{font-size:48px;margin:6px 0}
+  .muted{opacity:0.9}
+  footer{position:absolute;left:10px;bottom:10px;color:#9fb}
+  @media(max-width:600px){.title{font-size:28px}.bigScore{font-size:36px}.btn{padding:8px 10px}}
+</style>
+</head>
+<body>
+<div id="gameWrap">
+  <canvas id="game"></canvas>
+  <div class="ui">
+    <h1>Sky Shooter</h1>
+    <small class="muted">Goal: Shoot down flying objects. Survive & rack up points!</small>
+  </div>
+  <div class="hud">
+    <div class="score">Score: <span id="score">0</span></div>
+    <div class="score">High: <span id="high">0</span></div>
+  </div>
+  <div class="panel">
+    <small>Controls: Move mouse / touch to aim. Click / Tap / Space to shoot. Arrow keys or A/D to move. Press P to pause.</small>
+  </div>
+  <div class="controls">
+    <button id="startBtn" class="btn">Start</button>
+    <button id="retryBtn" class="btn ghost">Retry</button>
+    <button id="muteBtn" class="btn ghost">Mute</button>
+  </div>
+  <div id="overlay" class="overlay">
+    <div class="card">
+      <h2 class="title">Sky Shooter</h2>
+      <p class="muted">Shoot down as many flying objects as possible. Difficulty increases over time.</p>
+      <div style="height:10px"></div>
+      <button id="overlayStart" class="btn">Tap to Play</button>
+      <div style="height:8px"></div>
+      <small class="muted">High Score: <span id="overlayHigh">0</span></small>
+    </div>
+  </div>
+  <footer>Made with ❤️ — Dynamic visuals & sounds</footer>
+</div>
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d', { alpha: true });
+  let W = canvas.width = innerWidth; let H = canvas.height = innerHeight;
+  const scoreEl = document.getElementById('score');
+  const highEl = document.getElementById('high');
+  const overlay = document.getElementById('overlay');
+  const overlayHigh = document.getElementById('overlayHigh');
+  const startBtn = document.getElementById('startBtn');
+  const retryBtn = document.getElementById('retryBtn');
+  const muteBtn = document.getElementById('muteBtn');
+  const overlayStart = document.getElementById('overlayStart');
+
+  let mouse = {x: W/2, y: H/2, down:false};
+  let keys = {};
+  let running = false; let paused = false;
+  let score = 0; let high = parseInt(localStorage.getItem('skyShooterHigh')||'0');
+  highEl.textContent = high; overlayHigh.textContent = high;
+
+  let audioCtx = null; let masterGain = null; let muted = false;
+  function initAudio(){
+    if(audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.connect(audioCtx.destination);
+    masterGain.gain.value = muted?0:0.9;
+  }
+
+  function setMute(v){muted=v; if(masterGain) masterGain.gain.value = muted?0:0.9; muteBtn.textContent = muted? 'Unmute':'Mute';}
+  muteBtn.addEventListener('click', ()=>{ setMute(!muted); });
+
+  function playSound(type, opts={}){
+    if(muted) return; initAudio();
+    const t = audioCtx.currentTime;
+    if(type==='shoot'){
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = 'square'; o.frequency.setValueAtTime(900, t);
+      o.frequency.exponentialRampToValueAtTime(600, t+0.1);
+      g.gain.setValueAtTime(0.08, t); g.gain.exponentialRampToValueAtTime(0.0001, t+0.2);
+      o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+0.2);
+    } else if(type==='pop'){
+      const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+      o.type='sine'; o.frequency.setValueAtTime(300, t); o.frequency.exponentialRampToValueAtTime(80, t+0.25);
+      g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.0001, t+0.35);
+      o.connect(g); g.connect(masterGain); o.start(); o.stop(t+0.35);
+    } else if(type==='explosion'){
+      const bufferSize = audioCtx.sampleRate * 0.4; const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0); for(let i=0;i<bufferSize;i++){ data[i] = (Math.random()*2-1) * Math.exp(-3*i/bufferSize); }
+      const src = audioCtx.createBufferSource(); src.buffer = buffer; const g = audioCtx.createGain(); g.gain.setValueAtTime(0.9, t); g.gain.exponentialRampToValueAtTime(0.0001, t+0.4);
+      src.connect(g); g.connect(masterGain); src.start();
+    } else if(type==='hit'){
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type='triangle'; o.frequency.setValueAtTime(400, t); o.frequency.exponentialRampToValueAtTime(220, t+0.2);
+      g.gain.setValueAtTime(0.16, t); g.gain.exponentialRampToValueAtTime(0.0001, t+0.3);
+      o.connect(g); g.connect(masterGain); o.start(); o.stop(t+0.3);
+    }
+  }
+
+  // Responsive
+  addEventListener('resize', ()=>{W = canvas.width = innerWidth; H = canvas.height = innerHeight;});
+
+  // Background stars and gradient
+  const bg = {stars:[],time:0};
+  for(let i=0;i<120;i++){ bg.stars.push({x:Math.random()*W,y:Math.random()*H,z:Math.random()*1.2+0.2,size:Math.random()*1.8+0.6,angle:Math.random()*Math.PI*2}); }
+
+  function drawBackground(dt){
+    bg.time += dt*0.0005;
+    // Animated gradient
+    const g = ctx.createLinearGradient(0,0,0,H);
+    const c1 = `hsl(${200 + Math.sin(bg.time)*30},70%,12%)`;
+    const c2 = `hsl(${220 + Math.cos(bg.time)*40},65%,8%)`;
+    g.addColorStop(0,c1); g.addColorStop(1,c2);
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+    // stars
+    for(let s of bg.stars){ s.y += 0.05 * s.z * dt * 0.06; s.x += Math.cos(bg.time*2 + s.angle)*0.02*dt*s.z; if(s.y>H){s.y=0; s.x=Math.random()*W;} const alpha = 0.7*s.z * (0.4+0.6*Math.sin(bg.time*3 + s.angle)); ctx.fillStyle = `rgba(255,255,255,${alpha})`; ctx.beginPath(); ctx.arc(s.x,s.y,s.size*s.z,0,Math.PI*2); ctx.fill(); }
+    // sweeping aurora
+    for(let i=0;i<3;i++){
+      ctx.globalAlpha = 0.06 + 0.03*Math.sin(bg.time*2 + i);
+      ctx.fillStyle = `radial-gradient(circle at ${40+i*30}% ${20+i*8}%, rgba(123,228,255,0.12), transparent 40%)`;
+      // fallback by drawing soft shapes
+      ctx.beginPath(); ctx.ellipse(W*0.5 + Math.sin(bg.time*0.6 + i)*W*0.15, H*0.2 + i*30, W*0.8, H*0.25, 0, 0, Math.PI*2); ctx.fillStyle = (i%2? 'rgba(123,228,255,0.03)':'rgba(255,184,107,0.03)'); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Game entities
+  const player = {x:W/2,y:H-90,w:42,h:42,dir:0,shots:[],cool:0,score:0,lives:3};
+  const enemies = [];
+  const particles = [];
+
+  function spawnEnemy(){
+    const edge = Math.random();
+    const size = Math.random()*28+18;
+    const x = Math.random()*W;
+    const y = -size - 20;
+    const vx = (Math.random()-0.5) * 0.8 * (1 + difficulty*0.2);
+    const vy = 0.3 + Math.random()*0.45 + difficulty*0.05;
+    const type = Math.random() < 0.12 ? 'boss' : (Math.random()<0.2?'fast':'normal');
+    enemies.push({x,y,vx,vy,w:size,h:size,type,health: type==='boss'?6 : type==='fast'?1:2,angle:Math.random()*Math.PI*2,spin: (Math.random()-0.5)*0.04});
+  }
+
+  function createParticle(x,y,color,spread=2,count=12,speed=1.6){
+    for(let i=0;i<count;i++){ const a = Math.random()*Math.PI*2; const s = (Math.random()*0.8+0.4)*speed; particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:60+Math.random()*30,age:0,color,rad:Math.random()*3+1}) }
+  }
+
+  function rectCollide(a,b){ return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y; }
+
+  let lastTime = 0; let spawnTimer = 0; let difficulty = 0; let spawnInterval = 1000;
+
+  function reset(){ enemies.length=0; particles.length=0; player.shots.length=0; score=0; player.x = W/2; player.y = H-90; player.lives=3; difficulty=0; spawnTimer=0; spawnInterval = 1000; scoreEl.textContent='0'; }
+
+  function startGame(){ initAudio(); overlay.style.display='none'; running=true; paused=false; if(audioCtx && audioCtx.state==='suspended') audioCtx.resume(); lastTime = performance.now(); requestAnimationFrame(loop); }
+
+  function gameOver(){ running=false; overlay.style.display='flex'; overlay.querySelector('.card p').textContent = 'Game Over — You scored'; overlay.querySelector('.bigScore')?.remove(); const big = document.createElement('div'); big.className='bigScore'; big.textContent = score; overlay.querySelector('.card').appendChild(big);
+    if(score>high){ high=score; localStorage.setItem('skyShooterHigh', high); highEl.textContent = high; overlayHigh.textContent = high; }
+    playSound('explosion');
+  }
+
+  // draw player ship
+  function drawPlayer(p){
+    ctx.save(); ctx.translate(p.x, p.y);
+    ctx.rotate(p.dir*0.02);
+    // body
+    const grad = ctx.createLinearGradient(-22,-18,22,18); grad.addColorStop(0,'#fff'); grad.addColorStop(0.6,'#7be4ff'); grad.addColorStop(1,'#ffb86b');
+    ctx.fillStyle = grad; ctx.beginPath(); ctx.moveTo(0,-18); ctx.lineTo(22,10); ctx.quadraticCurveTo(10,12,0,6); ctx.quadraticCurveTo(-10,12,-22,10); ctx.closePath(); ctx.fill();
+    // cockpit
+    ctx.fillStyle = 'rgba(2,6,23,0.9)'; ctx.beginPath(); ctx.ellipse(-3,-2,8,6,0,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawEnemy(e){
+    ctx.save(); ctx.translate(e.x+e.w/2, e.y+e.h/2); ctx.rotate(e.angle);
+    const r = Math.max(8, e.w/2);
+    // body
+    const g = ctx.createRadialGradient(-r*0.3,-r*0.3, r*0.1, 0,0,r); g.addColorStop(0,'#fff'); g.addColorStop(0.4, e.type==='boss'? '#ff8fb8' : '#ffd277'); g.addColorStop(1, e.type==='fast'? '#ff5e5e' : '#7be4ff');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0,0,r*1.05,r,0,0,Math.PI*2); ctx.fill();
+    // eyes / sensors
+    ctx.fillStyle = 'rgba(2,6,23,0.85)'; ctx.beginPath(); ctx.arc(-r*0.3,-r*0.2,r*0.22,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(r*0.2,-r*0.25,r*0.2,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawShot(s){ ctx.save(); ctx.translate(s.x+s.w/2,s.y+s.h/2); ctx.rotate(Math.atan2(s.vy,s.vx)); const g = ctx.createLinearGradient(-6,0,6,0); g.addColorStop(0,'#fff'); g.addColorStop(0.4,'#ffd277'); g.addColorStop(1,'#ff5e5e'); ctx.fillStyle=g; ctx.beginPath(); ctx.roundRect? ctx.roundRect(-4,-2,8,4,2) : ctx.fillRect(-4,-2,8,4); ctx.fill(); ctx.restore(); }
+
+  // polyfill ctx.roundRect
+  if(!CanvasRenderingContext2D.prototype.roundRect){ CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){ if(!r) r=4; this.beginPath(); this.moveTo(x+r,y); this.lineTo(x+w-r,y); this.quadraticCurveTo(x+w,y,x+w,y+r); this.lineTo(x+w,y+h-r); this.quadraticCurveTo(x+w,y+h,x+w-r,y+h); this.lineTo(x+r,y+h); this.quadraticCurveTo(x,y+h,x,y+h-r); this.lineTo(x,y+r); this.quadraticCurveTo(x,y,x+r,y); this.closePath(); }}
+
+  function loop(ts){ if(!running) return; const dt = ts-lastTime; lastTime = ts; if(paused){ requestAnimationFrame(loop); return; }
+    // updates
+    // player movement toward mouse gently
+    const dx = mouse.x - player.x; const dy = (mouse.y - 120) - player.y; player.x += dx*0.06; player.y += dy*0.06; if(keys.ArrowLeft||keys.a) player.x -= 6; if(keys.ArrowRight||keys.d) player.x +=6; player.x = Math.max(30, Math.min(W-30, player.x)); player.y = Math.max(H-220, Math.min(H-60, player.y));
+    // shooting
+    player.cool -= dt; if((mouse.down || keys[' '] || keys.Space) && player.cool <= 0){ player.cool = 180 - Math.min(120, difficulty*6); const vx = 0; const vy = -8 - difficulty*0.1; const s = {x:player.x-6,y:player.y-36,w:12,h:12,vx:vx,vy:vy,age:0}; player.shots.push(s); playSound('shoot'); }
+    // shots update
+    for(let i=player.shots.length-1;i>=0;i--){ const s = player.shots[i]; s.x += s.vx*dt*0.06; s.y += s.vy*dt*0.06; s.age += dt; if(s.y < -20 || s.age>5000) player.shots.splice(i,1); }
+    // spawn difficulty
+    difficulty += dt*0.00002; spawnTimer += dt;
+    spawnInterval = Math.max(350, 1100 - difficulty*240);
+    if(spawnTimer > spawnInterval){ spawnTimer=0; spawnEnemy(); }
+    // enemies update
+    for(let i=enemies.length-1;i>=0;i--){ const e = enemies[i]; e.x += e.vx*dt*0.06; e.y += e.vy*dt*0.06; e.angle += e.spin*(1 + difficulty*0.2); if(e.y > H+100){ enemies.splice(i,1); player.lives -= 1; playSound('hit'); createParticle(e.x+e.w/2, e.y+e.h/2, 'rgba(255,184,107,0.9)', 3, 8, 0.8); if(player.lives<=0){ gameOver(); return; }} }
+    // collisions
+    for(let i=enemies.length-1;i>=0;i--){ const e = enemies[i]; for(let j=player.shots.length-1;j>=0;j--){ const s = player.shots[j]; if(rectCollide({x:s.x,y:s.y,w:s.w,h:s.h},{x:e.x,y:e.y,w:e.w,h:e.h})){ e.health--; player.shots.splice(j,1); playSound('pop'); createParticle(s.x+s.w/2,s.y+s.h/2,'rgba(123,228,255,0.9)',6,8,1.4); if(e.health<=0){ // kill
+                score += (e.type==='boss'?50 : e.type==='fast'?8:12);
+                enemies.splice(i,1);
+                createParticle(e.x+e.w/2,e.y+e.h/2, 'rgba(255,120,120,0.95)', 18,10,2.6);
+                playSound('explosion');
+              } else { score += 2; }
+              scoreEl.textContent = Math.floor(score);
+              break;
+    } }
+    }
+    // enemy-player collision
+    for(let i=enemies.length-1;i>=0;i--){ const e = enemies[i]; const boxP = {x:player.x-20,y:player.y-20,w:40,h:40}; if(rectCollide(boxP,{x:e.x,y:e.y,w:e.w,h:e.h})){ // hit
+        createParticle(player.x,player.y,'rgba(255,120,120,0.95)',20,14,2.8);
+        playSound('explosion'); enemies.splice(i,1); player.lives -=1; if(player.lives<=0){ gameOver(); return; }
+      }
+    }
+    // particles
+    for(let i=particles.length-1;i>=0;i--){ const p = particles[i]; p.age += dt*0.06; p.x += p.vx * (dt*0.06); p.y += p.vy * (dt*0.06); p.vy += 0.02*(dt*0.06); if(p.age > p.life) particles.splice(i,1); }
+
+    // drawing
+    drawBackground(dt);
+    // mid parallax clouds
+    ctx.save(); ctx.globalAlpha = 0.6; for(let i=0;i<4;i++){ const ox = Math.sin(bg.time*0.2 + i)*W*0.02*(i+1); ctx.beginPath(); ctx.fillStyle = i%2? 'rgba(255,255,255,0.03)':'rgba(123,228,255,0.03)'; ctx.ellipse(W*0.15*(i+1)+ox, H*0.22 + i*30, W*0.35, H*0.09, 0,0,Math.PI*2); ctx.fill(); } ctx.restore();
+    // draw shots
+    for(let s of player.shots) drawShot(s);
+    // draw enemies
+    for(let e of enemies) drawEnemy(e);
+    // draw player
+    drawPlayer(player);
+    // draw particles
+    for(let p of particles){ ctx.globalAlpha = Math.max(0,1 - p.age/p.life); ctx.fillStyle = p.color || 'rgba(255,255,255,0.9)'; ctx.beginPath(); ctx.arc(p.x,p.y,p.rad,0,Math.PI*2); ctx.fill(); ctx.globalAlpha = 1; }
+
+    // UI floating lives
+    ctx.fillStyle = '#fff'; ctx.font = '14px Inter, sans-serif'; ctx.globalAlpha = 0.9; ctx.fillText('Lives: ' + player.lives, 24, H-40);
+
+    requestAnimationFrame(loop);
+  }
+
+  // input
+  addEventListener('mousemove', e=>{ mouse.x = e.clientX; mouse.y = e.clientY; });
+  addEventListener('mousedown', e=>{ mouse.down = true; initAudio(); if(audioCtx && audioCtx.state==='suspended') audioCtx.resume(); });
+  addEventListener('mouseup', e=>{ mouse.down = false; });
+  addEventListener('touchstart', e=>{ e.preventDefault(); initAudio(); mouse.down=true; const t=e.touches[0]; mouse.x=t.clientX; mouse.y=t.clientY; if(audioCtx && audioCtx.state==='suspended') audioCtx.resume(); }, {passive:false});
+  addEventListener('touchmove', e=>{ const t=e.touches[0]; mouse.x=t.clientX; mouse.y=t.clientY; }, {passive:false});
+  addEventListener('touchend', e=>{ mouse.down=false; });
+  addEventListener('keydown', e=>{ keys[e.key]=true; if(e.key==='p' || e.key==='P'){ paused = !paused; overlay.style.display = paused? 'flex' : 'none'; if(!paused && running) { lastTime = performance.now(); requestAnimationFrame(loop); } } if(e.key===' '){ e.preventDefault(); keys[' ']=true; } if(e.key==='Enter'){ if(!running) startGame(); } });
+  addEventListener('keyup', e=>{ keys[e.key]=false; if(e.key===' ') keys[' ']=false; });
+
+  startBtn.addEventListener('click', ()=>{ reset(); startGame(); });
+  overlayStart.addEventListener('click', ()=>{ reset(); startGame(); });
+  retryBtn.addEventListener('click', ()=>{ reset(); if(!running){ startGame(); }});
+
+  // initial draw of overlay high
+  function nicely(){ overlayHigh.textContent = high; highEl.textContent = high; }
+  nicely();
+
+  // small animation to show initial overlay state
+  overlay.querySelector('.card p').insertAdjacentHTML('afterend','<div style="height:8px"></div>');
+
+  // warm-up spawn on idle while overlay is visible
+  (function idleAnimation(){ let t0=performance.now(); function step(t){ const dt = t-t0; t0=t; // animate title
+      const tilt = 4*Math.sin(t*0.002);
+      overlay.querySelector('.title').style.transform = `rotate(${tilt}deg)`;
+      requestAnimationFrame(step);
+  } requestAnimationFrame(step); })();
+
+  // friendly touch: remove overlay extra bigScore on re-open
+  const observer = new MutationObserver(()=>{});
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jumping Ball Runner</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+      background: linear-gradient(to top, #e0f7fa 0%, #ffffff 100%);
+      overflow: hidden;
+      color: #333;
+    }
+    #gameContainer {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    #gameCanvas {
+      border: 7px solid #ffeb3b;
+      background: #90caf9;
+      box-shadow: 0 2px 30px #7e57c2dd, 0 0 0 8px #fff3e0ea;
+      display: block;
+      margin: 0 auto;
+      border-radius: 18px;
+    }
+    #ui {
+      position: absolute;
+      top: 12px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+    #score, #highScore {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #e53935;
+      text-shadow: 1px 1px #fff, 2px 2px #90caf9;
+      margin: 0 16px;
+    }
+    #gameOverScreen {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(230, 244, 255, 0.91);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 100;
+    }
+    #gameOverScreen.active {
+      display: flex;
+    }
+    #gameOverScreen h2 {
+      font-size: 2.6em;
+      margin: 10px 0 5px 0;
+      color: #5c6bc0;
+    }
+    #retryBtn {
+      font-size: 1.4em;
+      background: #ffb300;
+      color: #fff;
+      border: none;
+      border-radius: 11px;
+      box-shadow: 2px 2px 10px #eeff41bb;
+      padding: 10px 28px;
+      margin-top: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+    #retryBtn:hover {
+      background: #f57c00;
+    }
+    @media (max-width: 600px) {
+      #gameCanvas {
+        width: 95vw;
+        height: 55vw;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <canvas id="gameCanvas" width="790" height="380"></canvas>
+    <div id="ui">
+      <span id="score">Score: 0</span>
+      <span id="highScore">High Score: 0</span>
+    </div>
+    <div id="gameOverScreen">
+      <h2>Game Over!</h2>
+      <div id="finalScore" style="font-size:1.3em; margin-bottom:10px;"></div>
+      <button id="retryBtn">Retry</button>
+    </div>
+  </div>
+
+  <audio id="jumpSound" src="data:audio/wav;base64,UklGRhACAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSgAAACAgICQkBBERETw8PCQkICAAICAgICAgUPDw88PDwoKCgoIiIiIiAiIiIiIioqKiogICA8PDw4ODhERERERDg4OBgYGBgYABAAAP//A//+f8AAD/+fn5+fn6A//8A" preload="auto"></audio>
+  <audio id="hitSound" src="data:audio/wav;base64,UklGRkABAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YZhAAABAgICAf4B/gD/B/3//AAAgAABAgICAfHh4eHiIiIiIgACAgICAf39/f3///w==" preload="auto"></audio>
+  <audio id="scoreSound" src="data:audio/wav;base64,UklGRrAAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YYwAAABAAGZmZqioqKCAgICAf39/fwB/AH97e3uCgoKBgYGAgID/AH5z0A==" preload="auto"></audio>
+
+  <script>
+  // --- Utility Functions ---
+  function rand(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+  function clamp(val, min, max) {
+    return Math.max(min, Math.min(max, val));
+  }
+
+  // --- Sound Effects ---
+  const jumpSound = document.getElementById('jumpSound');
+  const hitSound = document.getElementById('hitSound');
+  const scoreSound = document.getElementById('scoreSound');
+  function playJump(){ jumpSound.currentTime = 0; jumpSound.play(); }
+  function playHit(){ hitSound.currentTime = 0; hitSound.play(); }
+  function playScore(){ scoreSound.currentTime = 0; scoreSound.play(); }
+
+  // --- Game Setup ---
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  let W = canvas.width, H = canvas.height;
+
+  // --- Backgrounds (Parallax Layers) ---
+  const bgLayers = [
+    { speed: 0.4, color: ['#e1bee7', '#b2ebf2'],  offset: 0, draw:drawClouds },
+    { speed: 0.7, color: ['#aed581', '#ffd54f'],  offset: 0, draw:drawHill },
+    { speed: 1.2, color: ['#8bc34a', '#fbc02d'],  offset: 0, draw:drawBushes },
+  ];
+
+  // --- Main Character ---
+  const ball = {
+    x: 100,
+    y: H-62,
+    r: 32,
+    vy: 0,
+    gravity: 0.68,
+    jumpPower: -11.2,
+    onGround: true,
+    eyeBlink: 0,
+    faceFrame: 0,
+    cuteAnim: 0
+  };
+
+  // --- Obstacles List ---
+  let obstacles = [];
+
+  // --- Game State ---
+  let running = false, gameOver = false;
+  let score = 0, highScore = 0;
+  let time = 0, speed = 5, baseSpeed = 5;
+
+  // --- UI elements ---
+  const scoreEl = document.getElementById('score');
+  const highScoreEl = document.getElementById('highScore');
+  const gameOverScreen = document.getElementById('gameOverScreen');
+  const retryBtn = document.getElementById('retryBtn');
+  const finalScoreEl = document.getElementById('finalScore');
+
+  // --- Responsive canvas ---
+  function resizeCanvas(){
+    let ratio = window.devicePixelRatio || 1;
+    let w = Math.min(window.innerWidth * 0.98, 790);
+    let h = Math.max(Math.min(window.innerHeight * 0.53, 380), 210);
+    canvas.width = w*ratio;
+    canvas.height = h*ratio;
+    canvas.style.width = w+'px';
+    canvas.style.height = h+'px';
+    W = canvas.width/ratio;
+    H = canvas.height/ratio;
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  // --- Input (Jump) ---
+  function jump(){
+    if (!running) return;
+    if (ball.onGround) {
+      ball.vy = ball.jumpPower;
+      ball.onGround = false;
+      ball.cuteAnim = 8;
+      playJump();
+    }
+  }
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' || e.key === 'w' || e.key === 'ArrowUp') jump();
+    if (gameOver && (e.code==='Space'||e.code==='Enter')) restartGame();
+  });
+  canvas.addEventListener('pointerdown', jump);
+
+  // --- Retry Button ---
+  retryBtn.addEventListener('click', restartGame);
+
+  // --- Main Game Loop ---
+  function startGame(){
+    running = true;
+    gameOver = false;
+    speed = baseSpeed;
+    score = 0;
+    time = 0;
+    obstacles = [];
+    ball.y = H-62;
+    ball.vy = 0;
+    ball.onGround = true;
+    ball.faceFrame = 0;
+    hideGameOver();
+    animate();
+  }
+  function restartGame(){
+    startGame();
+  }
+
+  function gameOverFunc(){
+    running = false;
+    gameOver = true;
+    playHit();
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem('jumpBallHighScore', highScore);
+    }
+    showGameOver();
+  }
+
+  function animate(){
+    if (!running) return;
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // --- Parallax BG ---
+    bgLayers.forEach(layer => {
+      layer.offset = (layer.offset + speed * layer.speed) % 1024;
+      layer.draw(ctx, layer.offset, W, H, layer.color);
+    });
+
+    // --- Obstacles logic / draw ---
+    for (let obs of obstacles) {
+      obs.x -= speed;
+      drawObstacle(obs, ctx);
+    }
+    obstacles = obstacles.filter(obs => obs.x+obs.w > -30);
+
+    // --- Ball physics ---
+    ball.vy += ball.gravity;
+    ball.y += ball.vy;
+    if (ball.y >= H-62) {
+      ball.y = H-62;
+      ball.vy = 0;
+      if (!ball.onGround) {
+        ball.onGround = true;
+        playScore();
+      }
+    } else {
+      ball.onGround = false;
+    }
+    if (ball.cuteAnim > 0) ball.cuteAnim--;
+    ball.eyeBlink--;
+    if (ball.eyeBlink<0) ball.eyeBlink = Math.floor(rand(60,180));
+
+    drawBall(ctx, ball, W, H);
+
+    // --- Check collision ---
+    for (let obs of obstacles) {
+      if (collide(ball, obs)) {
+        gameOverFunc();
+        return;
+      }
+    }
+    // --- Update score & spawn obstacles ---
+    if (obstacles.length==0 || obstacles[obstacles.length-1].x < W-rand(120,280)) {
+      obstacles.push(makeObstacle(W, H, speed));
+    }
+    // --- Score point (when pass obstacle) ---
+    for (let obs of obstacles) {
+      if (!obs.scored && obs.x+obs.w<ball.x-ball.r) {
+        obs.scored = true;
+        score++;
+        playScore();
+        if (score % 8 == 0) speed += 0.6;
+      }
+    }
+    time++;
+    drawUI();
+    requestAnimationFrame(animate);
+  }
+
+  // --- Draw Ball (Character) ---
+  function drawBall(ctx, ball, W, H){
+    ctx.save();
+    ctx.translate(ball.x, ball.y);
+    let squish = ball.onGround ? 1.05-(Math.abs(ball.vy)*0.016) : 1+Math.sin(ball.cuteAnim)*0.09;
+    ctx.scale(1.0, squish);
+    // Ball body
+    let grad = ctx.createRadialGradient(0,-8,6, 0,0,ball.r);
+    grad.addColorStop(0,'#fffde7');
+    grad.addColorStop(0.48,'#ffee58');
+    grad.addColorStop(0.98,'#fbc02d');
+    grad.addColorStop(1,'#f57c00');
+    ctx.beginPath();
+    ctx.arc(0,0, ball.r, 0, Math.PI*2);
+    ctx.fillStyle = grad;
+    ctx.shadowColor = '#fffde7';
+    ctx.shadowBlur = 12;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    // Ball stripes
+    ctx.beginPath();
+    ctx.strokeStyle = '#ff7043';
+    ctx.lineWidth = 4;
+    ctx.arc(0,-2,ball.r-9,0.8,2.34);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0,6,ball.r-11,4.5,5.55);
+    ctx.stroke();
+    // Eyes
+    ctx.save();
+    let isBlink = ball.eyeBlink<6;
+    ctx.rotate(Math.sin(time/9)*0.1);
+    for(let sx of [-9,11]) {
+      ctx.beginPath();
+      ctx.ellipse(sx, -18, 5, isBlink ? 1.2: 7, 0, 0, Math.PI*2);
+      ctx.fillStyle = '#fff';
+      ctx.globalAlpha = 0.99;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.ellipse(sx, -18, 1.4, isBlink ? 0.1 : 2, 0, 0, Math.PI*2);
+      ctx.fillStyle = '#3949ab';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(sx-0.6, -18, 0.5, 0.6, 0, 0, Math.PI*2);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+    }
+    ctx.restore();
+    // Smile
+    ctx.beginPath();
+    ctx.strokeStyle = '#e65100';
+    ctx.lineWidth = 2.1;
+    ctx.arc(0,2,10,Math.PI*0.07,Math.PI*0.93, false);
+    ctx.stroke();
+    // Cheeks
+    ctx.save();
+    ctx.globalAlpha = ball.onGround?0.33:0.09;
+    ctx.fillStyle = '#ff8a65';
+    ctx.beginPath(); ctx.ellipse(-16, -6, 4,2,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(16, -6, 5,2,0,0,Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+    ctx.restore();
+  }
+
+  // --- Draw BG Parallax Layers ---
+  function drawClouds(ctx, xoff, W, H, color){
+    ctx.save();
+    for(let y=0;y<5;y++){
+      for(let i=0; i<4; i++){
+        let cx = ((i*300)-xoff)% (W+400) - 100;
+        let cy = y*38+31+Math.sin(y+i)*6;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 25+Math.sin(i+y)*6, 0, Math.PI*2);
+        ctx.arc(cx+29, cy+7, 17,0,Math.PI*2);
+        ctx.arc(cx-20, cy+5, 17,0,Math.PI*2);
+        ctx.fillStyle = `rgba(255,255,255,0.82)`;
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+  function drawHill(ctx, xoff, W, H, color){
+    ctx.save();
+    let yBase = H-40;
+    for(let i=0; i<3; i++){
+      let hx = ((i*380)-xoff*0.7)% (W+380) - 70;
+      ctx.beginPath();
+      ctx.ellipse(hx, yBase+7, 150, 56+Math.sin(i)*7,0,0,Math.PI*2);
+      ctx.fillStyle = color[0];
+      ctx.globalAlpha = 0.5+0.1*i;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+  }
+  function drawBushes(ctx, xoff, W, H, color){
+    ctx.save();
+    let yBase = H-27;
+    for(let i=0; i<6; i++){
+      let bx = ((i*131)-xoff*1.2)% (W+200) - 40;
+      ctx.beginPath();
+      ctx.arc(bx, yBase, 21 + Math.sin(i)*3, 0, Math.PI*2);
+      ctx.fillStyle = color[0];
+      ctx.globalAlpha = 0.69;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(bx+19, yBase+6, 14, 0, Math.PI*2);
+      ctx.fillStyle = color[1];
+      ctx.globalAlpha = 0.59;
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // --- Obstacles (funny shapes) ---
+  function makeObstacle(W, H, speed){
+    let dx = W+rand(40,100);
+    let types = [
+      {w: rand(27,41), h: rand(34,54), shape:'cactus'},
+      {w: rand(31,46), h: rand(24,41), shape:'slug'},
+      {w: rand(21,27), h: rand(41,75), shape:'cone'},
+      {w: rand(34,62), h: rand(21,27), shape:'cheese'},
+    ];
+    let t = types[Math.floor(rand(0,types.length))];
+    return {x:dx, y:H-58-t.h, w:t.w, h:t.h, type:t.shape, scored:false};
+  }
+  function drawObstacle(obs, ctx){
+    ctx.save();
+    ctx.translate(obs.x|0, obs.y|0);
+    // Cactus (cartoon)
+    if (obs.type==='cactus'){
+      ctx.beginPath();
+      ctx.moveTo(8, obs.h-2); ctx.lineTo(8,10); ctx.bezierCurveTo(8,-8,26,-8,26,10);
+      ctx.lineTo(26, obs.h-2);
+      ctx.closePath();
+      ctx.fillStyle = '#4caf50';
+      ctx.shadowColor = '#e1f5fe';
+      ctx.shadowBlur = 6;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.beginPath();
+      ctx.arc(17, 10, 11, Math.PI, 2*Math.PI);
+      ctx.fillStyle = '#66bb6a'; ctx.fill();
+    }
+    // Slug (silly)
+    else if (obs.type==='slug'){
+      ctx.beginPath();
+      ctx.ellipse(obs.w/2, obs.h-4, obs.w/2.1, obs.h/2.2, 0, 0, Math.PI*2);
+      ctx.fillStyle = '#7e57c2'; ctx.globalAlpha=0.91; ctx.fill(); ctx.globalAlpha=1;
+      ctx.beginPath(); ctx.arc(obs.w/2-5, obs.h-7, 3, 0, 2*Math.PI); ctx.arc(obs.w/2+5, obs.h-7, 3, 0, 2*Math.PI); ctx.fillStyle='#fff'; ctx.fill();
+      ctx.beginPath(); ctx.arc(obs.w/2-5, obs.h-7, 1, 0, 2*Math.PI); ctx.arc(obs.w/2+5, obs.h-7, 1, 0, 2*Math.PI); ctx.fillStyle='#455a64'; ctx.fill();
+      ctx.beginPath(); ctx.arc(obs.w/2, obs.h-15, 5, 0.4,2.6);
+      ctx.lineWidth = 2.6; ctx.strokeStyle = '#212121'; ctx.stroke();
+    }
+    // Traffic Cone
+    else if (obs.type==='cone'){
+      ctx.beginPath();
+      ctx.moveTo(0,obs.h); ctx.lineTo(obs.w/2,0); ctx.lineTo(obs.w,obs.h); ctx.closePath();
+      ctx.fillStyle = '#ff7043'; ctx.globalAlpha=0.95; ctx.fill(); ctx.globalAlpha=1;
+      ctx.beginPath(); ctx.moveTo(0,obs.h); ctx.lineTo(obs.w,obs.h); ctx.strokeStyle='#fffde7'; ctx.lineWidth=4; ctx.stroke();
+    }
+    // Cheese!
+    else if (obs.type==='cheese'){
+      ctx.beginPath(); ctx.moveTo(0,obs.h); ctx.lineTo(obs.w/2,0); ctx.lineTo(obs.w,obs.h); ctx.closePath();
+      ctx.fillStyle = '#ffd600'; ctx.globalAlpha=0.85; ctx.fill(); ctx.globalAlpha=1;
+      ctx.beginPath(); ctx.arc(obs.w/2,obs.h-8,3,0,2*Math.PI); ctx.fillStyle='#fffde7'; ctx.fill();
+      ctx.beginPath(); ctx.arc(obs.w/3,obs.h-13,2,0,2*Math.PI); ctx.fillStyle='#fffde7'; ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // --- AABB Collision ---
+  function collide(ball, obs){
+    let cx = ball.x;
+    let cy = ball.y;
+    let r = ball.r - 6;
+    let ox = obs.x, oy = obs.y, ow = obs.w, oh = obs.h;
+    // Circle-Rect collision (approx)
+    let closestX = clamp(cx, ox, ox+ow);
+    let closestY = clamp(cy, oy, oy+oh);
+    let dx = cx - closestX;
+    let dy = cy - closestY;
+    return dx*dx+dy*dy < r*r*0.89;
+  }
+
+  // --- Scores and UI ---
+  function drawUI(){
+    scoreEl.textContent = 'Score: ' + score;
+    highScoreEl.textContent = 'High Score: ' + highScore;
+  }
+  function showGameOver(){
+    finalScoreEl.textContent = `Your Score: ${score}` + (score>=highScore?' \ud83c\udfc6 Yay, New High Score!':'');
+    gameOverScreen.classList.add('active');
+  }
+  function hideGameOver(){
+    gameOverScreen.classList.remove('active');
+  }
+
+  // --- Load high score ---
+  (function(){
+    let hs = localStorage.getItem('jumpBallHighScore');
+    highScore = hs?parseInt(hs,10):0;
+    drawUI();
+  })();
+
+  // --- Title ---
+  function drawTitleSplash(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.save();
+    ctx.globalAlpha = 0.68;
+    ctx.fillStyle = '#fbc02d';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.restore();
+    ctx.font = 'bold 2.5em Comic Sans MS,Comic Sans,cursive';
+    ctx.fillStyle = '#7e57c2';
+    ctx.textAlign = 'center';
+    ctx.fillText('Jumping Ball Runner', W/2, H/2-30);
+    ctx.font = '1.3em Comic Sans MS,Comic Sans,cursive';
+    ctx.fillStyle = '#388e3c';
+    ctx.fillText('Tap / Space / Up Arrow to Jump! \nSurvive as long as you can.', W/2, H/2+13);
+    ctx.font = '1em Comic Sans MS,Comic Sans,cursive';
+    ctx.fillStyle = '#ff7043';
+    ctx.fillText('Press to Start', W/2, H/2+54);
+    ctx.restore();
+  }
+  function onStartPress(){
+    window.removeEventListener('pointerdown', onStartPress);
+    document.removeEventListener('keydown', onTitleKey);
+    startGame();
+  }
+  function onTitleKey(e){
+    if(['Space','Enter','ArrowUp','w'].includes(e.code)||e.key===' '){
+      onStartPress();
+    }
+  }
+  // --- Show title splash first ---
+  drawTitleSplash();
+  window.addEventListener('pointerdown', onStartPress);
+  document.addEventListener('keydown', onTitleKey);
+  </script>
+</body>
+</html>

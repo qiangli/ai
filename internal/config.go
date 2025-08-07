@@ -514,7 +514,7 @@ func ParseLLM(viper *fangs.Viper, app *api.AppConfig) error {
 			}
 		case os.Getenv("OPENAI_API_KEY") != "":
 			m = model.Model{
-				Name:    "openai/gpt-4.1-mini",
+				Name:    "openai/gpt-5-nano",
 				BaseUrl: "https://api.openai.com/v1/",
 				ApiKey:  os.Getenv("OPENAI_API_KEY"),
 			}
