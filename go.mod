@@ -13,7 +13,7 @@ require (
 	github.com/alecthomas/kong v1.12.1
 	github.com/alexflint/go-arg v1.6.0
 	github.com/alicebob/miniredis/v2 v2.35.0
-	github.com/anthropics/anthropic-sdk-go v1.7.0
+	github.com/anthropics/anthropic-sdk-go v1.8.0
 	github.com/antonmedv/clipboard v1.0.1
 	github.com/atotto/clipboard v0.1.4
 	github.com/auxten/postgresql-parser v1.0.1
@@ -251,14 +251,14 @@ require (
 	go.opentelemetry.io/otel/metric v1.37.0 // indirect
 	go.opentelemetry.io/otel/trace v1.37.0 // indirect
 	golang.org/x/arch v0.20.0 // indirect
-	golang.org/x/crypto v0.40.0 // indirect
+	golang.org/x/crypto v0.41.0 // indirect
 	golang.org/x/exp v0.0.0-20250718183923-645b1fa84792 // indirect
 	golang.org/x/mod v0.27.0 // indirect
-	golang.org/x/net v0.42.0 // indirect
+	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sync v0.16.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/tools v0.35.0 // indirect
+	golang.org/x/tools v0.36.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20250603155806-513f23925822 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250603155806-513f23925822 // indirect
