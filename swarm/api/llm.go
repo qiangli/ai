@@ -10,7 +10,7 @@ import (
 
 type LLMConfig struct {
 	Provider string
-	Model    string
+	Name     string
 	BaseUrl  string
 	ApiKey   string
 
@@ -26,7 +26,7 @@ func (config *LLMConfig) Clone() *LLMConfig {
 
 	return &LLMConfig{
 		Provider: config.Provider,
-		Model:    config.Model,
+		Name:     config.Name,
 		BaseUrl:  config.BaseUrl,
 		ApiKey:   config.ApiKey,
 		Models:   modelsCopy,

@@ -1,6 +1,7 @@
 ##
 # name: gemini
 api_key: ${GEMINI_API_KEY}
+provider: "gemini"
 
 models:
   L1:

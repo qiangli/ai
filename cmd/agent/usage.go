@@ -210,7 +210,7 @@ AI Environment:
 
 	cfg := vars.Config
 
-	log.Infof(format, info, cfg.LLM.Model, cfg.LLM.BaseUrl, cfg.LLM.ApiKey, string(ac), strings.Join(filteredEnvs, "\n"))
+	log.Infof(format, info, cfg.LLM.Name, cfg.LLM.BaseUrl, cfg.LLM.ApiKey, string(ac), strings.Join(filteredEnvs, "\n"))
 	return nil
 }
 

@@ -13,7 +13,7 @@ require (
 	github.com/alecthomas/kong v1.12.1
 	github.com/alexflint/go-arg v1.6.0
 	github.com/alicebob/miniredis/v2 v2.35.0
-	github.com/anthropics/anthropic-sdk-go v1.8.0
+	github.com/anthropics/anthropic-sdk-go v1.9.1
 	github.com/antonmedv/clipboard v1.0.1
 	github.com/atotto/clipboard v0.1.4
 	github.com/auxten/postgresql-parser v1.0.1
@@ -34,7 +34,7 @@ require (
 	github.com/docker/docker v28.3.3+incompatible
 	github.com/dolthub/go-mysql-server v0.20.0
 	github.com/ebitengine/oto/v3 v3.3.3
-	github.com/expr-lang/expr v1.17.5
+	github.com/expr-lang/expr v1.17.6
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gen2brain/beeep v0.11.1
 	github.com/getkin/kin-openapi v0.132.0
@@ -72,7 +72,7 @@ require (
 	go.etcd.io/bbolt v1.4.2
 	golang.org/x/term v0.34.0
 	golang.org/x/text v0.28.0
-	google.golang.org/api v0.246.0
+	google.golang.org/api v0.247.0
 	google.golang.org/genai v1.19.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v3 v3.0.1
@@ -80,7 +80,7 @@ require (
 )
 
 require (
-	cloud.google.com/go v0.121.4 // indirect
+	cloud.google.com/go v0.121.5 // indirect
 	cloud.google.com/go/auth v0.16.4 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
 	cloud.google.com/go/compute/metadata v0.8.0 // indirect
@@ -106,7 +106,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.3.1 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.13 // indirect
-	github.com/charmbracelet/x/exp/slice v0.0.0-20250811200244-20ca1e5e57f1 // indirect
+	github.com/charmbracelet/x/exp/slice v0.0.0-20250812135814-932da4e322f4 // indirect
 	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
 	github.com/cloudwego/gopkg v0.1.5 // indirect
@@ -261,7 +261,7 @@ require (
 	golang.org/x/tools v0.36.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20250603155806-513f23925822 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250603155806-513f23925822 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250721164621-a45f3dfb1074 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250811230008-5f3141c8851a // indirect
 	google.golang.org/grpc v1.74.2 // indirect
 	google.golang.org/protobuf v1.36.7 // indirect

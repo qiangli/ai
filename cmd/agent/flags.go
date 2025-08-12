@@ -98,51 +98,51 @@ func addAgentFlags(cmd *cobra.Command) {
 	// a set of models grouped under one name for convenience from potentially different service providers
 	flags.StringP("models", "m", "", "LLM model alias defined in the models directory")
 
-	// llm - use models config yaml instead
-	flags.String("provider", "", "LLM provider")
-	flags.MarkHidden("provider")
+	// // llm - use models config yaml instead
+	// flags.String("provider", "", "LLM provider")
+	// flags.MarkHidden("provider")
 
-	flags.String("api-key", "", "LLM API key")
-	flags.String("model", "", "LLM default model")
-	flags.String("base-url", "", "LLM Base URL")
+	// flags.String("api-key", "", "LLM API key")
+	// flags.String("model", "", "LLM default model")
+	// flags.String("base-url", "", "LLM Base URL")
 
-	flags.MarkHidden("api-key")
-	flags.MarkHidden("model")
-	flags.MarkHidden("base-url")
+	// flags.MarkHidden("api-key")
+	// flags.MarkHidden("model")
+	// flags.MarkHidden("base-url")
 
-	// basic/regular/reasoning models
-	flags.String("l1-api-key", "", "Level1 basic LLM API key")
-	flags.String("l1-model", "", "Level1 basic LLM model")
-	flags.String("l1-base-url", "", "Level1 basic LLM Base URL")
+	// // basic/regular/reasoning models
+	// flags.String("l1-api-key", "", "Level1 basic LLM API key")
+	// flags.String("l1-model", "", "Level1 basic LLM model")
+	// flags.String("l1-base-url", "", "Level1 basic LLM Base URL")
 
-	flags.String("l2-api-key", "", "Level2 standard LLM API key")
-	flags.String("l2-model", "", "Level2 standard LLM model")
-	flags.String("l2-base-url", "", "Level2 standard LLM Base URL")
+	// flags.String("l2-api-key", "", "Level2 standard LLM API key")
+	// flags.String("l2-model", "", "Level2 standard LLM model")
+	// flags.String("l2-base-url", "", "Level2 standard LLM Base URL")
 
-	flags.String("l3-api-key", "", "Level3 advanced LLM API key")
-	flags.String("l3-model", "", "Level3 advanced LLM model")
-	flags.String("l3-base-url", "", "Level3 advanced LLM Base URL")
+	// flags.String("l3-api-key", "", "Level3 advanced LLM API key")
+	// flags.String("l3-model", "", "Level3 advanced LLM model")
+	// flags.String("l3-base-url", "", "Level3 advanced LLM Base URL")
 
-	flags.MarkHidden("l1-api-key")
-	flags.MarkHidden("l2-api-key")
-	flags.MarkHidden("l3-api-key")
-	flags.MarkHidden("l1-model")
-	flags.MarkHidden("l2-model")
-	flags.MarkHidden("l3-model")
-	flags.MarkHidden("l1-base-url")
-	flags.MarkHidden("l2-base-url")
-	flags.MarkHidden("l3-base-url")
+	// flags.MarkHidden("l1-api-key")
+	// flags.MarkHidden("l2-api-key")
+	// flags.MarkHidden("l3-api-key")
+	// flags.MarkHidden("l1-model")
+	// flags.MarkHidden("l2-model")
+	// flags.MarkHidden("l3-model")
+	// flags.MarkHidden("l1-base-url")
+	// flags.MarkHidden("l2-base-url")
+	// flags.MarkHidden("l3-base-url")
 
 	// tts
-	flags.String("tts-provider", "", "TTS provider")
-	flags.String("tts-api-key", "", "TTS API key")
-	flags.String("tts-model", "", "TTS model")
-	flags.String("tts-base-url", "", "TTS Base URL")
+	// flags.String("tts-provider", "", "TTS provider")
+	// flags.String("tts-api-key", "", "TTS API key")
+	// flags.String("tts-model", "", "TTS model")
+	// flags.String("tts-base-url", "", "TTS Base URL")
 
-	flags.MarkHidden("tts-provider")
-	flags.MarkHidden("tts-api-key")
-	flags.MarkHidden("tts-model")
-	flags.MarkHidden("tts-base-url")
+	// flags.MarkHidden("tts-provider")
+	// flags.MarkHidden("tts-api-key")
+	// flags.MarkHidden("tts-model")
+	// flags.MarkHidden("tts-base-url")
 
 	// // image -- use models config yaml
 	// flags.String("image-api-key", "", "Image LLM API key")
@@ -201,17 +201,17 @@ func addAgentFlags(cmd *cobra.Command) {
 	// TODO move to individual config file
 	// agent specific flags
 	// db
-	flags.String("sql-db-host", "", "Database host")
-	flags.String("sql-db-port", "", "Database port")
-	flags.String("sql-db-username", "", "Database username")
-	flags.String("sql-db-password", "", "Database password")
-	flags.String("sql-db-name", "", "Database name")
+	// flags.String("sql-db-host", "", "Database host")
+	// flags.String("sql-db-port", "", "Database port")
+	// flags.String("sql-db-username", "", "Database username")
+	// flags.String("sql-db-password", "", "Database password")
+	// flags.String("sql-db-name", "", "Database name")
 
-	flags.MarkHidden("sql-db-host")
-	flags.MarkHidden("sql-db-port")
-	flags.MarkHidden("sql-db-username")
-	flags.MarkHidden("sql-db-password")
-	flags.MarkHidden("sql-db-name")
+	// flags.MarkHidden("sql-db-host")
+	// flags.MarkHidden("sql-db-port")
+	// flags.MarkHidden("sql-db-username")
+	// flags.MarkHidden("sql-db-password")
+	// flags.MarkHidden("sql-db-name")
 
 	// mcp - this is for mcp, but we need to define it here
 	flags.Int("port", 0, "Port to run the server")

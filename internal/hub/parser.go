@@ -78,19 +78,19 @@ func addAgentFlags(cmd *cobra.Command, cfg *api.AppConfig) {
 	if cfg.LLM == nil {
 		cfg.LLM = &api.LLMConfig{}
 	}
-	flags.String("provider", cfg.LLM.Provider, "LLM provider")
-	flags.String("api-key", cfg.LLM.ApiKey, "LLM API key")
-	flags.String("model", cfg.LLM.Model, "LLM default model")
-	flags.String("base-url", cfg.LLM.BaseUrl, "LLM Base URL")
+	// flags.String("provider", cfg.LLM.Provider, "LLM provider")
+	// flags.String("api-key", cfg.LLM.ApiKey, "LLM API key")
+	// flags.String("model", cfg.LLM.Model, "LLM default model")
+	// flags.String("base-url", cfg.LLM.BaseUrl, "LLM Base URL")
 
 	// assume cfg.TTS not nil
 	if cfg.TTS == nil {
 		cfg.TTS = &api.TTSConfig{}
 	}
-	flags.String("tts-provider", cfg.TTS.Provider, "TTS provider")
-	flags.String("tts-api-key", cfg.TTS.ApiKey, "TTS API key")
-	flags.String("tts-model", cfg.TTS.Model, "TTS model")
-	flags.String("tts-base-url", cfg.TTS.BaseUrl, "TTS Base URL")
+	// flags.String("tts-provider", cfg.TTS.Provider, "TTS provider")
+	// flags.String("tts-api-key", cfg.TTS.ApiKey, "TTS API key")
+	// flags.String("tts-model", cfg.TTS.Model, "TTS model")
+	// flags.String("tts-base-url", cfg.TTS.BaseUrl, "TTS Base URL")
 
 	//
 	flags.Int("max-turns", cfg.MaxTurns, "Max number of turns")

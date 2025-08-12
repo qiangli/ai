@@ -22,7 +22,7 @@ func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 		return nil, fmt.Errorf("No LLM model provided")
 	}
 
-	provider := req.Model.Provider()
+	provider := req.Model.Provider
 	model := req.Model.Model()
 
 	//

@@ -459,22 +459,22 @@ func ParseLLM(viper *fangs.Viper, app *api.AppConfig) error {
 	var lc = &api.LLMConfig{}
 	app.LLM = lc
 	// default
-	lc.Provider = viper.GetString("provider")
+	// lc.Provider = viper.GetString("provider")
 
-	lc.ApiKey = viper.GetString("api_key")
-	lc.Model = viper.GetString("model")
-	lc.BaseUrl = viper.GetString("base_url")
+	// lc.ApiKey = viper.GetString("api_key")
+	// lc.Name = viper.GetString("model")
+	// lc.BaseUrl = viper.GetString("base_url")
 
-	// <provider>/<model>
-	modelName := func(n string) string {
-		if strings.Contains(n, "/") {
-			return n
-		}
-		if lc.Provider == "" {
-			return "openai/" + n
-		}
-		return lc.Provider + "/" + n
-	}
+	// // <provider>/<model>
+	// modelName := func(n string) string {
+	// 	if strings.Contains(n, "/") {
+	// 		return n
+	// 	}
+	// 	if lc.Provider == "" {
+	// 		return "openai/" + n
+	// 	}
+	// 	return lc.Provider + "/" + n
+	// }
 
 	//
 	alias := viper.GetString("models")
@@ -505,30 +505,33 @@ func ParseLLM(viper *fangs.Viper, app *api.AppConfig) error {
 		// all levels share same config
 		var m model.Model
 		switch {
-		case lc.ApiKey != "" && lc.Model != "":
-			// assume openai compatible
-			m = model.Model{
-				Name:    modelName(lc.Model),
-				BaseUrl: lc.BaseUrl,
-				ApiKey:  lc.ApiKey,
-			}
+		// case lc.ApiKey != "" && lc.Name != "":
+		// 	// assume openai compatible
+		// 	m = model.Model{
+		// 		Name:    lc.Name,
+		// 		BaseUrl: lc.BaseUrl,
+		// 		ApiKey:  lc.ApiKey,
+		// 	}
 		case os.Getenv("OPENAI_API_KEY") != "":
 			m = model.Model{
-				Name:    "openai/gpt-5-nano",
-				BaseUrl: "https://api.openai.com/v1/",
-				ApiKey:  os.Getenv("OPENAI_API_KEY"),
+				Name:     "gpt-5-nano",
+				Provider: "openai",
+				BaseUrl:  "https://api.openai.com/v1/",
+				ApiKey:   os.Getenv("OPENAI_API_KEY"),
 			}
 		case os.Getenv("GEMINI_API_KEY") != "":
 			m = model.Model{
-				Name:    "gemini/gemini-2.0-flash-lite",
-				BaseUrl: "",
-				ApiKey:  os.Getenv("GEMINI_API_KEY"),
+				Name:     "gemini-2.0-flash-lite",
+				Provider: "gemini",
+				BaseUrl:  "",
+				ApiKey:   os.Getenv("GEMINI_API_KEY"),
 			}
 		case os.Getenv("ANTHROPIC_API_KEY") != "":
 			m = model.Model{
-				Name:    "anthropic/claude-3-5-haiku-latest",
-				BaseUrl: "",
-				ApiKey:  os.Getenv("ANTHROPIC_API_KEY"),
+				Name:     "claude-3-5-haiku-latest",
+				Provider: "anthropic",
+				BaseUrl:  "",
+				ApiKey:   os.Getenv("ANTHROPIC_API_KEY"),
 			}
 		default:
 		}
@@ -542,30 +545,30 @@ func ParseLLM(viper *fangs.Viper, app *api.AppConfig) error {
 		app.LLM.Models = models
 	}
 	// update or add model from command line flags
-	for _, l := range model.Levels {
-		s := strings.ToLower(string(l))
-		k := viper.GetString(s + "_api_key")
-		n := viper.GetString(s + "_model")
-		u := viper.GetString(s + "_base_url")
-		if v, ok := app.LLM.Models[l]; ok {
-			if k != "" {
-				v.ApiKey = k
-			}
-			if n != "" {
-				v.Name = modelName(n)
-			}
-			if u != "" {
-				v.BaseUrl = u
-			}
-			app.LLM.Models[l] = v
-		} else {
-			app.LLM.Models[l] = &model.Model{
-				Name:    modelName(n),
-				ApiKey:  k,
-				BaseUrl: u,
-			}
-		}
-	}
+	// for _, l := range model.Levels {
+	// 	s := strings.ToLower(string(l))
+	// 	k := viper.GetString(s + "_api_key")
+	// 	n := viper.GetString(s + "_model")
+	// 	u := viper.GetString(s + "_base_url")
+	// 	if v, ok := app.LLM.Models[l]; ok {
+	// 		if k != "" {
+	// 			v.ApiKey = k
+	// 		}
+	// 		if n != "" {
+	// 			v.Name = n
+	// 		}
+	// 		if u != "" {
+	// 			v.BaseUrl = u
+	// 		}
+	// 		app.LLM.Models[l] = v
+	// 	} else {
+	// 		app.LLM.Models[l] = &model.Model{
+	// 			Name:    modelName(n),
+	// 			ApiKey:  k,
+	// 			BaseUrl: u,
+	// 		}
+	// 	}
+	// }
 	// model config is required
 	if len(app.LLM.Models) == 0 {
 		return fmt.Errorf("No LLM configuration found")
@@ -573,16 +576,16 @@ func ParseLLM(viper *fangs.Viper, app *api.AppConfig) error {
 
 	// TODO
 	tts := &api.TTSConfig{}
-	tts.ApiKey = viper.GetString("tts_api_key")
-	tts.Provider = viper.GetString("tts_provider")
-	tts.Model = viper.GetString("tts_model")
-	tts.BaseUrl = viper.GetString("tts_base_url")
-	if tts.ApiKey == "" {
-		tts.ApiKey = os.Getenv("OPENAI_API_KEY")
-	}
-	if tts.Model == "" {
-		tts.Model = "gpt-4o-mini-tts"
-	}
+	// tts.ApiKey = viper.GetString("tts_api_key")
+	// tts.Provider = viper.GetString("tts_provider")
+	// tts.Model = viper.GetString("tts_model")
+	// tts.BaseUrl = viper.GetString("tts_base_url")
+	// if tts.ApiKey == "" {
+	// 	tts.ApiKey = os.Getenv("OPENAI_API_KEY")
+	// }
+	// if tts.Model == "" {
+	// 	tts.Model = "gpt-4o-mini-tts"
+	// }
 
 	app.TTS = tts
 

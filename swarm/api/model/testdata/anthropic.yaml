@@ -2,6 +2,7 @@
 # name: anthropic
 api_key: ${ANTHROPIC_API_KEY}
 base_url: ""
+provider: "anthropic"
 
 models:
   L1:

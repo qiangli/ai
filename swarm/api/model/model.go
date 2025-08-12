@@ -47,12 +47,20 @@ const (
 	// embeddings
 )
 
+// TODO refactor config and correct the naming?
 type ModelsConfig struct {
-	Name    string `yaml:"name" json:"name"`
-	BaseUrl string `yaml:"base_url" json:"baseUrl"`
-	ApiKey  string `yaml:"api_key" json:"apiKey"`
+	// provider/alias
+	Alias string `yaml:"name" json:"name"`
 
-	Models map[Level]*Model `json:"-"`
+	// model name
+	Name string `yaml:"model" json:"model"`
+
+	// default for Models
+	Provider string `yaml:"provider" json:"provider"`
+	BaseUrl  string `yaml:"base_url" json:"baseUrl"`
+	ApiKey   string `yaml:"api_key" json:"apiKey"`
+
+	Models map[Level]*Model `yaml:"models" json:"models"`
 }
 
 // Level represents the "intelligence" level of the model. i.e. basic, regular, advanced
@@ -77,21 +85,26 @@ type Model struct {
 	Type OutputType `yaml:"type" json:"type"`
 
 	// [provider/]model
-	Name string `yaml:"name" json:"name"`
+	Provider string `yaml:"provider" json:"provider"`
+	Name     string `yaml:"name" json:"name"`
 
 	BaseUrl string `yaml:"base_url" json:"baseUrl"`
 	ApiKey  string `yaml:"api_key" json:"apiKey"`
 }
 
 func (r *Model) Model() string {
-	_, m := r.split()
-	return m
+	return r.Name
 }
 
-func (r *Model) Provider() string {
-	p, _ := r.split()
-	return p
-}
+// func (r *Model) Model() string {
+// 	_, m := r.split()
+// 	return m
+// }
+
+// func (r *Model) Provider() string {
+// 	p, _ := r.split()
+// 	return p
+// }
 
 func (r *Model) Clone() *Model {
 	clone := &Model{
@@ -105,16 +118,16 @@ func (r *Model) Clone() *Model {
 	return clone
 }
 
-// [<provider>/]<model>
-// openai/gpt-4.1-mini
-// gemini/gemini-2.0-flash
-func (r *Model) split() (string, string) {
-	parts := strings.SplitN(r.Name, "/", 2)
-	if len(parts) == 2 {
-		return parts[0], parts[1]
-	}
-	return "", r.Name
-}
+// // [<provider>/]<model>
+// // openai/gpt-4.1-mini
+// // gemini/gemini-2.0-flash
+// func (r *Model) split() (string, string) {
+// 	parts := strings.SplitN(r.Name, "/", 2)
+// 	if len(parts) == 2 {
+// 		return parts[0], parts[1]
+// 	}
+// 	return "", r.Name
+// }
 
 // LoadModels loads all aliases for models in a given baes directory
 func LoadModels(base string) (map[string]*ModelsConfig, error) {
@@ -142,10 +155,10 @@ func LoadModels(base string) (map[string]*ModelsConfig, error) {
 			}
 			cfg, err := loadModelsData([][]byte{b})
 			//
-			alias := cfg.Name
+			alias := cfg.Alias
 			if alias == "" {
 				alias = strings.TrimSuffix(name, filepath.Ext(name))
-
+				cfg.Alias = alias
 			}
 			m[alias] = cfg
 		}
@@ -171,8 +184,18 @@ func loadModelsData(data [][]byte) (*ModelsConfig, error) {
 
 	// fill defaults
 	for _, v := range merged.Models {
-		v.ApiKey = merged.ApiKey
-		v.BaseUrl = merged.BaseUrl
+		if v.ApiKey == "" {
+			v.ApiKey = merged.ApiKey
+		}
+		if v.BaseUrl == "" {
+			v.BaseUrl = merged.BaseUrl
+		}
+		if v.Provider == "" {
+			v.Provider = merged.Provider
+		}
+		if v.Name == "" {
+			v.Name = merged.Name
+		}
 		//
 		if len(v.Features) > 0 {
 			if _, ok := v.Features[Feature(OutputTypeImage)]; ok {
