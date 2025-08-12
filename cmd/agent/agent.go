@@ -14,7 +14,6 @@ import (
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/watch"
 	"github.com/qiangli/ai/shell"
-	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 )
 
@@ -34,13 +33,6 @@ var AgentCmd = &cobra.Command{
 
 func init() {
 	defaultCfg := os.Getenv("AI_CONFIG")
-	// // default: ~/.ai/config.yaml
-	// if defaultCfg == "" {
-	// 	home, _ := os.UserHomeDir()
-	// 	if home != "" {
-	// 		defaultCfg = filepath.Join(home, ".ai", "config.yaml")
-	// 	}
-	// }
 
 	pflags := AgentCmd.PersistentFlags()
 	pflags.String("config", defaultCfg, "config file")
@@ -75,12 +67,6 @@ func init() {
 	viper.BindPFlag("sql.db_port", flags.Lookup("sql-db-port"))
 	viper.BindPFlag("sql.db_username", flags.Lookup("sql-db-username"))
 	viper.BindPFlag("sql.db_password", flags.Lookup("sql-db-password"))
-
-	//
-	// viper.AutomaticEnv()
-	// viper.SetEnvPrefix("ai")
-	// viper.BindEnv("api-key", "AI_API_KEY", "OPENAI_API_KEY")
-	// viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 }
 
 func Run(cmd *cobra.Command, args []string) error {
@@ -92,21 +78,6 @@ func Run(cmd *cobra.Command, args []string) error {
 	if err := internal.Validate(cfg); err != nil {
 		return err
 	}
-
-	// vars, err := swarm.InitVars(cfg)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// log.Debugf("Initialized variables: %+v\n", vars)
-
-	// // hub service
-	// if cfg.Hub.Enable {
-	// 	if err := hub.StartServer(cfg); err != nil {
-	// 		log.Errorln(err)
-	// 	}
-	// 	return nil
-	// }
 
 	// watch mode
 	if cfg.Watch {
@@ -179,13 +150,7 @@ func Run(cmd *cobra.Command, args []string) error {
 			return nil
 		}
 
-		// TODO move to inside shell
-		vars, err := swarm.InitVars(cfg)
-		if err != nil {
-			return err
-		}
-
-		if err := shell.Shell(vars); err != nil {
+		if err := shell.Shell(cfg); err != nil {
 			log.Errorln(err)
 		}
 		return nil

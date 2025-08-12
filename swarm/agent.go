@@ -290,12 +290,9 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 		agent := api.Agent{
 			Name:    ac.Name,
 			Display: ac.Display,
-			// Role:        ac.Instruction.Role,
-			// Instruction: ac.Instruction.Content,
-			// Instruction: ac.Instruction,
+			//
 			Config: ac,
-			// InstructionType: ac.Instruction.Type,
-			// Vars:        vars,
+			//
 			RawInput: input,
 			MaxTurns: config.MaxTurns,
 			MaxTime:  config.MaxTime,

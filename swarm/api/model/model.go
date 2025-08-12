@@ -48,11 +48,11 @@ const (
 )
 
 type ModelsConfig struct {
-	Name    string `yaml:"name"`
-	BaseUrl string `yaml:"base_url"`
-	ApiKey  string `yaml:"api_key"`
+	Name    string `yaml:"name" json:"name"`
+	BaseUrl string `yaml:"base_url" json:"baseUrl"`
+	ApiKey  string `yaml:"api_key" json:"apiKey"`
 
-	Models map[Level]*Model
+	Models map[Level]*Model `json:"-"`
 }
 
 // Level represents the "intelligence" level of the model. i.e. basic, regular, advanced

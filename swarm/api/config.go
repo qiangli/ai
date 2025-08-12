@@ -30,8 +30,8 @@ type AppConfig struct {
 
 	AgentRegistry map[string]*AgentsConfig
 	AgentToolMap  map[string]*ToolFunc
+	ToolRegistry  map[string]*ToolFunc
 
-	ToolRegistry       map[string]*ToolFunc
 	ToolSystemCommands []string
 	SystemTools        []*ToolFunc
 

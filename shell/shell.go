@@ -12,10 +12,16 @@ import (
 	"golang.org/x/term"
 
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 )
 
-func Shell(vars *api.Vars) error {
+func Shell(cfg *api.AppConfig) error {
+	vars, err := swarm.InitVars(cfg)
+	if err != nil {
+		return err
+	}
+
 	// // handle CTRL+C (SIGINT)
 	// signalCh := make(chan os.Signal, 1)
 	// signal.Notify(signalCh, os.Interrupt)

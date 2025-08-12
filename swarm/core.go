@@ -24,6 +24,7 @@ func initAgentTools(app *api.AppConfig) error {
 		return fmt.Errorf("agent registry not initialized")
 	}
 	app.AgentToolMap = make(map[string]*api.ToolFunc)
+
 	// skip internal as tool - e.g launch
 	agents := make(map[string]*api.AgentConfig)
 	for _, v := range app.AgentRegistry {
@@ -59,7 +60,6 @@ func initAgentTools(app *api.AppConfig) error {
 }
 
 func InitVars(app *api.AppConfig) (*api.Vars, error) {
-	vars := api.NewVars()
 
 	if err := initAgents(app); err != nil {
 		return nil, err
@@ -71,6 +71,12 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 		return nil, err
 	}
 
+	return Vars(app)
+}
+
+func Vars(app *api.AppConfig) (*api.Vars, error) {
+
+	var vars = api.NewVars()
 	//
 	vars.Config = app
 
