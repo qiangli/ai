@@ -71,16 +71,16 @@ const (
 var Levels = []Level{L1, L2, L3, Image}
 
 type Model struct {
-	Features map[Feature]bool `yaml:"features"`
+	Features map[Feature]bool `yaml:"features" json:"features"`
 
 	// output
-	Type OutputType `yaml:"type"`
+	Type OutputType `yaml:"type" json:"type"`
 
 	// [provider/]model
-	Name string `yaml:"name"`
+	Name string `yaml:"name" json:"name"`
 
-	BaseUrl string `yaml:"base_url"`
-	ApiKey  string `yaml:"api_key"`
+	BaseUrl string `yaml:"base_url" json:"baseUrl"`
+	ApiKey  string `yaml:"api_key" json:"apiKey"`
 }
 
 func (r *Model) Model() string {
