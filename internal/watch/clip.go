@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/qiangli/ai/internal/agent"
+	"github.com/qiangli/ai/agent"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm/api"
