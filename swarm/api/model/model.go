@@ -52,8 +52,8 @@ type ModelsConfig struct {
 	// provider/alias
 	Alias string `yaml:"name" json:"name"`
 
-	// model name
-	Name string `yaml:"model" json:"model"`
+	// model
+	Model string `yaml:"model" json:"model"`
 
 	// default for Models
 	Provider string `yaml:"provider" json:"provider"`
@@ -86,15 +86,16 @@ type Model struct {
 
 	// [provider/]model
 	Provider string `yaml:"provider" json:"provider"`
-	Name     string `yaml:"name" json:"name"`
+	// Name     string `yaml:"name" json:"name"`
+	Model string `yaml:"model" json:"model"`
 
 	BaseUrl string `yaml:"base_url" json:"baseUrl"`
 	ApiKey  string `yaml:"api_key" json:"apiKey"`
 }
 
-func (r *Model) Model() string {
-	return r.Name
-}
+// func (r *Model) Model() string {
+// 	return r.Name
+// }
 
 // func (r *Model) Model() string {
 // 	_, m := r.split()
@@ -110,7 +111,7 @@ func (r *Model) Clone() *Model {
 	clone := &Model{
 		Features: make(map[Feature]bool, len(r.Features)),
 		Type:     r.Type,
-		Name:     r.Name,
+		Model:    r.Model,
 		BaseUrl:  r.BaseUrl,
 		ApiKey:   r.ApiKey,
 	}
@@ -193,8 +194,8 @@ func loadModelsData(data [][]byte) (*ModelsConfig, error) {
 		if v.Provider == "" {
 			v.Provider = merged.Provider
 		}
-		if v.Name == "" {
-			v.Name = merged.Name
+		if v.Model == "" {
+			v.Model = merged.Model
 		}
 		//
 		if len(v.Features) > 0 {

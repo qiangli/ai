@@ -23,7 +23,7 @@ func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	}
 
 	provider := req.Model.Provider
-	model := req.Model.Model()
+	model := req.Model.Model
 
 	//
 	if provider == "" {

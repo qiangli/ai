@@ -128,11 +128,11 @@ func Aider(ctx context.Context, models map[model.Level]*model.Model, workspace, 
 	os.Setenv("OPENAI_API_BASE", u.String())
 	os.Setenv("OPENAI_API_KEY", m.ApiKey)
 
-	os.Setenv("AIDER_WEAK_MODEL", models[model.L1].Name)
-	os.Setenv("AIDER_EDITOR_MODEL", models[model.L2].Name)
-	os.Setenv("AIDER_MODEL", models[model.L2].Name)
+	os.Setenv("AIDER_WEAK_MODEL", models[model.L1].Model)
+	os.Setenv("AIDER_EDITOR_MODEL", models[model.L2].Model)
+	os.Setenv("AIDER_MODEL", models[model.L2].Model)
 	if sub == string(aider.Architect) {
-		os.Setenv("AIDER_MODEL", models[model.L3].Name)
+		os.Setenv("AIDER_MODEL", models[model.L3].Model)
 	}
 
 	os.Setenv("AIDER_VERBOSE", fmt.Sprintf("%v", log.IsVerbose()))
@@ -185,7 +185,7 @@ func OpenHands(ctx context.Context, model *model.Model, workspace string, in *ap
 	}
 	os.Setenv("LLM_BASE_URL", u.String())
 	os.Setenv("LLM_API_KEY", model.ApiKey)
-	os.Setenv("LLM_MODEL", model.Name)
+	os.Setenv("LLM_MODEL", model.Model)
 	os.Setenv("DEBUG", fmt.Sprintf("%v", log.IsVerbose()))
 
 	return oh.Run(ctx, userContent)

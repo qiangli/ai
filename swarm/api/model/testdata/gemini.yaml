@@ -1,16 +1,15 @@
 ##
-# name: gemini
 api_key: ${GEMINI_API_KEY}
 provider: "gemini"
 
 models:
   L1:
-    name: "gemini-2.0-flash-lite"
+    model: "gemini-2.0-flash-lite"
   L2:
-    name: "gemini-2.0-flash"
+    model: "gemini-2.0-flash"
   L3:
-    name: "gemini-2.5-pro-preview-05-06"
+    model: "gemini-2.5-pro-preview-05-06"
   Image:
-    name: "imagen-3.0-generate-002"
+    model: "imagen-3.0-generate-002"
     features:
       image: true

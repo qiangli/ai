@@ -41,11 +41,4 @@ agents:
       - "shell:archive"
       - "system:*"
 
-models:
-  - name: "L1"
-    description: "Level 1 regular model"
-    external: true
-  - name: "L2"
-    description: "Level 2 regular model"
-    external: true
 ###

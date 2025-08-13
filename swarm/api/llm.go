@@ -57,7 +57,7 @@ func (r *LLMRequest) String() string {
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("Agent: %s\n", r.Agent))
 	if r.Model != nil {
-		sb.WriteString(fmt.Sprintf("Model: %s\n", r.Model.Name))
+		sb.WriteString(fmt.Sprintf("Model: %s\n", r.Model.Model))
 		sb.WriteString(fmt.Sprintf("BaseUrl: %s\n", r.Model.BaseUrl))
 		sb.WriteString(fmt.Sprintf("ApiKey set: %v\n", r.Model.ApiKey != ""))
 		sb.WriteString(fmt.Sprintf("Type: %s\n", r.Model.Type))

@@ -94,8 +94,4 @@ agents:
       # - "mcp:github"
       - "system:*"
 
-models:
-  - name: "L1"
-    description: "Level 1 basic model"
-    external: true
 ###

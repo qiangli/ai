@@ -514,21 +514,21 @@ func ParseLLM(viper *fangs.Viper, app *api.AppConfig) error {
 		// 	}
 		case os.Getenv("OPENAI_API_KEY") != "":
 			m = model.Model{
-				Name:     "gpt-5-nano",
+				Model:    "gpt-5-nano",
 				Provider: "openai",
 				BaseUrl:  "https://api.openai.com/v1/",
 				ApiKey:   os.Getenv("OPENAI_API_KEY"),
 			}
 		case os.Getenv("GEMINI_API_KEY") != "":
 			m = model.Model{
-				Name:     "gemini-2.0-flash-lite",
+				Model:    "gemini-2.0-flash-lite",
 				Provider: "gemini",
 				BaseUrl:  "",
 				ApiKey:   os.Getenv("GEMINI_API_KEY"),
 			}
 		case os.Getenv("ANTHROPIC_API_KEY") != "":
 			m = model.Model{
-				Name:     "claude-3-5-haiku-latest",
+				Model:    "claude-3-5-haiku-latest",
 				Provider: "anthropic",
 				BaseUrl:  "",
 				ApiKey:   os.Getenv("ANTHROPIC_API_KEY"),

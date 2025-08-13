@@ -48,7 +48,7 @@ func dummyChatCompletion(model *model.Model, vars *api.Vars) *openai.ChatComplet
 			dummyChatCompletionChoice(vars.Config.DryRunContent),
 		},
 		Created:           time.Now().Unix(),
-		Model:             model.Model(),
+		Model:             model.Model,
 		Object:            constant.ChatCompletion("chat.completion"),
 		ServiceTier:       openai.ChatCompletionServiceTier("auto"),
 		SystemFingerprint: "dummy-fingerprint",

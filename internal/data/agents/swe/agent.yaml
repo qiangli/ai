@@ -9,9 +9,4 @@ agents:
     functions:
       - "func:web"
       - "system:*"
-
-models:
-  - name: "L2"
-    description: "Level 2 regular model"
-    external: true
 ###

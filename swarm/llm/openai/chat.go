@@ -58,7 +58,7 @@ func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 
 func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	client := NewClient(req.Model, req.Vars)
-	model := req.Model.Model()
+	model := req.Model.Model
 
 	params := openai.ChatCompletionNewParams{
 		Seed:  openai.Int(0),
@@ -223,7 +223,7 @@ func generateImage(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, 
 
 	client := NewClient(req.Model, req.Vars)
 	prompt := strings.Join(messages, "\n")
-	model := req.Model.Model()
+	model := req.Model.Model
 
 	resp := &api.LLMResponse{
 		ContentType: api.ContentTypeB64JSON,

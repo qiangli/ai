@@ -16,7 +16,7 @@ func TestEvaluateCommand(t *testing.T) {
 	}
 
 	m := &model.Model{
-		Name:    "gpt-4o-mini",
+		Model:   "gpt-4o-mini",
 		BaseUrl: "http://localhost:4000",
 		ApiKey:  "sk-1234",
 	}

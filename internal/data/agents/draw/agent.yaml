@@ -11,9 +11,4 @@ agents:
     # advices:
     #   before: "image_params"
 
-models:
-  - name: "Image"
-    type: "image"
-    description: "Image model"
-    external: true
 ###

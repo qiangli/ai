@@ -1,7 +1,6 @@
 ##
-# name: anthropic
 api_key: ${ANTHROPIC_API_KEY}
-base_url: "https://api.anthropic.com/v1/"
+base_url: "https://api.anthropic.com/"
 
 models:
   L1:

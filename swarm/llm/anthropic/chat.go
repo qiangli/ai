@@ -64,7 +64,7 @@ func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 
 func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	client := NewClient(req.Model, req.Vars)
-	model := anthropic.Model(req.Model.Model())
+	model := anthropic.Model(req.Model.Model)
 
 	var system []anthropic.TextBlockParam
 	var messages []anthropic.MessageParam
