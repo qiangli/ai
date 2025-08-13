@@ -47,10 +47,8 @@ const (
 	// embeddings
 )
 
-// TODO refactor config and correct the naming?
 type ModelsConfig struct {
-	// provider/alias
-	Alias string `yaml:"name" json:"name"`
+	Alias string `yaml:"alias" json:"alias"`
 
 	// model
 	Model string `yaml:"model" json:"model"`
@@ -84,33 +82,18 @@ type Model struct {
 	// output
 	Type OutputType `yaml:"type" json:"type"`
 
-	// [provider/]model
 	Provider string `yaml:"provider" json:"provider"`
-	// Name     string `yaml:"name" json:"name"`
-	Model string `yaml:"model" json:"model"`
+	Model    string `yaml:"model" json:"model"`
 
 	BaseUrl string `yaml:"base_url" json:"baseUrl"`
 	ApiKey  string `yaml:"api_key" json:"apiKey"`
 }
 
-// func (r *Model) Model() string {
-// 	return r.Name
-// }
-
-// func (r *Model) Model() string {
-// 	_, m := r.split()
-// 	return m
-// }
-
-// func (r *Model) Provider() string {
-// 	p, _ := r.split()
-// 	return p
-// }
-
 func (r *Model) Clone() *Model {
 	clone := &Model{
 		Features: make(map[Feature]bool, len(r.Features)),
 		Type:     r.Type,
+		Provider: r.Provider,
 		Model:    r.Model,
 		BaseUrl:  r.BaseUrl,
 		ApiKey:   r.ApiKey,
@@ -118,17 +101,6 @@ func (r *Model) Clone() *Model {
 	maps.Copy(clone.Features, r.Features)
 	return clone
 }
-
-// // [<provider>/]<model>
-// // openai/gpt-4.1-mini
-// // gemini/gemini-2.0-flash
-// func (r *Model) split() (string, string) {
-// 	parts := strings.SplitN(r.Name, "/", 2)
-// 	if len(parts) == 2 {
-// 		return parts[0], parts[1]
-// 	}
-// 	return "", r.Name
-// }
 
 // LoadModels loads all aliases for models in a given baes directory
 func LoadModels(base string) (map[string]*ModelsConfig, error) {
