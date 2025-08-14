@@ -9,7 +9,7 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-func callAgent(ctx context.Context, vars *api.Vars, agent string, args map[string]any) (*api.Result, error) {
+func callAgent(_ context.Context, vars *api.Vars, agent string, args map[string]any) (*api.Result, error) {
 	log.Debugf("calling agent func %s\n", agent)
 
 	// name/command
@@ -20,10 +20,10 @@ func callAgent(ctx context.Context, vars *api.Vars, agent string, args map[strin
 		command = parts[1]
 	}
 
-	_, ok := vars.AgentRegistry[name]
-	if !ok {
-		return nil, fmt.Errorf("failed: %s not found", name)
-	}
+	// _, ok := vars.AgentRegistry[name]
+	// if !ok {
+	// 	return nil, fmt.Errorf("failed: %s not found", name)
+	// }
 
 	req := &api.Request{
 		Agent:    name,

@@ -17,13 +17,26 @@ import (
 const defaultMaxTurns = 15
 const defaultMaxTime = 3600
 
-func initAgents(app *api.AppConfig) error {
-	app.AgentRegistry = make(map[string]*api.AgentsConfig)
+func initAgents(app *api.AppConfig) (func(string) (*api.AgentsConfig, error), error) {
+	agents, err := ListAgents(app)
+	if err != nil {
+		return nil, err
+	}
+	return func(name string) (*api.AgentsConfig, error) {
+		if config, ok := agents[name]; ok {
+			return config, nil
+		}
+		return nil, fmt.Errorf("no agent configurations found for: %s", name)
+	}, nil
+}
+
+func ListAgents(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
+	var agentRegistry = make(map[string]*api.AgentsConfig)
 
 	config, err := LoadAgentsConfig(app)
 	if err != nil {
 		log.Errorf("failed to load default tool config: %v\n", err)
-		return err
+		return nil, err
 	}
 
 	for name, v := range config {
@@ -34,12 +47,12 @@ func initAgents(app *api.AppConfig) error {
 		}
 		// Register the agent configurations
 		for _, agent := range v.Agents {
-			if _, exists := app.AgentRegistry[agent.Name]; exists {
+			if _, exists := agentRegistry[agent.Name]; exists {
 				log.Debugf("Duplicate agent name found: %s, skipping registration\n", agent.Name)
 				continue
 			}
 			// Register the agents configuration
-			app.AgentRegistry[agent.Name] = v
+			agentRegistry[agent.Name] = v
 			log.Debugf("Registered agent: %s\n", agent.Name)
 			if v.MaxTurns == 0 {
 				v.MaxTurns = defaultMaxTurns
@@ -50,13 +63,12 @@ func initAgents(app *api.AppConfig) error {
 		}
 	}
 
-	if len(app.AgentRegistry) == 0 {
+	if len(agentRegistry) == 0 {
 		log.Debugf("No agent configurations found in default agents\n")
-		return fmt.Errorf("no agent configurations found in default agents")
+		return nil, fmt.Errorf("no agent configurations found in default agents")
 	}
-	log.Debugf("Initialized %d agent configurations\n", len(app.AgentRegistry))
-
-	return nil
+	log.Debugf("Initialized %d agent configurations\n", len(agentRegistry))
+	return agentRegistry, nil
 }
 
 func LoadAgentsConfig(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
@@ -185,12 +197,13 @@ func loadAgentsData(app *api.AppConfig, data [][]byte) (*api.AgentsConfig, error
 }
 
 func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*api.Agent, error) {
-	config, err := LoadAgents(vars.Config, name, input)
+	// config, err := LoadAgents(vars.Config, name)
+	config, err := vars.Config.AgentLoader(name)
 	if err != nil {
 		return nil, err
 	}
 
-	// config := r.Config
+	//
 	adviceMap := vars.AdviceMap
 
 	// TODO - check if the tool type is enabled
@@ -432,9 +445,9 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 	return creator(vars, name, command)
 }
 
-func LoadAgents(app *api.AppConfig, name string, input *api.UserInput) (*api.AgentsConfig, error) {
-	if config, exists := app.AgentRegistry[name]; exists {
-		return config, nil
-	}
-	return nil, fmt.Errorf("no agent configurations found for: %s", name)
-}
+// func LoadAgents(app *api.AppConfig, name string) (*api.AgentsConfig, error) {
+// 	if config, ok := app.AgentRegistry[name]; ok {
+// 		return config, nil
+// 	}
+// 	return nil, fmt.Errorf("no agent configurations found for: %s", name)
+// }

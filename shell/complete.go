@@ -34,9 +34,9 @@ func Completer(d prompt.Document) []prompt.Suggest {
 	for _, cmd := range builtin {
 		s = append(s, prompt.Suggest{Text: cmd, Description: "ai shell"})
 	}
-	for k := range agentRegistry {
-		s = append(s, prompt.Suggest{Text: "@" + k, Description: "agent"})
-	}
+	// for k := range agentRegistry {
+	// 	s = append(s, prompt.Suggest{Text: "@" + k, Description: "agent"})
+	// }
 
 	for k := range aliasRegistry {
 		s = append(s, prompt.Suggest{Text: k, Description: "alias"})

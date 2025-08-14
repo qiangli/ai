@@ -238,7 +238,18 @@ AI will choose an appropriate agent based on your message if no agent is specifi
 * If you specify agents at both the beginning and end of a message, the last one takes precedence.
 * You can place command options anywhere in your message. To include options as part of the message, use quotes or escape '\'.
 `
-	dict := vars.ListAgents()
+	agents, _ := swarm.ListAgents(vars.Config)
+
+	dict := make(map[string]*api.AgentConfig)
+	for _, v := range agents {
+		for _, agent := range v.Agents {
+			if v.Internal && !vars.Config.Internal {
+				continue
+			}
+			dict[agent.Name] = agent
+		}
+	}
+
 	keys := make([]string, 0)
 	for k := range dict {
 		keys = append(keys, k)

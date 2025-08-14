@@ -28,9 +28,10 @@ type AppConfig struct {
 
 	AgentResource *AgentResource
 
-	AgentRegistry map[string]*AgentsConfig
-	AgentToolMap  map[string]*ToolFunc
-	ToolRegistry  map[string]*ToolFunc
+	// AgentRegistry map[string]*AgentsConfig
+	AgentLoader  func(string) (*AgentsConfig, error)
+	AgentToolMap map[string]*ToolFunc
+	ToolRegistry map[string]*ToolFunc
 
 	ToolSystemCommands []string
 	SystemTools        []*ToolFunc

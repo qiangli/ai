@@ -42,8 +42,8 @@ type Vars struct {
 	Models map[model.Level]*model.Model `json:"models"`
 
 	//
-	ToolRegistry  map[string]*ToolFunc     `json:"tool_registry"`
-	AgentRegistry map[string]*AgentsConfig `json:"agent_registry"`
+	ToolRegistry map[string]*ToolFunc `json:"tool_registry"`
+	// AgentRegistry map[string]*AgentsConfig `json:"agent_registry"`
 
 	// agent -> Resources
 	// ResourceMap map[string]*Resource
@@ -84,18 +84,18 @@ func (r *Vars) ListTools() []*ToolFunc {
 	return tools
 }
 
-func (r *Vars) ListAgents() map[string]*AgentConfig {
-	agents := make(map[string]*AgentConfig)
-	for _, v := range r.AgentRegistry {
-		for _, agent := range v.Agents {
-			if v.Internal && !r.Config.Internal {
-				continue
-			}
-			agents[agent.Name] = agent
-		}
-	}
-	return agents
-}
+// func (r *Vars) ListAgents() map[string]*AgentConfig {
+// 	agents := make(map[string]*AgentConfig)
+// 	for _, v := range r.AgentRegistry {
+// 		for _, agent := range v.Agents {
+// 			if v.Internal && !r.Config.Internal {
+// 				continue
+// 			}
+// 			agents[agent.Name] = agent
+// 		}
+// 	}
+// 	return agents
+// }
 
 func NewVars() *Vars {
 	return &Vars{

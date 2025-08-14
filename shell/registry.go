@@ -12,14 +12,15 @@ import (
 )
 
 var commandRegistry map[string]string
-var agentRegistry map[string]*api.AgentConfig
+
+// var agentRegistry map[string]*api.AgentConfig
 var aliasRegistry map[string]string
 
 var visitedRegistry *VisitedRegistry
 
 func initRegistry(vars *api.Vars) (err error) {
 	commandRegistry = util.ListCommands()
-	agentRegistry = vars.ListAgents()
+	// agentRegistry = vars.ListAgents()
 	aliasRegistry, err = listAlias(vars.Config.Shell)
 	if err != nil {
 		return err

@@ -8,8 +8,8 @@ import (
 	_ "image/png"
 	// "os/exec"
 	// "reflect"
-	"sort"
-	"strings"
+	// "sort"
+	// "strings"
 
 	"github.com/qiangli/ai/internal/log"
 	utool "github.com/qiangli/ai/internal/tool"
@@ -268,28 +268,28 @@ func (r *FuncKit) FetchLocation(ctx context.Context, vars *api.Vars, name string
 	return utool.FetchLocation()
 }
 
-func (r *FuncKit) ListAgents(ctx context.Context, vars *api.Vars, _ string, _ map[string]any) (string, error) {
-	var list []string
-	dict := vars.ListAgents()
-	for k, v := range dict {
-		list = append(list, fmt.Sprintf("%s: %s", k, v.Description))
-	}
+// func (r *FuncKit) ListAgents(ctx context.Context, vars *api.Vars, _ string, _ map[string]any) (string, error) {
+// 	var list []string
+// 	dict := vars.ListAgents()
+// 	for k, v := range dict {
+// 		list = append(list, fmt.Sprintf("%s: %s", k, v.Description))
+// 	}
 
-	sort.Strings(list)
-	return fmt.Sprintf("Available agents:\n%s\n", strings.Join(list, "\n")), nil
-}
+// 	sort.Strings(list)
+// 	return fmt.Sprintf("Available agents:\n%s\n", strings.Join(list, "\n")), nil
+// }
 
-func (r *FuncKit) AgentInfo(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
-	agent, err := GetStrProp("agent", args)
-	if err != nil {
-		return "", err
-	}
-	dict := vars.ListAgents()
-	if v, ok := dict[agent]; ok {
-		return fmt.Sprintf("Agent: %s\nDescription: %s\n", v.Name, v.Description), nil
-	}
-	return "", fmt.Errorf("unknown agent: %s", agent)
-}
+// func (r *FuncKit) AgentInfo(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
+// 	agent, err := GetStrProp("agent", args)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	dict := vars.ListAgents()
+// 	if v, ok := dict[agent]; ok {
+// 		return fmt.Sprintf("Agent: %s\nDescription: %s\n", v.Name, v.Description), nil
+// 	}
+// 	return "", fmt.Errorf("unknown agent: %s", agent)
+// }
 
 // TODO
 func callAgentTransfer(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
@@ -297,14 +297,18 @@ func callAgentTransfer(ctx context.Context, vars *api.Vars, _ string, args map[s
 	if err != nil {
 		return nil, err
 	}
-	dict := vars.ListAgents()
-	if _, ok := dict[agent]; ok {
-		return &api.Result{
-			NextAgent: agent,
-			State:     api.StateTransfer,
-		}, nil
-	}
-	return nil, fmt.Errorf("unknown agent: %s", agent)
+	return &api.Result{
+		NextAgent: agent,
+		State:     api.StateTransfer,
+	}, nil
+	// dict := vars.ListAgents()
+	// if _, ok := dict[agent]; ok {
+	// 	return &api.Result{
+	// 		NextAgent: agent,
+	// 		State:     api.StateTransfer,
+	// 	}, nil
+	// }
+	// return nil, fmt.Errorf("unknown agent: %s", agent)
 }
 
 func (r *FuncKit) AskQuestion(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
