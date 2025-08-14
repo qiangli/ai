@@ -118,7 +118,7 @@ func NewMCPServer(cfg *api.AppConfig) (*server.MCPServer, error) {
 	)
 
 	// load ai tools
-	toolsMap := vars.ListTools()
+	toolsMap, _ := swarm.ListTools(cfg)
 	for i, v := range toolsMap {
 		log.Debugf("tool [%v]: %s %+v\n", i, v.ID(), v)
 		handler := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

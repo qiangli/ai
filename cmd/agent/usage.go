@@ -328,7 +328,7 @@ Tools are used by agents to perform specific tasks. They are automatically selec
 
 	list := []string{}
 
-	tools := vars.ListTools()
+	tools, _ := swarm.ListTools(vars.Config)
 
 	for _, v := range tools {
 		if v.Type == "agent" {

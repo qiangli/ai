@@ -7,10 +7,11 @@ agents:
     instruction:
       content: "resource:ask_system_role.md"
     functions:
-      - "list_agents"
-      - "agent_info"
-      - "agent_transfer"
+      # - "list_agents"
+      # - "agent_info"
+      # - "agent_transfer"
       # - "agent:*"
+      - "ai:*"
       - "func:web"
       - "system:*"
 ###

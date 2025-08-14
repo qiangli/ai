@@ -245,10 +245,16 @@ func listMcpTools(cfg map[string]*api.McpServerConfig) ([]*api.ToolFunc, error) 
 func callMcpTool(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	log.Debugf("🎖️ calling MCP tool: %s with args: %+v\n", name, args)
 
-	v, ok := vars.ToolRegistry[name]
-	if !ok {
-		return "", fmt.Errorf("no such mcp tool: %s", name)
+	// v, ok := vars.ToolRegistry[name]
+	// if !ok {
+	// 	return "", fmt.Errorf("no such mcp tool: %s", name)
+	// }
+
+	tools, err := vars.Config.ToolLoader(name)
+	if err != nil {
+		return "", fmt.Errorf("no such tool: %s", name)
 	}
+	v := tools[0]
 
 	server := NewMcpProxy(vars.Config.McpServers)
 

@@ -54,10 +54,14 @@ type ToolDescriptor struct {
 }
 
 type ToolFunc struct {
+	// system
+	// func
 	Type string
 
 	State State
 
+	// Namespace:
+	//
 	// func class
 	// Agent name
 	// MCP server name
@@ -76,7 +80,7 @@ type ToolFunc struct {
 }
 
 // ID returns a unique identifier for the tool function,
-// combining the tool name and function name.
+// combining the tool kit and function name.
 func (r *ToolFunc) ID() string {
 	return fmt.Sprintf("%s__%s", r.Kit, r.Name)
 }

@@ -70,9 +70,11 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	// 	return nil, err
 	// }
 
-	if err := initTools(app); err != nil {
+	toolLoader, err := initTools(app)
+	if err != nil {
 		return nil, err
 	}
+	app.ToolLoader = toolLoader
 
 	return Vars(app)
 }
@@ -116,15 +118,15 @@ func Vars(app *api.AppConfig) (*api.Vars, error) {
 	// TODO remove?
 	// vars.AgentRegistry = app.AgentRegistry
 	//
-	toolMap := make(map[string]*api.ToolFunc)
-	tools, err := listTools(app)
-	if err != nil {
-		return nil, err
-	}
-	for _, v := range tools {
-		toolMap[v.ID()] = v
-	}
-	vars.ToolRegistry = toolMap
+	// toolMap := make(map[string]*api.ToolFunc)
+	// tools, err := listTools(app)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// for _, v := range tools {
+	// 	toolMap[v.ID()] = v
+	// }
+	// vars.ToolRegistry = toolMap
 
 	return vars, nil
 }

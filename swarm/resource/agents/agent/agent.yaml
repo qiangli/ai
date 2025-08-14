@@ -7,9 +7,10 @@ agents:
     instruction:
       content: "resource:agent_sub_system_role.md"
     functions:
-      - "list_agents"
-      - "agent_info"
-      - "agent_transfer"
+      # - "list_agents"
+      # - "agent_info"
+      # - "agent_transfer"
       # - "agent:*"
+      - "ai:*"
       
 ###

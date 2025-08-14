@@ -126,11 +126,15 @@ func TestCallDevTools(t *testing.T) {
 	vars, _ := InitVars(cfg)
 
 	for _, tt := range tests {
-		tf, ok := cfg.ToolRegistry[tt.id]
-		if !ok {
+		// tf, ok := cfg.ToolRegistry[tt.id]
+		// if !ok {
+		// 	t.Fatalf("tool %s not found in registry", tt.id)
+		// }
+		tf, err := cfg.ToolLoader(tt.id)
+		if err != nil {
 			t.Fatalf("tool %s not found in registry", tt.id)
 		}
-		result, err := callTplTool(ctx, vars, tf, tt.args)
+		result, err := callTplTool(ctx, vars, tf[0], tt.args)
 		if err != nil {
 			t.Fatalf("failed to call dev tool %s: %v", tt.id, err)
 		}
@@ -158,11 +162,15 @@ func TestCallFindTools(t *testing.T) {
 	vars, _ := InitVars(cfg)
 
 	for _, tt := range tests {
-		tf, ok := cfg.ToolRegistry[tt.id]
-		if !ok {
+		// tf, ok := cfg.ToolRegistry[tt.id]
+		// if !ok {
+		// 	t.Fatalf("tool %s not found in registry", tt.id)
+		// }
+		tf, err := cfg.ToolLoader(tt.id)
+		if err != nil {
 			t.Fatalf("tool %s not found in registry", tt.id)
 		}
-		result, err := callTplTool(ctx, vars, tf, tt.args)
+		result, err := callTplTool(ctx, vars, tf[0], tt.args)
 		if err != nil {
 			t.Fatalf("failed to call dev tool %s: %v", tt.id, err)
 		}
@@ -193,11 +201,15 @@ func TestCallShellTools(t *testing.T) {
 	vars, _ := InitVars(cfg)
 
 	for _, tt := range tests {
-		tf, ok := cfg.ToolRegistry[tt.id]
-		if !ok {
+		// tf, ok := cfg.ToolRegistry[tt.id]
+		// if !ok {
+		// 	t.Fatalf("tool %s not found in registry", tt.id)
+		// }
+		tf, err := cfg.ToolLoader(tt.id)
+		if err != nil {
 			t.Fatalf("tool %s not found in registry", tt.id)
 		}
-		result, err := callTplTool(ctx, vars, tf, tt.args)
+		result, err := callTplTool(ctx, vars, tf[0], tt.args)
 		if err != nil {
 			t.Fatalf("failed to call dev tool %s: %v", tt.id, err)
 		}
@@ -236,11 +248,15 @@ func TestCallSqlTools(t *testing.T) {
 	vars.Config.DBCred = cred
 
 	for _, tt := range tests {
-		tf, ok := cfg.ToolRegistry[tt.id]
-		if !ok {
+		// tf, ok := cfg.ToolRegistry[tt.id]
+		// if !ok {
+		// 	t.Fatalf("tool %s not found in registry", tt.id)
+		// }
+		tf, err := cfg.ToolLoader(tt.id)
+		if err != nil {
 			t.Fatalf("tool %s not found in registry", tt.id)
 		}
-		result, err := callTplTool(ctx, vars, tf, tt.args)
+		result, err := callTplTool(ctx, vars, tf[0], tt.args)
 		if err != nil {
 			t.Fatalf("failed to call dev tool %s: %v", tt.id, err)
 		}

@@ -42,7 +42,7 @@ type Vars struct {
 	Models map[model.Level]*model.Model `json:"models"`
 
 	//
-	ToolRegistry map[string]*ToolFunc `json:"tool_registry"`
+	// ToolRegistry map[string]*ToolFunc `json:"tool_registry"`
 	// AgentRegistry map[string]*AgentsConfig `json:"agent_registry"`
 
 	// agent -> Resources
@@ -76,13 +76,13 @@ type Resource struct {
 	Content func(string) ([]byte, error) `json:"content"`
 }
 
-func (r *Vars) ListTools() []*ToolFunc {
-	tools := make([]*ToolFunc, 0, len(r.ToolRegistry))
-	for _, tool := range r.ToolRegistry {
-		tools = append(tools, tool)
-	}
-	return tools
-}
+// func (r *Vars) ListTools() []*ToolFunc {
+// 	tools := make([]*ToolFunc, 0, len(r.ToolRegistry))
+// 	for _, tool := range r.ToolRegistry {
+// 		tools = append(tools, tool)
+// 	}
+// 	return tools
+// }
 
 // func (r *Vars) ListAgents() map[string]*AgentConfig {
 // 	agents := make(map[string]*AgentConfig)

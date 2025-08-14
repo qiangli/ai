@@ -27,14 +27,14 @@ const (
 	ToolTypeFunc     = "func"
 )
 
-func initTools(app *api.AppConfig) error {
+func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 	kits, err := LoadToolsConfig(app)
 	if err != nil {
 		log.Errorf("failed to load default tool config: %v\n", err)
-		return err
+		return nil, err
 	}
 
-	app.ToolRegistry = make(map[string]*api.ToolFunc)
+	var toolRegistry = make(map[string]*api.ToolFunc)
 
 	conditionMet := func(name string, c *api.ToolCondition) bool {
 		if c == nil {
@@ -88,7 +88,7 @@ func initTools(app *api.AppConfig) error {
 			}
 
 			// override
-			app.ToolRegistry[tool.ID()] = tool
+			toolRegistry[tool.ID()] = tool
 
 			// TODO this is used for security check by the evalCommand
 			if v.Type == "system" {
@@ -97,7 +97,14 @@ func initTools(app *api.AppConfig) error {
 		}
 
 	}
+	return toolRegistry, nil
+}
 
+func initTools(app *api.AppConfig) (func(string) ([]*api.ToolFunc, error), error) {
+	tools, err := ListTools(app)
+	if err != nil {
+		return nil, err
+	}
 	// //
 	// // required system commands
 	// commandMap := make(map[string]bool)
@@ -112,16 +119,91 @@ func initTools(app *api.AppConfig) error {
 	// 	app.ToolSystemCommands = append(app.ToolSystemCommands, k)
 	// }
 
-	return nil
+	// getType := func(name string) ([]*api.ToolFunc, error) {
+	// 	var list []*api.ToolFunc
+	// 	for _, v := range tools {
+	// 		if v.Type == name {
+	// 			list = append(list, v)
+	// 		}
+	// 	}
+	// 	if len(list) == 0 {
+	// 		return nil, fmt.Errorf("no such tool type: %s", name)
+	// 	}
+	// 	return list, nil
+	// }
+
+	getKit := func(kit string, name string) ([]*api.ToolFunc, error) {
+		var list []*api.ToolFunc
+		for _, v := range tools {
+			if kit == "*" || kit == "" || v.Kit == kit {
+				if name == "*" || name == "" || v.Name == name {
+					list = append(list, v)
+				}
+			}
+		}
+		if len(list) == 0 {
+			return nil, fmt.Errorf("no such tool kit. %s:%s", kit, name)
+		}
+		return list, nil
+	}
+
+	getType := func(toolType string, kit string) ([]*api.ToolFunc, error) {
+		var list []*api.ToolFunc
+		for _, v := range tools {
+			if toolType == "*" || toolType == "" || v.Type == toolType {
+				if kit == "*" || kit == "" || v.Kit == kit {
+					list = append(list, v)
+				}
+			}
+		}
+		if len(list) == 0 {
+			return nil, fmt.Errorf("no such tool: %s / %s", toolType, kit)
+		}
+		return list, nil
+	}
+
+	getTools := func(ns string, name string) ([]*api.ToolFunc, error) {
+		k, err := getKit(ns, name)
+		if err != nil {
+			return k, nil
+		}
+		return getType(ns, name)
+	}
+
+	getTool := func(id string) ([]*api.ToolFunc, error) {
+		for _, v := range tools {
+			if v.Name == id {
+				return []*api.ToolFunc{v}, nil
+			}
+		}
+		return nil, fmt.Errorf("no such tool: %s", id)
+	}
+
+	// type
+	// kit:*
+	// kit__name
+	return func(s string) ([]*api.ToolFunc, error) {
+		// id: kit__name
+		if strings.Index(s, "__") > 0 {
+			return getTool(s)
+		}
+		// type: type:kit
+		// ktt: kit:name
+		if strings.Index(s, ":") > 0 {
+			parts := strings.SplitN(s, ":", 2)
+			return getTools(parts[0], parts[1])
+		}
+		return getTools(s, "")
+	}, nil
 }
 
-func listDefaultTools(app *api.AppConfig) []*api.ToolFunc {
-	var tools []*api.ToolFunc
-	for _, v := range app.ToolRegistry {
-		tools = append(tools, v)
-	}
-	return tools
-}
+// func listDefaultTools(app *api.AppConfig) []*api.ToolFunc {
+// 	var tools []*api.ToolFunc
+// 	for _, v := range app.ToolRegistry {
+// 		tools = append(tools, v)
+// 	}
+// 	return tools
+// }
 
 func LoadToolsAsset(app *api.AppConfig, as api.AssetStore, base string, kits map[string]*api.ToolsConfig) error {
 	dirs, err := as.ReadDir(base)
@@ -268,11 +350,11 @@ func head(s string, maxLen int) string {
 }
 
 func dispatchTool(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
-
-	v, ok := vars.ToolRegistry[name]
-	if !ok {
-		return nil, fmt.Errorf("no such tool: %s", name)
+	tools, err := vars.Config.ToolLoader(name)
+	if err != nil {
+		return nil, err
 	}
+	v := tools[0]
 
 	// spinner
 	sp := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
@@ -330,30 +412,30 @@ func dispatchTool(ctx context.Context, vars *api.Vars, name string, args map[str
 // 	return tools, nil
 // }
 
-// listTools returns a list of all available tools, including agent, mcp, system, and function tools.
-// This is for CLI
-func listTools(app *api.AppConfig) ([]*api.ToolFunc, error) {
-	list := []*api.ToolFunc{}
+// // listTools returns a list of all available tools, including agent, mcp, system, and function tools.
+// // This is for CLI
+// func listTools(app *api.AppConfig) ([]*api.ToolFunc, error) {
+// 	list := []*api.ToolFunc{}
 
-	// // agent tools
-	// agentTools, err := listAgentTools(app)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// list = append(list, agentTools...)
+// 	// // agent tools
+// 	// agentTools, err := listAgentTools(app)
+// 	// if err != nil {
+// 	// 	return nil, err
+// 	// }
+// 	// list = append(list, agentTools...)
 
-	// mcp tools
-	mcpTools, err := listMcpTools(app.McpServers)
-	if err != nil {
-		return nil, err
-	}
-	for _, v := range mcpTools {
-		list = append(list, v)
-	}
+// 	// mcp tools
+// 	mcpTools, err := listMcpTools(app.McpServers)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	for _, v := range mcpTools {
+// 		list = append(list, v)
+// 	}
 
-	// system and misc tools
-	sysTools := listDefaultTools(app)
-	list = append(list, sysTools...)
+// 	// system and misc tools
+// 	sysTools := listDefaultTools(app)
+// 	list = append(list, sysTools...)
 
-	return list, nil
-}
+// 	return list, nil
+// }

@@ -58,15 +58,15 @@ func TestEvaluateCommand(t *testing.T) {
 		{"find", []string{"./", "-name", "*.sql", "-exec", "grep", "-l", "s3_files", "{}", "\\;"}, true},
 	}
 
-	tools, err := listTools(&api.AppConfig{})
-	if err != nil {
-		t.Errorf("list tools: %v", err)
-	}
-	var toolMap = make(map[string]*api.ToolFunc)
-	for _, tool := range tools {
-		toolMap[tool.ID()] = tool
-	}
-	vars.ToolRegistry = toolMap
+	// tools, err := listTools(&api.AppConfig{})
+	// if err != nil {
+	// 	t.Errorf("list tools: %v", err)
+	// }
+	// var toolMap = make(map[string]*api.ToolFunc)
+	// for _, tool := range tools {
+	// 	toolMap[tool.ID()] = tool
+	// }
+	// vars.ToolRegistry = toolMap
 
 	for _, test := range tests {
 		resp, err := evaluateCommand(context.TODO(), vars, test.command, test.args)

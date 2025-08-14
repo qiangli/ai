@@ -209,35 +209,35 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 	// TODO - check if the tool type is enabled
 	// by default all tools are enabled
 	// except mcp which is enabled only if the mcp server root is set
-	isEnabled := func(toolType string) bool {
-		return toolType != "mcp" || vars.Config.McpServerRoot != ""
-	}
+	// isEnabled := func(toolType string) bool {
+	// 	return toolType != "mcp" || vars.Config.McpServerRoot != ""
+	// }
 
-	getTools := func(toolType string, kit string) ([]*api.ToolFunc, error) {
-		var list []*api.ToolFunc
-		for _, v := range vars.ToolRegistry {
-			if toolType == "*" || toolType == "" || v.Type == toolType {
-				if kit == "*" || kit == "" || v.Kit == kit {
-					list = append(list, v)
-				}
-			}
-		}
-		if len(list) == 0 {
-			if isEnabled(toolType) {
-				return nil, fmt.Errorf("no such tool: %s / %s", toolType, kit)
-			}
-		}
-		return list, nil
-	}
+	// getTools := func(toolType string, kit string) ([]*api.ToolFunc, error) {
+	// 	var list []*api.ToolFunc
+	// 	for _, v := range vars.ToolRegistry {
+	// 		if toolType == "*" || toolType == "" || v.Type == toolType {
+	// 			if kit == "*" || kit == "" || v.Kit == kit {
+	// 				list = append(list, v)
+	// 			}
+	// 		}
+	// 	}
+	// 	if len(list) == 0 {
+	// 		if isEnabled(toolType) {
+	// 			return nil, fmt.Errorf("no such tool: %s / %s", toolType, kit)
+	// 		}
+	// 	}
+	// 	return list, nil
+	// }
 
-	getTool := func(s string) (*api.ToolFunc, error) {
-		for _, v := range vars.ToolRegistry {
-			if v.Name == s {
-				return v, nil
-			}
-		}
-		return nil, fmt.Errorf("no such tool: %s", s)
-	}
+	// getTool := func(s string) (*api.ToolFunc, error) {
+	// 	for _, v := range vars.ToolRegistry {
+	// 		if v.Name == s {
+	// 			return v, nil
+	// 		}
+	// 	}
+	// 	return nil, fmt.Errorf("no such tool: %s", s)
+	// }
 
 	findAgentConfig := func(n, c string) (*api.AgentConfig, error) {
 		// check for more specific agent first
@@ -322,7 +322,7 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 		for _, f := range ac.Functions {
 			// all
 			if f == "*" || f == "*:" || f == "*:*" {
-				funcs, err := getTools("*", "*")
+				funcs, err := vars.Config.ToolLoader("*:*")
 				if err != nil {
 					return nil, err
 				}
@@ -331,8 +331,7 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 				}
 				continue
 			}
-			// type:*
-			// type:kit
+			// kit:*
 			if strings.Contains(f, ":") {
 				parts := strings.SplitN(f, ":", 2)
 				if len(parts) > 0 {
@@ -340,7 +339,7 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 					if len(parts) > 1 && len(parts[1]) > 0 {
 						kit = parts[1]
 					}
-					funcs, err := getTools(parts[0], kit)
+					funcs, err := vars.Config.ToolLoader(fmt.Sprintf("%s:%s", parts[0], kit))
 					if err != nil {
 						return nil, err
 					}
@@ -351,14 +350,14 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 				}
 			}
 
-			// function by name
-			fn, err := getTool(f)
-			if err != nil {
-				return nil, err
-			}
-			if fn != nil {
-				funcMap[fn.ID()] = fn
-			}
+			// // function by name
+			// fn, err := getTool(f)
+			// if err != nil {
+			// 	return nil, err
+			// }
+			// if fn != nil {
+			// 	funcMap[fn.ID()] = fn
+			// }
 		}
 
 		// FIXME
