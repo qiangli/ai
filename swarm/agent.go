@@ -11,7 +11,7 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/api/model"
+	// "github.com/qiangli/ai/swarm/api/model"
 )
 
 const defaultMaxTurns = 15
@@ -113,7 +113,7 @@ func LoadAgentsAsset(app *api.AppConfig, as api.AssetStore, root string, groups 
 			log.Debugf("agent file is empty %s\n", name)
 			continue
 		}
-		group, err := loadAgentsData(app, [][]byte{f})
+		group, err := LoadAgentsData(app, [][]byte{f})
 		if err != nil {
 			return fmt.Errorf("failed to load agent data from %s: %w", dir.Name(), err)
 		}
@@ -174,8 +174,8 @@ func LoadWebAgentsConfig(app *api.AppConfig, groups map[string]*api.AgentsConfig
 	return nil
 }
 
-// loadAgentsConfig loads the agent configuration from the provided YAML data.
-func loadAgentsData(app *api.AppConfig, data [][]byte) (*api.AgentsConfig, error) {
+// LoadAgentsConfig loads the agent configuration from the provided YAML data.
+func LoadAgentsData(app *api.AppConfig, data [][]byte) (*api.AgentsConfig, error) {
 	merged := &api.AgentsConfig{}
 
 	for _, v := range data {
@@ -311,9 +311,9 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 			MaxTime:  config.MaxTime,
 		}
 
-		model, ok := vars.Models[model.Level(ac.Model)]
-		if !ok {
-			return nil, fmt.Errorf("no such model: %s", ac.Model)
+		model, err := vars.Config.ModelLoader(ac.Model)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load model %q: %v", ac.Model, err)
 		}
 		agent.Model = model
 

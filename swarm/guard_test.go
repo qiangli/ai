@@ -24,7 +24,11 @@ func TestEvaluateCommand(t *testing.T) {
 	log.SetLogLevel(log.Verbose)
 
 	var vars = api.NewVars()
-	vars.Config = &api.AppConfig{}
+	vars.Config = &api.AppConfig{
+		ModelLoader: func(level string) (*model.Model, error) {
+			return m, nil
+		},
+	}
 	sysInfo, err := util.CollectSystemInfo()
 	if err != nil {
 		t.Errorf("collect system info: %v", err)
@@ -35,11 +39,11 @@ func TestEvaluateCommand(t *testing.T) {
 	vars.OSInfo = sysInfo.OSInfo
 	vars.UserInfo = sysInfo.UserInfo
 	// vars.WorkDir = sysInfo.WorkDir
-	vars.Models = map[model.Level]*model.Model{
-		model.L1: m,
-		model.L2: m,
-		model.L3: m,
-	}
+	// vars.Models = map[model.Level]*model.Model{
+	// 	model.L1: m,
+	// 	model.L2: m,
+	// 	model.L3: m,
+	// }
 
 	tests := []struct {
 		command string

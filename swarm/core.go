@@ -76,6 +76,12 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	}
 	app.ToolLoader = toolLoader
 
+	modelLoader, err := initModels(app)
+	if err != nil {
+		return nil, err
+	}
+	app.ModelLoader = modelLoader
+
 	return Vars(app)
 }
 
@@ -104,9 +110,9 @@ func Vars(app *api.AppConfig) (*api.Vars, error) {
 	vars.UserInfo = sysInfo.UserInfo
 
 	//
-	if app.LLM != nil {
-		vars.Models = app.LLM.Models
-	}
+	// if app.LLM != nil {
+	// 	vars.Models = app.LLM.Models
+	// }
 
 	//
 	// vars.ResourceMap = make(map[string]*api.Resource)

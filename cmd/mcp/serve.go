@@ -71,7 +71,7 @@ func Serve(args []string) error {
 }
 
 func NewMCPServer(cfg *api.AppConfig) (*server.MCPServer, error) {
-	log.Debugf("config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.DBCred)
+	log.Debugf("config: %+v %+v\n", cfg, cfg.DBCred)
 
 	vars, err := swarm.InitVars(cfg)
 	if err != nil {

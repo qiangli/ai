@@ -75,18 +75,18 @@ func addAgentFlags(cmd *cobra.Command, cfg *api.AppConfig) {
 	// LLM
 	flags.StringP("models", "m", cfg.Models, "LLM model alias defined in the models directory")
 
-	if cfg.LLM == nil {
-		cfg.LLM = &api.LLMConfig{}
-	}
+	// if cfg.LLM == nil {
+	// 	cfg.LLM = &api.LLMConfig{}
+	// }
 	// flags.String("provider", cfg.LLM.Provider, "LLM provider")
 	// flags.String("api-key", cfg.LLM.ApiKey, "LLM API key")
 	// flags.String("model", cfg.LLM.Model, "LLM default model")
 	// flags.String("base-url", cfg.LLM.BaseUrl, "LLM Base URL")
 
 	// assume cfg.TTS not nil
-	if cfg.TTS == nil {
-		cfg.TTS = &api.TTSConfig{}
-	}
+	// if cfg.TTS == nil {
+	// 	cfg.TTS = &api.TTSConfig{}
+	// }
 	// flags.String("tts-provider", cfg.TTS.Provider, "TTS provider")
 	// flags.String("tts-api-key", cfg.TTS.ApiKey, "TTS API key")
 	// flags.String("tts-model", cfg.TTS.Model, "TTS model")

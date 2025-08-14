@@ -8,11 +8,16 @@ import (
 	"github.com/openai/openai-go/option"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/api/model"
 )
 
 func transcribe(cfg *api.AppConfig, audiofile string) (string, error) {
+	m, err := cfg.ModelLoader(model.TTS)
+	if err != nil {
+		return "", err
+	}
 	client := openai.NewClient(
-		option.WithAPIKey(cfg.TTS.ApiKey),
+		option.WithAPIKey(m.ApiKey),
 		// option.WithBaseURL(baseUrl),
 	)
 	ctx := context.Background()

@@ -207,7 +207,7 @@ func setupAppConfig(args []string) (*api.AppConfig, error) {
 		return nil, err
 	}
 
-	log.Debugf("Config: %+v %+v %+v\n", cfg, cfg.LLM, cfg.DBCred)
+	log.Debugf("Config: %+v\n", cfg)
 
 	fileLog, err := setLogOutput(cfg.Log)
 	if err != nil {

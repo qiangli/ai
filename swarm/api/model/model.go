@@ -63,18 +63,20 @@ type ModelsConfig struct {
 
 // Level represents the "intelligence" level of the model. i.e. basic, regular, advanced
 // for example, OpenAI: gpt-4.1-mini, gpt-4.1, o3
-type Level string
+type Level = string
 
 const (
-	// L0 Level = iota
+	Any Level = "default"
+
 	L1 Level = "L1"
 	L2 Level = "L2"
 	L3 Level = "L3"
 	//
-	Image Level = "Image"
+	Image Level = "image"
+	TTS   Level = "tts"
 )
 
-var Levels = []Level{L1, L2, L3, Image}
+var Levels = []Level{L1, L2, L3, Image, TTS}
 
 type Model struct {
 	Features map[Feature]bool `yaml:"features" json:"features"`

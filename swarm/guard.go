@@ -56,12 +56,13 @@ func evaluateCommand(ctx context.Context, vars *api.Vars, command string, args [
 	}
 
 	// TODO default model
-	m, ok := vars.Models[model.L1]
-	if !ok {
-		m = vars.Models[model.L2]
-	}
-	if m == nil {
-		return false, fmt.Errorf("no model found L1/L2")
+	// m, ok := vars.Models[model.L1]
+	// if !ok {
+	// 	m = vars.Models[model.L2]
+	// }
+	m, err := vars.Config.ModelLoader(model.Any)
+	if err != nil {
+		return false, fmt.Errorf("failed to load model: %v", err)
 	}
 
 	req := &api.LLMRequest{

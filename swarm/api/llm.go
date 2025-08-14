@@ -10,9 +10,9 @@ import (
 
 type LLMConfig struct {
 	Provider string
-	Name     string
-	BaseUrl  string
-	ApiKey   string
+	// Name     string
+	BaseUrl string
+	ApiKey  string
 
 	// model aliases
 	Models map[model.Level]*model.Model
@@ -26,10 +26,11 @@ func (config *LLMConfig) Clone() *LLMConfig {
 
 	return &LLMConfig{
 		Provider: config.Provider,
-		Name:     config.Name,
-		BaseUrl:  config.BaseUrl,
-		ApiKey:   config.ApiKey,
-		Models:   modelsCopy,
+		// Name:     config.Name,
+		BaseUrl: config.BaseUrl,
+		ApiKey:  config.ApiKey,
+		//
+		Models: modelsCopy,
 	}
 }
 
@@ -40,6 +41,7 @@ type LLMRequest struct {
 
 	Messages []*Message
 
+	// TODO extras: name:value
 	ImageQuality string
 	ImageSize    string
 	ImageStyle   string

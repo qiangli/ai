@@ -3,8 +3,7 @@ package api
 import (
 	"fmt"
 	// "strings"
-
-	"github.com/qiangli/ai/swarm/api/model"
+	// "github.com/qiangli/ai/swarm/api/model"
 )
 
 const (
@@ -39,7 +38,7 @@ type Vars struct {
 	// per agent
 	Extra map[string]any `json:"extra"`
 
-	Models map[model.Level]*model.Model `json:"models"`
+	// Models map[model.Level]*model.Model `json:"models"`
 
 	//
 	// ToolRegistry map[string]*ToolFunc `json:"tool_registry"`

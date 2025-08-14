@@ -15,6 +15,7 @@ import (
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/api/model"
 )
 
 const agentUsageTemplate = `AI Command Line Tool
@@ -176,7 +177,7 @@ func HelpInfo(vars *api.Vars) error {
 
 LLM:
 
-Default Model: %s
+Provider: %s
 Base URL: %s
 API Key: %s
 
@@ -210,7 +211,13 @@ AI Environment:
 
 	cfg := vars.Config
 
-	log.Infof(format, info, cfg.LLM.Name, cfg.LLM.BaseUrl, cfg.LLM.ApiKey, string(ac), strings.Join(filteredEnvs, "\n"))
+	// TODO
+	// log.Infof(format, info, cfg.LLM.Name, cfg.LLM.BaseUrl, cfg.LLM.ApiKey, string(ac), strings.Join(filteredEnvs, "\n"))
+	m, err := cfg.ModelLoader(model.Any)
+	if err != nil {
+		m = &model.Model{}
+	}
+	log.Infof(format, info, m.Provider, m.BaseUrl, m.ApiKey, string(ac), strings.Join(filteredEnvs, "\n"))
 	return nil
 }
 

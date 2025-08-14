@@ -19,9 +19,11 @@ type AppConfig struct {
 
 	ConfigFile string
 
-	LLM *LLMConfig
+	// LLM *LLMConfig
 
-	TTS *TTSConfig
+	// TTS *TTSConfig
+
+	ModelLoader func(string) (*model.Model, error)
 
 	Git    *GitConfig
 	DBCred *DBCred
@@ -138,24 +140,25 @@ type AppConfig struct {
 
 // Clone is a shallow copy of member fields of the configration
 func (cfg *AppConfig) Clone() *AppConfig {
-	if cfg.LLM == nil {
-		cfg.LLM = &LLMConfig{}
-	}
-	if cfg.TTS == nil {
-		cfg.TTS = &TTSConfig{}
-	}
-	var llm = cfg.LLM.Clone()
-	var tts = cfg.TTS.Clone()
+	// if cfg.LLM == nil {
+	// 	cfg.LLM = &LLMConfig{}
+	// }
+	// if cfg.TTS == nil {
+	// 	cfg.TTS = &TTSConfig{}
+	// }
+	// var llm = cfg.LLM.Clone()
+	// var tts = cfg.TTS.Clone()
 	return &AppConfig{
-		Version:       cfg.Version,
-		ConfigFile:    cfg.ConfigFile,
-		LLM:           llm,
-		TTS:           tts,
+		Version:    cfg.Version,
+		ConfigFile: cfg.ConfigFile,
+		// LLM:           llm,
+		// TTS:           tts,
+		ModelLoader:   cfg.ModelLoader,
 		AgentResource: cfg.AgentResource,
+		AgentLoader:   cfg.AgentLoader,
+		ToolLoader:    cfg.ToolLoader,
 		Git:           cfg.Git,
 		DBCred:        cfg.DBCred,
-		// Role:          cfg.Role,
-		// Prompt:        cfg.Prompt,
 		Agent:         cfg.Agent,
 		Command:       cfg.Command,
 		Args:          append([]string(nil), cfg.Args...),

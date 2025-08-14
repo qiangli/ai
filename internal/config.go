@@ -15,7 +15,6 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/api/model"
 )
 
 const DefaultEditor = "ai -i edit"
@@ -456,8 +455,8 @@ func ParseSpecialChars(viper *fangs.Viper, app *api.AppConfig, args []string) []
 
 func ParseLLM(viper *fangs.Viper, app *api.AppConfig) error {
 	// LLM config
-	var lc = &api.LLMConfig{}
-	app.LLM = lc
+	// var lc = &api.LLMConfig{}
+	// app.LLM = lc
 	// default
 	// lc.Provider = viper.GetString("provider")
 
@@ -486,108 +485,10 @@ func ParseLLM(viper *fangs.Viper, app *api.AppConfig) error {
 			alias = last.Models
 		}
 	}
+	if alias == "" {
+		alias = "openai"
+	}
 	app.Models = alias
-
-	// load models from app base
-	modelBase := filepath.Join(app.Base, "models")
-	modelCfg, err := model.LoadModels(modelBase)
-	if err != nil {
-		return err
-	}
-	if alias != "" {
-		if m, ok := modelCfg[alias]; ok {
-			app.LLM.Models = m.Models
-		}
-	}
-
-	// if no models, setup defaults
-	if len(app.LLM.Models) == 0 {
-		// all levels share same config
-		var m model.Model
-		switch {
-		// case lc.ApiKey != "" && lc.Name != "":
-		// 	// assume openai compatible
-		// 	m = model.Model{
-		// 		Name:    lc.Name,
-		// 		BaseUrl: lc.BaseUrl,
-		// 		ApiKey:  lc.ApiKey,
-		// 	}
-		case os.Getenv("OPENAI_API_KEY") != "":
-			m = model.Model{
-				Model:    "gpt-5-nano",
-				Provider: "openai",
-				BaseUrl:  "https://api.openai.com/v1/",
-				ApiKey:   os.Getenv("OPENAI_API_KEY"),
-			}
-		case os.Getenv("GEMINI_API_KEY") != "":
-			m = model.Model{
-				Model:    "gemini-2.0-flash-lite",
-				Provider: "gemini",
-				BaseUrl:  "",
-				ApiKey:   os.Getenv("GEMINI_API_KEY"),
-			}
-		case os.Getenv("ANTHROPIC_API_KEY") != "":
-			m = model.Model{
-				Model:    "claude-3-5-haiku-latest",
-				Provider: "anthropic",
-				BaseUrl:  "",
-				ApiKey:   os.Getenv("ANTHROPIC_API_KEY"),
-			}
-		default:
-		}
-
-		// TODO improve to allow any alias other than L*
-		models := make(map[model.Level]*model.Model)
-		models[model.L1] = m.Clone()
-		models[model.L2] = m.Clone()
-		models[model.L3] = m.Clone()
-
-		app.LLM.Models = models
-	}
-	// update or add model from command line flags
-	// for _, l := range model.Levels {
-	// 	s := strings.ToLower(string(l))
-	// 	k := viper.GetString(s + "_api_key")
-	// 	n := viper.GetString(s + "_model")
-	// 	u := viper.GetString(s + "_base_url")
-	// 	if v, ok := app.LLM.Models[l]; ok {
-	// 		if k != "" {
-	// 			v.ApiKey = k
-	// 		}
-	// 		if n != "" {
-	// 			v.Name = n
-	// 		}
-	// 		if u != "" {
-	// 			v.BaseUrl = u
-	// 		}
-	// 		app.LLM.Models[l] = v
-	// 	} else {
-	// 		app.LLM.Models[l] = &model.Model{
-	// 			Name:    modelName(n),
-	// 			ApiKey:  k,
-	// 			BaseUrl: u,
-	// 		}
-	// 	}
-	// }
-	// model config is required
-	if len(app.LLM.Models) == 0 {
-		return fmt.Errorf("No LLM configuration found")
-	}
-
-	// TODO
-	tts := &api.TTSConfig{}
-	// tts.ApiKey = viper.GetString("tts_api_key")
-	// tts.Provider = viper.GetString("tts_provider")
-	// tts.Model = viper.GetString("tts_model")
-	// tts.BaseUrl = viper.GetString("tts_base_url")
-	// if tts.ApiKey == "" {
-	// 	tts.ApiKey = os.Getenv("OPENAI_API_KEY")
-	// }
-	// if tts.Model == "" {
-	// 	tts.Model = "gpt-4o-mini-tts"
-	// }
-
-	app.TTS = tts
 
 	return nil
 }
