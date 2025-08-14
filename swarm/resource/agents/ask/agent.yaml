@@ -10,7 +10,7 @@ agents:
       - "list_agents"
       - "agent_info"
       - "agent_transfer"
-      - "agent:*"
+      # - "agent:*"
       - "func:web"
       - "system:*"
 ###

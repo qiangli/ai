@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -64,9 +65,9 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	if err := initAgents(app); err != nil {
 		return nil, err
 	}
-	if err := initAgentTools(app); err != nil {
-		return nil, err
-	}
+	// if err := initAgentTools(app); err != nil {
+	// 	return nil, err
+	// }
 	if err := initTools(app); err != nil {
 		return nil, err
 	}
@@ -126,7 +127,27 @@ func Vars(app *api.AppConfig) (*api.Vars, error) {
 	return vars, nil
 }
 
+// Function to clear all environment variables execep essential ones
+func clearAllEnv() {
+	essentialEnv := []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
+
+	essentialMap := make(map[string]bool, len(essentialEnv))
+	for _, key := range essentialEnv {
+		essentialMap[key] = true
+	}
+
+	for _, env := range os.Environ() {
+		key := strings.Split(env, "=")[0]
+		if !essentialMap[key] {
+			os.Unsetenv(key)
+		}
+	}
+}
+
 func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
+	// before entering the loop clear all env
+	clearAllEnv()
+
 	for {
 		agent, err := CreateAgent(r.Vars, req.Agent, req.Command, req.RawInput)
 		if err != nil {

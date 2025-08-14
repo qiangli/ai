@@ -29,16 +29,17 @@ tools:
       required: []
     type: "system"
 
-  - name: "write_stdout"
-    description: "Write output to the terminal console"
-    parameters:
-      type: "object"
-      properties:
-        content:
-          type: "string"
-          description: "Content to write to the console"
-      required: ["content"]
-    type: "system"
+  # causing gemini infinite loop 
+  # - name: "write_stdout"
+  #   description: "Write output to the terminal console"
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       content:
+  #         type: "string"
+  #         description: "Content to write to the console"
+  #     required: ["content"]
+  #   type: "system"
   
   - name: "copy_to_clipboard"
     description: "Copy content to clipboard and overwrite its original content"
