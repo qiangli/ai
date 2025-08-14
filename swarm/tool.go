@@ -321,26 +321,26 @@ func dispatchTool(ctx context.Context, vars *api.Vars, name string, args map[str
 	return nil, fmt.Errorf("no such tool: %s", v.ID())
 }
 
-func listAgentTools(app *api.AppConfig) ([]*api.ToolFunc, error) {
-	tools := make([]*api.ToolFunc, 0)
-	for _, v := range app.AgentToolMap {
-		v.Type = "agent"
-		tools = append(tools, v)
-	}
-	return tools, nil
-}
+// func listAgentTools(app *api.AppConfig) ([]*api.ToolFunc, error) {
+// 	tools := make([]*api.ToolFunc, 0)
+// 	for _, v := range app.AgentToolMap {
+// 		v.Type = "agent"
+// 		tools = append(tools, v)
+// 	}
+// 	return tools, nil
+// }
 
 // listTools returns a list of all available tools, including agent, mcp, system, and function tools.
 // This is for CLI
 func listTools(app *api.AppConfig) ([]*api.ToolFunc, error) {
 	list := []*api.ToolFunc{}
 
-	// agent tools
-	agentTools, err := listAgentTools(app)
-	if err != nil {
-		return nil, err
-	}
-	list = append(list, agentTools...)
+	// // agent tools
+	// agentTools, err := listAgentTools(app)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// list = append(list, agentTools...)
 
 	// mcp tools
 	mcpTools, err := listMcpTools(app.McpServers)
