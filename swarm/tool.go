@@ -98,19 +98,19 @@ func initTools(app *api.AppConfig) error {
 
 	}
 
-	//
-	// required system commands
-	commandMap := make(map[string]bool)
-	for _, config := range kits {
-		for _, v := range config.Commands {
-			commandMap[v] = true
-		}
-	}
+	// //
+	// // required system commands
+	// commandMap := make(map[string]bool)
+	// for _, config := range kits {
+	// 	for _, v := range config.Commands {
+	// 		commandMap[v] = true
+	// 	}
+	// }
 
-	app.ToolSystemCommands = make([]string, 0, len(commandMap))
-	for k := range commandMap {
-		app.ToolSystemCommands = append(app.ToolSystemCommands, k)
-	}
+	// app.ToolSystemCommands = make([]string, 0, len(commandMap))
+	// for k := range commandMap {
+	// 	app.ToolSystemCommands = append(app.ToolSystemCommands, k)
+	// }
 
 	return nil
 }

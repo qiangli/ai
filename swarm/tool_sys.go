@@ -6,12 +6,12 @@ import (
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
-	"os/exec"
+	// "os/exec"
 	"reflect"
 	// "sort"
 	"strings"
 
-	"github.com/qiangli/ai/internal/log"
+	// "github.com/qiangli/ai/internal/log"
 	// utool "github.com/qiangli/ai/internal/tool"
 	"github.com/qiangli/ai/swarm/api"
 )
@@ -87,16 +87,16 @@ func callTplTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[
 		return result, nil
 	}
 
-	// Add system commands to the function map
-	for _, v := range vars.Config.ToolSystemCommands {
-		if _, err := exec.LookPath(v); err != nil {
-			log.Errorf("%s not found in PATH\n", v)
-			continue
-		}
-		funcMap[v] = func(args ...string) (string, error) {
-			return runCmd(v, args...)
-		}
-	}
+	// // Add system commands to the function map
+	// for _, v := range vars.Config.ToolSystemCommands {
+	// 	if _, err := exec.LookPath(v); err != nil {
+	// 		log.Errorf("%s not found in PATH\n", v)
+	// 		continue
+	// 	}
+	// 	funcMap[v] = func(args ...string) (string, error) {
+	// 		return runCmd(v, args...)
+	// 	}
+	// }
 	funcMap["exec"] = runCmd
 
 	var body string
