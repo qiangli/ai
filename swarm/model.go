@@ -18,10 +18,13 @@ func initModels(app *api.AppConfig) (func(level string) (*model.Model, error), e
 	}
 
 	alias := app.Models
+	if alias == "" {
+		alias = "openai"
+	}
 
 	cfg, ok := modelCfg[alias]
 	if !ok {
-		return nil, fmt.Errorf("models not found: %s", alias)
+		return nil, fmt.Errorf("models not found for alias %q", alias)
 	}
 
 	var cache = make(map[string]*model.Model)

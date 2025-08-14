@@ -1,12 +1,13 @@
 ##
 api_key: ${ANTHROPIC_API_KEY}
 base_url: "https://api.anthropic.com/"
+provider: "anthropic"
 
 models:
   L1:
-    name: "claude-3-5-haiku-latest"
+    model: "claude-3-5-haiku-latest"
   L2:
-    name: "claude-sonnet-4-0"
+    model: "claude-sonnet-4-0"
   L3:
-    name: "claude-opus-4-0"
+    model: "claude-opus-4-0"
 

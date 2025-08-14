@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"maps"
 	"os"
 	"path/filepath"
@@ -129,6 +130,9 @@ func LoadModels(base string) (map[string]*ModelsConfig, error) {
 				return nil, err
 			}
 			cfg, err := loadModelsData([][]byte{b})
+			if err != nil {
+				return nil, fmt.Errorf("failed to load %q: %v", name, err)
+			}
 			//
 			alias := cfg.Alias
 			if alias == "" {
@@ -176,6 +180,10 @@ func loadModelsData(data [][]byte) (*ModelsConfig, error) {
 			if _, ok := v.Features[Feature(OutputTypeImage)]; ok {
 				v.Type = OutputTypeImage
 			}
+		}
+		// validate
+		if v.Provider == "" {
+			return nil, fmt.Errorf("missing provider")
 		}
 	}
 

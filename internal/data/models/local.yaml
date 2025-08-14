@@ -1,15 +1,16 @@
 ##
 base_url: "http://localhost:8000/v1/"
 api_key: ${OPENAI_API_KEY_PROXY}
+provider: "openai-compatible"
 
 models:
   L1:
-    name: "gpt-4.1-mini"
+    model: "gpt-4.1-mini"
   L2:
-    name: "gpt-4.1"
+    model: "gpt-4.1"
   L3:
-    name: "gpt-o4-mini"
+    model: "gpt-o4-mini"
   Image:
-    name: "dall-e-3"
+    model: "dall-e-3"
     features: 
       image: true

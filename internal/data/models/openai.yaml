@@ -1,15 +1,16 @@
 ##
 base_url: "https://api.openai.com/v1/"
 api_key: ${OPENAI_API_KEY}
+provider: "openai"
 
 models:
   L1:
-    name: "gpt-5-nano"
+    model: "gpt-5-nano"
   L2:
-    name: "gpt-5-mini"
+    model: "gpt-5-mini"
   L3:
-    name: "gpt-5"
+    model: "gpt-5"
   Image:
-    name: "dall-e-3"
+    model: "dall-e-3"
     features: 
       image: true
