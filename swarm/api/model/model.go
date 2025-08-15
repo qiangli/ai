@@ -129,7 +129,7 @@ func LoadModels(base string) (map[string]*ModelsConfig, error) {
 			if err != nil {
 				return nil, err
 			}
-			cfg, err := loadModelsData([][]byte{b})
+			cfg, err := LoadModelsData([][]byte{b})
 			if err != nil {
 				return nil, fmt.Errorf("failed to load %q: %v", name, err)
 			}
@@ -146,7 +146,7 @@ func LoadModels(base string) (map[string]*ModelsConfig, error) {
 	return m, nil
 }
 
-func loadModelsData(data [][]byte) (*ModelsConfig, error) {
+func LoadModelsData(data [][]byte) (*ModelsConfig, error) {
 	merged := &ModelsConfig{}
 
 	for _, v := range data {

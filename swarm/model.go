@@ -5,10 +5,32 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/api/model"
 )
 
-func initModels(base, alias string) (func(level string) (*model.Model, error), error) {
+func initModels(base, alias string) (func(level string) (*api.Model, error), error) {
+	modelMap, err := ListModels(base, alias)
+	if err != nil {
+		return nil, err
+	}
+	return func(level string) (*api.Model, error) {
+		if v, ok := modelMap[level]; ok {
+			return v, nil
+		}
+		// special treatment
+		if level == model.Any {
+			for _, k := range []string{model.L1, model.L2, model.L3} {
+				if v, ok := modelMap[k]; ok {
+					return v, nil
+				}
+			}
+		}
+		return nil, fmt.Errorf("not found: %s", level)
+	}, nil
+}
+
+func ListModels(base, alias string) (map[string]*api.Model, error) {
 	path := filepath.Join(base, "models")
 	modelCfg, err := model.LoadModels(path)
 	if err != nil {
@@ -24,9 +46,9 @@ func initModels(base, alias string) (func(level string) (*model.Model, error), e
 		return nil, fmt.Errorf("models not found for alias %q", alias)
 	}
 
-	var cache = make(map[string]*model.Model)
+	var modelMap = make(map[string]*model.Model)
 	for k, v := range cfg.Models {
-		cache[k] = &model.Model{
+		modelMap[k] = &model.Model{
 			Provider: v.Provider,
 			Model:    v.Model,
 			BaseUrl:  v.BaseUrl,
@@ -35,7 +57,7 @@ func initModels(base, alias string) (func(level string) (*model.Model, error), e
 	}
 
 	// if no models, setup defaults
-	if len(cache) == 0 {
+	if len(modelMap) == 0 {
 		// all levels share same config
 		var m model.Model
 		switch {
@@ -62,25 +84,11 @@ func initModels(base, alias string) (func(level string) (*model.Model, error), e
 			}
 		default:
 		}
-		cache[m.Provider] = &m
+		modelMap[m.Provider] = &m
 	}
 
-	if len(cache) == 0 {
+	if len(modelMap) == 0 {
 		return nil, fmt.Errorf("No LLM configuration found")
 	}
-
-	return func(level string) (*model.Model, error) {
-		if v, ok := cache[level]; ok {
-			return v, nil
-		}
-		// special treatment
-		if level == model.Any {
-			for _, k := range []string{model.L1, model.L2, model.L3} {
-				if v, ok := cache[k]; ok {
-					return v, nil
-				}
-			}
-		}
-		return nil, fmt.Errorf("not found: %s", level)
-	}, nil
+	return modelMap, nil
 }

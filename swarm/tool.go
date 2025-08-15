@@ -307,22 +307,22 @@ func LoadToolData(data [][]byte) (*api.ToolsConfig, error) {
 	return merged, nil
 }
 
-func LoadTools(config api.ToolsConfig) (map[string]*api.ToolFunc, error) {
-	toolRegistry := make(map[string]*api.ToolFunc)
-	for _, toolConfig := range config.Tools {
-		tool := &api.ToolFunc{
-			Name:        toolConfig.Name,
-			Description: toolConfig.Description,
-			Parameters:  toolConfig.Parameters,
-			Type:        toolConfig.Type,
-		}
-		if _, exists := toolRegistry[tool.Name]; exists {
-			return nil, fmt.Errorf("duplicate tool name: %s", tool.Name)
-		}
-		toolRegistry[tool.Name] = tool
-	}
-	return toolRegistry, nil
-}
+// func LoadTools(config *api.ToolsConfig) (map[string]*api.ToolFunc, error) {
+// 	toolRegistry := make(map[string]*api.ToolFunc)
+// 	for _, toolConfig := range config.Tools {
+// 		tool := &api.ToolFunc{
+// 			Name:        toolConfig.Name,
+// 			Description: toolConfig.Description,
+// 			Parameters:  toolConfig.Parameters,
+// 			Type:        toolConfig.Type,
+// 		}
+// 		if _, exists := toolRegistry[tool.Name]; exists {
+// 			return nil, fmt.Errorf("duplicate tool name: %s", tool.Name)
+// 		}
+// 		toolRegistry[tool.Name] = tool
+// 	}
+// 	return toolRegistry, nil
+// }
 
 func CallTool(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
 	log.Infof("⣿ %s %+v\n", name, args)
