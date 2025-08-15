@@ -8,6 +8,8 @@ import (
 	"github.com/qiangli/ai/swarm/api/model"
 )
 
+type Model = model.Model
+
 type LLMConfig struct {
 	Provider string
 	// Name     string
@@ -15,11 +17,11 @@ type LLMConfig struct {
 	ApiKey  string
 
 	// model aliases
-	Models map[model.Level]*model.Model
+	Models map[model.Level]*Model
 }
 
 func (config *LLMConfig) Clone() *LLMConfig {
-	modelsCopy := make(map[model.Level]*model.Model, len(config.Models))
+	modelsCopy := make(map[model.Level]*Model, len(config.Models))
 	for k, v := range config.Models {
 		modelsCopy[k] = v // shallow copy of the values
 	}
@@ -37,7 +39,7 @@ func (config *LLMConfig) Clone() *LLMConfig {
 type LLMRequest struct {
 	Agent string
 
-	Model *model.Model
+	Model *Model
 
 	Messages []*Message
 
