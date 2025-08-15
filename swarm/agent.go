@@ -79,7 +79,7 @@ func LoadAgentsConfig(app *api.AppConfig) (map[string]*api.AgentsConfig, error) 
 	}
 
 	// external/custom
-	if err := LoadFileAgentsConfig(app, groups); err != nil {
+	if err := LoadFileAgentsConfig(app.Base, groups); err != nil {
 		log.Errorf("failed to load custom agents: %v\n", err)
 	}
 
@@ -90,7 +90,7 @@ func LoadAgentsConfig(app *api.AppConfig) (map[string]*api.AgentsConfig, error) 
 	return groups, nil
 }
 
-func LoadAgentsAsset(app *api.AppConfig, as api.AssetStore, root string, groups map[string]*api.AgentsConfig) error {
+func LoadAgentsAsset(as api.AssetStore, root string, groups map[string]*api.AgentsConfig) error {
 	dirs, err := as.ReadDir(root)
 	if err != nil {
 		return fmt.Errorf("failed to read agent resource directory: %v", err)
@@ -113,7 +113,7 @@ func LoadAgentsAsset(app *api.AppConfig, as api.AssetStore, root string, groups 
 			log.Debugf("agent file is empty %s\n", name)
 			continue
 		}
-		group, err := LoadAgentsData(app, [][]byte{f})
+		group, err := LoadAgentsData([][]byte{f})
 		if err != nil {
 			return fmt.Errorf("failed to load agent data from %s: %w", dir.Name(), err)
 		}
@@ -145,18 +145,18 @@ func LoadResourceAgentsConfig(app *api.AppConfig, groups map[string]*api.AgentsC
 	rs := &ResourceStore{
 		Base: "resource",
 	}
-	return LoadAgentsAsset(app, rs, "agents", groups)
+	return LoadAgentsAsset(rs, "agents", groups)
 }
 
-func LoadFileAgentsConfig(app *api.AppConfig, groups map[string]*api.AgentsConfig) error {
-	abs, err := filepath.Abs(app.Base)
+func LoadFileAgentsConfig(base string, groups map[string]*api.AgentsConfig) error {
+	abs, err := filepath.Abs(base)
 	if err != nil {
-		return fmt.Errorf("failed to get absolute path for %s: %w", app.Base, err)
+		return fmt.Errorf("failed to get absolute path for %s: %w", base, err)
 	}
 	fs := &FileStore{
 		Base: abs,
 	}
-	return LoadAgentsAsset(app, fs, "agents", groups)
+	return LoadAgentsAsset(fs, "agents", groups)
 }
 
 func LoadWebAgentsConfig(app *api.AppConfig, groups map[string]*api.AgentsConfig) error {
@@ -167,7 +167,7 @@ func LoadWebAgentsConfig(app *api.AppConfig, groups map[string]*api.AgentsConfig
 		ws := &WebStore{
 			Base: base,
 		}
-		if err := LoadAgentsAsset(app, ws, "agents", groups); err != nil {
+		if err := LoadAgentsAsset(ws, "agents", groups); err != nil {
 			log.Errorf("failed to load config. base: %s error: %v\n", base, err)
 		}
 	}
@@ -175,7 +175,7 @@ func LoadWebAgentsConfig(app *api.AppConfig, groups map[string]*api.AgentsConfig
 }
 
 // LoadAgentsConfig loads the agent configuration from the provided YAML data.
-func LoadAgentsData(app *api.AppConfig, data [][]byte) (*api.AgentsConfig, error) {
+func LoadAgentsData(data [][]byte) (*api.AgentsConfig, error) {
 	merged := &api.AgentsConfig{}
 
 	for _, v := range data {
@@ -183,11 +183,11 @@ func LoadAgentsData(app *api.AppConfig, data [][]byte) (*api.AgentsConfig, error
 		if err := yaml.Unmarshal(v, cfg); err != nil {
 			return nil, err
 		}
-		if cfg.Internal && !app.Internal {
-			// skip internal agents if the app is not internal
-			log.Debugf("skip internal agent: %s\n", cfg.Name)
-			continue
-		}
+		// if cfg.Internal && !app.Internal {
+		// 	// skip internal agents if the app is not internal
+		// 	log.Debugf("skip internal agent: %s\n", cfg.Name)
+		// 	continue
+		// }
 
 		if err := mergo.Merge(merged, cfg, mergo.WithAppendSlice); err != nil {
 			return nil, err

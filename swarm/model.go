@@ -5,19 +5,16 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/api/model"
 )
 
-func initModels(app *api.AppConfig) (func(level string) (*model.Model, error), error) {
-	// load models from app base
-	modelBase := filepath.Join(app.Base, "models")
-	modelCfg, err := model.LoadModels(modelBase)
+func initModels(base, alias string) (func(level string) (*model.Model, error), error) {
+	path := filepath.Join(base, "models")
+	modelCfg, err := model.LoadModels(path)
 	if err != nil {
 		return nil, err
 	}
 
-	alias := app.Models
 	if alias == "" {
 		alias = "openai"
 	}

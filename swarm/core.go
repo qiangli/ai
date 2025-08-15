@@ -76,7 +76,7 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	}
 	app.ToolLoader = toolLoader
 
-	modelLoader, err := initModels(app)
+	modelLoader, err := initModels(app.Base, app.Models)
 	if err != nil {
 		return nil, err
 	}

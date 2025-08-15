@@ -205,7 +205,7 @@ func initTools(app *api.AppConfig) (func(string) ([]*api.ToolFunc, error), error
 // 	return tools
 // }
 
-func LoadToolsAsset(app *api.AppConfig, as api.AssetStore, base string, kits map[string]*api.ToolsConfig) error {
+func LoadToolsAsset(as api.AssetStore, base string, kits map[string]*api.ToolsConfig) error {
 	dirs, err := as.ReadDir(base)
 	if err != nil {
 		return fmt.Errorf("failed to read directory: %v", err)
@@ -221,7 +221,7 @@ func LoadToolsAsset(app *api.AppConfig, as api.AssetStore, base string, kits map
 		if len(f) == 0 {
 			continue
 		}
-		kit, err := LoadToolData(app, [][]byte{f})
+		kit, err := LoadToolData([][]byte{f})
 		if err != nil {
 			return err
 		}
@@ -234,7 +234,7 @@ func LoadToolsAsset(app *api.AppConfig, as api.AssetStore, base string, kits map
 func LoadToolsConfig(app *api.AppConfig) (map[string]*api.ToolsConfig, error) {
 	var kits = make(map[string]*api.ToolsConfig)
 	// default
-	if err := LoadResourceToolsConfig(app, kits); err != nil {
+	if err := LoadResourceToolsConfig(kits); err != nil {
 		return nil, err
 	}
 	// web
@@ -242,28 +242,28 @@ func LoadToolsConfig(app *api.AppConfig) (map[string]*api.ToolsConfig, error) {
 		log.Error("failed to load tools from web resource: %v\n", err)
 	}
 	// external/custom
-	if err := LoadFileToolsConfig(app, kits); err != nil {
+	if err := LoadFileToolsConfig(app.Base, kits); err != nil {
 		log.Errorf("failed to load custom tools: %v\n", err)
 	}
 	return kits, nil
 }
 
-func LoadResourceToolsConfig(app *api.AppConfig, kits map[string]*api.ToolsConfig) error {
+func LoadResourceToolsConfig(kits map[string]*api.ToolsConfig) error {
 	rs := &ResourceStore{
 		Base: "resource",
 	}
-	return LoadToolsAsset(app, rs, "tools", kits)
+	return LoadToolsAsset(rs, "tools", kits)
 }
 
-func LoadFileToolsConfig(app *api.AppConfig, kits map[string]*api.ToolsConfig) error {
-	abs, err := filepath.Abs(app.Base)
+func LoadFileToolsConfig(base string, kits map[string]*api.ToolsConfig) error {
+	abs, err := filepath.Abs(base)
 	if err != nil {
-		return fmt.Errorf("failed to get absolute path for %s: %w", app.Base, err)
+		return fmt.Errorf("failed to get absolute path for %s: %w", base, err)
 	}
 	fs := &FileStore{
 		Base: abs,
 	}
-	return LoadToolsAsset(app, fs, "tools", kits)
+	return LoadToolsAsset(fs, "tools", kits)
 }
 
 func LoadWebToolsConfig(app *api.AppConfig, kits map[string]*api.ToolsConfig) error {
@@ -274,14 +274,14 @@ func LoadWebToolsConfig(app *api.AppConfig, kits map[string]*api.ToolsConfig) er
 		ws := &WebStore{
 			Base: base,
 		}
-		if err := LoadToolsAsset(app, ws, "tools", kits); err != nil {
+		if err := LoadToolsAsset(ws, "tools", kits); err != nil {
 			log.Errorf("failed to load tools from %q error: %v\n", base, err)
 		}
 	}
 	return nil
 }
 
-func LoadToolData(app *api.AppConfig, data [][]byte) (*api.ToolsConfig, error) {
+func LoadToolData(data [][]byte) (*api.ToolsConfig, error) {
 	merged := &api.ToolsConfig{}
 
 	for _, v := range data {
@@ -289,11 +289,11 @@ func LoadToolData(app *api.AppConfig, data [][]byte) (*api.ToolsConfig, error) {
 		if err := yaml.Unmarshal(v, tc); err != nil {
 			return nil, err
 		}
-		// skip internal tools
-		if tc.Internal && !app.Internal {
-			log.Debugf("Skipping internal tools: %v\n", tc)
-			continue
-		}
+		// // skip internal tools
+		// if tc.Internal && !app.Internal {
+		// 	log.Debugf("Skipping internal tools: %v\n", tc)
+		// 	continue
+		// }
 		// update kit if not set
 		for _, tool := range tc.Tools {
 			if tool.Kit == "" {
