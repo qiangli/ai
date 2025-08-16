@@ -46,7 +46,6 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/hertz-contrib/sse v0.1.0
 	github.com/jackc/pgx/v5 v5.7.5
-	github.com/kaptinlin/jsonrepair v0.2.2
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lib/pq v1.10.9
 	github.com/mark3labs/mcp-go v0.37.0

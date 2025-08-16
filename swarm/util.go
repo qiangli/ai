@@ -5,11 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	// "os"
 	"strings"
 	"text/template"
 
-	"github.com/kaptinlin/jsonrepair"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -76,33 +74,6 @@ func structToMap(input any) (map[string]any, error) {
 	return resultMap, nil
 }
 
-// func expandWithDefault(input string) string {
-// 	return os.Expand(input, func(key string) string {
-// 		parts := strings.SplitN(key, ":-", 2)
-// 		value := os.Getenv(parts[0])
-// 		if value == "" && len(parts) > 1 {
-// 			return parts[1]
-// 		}
-// 		return value
-// 	})
-// }
-
-// func toModelLevel(s string) model.Level {
-// 	switch s {
-// 	case "L0":
-// 		return model.L0
-// 	case "L1":
-// 		return model.L1
-// 	case "L2":
-// 		return model.L2
-// 	case "L3":
-// 		return model.L3
-// 	case "Image":
-// 		return model.Image
-// 	}
-// 	return model.L0
-// }
-
 func toPascalCase(name string) string {
 	words := strings.FieldsFunc(name, func(r rune) bool {
 		return r == '_' || r == '-'
@@ -115,25 +86,25 @@ func toPascalCase(name string) string {
 	return strings.Join(words, "")
 }
 
-// tryUnmarshal tries to unmarshal the data into the v.
-// If it fails, it will try to repair the data and unmarshal it again.
-func tryUnmarshal(data string, v any) error {
-	err := json.Unmarshal([]byte(data), v)
-	if err == nil {
-		return nil
-	}
-
-	repaired, err := jsonrepair.JSONRepair(data)
-	if err != nil {
-		return fmt.Errorf("failed to repair JSON: %v", err)
-	}
-	return json.Unmarshal([]byte(repaired), v)
-}
-
 // baseCommand returns the last part of the string separated by /.
 func baseCommand(s string) string {
 	s = strings.TrimSpace(s)
 	s = strings.Trim(s, "/")
 	sa := strings.Split(s, "/")
 	return sa[len(sa)-1]
+}
+
+// split2 splits string s by sep into two parts. if there is only one part,
+// use val as the second part
+func split2(s string, sep string, val string) (string, string) {
+	var p1, p2 string
+	parts := strings.SplitN(s, sep, 2)
+	if len(parts) == 1 {
+		p1 = parts[0]
+		p2 = val
+	} else {
+		p1 = parts[0]
+		p2 = parts[1]
+	}
+	return p1, p2
 }

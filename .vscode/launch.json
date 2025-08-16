@@ -163,7 +163,7 @@
 				"AI_DEBUG": "true",
 			},
 			"args": [
-				"--dry-run=false",
+				"--dry-run=true",
 				"--dry-run-content",
 				"test",
 				"--verbose",

@@ -163,8 +163,7 @@ func initTools(app *api.AppConfig) (func(string) ([]*api.ToolFunc, error), error
 	}
 
 	getTools := func(ns string, name string) ([]*api.ToolFunc, error) {
-		k, err := getKit(ns, name)
-		if err != nil {
+		if k, err := getKit(ns, name); err == nil {
 			return k, nil
 		}
 		return getType(ns, name)
@@ -189,21 +188,10 @@ func initTools(app *api.AppConfig) (func(string) ([]*api.ToolFunc, error), error
 		}
 		// type: type:kit
 		// ktt: kit:name
-		if strings.Index(s, ":") > 0 {
-			parts := strings.SplitN(s, ":", 2)
-			return getTools(parts[0], parts[1])
-		}
-		return getTools(s, "")
+		ns, n := split2(s, ":", "*")
+		return getTools(ns, n)
 	}, nil
 }
-
-// func listDefaultTools(app *api.AppConfig) []*api.ToolFunc {
-// 	var tools []*api.ToolFunc
-// 	for _, v := range app.ToolRegistry {
-// 		tools = append(tools, v)
-// 	}
-// 	return tools
-// }
 
 func LoadToolsAsset(as api.AssetStore, base string, kits map[string]*api.ToolsConfig) error {
 	dirs, err := as.ReadDir(base)

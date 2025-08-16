@@ -252,7 +252,7 @@ func callMcpTool(ctx context.Context, vars *api.Vars, name string, args map[stri
 
 	tools, err := vars.Config.ToolLoader(name)
 	if err != nil {
-		return "", fmt.Errorf("no such tool: %s", name)
+		return "", fmt.Errorf("no such mcp tool: %s", name)
 	}
 	v := tools[0]
 
