@@ -119,7 +119,7 @@ func Vars(app *api.AppConfig) (*api.Vars, error) {
 
 	vars.TemplateFuncMap = tplFuncMap
 	vars.AdviceMap = adviceMap
-	vars.EntrypointMap = entrypointMap
+	// vars.EntrypointMap = entrypointMap
 
 	// TODO remove?
 	// vars.AgentRegistry = app.AgentRegistry

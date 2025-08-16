@@ -14,8 +14,8 @@ import (
 	// "github.com/qiangli/ai/swarm/api/model"
 )
 
-const defaultMaxTurns = 15
-const defaultMaxTime = 3600
+const defaultMaxTurns = 8
+const defaultMaxTime = 300 // 5 min
 
 func initAgents(app *api.AppConfig) (func(string) (*api.AgentsConfig, error), error) {
 	agents, err := ListAgents(app)
