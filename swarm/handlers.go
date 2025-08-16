@@ -296,7 +296,7 @@ func TimeoutHandler(next Handler, dt time.Duration, msg string) Handler {
 
 // ErrHandlerTimeout is returned on [Response]
 // in handlers which have timed out.
-var ErrHandlerTimeout = errors.New("Handler timeout")
+var ErrHandlerTimeout = errors.New("Agent service timeout")
 
 type timeoutHandler struct {
 	next    Handler

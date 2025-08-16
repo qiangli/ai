@@ -67,7 +67,8 @@ type ModelsConfig struct {
 type Level = string
 
 const (
-	Any Level = "default"
+	// any of L1/L2/L3
+	Any Level = "any"
 
 	L1 Level = "L1"
 	L2 Level = "L2"
