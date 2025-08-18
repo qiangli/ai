@@ -140,19 +140,10 @@ type AppConfig struct {
 
 // Clone is a shallow copy of member fields of the configration
 func (cfg *AppConfig) Clone() *AppConfig {
-	// if cfg.LLM == nil {
-	// 	cfg.LLM = &LLMConfig{}
-	// }
-	// if cfg.TTS == nil {
-	// 	cfg.TTS = &TTSConfig{}
-	// }
-	// var llm = cfg.LLM.Clone()
-	// var tts = cfg.TTS.Clone()
 	return &AppConfig{
 		Version:    cfg.Version,
 		ConfigFile: cfg.ConfigFile,
-		// LLM:           llm,
-		// TTS:           tts,
+		//
 		ModelLoader:   cfg.ModelLoader,
 		AgentResource: cfg.AgentResource,
 		AgentLoader:   cfg.AgentLoader,
@@ -206,6 +197,9 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		MaxTurns:      cfg.MaxTurns,
 		Stdout:        cfg.Stdout,
 		Stderr:        cfg.Stderr,
+		//
+		DryRun:        cfg.DryRun,
+		DryRunContent: cfg.DryRunContent,
 	}
 }
 

@@ -110,29 +110,8 @@ func Vars(app *api.AppConfig) (*api.Vars, error) {
 	vars.UserInfo = sysInfo.UserInfo
 
 	//
-	// if app.LLM != nil {
-	// 	vars.Models = app.LLM.Models
-	// }
-
-	//
-	// vars.ResourceMap = make(map[string]*api.Resource)
-
 	vars.TemplateFuncMap = tplFuncMap
 	vars.AdviceMap = adviceMap
-	// vars.EntrypointMap = entrypointMap
-
-	// TODO remove?
-	// vars.AgentRegistry = app.AgentRegistry
-	//
-	// toolMap := make(map[string]*api.ToolFunc)
-	// tools, err := listTools(app)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// for _, v := range tools {
-	// 	toolMap[v.ID()] = v
-	// }
-	// vars.ToolRegistry = toolMap
 
 	return vars, nil
 }
