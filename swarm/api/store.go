@@ -15,6 +15,20 @@ type DirEntryInfo struct {
 	info  *FileInfo
 }
 
+func NewDirEntry(
+	name string,
+	isDir bool,
+	mode uint32,
+	info *FileInfo,
+) DirEntry {
+	return &DirEntryInfo{
+		name:  name,
+		isDir: isDir,
+		mode:  mode,
+		info:  info,
+	}
+}
+
 func (r DirEntryInfo) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Name  string    `json:"name"`
@@ -81,6 +95,22 @@ type FileInfo struct {
 	mode    uint32
 	modTime time.Time
 	isDir   bool
+}
+
+func NewFileInfo(
+	name string,
+	size int64,
+	mode uint32,
+	modTime time.Time,
+	isDir bool,
+) *FileInfo {
+	return &FileInfo{
+		name:    name,
+		size:    size,
+		mode:    mode,
+		modTime: modTime,
+		isDir:   isDir,
+	}
 }
 
 func (fi FileInfo) MarshalJSON() ([]byte, error) {
