@@ -227,7 +227,7 @@ func LoadToolsConfig(app *api.AppConfig) (map[string]*api.ToolsConfig, error) {
 	}
 	// web
 	if err := LoadWebToolsConfig(app, kits); err != nil {
-		log.Error("failed to load tools from web resource: %v\n", err)
+		log.Errorf("failed to load tools from web resource: %v\n", err)
 	}
 	// external/custom
 	if err := LoadFileToolsConfig(app.Base, kits); err != nil {

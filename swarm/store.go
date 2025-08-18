@@ -52,7 +52,8 @@ func (fs *FileStore) Resolve(dir, name string) string {
 }
 
 type WebStore struct {
-	Base string
+	Base  string
+	Token string
 }
 
 func (ws *WebStore) ReadDir(name string) ([]api.DirEntry, error) {
@@ -60,7 +61,15 @@ func (ws *WebStore) ReadDir(name string) ([]api.DirEntry, error) {
 	url := fmt.Sprintf("%s/%s", ws.Base, name)
 
 	// Make the HTTP GET request
-	resp, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add Authorization header
+	req.Header.Add("Authorization", "Bearer "+ws.Token)
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +93,15 @@ func (ws *WebStore) ReadFile(name string) ([]byte, error) {
 	url := fmt.Sprintf("%s/%s", ws.Base, name)
 
 	// Make the HTTP GET request
-	resp, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add Authorization header
+	req.Header.Add("Authorization", "Bearer "+ws.Token)
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}

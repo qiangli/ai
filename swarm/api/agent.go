@@ -337,10 +337,13 @@ func (r *Result) String() string {
 }
 
 type AgentResource struct {
-	Root string
+	Root string `json:"root"`
+
 	// web resource base url
-	// http://localhost:58080/resource/
-	Bases []string
+	// http://localhost:18080/resource/
+	Bases []string `json:"bases"`
+
+	Token string `json:"token"`
 }
 
 func LoadAgentResource(p string) (*AgentResource, error) {

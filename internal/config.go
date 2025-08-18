@@ -235,23 +235,25 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 
 	// resource
 	resource := viper.GetString("agent_resource")
-	ar, err := api.LoadAgentResource(filepath.Join(app.Base, resource))
-	if err != nil {
-		return nil
+	if resource != "" {
+		ar, err := api.LoadAgentResource(filepath.Join(app.Base, resource))
+		if err != nil {
+			return err
+		}
+		app.AgentResource = ar
 	}
-	app.AgentResource = ar
 
 	// sql db
-	dbCfg := &api.DBCred{}
-	dbCfg.Host = viper.GetString("sql.db_host")
-	dbCfg.Port = viper.GetString("sql.db_port")
-	dbCfg.Username = viper.GetString("sql.db_username")
-	dbCfg.Password = viper.GetString("sql.db_password")
-	dbCfg.DBName = viper.GetString("sql.db_name")
-	app.DBCred = dbCfg
+	// dbCfg := &api.DBCred{}
+	// dbCfg.Host = viper.GetString("sql.db_host")
+	// dbCfg.Port = viper.GetString("sql.db_port")
+	// dbCfg.Username = viper.GetString("sql.db_username")
+	// dbCfg.Password = viper.GetString("sql.db_password")
+	// dbCfg.DBName = viper.GetString("sql.db_name")
+	// app.DBCred = dbCfg
 	//
-	gitConfig := &api.GitConfig{}
-	app.Git = gitConfig
+	// gitConfig := &api.GitConfig{}
+	// app.Git = gitConfig
 
 	log.Debug("parsed: %+v\n", app)
 

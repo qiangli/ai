@@ -42,6 +42,29 @@
 			"stopOnEntry": false
 		},
 		{
+			"name": "Joker",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/",
+			"env": {
+				"AI_MODEL": "gpt-4o-mini",
+				"AI_API_KEY": "${env:OPENAI_API_KEY}",
+				"AI_BASE_URL": "http://localhost:4000",
+				"AI_DEBUG": "true",
+			},
+			"args": [
+				"--verbose",
+				"@joker",
+				"--agent-resource",
+				"agent-resource.json",
+				"--message",
+				"what is the stock price of nvidia today"
+			],
+			"showLog": false,
+			"stopOnEntry": false
+		},
+		{
 			"name": "Screenshot",
 			"type": "go",
 			"request": "launch",
