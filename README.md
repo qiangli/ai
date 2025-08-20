@@ -8,6 +8,7 @@ Specialist agents - such as shell, web, git, pr, code, and sql - will empower yo
 
 If you prefer graphical UI, this tool can serve as backend hub service to the web widget, browser/vscode extensions, and desktop app, including a web terminal: [AI Chatbot](https://github.com/qiangli/chatbot) Conversation history is shared among all the different UIs so LLMs won't lose the context when switching the interfaces.
 
+[AI Cloud Hub](https://github.com/openaide/dhnt.io) is coming soon...
 
 - [AI Command Line Tool](#ai-command-line-tool)
   - [Build](#build)
