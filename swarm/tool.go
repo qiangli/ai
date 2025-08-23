@@ -170,10 +170,13 @@ func initTools(app *api.AppConfig) (func(string) ([]*api.ToolFunc, error), error
 	}
 
 	getTool := func(id string) ([]*api.ToolFunc, error) {
-		for _, v := range tools {
-			if v.Name == id {
-				return []*api.ToolFunc{v}, nil
-			}
+		// for _, v := range tools {
+		// 	if v.Name == id {
+		// 		return []*api.ToolFunc{v}, nil
+		// 	}
+		// }
+		if v, ok := tools[id]; ok {
+			return []*api.ToolFunc{v}, nil
 		}
 		return nil, fmt.Errorf("no such tool: %s", id)
 	}

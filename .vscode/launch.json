@@ -269,20 +269,21 @@
 			"mode": "auto",
 			"program": "${workspaceFolder}/cmd/",
 			"env": {
+				"OPENAI_API_KEY": "${env:OPENAI_API_KEY}",
 				// "AI_MODEL": "gpt-4o-mini",
-				// "AI_API_KEY": "${env:OPENAI_API_KEY}",
+				"AI_API_KEY": "${env:OPENAI_API_KEY}",
 				// "AI_BASE_URL": "http://localhost:4000",
-				"AI_MODEL": "claude-3-5-haiku-latest",
-				"AI_API_KEY": "${env:ANTHROPIC_API_KEY}",
+				// "AI_MODEL": "claude-3-5-haiku-latest",
+				// "AI_API_KEY": "${env:ANTHROPIC_API_KEY}",
 				"AI_DEBUG": "true",
 				"AI_FORMAT": "raw",
-				"AI_AGENT": "shell"
+				// "AI_AGENT": "shell"
 			},
 			"args": [
 				"--verbose=false",
 				"@ask",
 				"--message",
-				"what is fish"
+				"what is the latest news today"
 			],
 			"showLog": false,
 			"stopOnEntry": false

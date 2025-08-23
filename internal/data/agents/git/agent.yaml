@@ -36,7 +36,10 @@ agents:
     instruction:
       content: "file:git_message_long.md"
     functions:
-      - "shell:git"
-      - "system:*"
+      - "git:*"
+      - "fs:*"
+      - "host:*"
+      - "io:*"
+      - "os:*"
 
 ###

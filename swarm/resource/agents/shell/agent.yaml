@@ -9,5 +9,9 @@ agents:
       content: "resource:script_system_role.md"
       type: "tpl"
     functions:
-      - "system:*"
+      - "fs:*"
+      - "host:*"
+      - "io:*"
+      - "os:*"
+      - "web:*"
 ###

@@ -9,5 +9,8 @@ agents:
         Your task is to search the internet for specific topics and retrieve the content from the URL
         based on user's query using the available tools
     functions:
-      - "func:web"
-      - "system:*"
+      - "fs:*"
+      - "host:*"
+      - "io:*"
+      - "os:*"
+      - "web:*"

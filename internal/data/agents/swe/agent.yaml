@@ -7,6 +7,9 @@ agents:
     instruction:
       content: "file:swe_system_role.md"
     functions:
-      - "func:web"
-      - "system:*"
+      - "fs:*"
+      - "host:*"
+      - "io:*"
+      - "os:*"
+      - "web:*"
 ###
