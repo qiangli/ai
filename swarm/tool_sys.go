@@ -111,12 +111,12 @@ func callTplTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[
 	switch f.Type {
 	case ToolTypeTemplate:
 		return body, nil
-	case ToolTypeSql:
-		cred, err := dbCred(vars, args)
-		if err != nil {
-			return "", err
-		}
-		return sqlQuery(ctx, cred, body)
+	// case ToolTypeSql:
+	// 	cred, err := dbCred(vars, args)
+	// 	if err != nil {
+	// 		return "", err
+	// 	}
+	// 	return sqlQuery(ctx, cred, body)
 	case ToolTypeShell:
 		cmdline := strings.TrimSpace(body)
 		return execCommand(cmdline, nil, vars.Config.Debug)

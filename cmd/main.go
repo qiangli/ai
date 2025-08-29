@@ -10,8 +10,8 @@ import (
 
 	"github.com/qiangli/ai/cmd/agent"
 	"github.com/qiangli/ai/cmd/history"
-	"github.com/qiangli/ai/cmd/hub"
-	"github.com/qiangli/ai/cmd/mcp"
+	// "github.com/qiangli/ai/cmd/hub"
+	// "github.com/qiangli/ai/cmd/mcp"
 	"github.com/qiangli/ai/cmd/setup"
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
@@ -28,8 +28,6 @@ Examples:
 {{.Example}}{{end}}
 
 Miscellaneous:
-  ai /hub                        Manage Hub services
-  ai /mcp                        Manage MCP server
   ai /setup                      Setup configuration
 
 Use "{{.CommandPath}} /help [agents|commands|tools|info]" for more information.
@@ -43,9 +41,11 @@ ai @ask what is fish
 
 var agentCmd = agent.AgentCmd
 var setupCmd = setup.SetupCmd
-var mcpCmd = mcp.McpCmd
+
+// var mcpCmd = mcp.McpCmd
 var historyCmd = history.HistoryCmd
-var hubCmd = hub.HubCmd
+
+// var hubCmd = hub.HubCmd
 
 var rootCmd = &cobra.Command{
 	Use:                   "ai [OPTIONS] [@AGENT] MESSAGE...",
@@ -139,18 +139,18 @@ func main() {
 				internal.Exit(err)
 			}
 			return
-		case "/hub":
-			os.Args = os.Args[1:]
-			if err := hubCmd.Execute(); err != nil {
-				internal.Exit(err)
-			}
-			return
-		case "/mcp":
-			os.Args = os.Args[1:]
-			if err := mcpCmd.Execute(); err != nil {
-				internal.Exit(err)
-			}
-			return
+		// case "/hub":
+		// 	os.Args = os.Args[1:]
+		// 	if err := hubCmd.Execute(); err != nil {
+		// 		internal.Exit(err)
+		// 	}
+		// 	return
+		// case "/mcp":
+		// 	os.Args = os.Args[1:]
+		// 	if err := mcpCmd.Execute(); err != nil {
+		// 		internal.Exit(err)
+		// 	}
+		// 	return
 		case "/history":
 			os.Args = os.Args[1:]
 			if err := historyCmd.Execute(); err != nil {

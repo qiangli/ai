@@ -69,23 +69,23 @@ func getUserInput(cfg *api.AppConfig, stdin io.Reader, clipper api.ClipboardProv
 
 	// special inputs
 
-	// take screenshot - append to file list
-	if cfg.Screenshot {
-		if img, err := takeScreenshot(cfg); err != nil {
-			return nil, err
-		} else {
-			input.Files = append(input.Files, img)
-		}
-	}
+	// // take screenshot - append to file list
+	// if cfg.Screenshot {
+	// 	if img, err := takeScreenshot(cfg); err != nil {
+	// 		return nil, err
+	// 	} else {
+	// 		input.Files = append(input.Files, img)
+	// 	}
+	// }
 
-	// get voice input - append to message
-	if cfg.Voice {
-		if txt, err := voiceInput(cfg); err != nil {
-			return nil, err
-		} else {
-			input.Message = input.Message + " " + txt
-		}
-	}
+	// // get voice input - append to message
+	// if cfg.Voice {
+	// 	if txt, err := voiceInput(cfg); err != nil {
+	// 		return nil, err
+	// 	} else {
+	// 		input.Message = input.Message + " " + txt
+	// 	}
+	// }
 
 	log.Debugf("\n[%s]\n%s\n%s\n%v\n\n", cfg.Me, input.Message, clipText(input.Content, clipMaxLen), input.Files)
 	return input, nil
