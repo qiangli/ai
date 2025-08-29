@@ -68,12 +68,12 @@ type Vars struct {
 // 	return b, nil
 // }
 
-type Resource struct {
-	ID string `json:"id"`
+// type Resource struct {
+// 	ID string `json:"id"`
 
-	// key: scheme:path.type
-	Content func(string) ([]byte, error) `json:"content"`
-}
+// 	// key: scheme:path.type
+// 	Content func(string) ([]byte, error) `json:"content"`
+// }
 
 // func (r *Vars) ListTools() []*ToolFunc {
 // 	tools := make([]*ToolFunc, 0, len(r.ToolRegistry))

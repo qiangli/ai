@@ -1,0 +1,12 @@
+{
+    "resources": [
+        {
+            "base": "https://ai.dhnt.io/resource",
+            "token": ""
+        },
+        {
+            "base": "http://localhost:18080/resource",
+            "token": ""
+        }
+    ]
+}

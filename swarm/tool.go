@@ -261,12 +261,13 @@ func LoadWebToolsConfig(app *api.AppConfig, kits map[string]*api.ToolsConfig) er
 	if app.AgentResource == nil {
 		return nil
 	}
-	for _, base := range app.AgentResource.Bases {
+	for _, v := range app.AgentResource.Resources {
 		ws := &WebStore{
-			Base: base,
+			Base:  v.Base,
+			Token: v.Token,
 		}
 		if err := LoadToolsAsset(ws, "tools", kits); err != nil {
-			log.Errorf("failed to load tools from %q error: %v\n", base, err)
+			log.Errorf("failed to load tools from %q error: %v\n", v.Base, err)
 		}
 	}
 	return nil

@@ -91,8 +91,8 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("mcp-server-root")
 
 	// resource
-	flags.String("agent-resource", "agent-resource.json", "Resource configuration")
-	flags.MarkHidden("agent-resource")
+	flags.String("resource", "resource.json", "Resource configuration")
+	flags.MarkHidden("resource")
 
 	// LLM
 	// a set of models grouped under one name for convenience from potentially different service providers

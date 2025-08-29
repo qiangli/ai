@@ -234,7 +234,7 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	}
 
 	// resource
-	resource := viper.GetString("agent_resource")
+	resource := viper.GetString("resource")
 	if resource != "" {
 		ar, err := api.LoadAgentResource(filepath.Join(app.Base, resource))
 		if err != nil {

@@ -163,13 +163,13 @@ func LoadWebAgentsConfig(app *api.AppConfig, groups map[string]*api.AgentsConfig
 	if app.AgentResource == nil {
 		return nil
 	}
-	for _, base := range app.AgentResource.Bases {
+	for _, v := range app.AgentResource.Resources {
 		ws := &WebStore{
-			Base:  base,
-			Token: app.AgentResource.Token,
+			Base:  v.Base,
+			Token: v.Token,
 		}
 		if err := LoadAgentsAsset(ws, "agents", groups); err != nil {
-			log.Errorf("failed to load config. base: %s error: %v\n", base, err)
+			log.Errorf("*** failed to load config. base: %s error: %v\n", v.Base, err)
 		}
 	}
 	return nil

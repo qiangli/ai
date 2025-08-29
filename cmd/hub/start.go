@@ -97,7 +97,7 @@ func addStartFlags(cmd *cobra.Command) {
 	// TODO use values from models
 	flags.String("llm-proxy-api-key", "", "OpenAI api key")
 
-	flags.String("agent-resource", "agent-resource.json", "Resource configuration")
+	// flags.String("agent-resource", "agent-resource.json", "Resource configuration")
 
 	// agent flags
 	flags.StringP("agent", "a", "ask", "Specify the agent to use. @<agent>")

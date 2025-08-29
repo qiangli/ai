@@ -337,12 +337,24 @@ func (r *Result) String() string {
 }
 
 type AgentResource struct {
-	Root string `json:"root"`
+	// Root string `json:"root"`
 
 	// web resource base url
 	// http://localhost:18080/resource/
-	Bases []string `json:"bases"`
+	// Bases []string `json:"bases"`
 
+	// Token string `json:"token"`
+
+	Resources []*Resource `json:"resources"`
+}
+
+type Resource struct {
+	// web resource base url
+	// http://localhost:18080/resource
+	// https://ai.dhnt.io/resource
+	Base string `json:"base"`
+
+	// access token
 	Token string `json:"token"`
 }
 

@@ -1,6 +1,0 @@
-{
-    "root": "web",
-    "bases": [
-        "http://localhost:58080/resource"
-    ]
-}
