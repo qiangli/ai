@@ -203,13 +203,13 @@ func (cfg *AppConfig) Clone() *AppConfig {
 	}
 }
 
-func LoadModels(base string) (map[string]*model.ModelsConfig, error) {
-	m, err := model.LoadModels(base)
-	if err != nil {
-		return nil, err
-	}
-	return m, err
-}
+// func LoadModels(base string) (map[string]*model.ModelsConfig, error) {
+// 	m, err := model.LoadModels(base)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return m, err
+// }
 
 func FindLastChatID(base string) (string, error) {
 	entries, err := os.ReadDir(base)

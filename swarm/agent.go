@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"embed"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -74,7 +75,7 @@ func ListAgents(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
 func LoadAgentsConfig(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
 	var groups = make(map[string]*api.AgentsConfig)
 	// default
-	if err := LoadResourceAgentsConfig(app, groups); err != nil {
+	if err := LoadResourceAgentsConfig(resourceFS, groups); err != nil {
 		return nil, err
 	}
 
@@ -84,9 +85,12 @@ func LoadAgentsConfig(app *api.AppConfig) (map[string]*api.AgentsConfig, error) 
 	}
 
 	// web
-	if err := LoadWebAgentsConfig(app, groups); err != nil {
-		log.Errorf("failed load agents from web resources: %v\n", err)
+	if app.AgentResource != nil && len(app.AgentResource.Resources) > 0 {
+		if err := LoadWebAgentsConfig(app.AgentResource.Resources, groups); err != nil {
+			log.Errorf("failed load agents from web resources: %v\n", err)
+		}
 	}
+
 	return groups, nil
 }
 
@@ -141,8 +145,9 @@ func LoadAgentsAsset(as api.AssetStore, root string, groups map[string]*api.Agen
 	return nil
 }
 
-func LoadResourceAgentsConfig(app *api.AppConfig, groups map[string]*api.AgentsConfig) error {
+func LoadResourceAgentsConfig(fs embed.FS, groups map[string]*api.AgentsConfig) error {
 	rs := &ResourceStore{
+		FS:   fs,
 		Base: "resource",
 	}
 	return LoadAgentsAsset(rs, "agents", groups)
@@ -159,11 +164,8 @@ func LoadFileAgentsConfig(base string, groups map[string]*api.AgentsConfig) erro
 	return LoadAgentsAsset(fs, "agents", groups)
 }
 
-func LoadWebAgentsConfig(app *api.AppConfig, groups map[string]*api.AgentsConfig) error {
-	if app.AgentResource == nil {
-		return nil
-	}
-	for _, v := range app.AgentResource.Resources {
+func LoadWebAgentsConfig(resources []*api.Resource, groups map[string]*api.AgentsConfig) error {
+	for _, v := range resources {
 		ws := &WebStore{
 			Base:  v.Base,
 			Token: v.Token,
@@ -184,11 +186,6 @@ func LoadAgentsData(data [][]byte) (*api.AgentsConfig, error) {
 		if err := yaml.Unmarshal(v, cfg); err != nil {
 			return nil, err
 		}
-		// if cfg.Internal && !app.Internal {
-		// 	// skip internal agents if the app is not internal
-		// 	log.Debugf("skip internal agent: %s\n", cfg.Name)
-		// 	continue
-		// }
 
 		if err := mergo.Merge(merged, cfg, mergo.WithAppendSlice); err != nil {
 			return nil, err
@@ -444,10 +441,3 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 
 	return creator(vars, name, command)
 }
-
-// func LoadAgents(app *api.AppConfig, name string) (*api.AgentsConfig, error) {
-// 	if config, ok := app.AgentRegistry[name]; ok {
-// 		return config, nil
-// 	}
-// 	return nil, fmt.Errorf("no agent configurations found for: %s", name)
-// }

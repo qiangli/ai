@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"os"
 	"os/exec"
@@ -225,22 +226,27 @@ func LoadToolsAsset(as api.AssetStore, base string, kits map[string]*api.ToolsCo
 func LoadToolsConfig(app *api.AppConfig) (map[string]*api.ToolsConfig, error) {
 	var kits = make(map[string]*api.ToolsConfig)
 	// default
-	if err := LoadResourceToolsConfig(kits); err != nil {
+	if err := LoadResourceToolsConfig(resourceFS, kits); err != nil {
 		return nil, err
 	}
-	// web
-	if err := LoadWebToolsConfig(app, kits); err != nil {
-		log.Errorf("failed to load tools from web resource: %v\n", err)
-	}
+
 	// external/custom
 	if err := LoadFileToolsConfig(app.Base, kits); err != nil {
 		log.Errorf("failed to load custom tools: %v\n", err)
 	}
+
+	if app.AgentResource != nil && len(app.AgentResource.Resources) > 0 {
+		if err := LoadWebToolsConfig(app.AgentResource.Resources, kits); err != nil {
+			log.Errorf("failed to load tools from web resource: %v\n", err)
+		}
+	}
+
 	return kits, nil
 }
 
-func LoadResourceToolsConfig(kits map[string]*api.ToolsConfig) error {
+func LoadResourceToolsConfig(fs embed.FS, kits map[string]*api.ToolsConfig) error {
 	rs := &ResourceStore{
+		FS:   fs,
 		Base: "resource",
 	}
 	return LoadToolsAsset(rs, "tools", kits)
@@ -257,11 +263,8 @@ func LoadFileToolsConfig(base string, kits map[string]*api.ToolsConfig) error {
 	return LoadToolsAsset(fs, "tools", kits)
 }
 
-func LoadWebToolsConfig(app *api.AppConfig, kits map[string]*api.ToolsConfig) error {
-	if app.AgentResource == nil {
-		return nil
-	}
-	for _, v := range app.AgentResource.Resources {
+func LoadWebToolsConfig(resources []*api.Resource, kits map[string]*api.ToolsConfig) error {
+	for _, v := range resources {
 		ws := &WebStore{
 			Base:  v.Base,
 			Token: v.Token,

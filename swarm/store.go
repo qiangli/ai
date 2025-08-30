@@ -12,21 +12,19 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-//go:embed resource/*
-var resourceFS embed.FS
-
 type ResourceStore struct {
 	Base string
+	FS   embed.FS
 }
 
 func (rs *ResourceStore) ReadDir(name string) ([]api.DirEntry, error) {
 	p := fmt.Sprintf("%s/%s", rs.Base, name)
-	return resourceFS.ReadDir(p)
+	return rs.FS.ReadDir(p)
 }
 
 func (rs *ResourceStore) ReadFile(name string) ([]byte, error) {
 	p := fmt.Sprintf("%s/%s", rs.Base, name)
-	return resourceFS.ReadFile(p)
+	return rs.FS.ReadFile(p)
 }
 
 func (rs *ResourceStore) Resolve(dir, name string) string {
@@ -73,6 +71,14 @@ func (ws *WebStore) ReadDir(name string) ([]api.DirEntry, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.StatusCode == 404 {
+		return nil, nil
+	}
+
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("%s", resp.Status)
+	}
 	defer resp.Body.Close()
 
 	// Decode the JSON response
@@ -80,6 +86,7 @@ func (ws *WebStore) ReadDir(name string) ([]api.DirEntry, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
 		return nil, err
 	}
+	// required array conversion
 	var entries []api.DirEntry
 	for _, v := range data {
 		entries = append(entries, v)
@@ -104,6 +111,15 @@ func (ws *WebStore) ReadFile(name string) ([]byte, error) {
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
+	}
+
+	// not found
+	if resp.StatusCode == 404 {
+		return nil, nil
+	}
+
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("%s", resp.Status)
 	}
 	defer resp.Body.Close()
 
