@@ -243,17 +243,11 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 		app.AgentResource = ar
 	}
 
-	// sql db
-	// dbCfg := &api.DBCred{}
-	// dbCfg.Host = viper.GetString("sql.db_host")
-	// dbCfg.Port = viper.GetString("sql.db_port")
-	// dbCfg.Username = viper.GetString("sql.db_username")
-	// dbCfg.Password = viper.GetString("sql.db_password")
-	// dbCfg.DBName = viper.GetString("sql.db_name")
-	// app.DBCred = dbCfg
-	//
-	// gitConfig := &api.GitConfig{}
-	// app.Git = gitConfig
+	apiKeys := make(map[string]string)
+	apiKeys["openai"] = os.Getenv("OPENAI_API_KEY")
+	apiKeys["gemini"] = os.Getenv("GEMINI_API_KEY")
+	apiKeys["anthropic"] = os.Getenv("ANTHROPIC_API_KEY")
+	app.ApiKeys = apiKeys
 
 	log.Debug("parsed: %+v\n", app)
 
@@ -457,26 +451,6 @@ func ParseSpecialChars(viper *fangs.Viper, app *api.AppConfig, args []string) []
 
 func ParseLLM(viper *fangs.Viper, app *api.AppConfig) error {
 	// LLM config
-	// var lc = &api.LLMConfig{}
-	// app.LLM = lc
-	// default
-	// lc.Provider = viper.GetString("provider")
-
-	// lc.ApiKey = viper.GetString("api_key")
-	// lc.Name = viper.GetString("model")
-	// lc.BaseUrl = viper.GetString("base_url")
-
-	// // <provider>/<model>
-	// modelName := func(n string) string {
-	// 	if strings.Contains(n, "/") {
-	// 		return n
-	// 	}
-	// 	if lc.Provider == "" {
-	// 		return "openai/" + n
-	// 	}
-	// 	return lc.Provider + "/" + n
-	// }
-
 	//
 	alias := viper.GetString("models")
 	// use same models to continue the conversation

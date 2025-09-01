@@ -136,6 +136,10 @@ type AppConfig struct {
 	// dry run
 	DryRun        bool
 	DryRunContent string
+
+	// experimental
+	// provider -> api-key
+	ApiKeys map[string]string
 }
 
 // Clone is a shallow copy of member fields of the configration

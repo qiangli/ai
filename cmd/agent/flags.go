@@ -96,7 +96,7 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	// LLM
 	// a set of models grouped under one name for convenience from potentially different service providers
-	flags.StringP("models", "m", "", "LLM model alias defined in the models directory")
+	flags.StringP("models", "m", "openai", "LLM model alias defined in the models directory")
 
 	// // llm - use models config yaml instead
 	// flags.String("provider", "", "LLM provider")

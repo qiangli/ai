@@ -31,23 +31,10 @@ func initModels(app *api.AppConfig, alias string) (func(level string) (*api.Mode
 		}
 	}
 
-	apiKeys := func(provider string) string {
-		switch provider {
-		case "openai":
-			return os.Getenv("OPENAI_API_KEY")
-		case "gemini":
-			return os.Getenv("GEMINI_API_KEY")
-		case "anthropic":
-			return os.Getenv("ANTHROPIC_API_KEY")
-		default:
-			return os.Getenv("OPENAI_API_KEY")
-		}
-	}
-
 	// set keys
 	provide := func(v *api.Model) (*api.Model, error) {
 		m := v.Clone()
-		if apiKey := apiKeys(m.Provider); apiKey != "" {
+		if apiKey, ok := app.ApiKeys[m.Provider]; ok {
 			m.ApiKey = apiKey
 			return m, nil
 		}
