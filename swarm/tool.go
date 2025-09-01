@@ -257,6 +257,12 @@ func LoadFileToolsConfig(base string, kits map[string]*api.ToolsConfig) error {
 	if err != nil {
 		return fmt.Errorf("failed to get absolute path for %s: %w", base, err)
 	}
+	// check if abs exists
+	if _, err := os.Stat(abs); os.IsNotExist(err) {
+		log.Debugf("path does not exist: %s\n", abs)
+		return nil
+	}
+
 	fs := &FileStore{
 		Base: abs,
 	}

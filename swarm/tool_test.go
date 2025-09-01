@@ -71,7 +71,8 @@ func TestCallSystemTool(t *testing.T) {
 	}
 
 	cfg := &api.AppConfig{
-		Base: "../internal/data/",
+		Base:   "../internal/data/",
+		Models: "openai",
 	}
 
 	ctx := context.Background()

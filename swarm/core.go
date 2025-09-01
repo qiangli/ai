@@ -19,56 +19,12 @@ func New(vars *api.Vars) *Swarm {
 	}
 }
 
-// func initAgentTools(app *api.AppConfig) error {
-// 	if len(app.AgentRegistry) == 0 {
-// 		return fmt.Errorf("agent registry not initialized")
-// 	}
-// 	app.AgentToolMap = make(map[string]*api.ToolFunc)
-
-// 	// skip internal as tool - e.g launch
-// 	agents := make(map[string]*api.AgentConfig)
-// 	for _, v := range app.AgentRegistry {
-// 		for _, agent := range v.Agents {
-// 			if v.Internal && !app.Internal {
-// 				continue
-// 			}
-// 			agents[agent.Name] = agent
-// 		}
-// 	}
-// 	for _, v := range agents {
-// 		if !app.Internal && v.Internal {
-// 			continue
-// 		}
-
-// 		parts := strings.SplitN(v.Name, "/", 2)
-// 		var service = parts[0]
-// 		var toolName string
-// 		if len(parts) == 2 {
-// 			toolName = parts[1]
-// 		}
-// 		state := api.ParseState(v.State)
-// 		fn := &api.ToolFunc{
-// 			Type:        ToolTypeAgent,
-// 			Kit:         service,
-// 			Name:        toolName,
-// 			Description: v.Description,
-// 			State:       state,
-// 		}
-// 		app.AgentToolMap[fn.ID()] = fn
-// 	}
-// 	return nil
-// }
-
 func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	agentLoader, err := initAgents(app)
 	if err != nil {
 		return nil, err
 	}
 	app.AgentLoader = agentLoader
-
-	// if err := initAgentTools(app); err != nil {
-	// 	return nil, err
-	// }
 
 	toolLoader, err := initTools(app)
 	if err != nil {

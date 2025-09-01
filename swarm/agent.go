@@ -111,7 +111,7 @@ func LoadAgentsAsset(as api.AssetStore, root string, groups map[string]*api.Agen
 			if os.IsNotExist(err) {
 				continue
 			}
-			return fmt.Errorf("failed to read agent file %s: %w", dir.Name(), err)
+			return fmt.Errorf("failed to read agent asset %s: %w", dir.Name(), err)
 		}
 		if len(f) == 0 {
 			log.Debugf("agent file is empty %s\n", name)
@@ -158,6 +158,12 @@ func LoadFileAgentsConfig(base string, groups map[string]*api.AgentsConfig) erro
 	if err != nil {
 		return fmt.Errorf("failed to get absolute path for %s: %w", base, err)
 	}
+	// check if abs exists
+	if _, err := os.Stat(abs); os.IsNotExist(err) {
+		log.Debugf("path does not exist: %s\n", abs)
+		return nil
+	}
+
 	fs := &FileStore{
 		Base: abs,
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -10,8 +11,6 @@ import (
 
 	"github.com/qiangli/ai/cmd/agent"
 	"github.com/qiangli/ai/cmd/history"
-	// "github.com/qiangli/ai/cmd/hub"
-	// "github.com/qiangli/ai/cmd/mcp"
 	"github.com/qiangli/ai/cmd/setup"
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
@@ -41,11 +40,7 @@ ai @ask what is fish
 
 var agentCmd = agent.AgentCmd
 var setupCmd = setup.SetupCmd
-
-// var mcpCmd = mcp.McpCmd
 var historyCmd = history.HistoryCmd
-
-// var hubCmd = hub.HubCmd
 
 var rootCmd = &cobra.Command{
 	Use:                   "ai [OPTIONS] [@AGENT] MESSAGE...",
@@ -62,28 +57,6 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.SetHelpTemplate(rootUsageTemplate)
 }
-
-// // init viper
-// func initConfig() {
-// 	defaultCfg := os.Getenv("AI_CONFIG")
-// 	if defaultCfg == "" {
-// 		if home, err := os.UserHomeDir(); err == nil {
-// 			defaultCfg = filepath.Join(home, ".ai", "config.yaml")
-// 		}
-// 	}
-// 	if defaultCfg != "" {
-// 		viper.SetConfigFile(defaultCfg)
-// 	}
-
-// 	viper.AutomaticEnv()
-// 	viper.SetEnvPrefix("ai")
-// 	viper.BindEnv("api-key", "AI_API_KEY", "OPENAI_API_KEY")
-// 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
-
-// 	if err := viper.ReadInConfig(); err != nil {
-// 		log.Debugf("Error reading config file: %s\n", err)
-// 	}
-// }
 
 func main() {
 	// cobra.OnInitialize(initConfig)
@@ -104,16 +77,29 @@ func main() {
 			}
 			return
 		}
-	} else {
-		// intercept builtin commands
-		// $ ai /help [agents|commands|tools|info]
-		//
-		// $ ai /agent
-		// $ ai /setup
-		// $ ai /hub
-		// $ ai /mcp
-		// $ ai /history
-		// $ ai /!<system-command>
+	}
+
+	// slash commands
+	// intercept builtin commands
+	// $ ai /help [agents|commands|tools|info]
+	//
+	// $ ai /agent
+	// $ ai /setup
+	// $ ai /history
+	// $ ai /!<system-command>
+	if strings.HasPrefix(args[1], "/") {
+		// /!<command> args...
+		if strings.HasPrefix(args[1], "/!") {
+			if len(args[1]) > 2 {
+				out := runCommand(args[1][2:], os.Args[1:])
+				log.Infoln(out)
+			} else {
+				// log.Infoln("command not specified: /!<cmmand>")
+				internal.Exit(fmt.Errorf("command not specified: /!<cmmand>"))
+			}
+			return
+		}
+
 		switch args[1] {
 		case "/help":
 			// agent detailed help
@@ -126,48 +112,25 @@ func main() {
 			if err := agentCmd.Execute(); err != nil {
 				internal.Exit(err)
 			}
-			return
 		case "/agent":
 			os.Args = os.Args[1:]
 			if err := agentCmd.Execute(); err != nil {
 				internal.Exit(err)
 			}
-			return
 		case "/setup":
 			os.Args = os.Args[1:]
 			if err := setupCmd.Execute(); err != nil {
 				internal.Exit(err)
 			}
 			return
-		// case "/hub":
-		// 	os.Args = os.Args[1:]
-		// 	if err := hubCmd.Execute(); err != nil {
-		// 		internal.Exit(err)
-		// 	}
-		// 	return
-		// case "/mcp":
-		// 	os.Args = os.Args[1:]
-		// 	if err := mcpCmd.Execute(); err != nil {
-		// 		internal.Exit(err)
-		// 	}
-		// 	return
 		case "/history":
 			os.Args = os.Args[1:]
 			if err := historyCmd.Execute(); err != nil {
 				internal.Exit(err)
 			}
-			return
 		default:
-			// /!<command> args...
-			if strings.HasPrefix(args[1], "/!") {
-				if len(args[1]) > 2 {
-					out := runCommand(args[1][2:], os.Args[1:])
-					log.Infoln(out)
-				} else {
-					log.Infoln("command not specified: /!<cmmand>")
-				}
-				return
-			}
+			internal.Exit(fmt.Errorf("Slash command not supported: %s", args[1]))
+			return
 		}
 	}
 
