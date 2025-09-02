@@ -43,10 +43,10 @@ type LLMRequest struct {
 
 	Messages []*Message
 
-	// TODO extras: name:value
-	ImageQuality string
-	ImageSize    string
-	ImageStyle   string
+	// // TODO extras: name:value
+	// ImageQuality string
+	// ImageSize    string
+	// ImageStyle   string
 
 	MaxTurns int
 	RunTool  func(ctx context.Context, name string, props map[string]any) (*Result, error)
@@ -65,11 +65,11 @@ func (r *LLMRequest) String() string {
 		sb.WriteString(fmt.Sprintf("BaseUrl: %s\n", r.Model.BaseUrl))
 		sb.WriteString(fmt.Sprintf("ApiKey set: %v\n", r.Model.ApiKey != ""))
 		sb.WriteString(fmt.Sprintf("Type: %s\n", r.Model.Type))
-		if r.Model.Type == model.OutputTypeImage {
-			sb.WriteString(fmt.Sprintf("ImageQuality: %s\n", r.ImageQuality))
-			sb.WriteString(fmt.Sprintf("ImageSize: %s\n", r.ImageSize))
-			sb.WriteString(fmt.Sprintf("ImageStyle: %s\n", r.ImageStyle))
-		}
+		// if r.Model.Type == model.OutputTypeImage {
+		// 	sb.WriteString(fmt.Sprintf("ImageQuality: %s\n", r.ImageQuality))
+		// 	sb.WriteString(fmt.Sprintf("ImageSize: %s\n", r.ImageSize))
+		// 	sb.WriteString(fmt.Sprintf("ImageStyle: %s\n", r.ImageStyle))
+		// }
 	}
 	sb.WriteString(fmt.Sprintf("MaxTurns: %d\n", r.MaxTurns))
 	sb.WriteString(fmt.Sprintf("RunTool set: %v\n", r.RunTool != nil))

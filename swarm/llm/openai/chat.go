@@ -253,13 +253,14 @@ func generateImage(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, 
 	var imageQuality = openai.ImageGenerateParamsQualityStandard
 	var imageSize = openai.ImageGenerateParamsSize1024x1024
 	var imageStyle = openai.ImageGenerateParamsStyleNatural
-	if q, ok := qualityMap[req.ImageQuality]; ok {
+
+	if q, ok := qualityMap[req.Vars.Extra["quality"]]; ok {
 		imageQuality = q
 	}
-	if s, ok := sizeMap[req.ImageSize]; ok {
+	if s, ok := sizeMap[req.Vars.Extra["size"]]; ok {
 		imageSize = s
 	}
-	if s, ok := styleMap[req.ImageStyle]; ok {
+	if s, ok := styleMap[req.Vars.Extra["style"]]; ok {
 		imageStyle = s
 	}
 

@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -237,6 +238,17 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 
 	if log.IsTrace() {
 		log.Debugf("Response messages: %+v", resp.Messages)
+	}
+
+	// decode content as name=value and save in vars.Extra for the next agent
+	// set a flag for decoding?
+	if result.Content != "" {
+		var params = make(map[string]string)
+		if err := json.Unmarshal([]byte(result.Content), &params); err == nil {
+			for k, v := range params {
+				h.vars.Extra[k] = v
+			}
+		}
 	}
 
 	// TODO merge Agent type with api.User

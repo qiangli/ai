@@ -1,9 +1,9 @@
 package api
 
 import (
-	"fmt"
-	// "strings"
-	// "github.com/qiangli/ai/swarm/api/model"
+// "fmt"
+// "strings"
+// "github.com/qiangli/ai/swarm/api/model"
 )
 
 const (
@@ -36,7 +36,7 @@ type Vars struct {
 	Roots []string `json:"roots"`
 
 	//
-	Extra map[string]any `json:"extra"`
+	Extra map[string]string `json:"extra"`
 
 	// Models map[model.Level]*model.Model `json:"models"`
 
@@ -98,13 +98,13 @@ type Vars struct {
 
 func NewVars() *Vars {
 	return &Vars{
-		Extra: map[string]any{},
+		Extra: map[string]string{},
 	}
 }
 
-func (r *Vars) Get(key string) any {
+func (r *Vars) Get(key string) string {
 	if r.Extra == nil {
-		return nil
+		return ""
 	}
 	return r.Extra[key]
 }
@@ -117,9 +117,9 @@ func (r *Vars) GetString(key string) string {
 	if !ok {
 		return ""
 	}
-	s, ok := v.(string)
-	if !ok {
-		return fmt.Sprintf("%v", v)
-	}
-	return s
+	// s, ok := v
+	// if !ok {
+	// 	return fmt.Sprintf("%v", v)
+	// }
+	return v
 }

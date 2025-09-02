@@ -52,7 +52,7 @@ require (
 	github.com/shirou/gopsutil/v4 v4.25.8
 	github.com/sorenisanerd/gotty v1.6.0
 	github.com/spf13/cobra v1.10.1
-	github.com/spf13/pflag v1.0.9
+	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.20.1
 	github.com/tailscale/hujson v0.0.0-20250605163823-992244df8c5a
 	github.com/weppos/publicsuffix-go v0.50.0
@@ -88,7 +88,7 @@ require (
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/charmbracelet/colorprofile v0.3.2 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.13 // indirect
-	github.com/charmbracelet/x/exp/slice v0.0.0-20250829135019-44e44e21330d // indirect
+	github.com/charmbracelet/x/exp/slice v0.0.0-20250902204034-1cdc10c66d5b // indirect
 	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
