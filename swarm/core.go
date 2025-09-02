@@ -66,8 +66,8 @@ func Vars(app *api.AppConfig) (*api.Vars, error) {
 	vars.UserInfo = sysInfo.UserInfo
 
 	//
-	vars.TemplateFuncMap = tplFuncMap
-	vars.AdviceMap = adviceMap
+	// vars.TemplateFuncMap = tplFuncMap
+	// vars.AdviceMap = adviceMap
 
 	return vars, nil
 }

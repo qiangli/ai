@@ -1,33 +1,33 @@
 package swarm
 
 import (
-	// "encoding/json"
-	"fmt"
-	// "path/filepath"
-	// "strings"
-	// "time"
+// "encoding/json"
+// "fmt"
+// "path/filepath"
+// "strings"
+// "time"
 
-	// "github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/swarm/api"
-	// "github.com/qiangli/ai/swarm/api/model"
-	// "github.com/qiangli/ai/swarm/llm"
-	// pr "github.com/qiangli/ai/swarm/resource/agents/pr"
+// "github.com/qiangli/ai/internal/log"
+// "github.com/qiangli/ai/swarm/api"
+// "github.com/qiangli/ai/swarm/api/model"
+// "github.com/qiangli/ai/swarm/llm"
+// pr "github.com/qiangli/ai/swarm/resource/agents/pr"
 )
 
-var adviceMap = map[string]api.Advice{}
+// var adviceMap = map[string]api.Advice{}
 
-func init() {
-	// adviceMap["user_input"] = userInputAdvice
-	// adviceMap["script_user_input"] = scriptUserInputAdvice
-	// adviceMap["pr_user_input"] = prUserInputAdvice
-	// adviceMap["pr_json_to_markdown"] = prFormatAdvice
-	// adviceMap["resolve_workspace"] = resolveWorkspaceAdvice
-	// adviceMap["aider"] = aiderAdvice
-	// adviceMap["openhands"] = ohAdvice
-	adviceMap["sub"] = subAdvice
-	// adviceMap["image_params"] = imageParamsAdvice
-	// adviceMap["chdir_format_path"] = chdirFormatPathAdvice
-}
+// func init() {
+// 	// adviceMap["user_input"] = userInputAdvice
+// 	// adviceMap["script_user_input"] = scriptUserInputAdvice
+// 	// adviceMap["pr_user_input"] = prUserInputAdvice
+// 	// adviceMap["pr_json_to_markdown"] = prFormatAdvice
+// 	// adviceMap["resolve_workspace"] = resolveWorkspaceAdvice
+// 	// adviceMap["aider"] = aiderAdvice
+// 	// adviceMap["openhands"] = ohAdvice
+// 	// adviceMap["sub"] = subAdvice
+// 	// adviceMap["image_params"] = imageParamsAdvice
+// 	// adviceMap["chdir_format_path"] = chdirFormatPathAdvice
+// }
 
 // user input before advice
 // TODO move to agent yaml config
@@ -182,25 +182,25 @@ func init() {
 // 	return OpenHands(req.Context(), vars.Models[model.L2], vars.Workspace, req.RawInput)
 // }
 
-// subAdvice is an around advice that checks if a subcommand is specified.
-// skip LLM if it is and go directly to the next sub agent.
-func subAdvice(vars *api.Vars, req *api.Request, resp *api.Response, next api.Advice) error {
-	sub := baseCommand(req.RawInput.Command)
-	if sub != "" {
-		resp.Result = &api.Result{
-			State:     api.StateTransfer,
-			NextAgent: fmt.Sprintf("%s/%s", req.Agent, sub),
-		}
-		return nil
-	}
-	return next(vars, req, resp, next)
-}
+// // subAdvice is an around advice that checks if a subcommand is specified.
+// // skip LLM if it is and go directly to the next sub agent.
+// func subAdvice(vars *api.Vars, req *api.Request, resp *api.Response, next api.Advice) error {
+// 	sub := baseCommand(req.RawInput.Command)
+// 	if sub != "" {
+// 		resp.Result = &api.Result{
+// 			State:     api.StateTransfer,
+// 			NextAgent: fmt.Sprintf("%s/%s", req.Agent, sub),
+// 		}
+// 		return nil
+// 	}
+// 	return next(vars, req, resp, next)
+// }
 
-type ImageParams struct {
-	Quality string `json:"quality"`
-	Size    string `json:"size"`
-	Style   string `json:"style"`
-}
+// type ImageParams struct {
+// 	Quality string `json:"quality"`
+// 	Size    string `json:"size"`
+// 	Style   string `json:"style"`
+// }
 
 // func imageParamsAdvice(vars *api.Vars, req *api.Request, resp *api.Response, next api.Advice) error {
 // 	// skip if all image params are already set
@@ -289,12 +289,12 @@ type ImageParams struct {
 // 	return nil
 // }
 
-const missingWorkspace = "Please specify a workspace base directory."
+// const missingWorkspace = "Please specify a workspace base directory."
 
-type WorkspaceCheck struct {
-	WorkspaceBase string `json:"workspace_base"`
-	Detected      bool   `json:"detected"`
-}
+// type WorkspaceCheck struct {
+// 	WorkspaceBase string `json:"workspace_base"`
+// 	Detected      bool   `json:"detected"`
+// }
 
 // resolveWorkspaceAdvice resolves the workspace base path.
 // Detect the workspace from the input using LLM.

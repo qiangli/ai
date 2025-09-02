@@ -57,6 +57,7 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 			return err
 		}
 	}
+
 	if r.AroundAdvice != nil {
 		next := func(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
 			return h.runLoop(ctx, req, resp)
@@ -69,6 +70,7 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 			return err
 		}
 	}
+
 	if r.AfterAdvice != nil {
 		if err := r.AfterAdvice(h.vars, req, resp, noop); err != nil {
 			return err
@@ -85,7 +87,8 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	apply := func(ext, s string, vars *api.Vars) (string, error) {
 		//
 		if ext == "tpl" {
-			return applyTemplate(s, vars, vars.TemplateFuncMap)
+			// TODO custom template func?
+			return applyTemplate(s, vars, tplFuncMap)
 		}
 		return s, nil
 	}
@@ -192,10 +195,10 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		MaxTurns: r.MaxTurns,
 		RunTool:  runTool,
 		Tools:    r.Tools,
-		//
-		ImageQuality: req.ImageQuality,
-		ImageSize:    req.ImageSize,
-		ImageStyle:   req.ImageStyle,
+		// //
+		// ImageQuality: req.ImageQuality,
+		// ImageSize:    req.ImageSize,
+		// ImageStyle:   req.ImageStyle,
 		//
 		Vars: h.vars,
 	}
@@ -214,6 +217,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	}
 
 	// Response
+	//
 	if result.Result == nil || result.Result.State != api.StateTransfer {
 		message := api.Message{
 			ID:      uuid.NewString(),

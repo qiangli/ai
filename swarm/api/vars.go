@@ -35,7 +35,7 @@ type Vars struct {
 
 	Roots []string `json:"roots"`
 
-	// per agent
+	//
 	Extra map[string]any `json:"extra"`
 
 	// Models map[model.Level]*model.Model `json:"models"`
@@ -47,9 +47,9 @@ type Vars struct {
 	// agent -> Resources
 	// ResourceMap map[string]*Resource
 
-	AdviceMap       map[string]Advice
-	EntrypointMap   map[string]Entrypoint
-	TemplateFuncMap TemplateFuncMap
+	// AdviceMap       map[string]Advice
+	// EntrypointMap   map[string]Entrypoint
+	// TemplateFuncMap TemplateFuncMap
 
 	// conversation history
 	History []*Message

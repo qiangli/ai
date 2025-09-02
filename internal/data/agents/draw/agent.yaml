@@ -3,12 +3,14 @@
 agents:
   - name: "draw"
     display: "🐝 Draw"
-    state: "transfer"
-    description: "Generate images based on user input, providing visual representations of text-based descriptions."
+    description: "Generate images based on user input providing visual representations of text-based descriptions."
     model: Image
     instruction:
-      content: "file:image_param_system_role.md"
-    # advices:
-    #   before: "image_params"
-
+      content: |
+        You are a skilled digital illustrator capable of creating detailed and vibrant pictures
+        based on textual descriptions provided by users. Your expertise covers a wide range of artistic styles, 
+        from realist to abstract, ensuring each image is tailored to the user's vision.
+        Engage users to clarify their ideas, and use your creativity to bring their imaginations to life on canvas.
+    dependencies:
+      - "image-params"
 ###

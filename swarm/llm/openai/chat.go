@@ -121,6 +121,7 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 
 		if len(toolCalls) == 0 {
 			resp.Role = string(completion.Choices[0].Message.Role)
+			// resp.ContentType = "text/plain"
 			resp.Content = completion.Choices[0].Message.Content
 			break
 		}

@@ -208,7 +208,7 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 	}
 
 	//
-	adviceMap := vars.AdviceMap
+	// adviceMap := vars.AdviceMap
 
 	// TODO - check if the tool type is enabled
 	// by default all tools are enabled
@@ -383,34 +383,37 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 		agent.Tools = funcs
 
 		if ac.Advices != nil {
-			if ac.Advices.Before != "" {
-				if ad, ok := adviceMap[ac.Advices.Before]; ok {
-					agent.BeforeAdvice = ad
-				} else {
-					return nil, fmt.Errorf("no such advice: %s", ac.Advices.Before)
-				}
-			}
-			if ac.Advices.After != "" {
-				if ad, ok := adviceMap[ac.Advices.After]; ok {
-					agent.AfterAdvice = ad
-				} else {
-					return nil, fmt.Errorf("no such advice: %s", ac.Advices.After)
-				}
-			}
-			if ac.Advices.Around != "" {
-				if ad, ok := adviceMap[ac.Advices.Around]; ok {
-					agent.AroundAdvice = ad
-				} else {
-					return nil, fmt.Errorf("no such advice: %s", ac.Advices.Around)
-				}
-			}
+			// TODO
+			return nil, fmt.Errorf("advice no supported: %+v", ac.Advices)
+			// if ac.Advices.Before != "" {
+			// 	if ad, ok := adviceMap[ac.Advices.Before]; ok {
+			// 		agent.BeforeAdvice = ad
+			// 	} else {
+			// 		return nil, fmt.Errorf("no such advice: %s", ac.Advices.Before)
+			// 	}
+			// }
+			// if ac.Advices.After != "" {
+			// 	if ad, ok := adviceMap[ac.Advices.After]; ok {
+			// 		agent.AfterAdvice = ad
+			// 	} else {
+			// 		return nil, fmt.Errorf("no such advice: %s", ac.Advices.After)
+			// 	}
+			// }
+			// if ac.Advices.Around != "" {
+			// 	if ad, ok := adviceMap[ac.Advices.Around]; ok {
+			// 		agent.AroundAdvice = ad
+			// 	} else {
+			// 		return nil, fmt.Errorf("no such advice: %s", ac.Advices.Around)
+			// 	}
+			// }
 		}
 		if ac.Entrypoint != "" {
-			if ep, ok := vars.EntrypointMap[ac.Entrypoint]; ok {
-				agent.Entrypoint = ep
-			} else {
-				return nil, fmt.Errorf("no such entrypoint: %s", ac.Entrypoint)
-			}
+			return nil, fmt.Errorf("entrypoint not supported: %s", ac.Entrypoint)
+			// if ep, ok := vars.EntrypointMap[ac.Entrypoint]; ok {
+			// 	agent.Entrypoint = ep
+			// } else {
+			// 	return nil, fmt.Errorf("no such entrypoint: %s", ac.Entrypoint)
+			// }
 		}
 
 		return &agent, nil

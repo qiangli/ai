@@ -98,7 +98,7 @@ type Agent struct {
 	MaxTime  int
 
 	//
-	ResourceMap string
+	// ResourceMap string
 
 	//
 	// Vars *Vars
@@ -203,12 +203,12 @@ type Request struct {
 
 	RawInput *UserInput
 
-	//
-	ImageQuality string
-	ImageSize    string
-	ImageStyle   string
+	// //
+	// ImageQuality string
+	// ImageSize    string
+	// ImageStyle   string
 
-	ExtraParams map[string]any
+	// ExtraParams map[string]any
 
 	// ctx is either the client or server context. It should only
 	// be modified via copying the whole Request using Clone or WithContext.
