@@ -6,10 +6,6 @@ function tidy() {
 	go vet ./...
 }
 
-function generate() {
-	go generate ./...
-}
-
 function build_ai() {
 	local os=$1
 	local arch=$2
@@ -55,7 +51,7 @@ function build() {
 
 ##
 tidy
-generate
+#
 go fmt ./...
 
 #

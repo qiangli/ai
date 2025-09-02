@@ -3,13 +3,10 @@
 default:
   @just --list
 
-generate:
-    go generate ./...
-
 build:
     ./build.sh
 
-build-all: tidy generate
+build-all: tidy
     ./build.sh all
 
 test:
