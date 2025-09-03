@@ -216,9 +216,14 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	}
 
 	// send message to LLM
+	model, err := h.vars.Config.ModelLoader(r.Model)
+	if err != nil {
+		return fmt.Errorf("failed to load model %q: %v", r.Model, err)
+	}
+
 	var request = api.LLMRequest{
 		Agent:    r.Name,
-		Model:    r.Model,
+		Model:    model,
 		Messages: history,
 		MaxTurns: r.MaxTurns,
 		RunTool:  runTool,

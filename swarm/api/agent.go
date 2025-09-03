@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/swarm/api/model"
+	// "github.com/qiangli/ai/swarm/api/model"
 )
 
 const (
@@ -71,7 +71,7 @@ type Agent struct {
 	// Description string
 
 	// The model to be used by the agent
-	Model *model.Model
+	Model string
 
 	// The role of the agent. default is "system"
 	Role string
@@ -124,13 +124,16 @@ type AgentConfig struct {
 	Display     string `yaml:"display"`
 	Description string `yaml:"description"`
 
-	Internal bool   `yaml:"internal"`
-	State    string `yaml:"state"`
+	// Internal bool `yaml:"internal"`
+	// State    string `yaml:"state"`
 
 	//
 	Instruction *InstructionConfig `yaml:"instruction"`
 
 	Model string `yaml:"model"`
+
+	// model alias
+	Models string `yaml:"models"`
 
 	Entrypoint string `yaml:"entrypoint"`
 

@@ -4,7 +4,7 @@ agents:
   - name: "draw"
     display: "🐝 Draw"
     description: "Generate images based on user input providing visual representations of text-based descriptions."
-    model: Image
+    model: "image/I1"
     instruction:
       content: |
         You are a skilled digital illustrator capable of creating detailed and vibrant pictures

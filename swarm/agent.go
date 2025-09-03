@@ -206,42 +206,6 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 		return nil, err
 	}
 
-	//
-	// adviceMap := vars.AdviceMap
-
-	// TODO - check if the tool type is enabled
-	// by default all tools are enabled
-	// except mcp which is enabled only if the mcp server root is set
-	// isEnabled := func(toolType string) bool {
-	// 	return toolType != "mcp" || vars.Config.McpServerRoot != ""
-	// }
-
-	// getTools := func(toolType string, kit string) ([]*api.ToolFunc, error) {
-	// 	var list []*api.ToolFunc
-	// 	for _, v := range vars.ToolRegistry {
-	// 		if toolType == "*" || toolType == "" || v.Type == toolType {
-	// 			if kit == "*" || kit == "" || v.Kit == kit {
-	// 				list = append(list, v)
-	// 			}
-	// 		}
-	// 	}
-	// 	if len(list) == 0 {
-	// 		if isEnabled(toolType) {
-	// 			return nil, fmt.Errorf("no such tool: %s / %s", toolType, kit)
-	// 		}
-	// 	}
-	// 	return list, nil
-	// }
-
-	// getTool := func(s string) (*api.ToolFunc, error) {
-	// 	for _, v := range vars.ToolRegistry {
-	// 		if v.Name == s {
-	// 			return v, nil
-	// 		}
-	// 	}
-	// 	return nil, fmt.Errorf("no such tool: %s", s)
-	// }
-
 	findAgentConfig := func(n, c string) (*api.AgentConfig, error) {
 		// check for more specific agent first
 		if c != "" {
@@ -308,6 +272,8 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 			Name:    ac.Name,
 			Display: ac.Display,
 			//
+			Model: ac.Model,
+			//
 			Config: ac,
 			//
 			RawInput: input,
@@ -317,11 +283,11 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 			Dependencies: ac.Dependencies,
 		}
 
-		model, err := vars.Config.ModelLoader(ac.Model)
-		if err != nil {
-			return nil, fmt.Errorf("failed to load model %q: %v", ac.Model, err)
-		}
-		agent.Model = model
+		// model, err := vars.Config.ModelLoader(ac.Model)
+		// if err != nil {
+		// 	return nil, fmt.Errorf("failed to load model %q: %v", ac.Model, err)
+		// }
+		// agent.Model = model
 
 		// tools
 		funcMap := make(map[string]*api.ToolFunc)
@@ -355,15 +321,6 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 					continue
 				}
 			}
-
-			// // function by name
-			// fn, err := getTool(f)
-			// if err != nil {
-			// 	return nil, err
-			// }
-			// if fn != nil {
-			// 	funcMap[fn.ID()] = fn
-			// }
 		}
 
 		// FIXME
@@ -427,26 +384,11 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 			return nil, err
 		}
 
-		// var deps []*api.Agent
-		// if len(agentCfg.Dependencies) > 0 {
-		// 	for _, dep := range agentCfg.Dependencies {
-		// 		depCfg, err := getAgentConfig(dep, "")
-		// 		if err != nil {
-		// 			return nil, err
-		// 		}
-		// 		agent, err := newAgent(depCfg, vars)
-		// 		if err != nil {
-		// 			return nil, err
-		// 		}
-		// 		deps = append(deps, agent)
-		// 	}
-		// }
 		agent, err := newAgent(agentCfg, vars)
 		if err != nil {
 			return nil, err
 		}
-		// agent.Dependencies = deps
-		// agent.Vars = vars
+
 		return agent, nil
 	}
 

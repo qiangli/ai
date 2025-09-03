@@ -19,10 +19,6 @@ type AppConfig struct {
 
 	ConfigFile string
 
-	// LLM *LLMConfig
-
-	// TTS *TTSConfig
-
 	ModelLoader func(string) (*model.Model, error)
 
 	Git    *GitConfig

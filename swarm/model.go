@@ -16,7 +16,9 @@ import (
 	"github.com/qiangli/ai/swarm/api/model"
 )
 
-func initModels(app *api.AppConfig, alias string) (func(level string) (*api.Model, error), error) {
+func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), error) {
+	var alias = app.Models
+
 	cfg, err := loadModels(app, alias)
 	if err != nil {
 		return nil, err
@@ -32,6 +34,15 @@ func initModels(app *api.AppConfig, alias string) (func(level string) (*api.Mode
 		}
 	}
 
+	// model/level
+	split := func(s string) (string, string) {
+		parts := strings.SplitN(s, "/", 2)
+		if len(parts) == 2 {
+			return parts[0], parts[1]
+		}
+		return alias, s
+	}
+
 	// set keys
 	provide := func(v *api.Model) (*api.Model, error) {
 		m := v.Clone()
@@ -43,9 +54,29 @@ func initModels(app *api.AppConfig, alias string) (func(level string) (*api.Mode
 	}
 
 	return func(level string) (*api.Model, error) {
+		// model/level
+		if strings.Contains(level, "/") {
+			alias, level = split(level)
+			cfg, err := loadModels(app, alias)
+			if err != nil {
+				return nil, err
+			}
+			if c, ok := cfg.Models[level]; ok {
+				v := &model.Model{
+					Provider: c.Provider,
+					Model:    c.Model,
+					BaseUrl:  c.BaseUrl,
+					ApiKey:   c.ApiKey,
+				}
+				return provide(v)
+			}
+			return nil, fmt.Errorf("model not found: %s/%s", alias, level)
+		}
+
 		if v, ok := modelMap[level]; ok {
 			return provide(v)
 		}
+
 		// special treatment
 		if level == model.Any {
 			for _, k := range []string{model.L1, model.L2, model.L3} {
