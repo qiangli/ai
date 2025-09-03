@@ -51,13 +51,8 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	// dependencies
 	if len(r.Dependencies) > 0 {
 		for _, agent := range r.Dependencies {
-			dep, err := CreateAgent(h.vars, agent, "", req.RawInput)
-			if err != nil {
-				return err
-			}
-
 			depReq := &api.Request{
-				Agent:    dep.Name,
+				Agent:    agent,
 				RawInput: req.RawInput,
 				Messages: req.Messages,
 			}
@@ -77,7 +72,7 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 				}
 			}
 
-			log.Debugf("run dependency: %v %+v\n", dep.Display, depResp)
+			log.Debugf("run dependency: %s %+v\n", agent, depResp)
 		}
 	}
 
