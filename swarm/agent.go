@@ -27,7 +27,7 @@ func initAgents(app *api.AppConfig) (func(string) (*api.AgentsConfig, error), er
 		if config, ok := agents[name]; ok {
 			return config, nil
 		}
-		return nil, fmt.Errorf("no agent configurations found for: %s", name)
+		return nil, fmt.Errorf("agent not found: %s", name)
 	}, nil
 }
 
@@ -43,7 +43,7 @@ func ListAgents(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
 	for name, v := range config {
 		log.Debugf("Registering agent: %s with %d configurations\n", name, len(v.Agents))
 		if len(v.Agents) == 0 {
-			log.Debugf("No agent configurations found for: %s\n", name)
+			log.Debugf("No agents found in config: %s\n", name)
 			continue
 		}
 		// Register the agent configurations
@@ -65,8 +65,7 @@ func ListAgents(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
 	}
 
 	if len(agentRegistry) == 0 {
-		log.Debugf("No agent configurations found in default agents\n")
-		return nil, fmt.Errorf("no agent configurations found in default agents")
+		return nil, fmt.Errorf("no agent configurations found")
 	}
 	log.Debugf("Initialized %d agent configurations\n", len(agentRegistry))
 	return agentRegistry, nil
@@ -314,6 +313,8 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 			RawInput: input,
 			MaxTurns: config.MaxTurns,
 			MaxTime:  config.MaxTime,
+			//
+			Dependencies: ac.Dependencies,
 		}
 
 		model, err := vars.Config.ModelLoader(ac.Model)
@@ -425,26 +426,26 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 		if err != nil {
 			return nil, err
 		}
-		var deps []*api.Agent
 
-		if len(agentCfg.Dependencies) > 0 {
-			for _, dep := range agentCfg.Dependencies {
-				depCfg, err := getAgentConfig(dep, "")
-				if err != nil {
-					return nil, err
-				}
-				agent, err := newAgent(depCfg, vars)
-				if err != nil {
-					return nil, err
-				}
-				deps = append(deps, agent)
-			}
-		}
+		// var deps []*api.Agent
+		// if len(agentCfg.Dependencies) > 0 {
+		// 	for _, dep := range agentCfg.Dependencies {
+		// 		depCfg, err := getAgentConfig(dep, "")
+		// 		if err != nil {
+		// 			return nil, err
+		// 		}
+		// 		agent, err := newAgent(depCfg, vars)
+		// 		if err != nil {
+		// 			return nil, err
+		// 		}
+		// 		deps = append(deps, agent)
+		// 	}
+		// }
 		agent, err := newAgent(agentCfg, vars)
 		if err != nil {
 			return nil, err
 		}
-		agent.Dependencies = deps
+		// agent.Dependencies = deps
 		// agent.Vars = vars
 		return agent, nil
 	}

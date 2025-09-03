@@ -45,8 +45,9 @@ func generateImage(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, 
 		"hd":       openai.ImageGenerateParamsQualityHD,
 	}
 	var sizeMap = map[string]openai.ImageGenerateParamsSize{
-		"256x256":   openai.ImageGenerateParamsSize256x256,
-		"512x512":   openai.ImageGenerateParamsSize512x512,
+		// no longer supported?
+		// "256x256":   openai.ImageGenerateParamsSize256x256,
+		// "512x512":   openai.ImageGenerateParamsSize512x512,
 		"1024x1024": openai.ImageGenerateParamsSize1024x1024,
 		"1792x1024": openai.ImageGenerateParamsSize1792x1024,
 		"1024x1792": openai.ImageGenerateParamsSize1024x1792,

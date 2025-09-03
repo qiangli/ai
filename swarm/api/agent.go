@@ -88,7 +88,7 @@ type Agent struct {
 
 	Entrypoint Entrypoint
 
-	Dependencies []*Agent
+	Dependencies []string
 
 	// advices
 	BeforeAdvice Advice

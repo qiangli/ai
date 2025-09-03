@@ -1,8 +1,8 @@
 ###
 
 agents:
-  - name: "draw-params"
-    display: "🐝 Draw Params Advice"
+  - name: "image-params"
+    display: "🐝 Image Params Advice"
     description: "Generate image parameters based on user input for providing visual representations of text-based descriptions."
     model: L1
     instruction:
@@ -10,8 +10,8 @@ agents:
         As an AI agent, determine the visual attributes for an image based on user input. Select the most appropriate options from the following predefined categories:
 
         * **Quality**: "standard" or "hd"
-        * **Size**: "256x256", "512x512", "1024x1024", "1792x1024", "1024x1792"
-          * Interpret "small" as either "256x256" or "512x512"
+        * **Size**: "1024x1024", "1792x1024", "1024x1792"
+          * Interpret "small" as "1024x1024"
           * Interpret "big" or "large" as either "1792x1024" or "1024x1792"
         * **Style**: "vivid" or "natural"
 
