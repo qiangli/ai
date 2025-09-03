@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"maps"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,6 +13,9 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm"
 )
+
+// extra result key
+const extraResult = "result"
 
 // AgentHandler
 func AgentHandler(vars *api.Vars, agent *api.Agent) Handler {
@@ -45,6 +49,17 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 			if err := sw.Run(depReq, depResp); err != nil {
 				return err
 			}
+			//
+
+			// decode prevous result
+			// decode content as name=value and save in vars.Extra for subsequent agents
+			if v, ok := h.vars.Extra[extraResult]; ok && len(v) > 0 {
+				var params = make(map[string]string)
+				if err := json.Unmarshal([]byte(v), &params); err == nil {
+					maps.Copy(h.vars.Extra, params)
+				}
+			}
+
 			log.Debugf("run dependency: %v %+v\n", dep.Display, depResp)
 		}
 	}
@@ -240,16 +255,8 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		log.Debugf("Response messages: %+v", resp.Messages)
 	}
 
-	// decode content as name=value and save in vars.Extra for the next agent
-	// set a flag for decoding?
-	if result.Content != "" {
-		var params = make(map[string]string)
-		if err := json.Unmarshal([]byte(result.Content), &params); err == nil {
-			for k, v := range params {
-				h.vars.Extra[k] = v
-			}
-		}
-	}
+	//
+	h.vars.Extra[extraResult] = result.Content
 
 	// TODO merge Agent type with api.User
 	resp.Agent = &api.Agent{
