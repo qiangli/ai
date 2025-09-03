@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"maps"
 	"time"
 
@@ -16,6 +17,17 @@ import (
 
 // extra result key
 const extraResult = "result"
+
+// TODO
+type LLMAdapter func(context.Context, *api.LLMRequest) (*api.LLMResponse, error)
+
+var adapterRegistry map[string]LLMAdapter
+
+func init() {
+	adapterRegistry = make(map[string]LLMAdapter)
+	adapterRegistry["chat"] = llm.Chat
+	adapterRegistry["image-gen"] = llm.ImageGen
+}
 
 // AgentHandler
 func AgentHandler(vars *api.Vars, agent *api.Agent) Handler {
@@ -211,10 +223,6 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		MaxTurns: r.MaxTurns,
 		RunTool:  runTool,
 		Tools:    r.Tools,
-		// //
-		// ImageQuality: req.ImageQuality,
-		// ImageSize:    req.ImageSize,
-		// ImageStyle:   req.ImageStyle,
 		//
 		Vars: h.vars,
 	}
@@ -223,7 +231,16 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		log.Debugf("LLM request: %+v\n", request)
 	}
 
-	result, err := llm.Send(ctx, &request)
+	var adapter LLMAdapter = llm.Chat
+	if h.agent.Adapter != "" {
+		if v, ok := adapterRegistry[h.agent.Adapter]; ok {
+			adapter = v
+		} else {
+			return fmt.Errorf("LLM adapter not found: %v", h.agent.Adapter)
+		}
+	}
+
+	result, err := adapter(ctx, &request)
 	if err != nil {
 		return err
 	}

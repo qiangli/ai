@@ -4,6 +4,7 @@ import (
 	"embed"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -202,8 +203,8 @@ func LoadModelsAsset(as api.AssetStore, base string, m map[string]*model.ModelsC
 		}
 		name := v.Name()
 		if strings.HasSuffix(name, ".yaml") || strings.HasSuffix(name, ".yml") {
-			// read the file content
-			b, err := as.ReadFile(filepath.Join(base, name))
+			// read the asset content
+			b, err := as.ReadFile(path.Join(base, name))
 			if err != nil {
 				return err
 			}
@@ -214,7 +215,7 @@ func LoadModelsAsset(as api.AssetStore, base string, m map[string]*model.ModelsC
 			//
 			alias := cfg.Alias
 			if alias == "" {
-				alias = strings.TrimSuffix(name, filepath.Ext(name))
+				alias = strings.TrimSuffix(name, path.Ext(name))
 				cfg.Alias = alias
 			}
 			m[alias] = cfg

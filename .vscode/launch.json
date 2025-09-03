@@ -492,6 +492,10 @@
 			"args": [
 				"--verbose",
 				"@draw",
+				"--resource",
+				"resource.json",
+				"--models",
+				"gpt4",
 				"--new",
 				"--message",
 				"draw a german shepherd dog sleeping on the floor with size 512, visially pleasing and high quality",

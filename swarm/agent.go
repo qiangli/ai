@@ -305,6 +305,7 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 
 	newAgent := func(ac *api.AgentConfig, vars *api.Vars) (*api.Agent, error) {
 		agent := api.Agent{
+			Adapter: ac.Adapter,
 			Name:    ac.Name,
 			Display: ac.Display,
 			//

@@ -63,6 +63,8 @@ const (
 type TemplateFuncMap = template.FuncMap
 
 type Agent struct {
+	Adapter string
+
 	// The name of the agent.
 	Name    string
 	Display string
@@ -96,12 +98,6 @@ type Agent struct {
 	//
 	MaxTurns int
 	MaxTime  int
-
-	//
-	// ResourceMap string
-
-	//
-	// Vars *Vars
 
 	Config *AgentConfig
 }
@@ -144,6 +140,10 @@ type AgentConfig struct {
 
 	Advices *AdviceConfig `yaml:"advices"`
 
+	// chat|image-get|docker/aider oh gptr
+	Adapter string `yaml:"adapter"`
+
+	//
 	Store AssetStore `yaml:"-"`
 	// relative to root
 	BaseDir string `yaml:"-"`

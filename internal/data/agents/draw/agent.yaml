@@ -13,4 +13,5 @@ agents:
         Engage users to clarify their ideas, and use your creativity to bring their imaginations to life on canvas.
     dependencies:
       - "image-params"
+    adapter: "image-gen"
 ###

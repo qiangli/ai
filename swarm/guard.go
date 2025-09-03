@@ -84,7 +84,7 @@ func evaluateCommand(ctx context.Context, vars *api.Vars, command string, args [
 
 	log.Debugf("evaluateCommand:\n%s %v\n", command, args)
 
-	resp, err := llm.Send(ctx, req)
+	resp, err := llm.Chat(ctx, req)
 	if err != nil {
 		return false, err
 	}

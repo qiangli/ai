@@ -3,7 +3,6 @@ package llm
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
@@ -12,8 +11,8 @@ import (
 	"github.com/qiangli/ai/swarm/llm/openai"
 )
 
-func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
-	log.Debugf(">>>LLM Client:\n Model: %s Model: %+v, Messages: %v Tools: %v\n\n", req.Model, req.Model, len(req.Messages), len(req.Tools))
+func Chat(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
+	log.Debugf(">>>LLM Chat:\n Model: %s Model: %+v, Messages: %v Tools: %v\n\n", req.Model, req.Model, len(req.Messages), len(req.Tools))
 
 	var err error
 	var resp *api.LLMResponse
@@ -23,21 +22,8 @@ func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	}
 
 	provider := req.Model.Provider
-	model := req.Model.Model
 
 	//
-	if provider == "" {
-		provider = "openai"
-		switch {
-		case strings.HasPrefix(model, "gemini-"):
-			provider = "gemini"
-		case strings.HasPrefix(model, "claude-"):
-			provider = "anthropic"
-		default:
-			log.Debugf("model provider is unknown, assuming openai")
-		}
-	}
-
 	switch provider {
 	case "gemini":
 		// TODO not working
@@ -50,7 +36,7 @@ func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	case "anthropic":
 		resp, err = anthropic.Send(ctx, req)
 	default:
-		resp, err = openai.Send(ctx, req)
+		return nil, fmt.Errorf("Unknown provider: %s", provider)
 	}
 
 	if err != nil {
@@ -61,6 +47,41 @@ func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 		return nil, fmt.Errorf("No response")
 	}
 
-	log.Debugf("<<<LLM Client:\n Content type: %s Content: %v\n\n", resp.ContentType, len(resp.Content))
+	log.Debugf("<<<LLM Chat:\n Content type: %s Content: %v\n\n", resp.ContentType, len(resp.Content))
+	return resp, nil
+}
+
+func ImageGen(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
+	log.Debugf(">>>LLM ImageGen:\n Model: %s Model: %+v, Messages: %v Tools: %v\n\n", req.Model, req.Model, len(req.Messages), len(req.Tools))
+
+	var err error
+	var resp *api.LLMResponse
+
+	if req.Model == nil {
+		return nil, fmt.Errorf("No LLM model provided")
+	}
+
+	provider := req.Model.Provider
+	//
+	switch provider {
+	case "gemini":
+		return nil, fmt.Errorf("Not supported: %s", provider)
+	case "openai":
+		resp, err = openai.ImageGen(ctx, req)
+	case "anthropic":
+		return nil, fmt.Errorf("Not supported: %s", provider)
+	default:
+		return nil, fmt.Errorf("Unknown provider: %s", provider)
+	}
+
+	if err != nil {
+		log.Errorf("***LLM Client: %s\n\n", err)
+		return nil, err
+	}
+	if resp == nil {
+		return nil, fmt.Errorf("No response")
+	}
+
+	log.Debugf("<<<LLM ImageGen:\n Content type: %s Content: %v\n\n", resp.ContentType, len(resp.Content))
 	return resp, nil
 }
