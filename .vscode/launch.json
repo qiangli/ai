@@ -4,16 +4,65 @@
 	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
 	"version": "0.2.0",
 	"configurations": [
-		// go test -c -o bin/test  ./internal/db
-		// {
-		// 	"name": "TestGetByVector",
-		// 	"type": "go",
-		// 	"request": "launch",
-		// 	"mode": "exec",
-		// 	"program": "./bin/test",
-		// 	"args": ["-test.run", "^TestGetByVector$"],
-		// },
-		// {
+		{
+			"name": "Agent",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/",
+			"env": {
+				"AI_API_KEY": "${env:OPENAI_API_KEY}",
+				"AI_DEBUG": "true",
+			},
+			"args": [
+				"--verbose",
+				"@agent",
+				"--message",
+				"generate a random password"
+			],
+			"showLog": false,
+			"stopOnEntry": false
+		},
+		{
+			"name": "Ask",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/",
+			"env": {
+				"OPENAI_API_KEY": "${env:OPENAI_API_KEY}",
+				"AI_DEBUG": "true",
+				"AI_FORMAT": "raw",
+			},
+			"args": [
+				"--verbose=false",
+				"@ask",
+				"--message",
+				"what is the latest news today"
+			],
+			"showLog": false,
+			"stopOnEntry": false
+		},
+		{
+			"name": "Web",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/",
+			"env": {
+				"OPENAI_API_KEY": "${env:OPENAI_API_KEY}",
+				"AI_DEBUG": "true",
+			},
+			"args": [
+				"--verbose",
+				"@web",
+				"--message",
+				"what is the stock price of nvidia today"
+			],
+			"showLog": false,
+			"stopOnEntry": false
+		},
+		//
 		{
 			"name": "Joker",
 			"type": "go",
@@ -40,7 +89,30 @@
 			"stopOnEntry": false
 		},
 		{
-			"name": "Screenshot",
+			"name": "Git",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/",
+			"env": {
+				"OPENAI_API_KEY": "${env:OPENAI_API_KEY}",
+				"AI_DEBUG": "true",
+			},
+			"args": [
+				"--verbose",
+				"@git",
+				"--new",
+				"--message",
+				"write a short commit message for the code changes",
+				"--file",
+				"git.diff"
+			],
+			"cwd": "internal/testdata",
+			"showLog": false,
+			"stopOnEntry": false
+		},
+		{
+			"name": "Draw",
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
@@ -48,21 +120,47 @@
 			"env": {
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
-				// "AI_BASE_URL": "http://localhost:4000",
-				// "AI_MODEL": "claude-3-5-haiku-latest",
-				// "AI_API_KEY": "${env:ANTHROPIC_API_KEY}",
+				"AI_BASE_URL": "http://localhost:8000/v1",
 				"AI_DEBUG": "true",
 			},
 			"args": [
-				"--verbose=true",
-				"@ask",
-				"--screenshot",
+				"--verbose",
+				"@draw",
+				"--resource",
+				"resource.json",
+				"--models",
+				"image",
+				"--new",
 				"--message",
-				"Give the final anwser for problem"
+				"draw a german shepherd dog sleeping on the floor with size 512, visially pleasing and high quality",
 			],
 			"showLog": false,
 			"stopOnEntry": false
 		},
+		// {
+		// 	"name": "Screenshot",
+		// 	"type": "go",
+		// 	"request": "launch",
+		// 	"mode": "auto",
+		// 	"program": "${workspaceFolder}/cmd/",
+		// 	"env": {
+		// 		"AI_MODEL": "gpt-4o-mini",
+		// 		"AI_API_KEY": "${env:OPENAI_API_KEY}",
+		// 		// "AI_BASE_URL": "http://localhost:4000",
+		// 		// "AI_MODEL": "claude-3-5-haiku-latest",
+		// 		// "AI_API_KEY": "${env:ANTHROPIC_API_KEY}",
+		// 		"AI_DEBUG": "true",
+		// 	},
+		// 	"args": [
+		// 		"--verbose=true",
+		// 		"@ask",
+		// 		"--screenshot",
+		// 		"--message",
+		// 		"Give the final anwser for problem"
+		// 	],
+		// 	"showLog": false,
+		// 	"stopOnEntry": false
+		// },
 		{
 			"name": "Code",
 			"type": "go",
@@ -89,40 +187,12 @@
 			"stopOnEntry": false,
 		},
 		{
-			"name": "MCP Serve",
-			"type": "go",
-			"request": "launch",
-			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/",
-			"env": {
-				"AI_MODEL": "gpt-4o-mini",
-				"AI_API_KEY": "${env:OPENAI_API_KEY}",
-				"AI_BASE_URL": "http://localhost:4000",
-				"AI_DEBUG": "true",
-			},
-			"args": [
-				"/mcp",
-				"--verbose",
-				"--log=/tmp/work/mcp.log",
-				"--port",
-				"58888",
-				"--host",
-				"localhost",
-				"serve"
-			],
-			"showLog": false,
-			"stopOnEntry": false,
-		},
-		{
 			"name": "Help",
 			"type": "go",
 			"request": "launch",
 			"mode": "auto",
 			"program": "${workspaceFolder}/cmd/",
 			"env": {
-				"AI_MODEL": "gpt-4o-mini",
-				"AI_API_KEY": "${env:OPENAI_API_KEY}",
-				"AI_BASE_URL": "http://localhost:4000",
 				"AI_DEBUG": "true",
 				"AI_AGENT": "git",
 				"AI_FORMAT": "raw"
@@ -131,17 +201,6 @@
 				"/help",
 				"agents",
 				"--resource=resource.json",
-				"-m",
-				"none",
-				"--l1-base-url",
-				"http://localhost:4000/",
-				"--l1-api-key",
-				"${env:OPENAI_API_KEY}",
-				"--l1-model",
-				"gpt-4o-mini",
-				"--verbose",
-				"--mcp-server-root",
-				"${env:HOME}/workspace/openaide/awesome/docker/mcp-servers/stargate/config/",
 				"message",
 				"what is cooking"
 			],
@@ -214,77 +273,6 @@
 			"stopOnEntry": false
 		},
 		{
-			"name": "Agent",
-			"type": "go",
-			"request": "launch",
-			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/",
-			"env": {
-				"AI_MODEL": "gpt-4o-mini",
-				// "AI_API_KEY": "${env:OPENAI_API_KEY}",
-				// "AI_BASE_URL": "http://localhost:4000",
-				"AI_L2_MODEL": "gpt-4.1",
-				"AI_API_KEY": "${env:OPENAI_API_KEY}",
-				"AI_BASE_URL": "https://api.openai.com/v1/",
-				"AI_DEBUG": "true",
-			},
-			"args": [
-				"--verbose",
-				"@agent",
-				"--message",
-				"generate a random password"
-			],
-			"showLog": false,
-			"stopOnEntry": false
-		},
-		{
-			"name": "Ask",
-			"type": "go",
-			"request": "launch",
-			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/",
-			"env": {
-				"OPENAI_API_KEY": "${env:OPENAI_API_KEY}",
-				// "AI_MODEL": "gpt-4o-mini",
-				"AI_API_KEY": "${env:OPENAI_API_KEY}",
-				// "AI_BASE_URL": "http://localhost:4000",
-				// "AI_MODEL": "claude-3-5-haiku-latest",
-				// "AI_API_KEY": "${env:ANTHROPIC_API_KEY}",
-				"AI_DEBUG": "true",
-				"AI_FORMAT": "raw",
-				// "AI_AGENT": "shell"
-			},
-			"args": [
-				"--verbose=false",
-				"@ask",
-				"--message",
-				"what is the latest news today"
-			],
-			"showLog": false,
-			"stopOnEntry": false
-		},
-		{
-			"name": "Web",
-			"type": "go",
-			"request": "launch",
-			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/",
-			"env": {
-				"AI_MODEL": "gpt-4o-mini",
-				"AI_API_KEY": "${env:OPENAI_API_KEY}",
-				"AI_BASE_URL": "http://localhost:4000",
-				"AI_DEBUG": "true",
-			},
-			"args": [
-				"--verbose",
-				"@web",
-				"--message",
-				"what is the stock price of nvidia today"
-			],
-			"showLog": false,
-			"stopOnEntry": false
-		},
-		{
 			"name": "SWE",
 			"type": "go",
 			"request": "launch",
@@ -295,8 +283,8 @@
 				// "AI_API_KEY": "${env:OPENAI_API_KEY}",
 				// "AI_BASE_URL": "http://localhost:4000",
 				// "AI_L2_MODEL": "gpt-4.1",
-				"AI_API_KEY": "${env:OPENAI_API_KEY}",
-				"AI_BASE_URL": "https://api.openai.com/v1/",
+				"OPENAI_API_KEY": "${env:OPENAI_API_KEY}",
+				// "AI_BASE_URL": "https://api.openai.com/v1/",
 				"AI_DEBUG": "true",
 			},
 			"args": [
@@ -429,34 +417,6 @@
 			"stopOnEntry": false
 		},
 		{
-			"name": "Git",
-			"type": "go",
-			"request": "launch",
-			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/",
-			"env": {
-				"AI_MODEL": "gpt-4o-mini",
-				// "AI_API_KEY": "${env:OPENAI_API_KEY}",
-				"AI_BASE_URL": "http://localhost:8000/v1",
-				// "AI_DEBUG": "true",
-				// "AI_API_KEY": "${env:OPENAI_API_KEY}",
-				// "AI_BASE_URL": "https://api.openai.com/v1/",
-				"AI_DEBUG": "true",
-			},
-			"args": [
-				"--verbose",
-				"@git",
-				"--new",
-				"--message",
-				"write a short commit message for the code changes",
-				"--file",
-				"git.diff"
-			],
-			"cwd": "internal/testdata",
-			"showLog": false,
-			"stopOnEntry": false
-		},
-		{
 			"name": "PR",
 			"type": "go",
 			"request": "launch",
@@ -477,59 +437,33 @@
 			"showLog": false,
 			"stopOnEntry": false
 		},
-		{
-			"name": "Draw",
-			"type": "go",
-			"request": "launch",
-			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/",
-			"env": {
-				"AI_MODEL": "gpt-4o-mini",
-				"AI_API_KEY": "${env:OPENAI_API_KEY}",
-				"AI_BASE_URL": "http://localhost:8000/v1",
-				"AI_DEBUG": "true",
-			},
-			"args": [
-				"--verbose",
-				"@draw",
-				"--resource",
-				"resource.json",
-				"--models",
-				"image",
-				"--new",
-				"--message",
-				"draw a german shepherd dog sleeping on the floor with size 512, visially pleasing and high quality",
-			],
-			"showLog": false,
-			"stopOnEntry": false
-		},
-		{
-			"name": "SQL",
-			"type": "go",
-			"request": "launch",
-			"mode": "auto",
-			"program": "${workspaceFolder}/cmd/",
-			"env": {
-				"AI_MODEL": "gpt-4o-mini",
-				"AI_API_KEY": "${env:OPENAI_API_KEY}",
-				"AI_BASE_URL": "http://localhost:8000/v1",
-				"AI_DEBUG": "true",
-			},
-			"args": [
-				"--verbose",
-				"@sql",
-				"--sql-db-name",
-				"postgres",
-				"--sql-db-host",
-				"localhost",
-				"--sql-db-port",
-				"5432",
-				"--message",
-				"git me all tables in metastore"
-			],
-			"showLog": false,
-			"stopOnEntry": false
-		},
+		// {
+		// 	"name": "SQL",
+		// 	"type": "go",
+		// 	"request": "launch",
+		// 	"mode": "auto",
+		// 	"program": "${workspaceFolder}/cmd/",
+		// 	"env": {
+		// 		"AI_MODEL": "gpt-4o-mini",
+		// 		"AI_API_KEY": "${env:OPENAI_API_KEY}",
+		// 		"AI_BASE_URL": "http://localhost:8000/v1",
+		// 		"AI_DEBUG": "true",
+		// 	},
+		// 	"args": [
+		// 		"--verbose",
+		// 		"@sql",
+		// 		"--sql-db-name",
+		// 		"postgres",
+		// 		"--sql-db-host",
+		// 		"localhost",
+		// 		"--sql-db-port",
+		// 		"5432",
+		// 		"--message",
+		// 		"git me all tables in metastore"
+		// 	],
+		// 	"showLog": false,
+		// 	"stopOnEntry": false
+		// },
 		{
 			"name": "Doc",
 			"type": "go",

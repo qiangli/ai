@@ -40,7 +40,7 @@ type ToolsConfig struct {
 	Type string `yaml:"type"`
 
 	// kit config is discarded if true
-	Internal bool `yaml:"internal"`
+	// Internal bool `yaml:"internal"`
 
 	// system commands used by tools
 	Commands []string `yaml:"commands"`

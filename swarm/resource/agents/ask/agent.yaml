@@ -11,5 +11,5 @@ agents:
         For regular questions, answer clearly and concisely,
         focusing on providing relevant and informative responses.
     functions:
-      - "ai:*"
       - "web:*"
+

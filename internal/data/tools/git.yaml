@@ -1,6 +1,6 @@
 ###
 kit: "git"
-# commands: ["git"]
+type: "shell"
 
 tools:
   - name: "git"
@@ -22,25 +22,21 @@ tools:
       required:
         - command
     body: "git {{.command}} {{spread .args}}"
-    type: "shell"
   
   - name: "status"
     description: "Show the working tree status"
     parameters: {}
     body: 'git status'
-    type: "shell"
 
   - name: "diff_unstaged"
     description: "Show changes in the working directory that are not yet staged"
     parameters: {}
     body: 'git diff'
-    type: "shell"
 
   - name: "diff_staged"
     description: "Show changes that are staged for commit"
     parameters: {}
     body: 'git diff --cached'
-    type: "shell"
 
   - name: "diff"
     description: "Show differences between branches or commits"
@@ -53,7 +49,6 @@ tools:
       required:
         - target
     body: 'git diff "{{.target}}"'
-    type: "shell"
 
   - name: "commit"
     description: "Record changes to the repository"
@@ -66,7 +61,6 @@ tools:
       required:
         - message
     body: 'git commit -m "{{.message}}"'
-    type: "shell"
   
   - name: "add"
     description: "Add file contents to the staging area"
@@ -81,7 +75,6 @@ tools:
       required:
         - files
     body: 'git add {{spread .files}}'
-    type: "shell"
 
   - name: "amend"
     description: "Amend the last commit with new changes"
@@ -94,13 +87,11 @@ tools:
       required:
         - message
     body: 'git commit --amend -m "{{.message}}"'
-    type: "shell"
 
   - name: "reset"
     description: "Unstage all staged changes"
     parameters: {}
     body: 'git reset'
-    type: "shell"
 
   - name: "log"
     description: "Show the commit logs"
@@ -112,7 +103,6 @@ tools:
           description: "Maximum number of commits to show"
           default: 10
     body: 'git log --max-count {{(default 10 .max_count)}}'
-    type: "shell"
 
   - name: "create_branch"
     description: "Creates a new branch from an optional base branch"
@@ -128,7 +118,6 @@ tools:
       required:
         - branch_name
     body: 'git checkout -b {{.branch_name}} {{(default "HEAD" .base_branch)}}'
-    type: "shell"
 
   - name: "checkout"
     description: "Switch branches"
@@ -141,7 +130,6 @@ tools:
       required:
         - branch_name
     body: 'git checkout {{.branch_name}}'
-    type: "shell"
 
   - name: "show"
     description: "Show the contents of a commit"
@@ -154,7 +142,6 @@ tools:
       required:
         - revision
     body: 'git show {{.revision}}'
-    type: "shell"
 
   - name: "init"
     description: "Initialize a new Git repository"
@@ -167,7 +154,6 @@ tools:
       required:
         - repo_path
     body: 'git init {{.directory}}'
-    type: "shell"
 
   # - name: "clone"
   #   description: "Clone a repository into a new directory"
@@ -183,7 +169,6 @@ tools:
   #     required:
   #       - repo_url
   #   body: 'git clone {{.repo_url}} {{(default "."" .directory)}}'
-  #   type: "shell"
   
   # - name: "pull"
   #   description: "Fetch from and integrate with another repository or a local branch"
@@ -199,10 +184,8 @@ tools:
   #     required:
   #       - remote
   #   body: 'git pull {{.remote}} {{(default "main" .branch)}}'
-  #   type: "shell"
 
   # - name: "stash"
   #   description: "Stash the changes in a dirty working directory away"
   #   parameters: {}
   #   body: 'git stash'
-  #   type: "shell"

@@ -88,11 +88,18 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 				Body:        v.Body,
 			}
 
+			if tool.Type == "" {
+				tool.Type = config.Type
+			}
+			if tool.Type == "" {
+				return nil, fmt.Errorf("Missing tool type: %s", v.Kit)
+			}
+
 			// override
 			toolRegistry[tool.ID()] = tool
 
 			// TODO this is used for security check by the evalCommand
-			if v.Type == "system" {
+			if v.Type == ToolTypeSystem {
 				app.SystemTools = append(app.SystemTools, tool)
 			}
 		}
@@ -290,11 +297,7 @@ func LoadToolData(data [][]byte) (*api.ToolsConfig, error) {
 		if err := yaml.Unmarshal(v, tc); err != nil {
 			return nil, err
 		}
-		// // skip internal tools
-		// if tc.Internal && !app.Internal {
-		// 	log.Debugf("Skipping internal tools: %v\n", tc)
-		// 	continue
-		// }
+
 		// update kit if not set
 		for _, tool := range tc.Tools {
 			if tool.Kit == "" {
@@ -307,23 +310,6 @@ func LoadToolData(data [][]byte) (*api.ToolsConfig, error) {
 	}
 	return merged, nil
 }
-
-// func LoadTools(config *api.ToolsConfig) (map[string]*api.ToolFunc, error) {
-// 	toolRegistry := make(map[string]*api.ToolFunc)
-// 	for _, toolConfig := range config.Tools {
-// 		tool := &api.ToolFunc{
-// 			Name:        toolConfig.Name,
-// 			Description: toolConfig.Description,
-// 			Parameters:  toolConfig.Parameters,
-// 			Type:        toolConfig.Type,
-// 		}
-// 		if _, exists := toolRegistry[tool.Name]; exists {
-// 			return nil, fmt.Errorf("duplicate tool name: %s", tool.Name)
-// 		}
-// 		toolRegistry[tool.Name] = tool
-// 	}
-// 	return toolRegistry, nil
-// }
 
 func CallTool(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
 	log.Infof("⣿ %s %+v\n", name, args)
