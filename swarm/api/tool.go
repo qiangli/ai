@@ -12,8 +12,7 @@ type ToolSystem interface {
 type ToolConfig struct {
 	Kit string `yaml:"kit"`
 
-	Type      string           `yaml:"type"`
-	Connector *ConnectorConfig `yaml:"connector"`
+	Type string `yaml:"type"`
 
 	Name        string         `yaml:"name"`
 	Description string         `yaml:"description"`
@@ -36,12 +35,14 @@ type ToolCondition struct {
 	Shell map[string]any `yaml:"shell"`
 }
 
+// Kit configuration
 type ToolsConfig struct {
-	// default kit name
+	// kit name
 	Kit string `yaml:"kit"`
 
-	// func (server) | system (client) | connector
-	Type      string           `yaml:"type"`
+	// func (server) | system (client) | remote
+	Type string `yaml:"type"`
+
 	Connector *ConnectorConfig `yaml:"connector"`
 
 	// system commands used by tools
@@ -84,7 +85,7 @@ type ToolFunc struct {
 	Body string
 
 	//
-	Config *ToolConfig
+	Config *ToolsConfig
 }
 
 // ID returns a unique identifier for the tool function,
@@ -94,19 +95,18 @@ func (r *ToolFunc) ID() string {
 }
 
 type ConnectorConfig struct {
-	// mcp | remote
-	Type string `yaml:"type"`
+	// mcp | ssh ...
+	Proto string `yaml:"proto"`
 
-	// mcp
+	// mcp stdin/stdout
 	// https://github.com/modelcontextprotocol/servers/tree/main
-	Command string `yaml:"command"`
-	Args    string `yaml:"args"`
+	// Command string `yaml:"command"`
+	// Args    string `yaml:"args"`
 
-	// remote: ssh | docker...
 	// ssh://user@example.com:2222/user/home
 	// git@github.com:owner/repo.git
 	// postgres://dbuser:secret@db.example.com:5432/mydb?sslmode=require
 	// https://drive.google.com/drive/folders
 	// mailto:someone@example.com
-	URI string `yaml:"uri"`
+	URL string `yaml:"url"`
 }

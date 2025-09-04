@@ -2,7 +2,7 @@ package internal
 
 import (
 	"embed"
-	"encoding/json"
+	// "encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	fangs "github.com/spf13/viper"
-	"github.com/tailscale/hujson"
+	// "github.com/tailscale/hujson"
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
@@ -260,64 +260,64 @@ func ParseArgs(viper *fangs.Viper, app *api.AppConfig, args []string, defaultAge
 	app.Args = newArgs
 }
 
-type McpServersConfig struct {
-	ServersRoot string
+// type McpServersConfig struct {
+// 	ServersRoot string
 
-	ServersConfig map[string]*api.McpServerConfig `json:"mcpServers"`
-}
+// 	ServersConfig map[string]*api.McpServerConfig `json:"mcpServers"`
+// }
 
-func NewMcpServersConfig(root string) *McpServersConfig {
-	return &McpServersConfig{
-		ServersRoot:   root,
-		ServersConfig: make(map[string]*api.McpServerConfig),
-	}
-}
+// func NewMcpServersConfig(root string) *McpServersConfig {
+// 	return &McpServersConfig{
+// 		ServersRoot:   root,
+// 		ServersConfig: make(map[string]*api.McpServerConfig),
+// 	}
+// }
 
-func (r *McpServersConfig) LoadAll() error {
-	entries, err := os.ReadDir(r.ServersRoot)
-	if err != nil {
-		return err
-	}
-	for _, entry := range entries {
-		if entry.Type().IsRegular() {
-			name := entry.Name()
-			ext := filepath.Ext(name)
-			if ext == ".jsonc" || ext == ".json" {
-				configPath := filepath.Join(r.ServersRoot, name)
-				if err := r.LoadFile(configPath); err != nil {
-					return err
-				}
-			}
-		}
-	}
-	return nil
-}
+// func (r *McpServersConfig) LoadAll() error {
+// 	entries, err := os.ReadDir(r.ServersRoot)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	for _, entry := range entries {
+// 		if entry.Type().IsRegular() {
+// 			name := entry.Name()
+// 			ext := filepath.Ext(name)
+// 			if ext == ".jsonc" || ext == ".json" {
+// 				configPath := filepath.Join(r.ServersRoot, name)
+// 				if err := r.LoadFile(configPath); err != nil {
+// 					return err
+// 				}
+// 			}
+// 		}
+// 	}
+// 	return nil
+// }
 
-func (r *McpServersConfig) LoadFile(filename string) error {
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		return err
-	}
-	return r.LoadData(data)
-}
+// func (r *McpServersConfig) LoadFile(filename string) error {
+// 	data, err := os.ReadFile(filename)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return r.LoadData(data)
+// }
 
-func (r *McpServersConfig) LoadData(data []byte) error {
-	hu, err := hujson.Standardize(data)
-	if err != nil {
-		return err
-	}
-	ex := expandWithDefault(string(hu))
-	err = json.Unmarshal([]byte(ex), r)
-	if err != nil {
-		return fmt.Errorf("unmarshal mcp config: %v", err)
-	}
+// func (r *McpServersConfig) LoadData(data []byte) error {
+// 	hu, err := hujson.Standardize(data)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	ex := expandWithDefault(string(hu))
+// 	err = json.Unmarshal([]byte(ex), r)
+// 	if err != nil {
+// 		return fmt.Errorf("unmarshal mcp config: %v", err)
+// 	}
 
-	// set server name for each config
-	for k, v := range r.ServersConfig {
-		v.Server = k
-	}
-	return nil
-}
+// 	// set server name for each config
+// 	for k, v := range r.ServersConfig {
+// 		v.Server = k
+// 	}
+// 	return nil
+// }
 
 // return the agent/command and the rest of the args
 func ParseAgentArgs(app *api.AppConfig, args []string, defaultAgent string) []string {

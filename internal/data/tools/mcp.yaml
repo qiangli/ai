@@ -1,0 +1,10 @@
+###
+kit: "mcp"
+type: "mcp"
+
+connector:
+  url: "http://localhost:8000/"
+###
+
+
+

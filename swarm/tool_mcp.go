@@ -3,277 +3,104 @@ package swarm
 import (
 	"context"
 	"fmt"
-	"io"
-	"strings"
-	"sync"
-	"time"
 
-	"github.com/mark3labs/mcp-go/client"
-	"github.com/mark3labs/mcp-go/client/transport"
-	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
 )
 
 type McpClient struct {
-	ServerConfig *api.McpServerConfig
+	cfg *api.ConnectorConfig
 }
 
-func NewMcpClient(ctx context.Context, config *api.McpServerConfig) (*client.Client, error) {
-	var c *client.Client
-
-	if config.ServerUrl != "" {
-		// "http"
-		log.Debugln("Initializing HTTP client...")
-		httpTransport, err := transport.NewStreamableHTTP(config.ServerUrl)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create HTTP transport: %v", err)
-		}
-		c = client.NewClient(httpTransport)
-	} else {
-		// "stdio"
-		log.Debugln("Initializing stdio client %+v", config.Args)
-		if len(config.Args) == 0 {
-			return nil, fmt.Errorf("missing args for stdio client")
-		}
-
-		stdioTransport := transport.NewStdio(config.Command, nil, config.Args...)
-
-		c = client.NewClient(stdioTransport)
-
-		if stderr, ok := client.GetStderr(c); ok && stderr != nil {
-			go func() {
-				buf := make([]byte, 4096)
-				for {
-					n, err := stderr.Read(buf)
-					if err != nil {
-						if err != io.EOF {
-							log.Errorf("Error reading stderr: %v", err)
-						}
-						return
-					}
-					if n > 0 {
-						log.Errorf("[Server] %s", buf[:n])
-					}
-				}
-			}()
-		}
+func NewMcpClient(cfg *api.ConnectorConfig) *McpClient {
+	return &McpClient{
+		cfg: cfg,
 	}
-
-	if err := c.Start(ctx); err != nil {
-		return nil, fmt.Errorf("failed to start client: %v", err)
-	}
-	return c, nil
 }
 
-func InitMcpRequest(ctx context.Context, c *client.Client) (*mcp.InitializeResult, error) {
-	log.Debugln("Initializing client...")
-	initRequest := mcp.InitializeRequest{}
-	initRequest.Params.ProtocolVersion = mcp.LATEST_PROTOCOL_VERSION
-	initRequest.Params.ClientInfo = mcp.Implementation{
-		Name:    "ai mcp client",
+func (r *McpClient) Connect(ctx context.Context) (*mcp.ClientSession, error) {
+	client := mcp.NewClient(&mcp.Implementation{
+		Name:    "mcp-client",
 		Version: "0.0.1",
-	}
-	initRequest.Params.Capabilities = mcp.ClientCapabilities{}
+	}, nil)
 
-	serverInfo, err := c.Initialize(ctx, initRequest)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize: %v", err)
-	}
-
-	log.Debugf("Connected to server: %s (version %s)\n",
-		serverInfo.ServerInfo.Name,
-		serverInfo.ServerInfo.Version)
-	log.Debugf("Server capabilities: %+v\n", serverInfo.Capabilities)
-
-	return serverInfo, nil
+	return client.Connect(ctx, &mcp.StreamableClientTransport{
+		Endpoint: r.cfg.URL,
+	}, nil)
 }
 
-func (r *McpClient) ListTools(ctx context.Context) (*mcp.ListToolsResult, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	c, err := NewMcpClient(ctx, r.ServerConfig)
-	if err != nil {
-		return nil, err
-	}
-	defer c.Close()
-
-	result, err := InitMcpRequest(ctx, c)
-	if err != nil {
-		return nil, err
-	}
-
-	if result.Capabilities.Tools != nil {
-		log.Debugln("Fetching available tools...")
-		toolsRequest := mcp.ListToolsRequest{}
-		toolsResult, err := c.ListTools(ctx, toolsRequest)
-		if err != nil {
-			return nil, fmt.Errorf("failed to list tools: %v", err)
-		} else {
-			return toolsResult, nil
-		}
-	}
-
-	return nil, fmt.Errorf("Tools not supported")
-}
-
-func (r *McpClient) CallTool(ctx context.Context, name string, params map[string]any) (*mcp.CallToolResult, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	c, err := NewMcpClient(ctx, r.ServerConfig)
-	if err != nil {
-		return nil, err
-	}
-	defer c.Close()
-
-	if _, err := InitMcpRequest(ctx, c); err != nil {
-		return nil, err
-	}
-
-	if name == "" {
-		return nil, fmt.Errorf("missing tool name")
-	}
-
-	req := mcp.CallToolRequest{}
-	req.Params.Name = name
-	req.Params.Arguments = params
-
-	result, err := c.CallTool(ctx, req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %v", err)
-	}
-
-	return result, nil
-}
-
-type McpProxy struct {
-	Config map[string]*api.McpServerConfig
-
-	cached map[string]*mcp.ListToolsResult
-
-	sync.Mutex
-}
-
-func NewMcpProxy(cfg map[string]*api.McpServerConfig) *McpProxy {
-	return &McpProxy{
-		Config: cfg,
-		cached: nil,
-	}
-}
-
-func (r *McpProxy) ListTools() (map[string]*mcp.ListToolsResult, error) {
-	r.Lock()
-	defer r.Unlock()
-	if len(r.cached) != 0 {
-		log.Infof("Using cached tools total %v\n", len(r.cached))
-		return r.cached, nil
-	}
-
-	var tools = make(map[string]*mcp.ListToolsResult)
+func ListMcpTools(cfg *api.ToolsConfig) ([]*api.ToolFunc, error) {
 	ctx := context.Background()
-	for v, cfg := range r.Config {
-		client := &McpClient{
-			ServerConfig: cfg,
-		}
-		funcs, err := client.ListTools(ctx)
-		if err != nil {
-			return nil, err
-		}
-		tools[v] = funcs
+
+	if cfg.Connector == nil || cfg.Connector.URL == "" {
+		return nil, fmt.Errorf("Invalid mcp config. Missing URL")
 	}
-	r.cached = tools
 
-	return tools, nil
-}
+	log.Debugf("Connecting to MCP server at %s", cfg.Connector.URL)
 
-func (r *McpProxy) GetTools(server string) (*mcp.ListToolsResult, error) {
-	ctx := context.Background()
-	for v, cfg := range r.Config {
-		if v == server {
-			client := &McpClient{
-				ServerConfig: cfg,
-			}
-			return client.ListTools(ctx)
-		}
+	client := NewMcpClient(cfg.Connector)
+	session, err := client.Connect(ctx)
+	if err != nil {
+		return nil, err
 	}
-	return nil, fmt.Errorf("no such server: %s", server)
-}
+	defer session.Close()
 
-func (r *McpProxy) CallTool(ctx context.Context, server, tool string, args map[string]any) (*mcp.CallToolResult, error) {
-	for v, cfg := range r.Config {
-		if v == server {
-			client := &McpClient{
-				ServerConfig: cfg,
-			}
-			return client.CallTool(ctx, tool, args)
-		}
-	}
-	return nil, fmt.Errorf("no such server: %s", server)
-}
+	log.Debugf("Connected to server: session ID: %s)", session.ID())
 
-func listMcpTools(cfg map[string]*api.McpServerConfig) ([]*api.ToolFunc, error) {
-	server := NewMcpProxy(cfg)
-	result, err := server.ListTools()
-
+	result, err := session.ListTools(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	funcs := make([]*api.ToolFunc, 0)
-	for k, v := range result {
-		for _, t := range v.Tools {
-			funcs = append(funcs, &api.ToolFunc{
-				Type:        ToolTypeMcp,
-				Kit:         k,
-				Name:        t.Name,
-				Description: t.Description,
-				Parameters: map[string]any{
-					"type":       t.InputSchema.Type,
-					"properties": t.InputSchema.Properties,
-					"required":   t.InputSchema.Required,
-				},
-			})
-		}
+	for _, v := range result.Tools {
+		funcs = append(funcs, &api.ToolFunc{
+			Type:        ToolTypeMcp,
+			Kit:         cfg.Kit,
+			Name:        v.Name,
+			Description: v.Description,
+			Parameters: map[string]any{
+				"type":       v.InputSchema.Type,
+				"properties": v.InputSchema.Properties,
+				"required":   v.InputSchema.Required,
+			},
+		})
 	}
 
 	return funcs, nil
 }
 
-func callMcpTool(ctx context.Context, mcpConf map[string]*api.McpServerConfig, vars *api.Vars, name string, args map[string]any) (string, error) {
+func CallMcpTool(ctx context.Context, tf *api.ToolFunc, vars *api.Vars, name string, args map[string]any) (string, error) {
 	log.Debugf("🎖️ calling MCP tool: %s with args: %+v\n", name, args)
 
-	// v, ok := vars.ToolRegistry[name]
-	// if !ok {
-	// 	return "", fmt.Errorf("no such mcp tool: %s", name)
-	// }
-
-	tools, err := vars.Config.ToolLoader(name)
-	if err != nil {
-		return "", fmt.Errorf("no such mcp tool: %s", name)
+	if tf.Config == nil || tf.Config.Connector == nil || tf.Config.Connector.URL == "" {
+		return "", fmt.Errorf("mcp not configured: %s", name)
 	}
-	v := tools[0]
 
-	server := NewMcpProxy(mcpConf)
+	client := NewMcpClient(tf.Config.Connector)
+	session, err := client.Connect(ctx)
+	if err != nil {
+		return "", err
+	}
+	defer session.Close()
 
-	parts := strings.SplitN(v.ID(), "__", 2)
+	log.Debugf("Connected to mcp server session ID: %s)", session.ID())
 
-	result, err := server.CallTool(ctx, parts[0], parts[1], args)
+	result, err := session.CallTool(ctx, &mcp.CallToolParams{
+		Name:      tf.Name,
+		Arguments: args,
+	})
 	if err != nil {
 		return "", err
 	}
 
-	out := func(result *mcp.CallToolResult) string {
-		for _, content := range result.Content {
-			if textContent, ok := content.(mcp.TextContent); ok {
-				return textContent.Text
-			}
+	for _, content := range result.Content {
+		if v, ok := content.(*mcp.TextContent); ok {
+			return v.Text, nil
 		}
-		//TODO
-		return "tool call returned no text output"
 	}
 
-	return out(result), err
+	return "", fmt.Errorf("No response")
 }

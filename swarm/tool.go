@@ -36,7 +36,6 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 	}
 
 	var toolRegistry = make(map[string]*api.ToolFunc)
-
 	conditionMet := func(name string, c *api.ToolCondition) bool {
 		if c == nil {
 			return true
@@ -66,44 +65,55 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 		return true
 	}
 
+	// in theory mcp and system/funcs type could be declared in the same kit
 	for _, config := range kits {
-		for _, v := range config.Tools {
-			log.Debugf("Kit: %s tool: %s - %s\n", v.Kit, v.Name, v.Description)
-
-			// if v.Internal && !app.Internal {
-			// 	continue
-			// }
-
-			// condition check
-			if !conditionMet(v.Name, v.Condition) {
-				continue
+		// connector mcp
+		if config.Connector != nil {
+			tools, err := ListMcpTools(config)
+			if err != nil {
+				return nil, err
 			}
-
-			tool := &api.ToolFunc{
-				Type:        v.Type,
-				Kit:         v.Kit,
-				Name:        v.Name,
-				Description: v.Description,
-				Parameters:  v.Parameters,
-				Body:        v.Body,
-			}
-
-			if tool.Type == "" {
-				tool.Type = config.Type
-			}
-			if tool.Type == "" {
-				return nil, fmt.Errorf("Missing tool type: %s", v.Kit)
-			}
-
-			// override
-			toolRegistry[tool.ID()] = tool
-
-			// TODO this is used for security check by the evalCommand
-			if v.Type == ToolTypeSystem {
-				app.SystemTools = append(app.SystemTools, tool)
+			for _, tool := range tools {
+				tool.Config = config
+				toolRegistry[tool.ID()] = tool
 			}
 		}
 
+		// tools - inline
+		if len(config.Tools) > 0 {
+			for _, v := range config.Tools {
+				log.Debugf("Kit: %s tool: %s - %s\n", v.Kit, v.Name, v.Description)
+
+				// condition check
+				if !conditionMet(v.Name, v.Condition) {
+					continue
+				}
+				tool := &api.ToolFunc{
+					Type:        v.Type,
+					Kit:         v.Kit,
+					Name:        v.Name,
+					Description: v.Description,
+					Parameters:  v.Parameters,
+					Body:        v.Body,
+					Config:      config,
+				}
+
+				if tool.Type == "" {
+					tool.Type = config.Type
+				}
+				if tool.Type == "" {
+					return nil, fmt.Errorf("Missing tool type: %s", v.Kit)
+				}
+
+				// override
+				toolRegistry[tool.ID()] = tool
+
+				// TODO this is used for security check by the evalCommand
+				if v.Type == ToolTypeSystem {
+					app.SystemTools = append(app.SystemTools, tool)
+				}
+			}
+		}
 	}
 	return toolRegistry, nil
 }
@@ -152,11 +162,6 @@ func initTools(app *api.AppConfig) (func(string) ([]*api.ToolFunc, error), error
 	}
 
 	getTool := func(id string) ([]*api.ToolFunc, error) {
-		// for _, v := range tools {
-		// 	if v.Name == id {
-		// 		return []*api.ToolFunc{v}, nil
-		// 	}
-		// }
 		if v, ok := tools[id]; ok {
 			return []*api.ToolFunc{v}, nil
 		}
@@ -310,6 +315,7 @@ func head(s string, maxLen int) string {
 	return s
 }
 
+// dispatch tool by name (kit__name) and args
 func dispatchTool(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
 	tools, err := vars.Config.ToolLoader(name)
 	if err != nil {
@@ -335,15 +341,14 @@ func dispatchTool(ctx context.Context, vars *api.Vars, name string, args map[str
 	// 	}
 	// 	return callAgent(ctx, vars, nextAgent, args)
 	case ToolTypeMcp:
-		return nil, fmt.Errorf("TBD: %s %s", v.Type, v.ID())
-	// 	// spinner
-	// 	sp.Start()
-	// 	defer sp.Stop()
+		// spinner
+		sp.Start()
+		defer sp.Stop()
 
-	// 	out, err := callMcpTool(ctx, vars, name, args)
-	// 	return &api.Result{
-	// 		Value: out,
-	// 	}, err
+		out, err := CallMcpTool(ctx, v, vars, name, args)
+		return &api.Result{
+			Value: out,
+		}, err
 	case ToolTypeSystem:
 		if vars.Config.ToolSystem == nil {
 			return nil, fmt.Errorf("local system tool not supported: %s", v.ID())
@@ -355,52 +360,15 @@ func dispatchTool(ctx context.Context, vars *api.Vars, name string, args map[str
 	// 		Value: out,
 	// 	}, err
 	case ToolTypeFunc:
-		// TODO
 		if v.Name == "agent_transfer" {
 			return callAgentTransfer(ctx, vars, v.Name, args)
 		}
+		// func tools including the rest of ai:*
 		out, err := callFuncTool(ctx, vars, v, args)
 		return &api.Result{
 			Value: out,
 		}, err
 	}
 
-	return nil, fmt.Errorf("no such tool: %s", v.ID())
+	return nil, fmt.Errorf("no such tool: %s", name)
 }
-
-// func listAgentTools(app *api.AppConfig) ([]*api.ToolFunc, error) {
-// 	tools := make([]*api.ToolFunc, 0)
-// 	for _, v := range app.AgentToolMap {
-// 		v.Type = "agent"
-// 		tools = append(tools, v)
-// 	}
-// 	return tools, nil
-// }
-
-// // listTools returns a list of all available tools, including agent, mcp, system, and function tools.
-// // This is for CLI
-// func listTools(app *api.AppConfig) ([]*api.ToolFunc, error) {
-// 	list := []*api.ToolFunc{}
-
-// 	// // agent tools
-// 	// agentTools, err := listAgentTools(app)
-// 	// if err != nil {
-// 	// 	return nil, err
-// 	// }
-// 	// list = append(list, agentTools...)
-
-// 	// mcp tools
-// 	mcpTools, err := listMcpTools(app.McpServers)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	for _, v := range mcpTools {
-// 		list = append(list, v)
-// 	}
-
-// 	// system and misc tools
-// 	sysTools := listDefaultTools(app)
-// 	list = append(list, sysTools...)
-
-// 	return list, nil
-// }
