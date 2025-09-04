@@ -1,4 +1,5 @@
 kit: "web"
+type: "func"
 
 tools:
   - name: "fetch_content"
@@ -11,7 +12,6 @@ tools:
           description: "The webpage URL to fetch content from"
       required:
         - url
-    type: "func"
 
   - name: "download_content"
     description: "Download content from a given URL and save locally as is"
@@ -25,7 +25,6 @@ tools:
           type: "string"
           description: "The full file path to save the content to"
       required: ["url", "file"]
-    type: "func"
 
   - name: "ddg_search"
     description: "Search the web using DuckDuckGo and return formatted results"
@@ -43,7 +42,6 @@ tools:
           maximum: 10
       required:
         - query
-    type: "func"
 
   - name: "bing_search"
     description: "Search the web using Bing and return formatted results"
@@ -61,7 +59,6 @@ tools:
           maximum: 10
       required:
         - query
-    type: "func"
 
   - name: "brave_search"
     description: "Search the web using Brave and return formatted results"
@@ -79,7 +76,6 @@ tools:
           maximum: 10
       required:
         - query
-    type: "func"
     condition:
       env:
         - BRAVE_API_KEY
@@ -100,7 +96,6 @@ tools:
           maximum: 10
       required:
         - query
-    type: "func"
     condition:
       env:
         - GOOGLE_API_KEY

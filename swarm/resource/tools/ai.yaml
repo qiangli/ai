@@ -1,11 +1,11 @@
 ###
 kit: "ai"
+type: "func"
 
 tools:
   - name: "list_agents"
     description: "List all supported AI agents"
     parameters: {}
-    type: "func"
 
   - name: "agent_info"
     description: "Get information about a specific agent"
@@ -17,7 +17,6 @@ tools:
           description: "The name of the agent"
       required:
         - "agent"
-    type: "func"
 
   - name: "agent_transfer"
     description: "Transfer the current task to a specific agent"
@@ -30,4 +29,3 @@ tools:
           description: "The name of the agent"
       required:
         - "agent"
-    type: "func"

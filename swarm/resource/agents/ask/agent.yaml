@@ -5,12 +5,11 @@ agents:
     description: "Deliver concise, reliable answers on a wide range of topics."
     model: L1
     instruction:
-      content: "resource:ask_system_role.md"
+      content: |
+        You are a helpful assistant. Use available tools only when needed,
+        responding with just the required tool call format.
+        For regular questions, answer clearly and concisely,
+        focusing on providing relevant and informative responses.
     functions:
       - "ai:*"
-      - "fs:*"
-      - "host:*"
-      - "io:*"
-      - "os:*"
       - "web:*"
-###

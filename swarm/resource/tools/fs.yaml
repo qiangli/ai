@@ -1,5 +1,6 @@
 ###
 kit: "fs"
+type: "system"
 
 tools:
   - name: "list_directory"
@@ -11,7 +12,6 @@ tools:
           type: "string"
           description: "Path of the directory to list"
       required: ["path"]
-    type: "system"
 
   - name: "create_directory"
     description: "Create a new directory or ensure a directory exists."
@@ -22,7 +22,6 @@ tools:
           type: "string"
           description: "Path of the directory to create"
       required: ["path"]
-    type: "system"
 
   - name: "rename_file"
     description: "Rename files and directories."
@@ -36,7 +35,6 @@ tools:
           type: "string"
           description: "Destination path"
       required: ["source", "destination"]
-    type: "system"
 
   - name: "get_file_info"
     description: "Retrieve detailed metadata about a file or directory."
@@ -47,7 +45,6 @@ tools:
           type: "string"
           description: "Path to the file or directory"
       required: ["path"]
-    type: "system"
 
   - name: "read_file"
     description: "Read the complete contents of a file from the file system."
@@ -58,7 +55,6 @@ tools:
           type: "string"
           description: "Path to the file to read"
       required: ["path"]
-    type: "system"
 
   - name: "write_file"
     description: "Create a new file or overwrite an existing file with new content."
@@ -72,7 +68,6 @@ tools:
           type: "string"
           description: "Content to write to the file"
       required: ["path", "content"]
-    type: "system"
   
   - name: "search_files"
     description: "Recursively search for a regex pattern within files in a specified directory path."
@@ -91,4 +86,3 @@ tools:
             type: "string"
           description: "List of filename patterns to exclude from the search."
       required: ["pattern", "path"]
-    type: "system"

@@ -1,5 +1,6 @@
 ###
 kit: "io"
+type: "system"
 
 tools:
   # - name: "read_stdin"
@@ -9,7 +10,6 @@ tools:
   #     type: "object"
   #     properties: {}
   #     required: []
-  #   type: "system"
 
   # 
   - name: "paste_from_clipboard"
@@ -19,7 +19,6 @@ tools:
       type: "object"
       properties: {}
       required: []
-    type: "system"
 
   - name: "paste_from_clipboard_wait"
     description: "Read input from the system clipboard and wait for confirmation"
@@ -27,7 +26,6 @@ tools:
       type: "object"
       properties: {}
       required: []
-    type: "system"
 
   # causing gemini infinite loop 
   # - name: "write_stdout"
@@ -39,7 +37,6 @@ tools:
   #         type: "string"
   #         description: "Content to write to the console"
   #     required: ["content"]
-  #   type: "system"
   
   - name: "copy_to_clipboard"
     description: "Copy content to clipboard and overwrite its original content"
@@ -50,7 +47,6 @@ tools:
           type: "string"
           description: "Content to write to the clipboard"
       required: ["content"]
-    type: "system"
 
   - name: "copy_to_clipboard_append"
     description: "Append content to clipboard"
@@ -61,7 +57,6 @@ tools:
           type: "string"
           description: "Content to append to the clipboard"
       required: ["content"]
-    type: "system"
 
   - name: "get_user_text_input"
     description: "Prompt the user to provide clarifying information or additional details about their query."
@@ -75,7 +70,6 @@ tools:
           # maxLength: 100
           # minLength: 1
       required: ["prompt"]
-    type: "system"
 
   - name: "get_user_confirmation"
     description: "Prompt the user for a yes/no confirmation and return their response as a boolean value."
@@ -89,7 +83,6 @@ tools:
           # maxLength: 100
           # minLength: 1
       required: ["prompt"]
-    type: "system"
 
   - name: "get_user_choice_input"
     description: "Prompt the user to select an option from a provided list of options."
@@ -109,7 +102,6 @@ tools:
           description: "List of options to choose from"
           example: ["red", "blue", "green"]
       required: ["prompt", "choices"]
-    type: "system"
 
   - name: "get_file_content_input"
     description: "Prompt the user to select and upload a file from their local system. The prompt can specify a required filename, file type, or allow selection from a specific directory."
@@ -124,5 +116,3 @@ tools:
           type: "string"
           description: "An optional filename or base directory path used as a default location or filter suggestion for the file picker."
           example: "passport.png"
-      required: ["prompt"]
-    type: "system"

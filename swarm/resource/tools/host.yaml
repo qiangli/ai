@@ -1,5 +1,6 @@
 ###
 kit: "host"
+type: "system"
 
 tools:
   - name: "home_dir"
@@ -8,7 +9,6 @@ tools:
       type: "object"
       properties: {}
       required: []
-    type: "system"
 
   - name: "temp_dir"
     description: "Return the default directory to use for temporary files"
@@ -16,7 +16,6 @@ tools:
       type: "object"
       properties: {}
       required: []
-    type: "system"
 
   - name: "workspace_dir"
     description: "Return the current workspace directory"
@@ -24,7 +23,6 @@ tools:
       type: "object"
       properties: {}
       required: []
-    type: "system"
 
   - name: "repo_dir"
     description: "Return the current repository directory"
@@ -32,10 +30,8 @@ tools:
       type: "object"
       properties: {}
       required: []
-    type: "system"
 
   - name: "who_am_i"
     description: "Return the username of the current system user as my identity"
     parameters: {}
-    type: "system"
 
