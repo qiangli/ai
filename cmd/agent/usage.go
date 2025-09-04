@@ -250,9 +250,9 @@ AI will choose an appropriate agent based on your message if no agent is specifi
 	dict := make(map[string]*api.AgentConfig)
 	for _, v := range agents {
 		for _, agent := range v.Agents {
-			if v.Internal && !vars.Config.Internal {
-				continue
-			}
+			// if v.Internal && !vars.Config.Internal {
+			// 	continue
+			// }
 			dict[agent.Name] = agent
 		}
 	}

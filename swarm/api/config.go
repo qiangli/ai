@@ -21,8 +21,8 @@ type AppConfig struct {
 
 	ModelLoader func(string) (*model.Model, error)
 
-	Git    *GitConfig
-	DBCred *DBCred
+	// Git    *GitConfig
+	// DBCred *DBCred
 
 	AgentResource *AgentResource
 
@@ -64,8 +64,8 @@ type AppConfig struct {
 	Voice bool
 
 	// MCP server
-	McpServerRoot string
-	McpServers    map[string]*McpServerConfig
+	// McpServerRoot string
+	// McpServers    map[string]*McpServerConfig
 
 	// Output format: raw or markdown
 	Format string
@@ -99,7 +99,7 @@ type AppConfig struct {
 	Debug bool
 	Quiet bool
 
-	Internal bool
+	// Internal bool
 
 	DenyList  []string
 	AllowList []string
@@ -148,55 +148,55 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		AgentResource: cfg.AgentResource,
 		AgentLoader:   cfg.AgentLoader,
 		ToolLoader:    cfg.ToolLoader,
-		Git:           cfg.Git,
-		DBCred:        cfg.DBCred,
-		Agent:         cfg.Agent,
-		Command:       cfg.Command,
-		Args:          append([]string(nil), cfg.Args...),
-		Message:       cfg.Message,
-		Editor:        cfg.Editor,
-		Clipin:        cfg.Clipin,
-		ClipWait:      cfg.ClipWait,
-		Clipout:       cfg.Clipout,
-		ClipAppend:    cfg.ClipAppend,
-		IsPiped:       cfg.IsPiped,
-		Stdin:         cfg.Stdin,
-		Files:         append([]string(nil), cfg.Files...),
-		Screenshot:    cfg.Screenshot,
-		Voice:         cfg.Voice,
-		McpServerRoot: cfg.McpServerRoot,
-		McpServers:    cfg.McpServers,
-		Format:        cfg.Format,
-		Output:        cfg.Output,
-		Me:            cfg.Me,
-		Template:      cfg.Template,
-		New:           cfg.New,
-		ChatID:        cfg.ChatID,
-		MaxHistory:    cfg.MaxHistory,
-		MaxSpan:       cfg.MaxSpan,
-		History:       cfg.History,
-		Models:        cfg.Models,
-		Log:           cfg.Log,
-		Debug:         cfg.Debug,
-		Quiet:         cfg.Quiet,
-		Internal:      cfg.Internal,
-		DenyList:      append([]string(nil), cfg.DenyList...),
-		AllowList:     append([]string(nil), cfg.AllowList...),
-		Unsafe:        cfg.Unsafe,
-		Base:          cfg.Base,
-		Workspace:     cfg.Workspace,
-		Home:          cfg.Home,
-		Temp:          cfg.Temp,
-		Interactive:   cfg.Interactive,
-		Editing:       cfg.Editing,
-		Shell:         cfg.Shell,
-		Watch:         cfg.Watch,
-		ClipWatch:     cfg.ClipWatch,
-		Hub:           cfg.Hub,
-		MaxTime:       cfg.MaxTime,
-		MaxTurns:      cfg.MaxTurns,
-		Stdout:        cfg.Stdout,
-		Stderr:        cfg.Stderr,
+		// Git:           cfg.Git,
+		// DBCred:        cfg.DBCred,
+		Agent:      cfg.Agent,
+		Command:    cfg.Command,
+		Args:       append([]string(nil), cfg.Args...),
+		Message:    cfg.Message,
+		Editor:     cfg.Editor,
+		Clipin:     cfg.Clipin,
+		ClipWait:   cfg.ClipWait,
+		Clipout:    cfg.Clipout,
+		ClipAppend: cfg.ClipAppend,
+		IsPiped:    cfg.IsPiped,
+		Stdin:      cfg.Stdin,
+		Files:      append([]string(nil), cfg.Files...),
+		Screenshot: cfg.Screenshot,
+		Voice:      cfg.Voice,
+		// McpServerRoot: cfg.McpServerRoot,
+		// McpServers:    cfg.McpServers,
+		Format:     cfg.Format,
+		Output:     cfg.Output,
+		Me:         cfg.Me,
+		Template:   cfg.Template,
+		New:        cfg.New,
+		ChatID:     cfg.ChatID,
+		MaxHistory: cfg.MaxHistory,
+		MaxSpan:    cfg.MaxSpan,
+		History:    cfg.History,
+		Models:     cfg.Models,
+		Log:        cfg.Log,
+		Debug:      cfg.Debug,
+		Quiet:      cfg.Quiet,
+		// Internal:      cfg.Internal,
+		DenyList:    append([]string(nil), cfg.DenyList...),
+		AllowList:   append([]string(nil), cfg.AllowList...),
+		Unsafe:      cfg.Unsafe,
+		Base:        cfg.Base,
+		Workspace:   cfg.Workspace,
+		Home:        cfg.Home,
+		Temp:        cfg.Temp,
+		Interactive: cfg.Interactive,
+		Editing:     cfg.Editing,
+		Shell:       cfg.Shell,
+		Watch:       cfg.Watch,
+		ClipWatch:   cfg.ClipWatch,
+		Hub:         cfg.Hub,
+		MaxTime:     cfg.MaxTime,
+		MaxTurns:    cfg.MaxTurns,
+		Stdout:      cfg.Stdout,
+		Stderr:      cfg.Stderr,
 		//
 		DryRun:        cfg.DryRun,
 		DryRunContent: cfg.DryRunContent,

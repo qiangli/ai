@@ -66,64 +66,64 @@ func Spread(val any) string {
 	return result
 }
 
-func callTplTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (string, error) {
-	funcMap := map[string]any{
-		"join":    strings.Join,
-		"split":   strings.Split,
-		"trim":    strings.TrimSpace,
-		"default": Default,
-		"spread":  Spread,
-	}
+// func callTplTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (string, error) {
+// 	funcMap := map[string]any{
+// 		"join":    strings.Join,
+// 		"split":   strings.Split,
+// 		"trim":    strings.TrimSpace,
+// 		"default": Default,
+// 		"spread":  Spread,
+// 	}
 
-	runCmd := func(cmd string, args ...string) (string, error) {
-		result, err := execCommand(cmd, args, vars.Config.Debug)
+// 	runCmd := func(cmd string, args ...string) (string, error) {
+// 		result, err := execCommand(cmd, args, vars.Config.Debug)
 
-		if err != nil {
-			return result, err
-		}
-		if result == "" {
-			return fmt.Sprintf("%s executed successfully", cmd), nil
-		}
-		return result, nil
-	}
+// 		if err != nil {
+// 			return result, err
+// 		}
+// 		if result == "" {
+// 			return fmt.Sprintf("%s executed successfully", cmd), nil
+// 		}
+// 		return result, nil
+// 	}
 
-	// // Add system commands to the function map
-	// for _, v := range vars.Config.ToolSystemCommands {
-	// 	if _, err := exec.LookPath(v); err != nil {
-	// 		log.Errorf("%s not found in PATH\n", v)
-	// 		continue
-	// 	}
-	// 	funcMap[v] = func(args ...string) (string, error) {
-	// 		return runCmd(v, args...)
-	// 	}
-	// }
-	funcMap["exec"] = runCmd
+// 	// // Add system commands to the function map
+// 	// for _, v := range vars.Config.ToolSystemCommands {
+// 	// 	if _, err := exec.LookPath(v); err != nil {
+// 	// 		log.Errorf("%s not found in PATH\n", v)
+// 	// 		continue
+// 	// 	}
+// 	// 	funcMap[v] = func(args ...string) (string, error) {
+// 	// 		return runCmd(v, args...)
+// 	// 	}
+// 	// }
+// 	funcMap["exec"] = runCmd
 
-	var body string
-	var err error
-	if f.Body != "" {
-		body, err = applyTemplate(f.Body, args, funcMap)
-		if err != nil {
-			return "", err
-		}
-	}
+// 	var body string
+// 	var err error
+// 	if f.Body != "" {
+// 		body, err = applyTemplate(f.Body, args, funcMap)
+// 		if err != nil {
+// 			return "", err
+// 		}
+// 	}
 
-	switch f.Type {
-	case ToolTypeTemplate:
-		return body, nil
-	// case ToolTypeSql:
-	// 	cred, err := dbCred(vars, args)
-	// 	if err != nil {
-	// 		return "", err
-	// 	}
-	// 	return sqlQuery(ctx, cred, body)
-	case ToolTypeShell:
-		cmdline := strings.TrimSpace(body)
-		return execCommand(cmdline, nil, vars.Config.Debug)
-	}
+// 	switch f.Type {
+// 	case ToolTypeTemplate:
+// 		return body, nil
+// 	// case ToolTypeSql:
+// 	// 	cred, err := dbCred(vars, args)
+// 	// 	if err != nil {
+// 	// 		return "", err
+// 	// 	}
+// 	// 	return sqlQuery(ctx, cred, body)
+// 	case ToolTypeShell:
+// 		cmdline := strings.TrimSpace(body)
+// 		return execCommand(cmdline, nil, vars.Config.Debug)
+// 	}
 
-	return "", fmt.Errorf("unknown function type %s for tool %s", f.Type, f.Name)
-}
+// 	return "", fmt.Errorf("unknown function type %s for tool %s", f.Type, f.Name)
+// }
 
 type SystemKit struct {
 }

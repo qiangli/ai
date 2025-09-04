@@ -96,171 +96,171 @@ func TestCallSystemTool(t *testing.T) {
 	}
 }
 
-func TestCallDevTools(t *testing.T) {
-	tests := []struct {
-		id   string
-		args map[string]any
-	}{
-		// {
-		// 	id: "dev__git",
-		// 	args: map[string]any{
-		// 		"command": "status",
-		// 	},
-		// },
-		// {
-		// 	id: "dev__go",
-		// 	args: map[string]any{
-		// 		"command": "version",
-		// 	},
-		// },
-		// {
-		// 	id: "git__git",
-		// 	args: map[string]any{
-		// 		"command": "version",
-		// 	},
-		// },
-	}
+// func TestCallDevTools(t *testing.T) {
+// 	tests := []struct {
+// 		id   string
+// 		args map[string]any
+// 	}{
+// 		// {
+// 		// 	id: "dev__git",
+// 		// 	args: map[string]any{
+// 		// 		"command": "status",
+// 		// 	},
+// 		// },
+// 		// {
+// 		// 	id: "dev__go",
+// 		// 	args: map[string]any{
+// 		// 		"command": "version",
+// 		// 	},
+// 		// },
+// 		// {
+// 		// 	id: "git__git",
+// 		// 	args: map[string]any{
+// 		// 		"command": "version",
+// 		// 	},
+// 		// },
+// 	}
 
-	cfg := &api.AppConfig{}
+// 	cfg := &api.AppConfig{}
 
-	ctx := context.Background()
-	vars, _ := InitVars(cfg)
+// 	ctx := context.Background()
+// 	vars, _ := InitVars(cfg)
 
-	for _, tt := range tests {
-		// tf, ok := cfg.ToolRegistry[tt.id]
-		// if !ok {
-		// 	t.Fatalf("tool %s not found in registry", tt.id)
-		// }
-		tf, err := cfg.ToolLoader(tt.id)
-		if err != nil {
-			t.Fatalf("tool %s not found in registry", tt.id)
-		}
-		result, err := callTplTool(ctx, vars, tf[0], tt.args)
-		if err != nil {
-			t.Fatalf("failed to call dev tool %s: %v", tt.id, err)
-		}
-		t.Logf("Result for %s: %+v", tt.id, result)
-	}
-}
+// 	for _, tt := range tests {
+// 		// tf, ok := cfg.ToolRegistry[tt.id]
+// 		// if !ok {
+// 		// 	t.Fatalf("tool %s not found in registry", tt.id)
+// 		// }
+// 		tf, err := cfg.ToolLoader(tt.id)
+// 		if err != nil {
+// 			t.Fatalf("tool %s not found in registry", tt.id)
+// 		}
+// 		result, err := callTplTool(ctx, vars, tf[0], tt.args)
+// 		if err != nil {
+// 			t.Fatalf("failed to call dev tool %s: %v", tt.id, err)
+// 		}
+// 		t.Logf("Result for %s: %+v", tt.id, result)
+// 	}
+// }
 
-func TestCallFindTools(t *testing.T) {
+// func TestCallFindTools(t *testing.T) {
 
-	tests := []struct {
-		id   string
-		args map[string]any
-	}{
-		// {
-		// 	id: "find__grep",
-		// 	args: map[string]any{
-		// 		"args": []string{"-rnw", "'pr_json_to_markdown'", "."},
-		// 	},
-		// },
-	}
+// 	tests := []struct {
+// 		id   string
+// 		args map[string]any
+// 	}{
+// 		// {
+// 		// 	id: "find__grep",
+// 		// 	args: map[string]any{
+// 		// 		"args": []string{"-rnw", "'pr_json_to_markdown'", "."},
+// 		// 	},
+// 		// },
+// 	}
 
-	cfg := &api.AppConfig{}
+// 	cfg := &api.AppConfig{}
 
-	ctx := context.Background()
-	vars, _ := InitVars(cfg)
+// 	ctx := context.Background()
+// 	vars, _ := InitVars(cfg)
 
-	for _, tt := range tests {
-		// tf, ok := cfg.ToolRegistry[tt.id]
-		// if !ok {
-		// 	t.Fatalf("tool %s not found in registry", tt.id)
-		// }
-		tf, err := cfg.ToolLoader(tt.id)
-		if err != nil {
-			t.Fatalf("tool %s not found in registry", tt.id)
-		}
-		result, err := callTplTool(ctx, vars, tf[0], tt.args)
-		if err != nil {
-			t.Fatalf("failed to call dev tool %s: %v", tt.id, err)
-		}
-		t.Logf("Result for %s: %+v", tt.id, result)
-	}
-}
+// 	for _, tt := range tests {
+// 		// tf, ok := cfg.ToolRegistry[tt.id]
+// 		// if !ok {
+// 		// 	t.Fatalf("tool %s not found in registry", tt.id)
+// 		// }
+// 		tf, err := cfg.ToolLoader(tt.id)
+// 		if err != nil {
+// 			t.Fatalf("tool %s not found in registry", tt.id)
+// 		}
+// 		result, err := callTplTool(ctx, vars, tf[0], tt.args)
+// 		if err != nil {
+// 			t.Fatalf("failed to call dev tool %s: %v", tt.id, err)
+// 		}
+// 		t.Logf("Result for %s: %+v", tt.id, result)
+// 	}
+// }
 
-func TestCallShellTools(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping test in short mode.")
-	}
-	tests := []struct {
-		id   string
-		args map[string]any
-	}{
-		// {
-		// 	id: "archive__zstd",
-		// 	args: map[string]any{
-		// 		"options": []string{"--verbose", "--force"},
-		// 		"files":   []string{"test.zst"},
-		// 	},
-		// },
-	}
+// func TestCallShellTools(t *testing.T) {
+// 	if testing.Short() {
+// 		t.Skip("skipping test in short mode.")
+// 	}
+// 	tests := []struct {
+// 		id   string
+// 		args map[string]any
+// 	}{
+// 		// {
+// 		// 	id: "archive__zstd",
+// 		// 	args: map[string]any{
+// 		// 		"options": []string{"--verbose", "--force"},
+// 		// 		"files":   []string{"test.zst"},
+// 		// 	},
+// 		// },
+// 	}
 
-	cfg := &api.AppConfig{}
+// 	cfg := &api.AppConfig{}
 
-	ctx := context.Background()
-	vars, _ := InitVars(cfg)
+// 	ctx := context.Background()
+// 	vars, _ := InitVars(cfg)
 
-	for _, tt := range tests {
-		// tf, ok := cfg.ToolRegistry[tt.id]
-		// if !ok {
-		// 	t.Fatalf("tool %s not found in registry", tt.id)
-		// }
-		tf, err := cfg.ToolLoader(tt.id)
-		if err != nil {
-			t.Fatalf("tool %s not found in registry", tt.id)
-		}
-		result, err := callTplTool(ctx, vars, tf[0], tt.args)
-		if err != nil {
-			t.Fatalf("failed to call dev tool %s: %v", tt.id, err)
-		}
-		t.Logf("Result for %s: %+v", tt.id, result)
-	}
-}
+// 	for _, tt := range tests {
+// 		// tf, ok := cfg.ToolRegistry[tt.id]
+// 		// if !ok {
+// 		// 	t.Fatalf("tool %s not found in registry", tt.id)
+// 		// }
+// 		tf, err := cfg.ToolLoader(tt.id)
+// 		if err != nil {
+// 			t.Fatalf("tool %s not found in registry", tt.id)
+// 		}
+// 		result, err := callTplTool(ctx, vars, tf[0], tt.args)
+// 		if err != nil {
+// 			t.Fatalf("failed to call dev tool %s: %v", tt.id, err)
+// 		}
+// 		t.Logf("Result for %s: %+v", tt.id, result)
+// 	}
+// }
 
-func TestCallSqlTools(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping test in short mode.")
-	}
-	tests := []struct {
-		id   string
-		args map[string]any
-	}{
-		// {
-		// 	id: "pg__db_query",
-		// 	args: map[string]any{
-		// 		"query": "SELECT version()",
-		// 	},
-		// },
-	}
+// func TestCallSqlTools(t *testing.T) {
+// 	if testing.Short() {
+// 		t.Skip("skipping test in short mode.")
+// 	}
+// 	tests := []struct {
+// 		id   string
+// 		args map[string]any
+// 	}{
+// 		// {
+// 		// 	id: "pg__db_query",
+// 		// 	args: map[string]any{
+// 		// 		"query": "SELECT version()",
+// 		// 	},
+// 		// },
+// 	}
 
-	cfg := &api.AppConfig{}
+// 	cfg := &api.AppConfig{}
 
-	cred := &api.DBCred{
-		Host:     "localhost",
-		Port:     "5432",
-		Username: "",
-		Password: "",
-		DBName:   "postgres",
-	}
+// 	cred := &api.DBCred{
+// 		Host:     "localhost",
+// 		Port:     "5432",
+// 		Username: "",
+// 		Password: "",
+// 		DBName:   "postgres",
+// 	}
 
-	ctx := context.Background()
-	vars, _ := InitVars(cfg)
-	vars.Config.DBCred = cred
+// 	ctx := context.Background()
+// 	vars, _ := InitVars(cfg)
+// 	vars.Config.DBCred = cred
 
-	for _, tt := range tests {
-		// tf, ok := cfg.ToolRegistry[tt.id]
-		// if !ok {
-		// 	t.Fatalf("tool %s not found in registry", tt.id)
-		// }
-		tf, err := cfg.ToolLoader(tt.id)
-		if err != nil {
-			t.Fatalf("tool %s not found in registry", tt.id)
-		}
-		result, err := callTplTool(ctx, vars, tf[0], tt.args)
-		if err != nil {
-			t.Fatalf("failed to call dev tool %s: %v", tt.id, err)
-		}
-		t.Logf("Result for %s: %+v", tt.id, result)
-	}
-}
+// 	for _, tt := range tests {
+// 		// tf, ok := cfg.ToolRegistry[tt.id]
+// 		// if !ok {
+// 		// 	t.Fatalf("tool %s not found in registry", tt.id)
+// 		// }
+// 		tf, err := cfg.ToolLoader(tt.id)
+// 		if err != nil {
+// 			t.Fatalf("tool %s not found in registry", tt.id)
+// 		}
+// 		result, err := callTplTool(ctx, vars, tf[0], tt.args)
+// 		if err != nil {
+// 			t.Fatalf("failed to call dev tool %s: %v", tt.id, err)
+// 		}
+// 		t.Logf("Result for %s: %+v", tt.id, result)
+// 	}
+// }

@@ -179,7 +179,7 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	app.Trace = viper.GetBool("trace")
 	app.Debug = viper.GetBool("verbose")
 	app.Quiet = viper.GetBool("quiet")
-	app.Internal = viper.GetBool("internal")
+	// app.Internal = viper.GetBool("internal")
 
 	app.Unsafe = viper.GetBool("unsafe")
 	toList := func(s string) []string {
@@ -223,15 +223,15 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	//
 	ParseArgs(viper, app, args, defaultAgent)
 
-	// mcp
-	app.McpServerRoot = viper.GetString("mcp.server_root")
-	if app.McpServerRoot != "" {
-		mcp := NewMcpServersConfig(app.McpServerRoot)
-		if err := mcp.LoadAll(); err != nil {
-			return err
-		}
-		app.McpServers = mcp.ServersConfig
-	}
+	// // mcp
+	// app.McpServerRoot = viper.GetString("mcp.server_root")
+	// if app.McpServerRoot != "" {
+	// 	mcp := NewMcpServersConfig(app.McpServerRoot)
+	// 	if err := mcp.LoadAll(); err != nil {
+	// 		return err
+	// 	}
+	// 	app.McpServers = mcp.ServersConfig
+	// }
 
 	// resource
 	resource := viper.GetString("resource")

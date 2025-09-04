@@ -327,16 +327,17 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 		// 1. better handle this to avoid agent calling self as tools
 		// filter out all agent tools from the agent itself
 		// 2. handle namespace to avoid collision of tool names
-		agentName := ac.Name
-		if strings.Contains(agentName, "/") {
-			parts := strings.SplitN(agentName, "/", 2)
-			agentName = parts[0]
-		}
+		// agentName := ac.Name
+		// if strings.Contains(agentName, "/") {
+		// 	parts := strings.SplitN(agentName, "/", 2)
+		// 	agentName = parts[0]
+		// }
+
 		var funcs []*api.ToolFunc
 		for _, v := range funcMap {
-			if v.Type == ToolTypeAgent && v.Name == agentName {
-				continue
-			}
+			// if v.Type == ToolTypeAgent && v.Name == agentName {
+			// 	continue
+			// }
 			funcs = append(funcs, v)
 		}
 		agent.Tools = funcs

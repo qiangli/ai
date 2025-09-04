@@ -242,7 +242,7 @@ func listMcpTools(cfg map[string]*api.McpServerConfig) ([]*api.ToolFunc, error) 
 	return funcs, nil
 }
 
-func callMcpTool(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func callMcpTool(ctx context.Context, mcpConf map[string]*api.McpServerConfig, vars *api.Vars, name string, args map[string]any) (string, error) {
 	log.Debugf("🎖️ calling MCP tool: %s with args: %+v\n", name, args)
 
 	// v, ok := vars.ToolRegistry[name]
@@ -256,7 +256,7 @@ func callMcpTool(ctx context.Context, vars *api.Vars, name string, args map[stri
 	}
 	v := tools[0]
 
-	server := NewMcpProxy(vars.Config.McpServers)
+	server := NewMcpProxy(mcpConf)
 
 	parts := strings.SplitN(v.ID(), "__", 2)
 

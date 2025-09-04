@@ -7,9 +7,10 @@ import (
 type ToolConfig struct {
 	Kit string `yaml:"kit"`
 
-	Internal bool `yaml:"internal"`
+	// Internal bool `yaml:"internal"`
 
-	Type        string         `yaml:"type"`
+	Type string `yaml:"type"`
+
 	Name        string         `yaml:"name"`
 	Description string         `yaml:"description"`
 	Parameters  map[string]any `yaml:"parameters"`
@@ -32,8 +33,11 @@ type ToolCondition struct {
 }
 
 type ToolsConfig struct {
-	// default kit name for ToolConfig
+	// default kit name
 	Kit string `yaml:"kit"`
+
+	// Default type: func | system | mcp
+	Type string `yaml:"type"`
 
 	// kit config is discarded if true
 	Internal bool `yaml:"internal"`
@@ -54,12 +58,6 @@ type ToolDescriptor struct {
 }
 
 type ToolFunc struct {
-	// system
-	// func
-	Type string
-
-	State State
-
 	// Namespace:
 	//
 	// func class
@@ -70,6 +68,11 @@ type ToolFunc struct {
 	// Virtual machine name
 	// Tool/function (Gemini)
 	Kit string
+
+	// func | system
+	Type string
+
+	State State
 
 	// func name
 	Name        string

@@ -19,13 +19,13 @@ import (
 )
 
 const (
-	ToolTypeSystem   = "system"
-	ToolTypeTemplate = "template"
-	ToolTypeShell    = "shell"
-	ToolTypeSql      = "sql"
-	ToolTypeMcp      = "mcp"
-	ToolTypeAgent    = "agent"
-	ToolTypeFunc     = "func"
+	ToolTypeSystem = "system"
+	// ToolTypeTemplate = "template"
+	// ToolTypeShell    = "shell"
+	// ToolTypeSql      = "sql"
+	ToolTypeMcp = "mcp"
+	// ToolTypeAgent    = "agent"
+	ToolTypeFunc = "func"
 )
 
 func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
@@ -68,11 +68,11 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 
 	for _, config := range kits {
 		for _, v := range config.Tools {
-			log.Debugf("Kit: %s tool: %s - %s internal: %v\n", v.Kit, v.Name, v.Description, v.Internal)
+			log.Debugf("Kit: %s tool: %s - %s\n", v.Kit, v.Name, v.Description)
 
-			if v.Internal && !app.Internal {
-				continue
-			}
+			// if v.Internal && !app.Internal {
+			// 	continue
+			// }
 
 			// condition check
 			if !conditionMet(v.Name, v.Condition) {
@@ -362,34 +362,34 @@ func dispatchTool(ctx context.Context, vars *api.Vars, name string, args map[str
 	sp.Suffix = " calling " + name + "\n"
 
 	switch v.Type {
-	case ToolTypeAgent:
-		nextAgent := v.Kit
-		if v.Name != "" {
-			nextAgent = fmt.Sprintf("%s/%s", v.Kit, v.Name)
-		}
-		if v.State != api.StateDefault {
-			return &api.Result{
-				NextAgent: nextAgent,
-				State:     v.State,
-			}, nil
-		}
-		return callAgent(ctx, vars, nextAgent, args)
-	case ToolTypeMcp:
-		// spinner
-		sp.Start()
-		defer sp.Stop()
+	// case ToolTypeAgent:
+	// 	nextAgent := v.Kit
+	// 	if v.Name != "" {
+	// 		nextAgent = fmt.Sprintf("%s/%s", v.Kit, v.Name)
+	// 	}
+	// 	if v.State != api.StateDefault {
+	// 		return &api.Result{
+	// 			NextAgent: nextAgent,
+	// 			State:     v.State,
+	// 		}, nil
+	// 	}
+	// 	return callAgent(ctx, vars, nextAgent, args)
+	// case ToolTypeMcp:
+	// 	// spinner
+	// 	sp.Start()
+	// 	defer sp.Stop()
 
-		out, err := callMcpTool(ctx, vars, name, args)
-		return &api.Result{
-			Value: out,
-		}, err
+	// 	out, err := callMcpTool(ctx, vars, name, args)
+	// 	return &api.Result{
+	// 		Value: out,
+	// 	}, err
 	case ToolTypeSystem:
 		return callSystemTool(ctx, vars, v, args)
-	case ToolTypeTemplate, ToolTypeShell, ToolTypeSql:
-		out, err := callTplTool(ctx, vars, v, args)
-		return &api.Result{
-			Value: out,
-		}, err
+	// case ToolTypeTemplate, ToolTypeShell, ToolTypeSql:
+	// 	out, err := callTplTool(ctx, vars, v, args)
+	// 	return &api.Result{
+	// 		Value: out,
+	// 	}, err
 	case ToolTypeFunc:
 		// TODO
 		if v.Name == "agent_transfer" {
