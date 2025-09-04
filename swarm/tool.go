@@ -334,7 +334,8 @@ func dispatchTool(ctx context.Context, vars *api.Vars, name string, args map[str
 	// 		}, nil
 	// 	}
 	// 	return callAgent(ctx, vars, nextAgent, args)
-	// case ToolTypeMcp:
+	case ToolTypeMcp:
+		return nil, fmt.Errorf("TBD: %s %s", v.Type, v.ID())
 	// 	// spinner
 	// 	sp.Start()
 	// 	defer sp.Stop()
@@ -344,7 +345,10 @@ func dispatchTool(ctx context.Context, vars *api.Vars, name string, args map[str
 	// 		Value: out,
 	// 	}, err
 	case ToolTypeSystem:
-		return callSystemTool(ctx, vars, v, args)
+		if vars.Config.ToolSystem == nil {
+			return nil, fmt.Errorf("local system tool not supported: %s", v.ID())
+		}
+		return vars.Config.ToolSystem.Call(ctx, vars, v, args)
 	// case ToolTypeTemplate, ToolTypeShell, ToolTypeSql:
 	// 	out, err := callTplTool(ctx, vars, v, args)
 	// 	return &api.Result{

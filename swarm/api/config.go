@@ -26,8 +26,7 @@ type AppConfig struct {
 	AgentLister func() map[string]*AgentsConfig
 	AgentLoader func(string) (*AgentsConfig, error)
 
-	// AgentToolMap map[string]*ToolFunc
-	// ToolRegistry map[string]*ToolFunc
+	ToolSystem ToolSystem
 	ToolLoader func(string) ([]*ToolFunc, error)
 
 	// ToolSystemCommands []string

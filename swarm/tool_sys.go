@@ -125,13 +125,27 @@ func Spread(val any) string {
 // 	return "", fmt.Errorf("unknown function type %s for tool %s", f.Type, f.Name)
 // }
 
+type LocalSystem struct {
+	tool *SystemKit
+}
+
+func NewLocalSystem(app *api.AppConfig) *LocalSystem {
+	return &LocalSystem{
+		tool: &SystemKit{},
+	}
+}
+
+func (ls LocalSystem) Call(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (*api.Result, error) {
+	return ls.callSystemTool(ctx, vars, f, args)
+}
+
 type SystemKit struct {
 }
 
-func callSystemTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (*api.Result, error) {
-	tool := &SystemKit{}
+func (ls LocalSystem) callSystemTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (*api.Result, error) {
+	// tool := &SystemKit{}
 	callArgs := []any{ctx, vars, f.Name, args}
-	v, err := CallKit(tool, f.Kit, f.Name, callArgs...)
+	v, err := CallKit(ls.tool, f.Kit, f.Name, callArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to call system tool %s %s: %w", f.Kit, f.Name, err)
 	}
