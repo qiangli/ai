@@ -21,13 +21,11 @@ type AppConfig struct {
 
 	ModelLoader func(string) (*model.Model, error)
 
-	// Git    *GitConfig
-	// DBCred *DBCred
-
 	AgentResource *AgentResource
 
-	// AgentRegistry map[string]*AgentsConfig
+	AgentLister func() map[string]*AgentsConfig
 	AgentLoader func(string) (*AgentsConfig, error)
+
 	// AgentToolMap map[string]*ToolFunc
 	// ToolRegistry map[string]*ToolFunc
 	ToolLoader func(string) ([]*ToolFunc, error)

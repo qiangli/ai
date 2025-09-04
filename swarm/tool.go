@@ -113,32 +113,6 @@ func initTools(app *api.AppConfig) (func(string) ([]*api.ToolFunc, error), error
 	if err != nil {
 		return nil, err
 	}
-	// //
-	// // required system commands
-	// commandMap := make(map[string]bool)
-	// for _, config := range kits {
-	// 	for _, v := range config.Commands {
-	// 		commandMap[v] = true
-	// 	}
-	// }
-
-	// app.ToolSystemCommands = make([]string, 0, len(commandMap))
-	// for k := range commandMap {
-	// 	app.ToolSystemCommands = append(app.ToolSystemCommands, k)
-	// }
-
-	// getType := func(name string) ([]*api.ToolFunc, error) {
-	// 	var list []*api.ToolFunc
-	// 	for _, v := range tools {
-	// 		if v.Type == name {
-	// 			list = append(list, v)
-	// 		}
-	// 	}
-	// 	if len(list) == 0 {
-	// 		return nil, fmt.Errorf("no such tool type: %s", name)
-	// 	}
-	// 	return list, nil
-	// }
 
 	getKit := func(kit string, name string) ([]*api.ToolFunc, error) {
 		var list []*api.ToolFunc

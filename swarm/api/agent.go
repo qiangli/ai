@@ -106,7 +106,7 @@ type AgentsConfig struct {
 	// agent group name
 	Name string `yaml:"name"`
 
-	Internal bool `yaml:"internal"`
+	// Internal bool `yaml:"internal"`
 
 	Agents    []*AgentConfig    `yaml:"agents"`
 	Functions []*FunctionConfig `yaml:"functions"`

@@ -26,6 +26,12 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	}
 	app.AgentLoader = agentLoader
 
+	agentLister, err := AgentLister(app)
+	if err != nil {
+		return nil, err
+	}
+	app.AgentLister = agentLister
+
 	toolLoader, err := initTools(app)
 	if err != nil {
 		return nil, err

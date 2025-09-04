@@ -31,6 +31,16 @@ func initAgents(app *api.AppConfig) (func(string) (*api.AgentsConfig, error), er
 	}, nil
 }
 
+func AgentLister(app *api.AppConfig) (func() map[string]*api.AgentsConfig, error) {
+	agents, err := ListAgents(app)
+	if err != nil {
+		return nil, err
+	}
+	return func() map[string]*api.AgentsConfig {
+		return agents
+	}, nil
+}
+
 func ListAgents(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
 	var agentRegistry = make(map[string]*api.AgentsConfig)
 
