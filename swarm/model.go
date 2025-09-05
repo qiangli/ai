@@ -85,7 +85,7 @@ func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), err
 				}
 			}
 		}
-		return nil, fmt.Errorf("not found: %s", level)
+		return nil, fmt.Errorf("model not found: %s", level)
 	}, nil
 }
 

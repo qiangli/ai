@@ -235,7 +235,7 @@ func FindLastChatID(base string) (string, error) {
 	}
 
 	if latestDir == "" {
-		return "", fmt.Errorf("not found")
+		return "", fmt.Errorf("chat not found")
 	}
 
 	return latestDir, nil
