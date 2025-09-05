@@ -143,9 +143,7 @@ func ConvertTime(sourceTz, timeStr, targetTz string) (TimeConversionResult, erro
 		for strings.HasSuffix(timeDiffStr, "0") {
 			timeDiffStr = timeDiffStr[:len(timeDiffStr)-1]
 		}
-		if strings.HasSuffix(timeDiffStr, ".") {
-			timeDiffStr = timeDiffStr[:len(timeDiffStr)-1]
-		}
+		timeDiffStr = strings.TrimSuffix(timeDiffStr, ".")
 		timeDiffStr += "h"
 	}
 

@@ -9,10 +9,6 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-// func (r *FuncKit) WorldTime(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-// 	return utool.WorldTime()
-// }
-
 func (r *FuncKit) GetLocalTimezone(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	tz, err := utool.GetLocalTZ("")
 	if err != nil {
