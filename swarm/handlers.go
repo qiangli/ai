@@ -12,7 +12,7 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/llm"
+	// "github.com/qiangli/ai/swarm/llm"
 )
 
 // extra result key
@@ -25,8 +25,8 @@ var adapterRegistry map[string]LLMAdapter
 
 func init() {
 	adapterRegistry = make(map[string]LLMAdapter)
-	adapterRegistry["chat"] = llm.Chat
-	adapterRegistry["image-gen"] = llm.ImageGen
+	adapterRegistry["chat"] = Chat
+	adapterRegistry["image-gen"] = ImageGen
 }
 
 // AgentHandler
@@ -236,7 +236,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		log.Debugf("LLM request: %+v\n", request)
 	}
 
-	var adapter LLMAdapter = llm.Chat
+	var adapter LLMAdapter = Chat
 	if h.agent.Adapter != "" {
 		if v, ok := adapterRegistry[h.agent.Adapter]; ok {
 			adapter = v
