@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/internal/log"
-	// "github.com/qiangli/ai/swarm/api/model"
 )
 
 const (
@@ -63,6 +62,7 @@ const (
 type TemplateFuncMap = template.FuncMap
 
 type Agent struct {
+	// LLM adapter
 	Adapter string
 
 	// The name of the agent.
@@ -76,15 +76,13 @@ type Agent struct {
 	// The role of the agent. default is "system"
 	Role string
 
-	// Instructions for the agent, can be a string or a callable returning a string
-	// Instruction string
-	// InstructionType string // file ext
-	// Instruction *InstructionConfig
-
 	RawInput *UserInput
 
 	// Functions that the agent can call
 	Tools []*ToolFunc
+
+	// The preferred model aliases to used used
+	Models []*Model
 
 	Entrypoint Entrypoint
 
@@ -102,21 +100,20 @@ type Agent struct {
 	Config *AgentConfig
 }
 
+// agent app config
 type AgentsConfig struct {
-	// agent group name
-	Name string `yaml:"name"`
+	// Source/Creator of the agent
+	Owner string `yaml:"owner"`
 
-	// Internal bool `yaml:"internal"`
+	// agent app name
+	Name string `yaml:"name"`
 
 	Agents    []*AgentConfig    `yaml:"agents"`
 	Functions []*FunctionConfig `yaml:"functions"`
-	Models    []*ModelConfig    `yaml:"models"`
+	// Models    []*ModelConfig    `yaml:"models"`
 
 	MaxTurns int `yaml:"maxTurns"`
 	MaxTime  int `yaml:"maxTime"`
-
-	// BaseDir string `yaml:"-"`
-	// Source  string `yaml:"-"`
 }
 
 type AgentConfig struct {
@@ -124,22 +121,19 @@ type AgentConfig struct {
 	Display     string `yaml:"display"`
 	Description string `yaml:"description"`
 
-	// Internal bool `yaml:"internal"`
-	// State    string `yaml:"state"`
-
 	//
 	Instruction *InstructionConfig `yaml:"instruction"`
 
 	Model string `yaml:"model"`
 
-	// model alias
-	Models string `yaml:"models"`
-
-	Entrypoint string `yaml:"entrypoint"`
+	// preferred model alias
+	Models []string `yaml:"models"`
 
 	Functions []string `yaml:"functions"`
 
 	Dependencies []string `yaml:"dependencies"`
+
+	Entrypoint string `yaml:"entrypoint"`
 
 	Advices *AdviceConfig `yaml:"advices"`
 
@@ -172,15 +166,16 @@ type FunctionConfig struct {
 	Parameters  map[string]any `yaml:"parameters"`
 }
 
-type ModelConfig struct {
-	Name        string `yaml:"name"`
-	Type        string `yaml:"type"`
-	Description string `yaml:"description"`
-	Model       string `yaml:"model"`
-	BaseUrl     string `yaml:"baseUrl"`
-	ApiKey      string `yaml:"apiKey"`
-	External    bool   `yaml:"external"`
-}
+// type ModelConfig struct {
+// 	Name        string `yaml:"name"`
+// 	//
+// 	Type        string `yaml:"type"`
+// 	Description string `yaml:"description"`
+// 	Model       string `yaml:"model"`
+// 	BaseUrl     string `yaml:"baseUrl"`
+// 	ApiKey      string `yaml:"apiKey"`
+// 	// External    bool   `yaml:"external"`
+// }
 
 type AdviceConfig struct {
 	Before string `yaml:"before"`

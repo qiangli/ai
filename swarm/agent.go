@@ -143,11 +143,13 @@ func LoadAgentsAsset(as api.AssetStore, root string, groups map[string]*api.Agen
 			log.Debugf("duplicate agent name found: %s in %s, skipping\n", group.Name, dir.Name())
 			continue
 		}
+
 		// keep store loader for loading extra resources later
 		for _, v := range group.Agents {
 			v.Store = as
 			v.BaseDir = base
 		}
+
 		groups[group.Name] = group
 	}
 

@@ -1,13 +1,7 @@
 package model
 
 import (
-	// "fmt"
 	"maps"
-	// "os"
-	// "path/filepath"
-	// "strings"
-	// "dario.cat/mergo"
-	// "gopkg.in/yaml.v3"
 )
 
 type InputType string
@@ -104,88 +98,3 @@ func (r *Model) Clone() *Model {
 	maps.Copy(clone.Features, r.Features)
 	return clone
 }
-
-// // LoadModels loads all aliases for models in a given baes directory
-// func LoadModels(base string) (map[string]*ModelsConfig, error) {
-// 	files, err := os.ReadDir(base)
-// 	if err != nil {
-// 		if os.IsNotExist(err) {
-// 			return nil, nil
-// 		}
-// 		return nil, err
-// 	}
-
-// 	var m = make(map[string]*ModelsConfig)
-
-// 	// read all yaml files in the base dir
-// 	for _, v := range files {
-// 		if v.IsDir() {
-// 			continue
-// 		}
-// 		name := v.Name()
-// 		if strings.HasSuffix(name, ".yaml") || strings.HasSuffix(name, ".yml") {
-// 			// read the file content
-// 			b, err := os.ReadFile(filepath.Join(base, name))
-// 			if err != nil {
-// 				return nil, err
-// 			}
-// 			cfg, err := LoadModelsData([][]byte{b})
-// 			if err != nil {
-// 				return nil, fmt.Errorf("failed to load %q: %v", name, err)
-// 			}
-// 			//
-// 			alias := cfg.Alias
-// 			if alias == "" {
-// 				alias = strings.TrimSuffix(name, filepath.Ext(name))
-// 				cfg.Alias = alias
-// 			}
-// 			m[alias] = cfg
-// 		}
-// 	}
-
-// 	return m, nil
-// }
-
-// func LoadModelsData(data [][]byte) (*ModelsConfig, error) {
-// 	merged := &ModelsConfig{}
-
-// 	for _, v := range data {
-// 		cfg := &ModelsConfig{}
-// 		exp := os.ExpandEnv(string(v))
-// 		if err := yaml.Unmarshal([]byte(exp), cfg); err != nil {
-// 			return nil, err
-// 		}
-
-// 		if err := mergo.Merge(merged, cfg, mergo.WithAppendSlice); err != nil {
-// 			return nil, err
-// 		}
-// 	}
-
-// 	// fill defaults
-// 	for _, v := range merged.Models {
-// 		if v.ApiKey == "" {
-// 			v.ApiKey = merged.ApiKey
-// 		}
-// 		if v.BaseUrl == "" {
-// 			v.BaseUrl = merged.BaseUrl
-// 		}
-// 		if v.Provider == "" {
-// 			v.Provider = merged.Provider
-// 		}
-// 		if v.Model == "" {
-// 			v.Model = merged.Model
-// 		}
-// 		//
-// 		if len(v.Features) > 0 {
-// 			if _, ok := v.Features[Feature(OutputTypeImage)]; ok {
-// 				v.Type = OutputTypeImage
-// 			}
-// 		}
-// 		// validate
-// 		if v.Provider == "" {
-// 			return nil, fmt.Errorf("missing provider")
-// 		}
-// 	}
-
-// 	return merged, nil
-// }
