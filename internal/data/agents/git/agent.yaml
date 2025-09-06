@@ -3,7 +3,7 @@
 agents:
   - name: "git"
     display: "🚀 Git"
-    internal: true
+    # internal: true
     description: "Generate git commit message based on users input and the provided diffs."
     model: L1
     instruction:

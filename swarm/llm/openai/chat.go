@@ -13,7 +13,7 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/api/model"
+	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/middleware"
 )
 
@@ -30,7 +30,7 @@ func defineTool(name, description string, parameters map[string]any) openai.Chat
 	}
 }
 
-func NewClient(model *model.Model, vars *api.Vars) openai.Client {
+func NewClient(model *llm.Model, vars *api.Vars) openai.Client {
 	client := openai.NewClient(
 		option.WithAPIKey(model.ApiKey),
 		option.WithBaseURL(model.BaseUrl),
@@ -39,11 +39,11 @@ func NewClient(model *model.Model, vars *api.Vars) openai.Client {
 	return client
 }
 
-func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
+func Send(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	log.Debugf(">>>OPENAI:\n req: %+v\n\n", req)
 
 	var err error
-	var resp *api.LLMResponse
+	var resp *llm.LLMResponse
 
 	resp, err = call(ctx, req)
 
@@ -51,7 +51,7 @@ func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	return resp, err
 }
 
-func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
+func call(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	client := NewClient(req.Model, req.Vars)
 	model := req.Model.Model
 
@@ -96,7 +96,7 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	if maxTurns == 0 {
 		maxTurns = 1
 	}
-	resp := &api.LLMResponse{}
+	resp := &llm.LLMResponse{}
 
 	log.Debugf("[OpenAI] params messages: %v tools: %v\n", len(params.Messages), len(params.Tools))
 
@@ -135,7 +135,7 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 			//
 			out, err := req.RunTool(ctx, name, props)
 			if err != nil {
-				out = &api.Result{
+				out = &llm.Result{
 					Value: fmt.Sprintf("%s", err),
 				}
 			}

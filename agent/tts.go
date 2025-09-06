@@ -9,11 +9,11 @@ import (
 	"github.com/openai/openai-go/option"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/api/model"
+	"github.com/qiangli/ai/swarm/llm"
 )
 
 func speak(cfg *api.AppConfig, text string) error {
-	m, err := cfg.ModelLoader(model.TTS)
+	m, err := cfg.ModelLoader(llm.TTS)
 	if err != nil {
 		return err
 	}

@@ -3,7 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	// "fmt"
 	"html/template"
 	"os"
 	"strings"
@@ -62,13 +62,10 @@ const (
 type TemplateFuncMap = template.FuncMap
 
 type Agent struct {
-	// LLM adapter
-	Adapter string
-
 	// The name of the agent.
-	Name    string
-	Display string
-	// Description string
+	Name        string
+	Display     string
+	Description string
 
 	// The model to be used by the agent
 	Model string
@@ -79,25 +76,29 @@ type Agent struct {
 	RawInput *UserInput
 
 	// Functions that the agent can call
-	Tools []*ToolFunc
+	// Tools []*ToolFunc
+	Tools []*ToolConfig
 
-	// The preferred model aliases to used used
-	Models []*Model
-
-	Entrypoint Entrypoint
+	// model aliases to used used
+	Models []*ModelConfig
 
 	Dependencies []string
+
+	Entrypoint Entrypoint
 
 	// advices
 	BeforeAdvice Advice
 	AfterAdvice  Advice
 	AroundAdvice Advice
 
+	// LLM adapter
+	Adapter string
+
 	//
 	MaxTurns int
 	MaxTime  int
 
-	Config *AgentConfig
+	Config *AgentsConfig
 }
 
 // agent app config
@@ -108,9 +109,10 @@ type AgentsConfig struct {
 	// agent app name
 	Name string `yaml:"name"`
 
-	Agents    []*AgentConfig    `yaml:"agents"`
-	Functions []*FunctionConfig `yaml:"functions"`
-	// Models    []*ModelConfig    `yaml:"models"`
+	Agents []*AgentConfig `yaml:"agents"`
+	// Functions []*FunctionConfig `yaml:"functions"`
+	Tools  []*ToolConfig  `yaml:"tools"`
+	Models []*ModelConfig `yaml:"models"`
 
 	MaxTurns int `yaml:"maxTurns"`
 	MaxTime  int `yaml:"maxTime"`
@@ -126,9 +128,10 @@ type AgentConfig struct {
 
 	Model string `yaml:"model"`
 
-	// preferred model alias
+	// model alias defined in models config
 	Models []string `yaml:"models"`
 
+	// tools defined in tools config
 	Functions []string `yaml:"functions"`
 
 	Dependencies []string `yaml:"dependencies"`
@@ -157,20 +160,21 @@ type InstructionConfig struct {
 	Type string `yaml:"type"`
 }
 
-type FunctionConfig struct {
-	Label   string `yaml:"label"`
-	Service string `yaml:"service"`
+// type FunctionConfig struct {
+// 	Label   string `yaml:"label"`
+// 	Service string `yaml:"service"`
 
-	Name        string         `yaml:"name"`
-	Description string         `yaml:"description"`
-	Parameters  map[string]any `yaml:"parameters"`
-}
+// 	Name        string         `yaml:"name"`
+// 	Description string         `yaml:"description"`
+// 	Parameters  map[string]any `yaml:"parameters"`
+// }
 
 // type ModelConfig struct {
-// 	Name        string `yaml:"name"`
+// 	Name string `yaml:"name"`
 // 	//
 // 	Type        string `yaml:"type"`
 // 	Description string `yaml:"description"`
+// 	Provider    string `yaml:"provider"`
 // 	Model       string `yaml:"model"`
 // 	BaseUrl     string `yaml:"baseUrl"`
 // 	ApiKey      string `yaml:"apiKey"`
@@ -186,7 +190,7 @@ type AdviceConfig struct {
 // Swarm Agents can call functions directly.
 // Function should usually return a string values.
 // If a function returns an Agent, execution will be transferred to that Agent.
-type Function = func(context.Context, *Vars, string, map[string]any) (*Result, error)
+// type Function = func(context.Context, *Vars, string, map[string]any) (*Result, error)
 
 type Advice func(*Vars, *Request, *Response, Advice) error
 
@@ -197,7 +201,7 @@ type Request struct {
 	Agent   string
 	Command string
 
-	Messages []*Message
+	// Messages []*Message
 
 	RawInput *UserInput
 
@@ -268,21 +272,21 @@ func (r *Request) Clone(ctx context.Context) *Request {
 	*r2 = *r
 	r2.ctx = ctx
 	r2.Agent = r.Agent
-	r2.Messages = r.Messages
+	// r2.Messages = r.Messages
 	r2.RawInput = r.RawInput
 
 	return r2
 }
 
-type ResponseWriter interface {
-	AddMessage(*Response, *Agent)
-	SetResult(*Result)
-}
+// type ResponseWriter interface {
+// 	AddMessage(*Response, *Agent)
+// 	SetResult(*Result)
+// }
 
 type Response struct {
 	// A list of message objects generated during the conversation
 	// with a sender field indicating which Agent the message originated from.
-	Messages []*Message
+	// Messages []*Message
 
 	// Transfer  bool
 	// NextAgent string
@@ -290,49 +294,50 @@ type Response struct {
 	// The last agent to handle a message
 	Agent *Agent
 
-	Result *Result
+	// Result *Result
+	Output *Output
 }
 
-func (r *Response) LastMessage() *Message {
-	if len(r.Messages) > 0 {
-		return r.Messages[len(r.Messages)-1]
-	}
-	return nil
-}
+// func (r *Response) LastMessage() *Message {
+// 	if len(r.Messages) > 0 {
+// 		return r.Messages[len(r.Messages)-1]
+// 	}
+// 	return nil
+// }
 
-type Agentic interface {
-	Serve(*Request, *Response) error
-}
+// type Agentic interface {
+// 	Serve(*Request, *Response) error
+// }
 
-// Result encapsulates the possible return values for agent/function.
-type Result struct {
-	// The result value as a string
-	Value string
+// // Result encapsulates the possible return values for agent/function.
+// type Result struct {
+// 	// The result value as a string
+// 	Value string
 
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types
-	MimeType string
-	Message  string
+// 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types
+// 	MimeType string
+// 	Message  string
 
-	// The agent state
-	State State
+// 	// The agent state
+// 	State State
 
-	// The agent name to transfer to for StateTransfer
-	NextAgent string
-}
+// 	// The agent name to transfer to for StateTransfer
+// 	NextAgent string
+// }
 
-func (r *Result) String() string {
-	var sb strings.Builder
-	if r.State != StateDefault {
-		sb.WriteString(r.State.String())
-	}
-	if r.NextAgent != "" {
-		sb.WriteString(fmt.Sprintf(" %s\n", r.NextAgent))
-	}
-	if r.Value != "" {
-		sb.WriteString(fmt.Sprintf(" %s\n", r.Value))
-	}
-	return strings.TrimSpace(sb.String())
-}
+// func (r *Result) String() string {
+// 	var sb strings.Builder
+// 	if r.State != StateDefault {
+// 		sb.WriteString(r.State.String())
+// 	}
+// 	if r.NextAgent != "" {
+// 		sb.WriteString(fmt.Sprintf(" %s\n", r.NextAgent))
+// 	}
+// 	if r.Value != "" {
+// 		sb.WriteString(fmt.Sprintf(" %s\n", r.Value))
+// 	}
+// 	return strings.TrimSpace(sb.String())
+// }
 
 type AgentResource struct {
 	// Root string `json:"root"`

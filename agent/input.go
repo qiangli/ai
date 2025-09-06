@@ -276,27 +276,27 @@ func PrintInput(cfg *api.AppConfig, input *api.UserInput) {
 		}
 		log.Infof("\033[33m%s\033[0m Attachment File: %s\n", emoji, v)
 	}
-	for _, v := range input.Messages {
-		var emoji string
-		ps := strings.SplitN(v.ContentType, "/", 2)
-		switch ps[0] {
-		case "text":
-			emoji = "📄"
-		case "image":
-			emoji = "🖼️"
-		default:
-			emoji = "💾"
-		}
-		var content string
-		if v.ContentType == "" || strings.HasPrefix(v.ContentType, "text/") {
-			content = clipText(v.Content, 100)
-		} else if strings.HasPrefix(v.ContentType, "image/") && strings.HasPrefix(v.Content, "data:") {
-			content = clipText(v.Content, 100)
-		} else {
-			content = "[binary]"
-		}
-		log.Infof("\033[33m%s\033[0m Attachment Type: %s Len: %v Content: %s\n", emoji, v.ContentType, len(v.Content), content)
-	}
+	// for _, v := range input.Messages {
+	// 	var emoji string
+	// 	ps := strings.SplitN(v.ContentType, "/", 2)
+	// 	switch ps[0] {
+	// 	case "text":
+	// 		emoji = "📄"
+	// 	case "image":
+	// 		emoji = "🖼️"
+	// 	default:
+	// 		emoji = "💾"
+	// 	}
+	// 	var content string
+	// 	if v.ContentType == "" || strings.HasPrefix(v.ContentType, "text/") {
+	// 		content = clipText(v.Content, 100)
+	// 	} else if strings.HasPrefix(v.ContentType, "image/") && strings.HasPrefix(v.Content, "data:") {
+	// 		content = clipText(v.Content, 100)
+	// 	} else {
+	// 		content = "[binary]"
+	// 	}
+	// 	log.Infof("\033[33m%s\033[0m Attachment Type: %s Len: %v Content: %s\n", emoji, v.ContentType, len(v.Content), content)
+	// }
 }
 
 // pasteConfirm prompts the user to append, send, or cancel the input

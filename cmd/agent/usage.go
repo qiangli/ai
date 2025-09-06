@@ -15,7 +15,7 @@ import (
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/api/model"
+	"github.com/qiangli/ai/swarm/llm"
 )
 
 const agentUsageTemplate = `AI Command Line Tool
@@ -213,9 +213,9 @@ AI Environment:
 
 	// TODO
 	// log.Infof(format, info, cfg.LLM.Name, cfg.LLM.BaseUrl, cfg.LLM.ApiKey, string(ac), strings.Join(filteredEnvs, "\n"))
-	m, err := cfg.ModelLoader(model.Any)
+	m, err := cfg.ModelLoader(llm.Any)
 	if err != nil {
-		m = &model.Model{}
+		m = &api.ModelConfig{}
 	}
 	log.Infof(format, info, m.Provider, m.BaseUrl, m.ApiKey, string(ac), strings.Join(filteredEnvs, "\n"))
 	return nil

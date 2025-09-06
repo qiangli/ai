@@ -33,7 +33,7 @@ type Vars struct {
 	Extra map[string]string `json:"extra"`
 
 	// conversation history
-	History []*Message
+	// History []*Message
 }
 
 func NewVars() *Vars {

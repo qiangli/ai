@@ -2,7 +2,7 @@ package api
 
 import (
 	"fmt"
-	"net/http"
+	// "net/http"
 	"os"
 	"strings"
 
@@ -43,8 +43,8 @@ type UserInput struct {
 
 	Extra map[string]any `json:"extra"`
 
-	// cached file contents
-	Messages []*Message `json:"-"`
+	// // cached file contents
+	// Messages []*Message `json:"-"`
 }
 
 func (r *UserInput) String() string {
@@ -54,10 +54,10 @@ func (r *UserInput) String() string {
 	sb.WriteString(fmt.Sprintf("Content#: %v\n", len(r.Content)))
 	sb.WriteString(fmt.Sprintf("Intent: %s\n", r.Intent()))
 	sb.WriteString(fmt.Sprintf("Files: %v\n", r.Files))
-	sb.WriteString(fmt.Sprintf("Messages#: %v\n", len(r.Messages)))
-	for _, v := range r.Messages {
-		sb.WriteString(fmt.Sprintf("ContentType: %s Content#: %v\n", v.ContentType, len(v.Content)))
-	}
+	// sb.WriteString(fmt.Sprintf("Messages#: %v\n", len(r.Messages)))
+	// for _, v := range r.Messages {
+	// 	sb.WriteString(fmt.Sprintf("ContentType: %s Content#: %v\n", v.ContentType, len(v.Content)))
+	// }
 
 	return sb.String()
 }
@@ -97,30 +97,30 @@ func (r *UserInput) FileContent() (string, error) {
 	return b.String(), nil
 }
 
-func (r *UserInput) FileMessages() ([]*Message, error) {
-	if len(r.Messages) > 0 {
-		return r.Messages, nil
-	}
+// func (r *UserInput) FileMessages() ([]*Message, error) {
+// 	if len(r.Messages) > 0 {
+// 		return r.Messages, nil
+// 	}
 
-	var messages []*Message
+// 	var messages []*Message
 
-	if len(r.Files) > 0 {
-		for _, f := range r.Files {
-			raw, err := os.ReadFile(f)
-			if err != nil {
-				return nil, err
+// 	if len(r.Files) > 0 {
+// 		for _, f := range r.Files {
+// 			raw, err := os.ReadFile(f)
+// 			if err != nil {
+// 				return nil, err
 
-			}
-			mimeType := http.DetectContentType(raw)
-			messages = append(messages, &Message{
-				ContentType: mimeType,
-				Content:     string(raw),
-			})
-		}
-	}
-	r.Messages = messages
-	return messages, nil
-}
+// 			}
+// 			mimeType := http.DetectContentType(raw)
+// 			messages = append(messages, &Message{
+// 				ContentType: mimeType,
+// 				Content:     string(raw),
+// 			})
+// 		}
+// 	}
+// 	r.Messages = messages
+// 	return messages, nil
+// }
 
 // Intent returns a clipped version of the query.
 // This is intended for "smart" agents to make decisions based on user inputs.

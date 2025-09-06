@@ -12,13 +12,13 @@ import (
 	"github.com/openai/openai-go/shared/constant"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/api/model"
+	"github.com/qiangli/ai/swarm/llm"
 )
 
 // fake openai chat completion
 func fake(
 	req *http.Request,
-	model *model.Model,
+	model *llm.Model,
 	vars *api.Vars,
 ) (*http.Response, error) {
 	chatCompletion := dummyChatCompletion(model, vars)
@@ -41,7 +41,7 @@ func fake(
 }
 
 // dummyChatCompletion createa a dummy ChatCompletion
-func dummyChatCompletion(model *model.Model, vars *api.Vars) *openai.ChatCompletion {
+func dummyChatCompletion(model *llm.Model, vars *api.Vars) *openai.ChatCompletion {
 	return &openai.ChatCompletion{
 		ID: uuid.NewString(),
 		Choices: []openai.ChatCompletionChoice{

@@ -3,7 +3,7 @@ package agent
 import (
 	_ "embed"
 
-	"path/filepath"
+	// "path/filepath"
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
@@ -38,8 +38,8 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 		return err
 	}
 
-	vars.History = cfg.History
-	initLen := len(cfg.History)
+	// vars.History = cfg.History
+	// initLen := len(cfg.History)
 
 	// TODO: this is for custom agent instruction defined in yaml
 	vars.UserInput = input
@@ -55,48 +55,53 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 
 	sw := swarm.New(vars)
 
-	if len(vars.History) > 0 {
-		log.Infof("\033[33m⣿\033[0m recalling %v messages in memory less than %v minutes old\n", len(vars.History), cfg.MaxSpan)
-	}
+	// if len(vars.History) > 0 {
+	// 	log.Infof("\033[33m⣿\033[0m recalling %v messages in memory less than %v minutes old\n", len(vars.History), cfg.MaxSpan)
+	// }
 
 	if err := sw.Run(req, resp); err != nil {
 		return err
 	}
 
 	log.Debugf("Agent %+v\n", resp.Agent)
-	for _, m := range resp.Messages {
-		log.Debugf("Message %+v\n", m)
-	}
+	// for _, m := range resp.Messages {
+	// 	log.Debugf("Message %+v\n", m)
+	// }
 
-	var display = name
-	if resp.Agent != nil {
-		display = resp.Agent.Display
-	}
+	// var display = name
+	// if resp.Agent != nil {
+	// 	display = resp.Agent.Display
+	// }
 
-	results := resp.Messages
+	// results := resp.Messages
 
 	// TODO output as funtion return value
 	cfg.Stdout = ""
 
-	for _, v := range results {
-		out := &api.Output{
-			Display:     display,
-			ContentType: v.ContentType,
-			Content:     v.Content,
-		}
-
-		processOutput(cfg, out)
-
-		cfg.Stdout = cfg.Stdout + v.Content
+	if resp.Output != nil {
+		processOutput(cfg, resp.Output)
+		cfg.Stdout = resp.Output.Content
 	}
 
-	if len(vars.History) > initLen {
-		chatDir := filepath.Join(cfg.Base, "chat", cfg.ChatID)
-		log.Debugf("Saving conversation to %s\n", chatDir)
-		if err := api.StoreHistory(chatDir, vars.History[initLen:]); err != nil {
-			log.Errorf("error saving conversation history: %v", err)
-		}
-	}
+	// for _, v := range results {
+	// 	out := &api.Output{
+	// 		Display:     display,
+	// 		ContentType: v.ContentType,
+	// 		Content:     v.Content,
+	// 	}
+
+	// 	processOutput(cfg, out)
+
+	// 	cfg.Stdout = cfg.Stdout + v.Content
+	// }
+
+	// if len(vars.History) > initLen {
+	// 	chatDir := filepath.Join(cfg.Base, "chat", cfg.ChatID)
+	// 	log.Debugf("Saving conversation to %s\n", chatDir)
+	// 	if err := api.StoreHistory(chatDir, vars.History[initLen:]); err != nil {
+	// 		log.Errorf("error saving conversation history: %v", err)
+	// 	}
+	// }
 
 	log.Debugf("Agent task completed: %s %v\n", cfg.Command, cfg.Args)
 	return nil

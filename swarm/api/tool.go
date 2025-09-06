@@ -1,12 +1,35 @@
 package api
 
 import (
-	"context"
-	"fmt"
+// "context"
+// "fmt"
 )
 
-type ToolSystem interface {
-	Call(context.Context, *Vars, *ToolFunc, map[string]any) (*Result, error)
+// Tool kit configuration
+type ToolsConfig struct {
+	Owner string `yaml:"owner"`
+
+	// kit name
+	// Namespace:
+	//
+	// func class
+	// Agent name
+	// MCP server name
+	// Virtual file system name
+	// Container name
+	// Virtual machine name
+	// Tool/function (Gemini)
+	Kit string `yaml:"kit"`
+
+	// func (server) | system (client) | remote
+	Type string `yaml:"type"`
+
+	Connector *ConnectorConfig `yaml:"connector"`
+
+	// system commands used by tools
+	Commands []string `yaml:"commands"`
+
+	Tools []*ToolConfig `yaml:"tools"`
 }
 
 type ToolConfig struct {
@@ -18,9 +41,9 @@ type ToolConfig struct {
 	Description string         `yaml:"description"`
 	Parameters  map[string]any `yaml:"parameters"`
 
-	Condition *ToolCondition `yaml:"condition"`
-
 	Body string `yaml:"body"`
+
+	Condition *ToolCondition `yaml:"condition"`
 }
 
 // TODO condidtion needs to be met for tools to be enabled
@@ -35,22 +58,6 @@ type ToolCondition struct {
 	Shell map[string]any `yaml:"shell"`
 }
 
-// Kit configuration
-type ToolsConfig struct {
-	// kit name
-	Kit string `yaml:"kit"`
-
-	// func (server) | system (client) | remote
-	Type string `yaml:"type"`
-
-	Connector *ConnectorConfig `yaml:"connector"`
-
-	// system commands used by tools
-	Commands []string `yaml:"commands"`
-
-	Tools []*ToolConfig `yaml:"tools"`
-}
-
 // ToolDescriptor is a description of a tool function.
 type ToolDescriptor struct {
 	Name        string
@@ -60,39 +67,39 @@ type ToolDescriptor struct {
 	Body string
 }
 
-type ToolFunc struct {
-	// Namespace:
-	//
-	// func class
-	// Agent name
-	// MCP server name
-	// Virtual file system name
-	// Container name
-	// Virtual machine name
-	// Tool/function (Gemini)
-	Kit string
+// type ToolFunc struct {
+// 	// Namespace:
+// 	//
+// 	// func class
+// 	// Agent name
+// 	// MCP server name
+// 	// Virtual file system name
+// 	// Container name
+// 	// Virtual machine name
+// 	// Tool/function (Gemini)
+// 	Kit string
 
-	// func | system | remote
-	Type string
+// 	// func | system | remote
+// 	Type string
 
-	State State
+// 	State State
 
-	// func name
-	Name        string
-	Description string
-	Parameters  map[string]any
+// 	// func name
+// 	Name        string
+// 	Description string
+// 	Parameters  map[string]any
 
-	Body string
+// 	Body string
 
-	//
-	Config *ToolsConfig
-}
+// 	//
+// 	Config *ToolsConfig
+// }
 
-// ID returns a unique identifier for the tool function,
-// combining the tool kit and function name.
-func (r *ToolFunc) ID() string {
-	return fmt.Sprintf("%s__%s", r.Kit, r.Name)
-}
+// // ID returns a unique identifier for the tool function,
+// // combining the tool kit and function name.
+// func (r *ToolFunc) ID() string {
+// 	return fmt.Sprintf("%s__%s", r.Kit, r.Name)
+// }
 
 type ConnectorConfig struct {
 	// mcp | ssh ...

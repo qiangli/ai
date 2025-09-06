@@ -11,7 +11,7 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/api/model"
+	"github.com/qiangli/ai/swarm/llm"
 )
 
 type stringReadCloser struct {
@@ -26,7 +26,7 @@ func NewStringReadCloser(s string) io.ReadCloser {
 	return stringReadCloser{strings.NewReader(s)}
 }
 
-func Middleware(model *model.Model, vars *api.Vars) option.Middleware {
+func Middleware(model *llm.Model, vars *api.Vars) option.Middleware {
 	return func(req *http.Request, next option.MiddlewareNext) (*http.Response, error) {
 		start := time.Now()
 

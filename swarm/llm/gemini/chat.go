@@ -9,6 +9,7 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/llm"
 )
 
 // https://ai.google.dev/gemini-api/docs/models
@@ -68,7 +69,7 @@ func NewClient(ctx context.Context, apiKey, _ string) (*genai.Client, error) {
 	return client, err
 }
 
-func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
+func Send(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	log.Debugf(">>>GEMINI:\n req: %+v\n\n", req)
 
 	resp, err := call(ctx, req)
@@ -77,7 +78,7 @@ func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	return resp, err
 }
 
-func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
+func call(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	client, err := NewClient(ctx, req.Model.ApiKey, req.Model.BaseUrl)
 	if err != nil {
 		return nil, err
@@ -100,11 +101,11 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	var config *genai.GenerateContentConfig
 
 	if len(req.Tools) > 0 {
-		kits := make(map[string][]*api.ToolFunc)
+		kits := make(map[string][]*llm.ToolFunc)
 		for _, f := range req.Tools {
 			fa, ok := kits[f.Kit]
 			if !ok {
-				fa = []*api.ToolFunc{}
+				fa = []*llm.ToolFunc{}
 			}
 			fa = append(fa, f)
 			kits[f.Kit] = fa
@@ -142,7 +143,7 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	if maxTurns == 0 {
 		maxTurns = 1
 	}
-	resp := &api.LLMResponse{}
+	resp := &llm.LLMResponse{}
 
 	model := req.Model.Model
 
@@ -177,7 +178,7 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 			//
 			out, err := req.RunTool(ctx, name, args)
 			if err != nil {
-				out = &api.Result{
+				out = &llm.Result{
 					Value: fmt.Sprintf("%s", err),
 				}
 			}

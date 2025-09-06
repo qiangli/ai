@@ -12,7 +12,7 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/api/model"
+	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/middleware"
 )
 
@@ -44,7 +44,7 @@ func defineTool(name, description string, parameters map[string]any) (*anthropic
 	}, nil
 }
 
-func NewClient(model *model.Model, vars *api.Vars) anthropic.Client {
+func NewClient(model *llm.Model, vars *api.Vars) anthropic.Client {
 	client := anthropic.NewClient(
 		option.WithAPIKey(model.ApiKey),
 		option.WithBaseURL(model.BaseUrl),
@@ -53,7 +53,7 @@ func NewClient(model *model.Model, vars *api.Vars) anthropic.Client {
 	return client
 }
 
-func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
+func Send(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	log.Debugf(">>>ANTHROPIC:\n req: %+v\n\n", req)
 
 	resp, err := call(ctx, req)
@@ -62,7 +62,7 @@ func Send(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	return resp, err
 }
 
-func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
+func call(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	client := NewClient(req.Model, req.Vars)
 	model := anthropic.Model(req.Model.Model)
 
@@ -100,7 +100,7 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	if maxTurns == 0 {
 		maxTurns = 1
 	}
-	resp := &api.LLMResponse{}
+	resp := &llm.LLMResponse{}
 
 	// TOOD
 	var temperature = anthropic.Float(0.0)
@@ -146,7 +146,7 @@ func call(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 				out, err := req.RunTool(ctx, name, props)
 				var isErr bool
 				if err != nil {
-					out = &api.Result{
+					out = &llm.Result{
 						Value: fmt.Sprintf("%s", err),
 					}
 					isErr = true

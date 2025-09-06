@@ -12,7 +12,7 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
-	// "github.com/qiangli/ai/swarm/api/model"
+	"github.com/qiangli/ai/swarm/llm"
 )
 
 const defaultMaxTurns = 8
@@ -302,7 +302,7 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 		// agent.Model = model
 
 		// tools
-		funcMap := make(map[string]*api.ToolFunc)
+		funcMap := make(map[string]*llm.ToolFunc)
 		for _, f := range ac.Functions {
 			// all
 			if f == "*" || f == "*:" || f == "*:*" {

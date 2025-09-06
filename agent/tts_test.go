@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/api/model"
+	// "github.com/qiangli/ai/swarm/llm"
 )
 
 func TestSpeak(t *testing.T) {
@@ -22,8 +22,8 @@ func TestSpeak(t *testing.T) {
 
 	for _, v := range models {
 		cfg := &api.AppConfig{
-			ModelLoader: func(level string) (*model.Model, error) {
-				return &model.Model{
+			ModelLoader: func(level string) (*api.ModelConfig, error) {
+				return &api.ModelConfig{
 					Provider: "openai",
 					Model:    v,
 					ApiKey:   os.Getenv("OPENAI_API_KEY"),
