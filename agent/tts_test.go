@@ -22,8 +22,8 @@ func TestSpeak(t *testing.T) {
 
 	for _, v := range models {
 		cfg := &api.AppConfig{
-			ModelLoader: func(level string) (*api.ModelConfig, error) {
-				return &api.ModelConfig{
+			ModelLoader: func(level string) (*api.Model, error) {
+				return &api.Model{
 					Provider: "openai",
 					Model:    v,
 					ApiKey:   os.Getenv("OPENAI_API_KEY"),

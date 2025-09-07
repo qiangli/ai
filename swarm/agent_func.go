@@ -21,7 +21,7 @@ import (
 //go:embed resource/docker_input_user_role.md
 var dockerInputUserRole string
 
-func GenerateReport(ctx context.Context, m *llm.Model, reportType, tone, input string) (string, error) {
+func GenerateReport(ctx context.Context, m *api.Model, reportType, tone, input string) (string, error) {
 	// FIXME: This is a hack
 	// better to config the base url and api key (and others) for gptr
 	u, err := url.Parse(m.BaseUrl)
@@ -76,7 +76,7 @@ type WSInput struct {
 	Input        string
 }
 
-func Aider(ctx context.Context, models map[llm.Level]*llm.Model, workspace, sub, input string) error {
+func Aider(ctx context.Context, models map[llm.Level]*api.Model, workspace, sub, input string) error {
 	log.Infof("using workspace: %s\n", workspace)
 
 	if sub == "" {
@@ -140,7 +140,7 @@ func Aider(ctx context.Context, models map[llm.Level]*llm.Model, workspace, sub,
 	return aider.Run(ctx, aider.ChatMode(sub), userContent)
 }
 
-func OpenHands(ctx context.Context, model *llm.Model, workspace string, in *api.UserInput) error {
+func OpenHands(ctx context.Context, model *api.Model, workspace string, in *api.UserInput) error {
 	log.Infof("using workspace: %s\n", workspace)
 
 	if workspace == "" {

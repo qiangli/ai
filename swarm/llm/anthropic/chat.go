@@ -44,7 +44,7 @@ func defineTool(name, description string, parameters map[string]any) (*anthropic
 	}, nil
 }
 
-func NewClient(model *llm.Model, vars *api.Vars) anthropic.Client {
+func NewClient(model *api.Model, vars *api.Vars) anthropic.Client {
 	client := anthropic.NewClient(
 		option.WithAPIKey(model.ApiKey),
 		option.WithBaseURL(model.BaseUrl),
@@ -84,7 +84,7 @@ func call(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	var toolParams []*anthropic.ToolParam
 	if len(req.Tools) > 0 {
 		for _, f := range req.Tools {
-			param, err := defineTool(f.ID(), f.Description, f.Parameters)
+			param, err := defineTool(f.ID, f.Description, f.Parameters)
 			if err != nil {
 				return nil, err
 			}
@@ -146,7 +146,7 @@ func call(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 				out, err := req.RunTool(ctx, name, props)
 				var isErr bool
 				if err != nil {
-					out = &llm.Result{
+					out = &api.Result{
 						Value: fmt.Sprintf("%s", err),
 					}
 					isErr = true

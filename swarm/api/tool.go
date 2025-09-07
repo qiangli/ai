@@ -1,9 +1,28 @@
 package api
 
 import (
-// "context"
-// "fmt"
+	"context"
+	"fmt"
 )
+
+type ToolFunc struct {
+	ID string
+
+	Type string
+
+	// func name
+	Name        string
+	Description string
+	Parameters  map[string]any
+
+	Body string
+
+	//
+	State State
+
+	//
+	Config *ToolsConfig
+}
 
 // Tool kit configuration
 type ToolsConfig struct {
@@ -44,6 +63,16 @@ type ToolConfig struct {
 	Body string `yaml:"body"`
 
 	Condition *ToolCondition `yaml:"condition"`
+}
+
+// ID returns a unique identifier for the tool,
+// combining the tool kit and name.
+func (r *ToolConfig) ID() string {
+	return ToolID(r.Kit, r.Name)
+}
+
+func ToolID(kit, name string) string {
+	return fmt.Sprintf("%s__%s", kit, name)
 }
 
 // TODO condidtion needs to be met for tools to be enabled
@@ -116,4 +145,8 @@ type ConnectorConfig struct {
 	// https://drive.google.com/drive/folders
 	// mailto:someone@example.com
 	URL string `yaml:"url"`
+}
+
+type ToolSystem interface {
+	Call(context.Context, *Vars, *ToolFunc, map[string]any) (*Result, error)
 }

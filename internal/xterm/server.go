@@ -11,14 +11,16 @@ import (
 
 // https://github.com/sorenisanerd/gotty.git
 func Start(cfg *api.AppConfig) error {
-	if !cfg.Hub.Terminal {
-		log.Debugf("Hub terminal service is disabled\n")
-		return nil
-	}
+	// if !cfg.Hub.Terminal {
+	// 	log.Debugf("Hub terminal service is disabled\n")
+	// 	return nil
+	// }
+
+	address := ":58082"
 
 	appOptions := &server.Options{
 		PermitWrite: true,
-		Address:     cfg.Hub.TerminalAddress,
+		Address:     address,
 		Path:        "terminal",
 	}
 

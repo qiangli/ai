@@ -6,6 +6,17 @@ import (
 	"time"
 )
 
+// TODO
+type MemOption struct {
+	MaxHistory int
+	MaxSpan    int
+}
+
+type MemStore interface {
+	Save([]*Message) error
+	Load(*MemOption) ([]*Message, error)
+}
+
 type DirEntry = fs.DirEntry
 
 type DirEntryInfo struct {

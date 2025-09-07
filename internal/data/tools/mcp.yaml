@@ -1,9 +1,22 @@
 ###
 kit: "mcp"
-type: "mcp"
+# type: "mcp"
 
-connector:
-  url: "http://localhost:8000/"
+# connector:
+#   url: "http://localhost:8000/"
+
+tools:
+  - name: "get_current_time"
+    description: "Get current time in a specific timezones"
+    parameters:
+      type: "object"
+      properties:
+        timezone:
+          type: "string"
+          description: "IANA timezone name (e.g., 'America/New_York', 'Europe/London'). Use 'get_local_timezone' tool to get local timezone if no timezone provided by the user."
+      required: ["timezone"]
+    type: "func"
+
 ###
 
 

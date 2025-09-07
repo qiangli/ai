@@ -75,7 +75,7 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 			}
 			for _, tool := range tools {
 				tool.Config = config
-				toolRegistry[tool.ID()] = tool
+				toolRegistry[tool.ID] = tool
 			}
 		}
 
@@ -89,9 +89,10 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 					continue
 				}
 				tool := &api.ToolFunc{
-					Type:        v.Type,
-					Kit:         v.Kit,
-					Name:        v.Name,
+					Type: v.Type,
+					ID:   v.ID(),
+					// Kit:         v.Kit,
+					// Name:        v.Name,
 					Description: v.Description,
 					Parameters:  v.Parameters,
 					Body:        v.Body,
@@ -106,7 +107,7 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 				}
 
 				// override
-				toolRegistry[tool.ID()] = tool
+				toolRegistry[tool.ID] = tool
 
 				// TODO this is used for security check by the evalCommand
 				if v.Type == ToolTypeSystem {
@@ -127,7 +128,7 @@ func initTools(app *api.AppConfig) (func(string) ([]*api.ToolFunc, error), error
 	getKit := func(kit string, name string) ([]*api.ToolFunc, error) {
 		var list []*api.ToolFunc
 		for _, v := range tools {
-			if kit == "*" || kit == "" || v.Kit == kit {
+			if kit == "*" || kit == "" || v.Config.Kit == kit {
 				if name == "*" || name == "" || v.Name == name {
 					list = append(list, v)
 				}
@@ -143,7 +144,7 @@ func initTools(app *api.AppConfig) (func(string) ([]*api.ToolFunc, error), error
 		var list []*api.ToolFunc
 		for _, v := range tools {
 			if toolType == "*" || toolType == "" || v.Type == toolType {
-				if kit == "*" || kit == "" || v.Kit == kit {
+				if kit == "*" || kit == "" || v.Config.Kit == kit {
 					list = append(list, v)
 				}
 			}
@@ -351,7 +352,7 @@ func dispatchTool(ctx context.Context, vars *api.Vars, name string, args map[str
 		}, err
 	case ToolTypeSystem:
 		if vars.Config.ToolSystem == nil {
-			return nil, fmt.Errorf("local system tool not supported: %s", v.ID())
+			return nil, fmt.Errorf("local system tool not supported: %s", v.ID)
 		}
 		return vars.Config.ToolSystem.Call(ctx, vars, v, args)
 	// case ToolTypeTemplate, ToolTypeShell, ToolTypeSql:

@@ -37,7 +37,7 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 		return nil, err
 	}
 	app.ToolLoader = toolLoader
-	app.ToolSystem = NewLocalSystem(app)
+	// app.ToolSystem = NewLocalSystem(app)
 
 	modelLoader, err := initModels(app)
 	if err != nil {

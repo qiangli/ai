@@ -5,53 +5,53 @@ import (
 	"fmt"
 	// "maps"
 	"strings"
-	"time"
+	// "time"
 
 	"github.com/qiangli/ai/swarm/api"
 )
 
-// type Model = model.Model
+// // type Model = model.Model
 
-type InputType string
-type OutputType string
-type Feature string
+// type InputType string
+// type OutputType string
+// type Feature string
 
-const (
-	//
-	// InputTypeUnknown InputType = ""
-	// InputTypeText    InputType = "text"
-	// InputTypeImage   InputType = "image"
+// const (
+// 	//
+// 	// InputTypeUnknown InputType = ""
+// 	// InputTypeText    InputType = "text"
+// 	// InputTypeImage   InputType = "image"
 
-	//
-	OutputTypeUnknown OutputType = ""
-	OutputTypeText    OutputType = "text"
-	OutputTypeImage   OutputType = "image"
+// 	//
+// 	OutputTypeUnknown OutputType = ""
+// 	OutputTypeText    OutputType = "text"
+// 	OutputTypeImage   OutputType = "image"
 
-	// feature:
-	// vision
-	// natural language
-	// coding
-	// input_text
-	// input_image
-	// audio/video
-	// output_text
-	// output_image
-	// caching
-	// tool_calling
-	// reasoning
-	// level1
-	// leval2
-	// level3
-	// cost-optimized
-	// realtime
-	// Text-to-speech
-	// Transcription
-	// embeddings
-)
+// 	// feature:
+// 	// vision
+// 	// natural language
+// 	// coding
+// 	// input_text
+// 	// input_image
+// 	// audio/video
+// 	// output_text
+// 	// output_image
+// 	// caching
+// 	// tool_calling
+// 	// reasoning
+// 	// level1
+// 	// leval2
+// 	// level3
+// 	// cost-optimized
+// 	// realtime
+// 	// Text-to-speech
+// 	// Transcription
+// 	// embeddings
+// )
 
-// Level represents the "intelligence" level of the model. i.e. basic, regular, advanced
-// for example, OpenAI: gpt-4.1-mini, gpt-4.1, o3
-type Level = string
+// // Level represents the "intelligence" level of the model. i.e. basic, regular, advanced
+// // for example, OpenAI: gpt-4.1-mini, gpt-4.1, o3
+type Level = api.Level
 
 const (
 	// any of L1/L2/L3
@@ -65,35 +65,35 @@ const (
 	TTS   Level = "tts"
 )
 
-var Levels = []Level{L1, L2, L3, Image, TTS}
+// var Levels = []Level{L1, L2, L3, Image, TTS}
 
-type Model struct {
-	Provider string
+// type Model struct {
+// 	Provider string
 
-	Model   string
-	BaseUrl string
-	ApiKey  string
+// 	Model   string
+// 	BaseUrl string
+// 	ApiKey  string
 
-	// output
-	Type OutputType
+// 	// output
+// 	Type OutputType
 
-	// level name
-	Name   string
-	Config *api.ModelsConfig
-}
+// 	// level name
+// 	Name   string
+// 	Config *api.ModelsConfig
+// }
 
-func (r *Model) Clone() *Model {
-	clone := &Model{
-		// Features: make(map[Feature]bool, len(r.Features)),
-		Type:     r.Type,
-		Provider: r.Provider,
-		Model:    r.Model,
-		BaseUrl:  r.BaseUrl,
-		ApiKey:   r.ApiKey,
-	}
-	// maps.Copy(clone.Features, r.Features)
-	return clone
-}
+// func (r *Model) Clone() *Model {
+// 	clone := &Model{
+// 		// Features: make(map[Feature]bool, len(r.Features)),
+// 		Type:     r.Type,
+// 		Provider: r.Provider,
+// 		Model:    r.Model,
+// 		BaseUrl:  r.BaseUrl,
+// 		ApiKey:   r.ApiKey,
+// 	}
+// 	// maps.Copy(clone.Features, r.Features)
+// 	return clone
+// }
 
 // type LLMConfig struct {
 // 	Provider string
@@ -124,9 +124,9 @@ func (r *Model) Clone() *Model {
 type LLMRequest struct {
 	Agent string
 
-	Model *Model
+	Model *api.Model
 
-	Messages []*Message
+	Messages []*api.Message
 
 	// // TODO extras: name:value
 	// ImageQuality string
@@ -135,9 +135,9 @@ type LLMRequest struct {
 
 	MaxTurns int
 
-	RunTool func(ctx context.Context, name string, props map[string]any) (*Result, error)
+	RunTool func(ctx context.Context, name string, props map[string]any) (*api.Result, error)
 
-	Tools []*ToolFunc
+	Tools []*api.ToolFunc
 
 	// Experimenal
 	Vars *api.Vars
@@ -176,93 +176,94 @@ type LLMResponse struct {
 	Display string
 	Role    string
 
-	Result *Result
+	Result *api.Result
 }
 
-type Message struct {
-	ID      string    `json:"id"`
-	ChatID  string    `json:"chatId"`
-	Created time.Time `json:"created"`
+// type Message struct {
+// 	ID      string    `json:"id"`
+// 	ChatID  string    `json:"chatId"`
+// 	Created time.Time `json:"created"`
 
-	// data
-	ContentType string `json:"contentType"`
-	Content     string `json:"content"`
+// 	// data
+// 	ContentType string `json:"contentType"`
+// 	Content     string `json:"content"`
 
-	Role string `json:"role"`
+// 	Role string `json:"role"`
 
-	// agent name
-	Sender string `json:"sender"`
+// 	// agent name
+// 	Sender string `json:"sender"`
 
-	// // model alias
-	// Models string `json:"models"`
-}
+// 	// // model alias
+// 	// Models string `json:"models"`
+// }
 
-type ToolFunc struct {
-	Kit string
+// type ToolFunc struct {
+// 	ID string
+// 	// Kit string
 
-	Type string
+// 	Type string
 
-	// func name
-	Name        string
-	Description string
-	Parameters  map[string]any
+// 	// func name
+// 	// Name        string
+// 	Description string
+// 	Parameters  map[string]any
 
-	Body string
+// 	Body string
 
-	//
-	State api.State
+// 	//
+// 	State api.State
 
-	//
-	Config *api.ToolsConfig
-}
+// 	//
+// 	Config *api.ToolsConfig
+// }
 
-// ID returns a unique identifier for the tool function,
-// combining the tool kit and function name.
-func (r *ToolFunc) ID() string {
-	return fmt.Sprintf("%s__%s", r.Kit, r.Name)
-}
+// // ID returns a unique identifier for the tool function,
+// // combining the tool kit and function name.
+// func (r *ToolFunc) ID() string {
+// 	return fmt.Sprintf("%s__%s", r.Kit, r.Name)
+// }
 
-// Result encapsulates the possible return values for agent/function.
-type Result struct {
-	// The result value as a string
-	Value string
+// // Result encapsulates the possible return values for agent/function.
+// type Result struct {
+// 	// The result value as a string
+// 	Value string
 
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types
-	MimeType string
-	Message  string
+// 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types
+// 	MimeType string
+// 	Message  string
 
-	// The agent state
-	State api.State
+// 	// The agent state
+// 	State api.State
 
-	// The agent name to transfer to for StateTransfer
-	NextAgent string
-}
+// 	// The agent name to transfer to for StateTransfer
+// 	NextAgent string
+// }
 
-func (r *Result) String() string {
-	var sb strings.Builder
-	if r.State != api.StateDefault {
-		sb.WriteString(r.State.String())
-	}
-	if r.NextAgent != "" {
-		sb.WriteString(fmt.Sprintf(" %s\n", r.NextAgent))
-	}
-	if r.Value != "" {
-		sb.WriteString(fmt.Sprintf(" %s\n", r.Value))
-	}
-	return strings.TrimSpace(sb.String())
-}
+// func (r *Result) String() string {
+// 	var sb strings.Builder
+// 	if r.State != api.StateDefault {
+// 		sb.WriteString(r.State.String())
+// 	}
+// 	if r.NextAgent != "" {
+// 		sb.WriteString(fmt.Sprintf(" %s\n", r.NextAgent))
+// 	}
+// 	if r.Value != "" {
+// 		sb.WriteString(fmt.Sprintf(" %s\n", r.Value))
+// 	}
+// 	return strings.TrimSpace(sb.String())
+// }
 
-type ToolSystem interface {
-	Call(context.Context, *api.Vars, *ToolFunc, map[string]any) (*Result, error)
-}
+// type ToolSystem interface {
+// 	Call(context.Context, *api.Vars, *ToolFunc, map[string]any) (*api.Result, error)
+// }
 
-// TODO
-type MemOption struct {
-	MaxHistory int
-	MaxSpan    int
-}
+// // TODO
+// type MemOption struct {
+// 	MaxHistory int
+// 	MaxSpan    int
+// }
 
-type MemStore interface {
-	Save([]*Message) error
-	Load(*MemOption) error
-}
+// type MemStore interface {
+// 	Save([]*api.Message) error
+// 	Load(*MemOption) error
+// }

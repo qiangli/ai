@@ -11,8 +11,8 @@ import (
 	"github.com/qiangli/ai/internal/bubble/confirm"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/api/model"
-	// "github.com/qiangli/ai/swarm/llm"
+	// "github.com/qiangli/ai/swarm/api/model"
+	"github.com/qiangli/ai/swarm/llm"
 )
 
 //go:embed resource/shell_security_system.md
@@ -60,12 +60,12 @@ func evaluateCommand(ctx context.Context, vars *api.Vars, command string, args [
 	// if !ok {
 	// 	m = vars.Models[model.L2]
 	// }
-	m, err := vars.Config.ModelLoader(model.Any)
+	m, err := vars.Config.ModelLoader(llm.Any)
 	if err != nil {
 		return false, fmt.Errorf("failed to load model: %v", err)
 	}
 
-	req := &api.LLMRequest{
+	req := &llm.LLMRequest{
 		Model: m,
 		Messages: []*api.Message{
 			{
@@ -77,7 +77,7 @@ func evaluateCommand(ctx context.Context, vars *api.Vars, command string, args [
 				Content: query,
 			},
 		},
-		Tools:    vars.Config.SystemTools,
+		// Tools:    vars.Config.SystemTools,
 		RunTool:  runTool,
 		MaxTurns: vars.Config.MaxTurns,
 	}

@@ -17,18 +17,18 @@ type AppConfig struct {
 
 	ConfigFile string
 
-	ModelLoader func(string) (*ModelConfig, error)
+	ModelLoader func(string) (*Model, error)
 
 	AgentResource *AgentResource
 
 	AgentLister func() map[string]*AgentsConfig
 	AgentLoader func(string) (*AgentsConfig, error)
 
-	// ToolSystem ToolSystem
-	ToolLoader func(string) ([]*ToolConfig, error)
+	ToolSystem ToolSystem
+	ToolLoader func(string) ([]*ToolFunc, error)
 
 	// ToolSystemCommands []string
-	SystemTools []*ToolConfig
+	SystemTools []*ToolFunc
 
 	Agent   string
 	Command string
@@ -84,6 +84,7 @@ type AppConfig struct {
 
 	//<config_base>/chat/<id>/*.json
 	// History []*Message
+	History MemStore
 
 	Models string
 
@@ -115,7 +116,7 @@ type AppConfig struct {
 	Watch     bool
 	ClipWatch bool
 
-	Hub *HubConfig
+	// Hub *HubConfig
 
 	MaxTime  int
 	MaxTurns int
@@ -130,7 +131,7 @@ type AppConfig struct {
 
 	// experimental
 	// provider -> api-key
-	ApiKeys map[string]string
+	// ApiKeys map[string]string
 }
 
 // Clone is a shallow copy of member fields of the configration
@@ -187,11 +188,11 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		Shell:       cfg.Shell,
 		Watch:       cfg.Watch,
 		ClipWatch:   cfg.ClipWatch,
-		Hub:         cfg.Hub,
-		MaxTime:     cfg.MaxTime,
-		MaxTurns:    cfg.MaxTurns,
-		Stdout:      cfg.Stdout,
-		Stderr:      cfg.Stderr,
+		// Hub:         cfg.Hub,
+		MaxTime:  cfg.MaxTime,
+		MaxTurns: cfg.MaxTurns,
+		Stdout:   cfg.Stdout,
+		Stderr:   cfg.Stderr,
 		//
 		DryRun:        cfg.DryRun,
 		DryRunContent: cfg.DryRunContent,

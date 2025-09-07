@@ -79,9 +79,9 @@ func callAgentTransfer(_ context.Context, _ *api.Vars, _ string, args map[string
 func callFuncTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (string, error) {
 	tool := &FuncKit{}
 	callArgs := []any{ctx, vars, f.Name, args}
-	v, err := CallKit(tool, f.Kit, f.Name, callArgs...)
+	v, err := CallKit(tool, f.Config.Kit, f.Name, callArgs...)
 	if err != nil {
-		return "", fmt.Errorf("failed to call function tool %s %s: %w", f.Kit, f.Name, err)
+		return "", fmt.Errorf("failed to call function tool %s %s: %w", f.Config.Kit, f.Name, err)
 	}
 	if s, ok := v.(string); ok {
 		return s, nil

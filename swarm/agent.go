@@ -12,7 +12,7 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/llm"
+	// "github.com/qiangli/ai/swarm/llm"
 )
 
 const defaultMaxTurns = 8
@@ -284,9 +284,11 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 			Name:    ac.Name,
 			Display: ac.Display,
 			//
+			Instruction: ac.Instruction,
+			//
 			Model: ac.Model,
 			//
-			Config: ac,
+			Config: config,
 			//
 			RawInput: input,
 			MaxTurns: config.MaxTurns,
@@ -302,7 +304,7 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 		// agent.Model = model
 
 		// tools
-		funcMap := make(map[string]*llm.ToolFunc)
+		funcMap := make(map[string]*api.ToolFunc)
 		for _, f := range ac.Functions {
 			// all
 			if f == "*" || f == "*:" || f == "*:*" {
@@ -311,7 +313,10 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 					return nil, err
 				}
 				for _, fn := range funcs {
-					funcMap[fn.ID()] = fn
+					if fn.ID == "" {
+						return nil, fmt.Errorf("tool ID is empty. agent: %s", name)
+					}
+					funcMap[fn.ID] = fn
 				}
 				continue
 			}
@@ -328,7 +333,10 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 						return nil, err
 					}
 					for _, fn := range funcs {
-						funcMap[fn.ID()] = fn
+						if fn.ID == "" {
+							return nil, fmt.Errorf("tool ID is empty agent: %s", name)
+						}
+						funcMap[fn.ID] = fn
 					}
 					continue
 				}

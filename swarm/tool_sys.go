@@ -145,9 +145,9 @@ type SystemKit struct {
 func (ls LocalSystem) callSystemTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (*api.Result, error) {
 	// tool := &SystemKit{}
 	callArgs := []any{ctx, vars, f.Name, args}
-	v, err := CallKit(ls.tool, f.Kit, f.Name, callArgs...)
+	v, err := CallKit(ls.tool, f.Config.Kit, f.Name, callArgs...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to call system tool %s %s: %w", f.Kit, f.Name, err)
+		return nil, fmt.Errorf("failed to call system tool %s %s: %w", f.Config.Kit, f.Name, err)
 	}
 
 	// TODO change Value type to any?

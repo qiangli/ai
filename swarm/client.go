@@ -5,17 +5,17 @@ import (
 	"fmt"
 
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/llm/anthropic"
 	"github.com/qiangli/ai/swarm/llm/gemini"
 	"github.com/qiangli/ai/swarm/llm/openai"
 )
 
-func Chat(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
+func Chat(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	log.Debugf(">>>LLM Chat:\n Model: %s Model: %+v, Messages: %v Tools: %v\n\n", req.Model, req.Model, len(req.Messages), len(req.Tools))
 
 	var err error
-	var resp *api.LLMResponse
+	var resp *llm.LLMResponse
 
 	if req.Model == nil {
 		return nil, fmt.Errorf("No LLM model provided")
@@ -51,11 +51,11 @@ func Chat(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
 	return resp, nil
 }
 
-func ImageGen(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
+func ImageGen(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	log.Debugf(">>>LLM ImageGen:\n Model: %s Model: %+v, Messages: %v Tools: %v\n\n", req.Model, req.Model, len(req.Messages), len(req.Tools))
 
 	var err error
-	var resp *api.LLMResponse
+	var resp *llm.LLMResponse
 
 	if req.Model == nil {
 		return nil, fmt.Errorf("No LLM model provided")

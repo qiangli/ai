@@ -86,9 +86,13 @@ func TestCallSystemTool(t *testing.T) {
 
 	for _, tt := range tests {
 		tf := &api.ToolFunc{
-			Kit:        tt.kit,
+			// Kit:        tt.kit,
+			ID:         api.ToolID(tt.kit, tt.name),
 			Name:       tt.name,
 			Parameters: map[string]any{},
+			Config: &api.ToolsConfig{
+				Kit: tt.kit,
+			},
 		}
 		result, err := ls.Call(ctx, vars, tf, tt.args)
 		if err != nil {

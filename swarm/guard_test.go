@@ -7,7 +7,7 @@ import (
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/api/model"
+	// "github.com/qiangli/ai/swarm/llm"
 )
 
 func TestEvaluateCommand(t *testing.T) {
@@ -15,7 +15,7 @@ func TestEvaluateCommand(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	m := &model.Model{
+	m := &api.Model{
 		Model:   "gpt-4o-mini",
 		BaseUrl: "http://localhost:4000",
 		ApiKey:  "sk-1234",
@@ -25,7 +25,7 @@ func TestEvaluateCommand(t *testing.T) {
 
 	var vars = api.NewVars()
 	vars.Config = &api.AppConfig{
-		ModelLoader: func(level string) (*model.Model, error) {
+		ModelLoader: func(level string) (*api.Model, error) {
 			return m, nil
 		},
 	}

@@ -101,26 +101,40 @@ func call(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	var config *genai.GenerateContentConfig
 
 	if len(req.Tools) > 0 {
-		kits := make(map[string][]*llm.ToolFunc)
-		for _, f := range req.Tools {
-			fa, ok := kits[f.Kit]
-			if !ok {
-				fa = []*llm.ToolFunc{}
-			}
-			fa = append(fa, f)
-			kits[f.Kit] = fa
-		}
+		// kits := make(map[string][]*llm.ToolFunc)
+		// for _, f := range req.Tools {
+		// 	fa, ok := kits[f.Kit]
+		// 	if !ok {
+		// 		fa = []*llm.ToolFunc{}
+		// 	}
+		// 	fa = append(fa, f)
+		// 	kits[f.Kit] = fa
+		// }
 
+		// var tools []*genai.Tool
+		// for _, kit := range kits {
+		// 	var fds []*genai.FunctionDeclaration
+		// 	for _, f := range kit {
+		// 		fd, err := defineTool(f.ID, f.Description, f.Parameters)
+		// 		if err != nil {
+		// 			return nil, err
+		// 		}
+		// 		fds = append(fds, fd)
+		// 	}
+		// 	tools = append(tools, &genai.Tool{
+		// 		FunctionDeclarations: fds,
+		// 	})
+		// }
+
+		// TODO verify - the toolkit structure is flattened
 		var tools []*genai.Tool
-		for _, kit := range kits {
+		for _, f := range req.Tools {
 			var fds []*genai.FunctionDeclaration
-			for _, f := range kit {
-				fd, err := defineTool(f.ID(), f.Description, f.Parameters)
-				if err != nil {
-					return nil, err
-				}
-				fds = append(fds, fd)
+			fd, err := defineTool(f.ID, f.Description, f.Parameters)
+			if err != nil {
+				return nil, err
 			}
+			fds = append(fds, fd)
 			tools = append(tools, &genai.Tool{
 				FunctionDeclarations: fds,
 			})
@@ -178,7 +192,7 @@ func call(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 			//
 			out, err := req.RunTool(ctx, name, args)
 			if err != nil {
-				out = &llm.Result{
+				out = &api.Result{
 					Value: fmt.Sprintf("%s", err),
 				}
 			}

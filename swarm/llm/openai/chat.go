@@ -30,7 +30,7 @@ func defineTool(name, description string, parameters map[string]any) openai.Chat
 	}
 }
 
-func NewClient(model *llm.Model, vars *api.Vars) openai.Client {
+func NewClient(model *api.Model, vars *api.Vars) openai.Client {
 	client := openai.NewClient(
 		option.WithAPIKey(model.ApiKey),
 		option.WithBaseURL(model.BaseUrl),
@@ -87,7 +87,7 @@ func call(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	if len(req.Tools) > 0 {
 		var tools []openai.ChatCompletionToolParam
 		for _, f := range req.Tools {
-			tools = append(tools, defineTool(f.ID(), f.Description, f.Parameters))
+			tools = append(tools, defineTool(f.ID, f.Description, f.Parameters))
 		}
 		params.Tools = tools
 	}
@@ -135,7 +135,7 @@ func call(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 			//
 			out, err := req.RunTool(ctx, name, props)
 			if err != nil {
-				out = &llm.Result{
+				out = &api.Result{
 					Value: fmt.Sprintf("%s", err),
 				}
 			}

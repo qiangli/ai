@@ -3,10 +3,11 @@ package api
 import (
 	"context"
 	"encoding/json"
-	// "fmt"
+	"fmt"
 	"html/template"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/qiangli/ai/internal/log"
 )
@@ -68,6 +69,7 @@ type Agent struct {
 	Description string
 
 	// The model to be used by the agent
+	// Model *Model
 	Model string
 
 	// The role of the agent. default is "system"
@@ -76,11 +78,10 @@ type Agent struct {
 	RawInput *UserInput
 
 	// Functions that the agent can call
-	// Tools []*ToolFunc
-	Tools []*ToolConfig
+	Tools []*ToolFunc
 
 	// model aliases to used used
-	Models []*ModelConfig
+	// Models []*Model
 
 	Dependencies []string
 
@@ -97,6 +98,8 @@ type Agent struct {
 	//
 	MaxTurns int
 	MaxTime  int
+
+	Instruction *InstructionConfig
 
 	Config *AgentsConfig
 }
@@ -201,7 +204,7 @@ type Request struct {
 	Agent   string
 	Command string
 
-	// Messages []*Message
+	Messages []*Message
 
 	RawInput *UserInput
 
@@ -286,7 +289,7 @@ func (r *Request) Clone(ctx context.Context) *Request {
 type Response struct {
 	// A list of message objects generated during the conversation
 	// with a sender field indicating which Agent the message originated from.
-	// Messages []*Message
+	Messages []*Message
 
 	// Transfer  bool
 	// NextAgent string
@@ -294,8 +297,8 @@ type Response struct {
 	// The last agent to handle a message
 	Agent *Agent
 
-	// Result *Result
-	Output *Output
+	Result *Result
+	// Output *Output
 }
 
 // func (r *Response) LastMessage() *Message {
@@ -305,39 +308,57 @@ type Response struct {
 // 	return nil
 // }
 
+type Message struct {
+	ID      string    `json:"id"`
+	ChatID  string    `json:"chatId"`
+	Created time.Time `json:"created"`
+
+	// data
+	ContentType string `json:"contentType"`
+	Content     string `json:"content"`
+
+	Role string `json:"role"`
+
+	// agent name
+	Sender string `json:"sender"`
+
+	// // model alias
+	// Models string `json:"models"`
+}
+
 // type Agentic interface {
 // 	Serve(*Request, *Response) error
 // }
 
-// // Result encapsulates the possible return values for agent/function.
-// type Result struct {
-// 	// The result value as a string
-// 	Value string
+// Result encapsulates the possible return values for agent/function.
+type Result struct {
+	// The result value as a string
+	Value string
 
-// 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types
-// 	MimeType string
-// 	Message  string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types
+	MimeType string
+	Message  string
 
-// 	// The agent state
-// 	State State
+	// The agent state
+	State State
 
-// 	// The agent name to transfer to for StateTransfer
-// 	NextAgent string
-// }
+	// The agent name to transfer to for StateTransfer
+	NextAgent string
+}
 
-// func (r *Result) String() string {
-// 	var sb strings.Builder
-// 	if r.State != StateDefault {
-// 		sb.WriteString(r.State.String())
-// 	}
-// 	if r.NextAgent != "" {
-// 		sb.WriteString(fmt.Sprintf(" %s\n", r.NextAgent))
-// 	}
-// 	if r.Value != "" {
-// 		sb.WriteString(fmt.Sprintf(" %s\n", r.Value))
-// 	}
-// 	return strings.TrimSpace(sb.String())
-// }
+func (r *Result) String() string {
+	var sb strings.Builder
+	if r.State != StateDefault {
+		sb.WriteString(r.State.String())
+	}
+	if r.NextAgent != "" {
+		sb.WriteString(fmt.Sprintf(" %s\n", r.NextAgent))
+	}
+	if r.Value != "" {
+		sb.WriteString(fmt.Sprintf(" %s\n", r.Value))
+	}
+	return strings.TrimSpace(sb.String())
+}
 
 type AgentResource struct {
 	// Root string `json:"root"`

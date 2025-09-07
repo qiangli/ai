@@ -12,14 +12,14 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
-	// "github.com/qiangli/ai/swarm/llm"
+	"github.com/qiangli/ai/swarm/llm"
 )
 
 // extra result key
 const extraResult = "result"
 
 // TODO
-type LLMAdapter func(context.Context, *api.LLMRequest) (*api.LLMResponse, error)
+type LLMAdapter func(context.Context, *llm.LLMRequest) (*llm.LLMResponse, error)
 
 var adapterRegistry map[string]LLMAdapter
 
@@ -54,7 +54,7 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 			depReq := &api.Request{
 				Agent:    agent,
 				RawInput: req.RawInput,
-				Messages: req.Messages,
+				// Messages: req.Messages,
 			}
 			depResp := &api.Response{}
 			sw := New(h.vars)
@@ -138,10 +138,10 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 
 	// 1. New System Message
 	// System role prompt as first message
-	if r.Config != nil && r.Config.Instruction != nil {
+	if r.Instruction != nil {
 		// update the request instruction
-		instruction := r.Config.Instruction
-		content, err := apply(instruction.Type, instruction.Content, h.vars)
+		// instruction := r.Instruction
+		content, err := apply(r.Instruction.Type, r.Instruction.Content, h.vars)
 		if err != nil {
 			return err
 		}
@@ -155,10 +155,10 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 			ChatID:  chatID,
 			Created: time.Now(),
 			//
-			Role:    nvl(instruction.Role, api.RoleSystem),
+			Role:    nvl(r.Instruction.Role, api.RoleSystem),
 			Content: content,
 			Sender:  r.Name,
-			Models:  h.vars.Config.Models,
+			// Models:  h.vars.Config.Models,
 		})
 		log.Debugf("Added new system role message: %v\n", len(history))
 	}
@@ -177,22 +177,22 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	// 3. New User Message
 	if req.Messages == nil {
 		// contentType/content
-		messages, err := req.RawInput.FileMessages()
-		if err != nil {
-			return err
-		}
-		for i, v := range messages {
-			v.ID = uuid.NewString()
-			v.ChatID = chatID
-			v.Created = time.Now()
-			//
-			v.Role = api.RoleUser
-			v.Sender = r.Name
-			v.Models = h.vars.Config.Models
-			messages[i] = v
-		}
+		// messages, err := req.RawInput.FileMessages()
+		// if err != nil {
+		// 	return err
+		// }
+		// for i, v := range messages {
+		// 	v.ID = uuid.NewString()
+		// 	v.ChatID = chatID
+		// 	v.Created = time.Now()
+		// 	//
+		// 	v.Role = api.RoleUser
+		// 	v.Sender = r.Name
+		// 	v.Models = h.vars.Config.Models
+		// 	messages[i] = v
+		// }
 
-		req.Messages = messages
+		// req.Messages = messages
 		req.Messages = append(req.Messages, &api.Message{
 			ID:      uuid.NewString(),
 			ChatID:  chatID,
@@ -201,7 +201,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 			Role:    api.RoleUser,
 			Content: req.RawInput.Query(),
 			Sender:  r.Name,
-			Models:  h.vars.Config.Models,
+			// Models:  h.vars.Config.Models,
 		})
 	}
 	history = append(history, req.Messages...)
@@ -221,7 +221,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		return fmt.Errorf("failed to load model %q: %v", r.Model, err)
 	}
 
-	var request = api.LLMRequest{
+	var request = llm.LLMRequest{
 		Agent:    r.Name,
 		Model:    model,
 		Messages: history,
@@ -266,7 +266,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 			Role:        nvl(result.Role, api.RoleAssistant),
 			Content:     result.Content,
 			Sender:      r.Name,
-			Models:      h.vars.Config.Models,
+			// Models:      h.vars.Config.Models,
 		}
 		history = append(history, &message)
 	}

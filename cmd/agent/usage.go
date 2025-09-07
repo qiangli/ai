@@ -15,7 +15,6 @@ import (
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/llm"
 )
 
 const agentUsageTemplate = `AI Command Line Tool
@@ -213,9 +212,9 @@ AI Environment:
 
 	// TODO
 	// log.Infof(format, info, cfg.LLM.Name, cfg.LLM.BaseUrl, cfg.LLM.ApiKey, string(ac), strings.Join(filteredEnvs, "\n"))
-	m, err := cfg.ModelLoader(llm.Any)
+	m, err := cfg.ModelLoader(api.Any)
 	if err != nil {
-		m = &api.ModelConfig{}
+		m = &api.Model{}
 	}
 	log.Infof(format, info, m.Provider, m.BaseUrl, m.ApiKey, string(ac), strings.Join(filteredEnvs, "\n"))
 	return nil
@@ -342,7 +341,7 @@ Tools are used by agents to perform specific tasks. They are automatically selec
 			continue
 		}
 		if sub == "" || v.Type == sub {
-			list = append(list, fmt.Sprintf("%s: %s: %s\n", v.Type, v.ID(), strings.TrimSpace(v.Description)))
+			list = append(list, fmt.Sprintf("%s: %s: %s\n", v.Type, v.ID, strings.TrimSpace(v.Description)))
 		}
 	}
 

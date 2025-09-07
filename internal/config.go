@@ -243,11 +243,11 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 		app.AgentResource = ar
 	}
 
-	apiKeys := make(map[string]string)
-	apiKeys["openai"] = os.Getenv("OPENAI_API_KEY")
-	apiKeys["gemini"] = os.Getenv("GEMINI_API_KEY")
-	apiKeys["anthropic"] = os.Getenv("ANTHROPIC_API_KEY")
-	app.ApiKeys = apiKeys
+	// apiKeys := make(map[string]string)
+	// apiKeys["openai"] = os.Getenv("OPENAI_API_KEY")
+	// apiKeys["gemini"] = os.Getenv("GEMINI_API_KEY")
+	// apiKeys["anthropic"] = os.Getenv("ANTHROPIC_API_KEY")
+	// app.ApiKeys = apiKeys
 
 	log.Debug("parsed: %+v\n", app)
 

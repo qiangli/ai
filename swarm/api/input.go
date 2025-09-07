@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 	// "net/http"
-	"os"
+	// "os"
 	"strings"
 
 	"github.com/openai/openai-go"
@@ -81,21 +81,21 @@ func (r *UserInput) Query() string {
 	}
 }
 
-func (r *UserInput) FileContent() (string, error) {
-	var b strings.Builder
-	if len(r.Files) > 0 {
-		for _, f := range r.Files {
-			b.WriteString("\n### " + f + " ###\n")
-			c, err := os.ReadFile(f)
-			if err != nil {
-				return "", err
+// func (r *UserInput) FileContent() (string, error) {
+// 	var b strings.Builder
+// 	if len(r.Files) > 0 {
+// 		for _, f := range r.Files {
+// 			b.WriteString("\n### " + f + " ###\n")
+// 			c, err := os.ReadFile(f)
+// 			if err != nil {
+// 				return "", err
 
-			}
-			b.WriteString(string(c))
-		}
-	}
-	return b.String(), nil
-}
+// 			}
+// 			b.WriteString(string(c))
+// 		}
+// 	}
+// 	return b.String(), nil
+// }
 
 // func (r *UserInput) FileMessages() ([]*Message, error) {
 // 	if len(r.Messages) > 0 {

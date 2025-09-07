@@ -13,10 +13,15 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/api/model"
+	"github.com/qiangli/ai/swarm/llm"
 )
 
 func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), error) {
+	apiKeys := make(map[string]string)
+	apiKeys["openai"] = os.Getenv("OPENAI_API_KEY")
+	apiKeys["gemini"] = os.Getenv("GEMINI_API_KEY")
+	apiKeys["anthropic"] = os.Getenv("ANTHROPIC_API_KEY")
+
 	var alias = app.Models
 
 	cfg, err := loadModels(app, alias)
@@ -24,9 +29,9 @@ func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), err
 		return nil, err
 	}
 
-	var modelMap = make(map[string]*model.Model)
+	var modelMap = make(map[string]*api.Model)
 	for k, v := range cfg.Models {
-		modelMap[k] = &model.Model{
+		modelMap[k] = &api.Model{
 			Provider: v.Provider,
 			Model:    v.Model,
 			BaseUrl:  v.BaseUrl,
@@ -46,7 +51,7 @@ func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), err
 	// set keys
 	provide := func(v *api.Model) (*api.Model, error) {
 		m := v.Clone()
-		if apiKey, ok := app.ApiKeys[m.Provider]; ok {
+		if apiKey, ok := apiKeys[m.Provider]; ok {
 			m.ApiKey = apiKey
 			return m, nil
 		}
@@ -62,7 +67,7 @@ func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), err
 				return nil, err
 			}
 			if c, ok := cfg.Models[level]; ok {
-				v := &model.Model{
+				v := &api.Model{
 					Provider: c.Provider,
 					Model:    c.Model,
 					BaseUrl:  c.BaseUrl,
@@ -78,8 +83,8 @@ func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), err
 		}
 
 		// special treatment
-		if level == model.Any {
-			for _, k := range []string{model.L1, model.L2, model.L3} {
+		if level == llm.Any {
+			for _, k := range []string{llm.L1, llm.L2, llm.L3} {
 				if v, ok := modelMap[k]; ok {
 					return provide(v)
 				}
@@ -90,8 +95,8 @@ func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), err
 }
 
 // return early if found
-func loadModels(app *api.AppConfig, alias string) (*model.ModelsConfig, error) {
-	var modelsCfg = make(map[string]*model.ModelsConfig)
+func loadModels(app *api.AppConfig, alias string) (*api.ModelsConfig, error) {
+	var modelsCfg = make(map[string]*api.ModelsConfig)
 
 	// built in resource
 	if err := LoadResourceModelsConfig(resourceFS, modelsCfg); err != nil {
@@ -120,8 +125,8 @@ func loadModels(app *api.AppConfig, alias string) (*model.ModelsConfig, error) {
 	return nil, fmt.Errorf("No LLM configuration found")
 }
 
-func ListModels(app *api.AppConfig) (map[string]*model.ModelsConfig, error) {
-	var modelsCfg = make(map[string]*model.ModelsConfig)
+func ListModels(app *api.AppConfig) (map[string]*api.ModelsConfig, error) {
+	var modelsCfg = make(map[string]*api.ModelsConfig)
 	if err := LoadResourceModelsConfig(resourceFS, modelsCfg); err != nil {
 		log.Debugf("failed to load tools from web resource: %v\n", err)
 	}
@@ -139,7 +144,7 @@ func ListModels(app *api.AppConfig) (map[string]*model.ModelsConfig, error) {
 	return modelsCfg, nil
 }
 
-func LoadResourceModelsConfig(fs embed.FS, aliases map[string]*model.ModelsConfig) error {
+func LoadResourceModelsConfig(fs embed.FS, aliases map[string]*api.ModelsConfig) error {
 	rs := &ResourceStore{
 		FS:   fs,
 		Base: "resource",
@@ -147,7 +152,7 @@ func LoadResourceModelsConfig(fs embed.FS, aliases map[string]*model.ModelsConfi
 	return LoadModelsAsset(rs, "models", aliases)
 }
 
-func LoadFileModelsConfig(base string, aliases map[string]*model.ModelsConfig) error {
+func LoadFileModelsConfig(base string, aliases map[string]*api.ModelsConfig) error {
 	abs, err := filepath.Abs(base)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute path for %s: %w", base, err)
@@ -164,7 +169,7 @@ func LoadFileModelsConfig(base string, aliases map[string]*model.ModelsConfig) e
 	return LoadModelsAsset(fs, "models", aliases)
 }
 
-func LoadWebModelsConfig(resources []*api.Resource, aliases map[string]*model.ModelsConfig) error {
+func LoadWebModelsConfig(resources []*api.Resource, aliases map[string]*api.ModelsConfig) error {
 	for _, v := range resources {
 		ws := &WebStore{
 			Base:  v.Base,
@@ -177,11 +182,11 @@ func LoadWebModelsConfig(resources []*api.Resource, aliases map[string]*model.Mo
 	return nil
 }
 
-func LoadModelsData(data [][]byte) (*model.ModelsConfig, error) {
-	merged := &model.ModelsConfig{}
+func LoadModelsData(data [][]byte) (*api.ModelsConfig, error) {
+	merged := &api.ModelsConfig{}
 
 	for _, v := range data {
-		cfg := &model.ModelsConfig{}
+		cfg := &api.ModelsConfig{}
 		exp := os.ExpandEnv(string(v))
 		if err := yaml.Unmarshal([]byte(exp), cfg); err != nil {
 			return nil, err
@@ -206,12 +211,14 @@ func LoadModelsData(data [][]byte) (*model.ModelsConfig, error) {
 		if v.Model == "" {
 			v.Model = merged.Model
 		}
+
 		//
-		if len(v.Features) > 0 {
-			if _, ok := v.Features[model.Feature(model.OutputTypeImage)]; ok {
-				v.Type = model.OutputTypeImage
-			}
-		}
+		// if len(v.Features) > 0 {
+		// 	if _, ok := v.Features[model.Feature(model.OutputTypeImage)]; ok {
+		// 		v.Type = model.OutputTypeImage
+		// 	}
+		// }
+
 		// validate
 		if v.Provider == "" {
 			return nil, fmt.Errorf("missing provider")
@@ -221,7 +228,7 @@ func LoadModelsData(data [][]byte) (*model.ModelsConfig, error) {
 	return merged, nil
 }
 
-func LoadModelsAsset(as api.AssetStore, base string, m map[string]*model.ModelsConfig) error {
+func LoadModelsAsset(as api.AssetStore, base string, m map[string]*api.ModelsConfig) error {
 	files, err := as.ReadDir(base)
 	if err != nil {
 		return err
