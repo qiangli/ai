@@ -19,9 +19,18 @@ type FileMemStore struct {
 }
 
 func NewFileMemStore(app *api.AppConfig) *FileMemStore {
-	chatDir := filepath.Join(app.Base, "chat", app.ChatID)
+	chatDir := filepath.Join(app.Base, "chat")
+	cid := app.ChatID
+	if cid == "" {
+		if app.New {
+			cid = uuid.NewString()
+		} else if last, err := findLastChatID(chatDir); err == nil {
+			cid = last
+		}
+	}
+	base := filepath.Join(chatDir, cid)
 	return &FileMemStore{
-		base: chatDir,
+		base: base,
 	}
 }
 
@@ -33,7 +42,7 @@ func (r *FileMemStore) Load(opt *api.MemOption) ([]*api.Message, error) {
 	return LoadHistory(r.base, opt.MaxHistory, opt.MaxSpan)
 }
 
-func FindLastChatID(base string) (string, error) {
+func findLastChatID(base string) (string, error) {
 	entries, err := os.ReadDir(base)
 	if err != nil {
 		return "", err

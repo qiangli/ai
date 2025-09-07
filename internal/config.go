@@ -2,16 +2,13 @@ package internal
 
 import (
 	"embed"
-	// "encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
-	"github.com/google/uuid"
 	fangs "github.com/spf13/viper"
-	// "github.com/tailscale/hujson"
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
@@ -165,10 +162,10 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	// 	}
 	// }
 
-	// ensure chat id is assigned
-	if app.ChatID == "" {
-		app.ChatID = uuid.New().String()
-	}
+	// // ensure chat id is assigned
+	// if app.ChatID == "" {
+	// 	app.ChatID = uuid.New().String()
+	// }
 
 	if err := ParseLLM(viper, app); err != nil {
 		return err
