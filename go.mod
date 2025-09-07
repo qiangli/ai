@@ -7,7 +7,6 @@ toolchain go1.24.3
 require (
 	dario.cat/mergo v1.0.2
 	github.com/BourgeoisBear/rasterm v1.1.1
-	github.com/NYTimes/gziphandler v1.1.1
 	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/alecthomas/chroma/v2 v2.20.0
 	github.com/alecthomas/kong v1.12.1
@@ -37,7 +36,6 @@ require (
 	github.com/gocolly/colly v1.2.0
 	github.com/gofrs/flock v0.12.1
 	github.com/google/uuid v1.6.0
-	github.com/gorilla/websocket v1.5.3
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/mattn/go-isatty v0.0.20
 	github.com/mattn/go-runewidth v0.0.16
@@ -46,11 +44,9 @@ require (
 	github.com/muesli/termenv v0.16.0
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/openai/openai-go v1.12.0
-	github.com/pkg/errors v0.9.1
 	github.com/qiangli/filesearch v0.0.0-20250727212022-dcfddd1c92de
 	github.com/sahilm/fuzzy v0.1.1
 	github.com/shirou/gopsutil/v4 v4.25.8
-	github.com/sorenisanerd/gotty v1.6.0
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.20.1
@@ -123,6 +119,7 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
 	github.com/googleapis/gax-go/v2 v2.15.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackmordaunt/icns/v3 v3.0.1 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
@@ -160,6 +157,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/pjbgf/sha1cd v0.4.0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkg/term v1.2.0-beta.2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
