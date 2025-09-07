@@ -66,23 +66,23 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 	}
 
 	// in theory mcp and system/funcs type could be declared in the same kit
-	for _, config := range kits {
+	for _, kit := range kits {
 		// connector mcp
-		if config.Connector != nil {
-			tools, err := ListMcpTools(config)
+		if kit.Connector != nil {
+			tools, err := ListMcpTools(kit)
 			if err != nil {
 				return nil, err
 			}
 			for _, tool := range tools {
-				tool.Config = config
+				tool.Config = kit
 				toolRegistry[tool.ID] = tool
 			}
 		}
 
 		// tools - inline
-		if len(config.Tools) > 0 {
-			for _, v := range config.Tools {
-				log.Debugf("Kit: %s tool: %s - %s\n", v.Kit, v.Name, v.Description)
+		if len(kit.Tools) > 0 {
+			for _, v := range kit.Tools {
+				log.Debugf("Kit: %s tool: %s - %s\n", kit.Kit, v.Name, v.Description)
 
 				// condition check
 				if !conditionMet(v.Name, v.Condition) {
@@ -90,20 +90,20 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 				}
 				tool := &api.ToolFunc{
 					Type: v.Type,
-					ID:   v.ID(),
+					ID:   api.ToolID(kit.Kit, v.Name),
 					// Kit:         v.Kit,
-					// Name:        v.Name,
+					Name:        v.Name,
 					Description: v.Description,
 					Parameters:  v.Parameters,
 					Body:        v.Body,
-					Config:      config,
+					Config:      kit,
 				}
 
 				if tool.Type == "" {
-					tool.Type = config.Type
+					tool.Type = kit.Type
 				}
 				if tool.Type == "" {
-					return nil, fmt.Errorf("Missing tool type: %s", v.Kit)
+					return nil, fmt.Errorf("Missing tool type: %s", v.Name)
 				}
 
 				// override
@@ -278,12 +278,12 @@ func LoadToolData(data [][]byte) (*api.ToolsConfig, error) {
 			return nil, err
 		}
 
-		// update kit if not set
-		for _, tool := range tc.Tools {
-			if tool.Kit == "" {
-				tool.Kit = tc.Kit
-			}
-		}
+		// // update kit if not set
+		// for _, tool := range tc.Tools {
+		// 	if tool.Kit == "" {
+		// 		tool.Kit = tc.Kit
+		// 	}
+		// }
 		if err := mergo.Merge(merged, tc, mergo.WithAppendSlice); err != nil {
 			return nil, err
 		}

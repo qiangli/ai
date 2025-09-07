@@ -16,15 +16,15 @@ func TestLoadToolsConfig(t *testing.T) {
 		t.Fatalf("failed to load tool files: %v", err)
 	}
 
-	for _, config := range kits {
-		for _, tool := range config.Tools {
+	for _, kit := range kits {
+		for _, tool := range kit.Tools {
 			if tool.Name == "" {
 				t.Fatal("tool name is empty")
 			}
 			if tool.Description == "" {
 				t.Fatal("tool description is empty")
 			}
-			t.Logf("Kit: %s tool: %s - %s", tool.Kit, tool.Name, tool.Description)
+			t.Logf("Kit: %s tool: %s - %s", kit.Kit, tool.Name, tool.Description)
 		}
 	}
 }

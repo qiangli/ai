@@ -52,7 +52,7 @@ type ToolsConfig struct {
 }
 
 type ToolConfig struct {
-	Kit string `yaml:"kit"`
+	// Kit string `yaml:"kit"`
 
 	Type string `yaml:"type"`
 
@@ -67,9 +67,9 @@ type ToolConfig struct {
 
 // ID returns a unique identifier for the tool,
 // combining the tool kit and name.
-func (r *ToolConfig) ID() string {
-	return ToolID(r.Kit, r.Name)
-}
+// func (r *ToolConfig) ID() string {
+// 	return ToolID(r.Kit, r.Name)
+// }
 
 func ToolID(kit, name string) string {
 	return fmt.Sprintf("%s__%s", kit, name)
