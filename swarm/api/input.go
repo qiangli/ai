@@ -2,8 +2,6 @@ package api
 
 import (
 	"fmt"
-	// "net/http"
-	// "os"
 	"strings"
 
 	"github.com/openai/openai-go"

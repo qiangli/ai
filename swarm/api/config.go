@@ -1,15 +1,7 @@
 package api
 
 import (
-	// "encoding/json"
-	"fmt"
-	// "os"
-	// "path/filepath"
-	// "sort"
 	"strings"
-	// "time"
-	// "github.com/google/uuid"
-	// "github.com/qiangli/ai/swarm/api/model"
 )
 
 type AppConfig struct {
@@ -58,10 +50,6 @@ type AppConfig struct {
 	// Treated as input text
 	Voice bool
 
-	// MCP server
-	// McpServerRoot string
-	// McpServers    map[string]*McpServerConfig
-
 	// Output format: raw or markdown
 	Format string
 
@@ -105,9 +93,8 @@ type AppConfig struct {
 	Base string
 
 	Workspace string
-	// Repo      string
-	Home string
-	Temp string
+	Home      string
+	Temp      string
 
 	Interactive bool
 	Editing     bool
@@ -115,8 +102,6 @@ type AppConfig struct {
 
 	Watch     bool
 	ClipWatch bool
-
-	// Hub *HubConfig
 
 	MaxTime  int
 	MaxTurns int
@@ -128,10 +113,6 @@ type AppConfig struct {
 	// dry run
 	DryRun        bool
 	DryRunContent string
-
-	// experimental
-	// provider -> api-key
-	// ApiKeys map[string]string
 }
 
 // Clone is a shallow copy of member fields of the configration
@@ -144,38 +125,34 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		AgentResource: cfg.AgentResource,
 		AgentLoader:   cfg.AgentLoader,
 		ToolLoader:    cfg.ToolLoader,
-		// Git:           cfg.Git,
-		// DBCred:        cfg.DBCred,
-		Agent:      cfg.Agent,
-		Command:    cfg.Command,
-		Args:       append([]string(nil), cfg.Args...),
-		Message:    cfg.Message,
-		Editor:     cfg.Editor,
-		Clipin:     cfg.Clipin,
-		ClipWait:   cfg.ClipWait,
-		Clipout:    cfg.Clipout,
-		ClipAppend: cfg.ClipAppend,
-		IsPiped:    cfg.IsPiped,
-		Stdin:      cfg.Stdin,
-		Files:      append([]string(nil), cfg.Files...),
-		Screenshot: cfg.Screenshot,
-		Voice:      cfg.Voice,
-		// McpServerRoot: cfg.McpServerRoot,
-		// McpServers:    cfg.McpServers,
-		Format:     cfg.Format,
-		Output:     cfg.Output,
-		Me:         cfg.Me,
-		Template:   cfg.Template,
-		New:        cfg.New,
-		ChatID:     cfg.ChatID,
-		MaxHistory: cfg.MaxHistory,
-		MaxSpan:    cfg.MaxSpan,
+		Agent:         cfg.Agent,
+		Command:       cfg.Command,
+		Args:          append([]string(nil), cfg.Args...),
+		Message:       cfg.Message,
+		Editor:        cfg.Editor,
+		Clipin:        cfg.Clipin,
+		ClipWait:      cfg.ClipWait,
+		Clipout:       cfg.Clipout,
+		ClipAppend:    cfg.ClipAppend,
+		IsPiped:       cfg.IsPiped,
+		Stdin:         cfg.Stdin,
+		Files:         append([]string(nil), cfg.Files...),
+		Screenshot:    cfg.Screenshot,
+		Voice:         cfg.Voice,
+		Format:        cfg.Format,
+		Output:        cfg.Output,
+		Me:            cfg.Me,
+		Template:      cfg.Template,
+		New:           cfg.New,
+		ChatID:        cfg.ChatID,
+		MaxHistory:    cfg.MaxHistory,
+		MaxSpan:       cfg.MaxSpan,
 		// History:    cfg.History,
 		Models: cfg.Models,
 		Log:    cfg.Log,
 		Debug:  cfg.Debug,
 		Quiet:  cfg.Quiet,
-		// Internal:      cfg.Internal,
+
 		DenyList:    append([]string(nil), cfg.DenyList...),
 		AllowList:   append([]string(nil), cfg.AllowList...),
 		Unsafe:      cfg.Unsafe,
@@ -198,142 +175,6 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		DryRunContent: cfg.DryRunContent,
 	}
 }
-
-// func LoadModels(base string) (map[string]*model.ModelsConfig, error) {
-// 	m, err := model.LoadModels(base)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return m, err
-// }
-
-// func FindLastChatID(base string) (string, error) {
-// 	entries, err := os.ReadDir(base)
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	var latestTime time.Time
-// 	var latestDir string
-
-// 	for _, entry := range entries {
-// 		if entry.IsDir() {
-// 			// Validate if the directory name is a valid UUID
-// 			if _, err := uuid.Parse(entry.Name()); err != nil {
-// 				continue
-// 			}
-// 			info, err := os.Stat(filepath.Join(base, entry.Name()))
-// 			if err != nil {
-// 				continue
-// 			}
-// 			if info.ModTime().After(latestTime) {
-// 				latestTime = info.ModTime()
-// 				latestDir = entry.Name()
-// 			}
-// 		}
-// 	}
-
-// 	if latestDir == "" {
-// 		return "", fmt.Errorf("chat not found")
-// 	}
-
-// 	return latestDir, nil
-// }
-
-// func LoadHistory(base string, maxHistory, maxSpan int) ([]*Message, error) {
-// 	if maxHistory <= 0 || maxSpan <= 0 {
-// 		return nil, nil
-// 	}
-
-// 	var history []*Message
-
-// 	entries, err := os.ReadDir(base)
-// 	if err != nil {
-// 		if os.IsNotExist(err) {
-// 			return nil, nil
-// 		}
-// 		return nil, err
-// 	}
-// 	// Collect .json files and their infos
-// 	type fileInfo struct {
-// 		name string
-// 		mod  time.Time
-// 	}
-// 	var files []fileInfo
-
-// 	old := time.Now().Add(-time.Duration(maxSpan) * time.Minute)
-
-// 	for _, entry := range entries {
-// 		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".json") {
-// 			fullPath := filepath.Join(base, entry.Name())
-// 			info, err := os.Stat(fullPath)
-// 			if err == nil {
-// 				if info.ModTime().Before(old) {
-// 					continue
-// 				}
-// 				files = append(files, fileInfo{name: fullPath, mod: info.ModTime()})
-// 			}
-// 		}
-// 	}
-
-// 	// Sort by mod time DESC (most recent first)
-// 	sort.Slice(files, func(i, j int) bool {
-// 		return files[i].mod.After(files[j].mod)
-// 	})
-
-// 	for _, fi := range files {
-// 		data, err := os.ReadFile(fi.name)
-// 		if err != nil {
-// 			continue
-// 		}
-// 		var msgs []*Message
-// 		if err := json.Unmarshal(data, &msgs); err != nil {
-// 			continue
-// 		}
-// 		for i := len(msgs) - 1; i >= 0; i-- {
-// 			// TODO multimedia?
-// 			// only use text message for now
-// 			for _, msg := range msgs {
-// 				if msg.ContentType == "" || strings.HasPrefix(msg.ContentType, "text/") {
-// 					history = append(history, msg)
-// 				}
-// 			}
-
-// 			if maxHistory > 0 && len(history) >= maxHistory {
-// 				result := history[:maxHistory]
-// 				reverseMessages(result)
-// 				return result, nil
-// 			}
-// 		}
-// 	}
-
-// 	reverseMessages(history)
-// 	return history, nil
-// }
-
-// func reverseMessages(msgs []*Message) {
-// 	for left, right := 0, len(msgs)-1; left < right; left, right = left+1, right-1 {
-// 		msgs[left], msgs[right] = msgs[right], msgs[left]
-// 	}
-// }
-
-// func StoreHistory(base string, messages []*Message) error {
-// 	if err := os.MkdirAll(base, 0755); err != nil {
-// 		return err
-// 	}
-
-// 	// filename
-// 	now := time.Now()
-// 	filename := fmt.Sprintf("%s-%d.json", now.Format("2006-01-02"), now.UnixNano())
-// 	path := filepath.Join(base, filename)
-
-// 	data, err := json.MarshalIndent(messages, "", "  ")
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return os.WriteFile(path, data, 0644)
-// }
 
 func (r *AppConfig) IsStdin() bool {
 	return r.Stdin || r.IsPiped
@@ -360,85 +201,4 @@ func (r *AppConfig) GetQuery() string {
 		return r.Message
 	}
 	return strings.Join(r.Args, " ")
-}
-
-type GitConfig struct {
-}
-
-type DBCred struct {
-	Host     string `mapstructure:"host"`
-	Port     string `mapstructure:"port"`
-	Username string `mapstructure:"username"`
-	Password string `mapstructure:"password"`
-	DBName   string `mapstructure:"name"`
-}
-
-// DSN returns the data source name for connecting to the database.
-func (d *DBCred) DSN() string {
-	host := d.Host
-	if host == "" {
-		host = "localhost"
-	}
-	port := d.Port
-	if port == "" {
-		port = "5432"
-	}
-	dbname := d.DBName
-	if dbname == "" {
-		dbname = "postgres"
-	}
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, d.Username, d.Password, dbname)
-}
-
-func (d *DBCred) IsValid() bool {
-	return d.Username != "" && d.Password != ""
-}
-
-func (d *DBCred) Clone() *DBCred {
-	return &DBCred{
-		Host:     d.Host,
-		Port:     d.Port,
-		Username: d.Username,
-		Password: d.Password,
-		DBName:   d.DBName,
-	}
-}
-
-type TTSConfig struct {
-	Provider string
-
-	Model   string
-	BaseUrl string
-	ApiKey  string
-}
-
-func (config *TTSConfig) Clone() *TTSConfig {
-	return &TTSConfig{
-		Provider: config.Provider,
-		Model:    config.Model,
-		BaseUrl:  config.BaseUrl,
-		ApiKey:   config.ApiKey,
-	}
-}
-
-type HubConfig struct {
-	Enable  bool
-	Address string
-
-	Pg        bool
-	PgAddress string
-
-	Mysql        bool
-	MysqlAddress string
-
-	Redis        bool
-	RedisAddress string
-
-	Terminal        bool
-	TerminalAddress string
-
-	LLMProxy        bool
-	LLMProxyAddress string
-	LLMProxySecret  string
-	LLMProxyApiKey  string
 }
