@@ -1,7 +1,5 @@
 package api
 
-// type Model = model.Model
-
 type InputType string
 type OutputType string
 type Feature string
@@ -100,24 +98,9 @@ type ModelsConfig struct {
 }
 
 type ModelConfig struct {
-	// key of models map in models config
-	// Name string `yaml:"name"`
-	// Features map[Feature]bool `yaml:"features" json:"features"`
+	Provider string `yaml:"provider"`
 
-	// //
-	// Type        string `yaml:"type"`
-	// Type OutputType `yaml:"type" json:"type"`
-
-	// Description string `yaml:"description"`
-
-	// Provider    string `yaml:"provider"`
-	// Model       string `yaml:"model"`
-	// BaseUrl     string `yaml:"baseUrl"`
-	// ApiKey      string `yaml:"apiKey"`
-
-	Provider string `yaml:"provider" json:"provider"`
-
-	Model   string `yaml:"model" json:"model"`
-	BaseUrl string `yaml:"base_url" json:"baseUrl"`
-	ApiKey  string `yaml:"api_key" json:"apiKey"`
+	Model   string `yaml:"model"`
+	BaseUrl string `yaml:"base_url"`
+	ApiKey  string `yaml:"api_key"`
 }

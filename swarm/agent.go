@@ -12,11 +12,11 @@ import (
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
-	// "github.com/qiangli/ai/swarm/llm"
 )
 
+// TODO max hard upper limits
 const defaultMaxTurns = 8
-const defaultMaxTime = 300 // 5 min
+const defaultMaxTime = 180 // 3 min
 
 func initAgents(app *api.AppConfig) (func(string) (*api.AgentsConfig, error), error) {
 	agents, err := ListAgents(app)

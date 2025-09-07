@@ -113,12 +113,11 @@ type AgentsConfig struct {
 	Name string `yaml:"name"`
 
 	Agents []*AgentConfig `yaml:"agents"`
-	// Functions []*FunctionConfig `yaml:"functions"`
 	Tools  []*ToolConfig  `yaml:"tools"`
 	Models []*ModelConfig `yaml:"models"`
 
-	MaxTurns int `yaml:"maxTurns"`
-	MaxTime  int `yaml:"maxTime"`
+	MaxTurns int `yaml:"max_turns"`
+	MaxTime  int `yaml:"max_time"`
 }
 
 type AgentConfig struct {
@@ -163,27 +162,6 @@ type InstructionConfig struct {
 	Type string `yaml:"type"`
 }
 
-// type FunctionConfig struct {
-// 	Label   string `yaml:"label"`
-// 	Service string `yaml:"service"`
-
-// 	Name        string         `yaml:"name"`
-// 	Description string         `yaml:"description"`
-// 	Parameters  map[string]any `yaml:"parameters"`
-// }
-
-// type ModelConfig struct {
-// 	Name string `yaml:"name"`
-// 	//
-// 	Type        string `yaml:"type"`
-// 	Description string `yaml:"description"`
-// 	Provider    string `yaml:"provider"`
-// 	Model       string `yaml:"model"`
-// 	BaseUrl     string `yaml:"baseUrl"`
-// 	ApiKey      string `yaml:"apiKey"`
-// 	// External    bool   `yaml:"external"`
-// }
-
 type AdviceConfig struct {
 	Before string `yaml:"before"`
 	After  string `yaml:"after"`
@@ -207,13 +185,6 @@ type Request struct {
 	Messages []*Message
 
 	RawInput *UserInput
-
-	// //
-	// ImageQuality string
-	// ImageSize    string
-	// ImageStyle   string
-
-	// ExtraParams map[string]any
 
 	// ctx is either the client or server context. It should only
 	// be modified via copying the whole Request using Clone or WithContext.
@@ -275,7 +246,6 @@ func (r *Request) Clone(ctx context.Context) *Request {
 	*r2 = *r
 	r2.ctx = ctx
 	r2.Agent = r.Agent
-	// r2.Messages = r.Messages
 	r2.RawInput = r.RawInput
 
 	return r2
@@ -291,22 +261,11 @@ type Response struct {
 	// with a sender field indicating which Agent the message originated from.
 	Messages []*Message
 
-	// Transfer  bool
-	// NextAgent string
-
 	// The last agent to handle a message
 	Agent *Agent
 
 	Result *Result
-	// Output *Output
 }
-
-// func (r *Response) LastMessage() *Message {
-// 	if len(r.Messages) > 0 {
-// 		return r.Messages[len(r.Messages)-1]
-// 	}
-// 	return nil
-// }
 
 type Message struct {
 	ID      string    `json:"id"`
@@ -325,10 +284,6 @@ type Message struct {
 	// // model alias
 	// Models string `json:"models"`
 }
-
-// type Agentic interface {
-// 	Serve(*Request, *Response) error
-// }
 
 // Result encapsulates the possible return values for agent/function.
 type Result struct {
@@ -361,13 +316,8 @@ func (r *Result) String() string {
 }
 
 type AgentResource struct {
-	// Root string `json:"root"`
-
 	// web resource base url
 	// http://localhost:18080/resource/
-	// Bases []string `json:"bases"`
-
-	// Token string `json:"token"`
 
 	Resources []*Resource `json:"resources"`
 }

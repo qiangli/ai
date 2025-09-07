@@ -1,4 +1,7 @@
 ###
+max_turns: 15
+max_time: 300
+
 agents:
   - name: "web"
     display: "🌐 Web"

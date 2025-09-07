@@ -79,14 +79,12 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 
 	log.Debugf("configure file: %s\n", app.ConfigFile)
 	log.Debugf("base: %s\n", app.Base)
+
 	printAIEnv()
 
 	//
 
 	app.Version = Version
-
-	// app.Role = viper.GetString("role")
-	// app.Prompt = viper.GetString("prompt")
 
 	app.DryRun = viper.GetBool("dry_run")
 	app.DryRunContent = viper.GetString("dry_run_content")
@@ -139,34 +137,6 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	app.MaxTurns = viper.GetInt("max_turns")
 	app.MaxTime = viper.GetInt("max_time")
 
-	//
-	// if !app.New {
-	// 	baseDir := filepath.Join(app.Base, "chat")
-
-	// 	var cid = app.ChatID
-	// 	if cid == "" {
-	// 		if last, err := api.FindLastChatID(baseDir); err == nil {
-	// 			cid = last
-	// 		}
-	// 	}
-
-	// 	if cid != "" {
-	// 		chatDir := filepath.Join(baseDir, cid)
-	// 		log.Debugf("Loading old conversation from %s", chatDir)
-	// 		messages, err := api.LoadHistory(chatDir, app.MaxHistory, app.MaxSpan)
-	// 		if err != nil {
-	// 			return fmt.Errorf("error loading history: %v", err)
-	// 		}
-	// 		app.ChatID = cid
-	// 		app.History = messages
-	// 	}
-	// }
-
-	// // ensure chat id is assigned
-	// if app.ChatID == "" {
-	// 	app.ChatID = uuid.New().String()
-	// }
-
 	if err := ParseLLM(viper, app); err != nil {
 		return err
 	}
@@ -176,7 +146,6 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	app.Trace = viper.GetBool("trace")
 	app.Debug = viper.GetBool("verbose")
 	app.Quiet = viper.GetBool("quiet")
-	// app.Internal = viper.GetBool("internal")
 
 	app.Unsafe = viper.GetBool("unsafe")
 	toList := func(s string) []string {
@@ -220,16 +189,6 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	//
 	ParseArgs(viper, app, args, defaultAgent)
 
-	// // mcp
-	// app.McpServerRoot = viper.GetString("mcp.server_root")
-	// if app.McpServerRoot != "" {
-	// 	mcp := NewMcpServersConfig(app.McpServerRoot)
-	// 	if err := mcp.LoadAll(); err != nil {
-	// 		return err
-	// 	}
-	// 	app.McpServers = mcp.ServersConfig
-	// }
-
 	// resource
 	resource := viper.GetString("resource")
 	if resource != "" {
@@ -239,12 +198,6 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 		}
 		app.AgentResource = ar
 	}
-
-	// apiKeys := make(map[string]string)
-	// apiKeys["openai"] = os.Getenv("OPENAI_API_KEY")
-	// apiKeys["gemini"] = os.Getenv("GEMINI_API_KEY")
-	// apiKeys["anthropic"] = os.Getenv("ANTHROPIC_API_KEY")
-	// app.ApiKeys = apiKeys
 
 	log.Debug("parsed: %+v\n", app)
 
@@ -256,65 +209,6 @@ func ParseArgs(viper *fangs.Viper, app *api.AppConfig, args []string, defaultAge
 	newArgs = ParseSpecialChars(viper, app, newArgs)
 	app.Args = newArgs
 }
-
-// type McpServersConfig struct {
-// 	ServersRoot string
-
-// 	ServersConfig map[string]*api.McpServerConfig `json:"mcpServers"`
-// }
-
-// func NewMcpServersConfig(root string) *McpServersConfig {
-// 	return &McpServersConfig{
-// 		ServersRoot:   root,
-// 		ServersConfig: make(map[string]*api.McpServerConfig),
-// 	}
-// }
-
-// func (r *McpServersConfig) LoadAll() error {
-// 	entries, err := os.ReadDir(r.ServersRoot)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	for _, entry := range entries {
-// 		if entry.Type().IsRegular() {
-// 			name := entry.Name()
-// 			ext := filepath.Ext(name)
-// 			if ext == ".jsonc" || ext == ".json" {
-// 				configPath := filepath.Join(r.ServersRoot, name)
-// 				if err := r.LoadFile(configPath); err != nil {
-// 					return err
-// 				}
-// 			}
-// 		}
-// 	}
-// 	return nil
-// }
-
-// func (r *McpServersConfig) LoadFile(filename string) error {
-// 	data, err := os.ReadFile(filename)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return r.LoadData(data)
-// }
-
-// func (r *McpServersConfig) LoadData(data []byte) error {
-// 	hu, err := hujson.Standardize(data)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	ex := expandWithDefault(string(hu))
-// 	err = json.Unmarshal([]byte(ex), r)
-// 	if err != nil {
-// 		return fmt.Errorf("unmarshal mcp config: %v", err)
-// 	}
-
-// 	// set server name for each config
-// 	for k, v := range r.ServersConfig {
-// 		v.Server = k
-// 	}
-// 	return nil
-// }
 
 // return the agent/command and the rest of the args
 func ParseAgentArgs(app *api.AppConfig, args []string, defaultAgent string) []string {
@@ -450,14 +344,6 @@ func ParseLLM(viper *fangs.Viper, app *api.AppConfig) error {
 	// LLM config
 	//
 	alias := viper.GetString("models")
-	// // use same models to continue the conversation
-	// // if not set
-	// if alias == "" {
-	// 	if len(app.History) > 0 {
-	// 		last := app.History[len(app.History)-1]
-	// 		alias = last.Models
-	// 	}
-	// }
 	if alias == "" {
 		alias = "openai"
 	}
@@ -465,131 +351,3 @@ func ParseLLM(viper *fangs.Viper, app *api.AppConfig) error {
 
 	return nil
 }
-
-// func FindLastChatID(base string) (string, error) {
-// 	entries, err := os.ReadDir(base)
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	var latestTime time.Time
-// 	var latestDir string
-
-// 	for _, entry := range entries {
-// 		if entry.IsDir() {
-// 			// Validate if the directory name is a valid UUID
-// 			if _, err := uuid.Parse(entry.Name()); err != nil {
-// 				continue
-// 			}
-// 			info, err := os.Stat(filepath.Join(base, entry.Name()))
-// 			if err != nil {
-// 				continue
-// 			}
-// 			if info.ModTime().After(latestTime) {
-// 				latestTime = info.ModTime()
-// 				latestDir = entry.Name()
-// 			}
-// 		}
-// 	}
-
-// 	if latestDir == "" {
-// 		return "", fmt.Errorf("chat not found")
-// 	}
-
-// 	return latestDir, nil
-// }
-
-// func LoadHistory(base string, maxHistory, maxSpan int) ([]*Message, error) {
-// 	if maxHistory <= 0 || maxSpan <= 0 {
-// 		return nil, nil
-// 	}
-
-// 	var history []*Message
-
-// 	entries, err := os.ReadDir(base)
-// 	if err != nil {
-// 		if os.IsNotExist(err) {
-// 			return nil, nil
-// 		}
-// 		return nil, err
-// 	}
-// 	// Collect .json files and their infos
-// 	type fileInfo struct {
-// 		name string
-// 		mod  time.Time
-// 	}
-// 	var files []fileInfo
-
-// 	old := time.Now().Add(-time.Duration(maxSpan) * time.Minute)
-
-// 	for _, entry := range entries {
-// 		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".json") {
-// 			fullPath := filepath.Join(base, entry.Name())
-// 			info, err := os.Stat(fullPath)
-// 			if err == nil {
-// 				if info.ModTime().Before(old) {
-// 					continue
-// 				}
-// 				files = append(files, fileInfo{name: fullPath, mod: info.ModTime()})
-// 			}
-// 		}
-// 	}
-
-// 	// Sort by mod time DESC (most recent first)
-// 	sort.Slice(files, func(i, j int) bool {
-// 		return files[i].mod.After(files[j].mod)
-// 	})
-
-// 	for _, fi := range files {
-// 		data, err := os.ReadFile(fi.name)
-// 		if err != nil {
-// 			continue
-// 		}
-// 		var msgs []*Message
-// 		if err := json.Unmarshal(data, &msgs); err != nil {
-// 			continue
-// 		}
-// 		for i := len(msgs) - 1; i >= 0; i-- {
-// 			// TODO multimedia?
-// 			// only use text message for now
-// 			for _, msg := range msgs {
-// 				if msg.ContentType == "" || strings.HasPrefix(msg.ContentType, "text/") {
-// 					history = append(history, msg)
-// 				}
-// 			}
-
-// 			if maxHistory > 0 && len(history) >= maxHistory {
-// 				result := history[:maxHistory]
-// 				reverseMessages(result)
-// 				return result, nil
-// 			}
-// 		}
-// 	}
-
-// 	reverseMessages(history)
-// 	return history, nil
-// }
-
-// func reverseMessages(msgs []*Message) {
-// 	for left, right := 0, len(msgs)-1; left < right; left, right = left+1, right-1 {
-// 		msgs[left], msgs[right] = msgs[right], msgs[left]
-// 	}
-// }
-
-// func StoreHistory(base string, messages []*Message) error {
-// 	if err := os.MkdirAll(base, 0755); err != nil {
-// 		return err
-// 	}
-
-// 	// filename
-// 	now := time.Now()
-// 	filename := fmt.Sprintf("%s-%d.json", now.Format("2006-01-02"), now.UnixNano())
-// 	path := filepath.Join(base, filename)
-
-// 	data, err := json.MarshalIndent(messages, "", "  ")
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return os.WriteFile(path, data, 0644)
-// }

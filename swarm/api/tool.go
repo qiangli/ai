@@ -52,8 +52,6 @@ type ToolsConfig struct {
 }
 
 type ToolConfig struct {
-	// Kit string `yaml:"kit"`
-
 	Type string `yaml:"type"`
 
 	Name        string         `yaml:"name"`
@@ -67,9 +65,6 @@ type ToolConfig struct {
 
 // ID returns a unique identifier for the tool,
 // combining the tool kit and name.
-// func (r *ToolConfig) ID() string {
-// 	return ToolID(r.Kit, r.Name)
-// }
 
 func ToolID(kit, name string) string {
 	return fmt.Sprintf("%s__%s", kit, name)
@@ -95,40 +90,6 @@ type ToolDescriptor struct {
 
 	Body string
 }
-
-// type ToolFunc struct {
-// 	// Namespace:
-// 	//
-// 	// func class
-// 	// Agent name
-// 	// MCP server name
-// 	// Virtual file system name
-// 	// Container name
-// 	// Virtual machine name
-// 	// Tool/function (Gemini)
-// 	Kit string
-
-// 	// func | system | remote
-// 	Type string
-
-// 	State State
-
-// 	// func name
-// 	Name        string
-// 	Description string
-// 	Parameters  map[string]any
-
-// 	Body string
-
-// 	//
-// 	Config *ToolsConfig
-// }
-
-// // ID returns a unique identifier for the tool function,
-// // combining the tool kit and function name.
-// func (r *ToolFunc) ID() string {
-// 	return fmt.Sprintf("%s__%s", r.Kit, r.Name)
-// }
 
 type ConnectorConfig struct {
 	// mcp | ssh ...
