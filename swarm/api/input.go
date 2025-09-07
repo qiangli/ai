@@ -41,8 +41,8 @@ type UserInput struct {
 
 	Extra map[string]any `json:"extra"`
 
-	// // cached file contents
-	// Messages []*Message `json:"-"`
+	// cached file contents
+	Messages []*Message `json:"-"`
 }
 
 func (r *UserInput) String() string {
