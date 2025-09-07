@@ -69,7 +69,7 @@ func NewClient(ctx context.Context, apiKey, _ string) (*genai.Client, error) {
 	return client, err
 }
 
-func Send(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	log.Debugf(">>>GEMINI:\n req: %+v\n\n", req)
 
 	resp, err := call(ctx, req)
@@ -78,7 +78,7 @@ func Send(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	return resp, err
 }
 
-func call(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	client, err := NewClient(ctx, req.Model.ApiKey, req.Model.BaseUrl)
 	if err != nil {
 		return nil, err
@@ -157,7 +157,7 @@ func call(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	if maxTurns == 0 {
 		maxTurns = 1
 	}
-	resp := &llm.LLMResponse{}
+	resp := &llm.Response{}
 
 	model := req.Model.Model
 

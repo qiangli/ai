@@ -39,11 +39,11 @@ func NewClient(model *api.Model, vars *api.Vars) openai.Client {
 	return client
 }
 
-func Send(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	log.Debugf(">>>OPENAI:\n req: %+v\n\n", req)
 
 	var err error
-	var resp *llm.LLMResponse
+	var resp *llm.Response
 
 	resp, err = call(ctx, req)
 
@@ -51,7 +51,7 @@ func Send(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	return resp, err
 }
 
-func call(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	client := NewClient(req.Model, req.Vars)
 	model := req.Model.Model
 
@@ -96,7 +96,7 @@ func call(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	if maxTurns == 0 {
 		maxTurns = 1
 	}
-	resp := &llm.LLMResponse{}
+	resp := &llm.Response{}
 
 	log.Debugf("[OpenAI] params messages: %v tools: %v\n", len(params.Messages), len(params.Tools))
 
@@ -202,11 +202,11 @@ func toContentPart(mimeType string, raw []byte) []openai.ChatCompletionContentPa
 	}
 }
 
-// func ImageGen(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
+// func ImageGen(ctx context.Context, req *api.Request) (*api.Response, error) {
 // 	log.Debugf(">>>OPENAI:\n image-gen req: %+v\n\n", req)
 
 // 	var err error
-// 	var resp *api.LLMResponse
+// 	var resp *api.Response
 
 // 	resp, err = generateImage(ctx, req)
 
@@ -214,7 +214,7 @@ func toContentPart(mimeType string, raw []byte) []openai.ChatCompletionContentPa
 // 	return resp, err
 // }
 
-// func generateImage(ctx context.Context, req *api.LLMRequest) (*api.LLMResponse, error) {
+// func generateImage(ctx context.Context, req *api.Request) (*api.Response, error) {
 // 	messages := make([]string, 0)
 // 	for _, v := range req.Messages {
 // 		messages = append(messages, v.Content)
@@ -224,7 +224,7 @@ func toContentPart(mimeType string, raw []byte) []openai.ChatCompletionContentPa
 // 	prompt := strings.Join(messages, "\n")
 // 	model := req.Model.Model
 
-// 	resp := &api.LLMResponse{
+// 	resp := &api.Response{
 // 		ContentType: api.ContentTypeB64JSON,
 // 	}
 

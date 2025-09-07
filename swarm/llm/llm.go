@@ -8,8 +8,8 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-// // Level represents the "intelligence" level of the model. i.e. basic, regular, advanced
-// // for example, OpenAI: gpt-4.1-mini, gpt-4.1, o3
+// Level represents the "intelligence" level of the model. i.e. basic, regular, advanced
+// for example, OpenAI: gpt-4.1-mini, gpt-4.1, o3
 type Level = api.Level
 
 const (
@@ -24,7 +24,7 @@ const (
 	TTS   Level = "tts"
 )
 
-type LLMRequest struct {
+type Request struct {
 	Agent string
 
 	Model *api.Model
@@ -41,7 +41,7 @@ type LLMRequest struct {
 	Vars *api.Vars
 }
 
-func (r *LLMRequest) String() string {
+func (r *Request) String() string {
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("Agent: %s\n", r.Agent))
 	if r.Model != nil {
@@ -66,7 +66,7 @@ func (r *LLMRequest) String() string {
 	return sb.String()
 }
 
-type LLMResponse struct {
+type Response struct {
 	ContentType string
 	Content     string
 

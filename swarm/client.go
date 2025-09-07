@@ -11,11 +11,11 @@ import (
 	"github.com/qiangli/ai/swarm/llm/openai"
 )
 
-func Chat(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+func Chat(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	log.Debugf(">>>LLM Chat:\n Model: %s Model: %+v, Messages: %v Tools: %v\n\n", req.Model, req.Model, len(req.Messages), len(req.Tools))
 
 	var err error
-	var resp *llm.LLMResponse
+	var resp *llm.Response
 
 	if req.Model == nil {
 		return nil, fmt.Errorf("No LLM model provided")
@@ -51,11 +51,11 @@ func Chat(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	return resp, nil
 }
 
-func ImageGen(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+func ImageGen(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	log.Debugf(">>>LLM ImageGen:\n Model: %s Model: %+v, Messages: %v Tools: %v\n\n", req.Model, req.Model, len(req.Messages), len(req.Tools))
 
 	var err error
-	var resp *llm.LLMResponse
+	var resp *llm.Response
 
 	if req.Model == nil {
 		return nil, fmt.Errorf("No LLM model provided")

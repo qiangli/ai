@@ -11,11 +11,11 @@ import (
 	"github.com/qiangli/ai/swarm/llm"
 )
 
-func ImageGen(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+func ImageGen(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	log.Debugf(">>>OPENAI:\n image-gen req: %+v\n\n", req)
 
 	var err error
-	var resp *llm.LLMResponse
+	var resp *llm.Response
 
 	resp, err = generateImage(ctx, req)
 
@@ -23,7 +23,7 @@ func ImageGen(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error
 	return resp, err
 }
 
-func generateImage(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+func generateImage(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	messages := make([]string, 0)
 	for _, v := range req.Messages {
 		messages = append(messages, v.Content)
@@ -33,7 +33,7 @@ func generateImage(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, 
 	prompt := strings.Join(messages, "\n")
 	model := req.Model.Model
 
-	resp := &llm.LLMResponse{
+	resp := &llm.Response{
 		ContentType: api.ContentTypeB64JSON,
 	}
 

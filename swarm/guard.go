@@ -11,6 +11,7 @@ import (
 	"github.com/qiangli/ai/internal/bubble/confirm"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+
 	// "github.com/qiangli/ai/swarm/api/model"
 	"github.com/qiangli/ai/swarm/llm"
 )
@@ -65,7 +66,7 @@ func evaluateCommand(ctx context.Context, vars *api.Vars, command string, args [
 		return false, fmt.Errorf("failed to load model: %v", err)
 	}
 
-	req := &llm.LLMRequest{
+	req := &llm.Request{
 		Model: m,
 		Messages: []*api.Message{
 			{

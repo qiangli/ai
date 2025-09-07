@@ -14,9 +14,19 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-// TODO max hard upper limits
+// max hard upper limits
+const maxTurnsLimit = 100
+const maxTimeLimit = 600 // 10 min
+
 const defaultMaxTurns = 8
 const defaultMaxTime = 180 // 3 min
+
+func max(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
 
 func initAgents(app *api.AppConfig) (func(string) (*api.AgentsConfig, error), error) {
 	agents, err := ListAgents(app)
@@ -71,6 +81,9 @@ func ListAgents(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
 			if v.MaxTime == 0 {
 				v.MaxTime = defaultMaxTime
 			}
+			// upper limit
+			v.MaxTurns = max(v.MaxTurns, maxTurnsLimit)
+			v.MaxTime = max(v.MaxTime, maxTimeLimit)
 		}
 	}
 

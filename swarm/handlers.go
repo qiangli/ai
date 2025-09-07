@@ -19,7 +19,7 @@ import (
 const extraResult = "result"
 
 // TODO
-type LLMAdapter func(context.Context, *llm.LLMRequest) (*llm.LLMResponse, error)
+type LLMAdapter func(context.Context, *llm.Request) (*llm.Response, error)
 
 var adapterRegistry map[string]LLMAdapter
 
@@ -221,7 +221,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		return fmt.Errorf("failed to load model %q: %v", r.Model, err)
 	}
 
-	var request = llm.LLMRequest{
+	var request = llm.Request{
 		Agent:    r.Name,
 		Model:    model,
 		Messages: history,

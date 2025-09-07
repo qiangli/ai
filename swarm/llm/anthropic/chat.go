@@ -53,7 +53,7 @@ func NewClient(model *api.Model, vars *api.Vars) anthropic.Client {
 	return client
 }
 
-func Send(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	log.Debugf(">>>ANTHROPIC:\n req: %+v\n\n", req)
 
 	resp, err := call(ctx, req)
@@ -62,7 +62,7 @@ func Send(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	return resp, err
 }
 
-func call(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	client := NewClient(req.Model, req.Vars)
 	model := anthropic.Model(req.Model.Model)
 
@@ -100,7 +100,7 @@ func call(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	if maxTurns == 0 {
 		maxTurns = 1
 	}
-	resp := &llm.LLMResponse{}
+	resp := &llm.Response{}
 
 	// TOOD
 	var temperature = anthropic.Float(0.0)
