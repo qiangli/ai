@@ -13,7 +13,7 @@ type AppConfig struct {
 
 	AgentResource *AgentResource
 
-	AgentLister func() map[string]*AgentsConfig
+	AgentLister func() (map[string]*AgentsConfig, error)
 	AgentLoader func(string) (*AgentsConfig, error)
 
 	ToolSystem ToolSystem

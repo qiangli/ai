@@ -24,7 +24,10 @@ type FuncKit struct {
 func (r *FuncKit) ListAgents(ctx context.Context, vars *api.Vars, _ string, _ map[string]any) (string, error) {
 	var list []string
 	if vars.Config.AgentLister != nil {
-		dict := vars.Config.AgentLister()
+		dict, err := vars.Config.AgentLister()
+		if err != nil {
+			return "", err
+		}
 		for k, v := range dict {
 			list = append(list, fmt.Sprintf("%s: %s", k, v.Agents[0].Description))
 		}
@@ -39,7 +42,10 @@ func (r *FuncKit) AgentInfo(ctx context.Context, vars *api.Vars, _ string, args 
 		return "", err
 	}
 	if vars.Config.AgentLister != nil {
-		dict := vars.Config.AgentLister()
+		dict, err := vars.Config.AgentLister()
+		if err != nil {
+			return "", err
+		}
 		if v, ok := dict[agent]; ok {
 			var desc []string
 			for _, a := range v.Agents {

@@ -41,13 +41,13 @@ func initAgents(app *api.AppConfig) (func(string) (*api.AgentsConfig, error), er
 	}, nil
 }
 
-func AgentLister(app *api.AppConfig) (func() map[string]*api.AgentsConfig, error) {
+func AgentLister(app *api.AppConfig) (func() (map[string]*api.AgentsConfig, error), error) {
 	agents, err := ListAgents(app)
 	if err != nil {
 		return nil, err
 	}
-	return func() map[string]*api.AgentsConfig {
-		return agents
+	return func() (map[string]*api.AgentsConfig, error) {
+		return agents, nil
 	}, nil
 }
 

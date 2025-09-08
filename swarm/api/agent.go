@@ -131,7 +131,7 @@ type AgentConfig struct {
 	Model string `yaml:"model"`
 
 	// model alias defined in models config
-	Models []string `yaml:"models"`
+	Models string `yaml:"models"`
 
 	// tools defined in tools config
 	Functions []string `yaml:"functions"`
