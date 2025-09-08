@@ -208,14 +208,15 @@ AI Environment:
 	}
 	sort.Strings(filteredEnvs)
 
-	cfg := vars.Config
+	// cfg := vars.Config
 
 	// TODO
 	// log.Infof(format, info, cfg.LLM.Name, cfg.LLM.BaseUrl, cfg.LLM.ApiKey, string(ac), strings.Join(filteredEnvs, "\n"))
-	m, err := cfg.ModelLoader(api.Any)
-	if err != nil {
-		m = &api.Model{}
-	}
+	// m, err := cfg.ModelLoader(api.Any)
+	// if err != nil {
+	// 	m = &api.Model{}
+	// }
+	m := &api.Model{}
 	log.Infof(format, info, m.Provider, m.BaseUrl, m.ApiKey, string(ac), strings.Join(filteredEnvs, "\n"))
 	return nil
 }

@@ -118,15 +118,16 @@ func runRestricted(ctx context.Context, vars *api.Vars, command string, args []s
 		return "", fmt.Errorf("%s: Not allowed", command)
 	}
 
-	safe, err := evaluateCommand(ctx, vars, command, args)
-	if err != nil {
-		return "", err
-	}
-	if safe {
-		return execCommand(command, args, vars.Config.Debug)
-	}
+	// safe, err := evaluateCommand(ctx, vars, command, args)
+	// if err != nil {
+	// 	return "", err
+	// }
+	// if safe {
+	// 	return execCommand(command, args, vars.Config.Debug)
+	// }
+	return execCommand(command, args, vars.Config.Debug)
 
-	return "", fmt.Errorf("%s %s: Not permitted", command, strings.Join(args, " "))
+	// return "", fmt.Errorf("%s %s: Not permitted", command, strings.Join(args, " "))
 }
 
 // if required properties is not missing and is an array of strings

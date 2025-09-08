@@ -16,11 +16,7 @@ import (
 	"github.com/qiangli/ai/swarm/llm"
 )
 
-func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), error) {
-	apiKeys := make(map[string]string)
-	apiKeys["openai"] = os.Getenv("OPENAI_API_KEY")
-	apiKeys["gemini"] = os.Getenv("GEMINI_API_KEY")
-	apiKeys["anthropic"] = os.Getenv("ANTHROPIC_API_KEY")
+func initModels(app *api.AppConfig, apiKeys map[string]string) (func(level string) (*api.Model, error), error) {
 
 	var alias = app.Models
 

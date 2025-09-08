@@ -28,8 +28,15 @@ func max(a, b int) int {
 	return b
 }
 
-func NewAgentCreator(app *api.AppConfig) (func(*api.AgentCreator, error), error) {
-	return nil, nil
+func NewAgentCreator(app *api.AppConfig) (api.AgentCreator, error) {
+	apiKeys := make(map[string]string)
+	apiKeys["openai"] = os.Getenv("OPENAI_API_KEY")
+	apiKeys["gemini"] = os.Getenv("GEMINI_API_KEY")
+	apiKeys["anthropic"] = os.Getenv("ANTHROPIC_API_KEY")
+
+	return func(vars *api.Vars, req *api.Request) (*api.Agent, error) {
+		return CreateAgent(vars, req.Agent, req.Command, req.RawInput, apiKeys)
+	}, nil
 }
 
 func initAgents(app *api.AppConfig) (func(string) (*api.AgentsConfig, error), error) {
@@ -228,7 +235,7 @@ func LoadAgentsData(data [][]byte) (*api.AgentsConfig, error) {
 	return merged, nil
 }
 
-func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*api.Agent, error) {
+func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput, apiKeys map[string]string) (*api.Agent, error) {
 	agentLoader, err := initAgents(vars.Config)
 	if err != nil {
 		return nil, err
@@ -237,7 +244,7 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 	if err != nil {
 		return nil, err
 	}
-	modelLoader, err := initModels(vars.Config)
+	modelLoader, err := initModels(vars.Config, apiKeys)
 	if err != nil {
 		return nil, err
 	}
