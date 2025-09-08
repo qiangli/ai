@@ -4,20 +4,24 @@ import (
 	"strings"
 )
 
+type AgentLister func() (map[string]*AgentsConfig, error)
+type AgentCreator func(*Vars, *Request) (*Agent, error)
+
 type AppConfig struct {
 	Version string
 
 	ConfigFile string
 
-	ModelLoader func(string) (*Model, error)
-
 	AgentResource *AgentResource
 
-	AgentLister func() (map[string]*AgentsConfig, error)
-	AgentLoader func(string) (*AgentsConfig, error)
+	AgentLister  AgentLister
+	AgentCreator AgentCreator
 
 	ToolSystem ToolSystem
-	ToolLoader func(string) ([]*ToolFunc, error)
+
+	// AgentLoader func(string) (*AgentsConfig, error)
+	// ToolLoader func(string) ([]*ToolFunc, error)
+	// ModelLoader func(string) (*Model, error)
 
 	// ToolSystemCommands []string
 	SystemTools []*ToolFunc
@@ -121,32 +125,33 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		Version:    cfg.Version,
 		ConfigFile: cfg.ConfigFile,
 		//
-		ModelLoader:   cfg.ModelLoader,
+		AgentCreator: cfg.AgentCreator,
+		// ModelLoader:   cfg.ModelLoader,
 		AgentResource: cfg.AgentResource,
-		AgentLoader:   cfg.AgentLoader,
-		ToolLoader:    cfg.ToolLoader,
-		Agent:         cfg.Agent,
-		Command:       cfg.Command,
-		Args:          append([]string(nil), cfg.Args...),
-		Message:       cfg.Message,
-		Editor:        cfg.Editor,
-		Clipin:        cfg.Clipin,
-		ClipWait:      cfg.ClipWait,
-		Clipout:       cfg.Clipout,
-		ClipAppend:    cfg.ClipAppend,
-		IsPiped:       cfg.IsPiped,
-		Stdin:         cfg.Stdin,
-		Files:         append([]string(nil), cfg.Files...),
-		Screenshot:    cfg.Screenshot,
-		Voice:         cfg.Voice,
-		Format:        cfg.Format,
-		Output:        cfg.Output,
-		Me:            cfg.Me,
-		Template:      cfg.Template,
-		New:           cfg.New,
-		ChatID:        cfg.ChatID,
-		MaxHistory:    cfg.MaxHistory,
-		MaxSpan:       cfg.MaxSpan,
+		// AgentLoader:   cfg.AgentLoader,
+		// ToolLoader:    cfg.ToolLoader,
+		Agent:      cfg.Agent,
+		Command:    cfg.Command,
+		Args:       append([]string(nil), cfg.Args...),
+		Message:    cfg.Message,
+		Editor:     cfg.Editor,
+		Clipin:     cfg.Clipin,
+		ClipWait:   cfg.ClipWait,
+		Clipout:    cfg.Clipout,
+		ClipAppend: cfg.ClipAppend,
+		IsPiped:    cfg.IsPiped,
+		Stdin:      cfg.Stdin,
+		Files:      append([]string(nil), cfg.Files...),
+		Screenshot: cfg.Screenshot,
+		Voice:      cfg.Voice,
+		Format:     cfg.Format,
+		Output:     cfg.Output,
+		Me:         cfg.Me,
+		Template:   cfg.Template,
+		New:        cfg.New,
+		ChatID:     cfg.ChatID,
+		MaxHistory: cfg.MaxHistory,
+		MaxSpan:    cfg.MaxSpan,
 		// History:    cfg.History,
 		Models: cfg.Models,
 		Log:    cfg.Log,

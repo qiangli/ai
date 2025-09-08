@@ -28,6 +28,10 @@ func max(a, b int) int {
 	return b
 }
 
+func NewAgentCreator(app *api.AppConfig) (func(*api.AgentCreator, error), error) {
+	return nil, nil
+}
+
 func initAgents(app *api.AppConfig) (func(string) (*api.AgentsConfig, error), error) {
 	agents, err := ListAgents(app)
 	if err != nil {
@@ -225,8 +229,20 @@ func LoadAgentsData(data [][]byte) (*api.AgentsConfig, error) {
 }
 
 func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*api.Agent, error) {
-	// config, err := LoadAgents(vars.Config, name)
-	config, err := vars.Config.AgentLoader(name)
+	agentLoader, err := initAgents(vars.Config)
+	if err != nil {
+		return nil, err
+	}
+	toolLoader, err := initTools(vars.Config)
+	if err != nil {
+		return nil, err
+	}
+	modelLoader, err := initModels(vars.Config)
+	if err != nil {
+		return nil, err
+	}
+
+	config, err := agentLoader(name)
 	if err != nil {
 		return nil, err
 	}
@@ -294,12 +310,11 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 	newAgent := func(ac *api.AgentConfig, vars *api.Vars) (*api.Agent, error) {
 		agent := api.Agent{
 			Adapter: ac.Adapter,
+			//
 			Name:    ac.Name,
 			Display: ac.Display,
 			//
 			Instruction: ac.Instruction,
-			//
-			Model: ac.Model,
 			//
 			Config: config,
 			//
@@ -310,18 +325,18 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 			Dependencies: ac.Dependencies,
 		}
 
-		// model, err := vars.Config.ModelLoader(ac.Model)
-		// if err != nil {
-		// 	return nil, fmt.Errorf("failed to load model %q: %v", ac.Model, err)
-		// }
-		// agent.Model = model
+		model, err := modelLoader(ac.Model)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load model %q: %v", ac.Model, err)
+		}
+		agent.Model = model
 
 		// tools
 		funcMap := make(map[string]*api.ToolFunc)
 		for _, f := range ac.Functions {
 			// all
 			if f == "*" || f == "*:" || f == "*:*" {
-				funcs, err := vars.Config.ToolLoader("*:*")
+				funcs, err := toolLoader("*:*")
 				if err != nil {
 					return nil, err
 				}
@@ -341,7 +356,7 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 					if len(parts) > 1 && len(parts[1]) > 0 {
 						kit = parts[1]
 					}
-					funcs, err := vars.Config.ToolLoader(fmt.Sprintf("%s:%s", parts[0], kit))
+					funcs, err := toolLoader(fmt.Sprintf("%s:%s", parts[0], kit))
 					if err != nil {
 						return nil, err
 					}

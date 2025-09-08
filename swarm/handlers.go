@@ -112,7 +112,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	var r = h.agent
 
 	// apply template/load
-	apply := func(ext, s string, vars *api.Vars) (string, error) {
+	apply := func(vars *api.Vars, ext, s string) (string, error) {
 		//
 		if ext == "tpl" {
 			// TODO custom template func?
@@ -140,8 +140,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	// System role prompt as first message
 	if r.Instruction != nil {
 		// update the request instruction
-		// instruction := r.Instruction
-		content, err := apply(r.Instruction.Type, r.Instruction.Content, h.vars)
+		content, err := apply(h.vars, r.Instruction.Type, r.Instruction.Content)
 		if err != nil {
 			return err
 		}
@@ -212,20 +211,23 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	// Request
 	initLen := len(history)
 
-	runTool := func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
-		log.Debugf("run tool: %s %+v\n", name, args)
-		return CallTool(ctx, h.vars, name, args)
+	toolMap := make(map[string]*api.ToolFunc)
+	for _, v := range h.agent.Tools {
+		toolMap[v.ID] = v
 	}
 
-	// send message to LLM
-	model, err := h.vars.Config.ModelLoader(r.Model)
-	if err != nil {
-		return fmt.Errorf("failed to load model %q: %v", r.Model, err)
+	runTool := func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
+		log.Debugf("run tool: %s %+v\n", name, args)
+		v, ok := toolMap[name]
+		if !ok {
+			return nil, fmt.Errorf("tool not found: %s", name)
+		}
+		return CallTool(ctx, v, h.vars, name, args)
 	}
 
 	var request = llm.Request{
 		Agent:    r.Name,
-		Model:    model,
+		Model:    r.Model,
 		Messages: history,
 		MaxTurns: r.MaxTurns,
 		RunTool:  runTool,

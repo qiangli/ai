@@ -69,8 +69,8 @@ type Agent struct {
 	Description string
 
 	// The model to be used by the agent
-	// Model *Model
-	Model string
+	Model *Model
+	// Model string
 
 	// The role of the agent. default is "system"
 	Role string
@@ -99,7 +99,7 @@ type Agent struct {
 	MaxTurns int
 	MaxTime  int
 
-	Instruction *InstructionConfig
+	Instruction *Instruction
 
 	Config *AgentsConfig
 }
@@ -126,7 +126,7 @@ type AgentConfig struct {
 	Description string `yaml:"description"`
 
 	//
-	Instruction *InstructionConfig `yaml:"instruction"`
+	Instruction *Instruction `yaml:"instruction"`
 
 	Model string `yaml:"model"`
 
@@ -151,7 +151,7 @@ type AgentConfig struct {
 	BaseDir string `yaml:"-"`
 }
 
-type InstructionConfig struct {
+type Instruction struct {
 	Role string `yaml:"role"`
 	// TODO add new field
 	// Source ? resource/file/cloud...

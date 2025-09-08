@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -20,30 +21,36 @@ func New(vars *api.Vars) *Swarm {
 }
 
 func InitVars(app *api.AppConfig) (*api.Vars, error) {
-	agentLoader, err := initAgents(app)
-	if err != nil {
+	if v, err := NewAgentCreator(app); err != nil {
 		return nil, err
+	} else {
+		app.AgentCreator = v
 	}
-	app.AgentLoader = agentLoader
 
+	// agentLoader, err := initAgents(app)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// app.AgentLoader = agentLoader
 	agentLister, err := AgentLister(app)
 	if err != nil {
 		return nil, err
 	}
 	app.AgentLister = agentLister
 
-	toolLoader, err := initTools(app)
-	if err != nil {
-		return nil, err
-	}
-	app.ToolLoader = toolLoader
-	// app.ToolSystem = NewLocalSystem(app)
+	// toolLoader, err := initTools(app)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// app.ToolLoader = toolLoader
 
-	modelLoader, err := initModels(app)
-	if err != nil {
-		return nil, err
-	}
-	app.ModelLoader = modelLoader
+	app.ToolSystem = NewLocalSystem(app)
+
+	// modelLoader, err := initModels(app)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// app.ModelLoader = modelLoader
 
 	return Vars(app)
 }
@@ -101,7 +108,11 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	clearAllEnv()
 
 	for {
-		agent, err := CreateAgent(r.Vars, req.Agent, req.Command, req.RawInput)
+		// agent, err := CreateAgent(r.Vars, req.Agent, req.Command, req.RawInput)
+		if r.Vars == nil || r.Vars.Config == nil || r.Vars.Config.AgentCreator == nil {
+			return fmt.Errorf("not initialized.")
+		}
+		agent, err := r.Vars.Config.AgentCreator(r.Vars, req)
 		if err != nil {
 			return err
 		}

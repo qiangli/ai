@@ -20,12 +20,8 @@ import (
 
 const (
 	ToolTypeSystem = "system"
-	// ToolTypeTemplate = "template"
-	// ToolTypeShell    = "shell"
-	// ToolTypeSql      = "sql"
-	ToolTypeMcp = "mcp"
-	// ToolTypeAgent    = "agent"
-	ToolTypeFunc = "func"
+	ToolTypeMcp    = "mcp"
+	ToolTypeFunc   = "func"
 )
 
 func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
@@ -278,12 +274,6 @@ func LoadToolData(data [][]byte) (*api.ToolsConfig, error) {
 			return nil, err
 		}
 
-		// // update kit if not set
-		// for _, tool := range tc.Tools {
-		// 	if tool.Kit == "" {
-		// 		tool.Kit = tc.Kit
-		// 	}
-		// }
 		if err := mergo.Merge(merged, tc, mergo.WithAppendSlice); err != nil {
 			return nil, err
 		}
@@ -291,10 +281,10 @@ func LoadToolData(data [][]byte) (*api.ToolsConfig, error) {
 	return merged, nil
 }
 
-func CallTool(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
+func CallTool(ctx context.Context, v *api.ToolFunc, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
 	log.Infof("⣿ %s %+v\n", name, args)
 
-	result, err := dispatchTool(ctx, vars, name, args)
+	result, err := dispatchTool(ctx, v, vars, name, args)
 
 	if err != nil {
 		log.Errorf("\033[31m✗\033[0m %s\n", err)
@@ -317,13 +307,7 @@ func head(s string, maxLen int) string {
 }
 
 // dispatch tool by name (kit__name) and args
-func dispatchTool(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
-	tools, err := vars.Config.ToolLoader(name)
-	if err != nil {
-		return nil, err
-	}
-	v := tools[0]
-
+func dispatchTool(ctx context.Context, v *api.ToolFunc, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
 	// spinner
 	sp := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 	sp.Suffix = " calling " + name + "\n"
