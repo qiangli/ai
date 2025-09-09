@@ -56,10 +56,10 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 }
 
 func Vars(app *api.AppConfig) (*api.Vars, error) {
-
 	var vars = api.NewVars()
 	//
 	vars.Config = app
+	vars.Config.Env = make(map[string]string)
 
 	//
 	vars.Workspace = app.Workspace
@@ -78,10 +78,6 @@ func Vars(app *api.AppConfig) (*api.Vars, error) {
 	vars.ShellInfo = sysInfo.ShellInfo
 	vars.OSInfo = sysInfo.OSInfo
 	vars.UserInfo = sysInfo.UserInfo
-
-	//
-	// vars.TemplateFuncMap = tplFuncMap
-	// vars.AdviceMap = adviceMap
 
 	return vars, nil
 }

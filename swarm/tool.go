@@ -37,9 +37,11 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 			return true
 		}
 		if len(c.Env) > 0 {
-			for _, v := range c.Env {
-				if _, ok := os.LookupEnv(v); !ok {
+			for _, k := range c.Env {
+				if v, ok := os.LookupEnv(k); !ok {
 					return false
+				} else {
+					app.Env[k] = v
 				}
 			}
 		}

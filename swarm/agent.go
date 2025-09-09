@@ -21,13 +21,6 @@ const maxTimeLimit = 600 // 10 min
 const defaultMaxTurns = 8
 const defaultMaxTime = 180 // 3 min
 
-func max(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
 func NewAgentCreator(app *api.AppConfig) (api.AgentCreator, error) {
 	apiKeys := make(map[string]string)
 	apiKeys["openai"] = os.Getenv("OPENAI_API_KEY")
@@ -93,8 +86,8 @@ func ListAgents(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
 				v.MaxTime = defaultMaxTime
 			}
 			// upper limit
-			v.MaxTurns = max(v.MaxTurns, maxTurnsLimit)
-			v.MaxTime = max(v.MaxTime, maxTimeLimit)
+			v.MaxTurns = min(v.MaxTurns, maxTurnsLimit)
+			v.MaxTime = min(v.MaxTime, maxTimeLimit)
 		}
 	}
 

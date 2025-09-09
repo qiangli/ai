@@ -117,6 +117,9 @@ type AppConfig struct {
 	// dry run
 	DryRun        bool
 	DryRunContent string
+
+	// experimental
+	Env map[string]string
 }
 
 // Clone is a shallow copy of member fields of the configration

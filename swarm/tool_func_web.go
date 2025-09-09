@@ -2,7 +2,7 @@ package swarm
 
 import (
 	"context"
-	"os"
+	"fmt"
 
 	webtool "github.com/qiangli/ai/internal/web/tool"
 	"github.com/qiangli/ai/swarm/api"
@@ -82,8 +82,11 @@ func (r *FuncKit) BraveSearch(ctx context.Context, vars *api.Vars, name string, 
 	if max > 10 {
 		max = 10
 	}
-	// TODO move to app confg?
-	apiKey := os.Getenv("BRAVE_API_KEY")
+
+	apiKey, err := varsEnv(vars, "BRAVE_API_KEY")
+	if err != nil {
+		return "", err
+	}
 	return webtool.Brave(ctx, apiKey, query, max)
 }
 
@@ -103,10 +106,24 @@ func (r *FuncKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string,
 	if max > 10 {
 		max = 10
 	}
-	// TODO move to app confg?
 
-	apiKey := os.Getenv("GOOGLE_API_KEY")
-	seID := os.Getenv("GOOGLE_SEARCH_ENGINE_ID")
-
+	apiKey, err := varsEnv(vars, "GOOGLE_API_KEY")
+	if err != nil {
+		return "", err
+	}
+	seID, err := varsEnv(vars, "GOOGLE_SEARCH_ENGINE_ID")
+	if err != nil {
+		return "", err
+	}
 	return webtool.Google(ctx, apiKey, seID, query, max)
+}
+
+func varsEnv(vars *api.Vars, key string) (string, error) {
+	if vars == nil || vars.Config == nil || vars.Config.Env == nil {
+		return "", fmt.Errorf("missing %s", key)
+	}
+	if v, ok := vars.Config.Env[key]; ok && v != "" {
+		return v, nil
+	}
+	return "", fmt.Errorf("missing %s", key)
 }
