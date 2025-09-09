@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/openai/openai-go"
-	"github.com/openai/openai-go/shared/constant"
+	"github.com/openai/openai-go/v2"
+	"github.com/openai/openai-go/v2/shared/constant"
 
 	"github.com/qiangli/ai/swarm/api"
 )
@@ -95,7 +95,7 @@ func dummyChatCompletionMessage(content string) openai.ChatCompletionMessage {
 		// FunctionCall: openai.ChatCompletionMessageFunctionCall{
 		// 	// Initialize with dummy function call data
 		// },
-		ToolCalls: []openai.ChatCompletionMessageToolCall{},
+		ToolCalls: []openai.ChatCompletionMessageToolCallUnion{},
 		// JSON: struct {
 		// 	Content      respjson.Field
 		// 	Refusal      respjson.Field

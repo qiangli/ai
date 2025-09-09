@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/openai/openai-go/option"
+	"github.com/openai/openai-go/v2/option"
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"

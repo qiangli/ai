@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/openai/openai-go"
-	"github.com/openai/openai-go/option"
-	"github.com/openai/openai-go/packages/param"
+	"github.com/openai/openai-go/v2"
+	"github.com/openai/openai-go/v2/option"
+	"github.com/openai/openai-go/v2/packages/param"
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
@@ -20,12 +20,14 @@ import (
 // https://platform.openai.com/docs/models
 
 // https://github.com/openai/openai-go/tree/main/examples
-func defineTool(name, description string, parameters map[string]any) openai.ChatCompletionToolParam {
-	return openai.ChatCompletionToolParam{
-		Function: openai.FunctionDefinitionParam{
-			Name:        name,
-			Description: openai.String(description),
-			Parameters:  openai.FunctionParameters(parameters),
+func defineTool(name, description string, parameters map[string]any) openai.ChatCompletionToolUnionParam {
+	return openai.ChatCompletionToolUnionParam{
+		OfFunction: &openai.ChatCompletionFunctionToolParam{
+			Function: openai.FunctionDefinitionParam{
+				Name:        name,
+				Description: openai.String(description),
+				Parameters:  openai.FunctionParameters(parameters),
+			},
 		},
 	}
 }
@@ -85,10 +87,12 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	params.Messages = messages
 
 	if len(req.Tools) > 0 {
-		var tools []openai.ChatCompletionToolParam
+		var tools []openai.ChatCompletionToolUnionParam
 		for _, f := range req.Tools {
+
 			tools = append(tools, defineTool(f.ID, f.Description, f.Parameters))
 		}
+
 		params.Tools = tools
 	}
 

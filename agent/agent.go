@@ -3,8 +3,6 @@ package agent
 import (
 	_ "embed"
 
-	// "path/filepath"
-
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm"

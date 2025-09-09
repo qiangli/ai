@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/openai/openai-go"
+	"github.com/openai/openai-go/v2"
 
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
