@@ -57,9 +57,8 @@ func ListMcpTools(cfg *api.ToolsConfig) ([]*api.ToolFunc, error) {
 	funcs := make([]*api.ToolFunc, 0)
 	for _, v := range result.Tools {
 		funcs = append(funcs, &api.ToolFunc{
-			Type: ToolTypeMcp,
-			// Kit:         cfg.Kit,
-			ID:          api.ToolID(cfg.Kit, v.Name),
+			Type:        ToolTypeMcp,
+			Kit:         cfg.Kit,
 			Name:        v.Name,
 			Description: v.Description,
 			Parameters: map[string]any{

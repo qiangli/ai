@@ -84,8 +84,6 @@ func (r *Model) Clone() *Model {
 }
 
 type ModelsConfig struct {
-	Owner string `yaml:"owner"`
-
 	Alias string `yaml:"alias"`
 
 	// default for Models

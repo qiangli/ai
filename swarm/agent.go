@@ -56,7 +56,7 @@ func AgentLister(app *api.AppConfig) (func() (map[string]*api.AgentsConfig, erro
 }
 
 func ListAgents(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
-	var agentRegistry = make(map[string]*api.AgentsConfig)
+	var agents = make(map[string]*api.AgentsConfig)
 
 	config, err := LoadAgentsConfig(app)
 	if err != nil {
@@ -72,12 +72,12 @@ func ListAgents(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
 		}
 		// Register the agent configurations
 		for _, agent := range v.Agents {
-			if _, exists := agentRegistry[agent.Name]; exists {
+			if _, exists := agents[agent.Name]; exists {
 				log.Debugf("Duplicate agent name found: %s, skipping registration\n", agent.Name)
 				continue
 			}
 			// Register the agents configuration
-			agentRegistry[agent.Name] = v
+			agents[agent.Name] = v
 			log.Debugf("Registered agent: %s\n", agent.Name)
 			if v.MaxTurns == 0 {
 				v.MaxTurns = defaultMaxTurns
@@ -91,11 +91,11 @@ func ListAgents(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
 		}
 	}
 
-	if len(agentRegistry) == 0 {
+	if len(agents) == 0 {
 		return nil, fmt.Errorf("no agent configurations found")
 	}
-	log.Debugf("Initialized %d agent configurations\n", len(agentRegistry))
-	return agentRegistry, nil
+	log.Debugf("Initialized %d agent configurations\n", len(agents))
+	return agents, nil
 }
 
 func LoadAgentsConfig(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
@@ -341,10 +341,11 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput, api
 					return nil, err
 				}
 				for _, fn := range funcs {
-					if fn.ID == "" {
+					id := fn.ID()
+					if id == "" {
 						return nil, fmt.Errorf("tool ID is empty. agent: %s", name)
 					}
-					funcMap[fn.ID] = fn
+					funcMap[id] = fn
 				}
 				continue
 			}
@@ -361,10 +362,11 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput, api
 						return nil, err
 					}
 					for _, fn := range funcs {
-						if fn.ID == "" {
+						id := fn.ID()
+						if id == "" {
 							return nil, fmt.Errorf("tool ID is empty agent: %s", name)
 						}
-						funcMap[fn.ID] = fn
+						funcMap[id] = fn
 					}
 					continue
 				}

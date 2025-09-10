@@ -84,7 +84,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	var toolParams []*anthropic.ToolParam
 	if len(req.Tools) > 0 {
 		for _, f := range req.Tools {
-			param, err := defineTool(f.ID, f.Description, f.Parameters)
+			param, err := defineTool(f.ID(), f.Description, f.Parameters)
 			if err != nil {
 				return nil, err
 			}

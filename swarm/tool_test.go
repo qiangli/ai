@@ -86,8 +86,7 @@ func TestCallSystemTool(t *testing.T) {
 
 	for _, tt := range tests {
 		tf := &api.ToolFunc{
-			// Kit:        tt.kit,
-			ID:         api.ToolID(tt.kit, tt.name),
+			Kit:        tt.kit,
 			Name:       tt.name,
 			Parameters: map[string]any{},
 			Config: &api.ToolsConfig{

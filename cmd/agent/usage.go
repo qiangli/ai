@@ -342,7 +342,7 @@ Tools are used by agents to perform specific tasks. They are automatically selec
 			continue
 		}
 		if sub == "" || v.Type == sub {
-			list = append(list, fmt.Sprintf("%s: %s: %s\n", v.Type, v.ID, strings.TrimSpace(v.Description)))
+			list = append(list, fmt.Sprintf("%s: %s: %s\n", v.Type, v.ID(), strings.TrimSpace(v.Description)))
 		}
 	}
 

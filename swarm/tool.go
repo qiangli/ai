@@ -73,7 +73,7 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 			}
 			for _, tool := range tools {
 				tool.Config = kit
-				toolRegistry[tool.ID] = tool
+				toolRegistry[tool.ID()] = tool
 			}
 		}
 
@@ -87,9 +87,8 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 					continue
 				}
 				tool := &api.ToolFunc{
-					Type: v.Type,
-					ID:   api.ToolID(kit.Kit, v.Name),
-					// Kit:         v.Kit,
+					Type:        v.Type,
+					Kit:         kit.Kit,
 					Name:        v.Name,
 					Description: v.Description,
 					Parameters:  v.Parameters,
@@ -105,7 +104,7 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 				}
 
 				// override
-				toolRegistry[tool.ID] = tool
+				toolRegistry[tool.ID()] = tool
 
 				// TODO this is used for security check by the evalCommand
 				if v.Type == ToolTypeSystem {
@@ -338,7 +337,7 @@ func dispatchTool(ctx context.Context, v *api.ToolFunc, vars *api.Vars, name str
 		}, err
 	case ToolTypeSystem:
 		if vars.Config.ToolSystem == nil {
-			return nil, fmt.Errorf("local system tool not supported: %s", v.ID)
+			return nil, fmt.Errorf("local system tool not supported: %s", v.ID())
 		}
 		return vars.Config.ToolSystem.Call(ctx, vars, v, args)
 	// case ToolTypeTemplate, ToolTypeShell, ToolTypeSql:

@@ -90,7 +90,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		var tools []openai.ChatCompletionToolUnionParam
 		for _, f := range req.Tools {
 
-			tools = append(tools, defineTool(f.ID, f.Description, f.Parameters))
+			tools = append(tools, defineTool(f.ID(), f.Description, f.Parameters))
 		}
 
 		params.Tools = tools

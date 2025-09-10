@@ -106,9 +106,6 @@ type Agent struct {
 
 // agent app config
 type AgentsConfig struct {
-	// Source/Creator of the agent
-	Owner string `yaml:"owner"`
-
 	// agent app name
 	Name string `yaml:"name"`
 

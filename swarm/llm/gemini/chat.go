@@ -130,7 +130,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		var tools []*genai.Tool
 		for _, f := range req.Tools {
 			var fds []*genai.FunctionDeclaration
-			fd, err := defineTool(f.ID, f.Description, f.Parameters)
+			fd, err := defineTool(f.ID(), f.Description, f.Parameters)
 			if err != nil {
 				return nil, err
 			}

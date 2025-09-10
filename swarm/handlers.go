@@ -213,7 +213,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 
 	toolMap := make(map[string]*api.ToolFunc)
 	for _, v := range h.agent.Tools {
-		toolMap[v.ID] = v
+		toolMap[v.ID()] = v
 	}
 
 	runTool := func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {

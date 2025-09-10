@@ -6,11 +6,9 @@ import (
 )
 
 type ToolFunc struct {
-	ID string
-
 	Type string
 
-	// func name
+	Kit         string
 	Name        string
 	Description string
 	Parameters  map[string]any
@@ -24,10 +22,14 @@ type ToolFunc struct {
 	Config *ToolsConfig
 }
 
-// Tool kit configuration
-type ToolsConfig struct {
-	Owner string `yaml:"owner"`
+// ID returns a unique identifier for the tool,
+// combining the tool kit and name.
+func (r *ToolFunc) ID() string {
+	return fmt.Sprintf("%s__%s", r.Kit, r.Name)
+}
 
+// Toolkit configuration
+type ToolsConfig struct {
 	// kit name
 	// Namespace:
 	//
@@ -54,20 +56,14 @@ type ToolsConfig struct {
 type ToolConfig struct {
 	Type string `yaml:"type"`
 
-	Name        string         `yaml:"name"`
+	Name string `yaml:"name"`
+
 	Description string         `yaml:"description"`
 	Parameters  map[string]any `yaml:"parameters"`
 
 	Body string `yaml:"body"`
 
 	Condition *ToolCondition `yaml:"condition"`
-}
-
-// ID returns a unique identifier for the tool,
-// combining the tool kit and name.
-
-func ToolID(kit, name string) string {
-	return fmt.Sprintf("%s__%s", kit, name)
 }
 
 // TODO condidtion needs to be met for tools to be enabled

@@ -29,7 +29,11 @@ func (r *FuncKit) ListAgents(ctx context.Context, vars *api.Vars, _ string, _ ma
 			return "", err
 		}
 		for k, v := range dict {
-			list = append(list, fmt.Sprintf("%s: %s", k, v.Agents[0].Description))
+			var desc []string
+			for _, a := range v.Agents {
+				desc = append(desc, a.Description)
+			}
+			list = append(list, fmt.Sprintf("%s: %s", k, strings.Join(desc, " ")))
 		}
 		sort.Strings(list)
 	}
@@ -51,7 +55,7 @@ func (r *FuncKit) AgentInfo(ctx context.Context, vars *api.Vars, _ string, args 
 			for _, a := range v.Agents {
 				desc = append(desc, a.Description)
 			}
-			return fmt.Sprintf("Agent: %s\nDescription: %s\n", v.Name, strings.Join(desc, "\n")), nil
+			return fmt.Sprintf("Agent: %s\nDescription: %s\n", v.Name, strings.Join(desc, " -- ")), nil
 		}
 	}
 	return "", fmt.Errorf("unknown agent: %s", agent)
