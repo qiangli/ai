@@ -1,5 +1,5 @@
 kit: "web"
-type: "func"
+type: "web"
 
 tools:
   - name: "fetch_content"

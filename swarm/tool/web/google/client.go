@@ -8,7 +8,7 @@ import (
 	"google.golang.org/api/customsearch/v1"
 	"google.golang.org/api/option"
 
-	"github.com/qiangli/ai/internal/web"
+	"github.com/qiangli/ai/swarm/tool/web"
 )
 
 func (client *Client) customSearch(ctx context.Context, query string) (*customsearch.Search, error) {

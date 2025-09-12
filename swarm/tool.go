@@ -351,16 +351,13 @@ func dispatchTool(ctx context.Context, v *api.ToolFunc, vars *api.Vars, name str
 			Value: out,
 		}, err
 	case api.ToolTypeSystem:
-		// if vars.Config.ToolSystem == nil {
-		// 	return nil, fmt.Errorf("local system tool not supported: %s", v.ID())
-		// }
 		local := newLocalSystem()
 		return local.Call(ctx, vars, v, args)
-	// case ToolTypeTemplate, ToolTypeShell, ToolTypeSql:
-	// 	out, err := callTplTool(ctx, vars, v, args)
-	// 	return &api.Result{
-	// 		Value: out,
-	// 	}, err
+	case api.ToolTypeWeb:
+		out, err := callWebTool(ctx, vars, v, args)
+		return &api.Result{
+			Value: out,
+		}, err
 	case api.ToolTypeFunc:
 		if v.Name == "agent_transfer" {
 			return callAgentTransfer(ctx, vars, v.Name, args)

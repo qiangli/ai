@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/qiangli/ai/internal/web"
+	"github.com/qiangli/ai/swarm/tool/web"
 )
 
 func TestScrape(t *testing.T) {

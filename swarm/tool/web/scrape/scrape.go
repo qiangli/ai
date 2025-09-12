@@ -14,7 +14,7 @@ import (
 	"github.com/weppos/publicsuffix-go/publicsuffix"
 
 	"github.com/gocolly/colly"
-	"github.com/qiangli/ai/internal/web"
+	"github.com/qiangli/ai/swarm/tool/web"
 )
 
 const (

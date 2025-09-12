@@ -6,9 +6,10 @@ import (
 )
 
 const (
-	ToolTypeSystem = "system"
-	ToolTypeMcp    = "mcp"
 	ToolTypeFunc   = "func"
+	ToolTypeSystem = "system"
+	ToolTypeWeb    = "web"
+	ToolTypeMcp    = "mcp"
 )
 
 type ToolCaller func(*Vars, *Agent) func(context.Context, string, map[string]any) (*Result, error)

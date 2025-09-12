@@ -9,7 +9,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
-	"github.com/qiangli/ai/internal/web"
+	"github.com/qiangli/ai/swarm/tool/web"
 )
 
 const searchURL = "https://www.bing.com/search?q=%s"

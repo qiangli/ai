@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/qiangli/ai/internal/web"
+	"github.com/qiangli/ai/swarm/tool/web"
 )
 
 // https://api-dashboard.search.brave.com/app/documentation/web-search/query#WebSearchAPIQueryParameters

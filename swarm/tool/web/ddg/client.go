@@ -12,7 +12,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
-	"github.com/qiangli/ai/internal/web"
+	"github.com/qiangli/ai/swarm/tool/web"
 )
 
 const searchURL = "https://html.duckduckgo.com/html/?q=%s"

@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	// "github.com/qiangli/ai/internal/log"
-	utool "github.com/qiangli/ai/internal/tool"
 	"github.com/qiangli/ai/swarm/api"
+	utool "github.com/qiangli/ai/swarm/tool/util"
 )
 
 // // Default returns the given value if it's non-nil and non-zero value;

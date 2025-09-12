@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	utool "github.com/qiangli/ai/internal/tool"
 	"github.com/qiangli/ai/swarm/api"
+	utool "github.com/qiangli/ai/swarm/tool/util"
 )
 
 func (r *FuncKit) GetLocalTimezone(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
