@@ -282,18 +282,20 @@ func LoadToolData(data [][]byte) (*api.ToolsConfig, error) {
 	return merged, nil
 }
 
-func ToolCaller(vars *api.Vars, agent *api.Agent) func(context.Context, string, map[string]any) (*api.Result, error) {
-	toolMap := make(map[string]*api.ToolFunc)
-	for _, v := range agent.Tools {
-		toolMap[v.ID()] = v
-	}
-	return func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
-		log.Debugf("run tool: %s %+v\n", name, args)
-		v, ok := toolMap[name]
-		if !ok {
-			return nil, fmt.Errorf("tool not found: %s", name)
+func NewToolCaller(app *api.AppConfig) api.ToolCaller {
+	return func(vars *api.Vars, agent *api.Agent) func(context.Context, string, map[string]any) (*api.Result, error) {
+		toolMap := make(map[string]*api.ToolFunc)
+		for _, v := range agent.Tools {
+			toolMap[v.ID()] = v
 		}
-		return callTool(vars, v, ctx, name, args)
+		return func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
+			log.Debugf("run tool: %s %+v\n", name, args)
+			v, ok := toolMap[name]
+			if !ok {
+				return nil, fmt.Errorf("tool not found: %s", name)
+			}
+			return callTool(vars, v, ctx, name, args)
+		}
 	}
 }
 
@@ -359,10 +361,6 @@ func dispatchTool(ctx context.Context, v *api.ToolFunc, vars *api.Vars, name str
 			Value: out,
 		}, err
 	case api.ToolTypeFunc:
-		if v.Name == "agent_transfer" {
-			return callAgentTransfer(ctx, vars, v.Name, args)
-		}
-		// func tools including the rest of ai:*
 		out, err := callFuncTool(ctx, vars, v, args)
 		return &api.Result{
 			Value: out,

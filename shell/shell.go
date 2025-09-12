@@ -11,13 +11,13 @@ import (
 	"github.com/mattn/go-isatty"
 	"golang.org/x/term"
 
+	"github.com/qiangli/ai/agent"
 	"github.com/qiangli/ai/internal/log"
-	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 )
 
 func Shell(cfg *api.AppConfig) error {
-	vars, err := swarm.InitVars(cfg)
+	vars, err := agent.InitVars(cfg)
 	if err != nil {
 		return err
 	}

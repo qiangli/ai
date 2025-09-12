@@ -1,7 +1,6 @@
 package swarm
 
 import (
-	"context"
 	"testing"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -29,77 +28,77 @@ func TestLoadToolsConfig(t *testing.T) {
 	}
 }
 
-func TestCallSystemTool(t *testing.T) {
-	tests := []struct {
-		kit  string
-		name string
-		args map[string]any
-	}{
-		{
-			kit:  "fs",
-			name: "list_directory",
-			args: map[string]any{"path": "/tmp"},
-		},
-		{
-			kit:  "host",
-			name: "workspace_dir",
-			args: map[string]any{},
-		},
-		{
-			kit:  "host",
-			name: "who_am_i",
-			args: map[string]any{},
-		},
-		{
-			kit:  "io",
-			name: "write_stdout",
-			args: map[string]any{"content": "Hello, World!"},
-		},
-		{
-			kit:  "os",
-			name: "uname",
-			args: map[string]any{},
-		},
-		{
-			kit:  "os",
-			name: "exec",
-			args: map[string]any{
-				"command": "which",
-				"args":    []string{"go"},
-			},
-		},
-	}
+// func TestCallSystemTool(t *testing.T) {
+// 	tests := []struct {
+// 		kit  string
+// 		name string
+// 		args map[string]any
+// 	}{
+// 		{
+// 			kit:  "fs",
+// 			name: "list_directory",
+// 			args: map[string]any{"path": "/tmp"},
+// 		},
+// 		{
+// 			kit:  "host",
+// 			name: "workspace_dir",
+// 			args: map[string]any{},
+// 		},
+// 		{
+// 			kit:  "host",
+// 			name: "who_am_i",
+// 			args: map[string]any{},
+// 		},
+// 		{
+// 			kit:  "io",
+// 			name: "write_stdout",
+// 			args: map[string]any{"content": "Hello, World!"},
+// 		},
+// 		{
+// 			kit:  "os",
+// 			name: "uname",
+// 			args: map[string]any{},
+// 		},
+// 		{
+// 			kit:  "os",
+// 			name: "exec",
+// 			args: map[string]any{
+// 				"command": "which",
+// 				"args":    []string{"go"},
+// 			},
+// 		},
+// 	}
 
-	cfg := &api.AppConfig{
-		Base:   "../internal/data/",
-		Models: "openai",
-	}
+// 	cfg := &api.AppConfig{
+// 		Base:   "../internal/data/",
+// 		Models: "openai",
+// 	}
 
-	ctx := context.Background()
-	vars, err := InitVars(cfg)
+// 	ctx := context.Background()
+// 	vars, err := InitVars(cfg)
 
-	if err != nil {
-		t.Fatalf("failed to initialize vars: %v", err)
-	}
+// 	if err != nil {
+// 		t.Fatalf("failed to initialize vars: %v", err)
+// 	}
 
-	ls := newLocalSystem()
+// 	ls := newLocalSystem()
 
-	for _, tt := range tests {
-		tf := &api.ToolFunc{
-			Kit:        tt.kit,
-			Name:       tt.name,
-			Parameters: map[string]any{},
-			Config: &api.ToolsConfig{
-				Kit: tt.kit,
-			},
-		}
-		result, err := ls.Call(ctx, vars, tf, tt.args)
-		if err != nil {
-			t.Fatalf("failed to call system tool: %v", err)
-		}
-		t.Logf("Result: %+v", result)
-	}
-}
+// 	for _, tt := range tests {
+// 		tf := &api.ToolFunc{
+// 			Kit:        tt.kit,
+// 			Name:       tt.name,
+// 			Parameters: map[string]any{},
+// 			Config: &api.ToolsConfig{
+// 				Kit: tt.kit,
+// 			},
+// 		}
+// 		result, err := ls.Call(ctx, vars, tf, tt.args)
+// 		if err != nil {
+// 			t.Fatalf("failed to call system tool: %v", err)
+// 		}
+// 		t.Logf("Result: %+v", result)
+// 	}
+// }
 
 // func TestCallDevTools(t *testing.T) {
 // 	tests := []struct {

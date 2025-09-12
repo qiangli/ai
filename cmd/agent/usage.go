@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/qiangli/ai/agent"
 	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm"
@@ -127,7 +128,7 @@ func Help(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	vars, err := swarm.InitVars(cfg)
+	vars, err := agent.InitVars(cfg)
 	if err != nil {
 		return err
 	}

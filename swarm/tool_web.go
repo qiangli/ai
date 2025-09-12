@@ -10,7 +10,7 @@ import (
 )
 
 type WebKit struct {
-	Envs map[string]string
+	Env map[string]string
 }
 
 func (r *WebKit) FetchContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -96,7 +96,7 @@ func (r *WebKit) BraveSearch(ctx context.Context, vars *api.Vars, name string, a
 		max = 10
 	}
 
-	apiKey, err := r.Env("BRAVE_API_KEY")
+	apiKey, err := r.env("BRAVE_API_KEY")
 	if err != nil {
 		return "", err
 	}
@@ -122,11 +122,11 @@ func (r *WebKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string, 
 		max = 10
 	}
 
-	apiKey, err := r.Env("GOOGLE_API_KEY")
+	apiKey, err := r.env("GOOGLE_API_KEY")
 	if err != nil {
 		return "", err
 	}
-	seID, err := r.Env("GOOGLE_SEARCH_ENGINE_ID")
+	seID, err := r.env("GOOGLE_SEARCH_ENGINE_ID")
 	if err != nil {
 		return "", err
 	}
@@ -135,9 +135,9 @@ func (r *WebKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string, 
 	return webtool.Google(ctx, apiKey, seID, query, max)
 }
 
-func (r *WebKit) Env(key string) (string, error) {
-	if r.Envs != nil {
-		if v, ok := r.Envs[key]; ok && v != "" {
+func (r *WebKit) env(key string) (string, error) {
+	if r.Env != nil {
+		if v, ok := r.Env[key]; ok && v != "" {
 			return v, nil
 		}
 	}

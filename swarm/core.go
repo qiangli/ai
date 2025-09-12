@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/qiangli/ai/internal/util"
+	// "github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm/api"
 )
 
@@ -18,51 +18,6 @@ func New(vars *api.Vars) *Swarm {
 	return &Swarm{
 		Vars: vars,
 	}
-}
-
-func InitVars(app *api.AppConfig) (*api.Vars, error) {
-	if v, err := NewAgentCreator(app); err != nil {
-		return nil, err
-	} else {
-		app.AgentCreator = v
-	}
-
-	agentLister, err := AgentLister(app)
-	if err != nil {
-		return nil, err
-	}
-	app.AgentLister = agentLister
-	// app.ToolSystem = NewLocalSystem(app)
-	app.ToolCaller = ToolCaller
-
-	return Vars(app)
-}
-
-func Vars(app *api.AppConfig) (*api.Vars, error) {
-	var vars = api.NewVars()
-	//
-	vars.Config = app
-	vars.Config.Env = make(map[string]string)
-
-	//
-	vars.Workspace = app.Workspace
-	// vars.Repo = app.Repo
-	vars.Home = app.Home
-	vars.Temp = app.Temp
-
-	//
-	sysInfo, err := util.CollectSystemInfo()
-	if err != nil {
-		return nil, err
-	}
-
-	vars.Arch = sysInfo.Arch
-	vars.OS = sysInfo.OS
-	vars.ShellInfo = sysInfo.ShellInfo
-	vars.OSInfo = sysInfo.OSInfo
-	vars.UserInfo = sysInfo.UserInfo
-
-	return vars, nil
 }
 
 // Function to clear all environment variables execep essential ones

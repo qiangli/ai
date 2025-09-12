@@ -16,8 +16,8 @@ import (
 	"github.com/qiangli/ai/swarm/llm"
 )
 
-func initModels(app *api.AppConfig, apiKeys map[string]string) (func(level string) (*api.Model, error), error) {
-
+func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), error) {
+	var apiKeys = app.Env
 	var alias = app.Models
 
 	cfg, err := loadModels(app, alias)

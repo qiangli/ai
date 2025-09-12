@@ -5,6 +5,7 @@ import (
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 )
@@ -31,7 +32,7 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	command := input.Command
 	log.Debugf("Running agent %q %s with swarm\n", name, command)
 
-	vars, err := swarm.InitVars(cfg)
+	vars, err := InitVars(cfg)
 	if err != nil {
 		return err
 	}
@@ -126,4 +127,39 @@ func processOutput(cfg *api.AppConfig, message *api.Output) {
 	default:
 		log.Debugf("Unsupported content type: %s\n", message.ContentType)
 	}
+}
+
+func InitVars(app *api.AppConfig) (*api.Vars, error) {
+	if v, err := swarm.NewAgentCreator(app); err != nil {
+		return nil, err
+	} else {
+		app.AgentCreator = v
+	}
+	app.ToolCaller = swarm.NewToolCaller(app)
+
+	//
+	var vars = api.NewVars()
+	//
+	vars.Config = app
+	vars.Config.Env = make(map[string]string)
+
+	//
+	vars.Workspace = app.Workspace
+	// vars.Repo = app.Repo
+	vars.Home = app.Home
+	vars.Temp = app.Temp
+
+	//
+	sysInfo, err := util.CollectSystemInfo()
+	if err != nil {
+		return nil, err
+	}
+
+	vars.Arch = sysInfo.Arch
+	vars.OS = sysInfo.OS
+	vars.ShellInfo = sysInfo.ShellInfo
+	vars.OSInfo = sysInfo.OSInfo
+	vars.UserInfo = sysInfo.UserInfo
+
+	return vars, nil
 }

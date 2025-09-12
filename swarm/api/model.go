@@ -4,6 +4,9 @@ type InputType string
 type OutputType string
 type Feature string
 
+type ModelAlias = map[string]*Model
+type ModelAliasConfig = map[string]*ModelConfig
+
 const (
 	//
 	// InputTypeUnknown InputType = ""
@@ -92,7 +95,7 @@ type ModelsConfig struct {
 	BaseUrl  string `yaml:"base_url"`
 	ApiKey   string `yaml:"api_key"`
 
-	Models map[string]*ModelConfig `yaml:"models"`
+	Models ModelAliasConfig `yaml:"models"`
 }
 
 type ModelConfig struct {

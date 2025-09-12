@@ -22,13 +22,15 @@ const defaultMaxTurns = 8
 const defaultMaxTime = 180 // 3 min
 
 func NewAgentCreator(app *api.AppConfig) (api.AgentCreator, error) {
-	apiKeys := make(map[string]string)
-	apiKeys["openai"] = os.Getenv("OPENAI_API_KEY")
-	apiKeys["gemini"] = os.Getenv("GEMINI_API_KEY")
-	apiKeys["anthropic"] = os.Getenv("ANTHROPIC_API_KEY")
+	if app.Env == nil {
+		app.Env = make(map[string]string)
+	}
+	app.Env["openai"] = os.Getenv("OPENAI_API_KEY")
+	app.Env["gemini"] = os.Getenv("GEMINI_API_KEY")
+	app.Env["anthropic"] = os.Getenv("ANTHROPIC_API_KEY")
 
 	return func(vars *api.Vars, req *api.Request) (*api.Agent, error) {
-		return CreateAgent(vars, req.Agent, req.Command, req.RawInput, apiKeys)
+		return CreateAgent(vars, req.Agent, req.Command, req.RawInput)
 	}, nil
 }
 
@@ -45,15 +47,15 @@ func initAgents(app *api.AppConfig) (func(string) (*api.AgentsConfig, error), er
 	}, nil
 }
 
-func AgentLister(app *api.AppConfig) (func() (map[string]*api.AgentsConfig, error), error) {
-	agents, err := ListAgents(app)
-	if err != nil {
-		return nil, err
-	}
-	return func() (map[string]*api.AgentsConfig, error) {
-		return agents, nil
-	}, nil
-}
+// func AgentLister(app *api.AppConfig) (func() (map[string]*api.AgentsConfig, error), error) {
+// 	agents, err := ListAgents(app)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return func() (map[string]*api.AgentsConfig, error) {
+// 		return agents, nil
+// 	}, nil
+// }
 
 func ListAgents(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
 	var agents = make(map[string]*api.AgentsConfig)
@@ -228,7 +230,7 @@ func LoadAgentsData(data [][]byte) (*api.AgentsConfig, error) {
 	return merged, nil
 }
 
-func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput, apiKeys map[string]string) (*api.Agent, error) {
+func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*api.Agent, error) {
 	agentLoader, err := initAgents(vars.Config)
 	if err != nil {
 		return nil, err
@@ -237,7 +239,7 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput, api
 	if err != nil {
 		return nil, err
 	}
-	modelLoader, err := initModels(vars.Config, apiKeys)
+	modelLoader, err := initModels(vars.Config)
 	if err != nil {
 		return nil, err
 	}

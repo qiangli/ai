@@ -4,7 +4,6 @@ import (
 	"strings"
 )
 
-type AgentLister func() (map[string]*AgentsConfig, error)
 type AgentCreator func(*Vars, *Request) (*Agent, error)
 
 type AppConfig struct {
@@ -14,15 +13,8 @@ type AppConfig struct {
 
 	AgentResource *AgentResource
 
-	AgentLister  AgentLister
 	AgentCreator AgentCreator
-
-	// ToolSystem ToolSystem
-	ToolCaller ToolCaller
-
-	// AgentLoader func(string) (*AgentsConfig, error)
-	// ToolLoader func(string) ([]*ToolFunc, error)
-	// ModelLoader func(string) (*Model, error)
+	ToolCaller   ToolCaller
 
 	// ToolSystemCommands []string
 	SystemTools []*ToolFunc
