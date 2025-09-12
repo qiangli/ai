@@ -211,19 +211,21 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	// Request
 	initLen := len(history)
 
-	toolMap := make(map[string]*api.ToolFunc)
-	for _, v := range h.agent.Tools {
-		toolMap[v.ID()] = v
-	}
+	// toolMap := make(map[string]*api.ToolFunc)
+	// for _, v := range h.agent.Tools {
+	// 	toolMap[v.ID()] = v
+	// }
 
-	runTool := func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
-		log.Debugf("run tool: %s %+v\n", name, args)
-		v, ok := toolMap[name]
-		if !ok {
-			return nil, fmt.Errorf("tool not found: %s", name)
-		}
-		return CallTool(ctx, v, h.vars, name, args)
-	}
+	// runTool := func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
+	// 	log.Debugf("run tool: %s %+v\n", name, args)
+	// 	v, ok := toolMap[name]
+	// 	if !ok {
+	// 		return nil, fmt.Errorf("tool not found: %s", name)
+	// 	}
+	// 	return CallTool(h.vars, v, ctx, name, args)
+	// }
+
+	runTool := h.vars.Config.ToolCaller(h.vars, h.agent)
 
 	var request = llm.Request{
 		Agent:    r.Name,

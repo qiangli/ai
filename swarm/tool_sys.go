@@ -129,7 +129,7 @@ type LocalSystem struct {
 	tool *SystemKit
 }
 
-func NewLocalSystem(app *api.AppConfig) *LocalSystem {
+func newLocalSystem() *LocalSystem {
 	return &LocalSystem{
 		tool: &SystemKit{},
 	}

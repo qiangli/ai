@@ -82,7 +82,7 @@ func TestCallSystemTool(t *testing.T) {
 		t.Fatalf("failed to initialize vars: %v", err)
 	}
 
-	ls := NewLocalSystem(cfg)
+	ls := newLocalSystem()
 
 	for _, tt := range tests {
 		tf := &api.ToolFunc{

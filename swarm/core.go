@@ -27,30 +27,13 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 		app.AgentCreator = v
 	}
 
-	// agentLoader, err := initAgents(app)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// app.AgentLoader = agentLoader
 	agentLister, err := AgentLister(app)
 	if err != nil {
 		return nil, err
 	}
 	app.AgentLister = agentLister
-
-	// toolLoader, err := initTools(app)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// app.ToolLoader = toolLoader
-
-	app.ToolSystem = NewLocalSystem(app)
-
-	// modelLoader, err := initModels(app)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// app.ModelLoader = modelLoader
+	// app.ToolSystem = NewLocalSystem(app)
+	app.ToolCaller = ToolCaller
 
 	return Vars(app)
 }

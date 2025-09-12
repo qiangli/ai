@@ -18,11 +18,11 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-const (
-	ToolTypeSystem = "system"
-	ToolTypeMcp    = "mcp"
-	ToolTypeFunc   = "func"
-)
+// const (
+// 	ToolTypeSystem = "system"
+// 	ToolTypeMcp    = "mcp"
+// 	ToolTypeFunc   = "func"
+// )
 
 func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 	kits, err := LoadToolsConfig(app)
@@ -107,7 +107,7 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 				toolRegistry[tool.ID()] = tool
 
 				// TODO this is used for security check by the evalCommand
-				if v.Type == ToolTypeSystem {
+				if v.Type == api.ToolTypeSystem {
 					app.SystemTools = append(app.SystemTools, tool)
 				}
 			}
@@ -282,7 +282,22 @@ func LoadToolData(data [][]byte) (*api.ToolsConfig, error) {
 	return merged, nil
 }
 
-func CallTool(ctx context.Context, v *api.ToolFunc, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
+func ToolCaller(vars *api.Vars, agent *api.Agent) func(context.Context, string, map[string]any) (*api.Result, error) {
+	toolMap := make(map[string]*api.ToolFunc)
+	for _, v := range agent.Tools {
+		toolMap[v.ID()] = v
+	}
+	return func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
+		log.Debugf("run tool: %s %+v\n", name, args)
+		v, ok := toolMap[name]
+		if !ok {
+			return nil, fmt.Errorf("tool not found: %s", name)
+		}
+		return callTool(vars, v, ctx, name, args)
+	}
+}
+
+func callTool(vars *api.Vars, v *api.ToolFunc, ctx context.Context, name string, args map[string]any) (*api.Result, error) {
 	log.Infof("⣿ %s %+v\n", name, args)
 
 	result, err := dispatchTool(ctx, v, vars, name, args)
@@ -326,26 +341,27 @@ func dispatchTool(ctx context.Context, v *api.ToolFunc, vars *api.Vars, name str
 	// 		}, nil
 	// 	}
 	// 	return callAgent(ctx, vars, nextAgent, args)
-	case ToolTypeMcp:
+	case api.ToolTypeMcp:
 		// spinner
 		sp.Start()
 		defer sp.Stop()
 
-		out, err := CallMcpTool(ctx, v, vars, name, args)
+		out, err := callMcpTool(ctx, v, vars, name, args)
 		return &api.Result{
 			Value: out,
 		}, err
-	case ToolTypeSystem:
-		if vars.Config.ToolSystem == nil {
-			return nil, fmt.Errorf("local system tool not supported: %s", v.ID())
-		}
-		return vars.Config.ToolSystem.Call(ctx, vars, v, args)
+	case api.ToolTypeSystem:
+		// if vars.Config.ToolSystem == nil {
+		// 	return nil, fmt.Errorf("local system tool not supported: %s", v.ID())
+		// }
+		local := newLocalSystem()
+		return local.Call(ctx, vars, v, args)
 	// case ToolTypeTemplate, ToolTypeShell, ToolTypeSql:
 	// 	out, err := callTplTool(ctx, vars, v, args)
 	// 	return &api.Result{
 	// 		Value: out,
 	// 	}, err
-	case ToolTypeFunc:
+	case api.ToolTypeFunc:
 		if v.Name == "agent_transfer" {
 			return callAgentTransfer(ctx, vars, v.Name, args)
 		}

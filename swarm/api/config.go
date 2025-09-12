@@ -17,7 +17,8 @@ type AppConfig struct {
 	AgentLister  AgentLister
 	AgentCreator AgentCreator
 
-	ToolSystem ToolSystem
+	// ToolSystem ToolSystem
+	ToolCaller ToolCaller
 
 	// AgentLoader func(string) (*AgentsConfig, error)
 	// ToolLoader func(string) ([]*ToolFunc, error)

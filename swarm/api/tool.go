@@ -5,6 +5,14 @@ import (
 	"fmt"
 )
 
+const (
+	ToolTypeSystem = "system"
+	ToolTypeMcp    = "mcp"
+	ToolTypeFunc   = "func"
+)
+
+type ToolCaller func(*Vars, *Agent) func(context.Context, string, map[string]any) (*Result, error)
+
 type ToolFunc struct {
 	Type string
 

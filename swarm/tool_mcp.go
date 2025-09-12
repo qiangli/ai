@@ -57,7 +57,7 @@ func ListMcpTools(cfg *api.ToolsConfig) ([]*api.ToolFunc, error) {
 	funcs := make([]*api.ToolFunc, 0)
 	for _, v := range result.Tools {
 		funcs = append(funcs, &api.ToolFunc{
-			Type:        ToolTypeMcp,
+			Type:        api.ToolTypeMcp,
 			Kit:         cfg.Kit,
 			Name:        v.Name,
 			Description: v.Description,
@@ -73,7 +73,7 @@ func ListMcpTools(cfg *api.ToolsConfig) ([]*api.ToolFunc, error) {
 	return funcs, nil
 }
 
-func CallMcpTool(ctx context.Context, tf *api.ToolFunc, vars *api.Vars, name string, args map[string]any) (string, error) {
+func callMcpTool(ctx context.Context, tf *api.ToolFunc, vars *api.Vars, name string, args map[string]any) (string, error) {
 	log.Debugf("🎖️ calling MCP tool: %s with args: %+v\n", name, args)
 
 	if tf.Config == nil || tf.Config.Connector == nil || tf.Config.Connector.URL == "" {
