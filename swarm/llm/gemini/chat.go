@@ -79,7 +79,12 @@ func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 }
 
 func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	client, err := NewClient(ctx, req.Model.ApiKey, req.Model.BaseUrl)
+	apiKey := req.Vars.Config.Env["GEMINI_API_KEY"]
+	client, err := NewClient(
+		ctx,
+		apiKey,
+		req.Model.BaseUrl,
+	)
 	if err != nil {
 		return nil, err
 	}

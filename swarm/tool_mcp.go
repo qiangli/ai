@@ -31,16 +31,16 @@ func (r *McpClient) Connect(ctx context.Context) (*mcp.ClientSession, error) {
 	}, nil)
 }
 
-func ListMcpTools(cfg *api.ToolsConfig) ([]*api.ToolFunc, error) {
+func ListMcpTools(tc *api.ToolsConfig) ([]*api.ToolFunc, error) {
 	ctx := context.Background()
 
-	if cfg.Connector == nil || cfg.Connector.URL == "" {
+	if tc.Connector == nil || tc.Connector.URL == "" {
 		return nil, fmt.Errorf("Invalid mcp config. Missing URL")
 	}
 
-	log.Debugf("Connecting to MCP server at %s", cfg.Connector.URL)
+	log.Debugf("Connecting to MCP server at %s", tc.Connector.URL)
 
-	client := NewMcpClient(cfg.Connector)
+	client := NewMcpClient(tc.Connector)
 	session, err := client.Connect(ctx)
 	if err != nil {
 		return nil, err
@@ -57,8 +57,8 @@ func ListMcpTools(cfg *api.ToolsConfig) ([]*api.ToolFunc, error) {
 	funcs := make([]*api.ToolFunc, 0)
 	for _, v := range result.Tools {
 		funcs = append(funcs, &api.ToolFunc{
+			Kit:         tc.Kit,
 			Type:        api.ToolTypeMcp,
-			Kit:         cfg.Kit,
 			Name:        v.Name,
 			Description: v.Description,
 			Parameters: map[string]any{
@@ -66,7 +66,7 @@ func ListMcpTools(cfg *api.ToolsConfig) ([]*api.ToolFunc, error) {
 				"properties": v.InputSchema.Properties,
 				"required":   v.InputSchema.Required,
 			},
-			Config: cfg,
+			Config: tc,
 		})
 	}
 

@@ -2,6 +2,7 @@ package agent
 
 import (
 	_ "embed"
+	"os"
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
@@ -24,6 +25,7 @@ func RunAgent(cfg *api.AppConfig) error {
 
 	in.Agent = cfg.Agent
 	in.Command = cfg.Command
+
 	return RunSwarm(cfg, in)
 }
 
@@ -32,6 +34,27 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	command := input.Command
 	log.Debugf("Running agent %q %s with swarm\n", name, command)
 
+	//
+	// if v, err := swarm.NewAgentCreator(cfg); err != nil {
+	// 	return err
+	// } else {
+	// 	cfg.AgentCreator = v
+	// }
+	// cfg.AgentHandler = swarm.AgentHandler
+	// cfg.ToolCaller = swarm.NewToolCaller(cfg)
+
+	//
+	if cfg.Env == nil {
+		cfg.Env = make(map[string]string)
+	}
+	// app.Env["openai"] = os.Getenv("OPENAI_API_KEY")
+	// app.Env["gemini"] = os.Getenv("GEMINI_API_KEY")
+	// app.Env["anthropic"] = os.Getenv("ANTHROPIC_API_KEY")
+	cfg.Env["OPENAI_API_KEY"] = os.Getenv("OPENAI_API_KEY")
+	cfg.Env["GEMINI_API_KEY"] = os.Getenv("GEMINI_API_KEY")
+	cfg.Env["ANTHROPIC_API_KEY"] = os.Getenv("ANTHROPIC_API_KEY")
+
+	//
 	vars, err := InitVars(cfg)
 	if err != nil {
 		return err
@@ -130,19 +153,9 @@ func processOutput(cfg *api.AppConfig, message *api.Output) {
 }
 
 func InitVars(app *api.AppConfig) (*api.Vars, error) {
-	if v, err := swarm.NewAgentCreator(app); err != nil {
-		return nil, err
-	} else {
-		app.AgentCreator = v
-	}
-	app.ToolCaller = swarm.NewToolCaller(app)
-
-	//
 	var vars = api.NewVars()
 	//
 	vars.Config = app
-	vars.Config.Env = make(map[string]string)
-
 	//
 	vars.Workspace = app.Workspace
 	// vars.Repo = app.Repo

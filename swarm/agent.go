@@ -21,17 +21,10 @@ const maxTimeLimit = 600 // 10 min
 const defaultMaxTurns = 8
 const defaultMaxTime = 180 // 3 min
 
-func NewAgentCreator(app *api.AppConfig) (api.AgentCreator, error) {
-	if app.Env == nil {
-		app.Env = make(map[string]string)
-	}
-	app.Env["openai"] = os.Getenv("OPENAI_API_KEY")
-	app.Env["gemini"] = os.Getenv("GEMINI_API_KEY")
-	app.Env["anthropic"] = os.Getenv("ANTHROPIC_API_KEY")
-
+func NewAgentCreator() api.AgentCreator {
 	return func(vars *api.Vars, req *api.Request) (*api.Agent, error) {
 		return CreateAgent(vars, req.Agent, req.Command, req.RawInput)
-	}, nil
+	}
 }
 
 func initAgents(app *api.AppConfig) (func(string) (*api.AgentsConfig, error), error) {

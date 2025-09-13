@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"net"
+	// "net"
 	"strings"
 	"text/template"
 
@@ -12,24 +12,24 @@ import (
 	"golang.org/x/text/language"
 )
 
-func isLoopback(hostport string) bool {
-	host, _, err := net.SplitHostPort(hostport)
-	if err != nil {
-		host = hostport
-	}
+// func isLoopback(hostport string) bool {
+// 	host, _, err := net.SplitHostPort(hostport)
+// 	if err != nil {
+// 		host = hostport
+// 	}
 
-	ip := net.ParseIP(host)
+// 	ip := net.ParseIP(host)
 
-	if ip != nil && ip.IsLoopback() {
-		return true
-	}
+// 	if ip != nil && ip.IsLoopback() {
+// 		return true
+// 	}
 
-	if host == "localhost" {
-		return true
-	}
+// 	if host == "localhost" {
+// 		return true
+// 	}
 
-	return false
-}
+// 	return false
+// }
 
 func applyTemplate(tpl string, data any, funcMap template.FuncMap) (string, error) {
 	t, err := template.New("swarm").Funcs(funcMap).Parse(tpl)

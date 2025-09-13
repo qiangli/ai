@@ -63,7 +63,7 @@ type Model struct {
 
 	Model   string
 	BaseUrl string
-	ApiKey  string
+	// ApiKey  string
 
 	// output
 	Type OutputType
@@ -75,14 +75,12 @@ type Model struct {
 
 func (r *Model) Clone() *Model {
 	clone := &Model{
-		// Features: make(map[Feature]bool, len(r.Features)),
 		Type:     r.Type,
 		Provider: r.Provider,
 		Model:    r.Model,
 		BaseUrl:  r.BaseUrl,
-		ApiKey:   r.ApiKey,
+		// ApiKey:   r.ApiKey,
 	}
-	// maps.Copy(clone.Features, r.Features)
 	return clone
 }
 

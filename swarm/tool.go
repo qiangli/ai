@@ -282,7 +282,7 @@ func LoadToolData(data [][]byte) (*api.ToolsConfig, error) {
 	return merged, nil
 }
 
-func NewToolCaller(app *api.AppConfig) api.ToolCaller {
+func NewToolCaller() api.ToolCaller {
 	return func(vars *api.Vars, agent *api.Agent) func(context.Context, string, map[string]any) (*api.Result, error) {
 		toolMap := make(map[string]*api.ToolFunc)
 		for _, v := range agent.Tools {
@@ -361,10 +361,7 @@ func dispatchTool(ctx context.Context, v *api.ToolFunc, vars *api.Vars, name str
 			Value: out,
 		}, err
 	case api.ToolTypeFunc:
-		out, err := callFuncTool(ctx, vars, v, args)
-		return &api.Result{
-			Value: out,
-		}, err
+		return callFuncTool(ctx, vars, v, args)
 	}
 
 	return nil, fmt.Errorf("no such tool: %s", name)

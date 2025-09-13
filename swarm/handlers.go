@@ -2,10 +2,8 @@ package swarm
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"maps"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,17 +27,22 @@ func init() {
 	adapterRegistry["image-gen"] = ImageGen
 }
 
-// AgentHandler
-func AgentHandler(vars *api.Vars, agent *api.Agent) Handler {
-	return &agentHandler{
-		vars:  vars,
-		agent: agent,
+func NewAgentHandler() func(*api.Vars, *api.Agent) Handler {
+	var toolCall = NewToolCaller()
+	return func(vars *api.Vars, agent *api.Agent) Handler {
+		return &agentHandler{
+			vars:     vars,
+			agent:    agent,
+			toolCall: toolCall,
+		}
 	}
 }
 
 type agentHandler struct {
 	agent *api.Agent
 	vars  *api.Vars
+
+	toolCall api.ToolCaller
 }
 
 func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
@@ -47,34 +50,6 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	log.Debugf("run agent: %s\n", r.Name)
 
 	ctx := req.Context()
-
-	// dependencies
-	if len(r.Dependencies) > 0 {
-		for _, agent := range r.Dependencies {
-			depReq := &api.Request{
-				Agent:    agent,
-				RawInput: req.RawInput,
-				// Messages: req.Messages,
-			}
-			depResp := &api.Response{}
-			sw := New(h.vars)
-			if err := sw.Run(depReq, depResp); err != nil {
-				return err
-			}
-			//
-
-			// decode prevous result
-			// decode content as name=value and save in vars.Extra for subsequent agents
-			if v, ok := h.vars.Extra[extraResult]; ok && len(v) > 0 {
-				var params = make(map[string]string)
-				if err := json.Unmarshal([]byte(v), &params); err == nil {
-					maps.Copy(h.vars.Extra, params)
-				}
-			}
-
-			log.Debugf("run dependency: %s %+v\n", agent, depResp)
-		}
-	}
 
 	// advices
 	noop := func(vars *api.Vars, _ *api.Request, _ *api.Response, _ api.Advice) error {
@@ -211,21 +186,8 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	// Request
 	initLen := len(history)
 
-	// toolMap := make(map[string]*api.ToolFunc)
-	// for _, v := range h.agent.Tools {
-	// 	toolMap[v.ID()] = v
-	// }
-
-	// runTool := func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
-	// 	log.Debugf("run tool: %s %+v\n", name, args)
-	// 	v, ok := toolMap[name]
-	// 	if !ok {
-	// 		return nil, fmt.Errorf("tool not found: %s", name)
-	// 	}
-	// 	return CallTool(h.vars, v, ctx, name, args)
-	// }
-
-	runTool := h.vars.Config.ToolCaller(h.vars, h.agent)
+	//
+	runTool := h.toolCall(h.vars, h.agent)
 
 	var request = llm.Request{
 		Agent:    r.Name,

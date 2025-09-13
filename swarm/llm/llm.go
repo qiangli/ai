@@ -49,7 +49,7 @@ func (r *Request) String() string {
 	if r.Model != nil {
 		sb.WriteString(fmt.Sprintf("Model: %s\n", r.Model.Model))
 		sb.WriteString(fmt.Sprintf("BaseUrl: %s\n", r.Model.BaseUrl))
-		sb.WriteString(fmt.Sprintf("ApiKey set: %v\n", r.Model.ApiKey != ""))
+		// sb.WriteString(fmt.Sprintf("ApiKey set: %v\n", r.Model.ApiKey != ""))
 		sb.WriteString(fmt.Sprintf("Type: %s\n", r.Model.Type))
 		// if r.Model.Type == model.OutputTypeImage {
 		// 	sb.WriteString(fmt.Sprintf("ImageQuality: %s\n", r.ImageQuality))

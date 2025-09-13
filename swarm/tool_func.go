@@ -80,15 +80,25 @@ func (r *FuncKit) AgentTransfer(_ context.Context, _ *api.Vars, _ string, args m
 // 	return "Task completed", nil
 // }
 
-func callFuncTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (string, error) {
+func callFuncTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (*api.Result, error) {
 	tool := &FuncKit{}
 	callArgs := []any{ctx, vars, f.Name, args}
 	v, err := CallKit(tool, f.Config.Kit, f.Name, callArgs...)
 	if err != nil {
-		return "", fmt.Errorf("failed to call function tool %s %s: %w", f.Config.Kit, f.Name, err)
+		return &api.Result{
+			Value: fmt.Sprintf("failed to call function tool %s %s: %v", f.Kit, f.Name, err),
+		}, err
+	}
+
+	if r, ok := v.(*api.Result); ok {
+		return r, nil
 	}
 	if s, ok := v.(string); ok {
-		return s, nil
+		return &api.Result{
+			Value: s,
+		}, nil
 	}
-	return fmt.Sprintf("%v", v), nil
+	return &api.Result{
+		Value: fmt.Sprintf("%v", v),
+	}, nil
 }

@@ -35,9 +35,11 @@ func (h *emptyHandler) Serve(r *api.Request, w *api.Response) error {
 // RST_STREAM, depending on the protocol. To abort a handler so
 // the client sees an interrupted response but the server doesn't log
 // an error, panic with the value [ErrAbortHandler].
-type Handler interface {
-	Serve(*api.Request, *api.Response) error
-}
+// type Handler interface {
+// 	Serve(*api.Request, *api.Response) error
+// }
+
+type Handler = api.Handler
 
 // The HandlerFunc type is an adapter to allow the use of
 // ordinary functions as handlers. If f is a function

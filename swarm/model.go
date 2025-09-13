@@ -17,7 +17,6 @@ import (
 )
 
 func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), error) {
-	var apiKeys = app.Env
 	var alias = app.Models
 
 	cfg, err := loadModels(app, alias)
@@ -31,7 +30,7 @@ func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), err
 			Provider: v.Provider,
 			Model:    v.Model,
 			BaseUrl:  v.BaseUrl,
-			ApiKey:   v.ApiKey,
+			// ApiKey:   v.ApiKey,
 		}
 	}
 
@@ -44,15 +43,15 @@ func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), err
 		return alias, s
 	}
 
-	// set keys
-	provide := func(v *api.Model) (*api.Model, error) {
-		m := v.Clone()
-		if apiKey, ok := apiKeys[m.Provider]; ok {
-			m.ApiKey = apiKey
-			return m, nil
-		}
-		return nil, fmt.Errorf("no api key provided: %s %s", alias, m.Model)
-	}
+	// // set keys
+	// provide := func(v *api.Model) (*api.Model, error) {
+	// 	m := v.Clone()
+	// 	if apiKey, ok := apiKeys[m.Provider]; ok {
+	// 		m.ApiKey = apiKey
+	// 		return m, nil
+	// 	}
+	// 	return nil, fmt.Errorf("no api key provided: %s %s", alias, m.Model)
+	// }
 
 	return func(level string) (*api.Model, error) {
 		// model/level
@@ -67,22 +66,22 @@ func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), err
 					Provider: c.Provider,
 					Model:    c.Model,
 					BaseUrl:  c.BaseUrl,
-					ApiKey:   c.ApiKey,
+					// ApiKey:   c.ApiKey,
 				}
-				return provide(v)
+				return v, nil
 			}
 			return nil, fmt.Errorf("model not found: %s/%s", alias, level)
 		}
 
 		if v, ok := modelMap[level]; ok {
-			return provide(v)
+			return v, nil
 		}
 
 		// special treatment
 		if level == llm.Any {
 			for _, k := range []string{llm.L1, llm.L2, llm.L3} {
 				if v, ok := modelMap[k]; ok {
-					return provide(v)
+					return v, nil
 				}
 			}
 		}

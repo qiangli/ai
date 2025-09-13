@@ -45,8 +45,9 @@ func defineTool(name, description string, parameters map[string]any) (*anthropic
 }
 
 func NewClient(model *api.Model, vars *api.Vars) anthropic.Client {
+	apiKey := vars.Config.Env["ANTHROPIC_API_KEY"]
 	client := anthropic.NewClient(
-		option.WithAPIKey(model.ApiKey),
+		option.WithAPIKey(apiKey),
 		option.WithBaseURL(model.BaseUrl),
 		option.WithMiddleware(middleware.Middleware(model, vars)),
 	)

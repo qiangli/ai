@@ -218,7 +218,7 @@ AI Environment:
 	// 	m = &api.Model{}
 	// }
 	m := &api.Model{}
-	log.Infof(format, info, m.Provider, m.BaseUrl, m.ApiKey, string(ac), strings.Join(filteredEnvs, "\n"))
+	log.Infof(format, info, m.Provider, m.BaseUrl, "***", string(ac), strings.Join(filteredEnvs, "\n"))
 	return nil
 }
 

@@ -4,8 +4,6 @@ import (
 	"strings"
 )
 
-type AgentCreator func(*Vars, *Request) (*Agent, error)
-
 type AppConfig struct {
 	Version string
 
@@ -13,8 +11,9 @@ type AppConfig struct {
 
 	AgentResource *AgentResource
 
-	AgentCreator AgentCreator
-	ToolCaller   ToolCaller
+	// AgentCreator AgentCreator
+	// AgentHandler AgentHandler
+	// ToolCaller   ToolCaller
 
 	// ToolSystemCommands []string
 	SystemTools []*ToolFunc
@@ -121,14 +120,14 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		Version:    cfg.Version,
 		ConfigFile: cfg.ConfigFile,
 		//
-		AgentCreator: cfg.AgentCreator,
-		// ModelLoader:   cfg.ModelLoader,
 		AgentResource: cfg.AgentResource,
-		// AgentLoader:   cfg.AgentLoader,
-		// ToolLoader:    cfg.ToolLoader,
-		Agent:      cfg.Agent,
-		Command:    cfg.Command,
-		Args:       append([]string(nil), cfg.Args...),
+		// AgentCreator:  cfg.AgentCreator,
+		// AgentHandler:  cfg.AgentHandler,
+		//
+		Agent:   cfg.Agent,
+		Command: cfg.Command,
+		// Args:       append([]string(nil), cfg.Args...),
+		Args:       cfg.Args,
 		Message:    cfg.Message,
 		Editor:     cfg.Editor,
 		Clipin:     cfg.Clipin,
@@ -137,7 +136,8 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		ClipAppend: cfg.ClipAppend,
 		IsPiped:    cfg.IsPiped,
 		Stdin:      cfg.Stdin,
-		Files:      append([]string(nil), cfg.Files...),
+		// Files:         append([]string(nil), cfg.Files...),
+		Files:      cfg.Files,
 		Screenshot: cfg.Screenshot,
 		Voice:      cfg.Voice,
 		Format:     cfg.Format,
@@ -154,8 +154,10 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		Debug:  cfg.Debug,
 		Quiet:  cfg.Quiet,
 
-		DenyList:    append([]string(nil), cfg.DenyList...),
-		AllowList:   append([]string(nil), cfg.AllowList...),
+		// DenyList:  append([]string(nil), cfg.DenyList...),
+		// AllowList: append([]string(nil), cfg.AllowList...),
+		DenyList:    cfg.DenyList,
+		AllowList:   cfg.AllowList,
 		Unsafe:      cfg.Unsafe,
 		Base:        cfg.Base,
 		Workspace:   cfg.Workspace,
@@ -174,6 +176,8 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		//
 		DryRun:        cfg.DryRun,
 		DryRunContent: cfg.DryRunContent,
+		//
+		Env: cfg.Env,
 	}
 }
 

@@ -1,22 +1,29 @@
 package swarm
 
 import (
-	"fmt"
+	"encoding/json"
+	"maps"
 	"os"
 	"strings"
 	"time"
 
-	// "github.com/qiangli/ai/internal/util"
+	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
 )
 
 type Swarm struct {
 	Vars *api.Vars
+
+	Creator api.AgentCreator
+	Handler api.AgentHandler
 }
 
+// default
 func New(vars *api.Vars) *Swarm {
 	return &Swarm{
-		Vars: vars,
+		Vars:    vars,
+		Creator: NewAgentCreator(),
+		Handler: NewAgentHandler(),
 	}
 }
 
@@ -42,15 +49,36 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	clearAllEnv()
 
 	for {
-		// agent, err := CreateAgent(r.Vars, req.Agent, req.Command, req.RawInput)
-		if r.Vars == nil || r.Vars.Config == nil || r.Vars.Config.AgentCreator == nil {
-			return fmt.Errorf("not initialized.")
-		}
-		agent, err := r.Vars.Config.AgentCreator(r.Vars, req)
+		agent, err := r.Creator(r.Vars, req)
 		if err != nil {
 			return err
 		}
 
+		// dependencies
+		for _, dep := range agent.Dependencies {
+			depReq := &api.Request{
+				Agent:    dep,
+				RawInput: req.RawInput,
+				// Messages: req.Messages,
+			}
+			depResp := &api.Response{}
+			if err := r.Run(depReq, depResp); err != nil {
+				return err
+			}
+
+			// decode prevous result
+			// decode content as name=value and save in vars.Extra for subsequent agents
+			if v, ok := r.Vars.Extra[extraResult]; ok && len(v) > 0 {
+				var params = make(map[string]string)
+				if err := json.Unmarshal([]byte(v), &params); err == nil {
+					maps.Copy(r.Vars.Extra, params)
+				}
+			}
+
+			log.Debugf("run dependency: %s %+v\n", dep, depResp)
+		}
+
+		//
 		if agent.Entrypoint != nil {
 			if err := agent.Entrypoint(r.Vars, &api.Agent{
 				Name:    agent.Name,
@@ -60,7 +88,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 			}
 		}
 
-		timeout := TimeoutHandler(AgentHandler(r.Vars, agent), time.Duration(agent.MaxTime)*time.Second, "timed out")
+		timeout := TimeoutHandler(r.Handler(r.Vars, agent), time.Duration(agent.MaxTime)*time.Second, "timed out")
 		maxlog := MaxLogHandler(500)
 
 		chain := NewChain(maxlog).Then(timeout)
@@ -75,6 +103,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 			req.Agent = result.NextAgent
 			continue
 		}
+
 		return nil
 	}
 }
