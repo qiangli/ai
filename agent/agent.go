@@ -2,7 +2,6 @@ package agent
 
 import (
 	_ "embed"
-	"os"
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/log"
@@ -44,15 +43,12 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	// cfg.ToolCaller = swarm.NewToolCaller(cfg)
 
 	//
-	if cfg.Env == nil {
-		cfg.Env = make(map[string]string)
-	}
-	// app.Env["openai"] = os.Getenv("OPENAI_API_KEY")
-	// app.Env["gemini"] = os.Getenv("GEMINI_API_KEY")
-	// app.Env["anthropic"] = os.Getenv("ANTHROPIC_API_KEY")
-	cfg.Env["OPENAI_API_KEY"] = os.Getenv("OPENAI_API_KEY")
-	cfg.Env["GEMINI_API_KEY"] = os.Getenv("GEMINI_API_KEY")
-	cfg.Env["ANTHROPIC_API_KEY"] = os.Getenv("ANTHROPIC_API_KEY")
+	// if cfg.Env == nil {
+	// 	cfg.Env = make(map[string]string)
+	// }
+	// cfg.Env["OPENAI_API_KEY"] = os.Getenv("OPENAI_API_KEY")
+	// cfg.Env["GEMINI_API_KEY"] = os.Getenv("GEMINI_API_KEY")
+	// cfg.Env["ANTHROPIC_API_KEY"] = os.Getenv("ANTHROPIC_API_KEY")
 
 	//
 	vars, err := InitVars(cfg)

@@ -5,7 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"os"
-	"os/exec"
+	// "os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -18,12 +18,6 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-// const (
-// 	ToolTypeSystem = "system"
-// 	ToolTypeMcp    = "mcp"
-// 	ToolTypeFunc   = "func"
-// )
-
 func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 	kits, err := LoadToolsConfig(app)
 	if err != nil {
@@ -33,33 +27,33 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 
 	var toolRegistry = make(map[string]*api.ToolFunc)
 	conditionMet := func(name string, c *api.ToolCondition) bool {
-		if c == nil {
-			return true
-		}
-		if len(c.Env) > 0 {
-			for _, k := range c.Env {
-				if v, ok := os.LookupEnv(k); !ok {
-					return false
-				} else {
-					app.Env[k] = v
-				}
-			}
-		}
-		if c.Lookup != nil {
-			_, err := exec.LookPath(name)
-			if err != nil {
-				return false
-			}
-		}
-		if len(c.Shell) > 0 {
-			// get current shell name
-			shellPath := os.Getenv("SHELL")
-			shellName := filepath.Base(shellPath)
-			_, ok := c.Shell[shellName]
-			if !ok {
-				return false
-			}
-		}
+		// if c == nil {
+		// 	return true
+		// }
+		// if len(c.Env) > 0 {
+		// 	for _, k := range c.Env {
+		// 		if v, ok := os.LookupEnv(k); !ok {
+		// 			return false
+		// 		} else {
+		// 			app.Env[k] = v
+		// 		}
+		// 	}
+		// }
+		// if c.Lookup != nil {
+		// 	_, err := exec.LookPath(name)
+		// 	if err != nil {
+		// 		return false
+		// 	}
+		// }
+		// if len(c.Shell) > 0 {
+		// 	// get current shell name
+		// 	shellPath := os.Getenv("SHELL")
+		// 	shellName := filepath.Base(shellPath)
+		// 	_, ok := c.Shell[shellName]
+		// 	if !ok {
+		// 		return false
+		// 	}
+		// }
 		return true
 	}
 
@@ -279,6 +273,9 @@ func LoadToolData(data [][]byte) (*api.ToolsConfig, error) {
 			return nil, err
 		}
 	}
+
+	merged.Getenv = getenv
+
 	return merged, nil
 }
 

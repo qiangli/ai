@@ -24,12 +24,16 @@ func ImageGen(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 }
 
 func generateImage(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+	client, err := NewClient(req.Model, req.Vars)
+	if err != nil {
+		return nil, err
+	}
+
 	messages := make([]string, 0)
 	for _, v := range req.Messages {
 		messages = append(messages, v.Content)
 	}
 
-	client := NewClient(req.Model, req.Vars)
 	prompt := strings.Join(messages, "\n")
 	model := req.Model.Model
 

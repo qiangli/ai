@@ -32,14 +32,17 @@ func defineTool(name, description string, parameters map[string]any) openai.Chat
 	}
 }
 
-func NewClient(model *api.Model, vars *api.Vars) openai.Client {
-	apiKey := vars.Config.Env["OPENAI_API_KEY"]
+func NewClient(model *api.Model, vars *api.Vars) (*openai.Client, error) {
+	apiKey, err := model.Config.Getenv("OPENAI_API_KEY")
+	if err != nil {
+		return nil, err
+	}
 	client := openai.NewClient(
 		option.WithAPIKey(apiKey),
 		option.WithBaseURL(model.BaseUrl),
 		option.WithMiddleware(middleware.Middleware(model, vars)),
 	)
-	return client
+	return &client, nil
 }
 
 func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
@@ -55,7 +58,10 @@ func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 }
 
 func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	client := NewClient(req.Model, req.Vars)
+	client, err := NewClient(req.Model, req.Vars)
+	if err != nil {
+		return nil, err
+	}
 	model := req.Model.Model
 
 	params := openai.ChatCompletionNewParams{

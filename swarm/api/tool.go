@@ -26,7 +26,6 @@ type ToolFunc struct {
 
 	//
 	State State
-
 	//
 	Config *ToolsConfig
 }
@@ -54,12 +53,20 @@ type ToolsConfig struct {
 	// func (server) | system (client) | remote
 	Type string `yaml:"type"`
 
+	Provider string `yaml:"provider"`
+	Url      string `yaml:"url"`
+	// Token    string            `yaml:"token"`
+	Extra map[string]string `yaml:"extra"`
+
 	Connector *ConnectorConfig `yaml:"connector"`
 
 	// system commands used by tools
 	Commands []string `yaml:"commands"`
 
 	Tools []*ToolConfig `yaml:"tools"`
+
+	//
+	Getenv func(string) (string, error) `yaml:"-"`
 }
 
 type ToolConfig struct {

@@ -10,7 +10,8 @@ import (
 )
 
 type WebKit struct {
-	Env map[string]string
+	// Env map[string]string
+	env func(string) (string, error)
 }
 
 func (r *WebKit) FetchContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -135,17 +136,19 @@ func (r *WebKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string, 
 	return webtool.Google(ctx, apiKey, seID, query, max)
 }
 
-func (r *WebKit) env(key string) (string, error) {
-	if r.Env != nil {
-		if v, ok := r.Env[key]; ok && v != "" {
-			return v, nil
-		}
-	}
-	return "", fmt.Errorf("missing %s", key)
-}
+// func (r *WebKit) env(key string) (string, error) {
+// 	if r.Env != nil {
+// 		if v, ok := r.Env[key]; ok && v != "" {
+// 			return v, nil
+// 		}
+// 	}
+// 	return "", fmt.Errorf("missing %s", key)
+// }
 
 func callWebTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (string, error) {
-	tool := &WebKit{vars.Config.Env}
+	tool := &WebKit{
+		env: f.Config.Getenv,
+	}
 	callArgs := []any{ctx, vars, f.Name, args}
 	v, err := CallKit(tool, f.Kit, f.Name, callArgs...)
 	if err != nil {

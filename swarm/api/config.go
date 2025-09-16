@@ -111,7 +111,7 @@ type AppConfig struct {
 	DryRunContent string
 
 	// experimental
-	Env map[string]string
+	// Env map[string]string
 }
 
 // Clone is a shallow copy of member fields of the configration
@@ -177,7 +177,7 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		DryRun:        cfg.DryRun,
 		DryRunContent: cfg.DryRunContent,
 		//
-		Env: cfg.Env,
+		// Env: cfg.Env,
 	}
 }
 

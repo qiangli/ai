@@ -31,6 +31,7 @@ func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), err
 			Model:    v.Model,
 			BaseUrl:  v.BaseUrl,
 			// ApiKey:   v.ApiKey,
+			Config: cfg,
 		}
 	}
 
@@ -43,30 +44,21 @@ func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), err
 		return alias, s
 	}
 
-	// // set keys
-	// provide := func(v *api.Model) (*api.Model, error) {
-	// 	m := v.Clone()
-	// 	if apiKey, ok := apiKeys[m.Provider]; ok {
-	// 		m.ApiKey = apiKey
-	// 		return m, nil
-	// 	}
-	// 	return nil, fmt.Errorf("no api key provided: %s %s", alias, m.Model)
-	// }
-
 	return func(level string) (*api.Model, error) {
 		// model/level
 		if strings.Contains(level, "/") {
 			alias, level = split(level)
-			cfg, err := loadModels(app, alias)
+			mc, err := loadModels(app, alias)
 			if err != nil {
 				return nil, err
 			}
-			if c, ok := cfg.Models[level]; ok {
+			if c, ok := mc.Models[level]; ok {
 				v := &api.Model{
 					Provider: c.Provider,
 					Model:    c.Model,
 					BaseUrl:  c.BaseUrl,
 					// ApiKey:   c.ApiKey,
+					Config: mc,
 				}
 				return v, nil
 			}
@@ -194,9 +186,9 @@ func LoadModelsData(data [][]byte) (*api.ModelsConfig, error) {
 
 	// fill defaults
 	for _, v := range merged.Models {
-		if v.ApiKey == "" {
-			v.ApiKey = merged.ApiKey
-		}
+		// if v.ApiKey == "" {
+		// 	v.ApiKey = merged.ApiKey
+		// }
 		if v.BaseUrl == "" {
 			v.BaseUrl = merged.BaseUrl
 		}
@@ -219,7 +211,7 @@ func LoadModelsData(data [][]byte) (*api.ModelsConfig, error) {
 			return nil, fmt.Errorf("missing provider")
 		}
 	}
-
+	merged.Getenv = getenv
 	return merged, nil
 }
 

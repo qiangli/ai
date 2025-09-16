@@ -44,8 +44,7 @@ func defineTool(name, description string, parameters map[string]any) (*anthropic
 	}, nil
 }
 
-func NewClient(model *api.Model, vars *api.Vars) anthropic.Client {
-	apiKey := vars.Config.Env["ANTHROPIC_API_KEY"]
+func NewClient(model *api.Model, vars *api.Vars, apiKey string) anthropic.Client {
 	client := anthropic.NewClient(
 		option.WithAPIKey(apiKey),
 		option.WithBaseURL(model.BaseUrl),
@@ -64,7 +63,11 @@ func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 }
 
 func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	client := NewClient(req.Model, req.Vars)
+	apiKey, err := req.Model.Config.Getenv("ANTHROPIC_API_KEY")
+	if err != nil {
+		return nil, err
+	}
+	client := NewClient(req.Model, req.Vars, apiKey)
 	model := anthropic.Model(req.Model.Model)
 
 	var system []anthropic.TextBlockParam

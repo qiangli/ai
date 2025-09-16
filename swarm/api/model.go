@@ -63,13 +63,14 @@ type Model struct {
 
 	Model   string
 	BaseUrl string
-	// ApiKey  string
 
 	// output
 	Type OutputType
 
 	// level name
-	Name   string
+	Name string
+
+	//
 	Config *ModelsConfig
 }
 
@@ -79,7 +80,6 @@ func (r *Model) Clone() *Model {
 		Provider: r.Provider,
 		Model:    r.Model,
 		BaseUrl:  r.BaseUrl,
-		// ApiKey:   r.ApiKey,
 	}
 	return clone
 }
@@ -91,9 +91,11 @@ type ModelsConfig struct {
 	Model    string `yaml:"model"`
 	Provider string `yaml:"provider"`
 	BaseUrl  string `yaml:"base_url"`
-	ApiKey   string `yaml:"api_key"`
+	// ApiKey   string `yaml:"api_key"`
 
 	Models ModelAliasConfig `yaml:"models"`
+
+	Getenv func(string) (string, error) `yaml:"-"`
 }
 
 type ModelConfig struct {
@@ -101,5 +103,5 @@ type ModelConfig struct {
 
 	Model   string `yaml:"model"`
 	BaseUrl string `yaml:"base_url"`
-	ApiKey  string `yaml:"api_key"`
+	// ApiKey  string `yaml:"api_key"`
 }
