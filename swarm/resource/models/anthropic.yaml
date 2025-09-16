@@ -1,5 +1,5 @@
 ##
-api_key: ${ANTHROPIC_API_KEY}
+api_key: anthropic
 base_url: "https://api.anthropic.com/"
 provider: "anthropic"
 

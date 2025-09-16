@@ -24,15 +24,32 @@ func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), err
 		return nil, err
 	}
 
-	var modelMap = make(map[string]*api.Model)
-	for k, v := range cfg.Models {
-		modelMap[k] = &api.Model{
-			Provider: v.Provider,
-			Model:    v.Model,
-			BaseUrl:  v.BaseUrl,
-			// ApiKey:   v.ApiKey,
-			Config: cfg,
+	provide := func(mc *api.ModelsConfig, level string) (*api.Model, error) {
+		c, ok := mc.Models[level]
+		if !ok {
+			if level == llm.Any {
+				for _, k := range []string{llm.L1, llm.L2, llm.L3} {
+					if v, ok := mc.Models[k]; ok {
+						c = v
+						break
+					}
+				}
+			}
 		}
+
+		if c == nil {
+			return nil, fmt.Errorf("model not found: %s/%s", mc.Alias, level)
+		}
+
+		ak := getApiKey(c.ApiKey)
+
+		return &api.Model{
+			Provider: c.Provider,
+			Model:    c.Model,
+			BaseUrl:  c.BaseUrl,
+			ApiKey:   ak,
+			Config:   mc,
+		}, nil
 	}
 
 	// model/level
@@ -45,39 +62,17 @@ func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), err
 	}
 
 	return func(level string) (*api.Model, error) {
-		// model/level
+		// alias/level
 		if strings.Contains(level, "/") {
 			alias, level = split(level)
 			mc, err := loadModels(app, alias)
 			if err != nil {
 				return nil, err
 			}
-			if c, ok := mc.Models[level]; ok {
-				v := &api.Model{
-					Provider: c.Provider,
-					Model:    c.Model,
-					BaseUrl:  c.BaseUrl,
-					// ApiKey:   c.ApiKey,
-					Config: mc,
-				}
-				return v, nil
-			}
-			return nil, fmt.Errorf("model not found: %s/%s", alias, level)
+			return provide(mc, level)
 		}
 
-		if v, ok := modelMap[level]; ok {
-			return v, nil
-		}
-
-		// special treatment
-		if level == llm.Any {
-			for _, k := range []string{llm.L1, llm.L2, llm.L3} {
-				if v, ok := modelMap[k]; ok {
-					return v, nil
-				}
-			}
-		}
-		return nil, fmt.Errorf("model not found: %s", level)
+		return provide(cfg, level)
 	}, nil
 }
 
@@ -186,17 +181,17 @@ func LoadModelsData(data [][]byte) (*api.ModelsConfig, error) {
 
 	// fill defaults
 	for _, v := range merged.Models {
-		// if v.ApiKey == "" {
-		// 	v.ApiKey = merged.ApiKey
-		// }
+		if v.Model == "" {
+			v.Model = merged.Model
+		}
 		if v.BaseUrl == "" {
 			v.BaseUrl = merged.BaseUrl
 		}
 		if v.Provider == "" {
 			v.Provider = merged.Provider
 		}
-		if v.Model == "" {
-			v.Model = merged.Model
+		if v.ApiKey == "" {
+			v.ApiKey = merged.ApiKey
 		}
 
 		//
@@ -211,7 +206,6 @@ func LoadModelsData(data [][]byte) (*api.ModelsConfig, error) {
 			return nil, fmt.Errorf("missing provider")
 		}
 	}
-	merged.Getenv = getenv
 	return merged, nil
 }
 

@@ -14,6 +14,34 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
+var getApiKey func(string) string
+
+func init() {
+	// save the env before they are cleared during runtime
+	var env = make(map[string]string)
+	env["openai"] = os.Getenv("OPENAI_API_KEY")
+	env["gemini"] = os.Getenv("GEMINI_API_KEY")
+	env["anthropic"] = os.Getenv("ANTHROPIC_API_KEY")
+	//
+	env["google"] = os.Getenv("GOOGLE_SEARCH_ENGINE_ID") + ":" + os.Getenv("GOOGLE_API_KEY")
+	// env["GOOGLE_SEARCH_ENGINE_ID"] = os.Getenv("GOOGLE_SEARCH_ENGINE_ID")
+	env["brave"] = os.Getenv("BRAVE_API_KEY")
+
+	getApiKey = func(provider string) string {
+		return env[provider]
+	}
+}
+
+func provideApiKey(key string) func() (string, error) {
+	return func() (string, error) {
+		ak := getApiKey(key)
+		if ak != "" {
+			return ak, nil
+		}
+		return "", fmt.Errorf("api key not found: %s", key)
+	}
+}
+
 // max hard upper limits
 const maxTurnsLimit = 100
 const maxTimeLimit = 600 // 10 min
@@ -39,16 +67,6 @@ func initAgents(app *api.AppConfig) (func(string) (*api.AgentsConfig, error), er
 		return nil, fmt.Errorf("agent not found: %s", name)
 	}, nil
 }
-
-// func AgentLister(app *api.AppConfig) (func() (map[string]*api.AgentsConfig, error), error) {
-// 	agents, err := ListAgents(app)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return func() (map[string]*api.AgentsConfig, error) {
-// 		return agents, nil
-// 	}, nil
-// }
 
 func ListAgents(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
 	var agents = make(map[string]*api.AgentsConfig)
@@ -220,6 +238,15 @@ func LoadAgentsData(data [][]byte) (*api.AgentsConfig, error) {
 			return nil, err
 		}
 	}
+
+	// fill defaults
+	for _, v := range merged.Agents {
+		// model alias
+		if v.Model == "" {
+			v.Model = merged.Model
+		}
+	}
+
 	return merged, nil
 }
 
@@ -306,8 +333,9 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 		agent := api.Agent{
 			Adapter: ac.Adapter,
 			//
-			Name:    ac.Name,
-			Display: ac.Display,
+			Name:        ac.Name,
+			Display:     ac.Display,
+			Description: ac.Description,
 			//
 			Instruction: ac.Instruction,
 			//
@@ -325,7 +353,13 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 			return nil, fmt.Errorf("failed to load model %q: %v", ac.Model, err)
 		}
 		agent.Model = model
-
+		// agent.Model.ApiKey = func() (string, error) {
+		// 	ak := getApiKey(model.ApiKey)
+		// 	if ak != "" {
+		// 		return ak, nil
+		// 	}
+		// 	return "", fmt.Errorf("api key not found: %s", model.ApiKey)
+		// }
 		// tools
 		funcMap := make(map[string]*api.ToolFunc)
 		for _, f := range ac.Functions {
@@ -380,9 +414,6 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 
 		var funcs []*api.ToolFunc
 		for _, v := range funcMap {
-			// if v.Type == ToolTypeAgent && v.Name == agentName {
-			// 	continue
-			// }
 			funcs = append(funcs, v)
 		}
 		agent.Tools = funcs

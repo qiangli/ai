@@ -76,9 +76,11 @@ tools:
           maximum: 10
       required:
         - query
-    condition:
-      env:
-        - BRAVE_API_KEY
+    api_key: brave
+    extra:
+    # condition:
+    #   env:
+    #     - BRAVE_API_KEY
 
   - name: "google_search"
     description: "Search the web using Google and return formatted results"
@@ -96,7 +98,10 @@ tools:
           maximum: 10
       required:
         - query
-    condition:
-      env:
-        - GOOGLE_API_KEY
-        - GOOGLE_SEARCH_ENGINE_ID
+    api_key: google
+    # extra:
+    #   engine_id: GOOGLE_SEARCH_ENGINE_ID
+    # condition:
+    #   env:
+    #     - GOOGLE_API_KEY
+    #     - GOOGLE_SEARCH_ENGINE_ID

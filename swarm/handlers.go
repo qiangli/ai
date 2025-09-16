@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,28 +12,6 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm"
 )
-
-var getenv func(string) (string, error)
-
-func init() {
-	// save the env before they are cleared
-	var env = make(map[string]string)
-	env["OPENAI_API_KEY"] = os.Getenv("OPENAI_API_KEY")
-	env["GEMINI_API_KEY"] = os.Getenv("GEMINI_API_KEY")
-	env["ANTHROPIC_API_KEY"] = os.Getenv("ANTHROPIC_API_KEY")
-	//
-	env["GOOGLE_API_KEY"] = os.Getenv("GOOGLE_API_KEY")
-	env["GOOGLE_SEARCH_ENGINE_ID"] = os.Getenv("GOOGLE_SEARCH_ENGINE_ID")
-	env["BRAVE_API_KEY"] = os.Getenv("BRAVE_API_KEY")
-
-	getenv = func(key string) (string, error) {
-		v, ok := env[key]
-		if ok {
-			return v, nil
-		}
-		return "", fmt.Errorf("not fuond: %s", key)
-	}
-}
 
 // extra result key
 const extraResult = "result"

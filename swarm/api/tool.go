@@ -28,6 +28,14 @@ type ToolFunc struct {
 	State State
 	//
 	Config *ToolsConfig
+
+	//
+	Provider string
+	BaseUrl  string
+	// name of api key - used to resolve api key/token before tool call
+	ApiKey string
+
+	Extra map[string]string
 }
 
 // ID returns a unique identifier for the tool,
@@ -54,9 +62,9 @@ type ToolsConfig struct {
 	Type string `yaml:"type"`
 
 	Provider string `yaml:"provider"`
-	Url      string `yaml:"url"`
-	// Token    string            `yaml:"token"`
-	Extra map[string]string `yaml:"extra"`
+	BaseUrl  string `yaml:"base_url"`
+	// name of api key
+	ApiKey string `yaml:"api_key"`
 
 	Connector *ConnectorConfig `yaml:"connector"`
 
@@ -64,9 +72,6 @@ type ToolsConfig struct {
 	Commands []string `yaml:"commands"`
 
 	Tools []*ToolConfig `yaml:"tools"`
-
-	//
-	Getenv func(string) (string, error) `yaml:"-"`
 }
 
 type ToolConfig struct {
@@ -80,6 +85,14 @@ type ToolConfig struct {
 	Body string `yaml:"body"`
 
 	Condition *ToolCondition `yaml:"condition"`
+
+	//
+	Provider string `yaml:"provider"`
+	BaseUrl  string `yaml:"base_url"`
+	// name of api key
+	ApiKey string `yaml:"api_key"`
+
+	Extra map[string]string `yaml:"extra"`
 }
 
 // TODO condidtion needs to be met for tools to be enabled
@@ -117,7 +130,13 @@ type ConnectorConfig struct {
 	// postgres://dbuser:secret@db.example.com:5432/mydb?sslmode=require
 	// https://drive.google.com/drive/folders
 	// mailto:someone@example.com
-	URL string `yaml:"url"`
+
+	Provider string `yaml:"provider"`
+	BaseUrl  string `yaml:"base_url"`
+	// name of api key
+	ApiKey string `yaml:"api_key"`
+
+	Extra map[string]string `yaml:"extra"`
 }
 
 type ToolSystem interface {

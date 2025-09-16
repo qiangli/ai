@@ -1,6 +1,6 @@
 ##
 base_url: "https://api.openai.com/v1/"
-api_key: ${OPENAI_API_KEY}
+api_key: openai
 provider: "openai"
 
 models:
@@ -12,5 +12,5 @@ models:
     model: "gpt-5"
   Image:
     model: "dall-e-3"
-    features: 
-      image: true
+    # features: 
+    #   image: true

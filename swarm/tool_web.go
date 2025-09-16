@@ -10,8 +10,7 @@ import (
 )
 
 type WebKit struct {
-	// Env map[string]string
-	env func(string) (string, error)
+	apiKey func() (string, error)
 }
 
 func (r *WebKit) FetchContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -97,7 +96,7 @@ func (r *WebKit) BraveSearch(ctx context.Context, vars *api.Vars, name string, a
 		max = 10
 	}
 
-	apiKey, err := r.env("BRAVE_API_KEY")
+	apiKey, err := r.apiKey()
 	if err != nil {
 		return "", err
 	}
@@ -123,31 +122,29 @@ func (r *WebKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string, 
 		max = 10
 	}
 
-	apiKey, err := r.env("GOOGLE_API_KEY")
+	// TODO handel engine_id
+	key, err := r.apiKey()
 	if err != nil {
 		return "", err
 	}
-	seID, err := r.env("GOOGLE_SEARCH_ENGINE_ID")
-	if err != nil {
-		return "", err
-	}
+
+	seID, apiKey := split2(key, ":", "")
+	// // seID, err := r.env("GOOGLE_SEARCH_ENGINE_ID")
+	// if r.f.Extra == nil {
+	// 	return "", fmt.Errorf("missing search engine id")
+	// }
+	// seID, ok := r.f.Extra["engine_id"]
+	// if !ok || len(seID) == 0 {
+	// 	return "", fmt.Errorf("empty search engine id")
+	// }
 
 	log.Infof("🅖 google query: %q max: %d\n", query, max)
 	return webtool.Google(ctx, apiKey, seID, query, max)
 }
 
-// func (r *WebKit) env(key string) (string, error) {
-// 	if r.Env != nil {
-// 		if v, ok := r.Env[key]; ok && v != "" {
-// 			return v, nil
-// 		}
-// 	}
-// 	return "", fmt.Errorf("missing %s", key)
-// }
-
 func callWebTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (string, error) {
 	tool := &WebKit{
-		env: f.Config.Getenv,
+		apiKey: provideApiKey(f.ApiKey),
 	}
 	callArgs := []any{ctx, vars, f.Name, args}
 	v, err := CallKit(tool, f.Kit, f.Name, callArgs...)

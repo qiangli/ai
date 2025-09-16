@@ -58,23 +58,22 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 	}
 
 	// in theory mcp and system/funcs type could be declared in the same kit
-	for _, kit := range kits {
+	for _, tc := range kits {
 		// connector mcp
-		if kit.Connector != nil {
-			tools, err := ListMcpTools(kit)
+		if tc.Connector != nil {
+			tools, err := ListMcpTools(tc)
 			if err != nil {
 				return nil, err
 			}
 			for _, tool := range tools {
-				tool.Config = kit
 				toolRegistry[tool.ID()] = tool
 			}
 		}
 
 		// tools - inline
-		if len(kit.Tools) > 0 {
-			for _, v := range kit.Tools {
-				log.Debugf("Kit: %s tool: %s - %s\n", kit.Kit, v.Name, v.Description)
+		if len(tc.Tools) > 0 {
+			for _, v := range tc.Tools {
+				log.Debugf("Kit: %s tool: %s - %s\n", tc.Kit, v.Name, v.Description)
 
 				// condition check
 				if !conditionMet(v.Name, v.Condition) {
@@ -82,16 +81,22 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 				}
 				tool := &api.ToolFunc{
 					Type:        v.Type,
-					Kit:         kit.Kit,
+					Kit:         tc.Kit,
 					Name:        v.Name,
 					Description: v.Description,
 					Parameters:  v.Parameters,
 					Body:        v.Body,
-					Config:      kit,
+					//
+					Provider: nvl(v.Provider, tc.Provider),
+					BaseUrl:  nvl(v.BaseUrl, tc.BaseUrl),
+					ApiKey:   nvl(v.ApiKey, tc.ApiKey),
+					//
+					Extra:  v.Extra,
+					Config: tc,
 				}
 
 				if tool.Type == "" {
-					tool.Type = kit.Type
+					tool.Type = tc.Type
 				}
 				if tool.Type == "" {
 					return nil, fmt.Errorf("Missing tool type: %s", v.Name)
@@ -107,6 +112,7 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 			}
 		}
 	}
+
 	return toolRegistry, nil
 }
 
@@ -131,26 +137,27 @@ func initTools(app *api.AppConfig) (func(string) ([]*api.ToolFunc, error), error
 		return list, nil
 	}
 
-	getType := func(toolType string, kit string) ([]*api.ToolFunc, error) {
-		var list []*api.ToolFunc
-		for _, v := range tools {
-			if toolType == "*" || toolType == "" || v.Type == toolType {
-				if kit == "*" || kit == "" || v.Config.Kit == kit {
-					list = append(list, v)
-				}
-			}
-		}
-		if len(list) == 0 {
-			return nil, fmt.Errorf("no such tool: %s / %s", toolType, kit)
-		}
-		return list, nil
-	}
+	// getType := func(toolType string, kit string) ([]*api.ToolFunc, error) {
+	// 	var list []*api.ToolFunc
+	// 	for _, v := range tools {
+	// 		if toolType == "*" || toolType == "" || v.Type == toolType {
+	// 			if kit == "*" || kit == "" || v.Config.Kit == kit {
+	// 				list = append(list, v)
+	// 			}
+	// 		}
+	// 	}
+	// 	if len(list) == 0 {
+	// 		return nil, fmt.Errorf("no such tool: %s / %s", toolType, kit)
+	// 	}
+	// 	return list, nil
+	// }
 
 	getTools := func(ns string, name string) ([]*api.ToolFunc, error) {
-		if k, err := getKit(ns, name); err == nil {
-			return k, nil
+		if v, err := getKit(ns, name); err == nil {
+			return v, nil
 		}
-		return getType(ns, name)
+		// return getType(ns, name)
+		return nil, fmt.Errorf("tool not found %s:%s", ns, name)
 	}
 
 	getTool := func(id string) ([]*api.ToolFunc, error) {
@@ -165,10 +172,11 @@ func initTools(app *api.AppConfig) (func(string) ([]*api.ToolFunc, error), error
 	// kit__name
 	return func(s string) ([]*api.ToolFunc, error) {
 		// id: kit__name
+		// NOT USED?
 		if strings.Index(s, "__") > 0 {
 			return getTool(s)
 		}
-		// type: type:kit
+		//
 		// ktt: kit:name
 		ns, n := split2(s, ":", "*")
 		return getTools(ns, n)
@@ -274,7 +282,30 @@ func LoadToolData(data [][]byte) (*api.ToolsConfig, error) {
 		}
 	}
 
-	merged.Getenv = getenv
+	// fill defaults
+	for _, v := range merged.Tools {
+		if v.BaseUrl == "" {
+			v.BaseUrl = merged.BaseUrl
+		}
+		if v.Provider == "" {
+			v.Provider = merged.Provider
+		}
+		if v.ApiKey == "" {
+			v.ApiKey = merged.ApiKey
+		}
+	}
+
+	if v := merged.Connector; v != nil {
+		if v.BaseUrl == "" {
+			v.BaseUrl = merged.BaseUrl
+		}
+		if v.Provider == "" {
+			v.Provider = merged.Provider
+		}
+		if v.ApiKey == "" {
+			v.ApiKey = merged.ApiKey
+		}
+	}
 
 	return merged, nil
 }

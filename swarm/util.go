@@ -4,32 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	// "net"
 	"strings"
 	"text/template"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
-
-// func isLoopback(hostport string) bool {
-// 	host, _, err := net.SplitHostPort(hostport)
-// 	if err != nil {
-// 		host = hostport
-// 	}
-
-// 	ip := net.ParseIP(host)
-
-// 	if ip != nil && ip.IsLoopback() {
-// 		return true
-// 	}
-
-// 	if host == "localhost" {
-// 		return true
-// 	}
-
-// 	return false
-// }
 
 func applyTemplate(tpl string, data any, funcMap template.FuncMap) (string, error) {
 	t, err := template.New("swarm").Funcs(funcMap).Parse(tpl)
@@ -107,4 +87,13 @@ func split2(s string, sep string, val string) (string, string) {
 		p2 = parts[1]
 	}
 	return p1, p2
+}
+
+func nvl(sa ...string) string {
+	for _, v := range sa {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
 }

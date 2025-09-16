@@ -27,18 +27,18 @@ func (r *McpClient) Connect(ctx context.Context) (*mcp.ClientSession, error) {
 	}, nil)
 
 	return client.Connect(ctx, &mcp.StreamableClientTransport{
-		Endpoint: r.cfg.URL,
+		Endpoint: r.cfg.BaseUrl,
 	}, nil)
 }
 
 func ListMcpTools(tc *api.ToolsConfig) ([]*api.ToolFunc, error) {
 	ctx := context.Background()
 
-	if tc.Connector == nil || tc.Connector.URL == "" {
+	if tc.Connector == nil || tc.Connector.BaseUrl == "" {
 		return nil, fmt.Errorf("Invalid mcp config. Missing URL")
 	}
 
-	log.Debugf("Connecting to MCP server at %s", tc.Connector.URL)
+	log.Debugf("Connecting to MCP server at %s", tc.Connector.BaseUrl)
 
 	client := NewMcpClient(tc.Connector)
 	session, err := client.Connect(ctx)
@@ -56,7 +56,7 @@ func ListMcpTools(tc *api.ToolsConfig) ([]*api.ToolFunc, error) {
 
 	funcs := make([]*api.ToolFunc, 0)
 	for _, v := range result.Tools {
-		funcs = append(funcs, &api.ToolFunc{
+		tool := &api.ToolFunc{
 			Kit:         tc.Kit,
 			Type:        api.ToolTypeMcp,
 			Name:        v.Name,
@@ -66,8 +66,18 @@ func ListMcpTools(tc *api.ToolsConfig) ([]*api.ToolFunc, error) {
 				"properties": v.InputSchema.Properties,
 				"required":   v.InputSchema.Required,
 			},
+			//
+			Provider: nvl(tc.Connector.Provider, tc.Provider),
+			BaseUrl:  nvl(tc.Connector.BaseUrl, tc.BaseUrl),
+			ApiKey:   nvl(tc.Connector.ApiKey, tc.ApiKey),
+			//
 			Config: tc,
-		})
+		}
+		// apiKey := nvl(tc.Connector.ApiKey, tc.ApiKey)
+		// if apiKey != "" {
+		// 	tool.ApiKey = provideApiKey(tc.Kit, apiKey)
+		// }
+		funcs = append(funcs, tool)
 	}
 
 	return funcs, nil
@@ -76,7 +86,7 @@ func ListMcpTools(tc *api.ToolsConfig) ([]*api.ToolFunc, error) {
 func callMcpTool(ctx context.Context, tf *api.ToolFunc, vars *api.Vars, name string, args map[string]any) (string, error) {
 	log.Debugf("🎖️ calling MCP tool: %s with args: %+v\n", name, args)
 
-	if tf.Config == nil || tf.Config.Connector == nil || tf.Config.Connector.URL == "" {
+	if tf.Config == nil || tf.Config.Connector == nil || tf.Config.Connector.BaseUrl == "" {
 		return "", fmt.Errorf("mcp not configured: %s", name)
 	}
 

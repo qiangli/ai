@@ -71,19 +71,22 @@ const (
 type TemplateFuncMap = template.FuncMap
 
 type Agent struct {
+	Owner string
+
 	// The name of the agent.
 	Name        string
 	Display     string
 	Description string
 
-	// The model to be used by the agent
-	Model *Model
-	// Model string
+	// // The role of the agent. default is "system"
+	// Role string
 
-	// The role of the agent. default is "system"
-	Role string
+	Instruction *Instruction
 
 	RawInput *UserInput
+
+	// The model to be used by the agent
+	Model *Model
 
 	// Functions that the agent can call
 	Tools []*ToolFunc
@@ -107,8 +110,7 @@ type Agent struct {
 	MaxTurns int
 	MaxTime  int
 
-	Instruction *Instruction
-
+	//
 	Config *AgentsConfig
 }
 
@@ -116,6 +118,9 @@ type Agent struct {
 type AgentsConfig struct {
 	// agent app name
 	Name string `yaml:"name"`
+
+	// [alias/]level
+	Model string `yaml:"model"`
 
 	Agents []*AgentConfig `yaml:"agents"`
 	Tools  []*ToolConfig  `yaml:"tools"`
@@ -133,10 +138,11 @@ type AgentConfig struct {
 	//
 	Instruction *Instruction `yaml:"instruction"`
 
+	// [alias/]level
 	Model string `yaml:"model"`
 
-	// model alias defined in models config
-	Models string `yaml:"models"`
+	// // model alias defined in models config
+	// Models string `yaml:"models"`
 
 	// tools defined in tools config
 	Functions []string `yaml:"functions"`

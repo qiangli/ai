@@ -63,11 +63,7 @@ func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 }
 
 func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	apiKey, err := req.Model.Config.Getenv("ANTHROPIC_API_KEY")
-	if err != nil {
-		return nil, err
-	}
-	client := NewClient(req.Model, req.Vars, apiKey)
+	client := NewClient(req.Model, req.Vars, req.Model.ApiKey)
 	model := anthropic.Model(req.Model.Model)
 
 	var system []anthropic.TextBlockParam

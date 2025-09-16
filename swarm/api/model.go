@@ -59,49 +59,52 @@ const (
 var Levels = []Level{L1, L2, L3, Image, TTS}
 
 type Model struct {
-	Provider string
+	Model string
 
-	Model   string
-	BaseUrl string
+	Provider string
+	BaseUrl  string
+
+	// resolved LLM api key/token
+	ApiKey string
 
 	// output
 	Type OutputType
-
-	// level name
-	Name string
 
 	//
 	Config *ModelsConfig
 }
 
-func (r *Model) Clone() *Model {
-	clone := &Model{
-		Type:     r.Type,
-		Provider: r.Provider,
-		Model:    r.Model,
-		BaseUrl:  r.BaseUrl,
-	}
-	return clone
-}
+// func (r *Model) Clone() *Model {
+// 	clone := &Model{
+// 		Type:     r.Type,
+// 		Model:    r.Model,
+// 		Provider: r.Provider,
+// 		BaseUrl:  r.BaseUrl,
+// 	}
+// 	return clone
+// }
 
 type ModelsConfig struct {
 	Alias string `yaml:"alias"`
 
-	// default for Models
-	Model    string `yaml:"model"`
+	// default LLM model for ModelConfig
+	Model string `yaml:"model"`
+
 	Provider string `yaml:"provider"`
 	BaseUrl  string `yaml:"base_url"`
-	// ApiKey   string `yaml:"api_key"`
+	// name of api key
+	ApiKey string `yaml:"api_key"`
 
 	Models ModelAliasConfig `yaml:"models"`
-
-	Getenv func(string) (string, error) `yaml:"-"`
 }
 
 type ModelConfig struct {
-	Provider string `yaml:"provider"`
+	// LLM model
+	Model string `yaml:"model"`
 
-	Model   string `yaml:"model"`
-	BaseUrl string `yaml:"base_url"`
-	// ApiKey  string `yaml:"api_key"`
+	// LLM service provider: openai | gemini | anthropic
+	Provider string `yaml:"provider"`
+	BaseUrl  string `yaml:"base_url"`
+	// name of api key
+	ApiKey string `yaml:"api_key"`
 }
