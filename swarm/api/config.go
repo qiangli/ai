@@ -18,9 +18,9 @@ type AppConfig struct {
 	// ToolSystemCommands []string
 	SystemTools []*ToolFunc
 
-	Agent   string
-	Command string
-	Args    []string
+	Agent string
+	// Command string
+	Args []string
 
 	// --message takes precedence, skip stdin
 	// command line arguments
@@ -124,8 +124,8 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		// AgentCreator:  cfg.AgentCreator,
 		// AgentHandler:  cfg.AgentHandler,
 		//
-		Agent:   cfg.Agent,
-		Command: cfg.Command,
+		Agent: cfg.Agent,
+		// Command: cfg.Command,
 		// Args:       append([]string(nil), cfg.Args...),
 		Args:       cfg.Args,
 		Message:    cfg.Message,

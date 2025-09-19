@@ -112,16 +112,16 @@ func parseUserInput(line string, prefix string) (*api.UserInput, error) {
 		return in, nil
 	}
 
-	if line[0] == '/' {
-		in := &api.UserInput{}
-		parts := strings.SplitN(line, " ", 2)
-		in.Agent = "script"
-		in.Command = parts[0]
-		if len(parts) > 1 {
-			in.Message = parts[1]
-		}
-		return in, nil
-	}
+	// if line[0] == '/' {
+	// 	in := &api.UserInput{}
+	// 	parts := strings.SplitN(line, " ", 2)
+	// 	in.Agent = "script"
+	// 	in.Command = parts[0]
+	// 	if len(parts) > 1 {
+	// 		in.Message = parts[1]
+	// 	}
+	// 	return in, nil
+	// }
 
 	return &api.UserInput{
 		Message: line,

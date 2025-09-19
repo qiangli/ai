@@ -233,9 +233,6 @@ Usage:
 ai [OPTIONS] @AGENT[/COMMAND] MESSAGE...
 ai [OPTIONS] --agent AGENT[/COMMAND] MESSAGE...  Engage specialist agent for help with various tasks
 
-ai [OPTIONS] /[COMMAND] MESSAGE...
-ai [OPTIONS] @shell/COMMAND  MESSAGE...          Use shell agent for help with command and scripts
-
 or
 
 ai [OPTIONS] MESSAGE...
@@ -283,12 +280,6 @@ func HelpCommands() error {
 %s
 
 Total: %v
-
-Usage:
-
-ai /COMMAND MESSAGE...
-
-/ is shorthand for  @shell/
 `
 	list := util.ListCommands()
 

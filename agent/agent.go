@@ -11,7 +11,8 @@ import (
 )
 
 func RunAgent(cfg *api.AppConfig) error {
-	log.Debugf("Agent: %s %s %v\n", cfg.Agent, cfg.Command, cfg.Args)
+	// log.Debugf("Agent: %s %s %v\n", cfg.Agent, cfg.Command, cfg.Args)
+	log.Debugf("Agent: %s %v\n", cfg.Agent, cfg.Args)
 
 	in, err := GetUserInput(cfg)
 	if err != nil {
@@ -23,15 +24,15 @@ func RunAgent(cfg *api.AppConfig) error {
 	}
 
 	in.Agent = cfg.Agent
-	in.Command = cfg.Command
+	// in.Command = cfg.Command
 
 	return RunSwarm(cfg, in)
 }
 
 func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	name := input.Agent
-	command := input.Command
-	log.Debugf("Running agent %q %s with swarm\n", name, command)
+	// command := input.Command
+	log.Debugf("Running agent %q with swarm\n", name)
 
 	//
 	// if v, err := swarm.NewAgentCreator(cfg); err != nil {
@@ -73,8 +74,8 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	showInput(cfg, input)
 
 	req := &api.Request{
-		Agent:    name,
-		Command:  command,
+		Agent: name,
+		// Command:  command,
 		RawInput: input,
 	}
 	resp := &api.Response{}
@@ -121,7 +122,8 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 		}
 	}
 
-	log.Debugf("Agent task completed: %s %v\n", cfg.Command, cfg.Args)
+	log.Debugf("Agent task completed: %v\n", cfg.Args)
+	// 	log.Debugf("Agent task completed: %s %v\n", cfg.Command, cfg.Args)
 	return nil
 }
 

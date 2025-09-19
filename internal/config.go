@@ -183,7 +183,7 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	// --agent, "ask"
 	var defaultAgent = viper.GetString("agent")
 	if defaultAgent == "" {
-		defaultAgent = "ask"
+		defaultAgent = "agent"
 	}
 
 	//
@@ -257,11 +257,12 @@ func ParseAgentArgs(app *api.AppConfig, args []string, defaultAgent string) []st
 		agent = defaultAgent
 	}
 
-	parts := strings.SplitN(agent, "/", 2)
-	app.Agent = parts[0]
-	if len(parts) > 1 {
-		app.Command = parts[1]
-	}
+	// parts := strings.SplitN(agent, "/", 2)
+	// app.Agent = parts[0]
+	// if len(parts) > 1 {
+	// 	app.Command = parts[1]
+	// }
+	app.Agent = agent
 
 	return args
 }

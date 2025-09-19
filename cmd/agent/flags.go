@@ -10,7 +10,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags := cmd.Flags()
 
 	// --agent agent/command or @agent/command
-	flags.StringP("agent", "a", "ask", "Specify the agent to use. @<agent>")
+	flags.StringP("agent", "a", "agent", "Specify the agent to use. @<agent>")
 
 	//
 	flags.String("editor", "", "Specify the editor to use. default: builtin")

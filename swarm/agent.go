@@ -51,7 +51,7 @@ const defaultMaxTime = 180 // 3 min
 
 func NewAgentCreator() api.AgentCreator {
 	return func(vars *api.Vars, req *api.Request) (*api.Agent, error) {
-		return CreateAgent(vars, req.Agent, req.Command, req.RawInput)
+		return CreateAgent(vars, req.Agent, req.RawInput)
 	}
 }
 
@@ -250,7 +250,7 @@ func LoadAgentsData(data [][]byte) (*api.AgentsConfig, error) {
 	return merged, nil
 }
 
-func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*api.Agent, error) {
+func CreateAgent(vars *api.Vars, name string, input *api.UserInput) (*api.Agent, error) {
 	agentLoader, err := initAgents(vars.Config)
 	if err != nil {
 		return nil, err
@@ -269,26 +269,26 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 		return nil, err
 	}
 
-	findAgentConfig := func(n, c string) (*api.AgentConfig, error) {
+	findAgentConfig := func(n string) (*api.AgentConfig, error) {
 		// check for more specific agent first
-		if c != "" {
-			ap := fmt.Sprintf("%s/%s", n, c)
-			for _, a := range config.Agents {
-				if a.Name == ap {
-					return a, nil
-				}
-			}
-		}
+		// if c != "" {
+		// 	ap := fmt.Sprintf("%s/%s", n, c)
+		// 	for _, a := range config.Agents {
+		// 		if a.Name == ap {
+		// 			return a, nil
+		// 		}
+		// 	}
+		// }
 		for _, a := range config.Agents {
 			if a.Name == n {
 				return a, nil
 			}
 		}
-		return nil, fmt.Errorf("no such agent: %s / %s", n, c)
+		return nil, fmt.Errorf("no such agent: %s", n)
 	}
 
-	getAgentConfig := func(n, c string) (*api.AgentConfig, error) {
-		a, err := findAgentConfig(n, c)
+	getAgentConfig := func(n string) (*api.AgentConfig, error) {
+		a, err := findAgentConfig(n)
 		if err != nil {
 			return nil, err
 		}
@@ -455,8 +455,8 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 		return &agent, nil
 	}
 
-	creator := func(vars *api.Vars, name, command string) (*api.Agent, error) {
-		agentCfg, err := getAgentConfig(name, command)
+	creator := func(vars *api.Vars, name string) (*api.Agent, error) {
+		agentCfg, err := getAgentConfig(name)
 		if err != nil {
 			return nil, err
 		}
@@ -469,5 +469,5 @@ func CreateAgent(vars *api.Vars, name, command string, input *api.UserInput) (*a
 		return agent, nil
 	}
 
-	return creator(vars, name, command)
+	return creator(vars, name)
 }

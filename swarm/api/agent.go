@@ -190,8 +190,8 @@ type Entrypoint func(*Vars, *Agent, *UserInput) error
 
 type Request struct {
 	// The name/command of the active agent
-	Agent   string
-	Command string
+	Agent string
+	// Command string
 
 	Messages []*Message
 

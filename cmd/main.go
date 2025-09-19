@@ -34,7 +34,6 @@ Use "{{.CommandPath}} /help [agents|commands|tools|info]" for more information.
 
 const usageExample = `
 ai what is fish
-ai / what is fish
 ai @ask what is fish
 `
 

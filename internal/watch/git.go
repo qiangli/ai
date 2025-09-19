@@ -69,11 +69,11 @@ func WatchRepo(cfg *api.AppConfig) error {
 		if in.Agent == "" {
 			in.Agent = cfg.Agent
 		}
-		if in.Command == "" {
-			in.Command = cfg.Command
-		}
+		// if in.Command == "" {
+		// 	in.Command = cfg.Command
+		// }
 
-		log.Debugf("agent: %s %s %v\n", in.Agent, in.Command)
+		log.Debugf("agent: %s\n", in.Agent)
 
 		cfg.Format = "text"
 		if err := agent.RunSwarm(cfg, in); err != nil {
