@@ -56,7 +56,7 @@ func GenerateReport(ctx context.Context, reportType, tone, input string, out str
 		return fmt.Errorf("query is required")
 	}
 
-	log.Infoln("Building gptr docker image, please wait...")
+	log.Infof("Building gptr docker image, please wait...\n")
 	if err := BuildImage(ctx); err != nil {
 		return err
 	}

@@ -5,7 +5,6 @@ import (
 	"embed"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -29,7 +28,6 @@ func (im iconMap) parse() {
 	icons, _ := iconsFs.Open("etc/icons")
 	pairs, err := readPairs(icons)
 	if err != nil {
-		log.Printf("reading icons file: %s", err)
 		return
 	}
 	for _, pair := range pairs {
@@ -99,10 +97,7 @@ func (im iconMap) getIcon(f os.FileInfo) string {
 }
 
 func replaceTilde(s string) string {
-	u, err := user.Current()
-	if err != nil {
-		log.Printf("user: %s", err)
-	}
+	u, _ := user.Current()
 	if strings.HasPrefix(s, "~") {
 		s = strings.Replace(s, "~", u.HomeDir, 1)
 	}

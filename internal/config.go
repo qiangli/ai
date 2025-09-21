@@ -199,7 +199,7 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 		app.AgentResource = ar
 	}
 
-	log.Debug("parsed: %+v\n", app)
+	log.Debugf("parsed: %+v\n", app)
 
 	return nil
 }

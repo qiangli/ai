@@ -8,8 +8,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"github.com/qiangli/ai/swarm/log"
 )
 
 const (
@@ -339,7 +337,6 @@ type Resource struct {
 }
 
 func LoadAgentResource(p string) (*AgentResource, error) {
-	log.Debugf("Loading agent resource: %s\n", p)
 	var ar AgentResource
 	data, err := os.ReadFile(p)
 	if err != nil {
@@ -348,6 +345,5 @@ func LoadAgentResource(p string) (*AgentResource, error) {
 	if err := json.Unmarshal(data, &ar); err != nil {
 		return nil, err
 	}
-	log.Debugf("Agent resource loaded: %+v\n", ar)
 	return &ar, nil
 }

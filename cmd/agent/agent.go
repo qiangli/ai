@@ -82,13 +82,13 @@ func Run(cmd *cobra.Command, args []string) error {
 	// watch mode
 	if cfg.Watch {
 		if err := watch.WatchRepo(cfg); err != nil {
-			log.Errorln(err)
+			log.Errorf("%v\n", err)
 		}
 		return nil
 	}
 	if cfg.ClipWatch {
 		if err := watch.WatchClipboard(cfg); err != nil {
-			log.Errorln(err)
+			log.Errorf("%v\n", err)
 		}
 		return nil
 	}
@@ -113,7 +113,7 @@ func Run(cmd *cobra.Command, args []string) error {
 				result, err = bubble.Confirm(prompt)
 			case "choose":
 				if len(cfg.Args) < 5 {
-					log.Errorln("Not enough args")
+					log.Errorf("%v\n", "Not enough args")
 					return nil
 				}
 				multi, _ := strconv.ParseBool(cfg.Args[4])
@@ -144,14 +144,14 @@ func Run(cmd *cobra.Command, args []string) error {
 				result, err = bubble.Edit(prompt, placeholder, value)
 			}
 			if err != nil {
-				log.Errorln(err)
+				log.Errorf("%v\n", err)
 			}
-			log.Println(result)
+			log.Printf("%s\n", result)
 			return nil
 		}
 
 		if err := shell.Shell(cfg); err != nil {
-			log.Errorln(err)
+			log.Errorf("%v\n", err)
 		}
 		return nil
 	}
@@ -165,7 +165,7 @@ func Run(cmd *cobra.Command, args []string) error {
 	}
 
 	if err := agent.RunAgent(cfg); err != nil {
-		log.Errorln(err)
+		log.Errorf("%v\n", err)
 	}
 
 	return nil
@@ -178,8 +178,7 @@ func setLogLevel(app *api.AppConfig) {
 	}
 
 	if app.Trace {
-		log.SetTrace(true)
-		log.SetLogLevel(log.Verbose)
+		log.SetLogLevel(log.Tracing)
 		return
 	}
 

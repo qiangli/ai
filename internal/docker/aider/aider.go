@@ -14,7 +14,7 @@ func Run(ctx context.Context, mode ChatMode, query string) error {
 		return fmt.Errorf("query is required")
 	}
 
-	log.Infoln("Building aider docker image, please wait...")
+	log.Infof("Building aider docker image, please wait...\n")
 	if err := BuildImage(ctx); err != nil {
 		return err
 	}

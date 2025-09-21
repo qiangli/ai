@@ -3,7 +3,6 @@ package web
 import (
 	_ "embed"
 	"encoding/json"
-	"log"
 	"math/rand"
 )
 
@@ -28,12 +27,10 @@ var defaultMobileUserAgents = []string{
 func init() {
 	var desktop []string
 	if err := json.Unmarshal(desktopUserAgentJSON, &desktop); err != nil {
-		log.Printf("failed to unmarshal desktop user agents: %v", err)
 		usersAgents = append(usersAgents, defaultDesktopUserAgents...)
 	}
 	var mobile []string
 	if err := json.Unmarshal(mobileUserAgentJSON, &mobile); err != nil {
-		log.Printf("failed to unmarshal mobile user agents: %v", err)
 		usersAgents = append(usersAgents, defaultMobileUserAgents...)
 	}
 	usersAgents = append(usersAgents, desktop...)

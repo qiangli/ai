@@ -31,7 +31,7 @@ func Middleware(model *api.Model, vars *api.Vars) option.Middleware {
 
 		if log.IsTrace() {
 			reqData, _ := httputil.DumpRequest(req, true)
-			log.Debugln(">>>REQUEST:\n", string(reqData))
+			log.Debugf(">>>REQUEST: %s\n", string(reqData))
 		}
 
 		var resp *http.Response
@@ -46,7 +46,7 @@ func Middleware(model *api.Model, vars *api.Vars) option.Middleware {
 
 		if log.IsTrace() {
 			resData, _ := httputil.DumpResponse(resp, true)
-			log.Debugln("<<<RESPONSE:\n", string(resData))
+			log.Debugf("<<<RESPONSE: %s\n", string(resData))
 		}
 
 		took := time.Since(start).Milliseconds()

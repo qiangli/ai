@@ -91,7 +91,7 @@ func main() {
 		if strings.HasPrefix(args[1], "/!") {
 			if len(args[1]) > 2 {
 				out := runCommand(args[1][2:], os.Args[1:])
-				log.Infoln(out)
+				log.Infof("%s\n", out)
 			} else {
 				// log.Infoln("command not specified: /!<cmmand>")
 				internal.Exit(fmt.Errorf("command not specified: /!<cmmand>"))

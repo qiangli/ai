@@ -320,8 +320,7 @@ func pasteConfirm() (bool, error) {
 
 func renderInputContent(me *api.User, content string) {
 	md := util.Render(content)
-	log.Infof("\n[%s]\n", me.Display)
-	log.Infoln(md)
+	log.Infof("\n[%s]\n%s\n", me.Display, md)
 }
 
 // trimInputMessage trims the input message by removing leading and trailing spaces

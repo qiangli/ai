@@ -43,7 +43,7 @@ func Exit(err error) {
 		errMsg = errMsg[:max] + "..."
 	}
 
-	log.Errorln(errMsg)
+	log.Errorf(errMsg)
 
 	switch err.(type) {
 	case *UserInputError:

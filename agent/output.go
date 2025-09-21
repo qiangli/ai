@@ -21,10 +21,9 @@ func PrintOutput(format string, output *api.Output) error {
 	}
 
 	if isOutputTTY() {
-		log.Infof("\n[%s]\n", output.Display)
-		log.Println(s)
+		log.Infof("\n[%s]\n%s\n", output.Display, s)
 	} else {
-		log.Println(s)
+		log.Printf("%s\n", s)
 	}
 
 	return nil
@@ -75,7 +74,7 @@ func processTextContent(cfg *api.AppConfig, output *api.Output) {
 
 func SpeakOutput(cfg *api.AppConfig, output *api.Output) {
 	var s = output.Content
-	log.Println(s)
+	log.Printf("%s\n", s)
 	// TOSO move to tools
 	//
 	// err := speak(cfg, s)

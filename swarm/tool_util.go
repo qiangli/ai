@@ -101,7 +101,7 @@ func getUserTextInput(prompt string) (string, error) {
 		return "", fmt.Errorf("prompt is empty")
 	}
 	ps := fmt.Sprintf("\n%s:\n\n[Press Ctrl+D to send or Ctrl+C to cancel...]\n", prompt)
-	log.Prompt(ps)
+	log.Promptf(ps)
 	data, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		return "", err
