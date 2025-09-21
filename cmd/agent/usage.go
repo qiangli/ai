@@ -12,10 +12,10 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/qiangli/ai/agent"
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 const agentUsageTemplate = `AI Command Line Tool

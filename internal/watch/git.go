@@ -8,8 +8,8 @@ import (
 	git "github.com/go-git/go-git/v5"
 
 	"github.com/qiangli/ai/agent"
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 // TODO custom prefix for different file types

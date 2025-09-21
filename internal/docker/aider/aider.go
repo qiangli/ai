@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 func Run(ctx context.Context, mode ChatMode, query string) error {

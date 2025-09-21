@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 const (

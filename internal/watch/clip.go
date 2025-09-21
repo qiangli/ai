@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/qiangli/ai/agent"
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 // Read user input from clipboard and write response to clipboard

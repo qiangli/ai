@@ -19,7 +19,7 @@ import (
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/stdcopy"
 
-	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 type ContainerConfig = container.Config

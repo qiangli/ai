@@ -8,7 +8,7 @@ import (
 	"github.com/docker/docker/api/types/mount"
 
 	"github.com/qiangli/ai/internal/docker"
-	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 const WorkspaceInSandbox = "/app"

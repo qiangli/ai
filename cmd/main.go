@@ -13,7 +13,7 @@ import (
 	"github.com/qiangli/ai/cmd/history"
 	"github.com/qiangli/ai/cmd/setup"
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 var viper = internal.V

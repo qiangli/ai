@@ -11,10 +11,10 @@ import (
 	"github.com/qiangli/ai/agent"
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/bubble"
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/watch"
 	"github.com/qiangli/ai/shell"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 var viper = internal.V

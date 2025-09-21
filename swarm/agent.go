@@ -10,8 +10,8 @@ import (
 	"dario.cat/mergo"
 	"gopkg.in/yaml.v3"
 
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 var getApiKey func(string) string

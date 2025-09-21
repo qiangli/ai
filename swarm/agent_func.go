@@ -13,7 +13,7 @@ package swarm
 // 	"github.com/qiangli/ai/internal/docker/aider"
 // 	"github.com/qiangli/ai/internal/docker/gptr"
 // 	"github.com/qiangli/ai/internal/docker/oh"
-// 	"github.com/qiangli/ai/internal/log"
+// 	"github.com/qiangli/ai/swarm/log"
 // 	"github.com/qiangli/ai/swarm/api"
 // 	"github.com/qiangli/ai/swarm/llm"
 // )

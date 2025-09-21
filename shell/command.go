@@ -17,9 +17,9 @@ import (
 	glob "github.com/bmatcuk/doublestar/v4"
 	"github.com/mattn/go-shellwords"
 
-	"github.com/qiangli/ai/internal/log"
 	edit "github.com/qiangli/ai/shell/edit"
 	fm "github.com/qiangli/ai/shell/explore"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 func execCommand(shellBin, original string, save bool) error {

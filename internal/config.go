@@ -10,8 +10,8 @@ import (
 
 	fangs "github.com/spf13/viper"
 
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 const DefaultEditor = "ai -i edit"

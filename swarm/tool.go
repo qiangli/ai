@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"os"
+
 	// "os/exec"
 	"path/filepath"
 	"strings"
@@ -14,8 +15,8 @@ import (
 	"github.com/briandowns/spinner"
 	"gopkg.in/yaml.v3"
 
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {

@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/llm/anthropic"
 	"github.com/qiangli/ai/swarm/llm/gemini"
 	"github.com/qiangli/ai/swarm/llm/openai"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 func Chat(ctx context.Context, req *llm.Request) (*llm.Response, error) {

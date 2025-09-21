@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 func readStdin() (string, error) {

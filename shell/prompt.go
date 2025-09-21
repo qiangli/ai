@@ -10,7 +10,7 @@ import (
 
 	git "gopkg.in/src-d/go-git.v4"
 
-	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 const (

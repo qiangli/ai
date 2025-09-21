@@ -5,7 +5,7 @@ package swarm
 // 	"fmt"
 // 	"strings"
 
-// 	"github.com/qiangli/ai/internal/log"
+// 	"github.com/qiangli/ai/swarm/log"
 // 	"github.com/qiangli/ai/swarm/api"
 // )
 

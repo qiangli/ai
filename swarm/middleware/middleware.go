@@ -9,8 +9,8 @@ import (
 
 	"github.com/openai/openai-go/v2/option"
 
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 type stringReadCloser struct {

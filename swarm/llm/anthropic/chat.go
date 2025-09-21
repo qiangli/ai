@@ -10,9 +10,9 @@ import (
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
 
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm"
+	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/ai/swarm/middleware"
 )
 

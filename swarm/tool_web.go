@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/log"
 	webtool "github.com/qiangli/ai/swarm/tool/web/util"
 )
 

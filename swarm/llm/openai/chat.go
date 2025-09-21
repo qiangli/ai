@@ -11,9 +11,9 @@ import (
 	"github.com/openai/openai-go/v2/option"
 	"github.com/openai/openai-go/v2/packages/param"
 
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm"
+	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/ai/swarm/middleware"
 )
 

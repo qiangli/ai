@@ -4,10 +4,10 @@ import (
 	_ "embed"
 
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 func RunAgent(cfg *api.AppConfig) error {

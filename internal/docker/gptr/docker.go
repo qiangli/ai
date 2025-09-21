@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/qiangli/ai/internal/docker"
-	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 //go:embed Dockerfile

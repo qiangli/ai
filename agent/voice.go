@@ -2,7 +2,7 @@ package agent
 
 // import (
 // 	// hubws "github.com/qiangli/ai/internal/hub/ws"
-// 	"github.com/qiangli/ai/internal/log"
+// 	"github.com/qiangli/ai/swarm/log"
 // 	"github.com/qiangli/ai/swarm/api"
 // )
 

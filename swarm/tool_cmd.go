@@ -10,8 +10,8 @@ import (
 
 	"github.com/qiangli/ai/internal/bubble"
 	"github.com/qiangli/ai/internal/bubble/confirm"
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/ai/swarm/vfs"
 	"github.com/qiangli/ai/swarm/vos"
 )

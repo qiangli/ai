@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/qiangli/ai/internal/log"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 func Confirm(ps string, choices []string, defaultChoice string, in io.Reader) (string, error) {

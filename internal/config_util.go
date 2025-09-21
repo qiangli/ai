@@ -9,8 +9,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 func getCurrentUser() string {

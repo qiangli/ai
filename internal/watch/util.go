@@ -9,8 +9,8 @@ import (
 
 	"github.com/gofrs/flock"
 
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 func parseFile(path string, prefix string) (string, error) {

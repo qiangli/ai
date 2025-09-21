@@ -12,8 +12,8 @@ import (
 	"golang.org/x/term"
 
 	"github.com/qiangli/ai/agent"
-	"github.com/qiangli/ai/internal/log"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/log"
 )
 
 func Shell(cfg *api.AppConfig) error {
