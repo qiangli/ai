@@ -10,6 +10,7 @@ const (
 	ToolTypeSystem = "system"
 	ToolTypeWeb    = "web"
 	ToolTypeMcp    = "mcp"
+	ToolTypeFaas   = "faas"
 )
 
 type ToolCaller func(*Vars, *Agent) func(context.Context, string, map[string]any) (*Result, error)
@@ -22,7 +23,7 @@ type ToolFunc struct {
 	Description string
 	Parameters  map[string]any
 
-	Body string
+	Body *FuncBody
 
 	//
 	State State
@@ -82,7 +83,7 @@ type ToolConfig struct {
 	Description string         `yaml:"description"`
 	Parameters  map[string]any `yaml:"parameters"`
 
-	Body string `yaml:"body"`
+	Body *FuncBody `yaml:"body"`
 
 	Condition *ToolCondition `yaml:"condition"`
 
@@ -93,6 +94,12 @@ type ToolConfig struct {
 	ApiKey string `yaml:"api_key"`
 
 	Extra map[string]string `yaml:"extra"`
+}
+
+type FuncBody struct {
+	Language string `yaml:"language"`
+	Code     string `yaml:"code"`
+	Url      string `yaml:"url"`
 }
 
 // TODO condidtion needs to be met for tools to be enabled
@@ -107,14 +114,14 @@ type ToolCondition struct {
 	Shell map[string]any `yaml:"shell"`
 }
 
-// ToolDescriptor is a description of a tool function.
-type ToolDescriptor struct {
-	Name        string
-	Description string
-	Parameters  map[string]any
+// // ToolDescriptor is a description of a tool function.
+// type ToolDescriptor struct {
+// 	Name        string
+// 	Description string
+// 	Parameters  map[string]any
 
-	Body string
-}
+// 	Body string
+// }
 
 type ConnectorConfig struct {
 	// mcp | ssh ...
