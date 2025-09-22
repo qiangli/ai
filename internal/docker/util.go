@@ -96,7 +96,7 @@ func BuildDockerImage(ctx context.Context, dockerfileName, tag string, dockerfil
 	defer resp.Body.Close()
 
 	var out io.Writer
-	if log.GetLogger(ctx).IsNormal() {
+	if log.GetLogger(ctx).IsInformative() {
 		out = os.Stderr
 	} else {
 		out = io.Discard

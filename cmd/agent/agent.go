@@ -191,17 +191,17 @@ func setLogLevel(ctx context.Context, app *api.AppConfig) {
 	}
 }
 
-func setLogOutput(ctx context.Context, path string) (*log.FileWriter, error) {
-	if path != "" {
-		f, err := log.NewFileWriter(path)
-		if err != nil {
-			return nil, err
-		}
-		log.GetLogger(ctx).SetLogOutput(f)
-		return f, nil
-	}
-	return nil, nil
-}
+// func setLogOutput(ctx context.Context, path string) (*log.FileWriter, error) {
+// 	if path != "" {
+// 		f, err := log.NewFileWriter(path)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		log.GetLogger(ctx).SetLogOutput(f)
+// 		return f, nil
+// 	}
+// 	return nil, nil
+// }
 
 func setupAppConfig(ctx context.Context, args []string) (*api.AppConfig, error) {
 	var cfg = &api.AppConfig{}
@@ -212,15 +212,15 @@ func setupAppConfig(ctx context.Context, args []string) (*api.AppConfig, error) 
 
 	log.GetLogger(ctx).Debug("Config: %+v\n", cfg)
 
-	fileLog, err := setLogOutput(ctx, cfg.Log)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if fileLog != nil {
-			fileLog.Close()
-		}
-	}()
+	// fileLog, err := setLogOutput(ctx, cfg.Log)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer func() {
+	// 	if fileLog != nil {
+	// 		fileLog.Close()
+	// 	}
+	// }()
 	setLogLevel(ctx, cfg)
 
 	return cfg, nil

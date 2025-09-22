@@ -72,7 +72,7 @@ type AppConfig struct {
 
 	Models string
 
-	Log string
+	// Log string
 
 	// TODO change to log level?
 	Trace bool
@@ -150,9 +150,9 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		MaxSpan:    cfg.MaxSpan,
 		// History:    cfg.History,
 		Models: cfg.Models,
-		Log:    cfg.Log,
-		Debug:  cfg.Debug,
-		Quiet:  cfg.Quiet,
+		// Log:    cfg.Log,
+		Debug: cfg.Debug,
+		Quiet: cfg.Quiet,
 
 		// DenyList:  append([]string(nil), cfg.DenyList...),
 		// AllowList: append([]string(nil), cfg.AllowList...),

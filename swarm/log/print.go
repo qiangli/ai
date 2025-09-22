@@ -6,6 +6,15 @@ import (
 	"os"
 )
 
+type Level int
+
+const (
+	Quiet Level = iota
+	Informative
+	Verbose
+	Tracing
+)
+
 type defaultLogger struct {
 	logLevel Level
 
@@ -18,14 +27,14 @@ type defaultLogger struct {
 
 func newDefaultLogger() *defaultLogger {
 	logger := &defaultLogger{
-		logLevel:     Normal,
+		logLevel:     Informative,
 		printLogger:  NewPrinter(os.Stdout, false, 0),
 		debugLogger:  NewPrinter(os.Stderr, false, 500),
 		infoLogger:   NewPrinter(os.Stderr, false, 0),
 		errLogger:    NewPrinter(os.Stderr, false, 0),
 		promptLogger: NewPrinter(os.Stderr, false, 0),
 	}
-	logger.SetLogLevel(Normal)
+	logger.SetLogLevel(Informative)
 	return logger
 }
 
@@ -114,15 +123,6 @@ func (r *printer) SetLogger(w io.Writer) {
 	r.logger = w
 }
 
-type Level int
-
-const (
-	Quiet Level = iota
-	Normal
-	Verbose
-	Tracing
-)
-
 func (r *defaultLogger) IsVerbose() bool {
 	return r.logLevel == Verbose
 }
@@ -131,8 +131,12 @@ func (r *defaultLogger) IsQuiet() bool {
 	return r.logLevel == Quiet
 }
 
-func (r *defaultLogger) IsNormal() bool {
-	return r.logLevel == Normal
+func (r *defaultLogger) IsInformative() bool {
+	return r.logLevel == Informative
+}
+
+func (r *defaultLogger) IsTrace() bool {
+	return r.logLevel == Tracing
 }
 
 func (r *defaultLogger) SetLogLevel(level Level) {
@@ -148,7 +152,7 @@ func (r *defaultLogger) SetLogLevel(level Level) {
 		r.infoLogger.SetEnabled(false)
 		r.errLogger.SetEnabled(false)
 		r.promptLogger.SetEnabled(false)
-	case Normal:
+	case Informative:
 		r.debugLogger.SetEnabled(false)
 		r.infoLogger.SetEnabled(true)
 		r.errLogger.SetEnabled(true)
@@ -169,15 +173,11 @@ func (r *defaultLogger) SetLogLevel(level Level) {
 	}
 }
 
-func (r *defaultLogger) SetLogOutput(w io.Writer) {
-	r.printLogger.SetLogger(w)
+// func (r *defaultLogger) SetLogOutput(w io.Writer) {
+// 	r.printLogger.SetLogger(w)
 
-	r.debugLogger.SetLogger(w)
-	r.infoLogger.SetLogger(w)
-	r.errLogger.SetLogger(w)
-	r.promptLogger.SetLogger(w)
-}
-
-func (r *defaultLogger) IsTrace() bool {
-	return r.logLevel == Tracing
-}
+// 	r.debugLogger.SetLogger(w)
+// 	r.infoLogger.SetLogger(w)
+// 	r.errLogger.SetLogger(w)
+// 	r.promptLogger.SetLogger(w)
+// }

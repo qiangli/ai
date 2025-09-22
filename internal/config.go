@@ -143,7 +143,7 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	}
 
 	//
-	app.Log = viper.GetString("log")
+	// app.Log = viper.GetString("log")
 	app.Trace = viper.GetBool("trace")
 	app.Debug = viper.GetBool("verbose")
 	app.Quiet = viper.GetBool("quiet")

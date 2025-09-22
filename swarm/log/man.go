@@ -2,7 +2,6 @@ package log
 
 import (
 	"context"
-	"io"
 )
 
 type Logger interface {
@@ -14,10 +13,9 @@ type Logger interface {
 	Debug(string, ...any)
 
 	SetLogLevel(Level)
-	SetLogOutput(io.Writer)
 
 	IsQuiet() bool
-	IsNormal() bool
+	IsInformative() bool
 	IsVerbose() bool
 	IsTrace() bool
 }
