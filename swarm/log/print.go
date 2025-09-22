@@ -6,14 +6,6 @@ import (
 	"os"
 )
 
-// var printLogger Printer = NewPrinter(os.Stdout, false, 0)
-
-// var debugLogger Printer = NewPrinter(os.Stderr, false, 500)
-
-// var infoLogger Printer = NewPrinter(os.Stderr, false, 0)
-// var errLogger Printer = NewPrinter(os.Stderr, false, 0)
-// var promptLogger Printer = NewPrinter(os.Stderr, false, 0)
-
 type defaultLogger struct {
 	logLevel Level
 
@@ -59,8 +51,6 @@ func (r *defaultLogger) Debug(format string, a ...any) {
 
 type Printer interface {
 	Printf(string, ...any)
-	// Print(...any)
-	// Println(...any)
 
 	SetEnabled(bool)
 	IsEnabled() bool
@@ -124,71 +114,6 @@ func (r *printer) SetLogger(w io.Writer) {
 	r.logger = w
 }
 
-// // prompter
-// func Promptf(format string, a ...interface{}) {
-// 	promptLogger.Printf(format, a...)
-// }
-
-// func Prompt(a ...interface{}) {
-// 	promptLogger.Print(a...)
-// }
-
-// func Promptln(a ...interface{}) {
-// 	promptLogger.Println(a...)
-// }
-
-// Printer for standard output - for data only (quiet mode)
-// func Printf(format string, a ...interface{}) {
-// 	printLogger.Printf(format, a...)
-// }
-
-// func Print(a ...interface{}) {
-// 	printLogger.Print(a...)
-// }
-
-// func Println(a ...interface{}) {
-// 	printLogger.Println(a...)
-// }
-
-// Debug logger
-// func Debugf(format string, a ...interface{}) {
-// 	debugLogger.Printf(format, a...)
-// }
-
-// func Debug(a ...interface{}) {
-// 	debugLogger.Print(a...)
-// }
-
-// func Debugln(a ...interface{}) {
-// 	debugLogger.Println(a...)
-// }
-
-// Info logger
-// func Infof(format string, a ...interface{}) {
-// 	infoLogger.Printf(format, a...)
-// }
-
-// func Info(a ...interface{}) {
-// 	infoLogger.Print(a...)
-// }
-
-// func Infoln(a ...interface{}) {
-// 	infoLogger.Println(a...)
-// }
-
-// Error logger
-// func Errorf(format string, a ...interface{}) {
-// 	errLogger.Printf(format, a...)
-// }
-
-// func Error(a ...interface{}) {
-// 	errLogger.Print(a...)
-// }
-
-// func Errorln(a ...interface{}) {
-// 	errLogger.Println(a...)
-// }
-
 type Level int
 
 const (
@@ -197,8 +122,6 @@ const (
 	Verbose
 	Tracing
 )
-
-// var logLevel Level
 
 func (r *defaultLogger) IsVerbose() bool {
 	return r.logLevel == Verbose
@@ -254,11 +177,6 @@ func (r *defaultLogger) SetLogOutput(w io.Writer) {
 	r.errLogger.SetLogger(w)
 	r.promptLogger.SetLogger(w)
 }
-
-// Set log level to Normal by default
-// func init() {
-// 	SetLogLevel(Normal)
-// }
 
 func (r *defaultLogger) IsTrace() bool {
 	return r.logLevel == Tracing
