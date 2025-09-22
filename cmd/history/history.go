@@ -1,6 +1,7 @@
 package history
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -21,13 +22,14 @@ var HistoryCmd = &cobra.Command{
 	DisableFlagsInUseLine: true,
 	DisableSuggestions:    true,
 	Run: func(cmd *cobra.Command, args []string) {
+		var ctx = context.TODO()
 		var cfg = &api.AppConfig{}
 
 		if err := internal.ParseConfig(viper, cfg, args); err != nil {
-			internal.Exit(err)
+			internal.Exit(ctx, err)
 		}
-		if err := historyConfig(cfg); err != nil {
-			internal.Exit(err)
+		if err := historyConfig(ctx, cfg); err != nil {
+			internal.Exit(ctx, err)
 		}
 	},
 }
@@ -42,7 +44,7 @@ func init() {
 	HistoryCmd.CompletionOptions.DisableDefaultCmd = true
 }
 
-func historyConfig(cfg *api.AppConfig) error {
+func historyConfig(ctx context.Context, cfg *api.AppConfig) error {
 	if _, err := os.Stat(cfg.ConfigFile); errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("Configuration not found")
 	}
@@ -54,5 +56,5 @@ func historyConfig(cfg *api.AppConfig) error {
 	}
 	args = append(args, histRoot)
 
-	return shell.Explore(args)
+	return shell.Explore(ctx, args)
 }

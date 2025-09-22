@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"strings"
@@ -10,10 +11,11 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func ProcessBashScript(cfg *api.AppConfig, script string) error {
+func ProcessBashScript(ctx context.Context, cfg *api.AppConfig, script string) error {
 	lines := strings.Split(script, "\n")
 	if len(lines) > 1 {
 		return confirmRun(
+			ctx,
 			cfg,
 			"Run, edit, copy? [y/e/c/N] ",
 			[]string{"yes", "edit", "copy", "no"},
@@ -22,6 +24,7 @@ func ProcessBashScript(cfg *api.AppConfig, script string) error {
 		)
 	} else {
 		return confirmRun(
+			ctx,
 			cfg,
 			"Run? [y/N] ",
 			[]string{"yes", "no"},
@@ -31,26 +34,26 @@ func ProcessBashScript(cfg *api.AppConfig, script string) error {
 	}
 }
 
-func confirmRun(cfg *api.AppConfig, ps string, choices []string, defaultChoice, script string) error {
-	answer, err := util.Confirm(ps, choices, defaultChoice, os.Stdin)
+func confirmRun(ctx context.Context, cfg *api.AppConfig, ps string, choices []string, defaultChoice, script string) error {
+	answer, err := util.Confirm(ctx, ps, choices, defaultChoice, os.Stdin)
 	if err != nil {
 		return err
 	}
 	switch answer {
 	case "edit":
-		return editScript(cfg, script)
+		return editScript(ctx, cfg, script)
 	case "copy":
 		return copyScriptToClipboard(cfg, script)
 	case "yes":
-		return runScript(cfg, script)
+		return runScript(ctx, cfg, script)
 	case "no":
 	default:
 	}
 	return nil
 }
 
-func runScript(cfg *api.AppConfig, script string) error {
-	log.Debugf("Running script:\n%s\n", script)
+func runScript(ctx context.Context, cfg *api.AppConfig, script string) error {
+	log.GetLogger(ctx).Debug("Running script:\n%s\n", script)
 
 	tmpFile, err := os.CreateTemp("", "ai-script-*.sh")
 	if err != nil {
@@ -69,8 +72,8 @@ func runScript(cfg *api.AppConfig, script string) error {
 		return err
 	}
 
-	// log.Debugf("Working directory: %s\n", wd)
-	log.Debugf("Script file: %s\n", tmpFile.Name())
+	// log.GetLogger(ctx).Debug("Working directory: %s\n", wd)
+	log.GetLogger(ctx).Debug("Script file: %s\n", tmpFile.Name())
 
 	cmd := exec.Command("bash", tmpFile.Name())
 	cmd.Stdout = os.Stdout
@@ -84,10 +87,10 @@ func copyScriptToClipboard(_ *api.AppConfig, script string) error {
 	return util.NewClipboard().Write(script)
 }
 
-func editScript(cfg *api.AppConfig, script string) error {
+func editScript(ctx context.Context, cfg *api.AppConfig, script string) error {
 	editor := cfg.Editor
 
-	log.Debugf("Using editor: %s\n", editor)
+	log.GetLogger(ctx).Debug("Using editor: %s\n", editor)
 
 	tmpFile, err := os.CreateTemp("", "ai-script-*.sh")
 	if err != nil {

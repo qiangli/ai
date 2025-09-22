@@ -48,6 +48,8 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	// before entering the loop clear all env
 	clearAllEnv()
 
+	ctx := req.Context()
+
 	for {
 		agent, err := r.Creator(r.Vars, req)
 		if err != nil {
@@ -75,7 +77,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 				}
 			}
 
-			log.Debugf("run dependency: %s %+v\n", dep, depResp)
+			log.GetLogger(ctx).Debug("run dependency: %s %+v\n", dep, depResp)
 		}
 
 		//

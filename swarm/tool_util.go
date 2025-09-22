@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -30,7 +31,7 @@ func writeStdout(content string) (string, error) {
 	return content, nil
 }
 
-func readClipboard() (string, error) {
+func readClipboard(ctx context.Context) (string, error) {
 	c := util.NewClipboard()
 	if err := c.Clear(); err != nil {
 		return "", err
@@ -42,7 +43,7 @@ func readClipboard() (string, error) {
 	return data, nil
 }
 
-func readClipboardWait() (string, error) {
+func readClipboardWait(ctx context.Context) (string, error) {
 	c := util.NewClipboard()
 	if err := c.Clear(); err != nil {
 		return "", err
@@ -52,7 +53,7 @@ func readClipboardWait() (string, error) {
 		return "", err
 	}
 
-	if err := confirmReadClipboard(); err != nil {
+	if err := confirmReadClipboard(ctx); err != nil {
 		return "", err
 	}
 
@@ -81,12 +82,12 @@ func writeClipboardAppend(content string) (string, error) {
 	return content, nil
 }
 
-func confirmReadClipboard() error {
+func confirmReadClipboard(ctx context.Context) error {
 	ps := "Confirm? [Y/n] "
 	choices := []string{"yes", "no"}
 	defaultChoice := "yes"
 
-	answer, err := util.Confirm(ps, choices, defaultChoice, os.Stdin)
+	answer, err := util.Confirm(ctx, ps, choices, defaultChoice, os.Stdin)
 	if err != nil {
 		return err
 	}
@@ -96,12 +97,12 @@ func confirmReadClipboard() error {
 	return fmt.Errorf("clipboard read canceled")
 }
 
-func getUserTextInput(prompt string) (string, error) {
+func getUserTextInput(ctx context.Context, prompt string) (string, error) {
 	if prompt == "" {
 		return "", fmt.Errorf("prompt is empty")
 	}
 	ps := fmt.Sprintf("\n%s:\n\n[Press Ctrl+D to send or Ctrl+C to cancel...]\n", prompt)
-	log.Promptf(ps)
+	log.GetLogger(ctx).Prompt(ps)
 	data, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		return "", err
@@ -109,7 +110,7 @@ func getUserTextInput(prompt string) (string, error) {
 	return string(data), nil
 }
 
-func getUserChoiceInput(prompt string, choices []string, defaultChoice string) (string, error) {
+func getUserChoiceInput(ctx context.Context, prompt string, choices []string, defaultChoice string) (string, error) {
 	if prompt == "" {
 		return "", fmt.Errorf("prompt is empty")
 	}
@@ -123,7 +124,7 @@ func getUserChoiceInput(prompt string, choices []string, defaultChoice string) (
 		return "", fmt.Errorf("choices must have at least two options")
 	}
 	ps := fmt.Sprintf("\n%s:\n\nPress enter to respond with %q [%s] ", prompt, strings.ToLower(defaultChoice), strings.Join(choices, "/"))
-	return util.Confirm(ps, choices, defaultChoice, os.Stdin)
+	return util.Confirm(ctx, ps, choices, defaultChoice, os.Stdin)
 }
 
 // if required properties is not missing and is an array of strings

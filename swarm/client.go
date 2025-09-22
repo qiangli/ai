@@ -12,7 +12,7 @@ import (
 )
 
 func Chat(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	log.Debugf(">>>LLM Chat:\n Model: %s Model: %+v, Messages: %v Tools: %v\n\n", req.Model, req.Model, len(req.Messages), len(req.Tools))
+	log.GetLogger(ctx).Debug(">>>LLM Chat:\n Model: %s Model: %+v, Messages: %v Tools: %v\n\n", req.Model, req.Model, len(req.Messages), len(req.Tools))
 
 	var err error
 	var resp *llm.Response
@@ -40,19 +40,19 @@ func Chat(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	}
 
 	if err != nil {
-		log.Errorf("***LLM Client: %s\n\n", err)
+		log.GetLogger(ctx).Error("***LLM Client: %s\n\n", err)
 		return nil, err
 	}
 	if resp == nil {
 		return nil, fmt.Errorf("No response")
 	}
 
-	log.Debugf("<<<LLM Chat:\n Content type: %s Content: %v\n\n", resp.ContentType, len(resp.Content))
+	log.GetLogger(ctx).Debug("<<<LLM Chat:\n Content type: %s Content: %v\n\n", resp.ContentType, len(resp.Content))
 	return resp, nil
 }
 
 func ImageGen(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	log.Debugf(">>>LLM ImageGen:\n Model: %s Model: %+v, Messages: %v Tools: %v\n\n", req.Model, req.Model, len(req.Messages), len(req.Tools))
+	log.GetLogger(ctx).Debug(">>>LLM ImageGen:\n Model: %s Model: %+v, Messages: %v Tools: %v\n\n", req.Model, req.Model, len(req.Messages), len(req.Tools))
 
 	var err error
 	var resp *llm.Response
@@ -75,13 +75,13 @@ func ImageGen(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	}
 
 	if err != nil {
-		log.Errorf("***LLM Client: %s\n\n", err)
+		log.GetLogger(ctx).Error("***LLM Client: %s\n\n", err)
 		return nil, err
 	}
 	if resp == nil {
 		return nil, fmt.Errorf("No response")
 	}
 
-	log.Debugf("<<<LLM ImageGen:\n Content type: %s Content: %v\n\n", resp.ContentType, len(resp.Content))
+	log.GetLogger(ctx).Debug("<<<LLM ImageGen:\n Content type: %s Content: %v\n\n", resp.ContentType, len(resp.Content))
 	return resp, nil
 }

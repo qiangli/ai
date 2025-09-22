@@ -11,7 +11,6 @@ import (
 	fangs "github.com/spf13/viper"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/log"
 )
 
 const DefaultEditor = "ai -i edit"
@@ -52,7 +51,7 @@ func init() {
 }
 
 // init viper
-func InitConfig(viper *fangs.Viper) {
+func InitConfig(viper *fangs.Viper) error {
 	defaultCfg := os.Getenv("AI_CONFIG")
 	if defaultCfg == "" {
 		if home, err := os.UserHomeDir(); err == nil {
@@ -69,18 +68,20 @@ func InitConfig(viper *fangs.Viper) {
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Debugf("Error reading config file: %s\n", err)
+		return err
+		//log.GetLogger(ctx).Debug("Error reading config file: %s\n", err)
 	}
+	return nil
 }
 
 func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	app.ConfigFile = viper.ConfigFileUsed()
 	app.Base = filepath.Dir(app.ConfigFile)
 
-	log.Debugf("configure file: %s\n", app.ConfigFile)
-	log.Debugf("base: %s\n", app.Base)
+	// log.GetLogger(ctx).Debug("configure file: %s\n", app.ConfigFile)
+	// log.GetLogger(ctx).Debug("base: %s\n", app.Base)
 
-	printAIEnv()
+	// printAIEnv()
 
 	//
 
@@ -199,7 +200,7 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 		app.AgentResource = ar
 	}
 
-	log.Debugf("parsed: %+v\n", app)
+	// log.GetLogger(ctx).Debug("parsed: %+v\n", app)
 
 	return nil
 }

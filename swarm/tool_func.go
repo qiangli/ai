@@ -18,7 +18,7 @@ type FuncKit struct {
 func (r *FuncKit) ListAgents(ctx context.Context, vars *api.Vars, _ string, _ map[string]any) (string, error) {
 	var list []string
 
-	dict, err := ListAgents(vars.Config)
+	dict, err := ListAgents(ctx, vars.Config)
 	if err != nil {
 		return "", err
 	}
@@ -41,7 +41,7 @@ func (r *FuncKit) AgentInfo(ctx context.Context, vars *api.Vars, _ string, args 
 	if err != nil {
 		return "", err
 	}
-	dict, err := ListAgents(vars.Config)
+	dict, err := ListAgents(ctx, vars.Config)
 	if err != nil {
 		return "", err
 	}
@@ -76,7 +76,7 @@ func (r *FuncKit) AgentTransfer(_ context.Context, _ *api.Vars, _ string, args m
 // }
 
 // func (r *FuncKit) TaskComplete(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-// 	log.Infof("✌️ task completed %s", name)
+// 	log.GetLogger(ctx).Info("✌️ task completed %s", name)
 // 	return "Task completed", nil
 // }
 

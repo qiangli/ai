@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"context"
 	"os"
 	"strconv"
 	"strings"
@@ -47,9 +48,10 @@ func init() {
 	AgentCmd.CompletionOptions.DisableDefaultCmd = true
 
 	AgentCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
-		err := Help(cmd, args)
+		ctx := context.TODO()
+		err := Help(ctx, cmd, args)
 		if err != nil {
-			internal.Exit(err)
+			internal.Exit(ctx, err)
 		}
 	})
 
@@ -70,7 +72,9 @@ func init() {
 }
 
 func Run(cmd *cobra.Command, args []string) error {
-	cfg, err := setupAppConfig(args)
+	var ctx = context.TODO()
+
+	cfg, err := setupAppConfig(ctx, args)
 	if err != nil {
 		return err
 	}
@@ -81,14 +85,14 @@ func Run(cmd *cobra.Command, args []string) error {
 
 	// watch mode
 	if cfg.Watch {
-		if err := watch.WatchRepo(cfg); err != nil {
-			log.Errorf("%v\n", err)
+		if err := watch.WatchRepo(ctx, cfg); err != nil {
+			log.GetLogger(ctx).Error("%v\n", err)
 		}
 		return nil
 	}
 	if cfg.ClipWatch {
-		if err := watch.WatchClipboard(cfg); err != nil {
-			log.Errorf("%v\n", err)
+		if err := watch.WatchClipboard(ctx, cfg); err != nil {
+			log.GetLogger(ctx).Error("%v\n", err)
 		}
 		return nil
 	}
@@ -113,7 +117,7 @@ func Run(cmd *cobra.Command, args []string) error {
 				result, err = bubble.Confirm(prompt)
 			case "choose":
 				if len(cfg.Args) < 5 {
-					log.Errorf("%v\n", "Not enough args")
+					log.GetLogger(ctx).Error("%v\n", "Not enough args")
 					return nil
 				}
 				multi, _ := strconv.ParseBool(cfg.Args[4])
@@ -144,14 +148,14 @@ func Run(cmd *cobra.Command, args []string) error {
 				result, err = bubble.Edit(prompt, placeholder, value)
 			}
 			if err != nil {
-				log.Errorf("%v\n", err)
+				log.GetLogger(ctx).Error("%v\n", err)
 			}
-			log.Printf("%s\n", result)
+			log.GetLogger(ctx).Print("%s\n", result)
 			return nil
 		}
 
-		if err := shell.Shell(cfg); err != nil {
-			log.Errorf("%v\n", err)
+		if err := shell.Shell(ctx, cfg); err != nil {
+			log.GetLogger(ctx).Error("%v\n", err)
 		}
 		return nil
 	}
@@ -164,51 +168,51 @@ func Run(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if err := agent.RunAgent(cfg); err != nil {
-		log.Errorf("%v\n", err)
+	if err := agent.RunAgent(ctx, cfg); err != nil {
+		log.GetLogger(ctx).Error("%v\n", err)
 	}
 
 	return nil
 }
 
-func setLogLevel(app *api.AppConfig) {
+func setLogLevel(ctx context.Context, app *api.AppConfig) {
 	if app.Quiet {
-		log.SetLogLevel(log.Quiet)
+		log.GetLogger(ctx).SetLogLevel(log.Quiet)
 		return
 	}
 
 	if app.Trace {
-		log.SetLogLevel(log.Tracing)
+		log.GetLogger(ctx).SetLogLevel(log.Tracing)
 		return
 	}
 
 	if app.Debug {
-		log.SetLogLevel(log.Verbose)
+		log.GetLogger(ctx).SetLogLevel(log.Verbose)
 	}
 }
 
-func setLogOutput(path string) (*log.FileWriter, error) {
+func setLogOutput(ctx context.Context, path string) (*log.FileWriter, error) {
 	if path != "" {
 		f, err := log.NewFileWriter(path)
 		if err != nil {
 			return nil, err
 		}
-		log.SetLogOutput(f)
+		log.GetLogger(ctx).SetLogOutput(f)
 		return f, nil
 	}
 	return nil, nil
 }
 
-func setupAppConfig(args []string) (*api.AppConfig, error) {
+func setupAppConfig(ctx context.Context, args []string) (*api.AppConfig, error) {
 	var cfg = &api.AppConfig{}
 	err := internal.ParseConfig(viper, cfg, args)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Debugf("Config: %+v\n", cfg)
+	log.GetLogger(ctx).Debug("Config: %+v\n", cfg)
 
-	fileLog, err := setLogOutput(cfg.Log)
+	fileLog, err := setLogOutput(ctx, cfg.Log)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +221,7 @@ func setupAppConfig(args []string) (*api.AppConfig, error) {
 			fileLog.Close()
 		}
 	}()
-	setLogLevel(cfg)
+	setLogLevel(ctx, cfg)
 
 	return cfg, nil
 }

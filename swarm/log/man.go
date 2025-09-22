@@ -2,6 +2,7 @@ package log
 
 import (
 	"context"
+	"io"
 	// "fmt"
 	// "sync"
 )
@@ -21,6 +22,9 @@ type Logger interface {
 	Info(string, ...any)
 	Debug(string, ...any)
 
+	SetLogLevel(Level)
+	SetLogOutput(io.Writer)
+
 	IsQuiet() bool
 	IsNormal() bool
 	IsVerbose() bool
@@ -31,11 +35,12 @@ type LogManager interface {
 	GetLogger(ctx context.Context) Logger
 }
 
-var manager LogManager
+// default
+var manager LogManager = newLogManager()
 
-func InitDefault() {
-	manager = newLogManager()
-}
+// func InitDefault() {
+// 	manager = newLogManager()
+// }
 
 // set custom manager
 func SetLogManager(m LogManager) {
@@ -51,7 +56,7 @@ type defaultLogManager struct {
 func newLogManager() *defaultLogManager {
 	return &defaultLogManager{
 		// loggers: make(map[string]Logger),
-		logger:  newDefaultLogger(),
+		logger: newDefaultLogger(),
 	}
 }
 

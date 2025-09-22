@@ -2,6 +2,7 @@ package shell
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -16,8 +17,8 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func RunPtyCapture(shellBin, command string, capture func(int, string) error) error {
-	log.Debugf("RunPtyCapture: %s %s\n", shellBin, command)
+func RunPtyCapture(ctx context.Context, shellBin, command string, capture func(int, string) error) error {
+	log.GetLogger(ctx).Debug("RunPtyCapture: %s %s\n", shellBin, command)
 
 	cmd := exec.Command(shellBin, "-c", command)
 
@@ -66,18 +67,18 @@ func RunPtyCapture(shellBin, command string, capture func(int, string) error) er
 	// 	// TODO windows
 	// 	origFlags, err := unix.FcntlInt(uintptr(fd), unix.F_GETFL, 0)
 	// 	if err != nil {
-	// 		log.Debugf("stdin fcntl get flags error: %s\n", err)
+	// 		log.GetLogger(ctx).Debug("stdin fcntl get flags error: %s\n", err)
 	// 		return
 	// 	}
 	// 	defer func() {
 	// 		_, _ = unix.FcntlInt(uintptr(fd), unix.F_SETFL, origFlags)
-	// 		log.Debugf("stdin restore original flags %+v\n", origFlags)
+	// 		log.GetLogger(ctx).Debug("stdin restore original flags %+v\n", origFlags)
 	// 	}()
 
 	// 	newFlags := origFlags | unix.O_NONBLOCK
 	// 	_, err = unix.FcntlInt(uintptr(fd), unix.F_SETFL, newFlags)
 	// 	if err != nil {
-	// 		log.Debugf("stdin fcntl set flags error: %s\n", err)
+	// 		log.GetLogger(ctx).Debug("stdin fcntl set flags error: %s\n", err)
 	// 		return
 	// 	}
 
@@ -170,7 +171,7 @@ func RunPtyCapture(shellBin, command string, capture func(int, string) error) er
 				if err == io.EOF {
 					break
 				}
-				log.Debugf("error reading from ptmx: %s\n", err)
+				log.GetLogger(ctx).Debug("error reading from ptmx: %s\n", err)
 				break
 			}
 		}

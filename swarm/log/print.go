@@ -25,7 +25,7 @@ type defaultLogger struct {
 }
 
 func newDefaultLogger() *defaultLogger {
-	return &defaultLogger{
+	logger := &defaultLogger{
 		logLevel:     Normal,
 		printLogger:  NewPrinter(os.Stdout, false, 0),
 		debugLogger:  NewPrinter(os.Stderr, false, 500),
@@ -33,6 +33,8 @@ func newDefaultLogger() *defaultLogger {
 		errLogger:    NewPrinter(os.Stderr, false, 0),
 		promptLogger: NewPrinter(os.Stderr, false, 0),
 	}
+	logger.SetLogLevel(Normal)
+	return logger
 }
 
 func (r *defaultLogger) Prompt(format string, a ...any) {

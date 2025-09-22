@@ -7,7 +7,7 @@ package agent
 // )
 
 // func voiceInput(cfg *api.AppConfig) (string, error) {
-// 	log.Debugf("⣿ voice input: %s\n", cfg.Hub.Address)
+// 	log.GetLogger(ctx).Debug("⣿ voice input: %s\n", cfg.Hub.Address)
 
 // 	wsUrl, err := hubws.GetHubUrl(cfg.Hub.Address)
 // 	if err != nil {
@@ -18,11 +18,11 @@ package agent
 // 	data, err := hubws.VoiceInput(wsUrl, prompt)
 
 // 	if err != nil {
-// 		log.Errorf("\033[31m✗\033[0m %s\n", err)
+// 		log.GetLogger(ctx).Error("\033[31m✗\033[0m %s\n", err)
 // 		return "", err
 // 	}
 
-// 	log.Infof("✔ %s \n", string(data))
+// 	log.GetLogger(ctx).Info("✔ %s \n", string(data))
 
 // 	return string(data), nil
 // }

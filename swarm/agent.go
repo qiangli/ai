@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"os"
@@ -51,12 +52,12 @@ const defaultMaxTime = 180 // 3 min
 
 func NewAgentCreator() api.AgentCreator {
 	return func(vars *api.Vars, req *api.Request) (*api.Agent, error) {
-		return CreateAgent(vars, req.Agent, req.RawInput)
+		return CreateAgent(req.Context(), vars, req.Agent, req.RawInput)
 	}
 }
 
-func initAgents(app *api.AppConfig) (func(string) (*api.AgentsConfig, error), error) {
-	agents, err := ListAgents(app)
+func initAgents(ctx context.Context, app *api.AppConfig) (func(string) (*api.AgentsConfig, error), error) {
+	agents, err := ListAgents(ctx, app)
 	if err != nil {
 		return nil, err
 	}
@@ -68,30 +69,30 @@ func initAgents(app *api.AppConfig) (func(string) (*api.AgentsConfig, error), er
 	}, nil
 }
 
-func ListAgents(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
+func ListAgents(ctx context.Context, app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
 	var agents = make(map[string]*api.AgentsConfig)
 
-	config, err := LoadAgentsConfig(app)
+	config, err := LoadAgentsConfig(ctx, app)
 	if err != nil {
-		log.Errorf("failed to load default tool config: %v\n", err)
+		log.GetLogger(ctx).Error("failed to load default tool config: %v\n", err)
 		return nil, err
 	}
 
 	for name, v := range config {
-		log.Debugf("Registering agent: %s with %d configurations\n", name, len(v.Agents))
+		log.GetLogger(ctx).Debug("Registering agent: %s with %d configurations\n", name, len(v.Agents))
 		if len(v.Agents) == 0 {
-			log.Debugf("No agents found in config: %s\n", name)
+			log.GetLogger(ctx).Debug("No agents found in config: %s\n", name)
 			continue
 		}
 		// Register the agent configurations
 		for _, agent := range v.Agents {
 			if _, exists := agents[agent.Name]; exists {
-				log.Debugf("Duplicate agent name found: %s, skipping registration\n", agent.Name)
+				log.GetLogger(ctx).Debug("Duplicate agent name found: %s, skipping registration\n", agent.Name)
 				continue
 			}
 			// Register the agents configuration
 			agents[agent.Name] = v
-			log.Debugf("Registered agent: %s\n", agent.Name)
+			log.GetLogger(ctx).Debug("Registered agent: %s\n", agent.Name)
 			if v.MaxTurns == 0 {
 				v.MaxTurns = defaultMaxTurns
 			}
@@ -107,33 +108,33 @@ func ListAgents(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
 	if len(agents) == 0 {
 		return nil, fmt.Errorf("no agent configurations found")
 	}
-	log.Debugf("Initialized %d agent configurations\n", len(agents))
+	log.GetLogger(ctx).Debug("Initialized %d agent configurations\n", len(agents))
 	return agents, nil
 }
 
-func LoadAgentsConfig(app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
+func LoadAgentsConfig(ctx context.Context, app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
 	var groups = make(map[string]*api.AgentsConfig)
 	// default
-	if err := LoadResourceAgentsConfig(resourceFS, groups); err != nil {
+	if err := LoadResourceAgentsConfig(ctx, resourceFS, groups); err != nil {
 		return nil, err
 	}
 
 	// external/custom
-	if err := LoadFileAgentsConfig(app.Base, groups); err != nil {
-		log.Errorf("failed to load custom agents: %v\n", err)
+	if err := LoadFileAgentsConfig(ctx, app.Base, groups); err != nil {
+		log.GetLogger(ctx).Error("failed to load custom agents: %v\n", err)
 	}
 
 	// web
 	if app.AgentResource != nil && len(app.AgentResource.Resources) > 0 {
-		if err := LoadWebAgentsConfig(app.AgentResource.Resources, groups); err != nil {
-			log.Errorf("failed load agents from web resources: %v\n", err)
+		if err := LoadWebAgentsConfig(ctx, app.AgentResource.Resources, groups); err != nil {
+			log.GetLogger(ctx).Error("failed load agents from web resources: %v\n", err)
 		}
 	}
 
 	return groups, nil
 }
 
-func LoadAgentsAsset(as api.AssetStore, root string, groups map[string]*api.AgentsConfig) error {
+func LoadAgentsAsset(ctx context.Context, as api.AssetStore, root string, groups map[string]*api.AgentsConfig) error {
 	dirs, err := as.ReadDir(root)
 	if err != nil {
 		return fmt.Errorf("failed to read agent resource directory: %v", err)
@@ -153,7 +154,7 @@ func LoadAgentsAsset(as api.AssetStore, root string, groups map[string]*api.Agen
 			return fmt.Errorf("failed to read agent asset %s: %w", dir.Name(), err)
 		}
 		if len(f) == 0 {
-			log.Debugf("agent file is empty %s\n", name)
+			log.GetLogger(ctx).Debug("agent file is empty %s\n", name)
 			continue
 		}
 		group, err := LoadAgentsData([][]byte{f})
@@ -161,7 +162,7 @@ func LoadAgentsAsset(as api.AssetStore, root string, groups map[string]*api.Agen
 			return fmt.Errorf("failed to load agent data from %s: %w", dir.Name(), err)
 		}
 		if group == nil {
-			log.Debugf("no agent found in %s\n", dir.Name())
+			log.GetLogger(ctx).Debug("no agent found in %s\n", dir.Name())
 			continue
 		}
 		// group.BaseDir = base
@@ -170,7 +171,7 @@ func LoadAgentsAsset(as api.AssetStore, root string, groups map[string]*api.Agen
 			group.Name = dir.Name()
 		}
 		if _, exists := groups[group.Name]; exists {
-			log.Debugf("duplicate agent name found: %s in %s, skipping\n", group.Name, dir.Name())
+			log.GetLogger(ctx).Debug("duplicate agent name found: %s in %s, skipping\n", group.Name, dir.Name())
 			continue
 		}
 
@@ -186,39 +187,39 @@ func LoadAgentsAsset(as api.AssetStore, root string, groups map[string]*api.Agen
 	return nil
 }
 
-func LoadResourceAgentsConfig(fs embed.FS, groups map[string]*api.AgentsConfig) error {
+func LoadResourceAgentsConfig(ctx context.Context, fs embed.FS, groups map[string]*api.AgentsConfig) error {
 	rs := &ResourceStore{
 		FS:   fs,
 		Base: "resource",
 	}
-	return LoadAgentsAsset(rs, "agents", groups)
+	return LoadAgentsAsset(ctx, rs, "agents", groups)
 }
 
-func LoadFileAgentsConfig(base string, groups map[string]*api.AgentsConfig) error {
+func LoadFileAgentsConfig(ctx context.Context, base string, groups map[string]*api.AgentsConfig) error {
 	abs, err := filepath.Abs(base)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute path for %s: %w", base, err)
 	}
 	// check if abs exists
 	if _, err := os.Stat(abs); os.IsNotExist(err) {
-		log.Debugf("path does not exist: %s\n", abs)
+		log.GetLogger(ctx).Debug("path does not exist: %s\n", abs)
 		return nil
 	}
 
 	fs := &FileStore{
 		Base: abs,
 	}
-	return LoadAgentsAsset(fs, "agents", groups)
+	return LoadAgentsAsset(ctx, fs, "agents", groups)
 }
 
-func LoadWebAgentsConfig(resources []*api.Resource, groups map[string]*api.AgentsConfig) error {
+func LoadWebAgentsConfig(ctx context.Context, resources []*api.Resource, groups map[string]*api.AgentsConfig) error {
 	for _, v := range resources {
 		ws := &WebStore{
 			Base:  v.Base,
 			Token: v.Token,
 		}
-		if err := LoadAgentsAsset(ws, "agents", groups); err != nil {
-			log.Errorf("*** failed to load config. base: %s error: %v\n", v.Base, err)
+		if err := LoadAgentsAsset(ctx, ws, "agents", groups); err != nil {
+			log.GetLogger(ctx).Error("*** failed to load config. base: %s error: %v\n", v.Base, err)
 		}
 	}
 	return nil
@@ -250,16 +251,16 @@ func LoadAgentsData(data [][]byte) (*api.AgentsConfig, error) {
 	return merged, nil
 }
 
-func CreateAgent(vars *api.Vars, name string, input *api.UserInput) (*api.Agent, error) {
-	agentLoader, err := initAgents(vars.Config)
+func CreateAgent(ctx context.Context, vars *api.Vars, name string, input *api.UserInput) (*api.Agent, error) {
+	agentLoader, err := initAgents(ctx, vars.Config)
 	if err != nil {
 		return nil, err
 	}
-	toolLoader, err := initTools(vars.Config)
+	toolLoader, err := initTools(ctx, vars.Config)
 	if err != nil {
 		return nil, err
 	}
-	modelLoader, err := initModels(vars.Config)
+	modelLoader, err := initModels(ctx, vars.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +311,7 @@ func CreateAgent(vars *api.Vars, name string, input *api.UserInput) (*api.Agent,
 					return nil, fmt.Errorf("failed to read instruction from file %q for agent %q: %w", resource, a.Name, err)
 				}
 				a.Instruction.Content = string(content)
-				log.Debugf("Loaded instruction from file %q for agent %q\n", resource, a.Name)
+				log.GetLogger(ctx).Debug("Loaded instruction from file %q for agent %q\n", resource, a.Name)
 			case strings.HasPrefix(ps, "resource:"):
 				parts := strings.SplitN(a.Instruction.Content, ":", 2)
 				resource := strings.TrimSpace(parts[1])
@@ -323,7 +324,7 @@ func CreateAgent(vars *api.Vars, name string, input *api.UserInput) (*api.Agent,
 					return nil, fmt.Errorf("failed to read instruction from resource %q for agent %q: %w", resource, a.Name, err)
 				}
 				a.Instruction.Content = string(content)
-				log.Debugf("Loaded instruction from resource %q for agent %q\n", resource, a.Name)
+				log.GetLogger(ctx).Debug("Loaded instruction from resource %q for agent %q\n", resource, a.Name)
 			}
 		}
 		return a, nil

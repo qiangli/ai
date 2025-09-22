@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -8,6 +9,7 @@ import (
 )
 
 func TestConfirm(t *testing.T) {
+	ctx := context.TODO()
 	tests := []struct {
 		name          string
 		ps            string
@@ -27,7 +29,7 @@ func TestConfirm(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			expected, err := util.Confirm(tc.ps, tc.choices, tc.defaultChoice, strings.NewReader(tc.choice))
+			expected, err := util.Confirm(ctx, tc.ps, tc.choices, tc.defaultChoice, strings.NewReader(tc.choice))
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}

@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -32,18 +33,18 @@ func NewUserInputErrorf(format string, a ...interface{}) error {
 // 0 -- no error
 // 1 -- general failure
 // 2 -- user error
-func Exit(err error) {
+func Exit(ctx context.Context, err error) {
 	if err == nil {
 		os.Exit(0)
 	}
 
 	const max = 500
 	errMsg := err.Error()
-	if !log.IsVerbose() && len(errMsg) > max {
+	if !log.GetLogger(ctx).IsVerbose() && len(errMsg) > max {
 		errMsg = errMsg[:max] + "..."
 	}
 
-	log.Errorf(errMsg)
+	log.GetLogger(ctx).Error(errMsg)
 
 	switch err.(type) {
 	case *UserInputError:

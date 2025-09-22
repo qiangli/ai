@@ -77,7 +77,7 @@ package swarm
 // }
 
 // func Aider(ctx context.Context, models map[llm.Level]*api.Model, workspace, sub, input string) error {
-// 	log.Infof("using workspace: %s\n", workspace)
+// 	log.GetLogger(ctx).Info("using workspace: %s\n", workspace)
 
 // 	if sub == "" {
 // 		sub = string(aider.Code)
@@ -135,13 +135,13 @@ package swarm
 // 		os.Setenv("AIDER_MODEL", models[llm.L3].Model)
 // 	}
 
-// 	os.Setenv("AIDER_VERBOSE", fmt.Sprintf("%v", log.IsVerbose()))
+// 	os.Setenv("AIDER_VERBOSE", fmt.Sprintf("%v", log.GetLogger(ctx).IsVerbose()))
 
 // 	return aider.Run(ctx, aider.ChatMode(sub), userContent)
 // }
 
 // func OpenHands(ctx context.Context, model *api.Model, workspace string, in *api.UserInput) error {
-// 	log.Infof("using workspace: %s\n", workspace)
+// 	log.GetLogger(ctx).Info("using workspace: %s\n", workspace)
 
 // 	if workspace == "" {
 // 		return fmt.Errorf("workspace is required")
@@ -186,7 +186,7 @@ package swarm
 // 	os.Setenv("LLM_BASE_URL", u.String())
 // 	os.Setenv("LLM_API_KEY", model.ApiKey)
 // 	os.Setenv("LLM_MODEL", model.Model)
-// 	os.Setenv("DEBUG", fmt.Sprintf("%v", log.IsVerbose()))
+// 	os.Setenv("DEBUG", fmt.Sprintf("%v", log.GetLogger(ctx).IsVerbose()))
 
 // 	return oh.Run(ctx, userContent)
 // }

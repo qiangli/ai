@@ -2,6 +2,7 @@ package agent
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"image"
 	"image/png"
@@ -14,17 +15,14 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func PrintOutput(format string, output *api.Output) error {
+func PrintOutput(ctx context.Context, format string, output *api.Output) error {
 	s, err := util.FormatContent(format, output)
 	if err != nil {
 		return err
 	}
 
-	if isOutputTTY() {
-		log.Infof("\n[%s]\n%s\n", output.Display, s)
-	} else {
-		log.Printf("%s\n", s)
-	}
+	log.GetLogger(ctx).Info("\n[%s]\n", output.Display)
+	log.GetLogger(ctx).Print("%s\n", s)
 
 	return nil
 }
@@ -44,7 +42,7 @@ func SaveOutput(filename string, message *api.Output) error {
 	return os.WriteFile(filename, []byte(message.Content), os.ModePerm)
 }
 
-func processTextContent(cfg *api.AppConfig, output *api.Output) {
+func processTextContent(ctx context.Context, cfg *api.AppConfig, output *api.Output) {
 	content := output.Content
 
 	// clipboard
@@ -52,11 +50,11 @@ func processTextContent(cfg *api.AppConfig, output *api.Output) {
 		clip := util.NewClipboard()
 		if cfg.ClipAppend {
 			if err := clip.Append(content); err != nil {
-				log.Debugf("failed to append content to clipboard: %v\n", err)
+				log.GetLogger(ctx).Debug("failed to append content to clipboard: %v\n", err)
 			}
 		} else {
 			if err := clip.Write(content); err != nil {
-				log.Debugf("failed to copy content to clipboard: %v\n", err)
+				log.GetLogger(ctx).Debug("failed to copy content to clipboard: %v\n", err)
 			}
 		}
 	}
@@ -66,15 +64,15 @@ func processTextContent(cfg *api.AppConfig, output *api.Output) {
 	}
 
 	if cfg.Format == "tts" {
-		SpeakOutput(cfg, output)
+		SpeakOutput(ctx, cfg, output)
 		return
 	}
-	PrintOutput(cfg.Format, output)
+	PrintOutput(ctx, cfg.Format, output)
 }
 
-func SpeakOutput(cfg *api.AppConfig, output *api.Output) {
+func SpeakOutput(ctx context.Context, cfg *api.AppConfig, output *api.Output) {
 	var s = output.Content
-	log.Printf("%s\n", s)
+	log.GetLogger(ctx).Print("%s\n", s)
 	// TOSO move to tools
 	//
 	// err := speak(cfg, s)
@@ -83,7 +81,7 @@ func SpeakOutput(cfg *api.AppConfig, output *api.Output) {
 	// }
 }
 
-func processImageContent(cfg *api.AppConfig, message *api.Output) {
+func processImageContent(ctx context.Context, cfg *api.AppConfig, message *api.Output) {
 	var imageFile string
 	if cfg.Output != "" {
 		imageFile = cfg.Output
@@ -91,19 +89,19 @@ func processImageContent(cfg *api.AppConfig, message *api.Output) {
 		imageFile = filepath.Join(os.TempDir(), "image.png")
 	}
 
-	if err := saveImage(message.Content, imageFile); err != nil {
-		log.Errorf("failed to save image: %v\n", err)
+	if err := saveImage(ctx, message.Content, imageFile); err != nil {
+		log.GetLogger(ctx).Error("failed to save image: %v\n", err)
 		return
 	}
 
 	if err := util.PrintImage(os.Stdout, imageFile); err != nil {
 		if err := util.ViewImage(imageFile); err != nil {
-			log.Errorf("failed to view image: %v\n", err)
+			log.GetLogger(ctx).Error("failed to view image: %v\n", err)
 		}
 	}
 }
 
-func saveImage(b64Image string, dest string) error {
+func saveImage(ctx context.Context, b64Image string, dest string) error {
 	// https://sw.kovidgoyal.net/kitty/graphics-protocol/
 	img, _, err := image.Decode(base64.NewDecoder(base64.StdEncoding, strings.NewReader(b64Image)))
 	if err != nil {
@@ -117,9 +115,9 @@ func saveImage(b64Image string, dest string) error {
 
 	err = os.WriteFile(dest, buf.Bytes(), 0755)
 	if err != nil {
-		log.Errorf("failed to write image to %s: %v\n", dest, err)
+		log.GetLogger(ctx).Error("failed to write image to %s: %v\n", dest, err)
 	}
-	log.Infof("Image content saved to %s\n", dest)
+	log.GetLogger(ctx).Info("Image content saved to %s\n", dest)
 
 	return nil
 }

@@ -1,6 +1,7 @@
 package shell
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/user"
@@ -22,7 +23,7 @@ const (
 	// workspaceEnv = "WORKSPACE"
 )
 
-func createPrompter() (func(), error) {
+func createPrompter(ctx context.Context) (func(), error) {
 	const app = "ai"
 	const ps = ">"
 	const dirPs = "\033[0;35m%s\033[0;34m\033[0;36m/%s \033[0;32m%s\033[0;34m%s \033[0m"
@@ -57,15 +58,15 @@ func createPrompter() (func(), error) {
 		var baseDir string
 		baseDir = filepath.Base(dir)
 
-		log.Debugf("dir: %s %s\n", where, dir)
-		log.Debugf("baseDir: %s\n", baseDir)
+		log.GetLogger(ctx).Debug("dir: %s %s\n", where, dir)
+		log.GetLogger(ctx).Debug("baseDir: %s\n", baseDir)
 
 		// relative to home
 		if strings.HasPrefix(dir, home) {
 			where = username
 			baseDir, _ = filepath.Rel(home, dir)
-			log.Debugf("home: %s\n", home)
-			log.Debugf("user baseDir: %s\n", baseDir)
+			log.GetLogger(ctx).Debug("home: %s\n", home)
+			log.GetLogger(ctx).Debug("user baseDir: %s\n", baseDir)
 		}
 
 		repo, err := git.PlainOpenWithOptions(".", &git.PlainOpenOptions{DetectDotGit: true})
@@ -99,8 +100,8 @@ func createPrompter() (func(), error) {
 
 			if strings.HasPrefix(dir, repoDir) {
 				baseDir, _ = filepath.Rel(repoDir, dir)
-				log.Debugf("repoDir: %s\n", repoDir)
-				log.Debugf("repo baseDir: %s\n", baseDir)
+				log.GetLogger(ctx).Debug("repoDir: %s\n", repoDir)
+				log.GetLogger(ctx).Debug("repo baseDir: %s\n", baseDir)
 			}
 		}
 
@@ -108,12 +109,12 @@ func createPrompter() (func(), error) {
 		head1 := strings.Split(rawhead.String(), "/")
 		head := head1[len(head1)-1]
 
-		log.Debugf("repoName: %s\n", where)
-		log.Debugf("head: %s\n", head)
-		log.Debugf("baseDir: %s\n", baseDir)
+		log.GetLogger(ctx).Debug("repoName: %s\n", where)
+		log.GetLogger(ctx).Debug("head: %s\n", head)
+		log.GetLogger(ctx).Debug("baseDir: %s\n", baseDir)
 
 		shortName := shortName(head)
-		log.Debugf("shortName: %s\n", shortName)
+		log.GetLogger(ctx).Debug("shortName: %s\n", shortName)
 
 		fmt.Printf(repoPs, where, shortName, baseDir, app, ps)
 	}, nil

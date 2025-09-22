@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"context"
 	"io"
 	"strings"
 	"testing"
@@ -110,13 +111,14 @@ func TestGetUserInput(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			var ctx = context.TODO()
 
 			var reader io.Reader
 			if tt.stdin != "" {
 				reader = strings.NewReader(tt.stdin)
 			}
 
-			input, err := getUserInput(tt.cfg, reader, cp, ed)
+			input, err := getUserInput(ctx, tt.cfg, reader, cp, ed)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("user input error = %v, wantErr %v", err, tt.wantErr)

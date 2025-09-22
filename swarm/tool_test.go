@@ -1,16 +1,18 @@
 package swarm
 
 import (
+	"context"
 	"testing"
 
 	"github.com/qiangli/ai/swarm/api"
 )
 
 func TestLoadToolsConfig(t *testing.T) {
+	ctx := context.TODO()
 	app := &api.AppConfig{
 		Base: "../internal/data/",
 	}
-	kits, err := LoadToolsConfig(app)
+	kits, err := LoadToolsConfig(ctx, app)
 	if err != nil {
 		t.Fatalf("failed to load tool files: %v", err)
 	}

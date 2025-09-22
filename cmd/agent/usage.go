@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -123,8 +124,8 @@ func getHelpData(cmd *cobra.Command) *HelpData {
 	}
 }
 
-func Help(cmd *cobra.Command, args []string) error {
-	cfg, err := setupAppConfig(args)
+func Help(ctx context.Context, cmd *cobra.Command, args []string) error {
+	cfg, err := setupAppConfig(ctx, args)
 	if err != nil {
 		return err
 	}
@@ -137,13 +138,13 @@ func Help(cmd *cobra.Command, args []string) error {
 		for _, v := range args {
 			switch v {
 			case "agents", "agent":
-				return HelpAgents(vars)
+				return HelpAgents(ctx, vars)
 			case "commands", "command":
-				return HelpCommands()
+				return HelpCommands(ctx)
 			case "tools", "tool":
-				return HelpTools(vars)
+				return HelpTools(ctx, vars)
 			case "info":
-				return HelpInfo(vars)
+				return HelpInfo(ctx, vars)
 			}
 		}
 	}
@@ -170,7 +171,7 @@ func Help(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func HelpInfo(vars *api.Vars) error {
+func HelpInfo(ctx context.Context, vars *api.Vars) error {
 	const format = `System info:
 
 %v
@@ -212,17 +213,17 @@ AI Environment:
 	// cfg := vars.Config
 
 	// TODO
-	// log.Infof(format, info, cfg.LLM.Name, cfg.LLM.BaseUrl, cfg.LLM.ApiKey, string(ac), strings.Join(filteredEnvs, "\n"))
+	// log.GetLogger(ctx).Info(format, info, cfg.LLM.Name, cfg.LLM.BaseUrl, cfg.LLM.ApiKey, string(ac), strings.Join(filteredEnvs, "\n"))
 	// m, err := cfg.ModelLoader(api.Any)
 	// if err != nil {
 	// 	m = &api.Model{}
 	// }
 	m := &api.Model{}
-	log.Infof(format, info, m.Provider, m.BaseUrl, "***", string(ac), strings.Join(filteredEnvs, "\n"))
+	log.GetLogger(ctx).Info(format, info, m.Provider, m.BaseUrl, "***", string(ac), strings.Join(filteredEnvs, "\n"))
 	return nil
 }
 
-func HelpAgents(vars *api.Vars) error {
+func HelpAgents(ctx context.Context, vars *api.Vars) error {
 	const format = `Available agents:
 
 %s
@@ -243,7 +244,7 @@ AI will choose an appropriate agent based on your message if no agent is specifi
 * If you specify agents at both the beginning and end of a message, the last one takes precedence.
 * You can place command options anywhere in your message. To include options as part of the message, use quotes or escape '\'.
 `
-	agents, _ := swarm.ListAgents(vars.Config)
+	agents, _ := swarm.ListAgents(ctx, vars.Config)
 
 	dict := make(map[string]*api.AgentConfig)
 	for _, v := range agents {
@@ -269,12 +270,12 @@ AI will choose an appropriate agent based on your message if no agent is specifi
 		buf.WriteString(dict[k].Description)
 		buf.WriteString("\n")
 	}
-	log.Infof(format, buf.String(), len(keys))
+	log.GetLogger(ctx).Info(format, buf.String(), len(keys))
 
 	return nil
 }
 
-func HelpCommands() error {
+func HelpCommands(ctx context.Context) error {
 	const listTpl = `Available commands on the system:
 
 %s
@@ -289,7 +290,7 @@ Total: %v
 	}
 	sort.Strings(commands)
 
-	log.Infof(listTpl, strings.Join(commands, "\n"), len(commands))
+	log.GetLogger(ctx).Info(listTpl, strings.Join(commands, "\n"), len(commands))
 	return nil
 }
 
@@ -305,7 +306,7 @@ func collectSystemInfo() (string, error) {
 	return string(jd), nil
 }
 
-func HelpTools(vars *api.Vars) error {
+func HelpTools(ctx context.Context, vars *api.Vars) error {
 
 	const listTpl = `Available tools:
 
@@ -327,7 +328,7 @@ Tools are used by agents to perform specific tasks. They are automatically selec
 
 	list := []string{}
 
-	tools, _ := swarm.ListTools(vars.Config)
+	tools, _ := swarm.ListTools(ctx, vars.Config)
 
 	for _, v := range tools {
 		if v.Type == "agent" {
@@ -340,6 +341,6 @@ Tools are used by agents to perform specific tasks. They are automatically selec
 
 	sort.Strings(list)
 
-	log.Infof(listTpl, strings.Join(list, "\n"), len(list))
+	log.GetLogger(ctx).Info(listTpl, strings.Join(list, "\n"), len(list))
 	return nil
 }

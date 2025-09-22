@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"os"
@@ -16,10 +17,10 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), error) {
+func initModels(ctx context.Context, app *api.AppConfig) (func(level string) (*api.Model, error), error) {
 	var alias = app.Models
 
-	cfg, err := loadModels(app, alias)
+	cfg, err := loadModels(ctx, app, alias)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +66,7 @@ func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), err
 		// alias/level
 		if strings.Contains(level, "/") {
 			alias, level = split(level)
-			mc, err := loadModels(app, alias)
+			mc, err := loadModels(ctx, app, alias)
 			if err != nil {
 				return nil, err
 			}
@@ -77,19 +78,19 @@ func initModels(app *api.AppConfig) (func(level string) (*api.Model, error), err
 }
 
 // return early if found
-func loadModels(app *api.AppConfig, alias string) (*api.ModelsConfig, error) {
+func loadModels(ctx context.Context, app *api.AppConfig, alias string) (*api.ModelsConfig, error) {
 	var modelsCfg = make(map[string]*api.ModelsConfig)
 
 	// built in resource
 	if err := LoadResourceModelsConfig(resourceFS, modelsCfg); err != nil {
-		log.Debugf("failed to load tools from web resource: %v\n", err)
+		log.GetLogger(ctx).Debug("failed to load tools from web resource: %v\n", err)
 	} else if cfg, ok := modelsCfg[alias]; ok {
 		return cfg, nil
 	}
 
 	// external/custom
-	if err := LoadFileModelsConfig(app.Base, modelsCfg); err != nil {
-		log.Debugf("failed to load custom tools: %v\n", err)
+	if err := LoadFileModelsConfig(ctx, app.Base, modelsCfg); err != nil {
+		log.GetLogger(ctx).Debug("failed to load custom tools: %v\n", err)
 	} else if cfg, ok := modelsCfg[alias]; ok {
 		return cfg, nil
 	}
@@ -97,8 +98,8 @@ func loadModels(app *api.AppConfig, alias string) (*api.ModelsConfig, error) {
 	// web
 	// https://ai.dhnt.io/models
 	if app.AgentResource != nil && len(app.AgentResource.Resources) > 0 {
-		if err := LoadWebModelsConfig(app.AgentResource.Resources, modelsCfg); err != nil {
-			log.Debugf("failed to load tools from web resource: %v\n", err)
+		if err := LoadWebModelsConfig(ctx, app.AgentResource.Resources, modelsCfg); err != nil {
+			log.GetLogger(ctx).Debug("failed to load tools from web resource: %v\n", err)
 		} else if cfg, ok := modelsCfg[alias]; ok {
 			return cfg, nil
 		}
@@ -107,19 +108,19 @@ func loadModels(app *api.AppConfig, alias string) (*api.ModelsConfig, error) {
 	return nil, fmt.Errorf("No LLM configuration found")
 }
 
-func ListModels(app *api.AppConfig) (map[string]*api.ModelsConfig, error) {
+func ListModels(ctx context.Context, app *api.AppConfig) (map[string]*api.ModelsConfig, error) {
 	var modelsCfg = make(map[string]*api.ModelsConfig)
 	if err := LoadResourceModelsConfig(resourceFS, modelsCfg); err != nil {
-		log.Debugf("failed to load tools from web resource: %v\n", err)
+		log.GetLogger(ctx).Debug("failed to load tools from web resource: %v\n", err)
 	}
 
-	if err := LoadFileModelsConfig(app.Base, modelsCfg); err != nil {
-		log.Debugf("failed to load custom tools: %v\n", err)
+	if err := LoadFileModelsConfig(ctx, app.Base, modelsCfg); err != nil {
+		log.GetLogger(ctx).Debug("failed to load custom tools: %v\n", err)
 	}
 
 	if app.AgentResource != nil && len(app.AgentResource.Resources) > 0 {
-		if err := LoadWebModelsConfig(app.AgentResource.Resources, modelsCfg); err != nil {
-			log.Debugf("failed to load tools from web resource: %v\n", err)
+		if err := LoadWebModelsConfig(ctx, app.AgentResource.Resources, modelsCfg); err != nil {
+			log.GetLogger(ctx).Debug("failed to load tools from web resource: %v\n", err)
 		}
 	}
 
@@ -134,14 +135,14 @@ func LoadResourceModelsConfig(fs embed.FS, aliases map[string]*api.ModelsConfig)
 	return LoadModelsAsset(rs, "models", aliases)
 }
 
-func LoadFileModelsConfig(base string, aliases map[string]*api.ModelsConfig) error {
+func LoadFileModelsConfig(ctx context.Context, base string, aliases map[string]*api.ModelsConfig) error {
 	abs, err := filepath.Abs(base)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute path for %s: %w", base, err)
 	}
 	// check if abs exists
 	if _, err := os.Stat(abs); os.IsNotExist(err) {
-		log.Debugf("path does not exist: %s\n", abs)
+		log.GetLogger(ctx).Debug("path does not exist: %s\n", abs)
 		return nil
 	}
 
@@ -151,7 +152,7 @@ func LoadFileModelsConfig(base string, aliases map[string]*api.ModelsConfig) err
 	return LoadModelsAsset(fs, "models", aliases)
 }
 
-func LoadWebModelsConfig(resources []*api.Resource, aliases map[string]*api.ModelsConfig) error {
+func LoadWebModelsConfig(ctx context.Context, resources []*api.Resource, aliases map[string]*api.ModelsConfig) error {
 	for _, v := range resources {
 		ws := &WebStore{
 			Base:  v.Base,

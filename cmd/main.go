@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -58,7 +59,10 @@ func init() {
 }
 
 func main() {
+	// log.InitDefault()
 	// cobra.OnInitialize(initConfig)
+	ctx := context.TODO()
+
 	internal.InitConfig(viper)
 
 	args := os.Args
@@ -72,7 +76,7 @@ func main() {
 		}
 		if !isPiped() {
 			if err := rootCmd.Execute(); err != nil {
-				internal.Exit(err)
+				internal.Exit(ctx, err)
 			}
 			return
 		}
@@ -91,10 +95,10 @@ func main() {
 		if strings.HasPrefix(args[1], "/!") {
 			if len(args[1]) > 2 {
 				out := runCommand(args[1][2:], os.Args[1:])
-				log.Infof("%s\n", out)
+				log.GetLogger(ctx).Info("%s\n", out)
 			} else {
 				// log.Infoln("command not specified: /!<cmmand>")
-				internal.Exit(fmt.Errorf("command not specified: /!<cmmand>"))
+				internal.Exit(ctx, fmt.Errorf("command not specified: /!<cmmand>"))
 			}
 			return
 		}
@@ -109,26 +113,26 @@ func main() {
 			// cobra is not calling initConfig() for help command
 			// initConfig()
 			if err := agentCmd.Execute(); err != nil {
-				internal.Exit(err)
+				internal.Exit(ctx, err)
 			}
 		case "/agent":
 			os.Args = os.Args[1:]
 			if err := agentCmd.Execute(); err != nil {
-				internal.Exit(err)
+				internal.Exit(ctx, err)
 			}
 		case "/setup":
 			os.Args = os.Args[1:]
 			if err := setupCmd.Execute(); err != nil {
-				internal.Exit(err)
+				internal.Exit(ctx, err)
 			}
 			return
 		case "/history":
 			os.Args = os.Args[1:]
 			if err := historyCmd.Execute(); err != nil {
-				internal.Exit(err)
+				internal.Exit(ctx, err)
 			}
 		default:
-			internal.Exit(fmt.Errorf("Slash command not supported: %s", args[1]))
+			internal.Exit(ctx, fmt.Errorf("Slash command not supported: %s", args[1]))
 			return
 		}
 	}
@@ -137,7 +141,7 @@ func main() {
 	// $ ai [@AGENT] MESSAGE...
 	// $ ai [--agent AGENT] MESSAGE...
 	if err := agentCmd.Execute(); err != nil {
-		internal.Exit(err)
+		internal.Exit(ctx, err)
 	}
 }
 

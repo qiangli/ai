@@ -12,14 +12,14 @@ import (
 )
 
 func ImageGen(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	log.Debugf(">>>OPENAI:\n image-gen req: %+v\n\n", req)
+	log.GetLogger(ctx).Debug(">>>OPENAI:\n image-gen req: %+v\n\n", req)
 
 	var err error
 	var resp *llm.Response
 
 	resp, err = generateImage(ctx, req)
 
-	log.Debugf("<<<OPENAI:\n image-gen resp: %+v err: %v\n\n", resp, err)
+	log.GetLogger(ctx).Debug("<<<OPENAI:\n image-gen resp: %+v err: %v\n\n", resp, err)
 	return resp, err
 }
 
@@ -41,7 +41,7 @@ func generateImage(ctx context.Context, req *llm.Request) (*llm.Response, error)
 		ContentType: api.ContentTypeB64JSON,
 	}
 
-	log.Infof("@%s %s %s\n", req.Agent, req.Model, req.Model.BaseUrl)
+	log.GetLogger(ctx).Info("@%s %s %s\n", req.Agent, req.Model, req.Model.BaseUrl)
 
 	var imageFormat = openai.ImageGenerateParamsResponseFormatB64JSON
 
@@ -88,7 +88,7 @@ func generateImage(ctx context.Context, req *llm.Request) (*llm.Response, error)
 	if err != nil {
 		return nil, err
 	}
-	log.Infof("✨ %v %v %v\n", imageQuality, imageSize, imageStyle)
+	log.GetLogger(ctx).Info("✨ %v %v %v\n", imageQuality, imageSize, imageStyle)
 
 	resp.Content = image.Data[0].B64JSON
 

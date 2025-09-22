@@ -1,6 +1,7 @@
 package watch
 
 import (
+	"context"
 	"testing"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -11,7 +12,9 @@ func TestWatchRepo(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	err := WatchRepo(&api.AppConfig{
+	ctx := context.TODO()
+
+	err := WatchRepo(ctx, &api.AppConfig{
 		Workspace: "../../../ai",
 	})
 

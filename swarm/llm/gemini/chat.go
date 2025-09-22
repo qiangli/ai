@@ -70,11 +70,11 @@ func NewClient(ctx context.Context, apiKey, _ string) (*genai.Client, error) {
 }
 
 func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	log.Debugf(">>>GEMINI:\n req: %+v\n\n", req)
+	log.GetLogger(ctx).Debug(">>>GEMINI:\n req: %+v\n\n", req)
 
 	resp, err := call(ctx, req)
 
-	log.Debugf("<<<GEMINI:\n resp: %+v err: %v\n\n", resp, err)
+	log.GetLogger(ctx).Debug("<<<GEMINI:\n resp: %+v err: %v\n\n", resp, err)
 	return resp, err
 }
 
@@ -98,7 +98,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 			messages = append(messages, genai.NewContentFromText(v.Content, genai.RoleUser))
 		default:
 			// just ignore and move on
-			log.Errorf("role not supported: %s", v.Role)
+			log.GetLogger(ctx).Error("role not supported: %s", v.Role)
 		}
 	}
 
@@ -166,16 +166,16 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	model := req.Model.Model
 
 	for tries := range maxTurns {
-		log.Infof("\033[33mⒼ\033[0m @%s [%v] %s %s\n", req.Agent, tries, model, req.Model.BaseUrl)
+		log.GetLogger(ctx).Info("\033[33mⒼ\033[0m @%s [%v] %s %s\n", req.Agent, tries, model, req.Model.BaseUrl)
 
-		log.Debugf("📡 *** sending request to %s ***: %v of %v\n%+v\n\n", req.Model.BaseUrl, tries, maxTurns, req)
+		log.GetLogger(ctx).Debug("📡 *** sending request to %s ***: %v of %v\n%+v\n\n", req.Model.BaseUrl, tries, maxTurns, req)
 
 		completion, err := client.Models.GenerateContent(ctx, model, messages, config)
 		if err != nil {
-			log.Errorf("\033[31m✗\033[0m %s\n", err)
+			log.GetLogger(ctx).Error("\033[31m✗\033[0m %s\n", err)
 			return nil, err
 		}
-		log.Infof("(%v)\n", "done")
+		log.GetLogger(ctx).Info("(%v)\n", "done")
 
 		// https://ai.google.dev/gemini-api/docs/function-calling?example=meeting
 		toolCalls := completion.FunctionCalls()
@@ -191,7 +191,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 			var name = toolCall.Name
 			var args = toolCall.Args
 
-			log.Debugf("\n\n>>> tool call: %v %s args: %+v\n", i, name, args)
+			log.GetLogger(ctx).Debug("\n\n>>> tool call: %v %s args: %+v\n", i, name, args)
 
 			//
 			out, err := req.RunTool(ctx, name, args)
@@ -201,7 +201,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 				}
 			}
 
-			log.Debugf("\n<<< tool call: %s out: %+v\n", name, out)
+			log.GetLogger(ctx).Debug("\n<<< tool call: %s out: %+v\n", name, out)
 			resp.Result = out
 
 			if out.State == api.StateExit {

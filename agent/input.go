@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -35,11 +36,11 @@ func (e *Editor) Launch(content string) (string, error) {
 // otherwise, it determines the input source (stdin, clipboard, editor)
 // and collects input accordingly. It also
 // attaches any provided files or template file if provided.
-func GetUserInput(cfg *api.AppConfig) (*api.UserInput, error) {
-	return getUserInput(cfg, nil, nil, nil)
+func GetUserInput(ctx context.Context, cfg *api.AppConfig) (*api.UserInput, error) {
+	return getUserInput(ctx, cfg, nil, nil, nil)
 }
 
-func getUserInput(cfg *api.AppConfig, stdin io.Reader, clipper api.ClipboardProvider, editor api.EditorProvider) (*api.UserInput, error) {
+func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clipper api.ClipboardProvider, editor api.EditorProvider) (*api.UserInput, error) {
 	// --message flag - ignore the rest (mainly intended for testing)
 	if cfg.Message != "" {
 		input := &api.UserInput{
@@ -58,7 +59,7 @@ func getUserInput(cfg *api.AppConfig, stdin io.Reader, clipper api.ClipboardProv
 		editor = NewEditor(cfg.Editor)
 	}
 
-	input, err := userInput(cfg, stdin, clipper, editor)
+	input, err := userInput(ctx, cfg, stdin, clipper, editor)
 	if err != nil {
 		return nil, err
 	}
@@ -87,11 +88,12 @@ func getUserInput(cfg *api.AppConfig, stdin io.Reader, clipper api.ClipboardProv
 	// 	}
 	// }
 
-	log.Debugf("\n[%s]\n%s\n%s\n%v\n\n", cfg.Me, input.Message, clipText(input.Content, clipMaxLen), input.Files)
+	log.GetLogger(ctx).Debug("\n[%s]\n%s\n%s\n%v\n\n", cfg.Me, input.Message, clipText(input.Content, clipMaxLen), input.Files)
 	return input, nil
 }
 
 func userInput(
+	ctx context.Context,
 	cfg *api.AppConfig,
 	stdin io.Reader,
 	clipboard api.ClipboardProvider,
@@ -105,7 +107,7 @@ func userInput(
 		if stdin == nil {
 			stdin = os.Stdin
 		}
-		log.Promptf("Please enter your input. Ctrl+D to send, Ctrl+C to cancel...\n")
+		log.GetLogger(ctx).Prompt("Please enter your input. Ctrl+D to send, Ctrl+C to cancel...\n")
 		data, err := io.ReadAll(stdin)
 		if err != nil {
 			return nil, err
@@ -126,13 +128,13 @@ func userInput(
 					return nil, err
 				}
 
-				log.Promptf("Awaiting clipboard content...\n")
+				log.GetLogger(ctx).Prompt("Awaiting clipboard content...\n")
 				v, err := clipboard.Read()
 				if err != nil {
 					return nil, err
 				}
-				log.Infof("\n%s\n\n", clipText(v, 500))
-				send, err := pasteConfirm()
+				log.GetLogger(ctx).Info("\n%s\n\n", clipText(v, 500))
+				send, err := pasteConfirm(ctx)
 				// user canceled
 				if err != nil {
 					return nil, err
@@ -150,7 +152,7 @@ func userInput(
 				return nil, err
 			}
 
-			log.Promptf("Awaiting clipboard content...\n")
+			log.GetLogger(ctx).Prompt("Awaiting clipboard content...\n")
 			v, err := clipboard.Read()
 			if err != nil {
 				return nil, err
@@ -183,7 +185,7 @@ func userInput(
 	content = cat(msg, content, "\n")
 
 	if cfg.Editor != "" {
-		log.Debugf("Using editor: %s\n", cfg.Editor)
+		log.GetLogger(ctx).Debug("Using editor: %s\n", cfg.Editor)
 		data, err := editor.Launch(content)
 		if err != nil {
 			return nil, err
@@ -248,18 +250,18 @@ func LaunchEditor(editor string, content string) (string, error) {
 }
 
 // PrintInput prints the user input
-func PrintInput(cfg *api.AppConfig, input *api.UserInput) {
+func PrintInput(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) {
 	if input == nil {
 		return
 	}
-	log.Debugf("UserInput:\n%s\n", input.String())
+	log.GetLogger(ctx).Debug("UserInput:\n%s\n", input.String())
 
 	// query and files for info only
 	var msg = clipText(input.Query(), clipMaxLen)
 	for _, v := range input.Files {
 		msg += fmt.Sprintf("\n+ %s", v)
 	}
-	renderInputContent(cfg.Me, msg)
+	renderInputContent(ctx, cfg.Me, msg)
 
 	// attachments
 	for _, v := range input.Files {
@@ -274,7 +276,7 @@ func PrintInput(cfg *api.AppConfig, input *api.UserInput) {
 		default:
 			emoji = "💾"
 		}
-		log.Infof("\033[33m%s\033[0m Attachment File: %s\n", emoji, v)
+		log.GetLogger(ctx).Info("\033[33m%s\033[0m Attachment File: %s\n", emoji, v)
 	}
 	// for _, v := range input.Messages {
 	// 	var emoji string
@@ -295,18 +297,18 @@ func PrintInput(cfg *api.AppConfig, input *api.UserInput) {
 	// 	} else {
 	// 		content = "[binary]"
 	// 	}
-	// 	log.Infof("\033[33m%s\033[0m Attachment Type: %s Len: %v Content: %s\n", emoji, v.ContentType, len(v.Content), content)
+	// 	log.GetLogger(ctx).Info("\033[33m%s\033[0m Attachment Type: %s Len: %v Content: %s\n", emoji, v.ContentType, len(v.Content), content)
 	// }
 }
 
 // pasteConfirm prompts the user to append, send, or cancel the input
 // and returns true if the user chooses to send the input
-func pasteConfirm() (bool, error) {
+func pasteConfirm(ctx context.Context) (bool, error) {
 	ps := "Append to input, Send, or Cancel? [A/s/c] "
 	choices := []string{"append", "send", "cancel"}
 	defaultChoice := "append"
 
-	answer, err := util.Confirm(ps, choices, defaultChoice, os.Stdin)
+	answer, err := util.Confirm(ctx, ps, choices, defaultChoice, os.Stdin)
 	if err != nil {
 		return false, err
 	}
@@ -318,9 +320,9 @@ func pasteConfirm() (bool, error) {
 	return false, fmt.Errorf("canceled")
 }
 
-func renderInputContent(me *api.User, content string) {
+func renderInputContent(ctx context.Context, me *api.User, content string) {
 	md := util.Render(content)
-	log.Infof("\n[%s]\n%s\n", me.Display, md)
+	log.GetLogger(ctx).Info("\n[%s]\n%s\n", me.Display, md)
 }
 
 // trimInputMessage trims the input message by removing leading and trailing spaces

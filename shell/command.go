@@ -3,6 +3,7 @@ package shell
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -22,14 +23,14 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func execCommand(shellBin, original string, save bool) error {
-	log.Debugf("original command: %q\n", original)
+func execCommand(ctx context.Context, shellBin, original string, save bool) error {
+	log.GetLogger(ctx).Debug("original command: %q\n", original)
 
-	parsed, err := parseCommand(original)
+	parsed, err := parseCommand(ctx, original)
 	if err != nil {
 		return err
 	}
-	log.Debugf("parsed command: %+v\n", parsed)
+	log.GetLogger(ctx).Debug("parsed command: %+v\n", parsed)
 
 	// Handle special case for "cd" command
 	// assume single argument for "cd" command
@@ -67,12 +68,12 @@ func execCommand(shellBin, original string, save bool) error {
 		}
 	}
 
-	log.Debugf("modified command: %+v\n", modified)
+	log.GetLogger(ctx).Debug("modified command: %+v\n", modified)
 
 	//
 	cmdline := strings.Join(modified, " ")
 	command, page := RemovePageSuffix(cmdline)
-	log.Debugf("Executing command: %q\n", command)
+	log.GetLogger(ctx).Debug("Executing command: %q\n", command)
 
 	// Execute the command
 	capture := wordCompleter.Capture
@@ -80,10 +81,10 @@ func execCommand(shellBin, original string, save bool) error {
 	// TODO command: set tty=on|off
 	ttyOn, _ := strconv.ParseBool(os.Getenv("AI_TTY"))
 	if !ttyOn {
-		err = RunAndCapture(shellBin, command, page, save, capture)
+		err = RunAndCapture(ctx, shellBin, command, page, save, capture)
 	} else {
 		//TODO: experimental, still buggy
-		err = RunPtyCapture(shellBin, command, capture)
+		err = RunPtyCapture(ctx, shellBin, command, capture)
 		// err = RunNoCapture(shellBin, command)
 	}
 
@@ -103,8 +104,8 @@ func RunNoCapture(shellBin, command string) error {
 }
 
 // RunAndCapture runs a command and captures its output line by line.
-func RunAndCapture(shellBin, command string, page, save bool, capture func(which int, line string) error) error {
-	log.Debugf("RunAndCapture: %q page: %v\n", command, page)
+func RunAndCapture(ctx context.Context, shellBin, command string, page, save bool, capture func(which int, line string) error) error {
+	log.GetLogger(ctx).Debug("RunAndCapture: %q page: %v\n", command, page)
 
 	// TTY=1 key=val ... cmd args
 	parts := strings.Split(command, " ")
@@ -125,7 +126,7 @@ func RunAndCapture(shellBin, command string, page, save bool, capture func(which
 		break
 	}
 
-	log.Debugf("Running command: %q page: %v tty: %v\n", command, page, ttyOn)
+	log.GetLogger(ctx).Debug("Running command: %q page: %v tty: %v\n", command, page, ttyOn)
 
 	cmd := exec.Command(shellBin, "-c", command)
 	cmd.Stdin = os.Stdin
@@ -228,7 +229,7 @@ var isSep = func(s string) bool {
 	return slices.Contains(commandSeps, s)
 }
 
-func parseCommand(original string) ([][]string, error) {
+func parseCommand(ctx context.Context, original string) ([][]string, error) {
 	// Check if the command needs expansion
 	// internal commands need expansion unlike external commands which is taken care of by the shell
 	needsExpand := func(s string) bool {
@@ -266,7 +267,7 @@ func parseCommand(original string) ([][]string, error) {
 	var split func(s string, seps []string) []string
 
 	split = func(s string, seps []string) []string {
-		log.Debugf("Splitting: %q with separators: %+v\n", s, seps)
+		log.GetLogger(ctx).Debug("Splitting: %q with separators: %+v\n", s, seps)
 
 		if len(seps) == 0 {
 			return []string{s}
@@ -464,7 +465,7 @@ var exploreConfig = &fm.Config{
 	Reverse:       false,
 }
 
-func Explore(args []string) error {
+func Explore(ctx context.Context, args []string) error {
 	return runExplore(strings.Join(args, " "))
 }
 

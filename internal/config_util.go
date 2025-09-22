@@ -6,11 +6,11 @@ import (
 	"os/user"
 	"path/filepath"
 	"slices"
-	"sort"
+	// "sort"
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/log"
+	// "github.com/qiangli/ai/swarm/log"
 )
 
 func getCurrentUser() string {
@@ -21,18 +21,18 @@ func getCurrentUser() string {
 	return currentUser.Username
 }
 
-func printAIEnv() {
-	// Get the current environment variables
-	envs := os.Environ()
-	var filteredEnvs []string
-	for _, v := range envs {
-		if strings.HasPrefix(v, "AI_") {
-			filteredEnvs = append(filteredEnvs, v)
-		}
-	}
-	sort.Strings(filteredEnvs)
-	log.Debugf("AI env: %v\n", filteredEnvs)
-}
+// func printAIEnv() {
+// 	// Get the current environment variables
+// 	envs := os.Environ()
+// 	var filteredEnvs []string
+// 	for _, v := range envs {
+// 		if strings.HasPrefix(v, "AI_") {
+// 			filteredEnvs = append(filteredEnvs, v)
+// 		}
+// 	}
+// 	sort.Strings(filteredEnvs)
+// 	log.GetLogger(ctx).Debug("AI env: %v\n", filteredEnvs)
+// }
 
 var validFormats = []string{"raw", "text", "json", "markdown", "tts"}
 

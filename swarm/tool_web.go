@@ -19,7 +19,7 @@ func (r *WebKit) FetchContent(ctx context.Context, vars *api.Vars, name string, 
 		return "", err
 	}
 
-	log.Infof("○ fetching url: %q\n", link)
+	log.GetLogger(ctx).Info("○ fetching url: %q\n", link)
 	return webtool.Fetch(ctx, link)
 }
 
@@ -33,7 +33,7 @@ func (r *WebKit) DownloadContent(ctx context.Context, vars *api.Vars, name strin
 		return "", err
 	}
 
-	log.Infof("💾 downloading %q to %q \n", link, file)
+	log.GetLogger(ctx).Info("💾 downloading %q to %q \n", link, file)
 	return webtool.Download(ctx, link, file)
 }
 
@@ -54,7 +54,7 @@ func (r *WebKit) DdgSearch(ctx context.Context, vars *api.Vars, name string, arg
 		max = 10
 	}
 
-	log.Infof("🦆 ddg query: %q max: %d\n", query, max)
+	log.GetLogger(ctx).Info("🦆 ddg query: %q max: %d\n", query, max)
 	return webtool.DDG(ctx, query, max)
 }
 
@@ -75,7 +75,7 @@ func (r *WebKit) BingSearch(ctx context.Context, vars *api.Vars, name string, ar
 		max = 10
 	}
 
-	log.Infof("🅱️ bing query: %q max: %d\n", query, max)
+	log.GetLogger(ctx).Info("🅱️ bing query: %q max: %d\n", query, max)
 	return webtool.Bing(ctx, query, max)
 }
 
@@ -101,7 +101,7 @@ func (r *WebKit) BraveSearch(ctx context.Context, vars *api.Vars, name string, a
 		return "", err
 	}
 
-	log.Infof("🦁 brave query: %q max: %d\n", query, max)
+	log.GetLogger(ctx).Info("🦁 brave query: %q max: %d\n", query, max)
 	return webtool.Brave(ctx, apiKey, query, max)
 }
 
@@ -138,7 +138,7 @@ func (r *WebKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string, 
 	// 	return "", fmt.Errorf("empty search engine id")
 	// }
 
-	log.Infof("🅖 google query: %q max: %d\n", query, max)
+	log.GetLogger(ctx).Info("🅖 google query: %q max: %d\n", query, max)
 	return webtool.Google(ctx, apiKey, seID, query, max)
 }
 

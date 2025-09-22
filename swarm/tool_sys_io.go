@@ -12,11 +12,11 @@ import (
 // }
 
 func (r *SystemKit) PasteFromClipboard(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	return readClipboard()
+	return readClipboard(ctx)
 }
 
 func (r *SystemKit) PasteFromClipboardWait(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	return readClipboardWait()
+	return readClipboardWait(ctx)
 }
 
 func (r *SystemKit) WriteStdout(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {

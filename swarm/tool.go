@@ -19,10 +19,10 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
-	kits, err := LoadToolsConfig(app)
+func ListTools(ctx context.Context, app *api.AppConfig) (map[string]*api.ToolFunc, error) {
+	kits, err := LoadToolsConfig(ctx, app)
 	if err != nil {
-		log.Errorf("failed to load default tool config: %v\n", err)
+		log.GetLogger(ctx).Error("failed to load default tool config: %v\n", err)
 		return nil, err
 	}
 
@@ -74,7 +74,7 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 		// tools - inline
 		if len(tc.Tools) > 0 {
 			for _, v := range tc.Tools {
-				log.Debugf("Kit: %s tool: %s - %s\n", tc.Kit, v.Name, v.Description)
+				log.GetLogger(ctx).Debug("Kit: %s tool: %s - %s\n", tc.Kit, v.Name, v.Description)
 
 				// condition check
 				if !conditionMet(v.Name, v.Condition) {
@@ -117,8 +117,8 @@ func ListTools(app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 	return toolRegistry, nil
 }
 
-func initTools(app *api.AppConfig) (func(string) ([]*api.ToolFunc, error), error) {
-	tools, err := ListTools(app)
+func initTools(ctx context.Context, app *api.AppConfig) (func(string) ([]*api.ToolFunc, error), error) {
+	tools, err := ListTools(ctx, app)
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +184,7 @@ func initTools(app *api.AppConfig) (func(string) ([]*api.ToolFunc, error), error
 	}, nil
 }
 
-func LoadToolsAsset(as api.AssetStore, base string, kits map[string]*api.ToolsConfig) error {
+func LoadToolsAsset(ctx context.Context, as api.AssetStore, base string, kits map[string]*api.ToolsConfig) error {
 	dirs, err := as.ReadDir(base)
 	if err != nil {
 		return fmt.Errorf("failed to read directory: %v", err)
@@ -210,60 +210,60 @@ func LoadToolsAsset(as api.AssetStore, base string, kits map[string]*api.ToolsCo
 	return nil
 }
 
-func LoadToolsConfig(app *api.AppConfig) (map[string]*api.ToolsConfig, error) {
+func LoadToolsConfig(ctx context.Context, app *api.AppConfig) (map[string]*api.ToolsConfig, error) {
 	var kits = make(map[string]*api.ToolsConfig)
 	// default
-	if err := LoadResourceToolsConfig(resourceFS, kits); err != nil {
+	if err := LoadResourceToolsConfig(ctx, resourceFS, kits); err != nil {
 		return nil, err
 	}
 
 	// external/custom
-	if err := LoadFileToolsConfig(app.Base, kits); err != nil {
-		log.Errorf("failed to load custom tools: %v\n", err)
+	if err := LoadFileToolsConfig(ctx, app.Base, kits); err != nil {
+		// log.GetLogger(ctx).Error("failed to load custom tools: %v\n", err)
 	}
 
 	if app.AgentResource != nil && len(app.AgentResource.Resources) > 0 {
-		if err := LoadWebToolsConfig(app.AgentResource.Resources, kits); err != nil {
-			log.Errorf("failed to load tools from web resource: %v\n", err)
+		if err := LoadWebToolsConfig(ctx, app.AgentResource.Resources, kits); err != nil {
+			log.GetLogger(ctx).Error("failed to load tools from web resource: %v\n", err)
 		}
 	}
 
 	return kits, nil
 }
 
-func LoadResourceToolsConfig(fs embed.FS, kits map[string]*api.ToolsConfig) error {
+func LoadResourceToolsConfig(ctx context.Context, fs embed.FS, kits map[string]*api.ToolsConfig) error {
 	rs := &ResourceStore{
 		FS:   fs,
 		Base: "resource",
 	}
-	return LoadToolsAsset(rs, "tools", kits)
+	return LoadToolsAsset(ctx, rs, "tools", kits)
 }
 
-func LoadFileToolsConfig(base string, kits map[string]*api.ToolsConfig) error {
+func LoadFileToolsConfig(ctx context.Context, base string, kits map[string]*api.ToolsConfig) error {
 	abs, err := filepath.Abs(base)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute path for %s: %w", base, err)
 	}
 	// check if abs exists
 	if _, err := os.Stat(abs); os.IsNotExist(err) {
-		log.Debugf("path does not exist: %s\n", abs)
+		log.GetLogger(ctx).Debug("path does not exist: %s\n", abs)
 		return nil
 	}
 
 	fs := &FileStore{
 		Base: abs,
 	}
-	return LoadToolsAsset(fs, "tools", kits)
+	return LoadToolsAsset(ctx, fs, "tools", kits)
 }
 
-func LoadWebToolsConfig(resources []*api.Resource, kits map[string]*api.ToolsConfig) error {
+func LoadWebToolsConfig(ctx context.Context, resources []*api.Resource, kits map[string]*api.ToolsConfig) error {
 	for _, v := range resources {
 		ws := &WebStore{
 			Base:  v.Base,
 			Token: v.Token,
 		}
-		if err := LoadToolsAsset(ws, "tools", kits); err != nil {
-			log.Errorf("failed to load tools from %q error: %v\n", v.Base, err)
+		if err := LoadToolsAsset(ctx, ws, "tools", kits); err != nil {
+			log.GetLogger(ctx).Error("failed to load tools from %q error: %v\n", v.Base, err)
 		}
 	}
 	return nil
@@ -318,7 +318,7 @@ func NewToolCaller() api.ToolCaller {
 			toolMap[v.ID()] = v
 		}
 		return func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
-			log.Debugf("run tool: %s %+v\n", name, args)
+			log.GetLogger(ctx).Debug("run tool: %s %+v\n", name, args)
 			v, ok := toolMap[name]
 			if !ok {
 				return nil, fmt.Errorf("tool not found: %s", name)
@@ -329,14 +329,14 @@ func NewToolCaller() api.ToolCaller {
 }
 
 func callTool(vars *api.Vars, v *api.ToolFunc, ctx context.Context, name string, args map[string]any) (*api.Result, error) {
-	log.Infof("⣿ %s %+v\n", name, args)
+	log.GetLogger(ctx).Info("⣿ %s %+v\n", name, args)
 
 	result, err := dispatchTool(ctx, v, vars, name, args)
 
 	if err != nil {
-		log.Errorf("\033[31m✗\033[0m %s\n", err)
+		log.GetLogger(ctx).Error("\033[31m✗\033[0m %s\n", err)
 	} else {
-		log.Infof("✔ %s \n", head(result.String(), 180))
+		log.GetLogger(ctx).Info("✔ %s \n", head(result.String(), 180))
 	}
 
 	return result, err

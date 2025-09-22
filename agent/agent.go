@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"context"
 	_ "embed"
 
 	"github.com/qiangli/ai/internal"
@@ -10,11 +11,11 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func RunAgent(cfg *api.AppConfig) error {
-	// log.Debugf("Agent: %s %s %v\n", cfg.Agent, cfg.Command, cfg.Args)
-	log.Debugf("Agent: %s %v\n", cfg.Agent, cfg.Args)
+func RunAgent(ctx context.Context, cfg *api.AppConfig) error {
+	// log.GetLogger(ctx).Debug("Agent: %s %s %v\n", cfg.Agent, cfg.Command, cfg.Args)
+	log.GetLogger(ctx).Debug("Agent: %s %v\n", cfg.Agent, cfg.Args)
 
-	in, err := GetUserInput(cfg)
+	in, err := GetUserInput(ctx, cfg)
 	if err != nil {
 		return err
 	}
@@ -26,13 +27,13 @@ func RunAgent(cfg *api.AppConfig) error {
 	in.Agent = cfg.Agent
 	// in.Command = cfg.Command
 
-	return RunSwarm(cfg, in)
+	return RunSwarm(ctx, cfg, in)
 }
 
-func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
+func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) error {
 	name := input.Agent
 	// command := input.Command
-	log.Debugf("Running agent %q with swarm\n", name)
+	log.GetLogger(ctx).Debug("Running agent %q with swarm\n", name)
 
 	//
 	// if v, err := swarm.NewAgentCreator(cfg); err != nil {
@@ -71,7 +72,7 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	// TODO: this is for custom agent instruction defined in yaml
 	vars.UserInput = input
 
-	showInput(cfg, input)
+	showInput(ctx, cfg, input)
 
 	req := &api.Request{
 		Agent: name,
@@ -83,16 +84,16 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 	sw := swarm.New(vars)
 
 	if len(vars.History) > 0 {
-		log.Infof("\033[33m⣿\033[0m recalling %v messages in memory less than %v minutes old\n", len(vars.History), cfg.MaxSpan)
+		log.GetLogger(ctx).Info("\033[33m⣿\033[0m recalling %v messages in memory less than %v minutes old\n", len(vars.History), cfg.MaxSpan)
 	}
 
 	if err := sw.Run(req, resp); err != nil {
 		return err
 	}
 
-	log.Debugf("Agent %+v\n", resp.Agent)
+	log.GetLogger(ctx).Debug("Agent %+v\n", resp.Agent)
 	for _, m := range resp.Messages {
-		log.Debugf("Message %+v\n", m)
+		log.GetLogger(ctx).Debug("Message %+v\n", m)
 	}
 
 	var display = name
@@ -110,43 +111,43 @@ func RunSwarm(cfg *api.AppConfig, input *api.UserInput) error {
 			Content:     v.Content,
 		}
 
-		processOutput(cfg, out)
+		processOutput(ctx, cfg, out)
 
 		cfg.Stdout = cfg.Stdout + v.Content
 	}
 
 	if len(vars.History) > initLen {
-		log.Debugf("Saving conversation\n")
+		log.GetLogger(ctx).Debug("Saving conversation\n")
 		if err := mem.Save(vars.History[initLen:]); err != nil {
-			log.Errorf("error saving conversation history: %v", err)
+			log.GetLogger(ctx).Error("error saving conversation history: %v", err)
 		}
 	}
 
-	log.Debugf("Agent task completed: %v\n", cfg.Args)
-	// 	log.Debugf("Agent task completed: %s %v\n", cfg.Command, cfg.Args)
+	log.GetLogger(ctx).Debug("Agent task completed: %v\n", cfg.Args)
+	// 	log.GetLogger(ctx).Debug("Agent task completed: %s %v\n", cfg.Command, cfg.Args)
 	return nil
 }
 
-func showInput(cfg *api.AppConfig, input *api.UserInput) {
-	if log.IsTrace() {
-		log.Debugf("input: %+v\n", input)
+func showInput(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) {
+	if log.GetLogger(ctx).IsTrace() {
+		log.GetLogger(ctx).Debug("input: %+v\n", input)
 	}
 
-	PrintInput(cfg, input)
+	PrintInput(ctx, cfg, input)
 }
 
-func processOutput(cfg *api.AppConfig, message *api.Output) {
-	if log.IsTrace() {
-		log.Debugf("output: %+v\n", message)
+func processOutput(ctx context.Context, cfg *api.AppConfig, message *api.Output) {
+	if log.GetLogger(ctx).IsTrace() {
+		log.GetLogger(ctx).Debug("output: %+v\n", message)
 	}
 
 	switch message.ContentType {
 	case api.ContentTypeText, "":
-		processTextContent(cfg, message)
+		processTextContent(ctx, cfg, message)
 	case api.ContentTypeB64JSON:
-		processImageContent(cfg, message)
+		processImageContent(ctx, cfg, message)
 	default:
-		log.Debugf("Unsupported content type: %s\n", message.ContentType)
+		log.GetLogger(ctx).Debug("Unsupported content type: %s\n", message.ContentType)
 	}
 }
 

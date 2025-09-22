@@ -29,9 +29,10 @@ func Middleware(model *api.Model, vars *api.Vars) option.Middleware {
 	return func(req *http.Request, next option.MiddlewareNext) (*http.Response, error) {
 		start := time.Now()
 
-		if log.IsTrace() {
+		ctx := req.Context()
+		if log.GetLogger(ctx).IsTrace() {
 			reqData, _ := httputil.DumpRequest(req, true)
-			log.Debugf(">>>REQUEST: %s\n", string(reqData))
+			log.GetLogger(ctx).Debug(">>>REQUEST: %s\n", string(reqData))
 		}
 
 		var resp *http.Response
@@ -44,9 +45,9 @@ func Middleware(model *api.Model, vars *api.Vars) option.Middleware {
 			resp, err = next(req)
 		}
 
-		if log.IsTrace() {
+		if log.GetLogger(ctx).IsTrace() {
 			resData, _ := httputil.DumpResponse(resp, true)
-			log.Debugf("<<<RESPONSE: %s\n", string(resData))
+			log.GetLogger(ctx).Debug("<<<RESPONSE: %s\n", string(resData))
 		}
 
 		took := time.Since(start).Milliseconds()
@@ -54,7 +55,7 @@ func Middleware(model *api.Model, vars *api.Vars) option.Middleware {
 		if resp != nil {
 			status = resp.StatusCode
 		}
-		log.Debugf("Status: %d, %s request for %s took %dms\n", status, req.Method, req.URL, took)
+		log.GetLogger(ctx).Debug("Status: %d, %s request for %s took %dms\n", status, req.Method, req.URL, took)
 
 		return resp, err
 	}

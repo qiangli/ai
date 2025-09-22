@@ -96,7 +96,7 @@ func BuildDockerImage(ctx context.Context, dockerfileName, tag string, dockerfil
 	defer resp.Body.Close()
 
 	var out io.Writer
-	if log.IsNormal() {
+	if log.GetLogger(ctx).IsNormal() {
 		out = os.Stderr
 	} else {
 		out = io.Discard
@@ -106,7 +106,7 @@ func BuildDockerImage(ctx context.Context, dockerfileName, tag string, dockerfil
 	if err != nil {
 		return err
 	}
-	log.Infof("Image build with tag %s succeeded\n", tag)
+	log.GetLogger(ctx).Info("Image build with tag %s succeeded\n", tag)
 
 	return nil
 }
@@ -149,7 +149,7 @@ func RunContainer(ctx context.Context, containerName string, config *container.C
 
 	var attachOptions container.AttachOptions
 
-	if log.IsQuiet() {
+	if log.GetLogger(ctx).IsQuiet() {
 		attachOptions.Stream = false
 		attachOptions.Stdout = false
 		attachOptions.Stderr = false
@@ -168,7 +168,7 @@ func RunContainer(ctx context.Context, containerName string, config *container.C
 	// progress output
 	go func() {
 		if _, err := stdcopy.StdCopy(os.Stderr, os.Stderr, hjResp.Reader); err != nil {
-			log.Errorf("error copying output: %v\n", err)
+			log.GetLogger(ctx).Error("error copying output: %v\n", err)
 		}
 	}()
 
@@ -216,7 +216,7 @@ func RemoveContainer(ctx context.Context, containerName string) error {
 	}
 
 	if containerID == "" {
-		log.Errorf("Container %s not found\n", containerName)
+		log.GetLogger(ctx).Error("Container %s not found\n", containerName)
 		return nil
 	}
 
@@ -225,7 +225,7 @@ func RemoveContainer(ctx context.Context, containerName string) error {
 		return err
 	}
 
-	log.Debugf("Container %s removed successfully\n", containerName)
+	log.GetLogger(ctx).Debug("Container %s removed successfully\n", containerName)
 	return nil
 }
 

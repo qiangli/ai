@@ -47,9 +47,8 @@ type agentHandler struct {
 
 func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	var r = h.agent
-	log.Debugf("run agent: %s\n", r.Name)
-
-	ctx := req.Context()
+	var ctx = req.Context()
+	log.GetLogger(ctx).Debug("run agent: %s\n", r.Name)
 
 	// advices
 	noop := func(vars *api.Vars, _ *api.Request, _ *api.Response, _ api.Advice) error {
@@ -120,8 +119,8 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 			return err
 		}
 
-		if log.IsTrace() {
-			log.Debugf("content: %s\n", content)
+		if log.GetLogger(ctx).IsTrace() {
+			log.GetLogger(ctx).Debug("content: %s\n", content)
 		}
 
 		history = append(history, &api.Message{
@@ -134,17 +133,17 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 			Sender:  r.Name,
 			// Models:  h.vars.Config.Models,
 		})
-		log.Debugf("Added new system role message: %v\n", len(history))
+		log.GetLogger(ctx).Debug("Added new system role message: %v\n", len(history))
 	}
 
 	// 2. Historical Messages - skip system role
 	// TODO
 	if len(h.vars.History) > 0 {
-		log.Debugf("using %v messaages from history\n", len(h.vars.History))
+		log.GetLogger(ctx).Debug("using %v messaages from history\n", len(h.vars.History))
 		for _, msg := range h.vars.History {
 			if msg.Role != api.RoleSystem {
 				history = append(history, msg)
-				log.Debugf("Added historical non system role message: %v\n", len(history))
+				log.GetLogger(ctx).Debug("Added historical non system role message: %v\n", len(history))
 			}
 		}
 	}
@@ -181,7 +180,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	})
 
 	history = append(history, req.Messages...)
-	log.Debugf("Added new user role message: %v\n", len(history))
+	log.GetLogger(ctx).Debug("Added new user role message: %v\n", len(history))
 
 	// Request
 	initLen := len(history)
@@ -200,8 +199,8 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		Vars: h.vars,
 	}
 
-	if log.IsTrace() {
-		log.Debugf("LLM request: %+v\n", request)
+	if log.GetLogger(ctx).IsTrace() {
+		log.GetLogger(ctx).Debug("LLM request: %+v\n", request)
 	}
 
 	var adapter LLMAdapter = Chat
@@ -218,8 +217,8 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		return err
 	}
 
-	if log.IsTrace() {
-		log.Debugf("LLM response: %+v\n", result)
+	if log.GetLogger(ctx).IsTrace() {
+		log.GetLogger(ctx).Debug("LLM response: %+v\n", result)
 	}
 
 	// Response
@@ -241,8 +240,8 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 
 	resp.Messages = history[initLen:]
 
-	if log.IsTrace() {
-		log.Debugf("Response messages: %+v", resp.Messages)
+	if log.GetLogger(ctx).IsTrace() {
+		log.GetLogger(ctx).Debug("Response messages: %+v", resp.Messages)
 	}
 
 	//
@@ -276,18 +275,18 @@ type maxLogHandler struct {
 }
 
 func (h *maxLogHandler) Serve(r *api.Request, w *api.Response) error {
-
-	log.Debugf("req: %+v\n", r)
+	ctx := r.Context()
+	log.GetLogger(ctx).Debug("req: %+v\n", r)
 	if len(r.Messages) > 0 {
-		log.Debugf("%s %s\n", r.Messages[0].Role, clip(r.Messages[0].Content, h.max))
+		log.GetLogger(ctx).Debug("%s %s\n", r.Messages[0].Role, clip(r.Messages[0].Content, h.max))
 	}
 
 	err := h.next.Serve(r, w)
 
-	log.Debugf("resp: %+v\n", w)
+	log.GetLogger(ctx).Debug("resp: %+v\n", w)
 	if w.Messages != nil {
 		for _, m := range w.Messages {
-			log.Debugf("%s %s\n", m.Role, clip(m.Content, h.max))
+			log.GetLogger(ctx).Debug("%s %s\n", m.Role, clip(m.Content, h.max))
 		}
 	}
 

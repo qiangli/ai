@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"context"
 	"errors"
 	"io/fs"
 	"os"
@@ -22,13 +23,14 @@ var SetupCmd = &cobra.Command{
 	DisableFlagsInUseLine: true,
 	DisableSuggestions:    true,
 	Run: func(cmd *cobra.Command, args []string) {
+		ctx := context.TODO()
 		var cfg = &api.AppConfig{}
 
 		if err := internal.ParseConfig(viper, cfg, args); err != nil {
-			internal.Exit(err)
+			internal.Exit(ctx, err)
 		}
 		if err := setupConfig(cfg); err != nil {
-			internal.Exit(err)
+			internal.Exit(ctx, err)
 		}
 	},
 }

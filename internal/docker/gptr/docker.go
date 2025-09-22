@@ -84,21 +84,21 @@ func RunContainer(ctx context.Context, reportType, tone, query string, outDir st
 		Cmd:   args,
 	}
 
-	log.Debugf("config: %+v\n", config)
+	log.GetLogger(ctx).Debug("config: %+v\n", config)
 
 	hostConfig := &docker.ContainerHostConfig{
 		Binds: []string{output + ":/app/outputs/"},
 	}
 
-	log.Debugf("hostConfig: %+v\n", hostConfig)
+	log.GetLogger(ctx).Debug("hostConfig: %+v\n", hostConfig)
 
 	_, err = docker.RunContainer(ctx, containerName, config, hostConfig)
 	if err != nil {
-		log.Errorf("Error running container: %v\n", err)
+		log.GetLogger(ctx).Error("Error running container: %v\n", err)
 
 		// Attempt to remove the container
 		if rmErr := docker.RemoveContainer(ctx, containerName); rmErr != nil {
-			log.Errorf("Error removing container: %v\n", rmErr)
+			log.GetLogger(ctx).Error("Error removing container: %v\n", rmErr)
 		}
 		return err
 	}

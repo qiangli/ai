@@ -21,7 +21,7 @@ package swarm
 // 		ApiKey:  "sk-1234",
 // 	}
 
-// 	log.SetLogLevel(log.Verbose)
+// 	log.GetLogger(ctx).SetLogLevel(log.Verbose)
 
 // 	var vars = api.NewVars()
 // 	vars.Config = &api.AppConfig{

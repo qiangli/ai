@@ -42,14 +42,14 @@ func NewClient(model *api.Model, vars *api.Vars) (*openai.Client, error) {
 }
 
 func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	log.Debugf(">>>OPENAI:\n req: %+v\n\n", req)
+	log.GetLogger(ctx).Debug(">>>OPENAI:\n req: %+v\n\n", req)
 
 	var err error
 	var resp *llm.Response
 
 	resp, err = call(ctx, req)
 
-	log.Debugf("<<<OPENAI:\n resp: %+v err: %v\n\n", resp, err)
+	log.GetLogger(ctx).Debug("<<<OPENAI:\n resp: %+v err: %v\n\n", resp, err)
 	return resp, err
 }
 
@@ -84,7 +84,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		// case "developer":
 		// 	messages = append(messages, openai.DeveloperMessage(v.Content))
 		default:
-			log.Errorf("role not supported: %s", v.Role)
+			log.GetLogger(ctx).Error("role not supported: %s", v.Role)
 		}
 	}
 	params.Messages = messages
@@ -105,19 +105,19 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	}
 	resp := &llm.Response{}
 
-	log.Debugf("[OpenAI] params messages: %v tools: %v\n", len(params.Messages), len(params.Tools))
+	log.GetLogger(ctx).Debug("[OpenAI] params messages: %v tools: %v\n", len(params.Messages), len(params.Tools))
 
 	for tries := range maxTurns {
-		log.Infof("\033[33mⓄ\033[0m @%s [%v] %s %s\n", req.Agent, tries, model, req.Model.BaseUrl)
+		log.GetLogger(ctx).Info("\033[33mⓄ\033[0m @%s [%v] %s %s\n", req.Agent, tries, model, req.Model.BaseUrl)
 
-		log.Debugf("📡 *** sending request to %s ***: %v of %v\n%+v\n\n", req.Model.BaseUrl, tries, maxTurns, req)
+		log.GetLogger(ctx).Debug("📡 *** sending request to %s ***: %v of %v\n%+v\n\n", req.Model.BaseUrl, tries, maxTurns, req)
 
 		completion, err := client.Chat.Completions.New(ctx, params)
 		if err != nil {
-			log.Errorf("\033[31m✗\033[0m %s\n", err)
+			log.GetLogger(ctx).Error("\033[31m✗\033[0m %s\n", err)
 			return nil, err
 		}
-		log.Infof("(%v)\n", completion.Choices[0].FinishReason)
+		log.GetLogger(ctx).Info("(%v)\n", completion.Choices[0].FinishReason)
 
 		toolCalls := completion.Choices[0].Message.ToolCalls
 
@@ -137,7 +137,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 				return nil, err
 			}
 
-			log.Debugf("\n\n>>> tool call: %v %s props: %+v\n", i, name, props)
+			log.GetLogger(ctx).Debug("\n\n>>> tool call: %v %s props: %+v\n", i, name, props)
 
 			//
 			out, err := req.RunTool(ctx, name, props)
@@ -147,7 +147,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 				}
 			}
 
-			log.Debugf("\n<<< tool call: %s out: %+v\n", name, out)
+			log.GetLogger(ctx).Debug("\n<<< tool call: %s out: %+v\n", name, out)
 			resp.Result = out
 
 			if out.State == api.StateExit {
@@ -182,7 +182,6 @@ func dataURL(mime string, raw []byte) string {
 
 func toContentPart(mimeType string, raw []byte) []openai.ChatCompletionContentPartUnionParam {
 	// https://mimesniff.spec.whatwg.org/
-	log.Debugf("[OpenAI] toContentPart: %s %v\n", mimeType, len(raw))
 	switch {
 	case strings.HasPrefix(mimeType, "text/"):
 		return []openai.ChatCompletionContentPartUnionParam{
@@ -210,14 +209,14 @@ func toContentPart(mimeType string, raw []byte) []openai.ChatCompletionContentPa
 }
 
 // func ImageGen(ctx context.Context, req *api.Request) (*api.Response, error) {
-// 	log.Debugf(">>>OPENAI:\n image-gen req: %+v\n\n", req)
+// 	log.GetLogger(ctx).Debug(">>>OPENAI:\n image-gen req: %+v\n\n", req)
 
 // 	var err error
 // 	var resp *api.Response
 
 // 	resp, err = generateImage(ctx, req)
 
-// 	log.Debugf("<<<OPENAI:\n image-gen resp: %+v err: %v\n\n", resp, err)
+// 	log.GetLogger(ctx).Debug("<<<OPENAI:\n image-gen resp: %+v err: %v\n\n", resp, err)
 // 	return resp, err
 // }
 
@@ -235,7 +234,7 @@ func toContentPart(mimeType string, raw []byte) []openai.ChatCompletionContentPa
 // 		ContentType: api.ContentTypeB64JSON,
 // 	}
 
-// 	log.Infof("@%s %s %s\n", req.Agent, req.Model, req.Model.BaseUrl)
+// 	log.GetLogger(ctx).Info("@%s %s %s\n", req.Agent, req.Model, req.Model.BaseUrl)
 
 // 	var imageFormat = openai.ImageGenerateParamsResponseFormatB64JSON
 
@@ -281,7 +280,7 @@ func toContentPart(mimeType string, raw []byte) []openai.ChatCompletionContentPa
 // 	if err != nil {
 // 		return nil, err
 // 	}
-// 	log.Infof("✨ %v %v %v\n", imageQuality, imageSize, imageStyle)
+// 	log.GetLogger(ctx).Info("✨ %v %v %v\n", imageQuality, imageSize, imageStyle)
 
 // 	resp.Content = image.Data[0].B64JSON
 

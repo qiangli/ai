@@ -91,7 +91,7 @@ func Spread(val any) string {
 // 	// // Add system commands to the function map
 // 	// for _, v := range vars.Config.ToolSystemCommands {
 // 	// 	if _, err := exec.LookPath(v); err != nil {
-// 	// 		log.Errorf("%s not found in PATH\n", v)
+// 	// 		log.GetLogger(ctx).Error("%s not found in PATH\n", v)
 // 	// 		continue
 // 	// 	}
 // 	// 	funcMap[v] = func(args ...string) (string, error) {
@@ -331,7 +331,7 @@ func CallKit(tool any, kit string, method string, args ...any) (any, error) {
 // }
 
 // func (r *FuncKit) TaskComplete(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-// 	log.Infof("✌️ task completed %s", name)
+// 	log.GetLogger(ctx).Info("✌️ task completed %s", name)
 // 	return "Task completed", nil
 // }
 

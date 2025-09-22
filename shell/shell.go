@@ -1,6 +1,7 @@
 package shell
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -16,7 +17,7 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func Shell(cfg *api.AppConfig) error {
+func Shell(ctx context.Context, cfg *api.AppConfig) error {
 	vars, err := agent.InitVars(cfg)
 	if err != nil {
 		return err
@@ -39,7 +40,7 @@ func Shell(cfg *api.AppConfig) error {
 	// run sub commands
 	if len(vars.Config.Args) > 0 {
 		input := strings.Join(vars.Config.Args, " ")
-		dispatch(vars.Config.Shell, input)
+		dispatch(ctx, vars.Config.Shell, input)
 		return nil
 	}
 
@@ -65,7 +66,7 @@ func Shell(cfg *api.AppConfig) error {
 	}
 	defer restoreState()
 
-	prompter, err := createPrompter()
+	prompter, err := createPrompter(ctx)
 	if err != nil {
 		return err
 	}
@@ -101,7 +102,7 @@ func Shell(cfg *api.AppConfig) error {
 			prompt.OptionScrollbarBGColor(prompt.DefaultColor),
 		)
 
-		if !dispatch(vars.Config.Shell, input) {
+		if !dispatch(ctx, vars.Config.Shell, input) {
 			return nil
 		}
 	}
@@ -129,14 +130,14 @@ func initRc(vars *api.Vars) error {
 }
 
 // dispatch returns true to continue, false to exit
-func dispatch(shellBin, input string) bool {
+func dispatch(ctx context.Context, shellBin, input string) bool {
 	input = strings.Replace(input, "\n", "", -1)
 	input = strings.TrimSpace(input)
 	if input == "" {
 		return true
 	}
 
-	log.Debugf("input command: %q\n", input)
+	log.GetLogger(ctx).Debug("input command: %q\n", input)
 
 	// cmd + args
 	cmdArgs := strings.SplitN(input, " ", 2)
@@ -148,7 +149,7 @@ func dispatch(shellBin, input string) bool {
 		args = cmdArgs[1]
 	}
 
-	log.Debugf("command: %q, args: %q\n", command, args)
+	log.GetLogger(ctx).Debug("command: %q, args: %q\n", command, args)
 
 	// execute history command
 	if strings.HasPrefix(command, "!") {
@@ -167,10 +168,10 @@ func dispatch(shellBin, input string) bool {
 
 		// fall through, not to continue
 		// may need further processing for builtin/agent/alias commands
-		log.Debugf("history command: %q, args: %q\n", hist, args)
+		log.GetLogger(ctx).Debug("history command: %q, args: %q\n", hist, args)
 		input = fmt.Sprintf("%s %s", hist, args)
 		command = hist
-		log.Debugf("proceed to run modified history !%s: command %q, input: %q\n", num, command, input)
+		log.GetLogger(ctx).Debug("proceed to run modified history !%s: command %q, input: %q\n", num, command, input)
 	}
 
 	// built-in commands:
@@ -229,7 +230,7 @@ func dispatch(shellBin, input string) bool {
 
 	runShell := func(modified string, save bool) {
 		// shell
-		if err := execCommand(shellBin, modified, save); err != nil {
+		if err := execCommand(ctx, shellBin, modified, save); err != nil {
 			commandErr(modified, err)
 		}
 		// update history with original command
@@ -325,7 +326,7 @@ func dispatch(shellBin, input string) bool {
 		}
 	}
 
-	log.Debugf("modified command: %q\n", modified)
+	log.GetLogger(ctx).Debug("modified command: %q\n", modified)
 
 	if modified == "" {
 		return true

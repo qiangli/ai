@@ -8,7 +8,6 @@ import (
 
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/log"
 )
 
 var commandRegistry map[string]string
@@ -99,7 +98,7 @@ func NewVisitedRegistry() (*VisitedRegistry, error) {
 // Chdir changes the current working directory to the specified path.
 // This is required to update the PWD environment variable
 func Chdir(dir string) error {
-	log.Debugf("chdir to: %s\n", dir)
+	// log.GetLogger(ctx).Debug("chdir to: %s\n", dir)
 
 	abs, err := filepath.Abs(dir)
 	if err != nil {
@@ -114,6 +113,6 @@ func Chdir(dir string) error {
 
 	visitedRegistry.Visit(abs)
 
-	log.Debugf("chdir changed to: %s\n", abs)
+	// log.GetLogger(ctx).Debug("chdir changed to: %s\n", abs)
 	return nil
 }

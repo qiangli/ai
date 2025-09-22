@@ -2,13 +2,14 @@ package util
 
 import (
 	"bufio"
+	"context"
 	"io"
 	"strings"
 
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func Confirm(ps string, choices []string, defaultChoice string, in io.Reader) (string, error) {
+func Confirm(ctx context.Context, ps string, choices []string, defaultChoice string, in io.Reader) (string, error) {
 	memo := make(map[string]string)
 	for _, v := range choices {
 		choice := strings.ToLower(v)
@@ -18,7 +19,7 @@ func Confirm(ps string, choices []string, defaultChoice string, in io.Reader) (s
 
 	reader := bufio.NewReader(in)
 	for {
-		log.Promptf(ps)
+		log.GetLogger(ctx).Prompt(ps)
 
 		resp, err := reader.ReadString('\n')
 		if err != nil {
@@ -35,10 +36,10 @@ func Confirm(ps string, choices []string, defaultChoice string, in io.Reader) (s
 	}
 }
 
-func Prompt(ps string, in io.Reader) (string, error) {
+func Prompt(ctx context.Context, ps string, in io.Reader) (string, error) {
 	reader := bufio.NewReader(in)
 	for {
-		log.Promptf(ps)
+		log.GetLogger(ctx).Prompt(ps)
 
 		resp, err := reader.ReadString('\n')
 		if err != nil {
