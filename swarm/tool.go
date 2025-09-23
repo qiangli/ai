@@ -210,22 +210,24 @@ func LoadToolsAsset(ctx context.Context, as api.AssetStore, base string, kits ma
 	return nil
 }
 
+// TODO return early
 func LoadToolsConfig(ctx context.Context, app *api.AppConfig) (map[string]*api.ToolsConfig, error) {
 	var kits = make(map[string]*api.ToolsConfig)
-	// default
-	if err := LoadResourceToolsConfig(ctx, resourceFS, kits); err != nil {
-		return nil, err
-	}
-
-	// external/custom
-	if err := LoadFileToolsConfig(ctx, app.Base, kits); err != nil {
-		// log.GetLogger(ctx).Error("failed to load custom tools: %v\n", err)
-	}
 
 	if app.AgentResource != nil && len(app.AgentResource.Resources) > 0 {
 		if err := LoadWebToolsConfig(ctx, app.AgentResource.Resources, kits); err != nil {
 			log.GetLogger(ctx).Error("failed to load tools from web resource: %v\n", err)
 		}
+	}
+
+	// external/custom
+	if err := LoadFileToolsConfig(ctx, app.Base, kits); err != nil {
+		log.GetLogger(ctx).Error("failed to load custom tools: %v\n", err)
+	}
+
+	// default
+	if err := LoadResourceToolsConfig(ctx, resourceFS, kits); err != nil {
+		return nil, err
 	}
 
 	return kits, nil

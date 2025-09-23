@@ -114,9 +114,12 @@ func ListAgents(ctx context.Context, app *api.AppConfig) (map[string]*api.Agents
 
 func LoadAgentsConfig(ctx context.Context, app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
 	var groups = make(map[string]*api.AgentsConfig)
-	// default
-	if err := LoadResourceAgentsConfig(ctx, resourceFS, groups); err != nil {
-		return nil, err
+
+	// web
+	if app.AgentResource != nil && len(app.AgentResource.Resources) > 0 {
+		if err := LoadWebAgentsConfig(ctx, app.AgentResource.Resources, groups); err != nil {
+			log.GetLogger(ctx).Error("failed load agents from web resources: %v\n", err)
+		}
 	}
 
 	// external/custom
@@ -124,11 +127,9 @@ func LoadAgentsConfig(ctx context.Context, app *api.AppConfig) (map[string]*api.
 		log.GetLogger(ctx).Error("failed to load custom agents: %v\n", err)
 	}
 
-	// web
-	if app.AgentResource != nil && len(app.AgentResource.Resources) > 0 {
-		if err := LoadWebAgentsConfig(ctx, app.AgentResource.Resources, groups); err != nil {
-			log.GetLogger(ctx).Error("failed load agents from web resources: %v\n", err)
-		}
+	// default
+	if err := LoadResourceAgentsConfig(ctx, resourceFS, groups); err != nil {
+		return nil, err
 	}
 
 	return groups, nil

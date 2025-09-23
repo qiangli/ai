@@ -81,11 +81,14 @@ func initModels(ctx context.Context, app *api.AppConfig) (func(level string) (*a
 func loadModels(ctx context.Context, app *api.AppConfig, alias string) (*api.ModelsConfig, error) {
 	var modelsCfg = make(map[string]*api.ModelsConfig)
 
-	// built in resource
-	if err := LoadResourceModelsConfig(resourceFS, modelsCfg); err != nil {
-		log.GetLogger(ctx).Debug("failed to load tools from web resource: %v\n", err)
-	} else if cfg, ok := modelsCfg[alias]; ok {
-		return cfg, nil
+	// web
+	// https://ai.dhnt.io/models
+	if app.AgentResource != nil && len(app.AgentResource.Resources) > 0 {
+		if err := LoadWebModelsConfig(ctx, app.AgentResource.Resources, modelsCfg); err != nil {
+			log.GetLogger(ctx).Debug("failed to load models from web resource: %v\n", err)
+		} else if cfg, ok := modelsCfg[alias]; ok {
+			return cfg, nil
+		}
 	}
 
 	// external/custom
@@ -95,14 +98,11 @@ func loadModels(ctx context.Context, app *api.AppConfig, alias string) (*api.Mod
 		return cfg, nil
 	}
 
-	// web
-	// https://ai.dhnt.io/models
-	if app.AgentResource != nil && len(app.AgentResource.Resources) > 0 {
-		if err := LoadWebModelsConfig(ctx, app.AgentResource.Resources, modelsCfg); err != nil {
-			log.GetLogger(ctx).Debug("failed to load tools from web resource: %v\n", err)
-		} else if cfg, ok := modelsCfg[alias]; ok {
-			return cfg, nil
-		}
+	// built in resource
+	if err := LoadResourceModelsConfig(resourceFS, modelsCfg); err != nil {
+		log.GetLogger(ctx).Debug("failed to load models from web resource: %v\n", err)
+	} else if cfg, ok := modelsCfg[alias]; ok {
+		return cfg, nil
 	}
 
 	return nil, fmt.Errorf("No LLM configuration found")
