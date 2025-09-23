@@ -5,8 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"os"
-
-	// "os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -189,22 +188,30 @@ func LoadToolsAsset(ctx context.Context, as api.AssetStore, base string, kits ma
 	if err != nil {
 		return fmt.Errorf("failed to read directory: %v", err)
 	}
-	for _, dir := range dirs {
-		if dir.IsDir() {
+	for _, v := range dirs {
+		if v.IsDir() {
 			continue
 		}
-		f, err := as.ReadFile(filepath.Join(base, dir.Name()))
-		if err != nil {
-			return fmt.Errorf("failed to read tool file %s: %w", dir.Name(), err)
+		name := v.Name()
+		if strings.HasSuffix(name, ".yaml") || strings.HasSuffix(name, ".yml") {
+			f, err := as.ReadFile(path.Join(base, name))
+			if err != nil {
+				return err
+			}
+			if len(f) == 0 {
+				continue
+			}
+			kit, err := LoadToolData([][]byte{f})
+			if err != nil {
+				return fmt.Errorf("failed to load tool %s: %w", name, err)
+			}
+
+			//
+			if kit.Kit == "" {
+				kit.Kit = trimYaml(name)
+			}
+			kits[kit.Kit] = kit
 		}
-		if len(f) == 0 {
-			continue
-		}
-		kit, err := LoadToolData([][]byte{f})
-		if err != nil {
-			return err
-		}
-		kits[kit.Kit] = kit
 	}
 
 	return nil

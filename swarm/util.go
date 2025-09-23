@@ -97,3 +97,13 @@ func nvl(sa ...string) string {
 	}
 	return ""
 }
+
+// trim name if it ends in .yaml/.yml
+func trimYaml(name string) string {
+	if strings.HasSuffix(name, ".yaml") {
+		name = strings.TrimSuffix(name, ".yaml")
+	} else if strings.HasSuffix(name, ".yml") {
+		name = strings.TrimSuffix(name, ".yml")
+	}
+	return name
+}

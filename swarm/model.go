@@ -93,7 +93,7 @@ func loadModels(ctx context.Context, app *api.AppConfig, alias string) (*api.Mod
 
 	// external/custom
 	if err := LoadFileModelsConfig(ctx, app.Base, modelsCfg); err != nil {
-		log.GetLogger(ctx).Debug("failed to load custom tools: %v\n", err)
+		log.GetLogger(ctx).Debug("failed to load custom models: %v\n", err)
 	} else if cfg, ok := modelsCfg[alias]; ok {
 		return cfg, nil
 	}
@@ -110,18 +110,19 @@ func loadModels(ctx context.Context, app *api.AppConfig, alias string) (*api.Mod
 
 func ListModels(ctx context.Context, app *api.AppConfig) (map[string]*api.ModelsConfig, error) {
 	var modelsCfg = make(map[string]*api.ModelsConfig)
-	if err := LoadResourceModelsConfig(resourceFS, modelsCfg); err != nil {
-		log.GetLogger(ctx).Debug("failed to load tools from web resource: %v\n", err)
-	}
-
-	if err := LoadFileModelsConfig(ctx, app.Base, modelsCfg); err != nil {
-		log.GetLogger(ctx).Debug("failed to load custom tools: %v\n", err)
-	}
 
 	if app.AgentResource != nil && len(app.AgentResource.Resources) > 0 {
 		if err := LoadWebModelsConfig(ctx, app.AgentResource.Resources, modelsCfg); err != nil {
-			log.GetLogger(ctx).Debug("failed to load tools from web resource: %v\n", err)
+			log.GetLogger(ctx).Debug("failed to load models from web resource: %v\n", err)
 		}
+	}
+
+	if err := LoadFileModelsConfig(ctx, app.Base, modelsCfg); err != nil {
+		log.GetLogger(ctx).Debug("failed to load custom models: %v\n", err)
+	}
+
+	if err := LoadResourceModelsConfig(resourceFS, modelsCfg); err != nil {
+		log.GetLogger(ctx).Debug("failed to load models from local resource: %v\n", err)
 	}
 
 	return modelsCfg, nil
@@ -230,15 +231,14 @@ func LoadModelsAsset(as api.AssetStore, base string, m map[string]*api.ModelsCon
 			}
 			cfg, err := LoadModelsData([][]byte{b})
 			if err != nil {
-				return fmt.Errorf("failed to load %q: %v", name, err)
+				return fmt.Errorf("failed to load models %q: %v", name, err)
 			}
+
 			//
-			alias := cfg.Alias
-			if alias == "" {
-				alias = strings.TrimSuffix(name, path.Ext(name))
-				cfg.Alias = alias
+			if cfg.Alias == "" {
+				cfg.Alias = trimYaml(name)
 			}
-			m[alias] = cfg
+			m[cfg.Alias] = cfg
 		}
 	}
 

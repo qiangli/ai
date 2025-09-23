@@ -74,7 +74,7 @@ func ListAgents(ctx context.Context, app *api.AppConfig) (map[string]*api.Agents
 
 	config, err := LoadAgentsConfig(ctx, app)
 	if err != nil {
-		log.GetLogger(ctx).Error("failed to load default tool config: %v\n", err)
+		log.GetLogger(ctx).Error("failed to load agent config: %v\n", err)
 		return nil, err
 	}
 
@@ -113,29 +113,29 @@ func ListAgents(ctx context.Context, app *api.AppConfig) (map[string]*api.Agents
 }
 
 func LoadAgentsConfig(ctx context.Context, app *api.AppConfig) (map[string]*api.AgentsConfig, error) {
-	var groups = make(map[string]*api.AgentsConfig)
+	var packs = make(map[string]*api.AgentsConfig)
 
 	// web
 	if app.AgentResource != nil && len(app.AgentResource.Resources) > 0 {
-		if err := LoadWebAgentsConfig(ctx, app.AgentResource.Resources, groups); err != nil {
+		if err := LoadWebAgentsConfig(ctx, app.AgentResource.Resources, packs); err != nil {
 			log.GetLogger(ctx).Error("failed load agents from web resources: %v\n", err)
 		}
 	}
 
 	// external/custom
-	if err := LoadFileAgentsConfig(ctx, app.Base, groups); err != nil {
+	if err := LoadFileAgentsConfig(ctx, app.Base, packs); err != nil {
 		log.GetLogger(ctx).Error("failed to load custom agents: %v\n", err)
 	}
 
 	// default
-	if err := LoadResourceAgentsConfig(ctx, resourceFS, groups); err != nil {
+	if err := LoadResourceAgentsConfig(ctx, resourceFS, packs); err != nil {
 		return nil, err
 	}
 
-	return groups, nil
+	return packs, nil
 }
 
-func LoadAgentsAsset(ctx context.Context, as api.AssetStore, root string, groups map[string]*api.AgentsConfig) error {
+func LoadAgentsAsset(ctx context.Context, as api.AssetStore, root string, packs map[string]*api.AgentsConfig) error {
 	dirs, err := as.ReadDir(root)
 	if err != nil {
 		return fmt.Errorf("failed to read agent resource directory: %v", err)
@@ -158,45 +158,45 @@ func LoadAgentsAsset(ctx context.Context, as api.AssetStore, root string, groups
 			log.GetLogger(ctx).Debug("agent file is empty %s\n", name)
 			continue
 		}
-		group, err := LoadAgentsData([][]byte{f})
+		pack, err := LoadAgentsData([][]byte{f})
 		if err != nil {
 			return fmt.Errorf("failed to load agent data from %s: %w", dir.Name(), err)
 		}
-		if group == nil {
+		if pack == nil {
 			log.GetLogger(ctx).Debug("no agent found in %s\n", dir.Name())
 			continue
 		}
-		// group.BaseDir = base
-		// use the name of the directory as the group name if not specified
-		if group.Name == "" {
-			group.Name = dir.Name()
+		// pack.BaseDir = base
+		// use the name of the directory as the pack name if not specified
+		if pack.Name == "" {
+			pack.Name = dir.Name()
 		}
-		if _, exists := groups[group.Name]; exists {
-			log.GetLogger(ctx).Debug("duplicate agent name found: %s in %s, skipping\n", group.Name, dir.Name())
+		if _, exists := packs[pack.Name]; exists {
+			log.GetLogger(ctx).Debug("duplicate agent name found: %s in %s, skipping\n", pack.Name, dir.Name())
 			continue
 		}
 
 		// keep store loader for loading extra resources later
-		for _, v := range group.Agents {
+		for _, v := range pack.Agents {
 			v.Store = as
 			v.BaseDir = base
 		}
 
-		groups[group.Name] = group
+		packs[pack.Name] = pack
 	}
 
 	return nil
 }
 
-func LoadResourceAgentsConfig(ctx context.Context, fs embed.FS, groups map[string]*api.AgentsConfig) error {
+func LoadResourceAgentsConfig(ctx context.Context, fs embed.FS, packs map[string]*api.AgentsConfig) error {
 	rs := &ResourceStore{
 		FS:   fs,
 		Base: "resource",
 	}
-	return LoadAgentsAsset(ctx, rs, "agents", groups)
+	return LoadAgentsAsset(ctx, rs, "agents", packs)
 }
 
-func LoadFileAgentsConfig(ctx context.Context, base string, groups map[string]*api.AgentsConfig) error {
+func LoadFileAgentsConfig(ctx context.Context, base string, packs map[string]*api.AgentsConfig) error {
 	abs, err := filepath.Abs(base)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute path for %s: %w", base, err)
@@ -210,16 +210,16 @@ func LoadFileAgentsConfig(ctx context.Context, base string, groups map[string]*a
 	fs := &FileStore{
 		Base: abs,
 	}
-	return LoadAgentsAsset(ctx, fs, "agents", groups)
+	return LoadAgentsAsset(ctx, fs, "agents", packs)
 }
 
-func LoadWebAgentsConfig(ctx context.Context, resources []*api.Resource, groups map[string]*api.AgentsConfig) error {
+func LoadWebAgentsConfig(ctx context.Context, resources []*api.Resource, packs map[string]*api.AgentsConfig) error {
 	for _, v := range resources {
 		ws := &WebStore{
 			Base:  v.Base,
 			Token: v.Token,
 		}
-		if err := LoadAgentsAsset(ctx, ws, "agents", groups); err != nil {
+		if err := LoadAgentsAsset(ctx, ws, "agents", packs); err != nil {
 			log.GetLogger(ctx).Error("*** failed to load config. base: %s error: %v\n", v.Base, err)
 		}
 	}
@@ -403,16 +403,6 @@ func CreateAgent(ctx context.Context, vars *api.Vars, name string, input *api.Us
 				}
 			}
 		}
-
-		// FIXME
-		// 1. better handle this to avoid agent calling self as tools
-		// filter out all agent tools from the agent itself
-		// 2. handle namespace to avoid collision of tool names
-		// agentName := ac.Name
-		// if strings.Contains(agentName, "/") {
-		// 	parts := strings.SplitN(agentName, "/", 2)
-		// 	agentName = parts[0]
-		// }
 
 		var funcs []*api.ToolFunc
 		for _, v := range funcMap {
