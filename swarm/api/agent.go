@@ -202,6 +202,14 @@ type Request struct {
 	ctx context.Context
 }
 
+func NewRequest(ctx context.Context, agent string, input *UserInput) *Request {
+	return &Request{
+		ctx:      ctx,
+		Agent:    agent,
+		RawInput: input,
+	}
+}
+
 // Context returns the request's context. To change the context, use
 // [Request.Clone] or [Request.WithContext].
 //
