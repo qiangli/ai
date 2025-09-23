@@ -2,8 +2,8 @@
 agents:
   - name: "ask"
     display: "💬 Q&A"
-    description: "Deliver concise, reliable answers on a wide range of topics."
-    model: L1
+    description: "Provides concise and reliable answers across diverse topics, ranging from local system intricacies to comprehensive web-based information, ensuring clarity and accuracy."
+    model: default/any
     instruction:
       content: |
         You are a helpful assistant. Use available tools only when needed,
@@ -12,4 +12,6 @@ agents:
         focusing on providing relevant and informative responses.
     functions:
       - "web:*"
+      - "ddg:*"
+      - "bing:*"
 

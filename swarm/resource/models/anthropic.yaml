@@ -1,7 +1,7 @@
 ##
-api_key: anthropic
-base_url: "https://api.anthropic.com/"
 provider: "anthropic"
+base_url: "https://api.anthropic.com/v1/"
+api_key: "anthropic"
 
 models:
   L1:

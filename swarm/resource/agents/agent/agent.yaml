@@ -3,7 +3,7 @@ agents:
   - name: "agent"
     display: "🚀 Agent"
     description: "Dispatch to the most appropriate agent based on the user's input."
-    model: L1
+    model: default/any
     instruction:
       content: |
         ### Agent Selection Guidelines
