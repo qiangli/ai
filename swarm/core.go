@@ -77,7 +77,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 				}
 			}
 
-			log.GetLogger(ctx).Debug("run dependency: %s %+v\n", dep, depResp)
+			log.GetLogger(ctx).Debugf("run dependency: %s %+v\n", dep, depResp)
 		}
 
 		//

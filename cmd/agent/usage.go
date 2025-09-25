@@ -213,13 +213,13 @@ AI Environment:
 	// cfg := vars.Config
 
 	// TODO
-	// log.GetLogger(ctx).Info(format, info, cfg.LLM.Name, cfg.LLM.BaseUrl, cfg.LLM.ApiKey, string(ac), strings.Join(filteredEnvs, "\n"))
+	// log.GetLogger(ctx).Infof(format, info, cfg.LLM.Name, cfg.LLM.BaseUrl, cfg.LLM.ApiKey, string(ac), strings.Join(filteredEnvs, "\n"))
 	// m, err := cfg.ModelLoader(api.Any)
 	// if err != nil {
 	// 	m = &api.Model{}
 	// }
 	m := &api.Model{}
-	log.GetLogger(ctx).Info(format, info, m.Provider, m.BaseUrl, "***", string(ac), strings.Join(filteredEnvs, "\n"))
+	log.GetLogger(ctx).Infof(format, info, m.Provider, m.BaseUrl, "***", string(ac), strings.Join(filteredEnvs, "\n"))
 	return nil
 }
 
@@ -270,7 +270,7 @@ AI will choose an appropriate agent based on your message if no agent is specifi
 		buf.WriteString(dict[k].Description)
 		buf.WriteString("\n")
 	}
-	log.GetLogger(ctx).Info(format, buf.String(), len(keys))
+	log.GetLogger(ctx).Infof(format, buf.String(), len(keys))
 
 	return nil
 }
@@ -290,7 +290,7 @@ Total: %v
 	}
 	sort.Strings(commands)
 
-	log.GetLogger(ctx).Info(listTpl, strings.Join(commands, "\n"), len(commands))
+	log.GetLogger(ctx).Infof(listTpl, strings.Join(commands, "\n"), len(commands))
 	return nil
 }
 
@@ -341,6 +341,6 @@ Tools are used by agents to perform specific tasks. They are automatically selec
 
 	sort.Strings(list)
 
-	log.GetLogger(ctx).Info(listTpl, strings.Join(list, "\n"), len(list))
+	log.GetLogger(ctx).Infof(listTpl, strings.Join(list, "\n"), len(list))
 	return nil
 }

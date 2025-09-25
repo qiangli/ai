@@ -26,7 +26,7 @@ var prefixMap = map[string]string{
 func WatchRepo(ctx context.Context, cfg *api.AppConfig) error {
 	repoPath := filepath.Clean(cfg.Workspace)
 
-	log.GetLogger(ctx).Debug("Watching git repository: %s\n", repoPath)
+	log.GetLogger(ctx).Debugf("Watching git repository: %s\n", repoPath)
 
 	if err := os.Chdir(repoPath); err != nil {
 		return err
@@ -48,23 +48,23 @@ func WatchRepo(ctx context.Context, cfg *api.AppConfig) error {
 		ext := filepath.Ext(path)
 		prefix, ok := prefixMap[ext]
 		if !ok {
-			log.GetLogger(ctx).Debug("Unsupported file extension: %s, use default prefix\n", ext)
+			log.GetLogger(ctx).Debugf("Unsupported file extension: %s, use default prefix\n", ext)
 			prefix = "#"
 		}
 		line, err := parseFile(path, prefix)
 		if err != nil {
-			log.GetLogger(ctx).Error("Error parsing file: %s\n", err)
+			log.GetLogger(ctx).Errorf("Error parsing file: %s\n", err)
 			return
 		}
 
 		if len(line) == 0 {
-			log.GetLogger(ctx).Debug("No command found in file: %s\n", path)
+			log.GetLogger(ctx).Debugf("No command found in file: %s\n", path)
 			return
 		}
 
 		in, err := parseUserInput(line, prefix)
 		if err != nil {
-			log.GetLogger(ctx).Error("Error parsing user input: %s\n", err)
+			log.GetLogger(ctx).Errorf("Error parsing user input: %s\n", err)
 			return
 		}
 		if in.Agent == "" {
@@ -74,18 +74,18 @@ func WatchRepo(ctx context.Context, cfg *api.AppConfig) error {
 		// 	in.Command = cfg.Command
 		// }
 
-		log.GetLogger(ctx).Debug("agent: %s\n", in.Agent)
+		log.GetLogger(ctx).Debugf("agent: %s\n", in.Agent)
 
 		cfg.Format = "text"
 		if err := agent.RunSwarm(ctx, cfg, in); err != nil {
-			log.GetLogger(ctx).Error("Error running agent: %s\n", err)
+			log.GetLogger(ctx).Errorf("Error running agent: %s\n", err)
 			return
 		}
 
 		//success
-		log.GetLogger(ctx).Info("ai executed successfully: %s\n", line)
+		log.GetLogger(ctx).Infof("ai executed successfully: %s\n", line)
 		if err := replaceContentInFile(path, line, prefix, cfg.Stdout); err != nil {
-			log.GetLogger(ctx).Error("Error replacing content in file: %s\n", err)
+			log.GetLogger(ctx).Errorf("Error replacing content in file: %s\n", err)
 			return
 		}
 	}
@@ -101,7 +101,7 @@ func WatchRepo(ctx context.Context, cfg *api.AppConfig) error {
 	check := func() {
 		st, err := worktree.Status()
 		if err != nil {
-			log.GetLogger(ctx).Error("Error getting worktree status: %s\n", err)
+			log.GetLogger(ctx).Errorf("Error getting worktree status: %s\n", err)
 			return
 		}
 
@@ -109,19 +109,19 @@ func WatchRepo(ctx context.Context, cfg *api.AppConfig) error {
 			if s.Worktree == git.Modified {
 				sz, ok := sizeMemo[path]
 				if !ok {
-					log.GetLogger(ctx).Debug("%c %c  %s\n", rune(s.Staging), rune(s.Worktree), path)
+					log.GetLogger(ctx).Debugf("%c %c  %s\n", rune(s.Staging), rune(s.Worktree), path)
 				}
 
 				abs := filepath.Join(repoPath, path)
 				info, err := os.Stat(abs)
 				if err != nil {
-					log.GetLogger(ctx).Error("Error getting file info: %s\n", err)
+					log.GetLogger(ctx).Errorf("Error getting file info: %s\n", err)
 					continue
 				}
 				nz := info.Size()
 				if nz != sz {
 					sizeMemo[path] = info.Size()
-					log.GetLogger(ctx).Info("***  %s\n", path)
+					log.GetLogger(ctx).Infof("***  %s\n", path)
 					run(path)
 				}
 			}

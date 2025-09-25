@@ -18,7 +18,7 @@ func WatchClipboard(ctx context.Context, cfg *api.AppConfig) error {
 	const marker = "/*--------*/"
 	const interval = 1800 * time.Millisecond
 
-	log.GetLogger(ctx).Debug("WatchClipboard trigger %s...\n", trigger)
+	log.GetLogger(ctx).Debugf("WatchClipboard trigger %s...\n", trigger)
 
 	// response content
 	isMarker := func(s string) bool {
@@ -67,7 +67,7 @@ func WatchClipboard(ctx context.Context, cfg *api.AppConfig) error {
 		var in *api.UserInput
 		var pb []string
 		for {
-			log.GetLogger(ctx).Prompt("Watching %v [%v]...\n", watching, len(pb))
+			log.GetLogger(ctx).Promptf("Watching %v [%v]...\n", watching, len(pb))
 			time.Sleep(interval)
 
 			v, err := clipboard.Read()
@@ -105,19 +105,19 @@ func WatchClipboard(ctx context.Context, cfg *api.AppConfig) error {
 				continue
 			}
 
-			log.GetLogger(ctx).Info("%s\n\n", line)
+			log.GetLogger(ctx).Infof("%s\n\n", line)
 
 			// new prompt or content
 			clipboard.Clear()
 
 			// embedded request
 			if isTodo(line) {
-				log.GetLogger(ctx).Debug("found ai command: %s\n", line)
+				log.GetLogger(ctx).Debugf("found ai command: %s\n", line)
 
 				in, err = parseUserInput(v, trigger)
 				if err != nil {
 					// treat as regular input
-					log.GetLogger(ctx).Error("Error parsing user input: %s\n", err)
+					log.GetLogger(ctx).Errorf("Error parsing user input: %s\n", err)
 					pb = append(pb, v)
 					continue
 				}
@@ -129,7 +129,7 @@ func WatchClipboard(ctx context.Context, cfg *api.AppConfig) error {
 				// 	in.Command = cfg.Command
 				// }
 
-				log.GetLogger(ctx).Debug("agent: %s\n", in.Agent)
+				log.GetLogger(ctx).Debugf("agent: %s\n", in.Agent)
 
 				in.Message = strings.Join(pb, "\n") + in.Message
 				break
@@ -153,22 +153,22 @@ func WatchClipboard(ctx context.Context, cfg *api.AppConfig) error {
 	run := func() {
 		in, err := readInput()
 		if err != nil {
-			log.GetLogger(ctx).Error("Error reading from clipboard: %s\n", err)
+			log.GetLogger(ctx).Errorf("Error reading from clipboard: %s\n", err)
 			return
 		}
 
 		// run
 		cfg.Format = "text"
 		if err := agent.RunSwarm(ctx, cfg, in); err != nil {
-			log.GetLogger(ctx).Error("Error running agent: %s\n", err)
+			log.GetLogger(ctx).Errorf("Error running agent: %s\n", err)
 			util.Alert(err.Error())
 			return
 		}
 
 		//success
-		log.GetLogger(ctx).Info("ai executed successfully\n")
+		log.GetLogger(ctx).Infof("ai executed successfully\n")
 		if err := writeOutput(cfg.Stdout); err != nil {
-			log.GetLogger(ctx).Debug("failed to copy content to clipboard: %v\n", err)
+			log.GetLogger(ctx).Debugf("failed to copy content to clipboard: %v\n", err)
 			util.Alert(err.Error())
 			return
 		}

@@ -12,8 +12,8 @@ import (
 )
 
 func RunAgent(ctx context.Context, cfg *api.AppConfig) error {
-	// log.GetLogger(ctx).Debug("Agent: %s %s %v\n", cfg.Agent, cfg.Command, cfg.Args)
-	log.GetLogger(ctx).Debug("Agent: %s %v\n", cfg.Agent, cfg.Args)
+	// log.GetLogger(ctx).Debugf("Agent: %s %s %v\n", cfg.Agent, cfg.Command, cfg.Args)
+	log.GetLogger(ctx).Debugf("Agent: %s %v\n", cfg.Agent, cfg.Args)
 
 	in, err := GetUserInput(ctx, cfg)
 	if err != nil {
@@ -33,7 +33,7 @@ func RunAgent(ctx context.Context, cfg *api.AppConfig) error {
 func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) error {
 	name := input.Agent
 	// command := input.Command
-	log.GetLogger(ctx).Debug("Running agent %q with swarm\n", name)
+	log.GetLogger(ctx).Debugf("Running agent %q with swarm\n", name)
 
 	//
 	// if v, err := swarm.NewAgentCreator(cfg); err != nil {
@@ -84,16 +84,16 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	sw := swarm.New(vars)
 
 	if len(vars.History) > 0 {
-		log.GetLogger(ctx).Info("\033[33m⣿\033[0m recalling %v messages in memory less than %v minutes old\n", len(vars.History), cfg.MaxSpan)
+		log.GetLogger(ctx).Infof("\033[33m⣿\033[0m recalling %v messages in memory less than %v minutes old\n", len(vars.History), cfg.MaxSpan)
 	}
 
 	if err := sw.Run(req, resp); err != nil {
 		return err
 	}
 
-	log.GetLogger(ctx).Debug("Agent %+v\n", resp.Agent)
+	log.GetLogger(ctx).Debugf("Agent %+v\n", resp.Agent)
 	for _, m := range resp.Messages {
-		log.GetLogger(ctx).Debug("Message %+v\n", m)
+		log.GetLogger(ctx).Debugf("Message %+v\n", m)
 	}
 
 	var display = name
@@ -117,20 +117,20 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	}
 
 	if len(vars.History) > initLen {
-		log.GetLogger(ctx).Debug("Saving conversation\n")
+		log.GetLogger(ctx).Debugf("Saving conversation\n")
 		if err := mem.Save(vars.History[initLen:]); err != nil {
-			log.GetLogger(ctx).Error("error saving conversation history: %v", err)
+			log.GetLogger(ctx).Errorf("error saving conversation history: %v", err)
 		}
 	}
 
-	log.GetLogger(ctx).Debug("Agent task completed: %v\n", cfg.Args)
-	// 	log.GetLogger(ctx).Debug("Agent task completed: %s %v\n", cfg.Command, cfg.Args)
+	log.GetLogger(ctx).Debugf("Agent task completed: %v\n", cfg.Args)
+	// 	log.GetLogger(ctx).Debugf("Agent task completed: %s %v\n", cfg.Command, cfg.Args)
 	return nil
 }
 
 func showInput(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) {
 	if log.GetLogger(ctx).IsTrace() {
-		log.GetLogger(ctx).Debug("input: %+v\n", input)
+		log.GetLogger(ctx).Debugf("input: %+v\n", input)
 	}
 
 	PrintInput(ctx, cfg, input)
@@ -138,7 +138,7 @@ func showInput(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) {
 
 func processOutput(ctx context.Context, cfg *api.AppConfig, message *api.Output) {
 	if log.GetLogger(ctx).IsTrace() {
-		log.GetLogger(ctx).Debug("output: %+v\n", message)
+		log.GetLogger(ctx).Debugf("output: %+v\n", message)
 	}
 
 	switch message.ContentType {
@@ -147,7 +147,7 @@ func processOutput(ctx context.Context, cfg *api.AppConfig, message *api.Output)
 	case api.ContentTypeB64JSON:
 		processImageContent(ctx, cfg, message)
 	default:
-		log.GetLogger(ctx).Debug("Unsupported content type: %s\n", message.ContentType)
+		log.GetLogger(ctx).Debugf("Unsupported content type: %s\n", message.ContentType)
 	}
 }
 

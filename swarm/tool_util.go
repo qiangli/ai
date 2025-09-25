@@ -102,7 +102,7 @@ func getUserTextInput(ctx context.Context, prompt string) (string, error) {
 		return "", fmt.Errorf("prompt is empty")
 	}
 	ps := fmt.Sprintf("\n%s:\n\n[Press Ctrl+D to send or Ctrl+C to cancel...]\n", prompt)
-	log.GetLogger(ctx).Prompt(ps)
+	log.GetLogger(ctx).Promptf(ps)
 	data, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		return "", err

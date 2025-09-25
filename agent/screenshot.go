@@ -10,7 +10,7 @@ package agent
 // )
 
 // func takeScreenshot(cfg *api.AppConfig) (string, error) {
-// 	log.GetLogger(ctx).Debug("⣿ taking screenshot: %s\n", cfg.Hub.Address)
+// 	log.GetLogger(ctx).Debugf("⣿ taking screenshot: %s\n", cfg.Hub.Address)
 
 // 	imgFile := filepath.Join(cfg.Temp, "screenshot.png")
 
@@ -36,10 +36,10 @@ package agent
 // 	err := screenshot()
 
 // 	if err != nil {
-// 		log.GetLogger(ctx).Error("\033[31m✗\033[0m %s\n", err)
+// 		log.GetLogger(ctx).Errorf("\033[31m✗\033[0m %s\n", err)
 // 		return "", err
 // 	}
 
-// 	log.GetLogger(ctx).Info("✔ %s \n", imgFile)
+// 	log.GetLogger(ctx).Infof("✔ %s \n", imgFile)
 // 	return imgFile, nil
 // }

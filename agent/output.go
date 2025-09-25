@@ -21,8 +21,8 @@ func PrintOutput(ctx context.Context, format string, output *api.Output) error {
 		return err
 	}
 
-	log.GetLogger(ctx).Info("\n[%s]\n", output.Display)
-	log.GetLogger(ctx).Print("%s\n", s)
+	log.GetLogger(ctx).Infof("\n[%s]\n", output.Display)
+	log.GetLogger(ctx).Printf("%s\n", s)
 
 	return nil
 }
@@ -50,11 +50,11 @@ func processTextContent(ctx context.Context, cfg *api.AppConfig, output *api.Out
 		clip := util.NewClipboard()
 		if cfg.ClipAppend {
 			if err := clip.Append(content); err != nil {
-				log.GetLogger(ctx).Debug("failed to append content to clipboard: %v\n", err)
+				log.GetLogger(ctx).Debugf("failed to append content to clipboard: %v\n", err)
 			}
 		} else {
 			if err := clip.Write(content); err != nil {
-				log.GetLogger(ctx).Debug("failed to copy content to clipboard: %v\n", err)
+				log.GetLogger(ctx).Debugf("failed to copy content to clipboard: %v\n", err)
 			}
 		}
 	}
@@ -72,7 +72,7 @@ func processTextContent(ctx context.Context, cfg *api.AppConfig, output *api.Out
 
 func SpeakOutput(ctx context.Context, cfg *api.AppConfig, output *api.Output) {
 	var s = output.Content
-	log.GetLogger(ctx).Print("%s\n", s)
+	log.GetLogger(ctx).Printf("%s\n", s)
 	// TOSO move to tools
 	//
 	// err := speak(cfg, s)
@@ -90,13 +90,13 @@ func processImageContent(ctx context.Context, cfg *api.AppConfig, message *api.O
 	}
 
 	if err := saveImage(ctx, message.Content, imageFile); err != nil {
-		log.GetLogger(ctx).Error("failed to save image: %v\n", err)
+		log.GetLogger(ctx).Errorf("failed to save image: %v\n", err)
 		return
 	}
 
 	if err := util.PrintImage(os.Stdout, imageFile); err != nil {
 		if err := util.ViewImage(imageFile); err != nil {
-			log.GetLogger(ctx).Error("failed to view image: %v\n", err)
+			log.GetLogger(ctx).Errorf("failed to view image: %v\n", err)
 		}
 	}
 }
@@ -115,9 +115,9 @@ func saveImage(ctx context.Context, b64Image string, dest string) error {
 
 	err = os.WriteFile(dest, buf.Bytes(), 0755)
 	if err != nil {
-		log.GetLogger(ctx).Error("failed to write image to %s: %v\n", dest, err)
+		log.GetLogger(ctx).Errorf("failed to write image to %s: %v\n", dest, err)
 	}
-	log.GetLogger(ctx).Info("Image content saved to %s\n", dest)
+	log.GetLogger(ctx).Infof("Image content saved to %s\n", dest)
 
 	return nil
 }

@@ -56,12 +56,12 @@ func GenerateReport(ctx context.Context, reportType, tone, input string, out str
 		return fmt.Errorf("query is required")
 	}
 
-	log.GetLogger(ctx).Info("Building gptr docker image, please wait...\n")
+	log.GetLogger(ctx).Infof("Building gptr docker image, please wait...\n")
 	if err := BuildImage(ctx); err != nil {
 		return err
 	}
 
-	log.GetLogger(ctx).Info("Generating report type: %s tone: %s...\n", reportType, tone)
+	log.GetLogger(ctx).Infof("Generating report type: %s tone: %s...\n", reportType, tone)
 	if err := RunContainer(ctx, reportType, tone, query, out); err != nil {
 		return err
 	}

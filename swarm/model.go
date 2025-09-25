@@ -85,7 +85,7 @@ func loadModels(ctx context.Context, app *api.AppConfig, alias string) (*api.Mod
 	// https://ai.dhnt.io/models
 	if app.AgentResource != nil && len(app.AgentResource.Resources) > 0 {
 		if err := LoadWebModelsConfig(ctx, app.AgentResource.Resources, modelsCfg); err != nil {
-			log.GetLogger(ctx).Debug("failed to load models from web resource: %v\n", err)
+			log.GetLogger(ctx).Debugf("failed to load models from web resource: %v\n", err)
 		} else if cfg, ok := modelsCfg[alias]; ok {
 			return cfg, nil
 		}
@@ -93,14 +93,14 @@ func loadModels(ctx context.Context, app *api.AppConfig, alias string) (*api.Mod
 
 	// external/custom
 	if err := LoadFileModelsConfig(ctx, app.Base, modelsCfg); err != nil {
-		log.GetLogger(ctx).Debug("failed to load custom models: %v\n", err)
+		log.GetLogger(ctx).Debugf("failed to load custom models: %v\n", err)
 	} else if cfg, ok := modelsCfg[alias]; ok {
 		return cfg, nil
 	}
 
 	// built in resource
 	if err := LoadResourceModelsConfig(resourceFS, modelsCfg); err != nil {
-		log.GetLogger(ctx).Debug("failed to load models from web resource: %v\n", err)
+		log.GetLogger(ctx).Debugf("failed to load models from web resource: %v\n", err)
 	} else if cfg, ok := modelsCfg[alias]; ok {
 		return cfg, nil
 	}
@@ -113,16 +113,16 @@ func ListModels(ctx context.Context, app *api.AppConfig) (map[string]*api.Models
 
 	if app.AgentResource != nil && len(app.AgentResource.Resources) > 0 {
 		if err := LoadWebModelsConfig(ctx, app.AgentResource.Resources, modelsCfg); err != nil {
-			log.GetLogger(ctx).Debug("failed to load models from web resource: %v\n", err)
+			log.GetLogger(ctx).Debugf("failed to load models from web resource: %v\n", err)
 		}
 	}
 
 	if err := LoadFileModelsConfig(ctx, app.Base, modelsCfg); err != nil {
-		log.GetLogger(ctx).Debug("failed to load custom models: %v\n", err)
+		log.GetLogger(ctx).Debugf("failed to load custom models: %v\n", err)
 	}
 
 	if err := LoadResourceModelsConfig(resourceFS, modelsCfg); err != nil {
-		log.GetLogger(ctx).Debug("failed to load models from local resource: %v\n", err)
+		log.GetLogger(ctx).Debugf("failed to load models from local resource: %v\n", err)
 	}
 
 	return modelsCfg, nil
@@ -143,7 +143,7 @@ func LoadFileModelsConfig(ctx context.Context, base string, aliases map[string]*
 	}
 	// check if abs exists
 	if _, err := os.Stat(abs); os.IsNotExist(err) {
-		log.GetLogger(ctx).Debug("path does not exist: %s\n", abs)
+		log.GetLogger(ctx).Debugf("path does not exist: %s\n", abs)
 		return nil
 	}
 

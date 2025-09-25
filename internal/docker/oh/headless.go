@@ -14,12 +14,12 @@ func Run(ctx context.Context, query string) error {
 		return fmt.Errorf("query is required")
 	}
 
-	log.GetLogger(ctx).Info("Building oh docker image, please wait...\n")
+	log.GetLogger(ctx).Infof("Building oh docker image, please wait...\n")
 	if err := BuildImage(ctx); err != nil {
 		return err
 	}
 
-	log.GetLogger(ctx).Info("Running...\n")
+	log.GetLogger(ctx).Infof("Running...\n")
 	if err := RunContainer(ctx, query); err != nil {
 		return err
 	}

@@ -5,12 +5,12 @@ import (
 )
 
 type Logger interface {
-	Prompt(string, ...any)
+	Promptf(string, ...any)
 	//
-	Print(string, ...any)
-	Error(string, ...any)
-	Info(string, ...any)
-	Debug(string, ...any)
+	Printf(string, ...any)
+	Errorf(string, ...any)
+	Infof(string, ...any)
+	Debugf(string, ...any)
 
 	SetLogLevel(Level)
 

@@ -54,11 +54,11 @@ func NewClient(model *api.Model, vars *api.Vars, apiKey string) anthropic.Client
 }
 
 func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	log.GetLogger(ctx).Debug(">>>ANTHROPIC:\n req: %+v\n\n", req)
+	log.GetLogger(ctx).Debugf(">>>ANTHROPIC:\n req: %+v\n\n", req)
 
 	resp, err := call(ctx, req)
 
-	log.GetLogger(ctx).Debug("<<<ANTHROPIC:\n resp: %+v err: %v\n\n", resp, err)
+	log.GetLogger(ctx).Debugf("<<<ANTHROPIC:\n resp: %+v err: %v\n\n", resp, err)
 	return resp, err
 }
 
@@ -77,7 +77,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		case "user":
 			messages = append(messages, anthropic.NewUserMessage(anthropic.NewTextBlock(v.Content)))
 		default:
-			log.GetLogger(ctx).Error("role not supported: %s", v.Role)
+			log.GetLogger(ctx).Errorf("role not supported: %s", v.Role)
 		}
 	}
 
@@ -106,9 +106,9 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	var temperature = anthropic.Float(0.0)
 
 	for tries := range maxTurns {
-		log.GetLogger(ctx).Info("\033[33mⒶ\033[0m @%s [%v] %s %s\n", req.Agent, tries, model, req.Model.BaseUrl)
+		log.GetLogger(ctx).Infof("\033[33mⒶ\033[0m @%s [%v] %s %s\n", req.Agent, tries, model, req.Model.BaseUrl)
 
-		log.GetLogger(ctx).Debug("📡 *** sending request to %s ***: %v of %v\n%+v\n\n", req.Model.BaseUrl, tries, maxTurns, req)
+		log.GetLogger(ctx).Debugf("📡 *** sending request to %s ***: %v of %v\n%+v\n\n", req.Model.BaseUrl, tries, maxTurns, req)
 
 		completion, err := client.Messages.New(ctx, anthropic.MessageNewParams{
 			Model:       model,
@@ -120,11 +120,11 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		})
 
 		if err != nil {
-			log.GetLogger(ctx).Error("\033[31m✗\033[0m %s\n", err)
+			log.GetLogger(ctx).Errorf("\033[31m✗\033[0m %s\n", err)
 			return nil, err
 		}
 
-		log.GetLogger(ctx).Info("(%v)\n", completion.StopReason)
+		log.GetLogger(ctx).Infof("(%v)\n", completion.StopReason)
 
 		var b bytes.Buffer
 		var toolResults []anthropic.ContentBlockParamUnion
@@ -140,7 +140,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 				if err := json.Unmarshal([]byte(variant.JSON.Input.Raw()), &props); err != nil {
 					return nil, err
 				}
-				log.GetLogger(ctx).Debug("\n\n>>> tool call: %v %s props: %+v\n", i, name, props)
+				log.GetLogger(ctx).Debugf("\n\n>>> tool call: %v %s props: %+v\n", i, name, props)
 
 				//
 				out, err := req.RunTool(ctx, name, props)
@@ -152,7 +152,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 					isErr = true
 				}
 
-				log.GetLogger(ctx).Debug("\n<<< tool call: %s out: %+v\n", name, out)
+				log.GetLogger(ctx).Debugf("\n<<< tool call: %s out: %+v\n", name, out)
 				resp.Result = out
 
 				if out.State == api.StateExit {

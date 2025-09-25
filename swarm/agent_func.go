@@ -77,7 +77,7 @@ package swarm
 // }
 
 // func Aider(ctx context.Context, models map[llm.Level]*api.Model, workspace, sub, input string) error {
-// 	log.GetLogger(ctx).Info("using workspace: %s\n", workspace)
+// 	log.GetLogger(ctx).Infof("using workspace: %s\n", workspace)
 
 // 	if sub == "" {
 // 		sub = string(aider.Code)
@@ -141,7 +141,7 @@ package swarm
 // }
 
 // func OpenHands(ctx context.Context, model *api.Model, workspace string, in *api.UserInput) error {
-// 	log.GetLogger(ctx).Info("using workspace: %s\n", workspace)
+// 	log.GetLogger(ctx).Infof("using workspace: %s\n", workspace)
 
 // 	if workspace == "" {
 // 		return fmt.Errorf("workspace is required")

@@ -88,7 +88,7 @@ func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clip
 	// 	}
 	// }
 
-	log.GetLogger(ctx).Debug("\n[%s]\n%s\n%s\n%v\n\n", cfg.Me, input.Message, clipText(input.Content, clipMaxLen), input.Files)
+	log.GetLogger(ctx).Debugf("\n[%s]\n%s\n%s\n%v\n\n", cfg.Me, input.Message, clipText(input.Content, clipMaxLen), input.Files)
 	return input, nil
 }
 
@@ -107,7 +107,7 @@ func userInput(
 		if stdin == nil {
 			stdin = os.Stdin
 		}
-		log.GetLogger(ctx).Prompt("Please enter your input. Ctrl+D to send, Ctrl+C to cancel...\n")
+		log.GetLogger(ctx).Promptf("Please enter your input. Ctrl+D to send, Ctrl+C to cancel...\n")
 		data, err := io.ReadAll(stdin)
 		if err != nil {
 			return nil, err
@@ -128,12 +128,12 @@ func userInput(
 					return nil, err
 				}
 
-				log.GetLogger(ctx).Prompt("Awaiting clipboard content...\n")
+				log.GetLogger(ctx).Promptf("Awaiting clipboard content...\n")
 				v, err := clipboard.Read()
 				if err != nil {
 					return nil, err
 				}
-				log.GetLogger(ctx).Info("\n%s\n\n", clipText(v, 500))
+				log.GetLogger(ctx).Infof("\n%s\n\n", clipText(v, 500))
 				send, err := pasteConfirm(ctx)
 				// user canceled
 				if err != nil {
@@ -152,7 +152,7 @@ func userInput(
 				return nil, err
 			}
 
-			log.GetLogger(ctx).Prompt("Awaiting clipboard content...\n")
+			log.GetLogger(ctx).Promptf("Awaiting clipboard content...\n")
 			v, err := clipboard.Read()
 			if err != nil {
 				return nil, err
@@ -185,7 +185,7 @@ func userInput(
 	content = cat(msg, content, "\n")
 
 	if cfg.Editor != "" {
-		log.GetLogger(ctx).Debug("Using editor: %s\n", cfg.Editor)
+		log.GetLogger(ctx).Debugf("Using editor: %s\n", cfg.Editor)
 		data, err := editor.Launch(content)
 		if err != nil {
 			return nil, err
@@ -254,7 +254,7 @@ func PrintInput(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) {
 	if input == nil {
 		return
 	}
-	log.GetLogger(ctx).Debug("UserInput:\n%s\n", input.String())
+	log.GetLogger(ctx).Debugf("UserInput:\n%s\n", input.String())
 
 	// query and files for info only
 	var msg = clipText(input.Query(), clipMaxLen)
@@ -276,7 +276,7 @@ func PrintInput(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) {
 		default:
 			emoji = "💾"
 		}
-		log.GetLogger(ctx).Info("\033[33m%s\033[0m Attachment File: %s\n", emoji, v)
+		log.GetLogger(ctx).Infof("\033[33m%s\033[0m Attachment File: %s\n", emoji, v)
 	}
 	// for _, v := range input.Messages {
 	// 	var emoji string
@@ -297,7 +297,7 @@ func PrintInput(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) {
 	// 	} else {
 	// 		content = "[binary]"
 	// 	}
-	// 	log.GetLogger(ctx).Info("\033[33m%s\033[0m Attachment Type: %s Len: %v Content: %s\n", emoji, v.ContentType, len(v.Content), content)
+	// 	log.GetLogger(ctx).Infof("\033[33m%s\033[0m Attachment Type: %s Len: %v Content: %s\n", emoji, v.ContentType, len(v.Content), content)
 	// }
 }
 
@@ -322,7 +322,7 @@ func pasteConfirm(ctx context.Context) (bool, error) {
 
 func renderInputContent(ctx context.Context, me *api.User, content string) {
 	md := util.Render(content)
-	log.GetLogger(ctx).Info("\n[%s]\n%s\n", me.Display, md)
+	log.GetLogger(ctx).Infof("\n[%s]\n%s\n", me.Display, md)
 }
 
 // trimInputMessage trims the input message by removing leading and trailing spaces

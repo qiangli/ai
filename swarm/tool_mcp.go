@@ -38,7 +38,7 @@ func ListMcpTools(tc *api.ToolsConfig) ([]*api.ToolFunc, error) {
 		return nil, fmt.Errorf("Invalid mcp config. Missing URL")
 	}
 
-	log.GetLogger(ctx).Debug("Connecting to MCP server at %s", tc.Connector.BaseUrl)
+	log.GetLogger(ctx).Debugf("Connecting to MCP server at %s", tc.Connector.BaseUrl)
 
 	client := NewMcpClient(tc.Connector)
 	session, err := client.Connect(ctx)
@@ -47,7 +47,7 @@ func ListMcpTools(tc *api.ToolsConfig) ([]*api.ToolFunc, error) {
 	}
 	defer session.Close()
 
-	log.GetLogger(ctx).Debug("Connected to server: session ID: %s)", session.ID())
+	log.GetLogger(ctx).Debugf("Connected to server: session ID: %s)", session.ID())
 
 	result, err := session.ListTools(ctx, nil)
 	if err != nil {
@@ -84,7 +84,7 @@ func ListMcpTools(tc *api.ToolsConfig) ([]*api.ToolFunc, error) {
 }
 
 func callMcpTool(ctx context.Context, tf *api.ToolFunc, vars *api.Vars, name string, args map[string]any) (string, error) {
-	log.GetLogger(ctx).Debug("🎖️ calling MCP tool: %s with args: %+v\n", name, args)
+	log.GetLogger(ctx).Debugf("🎖️ calling MCP tool: %s with args: %+v\n", name, args)
 
 	if tf.Config == nil || tf.Config.Connector == nil || tf.Config.Connector.BaseUrl == "" {
 		return "", fmt.Errorf("mcp not configured: %s", name)
@@ -97,7 +97,7 @@ func callMcpTool(ctx context.Context, tf *api.ToolFunc, vars *api.Vars, name str
 	}
 	defer session.Close()
 
-	log.GetLogger(ctx).Debug("Connected to mcp server session ID: %s)", session.ID())
+	log.GetLogger(ctx).Debugf("Connected to mcp server session ID: %s)", session.ID())
 
 	result, err := session.CallTool(ctx, &mcp.CallToolParams{
 		Name:      tf.Name,

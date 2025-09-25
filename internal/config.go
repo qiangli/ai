@@ -69,7 +69,7 @@ func InitConfig(viper *fangs.Viper) error {
 
 	if err := viper.ReadInConfig(); err != nil {
 		return err
-		//log.GetLogger(ctx).Debug("Error reading config file: %s\n", err)
+		//log.GetLogger(ctx).Debugf("Error reading config file: %s\n", err)
 	}
 	return nil
 }
@@ -78,8 +78,8 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	app.ConfigFile = viper.ConfigFileUsed()
 	app.Base = filepath.Dir(app.ConfigFile)
 
-	// log.GetLogger(ctx).Debug("configure file: %s\n", app.ConfigFile)
-	// log.GetLogger(ctx).Debug("base: %s\n", app.Base)
+	// log.GetLogger(ctx).Debugf("configure file: %s\n", app.ConfigFile)
+	// log.GetLogger(ctx).Debugf("base: %s\n", app.Base)
 
 	// printAIEnv()
 
@@ -206,7 +206,7 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 		app.AgentResource = ar
 	}
 
-	// log.GetLogger(ctx).Debug("parsed: %+v\n", app)
+	// log.GetLogger(ctx).Debugf("parsed: %+v\n", app)
 
 	return nil
 }

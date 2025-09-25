@@ -6,6 +6,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"slices"
+
 	// "sort"
 	"strings"
 
@@ -31,7 +32,7 @@ func getCurrentUser() string {
 // 		}
 // 	}
 // 	sort.Strings(filteredEnvs)
-// 	log.GetLogger(ctx).Debug("AI env: %v\n", filteredEnvs)
+// 	log.GetLogger(ctx).Debugf("AI env: %v\n", filteredEnvs)
 // }
 
 var validFormats = []string{"raw", "text", "json", "markdown", "tts"}

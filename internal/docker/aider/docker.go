@@ -102,15 +102,15 @@ func RunContainer(ctx context.Context, mode ChatMode, input string) error {
 		ExtraHosts: []string{"host.docker.internal:host-gateway"},
 	}
 
-	log.GetLogger(ctx).Debug("hostConfig: %+v\n", hostConfig)
+	log.GetLogger(ctx).Debugf("hostConfig: %+v\n", hostConfig)
 
 	_, err := docker.RunContainer(ctx, containerName, config, hostConfig)
 	if err != nil {
-		log.GetLogger(ctx).Error("Error running container: %v\n", err)
+		log.GetLogger(ctx).Errorf("Error running container: %v\n", err)
 
 		// Attempt to remove the container
 		if rmErr := docker.RemoveContainer(ctx, containerName); rmErr != nil {
-			log.GetLogger(ctx).Error("Error removing container: %v\n", rmErr)
+			log.GetLogger(ctx).Errorf("Error removing container: %v\n", rmErr)
 		}
 		return err
 	}

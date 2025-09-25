@@ -137,7 +137,7 @@ func dispatch(ctx context.Context, shellBin, input string) bool {
 		return true
 	}
 
-	log.GetLogger(ctx).Debug("input command: %q\n", input)
+	log.GetLogger(ctx).Debugf("input command: %q\n", input)
 
 	// cmd + args
 	cmdArgs := strings.SplitN(input, " ", 2)
@@ -149,7 +149,7 @@ func dispatch(ctx context.Context, shellBin, input string) bool {
 		args = cmdArgs[1]
 	}
 
-	log.GetLogger(ctx).Debug("command: %q, args: %q\n", command, args)
+	log.GetLogger(ctx).Debugf("command: %q, args: %q\n", command, args)
 
 	// execute history command
 	if strings.HasPrefix(command, "!") {
@@ -168,10 +168,10 @@ func dispatch(ctx context.Context, shellBin, input string) bool {
 
 		// fall through, not to continue
 		// may need further processing for builtin/agent/alias commands
-		log.GetLogger(ctx).Debug("history command: %q, args: %q\n", hist, args)
+		log.GetLogger(ctx).Debugf("history command: %q, args: %q\n", hist, args)
 		input = fmt.Sprintf("%s %s", hist, args)
 		command = hist
-		log.GetLogger(ctx).Debug("proceed to run modified history !%s: command %q, input: %q\n", num, command, input)
+		log.GetLogger(ctx).Debugf("proceed to run modified history !%s: command %q, input: %q\n", num, command, input)
 	}
 
 	// built-in commands:
@@ -326,7 +326,7 @@ func dispatch(ctx context.Context, shellBin, input string) bool {
 		}
 	}
 
-	log.GetLogger(ctx).Debug("modified command: %q\n", modified)
+	log.GetLogger(ctx).Debugf("modified command: %q\n", modified)
 
 	if modified == "" {
 		return true

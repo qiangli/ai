@@ -76,7 +76,7 @@ func (r *FuncKit) AgentTransfer(_ context.Context, _ *api.Vars, _ string, args m
 // }
 
 // func (r *FuncKit) TaskComplete(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-// 	log.GetLogger(ctx).Info("✌️ task completed %s", name)
+// 	log.GetLogger(ctx).Infof("✌️ task completed %s", name)
 // 	return "Task completed", nil
 // }
 

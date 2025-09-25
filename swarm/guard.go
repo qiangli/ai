@@ -31,11 +31,11 @@ package swarm
 // // evaluateCommand consults LLM to evaluate the safety of a command
 // func evaluateCommand(ctx context.Context, vars *api.Vars, command string, args []string) (bool, error) {
 // 	if vars.Config.Unsafe {
-// 		log.GetLogger(ctx).Info("⚠️ unsafe mode - skipping security check\n")
+// 		log.GetLogger(ctx).Infof("⚠️ unsafe mode - skipping security check\n")
 // 		return true, nil
 // 	}
 
-// 	log.GetLogger(ctx).Info("🔒 checking %s %+v\n", command, args)
+// 	log.GetLogger(ctx).Infof("🔒 checking %s %+v\n", command, args)
 
 // 	instruction, err := applyTemplate(shellSecuritySystemRole, vars, nil)
 // 	if err != nil {
@@ -55,7 +55,7 @@ package swarm
 // 	}
 
 // 	runTool := func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
-// 		log.GetLogger(ctx).Debug("run tool: %s %+v\n", name, args)
+// 		log.GetLogger(ctx).Debugf("run tool: %s %+v\n", name, args)
 // 		v, ok := toolsMap[name]
 // 		if !ok {
 // 			return nil, fmt.Errorf("not found: %s", name)
@@ -91,7 +91,7 @@ package swarm
 // 		MaxTurns: vars.Config.MaxTurns,
 // 	}
 
-// 	log.GetLogger(ctx).Debug("evaluateCommand:\n%s %v\n", command, args)
+// 	log.GetLogger(ctx).Debugf("evaluateCommand:\n%s %v\n", command, args)
 
 // 	resp, err := Chat(ctx, req)
 // 	if err != nil {
@@ -104,16 +104,16 @@ package swarm
 // 	}
 
 // 	if check.Safe {
-// 		log.GetLogger(ctx).Info("✔ safe\n")
+// 		log.GetLogger(ctx).Infof("✔ safe\n")
 // 	} else {
-// 		log.GetLogger(ctx).Error("\n\033[31m✗\033[0m unsafe\n")
-// 		log.GetLogger(ctx).Info("%s %v\n\n", command, strings.Join(args, " "))
+// 		log.GetLogger(ctx).Errorf("\n\033[31m✗\033[0m unsafe\n")
+// 		log.GetLogger(ctx).Infof("%s %v\n\n", command, strings.Join(args, " "))
 // 		if answer, err := bubble.Confirm("Continue?"); err == nil && answer == confirm.Yes {
 // 			check.Safe = true
 // 		}
 // 	}
 
-// 	log.GetLogger(ctx).Debug("evaluateCommand:\n%+v\n", check)
+// 	log.GetLogger(ctx).Debugf("evaluateCommand:\n%+v\n", check)
 
 // 	return check.Safe, nil
 // }

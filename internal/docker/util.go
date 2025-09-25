@@ -106,7 +106,7 @@ func BuildDockerImage(ctx context.Context, dockerfileName, tag string, dockerfil
 	if err != nil {
 		return err
 	}
-	log.GetLogger(ctx).Info("Image build with tag %s succeeded\n", tag)
+	log.GetLogger(ctx).Infof("Image build with tag %s succeeded\n", tag)
 
 	return nil
 }
@@ -168,7 +168,7 @@ func RunContainer(ctx context.Context, containerName string, config *container.C
 	// progress output
 	go func() {
 		if _, err := stdcopy.StdCopy(os.Stderr, os.Stderr, hjResp.Reader); err != nil {
-			log.GetLogger(ctx).Error("error copying output: %v\n", err)
+			log.GetLogger(ctx).Errorf("error copying output: %v\n", err)
 		}
 	}()
 
@@ -216,7 +216,7 @@ func RemoveContainer(ctx context.Context, containerName string) error {
 	}
 
 	if containerID == "" {
-		log.GetLogger(ctx).Error("Container %s not found\n", containerName)
+		log.GetLogger(ctx).Errorf("Container %s not found\n", containerName)
 		return nil
 	}
 
@@ -225,7 +225,7 @@ func RemoveContainer(ctx context.Context, containerName string) error {
 		return err
 	}
 
-	log.GetLogger(ctx).Debug("Container %s removed successfully\n", containerName)
+	log.GetLogger(ctx).Debugf("Container %s removed successfully\n", containerName)
 	return nil
 }
 

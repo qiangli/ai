@@ -24,13 +24,13 @@ import (
 )
 
 func execCommand(ctx context.Context, shellBin, original string, save bool) error {
-	log.GetLogger(ctx).Debug("original command: %q\n", original)
+	log.GetLogger(ctx).Debugf("original command: %q\n", original)
 
 	parsed, err := parseCommand(ctx, original)
 	if err != nil {
 		return err
 	}
-	log.GetLogger(ctx).Debug("parsed command: %+v\n", parsed)
+	log.GetLogger(ctx).Debugf("parsed command: %+v\n", parsed)
 
 	// Handle special case for "cd" command
 	// assume single argument for "cd" command
@@ -68,12 +68,12 @@ func execCommand(ctx context.Context, shellBin, original string, save bool) erro
 		}
 	}
 
-	log.GetLogger(ctx).Debug("modified command: %+v\n", modified)
+	log.GetLogger(ctx).Debugf("modified command: %+v\n", modified)
 
 	//
 	cmdline := strings.Join(modified, " ")
 	command, page := RemovePageSuffix(cmdline)
-	log.GetLogger(ctx).Debug("Executing command: %q\n", command)
+	log.GetLogger(ctx).Debugf("Executing command: %q\n", command)
 
 	// Execute the command
 	capture := wordCompleter.Capture
@@ -105,7 +105,7 @@ func RunNoCapture(shellBin, command string) error {
 
 // RunAndCapture runs a command and captures its output line by line.
 func RunAndCapture(ctx context.Context, shellBin, command string, page, save bool, capture func(which int, line string) error) error {
-	log.GetLogger(ctx).Debug("RunAndCapture: %q page: %v\n", command, page)
+	log.GetLogger(ctx).Debugf("RunAndCapture: %q page: %v\n", command, page)
 
 	// TTY=1 key=val ... cmd args
 	parts := strings.Split(command, " ")
@@ -126,7 +126,7 @@ func RunAndCapture(ctx context.Context, shellBin, command string, page, save boo
 		break
 	}
 
-	log.GetLogger(ctx).Debug("Running command: %q page: %v tty: %v\n", command, page, ttyOn)
+	log.GetLogger(ctx).Debugf("Running command: %q page: %v tty: %v\n", command, page, ttyOn)
 
 	cmd := exec.Command(shellBin, "-c", command)
 	cmd.Stdin = os.Stdin
@@ -267,7 +267,7 @@ func parseCommand(ctx context.Context, original string) ([][]string, error) {
 	var split func(s string, seps []string) []string
 
 	split = func(s string, seps []string) []string {
-		log.GetLogger(ctx).Debug("Splitting: %q with separators: %+v\n", s, seps)
+		log.GetLogger(ctx).Debugf("Splitting: %q with separators: %+v\n", s, seps)
 
 		if len(seps) == 0 {
 			return []string{s}

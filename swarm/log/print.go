@@ -40,23 +40,23 @@ func newDefaultLogger() *defaultLogger {
 	return logger
 }
 
-func (r *defaultLogger) Prompt(format string, a ...any) {
+func (r *defaultLogger) Promptf(format string, a ...any) {
 	r.promptLogger.Printf(format, a...)
 }
 
-func (r *defaultLogger) Print(format string, a ...any) {
+func (r *defaultLogger) Printf(format string, a ...any) {
 	r.printLogger.Printf(format, a...)
 }
 
-func (r *defaultLogger) Error(format string, a ...any) {
+func (r *defaultLogger) Errorf(format string, a ...any) {
 	r.errLogger.Printf(format, a...)
 }
 
-func (r *defaultLogger) Info(format string, a ...any) {
+func (r *defaultLogger) Infof(format string, a ...any) {
 	r.infoLogger.Printf(format, a...)
 }
 
-func (r *defaultLogger) Debug(format string, a ...any) {
+func (r *defaultLogger) Debugf(format string, a ...any) {
 	r.debugLogger.Printf(format, a...)
 }
 

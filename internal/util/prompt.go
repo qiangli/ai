@@ -19,7 +19,7 @@ func Confirm(ctx context.Context, ps string, choices []string, defaultChoice str
 
 	reader := bufio.NewReader(in)
 	for {
-		log.GetLogger(ctx).Prompt(ps)
+		log.GetLogger(ctx).Promptf(ps)
 
 		resp, err := reader.ReadString('\n')
 		if err != nil {
@@ -39,7 +39,7 @@ func Confirm(ctx context.Context, ps string, choices []string, defaultChoice str
 func Prompt(ctx context.Context, ps string, in io.Reader) (string, error) {
 	reader := bufio.NewReader(in)
 	for {
-		log.GetLogger(ctx).Prompt(ps)
+		log.GetLogger(ctx).Promptf(ps)
 
 		resp, err := reader.ReadString('\n')
 		if err != nil {

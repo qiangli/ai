@@ -23,7 +23,7 @@ var _fs vfs.FileSystem = &vfs.VirtualFS{}
 
 // runCommand executes a shell command with args and returns the output
 func runCommand(ctx context.Context, command string, args []string) (string, error) {
-	log.GetLogger(ctx).Debug("🏃 %s (%d) %+v\n", command, len(args), args)
+	log.GetLogger(ctx).Debugf("🏃 %s (%d) %+v\n", command, len(args), args)
 
 	var out []byte
 	var err error
@@ -34,18 +34,18 @@ func runCommand(ctx context.Context, command string, args []string) (string, err
 		out, err = _exec.Command(command, args...).CombinedOutput()
 	}
 	if err != nil {
-		log.GetLogger(ctx).Error("\033[31m✗\033[0m %s: %+v\n", command, err)
+		log.GetLogger(ctx).Errorf("\033[31m✗\033[0m %s: %+v\n", command, err)
 		return "", fmt.Errorf("%v\n%s", err, clip(string(out), 500))
 	}
 
-	log.GetLogger(ctx).Debug("🎉 %s: %s\n", command, out)
+	log.GetLogger(ctx).Debugf("🎉 %s: %s\n", command, out)
 	return string(out), nil
 }
 
 // runCommandVerbose executes a shell command with arguments,
 // prints stdout/stderr in real-time, and returns the combined output and error.
 func runCommandVerbose(ctx context.Context, command string, args []string) (string, error) {
-	log.GetLogger(ctx).Debug("🏃 %s (%d) %+v\n", command, len(args), args)
+	log.GetLogger(ctx).Debugf("🏃 %s (%d) %+v\n", command, len(args), args)
 
 	var cmd *exec.Cmd
 	if len(args) == 0 {
@@ -69,7 +69,7 @@ func runCommandVerbose(ctx context.Context, command string, args []string) (stri
 		for scanner.Scan() {
 			line := scanner.Text()
 			buf.WriteString(line + "\n")
-			log.GetLogger(ctx).Debug("%s %s: %s\n", prefix, command, line)
+			log.GetLogger(ctx).Debugf("%s %s: %s\n", prefix, command, line)
 		}
 	}
 
@@ -87,11 +87,11 @@ func runCommandVerbose(ctx context.Context, command string, args []string) (stri
 
 	out := outBuf.String() + errBuf.String()
 	if err != nil {
-		log.GetLogger(ctx).Error("\033[31m✗\033[0m %s: %+v\n", command, err)
+		log.GetLogger(ctx).Errorf("\033[31m✗\033[0m %s: %+v\n", command, err)
 		return "", fmt.Errorf("%v\n%s", err, clip(out, 500))
 	}
 
-	log.GetLogger(ctx).Debug("🎉 %s: %s\n", command, out)
+	log.GetLogger(ctx).Debugf("🎉 %s: %s\n", command, out)
 	return out, nil
 }
 
@@ -108,8 +108,8 @@ func runRestricted(ctx context.Context, vars *api.Vars, command string, args []s
 	}
 
 	if isDenied(vars.Config.DenyList, command) {
-		log.GetLogger(ctx).Error("\n\033[31m✗\033[0m restricted\n")
-		log.GetLogger(ctx).Info("%s %v\n\n", command, strings.Join(args, " "))
+		log.GetLogger(ctx).Errorf("\n\033[31m✗\033[0m restricted\n")
+		log.GetLogger(ctx).Infof("%s %v\n\n", command, strings.Join(args, " "))
 		if answer, err := bubble.Confirm("Continue?"); err == nil && answer == confirm.Yes {
 			return execCommand(ctx, command, args, vars.Config.IsVerbose())
 		}

@@ -53,7 +53,7 @@ func confirmRun(ctx context.Context, cfg *api.AppConfig, ps string, choices []st
 }
 
 func runScript(ctx context.Context, cfg *api.AppConfig, script string) error {
-	log.GetLogger(ctx).Debug("Running script:\n%s\n", script)
+	log.GetLogger(ctx).Debugf("Running script:\n%s\n", script)
 
 	tmpFile, err := os.CreateTemp("", "ai-script-*.sh")
 	if err != nil {
@@ -72,8 +72,8 @@ func runScript(ctx context.Context, cfg *api.AppConfig, script string) error {
 		return err
 	}
 
-	// log.GetLogger(ctx).Debug("Working directory: %s\n", wd)
-	log.GetLogger(ctx).Debug("Script file: %s\n", tmpFile.Name())
+	// log.GetLogger(ctx).Debugf("Working directory: %s\n", wd)
+	log.GetLogger(ctx).Debugf("Script file: %s\n", tmpFile.Name())
 
 	cmd := exec.Command("bash", tmpFile.Name())
 	cmd.Stdout = os.Stdout
@@ -90,7 +90,7 @@ func copyScriptToClipboard(_ *api.AppConfig, script string) error {
 func editScript(ctx context.Context, cfg *api.AppConfig, script string) error {
 	editor := cfg.Editor
 
-	log.GetLogger(ctx).Debug("Using editor: %s\n", editor)
+	log.GetLogger(ctx).Debugf("Using editor: %s\n", editor)
 
 	tmpFile, err := os.CreateTemp("", "ai-script-*.sh")
 	if err != nil {

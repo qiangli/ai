@@ -58,15 +58,15 @@ func createPrompter(ctx context.Context) (func(), error) {
 		var baseDir string
 		baseDir = filepath.Base(dir)
 
-		log.GetLogger(ctx).Debug("dir: %s %s\n", where, dir)
-		log.GetLogger(ctx).Debug("baseDir: %s\n", baseDir)
+		log.GetLogger(ctx).Debugf("dir: %s %s\n", where, dir)
+		log.GetLogger(ctx).Debugf("baseDir: %s\n", baseDir)
 
 		// relative to home
 		if strings.HasPrefix(dir, home) {
 			where = username
 			baseDir, _ = filepath.Rel(home, dir)
-			log.GetLogger(ctx).Debug("home: %s\n", home)
-			log.GetLogger(ctx).Debug("user baseDir: %s\n", baseDir)
+			log.GetLogger(ctx).Debugf("home: %s\n", home)
+			log.GetLogger(ctx).Debugf("user baseDir: %s\n", baseDir)
 		}
 
 		repo, err := git.PlainOpenWithOptions(".", &git.PlainOpenOptions{DetectDotGit: true})
@@ -100,8 +100,8 @@ func createPrompter(ctx context.Context) (func(), error) {
 
 			if strings.HasPrefix(dir, repoDir) {
 				baseDir, _ = filepath.Rel(repoDir, dir)
-				log.GetLogger(ctx).Debug("repoDir: %s\n", repoDir)
-				log.GetLogger(ctx).Debug("repo baseDir: %s\n", baseDir)
+				log.GetLogger(ctx).Debugf("repoDir: %s\n", repoDir)
+				log.GetLogger(ctx).Debugf("repo baseDir: %s\n", baseDir)
 			}
 		}
 
@@ -109,12 +109,12 @@ func createPrompter(ctx context.Context) (func(), error) {
 		head1 := strings.Split(rawhead.String(), "/")
 		head := head1[len(head1)-1]
 
-		log.GetLogger(ctx).Debug("repoName: %s\n", where)
-		log.GetLogger(ctx).Debug("head: %s\n", head)
-		log.GetLogger(ctx).Debug("baseDir: %s\n", baseDir)
+		log.GetLogger(ctx).Debugf("repoName: %s\n", where)
+		log.GetLogger(ctx).Debugf("head: %s\n", head)
+		log.GetLogger(ctx).Debugf("baseDir: %s\n", baseDir)
 
 		shortName := shortName(head)
-		log.GetLogger(ctx).Debug("shortName: %s\n", shortName)
+		log.GetLogger(ctx).Debugf("shortName: %s\n", shortName)
 
 		fmt.Printf(repoPs, where, shortName, baseDir, app, ps)
 	}, nil

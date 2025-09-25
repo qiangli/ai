@@ -10,7 +10,7 @@ package swarm
 // )
 
 // func callAgent(_ context.Context, vars *api.Vars, agent string, args map[string]any) (*api.Result, error) {
-// 	log.GetLogger(ctx).Debug("calling agent func %s\n", agent)
+// 	log.GetLogger(ctx).Debugf("calling agent func %s\n", agent)
 
 // 	// name/command
 // 	var name, command string
@@ -38,7 +38,7 @@ package swarm
 // 		return nil, err
 // 	}
 
-// 	log.GetLogger(ctx).Debug("agent called:\n%+v\n", resp)
+// 	log.GetLogger(ctx).Debugf("agent called:\n%+v\n", resp)
 
 // 	if len(resp.Messages) == 0 {
 // 		return nil, fmt.Errorf("empty result")
