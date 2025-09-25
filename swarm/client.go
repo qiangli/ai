@@ -12,7 +12,7 @@ import (
 )
 
 func Chat(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	log.GetLogger(ctx).Debugf(">>>LLM Chat:\n Model: %s Model: %+v, Messages: %v Tools: %v\n\n", req.Model, req.Model, len(req.Messages), len(req.Tools))
+	log.GetLogger(ctx).Debugf(">>>LLM Chat:\n %v\n\n", req)
 
 	var err error
 	var resp *llm.Response

@@ -131,7 +131,6 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 			Role:    nvl(r.Instruction.Role, api.RoleSystem),
 			Content: content,
 			Sender:  r.Name,
-			// Models:  h.vars.Config.Models,
 		})
 		log.GetLogger(ctx).Debugf("Added new system role message: %v\n", len(history))
 	}
@@ -176,7 +175,6 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		Role:    api.RoleUser,
 		Content: req.RawInput.Query(),
 		Sender:  r.Name,
-		// Models:  h.vars.Config.Models,
 	})
 
 	history = append(history, req.Messages...)
@@ -233,7 +231,6 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 			Role:        nvl(result.Role, api.RoleAssistant),
 			Content:     result.Content,
 			Sender:      r.Name,
-			// Models:      h.vars.Config.Models,
 		}
 		history = append(history, &message)
 	}

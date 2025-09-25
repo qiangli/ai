@@ -292,9 +292,6 @@ type Message struct {
 
 	// agent name
 	Sender string `json:"sender"`
-
-	// // model alias
-	// Models string `json:"models"`
 }
 
 // Result encapsulates the possible return values for agent/function.
@@ -302,6 +299,7 @@ type Result struct {
 	// The result value as a string
 	Value string
 
+	// Tool call
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types
 	MimeType string
 	Message  string

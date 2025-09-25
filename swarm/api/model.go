@@ -1,5 +1,9 @@
 package api
 
+import (
+	"fmt"
+)
+
 type InputType string
 type OutputType string
 type Feature string
@@ -74,15 +78,9 @@ type Model struct {
 	Config *ModelsConfig
 }
 
-// func (r *Model) Clone() *Model {
-// 	clone := &Model{
-// 		Type:     r.Type,
-// 		Model:    r.Model,
-// 		Provider: r.Provider,
-// 		BaseUrl:  r.BaseUrl,
-// 	}
-// 	return clone
-// }
+func (r *Model) String() string {
+	return fmt.Sprintf("%s/%s", r.Provider, r.Model)
+}
 
 type ModelsConfig struct {
 	Alias string `yaml:"alias"`

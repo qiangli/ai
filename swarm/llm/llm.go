@@ -47,24 +47,12 @@ func (r *Request) String() string {
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("Agent: %s\n", r.Agent))
 	if r.Model != nil {
-		sb.WriteString(fmt.Sprintf("Model: %s\n", r.Model.Model))
-		sb.WriteString(fmt.Sprintf("BaseUrl: %s\n", r.Model.BaseUrl))
-		// sb.WriteString(fmt.Sprintf("ApiKey set: %v\n", r.Model.ApiKey != ""))
-		sb.WriteString(fmt.Sprintf("Type: %s\n", r.Model.Type))
-		// if r.Model.Type == model.OutputTypeImage {
-		// 	sb.WriteString(fmt.Sprintf("ImageQuality: %s\n", r.ImageQuality))
-		// 	sb.WriteString(fmt.Sprintf("ImageSize: %s\n", r.ImageSize))
-		// 	sb.WriteString(fmt.Sprintf("ImageStyle: %s\n", r.ImageStyle))
-		// }
+		sb.WriteString(fmt.Sprintf("Model: %s/%s\n", r.Model.Provider, r.Model.Model))
 	}
 	sb.WriteString(fmt.Sprintf("MaxTurns: %d\n", r.MaxTurns))
-	sb.WriteString(fmt.Sprintf("RunTool set: %v\n", r.RunTool != nil))
-	sb.WriteString(fmt.Sprintf("Tools count: %d\n", len(r.Tools)))
+	sb.WriteString(fmt.Sprintf("Tools: %d\n", len(r.Tools)))
+	sb.WriteString(fmt.Sprintf("Messages: %d\n", len(r.Messages)))
 
-	sb.WriteString(fmt.Sprintf("Messages count: %d\n", len(r.Messages)))
-	// for _, m := range r.Messages {
-	// 	sb.WriteString(clipText(m.Content, 80))
-	// }
 	return sb.String()
 }
 
@@ -77,4 +65,16 @@ type Response struct {
 	Role    string
 
 	Result *api.Result
+}
+
+func (r *Response) String() string {
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("ContentType: %s\n", r.ContentType))
+	sb.WriteString(fmt.Sprintf("Content: %d\n", len(r.Content)))
+	sb.WriteString(fmt.Sprintf("Agent: %s\n", r.Agent))
+	sb.WriteString(fmt.Sprintf("Role: %s\n", r.Role))
+	if r.Result != nil {
+		sb.WriteString(fmt.Sprintf("Model: %s\n", r.Result))
+	}
+	return sb.String()
 }
