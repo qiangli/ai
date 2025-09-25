@@ -104,14 +104,14 @@ func execCommand(ctx context.Context, command string, args []string, verbose boo
 
 func runRestricted(ctx context.Context, vars *api.Vars, command string, args []string) (string, error) {
 	if isAllowed(vars.Config.AllowList, command) {
-		return execCommand(ctx, command, args, vars.Config.Debug)
+		return execCommand(ctx, command, args, vars.Config.IsVerbose())
 	}
 
 	if isDenied(vars.Config.DenyList, command) {
 		log.GetLogger(ctx).Error("\n\033[31m✗\033[0m restricted\n")
 		log.GetLogger(ctx).Info("%s %v\n\n", command, strings.Join(args, " "))
 		if answer, err := bubble.Confirm("Continue?"); err == nil && answer == confirm.Yes {
-			return execCommand(ctx, command, args, vars.Config.Debug)
+			return execCommand(ctx, command, args, vars.Config.IsVerbose())
 		}
 
 		return "", fmt.Errorf("%s: Not allowed", command)
@@ -124,7 +124,7 @@ func runRestricted(ctx context.Context, vars *api.Vars, command string, args []s
 	// if safe {
 	// 	return execCommand(command, args, vars.Config.Debug)
 	// }
-	return execCommand(ctx, command, args, vars.Config.Debug)
+	return execCommand(ctx, command, args, vars.Config.IsVerbose())
 
 	// return "", fmt.Errorf("%s %s: Not permitted", command, strings.Join(args, " "))
 }

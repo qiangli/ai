@@ -4,6 +4,15 @@ import (
 	"strings"
 )
 
+type LogLevel int
+
+const (
+	Quiet LogLevel = iota
+	Informative
+	Verbose
+	Tracing
+)
+
 type AppConfig struct {
 	Version string
 
@@ -74,10 +83,11 @@ type AppConfig struct {
 
 	// Log string
 
-	// TODO change to log level?
-	Trace bool
-	Debug bool
-	Quiet bool
+	// // TODO change to log level?
+	// Trace bool
+	// Debug bool
+	// Quiet bool
+	LogLevel LogLevel
 
 	// Internal bool
 
@@ -121,12 +131,9 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		ConfigFile: cfg.ConfigFile,
 		//
 		AgentResource: cfg.AgentResource,
-		// AgentCreator:  cfg.AgentCreator,
-		// AgentHandler:  cfg.AgentHandler,
 		//
 		Agent: cfg.Agent,
-		// Command: cfg.Command,
-		// Args:       append([]string(nil), cfg.Args...),
+		//
 		Args:       cfg.Args,
 		Message:    cfg.Message,
 		Editor:     cfg.Editor,
@@ -136,7 +143,7 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		ClipAppend: cfg.ClipAppend,
 		IsPiped:    cfg.IsPiped,
 		Stdin:      cfg.Stdin,
-		// Files:         append([]string(nil), cfg.Files...),
+		//
 		Files:      cfg.Files,
 		Screenshot: cfg.Screenshot,
 		Voice:      cfg.Voice,
@@ -148,14 +155,10 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		ChatID:     cfg.ChatID,
 		MaxHistory: cfg.MaxHistory,
 		MaxSpan:    cfg.MaxSpan,
-		// History:    cfg.History,
-		Models: cfg.Models,
-		// Log:    cfg.Log,
-		Debug: cfg.Debug,
-		Quiet: cfg.Quiet,
-
-		// DenyList:  append([]string(nil), cfg.DenyList...),
-		// AllowList: append([]string(nil), cfg.AllowList...),
+		Models:     cfg.Models,
+		//
+		LogLevel: cfg.LogLevel,
+		//
 		DenyList:    cfg.DenyList,
 		AllowList:   cfg.AllowList,
 		Unsafe:      cfg.Unsafe,
@@ -176,9 +179,23 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		//
 		DryRun:        cfg.DryRun,
 		DryRunContent: cfg.DryRunContent,
-		//
-		// Env: cfg.Env,
 	}
+}
+
+func (cfg *AppConfig) IsQuiet() bool {
+	return cfg.LogLevel == Quiet
+}
+
+func (cfg *AppConfig) IsInformative() bool {
+	return cfg.LogLevel == Informative
+}
+
+func (cfg *AppConfig) IsVerbose() bool {
+	return cfg.LogLevel == Verbose
+}
+
+func (cfg *AppConfig) IsTracing() bool {
+	return cfg.LogLevel == Tracing
 }
 
 func (r *AppConfig) IsStdin() bool {

@@ -214,6 +214,9 @@ func LoadModelsData(data [][]byte) (*api.ModelsConfig, error) {
 func LoadModelsAsset(as api.AssetStore, base string, m map[string]*api.ModelsConfig) error {
 	files, err := as.ReadDir(base)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
 		return err
 	}
 

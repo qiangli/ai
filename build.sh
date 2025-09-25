@@ -52,9 +52,6 @@ function build() {
 ##
 tidy
 #
-go fmt ./...
-
-#
 if [[ $1 == "all" ]]; then
 	build_all
 else

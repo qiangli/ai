@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/qiangli/ai/swarm/api"
 )
 
-type Level int
+type Level = api.LogLevel
 
 const (
-	Quiet Level = iota
-	Informative
-	Verbose
-	Tracing
+	Quiet       Level = api.Quiet
+	Informative       = api.Informative
+	Verbose           = api.Verbose
+	Tracing           = api.Tracing
 )
 
 type defaultLogger struct {

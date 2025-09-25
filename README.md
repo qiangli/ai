@@ -1,5 +1,22 @@
 # AI Command Line Tool
 
+## Quick start
+
+[AI Cloud Hub](https://github.com/openaide/dhnt.io) is now live: [https://ai.dhnt.io/](https://ai.dhnt.io/)
+
+You can build and run locally.
+
+```bash
+git clone https://github.com/qiangli/ai.git
+cd ai
+#
+# ./build.sh
+go mod download
+
+CGO_ENABLED=0 go build -o "$(go env GOPATH)/bin/ai" -ldflags="-w -extldflags '-static' ${CLI_FLAGS:-}" ./cmd
+```
+
+## Build and Run
 As a software engineer, I need two types of tools for my daily tasks: one for working inside a file and the other outside.
 
 This AI tool assists you with all the tasks beyond file editing on your system complementing [Continue](https://github.com/openaide/awesome/tree/main/docker/continue), [Cline](https://github.com/openaide/awesome/tree/main/docker/continue) and [the like](https://github.com/openaide/awesome).
@@ -8,22 +25,20 @@ Specialist agents - such as shell, web, git, pr, code, and sql - will empower yo
 
 If you prefer graphical UI, this tool can serve as backend hub service to the web widget, browser/vscode extensions, and desktop app, including a web terminal: [AI Chatbot](https://github.com/qiangli/chatbot) Conversation history is shared among all the different UIs so LLMs won't lose the context when switching the interfaces.
 
-[AI Cloud Hub](https://github.com/openaide/dhnt.io) is coming soon...
-
 - [AI Command Line Tool](#ai-command-line-tool)
-  - [Build](#build)
-  - [Run](#run)
-  - [Test](#test)
-  - [Debug](#debug)
-  - [Usage](#usage)
-    - [Command line](#command-line)
-    - [Interactive shell](#interactive-shell)
-    - [AI Hub service](#ai-hub-service)
+  - [Quick start](#quick-start)
+  - [Build and Run](#build-and-run)
+    - [Build](#build)
+    - [Run](#run)
+    - [Test](#test)
+    - [Debug](#debug)
+    - [Usage](#usage)
+      - [Command line](#command-line)
+      - [Interactive shell](#interactive-shell)
     - [AI Graphical UI](#ai-graphical-ui)
   - [Credits](#credits)
-
-
-## Build
+  
+### Build
 
 ```bash
 git clone https://github.com/qiangli/ai.git
@@ -33,7 +48,7 @@ cd ai
 ./build.sh
 ```
 
-## Run
+### Run
 
 ```bash
 # command line
@@ -62,7 +77,7 @@ ai -i
 ssh --tty user@host ai -i
 ```
 
-## Test
+### Test
 
 No API calls will be made in `dry-run` mode.
 
@@ -70,7 +85,7 @@ No API calls will be made in `dry-run` mode.
 ai --dry-run --dry-run-content "fake data" ...
 ```
 
-## Debug
+### Debug
 
 ```bash
 ai --verbose ...
@@ -78,9 +93,9 @@ ai --verbose ...
 ai /help info
 ```
 
-## Usage
+### Usage
 
-### Command line
+#### Command line
 
 ```bash
 $ ai
@@ -189,7 +204,7 @@ Environment variables:
 Use "ai /help [agents|commands|tools|info]" for more information.
 ```
 
-### Interactive shell
+#### Interactive shell
 
 ```bash
 ai -i
@@ -223,17 +238,6 @@ ai.git@main/. ai> help
   Ctrl + U	Cut the line before the cursor to the clipboard
   Ctrl + L	Clear the screen
 
-```
-
-### AI Hub service
-
-Start AI in Hub service mode
-
-```bash
-# ai /hub start --address ":58080" --pg-address ":25432" --mysql-address ":3306" --redis-address ":6379" --llm-proxy-address ":8000"
-just hub
-
-# ai /hub stop
 ```
 
 ### AI Graphical UI

@@ -186,6 +186,9 @@ func initTools(ctx context.Context, app *api.AppConfig) (func(string) ([]*api.To
 func LoadToolsAsset(ctx context.Context, as api.AssetStore, base string, kits map[string]*api.ToolsConfig) error {
 	dirs, err := as.ReadDir(base)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
 		return fmt.Errorf("failed to read directory: %v", err)
 	}
 	for _, v := range dirs {

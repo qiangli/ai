@@ -138,6 +138,9 @@ func LoadAgentsConfig(ctx context.Context, app *api.AppConfig) (map[string]*api.
 func LoadAgentsAsset(ctx context.Context, as api.AssetStore, root string, packs map[string]*api.AgentsConfig) error {
 	dirs, err := as.ReadDir(root)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
 		return fmt.Errorf("failed to read agent resource directory: %v", err)
 	}
 

@@ -103,7 +103,6 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("image-viewer")
 
 	//
-	// flags.String("log", "", "Log all debugging information to a file")
 	flags.Bool("quiet", false, "Operate quietly. Only show final response")
 	flags.Bool("verbose", false, "Show progress and debugging information")
 	flags.Bool("trace", false, "Turn on tracing")
