@@ -56,27 +56,22 @@ func ListMcpTools(tc *api.ToolsConfig) ([]*api.ToolFunc, error) {
 
 	funcs := make([]*api.ToolFunc, 0)
 	for _, v := range result.Tools {
+		params, err := structToMap(v.InputSchema)
+		if err != nil {
+			return nil, err
+		}
 		tool := &api.ToolFunc{
 			Kit:         tc.Kit,
 			Type:        api.ToolTypeMcp,
 			Name:        v.Name,
 			Description: v.Description,
-			Parameters: map[string]any{
-				"type":       v.InputSchema.Type,
-				"properties": v.InputSchema.Properties,
-				"required":   v.InputSchema.Required,
-			},
-			//
-			Provider: nvl(tc.Connector.Provider, tc.Provider),
-			BaseUrl:  nvl(tc.Connector.BaseUrl, tc.BaseUrl),
-			ApiKey:   nvl(tc.Connector.ApiKey, tc.ApiKey),
+			Parameters:  params,
+			Provider:    nvl(tc.Connector.Provider, tc.Provider),
+			BaseUrl:     nvl(tc.Connector.BaseUrl, tc.BaseUrl),
+			ApiKey:      nvl(tc.Connector.ApiKey, tc.ApiKey),
 			//
 			Config: tc,
 		}
-		// apiKey := nvl(tc.Connector.ApiKey, tc.ApiKey)
-		// if apiKey != "" {
-		// 	tool.ApiKey = provideApiKey(tc.Kit, apiKey)
-		// }
 		funcs = append(funcs, tool)
 	}
 

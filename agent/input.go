@@ -276,7 +276,7 @@ func PrintInput(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) {
 		default:
 			emoji = "💾"
 		}
-		log.GetLogger(ctx).Infof("\033[33m%s\033[0m Attachment File: %s\n", emoji, v)
+		log.GetLogger(ctx).Infof("%s attachment: %s\n", emoji, v)
 	}
 	// for _, v := range input.Messages {
 	// 	var emoji string
@@ -297,7 +297,7 @@ func PrintInput(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) {
 	// 	} else {
 	// 		content = "[binary]"
 	// 	}
-	// 	log.GetLogger(ctx).Infof("\033[33m%s\033[0m Attachment Type: %s Len: %v Content: %s\n", emoji, v.ContentType, len(v.Content), content)
+	// 	log.GetLogger(ctx).Infof("%s attachment type: %s Len: %v content: %s\n", emoji, v.ContentType, len(v.Content), content)
 	// }
 }
 

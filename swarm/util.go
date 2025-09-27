@@ -41,17 +41,17 @@ func structToMap(input any) (map[string]any, error) {
 		return result, nil
 	}
 
-	jsonData, err := json.Marshal(input)
+	data, err := json.Marshal(input)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal input to JSON: %v", err)
+		return nil, fmt.Errorf("failed to marshal to JSON: %v", err)
 	}
 
-	var resultMap map[string]any
-	if err := json.Unmarshal(jsonData, &resultMap); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal JSON to map[string]any: %v", err)
+	var obj map[string]any
+	if err := json.Unmarshal(data, &obj); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal to map[string]any: %v", err)
 	}
 
-	return resultMap, nil
+	return obj, nil
 }
 
 func toPascalCase(name string) string {
