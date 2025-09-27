@@ -21,7 +21,7 @@ import (
 func ListTools(ctx context.Context, app *api.AppConfig) (map[string]*api.ToolFunc, error) {
 	kits, err := LoadToolsConfig(ctx, app)
 	if err != nil {
-		log.GetLogger(ctx).Errorf("failed to load default tool config: %v\n", err)
+		log.GetLogger(ctx).Errorf("Failed to load default tool config: %v\n", err)
 		return nil, err
 	}
 
@@ -226,13 +226,13 @@ func LoadToolsConfig(ctx context.Context, app *api.AppConfig) (map[string]*api.T
 
 	if app.AgentResource != nil && len(app.AgentResource.Resources) > 0 {
 		if err := LoadWebToolsConfig(ctx, app.AgentResource.Resources, kits); err != nil {
-			log.GetLogger(ctx).Errorf("failed to load tools from web resource: %v\n", err)
+			log.GetLogger(ctx).Errorf("Failed to load tools from web resource: %v\n", err)
 		}
 	}
 
 	// external/custom
 	if err := LoadFileToolsConfig(ctx, app.Base, kits); err != nil {
-		log.GetLogger(ctx).Errorf("failed to load custom tools: %v\n", err)
+		log.GetLogger(ctx).Errorf("Failed to load custom tools: %v\n", err)
 	}
 
 	// default
@@ -258,7 +258,7 @@ func LoadFileToolsConfig(ctx context.Context, base string, kits map[string]*api.
 	}
 	// check if abs exists
 	if _, err := os.Stat(abs); os.IsNotExist(err) {
-		log.GetLogger(ctx).Debugf("path does not exist: %s\n", abs)
+		log.GetLogger(ctx).Debugf("Path does not exist: %s\n", abs)
 		return nil
 	}
 
@@ -275,7 +275,7 @@ func LoadWebToolsConfig(ctx context.Context, resources []*api.Resource, kits map
 			Token: v.Token,
 		}
 		if err := LoadToolsAsset(ctx, ws, "tools", kits); err != nil {
-			log.GetLogger(ctx).Errorf("failed to load tools from %q error: %v\n", v.Base, err)
+			log.GetLogger(ctx).Errorf("Failed to load tools from %q error: %v\n", v.Base, err)
 		}
 	}
 	return nil
@@ -330,7 +330,7 @@ func NewToolCaller() api.ToolCaller {
 			toolMap[v.ID()] = v
 		}
 		return func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
-			log.GetLogger(ctx).Debugf("run tool: %s %+v\n", name, args)
+			log.GetLogger(ctx).Debugf("Run tool: %s %+v\n", name, args)
 			v, ok := toolMap[name]
 			if !ok {
 				return nil, fmt.Errorf("tool not found: %s", name)
@@ -346,7 +346,7 @@ func callTool(vars *api.Vars, v *api.ToolFunc, ctx context.Context, name string,
 	result, err := dispatchTool(ctx, v, vars, name, args)
 
 	if err != nil {
-		log.GetLogger(ctx).Errorf("\033[31m✗\033[0m %s\n", err)
+		log.GetLogger(ctx).Errorf("❌ %s\n", err)
 	} else {
 		log.GetLogger(ctx).Infof("✔ %s \n", head(result.String(), 180))
 	}

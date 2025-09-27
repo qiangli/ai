@@ -107,7 +107,7 @@ package swarm
 // 		log.GetLogger(ctx).Infof("✔ safe\n")
 // 	} else {
 // 		log.GetLogger(ctx).Errorf("\n\033[31m✗\033[0m unsafe\n")
-// 		log.GetLogger(ctx).Infof("%s %v\n\n", command, strings.Join(args, " "))
+// 		log.GetLogger(ctx).Infof("%s %v\n", command, strings.Join(args, " "))
 // 		if answer, err := bubble.Confirm("Continue?"); err == nil && answer == confirm.Yes {
 // 			check.Safe = true
 // 		}

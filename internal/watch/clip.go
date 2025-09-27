@@ -105,7 +105,7 @@ func WatchClipboard(ctx context.Context, cfg *api.AppConfig) error {
 				continue
 			}
 
-			log.GetLogger(ctx).Infof("%s\n\n", line)
+			log.GetLogger(ctx).Infof("%s\n", line)
 
 			// new prompt or content
 			clipboard.Clear()

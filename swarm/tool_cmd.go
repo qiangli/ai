@@ -34,7 +34,7 @@ func runCommand(ctx context.Context, command string, args []string) (string, err
 		out, err = _exec.Command(command, args...).CombinedOutput()
 	}
 	if err != nil {
-		log.GetLogger(ctx).Errorf("\033[31m✗\033[0m %s: %+v\n", command, err)
+		log.GetLogger(ctx).Errorf("❌ %s: %+v\n", command, err)
 		return "", fmt.Errorf("%v\n%s", err, clip(string(out), 500))
 	}
 
@@ -108,8 +108,8 @@ func runRestricted(ctx context.Context, vars *api.Vars, command string, args []s
 	}
 
 	if isDenied(vars.Config.DenyList, command) {
-		log.GetLogger(ctx).Errorf("\n\033[31m✗\033[0m restricted\n")
-		log.GetLogger(ctx).Infof("%s %v\n\n", command, strings.Join(args, " "))
+		log.GetLogger(ctx).Errorf("\n❌ restricted\n")
+		log.GetLogger(ctx).Infof("%s %v\n", command, strings.Join(args, " "))
 		if answer, err := bubble.Confirm("Continue?"); err == nil && answer == confirm.Yes {
 			return execCommand(ctx, command, args, vars.Config.IsVerbose())
 		}

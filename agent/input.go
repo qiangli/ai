@@ -88,7 +88,7 @@ func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clip
 	// 	}
 	// }
 
-	log.GetLogger(ctx).Debugf("\n[%s]\n%s\n%s\n%v\n\n", cfg.Me, input.Message, clipText(input.Content, clipMaxLen), input.Files)
+	log.GetLogger(ctx).Debugf("\n[%s]\n%s\n%s\n%v\n", cfg.Me, input.Message, clipText(input.Content, clipMaxLen), input.Files)
 	return input, nil
 }
 
@@ -133,7 +133,7 @@ func userInput(
 				if err != nil {
 					return nil, err
 				}
-				log.GetLogger(ctx).Infof("\n%s\n\n", clipText(v, 500))
+				log.GetLogger(ctx).Infof("\n%s\n", clipText(v, 500))
 				send, err := pasteConfirm(ctx)
 				// user canceled
 				if err != nil {

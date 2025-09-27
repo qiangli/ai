@@ -12,14 +12,14 @@ import (
 )
 
 func ImageGen(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	log.GetLogger(ctx).Debugf(">>>OPENAI:\n image-gen req: %+v\n\n", req)
+	log.GetLogger(ctx).Debugf(">OPENAI:\n image-gen req: %+v\n", req)
 
 	var err error
 	var resp *llm.Response
 
 	resp, err = generateImage(ctx, req)
 
-	log.GetLogger(ctx).Debugf("<<<OPENAI:\n image-gen resp: %+v err: %v\n\n", resp, err)
+	log.GetLogger(ctx).Debugf(">OPENAI:\n image-gen resp: %+v err: %v\n", resp, err)
 	return resp, err
 }
 

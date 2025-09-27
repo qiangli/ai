@@ -36,7 +36,7 @@ func newDefaultLogger() *defaultLogger {
 		errLogger:    NewPrinter(os.Stderr, false, 0),
 		promptLogger: NewPrinter(os.Stderr, false, 0),
 	}
-	logger.SetLogLevel(Informative)
+	// logger.SetLogLevel(Informative)
 	return logger
 }
 
@@ -66,7 +66,7 @@ type Printer interface {
 	SetEnabled(bool)
 	IsEnabled() bool
 
-	SetLogger(io.Writer)
+	// SetLogger(io.Writer)
 }
 
 func NewPrinter(w io.Writer, enabled bool, max int) Printer {
@@ -83,7 +83,7 @@ type printer struct {
 
 	max int
 
-	logger io.Writer
+	// logger io.Writer
 }
 
 func (r *printer) SetEnabled(b bool) {
@@ -98,32 +98,32 @@ func (r *printer) Printf(format string, a ...interface{}) {
 	if r.on {
 		fmt.Fprintf(r.out, format, a...)
 	}
-	if r.logger != nil {
-		fmt.Fprintf(r.logger, format, a...)
-	}
+	// if r.logger != nil {
+	// 	fmt.Fprintf(r.logger, format, a...)
+	// }
 }
 
 func (r *printer) Print(a ...interface{}) {
 	if r.on {
 		fmt.Fprint(r.out, a...)
 	}
-	if r.logger != nil {
-		fmt.Fprint(r.logger, a...)
-	}
+	// if r.logger != nil {
+	// 	fmt.Fprint(r.logger, a...)
+	// }
 }
 
 func (r *printer) Println(a ...interface{}) {
 	if r.on {
 		fmt.Fprintln(r.out, a...)
 	}
-	if r.logger != nil {
-		fmt.Fprintln(r.logger, a...)
-	}
+	// if r.logger != nil {
+	// 	fmt.Fprintln(r.logger, a...)
+	// }
 }
 
-func (r *printer) SetLogger(w io.Writer) {
-	r.logger = w
-}
+// func (r *printer) SetLogger(w io.Writer) {
+// 	r.logger = w
+// }
 
 func (r *defaultLogger) IsVerbose() bool {
 	return r.logLevel == Verbose
@@ -159,7 +159,7 @@ func (r *defaultLogger) SetLogLevel(level Level) {
 		r.infoLogger.SetEnabled(true)
 		r.errLogger.SetEnabled(true)
 		r.promptLogger.SetEnabled(true)
-	case Verbose | Tracing:
+	case Verbose, Tracing:
 		r.debugLogger.SetEnabled(true)
 		r.infoLogger.SetEnabled(true)
 		r.errLogger.SetEnabled(true)

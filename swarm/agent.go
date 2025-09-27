@@ -74,7 +74,7 @@ func ListAgents(ctx context.Context, app *api.AppConfig) (map[string]*api.Agents
 
 	config, err := LoadAgentsConfig(ctx, app)
 	if err != nil {
-		log.GetLogger(ctx).Errorf("failed to load agent config: %v\n", err)
+		log.GetLogger(ctx).Errorf("Failed to load agent config: %v\n", err)
 		return nil, err
 	}
 
@@ -118,13 +118,13 @@ func LoadAgentsConfig(ctx context.Context, app *api.AppConfig) (map[string]*api.
 	// web
 	if app.AgentResource != nil && len(app.AgentResource.Resources) > 0 {
 		if err := LoadWebAgentsConfig(ctx, app.AgentResource.Resources, packs); err != nil {
-			log.GetLogger(ctx).Errorf("failed load agents from web resources: %v\n", err)
+			log.GetLogger(ctx).Errorf("Failed load agents from web resources: %v\n", err)
 		}
 	}
 
 	// external/custom
 	if err := LoadFileAgentsConfig(ctx, app.Base, packs); err != nil {
-		log.GetLogger(ctx).Errorf("failed to load custom agents: %v\n", err)
+		log.GetLogger(ctx).Errorf("Failed to load custom agents: %v\n", err)
 	}
 
 	// default
@@ -158,15 +158,15 @@ func LoadAgentsAsset(ctx context.Context, as api.AssetStore, root string, packs 
 			return fmt.Errorf("failed to read agent asset %s: %w", dir.Name(), err)
 		}
 		if len(f) == 0 {
-			log.GetLogger(ctx).Debugf("agent file is empty %s\n", name)
+			log.GetLogger(ctx).Debugf("Agent file is empty %s\n", name)
 			continue
 		}
 		pack, err := LoadAgentsData([][]byte{f})
 		if err != nil {
-			return fmt.Errorf("failed to load agent data from %s: %w", dir.Name(), err)
+			return fmt.Errorf("Failed to load agent data from %s: %w", dir.Name(), err)
 		}
 		if pack == nil {
-			log.GetLogger(ctx).Debugf("no agent found in %s\n", dir.Name())
+			log.GetLogger(ctx).Debugf("No agent found in %s\n", dir.Name())
 			continue
 		}
 		// pack.BaseDir = base
@@ -175,7 +175,7 @@ func LoadAgentsAsset(ctx context.Context, as api.AssetStore, root string, packs 
 			pack.Name = dir.Name()
 		}
 		if _, exists := packs[pack.Name]; exists {
-			log.GetLogger(ctx).Debugf("duplicate agent name found: %s in %s, skipping\n", pack.Name, dir.Name())
+			log.GetLogger(ctx).Debugf("Duplicate agent name found: %s in %s, skipping\n", pack.Name, dir.Name())
 			continue
 		}
 
@@ -206,7 +206,7 @@ func LoadFileAgentsConfig(ctx context.Context, base string, packs map[string]*ap
 	}
 	// check if abs exists
 	if _, err := os.Stat(abs); os.IsNotExist(err) {
-		log.GetLogger(ctx).Debugf("path does not exist: %s\n", abs)
+		log.GetLogger(ctx).Debugf("Path does not exist: %s\n", abs)
 		return nil
 	}
 
@@ -223,7 +223,7 @@ func LoadWebAgentsConfig(ctx context.Context, resources []*api.Resource, packs m
 			Token: v.Token,
 		}
 		if err := LoadAgentsAsset(ctx, ws, "agents", packs); err != nil {
-			log.GetLogger(ctx).Errorf("*** failed to load config. base: %s error: %v\n", v.Base, err)
+			log.GetLogger(ctx).Errorf("Failed to load config. base: %s error: %v\n", v.Base, err)
 		}
 	}
 	return nil

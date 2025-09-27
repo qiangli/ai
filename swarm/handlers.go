@@ -48,7 +48,7 @@ type agentHandler struct {
 func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	var r = h.agent
 	var ctx = req.Context()
-	log.GetLogger(ctx).Debugf("run agent: %s\n", r.Name)
+	log.GetLogger(ctx).Debugf("Run agent: %s\n", r.Name)
 
 	// advices
 	noop := func(vars *api.Vars, _ *api.Request, _ *api.Response, _ api.Advice) error {
@@ -120,7 +120,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		}
 
 		if log.GetLogger(ctx).IsTrace() {
-			log.GetLogger(ctx).Debugf("content: %s\n", content)
+			log.GetLogger(ctx).Debugf("Content: %s\n", content)
 		}
 
 		history = append(history, &api.Message{
@@ -138,7 +138,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	// 2. Historical Messages - skip system role
 	// TODO
 	if len(h.vars.History) > 0 {
-		log.GetLogger(ctx).Debugf("using %v messaages from history\n", len(h.vars.History))
+		log.GetLogger(ctx).Debugf("Adding %v messaages from history\n", len(h.vars.History))
 		for _, msg := range h.vars.History {
 			if msg.Role != api.RoleSystem {
 				history = append(history, msg)
@@ -273,14 +273,14 @@ type maxLogHandler struct {
 
 func (h *maxLogHandler) Serve(r *api.Request, w *api.Response) error {
 	ctx := r.Context()
-	log.GetLogger(ctx).Debugf("req: %+v\n", r)
+	log.GetLogger(ctx).Debugf("Request: %+v\n", r)
 	if len(r.Messages) > 0 {
 		log.GetLogger(ctx).Debugf("%s %s\n", r.Messages[0].Role, clip(r.Messages[0].Content, h.max))
 	}
 
 	err := h.next.Serve(r, w)
 
-	log.GetLogger(ctx).Debugf("resp: %+v\n", w)
+	log.GetLogger(ctx).Debugf("Response: %+v\n", w)
 	if w.Messages != nil {
 		for _, m := range w.Messages {
 			log.GetLogger(ctx).Debugf("%s %s\n", m.Role, clip(m.Content, h.max))

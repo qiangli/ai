@@ -8,7 +8,7 @@ import (
 
 func usage(out io.Writer, full bool) {
 	if full {
-		_, _ = fmt.Fprintf(out, "\n  %s\n\n  Usage: walk [path]\n\n", bold.Render("walk "+Version))
+		_, _ = fmt.Fprintf(out, "\n  %s\n\n  Usage: walk [path]\n", bold.Render("walk "+Version))
 	}
 	w := tabwriter.NewWriter(out, 0, 8, 2, ' ', 0)
 	put := func(s string) {
