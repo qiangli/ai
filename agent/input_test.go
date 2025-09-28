@@ -57,7 +57,7 @@ func TestGetUserInput(t *testing.T) {
 		{
 			name: "Command Line Message",
 			cfg:  &api.AppConfig{Message: "hello world", Args: []string{"this", "is", "ignored"}},
-			want: "hello world",
+			want: "",
 		},
 		{
 			name: "Command Line Args",

@@ -136,15 +136,15 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	}
 
 	// 2. Historical Messages - skip system role
-	// TODO
-	if len(h.vars.History) > 0 {
-		log.GetLogger(ctx).Debugf("Adding %v messaages from history\n", len(h.vars.History))
+	if !r.New && len(h.vars.History) > 0 {
+		log.GetLogger(ctx).Debugf("Adding messaages from history\n")
 		for _, msg := range h.vars.History {
 			if msg.Role != api.RoleSystem {
 				history = append(history, msg)
-				log.GetLogger(ctx).Debugf("Added historical non system role message: %v\n", len(history))
+				log.GetLogger(ctx).Debugf("Added %q message\n", msg.Role)
 			}
 		}
+		log.GetLogger(ctx).Debugf("Added %v messages\n", len(history))
 	}
 
 	// 3. New User Message
@@ -167,13 +167,18 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 
 		// req.Messages = messages
 	}
+	// user message
+	var content = req.RawInput.Query()
+	if r.Message != "" {
+		content = r.Message + "\n" + content
+	}
 	req.Messages = append(req.Messages, &api.Message{
 		ID:      uuid.NewString(),
 		ChatID:  chatID,
 		Created: time.Now(),
 		//
 		Role:    api.RoleUser,
-		Content: req.RawInput.Query(),
+		Content: content,
 		Sender:  r.Name,
 	})
 

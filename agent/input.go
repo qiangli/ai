@@ -42,9 +42,10 @@ func GetUserInput(ctx context.Context, cfg *api.AppConfig) (*api.UserInput, erro
 
 func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clipper api.ClipboardProvider, editor api.EditorProvider) (*api.UserInput, error) {
 	// --message flag - ignore the rest (mainly intended for testing)
+	// changed to be prepended to other messages
 	if cfg.Message != "" {
 		input := &api.UserInput{
-			Message:  cfg.Message,
+			// Message:  cfg.Message,
 			Files:    cfg.Files,
 			Template: cfg.Template,
 		}

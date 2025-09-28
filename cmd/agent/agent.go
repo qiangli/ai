@@ -209,7 +209,8 @@ func setupAppConfig(ctx context.Context, args []string) (*api.AppConfig, error) 
 	if err != nil {
 		return nil, err
 	}
-	log.GetLogger(ctx).SetLogLevel(cfg.LogLevel)
+	level := api.ToLogLevel(cfg.LogLevel)
+	log.GetLogger(ctx).SetLogLevel(level)
 	log.GetLogger(ctx).Debugf("Config: %+v\n", cfg)
 
 	// fileLog, err := setLogOutput(ctx, cfg.Log)

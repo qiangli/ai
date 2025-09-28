@@ -107,6 +107,13 @@ type Agent struct {
 	//
 	MaxTurns int
 	MaxTime  int
+	//
+	Message string
+	Format  string
+	New     bool
+	// MaxHistory int
+	// MaxSpan    int
+	LogLevel LogLevel
 
 	//
 	Config *AgentsConfig
@@ -124,8 +131,26 @@ type AgentsConfig struct {
 	Tools  []*ToolConfig  `yaml:"tools"`
 	Models []*ModelConfig `yaml:"models"`
 
+	//
 	MaxTurns int `yaml:"max_turns"`
 	MaxTime  int `yaml:"max_time"`
+
+	// experimental
+
+	// user message
+	Message string `yaml:"message"`
+
+	// output format: json | text
+	Format string `yaml:"format"`
+
+	// memory
+	// max history: 0 max span: 0
+	New bool `yaml:"new"`
+	// MaxHistory int `yaml:"max_history"`
+	// MaxSpan    int `yaml:"max_span"`
+
+	// logging: quiet | informative | verbose
+	LogLevel string `yaml:"log_level"`
 }
 
 type AgentConfig struct {
@@ -153,6 +178,28 @@ type AgentConfig struct {
 
 	// chat|image-get|docker/aider oh gptr
 	Adapter string `yaml:"adapter"`
+
+	//
+	//
+	MaxTurns int `yaml:"max_turns"`
+	MaxTime  int `yaml:"max_time"`
+
+	// experimental
+
+	// user message
+	Message string `yaml:"message"`
+
+	// output format: json | text
+	Format string `yaml:"format"`
+
+	// memory
+	// max history: 0 max span: 0
+	New bool `yaml:"new"`
+	// MaxHistory int `yaml:"max_history"`
+	// MaxSpan    int `yaml:"max_span"`
+
+	// logging: quiet | info[rmative] | verbose | trace
+	LogLevel string `yaml:"log_level"`
 
 	//
 	Store AssetStore `yaml:"-"`

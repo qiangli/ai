@@ -20,6 +20,7 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	// mainly when stdin is not desirable or possible
 	// e.g. for testing or in vscode debug mode
+	// prepend to other types of input
 	flags.String("message", "", "Specify input message. Skip stdin")
 	flags.MarkHidden("message")
 
@@ -103,13 +104,14 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("image-viewer")
 
 	//
+	flags.String("log-level", "", "Set log level.")
+	flags.MarkHidden("log-level")
 	flags.Bool("quiet", false, "Operate quietly. Only show final response")
 	flags.Bool("verbose", false, "Show progress and debugging information")
 	flags.Bool("trace", false, "Turn on tracing")
 
 	//
 	flags.Bool("internal", false, "Enable internal agents and tools")
-
 	flags.MarkHidden("internal")
 
 	//

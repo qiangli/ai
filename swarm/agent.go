@@ -93,15 +93,13 @@ func ListAgents(ctx context.Context, app *api.AppConfig) (map[string]*api.Agents
 			// Register the agents configuration
 			agents[agent.Name] = v
 			log.GetLogger(ctx).Debugf("Registered agent: %s\n", agent.Name)
+
 			if v.MaxTurns == 0 {
 				v.MaxTurns = defaultMaxTurns
 			}
 			if v.MaxTime == 0 {
 				v.MaxTime = defaultMaxTime
 			}
-			// upper limit
-			v.MaxTurns = min(v.MaxTurns, maxTurnsLimit)
-			v.MaxTime = min(v.MaxTime, maxTimeLimit)
 		}
 	}
 
@@ -269,22 +267,13 @@ func CreateAgent(ctx context.Context, vars *api.Vars, name string, input *api.Us
 		return nil, err
 	}
 
-	config, err := agentLoader(name)
+	ac, err := agentLoader(name)
 	if err != nil {
 		return nil, err
 	}
 
 	findAgentConfig := func(n string) (*api.AgentConfig, error) {
-		// check for more specific agent first
-		// if c != "" {
-		// 	ap := fmt.Sprintf("%s/%s", n, c)
-		// 	for _, a := range config.Agents {
-		// 		if a.Name == ap {
-		// 			return a, nil
-		// 		}
-		// 	}
-		// }
-		for _, a := range config.Agents {
+		for _, a := range ac.Agents {
 			if a.Name == n {
 				return a, nil
 			}
@@ -334,40 +323,47 @@ func CreateAgent(ctx context.Context, vars *api.Vars, name string, input *api.Us
 		return a, nil
 	}
 
-	newAgent := func(ac *api.AgentConfig, vars *api.Vars) (*api.Agent, error) {
+	newAgent := func(c *api.AgentConfig, vars *api.Vars) (*api.Agent, error) {
 		agent := api.Agent{
-			Adapter: ac.Adapter,
+			Adapter: c.Adapter,
 			//
-			Name:        ac.Name,
-			Display:     ac.Display,
-			Description: ac.Description,
+			Name:        c.Name,
+			Display:     c.Display,
+			Description: c.Description,
 			//
-			Instruction: ac.Instruction,
+			Instruction: c.Instruction,
 			//
-			Config: config,
+			Config: ac,
 			//
 			RawInput: input,
-			MaxTurns: config.MaxTurns,
-			MaxTime:  config.MaxTime,
 			//
-			Dependencies: ac.Dependencies,
+			MaxTurns: nzl(vars.Config.MaxTurns, c.MaxTurns, ac.MaxTurns),
+			MaxTime:  nzl(vars.Config.MaxTime, c.MaxTime, ac.MaxTime),
+			//
+			LogLevel: api.Quiet,
+			Message:  nvl(vars.Config.Message, c.Message, ac.Message),
+			Format:   nvl(vars.Config.Format, c.Format, ac.Format),
+			New:      nbl(vars.Config.New, c.New, ac.New),
+			//
+			Dependencies: c.Dependencies,
 		}
 
-		model, err := modelLoader(ac.Model)
+		//
+		agent.LogLevel = api.ToLogLevel(nvl(vars.Config.LogLevel, c.LogLevel, ac.LogLevel))
+
+		// hard upper limit
+		agent.MaxTurns = min(agent.MaxTurns, maxTurnsLimit)
+		agent.MaxTime = min(agent.MaxTime, maxTimeLimit)
+
+		model, err := modelLoader(c.Model)
 		if err != nil {
-			return nil, fmt.Errorf("failed to load model %q: %v", ac.Model, err)
+			return nil, fmt.Errorf("failed to load model %q: %v", c.Model, err)
 		}
 		agent.Model = model
-		// agent.Model.ApiKey = func() (string, error) {
-		// 	ak := getApiKey(model.ApiKey)
-		// 	if ak != "" {
-		// 		return ak, nil
-		// 	}
-		// 	return "", fmt.Errorf("api key not found: %s", model.ApiKey)
-		// }
+
 		// tools
 		funcMap := make(map[string]*api.ToolFunc)
-		for _, f := range ac.Functions {
+		for _, f := range c.Functions {
 			// all
 			if f == "*" || f == "*:" || f == "*:*" {
 				funcs, err := toolLoader("*:*")
@@ -413,37 +409,37 @@ func CreateAgent(ctx context.Context, vars *api.Vars, name string, input *api.Us
 		}
 		agent.Tools = funcs
 
-		if ac.Advices != nil {
+		if c.Advices != nil {
 			// TODO
-			return nil, fmt.Errorf("advice no supported: %+v", ac.Advices)
-			// if ac.Advices.Before != "" {
-			// 	if ad, ok := adviceMap[ac.Advices.Before]; ok {
+			return nil, fmt.Errorf("advice no supported: %+v", c.Advices)
+			// if c.Advices.Before != "" {
+			// 	if ad, ok := adviceMap[c.Advices.Before]; ok {
 			// 		agent.BeforeAdvice = ad
 			// 	} else {
-			// 		return nil, fmt.Errorf("no such advice: %s", ac.Advices.Before)
+			// 		return nil, fmt.Errorf("no such advice: %s", c.Advices.Before)
 			// 	}
 			// }
-			// if ac.Advices.After != "" {
-			// 	if ad, ok := adviceMap[ac.Advices.After]; ok {
+			// if c.Advices.After != "" {
+			// 	if ad, ok := adviceMap[c.Advices.After]; ok {
 			// 		agent.AfterAdvice = ad
 			// 	} else {
-			// 		return nil, fmt.Errorf("no such advice: %s", ac.Advices.After)
+			// 		return nil, fmt.Errorf("no such advice: %s", c.Advices.After)
 			// 	}
 			// }
-			// if ac.Advices.Around != "" {
-			// 	if ad, ok := adviceMap[ac.Advices.Around]; ok {
+			// if c.Advices.Around != "" {
+			// 	if ad, ok := adviceMap[c.Advices.Around]; ok {
 			// 		agent.AroundAdvice = ad
 			// 	} else {
-			// 		return nil, fmt.Errorf("no such advice: %s", ac.Advices.Around)
+			// 		return nil, fmt.Errorf("no such advice: %s", c.Advices.Around)
 			// 	}
 			// }
 		}
-		if ac.Entrypoint != "" {
-			return nil, fmt.Errorf("entrypoint not supported: %s", ac.Entrypoint)
-			// if ep, ok := vars.EntrypointMap[ac.Entrypoint]; ok {
+		if c.Entrypoint != "" {
+			return nil, fmt.Errorf("entrypoint not supported: %s", c.Entrypoint)
+			// if ep, ok := vars.EntrypointMap[c.Entrypoint]; ok {
 			// 	agent.Entrypoint = ep
 			// } else {
-			// 	return nil, fmt.Errorf("no such entrypoint: %s", ac.Entrypoint)
+			// 	return nil, fmt.Errorf("no such entrypoint: %s", c.Entrypoint)
 			// }
 		}
 

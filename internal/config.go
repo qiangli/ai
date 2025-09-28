@@ -143,15 +143,15 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	}
 
 	//
-	app.LogLevel = api.Informative
+	app.LogLevel = viper.GetString("log_level")
 	if viper.GetBool("trace") {
-		app.LogLevel = api.Tracing
+		app.LogLevel = "trace"
 	}
 	if viper.GetBool("verbose") {
-		app.LogLevel = api.Verbose
+		app.LogLevel = "verbose"
 	}
 	if viper.GetBool("quiet") {
-		app.LogLevel = api.Quiet
+		app.LogLevel = "quiet"
 	}
 
 	app.Unsafe = viper.GetBool("unsafe")

@@ -97,7 +97,7 @@
 				"AI_DEBUG": "true",
 			},
 			"args": [
-				"--verbose",
+				// "--verbose",
 				"@joker",
 				"--resource",
 				"resource.json",
@@ -120,9 +120,9 @@
 				"AI_DEBUG": "true",
 			},
 			"args": [
-				"--verbose",
+				// "--verbose",
 				"@git",
-				"--new",
+				// "--new",
 				"--message",
 				"write a short commit message for the code changes",
 				"--file",

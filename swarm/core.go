@@ -56,6 +56,9 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 			return err
 		}
 
+		// reset log level
+		log.GetLogger(ctx).SetLogLevel(agent.LogLevel)
+
 		// dependencies
 		for _, dep := range agent.Dependencies {
 			depReq := &api.Request{

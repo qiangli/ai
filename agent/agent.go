@@ -20,7 +20,7 @@ func RunAgent(ctx context.Context, cfg *api.AppConfig) error {
 		return err
 	}
 
-	if in.IsEmpty() {
+	if in.IsEmpty() && cfg.Message == "" {
 		return internal.NewUserInputError("no query provided")
 	}
 
@@ -34,23 +34,6 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	name := input.Agent
 	// command := input.Command
 	log.GetLogger(ctx).Debugf("Running agent %q with swarm\n", name)
-
-	//
-	// if v, err := swarm.NewAgentCreator(cfg); err != nil {
-	// 	return err
-	// } else {
-	// 	cfg.AgentCreator = v
-	// }
-	// cfg.AgentHandler = swarm.AgentHandler
-	// cfg.ToolCaller = swarm.NewToolCaller(cfg)
-
-	//
-	// if cfg.Env == nil {
-	// 	cfg.Env = make(map[string]string)
-	// }
-	// cfg.Env["OPENAI_API_KEY"] = os.Getenv("OPENAI_API_KEY")
-	// cfg.Env["GEMINI_API_KEY"] = os.Getenv("GEMINI_API_KEY")
-	// cfg.Env["ANTHROPIC_API_KEY"] = os.Getenv("ANTHROPIC_API_KEY")
 
 	//
 	vars, err := InitVars(cfg)

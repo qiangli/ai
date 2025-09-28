@@ -7,22 +7,50 @@ import (
 type LogLevel int
 
 const (
-	Quiet LogLevel = iota
+	Quiet LogLevel = iota + 1
 	Informative
 	Verbose
 	Tracing
 )
+
+func LogLevelToString(level LogLevel) string {
+	switch level {
+	case Quiet:
+		return "Quiet"
+	case Informative:
+		return "Informative"
+	case Verbose:
+		return "Verbose"
+	case Tracing:
+		return "Tracing"
+	default:
+		return ""
+	}
+}
+
+func ToLogLevel(level string) LogLevel {
+
+	switch strings.ToLower(level) {
+	case "quiet":
+		return Quiet
+	case "info", "informative":
+		return Informative
+	case "debug", "verbose":
+		return Verbose
+	case "trace", "tracing":
+		return Tracing
+	default:
+		return 0
+	}
+}
 
 type AppConfig struct {
 	Version string
 
 	ConfigFile string
 
+	// rename WebResource?
 	AgentResource *AgentResource
-
-	// AgentCreator AgentCreator
-	// AgentHandler AgentHandler
-	// ToolCaller   ToolCaller
 
 	// ToolSystemCommands []string
 	SystemTools []*ToolFunc
@@ -81,13 +109,8 @@ type AppConfig struct {
 
 	Models string
 
-	// Log string
-
-	// // TODO change to log level?
-	// Trace bool
-	// Debug bool
-	// Quiet bool
-	LogLevel LogLevel
+	//
+	LogLevel string
 
 	// Internal bool
 
@@ -119,9 +142,6 @@ type AppConfig struct {
 	// dry run
 	DryRun        bool
 	DryRunContent string
-
-	// experimental
-	// Env map[string]string
 }
 
 // Clone is a shallow copy of member fields of the configration
@@ -183,19 +203,19 @@ func (cfg *AppConfig) Clone() *AppConfig {
 }
 
 func (cfg *AppConfig) IsQuiet() bool {
-	return cfg.LogLevel == Quiet
+	return ToLogLevel(cfg.LogLevel) == Quiet
 }
 
 func (cfg *AppConfig) IsInformative() bool {
-	return cfg.LogLevel == Informative
+	return ToLogLevel(cfg.LogLevel) == Informative
 }
 
 func (cfg *AppConfig) IsVerbose() bool {
-	return cfg.LogLevel == Verbose
+	return ToLogLevel(cfg.LogLevel) == Verbose
 }
 
 func (cfg *AppConfig) IsTracing() bool {
-	return cfg.LogLevel == Tracing
+	return ToLogLevel(cfg.LogLevel) == Tracing
 }
 
 func (r *AppConfig) IsStdin() bool {

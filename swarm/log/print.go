@@ -29,7 +29,7 @@ type defaultLogger struct {
 
 func newDefaultLogger() *defaultLogger {
 	logger := &defaultLogger{
-		logLevel:     Informative,
+		logLevel:     Quiet,
 		printLogger:  NewPrinter(os.Stdout, false, 0),
 		debugLogger:  NewPrinter(os.Stderr, false, 500),
 		infoLogger:   NewPrinter(os.Stderr, false, 0),

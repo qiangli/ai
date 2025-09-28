@@ -89,13 +89,34 @@ func split2(s string, sep string, val string) (string, string) {
 	return p1, p2
 }
 
-func nvl(sa ...string) string {
-	for _, v := range sa {
+// return the first non empty string
+func nvl(a ...string) string {
+	for _, v := range a {
 		if v != "" {
 			return v
 		}
 	}
 	return ""
+}
+
+// return first true value
+func nbl(a ...bool) bool {
+	for _, v := range a {
+		if v {
+			return v
+		}
+	}
+	return false
+}
+
+// return the first non zero value
+func nzl(a ...int) int {
+	for _, v := range a {
+		if v > 0 {
+			return v
+		}
+	}
+	return 0
 }
 
 // trim name if it ends in .yaml/.yml
