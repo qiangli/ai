@@ -335,15 +335,15 @@ func NewToolCaller() api.ToolCaller {
 			if !ok {
 				return nil, fmt.Errorf("tool not found: %s", name)
 			}
-			return callTool(vars, v, ctx, name, args)
+			return callTool(ctx, vars, agent, v, name, args)
 		}
 	}
 }
 
-func callTool(vars *api.Vars, v *api.ToolFunc, ctx context.Context, name string, args map[string]any) (*api.Result, error) {
+func callTool(ctx context.Context, vars *api.Vars, agent *api.Agent, v *api.ToolFunc, name string, args map[string]any) (*api.Result, error) {
 	log.GetLogger(ctx).Infof("⣿ %s %+v\n", name, args)
 
-	result, err := dispatchTool(ctx, v, vars, name, args)
+	result, err := dispatchTool(ctx, vars, agent, v, name, args)
 
 	if err != nil {
 		log.GetLogger(ctx).Errorf("❌ %s\n", err)
@@ -366,7 +366,7 @@ func head(s string, maxLen int) string {
 }
 
 // dispatch tool by name (kit__name) and args
-func dispatchTool(ctx context.Context, v *api.ToolFunc, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
+func dispatchTool(ctx context.Context, vars *api.Vars, agent *api.Agent, v *api.ToolFunc, name string, args map[string]any) (*api.Result, error) {
 	// spinner
 	sp := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 	sp.Suffix = " calling " + name + "\n"
@@ -394,7 +394,7 @@ func dispatchTool(ctx context.Context, v *api.ToolFunc, vars *api.Vars, name str
 			Value: out,
 		}, err
 	case api.ToolTypeSystem:
-		local := newLocalSystem()
+		local := newLocalSystem(agent)
 		return local.Call(ctx, vars, v, args)
 	case api.ToolTypeWeb:
 		out, err := callWebTool(ctx, vars, v, args)

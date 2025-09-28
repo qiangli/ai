@@ -130,9 +130,11 @@ type LocalSystem struct {
 	tool *SystemKit
 }
 
-func newLocalSystem() *LocalSystem {
+func newLocalSystem(agent *api.Agent) *LocalSystem {
 	return &LocalSystem{
-		tool: &SystemKit{},
+		tool: &SystemKit{
+			agent: agent,
+		},
 	}
 }
 
@@ -141,6 +143,7 @@ func (ls LocalSystem) Call(ctx context.Context, vars *api.Vars, f *api.ToolFunc,
 }
 
 type SystemKit struct {
+	agent *api.Agent
 }
 
 func (ls LocalSystem) callSystemTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (*api.Result, error) {
