@@ -1,0 +1,45 @@
+###
+kit: "ai"
+type: "func"
+
+tools:
+  - name: "list_agents"
+    description: "List all AI agents created by or shared with the current user"
+    parameters:
+      type: object
+      properties: {}
+
+  - name: "list_models"
+    description: "List all AI language model aliases created by the current user"
+    parameters:
+      type: object
+      properties: {}
+
+  - name: "list_tools"
+    description: "List all AI tool functions created by the current user"
+    parameters:
+      type: object
+      properties: {}
+
+  - name: "agent_info"
+    description: "Get information about a specific agent"
+    parameters:
+      type: "object"
+      properties:
+        agent:
+          type: "string"
+          description: "The name of the agent"
+      required:
+        - "agent"
+
+  - name: "agent_transfer"
+    description: "Transfer the current task to a specific agent"
+    internal: false
+    parameters:
+      type: "object"
+      properties:
+        agent:
+          type: "string"
+          description: "The name of the agent"
+      required:
+        - "agent"

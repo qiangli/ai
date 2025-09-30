@@ -1,0 +1,115 @@
+###
+type: "system"
+
+tools:
+  # - name: "read_stdin"
+  #   description: "Read input from stdin"
+  #   internal: true
+  #   parameters:
+  #     type: "object"
+  #     properties: {}
+  #     required: []
+
+  # 
+  # - name: "paste_from_clipboard"
+  #   description: "Read input from the system clipboard"
+  #   internal: true
+  #   parameters:
+  #     type: "object"
+  #     properties: {}
+  #     required: []
+
+  # - name: "paste_from_clipboard_wait"
+  #   description: "Read input from the system clipboard and wait for confirmation"
+  #   parameters:
+  #     type: "object"
+  #     properties: {}
+  #     required: []
+
+  # causing gemini infinite loop 
+  # - name: "write_stdout"
+  #   description: "Write output to the terminal console"
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       content:
+  #         type: "string"
+  #         description: "Content to write to the console"
+  #     required: ["content"]
+  
+  # - name: "copy_to_clipboard"
+  #   description: "Copy content to clipboard and overwrite its original content"
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       content:
+  #         type: "string"
+  #         description: "Content to write to the clipboard"
+  #     required: ["content"]
+
+  # - name: "copy_to_clipboard_append"
+  #   description: "Append content to clipboard"
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       content:
+  #         type: "string"
+  #         description: "Content to append to the clipboard"
+  #     required: ["content"]
+
+  # - name: "get_user_text_input"
+  #   description: "Prompt the user to provide clarifying information or additional details about their query."
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       prompt:
+  #         type: "string"
+  #         description: "The prompt for input"
+  #         example: "Please provide more details"
+  #         # maxLength: 100
+  #         # minLength: 1
+  #     required: ["prompt"]
+
+  - name: "confirm"
+    description: "Prompt the user for a yes/no confirmation and return their response as a boolean value."
+    parameters:
+      type: "object"
+      properties:
+        prompt:
+          type: "string"
+          description: "The prompt for confirmation"
+          example: "Do you want to continue?"
+      required: ["prompt"]
+
+  # - name: "get_user_choice_input"
+  #   description: "Prompt the user to select an option from a provided list of options."
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       prompt:
+  #         type: "string"
+  #         description: "The prompt for selection"
+  #         example: "Please make a choice"
+  #         # maxLength: 100
+  #         # minLength: 1
+  #       choices:
+  #         type: "array"
+  #         items:
+  #           type: "string"
+  #         description: "List of options to choose from"
+  #         example: ["red", "blue", "green"]
+  #     required: ["prompt", "choices"]
+
+  # - name: "get_file_content_input"
+  #   description: "Prompt the user to select and upload a file from their local system. The prompt can specify a required filename, file type, or allow selection from a specific directory."
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       prompt:
+  #         type: "string"
+  #         description: "Instructions displayed to the user to guide file selection (e.g., specify file type, recency, or purpose)."
+  #         example: "Please upload a recent passport photo taken within the last 6 months."
+  #       pathname:
+  #         type: "string"
+  #         description: "An optional filename or base directory path used as a default location or filter suggestion for the file picker."
+  #         example: "passport.png"

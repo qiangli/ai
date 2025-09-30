@@ -1,0 +1,130 @@
+package conf
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"strings"
+	"text/template"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+)
+
+func applyTemplate(tpl string, data any, funcMap template.FuncMap) (string, error) {
+	t, err := template.New("swarm").Funcs(funcMap).Parse(tpl)
+	if err != nil {
+		return "", err
+	}
+
+	var buf bytes.Buffer
+	if err := t.Execute(&buf, data); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
+}
+
+func clip(s string, max int) string {
+	if max > 0 && len(s) > max {
+		trailing := "..."
+		if s[len(s)-1] == '\n' || s[len(s)-1] == '\r' {
+			trailing = "...\n"
+		}
+		s = s[:max] + trailing
+	}
+	return s
+}
+
+func structToMap(input any) (map[string]any, error) {
+	if result, ok := input.(map[string]any); ok {
+		return result, nil
+	}
+
+	data, err := json.Marshal(input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal to JSON: %v", err)
+	}
+
+	var obj map[string]any
+	if err := json.Unmarshal(data, &obj); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal to map[string]any: %v", err)
+	}
+
+	return obj, nil
+}
+
+func toPascalCase(name string) string {
+	words := strings.FieldsFunc(name, func(r rune) bool {
+		return r == '_' || r == '-'
+	})
+	tc := cases.Title(language.English)
+
+	for i := range words {
+		words[i] = tc.String(words[i])
+	}
+	return strings.Join(words, "")
+}
+
+// baseCommand returns the last part of the string separated by /.
+func baseCommand(s string) string {
+	s = strings.TrimSpace(s)
+	s = strings.Trim(s, "/")
+	sa := strings.Split(s, "/")
+	return sa[len(sa)-1]
+}
+
+// split2 splits string s by sep into two parts. if there is only one part,
+// use val as the second part
+func split2(s string, sep string, val string) (string, string) {
+	var p1, p2 string
+	parts := strings.SplitN(s, sep, 2)
+	if len(parts) == 1 {
+		p1 = parts[0]
+		p2 = val
+	} else {
+		p1 = parts[0]
+		p2 = parts[1]
+	}
+	return p1, p2
+}
+
+// return the first non empty string
+func nvl(a ...string) string {
+	for _, v := range a {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+// return first true value
+func nbl(a ...bool) bool {
+	for _, v := range a {
+		if v {
+			return v
+		}
+	}
+	return false
+}
+
+// return the first non zero value
+func nzl(a ...int) int {
+	for _, v := range a {
+		if v > 0 {
+			return v
+		}
+	}
+	return 0
+}
+
+// trim name if it ends in .yaml/.yml
+func trimYaml(name string) string {
+	if strings.HasSuffix(name, ".yaml") {
+		name = strings.TrimSuffix(name, ".yaml")
+	} else if strings.HasSuffix(name, ".yml") {
+		name = strings.TrimSuffix(name, ".yml")
+	}
+	return name
+}

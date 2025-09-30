@@ -1,0 +1,16 @@
+###
+new: false
+log_level: "info"
+agents:
+  - name: "web"
+    display: "🌐 Web"
+    description: "Search the web and fetch the content from a URL."
+    model: default/any
+    instruction:
+      content: |
+        Your task is to search the internet for specific topics and retrieve the content from the URL
+        based on user's query using the available tools
+    functions:
+      - "web:*"
+      - "ddg:*"
+###

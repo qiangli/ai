@@ -12,7 +12,7 @@ import (
 	"github.com/mattn/go-isatty"
 	"golang.org/x/term"
 
-	"github.com/qiangli/ai/agent"
+	"github.com/qiangli/ai/internal/agent"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
 )

@@ -1,0 +1,22 @@
+###
+kit: "user"
+type: "func"
+
+tools:
+  - name: "who_am_i"
+    description: "Show the profile of the current user including name, avatar url, and email address."
+    parameters:
+      type: object
+      properties: {}
+
+  - name: "list_members"
+    description: "List all member users created and owneed by the current user."
+    parameters:
+      type: object
+      properties: {}
+
+  - name: "list_owners"
+    description: "Retrieve email addresses of owners who have created and shared their agents with the current user."
+    parameters:
+      type: object
+      properties: {}

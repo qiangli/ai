@@ -81,9 +81,10 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("max-span")
 
 	//
-	flags.Int("max-turns", 16, "Max number of turns")
-	flags.Int("max-time", 3600, "Max number of seconds for timeout")
+	flags.Int("max-turns", 0, "Max number of turns")
+	flags.Int("max-time", 0, "Max number of seconds for timeout")
 
+	flags.MarkHidden("max-turns")
 	flags.MarkHidden("max-time")
 
 	// mcp

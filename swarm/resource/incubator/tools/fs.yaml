@@ -1,0 +1,87 @@
+###
+type: "system"
+
+tools:
+  - name: "list_directory"
+    description: "Get a detailed listing of all files and directories in a specified path."
+    parameters:
+      type: "object"
+      properties:
+        path:
+          type: "string"
+          description: "Path of the directory to list"
+      required: ["path"]
+
+  - name: "create_directory"
+    description: "Create a new directory or ensure a directory exists."
+    parameters:
+      type: "object"
+      properties:
+        path:
+          type: "string"
+          description: "Path of the directory to create"
+      required: ["path"]
+
+  - name: "rename_file"
+    description: "Rename files and directories."
+    parameters:
+      type: "object"
+      properties:
+        source:
+          type: "string"
+          description: "Source path of the file or directory"
+        destination:
+          type: "string"
+          description: "Destination path"
+      required: ["source", "destination"]
+
+  - name: "get_file_info"
+    description: "Retrieve detailed metadata about a file or directory."
+    parameters:
+      type: "object"
+      properties:
+        path:
+          type: "string"
+          description: "Path to the file or directory"
+      required: ["path"]
+
+  - name: "read_file"
+    description: "Read the complete contents of a file from the file system."
+    parameters:
+      type: "object"
+      properties:
+        path:
+          type: "string"
+          description: "Path to the file to read"
+      required: ["path"]
+
+  - name: "write_file"
+    description: "Create a new file or overwrite an existing file with new content."
+    parameters:
+      type: "object"
+      properties:
+        path:
+          type: "string"
+          description: "Path where to write the file"
+        content:
+          type: "string"
+          description: "Content to write to the file"
+      required: ["path", "content"]
+  
+  - name: "search_files"
+    description: "Recursively search for a regex pattern within files in a specified directory path."
+    parameters:
+      type: "object"
+      properties:
+        pattern:
+          type: "string"
+          description: "Regular expression to match within files."
+        path:
+          type: "string"
+          description: "Directory path to search, including all its subdirectories."
+        exclude:
+          type: "array"
+          items:
+            type: "string"
+          description: "List of filename patterns to exclude from the search."
+      required: ["pattern", "path"]

@@ -12,9 +12,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/qiangli/ai/agent"
+	"github.com/qiangli/ai/internal/agent"
+	"github.com/qiangli/ai/internal/agent/conf"
 	"github.com/qiangli/ai/internal/util"
-	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
 )
@@ -244,7 +244,7 @@ AI will choose an appropriate agent based on your message if no agent is specifi
 * If you specify agents at both the beginning and end of a message, the last one takes precedence.
 * You can place command options anywhere in your message. To include options as part of the message, use quotes or escape '\'.
 `
-	agents, _ := swarm.ListAgents(ctx, vars.Config)
+	agents, _ := conf.ListAgents(ctx, vars.Config)
 
 	dict := make(map[string]*api.AgentConfig)
 	for _, v := range agents {
@@ -328,7 +328,7 @@ Tools are used by agents to perform specific tasks. They are automatically selec
 
 	list := []string{}
 
-	tools, _ := swarm.ListTools(ctx, vars.Config)
+	tools, _ := conf.ListTools(ctx, vars.Config)
 
 	for _, v := range tools {
 		if v.Type == "agent" {

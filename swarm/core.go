@@ -18,15 +18,6 @@ type Swarm struct {
 	Handler api.AgentHandler
 }
 
-// default
-func New(vars *api.Vars) *Swarm {
-	return &Swarm{
-		Vars:    vars,
-		Creator: NewAgentCreator(),
-		Handler: NewAgentHandler(),
-	}
-}
-
 // Function to clear all environment variables execep essential ones
 func clearAllEnv() {
 	essentialEnv := []string{"PATH", "PWD", "HOME", "USER", "SHELL"}

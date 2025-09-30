@@ -9,8 +9,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/qiangli/ai/agent"
 	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/agent"
 	"github.com/qiangli/ai/internal/bubble"
 	"github.com/qiangli/ai/internal/watch"
 	"github.com/qiangli/ai/shell"

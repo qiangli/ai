@@ -29,7 +29,7 @@ type CommandCheck struct {
 }
 
 // evaluateCommand consults LLM to evaluate the safety of a command
-func evaluateCommand(ctx context.Context, vars *api.Vars, agent *api.Agent, command string, args []string) (bool, error) {
+func EvaluateCommand(ctx context.Context, vars *api.Vars, agent *api.Agent, command string, args []string) (bool, error) {
 	if vars.Config.Unsafe {
 		log.GetLogger(ctx).Infof("⚠️ unsafe mode - skipping security check\n")
 		return true, nil
@@ -49,20 +49,20 @@ func evaluateCommand(ctx context.Context, vars *api.Vars, agent *api.Agent, comm
 		return false, err
 	}
 
-	toolsMap := make(map[string]*api.ToolFunc)
-	for _, v := range vars.Config.SystemTools {
-		toolsMap[v.ID()] = v
-	}
+	// toolsMap := make(map[string]*api.ToolFunc)
+	// for _, v := range vars.Config.SystemTools {
+	// 	toolsMap[v.ID()] = v
+	// }
 
-	runTool := func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
-		log.GetLogger(ctx).Debugf("run tool: %s %+v\n", name, args)
-		v, ok := toolsMap[name]
-		if !ok {
-			return nil, fmt.Errorf("not found: %s", name)
-		}
-		out, err := callTool(ctx, vars, agent, v, name, args)
-		return out, err
-	}
+	// runTool := func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
+	// 	log.GetLogger(ctx).Debugf("run tool: %s %+v\n", name, args)
+	// 	v, ok := toolsMap[name]
+	// 	if !ok {
+	// 		return nil, fmt.Errorf("not found: %s", name)
+	// 	}
+	// 	out, err := callTool(ctx, vars, agent, v, name, args)
+	// 	return out, err
+	// }
 
 	req := &llm.Request{
 		Model: agent.Model,
@@ -77,7 +77,7 @@ func evaluateCommand(ctx context.Context, vars *api.Vars, agent *api.Agent, comm
 			},
 		},
 		// Tools:    vars.Config.SystemTools,
-		RunTool:  runTool,
+		// RunTool:  runTool,
 		MaxTurns: vars.Config.MaxTurns,
 		Vars:     vars,
 	}

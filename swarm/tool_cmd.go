@@ -21,8 +21,8 @@ var _exec = _os
 
 var _fs vfs.FileSystem = &vfs.VirtualFS{}
 
-// runCommand executes a shell command with args and returns the output
-func runCommand(ctx context.Context, command string, args []string) (string, error) {
+// RunCommand executes a shell command with args and returns the output
+func RunCommand(ctx context.Context, command string, args []string) (string, error) {
 	log.GetLogger(ctx).Debugf("🏃 %s (%d) %+v\n", command, len(args), args)
 
 	var out []byte
@@ -42,9 +42,9 @@ func runCommand(ctx context.Context, command string, args []string) (string, err
 	return string(out), nil
 }
 
-// runCommandVerbose executes a shell command with arguments,
+// RunCommandVerbose executes a shell command with arguments,
 // prints stdout/stderr in real-time, and returns the combined output and error.
-func runCommandVerbose(ctx context.Context, command string, args []string) (string, error) {
+func RunCommandVerbose(ctx context.Context, command string, args []string) (string, error) {
 	log.GetLogger(ctx).Debugf("🏃 %s (%d) %+v\n", command, len(args), args)
 
 	var cmd *exec.Cmd
@@ -95,34 +95,34 @@ func runCommandVerbose(ctx context.Context, command string, args []string) (stri
 	return out, nil
 }
 
-func execCommand(ctx context.Context, command string, args []string, verbose bool) (string, error) {
+func ExecCommand(ctx context.Context, command string, args []string, verbose bool) (string, error) {
 	if verbose {
-		return runCommandVerbose(ctx, command, args)
+		return RunCommandVerbose(ctx, command, args)
 	}
-	return runCommand(ctx, command, args)
+	return RunCommand(ctx, command, args)
 }
 
-func runRestricted(ctx context.Context, vars *api.Vars, agent *api.Agent, command string, args []string) (string, error) {
+func RunRestricted(ctx context.Context, vars *api.Vars, agent *api.Agent, command string, args []string) (string, error) {
 	if isAllowed(vars.Config.AllowList, command) {
-		return execCommand(ctx, command, args, vars.Config.IsVerbose())
+		return ExecCommand(ctx, command, args, vars.Config.IsVerbose())
 	}
 
 	if isDenied(vars.Config.DenyList, command) {
 		log.GetLogger(ctx).Errorf("\n❌ restricted\n")
 		log.GetLogger(ctx).Infof("%s %v\n", command, strings.Join(args, " "))
 		if answer, err := bubble.Confirm("Continue?"); err == nil && answer == confirm.Yes {
-			return execCommand(ctx, command, args, vars.Config.IsVerbose())
+			return ExecCommand(ctx, command, args, vars.Config.IsVerbose())
 		}
 
 		return "", fmt.Errorf("%s: Not allowed", command)
 	}
 
-	safe, err := evaluateCommand(ctx, vars, agent, command, args)
+	safe, err := EvaluateCommand(ctx, vars, agent, command, args)
 	if err != nil {
 		return "", err
 	}
 	if safe {
-		return execCommand(ctx, command, args, vars.Config.IsVerbose())
+		return ExecCommand(ctx, command, args, vars.Config.IsVerbose())
 	}
 
 	return "", fmt.Errorf("%s %s: Not permitted", command, strings.Join(args, " "))

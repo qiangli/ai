@@ -73,7 +73,7 @@ func TestEvaluateCommand(t *testing.T) {
 	// vars.ToolRegistry = toolMap
 
 	for _, test := range tests {
-		resp, err := evaluateCommand(ctx, vars, agent, test.command, test.args)
+		resp, err := EvaluateCommand(ctx, vars, agent, test.command, test.args)
 		if err != nil {
 			t.Errorf("evaluate command: %v\n%+v", err, resp)
 			return
