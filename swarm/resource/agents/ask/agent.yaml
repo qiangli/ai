@@ -13,5 +13,4 @@ agents:
     functions:
       - "web:*"
       - "ddg:*"
-      - "bing:*"
 
