@@ -16,10 +16,6 @@ func TestEvaluateCommand(t *testing.T) {
 	}
 
 	m := &api.Model{
-		// gpt-4o-mini is no good
-		// Model:   "gpt-4o-mini",
-		// the following two are good
-		// Model:    "gpt-5-mini",
 		Model:    "gpt-5-nano",
 		BaseUrl:  "https://api.openai.com/v1",
 		ApiKey:   os.Getenv("OPENAI_API_KEY"),
@@ -61,16 +57,6 @@ func TestEvaluateCommand(t *testing.T) {
 		// {"find", []string{"./", "-type", "f", "-name", "*.yaml", "-exec", "awk", "/items:/{if(!match($0,/^type: array/)){print FILENAME}}", "{}", "+", "|", "sort", "-u"}, true},
 		// {"find", []string{"./", "-name", "*.sql", "-exec", "grep", "-l", "s3_files", "{}", "\\;"}, true},
 	}
-
-	// tools, err := listTools(&api.AppConfig{})
-	// if err != nil {
-	// 	t.Errorf("list tools: %v", err)
-	// }
-	// var toolMap = make(map[string]*api.ToolFunc)
-	// for _, tool := range tools {
-	// 	toolMap[tool.ID()] = tool
-	// }
-	// vars.ToolRegistry = toolMap
 
 	for _, test := range tests {
 		resp, err := EvaluateCommand(ctx, vars, agent, test.command, test.args)
