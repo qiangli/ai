@@ -124,6 +124,8 @@ type AgentsConfig struct {
 	// agent app name
 	Name string `yaml:"name"`
 
+	// Active bool `yaml:"active"`
+
 	// [alias/]level
 	Model string `yaml:"model"`
 

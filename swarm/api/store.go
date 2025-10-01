@@ -199,11 +199,23 @@ type AssetStore interface {
 	ReadDir(name string) ([]DirEntry, error)
 	ReadFile(name string) ([]byte, error)
 	Resolve(parent string, name string) string
+	Search(query string) ([]byte, error)
 }
 
 type AssetManager interface {
 	GetStore(key string) (AssetStore, error)
 	AddStore(key string, store AssetStore)
 
-	CreateAgent(*Vars, *Request) (*Agent, error)
+	// @<[partial owner:]agent>
+	// owner, agentName := splitOwnerAgent(req.Agent)
+	// agent: [pack/]sub
+	// pack, sub := split2(agentName, "/", "")
+	SearchAgent(owner, pack string) (*AgentsConfig, error)
+	// FindAgent(ownr, pack string) (*AgentsConfig, error)
+
+	ListAgent(owner string) (map[string]*AgentsConfig, error)
+
+	FindToolkit(owner string, kit string) (*ToolsConfig, error)
+
+	FindModels(owner string, alias string) (*ModelsConfig, error)
 }

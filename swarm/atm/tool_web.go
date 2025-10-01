@@ -6,7 +6,7 @@ import (
 	// log "github.com/sirupsen/logrus"
 
 	"github.com/qiangli/ai/swarm/api"
-	swarmlog "github.com/qiangli/ai/swarm/log"
+	"github.com/qiangli/ai/swarm/log"
 	webtool "github.com/qiangli/ai/swarm/tool/web/util"
 )
 
@@ -21,7 +21,7 @@ func (r *WebKit) FetchContent(ctx context.Context, vars *api.Vars, name string, 
 		return "", err
 	}
 
-	swarmlog.GetLogger(ctx).Debugf("○ fetching url: %q\n", link)
+	log.GetLogger(ctx).Debugf("○ fetching url: %q\n", link)
 	return webtool.Fetch(ctx, link)
 }
 
@@ -35,7 +35,7 @@ func (r *WebKit) DownloadContent(ctx context.Context, vars *api.Vars, name strin
 		return "", err
 	}
 
-	swarmlog.GetLogger(ctx).Debugf("💾 downloading %q to %q \n", link, file)
+	log.GetLogger(ctx).Debugf("💾 downloading %q to %q \n", link, file)
 	return webtool.Download(ctx, link, file)
 }
 
@@ -56,7 +56,7 @@ func (r *WebKit) DdgSearch(ctx context.Context, vars *api.Vars, name string, arg
 		max = 10
 	}
 
-	swarmlog.GetLogger(ctx).Debugf("🦆 ddg query: %q max: %d\n", query, max)
+	log.GetLogger(ctx).Debugf("🦆 ddg query: %q max: %d\n", query, max)
 	return webtool.DDG(ctx, query, max)
 }
 
@@ -77,7 +77,7 @@ func (r *WebKit) BingSearch(ctx context.Context, vars *api.Vars, name string, ar
 		max = 10
 	}
 
-	swarmlog.GetLogger(ctx).Debugf("🅱️ bing query: %q max: %d\n", query, max)
+	log.GetLogger(ctx).Debugf("🅱️ bing query: %q max: %d\n", query, max)
 	return webtool.Bing(ctx, query, max)
 }
 
@@ -103,7 +103,7 @@ func (r *WebKit) BraveSearch(ctx context.Context, vars *api.Vars, name string, a
 		return "", err
 	}
 
-	swarmlog.GetLogger(ctx).Debugf("🦁 brave query: %q max: %d\n", query, max)
+	log.GetLogger(ctx).Debugf("🦁 brave query: %q max: %d\n", query, max)
 	return webtool.Brave(ctx, apiKey, query, max)
 }
 
@@ -131,7 +131,7 @@ func (r *WebKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string, 
 	}
 	seID, apiKey := split2(key, ":", "")
 
-	swarmlog.GetLogger(ctx).Debugf("🅖 google query: %q max: %d\n", query, max)
+	log.GetLogger(ctx).Debugf("🅖 google query: %q max: %d\n", query, max)
 	return webtool.Google(ctx, apiKey, seID, query, max)
 }
 

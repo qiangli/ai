@@ -1,6 +1,7 @@
 package conf
 
 import (
+	// "context"
 	"fmt"
 	"os"
 	"path"
@@ -10,7 +11,7 @@ import (
 
 	"dario.cat/mergo"
 	"github.com/hashicorp/golang-lru/v2/expirable"
-	log "github.com/sirupsen/logrus"
+	// log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 
 	// "github.com/qiangli/ai/swarm/agent/api/entity"
@@ -271,7 +272,7 @@ func LoadAgentsAsset(as api.AssetStore, root string, groups map[string]*api.Agen
 			return fmt.Errorf("failed to read agent asset %s: %w", dir.Name(), err)
 		}
 		if len(f) == 0 {
-			log.Debugf("agent file is empty %s\n", name)
+			// log.Debugf("agent file is empty %s\n", name)
 			continue
 		}
 		group, err := LoadAgentsData([][]byte{f})
@@ -279,7 +280,7 @@ func LoadAgentsAsset(as api.AssetStore, root string, groups map[string]*api.Agen
 			return fmt.Errorf("failed to load agent data from %s: %w", dir.Name(), err)
 		}
 		if group == nil {
-			log.Debugf("no agent found in %s\n", dir.Name())
+			// log.Debugf("no agent found in %s\n", dir.Name())
 			continue
 		}
 		// group.BaseDir = base
@@ -288,7 +289,7 @@ func LoadAgentsAsset(as api.AssetStore, root string, groups map[string]*api.Agen
 			group.Name = dir.Name()
 		}
 		if _, exists := groups[group.Name]; exists {
-			log.Debugf("duplicate agent name found: %s in %s, skipping\n", group.Name, dir.Name())
+			// log.Debugf("duplicate agent name found: %s in %s, skipping\n", group.Name, dir.Name())
 			continue
 		}
 
@@ -342,7 +343,7 @@ func CreateAgent(vars *api.Vars, auth *api.User, req *api.Request) (*api.Agent, 
 					return nil, fmt.Errorf("failed to read instruction from file %q for agent %q: %w", resource, a.Name, err)
 				}
 				a.Instruction.Content = string(content)
-				log.Debugf("Loaded instruction from file %q for agent %q\n", resource, a.Name)
+				// log.Debugf("Loaded instruction from file %q for agent %q\n", resource, a.Name)
 			case strings.HasPrefix(ps, "resource:"):
 				parts := strings.SplitN(a.Instruction.Content, ":", 2)
 				resource := strings.TrimSpace(parts[1])
@@ -355,7 +356,7 @@ func CreateAgent(vars *api.Vars, auth *api.User, req *api.Request) (*api.Agent, 
 					return nil, fmt.Errorf("failed to read instruction from resource %q for agent %q: %w", resource, a.Name, err)
 				}
 				a.Instruction.Content = string(content)
-				log.Debugf("Loaded instruction from resource %q for agent %q\n", resource, a.Name)
+				// log.Debugf("Loaded instruction from resource %q for agent %q\n", resource, a.Name)
 			}
 		}
 		return a, nil
@@ -477,7 +478,7 @@ func CreateAgent(vars *api.Vars, auth *api.User, req *api.Request) (*api.Agent, 
 		return nil, err
 	}
 
-	log.Debugf("creating agent. owner: %s agent: %s %s", owner, pack, sub)
+	// log.Debugf("creating agent. owner: %s agent: %s %s", owner, pack, sub)
 
 	creator := func() (*api.Agent, error) {
 		c, err := getAgentConfig(ac, pack, sub)

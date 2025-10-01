@@ -8,7 +8,7 @@ import (
 
 	"dario.cat/mergo"
 	"github.com/hashicorp/golang-lru/v2/expirable"
-	log "github.com/sirupsen/logrus"
+	// log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 
 	// "github.com/qiangli/ai/swarm/agent/internal/db"
@@ -194,7 +194,7 @@ func loadTools(tc *api.ToolsConfig, owner string) ([]*api.ToolFunc, error) {
 	// for _, tc := range kits {
 	if len(tc.Tools) > 0 {
 		for _, v := range tc.Tools {
-			log.Debugf("Kit: %s tool: %s - %s\n", tc.Kit, v.Name, v.Description)
+			// log.Debugf("Kit: %s tool: %s - %s\n", tc.Kit, v.Name, v.Description)
 
 			// condition check
 			if !conditionMet(v.Name, v.Condition) {

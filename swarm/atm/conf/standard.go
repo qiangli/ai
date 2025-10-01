@@ -3,7 +3,7 @@ package conf
 import (
 	"fmt"
 
-	log "github.com/sirupsen/logrus"
+	// log "github.com/sirupsen/logrus"
 
 	"github.com/qiangli/ai/swarm/api"
 	assetData "github.com/qiangli/ai/swarm/resource"
@@ -19,21 +19,21 @@ var (
 
 // load builtin defaults
 func InitStandard() error {
-	log.Infof("standard agent init...")
+	// log.Infof("standard agent init...")
 	if v, err := loadStandardAgentsConfig(); err != nil {
 		return err
 	} else {
 		standardAgents = v
 	}
 
-	log.Infof("standard models init...")
+	// log.Infof("standard models init...")
 	if v, err := loadStandardModels(); err != nil {
 		return err
 	} else {
 		standardModels = v
 	}
 
-	log.Infof("standard tool init...")
+	// log.Infof("standard tool init...")
 	if v, err := loadStandardTools(); err != nil {
 		return err
 	} else {
@@ -52,7 +52,7 @@ func loadStandardAgentsConfig() (map[string]*api.AgentsConfig, error) {
 	}
 
 	for name, ac := range groups {
-		log.Debugf("Registering agent: %s with %d configurations\n", name, len(ac.Agents))
+		// log.Debugf("Registering agent: %s with %d configurations\n", name, len(ac.Agents))
 
 		if len(ac.Agents) == 0 {
 			return nil, fmt.Errorf("No agent configurations found for: %s\n", name)
@@ -66,7 +66,7 @@ func loadStandardAgentsConfig() (map[string]*api.AgentsConfig, error) {
 			// Register the agents configuration
 			agents[agent.Name] = ac
 
-			log.Debugf("Registered agent: %s\n", agent.Name)
+			// log.Debugf("Registered agent: %s\n", agent.Name)
 			if ac.MaxTurns == 0 {
 				ac.MaxTurns = defaultMaxTurns
 			}
@@ -83,7 +83,7 @@ func loadStandardAgentsConfig() (map[string]*api.AgentsConfig, error) {
 		return nil, fmt.Errorf("no agent configurations found in default agents")
 	}
 
-	log.Debugf("Initialized %d agent configurations", len(agents))
+	// log.Debugf("Initialized %d agent configurations", len(agents))
 
 	return agents, nil
 }

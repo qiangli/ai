@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
 )
@@ -18,7 +19,6 @@ const extraResult = "result"
 type Swarm struct {
 	Vars *api.Vars
 
-	//
 	User *api.User
 
 	Secrets api.SecretStore
@@ -26,10 +26,6 @@ type Swarm struct {
 	Tools   api.ToolSystem
 
 	Adapters llm.AdapterRegistry
-
-	// //
-	// Creator api.AgentCreator
-	// NewAgentHandler
 }
 
 // Function to clear all environment variables execep essential ones
@@ -49,6 +45,10 @@ func clearAllEnv() {
 	}
 }
 
+func (r *Swarm) createAgent(req *api.Request) (*api.Agent, error) {
+	return conf.CreateAgent(r.Vars, r.User, req)
+}
+
 func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	// before entering the loop clear all env
 	clearAllEnv()
@@ -56,7 +56,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	ctx := req.Context()
 
 	for {
-		agent, err := r.Assets.CreateAgent(r.Vars, req)
+		agent, err := r.createAgent(req)
 		if err != nil {
 			return err
 		}
@@ -109,9 +109,8 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		}
 
 		// update the request
-		result := resp.Result
-		if result != nil && result.State == api.StateTransfer {
-			req.Agent = result.NextAgent
+		if resp.Result != nil && resp.Result.State == api.StateTransfer {
+			req.Agent = resp.Result.NextAgent
 			continue
 		}
 
