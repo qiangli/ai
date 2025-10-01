@@ -90,12 +90,12 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	app.DryRun = viper.GetBool("dry_run")
 	app.DryRunContent = viper.GetString("dry_run_content")
 
-	// TODO read from user.json
-	user := getCurrentUser()
-	app.Me = &api.User{
-		// Username: user,
-		Display: "👤 " + strings.ToUpper(user),
-	}
+	// // TODO read from user.json
+	// user := getCurrentUser()
+	// app.Me = &api.User{
+	// 	// Username: user,
+	// 	Display: "👤 " + strings.ToUpper(user),
+	// }
 
 	app.Files = viper.GetStringSlice("file")
 	app.Format = viper.GetString("format")

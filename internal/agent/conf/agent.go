@@ -9,7 +9,7 @@ import (
 	// "strings"
 	// "dario.cat/mergo"
 	// "gopkg.in/yaml.v3"
-	// "github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/api"
 	// "github.com/qiangli/ai/swarm/log"
 	// "github.com/qiangli/ai/swarm/resource"
 )
@@ -32,14 +32,27 @@ func init() {
 	}
 }
 
-func provideApiKey(key string) func() (string, error) {
-	return func() (string, error) {
-		ak := getApiKey(key)
-		if ak != "" {
-			return ak, nil
-		}
-		return "", fmt.Errorf("api key not found: %s", key)
+// func provideApiKey(key string) func() (string, error) {
+// 	return func() (string, error) {
+// 		ak := getApiKey(key)
+// 		if ak != "" {
+// 			return ak, nil
+// 		}
+// 		return "", fmt.Errorf("api key not found: %s", key)
+// 	}
+// }
+
+type secrets struct {
+}
+
+var LocalSecrets api.SecretStore = &secrets{}
+
+func (r *secrets) Get(owner, key string) (string, error) {
+	ak := getApiKey(key)
+	if ak != "" {
+		return ak, nil
 	}
+	return "", fmt.Errorf("api key not found: %s", key)
 }
 
 // // max hard upper limits

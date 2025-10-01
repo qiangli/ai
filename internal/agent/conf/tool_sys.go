@@ -142,10 +142,6 @@ func (ls LocalSystem) Call(ctx context.Context, vars *api.Vars, f *api.ToolFunc,
 	return ls.callSystemTool(ctx, vars, f, args)
 }
 
-type SystemKit struct {
-	agent *api.Agent
-}
-
 func (ls LocalSystem) callSystemTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (*api.Result, error) {
 	// tool := &SystemKit{}
 	callArgs := []any{ctx, vars, f.Name, args}
@@ -166,6 +162,18 @@ func (ls LocalSystem) callSystemTool(ctx context.Context, vars *api.Vars, f *api
 		result.Value = fmt.Sprintf("%v", v)
 	}
 	return &result, nil
+}
+
+type SystemKit struct {
+	agent *api.Agent
+}
+
+func (r *SystemKit) getStr(key string, args map[string]any) (string, error) {
+	return GetStrProp(key, args)
+}
+
+func (r *SystemKit) getArray(key string, args map[string]any) ([]string, error) {
+	return GetArrayProp(key, args)
 }
 
 func CallKit(tool any, kit string, method string, args ...any) (any, error) {

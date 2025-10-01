@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/qiangli/ai/internal/util"
+	// "github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
 )
@@ -31,15 +31,15 @@ func TestEvaluateCommand(t *testing.T) {
 
 	var vars = api.NewVars()
 	vars.Config = &api.AppConfig{}
-	sysInfo, err := util.CollectSystemInfo()
-	if err != nil {
-		t.Errorf("collect system info: %v", err)
-	}
-	vars.Arch = sysInfo.Arch
-	vars.OS = sysInfo.OS
-	vars.ShellInfo = sysInfo.ShellInfo
-	vars.OSInfo = sysInfo.OSInfo
-	vars.UserInfo = sysInfo.UserInfo
+	// sysInfo, err := util.CollectSystemInfo()
+	// if err != nil {
+	// 	t.Errorf("collect system info: %v", err)
+	// }
+	// vars.Arch = sysInfo.Arch
+	// vars.OS = sysInfo.OS
+	// vars.ShellInfo = sysInfo.ShellInfo
+	// vars.OSInfo = sysInfo.OSInfo
+	// vars.UserInfo = sysInfo.UserInfo
 
 	tests := []struct {
 		command string

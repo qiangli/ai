@@ -88,7 +88,8 @@ type AppConfig struct {
 	// output file for saving response
 	Output string
 
-	Me *User
+	// TODO move to vars for authenticated user
+	// Me *User
 
 	//
 	Template string
@@ -168,7 +169,7 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		Voice:      cfg.Voice,
 		Format:     cfg.Format,
 		Output:     cfg.Output,
-		Me:         cfg.Me,
+		// Me:         cfg.Me,
 		Template:   cfg.Template,
 		New:        cfg.New,
 		ChatID:     cfg.ChatID,

@@ -5,8 +5,8 @@ import (
 	_ "embed"
 
 	"github.com/qiangli/ai/internal"
-	// "github.com/qiangli/ai/internal/agent/conf"
-	"github.com/qiangli/ai/internal/util"
+	"github.com/qiangli/ai/internal/agent/conf"
+	// "github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
@@ -44,12 +44,6 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	// command := input.Command
 	log.GetLogger(ctx).Debugf("Running agent %q with swarm\n", name)
 
-	//
-	vars, err := InitVars(cfg)
-	if err != nil {
-		return err
-	}
-
 	// History
 	mem := NewFileMemStore(cfg)
 	history, err := mem.Load(&api.MemOption{
@@ -61,8 +55,8 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	}
 	initLen := len(history)
 
-	// TODO: this is for custom agent instruction defined in yaml
-	vars.UserInput = input
+	// // // TODO: this is for custom agent instruction defined in yaml
+	// vars.UserInput = input
 
 	showInput(ctx, cfg, input)
 
@@ -73,15 +67,27 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	}
 	resp := &api.Response{}
 
+	//
+	vars, err := InitVars(cfg)
+	if err != nil {
+		return err
+	}
+	if len(history) > 0 {
+		log.GetLogger(ctx).Infof("⣿ recalling %v messages in memory less than %v minutes old\n", len(history), cfg.MaxSpan)
+		vars.History = history
+	}
+
+	// var users *api.User = &api.User{
+	// 	Email: "",
+	// }
+
 	sw := &swarm.Swarm{
 		Vars: vars,
+		// User: users,
+		Secrets: conf.LocalSecrets,
 		// TODO
 		// Creator: conf.NewAgentCreator(),
 		// Handler: conf.NewAgentHandler(),
-	}
-
-	if len(vars.History) > 0 {
-		log.GetLogger(ctx).Infof("⣿ recalling %v messages in memory less than %v minutes old\n", len(vars.History), cfg.MaxSpan)
 	}
 
 	if err := sw.Run(req, resp); err != nil {
@@ -155,20 +161,20 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	//
 	vars.Workspace = app.Workspace
 	// vars.Repo = app.Repo
-	vars.Home = app.Home
-	vars.Temp = app.Temp
+	// vars.Home = app.Home
+	// vars.Temp = app.Temp
 
-	//
-	sysInfo, err := util.CollectSystemInfo()
-	if err != nil {
-		return nil, err
-	}
+	// //
+	// sysInfo, err := util.CollectSystemInfo()
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	vars.Arch = sysInfo.Arch
-	vars.OS = sysInfo.OS
-	vars.ShellInfo = sysInfo.ShellInfo
-	vars.OSInfo = sysInfo.OSInfo
-	vars.UserInfo = sysInfo.UserInfo
+	// vars.Arch = sysInfo.Arch
+	// vars.OS = sysInfo.OS
+	// vars.ShellInfo = sysInfo.ShellInfo
+	// vars.OSInfo = sysInfo.OSInfo
+	// vars.UserInfo = sysInfo.UserInfo
 
 	return vars, nil
 }

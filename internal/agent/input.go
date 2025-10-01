@@ -89,7 +89,7 @@ func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clip
 	// 	}
 	// }
 
-	log.GetLogger(ctx).Debugf("\n[%s]\n%s\n%s\n%v\n", cfg.Me, input.Message, clipText(input.Content, clipMaxLen), input.Files)
+	log.GetLogger(ctx).Debugf("\n%s\n%s\n%v\n", input.Message, clipText(input.Content, clipMaxLen), input.Files)
 	return input, nil
 }
 
@@ -194,7 +194,7 @@ func userInput(
 		return &api.UserInput{Content: data}, nil
 	}
 
-	data, canceled, err := SimpleEditor(cfg.Me.Display, content)
+	data, canceled, err := SimpleEditor("Editor", content)
 	if err != nil {
 		return nil, err
 	}
@@ -262,7 +262,7 @@ func PrintInput(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) {
 	for _, v := range input.Files {
 		msg += fmt.Sprintf("\n+ %s", v)
 	}
-	renderInputContent(ctx, cfg.Me, msg)
+	renderInputContent(ctx, msg)
 
 	// attachments
 	for _, v := range input.Files {
@@ -321,9 +321,9 @@ func pasteConfirm(ctx context.Context) (bool, error) {
 	return false, fmt.Errorf("canceled")
 }
 
-func renderInputContent(ctx context.Context, me *api.User, content string) {
+func renderInputContent(ctx context.Context, content string) {
 	md := util.Render(content)
-	log.GetLogger(ctx).Infof("\n[%s]\n%s\n", me.Display, md)
+	log.GetLogger(ctx).Infof("\n%s\n", md)
 }
 
 // trimInputMessage trims the input message by removing leading and trailing spaces
