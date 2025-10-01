@@ -13,6 +13,7 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 
 	"github.com/qiangli/ai/swarm/llm"
+	"github.com/qiangli/ai/swarm/llm/adapter"
 )
 
 //go:embed resource/shell_security_system.md
@@ -84,7 +85,7 @@ func EvaluateCommand(ctx context.Context, vars *api.Vars, agent *api.Agent, comm
 
 	log.GetLogger(ctx).Debugf("evaluateCommand:\n%s %v\n", command, args)
 
-	resp, err := Chat(ctx, req)
+	resp, err := adapter.Chat(ctx, req)
 	if err != nil {
 		return false, err
 	}

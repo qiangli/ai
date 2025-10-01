@@ -8,6 +8,16 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
+// type LLMAdapter interface {
+// 	Send(context.Context, *Request) (*Response, error)
+// }
+
+type LLMAdapter func(context.Context, *Request) (*Response, error)
+
+type AdapterRegistry interface {
+	Get(key string) (LLMAdapter, error)
+}
+
 // Level represents the "intelligence" level of the model. i.e. basic, regular, advanced
 // for example, OpenAI: gpt-4.1-mini, gpt-4.1, o3
 type Level = api.Level

@@ -5,7 +5,7 @@ import (
 	_ "embed"
 
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/internal/agent/conf"
+	// "github.com/qiangli/ai/internal/agent/conf"
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
@@ -74,9 +74,10 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	resp := &api.Response{}
 
 	sw := &swarm.Swarm{
-		Vars:    vars,
-		Creator: conf.NewAgentCreator(),
-		Handler: conf.NewAgentHandler(),
+		Vars: vars,
+		// TODO
+		// Creator: conf.NewAgentCreator(),
+		// Handler: conf.NewAgentHandler(),
 	}
 
 	if len(vars.History) > 0 {

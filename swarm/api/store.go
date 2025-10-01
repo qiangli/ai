@@ -200,3 +200,10 @@ type AssetStore interface {
 	ReadFile(name string) ([]byte, error)
 	Resolve(parent string, name string) string
 }
+
+type AssetManager interface {
+	GetStore(key string) (AssetStore, error)
+	AddStore(key string, store AssetStore)
+
+	CreateAgent(*Vars, *Request) (*Agent, error)
+}

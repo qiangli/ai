@@ -15,7 +15,6 @@ require (
 	github.com/antonmedv/clipboard v1.0.1
 	github.com/atotto/clipboard v0.1.4
 	github.com/bmatcuk/doublestar/v4 v4.9.1
-	github.com/briandowns/spinner v1.23.2
 	github.com/c-bata/go-prompt v0.2.6
 	github.com/charmbracelet/bubbles v0.21.0
 	github.com/charmbracelet/bubbletea v1.3.10
@@ -35,6 +34,7 @@ require (
 	github.com/gocolly/colly v1.2.0
 	github.com/gofrs/flock v0.12.1
 	github.com/google/uuid v1.6.0
+	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/mattn/go-isatty v0.0.20
 	github.com/mattn/go-runewidth v0.0.17
@@ -46,6 +46,7 @@ require (
 	github.com/qiangli/filesearch v0.0.0-20250727212022-dcfddd1c92de
 	github.com/sahilm/fuzzy v0.1.1
 	github.com/shirou/gopsutil/v4 v4.25.8
+	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
@@ -96,7 +97,6 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/esiqveland/notify v0.13.3 // indirect
-	github.com/fatih/color v1.18.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gdamore/encoding v1.0.1 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect

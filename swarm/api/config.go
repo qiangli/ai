@@ -52,8 +52,7 @@ type AppConfig struct {
 	// rename WebResource?
 	AgentResource *AgentResource
 
-	// ToolSystemCommands []string
-	SystemTools []*ToolFunc
+	// SystemTools []*ToolFunc
 
 	Agent string
 	// Command string

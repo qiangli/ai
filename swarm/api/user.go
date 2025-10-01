@@ -1,15 +1,22 @@
 package api
 
-import (
-	"time"
-)
+// import (
+// 	"time"
+// )
 
 type User struct {
 	// uuid
-	ID      string    `json:"id"`
-	Created time.Time `json:"created"`
+	ID string `json:"id"`
 
-	// data
-	Username string `json:"username"`
-	Display  string `json:"display"`
+	//
+	// Username string `json:"username"`
+	// emoji + nickname
+	Display string `json:"display"`
+
+	Email string `json:"email"`
+	// full/first,last
+	Name   string `json:"name"`
+	Avatar string `json:"avatar"`
+
+	// Created time.Time `json:"created"`
 }

@@ -1,4 +1,4 @@
-package swarm
+package adapter
 
 import (
 	"context"
@@ -8,11 +8,33 @@ import (
 	"github.com/qiangli/ai/swarm/llm/anthropic"
 	"github.com/qiangli/ai/swarm/llm/gemini"
 	"github.com/qiangli/ai/swarm/llm/openai"
-	"github.com/qiangli/ai/swarm/log"
 )
 
+type adapters struct{}
+
+func (r *adapters) Get(key string) (llm.LLMAdapter, error) {
+	if v, ok := adapterRegistry[key]; ok {
+		return v, nil
+	}
+	return nil, fmt.Errorf("LLM adapter %q not found", key)
+}
+
+var adapterRegistry map[string]llm.LLMAdapter
+
+func init() {
+	adapterRegistry = make(map[string]llm.LLMAdapter)
+	adapterRegistry["chat"] = Chat
+	adapterRegistry["image-gen"] = ImageGen
+}
+
+var defaultAdapters = &adapters{}
+
+func GetAdapters() llm.AdapterRegistry {
+	return defaultAdapters
+}
+
 func Chat(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	log.GetLogger(ctx).Debugf(">LLM Chat:\n %v\n", req)
+	// log.GetLogger(ctx).Debugf(">LLM Chat:\n %v\n", req)
 
 	var err error
 	var resp *llm.Response
@@ -40,19 +62,19 @@ func Chat(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	}
 
 	if err != nil {
-		log.GetLogger(ctx).Errorf("***LLM Client: %s\n", err)
+		// log.GetLogger(ctx).Errorf("***LLM Client: %s\n", err)
 		return nil, err
 	}
 	if resp == nil {
 		return nil, fmt.Errorf("No response")
 	}
 
-	log.GetLogger(ctx).Debugf(">LLM Chat:\n Content type: %s Content: %v\n", resp.ContentType, len(resp.Content))
+	// log.GetLogger(ctx).Debugf(">LLM Chat:\n Content type: %s Content: %v\n", resp.ContentType, len(resp.Content))
 	return resp, nil
 }
 
 func ImageGen(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	log.GetLogger(ctx).Debugf(">LLM ImageGen:\n Model: %s Model: %+v, Messages: %v Tools: %v\n", req.Model, req.Model, len(req.Messages), len(req.Tools))
+	// log.GetLogger(ctx).Debugf(">LLM ImageGen:\n Model: %s Model: %+v, Messages: %v Tools: %v\n", req.Model, req.Model, len(req.Messages), len(req.Tools))
 
 	var err error
 	var resp *llm.Response
@@ -75,13 +97,13 @@ func ImageGen(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	}
 
 	if err != nil {
-		log.GetLogger(ctx).Errorf("***LLM Client: %s\n", err)
+		// log.GetLogger(ctx).Errorf("***LLM Client: %s\n", err)
 		return nil, err
 	}
 	if resp == nil {
 		return nil, fmt.Errorf("No response")
 	}
 
-	log.GetLogger(ctx).Debugf(">LLM ImageGen:\n Content type: %s Content: %v\n", resp.ContentType, len(resp.Content))
+	// log.GetLogger(ctx).Debugf(">LLM ImageGen:\n Content type: %s Content: %v\n", resp.ContentType, len(resp.Content))
 	return resp, nil
 }

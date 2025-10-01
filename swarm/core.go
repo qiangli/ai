@@ -8,14 +8,28 @@ import (
 	"time"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
 )
+
+// extra result key
+const extraResult = "result"
 
 type Swarm struct {
 	Vars *api.Vars
 
-	Creator api.AgentCreator
-	Handler api.AgentHandler
+	//
+	User *api.User
+
+	Secrets api.SecretStore
+	Assets  api.AssetManager
+	Tools   api.ToolSystem
+
+	Adapters llm.AdapterRegistry
+
+	// //
+	// Creator api.AgentCreator
+	// NewAgentHandler
 }
 
 // Function to clear all environment variables execep essential ones
@@ -42,7 +56,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	ctx := req.Context()
 
 	for {
-		agent, err := r.Creator(r.Vars, req)
+		agent, err := r.Assets.CreateAgent(r.Vars, req)
 		if err != nil {
 			return err
 		}
@@ -84,7 +98,8 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 			}
 		}
 
-		timeout := TimeoutHandler(r.Handler(r.Vars, agent), time.Duration(agent.MaxTime)*time.Second, "timed out")
+		handler := NewAgentHandler(r.User, r.Tools, r.Adapters)
+		timeout := TimeoutHandler(handler(r.Vars, agent), time.Duration(agent.MaxTime)*time.Second, "timed out")
 		maxlog := MaxLogHandler(500)
 
 		chain := NewChain(maxlog).Then(timeout)

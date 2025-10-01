@@ -1,34 +1,34 @@
 package conf
 
-import (
-	"context"
-	"testing"
+// import (
+// 	"context"
+// 	"testing"
 
-	"github.com/qiangli/ai/swarm/api"
-)
+// 	"github.com/qiangli/ai/swarm/api"
+// )
 
-func TestLoadToolsConfig(t *testing.T) {
-	ctx := context.TODO()
-	app := &api.AppConfig{
-		Base: "../internal/data/",
-	}
-	kits, err := LoadToolsConfig(ctx, app)
-	if err != nil {
-		t.Fatalf("failed to load tool files: %v", err)
-	}
+// func TestLoadToolsConfig(t *testing.T) {
+// 	ctx := context.TODO()
+// 	app := &api.AppConfig{
+// 		Base: "../internal/data/",
+// 	}
+// 	kits, err := LoadToolsConfig(ctx, app)
+// 	if err != nil {
+// 		t.Fatalf("failed to load tool files: %v", err)
+// 	}
 
-	for _, kit := range kits {
-		for _, tool := range kit.Tools {
-			if tool.Name == "" {
-				t.Fatal("tool name is empty")
-			}
-			if tool.Description == "" {
-				t.Fatal("tool description is empty")
-			}
-			t.Logf("Kit: %s tool: %s - %s", kit.Kit, tool.Name, tool.Description)
-		}
-	}
-}
+// 	for _, kit := range kits {
+// 		for _, tool := range kit.Tools {
+// 			if tool.Name == "" {
+// 				t.Fatal("tool name is empty")
+// 			}
+// 			if tool.Description == "" {
+// 				t.Fatal("tool description is empty")
+// 			}
+// 			t.Logf("Kit: %s tool: %s - %s", kit.Kit, tool.Name, tool.Description)
+// 		}
+// 	}
+// }
 
 // func TestCallSystemTool(t *testing.T) {
 // 	tests := []struct {

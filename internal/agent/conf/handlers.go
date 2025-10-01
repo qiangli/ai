@@ -1,265 +1,265 @@
 package conf
 
-import (
-	"context"
-	"fmt"
-	"time"
+// import (
+// 	"context"
+// 	"fmt"
+// 	"time"
 
-	"github.com/google/uuid"
+// 	"github.com/google/uuid"
 
-	"github.com/qiangli/ai/swarm"
-	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/llm"
-	"github.com/qiangli/ai/swarm/log"
-)
+// 	"github.com/qiangli/ai/swarm"
+// 	"github.com/qiangli/ai/swarm/api"
+// 	"github.com/qiangli/ai/swarm/llm"
+// 	"github.com/qiangli/ai/swarm/log"
+// )
 
-// extra result key
-const extraResult = "result"
+// // extra result key
+// const extraResult = "result"
 
-// TODO
-type LLMAdapter func(context.Context, *llm.Request) (*llm.Response, error)
+// // TODO
+// type LLMAdapter func(context.Context, *llm.Request) (*llm.Response, error)
 
-var adapterRegistry map[string]LLMAdapter
+// var adapterRegistry map[string]LLMAdapter
 
-func init() {
-	adapterRegistry = make(map[string]LLMAdapter)
-	adapterRegistry["chat"] = swarm.Chat
-	adapterRegistry["image-gen"] = swarm.ImageGen
-}
+// func init() {
+// 	adapterRegistry = make(map[string]LLMAdapter)
+// 	adapterRegistry["chat"] = swarm.Chat
+// 	adapterRegistry["image-gen"] = swarm.ImageGen
+// }
 
-func NewAgentHandler() func(*api.Vars, *api.Agent) api.Handler {
-	var toolCall = NewToolCaller()
-	return func(vars *api.Vars, agent *api.Agent) api.Handler {
-		return &agentHandler{
-			vars:     vars,
-			agent:    agent,
-			toolCall: toolCall,
-		}
-	}
-}
+// func NewAgentHandler() func(*api.Vars, *api.Agent) api.Handler {
+// 	var toolCall = NewToolCaller()
+// 	return func(vars *api.Vars, agent *api.Agent) api.Handler {
+// 		return &agentHandler{
+// 			vars:     vars,
+// 			agent:    agent,
+// 			toolCall: toolCall,
+// 		}
+// 	}
+// }
 
-type agentHandler struct {
-	agent *api.Agent
-	vars  *api.Vars
+// type agentHandler struct {
+// 	agent *api.Agent
+// 	vars  *api.Vars
 
-	toolCall api.ToolCaller
-}
+// 	toolCall api.ToolCaller
+// }
 
-func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
-	var r = h.agent
-	var ctx = req.Context()
-	log.GetLogger(ctx).Debugf("Run agent: %s\n", r.Name)
+// func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
+// 	var r = h.agent
+// 	var ctx = req.Context()
+// 	log.GetLogger(ctx).Debugf("Run agent: %s\n", r.Name)
 
-	// advices
-	noop := func(vars *api.Vars, _ *api.Request, _ *api.Response, _ api.Advice) error {
-		return nil
-	}
-	if r.BeforeAdvice != nil {
-		if err := r.BeforeAdvice(h.vars, req, resp, noop); err != nil {
-			return err
-		}
-	}
+// 	// advices
+// 	noop := func(vars *api.Vars, _ *api.Request, _ *api.Response, _ api.Advice) error {
+// 		return nil
+// 	}
+// 	if r.BeforeAdvice != nil {
+// 		if err := r.BeforeAdvice(h.vars, req, resp, noop); err != nil {
+// 			return err
+// 		}
+// 	}
 
-	if r.AroundAdvice != nil {
-		next := func(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
-			return h.runLoop(ctx, req, resp)
-		}
-		if err := r.AroundAdvice(h.vars, req, resp, next); err != nil {
-			return err
-		}
-	} else {
-		if err := h.runLoop(ctx, req, resp); err != nil {
-			return err
-		}
-	}
+// 	if r.AroundAdvice != nil {
+// 		next := func(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
+// 			return h.runLoop(ctx, req, resp)
+// 		}
+// 		if err := r.AroundAdvice(h.vars, req, resp, next); err != nil {
+// 			return err
+// 		}
+// 	} else {
+// 		if err := h.runLoop(ctx, req, resp); err != nil {
+// 			return err
+// 		}
+// 	}
 
-	if r.AfterAdvice != nil {
-		if err := r.AfterAdvice(h.vars, req, resp, noop); err != nil {
-			return err
-		}
-	}
+// 	if r.AfterAdvice != nil {
+// 		if err := r.AfterAdvice(h.vars, req, resp, noop); err != nil {
+// 			return err
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
-func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.Response) error {
-	var r = h.agent
+// func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.Response) error {
+// 	var r = h.agent
 
-	// apply template/load
-	apply := func(vars *api.Vars, ext, s string) (string, error) {
-		//
-		if ext == "tpl" {
-			// TODO custom template func?
-			return applyTemplate(s, vars, tplFuncMap)
-		}
-		return s, nil
-	}
+// 	// apply template/load
+// 	apply := func(vars *api.Vars, ext, s string) (string, error) {
+// 		//
+// 		if ext == "tpl" {
+// 			// TODO custom template func?
+// 			return applyTemplate(s, vars, tplFuncMap)
+// 		}
+// 		return s, nil
+// 	}
 
-	nvl := func(a string, b ...string) string {
-		if a != "" {
-			return a
-		}
-		for _, v := range b {
-			if v != "" {
-				return v
-			}
-		}
-		return ""
-	}
+// 	nvl := func(a string, b ...string) string {
+// 		if a != "" {
+// 			return a
+// 		}
+// 		for _, v := range b {
+// 			if v != "" {
+// 				return v
+// 			}
+// 		}
+// 		return ""
+// 	}
 
-	var chatID = h.vars.Config.ChatID
-	var history []*api.Message
+// 	var chatID = h.vars.Config.ChatID
+// 	var history []*api.Message
 
-	// 1. New System Message
-	// System role prompt as first message
-	if r.Instruction != nil {
-		// update the request instruction
-		content, err := apply(h.vars, r.Instruction.Type, r.Instruction.Content)
-		if err != nil {
-			return err
-		}
+// 	// 1. New System Message
+// 	// System role prompt as first message
+// 	if r.Instruction != nil {
+// 		// update the request instruction
+// 		content, err := apply(h.vars, r.Instruction.Type, r.Instruction.Content)
+// 		if err != nil {
+// 			return err
+// 		}
 
-		if log.GetLogger(ctx).IsTrace() {
-			log.GetLogger(ctx).Debugf("Content: %s\n", content)
-		}
+// 		if log.GetLogger(ctx).IsTrace() {
+// 			log.GetLogger(ctx).Debugf("Content: %s\n", content)
+// 		}
 
-		history = append(history, &api.Message{
-			ID:      uuid.NewString(),
-			ChatID:  chatID,
-			Created: time.Now(),
-			//
-			Role:    nvl(r.Instruction.Role, api.RoleSystem),
-			Content: content,
-			Sender:  r.Name,
-		})
-		log.GetLogger(ctx).Debugf("Added new system role message: %v\n", len(history))
-	}
+// 		history = append(history, &api.Message{
+// 			ID:      uuid.NewString(),
+// 			ChatID:  chatID,
+// 			Created: time.Now(),
+// 			//
+// 			Role:    nvl(r.Instruction.Role, api.RoleSystem),
+// 			Content: content,
+// 			Sender:  r.Name,
+// 		})
+// 		log.GetLogger(ctx).Debugf("Added new system role message: %v\n", len(history))
+// 	}
 
-	// 2. Historical Messages - skip system role
-	if !r.New && len(h.vars.History) > 0 {
-		log.GetLogger(ctx).Debugf("Adding messaages from history\n")
-		for _, msg := range h.vars.History {
-			if msg.Role != api.RoleSystem {
-				history = append(history, msg)
-				log.GetLogger(ctx).Debugf("Added %q message\n", msg.Role)
-			}
-		}
-		log.GetLogger(ctx).Debugf("Added %v messages\n", len(history))
-	}
+// 	// 2. Historical Messages - skip system role
+// 	if !r.New && len(h.vars.History) > 0 {
+// 		log.GetLogger(ctx).Debugf("Adding messaages from history\n")
+// 		for _, msg := range h.vars.History {
+// 			if msg.Role != api.RoleSystem {
+// 				history = append(history, msg)
+// 				log.GetLogger(ctx).Debugf("Added %q message\n", msg.Role)
+// 			}
+// 		}
+// 		log.GetLogger(ctx).Debugf("Added %v messages\n", len(history))
+// 	}
 
-	// 3. New User Message
-	if req.Messages == nil {
-		// contentType/content
-		// messages, err := req.RawInput.FileMessages()
-		// if err != nil {
-		// 	return err
-		// }
-		// for i, v := range messages {
-		// 	v.ID = uuid.NewString()
-		// 	v.ChatID = chatID
-		// 	v.Created = time.Now()
-		// 	//
-		// 	v.Role = api.RoleUser
-		// 	v.Sender = r.Name
-		// 	v.Models = h.vars.Config.Models
-		// 	messages[i] = v
-		// }
+// 	// 3. New User Message
+// 	if req.Messages == nil {
+// 		// contentType/content
+// 		// messages, err := req.RawInput.FileMessages()
+// 		// if err != nil {
+// 		// 	return err
+// 		// }
+// 		// for i, v := range messages {
+// 		// 	v.ID = uuid.NewString()
+// 		// 	v.ChatID = chatID
+// 		// 	v.Created = time.Now()
+// 		// 	//
+// 		// 	v.Role = api.RoleUser
+// 		// 	v.Sender = r.Name
+// 		// 	v.Models = h.vars.Config.Models
+// 		// 	messages[i] = v
+// 		// }
 
-		// req.Messages = messages
-	}
-	// user message
-	var content = req.RawInput.Query()
-	if r.Message != "" {
-		content = r.Message + "\n" + content
-	}
-	req.Messages = append(req.Messages, &api.Message{
-		ID:      uuid.NewString(),
-		ChatID:  chatID,
-		Created: time.Now(),
-		//
-		Role:    api.RoleUser,
-		Content: content,
-		Sender:  r.Name,
-	})
+// 		// req.Messages = messages
+// 	}
+// 	// user message
+// 	var content = req.RawInput.Query()
+// 	if r.Message != "" {
+// 		content = r.Message + "\n" + content
+// 	}
+// 	req.Messages = append(req.Messages, &api.Message{
+// 		ID:      uuid.NewString(),
+// 		ChatID:  chatID,
+// 		Created: time.Now(),
+// 		//
+// 		Role:    api.RoleUser,
+// 		Content: content,
+// 		Sender:  r.Name,
+// 	})
 
-	history = append(history, req.Messages...)
-	log.GetLogger(ctx).Debugf("Added new user role message: %v\n", len(history))
+// 	history = append(history, req.Messages...)
+// 	log.GetLogger(ctx).Debugf("Added new user role message: %v\n", len(history))
 
-	// Request
-	initLen := len(history)
+// 	// Request
+// 	initLen := len(history)
 
-	//
-	runTool := h.toolCall(h.vars, h.agent)
+// 	//
+// 	runTool := h.toolCall(h.vars, h.agent)
 
-	var request = llm.Request{
-		Agent:    r.Name,
-		Model:    r.Model,
-		Messages: history,
-		MaxTurns: r.MaxTurns,
-		RunTool:  runTool,
-		Tools:    r.Tools,
-		//
-		Vars: h.vars,
-	}
+// 	var request = llm.Request{
+// 		Agent:    r.Name,
+// 		Model:    r.Model,
+// 		Messages: history,
+// 		MaxTurns: r.MaxTurns,
+// 		RunTool:  runTool,
+// 		Tools:    r.Tools,
+// 		//
+// 		Vars: h.vars,
+// 	}
 
-	if log.GetLogger(ctx).IsTrace() {
-		log.GetLogger(ctx).Debugf("LLM request: %+v\n", request)
-	}
+// 	if log.GetLogger(ctx).IsTrace() {
+// 		log.GetLogger(ctx).Debugf("LLM request: %+v\n", request)
+// 	}
 
-	var adapter LLMAdapter = swarm.Chat
-	if h.agent.Adapter != "" {
-		if v, ok := adapterRegistry[h.agent.Adapter]; ok {
-			adapter = v
-		} else {
-			return fmt.Errorf("LLM adapter not found: %v", h.agent.Adapter)
-		}
-	}
+// 	var adapter LLMAdapter = swarm.Chat
+// 	if h.agent.Adapter != "" {
+// 		if v, ok := adapterRegistry[h.agent.Adapter]; ok {
+// 			adapter = v
+// 		} else {
+// 			return fmt.Errorf("LLM adapter not found: %v", h.agent.Adapter)
+// 		}
+// 	}
 
-	result, err := adapter(ctx, &request)
-	if err != nil {
-		return err
-	}
+// 	result, err := adapter(ctx, &request)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if log.GetLogger(ctx).IsTrace() {
-		log.GetLogger(ctx).Debugf("LLM response: %+v\n", result)
-	}
+// 	if log.GetLogger(ctx).IsTrace() {
+// 		log.GetLogger(ctx).Debugf("LLM response: %+v\n", result)
+// 	}
 
-	// Response
-	//
-	if result.Result == nil || result.Result.State != api.StateTransfer {
-		message := api.Message{
-			ID:      uuid.NewString(),
-			ChatID:  chatID,
-			Created: time.Now(),
-			//
-			ContentType: result.ContentType,
-			Role:        nvl(result.Role, api.RoleAssistant),
-			Content:     result.Content,
-			Sender:      r.Name,
-		}
-		history = append(history, &message)
-	}
+// 	// Response
+// 	//
+// 	if result.Result == nil || result.Result.State != api.StateTransfer {
+// 		message := api.Message{
+// 			ID:      uuid.NewString(),
+// 			ChatID:  chatID,
+// 			Created: time.Now(),
+// 			//
+// 			ContentType: result.ContentType,
+// 			Role:        nvl(result.Role, api.RoleAssistant),
+// 			Content:     result.Content,
+// 			Sender:      r.Name,
+// 		}
+// 		history = append(history, &message)
+// 	}
 
-	resp.Messages = history[initLen:]
+// 	resp.Messages = history[initLen:]
 
-	if log.GetLogger(ctx).IsTrace() {
-		log.GetLogger(ctx).Debugf("Response messages: %+v", resp.Messages)
-	}
+// 	if log.GetLogger(ctx).IsTrace() {
+// 		log.GetLogger(ctx).Debugf("Response messages: %+v", resp.Messages)
+// 	}
 
-	//
-	h.vars.Extra[extraResult] = result.Content
+// 	//
+// 	h.vars.Extra[extraResult] = result.Content
 
-	// TODO merge Agent type with api.User
-	resp.Agent = &api.Agent{
-		Name:    r.Name,
-		Display: r.Display,
-	}
-	resp.Result = result.Result
+// 	// TODO merge Agent type with api.User
+// 	resp.Agent = &api.Agent{
+// 		Name:    r.Name,
+// 		Display: r.Display,
+// 	}
+// 	resp.Result = result.Result
 
-	//
-	h.vars.History = history
-	return nil
-}
+// 	//
+// 	h.vars.History = history
+// 	return nil
+// }
 
 // // MaxLogHandler returns a [Handler] that logs the request and response
 // func MaxLogHandler(n int) func(Handler) Handler {

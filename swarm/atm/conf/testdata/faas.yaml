@@ -1,0 +1,34 @@
+###
+type: "faas"
+
+tools:
+  - name: "fib"
+    description: "Function to compute the n-th number in the Fibonacci sequence"
+    parameters:
+      type: "object"
+      properties:
+        n:
+          type: "integer"
+          description: "The position in the Fibonacci sequence to compute, starting from 0 for the first number"
+          default: 0
+          minimum: 0
+          maximum: 100
+      required:
+        - n
+    body:
+      code: |
+        def fibonacci(n): 
+            if n<= 0:
+                print("incorrect input")
+            elif n == 1:
+                return 0
+            elif n == 2:
+                return 1
+            else:
+                return fibonacci(n-1)+fibonacci(n-2)
+
+        #
+        def main(args):
+            n = args.get("n", 0)
+            return fibonacci(n)
+      language: python

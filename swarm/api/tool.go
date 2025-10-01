@@ -146,6 +146,11 @@ type ConnectorConfig struct {
 	Extra map[string]string `yaml:"extra"`
 }
 
-type ToolSystem interface {
+type ToolKit interface {
 	Call(context.Context, *Vars, *ToolFunc, map[string]any) (*Result, error)
+}
+
+type ToolSystem interface {
+	GetKit(key string) (ToolKit, error)
+	AddKit(key string, kit ToolKit)
 }

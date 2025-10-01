@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/qiangli/ai/internal/agent"
-	"github.com/qiangli/ai/internal/agent/conf"
+	// "github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
@@ -244,17 +244,17 @@ AI will choose an appropriate agent based on your message if no agent is specifi
 * If you specify agents at both the beginning and end of a message, the last one takes precedence.
 * You can place command options anywhere in your message. To include options as part of the message, use quotes or escape '\'.
 `
-	agents, _ := conf.ListAgents(ctx, vars.Config)
+	// agents, _ := conf.ListAgents(ctx, vars.Config)
 
 	dict := make(map[string]*api.AgentConfig)
-	for _, v := range agents {
-		for _, agent := range v.Agents {
-			// if v.Internal && !vars.Config.Internal {
-			// 	continue
-			// }
-			dict[agent.Name] = agent
-		}
-	}
+	// for _, v := range agents {
+	// 	for _, agent := range v.Agents {
+	// 		// if v.Internal && !vars.Config.Internal {
+	// 		// 	continue
+	// 		// }
+	// 		dict[agent.Name] = agent
+	// 	}
+	// }
 
 	keys := make([]string, 0)
 	for k := range dict {
@@ -315,29 +315,29 @@ Total: %v
 
 Tools are used by agents to perform specific tasks. They are automatically selected based on the agent's capabilities and your input message.
 `
-	var subs = []string{"agent", "func", "mcp", "system", "template"}
-	var sub string
-	for _, v := range os.Args {
-		for _, s := range subs {
-			if strings.HasPrefix(s, v) {
-				sub = s
-				break
-			}
-		}
-	}
+	// var subs = []string{"agent", "func", "mcp", "system", "template"}
+	// var sub string
+	// for _, v := range os.Args {
+	// 	for _, s := range subs {
+	// 		if strings.HasPrefix(s, v) {
+	// 			sub = s
+	// 			break
+	// 		}
+	// 	}
+	// }
 
 	list := []string{}
 
-	tools, _ := conf.ListTools(ctx, vars.Config)
+	// tools, _ := conf.ListTools(ctx, vars.Config)
 
-	for _, v := range tools {
-		if v.Type == "agent" {
-			continue
-		}
-		if sub == "" || v.Type == sub {
-			list = append(list, fmt.Sprintf("%s: %s: %s\n", v.Type, v.ID(), strings.TrimSpace(v.Description)))
-		}
-	}
+	// for _, v := range tools {
+	// 	if v.Type == "agent" {
+	// 		continue
+	// 	}
+	// 	if sub == "" || v.Type == sub {
+	// 		list = append(list, fmt.Sprintf("%s: %s: %s\n", v.Type, v.ID(), strings.TrimSpace(v.Description)))
+	// 	}
+	// }
 
 	sort.Strings(list)
 

@@ -93,8 +93,8 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	// TODO read from user.json
 	user := getCurrentUser()
 	app.Me = &api.User{
-		Username: user,
-		Display:  "👤 " + strings.ToUpper(user),
+		// Username: user,
+		Display: "👤 " + strings.ToUpper(user),
 	}
 
 	app.Files = viper.GetStringSlice("file")

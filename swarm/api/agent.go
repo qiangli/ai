@@ -17,13 +17,13 @@ const (
 	RoleTool      = "tool"
 )
 
-type AgentCreator func(*Vars, *Request) (*Agent, error)
+// type AgentCreator func(*Vars, *Request) (*Agent, error)
 
 type Handler interface {
 	Serve(*Request, *Response) error
 }
 
-type AgentHandler func(*Vars, *Agent) Handler
+// type AgentHandler func(*Vars, *Agent) Handler
 
 type State int
 
