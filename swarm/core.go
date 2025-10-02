@@ -46,7 +46,7 @@ func clearAllEnv() {
 }
 
 func (r *Swarm) createAgent(req *api.Request) (*api.Agent, error) {
-	return conf.CreateAgent(r.Vars, r.User, req)
+	return conf.CreateAgent(r.Vars, r.User, r.Secrets, req)
 }
 
 func (r *Swarm) Run(req *api.Request, resp *api.Response) error {

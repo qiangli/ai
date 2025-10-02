@@ -305,7 +305,7 @@ func LoadAgentsAsset(as api.AssetStore, root string, groups map[string]*api.Agen
 	return nil
 }
 
-func CreateAgent(vars *api.Vars, auth *api.User, req *api.Request) (*api.Agent, error) {
+func CreateAgent(vars *api.Vars, auth *api.User, secrets api.SecretStore, req *api.Request) (*api.Agent, error) {
 	//
 	findAgentConfig := func(ac *api.AgentsConfig, pack, sub string) (*api.AgentConfig, error) {
 		n := pack
@@ -400,7 +400,7 @@ func CreateAgent(vars *api.Vars, auth *api.User, req *api.Request) (*api.Agent, 
 
 		// llm model
 		model := nvl(c.Model, ac.Model)
-		if v, err := loadModel(auth, owner, vars.Config.Models, model); err != nil {
+		if v, err := loadModel(auth, owner, vars.Config.Models, model, secrets); err != nil {
 			return nil, fmt.Errorf("failed to load model: %s %s %v", vars.Config.Models, model, err)
 		} else {
 			agent.Model = v
@@ -410,7 +410,7 @@ func CreateAgent(vars *api.Vars, auth *api.User, req *api.Request) (*api.Agent, 
 		funcMap := make(map[string]*api.ToolFunc)
 		for _, v := range c.Functions {
 			// kit:*
-			tools, err := loadToolFunc(owner, v)
+			tools, err := loadToolFunc(owner, v, secrets)
 			if err != nil {
 				return nil, err
 			}

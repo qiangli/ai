@@ -6,7 +6,7 @@ import (
 	// log "github.com/sirupsen/logrus"
 
 	"github.com/qiangli/ai/swarm/api"
-	assetData "github.com/qiangli/ai/swarm/resource"
+	assetData "github.com/qiangli/ai/swarm/atm/resource"
 )
 
 var standardAgentNames = []string{"agent", "ask", "web"}

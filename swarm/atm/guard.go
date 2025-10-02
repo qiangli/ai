@@ -1,4 +1,4 @@
-package swarm
+package atm
 
 import (
 	"context"
@@ -10,17 +10,17 @@ import (
 	"github.com/qiangli/ai/internal/bubble"
 	"github.com/qiangli/ai/internal/bubble/confirm"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/log"
-
+	"github.com/qiangli/ai/swarm/atm/resource"
 	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/llm/adapter"
+	"github.com/qiangli/ai/swarm/log"
 )
 
-//go:embed resource/shell_security_system.md
-var shellSecuritySystemRole string
+// //go:embed resource/shell_security_system.md
+// var shellSecuritySystemRole string
 
-//go:embed resource/shell_security_user.md
-var shellSecurityUserRole string
+// //go:embed resource/shell_security_user.md
+// var shellSecurityUserRole string
 
 const permissionDenied = "Permission denied."
 
@@ -38,14 +38,14 @@ func EvaluateCommand(ctx context.Context, vars *api.Vars, agent *api.Agent, comm
 
 	log.GetLogger(ctx).Infof("🔒 checking %s %+v\n", command, args)
 
-	instruction, err := applyTemplate(shellSecuritySystemRole, vars, nil)
+	instruction, err := applyTemplate(resource.ShellSecuritySystemRole, vars, nil)
 	if err != nil {
 		return false, err
 	}
 
 	vars.Extra["Command"] = command
 	vars.Extra["Args"] = strings.Join(args, " ")
-	query, err := applyTemplate(shellSecurityUserRole, vars, nil)
+	query, err := applyTemplate(resource.ShellSecurityUserRole, vars, nil)
 	if err != nil {
 		return false, err
 	}

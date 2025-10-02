@@ -13,3 +13,9 @@ func NewStandardStore() *ResourceStore {
 		FS:   ResourceFS,
 	}
 }
+
+//go:embed shell_security_system.md
+var ShellSecuritySystemRole string
+
+//go:embed shell_security_user.md
+var ShellSecurityUserRole string

@@ -1,18 +1,18 @@
-package conf
+package atm
 
 import (
 	"context"
 
-	"github.com/qiangli/ai/swarm"
+	// "github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/vfs"
-	"github.com/qiangli/ai/swarm/vos"
+	// "github.com/qiangli/ai/swarm/vfs"
+	// "github.com/qiangli/ai/swarm/vos"
 )
 
-var _os vos.System = &vos.VirtualSystem{}
-var _exec = _os
+// var _os vos.System = &vos.VirtualSystem{}
+// var _exec = _os
 
-var _fs vfs.FileSystem = &vfs.VirtualFS{}
+// var _fs vfs.FileSystem = &vfs.VirtualFS{}
 
 func (r *SystemKit) Man(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	command, err := r.getStr("command", args)
@@ -31,7 +31,7 @@ func (r *SystemKit) Run(ctx context.Context, vars *api.Vars, name string, args m
 	if err != nil {
 		return "", err
 	}
-	return swarm.RunRestricted(ctx, vars, r.agent, command, argsList)
+	return RunRestricted(ctx, vars, r.agent, command, argsList)
 }
 
 func (r *SystemKit) Cd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {

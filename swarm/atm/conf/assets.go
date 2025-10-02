@@ -1,14 +1,9 @@
 package conf
 
 import (
-	// "context"
-	// "embed"
 	"fmt"
-	// "path/filepath"
-	// "os"
 
 	"github.com/qiangli/ai/swarm/api"
-	// "github.com/qiangli/ai/swarm/resource"
 )
 
 type assetManager struct {
@@ -42,20 +37,16 @@ func (r *assetManager) ListAgent(owner string) (map[string]*api.AgentsConfig, er
 
 	// add sub agent to the map as well
 	for _, v := range packs {
-		// log.GetLogger(ctx).Debugf("Registering agent: %s with %d configurations\n", name, len(v.Agents))
 		if len(v.Agents) == 0 {
-			// log.GetLogger(ctx).Debugf("No agents found in config: %s\n", name)
 			continue
 		}
 		// Register the agent configurations
 		for _, agent := range v.Agents {
 			if _, exists := agents[agent.Name]; exists {
-				// log.GetLogger(ctx).Debugf("Duplicate agent name found: %s, skipping registration\n", agent.Name)
 				continue
 			}
 			// Register the agents configuration
 			agents[agent.Name] = v
-			// log.GetLogger(ctx).Debugf("Registered agent: %s\n", agent.Name)
 
 			if v.MaxTurns == 0 {
 				v.MaxTurns = defaultMaxTurns
@@ -69,7 +60,6 @@ func (r *assetManager) ListAgent(owner string) (map[string]*api.AgentsConfig, er
 	if len(agents) == 0 {
 		return nil, fmt.Errorf("no agent configurations found")
 	}
-	// log.GetLogger(ctx).Debugf("Initialized %d agent configurations\n", len(agents))
 	return agents, nil
 }
 

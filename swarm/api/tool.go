@@ -149,7 +149,7 @@ type ConnectorConfig struct {
 type SecretToken func() (string, error)
 
 type ToolKit interface {
-	Call(context.Context, *Vars, SecretToken, *ToolFunc, map[string]any) (*Result, error)
+	Call(context.Context, *Vars, SecretToken, *ToolFunc, map[string]any) (any, error)
 }
 
 type ToolSystem interface {

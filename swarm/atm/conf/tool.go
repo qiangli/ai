@@ -8,10 +8,8 @@ import (
 
 	"dario.cat/mergo"
 	"github.com/hashicorp/golang-lru/v2/expirable"
-	// log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 
-	// "github.com/qiangli/ai/swarm/agent/internal/db"
 	"github.com/qiangli/ai/swarm/api"
 )
 
@@ -24,7 +22,7 @@ var (
 	toolkitCache = expirable.NewLRU[ToolkitCacheKey, []*api.ToolFunc](10000, nil, time.Second*180)
 )
 
-func loadToolFunc(owner, s string) ([]*api.ToolFunc, error) {
+func loadToolFunc(owner, s string, secrets api.SecretStore) ([]*api.ToolFunc, error) {
 	// kit__name
 	// kit:*
 	// kit:name
@@ -60,7 +58,7 @@ func loadToolFunc(owner, s string) ([]*api.ToolFunc, error) {
 		return nil, err
 	} else {
 		if tc != nil {
-			v, err := loadTools(tc, owner)
+			v, err := loadTools(tc, owner, secrets)
 			if err != nil {
 				return nil, err
 			}
@@ -71,7 +69,7 @@ func loadToolFunc(owner, s string) ([]*api.ToolFunc, error) {
 
 	// default
 	if tc, ok := standardTools[kit]; ok {
-		v, err := loadTools(tc, owner)
+		v, err := loadTools(tc, owner, secrets)
 		if err != nil {
 			return nil, err
 		}
@@ -184,7 +182,7 @@ func retrieveActiveToolkit(
 	return tc, nil
 }
 
-func loadTools(tc *api.ToolsConfig, owner string) ([]*api.ToolFunc, error) {
+func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*api.ToolFunc, error) {
 	var toolMap = make(map[string]*api.ToolFunc)
 
 	conditionMet := func(name string, c *api.ToolCondition) bool {

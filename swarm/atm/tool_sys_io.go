@@ -1,4 +1,4 @@
-package conf
+package atm
 
 import (
 	"context"

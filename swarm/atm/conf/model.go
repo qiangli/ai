@@ -10,8 +10,6 @@ import (
 	"github.com/hashicorp/golang-lru/v2/expirable"
 	"gopkg.in/yaml.v3"
 
-	// "github.com/qiangli/ai/swarm/agent/api/entity"
-	// "github.com/qiangli/ai/swarm/agent/internal/db"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm"
 )
@@ -26,7 +24,7 @@ var (
 	modelCache = expirable.NewLRU[ModelCacheKey, map[string]*api.Model](10000, nil, time.Second*180)
 )
 
-func loadModel(auth *api.User, owner, models, model string) (*api.Model, error) {
+func loadModel(auth *api.User, owner, models, model string, secrets api.SecretStore) (*api.Model, error) {
 	provide := func(mc *api.ModelsConfig, level string) (*api.Model, error) {
 		c, ok := mc.Models[level]
 		if !ok {

@@ -6,14 +6,16 @@ import (
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/agent/conf"
-	// "github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm"
+	atmconf "github.com/qiangli/ai/swarm/atm/conf"
+	"github.com/qiangli/ai/swarm/atm/resource"
+	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
 )
 
 func RunAgent(ctx context.Context, cfg *api.AppConfig) error {
-	// log.GetLogger(ctx).Debugf("Agent: %s %s %v\n", cfg.Agent, cfg.Command, cfg.Args)
 	log.GetLogger(ctx).Debugf("Agent: %s %v\n", cfg.Agent, cfg.Args)
 
 	in, err := GetUserInput(ctx, cfg)
@@ -26,24 +28,19 @@ func RunAgent(ctx context.Context, cfg *api.AppConfig) error {
 	}
 
 	in.Agent = cfg.Agent
-	// in.Command = cfg.Command
 
 	return RunSwarm(ctx, cfg, in)
 }
-
-// func New(vars *api.Vars) *swarm.Swarm {
-// 	return &swarm.Swarm{
-// 		Vars:    vars,
-// 		Creator: conf.NewAgentCreator(),
-// 		Handler: conf.NewAgentHandler(),
-// 	}
-// }
 
 func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) error {
 	name := input.Agent
 	// command := input.Command
 	log.GetLogger(ctx).Debugf("Running agent %q with swarm\n", name)
 
+	vars, err := InitVars(cfg)
+	if err != nil {
+		return err
+	}
 	// History
 	mem := NewFileMemStore(cfg)
 	history, err := mem.Load(&api.MemOption{
@@ -54,40 +51,44 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		return err
 	}
 	initLen := len(history)
-
-	// // // TODO: this is for custom agent instruction defined in yaml
-	// vars.UserInput = input
+	vars.History = history
 
 	showInput(ctx, cfg, input)
 
 	req := &api.Request{
-		Agent: name,
-		// Command:  command,
+		Agent:    name,
 		RawInput: input,
 	}
 	resp := &api.Response{}
 
-	//
-	vars, err := InitVars(cfg)
-	if err != nil {
-		return err
-	}
-	if len(history) > 0 {
-		log.GetLogger(ctx).Infof("⣿ recalling %v messages in memory less than %v minutes old\n", len(history), cfg.MaxSpan)
-		vars.History = history
+	if len(vars.History) > 0 {
+		log.GetLogger(ctx).Infof("⣿ recalling %v messages in memory less than %v minutes old\n", len(vars.History), cfg.MaxSpan)
 	}
 
-	// var users *api.User = &api.User{
-	// 	Email: "",
-	// }
-
+	var user = &api.User{}
+	am := atmconf.NewAssetManager(user)
+	if cfg.AgentResource != nil {
+		for _, v := range cfg.AgentResource.Resources {
+			am.AddStore(&resource.WebStore{
+				Base:  v.Base,
+				Token: v.Token,
+			})
+		}
+	}
+	am.AddStore(resource.NewStandardStore())
+	var adapters = adapter.GetAdapters()
+	var tools = atm.NewToolSystem(user)
+	tools.AddKit("func", &atm.FuncKit{
+		User: user,
+	})
+	tools.AddKit("web", &atm.WebKit{})
 	sw := &swarm.Swarm{
-		Vars: vars,
-		// User: users,
-		Secrets: conf.LocalSecrets,
-		// TODO
-		// Creator: conf.NewAgentCreator(),
-		// Handler: conf.NewAgentHandler(),
+		Vars:     vars,
+		User:     user,
+		Secrets:  conf.LocalSecrets,
+		Assets:   am,
+		Tools:    tools,
+		Adapters: adapters,
 	}
 
 	if err := sw.Run(req, resp); err != nil {
@@ -127,7 +128,6 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	}
 
 	log.GetLogger(ctx).Debugf("Agent task completed: %v\n", cfg.Args)
-	// 	log.GetLogger(ctx).Debugf("Agent task completed: %s %v\n", cfg.Command, cfg.Args)
 	return nil
 }
 

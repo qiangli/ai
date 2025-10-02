@@ -12,8 +12,8 @@ package conf
 // 	"github.com/qiangli/ai/swarm/api"
 // )
 
-type FuncKit struct {
-}
+// type FuncKit struct {
+// }
 
 // func (r *FuncKit) ListAgents(ctx context.Context, vars *api.Vars, _ string, _ map[string]any) (string, error) {
 // 	var list []string
