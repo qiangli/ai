@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	// log "github.com/sirupsen/logrus"
-
 	"github.com/qiangli/ai/swarm/api"
 	mcpcli "github.com/qiangli/ai/swarm/mcp"
 )

@@ -16,12 +16,6 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-// //go:embed resource/shell_security_system.md
-// var shellSecuritySystemRole string
-
-// //go:embed resource/shell_security_user.md
-// var shellSecurityUserRole string
-
 const permissionDenied = "Permission denied."
 
 type CommandCheck struct {
@@ -29,7 +23,7 @@ type CommandCheck struct {
 	Safe    bool   `json:"safe"`
 }
 
-// evaluateCommand consults LLM to evaluate the safety of a command
+// EvaluateCommand consults LLM to evaluate the safety of a command
 func EvaluateCommand(ctx context.Context, vars *api.Vars, agent *api.Agent, command string, args []string) (bool, error) {
 	if vars.Config.Unsafe {
 		log.GetLogger(ctx).Infof("⚠️ unsafe mode - skipping security check\n")

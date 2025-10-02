@@ -3,8 +3,6 @@ package conf
 import (
 	"fmt"
 
-	// log "github.com/sirupsen/logrus"
-
 	"github.com/qiangli/ai/swarm/api"
 	assetData "github.com/qiangli/ai/swarm/atm/resource"
 )
