@@ -203,8 +203,8 @@ type AssetStore interface {
 }
 
 type AssetManager interface {
-	GetStore(key string) (AssetStore, error)
-	AddStore(key string, store AssetStore)
+	// GetStore(key string) (AssetStore, error)
+	AddStore(store AssetStore)
 
 	// @<[partial owner:]agent>
 	// owner, agentName := splitOwnerAgent(req.Agent)

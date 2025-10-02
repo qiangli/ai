@@ -3,36 +3,12 @@ package atm
 import (
 	"context"
 	"fmt"
-	"strings"
 
-	// log "github.com/sirupsen/logrus"
-
-	// "github.com/qiangli/ai/swarm/agent/api/entity"
-	// "github.com/qiangli/ai/swarm/agent/internal/db"
-	// "github.com/qiangli/ai/swarm/agent/internal/hub/conf"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
 )
 
-type toolCaller struct {
-	agent *api.Agent
-	vars  *api.Vars
-	user  *api.User
-
-	//
-}
-
-var secrets api.SecretStore
-
-func NewToolCaller(auth *api.User, owner string) api.ToolCaller {
-
-	funcKit := &FuncKit{
-		User: auth,
-	}
-
-	faasKit := &FaasKit{
-		// cfg: cfg,
-	}
+func NewToolCaller(auth *api.User, owner string, secrets api.SecretStore, tools api.ToolSystem) api.ToolCaller {
 
 	toResult := func(v any) *api.Result {
 		if r, ok := v.(*api.Result); ok {
@@ -49,43 +25,18 @@ func NewToolCaller(auth *api.User, owner string) api.ToolCaller {
 	}
 
 	dispatch := func(ctx context.Context, vars *api.Vars, v *api.ToolFunc, args map[string]any) (*api.Result, error) {
-		switch v.Type {
-		case api.ToolTypeMcp:
-			mcpKit := &McpKit{
-				token: func() (string, error) {
-					return secrets.Get(owner, v.ApiKey)
-					// return db.LoadApiKey(owner, v.ApiKey, cfg.ApiMasterKey)
-				},
-			}
-			out, err := mcpKit.callTool(ctx, vars, v, args)
-			return &api.Result{
-				Value: out,
-			}, err
-		case api.ToolTypeSystem:
-			return nil, fmt.Errorf("local system tool not supported: %s", v.ID())
-		case api.ToolTypeWeb:
-			webKit := &WebKit{
-				apiKey: func() (string, error) {
-					return secrets.Get(owner, v.ApiKey)
-					// return db.LoadApiKey(owner, v.ApiKey, cfg.ApiMasterKey)
-				},
-			}
-			out, err := webKit.callTool(ctx, vars, v, args)
-			if err != nil {
-				return &api.Result{}, fmt.Errorf("failed to call web tool %s %s: %w", v.Kit, v.Name, err)
-			}
-			return toResult(out), nil
-		case api.ToolTypeFaas:
-			return faasKit.callTool(ctx, vars, v, args)
-		case api.ToolTypeFunc:
-			out, err := funcKit.callTool(ctx, vars, v, args)
-			if err != nil {
-				return &api.Result{}, fmt.Errorf("failed to call function tool %s %s: %w", v.Kit, v.Name, err)
-			}
-			return toResult(out), nil
+		kit, err := tools.GetKit(v.Type)
+		if err != nil {
+			return nil, err
 		}
-
-		return nil, fmt.Errorf("no such tool: %s", v.ID())
+		token := func() (string, error) {
+			return secrets.Get(owner, v.ApiKey)
+		}
+		out, err := kit.Call(ctx, vars, token, v, args)
+		if err != nil {
+			return nil, fmt.Errorf("failed to call function tool %s %s: %w", v.Kit, v.Name, err)
+		}
+		return toResult(out), nil
 	}
 
 	return func(vars *api.Vars, agent *api.Agent) func(context.Context, string, map[string]any) (*api.Result, error) {
@@ -95,7 +46,6 @@ func NewToolCaller(auth *api.User, owner string) api.ToolCaller {
 		}
 
 		return func(ctx context.Context, tid string, args map[string]any) (*api.Result, error) {
-			// swarmlog.GetLogger(ctx).Debugf("run tool: %s %+v\n", tid, args)
 			v, ok := toolMap[tid]
 			if !ok {
 				return nil, fmt.Errorf("tool not found: %s", tid)
@@ -114,15 +64,4 @@ func NewToolCaller(auth *api.User, owner string) api.ToolCaller {
 			return result, err
 		}
 	}
-}
-
-// head trims the string to the maxLen and replaces newlines with /.
-func head(s string, maxLen int) string {
-	s = strings.ReplaceAll(s, "\n", "/")
-	s = strings.Join(strings.Fields(s), " ")
-	s = strings.TrimSpace(s)
-	if len(s) > maxLen {
-		return s[:maxLen] + "..."
-	}
-	return s
 }

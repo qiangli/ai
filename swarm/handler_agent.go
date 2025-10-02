@@ -2,16 +2,10 @@ package swarm
 
 import (
 	"context"
-	// "errors"
-	// "fmt"
 	"time"
 
 	"github.com/google/uuid"
-	// log "github.com/sirupsen/logrus"
 
-	// "github.com/qiangli/ai/swarm"
-	// "github.com/qiangli/ai/swarm/agent/api/entity"
-	// "github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/llm"
@@ -19,25 +13,9 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-// type Handler = api.Handler
-
-// extra result key
-// const extraResult = "result"
-
-// // TODO
-// type LLMAdapter func(context.Context, *llm.Request) (*llm.Response, error)
-
-// var adapterRegistry map[string]LLMAdapter
-
-// func init() {
-// 	adapterRegistry = make(map[string]LLMAdapter)
-// 	adapterRegistry["chat"] = swarm.Chat
-// 	adapterRegistry["image-gen"] = swarm.ImageGen
-// }
-
-func NewAgentHandler(auth *api.User, tools api.ToolSystem, adapters llm.AdapterRegistry) func(*api.Vars, *api.Agent) Handler {
+func NewAgentHandler(auth *api.User, secrets api.SecretStore, tools api.ToolSystem, adapters llm.AdapterRegistry) func(*api.Vars, *api.Agent) Handler {
 	return func(vars *api.Vars, agent *api.Agent) Handler {
-		var toolCall = atm.NewToolCaller(auth, agent.Owner)
+		var toolCall = atm.NewToolCaller(auth, agent.Owner, secrets, tools)
 		return &agentHandler{
 			vars:  vars,
 			agent: agent,
@@ -125,10 +103,6 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 			return err
 		}
 
-		// if log.IsTrace() {
-		// 	swarmlog.GetLogger(ctx).Debugf("content: %s\n", content)
-		// }
-
 		history = append(history, &api.Message{
 			ID:      uuid.NewString(),
 			ChatID:  chatID,
@@ -209,10 +183,6 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		Vars: h.vars,
 	}
 
-	// if log.IsTrace() {
-	// 	swarmlog.GetLogger(ctx).Debugf("LLM request: %+v\n", request)
-	// }
-
 	var adapter llm.LLMAdapter = adapter.Chat
 	if h.agent.Adapter != "" {
 		if v, err := h.adapters.Get(h.agent.Adapter); err == nil {
@@ -227,10 +197,6 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		return err
 	}
 
-	// if log.IsTrace() {
-	// 	swarmlog.GetLogger(ctx).Debugf("LLM response: %+v\n", result)
-	// }
-
 	// Response
 	//
 	if result.Result == nil || result.Result.State != api.StateTransfer {
@@ -243,16 +209,11 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 			Role:        nvl(result.Role, api.RoleAssistant),
 			Content:     result.Content,
 			Sender:      r.Name,
-			// Models:      h.vars.Config.Models,
 		}
 		history = append(history, &message)
 	}
 
 	resp.Messages = history[initLen:]
-
-	// if log.IsTrace() {
-	// 	swarmlog.GetLogger(ctx).Debugf("Response messages: %+v", resp.Messages)
-	// }
 
 	//
 	h.vars.Extra[extraResult] = result.Content
@@ -268,97 +229,3 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	h.vars.History = history
 	return nil
 }
-
-// // MaxLogHandler returns a [Handler] that logs the request and response
-// func MaxLogHandler(n int) func(Handler) Handler {
-// 	return func(next Handler) Handler {
-// 		return &maxLogHandler{
-// 			next: next,
-// 			max:  n,
-// 		}
-// 	}
-// }
-
-// type maxLogHandler struct {
-// 	next Handler
-// 	max  int
-// }
-
-// func (h *maxLogHandler) Serve(r *api.Request, w *api.Response) error {
-// 	var ctx = r.Context()
-
-// 	swarmlog.GetLogger(ctx).Debugf("req: %+v\n", r)
-// 	if len(r.Messages) > 0 {
-// 		swarmlog.GetLogger(ctx).Debugf("%s %s\n", r.Messages[0].Role, clip(r.Messages[0].Content, h.max))
-// 	}
-
-// 	err := h.next.Serve(r, w)
-
-// 	swarmlog.GetLogger(ctx).Debugf("resp: %+v\n", w)
-// 	if w.Messages != nil {
-// 		for _, m := range w.Messages {
-// 			swarmlog.GetLogger(ctx).Debugf("%s %s\n", m.Role, clip(m.Content, h.max))
-// 		}
-// 	}
-
-// 	return err
-// }
-
-// // TimeoutHandler returns a [Handler] that times out if the time limit is reached.
-// //
-// // The new Handler calls thext next handler's Serve to handle each request, but if a
-// // call runs for longer than its time limit, the handler responds with
-// // a timeout error.
-// func TimeoutHandler(next Handler, dt time.Duration, msg string) Handler {
-// 	return &timeoutHandler{
-// 		next:    next,
-// 		content: msg,
-// 		dt:      dt,
-// 	}
-// }
-
-// // ErrHandlerTimeout is returned on [Response]
-// // in handlers which have timed out.
-// var ErrHandlerTimeout = errors.New("Agent service timeout")
-
-// type timeoutHandler struct {
-// 	next    Handler
-// 	content string
-// 	dt      time.Duration
-// }
-
-// func (h *timeoutHandler) Serve(r *api.Request, w *api.Response) error {
-// 	ctx, cancelCtx := context.WithTimeout(r.Context(), h.dt)
-// 	defer cancelCtx()
-
-// 	r = r.WithContext(ctx)
-
-// 	done := make(chan struct{})
-// 	panicChan := make(chan any, 1)
-
-// 	go func() {
-// 		defer func() {
-// 			if p := recover(); p != nil {
-// 				panicChan <- p
-// 			}
-// 		}()
-
-// 		if err := h.next.Serve(r, w); err != nil {
-// 			panicChan <- err
-// 		}
-
-// 		close(done)
-// 	}()
-
-// 	select {
-// 	case p := <-panicChan:
-// 		return p.(error)
-// 	case <-done:
-// 		return nil
-// 	case <-ctx.Done():
-// 		w.Messages = []*api.Message{{Content: h.content}}
-// 		w.Agent = nil
-// 	}
-
-// 	return ErrHandlerTimeout
-// }

@@ -98,7 +98,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 			}
 		}
 
-		handler := NewAgentHandler(r.User, r.Tools, r.Adapters)
+		handler := NewAgentHandler(r.User, r.Secrets, r.Tools, r.Adapters)
 		timeout := TimeoutHandler(handler(r.Vars, agent), time.Duration(agent.MaxTime)*time.Second, "timed out")
 		maxlog := MaxLogHandler(500)
 

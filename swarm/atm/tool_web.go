@@ -3,19 +3,17 @@ package atm
 import (
 	"context"
 
-	// log "github.com/sirupsen/logrus"
-
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
 	webtool "github.com/qiangli/ai/swarm/tool/web/util"
 )
 
-// WebKit must be per tool/func call
-type WebKit struct {
-	apiKey func() (string, error)
+// WebAuthKit must be per tool/func call
+type WebAuthKit struct {
+	token api.SecretToken
 }
 
-func (r *WebKit) FetchContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *WebAuthKit) FetchContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	link, err := GetStrProp("url", args)
 	if err != nil {
 		return "", err
@@ -25,7 +23,7 @@ func (r *WebKit) FetchContent(ctx context.Context, vars *api.Vars, name string, 
 	return webtool.Fetch(ctx, link)
 }
 
-func (r *WebKit) DownloadContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *WebAuthKit) DownloadContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	link, err := GetStrProp("url", args)
 	if err != nil {
 		return "", err
@@ -40,7 +38,7 @@ func (r *WebKit) DownloadContent(ctx context.Context, vars *api.Vars, name strin
 }
 
 // Search the web using DuckDuckGo.
-func (r *WebKit) DdgSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *WebAuthKit) DdgSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	query, err := GetStrProp("query", args)
 	if err != nil {
 		return "", err
@@ -61,7 +59,7 @@ func (r *WebKit) DdgSearch(ctx context.Context, vars *api.Vars, name string, arg
 }
 
 // Search the web using Bing.
-func (r *WebKit) BingSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *WebAuthKit) BingSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	query, err := GetStrProp("query", args)
 	if err != nil {
 		return "", err
@@ -82,7 +80,7 @@ func (r *WebKit) BingSearch(ctx context.Context, vars *api.Vars, name string, ar
 }
 
 // Search the web using Brave.
-func (r *WebKit) BraveSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *WebAuthKit) BraveSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	query, err := GetStrProp("query", args)
 	if err != nil {
 		return "", err
@@ -98,7 +96,7 @@ func (r *WebKit) BraveSearch(ctx context.Context, vars *api.Vars, name string, a
 		max = 10
 	}
 
-	apiKey, err := r.apiKey()
+	apiKey, err := r.token()
 	if err != nil {
 		return "", err
 	}
@@ -108,7 +106,7 @@ func (r *WebKit) BraveSearch(ctx context.Context, vars *api.Vars, name string, a
 }
 
 // Search the web using Google.
-func (r *WebKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *WebAuthKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	query, err := GetStrProp("query", args)
 	if err != nil {
 		return "", err
@@ -125,7 +123,7 @@ func (r *WebKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string, 
 	}
 
 	// engine_id:api_key
-	key, err := r.apiKey()
+	key, err := r.token()
 	if err != nil {
 		return "", err
 	}
@@ -135,8 +133,15 @@ func (r *WebKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string, 
 	return webtool.Google(ctx, apiKey, seID, query, max)
 }
 
-func (r *WebKit) callTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (any, error) {
-	callArgs := []any{ctx, vars, f.Name, args}
+type WebKit struct {
+}
 
-	return CallKit(r, f.Kit, f.Name, callArgs...)
+func (r *WebKit) Call(ctx context.Context, vars *api.Vars, token api.SecretToken, tf *api.ToolFunc, args map[string]any) (any, error) {
+	callArgs := []any{ctx, vars, tf.Name, args}
+
+	// forward to web auth kit
+	wak := WebAuthKit{
+		token: token,
+	}
+	return CallKit(wak, tf.Kit, tf.Name, callArgs...)
 }

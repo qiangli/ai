@@ -135,7 +135,7 @@ func (r *FuncKit) AgentTransfer(_ context.Context, _ *api.Vars, _ string, args m
 	}, nil
 }
 
-func (r *FuncKit) callTool(ctx context.Context, vars *api.Vars, f *api.ToolFunc, args map[string]any) (any, error) {
-	callArgs := []any{ctx, vars, f.Name, args}
-	return CallKit(r, f.Config.Kit, f.Name, callArgs...)
+func (r *FuncKit) Call(ctx context.Context, vars *api.Vars, token api.SecretToken, tf *api.ToolFunc, args map[string]any) (any, error) {
+	callArgs := []any{ctx, vars, tf.Name, args}
+	return CallKit(r, tf.Config.Kit, tf.Name, callArgs...)
 }

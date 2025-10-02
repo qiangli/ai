@@ -13,10 +13,9 @@ import (
 )
 
 type McpKit struct {
-	token func() (string, error)
 }
 
-func (r *McpKit) callTool(ctx context.Context, vars *api.Vars, tf *api.ToolFunc, args map[string]any) (string, error) {
+func (r *McpKit) Call(ctx context.Context, vars *api.Vars, token api.SecretToken, tf *api.ToolFunc, args map[string]any) (string, error) {
 	var tid = tf.ID()
 	swarmlog.GetLogger(ctx).Debugf("🎖️ calling MCP tool: %s with args: %+v\n", tid, args)
 
@@ -25,11 +24,11 @@ func (r *McpKit) callTool(ctx context.Context, vars *api.Vars, tf *api.ToolFunc,
 	}
 
 	client := mcpcli.NewMcpClient(tf.Config.Connector)
-	token, err := r.token()
+	tk, err := token()
 	if err != nil {
 		return "", err
 	}
-	session, err := client.Connect(ctx, token)
+	session, err := client.Connect(ctx, tk)
 	if err != nil {
 		return "", err
 	}

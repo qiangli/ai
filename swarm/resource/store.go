@@ -12,12 +12,6 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-type UnsupportedError string
-
-func (s UnsupportedError) Error() string {
-	return "unsupported feature: " + string(s)
-}
-
 type ResourceStore struct {
 	Base string
 	FS   embed.FS
@@ -38,7 +32,7 @@ func (rs *ResourceStore) Resolve(dir, name string) string {
 }
 
 func (rs *ResourceStore) Search(query string) ([]byte, error) {
-	return nil, UnsupportedError("resource store")
+	return nil, api.UnsupportedError("resource store")
 }
 
 type FileStore struct {
@@ -60,7 +54,7 @@ func (fs *FileStore) Resolve(dir, name string) string {
 }
 
 func (fs *FileStore) Search(query string) ([]byte, error) {
-	return nil, UnsupportedError("file store")
+	return nil, api.UnsupportedError("file store")
 }
 
 type WebStore struct {
@@ -151,5 +145,5 @@ func (ws *WebStore) Resolve(base, name string) string {
 }
 
 func (ws *WebStore) Search(query string) ([]byte, error) {
-	return nil, UnsupportedError("web store")
+	return nil, api.UnsupportedError("web store")
 }
