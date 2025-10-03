@@ -29,13 +29,15 @@ func (r *assetManager) SearchAgent(owner string, pack string) (*api.Record, erro
 		// try search first
 		if as, ok := v.(api.ATMSupport); ok {
 			if a, err := as.SearchAgent(r.user.Email, owner, pack); err == nil && a != nil {
+				a.Store = as
 				return a, nil
 			}
 		} else if as, ok := v.(api.AssetFS); ok {
-			if _, err := as.ReadDir(path.Join("agents", pack)); err == nil {
+			if _, err := as.ReadFile(path.Join("agents", pack, "agent.yaml")); err == nil {
 				return &api.Record{
 					Owner: owner,
 					Name:  pack,
+					Store: as,
 				}, nil
 			}
 		}
@@ -43,58 +45,6 @@ func (r *assetManager) SearchAgent(owner string, pack string) (*api.Record, erro
 
 	// TODO  support searching for sub agent?
 	return nil, nil
-}
-
-func (r *assetManager) GetAgent(owner string, pack string) (*api.AgentsConfig, error) {
-	var content []byte
-	for _, v := range r.assets {
-		if as, ok := v.(api.ATMSupport); ok {
-			if v, err := as.RetrieveAgent(owner, pack); err != nil {
-				return nil, err
-			} else {
-				content = []byte(v.Content)
-			}
-		} else if as, ok := v.(api.AssetFS); ok {
-			if v, err := as.ReadFile(path.Join("agents", pack)); err != nil {
-				return nil, err
-			} else {
-				content = v
-			}
-		}
-	}
-
-	if len(content) == 0 {
-		return nil, nil
-	}
-
-	//
-	ac, err := LoadAgentsData([][]byte{content})
-	if err != nil {
-		return nil, err
-	}
-	if ac == nil || len(ac.Agents) == 0 {
-		return nil, fmt.Errorf("invalid config. no agent defined: %s", pack)
-	}
-
-	//
-	ac.Name = pack
-
-	// agents
-	for _, v := range ac.Agents {
-		v.Name = normalizeAgentName(pack, v.Name)
-	}
-
-	if ac.MaxTurns == 0 {
-		ac.MaxTurns = defaultMaxTurns
-	}
-	if ac.MaxTime == 0 {
-		ac.MaxTime = defaultMaxTime
-	}
-	// upper limit
-	ac.MaxTurns = min(ac.MaxTurns, maxTurnsLimit)
-	ac.MaxTime = min(ac.MaxTime, maxTimeLimit)
-
-	return ac, nil
 }
 
 func (r *assetManager) ListAgent(owner string) (map[string]*api.AgentsConfig, error) {
@@ -140,20 +90,24 @@ func (r *assetManager) ListAgent(owner string) (map[string]*api.AgentsConfig, er
 	return agents, nil
 }
 
-func (r *assetManager) GetToolkit(owner string, kit string) (*api.ToolsConfig, error) {
+func (r *assetManager) FindToolkit(owner string, kit string) (*api.ToolsConfig, error) {
 	var content []byte
 	for _, v := range r.assets {
 		if as, ok := v.(api.ATMSupport); ok {
 			if v, err := as.RetrieveTool(owner, kit); err != nil {
-				return nil, err
+				// return nil, err
+				continue
 			} else {
 				content = []byte(v.Content)
+				break
 			}
 		} else if as, ok := v.(api.AssetFS); ok {
-			if v, err := as.ReadFile(path.Join("tools", kit)); err != nil {
-				return nil, err
+			if v, err := as.ReadFile(path.Join("tools", kit+".yaml")); err != nil {
+				// return nil, err
+				continue
 			} else {
 				content = v
+				break
 			}
 		}
 	}
@@ -177,20 +131,24 @@ func (r *assetManager) GetToolkit(owner string, kit string) (*api.ToolsConfig, e
 	return tc, nil
 }
 
-func (r *assetManager) GetModels(owner string, alias string) (*api.ModelsConfig, error) {
+func (r *assetManager) FindModels(owner string, alias string) (*api.ModelsConfig, error) {
 	var content []byte
 	for _, v := range r.assets {
 		if as, ok := v.(api.ATMSupport); ok {
 			if v, err := as.RetrieveModel(owner, alias); err != nil {
-				return nil, err
+				// return nil, err
+				continue
 			} else {
 				content = []byte(v.Content)
+				break
 			}
 		} else if as, ok := v.(api.AssetFS); ok {
-			if v, err := as.ReadFile(path.Join("models", alias)); err != nil {
-				return nil, err
+			if v, err := as.ReadFile(path.Join("models", alias+".yaml")); err != nil {
+				// return nil, err
+				continue
 			} else {
 				content = v
+				break
 			}
 		}
 	}

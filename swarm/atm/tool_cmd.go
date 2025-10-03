@@ -102,7 +102,7 @@ func ExecCommand(ctx context.Context, command string, args []string, verbose boo
 	return RunCommand(ctx, command, args)
 }
 
-func RunRestricted(ctx context.Context, vars *api.Vars, agent *api.Agent, command string, args []string) (string, error) {
+func RunRestricted(ctx context.Context, vars *api.Vars, command string, args []string) (string, error) {
 	if isAllowed(vars.Config.AllowList, command) {
 		return ExecCommand(ctx, command, args, vars.Config.IsVerbose())
 	}
@@ -117,7 +117,7 @@ func RunRestricted(ctx context.Context, vars *api.Vars, agent *api.Agent, comman
 		return "", fmt.Errorf("%s: Not allowed", command)
 	}
 
-	safe, err := EvaluateCommand(ctx, vars, agent, command, args)
+	safe, err := EvaluateCommand(ctx, vars, command, args)
 	if err != nil {
 		return "", err
 	}

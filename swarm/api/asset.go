@@ -13,6 +13,9 @@ type Record struct {
 	Name    string
 	Display string
 	Content string
+
+	// source
+	Store AssetStore
 }
 
 // agent/tool/model methods
@@ -41,8 +44,7 @@ type AssetManager interface {
 	// agent: [pack/]sub
 	// pack, sub := split2(agentName, "/", "")
 	SearchAgent(owner, pack string) (*Record, error)
-	GetAgent(owner, pack string) (*AgentsConfig, error)
 	ListAgent(owner string) (map[string]*AgentsConfig, error)
-	GetToolkit(owner string, kit string) (*ToolsConfig, error)
-	GetModels(owner string, alias string) (*ModelsConfig, error)
+	FindToolkit(owner string, kit string) (*ToolsConfig, error)
+	FindModels(owner string, alias string) (*ModelsConfig, error)
 }

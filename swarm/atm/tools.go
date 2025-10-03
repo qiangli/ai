@@ -6,6 +6,10 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
+type ContextKey string
+
+const ModelsContextKey = "eval-models"
+
 type toolSystem struct {
 	user *api.User
 	kits map[string]api.ToolKit

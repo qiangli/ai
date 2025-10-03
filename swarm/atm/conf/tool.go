@@ -53,7 +53,7 @@ func loadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 		return filter(v)
 	}
 
-	tc, err := assets.GetToolkit(owner, kit)
+	tc, err := assets.FindToolkit(owner, kit)
 	if err != nil {
 		return nil, err
 	}

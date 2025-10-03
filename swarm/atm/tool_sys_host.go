@@ -9,7 +9,6 @@ import (
 	// "strings"
 
 	"github.com/qiangli/ai/swarm/api"
-	// utool "github.com/qiangli/ai/swarm/tool/util"
 )
 
 // func (r *SystemKit) getStr(key string, args map[string]any) (string, error) {
@@ -88,8 +87,3 @@ import (
 func (r *SystemKit) WorkspaceDir(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	return vars.Workspace, nil
 }
-
-// func (r *SystemKit) RepoDir(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-// 	return vars.Workspace, nil
-// 	// return vars.Repo, nil
-// }

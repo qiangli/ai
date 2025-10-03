@@ -66,28 +66,32 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	}
 
 	var user = &api.User{}
-	am := atmconf.NewAssetManager(user)
+
+	var assets = atmconf.NewAssetManager(user)
 	if cfg.AgentResource != nil {
 		for _, v := range cfg.AgentResource.Resources {
-			am.AddStore(&resource.WebStore{
+			assets.AddStore(&resource.WebStore{
 				Base:  v.Base,
 				Token: v.Token,
 			})
 		}
 	}
-	am.AddStore(resource.NewStandardStore())
+	assets.AddStore(resource.NewStandardStore())
+
 	var adapters = adapter.GetAdapters()
+
 	var tools = atm.NewToolSystem(user)
-	tools.AddKit("func", &atm.FuncKit{
-		User:   user,
-		Assets: am,
-	})
-	tools.AddKit("web", &atm.WebKit{})
+	tools.AddKit(api.ToolTypeFunc, atm.NewFuncKit(user, assets))
+	tools.AddKit(api.ToolTypeWeb, atm.NewWebKit())
+	tools.AddKit(api.ToolTypeSystem, atm.NewSystemKit())
+	tools.AddKit(api.ToolTypeMcp, atm.NewMcpKit())
+	tools.AddKit(api.ToolTypeFaas, atm.NewFaasKit())
+
 	sw := &swarm.Swarm{
 		Vars:     vars,
 		User:     user,
 		Secrets:  conf.LocalSecrets,
-		Assets:   am,
+		Assets:   assets,
 		Tools:    tools,
 		Adapters: adapters,
 	}

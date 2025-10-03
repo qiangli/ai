@@ -14,14 +14,21 @@ import (
 )
 
 type FuncKit struct {
-	User   *api.User
-	Assets api.AssetManager
+	user   *api.User
+	assets api.AssetManager
+}
+
+func NewFuncKit(user *api.User, assets api.AssetManager) *FuncKit {
+	return &FuncKit{
+		user:   user,
+		assets: assets,
+	}
 }
 
 func (r *FuncKit) ListAgents(ctx context.Context, vars *api.Vars, _ string, _ map[string]any) (string, error) {
 	var list []string
 
-	dict, err := conf.ListAgents(r.User.Email, r.Assets)
+	dict, err := conf.ListAgents(r.user.Email, r.assets)
 	if err != nil {
 		return "", err
 	}
@@ -43,7 +50,7 @@ func (r *FuncKit) AgentInfo(ctx context.Context, vars *api.Vars, _ string, args 
 	if err != nil {
 		return "", err
 	}
-	dict, err := conf.ListAgents(r.User.Email, r.Assets)
+	dict, err := conf.ListAgents(r.user.Email, r.assets)
 	if err != nil {
 		return "", err
 	}

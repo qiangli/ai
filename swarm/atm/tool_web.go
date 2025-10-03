@@ -133,15 +133,20 @@ func (r *WebAuthKit) GoogleSearch(ctx context.Context, vars *api.Vars, name stri
 	return webtool.Google(ctx, apiKey, seID, query, max)
 }
 
+// wrapper for WebAuthKit
 type WebKit struct {
+}
+
+func NewWebKit() *WebKit {
+	return &WebKit{}
 }
 
 func (r *WebKit) Call(ctx context.Context, vars *api.Vars, token api.SecretToken, tf *api.ToolFunc, args map[string]any) (any, error) {
 	callArgs := []any{ctx, vars, tf.Name, args}
 
 	// forward to web auth kit
-	wak := WebAuthKit{
+	wk := &WebAuthKit{
 		token: token,
 	}
-	return CallKit(wak, tf.Kit, tf.Name, callArgs...)
+	return CallKit(wk, tf.Kit, tf.Name, callArgs...)
 }

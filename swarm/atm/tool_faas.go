@@ -8,14 +8,17 @@ import (
 )
 
 type FaasKit struct {
-	BaseUrl string
 }
 
-func (r *FaasKit) Call(ctx context.Context, vars *api.Vars, token api.SecretToken, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
+func NewFaasKit() *FaasKit {
+	return &FaasKit{}
+}
+
+func (r *FaasKit) Call(ctx context.Context, vars *api.Vars, token api.SecretToken, tf *api.ToolFunc, args map[string]any) (any, error) {
 	tk, err := token()
 	if err != nil {
 		return nil, err
 	}
-	cli := docli.NewDoClient(r.BaseUrl, tk)
+	cli := docli.NewDoClient(tf.BaseUrl, tk)
 	return cli.Call(ctx, vars, tf, args)
 }

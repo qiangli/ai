@@ -2,9 +2,10 @@ package atm
 
 import (
 	"context"
-	_ "embed"
 	"encoding/json"
 	"fmt"
+	"os"
+	"runtime"
 	"strings"
 
 	"github.com/qiangli/ai/internal/bubble"
@@ -24,7 +25,7 @@ type CommandCheck struct {
 }
 
 // EvaluateCommand consults LLM to evaluate the safety of a command
-func EvaluateCommand(ctx context.Context, vars *api.Vars, agent *api.Agent, command string, args []string) (bool, error) {
+func EvaluateCommand(ctx context.Context, vars *api.Vars, command string, args []string) (bool, error) {
 	if vars.Config.Unsafe {
 		log.GetLogger(ctx).Infof("⚠️ unsafe mode - skipping security check\n")
 		return true, nil
@@ -32,35 +33,25 @@ func EvaluateCommand(ctx context.Context, vars *api.Vars, agent *api.Agent, comm
 
 	log.GetLogger(ctx).Infof("🔒 checking %s %+v\n", command, args)
 
-	instruction, err := applyTemplate(resource.ShellSecuritySystemRole, vars, nil)
+	var data = make(map[string]any)
+	data["OS"] = runtime.GOOS
+	data["Shell"] = nvl(os.Getenv("SHELL"), "/bin/sh")
+	data["Command"] = command
+	data["Args"] = strings.Join(args, " ")
+
+	instruction, err := applyTemplate(resource.ShellSecuritySystemRole, data, nil)
 	if err != nil {
 		return false, err
 	}
 
-	vars.Extra["Command"] = command
-	vars.Extra["Args"] = strings.Join(args, " ")
-	query, err := applyTemplate(resource.ShellSecurityUserRole, vars, nil)
+	query, err := applyTemplate(resource.ShellSecurityUserRole, data, nil)
 	if err != nil {
 		return false, err
 	}
 
-	// toolsMap := make(map[string]*api.ToolFunc)
-	// for _, v := range vars.Config.SystemTools {
-	// 	toolsMap[v.ID()] = v
-	// }
-
-	// runTool := func(ctx context.Context, name string, args map[string]any) (*api.Result, error) {
-	// 	log.GetLogger(ctx).Debugf("run tool: %s %+v\n", name, args)
-	// 	v, ok := toolsMap[name]
-	// 	if !ok {
-	// 		return nil, fmt.Errorf("not found: %s", name)
-	// 	}
-	// 	out, err := callTool(ctx, vars, agent, v, name, args)
-	// 	return out, err
-	// }
-
+	var model = ctx.Value(ModelsContextKey).(*api.Model)
 	req := &llm.Request{
-		Model: agent.Model,
+		Model: model,
 		Messages: []*api.Message{
 			{
 				Role:    api.RoleSystem,

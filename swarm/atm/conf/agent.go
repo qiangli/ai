@@ -12,6 +12,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm/resource"
 	"github.com/qiangli/ai/swarm/util"
 )
 
@@ -163,6 +164,57 @@ func LoadAgentsData(data [][]byte) (*api.AgentsConfig, error) {
 	}
 
 	return merged, nil
+}
+
+func getAgent(owner string, pack string, asset api.AssetStore) (*api.AgentsConfig, error) {
+	var content []byte
+	if as, ok := asset.(api.ATMSupport); ok {
+		if v, err := as.RetrieveAgent(owner, pack); err != nil {
+			return nil, err
+		} else {
+			content = []byte(v.Content)
+		}
+	} else if as, ok := asset.(api.AssetFS); ok {
+		if v, err := as.ReadFile(path.Join("agents", pack, "agent.yaml")); err != nil {
+			return nil, err
+		} else {
+			content = v
+
+		}
+	}
+
+	if len(content) == 0 {
+		return nil, nil
+	}
+
+	//
+	ac, err := LoadAgentsData([][]byte{content})
+	if err != nil {
+		return nil, err
+	}
+	if ac == nil || len(ac.Agents) == 0 {
+		return nil, fmt.Errorf("invalid config. no agent defined: %s", pack)
+	}
+
+	//
+	ac.Name = pack
+
+	// agents
+	for _, v := range ac.Agents {
+		v.Name = normalizeAgentName(pack, v.Name)
+	}
+
+	if ac.MaxTurns == 0 {
+		ac.MaxTurns = defaultMaxTurns
+	}
+	if ac.MaxTime == 0 {
+		ac.MaxTime = defaultMaxTime
+	}
+	// upper limit
+	ac.MaxTurns = min(ac.MaxTurns, maxTurnsLimit)
+	ac.MaxTime = min(ac.MaxTime, maxTimeLimit)
+
+	return ac, nil
 }
 
 func CreateAgent(vars *api.Vars, auth *api.User, secrets api.SecretStore, assets api.AssetManager, req *api.Request) (*api.Agent, error) {
@@ -321,18 +373,21 @@ func CreateAgent(vars *api.Vars, auth *api.User, secrets api.SecretStore, assets
 		return nil, fmt.Errorf("agent not found: %s", pack)
 	}
 
+	var as api.AssetStore
 	if ent == nil {
 		// super agent auto selection
 		pack = "agent"
 		owner = user
+		as = resource.NewStandardStore()
 	} else {
 		pack = ent.Name
 		owner = ent.Owner
+		as = ent.Store
 	}
 
 	// access to models/tools is implicitly granted if user has permission to run the agent
 	// agent config
-	ac, err := assets.GetAgent(owner, pack)
+	ac, err := getAgent(owner, pack, as)
 	if err != nil {
 		return nil, err
 	}

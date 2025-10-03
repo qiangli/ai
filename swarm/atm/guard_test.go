@@ -20,25 +20,13 @@ func TestEvaluateCommand(t *testing.T) {
 		ApiKey:   os.Getenv("OPENAI_API_KEY"),
 		Provider: "openai",
 	}
-	agent := &api.Agent{
-		Model: m,
-	}
 
-	var ctx = context.Background()
+	var ctx = context.WithValue(context.TODO(), ModelsContextKey, m)
 
 	log.GetLogger(ctx).SetLogLevel(log.Verbose)
 
 	var vars = api.NewVars()
 	vars.Config = &api.AppConfig{}
-	// sysInfo, err := util.CollectSystemInfo()
-	// if err != nil {
-	// 	t.Errorf("collect system info: %v", err)
-	// }
-	// vars.Arch = sysInfo.Arch
-	// vars.OS = sysInfo.OS
-	// vars.ShellInfo = sysInfo.ShellInfo
-	// vars.OSInfo = sysInfo.OSInfo
-	// vars.UserInfo = sysInfo.UserInfo
 
 	tests := []struct {
 		command string
@@ -54,11 +42,11 @@ func TestEvaluateCommand(t *testing.T) {
 		// {"find", []string{"./", "-type", "f", "|", "xargs", "grep", "-l", "xyz"}, true},
 		//
 		// {"find", []string{"./", "-type", "f", "-name", "*.yaml", "-exec", "awk", "/items:/{if(!match($0,/^type: array/)){print FILENAME}}", "{}", "+", "|", "sort", "-u"}, true},
-		// {"find", []string{"./", "-name", "*.sql", "-exec", "grep", "-l", "s3_files", "{}", "\\;"}, true},
+		{"find", []string{"./", "-name", "*.sql", "-exec", "grep", "-l", "s3_files", "{}", "\\;"}, true},
 	}
 
 	for _, test := range tests {
-		resp, err := EvaluateCommand(ctx, vars, agent, test.command, test.args)
+		resp, err := EvaluateCommand(ctx, vars, test.command, test.args)
 		if err != nil {
 			t.Errorf("evaluate command: %v\n%+v", err, resp)
 			return

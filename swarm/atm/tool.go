@@ -32,6 +32,7 @@ func NewToolCaller(auth *api.User, owner string, secrets api.SecretStore, tools 
 		token := func() (string, error) {
 			return secrets.Get(owner, v.ApiKey)
 		}
+		//
 		out, err := kit.Call(ctx, vars, token, v, args)
 		if err != nil {
 			return nil, fmt.Errorf("failed to call function tool %s %s: %w", v.Kit, v.Name, err)
@@ -52,6 +53,11 @@ func NewToolCaller(auth *api.User, owner string, secrets api.SecretStore, tools 
 			}
 
 			log.GetLogger(ctx).Infof("⣿ %s:%s %+v\n", v.Kit, v.Name, args)
+
+			// add model to system kit for command evaluation
+			if v.Type == api.ToolTypeSystem {
+				ctx = context.WithValue(ctx, ModelsContextKey, agent.Model)
+			}
 
 			result, err := dispatch(ctx, vars, v, args)
 

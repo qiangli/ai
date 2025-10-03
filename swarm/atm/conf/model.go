@@ -73,7 +73,7 @@ func loadModel(auth *api.User, owner, models, model string, secrets api.SecretSt
 	// alias/level
 	alias, level := split()
 
-	mc, err := assets.GetModels(owner, alias)
+	mc, err := assets.FindModels(owner, alias)
 	if err != nil {
 		return nil, err
 	}
