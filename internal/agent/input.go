@@ -46,8 +46,8 @@ func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clip
 	if cfg.Message != "" {
 		input := &api.UserInput{
 			// Message:  cfg.Message,
-			Files:    cfg.Files,
-			Template: cfg.Template,
+			Files: cfg.Files,
+			// Template: cfg.Template,
 		}
 		return input, nil
 	}
@@ -67,7 +67,7 @@ func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clip
 
 	// attachments
 	input.Files = cfg.Files
-	input.Template = cfg.Template
+	// input.Template = cfg.Template
 
 	// special inputs
 

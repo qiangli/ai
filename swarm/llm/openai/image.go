@@ -66,14 +66,22 @@ func generateImage(ctx context.Context, req *llm.Request) (*llm.Response, error)
 	var imageSize = openai.ImageGenerateParamsSize1024x1024
 	var imageStyle = openai.ImageGenerateParamsStyleNatural
 
-	if q, ok := qualityMap[req.Vars.Extra["quality"]]; ok {
-		imageQuality = q
-	}
-	if s, ok := sizeMap[req.Vars.Extra["size"]]; ok {
-		imageSize = s
-	}
-	if s, ok := styleMap[req.Vars.Extra["style"]]; ok {
-		imageStyle = s
+	if v := req.Arguments; v != nil {
+		if key, ok := v["quality"].(string); ok {
+			if q, ok := qualityMap[key]; ok {
+				imageQuality = q
+			}
+		}
+		if key, ok := v["size"].(string); ok {
+			if s, ok := sizeMap[key]; ok {
+				imageSize = s
+			}
+		}
+		if key, ok := v["style"].(string); ok {
+			if s, ok := styleMap[key]; ok {
+				imageStyle = s
+			}
+		}
 	}
 
 	image, err := client.Images.Generate(ctx, openai.ImageGenerateParams{

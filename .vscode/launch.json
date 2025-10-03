@@ -405,12 +405,13 @@
 			"args": [
 				"--verbose",
 				"@eval",
-				"--role",
-				"system",
-				"--role-prompt",
-				"you are a coding assistant. you solve all problems in python.",
+				// "--role",
+				// "system",
+				// "--role-prompt",
+				// "you are a coding assistant. you solve all problems in python.",
 				"--message",
-				"find all occurances of VFS in the current project"
+				"what is the weather in dublin ca in the next 3 days"
+				// "find all occurances of VFS in the current project"
 				// "What is the current time in New York?",
 			],
 			"showLog": false,

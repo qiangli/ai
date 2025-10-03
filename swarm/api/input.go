@@ -34,12 +34,12 @@ type UserInput struct {
 	// query - clipboard/stdin/editor
 	Content string `json:"content"`
 
-	// TODO deprecate
-	Template string `json:"template"`
+	// // TODO deprecate
+	// Template string `json:"template"`
 
 	Files []string `json:"files"`
 
-	Extra map[string]any `json:"extra"`
+	// Extra map[string]any `json:"extra"`
 
 	// cached file contents
 	Messages []*Message `json:"-"`

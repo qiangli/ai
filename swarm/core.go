@@ -69,7 +69,6 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 			depReq := &api.Request{
 				Agent:    dep,
 				RawInput: req.RawInput,
-				// Messages: req.Messages,
 			}
 			depResp := &api.Response{}
 			if err := r.Run(depReq, depResp); err != nil {

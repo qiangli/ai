@@ -11,6 +11,7 @@ import (
 
 func callAgentTool(ctx context.Context, sw *Swarm, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	req := api.NewRequest(ctx, tf.Agent, agent.RawInput)
+	req.Arguments = args
 	resp := &api.Response{}
 
 	if err := sw.Run(req, resp); err != nil {

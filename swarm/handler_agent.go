@@ -165,7 +165,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	initLen := len(history)
 
 	//
-	runTool := h.toolCall(h.vars, h.agent)
+	var runTool = h.toolCall(h.vars, h.agent)
 
 	var request = llm.Request{
 		Agent:    r.Name,
@@ -175,6 +175,8 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		Tools:    r.Tools,
 		//
 		RunTool: runTool,
+		//
+		Arguments: req.Arguments,
 		//
 		Vars: h.vars,
 	}
@@ -194,7 +196,6 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	}
 
 	// Response
-	//
 	if result.Result == nil || result.Result.State != api.StateTransfer {
 		message := api.Message{
 			ID:      uuid.NewString(),

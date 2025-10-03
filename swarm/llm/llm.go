@@ -51,6 +51,8 @@ type Request struct {
 
 	// Experimenal
 	Vars *api.Vars
+
+	Arguments map[string]any
 }
 
 func (r *Request) String() string {
