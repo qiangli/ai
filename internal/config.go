@@ -77,25 +77,10 @@ func InitConfig(viper *fangs.Viper) error {
 func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	app.ConfigFile = viper.ConfigFileUsed()
 	app.Base = filepath.Dir(app.ConfigFile)
-
-	// log.GetLogger(ctx).Debugf("configure file: %s\n", app.ConfigFile)
-	// log.GetLogger(ctx).Debugf("base: %s\n", app.Base)
-
-	// printAIEnv()
-
-	//
-
 	app.Version = Version
 
 	app.DryRun = viper.GetBool("dry_run")
 	app.DryRunContent = viper.GetString("dry_run_content")
-
-	// // TODO read from user.json
-	// user := getCurrentUser()
-	// app.Me = &api.User{
-	// 	// Username: user,
-	// 	Display: "👤 " + strings.ToUpper(user),
-	// }
 
 	app.Files = viper.GetStringSlice("file")
 	app.Format = viper.GetString("format")

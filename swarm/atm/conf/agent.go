@@ -28,8 +28,8 @@ var (
 )
 
 // max hard upper limits
-const maxTurnsLimit = 50
-const maxTimeLimit = 300 // 5 min
+const maxTurnsLimit = 100
+const maxTimeLimit = 900 // 15 min
 
 const defaultMaxTurns = 8
 const defaultMaxTime = 180 // 3 min
@@ -56,7 +56,7 @@ func normalizeAgentName(name, sub string) string {
 	return util.NormalizedName(ensure())
 }
 
-func loadAgentsATM(owner string, as api.ATMSupport, packs map[string]*api.AgentsConfig) error {
+func listAgentsATM(owner string, as api.ATMSupport, packs map[string]*api.AgentsConfig) error {
 	recs, err := as.ListAgents(owner)
 	if err != nil {
 		return err
@@ -93,7 +93,7 @@ func loadAgentsATM(owner string, as api.ATMSupport, packs map[string]*api.Agents
 	return nil
 }
 
-func loadAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AgentsConfig) error {
+func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AgentsConfig) error {
 	dirs, err := as.ReadDir(root)
 	if err != nil {
 		return err
@@ -204,16 +204,6 @@ func getAgent(owner string, pack string, asset api.AssetStore) (*api.AgentsConfi
 		v.Name = normalizeAgentName(pack, v.Name)
 	}
 
-	if ac.MaxTurns == 0 {
-		ac.MaxTurns = defaultMaxTurns
-	}
-	if ac.MaxTime == 0 {
-		ac.MaxTime = defaultMaxTime
-	}
-	// upper limit
-	ac.MaxTurns = min(ac.MaxTurns, maxTurnsLimit)
-	ac.MaxTime = min(ac.MaxTime, maxTimeLimit)
-
 	return ac, nil
 }
 
@@ -283,7 +273,7 @@ func CreateAgent(vars *api.Vars, auth *api.User, secrets api.SecretStore, assets
 		owner string,
 		input *api.UserInput,
 	) (*api.Agent, error) {
-		agent := api.Agent{
+		var agent = api.Agent{
 			Owner:   owner,
 			Adapter: c.Adapter,
 			//
@@ -295,8 +285,8 @@ func CreateAgent(vars *api.Vars, auth *api.User, secrets api.SecretStore, assets
 			//
 			RawInput: input,
 			//
-			MaxTurns: nzl(vars.Config.MaxTurns, c.MaxTurns, ac.MaxTurns),
-			MaxTime:  nzl(vars.Config.MaxTime, c.MaxTime, ac.MaxTime),
+			MaxTurns: nzl(vars.Config.MaxTurns, c.MaxTurns, ac.MaxTurns, defaultMaxTurns),
+			MaxTime:  nzl(vars.Config.MaxTime, c.MaxTime, ac.MaxTime, defaultMaxTime),
 			//
 			Message:  nvl(vars.Config.Message, c.Message, ac.Message),
 			Format:   nvl(vars.Config.Format, c.Format, ac.Format),
@@ -307,6 +297,10 @@ func CreateAgent(vars *api.Vars, auth *api.User, secrets api.SecretStore, assets
 			//
 			Config: ac,
 		}
+
+		// hard limit
+		agent.MaxTurns = min(agent.MaxTurns, maxTurnsLimit)
+		agent.MaxTime = min(agent.MaxTime, maxTimeLimit)
 
 		// log
 		agent.LogLevel = api.ToLogLevel(nvl(vars.Config.LogLevel, c.LogLevel, ac.LogLevel, "quiet"))

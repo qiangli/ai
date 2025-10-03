@@ -51,11 +51,11 @@ func (r *assetManager) ListAgent(owner string) (map[string]*api.AgentsConfig, er
 	var packs = make(map[string]*api.AgentsConfig)
 	for _, v := range r.assets {
 		if as, ok := v.(api.ATMSupport); ok {
-			if err := loadAgentsATM(owner, as, packs); err != nil {
+			if err := listAgentsATM(owner, as, packs); err != nil {
 				return nil, err
 			}
 		} else if as, ok := v.(api.AssetFS); ok {
-			if err := loadAgentsAsset(as, "agents", packs); err != nil {
+			if err := listAgentsAsset(as, "agents", packs); err != nil {
 				return nil, err
 			}
 		}
@@ -74,13 +74,6 @@ func (r *assetManager) ListAgent(owner string) (map[string]*api.AgentsConfig, er
 			}
 			// Register the agents configuration
 			agents[agent.Name] = v
-
-			if v.MaxTurns == 0 {
-				v.MaxTurns = defaultMaxTurns
-			}
-			if v.MaxTime == 0 {
-				v.MaxTime = defaultMaxTime
-			}
 		}
 	}
 
@@ -90,12 +83,56 @@ func (r *assetManager) ListAgent(owner string) (map[string]*api.AgentsConfig, er
 	return agents, nil
 }
 
+func (r *assetManager) FindAgent(owner string, pack string) (*api.AgentsConfig, error) {
+	var content []byte
+	var asset api.AssetStore
+	for _, v := range r.assets {
+		if as, ok := v.(api.ATMSupport); ok {
+			if v, err := as.RetrieveAgent(owner, pack); err != nil {
+				continue
+			} else {
+				content = []byte(v.Content)
+				asset = as
+				break
+			}
+		} else if as, ok := v.(api.AssetFS); ok {
+			if v, err := as.ReadFile(path.Join("agents", pack, "agent.yaml")); err != nil {
+				continue
+			} else {
+				content = v
+				asset = as
+				break
+			}
+		}
+	}
+
+	if len(content) == 0 {
+		return nil, nil
+	}
+
+	ac, err := LoadAgentsData([][]byte{[]byte(content)})
+	if err != nil {
+		return nil, err
+	}
+	if ac == nil || len(ac.Agents) == 0 {
+		return nil, fmt.Errorf("invalid config. no agent defined: %s", pack)
+	}
+
+	ac.Name = pack
+
+	// agents
+	for _, v := range ac.Agents {
+		v.Name = normalizeAgentName(ac.Name, v.Name)
+		v.Store = asset
+	}
+	return ac, nil
+}
+
 func (r *assetManager) FindToolkit(owner string, kit string) (*api.ToolsConfig, error) {
 	var content []byte
 	for _, v := range r.assets {
 		if as, ok := v.(api.ATMSupport); ok {
 			if v, err := as.RetrieveTool(owner, kit); err != nil {
-				// return nil, err
 				continue
 			} else {
 				content = []byte(v.Content)
@@ -103,7 +140,6 @@ func (r *assetManager) FindToolkit(owner string, kit string) (*api.ToolsConfig, 
 			}
 		} else if as, ok := v.(api.AssetFS); ok {
 			if v, err := as.ReadFile(path.Join("tools", kit+".yaml")); err != nil {
-				// return nil, err
 				continue
 			} else {
 				content = v

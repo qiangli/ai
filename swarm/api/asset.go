@@ -45,6 +45,7 @@ type AssetManager interface {
 	// pack, sub := split2(agentName, "/", "")
 	SearchAgent(owner, pack string) (*Record, error)
 	ListAgent(owner string) (map[string]*AgentsConfig, error)
+	FindAgent(owner, pack string) (*AgentsConfig, error)
 	FindToolkit(owner string, kit string) (*ToolsConfig, error)
 	FindModels(owner string, alias string) (*ModelsConfig, error)
 }

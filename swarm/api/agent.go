@@ -170,6 +170,7 @@ type AgentConfig struct {
 	// Models string `yaml:"models"`
 
 	// tools defined in tools config
+	// kit:name
 	Functions []string `yaml:"functions"`
 
 	Dependencies []string `yaml:"dependencies"`
@@ -202,6 +203,9 @@ type AgentConfig struct {
 
 	// logging: quiet | info[rmative] | verbose | trace
 	LogLevel string `yaml:"log_level"`
+
+	// agent as tool
+	Parameters map[string]any `yaml:"parameters"`
 
 	//
 	Store AssetStore `yaml:"-"`
@@ -284,7 +288,7 @@ func (r *Request) Context() context.Context {
 // lifetime of a request and its response: obtaining a connection,
 // sending the request, and reading the response headers and body.
 //
-// To create a new request with a context, use [NewRequestWithContext].
+// To create a new request with a context, use [NewRequest].
 // To make a deep copy of a request with a new context, use [Request.Clone].
 func (r *Request) WithContext(ctx context.Context) *Request {
 	if ctx == nil {

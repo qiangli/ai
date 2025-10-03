@@ -1,15 +1,34 @@
-package atm
+package swarm
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func NewToolCaller(auth *api.User, owner string, secrets api.SecretStore, tools api.ToolSystem) api.ToolCaller {
+func callAgentTool(ctx context.Context, sw *Swarm, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
+	req := api.NewRequest(ctx, tf.Agent, agent.RawInput)
+	resp := &api.Response{}
 
+	if err := sw.Run(req, resp); err != nil {
+		return nil, err
+	}
+
+	if len(resp.Messages) == 0 {
+		return nil, fmt.Errorf("empty result")
+	}
+
+	result := &api.Result{
+		Value: resp.Messages[len(resp.Messages)-1].Content,
+	}
+
+	return result, nil
+}
+
+func NewToolCaller(sw *Swarm) api.ToolCaller {
 	toResult := func(v any) *api.Result {
 		if r, ok := v.(*api.Result); ok {
 			return r
@@ -24,13 +43,22 @@ func NewToolCaller(auth *api.User, owner string, secrets api.SecretStore, tools 
 		}
 	}
 
-	dispatch := func(ctx context.Context, vars *api.Vars, v *api.ToolFunc, args map[string]any) (*api.Result, error) {
-		kit, err := tools.GetKit(v.Type)
+	dispatch := func(ctx context.Context, vars *api.Vars, agent *api.Agent, v *api.ToolFunc, args map[string]any) (*api.Result, error) {
+		// agent tool
+		if v.Type == api.ToolTypeAgent {
+			out, err := callAgentTool(ctx, sw, agent, v, args)
+			if err != nil {
+				return nil, err
+			}
+			return toResult(out), nil
+		}
+
+		kit, err := sw.Tools.GetKit(v.Type)
 		if err != nil {
 			return nil, err
 		}
 		token := func() (string, error) {
-			return secrets.Get(owner, v.ApiKey)
+			return sw.Secrets.Get(agent.Owner, v.ApiKey)
 		}
 		//
 		out, err := kit.Call(ctx, vars, token, v, args)
@@ -56,10 +84,10 @@ func NewToolCaller(auth *api.User, owner string, secrets api.SecretStore, tools 
 
 			// add model to system kit for command evaluation
 			if v.Type == api.ToolTypeSystem {
-				ctx = context.WithValue(ctx, ModelsContextKey, agent.Model)
+				ctx = context.WithValue(ctx, atm.ModelsContextKey, agent.Model)
 			}
 
-			result, err := dispatch(ctx, vars, v, args)
+			result, err := dispatch(ctx, vars, agent, v, args)
 
 			if err != nil {
 				log.GetLogger(ctx).Errorf("✗ error: %v\n", err)

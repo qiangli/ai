@@ -7,23 +7,20 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func NewAgentHandler(auth *api.User, secrets api.SecretStore, tools api.ToolSystem, adapters llm.AdapterRegistry) func(*api.Vars, *api.Agent) Handler {
+func NewAgentHandler(sw *Swarm) func(*api.Vars, *api.Agent) Handler {
 	return func(vars *api.Vars, agent *api.Agent) Handler {
-		var toolCall = atm.NewToolCaller(auth, agent.Owner, secrets, tools)
 		return &agentHandler{
 			vars:  vars,
 			agent: agent,
 			//
-			user:     auth,
-			tools:    tools,
-			adapters: adapters,
-			toolCall: toolCall,
+			sw: sw,
+			//
+			toolCall: NewToolCaller(sw),
 		}
 	}
 }
@@ -33,10 +30,9 @@ type agentHandler struct {
 	vars  *api.Vars
 
 	//
-	user     *api.User
-	tools    api.ToolSystem
-	adapters llm.AdapterRegistry
+	sw *Swarm
 
+	//
 	toolCall api.ToolCaller
 }
 
@@ -111,7 +107,6 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 			Role:    nvl(r.Instruction.Role, api.RoleSystem),
 			Content: content,
 			Sender:  r.Name,
-			// Models:  h.vars.Config.Models,
 		})
 		log.GetLogger(ctx).Debugf("Added new system role message: %v\n", len(history))
 	}
@@ -177,15 +172,16 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		Model:    r.Model,
 		Messages: history,
 		MaxTurns: r.MaxTurns,
-		RunTool:  runTool,
 		Tools:    r.Tools,
+		//
+		RunTool: runTool,
 		//
 		Vars: h.vars,
 	}
 
 	var adapter llm.LLMAdapter = adapter.Chat
 	if h.agent.Adapter != "" {
-		if v, err := h.adapters.Get(h.agent.Adapter); err == nil {
+		if v, err := h.sw.Adapters.Get(h.agent.Adapter); err == nil {
 			adapter = v
 		} else {
 			return err

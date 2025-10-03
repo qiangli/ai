@@ -11,6 +11,7 @@ const (
 	ToolTypeWeb    = "web"
 	ToolTypeMcp    = "mcp"
 	ToolTypeFaas   = "faas"
+	ToolTypeAgent  = "agent"
 )
 
 type ToolCaller func(*Vars, *Agent) func(context.Context, string, map[string]any) (*Result, error)
@@ -24,6 +25,9 @@ type ToolFunc struct {
 	Parameters  map[string]any
 
 	Body *FuncBody
+
+	// agent name of agent tool
+	Agent string
 
 	//
 	State State
@@ -86,6 +90,10 @@ type ToolConfig struct {
 	Body *FuncBody `yaml:"body"`
 
 	Condition *ToolCondition `yaml:"condition"`
+
+	// agent name for agent tool type
+	// description/parameters defined here take precedence
+	Agent string `yaml:"agent"`
 
 	//
 	Provider string `yaml:"provider"`

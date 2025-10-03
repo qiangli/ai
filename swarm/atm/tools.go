@@ -8,7 +8,7 @@ import (
 
 type ContextKey string
 
-const ModelsContextKey = "eval-models"
+const ModelsContextKey ContextKey = "eval-models"
 
 type toolSystem struct {
 	user *api.User

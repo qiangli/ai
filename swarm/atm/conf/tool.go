@@ -53,6 +53,15 @@ func loadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 		return filter(v)
 	}
 
+	// agent:name
+	if kit == api.ToolTypeAgent {
+		ac, err := assets.FindAgent(owner, name)
+		if err != nil {
+			return nil, err
+		}
+		return loadAgentTool(ac, name)
+	}
+
 	tc, err := assets.FindToolkit(owner, kit)
 	if err != nil {
 		return nil, err
@@ -141,6 +150,8 @@ func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 				Parameters:  v.Parameters,
 				Body:        v.Body,
 				//
+				Agent: v.Agent,
+				//
 				Provider: nvl(v.Provider, tc.Provider),
 				BaseUrl:  nvl(v.BaseUrl, tc.BaseUrl),
 				ApiKey:   nvl(v.ApiKey, tc.ApiKey),
@@ -150,6 +161,8 @@ func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 			if tool.Type == "" {
 				return nil, fmt.Errorf("Missing tool type: %s %s", tc.Kit, tool.Name)
 			}
+
+			// TODO merge description/parameters for agent tool?
 
 			toolMap[tool.ID()] = tool
 		}
@@ -178,4 +191,29 @@ func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 		tools = append(tools, v)
 	}
 	return tools, nil
+}
+
+func loadAgentTool(ac *api.AgentsConfig, name string) ([]*api.ToolFunc, error) {
+	for _, c := range ac.Agents {
+		if c.Name == name {
+			tool := &api.ToolFunc{
+				Kit:         "agent",
+				Type:        api.ToolTypeAgent,
+				Name:        c.Name,
+				Description: c.Description,
+				Parameters:  c.Parameters,
+				Body:        nil,
+				//
+				Agent: c.Name,
+				//
+				Config: &api.ToolsConfig{
+					Kit:  "agent",
+					Type: api.ToolTypeAgent,
+				},
+			}
+			return []*api.ToolFunc{tool}, nil
+		}
+	}
+
+	return nil, nil
 }
