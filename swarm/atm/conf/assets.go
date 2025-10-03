@@ -2,13 +2,15 @@ package conf
 
 import (
 	"fmt"
+	"path"
 
 	"github.com/qiangli/ai/swarm/api"
 )
 
 type assetManager struct {
-	user   *api.User
-	assets []api.AssetStore
+	user    *api.User
+	secrets api.SecretStore
+	assets  []api.AssetStore
 }
 
 func NewAssetManager(user *api.User) api.AssetManager {
@@ -22,19 +24,94 @@ func (r *assetManager) AddStore(store api.AssetStore) {
 	r.assets = append(r.assets, store)
 }
 
-func (r *assetManager) SearchAgent(owner string, pack string) (*api.AgentsConfig, error) {
+func (r *assetManager) SearchAgent(owner string, pack string) (*api.Record, error) {
+	for _, v := range r.assets {
+		// try search first
+		if as, ok := v.(api.ATMSupport); ok {
+			if a, err := as.SearchAgent(r.user.Email, owner, pack); err == nil && a != nil {
+				return a, nil
+			}
+		} else if as, ok := v.(api.AssetFS); ok {
+			if _, err := as.ReadDir(path.Join("agents", pack)); err == nil {
+				return &api.Record{
+					Owner: owner,
+					Name:  pack,
+				}, nil
+			}
+		}
+	}
+
+	// TODO  support searching for sub agent?
 	return nil, nil
 }
 
-func (r *assetManager) ListAgent(owner string) (map[string]*api.AgentsConfig, error) {
-	var agents = make(map[string]*api.AgentsConfig)
-
-	var packs = make(map[string]*api.AgentsConfig)
-
-	for _, rs := range r.assets {
-		LoadAgentsAsset(rs, "agents", packs)
+func (r *assetManager) GetAgent(owner string, pack string) (*api.AgentsConfig, error) {
+	var content []byte
+	for _, v := range r.assets {
+		if as, ok := v.(api.ATMSupport); ok {
+			if v, err := as.RetrieveAgent(owner, pack); err != nil {
+				return nil, err
+			} else {
+				content = []byte(v.Content)
+			}
+		} else if as, ok := v.(api.AssetFS); ok {
+			if v, err := as.ReadFile(path.Join("agents", pack)); err != nil {
+				return nil, err
+			} else {
+				content = v
+			}
+		}
 	}
 
+	if len(content) == 0 {
+		return nil, nil
+	}
+
+	//
+	ac, err := LoadAgentsData([][]byte{content})
+	if err != nil {
+		return nil, err
+	}
+	if ac == nil || len(ac.Agents) == 0 {
+		return nil, fmt.Errorf("invalid config. no agent defined: %s", pack)
+	}
+
+	//
+	ac.Name = pack
+
+	// agents
+	for _, v := range ac.Agents {
+		v.Name = normalizeAgentName(pack, v.Name)
+	}
+
+	if ac.MaxTurns == 0 {
+		ac.MaxTurns = defaultMaxTurns
+	}
+	if ac.MaxTime == 0 {
+		ac.MaxTime = defaultMaxTime
+	}
+	// upper limit
+	ac.MaxTurns = min(ac.MaxTurns, maxTurnsLimit)
+	ac.MaxTime = min(ac.MaxTime, maxTimeLimit)
+
+	return ac, nil
+}
+
+func (r *assetManager) ListAgent(owner string) (map[string]*api.AgentsConfig, error) {
+	var packs = make(map[string]*api.AgentsConfig)
+	for _, v := range r.assets {
+		if as, ok := v.(api.ATMSupport); ok {
+			if err := loadAgentsATM(owner, as, packs); err != nil {
+				return nil, err
+			}
+		} else if as, ok := v.(api.AssetFS); ok {
+			if err := loadAgentsAsset(as, "agents", packs); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	var agents = make(map[string]*api.AgentsConfig)
 	// add sub agent to the map as well
 	for _, v := range packs {
 		if len(v.Agents) == 0 {
@@ -63,10 +140,75 @@ func (r *assetManager) ListAgent(owner string) (map[string]*api.AgentsConfig, er
 	return agents, nil
 }
 
-func (r *assetManager) FindToolkit(owner string, kit string) (*api.ToolsConfig, error) {
-	return nil, nil
+func (r *assetManager) GetToolkit(owner string, kit string) (*api.ToolsConfig, error) {
+	var content []byte
+	for _, v := range r.assets {
+		if as, ok := v.(api.ATMSupport); ok {
+			if v, err := as.RetrieveTool(owner, kit); err != nil {
+				return nil, err
+			} else {
+				content = []byte(v.Content)
+			}
+		} else if as, ok := v.(api.AssetFS); ok {
+			if v, err := as.ReadFile(path.Join("tools", kit)); err != nil {
+				return nil, err
+			} else {
+				content = v
+			}
+		}
+	}
+
+	if len(content) == 0 {
+		return nil, nil
+	}
+
+	tc, err := loadToolData([][]byte{content})
+	if err != nil {
+		return nil, err
+	}
+	// NOTE: this may change
+	if tc == nil || (len(tc.Tools) == 0 && tc.Connector == nil) {
+		return nil, fmt.Errorf("invalid config. no tools defined: %s", kit)
+	}
+
+	//
+	tc.Kit = kit
+
+	return tc, nil
 }
 
-func (r *assetManager) FindModels(owner string, alias string) (*api.ModelsConfig, error) {
-	return nil, nil
+func (r *assetManager) GetModels(owner string, alias string) (*api.ModelsConfig, error) {
+	var content []byte
+	for _, v := range r.assets {
+		if as, ok := v.(api.ATMSupport); ok {
+			if v, err := as.RetrieveModel(owner, alias); err != nil {
+				return nil, err
+			} else {
+				content = []byte(v.Content)
+			}
+		} else if as, ok := v.(api.AssetFS); ok {
+			if v, err := as.ReadFile(path.Join("models", alias)); err != nil {
+				return nil, err
+			} else {
+				content = v
+			}
+		}
+	}
+
+	if len(content) == 0 {
+		return nil, nil
+	}
+
+	mc, err := loadModelsData([][]byte{content})
+	if err != nil {
+		return nil, fmt.Errorf("failed to load models: %s. %v", alias, err)
+	}
+	if mc == nil || len(mc.Models) == 0 {
+		return nil, fmt.Errorf("invalid models config: %s", alias)
+	}
+
+	//
+	mc.Alias = alias
+
+	return mc, nil
 }

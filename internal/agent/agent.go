@@ -79,7 +79,8 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	var adapters = adapter.GetAdapters()
 	var tools = atm.NewToolSystem(user)
 	tools.AddKit("func", &atm.FuncKit{
-		User: user,
+		User:   user,
+		Assets: am,
 	})
 	tools.AddKit("web", &atm.WebKit{})
 	sw := &swarm.Swarm{

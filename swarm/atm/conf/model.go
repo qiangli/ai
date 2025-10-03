@@ -2,7 +2,6 @@ package conf
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -24,7 +23,7 @@ var (
 	modelCache = expirable.NewLRU[ModelCacheKey, map[string]*api.Model](10000, nil, time.Second*180)
 )
 
-func loadModel(auth *api.User, owner, models, model string, secrets api.SecretStore) (*api.Model, error) {
+func loadModel(auth *api.User, owner, models, model string, secrets api.SecretStore, assets api.AssetManager) (*api.Model, error) {
 	provide := func(mc *api.ModelsConfig, level string) (*api.Model, error) {
 		c, ok := mc.Models[level]
 		if !ok {
@@ -74,7 +73,7 @@ func loadModel(auth *api.User, owner, models, model string, secrets api.SecretSt
 	// alias/level
 	alias, level := split()
 
-	mc, err := retrieveActiveModelsConfig(owner, alias)
+	mc, err := assets.GetModels(owner, alias)
 	if err != nil {
 		return nil, err
 	}
@@ -82,77 +81,7 @@ func loadModel(auth *api.User, owner, models, model string, secrets api.SecretSt
 		return provide(mc, level)
 	}
 
-	// system default
-	if v, ok := standardModels[alias]; ok {
-		return provide(v, level)
-	}
-
 	return nil, fmt.Errorf("model not found: %s %s", alias, level)
-}
-
-func loadModelsAsset(as api.AssetStore, base string, m map[string]*api.ModelsConfig) error {
-	files, err := as.ReadDir(base)
-	if err != nil {
-		return err
-	}
-
-	// read all yaml files in the base dir
-	for _, v := range files {
-		if v.IsDir() {
-			continue
-		}
-		name := v.Name()
-		if strings.HasSuffix(name, ".yaml") || strings.HasSuffix(name, ".yml") {
-			// read the file content
-			b, err := as.ReadFile(filepath.Join(base, name))
-			if err != nil {
-				return err
-			}
-			mc, err := loadModelsData([][]byte{b})
-			if err != nil {
-				return fmt.Errorf("failed to load %q: %v", name, err)
-			}
-			//
-			alias := mc.Alias
-			if alias == "" {
-				alias = strings.TrimSuffix(name, filepath.Ext(name))
-				mc.Alias = alias
-			}
-			m[alias] = mc
-		}
-	}
-
-	return nil
-}
-
-// retrieve model alias
-// return nil if not found
-func retrieveActiveModelsConfig(
-	owner string,
-	alias string,
-) (*api.ModelsConfig, error) {
-	// m, found, err := db.GetActiveModelByEmail(owner, alias)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// //
-	// if !found {
-	// 	return nil, nil
-	// }
-	// []byte(m.Content)
-	var content []byte
-	mc, err := loadModelsData([][]byte{content})
-	if err != nil {
-		return nil, fmt.Errorf("failed to load models: %s. %v", alias, err)
-	}
-	if mc == nil || len(mc.Models) == 0 {
-		return nil, fmt.Errorf("invalid models config: %s", alias)
-	}
-
-	//
-	mc.Alias = alias
-
-	return mc, nil
 }
 
 func loadModelsData(data [][]byte) (*api.ModelsConfig, error) {

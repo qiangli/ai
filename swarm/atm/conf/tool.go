@@ -2,7 +2,6 @@ package conf
 
 import (
 	"fmt"
-	"path"
 	"strings"
 	"time"
 
@@ -22,7 +21,7 @@ var (
 	toolkitCache = expirable.NewLRU[ToolkitCacheKey, []*api.ToolFunc](10000, nil, time.Second*180)
 )
 
-func loadToolFunc(owner, s string, secrets api.SecretStore) ([]*api.ToolFunc, error) {
+func loadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetManager) ([]*api.ToolFunc, error) {
 	// kit__name
 	// kit:*
 	// kit:name
@@ -54,55 +53,21 @@ func loadToolFunc(owner, s string, secrets api.SecretStore) ([]*api.ToolFunc, er
 		return filter(v)
 	}
 
-	if tc, err := retrieveActiveToolkit(owner, kit); err != nil {
+	tc, err := assets.GetToolkit(owner, kit)
+	if err != nil {
 		return nil, err
-	} else {
-		if tc != nil {
-			v, err := loadTools(tc, owner, secrets)
-			if err != nil {
-				return nil, err
-			}
-			toolkitCache.Add(key, v)
-			return filter(v)
-		}
 	}
 
-	// default
-	if tc, ok := standardTools[kit]; ok {
+	if tc != nil {
 		v, err := loadTools(tc, owner, secrets)
 		if err != nil {
 			return nil, err
 		}
+		toolkitCache.Add(key, v)
 		return filter(v)
 	}
 
 	return nil, fmt.Errorf("tool not found: %s", s)
-}
-
-func loadToolsAsset(as api.AssetStore, base string, kits map[string]*api.ToolsConfig) error {
-	dirs, err := as.ReadDir(base)
-	if err != nil {
-		return fmt.Errorf("failed to read directory: %v", err)
-	}
-	for _, dir := range dirs {
-		if dir.IsDir() {
-			continue
-		}
-		f, err := as.ReadFile(path.Join(base, dir.Name()))
-		if err != nil {
-			return fmt.Errorf("failed to read tool file %s: %w", dir.Name(), err)
-		}
-		if len(f) == 0 {
-			continue
-		}
-		kit, err := loadToolData([][]byte{f})
-		if err != nil {
-			return err
-		}
-		kits[kit.Kit] = kit
-	}
-
-	return nil
 }
 
 func loadToolData(data [][]byte) (*api.ToolsConfig, error) {
@@ -149,37 +114,6 @@ func loadToolData(data [][]byte) (*api.ToolsConfig, error) {
 	}
 
 	return merged, nil
-}
-
-// return nil if not found
-func retrieveActiveToolkit(
-	owner string,
-	kitName string,
-) (*api.ToolsConfig, error) {
-	// t, found, err := db.GetActiveToolByEmail(owner, kitName)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// // not found
-	// if !found {
-	// 	return nil, nil
-	// }
-
-	var content []byte
-	tc, err := loadToolData([][]byte{content})
-	if err != nil {
-		return nil, err
-	}
-	// NOTE: this may change
-	if tc == nil || (len(tc.Tools) == 0 && tc.Connector == nil) {
-		return nil, fmt.Errorf("invalid config. no tools defined: %s", kitName)
-	}
-
-	//
-	tc.Kit = kitName
-
-	return tc, nil
 }
 
 func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*api.ToolFunc, error) {

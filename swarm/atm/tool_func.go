@@ -14,13 +14,14 @@ import (
 )
 
 type FuncKit struct {
-	User *api.User
+	User   *api.User
+	Assets api.AssetManager
 }
 
 func (r *FuncKit) ListAgents(ctx context.Context, vars *api.Vars, _ string, _ map[string]any) (string, error) {
 	var list []string
 
-	dict, err := conf.ListAgents(r.User.Email)
+	dict, err := conf.ListAgents(r.User.Email, r.Assets)
 	if err != nil {
 		return "", err
 	}
@@ -42,7 +43,7 @@ func (r *FuncKit) AgentInfo(ctx context.Context, vars *api.Vars, _ string, args 
 	if err != nil {
 		return "", err
 	}
-	dict, err := conf.ListAgents(r.User.Email)
+	dict, err := conf.ListAgents(r.User.Email, r.Assets)
 	if err != nil {
 		return "", err
 	}
