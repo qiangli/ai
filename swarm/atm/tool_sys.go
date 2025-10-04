@@ -32,10 +32,9 @@ func (r *SystemKit) Call(ctx context.Context, vars *api.Vars, token api.SecretTo
 	var result api.Result
 	if s, ok := v.(string); ok {
 		result.Value = s
-	} else if c, ok := v.(*FileContent); ok {
+	} else if c, ok := v.(*api.Blob); ok {
 		result.Value = string(c.Content)
 		result.MimeType = c.MimeType
-		result.Message = c.Message
 	} else {
 		result.Value = fmt.Sprintf("%v", v)
 	}

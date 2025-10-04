@@ -158,14 +158,15 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 				return resp, nil
 			}
 
-			if out.MimeType != "" && !strings.HasPrefix(out.MimeType, "text/") {
-				// TODO this is a hack and seems to work for non text parts
-				// investigate this may fail for multi tool calls unless this is the last
-				params.Messages = append(params.Messages, openai.ToolMessage(fmt.Sprintf("%s\nThe file content is included as data URL in the user message.", out.Message), toolCall.ID))
-				params.Messages = append(params.Messages, openai.UserMessage(toContentPart(out.MimeType, []byte(out.Value))))
-			} else {
-				params.Messages = append(params.Messages, openai.ToolMessage(out.Value, toolCall.ID))
-			}
+			// if out.MimeType != "" && !strings.HasPrefix(out.MimeType, "text/") {
+			// 	// TODO this is a hack and seems to work for non text parts
+			// 	// investigate this may fail for multi tool calls unless this is the last
+			// 	// params.Messages = append(params.Messages, openai.ToolMessage(fmt.Sprintf("%s\nThe file content is included as data URL in the user message.", out.Message), toolCall.ID))
+			// 	// params.Messages = append(params.Messages, openai.UserMessage(toContentPart(out.MimeType, []byte(out.Value))))
+			// } else {
+			// 	params.Messages = append(params.Messages, openai.ToolMessage(out.Value, toolCall.ID))
+			// }
+			params.Messages = append(params.Messages, openai.ToolMessage(out.Value, toolCall.ID))
 		}
 	}
 

@@ -6,7 +6,24 @@ import (
 	"time"
 )
 
-// TODO
+// Object store
+type BlobStore interface {
+	Put(ID string, blob *Blob) error
+	Get(ID string) (*Blob, error)
+	List() ([]*Blob, error)
+}
+
+// https://en.wikipedia.org/wiki/Media_type
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types
+// https://mimesniff.spec.whatwg.org/
+type Blob struct {
+	ID       string
+	MimeType string
+	Content  []byte
+	Meta     map[string]any
+}
+
+// Memory store
 type MemOption struct {
 	MaxHistory int
 	MaxSpan    int
@@ -17,6 +34,7 @@ type MemStore interface {
 	Load(*MemOption) ([]*Message, error)
 }
 
+// Resource Store
 type DirEntry = fs.DirEntry
 
 type DirEntryInfo struct {

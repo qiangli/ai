@@ -26,6 +26,8 @@ type Swarm struct {
 	Tools   api.ToolSystem
 
 	Adapters llm.AdapterRegistry
+
+	Blobs api.BlobStore
 }
 
 // Function to clear all environment variables execep essential ones

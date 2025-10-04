@@ -135,7 +135,7 @@ type Result struct {
 	// Tool call
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types
 	MimeType string
-	Message  string
+	// Message  string
 
 	// The agent state
 	State State

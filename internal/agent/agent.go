@@ -87,6 +87,8 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	tools.AddKit(api.ToolTypeMcp, atm.NewMcpKit())
 	tools.AddKit(api.ToolTypeFaas, atm.NewFaasKit())
 
+	var blobs = swarm.NewBlobStorage()
+
 	sw := &swarm.Swarm{
 		Vars:     vars,
 		User:     user,
@@ -94,6 +96,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		Assets:   assets,
 		Tools:    tools,
 		Adapters: adapters,
+		Blobs:    blobs,
 	}
 
 	if err := sw.Run(req, resp); err != nil {

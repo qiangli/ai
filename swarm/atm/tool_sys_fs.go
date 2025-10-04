@@ -57,16 +57,16 @@ func (r *SystemKit) GetFileInfo(ctx context.Context, vars *api.Vars, name string
 }
 
 // https://mimesniff.spec.whatwg.org/
-type FileContent struct {
-	MimeType string
-	Content  []byte
+// type FileContent struct {
+// 	MimeType string
+// 	Content  []byte
 
-	// Optional message to LLM
-	Message string
-}
+// 	// Optional message to LLM
+// 	// Message string
+// }
 
 // ReadFile returns mime type and the raw file content
-func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*FileContent, error) {
+func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (any, error) {
 	path, err := r.getStr("path", args)
 	if err != nil {
 		return nil, err
@@ -76,10 +76,9 @@ func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, a
 		return nil, err
 	}
 
-	var c FileContent
+	var c api.Blob
 	c.Content = raw
 	c.MimeType = http.DetectContentType(raw)
-	c.Message = "File read successfully."
 
 	return &c, nil
 }

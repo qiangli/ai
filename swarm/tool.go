@@ -32,9 +32,33 @@ func callAgentTool(ctx context.Context, sw *Swarm, agent *api.Agent, tf *api.Too
 }
 
 func NewToolCaller(sw *Swarm) api.ToolCaller {
+	save := func(v *api.Result) (string, error) {
+		id := NewBlobID()
+		b := &api.Blob{
+			ID:       id,
+			MimeType: v.MimeType,
+			Content:  []byte(v.Value),
+		}
+		err := sw.Blobs.Put(id, b)
+		return id, err
+	}
 	toResult := func(v any) *api.Result {
 		if r, ok := v.(*api.Result); ok {
-			return r
+			if r.MimeType != api.ContentTypeB64JSON {
+				return r
+			}
+			// image
+			// transform media response into data uri
+			id, err := save(r)
+			if err != nil {
+				return &api.Result{
+					Value: err.Error(),
+				}
+			}
+			dataURI := fmt.Sprintf("data:application/x.dhnt.blob;mime=%s;%s", r.MimeType, id)
+			return &api.Result{
+				Value: fmt.Sprintf("The image is available as: %s", dataURI),
+			}
 		}
 		if s, ok := v.(string); ok {
 			return &api.Result{
