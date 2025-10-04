@@ -76,11 +76,11 @@ type AppConfig struct {
 
 	// Files []string
 
-	// Treated as file
-	Screenshot bool
+	// // Treated as file
+	// Screenshot bool
 
-	// Treated as input text
-	Voice bool
+	// // Treated as input text
+	// Voice bool
 
 	// Output format: raw or markdown
 	Format string
@@ -165,10 +165,10 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		Stdin:      cfg.Stdin,
 		//
 		// Files:      cfg.Files,
-		Screenshot: cfg.Screenshot,
-		Voice:      cfg.Voice,
-		Format:     cfg.Format,
-		Output:     cfg.Output,
+		// Screenshot: cfg.Screenshot,
+		// Voice:      cfg.Voice,
+		Format: cfg.Format,
+		Output: cfg.Output,
 		// Me:         cfg.Me,
 		// Template:   cfg.Template,
 		New:        cfg.New,
@@ -179,13 +179,13 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		//
 		LogLevel: cfg.LogLevel,
 		//
-		DenyList:    cfg.DenyList,
-		AllowList:   cfg.AllowList,
-		Unsafe:      cfg.Unsafe,
-		Base:        cfg.Base,
-		Workspace:   cfg.Workspace,
-		Home:        cfg.Home,
-		Temp:        cfg.Temp,
+		DenyList:  cfg.DenyList,
+		AllowList: cfg.AllowList,
+		Unsafe:    cfg.Unsafe,
+		Base:      cfg.Base,
+		Workspace: cfg.Workspace,
+		// Home:        cfg.Home,
+		// Temp:        cfg.Temp,
 		Interactive: cfg.Interactive,
 		Editing:     cfg.Editing,
 		Shell:       cfg.Shell,
@@ -226,12 +226,13 @@ func (r *AppConfig) IsClipin() bool {
 	return r.Clipin
 }
 
-func (r *AppConfig) IsMedia() bool {
-	return r.Screenshot || r.Voice
-}
+// func (r *AppConfig) IsMedia() bool {
+// 	return r.Screenshot || r.Voice
+// }
 
 func (r *AppConfig) IsSpecial() bool {
-	return r.IsStdin() || r.IsClipin() || r.IsMedia()
+	// return r.IsStdin() || r.IsClipin() || r.IsMedia()
+	return r.IsStdin() || r.IsClipin()
 }
 
 func (r *AppConfig) HasInput() bool {

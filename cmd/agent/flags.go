@@ -40,12 +40,12 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.Bool("pb-read", false, "Read input from clipboard. '{'")
 	flags.Bool("pb-tail", false, "Read input from clipboard and wait. '{{'")
 
-	// special inputs
-	flags.Bool("screenshot", false, "Take screenshot of the active tab in Chrome (CRX)")
-	flags.Bool("voice", false, "Transcribe voice using speech recognition in Chrome (CRX)")
+	// // special inputs
+	// flags.Bool("screenshot", false, "Take screenshot of the active tab in Chrome (CRX)")
+	// flags.Bool("voice", false, "Transcribe voice using speech recognition in Chrome (CRX)")
 
-	flags.MarkHidden("screenshot")
-	flags.MarkHidden("voice")
+	// flags.MarkHidden("screenshot")
+	// flags.MarkHidden("voice")
 
 	// output
 	// flags.StringVar(&internal.OutputFlag, "output", "", "Save final response to a file.")
@@ -87,10 +87,9 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("max-turns")
 	flags.MarkHidden("max-time")
 
-	// mcp
-	flags.String("mcp-server-root", "", "MCP server config base directory")
-
-	flags.MarkHidden("mcp-server-root")
+	// // mcp
+	// flags.String("mcp-server-root", "", "MCP server config base directory")
+	// flags.MarkHidden("mcp-server-root")
 
 	// resource
 	flags.String("resource", "resource.json", "Resource configuration")

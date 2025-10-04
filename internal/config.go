@@ -91,8 +91,8 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 
 	// app.Template = viper.GetString("template")
 
-	app.Screenshot = viper.GetBool("screenshot")
-	app.Voice = viper.GetBool("voice")
+	// app.Screenshot = viper.GetBool("screenshot")
+	// app.Voice = viper.GetBool("voice")
 
 	//
 	home, err := homeDir()
