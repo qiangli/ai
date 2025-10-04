@@ -37,7 +37,7 @@ func NewToolCaller(sw *Swarm) api.ToolCaller {
 		b := &api.Blob{
 			ID:       id,
 			MimeType: v.MimeType,
-			Content:  []byte(v.Value),
+			Content:  v.Content,
 		}
 		err := sw.Blobs.Put(id, b)
 		return id, err

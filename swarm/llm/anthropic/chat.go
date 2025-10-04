@@ -156,7 +156,6 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 				resp.Result = out
 
 				if out.State == api.StateExit {
-					resp.Result = out
 					return resp, nil
 				}
 				if out.State == api.StateTransfer {

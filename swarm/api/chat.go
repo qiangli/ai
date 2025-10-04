@@ -132,14 +132,14 @@ type Result struct {
 	// The result value as a string
 	Value string
 
-	// Tool call
+	// media content
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types
 	MimeType string
-	// Message  string
+	Content  []byte
 
+	// transition
 	// The agent state
 	State State
-
 	// The agent name to transfer to for StateTransfer
 	NextAgent string
 }
@@ -152,8 +152,8 @@ func (r *Result) String() string {
 	if r.NextAgent != "" {
 		sb.WriteString(fmt.Sprintf(" %s\n", r.NextAgent))
 	}
-	if r.Value != "" {
-		sb.WriteString(fmt.Sprintf(" %s\n", r.Value))
-	}
+	// if r.Value != "" {
+	// 	sb.WriteString(fmt.Sprintf(" %s\n", r.Value))
+	// }
 	return strings.TrimSpace(sb.String())
 }

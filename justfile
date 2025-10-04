@@ -4,7 +4,7 @@ default:
   @just --list
 
 build:
-    ./build.sh
+    time ./build.sh
 
 build-all: tidy
     ./build.sh all
@@ -34,7 +34,7 @@ git-amend: git-message
     git commit --amend -m "$(pbpaste)"
 
 install: build test
-    CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o "$(go env GOPATH)/bin/ai" -ldflags="-w -extldflags '-static' ${CLI_FLAGS:-}" ./cmd
+    time CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o "$(go env GOPATH)/bin/ai" -ldflags="-w -extldflags '-static' ${CLI_FLAGS:-}" ./cmd
 
 # Update all dependencies
 update:

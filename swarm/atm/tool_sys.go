@@ -33,7 +33,7 @@ func (r *SystemKit) Call(ctx context.Context, vars *api.Vars, token api.SecretTo
 	if s, ok := v.(string); ok {
 		result.Value = s
 	} else if c, ok := v.(*api.Blob); ok {
-		result.Value = string(c.Content)
+		result.Content = c.Content
 		result.MimeType = c.MimeType
 	} else {
 		result.Value = fmt.Sprintf("%v", v)

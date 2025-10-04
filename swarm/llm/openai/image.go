@@ -99,7 +99,7 @@ func generateImage(ctx context.Context, req *llm.Request) (*llm.Response, error)
 		// Content:     image.Data[0].B64JSON,
 		Result: &api.Result{
 			MimeType: api.ContentTypeB64JSON,
-			Value:    image.Data[0].B64JSON,
+			Content:  []byte(image.Data[0].B64JSON),
 		},
 	}, nil
 }
