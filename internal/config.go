@@ -82,14 +82,14 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	app.DryRun = viper.GetBool("dry_run")
 	app.DryRunContent = viper.GetString("dry_run_content")
 
-	app.Files = viper.GetStringSlice("file")
+	// app.Files = viper.GetStringSlice("file")
 	app.Format = viper.GetString("format")
 	app.Output = viper.GetString("output")
 
 	//
 	app.Message = viper.GetString("message")
 
-	app.Template = viper.GetString("template")
+	// app.Template = viper.GetString("template")
 
 	app.Screenshot = viper.GetBool("screenshot")
 	app.Voice = viper.GetBool("voice")

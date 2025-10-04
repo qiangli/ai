@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	"github.com/qiangli/ai/internal"
@@ -43,13 +42,9 @@ func GetUserInput(ctx context.Context, cfg *api.AppConfig) (*api.UserInput, erro
 func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clipper api.ClipboardProvider, editor api.EditorProvider) (*api.UserInput, error) {
 	// --message flag - ignore the rest (mainly intended for testing)
 	// changed to be prepended to other messages
+	// support default values from agents config.
 	if cfg.Message != "" {
-		input := &api.UserInput{
-			// Message:  cfg.Message,
-			Files: cfg.Files,
-			// Template: cfg.Template,
-		}
-		return input, nil
+		return &api.UserInput{}, nil
 	}
 
 	// collecting message content from various sources
@@ -66,7 +61,7 @@ func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clip
 	}
 
 	// attachments
-	input.Files = cfg.Files
+	// input.Files = cfg.Files
 	// input.Template = cfg.Template
 
 	// special inputs
@@ -89,7 +84,7 @@ func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clip
 	// 	}
 	// }
 
-	log.GetLogger(ctx).Debugf("\n%s\n%s\n%v\n", input.Message, clipText(input.Content, clipMaxLen), input.Files)
+	log.GetLogger(ctx).Debugf("\n%s\n%s\n", input.Message, clipText(input.Content, clipMaxLen))
 	return input, nil
 }
 
@@ -259,26 +254,27 @@ func PrintInput(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) {
 
 	// query and files for info only
 	var msg = clipText(input.Query(), clipMaxLen)
-	for _, v := range input.Files {
-		msg += fmt.Sprintf("\n+ %s", v)
-	}
+	// for _, v := range input.Files {
+	// 	msg += fmt.Sprintf("\n+ %s", v)
+	// }
 	renderInputContent(ctx, msg)
 
-	// attachments
-	for _, v := range input.Files {
-		ext := filepath.Ext(v)
-		var emoji string
-		// TODO more extensions
-		switch ext {
-		case "txt", "yaml", "yml", "md":
-			emoji = "📄"
-		case "png", "jpg", "jpeg", "gif", "webp":
-			emoji = "🖼️"
-		default:
-			emoji = "💾"
-		}
-		log.GetLogger(ctx).Infof("%s attachment: %s\n", emoji, v)
-	}
+	// // attachments
+	// for _, v := range input.Files {
+	// 	ext := filepath.Ext(v)
+	// 	var emoji string
+	// 	// TODO more extensions
+	// 	switch ext {
+	// 	case "txt", "yaml", "yml", "md":
+	// 		emoji = "📄"
+	// 	case "png", "jpg", "jpeg", "gif", "webp":
+	// 		emoji = "🖼️"
+	// 	default:
+	// 		emoji = "💾"
+	// 	}
+	// 	log.GetLogger(ctx).Infof("%s attachment: %s\n", emoji, v)
+	// }
+
 	// for _, v := range input.Messages {
 	// 	var emoji string
 	// 	ps := strings.SplitN(v.ContentType, "/", 2)

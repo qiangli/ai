@@ -34,12 +34,7 @@ type UserInput struct {
 	// query - clipboard/stdin/editor
 	Content string `json:"content"`
 
-	// // TODO deprecate
-	// Template string `json:"template"`
-
-	Files []string `json:"files"`
-
-	// Extra map[string]any `json:"extra"`
+	// Files []string `json:"files"`
 
 	// cached file contents
 	Messages []*Message `json:"-"`
@@ -51,7 +46,7 @@ func (r *UserInput) String() string {
 	sb.WriteString(fmt.Sprintf("Message#: %v\n", len(r.Message)))
 	sb.WriteString(fmt.Sprintf("Content#: %v\n", len(r.Content)))
 	sb.WriteString(fmt.Sprintf("Intent: %s\n", r.Intent()))
-	sb.WriteString(fmt.Sprintf("Files: %v\n", r.Files))
+	// sb.WriteString(fmt.Sprintf("Files: %v\n", r.Files))
 	// sb.WriteString(fmt.Sprintf("Messages#: %v\n", len(r.Messages)))
 	// for _, v := range r.Messages {
 	// 	sb.WriteString(fmt.Sprintf("ContentType: %s Content#: %v\n", v.ContentType, len(v.Content)))
@@ -60,9 +55,20 @@ func (r *UserInput) String() string {
 	return sb.String()
 }
 
+func (r *UserInput) Clone() *UserInput {
+	return &UserInput{
+		Agent:   r.Agent,
+		Message: r.Message,
+		Content: r.Content,
+		// Files:    append([]string(nil), r.Files...),
+		Messages: append([]*Message(nil), r.Messages...),
+	}
+}
+
 // No user input.
 func (r *UserInput) IsEmpty() bool {
-	return r.Message == "" && r.Content == "" && len(r.Files) == 0
+	// return r.Message == "" && r.Content == "" && len(r.Files) == 0
+	return r.Message == "" && r.Content == ""
 }
 
 // Text input from command line args, clipboard, stdin, or editor

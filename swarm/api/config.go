@@ -74,7 +74,7 @@ type AppConfig struct {
 	IsPiped bool
 	Stdin   bool
 
-	Files []string
+	// Files []string
 
 	// Treated as file
 	Screenshot bool
@@ -91,8 +91,8 @@ type AppConfig struct {
 	// TODO move to vars for authenticated user
 	// Me *User
 
-	//
-	Template string
+	// //
+	// Template string
 
 	// conversation history
 	New        bool
@@ -164,13 +164,13 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		IsPiped:    cfg.IsPiped,
 		Stdin:      cfg.Stdin,
 		//
-		Files:      cfg.Files,
+		// Files:      cfg.Files,
 		Screenshot: cfg.Screenshot,
 		Voice:      cfg.Voice,
 		Format:     cfg.Format,
 		Output:     cfg.Output,
 		// Me:         cfg.Me,
-		Template:   cfg.Template,
+		// Template:   cfg.Template,
 		New:        cfg.New,
 		ChatID:     cfg.ChatID,
 		MaxHistory: cfg.MaxHistory,
@@ -235,12 +235,13 @@ func (r *AppConfig) IsSpecial() bool {
 }
 
 func (r *AppConfig) HasInput() bool {
-	return r.Message != "" || len(r.Files) > 0 || len(r.Args) > 0
+	return r.Message != "" || len(r.Args) > 0
+	// return r.Message != "" || len(r.Files) > 0 || len(r.Args) > 0
 }
 
-func (r *AppConfig) GetQuery() string {
-	if r.Message != "" {
-		return r.Message
-	}
-	return strings.Join(r.Args, " ")
-}
+// func (r *AppConfig) GetQuery() string {
+// 	if r.Message != "" {
+// 		return r.Message
+// 	}
+// 	return strings.Join(r.Args, " ")
+// }
