@@ -49,18 +49,17 @@ func Validate(app *api.AppConfig) error {
 }
 
 // resolveWorkspaceDir returns the workspace directory.
-// If the workspace is not provided, it returns the current working directory
-// or the directory of the git repository containing the current working directory
-// if it is in a git repository.
+// If the workspace is not provided, it returns the temp dir.
 func resolveWorkspaceDir(ws string) (string, error) {
 	if ws != "" {
 		return ensureWorkspace(ws)
 	}
-	ws, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	return resolveRepoDir(ws)
+	// ws, err := os.Getwd()
+	// if err != nil {
+	// 	return "", err
+	// }
+	// return resolveRepoDir(ws)
+	return tempDir()
 }
 
 // resolveRepoDir returns the directory of the current git repository
@@ -79,9 +78,9 @@ func resolveRepoDir(ws string) (string, error) {
 	return dir, nil
 }
 
-func homeDir() (string, error) {
-	return os.UserHomeDir()
-}
+// func homeDir() (string, error) {
+// 	return os.UserHomeDir()
+// }
 
 func tempDir() (string, error) {
 	return os.TempDir(), nil

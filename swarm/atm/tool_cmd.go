@@ -8,8 +8,8 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/qiangli/ai/internal/bubble"
-	"github.com/qiangli/ai/internal/bubble/confirm"
+	// "github.com/qiangli/ai/internal/bubble"
+	// "github.com/qiangli/ai/internal/bubble/confirm"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/ai/swarm/vfs"
@@ -103,19 +103,20 @@ func ExecCommand(ctx context.Context, command string, args []string, verbose boo
 }
 
 func RunRestricted(ctx context.Context, vars *api.Vars, command string, args []string) (string, error) {
-	if isAllowed(vars.Config.AllowList, command) {
-		return ExecCommand(ctx, command, args, vars.Config.IsVerbose())
-	}
+	// TODO config per agent
+	// if isAllowed(vars.Config.AllowList, command) {
+	// 	return ExecCommand(ctx, command, args, vars.Config.IsVerbose())
+	// }
 
-	if isDenied(vars.Config.DenyList, command) {
-		log.GetLogger(ctx).Errorf("\n❌ restricted\n")
-		log.GetLogger(ctx).Infof("%s %v\n", command, strings.Join(args, " "))
-		if answer, err := bubble.Confirm("Continue?"); err == nil && answer == confirm.Yes {
-			return ExecCommand(ctx, command, args, vars.Config.IsVerbose())
-		}
+	// if isDenied(vars.Config.DenyList, command) {
+	// 	log.GetLogger(ctx).Errorf("\n❌ restricted\n")
+	// 	log.GetLogger(ctx).Infof("%s %v\n", command, strings.Join(args, " "))
+	// 	if answer, err := bubble.Confirm("Continue?"); err == nil && answer == confirm.Yes {
+	// 		return ExecCommand(ctx, command, args, vars.Config.IsVerbose())
+	// 	}
 
-		return "", fmt.Errorf("%s: Not allowed", command)
-	}
+	// 	return "", fmt.Errorf("%s: Not allowed", command)
+	// }
 
 	safe, err := EvaluateCommand(ctx, vars, command, args)
 	if err != nil {

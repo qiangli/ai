@@ -3,35 +3,35 @@ kit: "host"
 type: "system"
 
 tools:
-  - name: "home_dir"
-    description: "Return the user's home directory"
-    parameters:
-      type: "object"
-      properties: {}
-      required: []
+  # - name: "home_dir"
+  #   description: "Return the user's home directory"
+  #   parameters:
+  #     type: "object"
+  #     properties: {}
+  #     required: []
 
-  - name: "temp_dir"
-    description: "Return the default directory to use for temporary files"
-    parameters:
-      type: "object"
-      properties: {}
-      required: []
+  # - name: "temp_dir"
+  #   description: "Return the default directory to use for temporary files"
+  #   parameters:
+  #     type: "object"
+  #     properties: {}
+  #     required: []
 
   - name: "workspace_dir"
-    description: "Return the current workspace directory"
+    description: "Return the workspace directory"
     parameters:
       type: "object"
       properties: {}
       required: []
 
-  - name: "repo_dir"
-    description: "Return the current repository directory"
-    parameters:
-      type: "object"
-      properties: {}
-      required: []
+  # - name: "repo_dir"
+  #   description: "Return the current repository directory"
+  #   parameters:
+  #     type: "object"
+  #     properties: {}
+  #     required: []
 
-  - name: "who_am_i"
-    description: "Return the username of the current system user as my identity"
-    parameters: {}
+  # - name: "who_am_i"
+  #   description: "Return the username of the current system user as my identity"
+  #   parameters: {}
 

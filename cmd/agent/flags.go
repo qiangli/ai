@@ -59,12 +59,13 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.String("format", "markdown", "Output format: raw, text, json, markdown, or tts.")
 
 	// security
-	flags.String("deny", "rm,sudo", "List of comma separated system commands disallowed for tool calls. Approval is required to proceed. Ignored if 'unsafe' is true")
-	flags.String("allow", "", "List of comma separated system commands allowed for tool calls")
+	// flags.String("deny", "rm,sudo", "List of comma separated system commands disallowed for tool calls. Approval is required to proceed. Ignored if 'unsafe' is true")
+	// flags.String("allow", "", "List of comma separated system commands allowed for tool calls")
+	
 	flags.Bool("unsafe", false, "Skip command security check to allow unsafe operations. Use with caution")
 
-	flags.MarkHidden("deny")
-	flags.MarkHidden("allow")
+	// flags.MarkHidden("deny")
+	// flags.MarkHidden("allow")
 
 	// history
 	// TODO

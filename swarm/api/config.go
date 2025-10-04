@@ -114,16 +114,16 @@ type AppConfig struct {
 
 	// Internal bool
 
-	DenyList  []string
-	AllowList []string
+	// DenyList  []string
+	// AllowList []string
 	Unsafe    bool
 
 	//
 	Base string
 
 	Workspace string
-	Home      string
-	Temp      string
+	// Home      string
+	// Temp      string
 
 	Interactive bool
 	Editing     bool
@@ -179,8 +179,8 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		//
 		LogLevel: cfg.LogLevel,
 		//
-		DenyList:  cfg.DenyList,
-		AllowList: cfg.AllowList,
+		// DenyList:  cfg.DenyList,
+		// AllowList: cfg.AllowList,
 		Unsafe:    cfg.Unsafe,
 		Base:      cfg.Base,
 		Workspace: cfg.Workspace,

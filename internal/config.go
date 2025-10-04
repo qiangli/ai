@@ -94,21 +94,21 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	// app.Screenshot = viper.GetBool("screenshot")
 	// app.Voice = viper.GetBool("voice")
 
-	//
-	home, err := homeDir()
-	if err != nil {
-		return fmt.Errorf("failed to get home directory: %w", err)
-	}
-	app.Home = home
+	// //
+	// home, err := homeDir()
+	// if err != nil {
+	// 	return fmt.Errorf("failed to get home directory: %w", err)
+	// }
+	// app.Home = home
 
-	temp, err := tempDir()
-	if err != nil {
-		return fmt.Errorf("failed to get temp directory: %w", err)
-	}
-	app.Temp = temp
+	// temp, err := tempDir()
+	// if err != nil {
+	// 	return fmt.Errorf("failed to get temp directory: %w", err)
+	// }
+	// app.Temp = temp
 
 	ws := viper.GetString("workspace")
-	ws, err = resolveWorkspaceDir(ws)
+	ws, err := resolveWorkspaceDir(ws)
 	if err != nil {
 		return fmt.Errorf("failed to resolve workspace: %w", err)
 	}
@@ -140,19 +140,19 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	}
 
 	app.Unsafe = viper.GetBool("unsafe")
-	toList := func(s string) []string {
-		sa := strings.Split(s, ",")
-		var list []string
-		for _, v := range sa {
-			list = append(list, strings.TrimSpace(v))
-		}
-		if len(list) > 0 {
-			return list
-		}
-		return nil
-	}
-	app.DenyList = toList(viper.GetString("deny"))
-	app.AllowList = toList(viper.GetString("allow"))
+	// toList := func(s string) []string {
+	// 	sa := strings.Split(s, ",")
+	// 	var list []string
+	// 	for _, v := range sa {
+	// 		list = append(list, strings.TrimSpace(v))
+	// 	}
+	// 	if len(list) > 0 {
+	// 		return list
+	// 	}
+	// 	return nil
+	// }
+	// app.DenyList = toList(viper.GetString("deny"))
+	// app.AllowList = toList(viper.GetString("allow"))
 
 	app.Editor = viper.GetString("editor")
 	app.Editing = viper.GetBool("edit")
