@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"context"
+	"fmt"
 	"maps"
 	"time"
 
@@ -186,17 +187,20 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	if err != nil {
 		return err
 	}
+	if result.Result == nil {
+		return fmt.Errorf("empty response")
+	}
 
 	// Response
-	if result.Result == nil || result.Result.State != api.StateTransfer {
+	if result.Result.State != api.StateTransfer {
 		message := api.Message{
 			ID:      uuid.NewString(),
 			ChatID:  chatID,
 			Created: time.Now(),
 			//
-			ContentType: result.ContentType,
+			ContentType: result.Result.MimeType,
 			Role:        nvl(result.Role, api.RoleAssistant),
-			Content:     result.Content,
+			Content:     result.Result.Value,
 			Sender:      r.Name,
 		}
 		history = append(history, &message)
@@ -205,13 +209,10 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	resp.Messages = history[initLen:]
 
 	//
-	h.vars.Extra[extraResult] = result.Content
+	h.vars.Extra[extraResult] = result.Result.Value
 
-	// TODO merge Agent type with api.User
-	resp.Agent = &api.Agent{
-		Name:    r.Name,
-		Display: r.Display,
-	}
+	//
+	resp.Agent = r
 	resp.Result = result.Result
 
 	//

@@ -124,7 +124,11 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		if len(toolCalls) == 0 {
 			resp.Role = string(completion.Choices[0].Message.Role)
 			// resp.ContentType = "text/plain"
-			resp.Content = completion.Choices[0].Message.Content
+			// resp.Content = completion.Choices[0].Message.Content
+			resp.Result = &api.Result{
+				MimeType: "text/plain",
+				Value:    completion.Choices[0].Message.Content,
+			}
 			break
 		}
 
@@ -151,7 +155,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 			resp.Result = out
 
 			if out.State == api.StateExit {
-				resp.Content = out.Value
+				// resp.Content = out.Value
 				return resp, nil
 			}
 			if out.State == api.StateTransfer {

@@ -180,8 +180,10 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		// https://ai.google.dev/gemini-api/docs/function-calling?example=meeting
 		toolCalls := completion.FunctionCalls()
 		if len(toolCalls) == 0 {
-			resp.Role = ""
-			resp.Content = completion.Text()
+			// resp.Role = ""
+			resp.Result = &api.Result{
+				Value: completion.Text(),
+			}
 			break
 		}
 
@@ -205,7 +207,6 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 			resp.Result = out
 
 			if out.State == api.StateExit {
-				resp.Content = out.Value
 				return resp, nil
 			}
 			if out.State == api.StateTransfer {

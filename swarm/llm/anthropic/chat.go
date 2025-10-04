@@ -156,7 +156,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 				resp.Result = out
 
 				if out.State == api.StateExit {
-					resp.Content = out.Value
+					resp.Result = out
 					return resp, nil
 				}
 				if out.State == api.StateTransfer {
@@ -181,7 +181,10 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 
 		if len(toolResults) == 0 {
 			resp.Role = string(completion.Role)
-			resp.Content = b.String()
+			// resp.Content = b.String()
+			resp.Result = &api.Result{
+				Value: b.String(),
+			}
 			break
 		}
 

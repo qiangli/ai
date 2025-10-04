@@ -74,10 +74,13 @@ func EvaluateCommand(ctx context.Context, vars *api.Vars, command string, args [
 	if err != nil {
 		return false, err
 	}
+	if resp.Result == nil {
+		return false, fmt.Errorf("empty respone")
+	}
 
 	var check CommandCheck
-	if err := json.Unmarshal([]byte(resp.Content), &check); err != nil {
-		return false, fmt.Errorf("%s %s: %s, %s", command, strings.Join(args, " "), permissionDenied, resp.Content)
+	if err := json.Unmarshal([]byte(resp.Result.Value), &check); err != nil {
+		return false, fmt.Errorf("%s %s: %s, %s", command, strings.Join(args, " "), permissionDenied, resp.Result.Value)
 	}
 
 	if check.Safe {

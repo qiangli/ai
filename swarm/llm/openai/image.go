@@ -95,7 +95,11 @@ func generateImage(ctx context.Context, req *llm.Request) (*llm.Response, error)
 	log.GetLogger(ctx).Infof("✨ %v %v %v\n", imageQuality, imageSize, imageStyle)
 
 	return &llm.Response{
-		ContentType: api.ContentTypeB64JSON,
-		Content:     image.Data[0].B64JSON,
+		// ContentType: api.ContentTypeB64JSON,
+		// Content:     image.Data[0].B64JSON,
+		Result: &api.Result{
+			MimeType: api.ContentTypeB64JSON,
+			Value:    image.Data[0].B64JSON,
+		},
 	}, nil
 }
