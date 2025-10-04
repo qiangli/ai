@@ -73,25 +73,19 @@ type Agent struct {
 	Display     string
 	Description string
 
-	// // The role of the agent. default is "system"
-	// Role string
-
 	Instruction *Instruction
 
 	RawInput *UserInput
 
 	// The model to be used by the agent
 	Model *Model
-
 	// Functions that the agent can call
 	Tools []*ToolFunc
 
-	// model aliases to used used
-	// Models []*Model
+	Arguments map[string]any
 
 	Dependencies []string
-
-	Entrypoint Entrypoint
+	Entrypoint   Entrypoint
 
 	// advices
 	BeforeAdvice Advice
@@ -163,9 +157,6 @@ type AgentConfig struct {
 	// [alias/]level
 	Model string `yaml:"model"`
 
-	// // model alias defined in models config
-	// Models string `yaml:"models"`
-
 	// tools defined in tools config
 	// kit:name
 	Functions []string `yaml:"functions"`
@@ -203,6 +194,9 @@ type AgentConfig struct {
 
 	// agent as tool
 	Parameters map[string]any `yaml:"parameters"`
+
+	// default values for parameters
+	Arguments map[string]any `yaml:"arguments"`
 
 	//
 	Store AssetStore `yaml:"-"`

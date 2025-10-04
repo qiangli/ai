@@ -2,6 +2,7 @@ package conf
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 	"time"
 
@@ -196,12 +197,23 @@ func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 func loadAgentTool(ac *api.AgentsConfig, name string) ([]*api.ToolFunc, error) {
 	for _, c := range ac.Agents {
 		if c.Name == name {
+			var params = map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"query": map[string]any{
+						"type":        "string",
+						"description": "The user input",
+					},
+				},
+			}
+			maps.Copy(params, c.Parameters)
+
 			tool := &api.ToolFunc{
 				Kit:         "agent",
 				Type:        api.ToolTypeAgent,
 				Name:        c.Name,
 				Description: c.Description,
-				Parameters:  c.Parameters,
+				Parameters:  params,
 				Body:        nil,
 				//
 				Agent: c.Name,

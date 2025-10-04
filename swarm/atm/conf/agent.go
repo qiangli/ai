@@ -283,7 +283,8 @@ func CreateAgent(vars *api.Vars, auth *api.User, secrets api.SecretStore, assets
 			//
 			Instruction: c.Instruction,
 			//
-			RawInput: input,
+			RawInput:  input,
+			Arguments: c.Arguments,
 			//
 			MaxTurns: nzl(vars.Config.MaxTurns, c.MaxTurns, ac.MaxTurns, defaultMaxTurns),
 			MaxTime:  nzl(vars.Config.MaxTime, c.MaxTime, ac.MaxTime, defaultMaxTime),

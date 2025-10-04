@@ -82,13 +82,13 @@ func nvl(sa ...string) string {
 	return ""
 }
 
-// head trims the string to the maxLen and replaces newlines with /.
-func head(s string, maxLen int) string {
-	s = strings.ReplaceAll(s, "\n", "/")
-	s = strings.Join(strings.Fields(s), " ")
-	s = strings.TrimSpace(s)
-	if len(s) > maxLen {
-		return s[:maxLen] + "..."
-	}
-	return s
-}
+// // head trims the string to the maxLen and replaces newlines with /.
+// func head(s string, maxLen int) string {
+// 	s = strings.ReplaceAll(s, "\n", "/")
+// 	s = strings.Join(strings.Fields(s), " ")
+// 	s = strings.TrimSpace(s)
+// 	if len(s) > maxLen {
+// 		return s[:maxLen] + "..."
+// 	}
+// 	return s
+// }

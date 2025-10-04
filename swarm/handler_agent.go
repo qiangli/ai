@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"context"
+	"maps"
 	"time"
 
 	"github.com/google/uuid"
@@ -124,26 +125,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	}
 
 	// 3. New User Message
-	// if req.Messages == nil {
-	// 	// contentType/content
-	// 	// messages, err := req.RawInput.FileMessages()
-	// 	// if err != nil {
-	// 	// 	return err
-	// 	// }
-	// 	// for i, v := range messages {
-	// 	// 	v.ID = uuid.NewString()
-	// 	// 	v.ChatID = chatID
-	// 	// 	v.Created = time.Now()
-	// 	// 	//
-	// 	// 	v.Role = api.RoleUser
-	// 	// 	v.Sender = r.Name
-	// 	// 	v.Models = h.vars.Config.Models
-	// 	// 	messages[i] = v
-	// 	// }
-
-	// 	// req.Messages = messages
-	// }
-
+	//
 	// prepend message to user query
 	var query = req.RawInput.Query()
 	if r.Message != "" {
@@ -158,6 +140,14 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		Content: query,
 		Sender:  r.Name,
 	})
+
+	// merge args
+	var args map[string]any
+	if r.Arguments != nil || req.Arguments != nil {
+		args = make(map[string]any)
+		maps.Copy(args, r.Arguments)
+		maps.Copy(args, req.Arguments)
+	}
 
 	history = append(history, req.Messages...)
 	log.GetLogger(ctx).Debugf("Added new user role message: %v\n", len(history))
@@ -177,7 +167,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		//
 		RunTool: runTool,
 		//
-		Arguments: req.Arguments,
+		Arguments: args,
 		//
 		Vars: h.vars,
 	}
@@ -191,6 +181,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		}
 	}
 
+	// LLM adapter
 	result, err := adapter(ctx, &request)
 	if err != nil {
 		return err
