@@ -170,38 +170,11 @@ func Run(cmd *cobra.Command, args []string) error {
 
 	if err := agent.RunAgent(ctx, cfg); err != nil {
 		log.GetLogger(ctx).Errorf("%v\n", err)
+		return err
 	}
 
 	return nil
 }
-
-// func setLogLevel(ctx context.Context, app *api.AppConfig) {
-// 	if app.Quiet {
-// 		log.GetLogger(ctx).SetLogLevel(log.Quiet)
-// 		return
-// 	}
-
-// 	if app.Trace {
-// 		log.GetLogger(ctx).SetLogLevel(log.Tracing)
-// 		return
-// 	}
-
-// 	if app.Debug {
-// 		log.GetLogger(ctx).SetLogLevel(log.Verbose)
-// 	}
-// }
-
-// func setLogOutput(ctx context.Context, path string) (*log.FileWriter, error) {
-// 	if path != "" {
-// 		f, err := log.NewFileWriter(path)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		log.GetLogger(ctx).SetLogOutput(f)
-// 		return f, nil
-// 	}
-// 	return nil, nil
-// }
 
 func setupAppConfig(ctx context.Context, args []string) (*api.AppConfig, error) {
 	var cfg = &api.AppConfig{}
@@ -212,17 +185,6 @@ func setupAppConfig(ctx context.Context, args []string) (*api.AppConfig, error) 
 	level := api.ToLogLevel(cfg.LogLevel)
 	log.GetLogger(ctx).SetLogLevel(level)
 	log.GetLogger(ctx).Debugf("Config: %+v\n", cfg)
-
-	// fileLog, err := setLogOutput(ctx, cfg.Log)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer func() {
-	// 	if fileLog != nil {
-	// 		fileLog.Close()
-	// 	}
-	// }()
-	// setLogLevel(ctx, cfg)
 
 	return cfg, nil
 }

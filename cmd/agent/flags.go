@@ -61,7 +61,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	// security
 	// flags.String("deny", "rm,sudo", "List of comma separated system commands disallowed for tool calls. Approval is required to proceed. Ignored if 'unsafe' is true")
 	// flags.String("allow", "", "List of comma separated system commands allowed for tool calls")
-	
+
 	flags.Bool("unsafe", false, "Skip command security check to allow unsafe operations. Use with caution")
 
 	// flags.MarkHidden("deny")

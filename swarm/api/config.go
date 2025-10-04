@@ -116,7 +116,7 @@ type AppConfig struct {
 
 	// DenyList  []string
 	// AllowList []string
-	Unsafe    bool
+	Unsafe bool
 
 	//
 	Base string
