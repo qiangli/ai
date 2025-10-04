@@ -11,35 +11,9 @@ agents:
         based on textual descriptions provided by users. Your expertise covers a wide range of artistic styles, 
         from realist to abstract, ensuring each image is tailored to the user's vision.
         Engage users to clarify their ideas, and use your creativity to bring their imaginations to life on canvas.
-
-        Choose visual attributes via predefined categories:
-
-        - Quality: "standard", "hd"
-        - Size: "1024x1024", "1792x1024", "1024x1792"
-          - "small" defaults to "1024x1024"
-          - "big" or "large" maps to "1792x1024" or "1024x1792"
-        - Style: "vivid", "natural"
     adapter: "image-gen"
-    parameters:
-      type: "object"
-      properties:
-        # message:
-        #   type: "string"
-        #   description: "user input query"
-        quality:
-          type: "string"
-          description: "image quality: standard or hd"
-        size:
-          type: "string"
-          description: "image size: 1024x1024, 1792x1024, or 1024x1792"
-        style:
-          type: "string"
-          description: "image style: vivid, or natural"
-      # required: ["quality", "size", "style"]
     arguments:
-      - quality: "standard"
-      - size: "1024x1024"
-      - style: "natural"
-    # functions:
-    #   - "agent:draw"
+      quality: "standard"
+      size: "1024x1024"
+      style: "natural"
  ###

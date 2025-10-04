@@ -10,7 +10,7 @@ import (
 )
 
 func TestParseConfig(t *testing.T) {
-	const defaultAgent = "agent"
+	const defaultAgent = ""
 	var viper *fangs.Viper = fangs.New()
 	tests := []struct {
 		args []string

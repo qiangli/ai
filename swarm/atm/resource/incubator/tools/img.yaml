@@ -3,7 +3,7 @@ kit: "img"
 type: "agent"
 
 tools:
-  - name: "draw"
+  - name: "gen"
     display: "🐝 Generate Image"
     description: |
       Generate images based on user input providing visual representations of text-based descriptions

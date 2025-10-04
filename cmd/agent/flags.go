@@ -10,7 +10,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags := cmd.Flags()
 
 	// --agent agent/command or @agent/command
-	flags.StringP("agent", "a", "agent", "Specify the agent to use. @<agent>")
+	flags.StringP("agent", "a", "", "Specify the agent to use. @<agent>")
 
 	//
 	flags.String("editor", "", "Specify the editor to use. default: builtin")
@@ -24,15 +24,15 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.String("message", "", "Specify input message. Skip stdin")
 	flags.MarkHidden("message")
 
-	// TODO further research: user role instruction/tool calls seem to work better and are preferred
-	// flags.VarP(newFilesValue([]string{}, &internal.InputFiles), "file", "", `Read file inputs.  May be given multiple times.`)
-	flags.StringArray("file", nil, `Read file inputs.  May be given multiple times.`)
-	flags.MarkHidden("file")
+	// // TODO further research: user role instruction/tool calls seem to work better and are preferred
+	// // flags.VarP(newFilesValue([]string{}, &internal.InputFiles), "file", "", `Read file inputs.  May be given multiple times.`)
+	// flags.StringArray("file", nil, `Read file inputs.  May be given multiple times.`)
+	// flags.MarkHidden("file")
 
-	// doc agent
-	// flags.VarP(newTemplateValue("", &internal.TemplateFile), "template", "", "Document template file")
-	flags.String("template", "", "Document template file")
-	flags.MarkHidden("template")
+	// // doc agent
+	// // flags.VarP(newTemplateValue("", &internal.TemplateFile), "template", "", "Document template file")
+	// flags.String("template", "", "Document template file")
+	// flags.MarkHidden("template")
 
 	// use flags in case when special chars do not work
 	flags.Bool("stdin", false, "Read input from stdin. '-'")
@@ -98,7 +98,7 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	// LLM
 	// a set of models grouped under one name for convenience from potentially different service providers
-	flags.StringP("models", "m", "openai", "LLM model alias defined in the models directory")
+	flags.StringP("models", "m", "", "LLM model alias defined in the models directory")
 
 	flags.String("image-viewer", "", "Image viewer")
 

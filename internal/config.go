@@ -174,9 +174,9 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	// default agent:
 	// --agent, "ask"
 	var defaultAgent = viper.GetString("agent")
-	if defaultAgent == "" {
-		defaultAgent = "agent"
-	}
+	// if defaultAgent == "" {
+	// 	defaultAgent = "agent"
+	// }
 
 	//
 	ParseArgs(viper, app, args, defaultAgent)
@@ -337,9 +337,9 @@ func ParseLLM(viper *fangs.Viper, app *api.AppConfig) error {
 	// LLM config
 	//
 	alias := viper.GetString("models")
-	if alias == "" {
-		alias = "openai"
-	}
+	// if alias == "" {
+	// 	alias = "openai"
+	// }
 	app.Models = alias
 
 	return nil
