@@ -129,6 +129,8 @@ func Help(ctx context.Context, cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	log.GetLogger(ctx).SetLogLevel(api.ToLogLevel("info"))
+
 	vars, err := agent.InitVars(cfg)
 	if err != nil {
 		return err
@@ -268,6 +270,7 @@ AI will choose an appropriate agent based on your message if no agent is specifi
 		buf.WriteString(dict[k].Description)
 		buf.WriteString("\n")
 	}
+
 	log.GetLogger(ctx).Infof(format, buf.String(), len(keys))
 
 	return nil

@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bytes"
+	// "bytes"
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
+	// "os/exec"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -14,7 +14,7 @@ import (
 	"github.com/qiangli/ai/cmd/history"
 	"github.com/qiangli/ai/cmd/setup"
 	"github.com/qiangli/ai/internal"
-	"github.com/qiangli/ai/swarm/log"
+	// "github.com/qiangli/ai/swarm/log"
 )
 
 var viper = internal.V
@@ -91,17 +91,17 @@ func main() {
 	// $ ai /history
 	// $ ai /!<system-command>
 	if strings.HasPrefix(args[1], "/") {
-		// /!<command> args...
-		if strings.HasPrefix(args[1], "/!") {
-			if len(args[1]) > 2 {
-				out := runCommand(args[1][2:], os.Args[1:])
-				log.GetLogger(ctx).Infof("%s\n", out)
-			} else {
-				// log.Infoln("command not specified: /!<cmmand>")
-				internal.Exit(ctx, fmt.Errorf("command not specified: /!<cmmand>"))
-			}
-			return
-		}
+		// // /!<command> args...
+		// if strings.HasPrefix(args[1], "/!") {
+		// 	if len(args[1]) > 2 {
+		// 		out := runCommand(args[1][2:], os.Args[1:])
+		// 		log.GetLogger(ctx).Infof("%s\n", out)
+		// 	} else {
+		// 		// log.Infoln("command not specified: /!<cmmand>")
+		// 		internal.Exit(ctx, fmt.Errorf("command not specified: /!<cmmand>"))
+		// 	}
+		// 	return
+		// }
 
 		switch args[1] {
 		case "/help":
@@ -115,11 +115,13 @@ func main() {
 			if err := agentCmd.Execute(); err != nil {
 				internal.Exit(ctx, err)
 			}
+			return
 		case "/agent":
 			os.Args = os.Args[1:]
 			if err := agentCmd.Execute(); err != nil {
 				internal.Exit(ctx, err)
 			}
+			return
 		case "/setup":
 			os.Args = os.Args[1:]
 			if err := setupCmd.Execute(); err != nil {
@@ -131,6 +133,7 @@ func main() {
 			if err := historyCmd.Execute(); err != nil {
 				internal.Exit(ctx, err)
 			}
+			return
 		default:
 			internal.Exit(ctx, fmt.Errorf("Slash command not supported: %s", args[1]))
 			return
@@ -145,14 +148,14 @@ func main() {
 	}
 }
 
-func runCommand(bin string, args []string) string {
-	cmd := exec.Command(bin, args...)
-	var out, stderr bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	if err != nil {
-		return stderr.String()
-	}
-	return out.String()
-}
+// func runCommand(bin string, args []string) string {
+// 	cmd := exec.Command(bin, args...)
+// 	var out, stderr bytes.Buffer
+// 	cmd.Stdout = &out
+// 	cmd.Stderr = &stderr
+// 	err := cmd.Run()
+// 	if err != nil {
+// 		return stderr.String()
+// 	}
+// 	return out.String()
+// }

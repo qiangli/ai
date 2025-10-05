@@ -69,7 +69,6 @@ func InitConfig(viper *fangs.Viper) error {
 
 	if err := viper.ReadInConfig(); err != nil {
 		return err
-		//log.GetLogger(ctx).Debugf("Error reading config file: %s\n", err)
 	}
 	return nil
 }
