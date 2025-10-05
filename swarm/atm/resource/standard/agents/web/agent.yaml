@@ -1,5 +1,4 @@
 ###
-new: false
 log_level: "info"
 agents:
   - name: "web"

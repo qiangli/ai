@@ -60,8 +60,8 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	// before entering the loop clear all env
 	clearAllEnv()
 
-	ctx := req.Context()
-
+	var ctx = req.Context()
+	var resetLogLevel = true
 	for {
 		agent, err := r.createAgent(req)
 		if err != nil {
@@ -69,7 +69,11 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		}
 
 		// reset log level
-		log.GetLogger(ctx).SetLogLevel(agent.LogLevel)
+		// subsequent agents will inhefit the same log level
+		if resetLogLevel {
+			resetLogLevel = false
+			log.GetLogger(ctx).SetLogLevel(agent.LogLevel)
+		}
 
 		// dependencies
 		for _, dep := range agent.Dependencies {
@@ -109,7 +113,6 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		maxlog := MaxLogHandler(500)
 
 		chain := NewChain(maxlog).Then(timeout)
-
 		if err := chain.Serve(req, resp); err != nil {
 			return err
 		}

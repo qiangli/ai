@@ -206,17 +206,13 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		// TODO add Value field to message?
 		history = append(history, &message)
 	}
-
-	resp.Messages = history[initLen:]
-
 	//
 	h.vars.Extra[extraResult] = result.Result.Value
+	h.vars.History = history
 
 	//
+	resp.Messages = history[initLen:]
 	resp.Agent = r
 	resp.Result = result.Result
-
-	//
-	h.vars.History = history
 	return nil
 }

@@ -1,5 +1,4 @@
 ###
-new: true
 log_level: "info"
 agents:
   - name: "agent"
