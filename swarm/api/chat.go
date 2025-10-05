@@ -150,10 +150,16 @@ func (r *Result) String() string {
 		sb.WriteString(r.State.String())
 	}
 	if r.NextAgent != "" {
-		sb.WriteString(fmt.Sprintf(" %s\n", r.NextAgent))
+		sb.WriteString(fmt.Sprintf(" %s", r.NextAgent))
 	}
-	// if r.Value != "" {
-	// 	sb.WriteString(fmt.Sprintf(" %s\n", r.Value))
-	// }
+	if r.MimeType != "" {
+		sb.WriteString(fmt.Sprintf(" %s", r.MimeType))
+	}
+	if r.Value != "" {
+		sb.WriteString(fmt.Sprintf(" %s", r.Value))
+	}
+	if len(r.Content) > 0 {
+		sb.WriteString(fmt.Sprintf(" content: %v bytes", len(r.Content)))
+	}
 	return strings.TrimSpace(sb.String())
 }

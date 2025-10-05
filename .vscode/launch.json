@@ -38,6 +38,8 @@
 			"args": [
 				"--verbose",
 				"@agent",
+				"--max-time",
+				"900",
 				"--message",
 				"generate a random password"
 			],
