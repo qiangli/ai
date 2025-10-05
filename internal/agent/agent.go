@@ -9,29 +9,27 @@ import (
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
-	atmconf "github.com/qiangli/ai/swarm/atm/conf"
-	"github.com/qiangli/ai/swarm/atm/resource"
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/ai/swarm/vfs"
 	"github.com/qiangli/ai/swarm/vos"
 )
 
-func RunAgent(ctx context.Context, cfg *api.AppConfig) error {
-	log.GetLogger(ctx).Debugf("Agent: %s %v\n", cfg.Agent, cfg.Args)
+func RunAgent(ctx context.Context, app *api.AppConfig) error {
+	log.GetLogger(ctx).Debugf("Agent: %s %v\n", app.Agent, app.Args)
 
-	in, err := GetUserInput(ctx, cfg)
+	in, err := GetUserInput(ctx, app)
 	if err != nil {
 		return err
 	}
 
-	if in.IsEmpty() && cfg.Message == "" {
+	if in.IsEmpty() && app.Message == "" {
 		return internal.NewUserInputError("no query provided")
 	}
 
-	in.Agent = cfg.Agent
+	in.Agent = app.Agent
 
-	return RunSwarm(ctx, cfg, in)
+	return RunSwarm(ctx, app, in)
 }
 
 func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) error {
@@ -68,18 +66,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	}
 
 	var user = &api.User{}
-
-	var assets = atmconf.NewAssetManager(user)
-	if cfg.AgentResource != nil {
-		for _, v := range cfg.AgentResource.Resources {
-			assets.AddStore(&resource.WebStore{
-				Base:  v.Base,
-				Token: v.Token,
-			})
-		}
-	}
-	assets.AddStore(resource.NewStandardStore())
-
+	var assets = conf.Assets(cfg)
 	var adapters = adapter.GetAdapters()
 
 	var fs = vfs.NewLocalFS(cfg.Workspace)

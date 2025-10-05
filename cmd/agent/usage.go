@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/qiangli/ai/internal/agent"
-	// "github.com/qiangli/ai/swarm/atm/conf"
+	"github.com/qiangli/ai/internal/agent/conf"
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
@@ -244,17 +244,15 @@ AI will choose an appropriate agent based on your message if no agent is specifi
 * If you specify agents at both the beginning and end of a message, the last one takes precedence.
 * You can place command options anywhere in your message. To include options as part of the message, use quotes or escape '\'.
 `
-	// agents, _ := conf.ListAgents(ctx, vars.Config)
+	assets := conf.Assets(vars.Config)
+	agents, _ := assets.ListAgent(vars.Config.User.Email)
 
 	dict := make(map[string]*api.AgentConfig)
-	// for _, v := range agents {
-	// 	for _, agent := range v.Agents {
-	// 		// if v.Internal && !vars.Config.Internal {
-	// 		// 	continue
-	// 		// }
-	// 		dict[agent.Name] = agent
-	// 	}
-	// }
+	for _, v := range agents {
+		for _, sub := range v.Agents {
+			dict[sub.Name] = sub
+		}
+	}
 
 	keys := make([]string, 0)
 	for k := range dict {

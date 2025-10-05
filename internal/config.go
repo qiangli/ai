@@ -79,6 +79,7 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	//
 	app.Base = filepath.Dir(app.ConfigFile)
 	app.Version = Version
+	app.User = &api.User{}
 
 	app.DryRun = viper.GetBool("dry_run")
 	app.DryRunContent = viper.GetString("dry_run_content")

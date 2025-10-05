@@ -34,24 +34,26 @@ const maxTimeLimit = 900 // 15 min
 const defaultMaxTurns = 8
 const defaultMaxTime = 180 // 3 min
 
-func ListAgents(owner string, am api.AssetManager) (map[string]*api.AgentsConfig, error) {
-	return am.ListAgent(owner)
-}
+// func ListAgents(owner string, am api.AssetManager) (map[string]*api.AgentsConfig, error) {
+// 	return am.ListAgent(owner)
+// }
 
 // ensure name is correct
-// <agent>/sub
 // duplicate name is not checked
-func normalizeAgentName(name, sub string) string {
+// one and only one agent can have the pack name
+// and the rest of sub agents are of format: pack/sub
+// TODO: pre valiation so this check could be skipped
+func normalizeAgentName(pack, name string) string {
 	ensure := func() string {
 		// pack name
-		if sub == "" {
-			return name
+		if name == "" {
+			return pack
 		}
-		parts := strings.SplitN(sub, "/", 2)
+		parts := strings.SplitN(name, "/", 2)
 		if len(parts) == 1 {
-			return name
+			return pack
 		}
-		return name + "/" + parts[1]
+		return pack + "/" + parts[1]
 	}
 	return util.NormalizedName(ensure())
 }
@@ -76,20 +78,18 @@ func listAgentsATM(owner string, as api.ATMSupport, packs map[string]*api.Agents
 			return fmt.Errorf("invalid config. no agent defined: %s", v.Name)
 		}
 
+		// correct name and add to list
+		// keep store loader for loading extra resources later
 		ac.Name = strings.ToLower(v.Name)
 		if _, ok := packs[ac.Name]; ok {
 			continue
 		}
-
-		// agents
 		for _, v := range ac.Agents {
 			v.Name = normalizeAgentName(ac.Name, v.Name)
-			//
 			v.Store = as
 		}
 		packs[ac.Name] = ac
 	}
-
 	return nil
 }
 
@@ -109,8 +109,8 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AgentsCo
 			continue
 		}
 		base := path.Join(root, v.Name())
-		name := path.Join(base, "agent.yaml")
-		content, err := as.ReadFile(name)
+		filename := path.Join(base, "agent.yaml")
+		content, err := as.ReadFile(filename)
 		if err != nil {
 			if os.IsNotExist(err) {
 				continue
@@ -126,25 +126,22 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AgentsCo
 			return err
 		}
 		if ac == nil || len(ac.Agents) == 0 {
-			return fmt.Errorf("invalid config. no agent defined: %s", name)
+			return fmt.Errorf("invalid config. no agent defined: %s", v.Name())
 		}
 
+		// correct name and add to list
+		// keep store loader for loading extra resources later
 		ac.Name = strings.ToLower(v.Name())
-
 		if _, ok := packs[ac.Name]; ok {
 			continue
 		}
-
-		// keep store loader for loading extra resources later
 		for _, v := range ac.Agents {
-			v.Name = normalizeAgentName(name, v.Name)
-
+			v.Name = normalizeAgentName(ac.Name, v.Name)
 			v.Store = as
 			v.BaseDir = base
 		}
 		packs[ac.Name] = ac
 	}
-
 	return nil
 }
 

@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/atm/conf"
 )
 
 type FuncKit struct {
@@ -28,7 +27,7 @@ func NewFuncKit(user *api.User, assets api.AssetManager) *FuncKit {
 func (r *FuncKit) ListAgents(ctx context.Context, vars *api.Vars, _ string, _ map[string]any) (string, error) {
 	var list []string
 
-	dict, err := conf.ListAgents(r.user.Email, r.assets)
+	dict, err := r.assets.ListAgent(r.user.Email)
 	if err != nil {
 		return "", err
 	}
@@ -50,17 +49,16 @@ func (r *FuncKit) AgentInfo(ctx context.Context, vars *api.Vars, _ string, args 
 	if err != nil {
 		return "", err
 	}
-	dict, err := conf.ListAgents(r.user.Email, r.assets)
+	ac, err := r.assets.FindAgent(r.user.Email, agent)
 	if err != nil {
 		return "", err
 	}
-
-	if v, ok := dict[agent]; ok {
+	if ac != nil {
 		var desc []string
-		for _, a := range v.Agents {
+		for _, a := range ac.Agents {
 			desc = append(desc, a.Description)
 		}
-		return fmt.Sprintf("Agent: %s\nDescription: %s\n", v.Name, strings.Join(desc, " -- ")), nil
+		return fmt.Sprintf("Agent: %s\nDescription: %s\n", ac.Name, strings.Join(desc, " ")), nil
 	}
 	return "", fmt.Errorf("unknown agent: %s", agent)
 }

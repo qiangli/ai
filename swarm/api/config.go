@@ -88,8 +88,8 @@ type AppConfig struct {
 	// output file for saving response
 	Output string
 
-	// TODO move to vars for authenticated user
-	// Me *User
+	// user
+	User *User
 
 	// //
 	// Template string

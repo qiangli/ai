@@ -67,13 +67,12 @@ func (r *assetManager) ListAgent(owner string) (map[string]*api.AgentsConfig, er
 		if len(v.Agents) == 0 {
 			continue
 		}
-		// Register the agent configurations
-		for _, agent := range v.Agents {
-			if _, exists := agents[agent.Name]; exists {
+		// Register the sub agent
+		for _, sub := range v.Agents {
+			if _, exists := agents[sub.Name]; exists {
 				continue
 			}
-			// Register the agents configuration
-			agents[agent.Name] = v
+			agents[sub.Name] = v
 		}
 	}
 
@@ -120,10 +119,11 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AgentsConfig, 
 
 	ac.Name = pack
 
-	// agents
+	// sub agents
 	for _, v := range ac.Agents {
-		v.Name = normalizeAgentName(ac.Name, v.Name)
+		v.Name = normalizeAgentName(pack, v.Name)
 		v.Store = asset
+		// TODO resource base?
 	}
 	return ac, nil
 }

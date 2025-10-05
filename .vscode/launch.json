@@ -264,12 +264,16 @@
 				"AI_MODEL": "gpt-4o-mini",
 				"AI_API_KEY": "${env:OPENAI_API_KEY}",
 				"AI_BASE_URL": "http://localhost:4000",
-				"AI_DEBUG": "true",
+				// "AI_DEBUG": "true",
 			},
 			"args": [
 				"--verbose",
+				"--max-turns",
+				"30",
+				"--max-time",
+				"900",
 				"--message",
-				"code review"
+				"generate a random password"
 			],
 			"showLog": false,
 			"stopOnEntry": false
