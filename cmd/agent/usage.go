@@ -16,6 +16,7 @@ import (
 	"github.com/qiangli/ai/internal/agent/conf"
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm/api"
+	atmconf "github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
 )
 
@@ -249,31 +250,8 @@ AI will choose an appropriate agent based on your message if no agent is specifi
 * You can place command options anywhere in your message. To include options as part of the message, use quotes or escape '\'.
 `
 	assets := conf.Assets(vars.Config)
-	agents, _ := assets.ListAgent(vars.Config.User.Email)
-
-	dict := make(map[string]*api.AgentConfig)
-	for _, v := range agents {
-		for _, sub := range v.Agents {
-			dict[sub.Name] = sub
-		}
-	}
-
-	keys := make([]string, 0)
-	for k := range dict {
-		keys = append(keys, k)
-	}
-
-	sort.Strings(keys)
-
-	var buf strings.Builder
-	for _, k := range keys {
-		buf.WriteString(k)
-		buf.WriteString(":\t")
-		buf.WriteString(dict[k].Description)
-		buf.WriteString("\n\n")
-	}
-
-	log.GetLogger(ctx).Infof(format, buf.String(), len(keys))
+	list, count, _ := atmconf.ListAgents(assets, vars.Config.User.Email)
+	log.GetLogger(ctx).Infof(format, list, count)
 
 	return nil
 }

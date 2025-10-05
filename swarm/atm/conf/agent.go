@@ -13,18 +13,22 @@ import (
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/resource"
+	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/ai/swarm/util"
 )
 
-type AgentsConfigCacheKey struct {
+type AgentCacheKey struct {
+	// user email
+	User string
 	// owner meail
 	Owner string
-	// agent name
-	Name string
+	// agent
+	Pack string
+	Sub  string
 }
 
 var (
-	agentCache = expirable.NewLRU[AgentsConfigCacheKey, *api.AgentsConfig](10000, nil, time.Second*180)
+	agentCache = expirable.NewLRU[AgentCacheKey, *api.Agent](10000, nil, time.Second*900)
 )
 
 // max hard upper limits
@@ -34,15 +38,6 @@ const maxTimeLimit = 900 // 15 min
 const defaultMaxTurns = 8
 const defaultMaxTime = 180 // 3 min
 
-// func ListAgents(owner string, am api.AssetManager) (map[string]*api.AgentsConfig, error) {
-// 	return am.ListAgent(owner)
-// }
-
-// ensure name is correct
-// duplicate name is not checked
-// one and only one agent can have the pack name
-// and the rest of sub agents are of format: pack/sub
-// TODO: pre valiation so this check could be skipped
 func normalizeAgentName(pack, name string) string {
 	ensure := func() string {
 		// pack name
@@ -349,12 +344,27 @@ func CreateAgent(vars *api.Vars, auth *api.User, secrets api.SecretStore, assets
 	}
 
 	// create the agent
+	var ctx = req.Context()
+
 	// read config and create agent
 	var user = auth.Email
 	// @<[owner:]agent>
 	owner, agent := splitOwnerAgent(req.Agent)
 	// agent: [pack/]sub
 	pack, sub := split2(agent, "/", "")
+
+	// cached agent
+	key := AgentCacheKey{
+		User:  user,
+		Owner: owner,
+		Pack:  pack,
+		Sub:   sub,
+	}
+	// return a cloned copy if found
+	if v, ok := agentCache.Get(key); ok {
+		log.GetLogger(ctx).Debugf("Using cached agent: %+v", key)
+		return v.Clone(), nil
+	}
 
 	// name: [owner:]agent
 	var ent *api.Record
@@ -403,5 +413,10 @@ func CreateAgent(vars *api.Vars, auth *api.User, secrets api.SecretStore, assets
 		return agent, nil
 	}
 
-	return creator()
+	if v, err := creator(); err == nil {
+		agentCache.Add(key, v)
+		return v, nil
+	} else {
+		return nil, err
+	}
 }

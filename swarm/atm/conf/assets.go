@@ -3,6 +3,8 @@ package conf
 import (
 	"fmt"
 	"path"
+	"sort"
+	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
 )
@@ -245,4 +247,34 @@ func (r *assetManager) FindModels(owner string, alias string) (*api.ModelsConfig
 	mc.Alias = alias
 
 	return mc, nil
+}
+
+func ListAgents(assets api.AssetManager, user string) (string, int, error) {
+	agents, err := assets.ListAgent(user)
+	if err != nil {
+		return "", 0, err
+	}
+
+	dict := make(map[string]*api.AgentConfig)
+	for _, v := range agents {
+		for _, sub := range v.Agents {
+			dict[sub.Name] = sub
+		}
+	}
+
+	keys := make([]string, 0)
+	for k := range dict {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var buf strings.Builder
+	for _, k := range keys {
+		buf.WriteString(k)
+		buf.WriteString(":\t")
+		buf.WriteString(dict[k].Description)
+		buf.WriteString("\n\n")
+	}
+
+	return buf.String(), len(keys), nil
 }

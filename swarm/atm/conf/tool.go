@@ -21,7 +21,7 @@ type ToolkitCacheKey struct {
 }
 
 var (
-	toolkitCache = expirable.NewLRU[ToolkitCacheKey, []*api.ToolFunc](10000, nil, time.Second*180)
+	toolkitCache = expirable.NewLRU[ToolkitCacheKey, []*api.ToolFunc](10000, nil, time.Second*900)
 )
 
 func loadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetManager) ([]*api.ToolFunc, error) {

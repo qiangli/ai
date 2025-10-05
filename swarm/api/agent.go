@@ -110,6 +110,47 @@ type Agent struct {
 	Config *AgentsConfig
 }
 
+// ... existing code ...
+
+func (a *Agent) Clone() *Agent {
+	return &Agent{
+		Owner:        a.Owner,
+		Name:         a.Name,
+		Display:      a.Display,
+		Description:  a.Description,
+		Instruction:  a.Instruction,
+		RawInput:     a.RawInput,
+		Model:        a.Model,
+		Tools:        a.Tools,
+		Arguments:    a.cloneArguments(),
+		Dependencies: a.Dependencies,
+		Entrypoint:   a.Entrypoint,
+		BeforeAdvice: a.BeforeAdvice,
+		AfterAdvice:  a.AfterAdvice,
+		AroundAdvice: a.AroundAdvice,
+		Adapter:      a.Adapter,
+		MaxTurns:     a.MaxTurns,
+		MaxTime:      a.MaxTime,
+		Message:      a.Message,
+		Format:       a.Format,
+		New:          a.New,
+		LogLevel:     a.LogLevel,
+		//
+		Config: a.Config,
+	}
+}
+
+func (a *Agent) cloneArguments() map[string]any {
+	if a.Arguments == nil {
+		return nil
+	}
+	clone := make(map[string]any, len(a.Arguments))
+	for k, v := range a.Arguments {
+		clone[k] = v
+	}
+	return clone
+}
+
 // agent app config
 type AgentsConfig struct {
 	// agent app name

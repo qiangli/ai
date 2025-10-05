@@ -1,11 +1,9 @@
 package main
 
 import (
-	// "bytes"
 	"context"
 	"fmt"
 	"os"
-	// "os/exec"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -14,7 +12,6 @@ import (
 	"github.com/qiangli/ai/cmd/history"
 	"github.com/qiangli/ai/cmd/setup"
 	"github.com/qiangli/ai/internal"
-	// "github.com/qiangli/ai/swarm/log"
 )
 
 var viper = internal.V

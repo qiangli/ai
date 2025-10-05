@@ -170,7 +170,7 @@ func Run(cmd *cobra.Command, args []string) error {
 
 	if err := agent.RunAgent(ctx, cfg); err != nil {
 		log.GetLogger(ctx).Errorf("%v\n", err)
-		return err
+		return nil
 	}
 
 	return nil
