@@ -76,6 +76,7 @@ func InitConfig(viper *fangs.Viper) error {
 
 func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	app.ConfigFile = viper.ConfigFileUsed()
+	//
 	app.Base = filepath.Dir(app.ConfigFile)
 	app.Version = Version
 
@@ -107,7 +108,11 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	// }
 	// app.Temp = temp
 
+	// workspace
 	ws := viper.GetString("workspace")
+	if ws == "" {
+		ws = filepath.Join(app.Base, "workspace")
+	}
 	ws, err := resolveWorkspaceDir(ws)
 	if err != nil {
 		return fmt.Errorf("failed to resolve workspace: %w", err)

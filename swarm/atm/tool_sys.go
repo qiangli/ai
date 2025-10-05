@@ -5,13 +5,20 @@ import (
 	"fmt"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/vfs"
+	"github.com/qiangli/ai/swarm/vos"
 )
 
 type SystemKit struct {
+	fs vfs.FileSystem
+	os vos.System
 }
 
-func NewSystemKit() *SystemKit {
-	return &SystemKit{}
+func NewSystemKit(fs vfs.FileSystem, os vos.System) *SystemKit {
+	return &SystemKit{
+		fs: fs,
+		os: os,
+	}
 }
 
 func (r *SystemKit) getStr(key string, args map[string]any) (string, error) {

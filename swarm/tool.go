@@ -20,15 +20,11 @@ func callAgentTool(ctx context.Context, sw *Swarm, agent *api.Agent, tf *api.Too
 		return nil, err
 	}
 
-	if len(resp.Messages) == 0 {
+	if resp.Result == nil {
 		return nil, fmt.Errorf("empty result")
 	}
 
-	result := &api.Result{
-		Value: resp.Messages[len(resp.Messages)-1].Content,
-	}
-
-	return result, nil
+	return resp.Result, nil
 }
 
 func NewToolCaller(sw *Swarm) api.ToolCaller {

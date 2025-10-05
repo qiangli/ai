@@ -11,7 +11,7 @@ func (r *SystemKit) Man(ctx context.Context, vars *api.Vars, name string, args m
 	if err != nil {
 		return "", err
 	}
-	return _os.Man(command)
+	return r.os.Man(command)
 }
 
 func (r *SystemKit) Run(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -23,7 +23,7 @@ func (r *SystemKit) Run(ctx context.Context, vars *api.Vars, name string, args m
 	if err != nil {
 		return "", err
 	}
-	return RunRestricted(ctx, vars, command, argsList)
+	return RunRestricted(ctx, r.os, vars, command, argsList)
 }
 
 func (r *SystemKit) Cd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -31,9 +31,9 @@ func (r *SystemKit) Cd(ctx context.Context, vars *api.Vars, name string, args ma
 	if err != nil {
 		return "", err
 	}
-	return "", _os.Chdir(dir)
+	return "", r.os.Chdir(dir)
 }
 
 func (r *SystemKit) Pwd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	return _os.Getwd()
+	return r.os.Getwd()
 }

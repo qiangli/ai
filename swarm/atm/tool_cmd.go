@@ -8,30 +8,22 @@ import (
 	"os/exec"
 	"strings"
 
-	// "github.com/qiangli/ai/internal/bubble"
-	// "github.com/qiangli/ai/internal/bubble/confirm"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
-	"github.com/qiangli/ai/swarm/vfs"
 	"github.com/qiangli/ai/swarm/vos"
 )
 
-var _os vos.System = &vos.VirtualSystem{}
-var _exec = _os
-
-var _fs vfs.FileSystem = &vfs.VirtualFS{}
-
 // RunCommand executes a shell command with args and returns the output
-func RunCommand(ctx context.Context, command string, args []string) (string, error) {
+func RunCommand(ctx context.Context, vs vos.System, command string, args []string) (string, error) {
 	log.GetLogger(ctx).Debugf("🏃 %s (%d) %+v\n", command, len(args), args)
 
 	var out []byte
 	var err error
 	if len(args) == 0 {
 		// LLM sometime sends command and args as a single string
-		out, err = _exec.Command("sh", "-c", command).CombinedOutput()
+		out, err = vs.Command("sh", "-c", command).CombinedOutput()
 	} else {
-		out, err = _exec.Command(command, args...).CombinedOutput()
+		out, err = vs.Command(command, args...).CombinedOutput()
 	}
 	if err != nil {
 		log.GetLogger(ctx).Errorf("❌ %s: %+v\n", command, err)
@@ -44,15 +36,15 @@ func RunCommand(ctx context.Context, command string, args []string) (string, err
 
 // RunCommandVerbose executes a shell command with arguments,
 // prints stdout/stderr in real-time, and returns the combined output and error.
-func RunCommandVerbose(ctx context.Context, command string, args []string) (string, error) {
+func RunCommandVerbose(ctx context.Context, vs vos.System, command string, args []string) (string, error) {
 	log.GetLogger(ctx).Debugf("🏃 %s (%d) %+v\n", command, len(args), args)
 
 	var cmd *exec.Cmd
 	if len(args) == 0 {
 		// LLM sometime sends command and args as a single string
-		cmd = _exec.Command("sh", "-c", command)
+		cmd = vs.Command("sh", "-c", command)
 	} else {
-		cmd = _exec.Command(command, args...)
+		cmd = vs.Command(command, args...)
 	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -95,14 +87,14 @@ func RunCommandVerbose(ctx context.Context, command string, args []string) (stri
 	return out, nil
 }
 
-func ExecCommand(ctx context.Context, command string, args []string, verbose bool) (string, error) {
+func ExecCommand(ctx context.Context, vs vos.System, command string, args []string, verbose bool) (string, error) {
 	if verbose {
-		return RunCommandVerbose(ctx, command, args)
+		return RunCommandVerbose(ctx, vs, command, args)
 	}
-	return RunCommand(ctx, command, args)
+	return RunCommand(ctx, vs, command, args)
 }
 
-func RunRestricted(ctx context.Context, vars *api.Vars, command string, args []string) (string, error) {
+func RunRestricted(ctx context.Context, vs vos.System, vars *api.Vars, command string, args []string) (string, error) {
 	// TODO config per agent
 	// if isAllowed(vars.Config.AllowList, command) {
 	// 	return ExecCommand(ctx, command, args, vars.Config.IsVerbose())
@@ -118,12 +110,12 @@ func RunRestricted(ctx context.Context, vars *api.Vars, command string, args []s
 	// 	return "", fmt.Errorf("%s: Not allowed", command)
 	// }
 
-	safe, err := EvaluateCommand(ctx, vars, command, args)
+	safe, err := EvaluateCommand(ctx, vs, vars, command, args)
 	if err != nil {
 		return "", err
 	}
 	if safe {
-		return ExecCommand(ctx, command, args, vars.Config.IsVerbose())
+		return ExecCommand(ctx, vs, command, args, vars.Config.IsVerbose())
 	}
 
 	return "", fmt.Errorf("%s %s: Not permitted", command, strings.Join(args, " "))

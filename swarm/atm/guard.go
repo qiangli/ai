@@ -15,6 +15,7 @@ import (
 	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
+	"github.com/qiangli/ai/swarm/vos"
 )
 
 const permissionDenied = "Permission denied."
@@ -25,7 +26,7 @@ type CommandCheck struct {
 }
 
 // EvaluateCommand consults LLM to evaluate the safety of a command
-func EvaluateCommand(ctx context.Context, vars *api.Vars, command string, args []string) (bool, error) {
+func EvaluateCommand(ctx context.Context, vs vos.System, vars *api.Vars, command string, args []string) (bool, error) {
 	if vars.Config.Unsafe {
 		log.GetLogger(ctx).Infof("⚠️ unsafe mode - skipping security check\n")
 		return true, nil

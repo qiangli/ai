@@ -13,6 +13,8 @@ import (
 	"github.com/qiangli/ai/swarm/atm/resource"
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
+	"github.com/qiangli/ai/swarm/vfs"
+	"github.com/qiangli/ai/swarm/vos"
 )
 
 func RunAgent(ctx context.Context, cfg *api.AppConfig) error {
@@ -80,14 +82,17 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 
 	var adapters = adapter.GetAdapters()
 
+	var fs = vfs.NewLocalFS(cfg.Workspace)
+	var os = vos.NewLocalSystem()
+
 	var tools = atm.NewToolSystem(user)
 	tools.AddKit(api.ToolTypeFunc, atm.NewFuncKit(user, assets))
 	tools.AddKit(api.ToolTypeWeb, atm.NewWebKit())
-	tools.AddKit(api.ToolTypeSystem, atm.NewSystemKit())
+	tools.AddKit(api.ToolTypeSystem, atm.NewSystemKit(fs, os))
 	tools.AddKit(api.ToolTypeMcp, atm.NewMcpKit())
 	tools.AddKit(api.ToolTypeFaas, atm.NewFaasKit())
 
-	var blobs = swarm.NewBlobStorage()
+	var blobs = swarm.NewBlobStorage(fs)
 
 	sw := &swarm.Swarm{
 		Vars:     vars,
@@ -97,6 +102,8 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		Tools:    tools,
 		Adapters: adapters,
 		Blobs:    blobs,
+		OS:       os,
+		FS:       fs,
 	}
 
 	if err := sw.Run(req, resp); err != nil {

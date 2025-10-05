@@ -66,10 +66,17 @@ func (f *FileInfo) String() string {
 	)
 }
 
-type VirtualFS struct {
+type LocalFS struct {
+	base string
 }
 
-func (s *VirtualFS) ListDirectory(path string) ([]string, error) {
+func NewLocalFS(base string) FileSystem {
+	return &LocalFS{
+		base: base,
+	}
+}
+
+func (s *LocalFS) ListDirectory(path string) ([]string, error) {
 	validPath, err := s.validatePath(path)
 	if err != nil {
 		return nil, err
@@ -92,8 +99,8 @@ func (s *VirtualFS) ListDirectory(path string) ([]string, error) {
 	return result, nil
 }
 
-func (s *VirtualFS) CreateDirectory(path string) error {
-	validPath, err := s.validatePath(path)
+func (s *LocalFS) CreateDirectory(path string) error {
+	validPath, err := s.validatePath(filepath.Join(s.base, path))
 	if err != nil {
 		return err
 	}
@@ -101,7 +108,7 @@ func (s *VirtualFS) CreateDirectory(path string) error {
 	return os.MkdirAll(validPath, 0755)
 }
 
-func (s *VirtualFS) RenameFile(source, destination string) error {
+func (s *LocalFS) RenameFile(source, destination string) error {
 	validSource, err := s.validatePath(source)
 	if err != nil {
 		return err
@@ -114,7 +121,7 @@ func (s *VirtualFS) RenameFile(source, destination string) error {
 	return os.Rename(validSource, validDest)
 }
 
-func (s *VirtualFS) GetFileInfo(path string) (*FileInfo, error) {
+func (s *LocalFS) GetFileInfo(path string) (*FileInfo, error) {
 	validPath, err := s.validatePath(path)
 	if err != nil {
 		return nil, err
@@ -128,7 +135,7 @@ func (s *VirtualFS) GetFileInfo(path string) (*FileInfo, error) {
 	return info, nil
 }
 
-func (s *VirtualFS) ReadFile(path string) ([]byte, error) {
+func (s *LocalFS) ReadFile(path string) ([]byte, error) {
 	validPath, err := s.validatePath(path)
 	if err != nil {
 		return nil, err
@@ -137,7 +144,7 @@ func (s *VirtualFS) ReadFile(path string) ([]byte, error) {
 	return os.ReadFile(validPath)
 }
 
-func (s *VirtualFS) WriteFile(path string, content []byte) error {
+func (s *LocalFS) WriteFile(path string, content []byte) error {
 	validPath, err := s.validatePath(path)
 	if err != nil {
 		return err
@@ -146,7 +153,7 @@ func (s *VirtualFS) WriteFile(path string, content []byte) error {
 	return os.WriteFile(validPath, content, 0644)
 }
 
-func (s *VirtualFS) validatePath(path string) (string, error) {
+func (s *LocalFS) validatePath(path string) (string, error) {
 	abs, err := filepath.Abs(path)
 	if err != nil {
 		return "", fmt.Errorf("invalid path %q: %w", path, err)
@@ -155,7 +162,7 @@ func (s *VirtualFS) validatePath(path string) (string, error) {
 	return abs, nil
 }
 
-func (s *VirtualFS) getFileStats(path string) (*FileInfo, error) {
+func (s *LocalFS) getFileStats(path string) (*FileInfo, error) {
 	info, err := os.Stat(path)
 	if err != nil {
 		return &FileInfo{}, err
@@ -172,7 +179,7 @@ func (s *VirtualFS) getFileStats(path string) (*FileInfo, error) {
 	}, nil
 }
 
-func (s *VirtualFS) SearchFiles(pattern string, path string, options *SearchOptions) (string, error) {
+func (s *LocalFS) SearchFiles(pattern string, path string, options *SearchOptions) (string, error) {
 	if options == nil {
 		options = &SearchOptions{}
 	}

@@ -14,7 +14,7 @@ func (r *SystemKit) ListDirectory(ctx context.Context, vars *api.Vars, name stri
 	if err != nil {
 		return "", err
 	}
-	list, err := _fs.ListDirectory(path)
+	list, err := r.fs.ListDirectory(path)
 	if err != nil {
 		return "", err
 	}
@@ -26,7 +26,7 @@ func (r *SystemKit) CreateDirectory(ctx context.Context, vars *api.Vars, name st
 	if err != nil {
 		return "", err
 	}
-	return "", _fs.CreateDirectory(path)
+	return "", r.fs.CreateDirectory(path)
 }
 
 func (r *SystemKit) RenameFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -38,7 +38,7 @@ func (r *SystemKit) RenameFile(ctx context.Context, vars *api.Vars, name string,
 	if err != nil {
 		return "", err
 	}
-	if err := _fs.RenameFile(source, dest); err != nil {
+	if err := r.fs.RenameFile(source, dest); err != nil {
 		return "", err
 	}
 	return "File renamed successfully", nil
@@ -49,7 +49,7 @@ func (r *SystemKit) GetFileInfo(ctx context.Context, vars *api.Vars, name string
 	if err != nil {
 		return "", err
 	}
-	info, err := _fs.GetFileInfo(path)
+	info, err := r.fs.GetFileInfo(path)
 	if err != nil {
 		return "", err
 	}
@@ -71,7 +71,7 @@ func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, a
 	if err != nil {
 		return nil, err
 	}
-	raw, err := _fs.ReadFile(path)
+	raw, err := r.fs.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (r *SystemKit) WriteFile(ctx context.Context, vars *api.Vars, name string, 
 	if err != nil {
 		return "", err
 	}
-	if err := _fs.WriteFile(path, []byte(content)); err != nil {
+	if err := r.fs.WriteFile(path, []byte(content)); err != nil {
 		return "", err
 	}
 	return "File written successfully", nil
@@ -120,5 +120,5 @@ func (r *SystemKit) SearchFiles(ctx context.Context, vars *api.Vars, name string
 		Follow:     false,
 		Hidden:     true,
 	}
-	return _fs.SearchFiles(pattern, path, options)
+	return r.fs.SearchFiles(pattern, path, options)
 }

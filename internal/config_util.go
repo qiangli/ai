@@ -8,7 +8,7 @@ import (
 	"slices"
 
 	// "sort"
-	"strings"
+	// "strings"
 
 	"github.com/qiangli/ai/swarm/api"
 	// "github.com/qiangli/ai/swarm/log"
@@ -62,21 +62,21 @@ func resolveWorkspaceDir(ws string) (string, error) {
 	return tempDir()
 }
 
-// resolveRepoDir returns the directory of the current git repository
-func resolveRepoDir(ws string) (string, error) {
-	if ws == "" {
-		wd, err := os.Getwd()
-		if err != nil {
-			return "", err
-		}
-		ws = wd
-	}
-	dir, err := detectGitRepo(ws)
-	if err != nil {
-		return "", fmt.Errorf("failed to detect git repository: %w", err)
-	}
-	return dir, nil
-}
+// // resolveRepoDir returns the directory of the current git repository
+// func resolveRepoDir(ws string) (string, error) {
+// 	if ws == "" {
+// 		wd, err := os.Getwd()
+// 		if err != nil {
+// 			return "", err
+// 		}
+// 		ws = wd
+// 	}
+// 	dir, err := detectGitRepo(ws)
+// 	if err != nil {
+// 		return "", fmt.Errorf("failed to detect git repository: %w", err)
+// 	}
+// 	return dir, nil
+// }
 
 // func homeDir() (string, error) {
 // 	return os.UserHomeDir()
@@ -86,26 +86,26 @@ func tempDir() (string, error) {
 	return os.TempDir(), nil
 }
 
-// detectGitRepo returns the directory of the git repository
-// containing the given path.
-// If the path is not in a git repository, it returns the original path.
-func detectGitRepo(path string) (string, error) {
-	if path == "" {
-		return "", fmt.Errorf("path is empty")
-	}
-	original := path
-	for {
-		if _, err := os.Stat(filepath.Join(path, ".git")); err == nil {
-			return path, nil
-		}
-		np := filepath.Dir(path)
-		if np == path || np == "/" {
-			break
-		}
-		path = np
-	}
-	return original, nil
-}
+// // detectGitRepo returns the directory of the git repository
+// // containing the given path.
+// // If the path is not in a git repository, it returns the original path.
+// func detectGitRepo(path string) (string, error) {
+// 	if path == "" {
+// 		return "", fmt.Errorf("path is empty")
+// 	}
+// 	original := path
+// 	for {
+// 		if _, err := os.Stat(filepath.Join(path, ".git")); err == nil {
+// 			return path, nil
+// 		}
+// 		np := filepath.Dir(path)
+// 		if np == path || np == "/" {
+// 			break
+// 		}
+// 		path = np
+// 	}
+// 	return original, nil
+// }
 
 func ensureWorkspace(ws string) (string, error) {
 	workspace, err := validatePath(ws)
@@ -147,13 +147,13 @@ func validatePath(path string) (string, error) {
 	return path, nil
 }
 
-func expandWithDefault(input string) string {
-	return os.Expand(input, func(key string) string {
-		parts := strings.SplitN(key, ":-", 2)
-		value := os.Getenv(parts[0])
-		if value == "" && len(parts) > 1 {
-			return parts[1]
-		}
-		return value
-	})
-}
+// func expandWithDefault(input string) string {
+// 	return os.Expand(input, func(key string) string {
+// 		parts := strings.SplitN(key, ":-", 2)
+// 		value := os.Getenv(parts[0])
+// 		if value == "" && len(parts) > 1 {
+// 			return parts[1]
+// 		}
+// 		return value
+// 	})
+// }

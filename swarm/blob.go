@@ -1,45 +1,70 @@
 package swarm
 
 import (
+	"encoding/json"
 	"fmt"
+	"path"
 
 	"github.com/google/uuid"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/vfs"
 )
 
 // a simple in memory object store
 type BlobStorage struct {
-	blobs map[string]*api.Blob
+	bucket string
+	fs     vfs.FileSystem
 }
 
 func (r *BlobStorage) Put(ID string, blob *api.Blob) error {
-	r.blobs[ID] = blob
+	if err := r.fs.WriteFile(path.Join(r.bucket, ID), blob.Content); err != nil {
+		return err
+	}
+	meta, err := json.Marshal(api.Blob{
+		ID:       blob.ID,
+		MimeType: blob.MimeType,
+		Meta:     blob.Meta,
+	})
+	if err != nil {
+		return nil
+	}
+	if err := r.fs.WriteFile(path.Join(r.bucket, ID+".json"), meta); err != nil {
+		return err
+	}
 	return nil
 }
 
 func (r *BlobStorage) Get(ID string) (*api.Blob, error) {
-	blob, exists := r.blobs[ID]
-	if !exists {
-		return nil, fmt.Errorf("blob with ID %s not found", ID)
+	content, err := r.fs.ReadFile(path.Join(r.bucket, ID))
+	if err != nil {
+		return nil, fmt.Errorf("error reading blob content: %w", err)
 	}
-	return blob, nil
-}
 
-func (r *BlobStorage) List() ([]*api.Blob, error) {
-	blobs := make([]*api.Blob, 0, len(r.blobs))
-	for _, blob := range r.blobs {
-		blobs = append(blobs, blob)
+	metaData, err := r.fs.ReadFile(path.Join(r.bucket, ID+".json"))
+	if err != nil {
+		return nil, fmt.Errorf("error reading blob metadata: %w", err)
 	}
-	return blobs, nil
+
+	var meta api.Blob
+	if err := json.Unmarshal(metaData, &meta); err != nil {
+		return nil, fmt.Errorf("error unmarshaling blob metadata: %w", err)
+	}
+
+	return &api.Blob{
+		ID:       meta.ID,
+		MimeType: meta.MimeType,
+		Meta:     meta.Meta,
+		Content:  content,
+	}, nil
 }
 
 func NewBlobID() string {
 	return uuid.NewString()
 }
 
-func NewBlobStorage() *BlobStorage {
+func NewBlobStorage(fs vfs.FileSystem) *BlobStorage {
 	return &BlobStorage{
-		blobs: make(map[string]*api.Blob),
+		fs: fs,
 	}
 }

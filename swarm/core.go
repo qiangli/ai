@@ -11,6 +11,8 @@ import (
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
+	"github.com/qiangli/ai/swarm/vfs"
+	"github.com/qiangli/ai/swarm/vos"
 )
 
 // extra result key
@@ -28,6 +30,9 @@ type Swarm struct {
 	Adapters llm.AdapterRegistry
 
 	Blobs api.BlobStore
+
+	OS vos.System
+	FS vfs.FileSystem
 }
 
 // Function to clear all environment variables execep essential ones

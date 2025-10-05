@@ -10,17 +10,17 @@ import (
 type BlobStore interface {
 	Put(ID string, blob *Blob) error
 	Get(ID string) (*Blob, error)
-	List() ([]*Blob, error)
+	// List() ([]*Blob, error)
 }
 
 // https://en.wikipedia.org/wiki/Media_type
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types
 // https://mimesniff.spec.whatwg.org/
 type Blob struct {
-	ID       string
-	MimeType string
-	Content  []byte
-	Meta     map[string]any
+	ID       string         `json:"id"`
+	MimeType string         `json:"mime_type"`
+	Content  []byte         `json:"content"`
+	Meta     map[string]any `json:"meta"`
 }
 
 // Memory store

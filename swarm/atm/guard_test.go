@@ -7,6 +7,7 @@ import (
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
+	"github.com/qiangli/ai/swarm/vos"
 )
 
 func TestEvaluateCommand(t *testing.T) {
@@ -45,8 +46,10 @@ func TestEvaluateCommand(t *testing.T) {
 		{"find", []string{"./", "-name", "*.sql", "-exec", "grep", "-l", "s3_files", "{}", "\\;"}, true},
 	}
 
+	vs := vos.NewLocalSystem()
+
 	for _, test := range tests {
-		resp, err := EvaluateCommand(ctx, vars, test.command, test.args)
+		resp, err := EvaluateCommand(ctx, vs, vars, test.command, test.args)
 		if err != nil {
 			t.Errorf("evaluate command: %v\n%+v", err, resp)
 			return
