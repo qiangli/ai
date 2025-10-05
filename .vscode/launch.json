@@ -270,11 +270,12 @@
 			"args": [
 				"--verbose",
 				"--max-turns",
-				"30",
+				"50",
 				"--max-time",
 				"900",
 				"--message",
-				"generate a random password"
+				"how to install conda on macos without using homebrew"
+				// "generate a random password"
 			],
 			"showLog": false,
 			"stopOnEntry": false

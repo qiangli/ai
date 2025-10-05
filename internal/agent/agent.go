@@ -152,7 +152,8 @@ func processOutput(ctx context.Context, cfg *api.AppConfig, message *api.Output)
 	case api.ContentTypeB64JSON:
 		processImageContent(ctx, cfg, message)
 	default:
-		log.GetLogger(ctx).Debugf("Unsupported content type: %s\n", message.ContentType)
+		processTextContent(ctx, cfg, message)
+		// log.GetLogger(ctx).Debugf("Unsupported content type: %s\n", message.ContentType)
 	}
 }
 
