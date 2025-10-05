@@ -3,6 +3,7 @@ package conf
 import (
 	"encoding/json"
 	"fmt"
+	"path"
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -93,4 +94,29 @@ func nzl(a ...int) int {
 		}
 	}
 	return 0
+}
+
+func normalizedName(name string) string {
+	name = strings.TrimSpace(name)
+	name = strings.ToLower(name)
+	return strings.ReplaceAll(name, " ", "-")
+}
+
+func trimExt(s string) string {
+	return strings.TrimSuffix(s, path.Ext(s))
+}
+
+// convert filename to agent pack name
+func agentName(s string) string {
+	return normalizedName(trimExt(s))
+}
+
+// convert filename to toolkit name
+func kitName(s string) string {
+	return normalizedName(trimExt(s))
+}
+
+// convert filename to model alias
+func modelName(s string) string {
+	return normalizedName(trimExt(s))
 }

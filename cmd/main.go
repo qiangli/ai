@@ -30,7 +30,7 @@ Examples:
 Miscellaneous:
   ai /setup                      Setup configuration
 
-Use "{{.CommandPath}} /help [agents|commands|tools|info]" for more information.
+Use "{{.CommandPath}} /help [agents|tools|models]" for more information.
 `
 
 const usageExample = `

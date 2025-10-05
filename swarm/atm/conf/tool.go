@@ -3,6 +3,8 @@ package conf
 import (
 	"fmt"
 	"maps"
+	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -228,4 +230,83 @@ func loadAgentTool(ac *api.AgentsConfig, name string) ([]*api.ToolFunc, error) {
 	}
 
 	return nil, nil
+}
+
+func listToolkitATM(owner string, as api.ATMSupport, kits map[string]*api.ToolsConfig) error {
+	recs, err := as.ListTools(owner)
+	if err != nil {
+		return err
+	}
+
+	// not found
+	if len(recs) == 0 {
+		return nil
+	}
+
+	for _, v := range recs {
+		tc, err := loadToolData([][]byte{[]byte(v.Content)})
+		if err != nil {
+			return err
+		}
+		if tc == nil || len(tc.Tools) == 0 {
+			return fmt.Errorf("invalid config. no tool defined: %s", v.Name)
+		}
+		//
+		if tc.Kit == "" {
+			tc.Kit = kitName(v.Name)
+		}
+		if _, ok := kits[tc.Kit]; ok {
+			continue
+		}
+
+		kits[tc.Kit] = tc
+	}
+	return nil
+}
+
+func listToolkitAsset(as api.AssetFS, base string, kits map[string]*api.ToolsConfig) error {
+	dirs, err := as.ReadDir(base)
+	if err != nil {
+		return err
+	}
+
+	// not found
+	if len(dirs) == 0 {
+		return nil
+	}
+
+	for _, v := range dirs {
+		if v.IsDir() {
+			continue
+		}
+		content, err := as.ReadFile(path.Join(base, v.Name()))
+		if err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return fmt.Errorf("failed to read tool asset %s: %w", v.Name(), err)
+		}
+		if len(content) == 0 {
+			continue
+		}
+
+		tc, err := loadToolData([][]byte{content})
+		if err != nil {
+			return err
+		}
+		if tc == nil || len(tc.Tools) == 0 {
+			// TODO mcp
+			continue
+		}
+
+		//
+		if tc.Kit == "" {
+			tc.Kit = kitName(v.Name())
+		}
+		if _, ok := kits[tc.Kit]; ok {
+			continue
+		}
+		kits[tc.Kit] = tc
+	}
+	return nil
 }

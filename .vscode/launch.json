@@ -222,7 +222,8 @@
 			},
 			"args": [
 				"/help",
-				"agents",
+				// "agents",
+				"tools",
 				"--resource=resource.json",
 				"message",
 				"what is cooking"

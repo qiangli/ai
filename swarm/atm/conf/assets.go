@@ -123,9 +123,29 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AgentsConfig, 
 	for _, v := range ac.Agents {
 		v.Name = normalizeAgentName(pack, v.Name)
 		v.Store = asset
-		// TODO resource base?
+		// TODO base for resource asset? not used and not a problem for now
 	}
 	return ac, nil
+}
+
+func (r *assetManager) ListToolkit(owner string) (map[string]*api.ToolsConfig, error) {
+	var kits = make(map[string]*api.ToolsConfig)
+	for _, v := range r.assets {
+		if as, ok := v.(api.ATMSupport); ok {
+			if err := listToolkitATM(owner, as, kits); err != nil {
+				return nil, err
+			}
+		} else if as, ok := v.(api.AssetFS); ok {
+			if err := listToolkitAsset(as, "tools", kits); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	if len(kits) == 0 {
+		return nil, fmt.Errorf("no tool configurations found")
+	}
+	return kits, nil
 }
 
 func (r *assetManager) FindToolkit(owner string, kit string) (*api.ToolsConfig, error) {
@@ -165,6 +185,26 @@ func (r *assetManager) FindToolkit(owner string, kit string) (*api.ToolsConfig, 
 	tc.Kit = kit
 
 	return tc, nil
+}
+
+func (r *assetManager) ListModels(owner string) (map[string]*api.ModelsConfig, error) {
+	var models = make(map[string]*api.ModelsConfig)
+	for _, v := range r.assets {
+		if as, ok := v.(api.ATMSupport); ok {
+			if err := listModelsATM(owner, as, models); err != nil {
+				return nil, err
+			}
+		} else if as, ok := v.(api.AssetFS); ok {
+			if err := listModelsAsset(as, "models", models); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	if len(models) == 0 {
+		return nil, fmt.Errorf("no model configurations found")
+	}
+	return models, nil
 }
 
 func (r *assetManager) FindModels(owner string, alias string) (*api.ModelsConfig, error) {

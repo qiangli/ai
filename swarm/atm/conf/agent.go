@@ -126,12 +126,15 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AgentsCo
 			return err
 		}
 		if ac == nil || len(ac.Agents) == 0 {
-			return fmt.Errorf("invalid config. no agent defined: %s", v.Name())
+			// return fmt.Errorf("invalid config. no agent defined: %s", v.Name())
+			continue
 		}
 
 		// correct name and add to list
 		// keep store loader for loading extra resources later
-		ac.Name = strings.ToLower(v.Name())
+		if ac.Name == "" {
+			ac.Name = agentName(v.Name())
+		}
 		if _, ok := packs[ac.Name]; ok {
 			continue
 		}

@@ -25,7 +25,9 @@ type ATMSupport interface {
 	ListAgents(owner string) ([]*Record, error)
 	SearchAgent(user, owner, pack string) (*Record, error)
 	RetrieveTool(owner, kit string) (*Record, error)
+	ListTools(owner string) ([]*Record, error)
 	RetrieveModel(owner, alias string) (*Record, error)
+	ListModels(owner string) ([]*Record, error)
 }
 
 type AssetFS interface {
@@ -46,6 +48,8 @@ type AssetManager interface {
 	SearchAgent(owner, pack string) (*Record, error)
 	ListAgent(owner string) (map[string]*AgentsConfig, error)
 	FindAgent(owner, pack string) (*AgentsConfig, error)
+	ListToolkit(owner string) (map[string]*ToolsConfig, error)
 	FindToolkit(owner string, kit string) (*ToolsConfig, error)
+	ListModels(owner string) (map[string]*ModelsConfig, error)
 	FindModels(owner string, alias string) (*ModelsConfig, error)
 }

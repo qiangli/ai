@@ -2,6 +2,8 @@ package conf
 
 import (
 	"fmt"
+	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -121,4 +123,83 @@ func loadModelsData(data [][]byte) (*api.ModelsConfig, error) {
 	}
 
 	return merged, nil
+}
+
+func listModelsATM(owner string, as api.ATMSupport, models map[string]*api.ModelsConfig) error {
+	recs, err := as.ListModels(owner)
+	if err != nil {
+		return err
+	}
+
+	// not found
+	if len(recs) == 0 {
+		return nil
+	}
+
+	for _, v := range recs {
+		mc, err := loadModelsData([][]byte{[]byte(v.Content)})
+		if err != nil {
+			return err
+		}
+		if mc == nil || len(mc.Models) == 0 {
+			return fmt.Errorf("invalid config. no model defined: %s", v.Name)
+		}
+		//
+		if mc.Alias == "" {
+			mc.Alias = modelName(v.Name)
+		}
+		if _, ok := models[mc.Alias]; ok {
+			continue
+		}
+
+		models[mc.Alias] = mc
+	}
+	return nil
+}
+
+func listModelsAsset(as api.AssetFS, base string, models map[string]*api.ModelsConfig) error {
+	dirs, err := as.ReadDir(base)
+	if err != nil {
+		return err
+	}
+
+	// not found
+	if len(dirs) == 0 {
+		return nil
+	}
+
+	for _, v := range dirs {
+		if v.IsDir() {
+			continue
+		}
+		content, err := as.ReadFile(path.Join(base, v.Name()))
+		if err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return fmt.Errorf("failed to read model asset %s: %w", v.Name(), err)
+		}
+		if len(content) == 0 {
+			// error?
+			continue
+		}
+
+		mc, err := loadModelsData([][]byte{content})
+		if err != nil {
+			return err
+		}
+		if mc == nil || len(mc.Models) == 0 {
+			continue
+		}
+
+		//
+		if mc.Alias == "" {
+			mc.Alias = modelName(v.Name())
+		}
+		if _, ok := models[mc.Alias]; ok {
+			continue
+		}
+		models[mc.Alias] = mc
+	}
+	return nil
 }

@@ -145,6 +145,8 @@ func Help(ctx context.Context, cmd *cobra.Command, args []string) error {
 				return HelpCommands(ctx)
 			case "tools", "tool":
 				return HelpTools(ctx, vars)
+			case "models", "model", "aliases", "alias":
+				return HelpModels(ctx, vars)
 			case "info":
 				return HelpInfo(ctx, vars)
 			}
@@ -268,7 +270,7 @@ AI will choose an appropriate agent based on your message if no agent is specifi
 		buf.WriteString(k)
 		buf.WriteString(":\t")
 		buf.WriteString(dict[k].Description)
-		buf.WriteString("\n")
+		buf.WriteString("\n\n")
 	}
 
 	log.GetLogger(ctx).Infof(format, buf.String(), len(keys))
@@ -316,29 +318,50 @@ Total: %v
 
 Tools are used by agents to perform specific tasks. They are automatically selected based on the agent's capabilities and your input message.
 `
-	// var subs = []string{"agent", "func", "mcp", "system", "template"}
-	// var sub string
-	// for _, v := range os.Args {
-	// 	for _, s := range subs {
-	// 		if strings.HasPrefix(s, v) {
-	// 			sub = s
-	// 			break
-	// 		}
-	// 	}
-	// }
-
 	list := []string{}
 
-	// tools, _ := conf.ListTools(ctx, vars.Config)
+	assets := conf.Assets(vars.Config)
+	tools, _ := assets.ListToolkit(vars.Config.User.Email)
 
-	// for _, v := range tools {
-	// 	if v.Type == "agent" {
-	// 		continue
-	// 	}
-	// 	if sub == "" || v.Type == sub {
-	// 		list = append(list, fmt.Sprintf("%s: %s: %s\n", v.Type, v.ID(), strings.TrimSpace(v.Description)))
-	// 	}
-	// }
+	for kit, tc := range tools {
+		for _, v := range tc.Tools {
+			list = append(list, fmt.Sprintf("%s:%s (%s) -- %s\n", kit, v.Name, v.Type, strings.TrimSpace(v.Description)))
+		}
+	}
+
+	sort.Strings(list)
+
+	log.GetLogger(ctx).Infof(listTpl, strings.Join(list, "\n"), len(list))
+	return nil
+}
+
+func HelpModels(ctx context.Context, vars *api.Vars) error {
+
+	const listTpl = `Available models:
+
+%s
+Total: %v
+
+Model Alias can be used to reference a group of LLM models. You can mix and match different providers for one alias.
+`
+	list := []string{}
+
+	assets := conf.Assets(vars.Config)
+	models, _ := assets.ListModels(vars.Config.User.Email)
+
+	for alias, tc := range models {
+		var keys []string
+		for k := range tc.Models {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		var levels []string
+		for _, k := range keys {
+			v := tc.Models[k]
+			levels = append(levels, fmt.Sprintf("    %s (%s)\n    %s\n    %s\n    %s\n", k, v.Provider, v.Model, v.BaseUrl, v.ApiKey))
+		}
+		list = append(list, fmt.Sprintf("%s:\n%s\n", alias, strings.Join(levels, "\n")))
+	}
 
 	sort.Strings(list)
 
