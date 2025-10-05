@@ -138,7 +138,7 @@ type AgentsConfig struct {
 
 	// memory
 	// max history: 0 max span: 0
-	New bool `yaml:"new"`
+	New *bool `yaml:"new,omitempty"`
 	// MaxHistory int `yaml:"max_history"`
 	// MaxSpan    int `yaml:"max_span"`
 
@@ -185,7 +185,7 @@ type AgentConfig struct {
 
 	// memory
 	// max history: 0 max span: 0
-	New bool `yaml:"new"`
+	New *bool `yaml:"new,omitempty"`
 	// MaxHistory int `yaml:"max_history"`
 	// MaxSpan    int `yaml:"max_span"`
 

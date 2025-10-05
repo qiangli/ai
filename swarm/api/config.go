@@ -74,14 +74,6 @@ type AppConfig struct {
 	IsPiped bool
 	Stdin   bool
 
-	// Files []string
-
-	// // Treated as file
-	// Screenshot bool
-
-	// // Treated as input text
-	// Voice bool
-
 	// Output format: raw or markdown
 	Format string
 
@@ -95,7 +87,7 @@ type AppConfig struct {
 	// Template string
 
 	// conversation history
-	New        bool
+	New        *bool
 	MaxHistory int
 	MaxSpan    int
 
@@ -112,10 +104,6 @@ type AppConfig struct {
 	//
 	LogLevel string
 
-	// Internal bool
-
-	// DenyList  []string
-	// AllowList []string
 	Unsafe bool
 
 	//

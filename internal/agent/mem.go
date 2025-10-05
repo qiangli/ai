@@ -22,7 +22,7 @@ func NewFileMemStore(app *api.AppConfig) *FileMemStore {
 	chatDir := filepath.Join(app.Base, "chat")
 	cid := app.ChatID
 	if cid == "" {
-		if app.New {
+		if app.New != nil && *app.New {
 			cid = uuid.NewString()
 		} else if last, err := findLastChatID(chatDir); err == nil {
 			cid = last

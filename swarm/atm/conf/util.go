@@ -77,10 +77,10 @@ func nvl(a ...string) string {
 }
 
 // return first true value
-func nbl(a ...bool) bool {
+func nbl(a ...*bool) bool {
 	for _, v := range a {
-		if v {
-			return v
+		if v != nil {
+			return *v
 		}
 	}
 	return false
