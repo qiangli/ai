@@ -1,0 +1,17 @@
+###
+agents:
+  - name: "model"
+    display: "🤖 Model Agent"
+    description: "Description"
+    model: default/any
+    instruction:
+      content: |
+        System role prompt goes here
+    arguments:
+      agent: ""
+    functions:
+      - "ai:list_models"
+      - "ai:model_info"
+      - "ai:model_yield"
+      # - "ai:model_spawn"
+###

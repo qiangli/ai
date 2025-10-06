@@ -76,6 +76,7 @@ func NewToolCaller(sw *Swarm) api.ToolCaller {
 			return toResult(out), nil
 		}
 
+		//
 		kit, err := sw.Tools.GetKit(v.Type)
 		if err != nil {
 			return nil, err

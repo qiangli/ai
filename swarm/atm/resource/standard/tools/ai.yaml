@@ -32,16 +32,19 @@ tools:
         - "agent"
 
   - name: "agent_create"
-    description: "Create a new agent based on user input"
-    agent: "new"
+    description: |
+      Create a new agent based on user input and delegate the current task to it.
     parameters:
       type: "object"
       properties:
-        agent:
+        # agent:
+        #   type: "string"
+        #   description: "The name of the agent"
+        query:
           type: "string"
-          description: "The name of the agent"
+          description: "User input query"
       required:
-        - "agent"
+        - "query"
 
   # - name: "list_tools"
   #   description: "Enumerate AI tool functions available for selection"

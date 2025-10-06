@@ -1,14 +1,14 @@
 ###
 agents:
   - name: "new"
-    display: "🌐 Create Agent"
+    display: "🤖 Creator Agent"
     description: "Description"
-    model: L1
+    model: default/any
+    # model: "@model"
     instruction:
-      content: |
-        System role prompt goes here
+      content: "@prompt"
     arguments:
-      agent: ""
+      query: ""
     functions:
-      - "as:*"
+      - "agent:tool"
 ###

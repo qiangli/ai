@@ -35,5 +35,8 @@ agents:
         Do not provide answers directly; always make a call to the transfer tool function based on your evaluation of the user's request.
 
     functions:
-      - "ai:*"
+      - "ai:list_agents"
+      - "ai:agent_info"
+      - "ai:agent_transfer"
+      # - "ai:agent_spawn"
 ###
