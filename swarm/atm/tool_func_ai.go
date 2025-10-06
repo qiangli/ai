@@ -61,7 +61,7 @@ Instruction: %s
 	if ac != nil {
 		for _, v := range ac.Agents {
 			if v.Name == agent {
-				return fmt.Sprintf(tpl, v.Name, v.Display, v.Description, clip(v.Instruction.Content, 100)), nil
+				return fmt.Sprintf(tpl, v.Name, v.Display, v.Description, clip(v.Instruction.Content, 1000)), nil
 			}
 		}
 	}

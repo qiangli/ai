@@ -1,0 +1,12 @@
+###
+agents:
+  - name: "name"
+    display: "🌐 Display Name"
+    description: "Description"
+    model: L1
+    instruction:
+      content: |
+        System role prompt goes here
+    functions:
+      - "kit:*"
+###

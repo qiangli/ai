@@ -1,0 +1,14 @@
+###
+agents:
+  - name: "new"
+    display: "🌐 Create Agent"
+    description: "Description"
+    model: L1
+    instruction:
+      content: |
+        System role prompt goes here
+    arguments:
+      agent: ""
+    functions:
+      - "as:*"
+###
