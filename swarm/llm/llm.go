@@ -34,7 +34,7 @@ const (
 	TTS   Level = "tts"
 )
 
-type ToolRunner func(context.Context, string, map[string]any) (*api.Result, error)
+// type ToolRunner func(context.Context, string, map[string]any) (*api.Result, error)
 
 type Request struct {
 	Agent string
@@ -45,7 +45,7 @@ type Request struct {
 
 	MaxTurns int
 
-	RunTool ToolRunner
+	RunTool api.ToolRunner
 
 	Tools []*api.ToolFunc
 

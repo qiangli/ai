@@ -314,7 +314,7 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 		funcMap := make(map[string]*api.ToolFunc)
 		for _, v := range c.Functions {
 			// kit:*
-			tools, err := loadToolFunc(owner, v, secrets, assets)
+			tools, err := LoadToolFunc(owner, v, secrets, assets)
 			if err != nil {
 				return nil, err
 			}

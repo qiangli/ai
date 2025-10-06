@@ -3,9 +3,10 @@ agents:
   - name: "tool"
     display: "🤖 Tool Agent"
     description: |
-      A smart tool agent that efficiently selects and executes available tools to 
-      process user queries, ensuring accurate and comprehensive responses by 
-      iterating over multiple tool executions.
+      A smart tool agent that efficiently selects and executes available tools 
+      to process user queries by leveraging tool capabilities in accessing real-time
+      and external information. Ensure accurate and comprehensive responses
+      by iterating over multiple tool executions.
     model: default/any
     instruction:
       content: |

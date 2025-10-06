@@ -296,20 +296,10 @@ Total: %v
 
 Tools are used by agents to perform specific tasks. They are automatically selected based on the agent's capabilities and your input message.
 `
-	list := []string{}
-
 	assets := conf.Assets(vars.Config)
-	tools, _ := assets.ListToolkit(vars.Config.User.Email)
+	list, count, _ := atmconf.ListTools(assets, vars.Config.User.Email)
 
-	for kit, tc := range tools {
-		for _, v := range tc.Tools {
-			list = append(list, fmt.Sprintf("%s:%s (%s) -- %s\n", kit, v.Name, v.Type, strings.TrimSpace(v.Description)))
-		}
-	}
-
-	sort.Strings(list)
-
-	log.GetLogger(ctx).Infof(listTpl, strings.Join(list, "\n"), len(list))
+	log.GetLogger(ctx).Infof(listTpl, list, count)
 	return nil
 }
 

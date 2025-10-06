@@ -5,7 +5,6 @@ import (
 	"maps"
 	"os"
 	"path"
-	"strings"
 	"time"
 
 	"dario.cat/mergo"
@@ -24,21 +23,26 @@ var (
 	toolkitCache = expirable.NewLRU[ToolkitCacheKey, []*api.ToolFunc](10000, nil, time.Second*900)
 )
 
-func loadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetManager) ([]*api.ToolFunc, error) {
-	// kit__name
-	// kit:*
-	// kit:name
-	var kit, name string
+func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetManager) ([]*api.ToolFunc, error) {
+	// // kit__name
+	// // kit:*
+	// // kit:name
+	// var kit, name string
 
-	if strings.Index(s, "__") > 0 {
-		// call time - the name should never be empty
-		kit, name = split2(s, "__", "")
-		if name == "" {
-			return nil, fmt.Errorf("invalid tool call id: %s", s)
-		}
-	} else {
-		// load time
-		kit, name = split2(s, ":", "*")
+	// if strings.Index(s, "__") > 0 {
+	// 	// call time - the name should never be empty
+	// 	kit, name = split2(s, "__", "")
+	// 	if name == "" {
+	// 		return nil, fmt.Errorf("invalid tool call id: %s", s)
+	// 	}
+	// } else {
+	// 	// load time
+	// 	kit, name = split2(s, ":", "*")
+	// }
+
+	kit, name := api.KitName(s).Decode()
+	if name == "" {
+		return nil, fmt.Errorf("invalid tool call id: %s", s)
 	}
 
 	// return tool or the kit

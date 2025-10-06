@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"strings"
 )
 
 const (
@@ -14,7 +15,8 @@ const (
 	ToolTypeAgent  = "agent"
 )
 
-type ToolCaller func(*Vars, *Agent) func(context.Context, string, map[string]any) (*Result, error)
+// type ToolCaller func(*Vars, *Agent) func(context.Context, string, map[string]any) (*Result, error)
+type ToolRunner func(context.Context, string, map[string]any) (*Result, error)
 
 type ToolFunc struct {
 	Type string
@@ -163,4 +165,39 @@ type ToolKit interface {
 type ToolSystem interface {
 	GetKit(key string) (ToolKit, error)
 	AddKit(key string, kit ToolKit)
+}
+
+type KitName string
+
+func (r KitName) String() string {
+	return string(r)
+}
+
+// kit__name
+// kit:*
+// kit:name
+func (r KitName) Decode() (string, string) {
+	split2 := func(s string, sep string, val string) (string, string) {
+		var p1, p2 string
+		parts := strings.SplitN(s, sep, 2)
+		if len(parts) == 1 {
+			p1 = parts[0]
+			p2 = val
+		} else {
+			p1 = parts[0]
+			p2 = parts[1]
+		}
+		return p1, p2
+	}
+
+	var kit, name string
+	s := string(r)
+	if strings.Index(s, "__") > 0 {
+		// call time - the name should never be empty
+		kit, name = split2(s, "__", "")
+	} else {
+		// load time
+		kit, name = split2(s, ":", "*")
+	}
+	return kit, name
 }

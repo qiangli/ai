@@ -74,7 +74,14 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 
 	var tools = atm.NewToolSystem(user)
 	tools.AddKit(api.ToolTypeFunc, atm.NewFuncKit(user, assets))
-	tools.AddKit(api.ToolTypeWeb, atm.NewWebKit())
+	// TODO
+	web := atm.NewWebKit()
+	tools.AddKit("web", web)
+	tools.AddKit("ddg", web)
+	tools.AddKit("google", web)
+	tools.AddKit("bing", web)
+	tools.AddKit("brave", web)
+	//
 	tools.AddKit(api.ToolTypeSystem, atm.NewSystemKit(fs, os))
 	tools.AddKit(api.ToolTypeMcp, atm.NewMcpKit())
 	tools.AddKit(api.ToolTypeFaas, atm.NewFaasKit())

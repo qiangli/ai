@@ -414,11 +414,12 @@
 			"args": [
 				"--verbose",
 				"@eval",
+				"--new",
 				"--workspace",
 				"/tmp/work",
 				"--message",
-				"draw a smal vivid and high definition beautiful puppy and save in the workspace as puppy.png"
-				// "what is the weather in dublin ca in the next 3 days"
+				// "draw a smal vivid and high definition beautiful puppy and save in the workspace as puppy.png"
+				"what is the weather in dublin ca in the next 3 days"
 				// "find all occurances of VFS in the current project"
 				// "What is the current time in New York?",
 			],

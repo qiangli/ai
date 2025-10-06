@@ -22,7 +22,7 @@ func NewAgentHandler(sw *Swarm) func(*api.Vars, *api.Agent) Handler {
 			//
 			sw: sw,
 			//
-			toolCall: NewToolCaller(sw),
+			// toolCall: NewToolCaller(sw),
 		}
 	}
 }
@@ -35,7 +35,7 @@ type agentHandler struct {
 	sw *Swarm
 
 	//
-	toolCall api.ToolCaller
+	// toolCall api.ToolCaller
 }
 
 func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
@@ -157,7 +157,8 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	initLen := len(history)
 
 	//
-	var runTool = h.toolCall(h.vars, h.agent)
+	// var runTool = h.toolCall(h.vars, h.agent)
+	var runTool = h.createCaller()
 
 	var request = llm.Request{
 		Agent:    r.Name,

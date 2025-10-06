@@ -278,3 +278,21 @@ func ListAgents(assets api.AssetManager, user string) (string, int, error) {
 
 	return buf.String(), len(keys), nil
 }
+
+func ListTools(assets api.AssetManager, user string) (string, int, error) {
+	tools, err := assets.ListToolkit(user)
+	if err != nil {
+		return "", 0, err
+	}
+
+	list := []string{}
+	for kit, tc := range tools {
+		for _, v := range tc.Tools {
+			list = append(list, fmt.Sprintf("%s__%s: %s (%s)\n", kit, v.Name, v.Description, v.Type))
+		}
+	}
+
+	sort.Strings(list)
+
+	return strings.Join(list, "\n"), len(list), nil
+}

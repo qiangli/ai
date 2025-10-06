@@ -31,26 +31,53 @@ tools:
       required:
         - "agent"
 
-  - name: "agent_create"
-    description: |
-      Create a new agent based on user input and delegate the current task to it.
+  # - name: "agent_create"
+  #   description: |
+  #     Create a new agent based on user input and delegate the current task to it.
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       # agent:
+  #       #   type: "string"
+  #       #   description: "The name of the agent"
+  #       query:
+  #         type: "string"
+  #         description: "User input query"
+  #     required:
+  #       - "query"
+
+  - name: "list_tools"
+    description: "Enumerate AI tool functions available for selection"
+    parameters:
+      type: object
+      properties: {}
+
+  - name: "tool_info"
+    description: "Get information about a specific tool"
     parameters:
       type: "object"
       properties:
-        # agent:
-        #   type: "string"
-        #   description: "The name of the agent"
-        query:
+        tool:
           type: "string"
-          description: "User input query"
+          description: "The name of the tool"
       required:
-        - "query"
+        - "tool"
 
-  # - name: "list_tools"
-  #   description: "Enumerate AI tool functions available for selection"
-  #   parameters:
-  #     type: object
-  #     properties: {}
+  - name: "tool_execute"
+    description: "Call the tool function"
+    parameters:
+      type: "object"
+      properties:
+        tool:
+          type: "string"
+          description: "The name of the tool"
+        # parameters:
+        #   type: "object"
+        #   description: "The arguments for the tool call"
+        #   properties: {}
+      required:
+        - "tool"
+        # - "parameters"
 
   # - name: "list_models"
   #   description: "List all AI language model aliases created by the current user"
