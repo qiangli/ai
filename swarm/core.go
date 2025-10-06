@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"context"
 	"encoding/json"
 	"maps"
 	"os"
@@ -52,8 +53,8 @@ func clearAllEnv() {
 	}
 }
 
-func (r *Swarm) createAgent(req *api.Request) (*api.Agent, error) {
-	return conf.CreateAgent(r.Vars, r.User, r.Secrets, r.Assets, req)
+func (r *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
+	return conf.CreateAgent(ctx, r.Vars, r.User, req.Agent, req.RawInput, r.Secrets, r.Assets)
 }
 
 func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
@@ -63,7 +64,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	var ctx = req.Context()
 	var resetLogLevel = true
 	for {
-		agent, err := r.createAgent(req)
+		agent, err := r.createAgent(ctx, req)
 		if err != nil {
 			return err
 		}

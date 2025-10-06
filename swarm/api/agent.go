@@ -65,6 +65,49 @@ const (
 
 type TemplateFuncMap = template.FuncMap
 
+// @[owner:]pack[/sub]
+// // @<[owner:]agent>
+// owner, agent := splitOwnerAgent(req.Agent)
+// // agent: pack[/sub]
+// pack, sub := split2(agent, "/", "")
+type AgentName string
+
+func (a AgentName) String() string {
+	return string(a)
+}
+
+// [@][owner:]pack[/sub]
+func (a AgentName) Decode() (owner, pack, sub string) {
+	// @[owner:]agent
+	// agent: pack[/sub]
+	s := strings.TrimPrefix(string(a), "@")
+	parts := strings.SplitN(s, ":", 2)
+	if len(parts) == 2 {
+		owner = parts[0]
+		parts = strings.SplitN(parts[1], "/", 2)
+	} else {
+		parts = strings.SplitN(parts[0], "/", 2)
+	}
+
+	pack = parts[0]
+	if len(parts) > 1 {
+		sub = parts[1]
+	}
+	// default sub: "", "<pack>"
+	// pack
+	// pack/pack
+	if sub == pack {
+		sub = ""
+	}
+	return owner, pack, sub
+}
+
+func (a AgentName) Equal(s string) bool {
+	x, y, z := a.Decode()
+	x2, y2, z2 := AgentName(s).Decode()
+	return x == x2 && y == y2 && z == z2
+}
+
 type Agent struct {
 	Owner string
 

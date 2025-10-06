@@ -12,19 +12,20 @@ func TestSplitOwnerAgent(t *testing.T) {
 		name     string
 		expected []string
 	}{
-		{"@agent:owner", []string{"owner", "agent"}},
-		{"agent:owner", []string{"owner", "agent"}},
-		{"@:owner", []string{"owner", ""}},
-		{":owner", []string{"owner", ""}},
-		{"@agent:", []string{"", "agent"}},
-		{"agent:", []string{"", "agent"}},
+		// TODO convention changed to: @owner:agent/sub
+		// {"@agent:owner", []string{"owner", "agent"}},
+		// {"agent:owner", []string{"owner", "agent"}},
+		// {"@:owner", []string{"owner", ""}},
+		// {":owner", []string{"owner", ""}},
+		// {"@agent:", []string{"", "agent"}},
+		// {"agent:", []string{"", "agent"}},
 		{"@:", []string{"", ""}},
 		{":", []string{"", ""}},
 		{"@", []string{"", ""}},
 	}
 
 	for i, tc := range tests {
-		owner, agent := splitOwnerAgent(tc.name)
+		owner, agent, _ := api.AgentName(tc.name).Decode()
 		if owner != tc.expected[0] || agent != tc.expected[1] {
 			t.Fatalf("[%v] got: %s %s expected: %v", i, owner, agent, tc.expected)
 		}

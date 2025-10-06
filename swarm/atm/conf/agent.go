@@ -1,6 +1,7 @@
 package conf
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
@@ -202,7 +203,7 @@ func getAgent(owner string, pack string, asset api.AssetStore) (*api.AgentsConfi
 	return ac, nil
 }
 
-func CreateAgent(vars *api.Vars, auth *api.User, secrets api.SecretStore, assets api.AssetManager, req *api.Request) (*api.Agent, error) {
+func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent string, rawInput *api.UserInput, secrets api.SecretStore, assets api.AssetManager) (*api.Agent, error) {
 	//
 	findAgentConfig := func(ac *api.AgentsConfig, pack, sub string) (*api.AgentConfig, error) {
 		n := pack
@@ -344,14 +345,13 @@ func CreateAgent(vars *api.Vars, auth *api.User, secrets api.SecretStore, assets
 	}
 
 	// create the agent
-	var ctx = req.Context()
-
 	// read config and create agent
 	var user = auth.Email
 	// @<[owner:]agent>
-	owner, agent := splitOwnerAgent(req.Agent)
+	// owner, agent := splitOwnerAgent(req.Agent)
 	// agent: [pack/]sub
-	pack, sub := split2(agent, "/", "")
+	// pack, sub := split2(agent, "/", "")
+	owner, pack, sub := api.AgentName(agent).Decode()
 
 	// cached agent
 	key := AgentCacheKey{
@@ -405,7 +405,7 @@ func CreateAgent(vars *api.Vars, auth *api.User, secrets api.SecretStore, assets
 			return nil, err
 		}
 
-		agent, err := newAgent(ac, c, vars, user, owner, req.RawInput)
+		agent, err := newAgent(ac, c, vars, user, owner, rawInput)
 		if err != nil {
 			return nil, err
 		}
