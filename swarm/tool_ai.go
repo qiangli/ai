@@ -169,7 +169,15 @@ func (r *AIKit) ToolExecute(ctx context.Context, _ *api.Vars, tf string, args ma
 		return r.callTool(ctx, tid, params)
 	}
 
-	return nil, fmt.Errorf("parameters not found in: %+v", args)
+	// LLM (openai) sometimes does not provide parameters in the args as defined in the tool yaml.
+	// returning the error does force to correct this but with multiple calls.
+	// we try args instead. if successful, it means correct parameters are provided at the top level.
+	log.GetLogger(ctx).Debugf("Tool execute: try ***args*** instead. tid: %s params: %+v\n", tid, args)
+	out, err := r.callTool(ctx, tid, args)
+	if err != nil {
+		return nil, fmt.Errorf("required parameters not found in: %+v. error: %v", args, err)
+	}
+	return out, nil
 }
 
 func (r *AIKit) Call(ctx context.Context, vars *api.Vars, _ api.SecretToken, tf *api.ToolFunc, args map[string]any) (any, error) {

@@ -11,9 +11,21 @@ func NormalizedName(name string) string {
 	return strings.ReplaceAll(name, " ", "-")
 }
 
-func ClipText(text string, maxLen int) string {
+// Clip trims the string to the maxLen
+func Clip(text string, maxLen int) string {
 	if len(text) > maxLen {
 		return text[:maxLen] + "..."
 	}
 	return text
+}
+
+// Head trims the string to the maxLen and replaces newlines with /.
+func Head(s string, maxLen int) string {
+	s = strings.ReplaceAll(s, "\n", "/")
+	s = strings.Join(strings.Fields(s), " ")
+	s = strings.TrimSpace(s)
+	if len(s) > maxLen {
+		return s[:maxLen] + "..."
+	}
+	return s
 }

@@ -156,10 +156,21 @@ func (r *Result) String() string {
 		sb.WriteString(fmt.Sprintf(" %s", r.MimeType))
 	}
 	if r.Value != "" {
-		sb.WriteString(fmt.Sprintf(" %s", r.Value))
+		sb.WriteString(fmt.Sprintf(" %s", head(r.Value, 100)))
 	}
 	if len(r.Content) > 0 {
 		sb.WriteString(fmt.Sprintf(" content: %v bytes", len(r.Content)))
 	}
 	return strings.TrimSpace(sb.String())
+}
+
+// head trims the string to the maxLen and replaces newlines with /.
+func head(s string, maxLen int) string {
+	s = strings.ReplaceAll(s, "\n", "/")
+	s = strings.Join(strings.Fields(s), " ")
+	s = strings.TrimSpace(s)
+	if len(s) > maxLen {
+		return s[:maxLen] + "..."
+	}
+	return s
 }
