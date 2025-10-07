@@ -288,7 +288,8 @@ func ListTools(assets api.AssetManager, user string) (string, int, error) {
 	list := []string{}
 	for kit, tc := range tools {
 		for _, v := range tc.Tools {
-			list = append(list, fmt.Sprintf("%s__%s: %s (%s)\n", kit, v.Name, v.Description, v.Type))
+			// NOTE: Type in the output seems to confuse LLM (openai)
+			list = append(list, fmt.Sprintf("%s__%s: %s\n", kit, v.Name, v.Description))
 		}
 	}
 
