@@ -282,6 +282,10 @@ type AgentConfig struct {
 	// default values for parameters
 	Arguments map[string]any `yaml:"arguments"`
 
+	// security
+	Filters []*IOFilter  `yaml:"filters"`
+	Guards  []*ToolGuard `yaml:"guards"`
+
 	//
 	Store AssetStore `yaml:"-"`
 	// relative to root

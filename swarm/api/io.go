@@ -34,8 +34,6 @@ type UserInput struct {
 	// query - clipboard/stdin/editor
 	Content string `json:"content"`
 
-	// Files []string `json:"files"`
-
 	// cached file contents
 	Messages []*Message `json:"-"`
 }
@@ -46,21 +44,15 @@ func (r *UserInput) String() string {
 	sb.WriteString(fmt.Sprintf("Message#: %v\n", len(r.Message)))
 	sb.WriteString(fmt.Sprintf("Content#: %v\n", len(r.Content)))
 	sb.WriteString(fmt.Sprintf("Intent: %s\n", r.Intent()))
-	// sb.WriteString(fmt.Sprintf("Files: %v\n", r.Files))
-	// sb.WriteString(fmt.Sprintf("Messages#: %v\n", len(r.Messages)))
-	// for _, v := range r.Messages {
-	// 	sb.WriteString(fmt.Sprintf("ContentType: %s Content#: %v\n", v.ContentType, len(v.Content)))
-	// }
 
 	return sb.String()
 }
 
 func (r *UserInput) Clone() *UserInput {
 	return &UserInput{
-		Agent:   r.Agent,
-		Message: r.Message,
-		Content: r.Content,
-		// Files:    append([]string(nil), r.Files...),
+		Agent:    r.Agent,
+		Message:  r.Message,
+		Content:  r.Content,
 		Messages: append([]*Message(nil), r.Messages...),
 	}
 }
@@ -85,47 +77,6 @@ func (r *UserInput) Query() string {
 	}
 }
 
-// func (r *UserInput) FileContent() (string, error) {
-// 	var b strings.Builder
-// 	if len(r.Files) > 0 {
-// 		for _, f := range r.Files {
-// 			b.WriteString("\n### " + f + " ###\n")
-// 			c, err := os.ReadFile(f)
-// 			if err != nil {
-// 				return "", err
-
-// 			}
-// 			b.WriteString(string(c))
-// 		}
-// 	}
-// 	return b.String(), nil
-// }
-
-// func (r *UserInput) FileMessages() ([]*Message, error) {
-// 	if len(r.Messages) > 0 {
-// 		return r.Messages, nil
-// 	}
-
-// 	var messages []*Message
-
-// 	if len(r.Files) > 0 {
-// 		for _, f := range r.Files {
-// 			raw, err := os.ReadFile(f)
-// 			if err != nil {
-// 				return nil, err
-
-// 			}
-// 			mimeType := http.DetectContentType(raw)
-// 			messages = append(messages, &Message{
-// 				ContentType: mimeType,
-// 				Content:     string(raw),
-// 			})
-// 		}
-// 	}
-// 	r.Messages = messages
-// 	return messages, nil
-// }
-
 // Intent returns a clipped version of the query.
 // This is intended for "smart" agents to make decisions based on user inputs.
 func (r *UserInput) Intent() string {
@@ -138,4 +89,16 @@ func clipText(text string, maxLen int) string {
 		return strings.TrimSpace(text[:maxLen]) + "\n[more...]"
 	}
 	return text
+}
+
+type Output struct {
+	// Agent icon and name
+	Display string `json:"display"`
+
+	Content     string `json:"content"`
+	ContentType string `json:"content_type"`
+}
+
+type IOFilter struct {
+	Agent string
 }

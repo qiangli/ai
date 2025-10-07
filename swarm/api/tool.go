@@ -15,7 +15,6 @@ const (
 	ToolTypeAgent  = "agent"
 )
 
-// type ToolCaller func(*Vars, *Agent) func(context.Context, string, map[string]any) (*Result, error)
 type ToolRunner func(context.Context, string, map[string]any) (*Result, error)
 
 type ToolFunc struct {
@@ -130,7 +129,6 @@ type ToolCondition struct {
 // 	Description string
 // 	Parameters  map[string]any
 
-// 	Body string
 // }
 
 type ConnectorConfig struct {
@@ -200,4 +198,8 @@ func (r KitName) Decode() (string, string) {
 		kit, name = split2(s, ":", "*")
 	}
 	return kit, name
+}
+
+type ToolGuard struct {
+	Agent string
 }

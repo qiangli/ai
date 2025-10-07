@@ -52,8 +52,6 @@ type AppConfig struct {
 	// rename WebResource?
 	AgentResource *AgentResource
 
-	// SystemTools []*ToolFunc
-
 	Agent string
 	// Command string
 	Args []string
@@ -83,9 +81,6 @@ type AppConfig struct {
 	// user
 	User *User
 
-	// //
-	// Template string
-
 	// conversation history
 	New        *bool
 	MaxHistory int
@@ -110,8 +105,6 @@ type AppConfig struct {
 	Base string
 
 	Workspace string
-	// Home      string
-	// Temp      string
 
 	Interactive bool
 	Editing     bool
@@ -152,13 +145,9 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		IsPiped:    cfg.IsPiped,
 		Stdin:      cfg.Stdin,
 		//
-		// Files:      cfg.Files,
-		// Screenshot: cfg.Screenshot,
-		// Voice:      cfg.Voice,
 		Format: cfg.Format,
 		Output: cfg.Output,
-		// Me:         cfg.Me,
-		// Template:   cfg.Template,
+		//
 		New:        cfg.New,
 		ChatID:     cfg.ChatID,
 		MaxHistory: cfg.MaxHistory,
@@ -167,23 +156,18 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		//
 		LogLevel: cfg.LogLevel,
 		//
-		// DenyList:  cfg.DenyList,
-		// AllowList: cfg.AllowList,
-		Unsafe:    cfg.Unsafe,
-		Base:      cfg.Base,
-		Workspace: cfg.Workspace,
-		// Home:        cfg.Home,
-		// Temp:        cfg.Temp,
+		Unsafe:      cfg.Unsafe,
+		Base:        cfg.Base,
+		Workspace:   cfg.Workspace,
 		Interactive: cfg.Interactive,
 		Editing:     cfg.Editing,
 		Shell:       cfg.Shell,
 		Watch:       cfg.Watch,
 		ClipWatch:   cfg.ClipWatch,
-		// Hub:         cfg.Hub,
-		MaxTime:  cfg.MaxTime,
-		MaxTurns: cfg.MaxTurns,
-		Stdout:   cfg.Stdout,
-		Stderr:   cfg.Stderr,
+		MaxTime:     cfg.MaxTime,
+		MaxTurns:    cfg.MaxTurns,
+		Stdout:      cfg.Stdout,
+		Stderr:      cfg.Stderr,
 		//
 		DryRun:        cfg.DryRun,
 		DryRunContent: cfg.DryRunContent,
@@ -214,10 +198,6 @@ func (r *AppConfig) IsClipin() bool {
 	return r.Clipin
 }
 
-// func (r *AppConfig) IsMedia() bool {
-// 	return r.Screenshot || r.Voice
-// }
-
 func (r *AppConfig) IsSpecial() bool {
 	// return r.IsStdin() || r.IsClipin() || r.IsMedia()
 	return r.IsStdin() || r.IsClipin()
@@ -227,10 +207,3 @@ func (r *AppConfig) HasInput() bool {
 	return r.Message != "" || len(r.Args) > 0
 	// return r.Message != "" || len(r.Files) > 0 || len(r.Args) > 0
 }
-
-// func (r *AppConfig) GetQuery() string {
-// 	if r.Message != "" {
-// 		return r.Message
-// 	}
-// 	return strings.Join(r.Args, " ")
-// }
