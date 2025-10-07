@@ -1,5 +1,4 @@
 ###
-log_level: "info"
 agents:
   - name: "web"
     display: "🌐 Web"

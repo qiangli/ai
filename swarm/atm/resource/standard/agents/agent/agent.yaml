@@ -1,5 +1,4 @@
 ###
-log_level: "info"
 agents:
   - name: "agent"
     display: "🚀 Agent"
