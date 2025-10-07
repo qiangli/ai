@@ -71,13 +71,13 @@ tools:
         tool:
           type: "string"
           description: "The name of the tool"
-        # parameters:
-        #   type: "object"
-        #   description: "The arguments for the tool call"
-        #   properties: {}
+        parameters:
+          type: "object"
+          description: "The arguments for the tool call"
+          properties: {}
       required:
         - "tool"
-        # - "parameters"
+        - "parameters"
 
   # - name: "list_models"
   #   description: "List all AI language model aliases created by the current user"

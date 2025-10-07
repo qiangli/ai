@@ -273,7 +273,7 @@ func (h *agentHandler) dispatch(ctx context.Context, v *api.ToolFunc, args map[s
 	}
 
 	//
-	kit, err := h.sw.Tools.GetKit(v.Type)
+	kit, err := h.sw.Tools.GetKit(v)
 	if err != nil {
 		return nil, err
 	}

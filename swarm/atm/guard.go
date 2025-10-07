@@ -18,6 +18,10 @@ import (
 	"github.com/qiangli/ai/swarm/vos"
 )
 
+type ContextKey string
+
+const ModelsContextKey ContextKey = "eval-models"
+
 const permissionDenied = "Permission denied."
 
 type CommandCheck struct {

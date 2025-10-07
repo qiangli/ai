@@ -8,7 +8,6 @@ import (
 	"github.com/qiangli/ai/internal/agent/conf"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/ai/swarm/vfs"
@@ -67,31 +66,18 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 
 	var user = &api.User{}
 	var assets = conf.Assets(cfg)
+	var secrets = conf.LocalSecrets
 	var adapters = adapter.GetAdapters()
 
 	var fs = vfs.NewLocalFS(cfg.Workspace)
 	var os = vos.NewLocalSystem()
-
-	var tools = atm.NewToolSystem(user)
-	tools.AddKit(api.ToolTypeFunc, atm.NewFuncKit(user, assets))
-	// TODO
-	web := atm.NewWebKit()
-	tools.AddKit("web", web)
-	tools.AddKit("ddg", web)
-	tools.AddKit("google", web)
-	tools.AddKit("bing", web)
-	tools.AddKit("brave", web)
-	//
-	tools.AddKit(api.ToolTypeSystem, atm.NewSystemKit(fs, os))
-	tools.AddKit(api.ToolTypeMcp, atm.NewMcpKit())
-	tools.AddKit(api.ToolTypeFaas, atm.NewFaasKit())
-
+	var tools = swarm.NewToolSystem(user, secrets, assets, fs, os)
 	var blobs = swarm.NewBlobStorage(fs)
 
 	sw := &swarm.Swarm{
 		Vars:     vars,
 		User:     user,
-		Secrets:  conf.LocalSecrets,
+		Secrets:  secrets,
 		Assets:   assets,
 		Tools:    tools,
 		Adapters: adapters,

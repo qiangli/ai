@@ -163,8 +163,8 @@ type ToolKit interface {
 }
 
 type ToolSystem interface {
-	GetKit(key string) (ToolKit, error)
-	AddKit(key string, kit ToolKit)
+	GetKit(key any) (ToolKit, error)
+	AddKit(key any, kit ToolKit)
 }
 
 type KitName string

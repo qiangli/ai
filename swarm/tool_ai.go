@@ -91,7 +91,9 @@ func (r *AIKit) AgentTransfer(_ context.Context, _ *api.Vars, _ string, args map
 	}, nil
 }
 
-func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, _ string, _ map[string]any) (string, error) {
+func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
+	log.GetLogger(ctx).Debugf("List tool: %s %+v", tf, args)
+
 	var user = r.user.Email
 	// cached list
 	key := ListCacheKey{
@@ -113,12 +115,14 @@ func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, _ string, _ map[s
 	return v, nil
 }
 
-func (r *AIKit) ToolInfo(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
+func (r *AIKit) ToolInfo(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
 	const tpl = `
 Tool: %s__%s
 Description: %s
 Parameters: %s
 `
+	log.GetLogger(ctx).Debugf("Tool info: %s %+v", tf, args)
+
 	tid, err := atm.GetStrProp("tool", args)
 	if err != nil {
 		return "", err
@@ -139,6 +143,7 @@ Parameters: %s
 					return "", err
 				}
 				// TODO params may need better handling
+				log.GetLogger(ctx).Debugf("Tool info: %s %+v", tid, string(params))
 				return fmt.Sprintf(tpl, kit, v.Name, v.Description, string(params)), nil
 			}
 		}
@@ -146,22 +151,25 @@ Parameters: %s
 	return "", fmt.Errorf("unknown tool: %s", tid)
 }
 
-func (r *AIKit) ToolExecute(ctx context.Context, _ *api.Vars, name string, args map[string]any) (*api.Result, error) {
+func (r *AIKit) ToolExecute(ctx context.Context, _ *api.Vars, tf string, args map[string]any) (*api.Result, error) {
+	log.GetLogger(ctx).Debugf("Tool execute: %s %+v", tf, args)
+
 	tid, err := atm.GetStrProp("tool", args)
 	if err != nil {
 		return nil, err
 	}
 
-	// v, ok := props["arguments"]
-	// if ok {
-	// 	args, err := structToMap(v)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	return r.callTool(ctx, tid, args)
-	// }
+	v, ok := args["parameters"]
+	if ok {
+		params, err := structToMap(v)
+		if err != nil {
+			return nil, err
+		}
+		log.GetLogger(ctx).Debugf("Tool execute: tid: %s params: %+v", tid, params)
+		return r.callTool(ctx, tid, params)
+	}
 
-	return r.callTool(ctx, tid, args)
+	return nil, fmt.Errorf("parameters not found in: %+v", args)
 }
 
 func (r *AIKit) Call(ctx context.Context, vars *api.Vars, _ api.SecretToken, tf *api.ToolFunc, args map[string]any) (any, error) {
