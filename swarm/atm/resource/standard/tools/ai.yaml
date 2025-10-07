@@ -31,20 +31,12 @@ tools:
       required:
         - "agent"
 
-  # - name: "agent_create"
+  # - name: "agent_spawn"
   #   description: |
-  #     Create a new agent based on user input and delegate the current task to it.
+  #     Create a new agent with dynamic system role prompt based on user input and transfer the current task to it.
   #   parameters:
   #     type: "object"
-  #     properties:
-  #       # agent:
-  #       #   type: "string"
-  #       #   description: "The name of the agent"
-  #       query:
-  #         type: "string"
-  #         description: "User input query"
-  #     required:
-  #       - "query"
+  #     properties: {}
 
   - name: "list_tools"
     description: "Enumerate AI tool functions available for selection"
@@ -79,8 +71,8 @@ tools:
         - "tool"
         - "parameters"
 
-  # - name: "list_models"
-  #   description: "List all AI language model aliases created by the current user"
-  #   parameters:
-  #     type: object
-  #     properties: {}
+  - name: "list_models"
+    description: "List all AI language model aliases created by the current user"
+    parameters:
+      type: object
+      properties: {}

@@ -180,6 +180,30 @@ func (r *AIKit) ToolExecute(ctx context.Context, _ *api.Vars, tf string, args ma
 	return out, nil
 }
 
+func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
+	log.GetLogger(ctx).Debugf("List model: %s %+v\n", tf, args)
+
+	var user = r.user.Email
+	// cached list
+	key := ListCacheKey{
+		Type: "model",
+		User: user,
+	}
+	if v, ok := listToolsCache.Get(key); ok {
+		log.GetLogger(ctx).Debugf("Using cached model list: %+v\n", key)
+		return v, nil
+	}
+
+	list, count, err := conf.ListModels(r.assets, user)
+	if err != nil {
+		return "", err
+	}
+	var v = fmt.Sprintf("Available models: %v\n\n%s\n", count, list)
+	listToolsCache.Add(key, v)
+
+	return v, nil
+}
+
 func (r *AIKit) Call(ctx context.Context, vars *api.Vars, _ api.SecretToken, tf *api.ToolFunc, args map[string]any) (any, error) {
 	callArgs := []any{ctx, vars, tf.Name, args}
 	return atm.CallKit(r, tf.Config.Kit, tf.Name, callArgs...)
