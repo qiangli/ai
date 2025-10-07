@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,8 +22,6 @@ func NewAgentHandler(sw *Swarm) func(*api.Vars, *api.Agent) Handler {
 			agent: agent,
 			//
 			sw: sw,
-			//
-			// toolCall: NewToolCaller(sw),
 		}
 	}
 }
@@ -30,12 +29,8 @@ func NewAgentHandler(sw *Swarm) func(*api.Vars, *api.Agent) Handler {
 type agentHandler struct {
 	agent *api.Agent
 	vars  *api.Vars
-
 	//
 	sw *Swarm
-
-	//
-	// toolCall api.ToolCaller
 }
 
 func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
@@ -97,6 +92,11 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	if r.Instruction != nil {
 		// update the request instruction
 		content, err := apply(h.vars, r.Instruction.Type, r.Instruction.Content)
+		if err != nil {
+			return err
+		}
+
+		content, err = h.applyAgent(req, content)
 		if err != nil {
 			return err
 		}
@@ -216,4 +216,36 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	resp.Agent = r
 	resp.Result = result.Result
 	return nil
+}
+
+// run sub agent with inherited env
+func (h *agentHandler) exec(req *api.Request, resp *api.Response) error {
+	return h.sw.Clone().Run(req, resp)
+}
+
+// dynamically generate content if it starts with @<agent>
+func (h *agentHandler) applyAgent(parent *api.Request, s string) (string, error) {
+	content := strings.TrimSpace(s)
+	if !strings.HasPrefix(content, "@") {
+		return content, nil
+	}
+	agent, prompt := split2(content[1:], " ", "")
+
+	req := parent.Clone()
+	req.Agent = agent
+	input := req.RawInput.Clone()
+	// prepend additional instruction to user query
+	input.Message = prompt + "\n" + input.Message
+	req.RawInput = input
+
+	resp := &api.Response{}
+
+	err := h.exec(req, resp)
+	if err != nil {
+		return "", err
+	}
+	if resp.Result == nil {
+		return "", fmt.Errorf("empty response")
+	}
+	return resp.Result.Value, nil
 }

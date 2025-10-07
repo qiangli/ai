@@ -5,6 +5,30 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "New",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/",
+			"env": {
+				"AI_API_KEY": "${env:OPENAI_API_KEY}",
+				"AI_DEBUG": "true",
+			},
+			"args": [
+				"--verbose",
+				"--new",
+				"@new",
+				"--max-time",
+				"900",
+				"--message",
+				"help",
+				"generate a random password"
+
+			],
+			"showLog": false,
+			"stopOnEntry": false
+		},
+		{
 			"name": "MCP Agent",
 			"type": "go",
 			"request": "launch",

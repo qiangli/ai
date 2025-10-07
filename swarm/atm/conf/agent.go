@@ -345,12 +345,7 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 	}
 
 	// create the agent
-	// read config and create agent
 	var user = auth.Email
-	// @<[owner:]agent>
-	// owner, agent := splitOwnerAgent(req.Agent)
-	// agent: [pack/]sub
-	// pack, sub := split2(agent, "/", "")
 	owner, pack, sub := api.AgentName(agent).Decode()
 
 	// cached agent

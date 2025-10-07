@@ -26,7 +26,6 @@ type EditorProvider interface {
 
 type UserInput struct {
 	Agent string `json:"agent"`
-	// Command string `json:"command"`
 
 	// query - command line args
 	Message string `json:"message"`

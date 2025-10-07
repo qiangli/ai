@@ -80,24 +80,10 @@ func (r *Request) WithContext(ctx context.Context) *Request {
 	return r2
 }
 
-// Clone returns a shallow copy of r with its context changed to ctx.
-// The provided ctx must be non-nil.
-//
-// Clone only makes a shallow copy of the Body field.
-//
-// For an outgoing client request, the context controls the entire
-// lifetime of a request and its response: obtaining a connection,
-// sending the request, and reading the response headers and body.
-func (r *Request) Clone(ctx context.Context) *Request {
-	if ctx == nil {
-		panic("nil context")
-	}
+// Clone returns a shallow copy of r
+func (r *Request) Clone() *Request {
 	r2 := new(Request)
 	*r2 = *r
-	r2.ctx = ctx
-	r2.Agent = r.Agent
-	r2.RawInput = r.RawInput
-
 	return r2
 }
 

@@ -9,31 +9,32 @@ const (
 type Vars struct {
 	Config *AppConfig `json:"config"`
 
-	// OS        string            `json:"os"`
-	// Arch      string            `json:"arch"`
-	// ShellInfo map[string]string `json:"shell_info"`
-	// OSInfo    map[string]string `json:"os_info"`
-
-	// UserInfo map[string]string `json:"user_info"`
-
-	// UserInput *UserInput `json:"user_input"`
-
 	Workspace string `json:"workspace"`
-	// // Repo      string `json:"repo"`
-	// Home string `json:"home"`
-	// Temp string `json:"temp"`
-
-	// EnvType indicates the environment type where the agent is running
-	// It can be "container" for Docker containers or "host" for the host machine
-	// EnvType string `json:"env_type"`
-
-	// Roots []string `json:"roots"`
 
 	//
 	Extra map[string]string `json:"extra"`
 
 	// conversation history
 	History []*Message
+}
+
+func (v *Vars) Clone() *Vars {
+	clone := &Vars{
+		Config:    v.Config,
+		Workspace: v.Workspace,
+		Extra:     make(map[string]string),
+		History:   make([]*Message, len(v.History)),
+	}
+
+	// Copy the Extra map
+	for key, value := range v.Extra {
+		clone.Extra[key] = value
+	}
+
+	// Copy the History slice
+	copy(clone.History, v.History)
+
+	return clone
 }
 
 func NewVars() *Vars {

@@ -36,6 +36,21 @@ type Swarm struct {
 	FS vfs.FileSystem
 }
 
+func (s *Swarm) Clone() *Swarm {
+	return &Swarm{
+		Vars: s.Vars.Clone(),
+		//
+		User:     s.User,
+		Secrets:  s.Secrets,
+		Assets:   s.Assets,
+		Tools:    s.Tools,
+		Adapters: s.Adapters,
+		Blobs:    s.Blobs,
+		OS:       s.OS,
+		FS:       s.FS,
+	}
+}
+
 // Function to clear all environment variables execep essential ones
 func clearAllEnv() {
 	essentialEnv := []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
