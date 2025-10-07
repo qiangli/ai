@@ -24,22 +24,6 @@ var (
 )
 
 func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetManager) ([]*api.ToolFunc, error) {
-	// // kit__name
-	// // kit:*
-	// // kit:name
-	// var kit, name string
-
-	// if strings.Index(s, "__") > 0 {
-	// 	// call time - the name should never be empty
-	// 	kit, name = split2(s, "__", "")
-	// 	if name == "" {
-	// 		return nil, fmt.Errorf("invalid tool call id: %s", s)
-	// 	}
-	// } else {
-	// 	// load time
-	// 	kit, name = split2(s, ":", "*")
-	// }
-
 	kit, name := api.KitName(s).Decode()
 	if name == "" {
 		return nil, fmt.Errorf("invalid tool call id: %s", s)
@@ -83,7 +67,7 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 		return filter(v)
 	}
 
-	return nil, fmt.Errorf("tool not found: %s", s)
+	return nil, fmt.Errorf("tool func not found: %s", s)
 }
 
 func loadToolData(data [][]byte) (*api.ToolsConfig, error) {

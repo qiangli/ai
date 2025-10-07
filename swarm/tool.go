@@ -10,148 +10,6 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-// func callAgentTool(ctx context.Context, sw *Swarm, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
-// 	req := api.NewRequest(ctx, tf.Agent, agent.RawInput.Clone())
-// 	req.RawInput.Message, _ = atm.GetStrProp("query", args)
-// 	req.Arguments = args
-
-// 	resp := &api.Response{}
-
-// 	if err := sw.Run(req, resp); err != nil {
-// 		return nil, err
-// 	}
-
-// 	if resp.Result == nil {
-// 		return nil, fmt.Errorf("empty result")
-// 	}
-
-// 	return resp.Result, nil
-// }
-
-// func NewToolCaller(sw *Swarm) api.ToolCaller {
-// 	save := func(v *api.Result) (string, error) {
-// 		id := NewBlobID()
-// 		b := &api.Blob{
-// 			ID:       id,
-// 			MimeType: v.MimeType,
-// 			Content:  v.Content,
-// 		}
-// 		err := sw.Blobs.Put(id, b)
-// 		return id, err
-// 	}
-// 	toResult := func(v any) *api.Result {
-// 		if r, ok := v.(*api.Result); ok {
-// 			if r.MimeType != api.ContentTypeB64JSON {
-// 				return r
-// 			}
-// 			// image
-// 			// transform media response into data uri
-// 			id, err := save(r)
-// 			if err != nil {
-// 				return &api.Result{
-// 					Value: err.Error(),
-// 				}
-// 			}
-// 			dataURI := fmt.Sprintf("data:application/x.dhnt.blob;mime=%s;%s", r.MimeType, id)
-// 			return &api.Result{
-// 				Value: fmt.Sprintf("The image is available as: %s", dataURI),
-// 			}
-// 		}
-// 		if s, ok := v.(string); ok {
-// 			return &api.Result{
-// 				Value: s,
-// 			}
-// 		}
-// 		return &api.Result{
-// 			Value: fmt.Sprintf("%v", v),
-// 		}
-// 	}
-
-// 	aiKit := &AIKit{
-// 		user:   sw.User,
-// 		assets: sw.Assets,
-// 	}
-
-// 	dispatch := func(ctx context.Context, vars *api.Vars, agent *api.Agent, v *api.ToolFunc, args map[string]any) (*api.Result, error) {
-// 		// agent tool
-// 		if v.Type == api.ToolTypeAgent {
-// 			out, err := callAgentTool(ctx, sw, agent, v, args)
-// 			if err != nil {
-// 				return nil, err
-// 			}
-// 			return toResult(out), nil
-// 		}
-
-// 		// TODO a new tool type?
-// 		if v.Type == api.ToolTypeFunc && v.Kit == "ai" {
-// 			out, err := aiKit.Call(ctx, vars, nil, v, args)
-// 			if err != nil {
-// 				return nil, err
-// 			}
-// 			return toResult(out), nil
-// 		}
-
-// 		//
-// 		kit, err := sw.Tools.GetKit(v.Type)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		token := func() (string, error) {
-// 			return sw.Secrets.Get(agent.Owner, v.ApiKey)
-// 		}
-
-// 		out, err := kit.Call(ctx, vars, token, v, args)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("failed to call function tool %s %s: %w", v.Kit, v.Name, err)
-// 		}
-// 		return toResult(out), nil
-// 	}
-
-// 	return func(vars *api.Vars, agent *api.Agent) func(context.Context, string, map[string]any) (*api.Result, error) {
-// 		toolMap := make(map[string]*api.ToolFunc)
-// 		for _, v := range agent.Tools {
-// 			toolMap[v.ID()] = v
-// 		}
-
-// 		return func(ctx context.Context, tid string, args map[string]any) (*api.Result, error) {
-// 			v, ok := toolMap[tid]
-// 			if !ok {
-// 				return nil, fmt.Errorf("tool not found: %s", tid)
-// 			}
-
-// 			log.GetLogger(ctx).Infof("⣿ %s:%s %+v\n", v.Kit, v.Name, args)
-
-// 			// add model to system kit for command evaluation
-// 			if v.Type == api.ToolTypeSystem {
-// 				ctx = context.WithValue(ctx, atm.ModelsContextKey, agent.Model)
-// 			}
-
-// 			result, err := dispatch(ctx, vars, agent, v, args)
-
-// 			if err != nil {
-// 				log.GetLogger(ctx).Errorf("✗ error: %v\n", err)
-// 			} else {
-// 				log.GetLogger(ctx).Infof("✔ %s \n", head(result.String(), 180))
-// 			}
-
-// 			return result, err
-// 		}
-// 	}
-// }
-
-// func (h *agentHandler) findTool(tid string) (*api.ToolFunc, error) {
-// 	toolMap := make(map[string]*api.ToolFunc)
-// 	for _, v := range h.agent.Tools {
-// 		toolMap[v.ID()] = v
-// 	}
-
-// 	v, ok := toolMap[tid]
-// 	if !ok {
-// 		return nil, fmt.Errorf("tool not found: %s", tid)
-// 	}
-// 	return v, nil
-// }
-
 func (h *agentHandler) createCaller() api.ToolRunner {
 	toolMap := make(map[string]*api.ToolFunc)
 	for _, v := range h.agent.Tools {
@@ -163,29 +21,6 @@ func (h *agentHandler) createCaller() api.ToolRunner {
 		if !ok {
 			return nil, fmt.Errorf("tool not found: %s", tid)
 		}
-
-		// v, err := h.findTool(tid)
-		// if err != nil {
-		// 	return nil, err
-		// }
-
-		// log.GetLogger(ctx).Infof("⣿ %s:%s %+v\n", v.Kit, v.Name, args)
-
-		// // add model to system kit for command evaluation
-		// if v.Type == api.ToolTypeSystem {
-		// 	ctx = context.WithValue(ctx, atm.ModelsContextKey, h.agent.Model)
-		// }
-
-		// // result, err := h.dispatch(ctx, h.vars, h.agent, v, args)
-		// result, err := h.dispatch(ctx, v, args)
-
-		// if err != nil {
-		// 	log.GetLogger(ctx).Errorf("✗ error: %v\n", err)
-		// } else {
-		// 	log.GetLogger(ctx).Infof("✔ %s \n", head(result.String(), 180))
-		// }
-
-		// return result, err
 		return h.callTool(ctx, v, args)
 	}
 }
@@ -199,10 +34,10 @@ func (h *agentHandler) createAICaller() api.ToolRunner {
 		for _, v := range tools {
 			id := v.ID()
 			if id == tid {
-				h.callTool(ctx, v, args)
+				return h.callTool(ctx, v, args)
 			}
 		}
-		return nil, fmt.Errorf("tool not found: %s", tid)
+		return nil, fmt.Errorf("invalid tool: %s", tid)
 	}
 }
 

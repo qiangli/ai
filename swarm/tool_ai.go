@@ -39,7 +39,7 @@ func (r *AIKit) ListAgents(ctx context.Context, vars *api.Vars, _ string, _ map[
 		User: user,
 	}
 	if v, ok := listAgentsCache.Get(key); ok {
-		log.GetLogger(ctx).Debugf("Using cached agent list: %+v", key)
+		log.GetLogger(ctx).Debugf("Using cached agent list: %+v\n", key)
 		return v, nil
 	}
 
@@ -92,7 +92,7 @@ func (r *AIKit) AgentTransfer(_ context.Context, _ *api.Vars, _ string, args map
 }
 
 func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
-	log.GetLogger(ctx).Debugf("List tool: %s %+v", tf, args)
+	log.GetLogger(ctx).Debugf("List tool: %s %+v\n", tf, args)
 
 	var user = r.user.Email
 	// cached list
@@ -101,7 +101,7 @@ func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, tf string, args m
 		User: user,
 	}
 	if v, ok := listToolsCache.Get(key); ok {
-		log.GetLogger(ctx).Debugf("Using cached tool list: %+v", key)
+		log.GetLogger(ctx).Debugf("Using cached tool list: %+v\n", key)
 		return v, nil
 	}
 
@@ -121,7 +121,7 @@ Tool: %s__%s
 Description: %s
 Parameters: %s
 `
-	log.GetLogger(ctx).Debugf("Tool info: %s %+v", tf, args)
+	log.GetLogger(ctx).Debugf("Tool info: %s %+v\n", tf, args)
 
 	tid, err := atm.GetStrProp("tool", args)
 	if err != nil {
@@ -143,7 +143,7 @@ Parameters: %s
 					return "", err
 				}
 				// TODO params may need better handling
-				log.GetLogger(ctx).Debugf("Tool info: %s %+v", tid, string(params))
+				log.GetLogger(ctx).Debugf("Tool info: %s %+v\n", tid, string(params))
 				return fmt.Sprintf(tpl, kit, v.Name, v.Description, string(params)), nil
 			}
 		}
@@ -152,7 +152,7 @@ Parameters: %s
 }
 
 func (r *AIKit) ToolExecute(ctx context.Context, _ *api.Vars, tf string, args map[string]any) (*api.Result, error) {
-	log.GetLogger(ctx).Debugf("Tool execute: %s %+v", tf, args)
+	log.GetLogger(ctx).Debugf("Tool execute: %s %+v\n", tf, args)
 
 	tid, err := atm.GetStrProp("tool", args)
 	if err != nil {
@@ -165,7 +165,7 @@ func (r *AIKit) ToolExecute(ctx context.Context, _ *api.Vars, tf string, args ma
 		if err != nil {
 			return nil, err
 		}
-		log.GetLogger(ctx).Debugf("Tool execute: tid: %s params: %+v", tid, params)
+		log.GetLogger(ctx).Debugf("Tool execute: tid: %s params: %+v\n", tid, params)
 		return r.callTool(ctx, tid, params)
 	}
 
