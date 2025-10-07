@@ -312,27 +312,9 @@ Total: %v
 
 Model Alias can be used to reference a group of LLM models. You can mix and match different providers for one alias.
 `
-	list := []string{}
-
 	assets := conf.Assets(vars.Config)
-	models, _ := assets.ListModels(vars.Config.User.Email)
+	list, count, _ := atmconf.ListModels(assets, vars.Config.User.Email)
 
-	for alias, tc := range models {
-		var keys []string
-		for k := range tc.Models {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		var levels []string
-		for _, k := range keys {
-			v := tc.Models[k]
-			levels = append(levels, fmt.Sprintf("    %s (%s)\n    %s\n    %s\n    %s\n", k, v.Provider, v.Model, v.BaseUrl, v.ApiKey))
-		}
-		list = append(list, fmt.Sprintf("%s:\n%s\n", alias, strings.Join(levels, "\n")))
-	}
-
-	sort.Strings(list)
-
-	log.GetLogger(ctx).Infof(listTpl, strings.Join(list, "\n"), len(list))
+	log.GetLogger(ctx).Infof(listTpl, list, count)
 	return nil
 }

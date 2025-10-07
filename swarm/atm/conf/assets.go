@@ -275,7 +275,6 @@ func ListAgents(assets api.AssetManager, user string) (string, int, error) {
 		buf.WriteString(dict[k].Description)
 		buf.WriteString("\n\n")
 	}
-
 	return buf.String(), len(keys), nil
 }
 
@@ -294,6 +293,25 @@ func ListTools(assets api.AssetManager, user string) (string, int, error) {
 	}
 
 	sort.Strings(list)
+	return strings.Join(list, "\n"), len(list), nil
+}
 
+func ListModels(assets api.AssetManager, user string) (string, int, error) {
+	models, _ := assets.ListModels(user)
+
+	list := []string{}
+	for alias, tc := range models {
+		var keys []string
+		for k := range tc.Models {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, level := range keys {
+			v := tc.Models[level]
+			list = append(list, fmt.Sprintf("%s/%s:\n    %s\n    %s\n    %s\n", alias, level, v.Provider, v.Model, v.BaseUrl))
+		}
+	}
+
+	sort.Strings(list)
 	return strings.Join(list, "\n"), len(list), nil
 }
