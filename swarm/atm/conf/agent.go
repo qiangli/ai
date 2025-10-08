@@ -203,6 +203,25 @@ func getAgent(owner string, pack string, asset api.AssetStore) (*api.AgentsConfi
 	return ac, nil
 }
 
+func resolveModelLevel(models, model string) (string, string) {
+	// models takes precedence over model
+	split := func() (string, string) {
+		// models: alias[/level]
+		alias, level := split2(models, "/", "")
+
+		// model: [alias/]level
+		parts := strings.SplitN(model, "/", 2)
+		if len(parts) == 2 {
+			return nvl(alias, parts[0]), nvl(level, parts[1])
+		}
+		return nvl(alias, "default"), nvl(level, model)
+	}
+
+	// alias/level
+	alias, level := split()
+	return alias, level
+}
+
 func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent string, rawInput *api.UserInput, secrets api.SecretStore, assets api.AssetManager) (*api.Agent, error) {
 	//
 	findAgentConfig := func(ac *api.AgentsConfig, pack, sub string) (*api.AgentConfig, error) {
@@ -302,7 +321,7 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 		// log
 		agent.LogLevel = api.ToLogLevel(nvl(vars.Config.LogLevel, c.LogLevel, ac.LogLevel, "quiet"))
 
-		// llm model
+		// llm model [alias/]level
 		model := nvl(c.Model, ac.Model)
 		// @model support
 		if strings.HasPrefix(model, "@") {
@@ -311,7 +330,8 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 				Model: model,
 			}
 		} else {
-			if v, err := loadModel(auth, owner, vars.Config.Models, model, secrets, assets); err != nil {
+			alias, level := resolveModelLevel(vars.Config.Models, model)
+			if v, err := loadModel(owner, alias, level, secrets, assets); err != nil {
 				return nil, fmt.Errorf("failed to load model: %s %s %v", vars.Config.Models, model, err)
 			} else {
 				agent.Model = v
@@ -353,8 +373,12 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 	}
 
 	// create the agent
+	// agent: owner:pack/sub
 	var user = auth.Email
 	owner, pack, sub := api.AgentName(agent).Decode()
+	if owner == "" {
+		owner = user
+	}
 
 	// cached agent
 	key := AgentCacheKey{
@@ -369,7 +393,6 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 		return v.Clone(), nil
 	}
 
-	// name: [owner:]agent
 	var ent *api.Record
 	if v, err := assets.SearchAgent(owner, pack); err != nil {
 		return nil, err

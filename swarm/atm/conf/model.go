@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strings"
 	"time"
 
 	"dario.cat/mergo"
@@ -25,7 +24,7 @@ var (
 	modelCache = expirable.NewLRU[ModelCacheKey, map[string]*api.Model](10000, nil, time.Second*180)
 )
 
-func loadModel(auth *api.User, owner, models, model string, secrets api.SecretStore, assets api.AssetManager) (*api.Model, error) {
+func loadModel(owner, alias, level string, secrets api.SecretStore, assets api.AssetManager) (*api.Model, error) {
 	provide := func(mc *api.ModelsConfig, level string) (*api.Model, error) {
 		c, ok := mc.Models[level]
 		if !ok {
@@ -53,27 +52,10 @@ func loadModel(auth *api.User, owner, models, model string, secrets api.SecretSt
 			Model:    c.Model,
 			BaseUrl:  c.BaseUrl,
 			ApiKey:   ak,
-			// Config:   mc,
 		}
 
 		return m, nil
 	}
-
-	// models takes precedence over model
-	split := func() (string, string) {
-		// models: alias[/level]
-		alias, level := split2(models, "/", "")
-
-		// model: [alias/]level
-		parts := strings.SplitN(model, "/", 2)
-		if len(parts) == 2 {
-			return nvl(alias, parts[0]), nvl(level, parts[1])
-		}
-		return nvl(alias, "default"), nvl(level, model)
-	}
-
-	// alias/level
-	alias, level := split()
 
 	mc, err := assets.FindModels(owner, alias)
 	if err != nil {
