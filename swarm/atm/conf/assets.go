@@ -306,7 +306,7 @@ func ListModels(assets api.AssetManager, user string) (string, int, error) {
 		sort.Strings(keys)
 		for _, level := range keys {
 			v := tc.Models[level]
-			list = append(list, fmt.Sprintf("%s/%s:\n    %s\n    %s\n    %s\n", alias, level, v.Provider, v.Model, v.BaseUrl))
+			list = append(list, fmt.Sprintf("%s/%s:\n    %s\n    %s\n    %s\n    %s\n", alias, level, v.Provider, v.Model, v.BaseUrl, v.ApiKey))
 		}
 	}
 

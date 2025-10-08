@@ -6,8 +6,7 @@ agents:
       The *new* creator agent is an intelligent and versatile digital assistant
       designed to handle diverse tasks by leveraging a dynamic system prompt
       based on user's current input.
-    model: default/any
-    # model: "@model"
+    model: "@model"
     instruction:
       content: |
         @prompt you are an intelligent agent

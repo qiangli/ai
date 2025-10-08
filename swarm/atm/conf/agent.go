@@ -304,10 +304,18 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 
 		// llm model
 		model := nvl(c.Model, ac.Model)
-		if v, err := loadModel(auth, owner, vars.Config.Models, model, secrets, assets); err != nil {
-			return nil, fmt.Errorf("failed to load model: %s %s %v", vars.Config.Models, model, err)
+		// @model support
+		if strings.HasPrefix(model, "@") {
+			// defer modle provider resolution
+			agent.Model = &api.Model{
+				Model: model,
+			}
 		} else {
-			agent.Model = v
+			if v, err := loadModel(auth, owner, vars.Config.Models, model, secrets, assets); err != nil {
+				return nil, fmt.Errorf("failed to load model: %s %s %v", vars.Config.Models, model, err)
+			} else {
+				agent.Model = v
+			}
 		}
 
 		// tools

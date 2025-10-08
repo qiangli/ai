@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"maps"
 	"strings"
@@ -96,7 +97,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 			return err
 		}
 
-		content, err = h.applyAgent(req, content)
+		content, err = h.makePrompt(req, content)
 		if err != nil {
 			return err
 		}
@@ -160,12 +161,23 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	// var runTool = h.toolCall(h.vars, h.agent)
 	var runTool = h.createCaller()
 
+	var model = r.Model
+	// resolve if model is @agent
+	if strings.HasPrefix(model.Model, "@") {
+		if v, err := h.makeModel(req, model.Model); err != nil {
+			return err
+		} else {
+			model = v
+		}
+	}
+
 	var request = llm.Request{
 		Agent:    r.Name,
-		Model:    r.Model,
 		Messages: history,
 		MaxTurns: r.MaxTurns,
 		Tools:    r.Tools,
+		//
+		Model: model,
 		//
 		RunTool: runTool,
 		//
@@ -223,14 +235,32 @@ func (h *agentHandler) exec(req *api.Request, resp *api.Response) error {
 	return h.sw.Clone().Run(req, resp)
 }
 
-// dynamically generate content if it starts with @<agent>
-func (h *agentHandler) applyAgent(parent *api.Request, s string) (string, error) {
+// dynamically generate prompt if content starts with @<agent>
+// otherwise, return s unchanged
+func (h *agentHandler) makePrompt(parent *api.Request, s string) (string, error) {
 	content := strings.TrimSpace(s)
 	if !strings.HasPrefix(content, "@") {
-		return content, nil
+		return s, nil
 	}
 	agent, prompt := split2(content[1:], " ", "")
+	return h.callAgent(parent, agent, prompt)
+}
 
+// dynamcally make LLM model
+func (h *agentHandler) makeModel(parent *api.Request, s string) (*api.Model, error) {
+	agent := strings.TrimPrefix(s, "@")
+	out, err := h.callAgent(parent, agent, "")
+	if err != nil {
+		return nil, err
+	}
+	var model api.Model
+	if err := json.Unmarshal([]byte(out), &model); err != nil {
+		return nil, err
+	}
+	return &model, nil
+}
+
+func (h *agentHandler) callAgent(parent *api.Request, agent, prompt string) (string, error) {
 	req := parent.Clone()
 	req.Agent = agent
 	input := req.RawInput.Clone()

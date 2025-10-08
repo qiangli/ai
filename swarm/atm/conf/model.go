@@ -53,7 +53,7 @@ func loadModel(auth *api.User, owner, models, model string, secrets api.SecretSt
 			Model:    c.Model,
 			BaseUrl:  c.BaseUrl,
 			ApiKey:   ak,
-			Config:   mc,
+			// Config:   mc,
 		}
 
 		return m, nil

@@ -63,19 +63,17 @@ const (
 var Levels = []Level{L1, L2, L3, Image, TTS}
 
 type Model struct {
-	Model string
+	// model @agent or resolved provider model name
+	// example:
+	//   @model
+	//   gemini-2.0-flash-lite
+	Model string `json:"model"`
 
-	Provider string
-	BaseUrl  string
+	Provider string `json:"provider"`
+	BaseUrl  string `json:"base_url"`
 
-	// resolved LLM api key/token
-	ApiKey string
-
-	// output
-	Type OutputType
-
-	//
-	Config *ModelsConfig
+	// secret key or LLM provider api key/token if resolved
+	ApiKey string `json:"api_key"`
 }
 
 func (r *Model) String() string {
