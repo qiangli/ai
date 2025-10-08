@@ -91,6 +91,13 @@ func (r *AIKit) AgentTransfer(_ context.Context, _ *api.Vars, _ string, args map
 	}, nil
 }
 
+func (r *AIKit) AgentSpawn(_ context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	return &api.Result{
+		NextAgent: "new",
+		State:     api.StateTransfer,
+	}, nil
+}
+
 func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
 	log.GetLogger(ctx).Debugf("List tool: %s %+v\n", tf, args)
 
