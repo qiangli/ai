@@ -14,13 +14,9 @@ const (
 	RoleTool      = "tool"
 )
 
-// type AgentCreator func(*Vars, *Request) (*Agent, error)
-
 type Handler interface {
 	Serve(*Request, *Response) error
 }
-
-// type AgentHandler func(*Vars, *Agent) Handler
 
 type State int
 
@@ -65,11 +61,9 @@ const (
 
 type TemplateFuncMap = template.FuncMap
 
-// @[owner:]pack[/sub]
-// // @<[owner:]agent>
-// owner, agent := splitOwnerAgent(req.Agent)
-// // agent: pack[/sub]
-// pack, sub := split2(agent, "/", "")
+// [@][owner:]pack[/sub]
+// @[owner:]<agent>
+// agent: pack[/sub]
 type AgentName string
 
 func (a AgentName) String() string {
@@ -199,8 +193,6 @@ type AgentsConfig struct {
 	// agent app name
 	Name string `yaml:"name"`
 
-	// Active bool `yaml:"active"`
-
 	// [alias/]level
 	Model string `yaml:"model"`
 
@@ -211,8 +203,6 @@ type AgentsConfig struct {
 	//
 	MaxTurns int `yaml:"max_turns"`
 	MaxTime  int `yaml:"max_time"`
-
-	// experimental
 
 	// user message
 	Message string `yaml:"message"`
@@ -255,11 +245,8 @@ type AgentConfig struct {
 	Adapter string `yaml:"adapter"`
 
 	//
-	//
 	MaxTurns int `yaml:"max_turns"`
 	MaxTime  int `yaml:"max_time"`
-
-	// experimental
 
 	// user message
 	Message string `yaml:"message"`
@@ -311,7 +298,7 @@ type AdviceConfig struct {
 
 // Swarm Agents can call functions directly.
 // Function should usually return a string values.
-// If a function returns an Agent, execution will be transferred to that Agent.
+// If a function returns Result with an Agent, execution will be transferred to that Agent.
 // type Function = func(context.Context, *Vars, string, map[string]any) (*Result, error)
 
 type Advice func(*Vars, *Request, *Response, Advice) error

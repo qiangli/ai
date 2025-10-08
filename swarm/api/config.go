@@ -91,7 +91,6 @@ type AppConfig struct {
 	ChatID string
 
 	//<config_base>/chat/<id>/*.json
-	// History []*Message
 	History MemStore
 
 	Models string
@@ -203,11 +202,9 @@ func (r *AppConfig) IsClipin() bool {
 }
 
 func (r *AppConfig) IsSpecial() bool {
-	// return r.IsStdin() || r.IsClipin() || r.IsMedia()
 	return r.IsStdin() || r.IsClipin()
 }
 
 func (r *AppConfig) HasInput() bool {
 	return r.Message != "" || len(r.Args) > 0
-	// return r.Message != "" || len(r.Files) > 0 || len(r.Args) > 0
 }

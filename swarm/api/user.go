@@ -1,9 +1,5 @@
 package api
 
-// import (
-// 	"time"
-// )
-
 type User struct {
 	// uuid
 	ID string `json:"id"`
@@ -17,6 +13,4 @@ type User struct {
 	// full/first,last
 	Name   string `json:"name"`
 	Avatar string `json:"avatar"`
-
-	// Created time.Time `json:"created"`
 }

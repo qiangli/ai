@@ -28,8 +28,7 @@ type Request struct {
 
 	Arguments map[string]any
 
-	// ctx is either the client or server context. It should only
-	// be modified via copying the whole Request using Clone or WithContext.
+	// ctx should only be modified via copying the whole request WithContext.
 	// It is unexported to prevent people from using Context wrong
 	// and mutating the contexts held by callers of the same request.
 	ctx context.Context
@@ -43,8 +42,8 @@ func NewRequest(ctx context.Context, agent string, input *UserInput) *Request {
 	}
 }
 
-// Context returns the request's context. To change the context, use
-// [Request.Clone] or [Request.WithContext].
+// Context returns the request's context.
+// To change the context, use [Request.WithContext].
 //
 // The returned context is always non-nil; it defaults to the
 // background context.
