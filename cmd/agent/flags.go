@@ -108,6 +108,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.String("log-level", "", "Set log level.")
 	flags.MarkHidden("log-level")
 	flags.Bool("quiet", false, "Operate quietly. Only show final response")
+	flags.Bool("info", false, "Show progress")
 	flags.Bool("verbose", false, "Show progress and debugging information")
 	flags.Bool("trace", false, "Turn on tracing")
 

@@ -143,6 +143,9 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	if viper.GetBool("verbose") {
 		app.LogLevel = "verbose"
 	}
+	if viper.GetBool("info") {
+		app.LogLevel = "info"
+	}
 	if viper.GetBool("quiet") {
 		app.LogLevel = "quiet"
 	}
