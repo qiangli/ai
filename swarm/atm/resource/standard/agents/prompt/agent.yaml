@@ -1,12 +1,11 @@
 ###
-new: true
 agents:
   - name: "prompt"
     display: "🤖 Prompt Engineer"
     description: |
       Expert in creating precise system role prompts, blending domain expertise 
       with user preferences for clear AI instructions.
-    model: L2
+    model: default/any
     message: |
         Write a precise and relevant system role prompt that effectively enhances the response to the user's input.
     instruction:

@@ -257,6 +257,13 @@ func (h *agentHandler) makeModel(parent *api.Request, s string) (*api.Model, err
 	if err := json.Unmarshal([]byte(out), &model); err != nil {
 		return nil, err
 	}
+
+	// replace api key
+	ak, err := h.sw.Secrets.Get(h.sw.User.Email, model.ApiKey)
+	if err != nil {
+		return nil, err
+	}
+	model.ApiKey = ak
 	return &model, nil
 }
 
