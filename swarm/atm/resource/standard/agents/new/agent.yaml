@@ -11,5 +11,5 @@ agents:
       content: |
         @prompt you are an intelligent agent
     functions:
-      - "agent:tool"
+      - "@tool"
 ###

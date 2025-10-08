@@ -46,6 +46,7 @@ type ToolFunc struct {
 
 // ID returns a unique identifier for the tool,
 // combining the tool kit and name.
+// A string that must match the pattern '^[a-zA-Z0-9_-]+$'."
 func (r *ToolFunc) ID() string {
 	return fmt.Sprintf("%s__%s", r.Kit, r.Name)
 }
@@ -174,6 +175,9 @@ func (r KitName) String() string {
 // kit__name
 // kit:*
 // kit:name
+// agent:name
+// @name
+// @:name
 func (r KitName) Decode() (string, string) {
 	split2 := func(s string, sep string, val string) (string, string) {
 		var p1, p2 string
@@ -190,6 +194,17 @@ func (r KitName) Decode() (string, string) {
 
 	var kit, name string
 	s := string(r)
+	if strings.HasPrefix(s, "@") {
+		// <agent:name>
+		// @name
+		// @name:*
+		// @:name
+		kit, name = split2(s, ":", "")
+		if v := strings.TrimPrefix(kit, "@"); v != "" {
+			name = v
+		}
+		return "agent", name
+	}
 	if strings.Index(s, "__") > 0 {
 		// call time - the name should never be empty
 		kit, name = split2(s, "__", "")

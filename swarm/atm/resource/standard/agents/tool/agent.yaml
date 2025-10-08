@@ -22,5 +22,4 @@ agents:
       - "ai:list_tools"
       - "ai:tool_info"
       - "ai:tool_execute"
-      # - "ai:tool_spawn"
 ###
