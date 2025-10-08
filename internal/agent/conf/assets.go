@@ -7,7 +7,7 @@ import (
 )
 
 func Assets(app *api.AppConfig) api.AssetManager {
-	var assets = conf.NewAssetManager(app.User)
+	var assets = conf.NewAssetManager()
 	if app.AgentResource != nil {
 		for _, v := range app.AgentResource.Resources {
 			assets.AddStore(&resource.WebStore{

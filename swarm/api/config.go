@@ -174,6 +174,10 @@ func (cfg *AppConfig) Clone() *AppConfig {
 	}
 }
 
+func (cfg *AppConfig) IsNew() bool {
+	return cfg.New != nil && *cfg.New
+}
+
 func (cfg *AppConfig) IsQuiet() bool {
 	return ToLogLevel(cfg.LogLevel) == Quiet
 }

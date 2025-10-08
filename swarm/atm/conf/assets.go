@@ -10,14 +10,12 @@ import (
 )
 
 type assetManager struct {
-	user    *api.User
 	secrets api.SecretStore
 	assets  []api.AssetStore
 }
 
-func NewAssetManager(user *api.User) api.AssetManager {
+func NewAssetManager() api.AssetManager {
 	return &assetManager{
-		user:   user,
 		assets: make([]api.AssetStore, 0),
 	}
 }
@@ -30,7 +28,7 @@ func (r *assetManager) SearchAgent(owner string, pack string) (*api.Record, erro
 	for _, v := range r.assets {
 		// try search first
 		if as, ok := v.(api.ATMSupport); ok {
-			if a, err := as.SearchAgent(r.user.Email, owner, pack); err == nil && a != nil {
+			if a, err := as.SearchAgent(owner, pack); err == nil && a != nil {
 				a.Store = as
 				return a, nil
 			}

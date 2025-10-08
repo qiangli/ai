@@ -60,10 +60,6 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	}
 	resp := &api.Response{}
 
-	if len(vars.History) > 0 {
-		log.GetLogger(ctx).Infof("⣿ recalling %v messages in memory less than %v minutes old\n", len(vars.History), cfg.MaxSpan)
-	}
-
 	var user = &api.User{}
 	var assets = conf.Assets(cfg)
 	var secrets = conf.LocalSecrets
@@ -84,6 +80,10 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		Blobs:    blobs,
 		OS:       os,
 		FS:       fs,
+	}
+
+	if len(vars.History) > 0 {
+		log.GetLogger(ctx).Infof("⣿ recalling %v messages in memory less than %v minutes old\n", len(vars.History), cfg.MaxSpan)
 	}
 
 	if err := sw.Run(req, resp); err != nil {
@@ -156,21 +156,6 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	vars.Config = app
 	//
 	vars.Workspace = app.Workspace
-	// vars.Repo = app.Repo
-	// vars.Home = app.Home
-	// vars.Temp = app.Temp
-
-	// //
-	// sysInfo, err := util.CollectSystemInfo()
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// vars.Arch = sysInfo.Arch
-	// vars.OS = sysInfo.OS
-	// vars.ShellInfo = sysInfo.ShellInfo
-	// vars.OSInfo = sysInfo.OSInfo
-	// vars.UserInfo = sysInfo.UserInfo
 
 	return vars, nil
 }

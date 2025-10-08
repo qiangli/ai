@@ -23,7 +23,7 @@ type ATMSupport interface {
 	AssetStore
 	RetrieveAgent(owner, pack string) (*Record, error)
 	ListAgents(owner string) ([]*Record, error)
-	SearchAgent(user, owner, pack string) (*Record, error)
+	SearchAgent(owner, pack string) (*Record, error)
 	RetrieveTool(owner, kit string) (*Record, error)
 	ListTools(owner string) ([]*Record, error)
 	RetrieveModel(owner, alias string) (*Record, error)
@@ -41,10 +41,6 @@ type AssetManager interface {
 	// GetStore(key string) (AssetStore, error)
 	AddStore(store AssetStore)
 
-	// @<[partial owner:]agent>
-	// owner, agentName := splitOwnerAgent(req.Agent)
-	// agent: [pack/]sub
-	// pack, sub := split2(agentName, "/", "")
 	SearchAgent(owner, pack string) (*Record, error)
 	ListAgent(owner string) (map[string]*AgentsConfig, error)
 	FindAgent(owner, pack string) (*AgentsConfig, error)
