@@ -3,7 +3,6 @@ package openai
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -16,6 +15,8 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/ai/swarm/middleware"
 )
+
+const maxThreadLimit = 8
 
 // https://platform.openai.com/docs/models
 
@@ -103,7 +104,8 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	if maxTurns == 0 {
 		maxTurns = 1
 	}
-	resp := &llm.Response{}
+
+	var resp = &llm.Response{}
 
 	log.GetLogger(ctx).Debugf("[OpenAI] params messages: %v tools: %v\n", len(params.Messages), len(params.Tools))
 
@@ -133,43 +135,17 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		}
 
 		params.Messages = append(params.Messages, completion.Choices[0].Message.ToParam())
-
-		for i, toolCall := range toolCalls {
-			var name = toolCall.Function.Name
-			var props map[string]interface{}
-			if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &props); err != nil {
-				return nil, err
+		results := runTools(ctx, req.RunTool, toolCalls, maxThreadLimit)
+		for i, out := range results {
+			if out == nil {
+				params.Messages = append(params.Messages, openai.ToolMessage("no result", toolCalls[i].ID))
+				continue
 			}
-
-			log.GetLogger(ctx).Debugf("\n* tool call: %v %s props: %+v\n", i, name, props)
-
-			//
-			out, err := req.RunTool(ctx, name, props)
-			if err != nil {
-				out = &api.Result{
-					Value: fmt.Sprintf("%s", err),
-				}
-			}
-
-			log.GetLogger(ctx).Debugf("* tool call: %s out: %s\n", name, out)
-			resp.Result = out
-
-			if out.State == api.StateExit {
+			if out.State == api.StateExit || out.State == api.StateTransfer {
+				resp.Result = out
 				return resp, nil
 			}
-			if out.State == api.StateTransfer {
-				return resp, nil
-			}
-
-			// if out.MimeType != "" && !strings.HasPrefix(out.MimeType, "text/") {
-			// 	// TODO this is a hack and seems to work for non text parts
-			// 	// investigate this may fail for multi tool calls unless this is the last
-			// 	params.Messages = append(params.Messages, openai.ToolMessage(fmt.Sprintf("%s\nThe file content is included as data URL in the user message.", out.Message), toolCall.ID))
-			// 	params.Messages = append(params.Messages, openai.UserMessage(toContentPart(out.MimeType, []byte(out.Content))))
-			// } else {
-			// 	params.Messages = append(params.Messages, openai.ToolMessage(out.Value, toolCall.ID))
-			// }
-			params.Messages = append(params.Messages, openai.ToolMessage(out.Value, toolCall.ID))
+			params.Messages = append(params.Messages, openai.ToolMessage(out.Value, toolCalls[i].ID))
 		}
 	}
 

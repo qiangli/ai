@@ -137,16 +137,20 @@ func (r *Result) String() string {
 	if r.NextAgent != "" {
 		sb.WriteString(fmt.Sprintf(" %s", r.NextAgent))
 	}
-	if r.MimeType != "" {
-		sb.WriteString(fmt.Sprintf(" %s", r.MimeType))
-	}
 	if r.Value != "" {
 		sb.WriteString(fmt.Sprintf(" %s", head(r.Value, 100)))
+	}
+	if r.MimeType != "" {
+		sb.WriteString(fmt.Sprintf(" %s", r.MimeType))
 	}
 	if len(r.Content) > 0 {
 		sb.WriteString(fmt.Sprintf(" content: %v bytes", len(r.Content)))
 	}
-	return strings.TrimSpace(sb.String())
+	s := strings.TrimSpace(sb.String())
+	if len(s) == 0 {
+		return "<empty>"
+	}
+	return s
 }
 
 // head trims the string to the maxLen and replaces newlines with /.
