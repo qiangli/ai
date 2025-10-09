@@ -21,7 +21,7 @@ func Clip(text string, maxLen int) string {
 
 // Head trims the string to the maxLen and replaces newlines with /.
 func Head(s string, maxLen int) string {
-	s = strings.ReplaceAll(s, "\n", "/")
+	s = strings.ReplaceAll(s, "\n", "•")
 	s = strings.Join(strings.Fields(s), " ")
 	s = strings.TrimSpace(s)
 	if len(s) > maxLen {

@@ -20,7 +20,9 @@ func (r *WebAuthKit) FetchContent(ctx context.Context, vars *api.Vars, name stri
 	}
 
 	log.GetLogger(ctx).Debugf("○ fetching url: %q\n", link)
-	return webtool.Fetch(ctx, link)
+	content, err := webtool.Fetch(ctx, link)
+	log.GetLogger(ctx).Debugf("  content length: %v error: %v\n", len(content), err)
+	return content, err
 }
 
 func (r *WebAuthKit) DownloadContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {

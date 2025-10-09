@@ -97,7 +97,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 			return err
 		}
 
-		content, err = h.makePrompt(req, content)
+		content, err = h.makePrompt(ctx, req, content)
 		if err != nil {
 			return err
 		}
@@ -164,7 +164,7 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	var model = r.Model
 	// resolve if model is @agent
 	if strings.HasPrefix(model.Model, "@") {
-		if v, err := h.makeModel(req, model.Model); err != nil {
+		if v, err := h.makeModel(ctx, req, model.Model); err != nil {
 			return err
 		} else {
 			model = v
@@ -237,17 +237,26 @@ func (h *agentHandler) exec(req *api.Request, resp *api.Response) error {
 
 // dynamically generate prompt if content starts with @<agent>
 // otherwise, return s unchanged
-func (h *agentHandler) makePrompt(parent *api.Request, s string) (string, error) {
+func (h *agentHandler) makePrompt(ctx context.Context, parent *api.Request, s string) (string, error) {
 	content := strings.TrimSpace(s)
 	if !strings.HasPrefix(content, "@") {
 		return s, nil
 	}
-	agent, prompt := split2(content[1:], " ", "")
-	return h.callAgent(parent, agent, prompt)
+	// @agent instruction...
+	agent, instruction := split2(content[1:], " ", "")
+	prompt, err := h.callAgent(parent, agent, instruction)
+
+	if err != nil {
+		return "", err
+	}
+
+	log.GetLogger(ctx).Infof("🤖 prompt: %s\n", head(prompt, 100))
+
+	return prompt, nil
 }
 
 // dynamcally make LLM model
-func (h *agentHandler) makeModel(parent *api.Request, s string) (*api.Model, error) {
+func (h *agentHandler) makeModel(ctx context.Context, parent *api.Request, s string) (*api.Model, error) {
 	agent := strings.TrimPrefix(s, "@")
 	out, err := h.callAgent(parent, agent, "")
 	if err != nil {
@@ -257,6 +266,8 @@ func (h *agentHandler) makeModel(parent *api.Request, s string) (*api.Model, err
 	if err := json.Unmarshal([]byte(out), &model); err != nil {
 		return nil, err
 	}
+
+	log.GetLogger(ctx).Infof("🤖 model: %s/%s %s\n", model.Provider, model.Model, model.BaseUrl)
 
 	// replace api key
 	ak, err := h.sw.Secrets.Get(h.sw.User.Email, model.ApiKey)

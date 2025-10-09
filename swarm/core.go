@@ -79,6 +79,9 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	var ctx = req.Context()
 	var resetLogLevel = true
 	for {
+		start := time.Now()
+		log.GetLogger(ctx).Debugf("Creating agent: %s %s\n", req.Agent, start)
+
 		agent, err := r.createAgent(ctx, req)
 		if err != nil {
 			return err
@@ -111,7 +114,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 				}
 			}
 
-			log.GetLogger(ctx).Debugf("Run dependency: %s %+v\n", dep, depResp)
+			log.GetLogger(ctx).Debugf("dependency complete: %s %+v\n", dep, depResp)
 		}
 
 		//
@@ -135,10 +138,13 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 
 		// update the request
 		if resp.Result != nil && resp.Result.State == api.StateTransfer {
+			log.GetLogger(ctx).Debugf("Agent transfer: %s => %s\n", req.Agent, resp.Result.NextAgent)
 			req.Agent = resp.Result.NextAgent
 			continue
 		}
 
+		end := time.Now()
+		log.GetLogger(ctx).Debugf("Agent complete: %s %s elapsed: %s\n", req.Agent, end, end.Sub(start))
 		return nil
 	}
 }

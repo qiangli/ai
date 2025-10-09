@@ -1,8 +1,6 @@
 package atm
 
 import (
-	"encoding/json"
-	"fmt"
 	"strings"
 
 	"golang.org/x/text/cases"
@@ -18,24 +16,6 @@ func clip(s string, max int) string {
 		s = s[:max] + trailing
 	}
 	return s
-}
-
-func structToMap(input any) (map[string]any, error) {
-	if result, ok := input.(map[string]any); ok {
-		return result, nil
-	}
-
-	jsonData, err := json.Marshal(input)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal input to JSON: %v", err)
-	}
-
-	var resultMap map[string]any
-	if err := json.Unmarshal(jsonData, &resultMap); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal JSON to map[string]any: %v", err)
-	}
-
-	return resultMap, nil
 }
 
 func toPascalCase(name string) string {
@@ -81,14 +61,3 @@ func nvl(sa ...string) string {
 	}
 	return ""
 }
-
-// // head trims the string to the maxLen and replaces newlines with /.
-// func head(s string, maxLen int) string {
-// 	s = strings.ReplaceAll(s, "\n", "/")
-// 	s = strings.Join(strings.Fields(s), " ")
-// 	s = strings.TrimSpace(s)
-// 	if len(s) > maxLen {
-// 		return s[:maxLen] + "..."
-// 	}
-// 	return s
-// }

@@ -124,14 +124,6 @@ type ToolCondition struct {
 	Shell map[string]any `yaml:"shell"`
 }
 
-// // ToolDescriptor is a description of a tool function.
-// type ToolDescriptor struct {
-// 	Name        string
-// 	Description string
-// 	Parameters  map[string]any
-
-// }
-
 type ConnectorConfig struct {
 	// mcp | ssh ...
 	Proto string `yaml:"proto"`
