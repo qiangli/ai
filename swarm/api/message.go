@@ -5,7 +5,9 @@ import (
 )
 
 type Message struct {
-	ID      string    `json:"id"`
+	ID string `json:"id"`
+
+	// thread
 	ChatID  string    `json:"chatId"`
 	Created time.Time `json:"created"`
 
@@ -13,8 +15,9 @@ type Message struct {
 	ContentType string `json:"contentType"`
 	Content     string `json:"content"`
 
+	// system | assistant | user
 	Role string `json:"role"`
 
-	// agent name
+	// user/agent
 	Sender string `json:"sender"`
 }

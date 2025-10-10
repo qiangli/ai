@@ -32,7 +32,7 @@ func (rs *ResourceStore) Resolve(dir, name string) string {
 }
 
 func (rs *ResourceStore) Search(query string) ([]byte, error) {
-	return nil, api.UnsupportedError("resource store")
+	return nil, api.NewUnsupportedError("resource store")
 }
 
 type FileStore struct {
@@ -54,7 +54,7 @@ func (fs *FileStore) Resolve(dir, name string) string {
 }
 
 func (fs *FileStore) Search(query string) ([]byte, error) {
-	return nil, api.UnsupportedError("file store")
+	return nil, api.NewUnsupportedError("file store")
 }
 
 type WebStore struct {
@@ -145,5 +145,5 @@ func (ws *WebStore) Resolve(base, name string) string {
 }
 
 func (ws *WebStore) Search(query string) ([]byte, error) {
-	return nil, api.UnsupportedError("web store")
+	return nil, api.NewUnsupportedError("web store")
 }

@@ -214,8 +214,8 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 			Created: time.Now(),
 			//
 			ContentType: result.Result.MimeType,
-			Role:        nvl(result.Role, api.RoleAssistant),
 			Content:     result.Result.Value,
+			Role:        nvl(result.Role, api.RoleAssistant),
 			Sender:      r.Name,
 		}
 		// TODO add Value field to message?
