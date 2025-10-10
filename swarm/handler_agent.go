@@ -114,25 +114,27 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 		log.GetLogger(ctx).Debugf("Added new system role message: %v\n", len(history))
 	}
 
-	// 2. Historical Messages - skip system role
-	// TODO
-	if !r.New && len(h.vars.History) > 0 {
-		log.GetLogger(ctx).Debugf("using %v messaages from history\n", len(h.vars.History))
-		for _, msg := range h.vars.History {
-			if msg.Role != api.RoleSystem {
-				history = append(history, msg)
-				log.GetLogger(ctx).Debugf("Added historical non system role message: %v\n", len(history))
-			}
-		}
-	}
-
-	// 3. New User Message
 	//
 	// prepend message to user query
 	var query = req.RawInput.Query()
 	if r.Message != "" {
 		query = r.Message + "\n" + query
 	}
+
+	// 2. Historical Messages - skip system role
+	// TODO
+	if !r.New && len(h.vars.History) > 0 {
+		// msg := h.summarize(ctx, h.vars.History, query)
+		// log.GetLogger(ctx).Debugf("using %v messaages from history\n", len(h.vars.History))
+		// for _, msg := range h.vars.History {
+		// 	if msg.Role != api.RoleSystem {
+		// 		history = append(history, msg)
+		// 		log.GetLogger(ctx).Debugf("Added historical non system role message: %v\n", len(history))
+		// 	}
+		// }
+	}
+
+	// 3. New User Message
 	req.Messages = append(req.Messages, &api.Message{
 		ID:      uuid.NewString(),
 		ChatID:  chatID,
@@ -278,7 +280,29 @@ func (h *agentHandler) makeModel(ctx context.Context, parent *api.Request, s str
 	return &model, nil
 }
 
-func (h *agentHandler) callAgent(parent *api.Request, agent, prompt string) (string, error) {
+func (h *agentHandler) summarize(ctx context.Context, parent *api.Request, history []*api.Message, agent string) (*api.Message, error) {
+	log.GetLogger(ctx).Debugf("using %v messaages from history\n", len(history))
+	for _, msg := range history {
+		if msg.Role != api.RoleSystem {
+			history = append(history, msg)
+			log.GetLogger(ctx).Debugf("Added historical non system role message: %v\n", len(history))
+		}
+	}
+
+	content, err := h.callAgent(parent, agent, "")
+	if err != nil {
+		return nil, err
+	}
+
+	log.GetLogger(ctx).Infof("🤖 context: %s\n", head(content, 100))
+	msg := &api.Message{
+		Content: content,
+		Role:    "",
+	}
+	return msg, nil
+}
+
+func (h *agentHandler) callAgent(parent *api.Request, agent string, prompt string) (string, error) {
 	req := parent.Clone()
 	req.Agent = agent
 	input := req.RawInput.Clone()

@@ -97,21 +97,6 @@ type Response struct {
 	Result *Result
 }
 
-type Message struct {
-	ID      string    `json:"id"`
-	ChatID  string    `json:"chatId"`
-	Created time.Time `json:"created"`
-
-	// data
-	ContentType string `json:"contentType"`
-	Content     string `json:"content"`
-
-	Role string `json:"role"`
-
-	// agent name
-	Sender string `json:"sender"`
-}
-
 // Result encapsulates the possible return values for agent/function.
 type Result struct {
 	// The result value as a string
