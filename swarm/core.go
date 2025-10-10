@@ -136,15 +136,14 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 			return err
 		}
 
-		// update the request
-		if resp.Result != nil && resp.Result.State == api.StateTransfer {
-			log.GetLogger(ctx).Debugf("Agent transfer: %s => %s\n", req.Agent, resp.Result.NextAgent)
-			req.Agent = resp.Result.NextAgent
-			continue
-		}
+		// // update the request
+		// if resp.Result != nil && resp.Result.State == api.StateTransfer {
+		// 	log.GetLogger(ctx).Debugf("Agent transfer: %s => %s\n", req.Agent, resp.Result.NextAgent)
+		// 	req.Agent = resp.Result.NextAgent
+		// 	continue
+		// }
 
 		end := time.Now()
 		log.GetLogger(ctx).Debugf("Agent complete: %s %s elapsed: %s\n", req.Agent, end, end.Sub(start))
-		return nil
 	}
 }

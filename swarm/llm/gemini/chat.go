@@ -209,9 +209,9 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 			if out.State == api.StateExit {
 				return resp, nil
 			}
-			if out.State == api.StateTransfer {
-				return resp, nil
-			}
+			// if out.State == api.StateTransfer {
+			// 	return resp, nil
+			// }
 
 			// Gemini seems to require the exact pairing of the call and result messages
 			// call message

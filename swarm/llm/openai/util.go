@@ -79,7 +79,8 @@ func runToolsInParallel(
 			log.GetLogger(parent).Debugf("\n* tool call: %s out: %s\n", name, out)
 			results[i] = out
 
-			if out.State == api.StateExit || out.State == api.StateTransfer {
+			// 	if out.State == api.StateExit || out.State == api.StateTransfer {
+			if out.State == api.StateExit {
 				cancel()
 			}
 		}(i, toolCall)

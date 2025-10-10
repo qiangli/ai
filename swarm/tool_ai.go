@@ -15,10 +15,17 @@ import (
 )
 
 type AIKit struct {
-	user   *api.User
-	assets api.AssetManager
-
+	sw       *Swarm
+	h        *agentHandler
 	callTool api.ToolRunner
+}
+
+func NewAIKit(h *agentHandler) *AIKit {
+	return &AIKit{
+		sw:       h.sw,
+		h:        h,
+		callTool: h.createAICaller(),
+	}
 }
 
 type ListCacheKey struct {
@@ -32,7 +39,7 @@ var (
 )
 
 func (r *AIKit) ListAgents(ctx context.Context, vars *api.Vars, _ string, _ map[string]any) (string, error) {
-	var user = r.user.Email
+	var user = r.sw.User.Email
 	// cached list
 	key := ListCacheKey{
 		Type: "agent",
@@ -43,7 +50,7 @@ func (r *AIKit) ListAgents(ctx context.Context, vars *api.Vars, _ string, _ map[
 		return v, nil
 	}
 
-	list, count, err := conf.ListAgents(r.assets, user)
+	list, count, err := conf.ListAgents(r.sw.Assets, user)
 	if err != nil {
 		return "", err
 	}
@@ -65,7 +72,7 @@ Instruction: %s
 	if err != nil {
 		return "", err
 	}
-	ac, err := r.assets.FindAgent(r.user.Email, agent)
+	ac, err := r.sw.Assets.FindAgent(r.sw.User.Email, agent)
 	if err != nil {
 		return "", err
 	}
@@ -80,28 +87,37 @@ Instruction: %s
 	return "", fmt.Errorf("unknown agent: %s", agent)
 }
 
-func (r *AIKit) AgentTransfer(_ context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+func (r *AIKit) AgentSpawn(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
 	agent, err := atm.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
 	}
-	return &api.Result{
-		NextAgent: agent,
-		State:     api.StateTransfer,
-	}, nil
+
+	// prevent loop
+	if r.h.agent.Name == agent {
+		return nil, fmt.Errorf("you are %q! Calling yourself not permitted", agent)
+	}
+
+	req := api.NewRequest(ctx, agent, r.h.agent.RawInput.Clone())
+	resp := &api.Response{}
+
+	if err := r.h.exec(req, resp); err != nil {
+		return nil, err
+	}
+	return resp.Result, nil
 }
 
-func (r *AIKit) AgentSpawn(_ context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	return &api.Result{
-		NextAgent: "new",
-		State:     api.StateTransfer,
-	}, nil
-}
+// func (r *AIKit) AgentSpawn(_ context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+// 	return &api.Result{
+// 		NextAgent: "new",
+// 		State:     api.StateTransfer,
+// 	}, nil
+// }
 
 func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
 	log.GetLogger(ctx).Debugf("List tool: %s %+v\n", tf, args)
 
-	var user = r.user.Email
+	var user = r.sw.User.Email
 	// cached list
 	key := ListCacheKey{
 		Type: "tool",
@@ -112,7 +128,7 @@ func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, tf string, args m
 		return v, nil
 	}
 
-	list, count, err := conf.ListTools(r.assets, user)
+	list, count, err := conf.ListTools(r.sw.Assets, user)
 	if err != nil {
 		return "", err
 	}
@@ -137,7 +153,7 @@ Parameters: %s
 
 	kit, name := api.KitName(tid).Decode()
 
-	tc, err := r.assets.FindToolkit(r.user.Email, kit)
+	tc, err := r.sw.Assets.FindToolkit(r.sw.User.Email, kit)
 	if err != nil {
 		return "", err
 	}
@@ -190,7 +206,7 @@ func (r *AIKit) ToolExecute(ctx context.Context, _ *api.Vars, tf string, args ma
 func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
 	log.GetLogger(ctx).Debugf("List model: %s %+v\n", tf, args)
 
-	var user = r.user.Email
+	var user = r.sw.User.Email
 	// cached list
 	key := ListCacheKey{
 		Type: "model",
@@ -201,7 +217,7 @@ func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, tf string, args 
 		return v, nil
 	}
 
-	list, count, err := conf.ListModels(r.assets, user)
+	list, count, err := conf.ListModels(r.sw.Assets, user)
 	if err != nil {
 		return "", err
 	}

@@ -104,7 +104,7 @@ func parseUserInput(line string, prefix string) (*api.UserInput, error) {
 	if line[0] == '@' {
 		in := &api.UserInput{}
 		parts := strings.SplitN(line, " ", 2)
-		in.Agent = parts[0][1:]
+		// in.Agent = parts[0][1:]
 		if len(parts) > 1 {
 			in.Message = parts[1]
 		}

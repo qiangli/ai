@@ -26,14 +26,16 @@ func RunAgent(ctx context.Context, app *api.AppConfig) error {
 		return internal.NewUserInputError("no query provided")
 	}
 
-	in.Agent = app.Agent
+	// in.Agent = app.Agent
 
 	return RunSwarm(ctx, app, in)
 }
 
 func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) error {
-	name := input.Agent
+	// name := input.Agent
 	// command := input.Command
+	name := cfg.Agent
+
 	log.GetLogger(ctx).Debugf("Running agent %q with swarm\n", name)
 
 	vars, err := InitVars(cfg)

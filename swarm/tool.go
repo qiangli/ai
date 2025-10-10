@@ -61,53 +61,52 @@ func (h *agentHandler) callTool(ctx context.Context, tf *api.ToolFunc, args map[
 	return result, err
 }
 
-// sw *Swarm, agent *api.Agent,
+func (h *agentHandler) callAgentType(ctx context.Context, tf *api.ToolFunc, args map[string]any) (any, error) {
+	// agent tool
+	if tf.Kit == api.ToolTypeAgent {
+		return h.callAgentTool(ctx, tf, args)
+	}
+
+	// ai tool
+	if tf.Kit == "ai" {
+		return h.callAITool(ctx, tf, args)
+	}
+	return nil, api.NewUnsupportedError("agent kit: " + tf.Kit)
+}
+
 func (h *agentHandler) callAgentTool(ctx context.Context, tf *api.ToolFunc, args map[string]any) (any, error) {
 	req := api.NewRequest(ctx, tf.Agent, h.agent.RawInput.Clone())
+
 	req.RawInput.Message, _ = atm.GetStrProp("query", args)
 	req.Arguments = args
 
 	resp := &api.Response{}
 
-	if err := h.sw.Run(req, resp); err != nil {
+	err := h.exec(req, resp)
+	if err != nil {
 		return nil, err
 	}
 
-	if resp.Result == nil {
-		return nil, fmt.Errorf("empty result")
-	}
-
 	return resp.Result, nil
+}
+
+func (h *agentHandler) callAITool(ctx context.Context, tf *api.ToolFunc, args map[string]any) (any, error) {
+	aiKit := NewAIKit(h)
+	return aiKit.Call(ctx, h.vars, nil, tf, args)
 }
 
 // vars *api.Vars, agent *api.Agent,
 func (h *agentHandler) dispatch(ctx context.Context, v *api.ToolFunc, args map[string]any) (*api.Result, error) {
 	// agent tool
 	if v.Type == api.ToolTypeAgent {
-		// out, err := h.callAgentTool(ctx, h.sw, agent, v, args)
-		out, err := h.callAgentTool(ctx, v, args)
+		out, err := h.callAgentType(ctx, v, args)
 		if err != nil {
 			return nil, err
 		}
 		return h.toResult(out), nil
 	}
 
-	// TODO a new tool type?
-	if v.Type == api.ToolTypeFunc && v.Kit == "ai" {
-		aiKit := &AIKit{
-			user:     h.sw.User,
-			assets:   h.sw.Assets,
-			callTool: h.createAICaller(),
-		}
-
-		out, err := aiKit.Call(ctx, h.vars, nil, v, args)
-		if err != nil {
-			return nil, err
-		}
-		return h.toResult(out), nil
-	}
-
-	//
+	// custom kits
 	kit, err := h.sw.Tools.GetKit(v)
 	if err != nil {
 		return nil, err

@@ -44,6 +44,9 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 		return filter(v)
 	}
 
+	// builtin "agent" toolkit
+	// any agent can be used a tool
+	// @name
 	// agent:name
 	if kit == api.ToolTypeAgent {
 		ac, err := assets.FindAgent(owner, name)
@@ -199,7 +202,7 @@ func loadAgentTool(ac *api.AgentsConfig, name string) ([]*api.ToolFunc, error) {
 			maps.Copy(params, c.Parameters)
 
 			tool := &api.ToolFunc{
-				Kit:         "agent",
+				Kit:         api.ToolTypeAgent,
 				Type:        api.ToolTypeAgent,
 				Name:        c.Name,
 				Description: c.Description,

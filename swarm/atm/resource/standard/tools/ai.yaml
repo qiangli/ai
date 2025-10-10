@@ -1,6 +1,6 @@
 ###
 kit: "ai"
-type: "func"
+type: "agent"
 
 tools:
   - name: "list_agents"
@@ -20,8 +20,8 @@ tools:
       required:
         - "agent"
 
-  - name: "agent_transfer"
-    description: "Transfer the current task to a specific agent"
+  - name: "agent_spawn"
+    description: "Delegate the current task to a specific agent"
     parameters:
       type: "object"
       properties:

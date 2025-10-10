@@ -67,14 +67,14 @@ func WatchRepo(ctx context.Context, cfg *api.AppConfig) error {
 			log.GetLogger(ctx).Errorf("Error parsing user input: %s\n", err)
 			return
 		}
-		if in.Agent == "" {
-			in.Agent = cfg.Agent
-		}
+		// if in.Agent == "" {
+		// 	in.Agent = cfg.Agent
+		// }
 		// if in.Command == "" {
 		// 	in.Command = cfg.Command
 		// }
 
-		log.GetLogger(ctx).Debugf("agent: %s\n", in.Agent)
+		// log.GetLogger(ctx).Debugf("agent: %s\n", in.Agent)
 
 		cfg.Format = "text"
 		if err := agent.RunSwarm(ctx, cfg, in); err != nil {

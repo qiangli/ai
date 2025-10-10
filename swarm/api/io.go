@@ -25,7 +25,7 @@ type EditorProvider interface {
 }
 
 type UserInput struct {
-	Agent string `json:"agent"`
+	// Agent string `json:"agent"`
 
 	// query - command line args
 	Message string `json:"message"`
@@ -39,7 +39,7 @@ type UserInput struct {
 
 func (r *UserInput) String() string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("Agent: %s\n", r.Agent))
+	// sb.WriteString(fmt.Sprintf("Agent: %s\n", r.Agent))
 	sb.WriteString(fmt.Sprintf("Message#: %v\n", len(r.Message)))
 	sb.WriteString(fmt.Sprintf("Content#: %v\n", len(r.Content)))
 	sb.WriteString(fmt.Sprintf("Intent: %s\n", r.Intent()))
@@ -49,7 +49,7 @@ func (r *UserInput) String() string {
 
 func (r *UserInput) Clone() *UserInput {
 	return &UserInput{
-		Agent:    r.Agent,
+		// Agent:    r.Agent,
 		Message:  r.Message,
 		Content:  r.Content,
 		Messages: append([]*Message(nil), r.Messages...),

@@ -52,13 +52,13 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 
 	if r.AroundAdvice != nil {
 		next := func(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
-			return h.runLoop(ctx, req, resp)
+			return h.handle(ctx, req, resp)
 		}
 		if err := r.AroundAdvice(h.vars, req, resp, next); err != nil {
 			return err
 		}
 	} else {
-		if err := h.runLoop(ctx, req, resp); err != nil {
+		if err := h.handle(ctx, req, resp); err != nil {
 			return err
 		}
 	}
@@ -72,7 +72,7 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	return nil
 }
 
-func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.Response) error {
+func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.Response) error {
 	var r = h.agent
 
 	// apply template/load
@@ -198,29 +198,38 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 	}
 
 	// LLM adapter
+	// TODO model <-> adapter
 	result, err := adapter(ctx, &request)
 	if err != nil {
 		return err
 	}
 	if result.Result == nil {
-		return fmt.Errorf("empty response")
+		return fmt.Errorf("Empty response")
 	}
 
+	// if result.Result.State == api.StateSpawn {
+	// 	// FIXME check vars is thread safe?
+	// 	var next = result.Result
+	// 	log.GetLogger(ctx).Debugf("Spawning agent: %s\n", next.NextAgent)
+	// 	result.Result = h.spawn(req, next.NextAgent)
+	// 	log.GetLogger(ctx).Debugf("Spawn agent returned: %s %v\n", next.NextAgent, result.Result)
+	// }
+
 	// Response
-	if result.Result.State != api.StateTransfer {
-		message := api.Message{
-			ID:      uuid.NewString(),
-			ChatID:  chatID,
-			Created: time.Now(),
-			//
-			ContentType: result.Result.MimeType,
-			Content:     result.Result.Value,
-			Role:        nvl(result.Role, api.RoleAssistant),
-			Sender:      r.Name,
-		}
-		// TODO add Value field to message?
-		history = append(history, &message)
+	// if result.Result.State != api.StateTransfer {
+	message := api.Message{
+		ID:      uuid.NewString(),
+		ChatID:  chatID,
+		Created: time.Now(),
+		//
+		ContentType: result.Result.MimeType,
+		Content:     result.Result.Value,
+		Role:        nvl(result.Role, api.RoleAssistant),
+		Sender:      r.Name,
 	}
+	// TODO add Value field to message?
+	history = append(history, &message)
+	// }
 	//
 	h.vars.Extra[extraResult] = result.Result.Value
 	h.vars.History = history
@@ -234,7 +243,13 @@ func (h *agentHandler) runLoop(ctx context.Context, req *api.Request, resp *api.
 
 // run sub agent with inherited env
 func (h *agentHandler) exec(req *api.Request, resp *api.Response) error {
-	return h.sw.Clone().Run(req, resp)
+	if err := h.sw.Clone().Run(req, resp); err != nil {
+		return err
+	}
+	if resp.Result == nil {
+		return fmt.Errorf("Empty result")
+	}
+	return nil
 }
 
 // dynamically generate prompt if content starts with @<agent>
@@ -306,6 +321,7 @@ func (h *agentHandler) callAgent(parent *api.Request, agent string, prompt strin
 	req := parent.Clone()
 	req.Agent = agent
 	input := req.RawInput.Clone()
+	// input.Agent = agent
 	// prepend additional instruction to user query
 	input.Message = prompt + "\n" + input.Message
 	req.RawInput = input

@@ -122,14 +122,14 @@ func WatchClipboard(ctx context.Context, cfg *api.AppConfig) error {
 					continue
 				}
 
-				if in.Agent == "" {
-					in.Agent = cfg.Agent
-				}
+				// if in.Agent == "" {
+				// 	in.Agent = cfg.Agent
+				// }
 				// if in.Command == "" {
 				// 	in.Command = cfg.Command
 				// }
 
-				log.GetLogger(ctx).Debugf("agent: %s\n", in.Agent)
+				// log.GetLogger(ctx).Debugf("agent: %s\n", in.Agent)
 
 				in.Message = strings.Join(pb, "\n") + in.Message
 				break

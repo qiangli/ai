@@ -158,9 +158,9 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 				if out.State == api.StateExit {
 					return resp, nil
 				}
-				if out.State == api.StateTransfer {
-					return resp, nil
-				}
+				// if out.State == api.StateTransfer {
+				// 	return resp, nil
+				// }
 
 				if out.MimeType == "" || strings.HasPrefix(out.MimeType, "text/") {
 					if out.MimeType == "" {
