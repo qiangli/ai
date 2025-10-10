@@ -31,12 +31,12 @@ tools:
       required:
         - "agent"
 
-  - name: "agent_spawn"
-    description: |
-      Create a new agent with dynamic system role prompt relevant to user input and transfer the current task to it.
-    parameters:
-      type: "object"
-      properties: {}
+  # - name: "agent_spawn"
+  #   description: |
+  #     Create a new agent with dynamic system role prompt relevant to user input and transfer the current task to it.
+  #   parameters:
+  #     type: "object"
+  #     properties: {}
 
   - name: "list_tools"
     description: "Enumerate AI tool functions available for selection"

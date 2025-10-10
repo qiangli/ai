@@ -5,14 +5,15 @@ import (
 )
 
 type Message struct {
+	// message id
 	ID string `json:"id"`
 
-	// thread
-	ChatID  string    `json:"chatId"`
+	// thread id
+	ChatID  string    `json:"chat_id"`
 	Created time.Time `json:"created"`
 
 	// data
-	ContentType string `json:"contentType"`
+	ContentType string `json:"content_type"`
 	Content     string `json:"content"`
 
 	// system | assistant | user
