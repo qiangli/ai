@@ -292,15 +292,15 @@
 				// "AI_DEBUG": "true",
 			},
 			"args": [
-				// "--new=false",
+				"--new",
 				"--verbose",
 				"--max-turns",
 				"50",
 				"--max-time",
 				"900",
 				"--message",
-				"how to install conda on macos without using homebrew"
-				// "generate a random password"
+				// "how to install conda on macos without using homebrew"
+				"generate a random password"
 			],
 			"showLog": false,
 			"stopOnEntry": false

@@ -26,10 +26,8 @@ func (r State) String() string {
 		return "DEFAULT"
 	case StateExit:
 		return "EXIT"
-	// case StateTransfer:
-	// 	return "TRANSFER"
-	// case StateSpawn:
-	// 	return "SPAWN"
+	case StateTransfer:
+		return "TRANSFER"
 	case StateInputWait:
 		return "INPUT_WAIT"
 	}
@@ -44,10 +42,8 @@ func ParseState(s string) State {
 	switch strings.ToUpper(s) {
 	case "EXIT":
 		return StateExit
-	// case "TRANSFER":
-	// 	return StateTransfer
-	// case "SPAWN":
-	// 	return StateSpawn
+	case "TRANSFER":
+		return StateTransfer
 	case "INPUT_WAIT":
 		return StateInputWait
 	default:
@@ -59,8 +55,7 @@ const (
 	StateDefault State = iota
 
 	StateExit
-	// StateTransfer
-	// StateSpawn
+	StateTransfer
 	StateInputWait
 )
 

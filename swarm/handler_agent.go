@@ -125,13 +125,13 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 	// TODO
 	if !r.New && len(h.vars.History) > 0 {
 		// msg := h.summarize(ctx, h.vars.History, query)
-		// log.GetLogger(ctx).Debugf("using %v messaages from history\n", len(h.vars.History))
-		// for _, msg := range h.vars.History {
-		// 	if msg.Role != api.RoleSystem {
-		// 		history = append(history, msg)
-		// 		log.GetLogger(ctx).Debugf("Added historical non system role message: %v\n", len(history))
-		// 	}
-		// }
+		log.GetLogger(ctx).Debugf("using %v messaages from history\n", len(h.vars.History))
+		for _, msg := range h.vars.History {
+			if msg.Role != api.RoleSystem {
+				history = append(history, msg)
+				log.GetLogger(ctx).Debugf("Added historical non system role message: %v\n", len(history))
+			}
+		}
 	}
 
 	// 3. New User Message
@@ -207,29 +207,21 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 		return fmt.Errorf("Empty response")
 	}
 
-	// if result.Result.State == api.StateSpawn {
-	// 	// FIXME check vars is thread safe?
-	// 	var next = result.Result
-	// 	log.GetLogger(ctx).Debugf("Spawning agent: %s\n", next.NextAgent)
-	// 	result.Result = h.spawn(req, next.NextAgent)
-	// 	log.GetLogger(ctx).Debugf("Spawn agent returned: %s %v\n", next.NextAgent, result.Result)
-	// }
-
 	// Response
-	// if result.Result.State != api.StateTransfer {
-	message := api.Message{
-		ID:      uuid.NewString(),
-		ChatID:  chatID,
-		Created: time.Now(),
-		//
-		ContentType: result.Result.MimeType,
-		Content:     result.Result.Value,
-		Role:        nvl(result.Role, api.RoleAssistant),
-		Sender:      r.Name,
+	if result.Result.State != api.StateTransfer {
+		message := api.Message{
+			ID:      uuid.NewString(),
+			ChatID:  chatID,
+			Created: time.Now(),
+			//
+			ContentType: result.Result.MimeType,
+			Content:     result.Result.Value,
+			Role:        nvl(result.Role, api.RoleAssistant),
+			Sender:      r.Name,
+		}
+		// TODO add Value field to message?
+		history = append(history, &message)
 	}
-	// TODO add Value field to message?
-	history = append(history, &message)
-	// }
 	//
 	h.vars.Extra[extraResult] = result.Result.Value
 	h.vars.History = history

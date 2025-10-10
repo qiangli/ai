@@ -35,6 +35,9 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	// name := input.Agent
 	// command := input.Command
 	name := cfg.Agent
+	if name == "" {
+		name = "agent"
+	}
 
 	log.GetLogger(ctx).Debugf("Running agent %q with swarm\n", name)
 

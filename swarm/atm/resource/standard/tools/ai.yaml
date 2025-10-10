@@ -20,6 +20,17 @@ tools:
       required:
         - "agent"
 
+  - name: "agent_transfer"
+    description: "Trasnfer the current task to a specific agent"
+    parameters:
+      type: "object"
+      properties:
+        agent:
+          type: "string"
+          description: "The name of the agent"
+      required:
+        - "agent"
+
   - name: "agent_spawn"
     description: "Delegate the current task to a specific agent"
     parameters:
@@ -30,13 +41,6 @@ tools:
           description: "The name of the agent"
       required:
         - "agent"
-
-  # - name: "agent_spawn"
-  #   description: |
-  #     Create a new agent with dynamic system role prompt relevant to user input and transfer the current task to it.
-  #   parameters:
-  #     type: "object"
-  #     properties: {}
 
   - name: "list_tools"
     description: "Enumerate AI tool functions available for selection"

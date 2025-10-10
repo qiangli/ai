@@ -73,11 +73,20 @@ func (r *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, 
 }
 
 func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
+	if req.Agent == "" {
+		return api.NewBadRequestError("missing agent in request")
+	}
+
 	// before entering the loop clear all env
 	clearAllEnv()
 
 	var ctx = req.Context()
 	var resetLogLevel = true
+
+	maxlog := MaxLogHandler(500)
+	agentHandler := NewAgentHandler(r)
+	chain := NewChain(maxlog)
+
 	for {
 		start := time.Now()
 		log.GetLogger(ctx).Debugf("Creating agent: %s %s\n", req.Agent, start)
@@ -127,23 +136,21 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 			}
 		}
 
-		handler := NewAgentHandler(r)
-		timeout := TimeoutHandler(handler(r.Vars, agent), time.Duration(agent.MaxTime)*time.Second, "timed out")
-		maxlog := MaxLogHandler(500)
-
-		chain := NewChain(maxlog).Then(timeout)
-		if err := chain.Serve(req, resp); err != nil {
+		timeout := TimeoutHandler(agentHandler(r.Vars, agent), time.Duration(agent.MaxTime)*time.Second, "timed out")
+		handler := chain.Then(timeout)
+		if err := handler.Serve(req, resp); err != nil {
 			return err
 		}
 
-		// // update the request
-		// if resp.Result != nil && resp.Result.State == api.StateTransfer {
-		// 	log.GetLogger(ctx).Debugf("Agent transfer: %s => %s\n", req.Agent, resp.Result.NextAgent)
-		// 	req.Agent = resp.Result.NextAgent
-		// 	continue
-		// }
+		// update the request
+		if resp.Result != nil && resp.Result.State == api.StateTransfer {
+			log.GetLogger(ctx).Debugf("Agent transfer: %s => %s\n", req.Agent, resp.Result.NextAgent)
+			req.Agent = resp.Result.NextAgent
+			continue
+		}
 
 		end := time.Now()
 		log.GetLogger(ctx).Debugf("Agent complete: %s %s elapsed: %s\n", req.Agent, end, end.Sub(start))
+		return nil
 	}
 }
