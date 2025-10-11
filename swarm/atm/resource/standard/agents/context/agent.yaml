@@ -22,19 +22,23 @@ agents:
         - Return no content if no relevant history exists.
 
         Message JSON format:
-          {
-            "id": "12345",
-            "chat_id": "67890",
-            "created": "2023-10-11T14:48:00Z",
-            "content_type": "text/plain",
-            "content": "Hello, this is a message.",
-            "role": "user",
-          }
+
+        ```json
+        {
+          "id": "12345",
+          "chat_id": "67890",
+          "created": "2023-10-11T14:48:00Z",
+          "content_type": "text/plain",
+          "content": "Hello, this is a message.",
+          "role": "user",
+        }
+        ```
 
         Output format suitable for system role message:
         - Provide a list of pertinent user/assistant messages.
         - The fields id, chat_id, created, and content_type should be incorporated
           into the content field if beneficial and relevant to address the current query.
+        
           [
             {
               "content": "user query summary",

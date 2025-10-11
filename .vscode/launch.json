@@ -292,7 +292,8 @@
 				// "AI_DEBUG": "true",
 			},
 			"args": [
-				"--new=false",
+				"--context",
+				"@context",
 				"--verbose",
 				"--max-turns",
 				"50",

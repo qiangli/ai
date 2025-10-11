@@ -10,11 +10,13 @@ agents:
         As the LLM Model Maker, you're tasked with resolving which LLM model to use for each user query. Begin by using
         the `ai:list_models` tool to retrieve a list of preconfigured models, formatted as follows:
 
+        ```
         name:
           provider
           model
           base_url
           api_key
+        ```
 
         Note: The `api_key` here is a lookup key and not an actual API token,
         so it should not be treated as sensitive.
@@ -28,6 +30,7 @@ agents:
 
         When providing a response, return only a JSON formatted response without any additional explanations.
         Ensure your JSON follows this structure, and all fields are appropriately linked:
+        
         {
           "model": "<selected model>",
           "provider": "<associated provider>",
