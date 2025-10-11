@@ -93,8 +93,9 @@ type AppConfig struct {
 	New        *bool
 	MaxHistory int
 	MaxSpan    int
-	// history context @agent
-	History string
+
+	// history @agent
+	Context string
 
 	Models string
 
@@ -135,7 +136,8 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		//
 		AgentResource: cfg.AgentResource,
 		//
-		Agent: cfg.Agent,
+		Agent:  cfg.Agent,
+		Models: cfg.Models,
 		//
 		Args:       cfg.Args,
 		Message:    cfg.Message,
@@ -150,11 +152,11 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		Format: cfg.Format,
 		Output: cfg.Output,
 		//
-		New:        cfg.New,
 		ChatID:     cfg.ChatID,
+		New:        cfg.New,
 		MaxHistory: cfg.MaxHistory,
 		MaxSpan:    cfg.MaxSpan,
-		Models:     cfg.Models,
+		Context:    cfg.Context,
 		//
 		LogLevel: cfg.LogLevel,
 		//

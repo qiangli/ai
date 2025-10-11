@@ -127,6 +127,7 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	app.ChatID = viper.GetString("chat")
 	app.MaxHistory = viper.GetInt("max_history")
 	app.MaxSpan = viper.GetInt("max_span")
+	app.Context = viper.GetString("context")
 
 	app.MaxTurns = viper.GetInt("max_turns")
 	app.MaxTime = viper.GetInt("max_time")

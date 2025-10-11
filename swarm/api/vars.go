@@ -10,11 +10,12 @@ type Vars struct {
 	// Config *AppConfig `json:"config"`
 	LogLevel   LogLevel
 	ChatID     string
-	New        *bool
 	MaxTurns   int
 	MaxTime    int
+	New        *bool
 	MaxHistory int
 	MaxSpan    int
+	Context    string
 	Message    string
 	Format     string
 	Models     string
@@ -44,6 +45,7 @@ func (v *Vars) Clone() *Vars {
 		MaxTime:    v.MaxTime,
 		MaxHistory: v.MaxHistory,
 		MaxSpan:    v.MaxSpan,
+		Context:    v.Context,
 		Message:    v.Message,
 		Format:     v.Format,
 		Models:     v.Models,

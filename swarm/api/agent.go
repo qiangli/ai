@@ -133,23 +133,19 @@ type Agent struct {
 	Adapter string
 
 	//
-	MaxTurns int
-	MaxTime  int
-	//
 	Message string
 	Format  string
 
-	New bool
-	// MaxHistory int
-	// MaxSpan    int
+	MaxTurns int
+	MaxTime  int
+
+	New        bool
+	MaxHistory int
+	MaxSpan    int
+	Context    string
 
 	LogLevel LogLevel
-
-	//
-	// Config *AgentsConfig
 }
-
-// ... existing code ...
 
 func (a *Agent) Clone() *Agent {
 	return &Agent{
@@ -168,14 +164,15 @@ func (a *Agent) Clone() *Agent {
 		AfterAdvice:  a.AfterAdvice,
 		AroundAdvice: a.AroundAdvice,
 		Adapter:      a.Adapter,
-		MaxTurns:     a.MaxTurns,
-		MaxTime:      a.MaxTime,
 		Message:      a.Message,
 		Format:       a.Format,
+		MaxTurns:     a.MaxTurns,
+		MaxTime:      a.MaxTime,
 		New:          a.New,
+		MaxHistory:   a.MaxHistory,
+		MaxSpan:      a.MaxSpan,
+		Context:      a.Context,
 		LogLevel:     a.LogLevel,
-		//
-		// Config: a.Config,
 	}
 }
 
@@ -214,9 +211,10 @@ type AgentsConfig struct {
 
 	// memory
 	// max history: 0 max span: 0
-	New *bool `yaml:"new,omitempty"`
-	// MaxHistory int `yaml:"max_history"`
-	// MaxSpan    int `yaml:"max_span"`
+	New        *bool  `yaml:"new,omitempty"`
+	MaxHistory int    `yaml:"max_history"`
+	MaxSpan    int    `yaml:"max_span"`
+	Context    string `yaml:"context"`
 
 	// logging: quiet | informative | verbose
 	LogLevel string `yaml:"log_level"`
@@ -258,9 +256,10 @@ type AgentConfig struct {
 
 	// memory
 	// max history: 0 max span: 0
-	New *bool `yaml:"new,omitempty"`
-	// MaxHistory int `yaml:"max_history"`
-	// MaxSpan    int `yaml:"max_span"`
+	New        *bool  `yaml:"new,omitempty"`
+	MaxHistory int    `yaml:"max_history"`
+	MaxSpan    int    `yaml:"max_span"`
+	Context    string `yaml:"context"`
 
 	// logging: quiet | info[rmative] | verbose | trace
 	LogLevel string `yaml:"log_level"`

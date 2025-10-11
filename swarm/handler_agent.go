@@ -121,13 +121,15 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 
 	// 2. Historical Messages - skip system role
 	if !r.New {
-		// if r.History == "" {
-
-		// }
-		list, _ := h.summarize(ctx, req, query)
+		var list []*api.Message
+		if r.Context != "" {
+			list, _ = h.contextHistory(ctx, req, r.Context, query)
+		} else {
+			list = h.vars.History
+		}
 		if len(list) > 0 {
 			log.GetLogger(ctx).Debugf("using %v messaages from history\n", len(list))
-			for i, msg := range h.vars.History {
+			for i, msg := range list {
 				if msg.Role != api.RoleSystem {
 					history = append(history, msg)
 					log.GetLogger(ctx).Debugf("Added historical message: %v %s %s\n", i, msg.Role, head(msg.Content, 100))
@@ -289,8 +291,8 @@ func (h *agentHandler) makeModel(ctx context.Context, parent *api.Request, s str
 	return &model, nil
 }
 
-func (h *agentHandler) summarize(ctx context.Context, parent *api.Request, query string) ([]*api.Message, error) {
-	out, err := h.callAgent(parent, "context", query)
+func (h *agentHandler) contextHistory(ctx context.Context, parent *api.Request, agent, query string) ([]*api.Message, error) {
+	out, err := h.callAgent(parent, agent, query)
 	if err != nil {
 		return nil, err
 	}
@@ -307,11 +309,12 @@ func (h *agentHandler) summarize(ctx context.Context, parent *api.Request, query
 
 func (h *agentHandler) callAgent(parent *api.Request, agent string, prompt string) (string, error) {
 	req := parent.Clone()
+	req.Parent = h.agent
 	req.Agent = agent
-	input := req.RawInput.Clone()
 	// prepend additional instruction to user query
-	input.Message = prompt + "\n" + input.Message
-	req.RawInput = input
+	if len(prompt) > 0 {
+		req.RawInput.Message = prompt + "\n" + req.RawInput.Message
+	}
 
 	resp := &api.Response{}
 

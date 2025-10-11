@@ -42,14 +42,20 @@ func (s *Swarm) Clone() *Swarm {
 	return &Swarm{
 		Vars: s.Vars.Clone(),
 		//
-		User:     s.User,
-		Secrets:  s.Secrets,
-		Assets:   s.Assets,
-		Tools:    s.Tools,
+		User: s.User,
+		//
+		Secrets: s.Secrets,
+		Assets:  s.Assets,
+		Tools:   s.Tools,
+		//
 		Adapters: s.Adapters,
-		Blobs:    s.Blobs,
-		OS:       s.OS,
-		FS:       s.FS,
+		//
+		Blobs: s.Blobs,
+		//
+		OS: s.OS,
+		FS: s.FS,
+		//
+		History: s.History,
 	}
 }
 
@@ -78,6 +84,9 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	if req.Agent == "" {
 		return api.NewBadRequestError("missing agent in request")
 	}
+	if req.RawInput == nil {
+		return api.NewBadRequestError("missing raw input in request")
+	}
 
 	// before entering the loop clear all env
 	clearAllEnv()
@@ -87,6 +96,8 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 
 	maxlog := MaxLogHandler(500)
 	agentHandler := NewAgentHandler(r)
+
+	log.GetLogger(ctx).Debugf("*** Agent: %s parent: %+v\n", req.Agent, req.Parent)
 
 	for {
 		start := time.Now()

@@ -118,11 +118,14 @@ func (r *AIKit) AgentSpawn(ctx context.Context, _ *api.Vars, _ string, args map[
 	}
 
 	req := api.NewRequest(ctx, agent, r.h.agent.RawInput.Clone())
+	req.Parent = r.h.agent
+
 	resp := &api.Response{}
 
 	if err := r.h.exec(req, resp); err != nil {
 		return nil, err
 	}
+
 	return resp.Result, nil
 }
 

@@ -75,8 +75,9 @@ func (h *agentHandler) callAgentType(ctx context.Context, tf *api.ToolFunc, args
 }
 
 func (h *agentHandler) callAgentTool(ctx context.Context, tf *api.ToolFunc, args map[string]any) (any, error) {
+	// NOTE: is original input always appropriate for the tools?
 	req := api.NewRequest(ctx, tf.Agent, h.agent.RawInput.Clone())
-
+	req.Parent = h.agent
 	req.RawInput.Message, _ = atm.GetStrProp("query", args)
 	req.Arguments = args
 

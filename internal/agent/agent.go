@@ -46,16 +46,22 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		return err
 	}
 	// History
+	// preload - may not be used depending on context agent
 	mem := NewFileMemStore(cfg)
-	// history, err := mem.Load(&api.MemOption{
-	// 	MaxHistory: cfg.MaxHistory,
-	// 	MaxSpan:    cfg.MaxSpan,
-	// })
-	// if err != nil {
-	// 	return err
+	history, err := mem.Load(&api.MemOption{
+		MaxHistory: cfg.MaxHistory,
+		MaxSpan:    cfg.MaxSpan,
+	})
+	if err != nil {
+		return err
+	}
+	// TODO depends on new/max-history,max-span/context flags
+	// if len(vars.History) > 0 {
+	// 	log.GetLogger(ctx).Infof("⣿ recalling %v messages in memory less than %v minutes old\n", len(vars.History), cfg.MaxSpan)
 	// }
-	// initLen := len(history)
-	// vars.History = history
+
+	initLen := len(history)
+	vars.History = history
 
 	showInput(ctx, cfg, input)
 
@@ -89,10 +95,6 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		History: mem,
 	}
 
-	if len(vars.History) > 0 {
-		log.GetLogger(ctx).Infof("⣿ recalling %v messages in memory less than %v minutes old\n", len(vars.History), cfg.MaxSpan)
-	}
-
 	if err := sw.Run(req, resp); err != nil {
 		return err
 	}
@@ -122,16 +124,9 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		cfg.Stdout = cfg.Stdout + v.Content
 	}
 
-	// if len(vars.History) > initLen {
-	// 	log.GetLogger(ctx).Debugf("Saving conversation\n")
-	// 	if err := mem.Save(vars.History[initLen:]); err != nil {
-	// 		log.GetLogger(ctx).Errorf("error saving conversation history: %v", err)
-	// 	}
-	// }
-
-	if len(vars.History) > 0 {
+	if len(vars.History) > initLen {
 		log.GetLogger(ctx).Debugf("Saving conversation\n")
-		if err := mem.Save(vars.History); err != nil {
+		if err := mem.Save(vars.History[initLen:]); err != nil {
 			log.GetLogger(ctx).Errorf("error saving conversation history: %v", err)
 		}
 	}
@@ -174,6 +169,7 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	vars.MaxTurns = app.MaxTurns
 	vars.MaxTime = app.MaxTime
 	vars.MaxHistory = app.MaxHistory
+	vars.Context = app.Context
 	vars.MaxSpan = app.MaxSpan
 	vars.Message = app.Message
 	vars.Format = app.Format

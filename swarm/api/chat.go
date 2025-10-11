@@ -16,11 +16,12 @@ type Chat struct {
 	// data
 	Title string `json:"title"`
 }
-
 type Request struct {
+	// parent agent
+	Parent *Agent
+
 	// The name/command of the active agent
 	Agent string
-	// Command string
 
 	Messages []*Message
 
@@ -79,10 +80,27 @@ func (r *Request) WithContext(ctx context.Context) *Request {
 	return r2
 }
 
-// Clone returns a shallow copy of r
+// Clone returns a shallow copy of r while ensuring proper copying of slices and maps
 func (r *Request) Clone() *Request {
 	r2 := new(Request)
 	*r2 = *r
+
+	// fields
+	if r.Messages != nil {
+		r2.Messages = make([]*Message, len(r.Messages))
+		copy(r2.Messages, r.Messages)
+	}
+
+	if r.RawInput != nil {
+		r2.RawInput = r.RawInput.Clone()
+	}
+
+	if r.Arguments != nil {
+		r2.Arguments = make(map[string]any, len(r.Arguments))
+		for k, v := range r.Arguments {
+			r2.Arguments[k] = v
+		}
+	}
 	return r2
 }
 

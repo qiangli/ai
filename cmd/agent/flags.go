@@ -72,11 +72,11 @@ func addAgentFlags(cmd *cobra.Command) {
 	// auto adjust based on relevance of messages to the current query
 	// embedding/rag
 	// summerization
-	flags.BoolP("new", "n", false, "Start a new conversation")
 	flags.String("chat", "", "Continue conversation with the chat id")
-
+	flags.BoolP("new", "n", false, "Start a new conversation")
 	flags.Int("max-history", 3, "Max number of historic messages")
 	flags.Int("max-span", 480, "How far in minutes to go back in time for historic messages")
+	flags.String("context", "", "Context agent")
 
 	flags.MarkHidden("max-history")
 	flags.MarkHidden("max-span")

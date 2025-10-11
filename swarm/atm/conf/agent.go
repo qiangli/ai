@@ -39,6 +39,9 @@ const maxTimeLimit = 900 // 15 min
 const defaultMaxTurns = 8
 const defaultMaxTime = 180 // 3 min
 
+const defaultMaxSpan = 1440 // 24 hours
+const defaultMaxHistory = 100
+
 func normalizeAgentName(pack, name string) string {
 	ensure := func() string {
 		// pack name
@@ -304,10 +307,13 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 			MaxTurns: nzl(vars.MaxTurns, c.MaxTurns, ac.MaxTurns, defaultMaxTurns),
 			MaxTime:  nzl(vars.MaxTime, c.MaxTime, ac.MaxTime, defaultMaxTime),
 			//
-			Message:  nvl(vars.Message, c.Message, ac.Message),
-			Format:   nvl(vars.Format, c.Format, ac.Format),
-			New:      nbl(vars.New, c.New, ac.New),
-			LogLevel: api.Quiet,
+			Message:    nvl(vars.Message, c.Message, ac.Message),
+			Format:     nvl(vars.Format, c.Format, ac.Format),
+			New:        nbl(vars.New, c.New, ac.New),
+			MaxHistory: nzl(vars.MaxHistory, c.MaxHistory, ac.MaxHistory, defaultMaxHistory),
+			MaxSpan:    nzl(vars.MaxSpan, c.MaxSpan, ac.MaxSpan, defaultMaxSpan),
+			Context:    nvl(vars.Context, c.Context, ac.Context),
+			LogLevel:   api.Quiet,
 			//
 			Dependencies: c.Dependencies,
 			//
