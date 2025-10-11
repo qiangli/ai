@@ -95,21 +95,6 @@ func ExecCommand(ctx context.Context, vs vos.System, vars *api.Vars, command str
 }
 
 func RunRestricted(ctx context.Context, vs vos.System, vars *api.Vars, command string, args []string) (string, error) {
-	// TODO config per agent
-	// if isAllowed(vars.Config.AllowList, command) {
-	// 	return ExecCommand(ctx, command, args, vars.Config.IsVerbose())
-	// }
-
-	// if isDenied(vars.Config.DenyList, command) {
-	// 	log.GetLogger(ctx).Errorf("\n❌ restricted\n")
-	// 	log.GetLogger(ctx).Infof("%s %v\n", command, strings.Join(args, " "))
-	// 	if answer, err := bubble.Confirm("Continue?"); err == nil && answer == confirm.Yes {
-	// 		return ExecCommand(ctx, command, args, vars.Config.IsVerbose())
-	// 	}
-
-	// 	return "", fmt.Errorf("%s: Not allowed", command)
-	// }
-
 	safe, err := EvaluateCommand(ctx, vs, vars, command, args)
 	if err != nil {
 		return "", err

@@ -268,10 +268,7 @@ func ListAgents(assets api.AssetManager, user string) (string, int, error) {
 
 	var buf strings.Builder
 	for _, k := range keys {
-		buf.WriteString(k)
-		buf.WriteString(":\t")
-		buf.WriteString(dict[k].Description)
-		buf.WriteString("\n\n")
+		buf.WriteString(fmt.Sprintf("%s:\n    %s\n\n", k, dict[k].Description))
 	}
 	return buf.String(), len(keys), nil
 }

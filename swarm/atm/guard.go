@@ -93,6 +93,7 @@ func EvaluateCommand(ctx context.Context, vs vos.System, vars *api.Vars, command
 	} else {
 		log.GetLogger(ctx).Errorf("❌ unsafe\n")
 		log.GetLogger(ctx).Infof("%s %v\n", command, strings.Join(args, " "))
+		// TODO
 		if answer, err := bubble.Confirm("Continue?"); err == nil && answer == confirm.Yes {
 			check.Safe = true
 		}

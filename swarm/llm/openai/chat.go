@@ -110,7 +110,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	log.GetLogger(ctx).Debugf("[OpenAI] params messages: %v tools: %v\n", len(params.Messages), len(params.Tools))
 
 	for tries := range maxTurns {
-		log.GetLogger(ctx).Infof("Ⓞ @%s [%v] %s %s\n", req.Agent, tries, model, req.Model.BaseUrl)
+		log.GetLogger(ctx).Infof("Ⓞ @%s [%v] %s/%s\n", req.Agent, tries, req.Model.Provider, model)
 
 		log.GetLogger(ctx).Debugf("📡 sending request to %s: %v of %v\n%+v\n", req.Model.BaseUrl, tries, maxTurns, req)
 

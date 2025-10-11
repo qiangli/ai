@@ -245,7 +245,7 @@ func (h *agentHandler) exec(req *api.Request, resp *api.Response) error {
 	// prevent loop
 	// TODO support recursion?
 	if h.agent.Name == req.Agent {
-		return api.NewBadRequestError("agent recursion not supported: " + req.Agent)
+		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself.", req.Agent))
 	}
 
 	if err := h.sw.Clone().Run(req, resp); err != nil {
@@ -288,7 +288,7 @@ func (h *agentHandler) makeModel(ctx context.Context, parent *api.Request, agent
 		return nil, err
 	}
 
-	log.GetLogger(ctx).Infof("🤖 model: %s/%s %s\n", model.Provider, model.Model, model.BaseUrl)
+	log.GetLogger(ctx).Infof("🤖 model: %s/%s\n", model.Provider, model.Model)
 
 	// replace api key
 	ak, err := h.sw.Secrets.Get(h.sw.User.Email, model.ApiKey)

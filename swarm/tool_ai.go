@@ -257,7 +257,7 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, arg
 		return "", err
 	}
 	if count > 0 {
-		log.GetLogger(ctx).Infof("⣿ recalling %v messages in memory less than %v minutes old\n", count, maxSpan)
+		log.GetLogger(ctx).Debugf("Recalled %v messages in memory less than %v minutes old\n", count, maxSpan)
 	}
 
 	var v = fmt.Sprintf("Available messages: %v\n\n%s\n", count, list)
