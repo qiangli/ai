@@ -265,3 +265,23 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, arg
 	var v = fmt.Sprintf("Available messages: %v\n\n%s\n", count, list)
 	return v, nil
 }
+
+func (r *AIKit) MessageInfo(_ context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	id, err := atm.GetStrProp("id", args)
+	if err != nil {
+		return nil, err
+	}
+
+	v, err := r.sw.History.Get(id)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := json.MarshalIndent(v, "", "    ")
+	if err != nil {
+		return nil, err
+	}
+	return &api.Result{
+		Value: string(b),
+	}, nil
+}

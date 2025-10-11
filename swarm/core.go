@@ -87,7 +87,6 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 
 	maxlog := MaxLogHandler(500)
 	agentHandler := NewAgentHandler(r)
-	chain := NewChain(maxlog)
 
 	for {
 		start := time.Now()
@@ -139,8 +138,8 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		}
 
 		timeout := TimeoutHandler(agentHandler(r.Vars, agent), time.Duration(agent.MaxTime)*time.Second, "timed out")
-		handler := chain.Then(timeout)
-		if err := handler.Serve(req, resp); err != nil {
+		chain := NewChain(maxlog)
+		if err := chain.Then(timeout).Serve(req, resp); err != nil {
 			return err
 		}
 

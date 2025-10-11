@@ -32,6 +32,7 @@ type MemOption struct {
 type MemStore interface {
 	Save([]*Message) error
 	Load(*MemOption) ([]*Message, error)
+	Get(string) (*Message, error)
 }
 
 // Resource Store

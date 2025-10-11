@@ -16,6 +16,7 @@ import (
 
 type FileMemStore struct {
 	base string
+	app  *api.AppConfig
 }
 
 func NewFileMemStore(app *api.AppConfig) api.MemStore {
@@ -31,6 +32,7 @@ func NewFileMemStore(app *api.AppConfig) api.MemStore {
 	base := filepath.Join(chatDir, cid)
 	return &FileMemStore{
 		base: base,
+		app:  app,
 	}
 }
 
@@ -40,6 +42,20 @@ func (r *FileMemStore) Save(messages []*api.Message) error {
 
 func (r *FileMemStore) Load(opt *api.MemOption) ([]*api.Message, error) {
 	return LoadHistory(r.base, opt.MaxHistory, opt.MaxSpan)
+}
+
+func (r *FileMemStore) Get(id string) (*api.Message, error) {
+	// TODO
+	list, err := LoadHistory(r.base, r.app.MaxHistory, r.app.MaxSpan)
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range list {
+		if v.ID == id {
+			return v, nil
+		}
+	}
+	return nil, api.NewNotFoundError("message id: " + id)
 }
 
 func findLastChatID(base string) (string, error) {

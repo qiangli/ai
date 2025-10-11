@@ -85,6 +85,11 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 		return s, nil
 	}
 
+	// prepend message to user query
+	var query = req.RawInput.Query()
+	if r.Message != "" {
+		query = r.Message + "\n" + query
+	}
 	var chatID = h.vars.Config.ChatID
 	var history []*api.Message
 
@@ -111,25 +116,19 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 			Content: content,
 			Sender:  r.Name,
 		})
-		log.GetLogger(ctx).Debugf("Added new system role message: %v\n", len(history))
-	}
-
-	//
-	// prepend message to user query
-	var query = req.RawInput.Query()
-	if r.Message != "" {
-		query = r.Message + "\n" + query
+		log.GetLogger(ctx).Debugf("Added system role message: %v\n", len(history))
 	}
 
 	// 2. Historical Messages - skip system role
-	// TODO
-	if !r.New && len(h.vars.History) > 0 {
-		// msg := h.summarize(ctx, h.vars.History, query)
-		log.GetLogger(ctx).Debugf("using %v messaages from history\n", len(h.vars.History))
-		for _, msg := range h.vars.History {
-			if msg.Role != api.RoleSystem {
-				history = append(history, msg)
-				log.GetLogger(ctx).Debugf("Added historical non system role message: %v\n", len(history))
+	if !r.New {
+		list, _ := h.summarize(ctx, req, query)
+		if len(list) > 0 {
+			log.GetLogger(ctx).Debugf("using %v messaages from history\n", len(list))
+			for i, msg := range h.vars.History {
+				if msg.Role != api.RoleSystem {
+					history = append(history, msg)
+					log.GetLogger(ctx).Debugf("Added historical message: %v %s %s\n", i, msg.Role, head(msg.Content, 100))
+				}
 			}
 		}
 	}
@@ -154,7 +153,7 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 	}
 
 	history = append(history, req.Messages...)
-	log.GetLogger(ctx).Debugf("Added new user role message: %v\n", len(history))
+	log.GetLogger(ctx).Debugf("Added user role message: %v\n", len(history))
 
 	// Request
 	initLen := len(history)
@@ -287,26 +286,20 @@ func (h *agentHandler) makeModel(ctx context.Context, parent *api.Request, s str
 	return &model, nil
 }
 
-func (h *agentHandler) summarize(ctx context.Context, parent *api.Request, history []*api.Message, agent string) (*api.Message, error) {
-	log.GetLogger(ctx).Debugf("using %v messaages from history\n", len(history))
-	for _, msg := range history {
-		if msg.Role != api.RoleSystem {
-			history = append(history, msg)
-			log.GetLogger(ctx).Debugf("Added historical non system role message: %v\n", len(history))
-		}
-	}
-
-	content, err := h.callAgent(parent, agent, "")
+func (h *agentHandler) summarize(ctx context.Context, parent *api.Request, query string) ([]*api.Message, error) {
+	out, err := h.callAgent(parent, "context", query)
 	if err != nil {
 		return nil, err
 	}
 
-	log.GetLogger(ctx).Infof("🤖 context: %s\n", head(content, 100))
-	msg := &api.Message{
-		Content: content,
-		Role:    "",
+	var list []*api.Message
+	if err := json.Unmarshal([]byte(out), &list); err != nil {
+		return nil, err
 	}
-	return msg, nil
+
+	log.GetLogger(ctx).Infof("🤖 context messages: (%v) %s\n", len(list), head(out, 100))
+
+	return list, nil
 }
 
 func (h *agentHandler) callAgent(parent *api.Request, agent string, prompt string) (string, error) {
