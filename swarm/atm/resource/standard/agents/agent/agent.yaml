@@ -1,4 +1,5 @@
 ###
+context: "@context"
 agents:
   - name: "agent"
     display: "🚀 Agent"

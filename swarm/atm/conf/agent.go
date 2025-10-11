@@ -32,16 +32,6 @@ var (
 	agentCache = expirable.NewLRU[AgentCacheKey, *api.Agent](10000, nil, time.Second*900)
 )
 
-// max hard upper limits
-const maxTurnsLimit = 100
-const maxTimeLimit = 900 // 15 min
-
-const defaultMaxTurns = 8
-const defaultMaxTime = 180 // 3 min
-
-const defaultMaxSpan = 1440 // 24 hours
-const defaultMaxHistory = 100
-
 func normalizeAgentName(pack, name string) string {
 	ensure := func() string {
 		// pack name
