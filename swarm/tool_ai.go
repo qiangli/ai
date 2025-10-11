@@ -38,6 +38,11 @@ var (
 	listToolsCache  = expirable.NewLRU[ListCacheKey, string](10000, nil, time.Second*900)
 )
 
+func (r *AIKit) Call(ctx context.Context, vars *api.Vars, _ api.SecretToken, tf *api.ToolFunc, args map[string]any) (any, error) {
+	callArgs := []any{ctx, vars, tf.Name, args}
+	return atm.CallKit(r, tf.Config.Kit, tf.Name, callArgs...)
+}
+
 func (r *AIKit) ListAgents(ctx context.Context, vars *api.Vars, _ string, _ map[string]any) (string, error) {
 	var user = r.sw.User.Email
 	// cached list
@@ -230,9 +235,4 @@ func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, tf string, args 
 	listToolsCache.Add(key, v)
 
 	return v, nil
-}
-
-func (r *AIKit) Call(ctx context.Context, vars *api.Vars, _ api.SecretToken, tf *api.ToolFunc, args map[string]any) (any, error) {
-	callArgs := []any{ctx, vars, tf.Name, args}
-	return atm.CallKit(r, tf.Config.Kit, tf.Name, callArgs...)
 }

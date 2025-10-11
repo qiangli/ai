@@ -80,3 +80,30 @@ tools:
     parameters:
       type: object
       properties: {}
+
+  - name: "list_messages"
+    description: "Retrieve a list of messages from past conversations based on specified criteria"
+    parameters:
+      type: "object"
+      properties:
+        max_history:
+          type: "integer"
+          description: "The maximum number of past messages to retrieve"
+          default: 3
+          minimum: 0
+        max_span:
+          type: "integer"
+          description: "The time frame, in minutes, to look back for past messages"
+          default: 1440
+          minimum: 0
+  - name: "message_info"
+    description: "Retrieve detailed information for a specific message"
+    parameters:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          description: "A unique identifier for the message"
+      required:
+        - "id"
+ ###
