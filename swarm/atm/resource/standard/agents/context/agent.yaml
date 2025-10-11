@@ -1,4 +1,5 @@
 ###
+new: true
 agents:
   - name: "context"
     display: "🌐 Context Summarizer"

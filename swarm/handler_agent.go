@@ -94,7 +94,7 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 	var history []*api.Message
 
 	// 1. New System Message
-	// System role prompt as first message
+	// system role prompt as first message
 	if r.Instruction != nil {
 		// update the request instruction
 		content, err := apply(h.vars, r.Instruction.Type, r.Instruction.Content)
@@ -102,6 +102,7 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 			return err
 		}
 
+		// dynamic @prompt if requested
 		content, err = h.makePrompt(ctx, req, content)
 		if err != nil {
 			return err
@@ -119,7 +120,9 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 		log.GetLogger(ctx).Debugf("Added system role message: %v\n", len(history))
 	}
 
-	// 2. Historical Messages - skip system role
+	// 2. Historical Messages
+	// support dynamic context history
+	// skip system role
 	if !r.New {
 		var list []*api.Message
 		if r.Context != "" {
@@ -128,7 +131,7 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 			list = h.vars.History
 		}
 		if len(list) > 0 {
-			log.GetLogger(ctx).Debugf("using %v messaages from history\n", len(list))
+			log.GetLogger(ctx).Infof("🤖 context messages: %v\n", len(list))
 			for i, msg := range list {
 				if msg.Role != api.RoleSystem {
 					history = append(history, msg)
@@ -239,6 +242,12 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 
 // run sub agent with inherited env
 func (h *agentHandler) exec(req *api.Request, resp *api.Response) error {
+	// prevent loop
+	// TODO support recursion?
+	if h.agent.Name == req.Agent {
+		return api.NewBadRequestError("agent recursion not supported: " + req.Agent)
+	}
+
 	if err := h.sw.Clone().Run(req, resp); err != nil {
 		return err
 	}
@@ -301,8 +310,7 @@ func (h *agentHandler) contextHistory(ctx context.Context, parent *api.Request, 
 		return nil, err
 	}
 
-	log.GetLogger(ctx).Infof("🤖 context messages: (%v) %s\n", len(list), head(out, 100))
-
+	log.GetLogger(ctx).Debugf("dynamic context messages: (%v) %s\n", len(list), head(out, 100))
 	return list, nil
 }
 

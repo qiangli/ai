@@ -112,11 +112,6 @@ func (r *AIKit) AgentSpawn(ctx context.Context, _ *api.Vars, _ string, args map[
 		return nil, err
 	}
 
-	// prevent loop
-	if r.h.agent.Name == agent {
-		return nil, fmt.Errorf("you are %q! Calling yourself not permitted", agent)
-	}
-
 	req := api.NewRequest(ctx, agent, r.h.agent.RawInput.Clone())
 	req.Parent = r.h.agent
 
