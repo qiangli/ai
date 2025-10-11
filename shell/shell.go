@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
+	// "path/filepath"
 	"strings"
 
 	"github.com/c-bata/go-prompt"
@@ -35,14 +35,14 @@ func Shell(ctx context.Context, cfg *api.AppConfig) error {
 	// 	}
 	// }()
 
-	os.Setenv("SHELL", vars.Config.Shell)
+	// os.Setenv("SHELL", vars.Config.Shell)
 
 	// run sub commands
-	if len(vars.Config.Args) > 0 {
-		input := strings.Join(vars.Config.Args, " ")
-		dispatch(ctx, vars.Config.Shell, input)
-		return nil
-	}
+	// if len(vars.Config.Args) > 0 {
+	// 	input := strings.Join(vars.Config.Args, " ")
+	// 	dispatch(ctx, vars.Config.Shell, input)
+	// 	return nil
+	// }
 
 	// interactive mode
 
@@ -102,7 +102,7 @@ func Shell(ctx context.Context, cfg *api.AppConfig) error {
 			prompt.OptionScrollbarBGColor(prompt.DefaultColor),
 		)
 
-		if !dispatch(ctx, vars.Config.Shell, input) {
+		if !dispatch(ctx, "/bin/bash", input) {
 			return nil
 		}
 	}
@@ -117,15 +117,15 @@ func commandErr(command string, err error) {
 }
 
 func initRc(vars *api.Vars) error {
-	rc := filepath.Join(filepath.Dir(vars.Config.ConfigFile), "rc.sh")
-	if _, err := os.Stat(rc); err != nil && os.IsNotExist(err) {
-		return nil
-	} else if err != nil {
-		return nil
-	}
-	if err := runSource(vars.Config.Shell, rc); err != nil {
-		return err
-	}
+	// rc := filepath.Join(filepath.Dir(vars.Config.ConfigFile), "rc.sh")
+	// if _, err := os.Stat(rc); err != nil && os.IsNotExist(err) {
+	// 	return nil
+	// } else if err != nil {
+	// 	return nil
+	// }
+	// if err := runSource(vars.Config.Shell, rc); err != nil {
+	// 	return err
+	// }
 	return nil
 }
 

@@ -292,7 +292,7 @@
 				// "AI_DEBUG": "true",
 			},
 			"args": [
-				"--new",
+				"--new=false",
 				"--verbose",
 				"--max-turns",
 				"50",

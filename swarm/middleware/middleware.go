@@ -38,7 +38,7 @@ func Middleware(model *api.Model, vars *api.Vars) option.Middleware {
 		var resp *http.Response
 		var err error
 
-		if vars.Config.DryRun {
+		if vars.DryRun {
 			resp, err = fake(req, model, vars)
 		} else {
 			// Call the next middleware in the chain.

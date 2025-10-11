@@ -6,6 +6,10 @@ import (
 
 type LogLevel int
 
+func (r LogLevel) String() string {
+	return LogLevelToString(r)
+}
+
 const (
 	Quiet LogLevel = iota + 1
 	Informative
@@ -81,17 +85,16 @@ type AppConfig struct {
 	// user
 	User *User
 
-	// conversation history
-	New        *bool
-	MaxHistory int
-	MaxSpan    int
-
 	// chat id to continue the conersation
 	// <config_base>/chat/<id>.json
 	ChatID string
 
-	//<config_base>/chat/<id>/*.json
-	History MemStore
+	// conversation history
+	New        *bool
+	MaxHistory int
+	MaxSpan    int
+	// history context @agent
+	History string
 
 	Models string
 

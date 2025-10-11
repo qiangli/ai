@@ -38,13 +38,14 @@ type UserInput struct {
 }
 
 func (r *UserInput) String() string {
-	var sb strings.Builder
-	// sb.WriteString(fmt.Sprintf("Agent: %s\n", r.Agent))
-	sb.WriteString(fmt.Sprintf("Message#: %v\n", len(r.Message)))
-	sb.WriteString(fmt.Sprintf("Content#: %v\n", len(r.Content)))
-	sb.WriteString(fmt.Sprintf("Intent: %s\n", r.Intent()))
+	return fmt.Sprintf("message: %v content: %v", len(r.Message), len(r.Content))
+	// var sb strings.Builder
+	// // sb.WriteString(fmt.Sprintf("Agent: %s\n", r.Agent))
+	// sb.WriteString(fmt.Sprintf("message#: %v ", len(r.Message)))
+	// sb.WriteString(fmt.Sprintf("content#: %v ", len(r.Content)))
+	// // sb.WriteString(fmt.Sprintf("Intent: %s\n", r.Intent()))
 
-	return sb.String()
+	// return sb.String()
 }
 
 func (r *UserInput) Clone() *UserInput {

@@ -20,10 +20,10 @@ var visitedRegistry *VisitedRegistry
 func initRegistry(vars *api.Vars) (err error) {
 	commandRegistry = util.ListCommands()
 	// agentRegistry = vars.ListAgents()
-	aliasRegistry, err = listAlias(vars.Config.Shell)
-	if err != nil {
-		return err
-	}
+	// aliasRegistry, err = listAlias(vars.Config.Shell)
+	// if err != nil {
+	// 	return err
+	// }
 	visitedRegistry, err = NewVisitedRegistry()
 	if err != nil {
 		return err

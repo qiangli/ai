@@ -166,8 +166,23 @@ func processOutput(ctx context.Context, cfg *api.AppConfig, message *api.Output)
 
 func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	var vars = api.NewVars()
+
+	// Setting configuration values from the app to vars
+	vars.LogLevel = api.ToLogLevel(app.LogLevel)
+	vars.ChatID = app.ChatID
+	vars.New = app.New
+	vars.MaxTurns = app.MaxTurns
+	vars.MaxTime = app.MaxTime
+	vars.MaxHistory = app.MaxHistory
+	vars.MaxSpan = app.MaxSpan
+	vars.Message = app.Message
+	vars.Format = app.Format
+	vars.Models = app.Models
+	vars.Unsafe = app.Unsafe
+	vars.DryRun = app.DryRun
+	vars.DryRunContent = app.DryRunContent
 	//
-	vars.Config = app
+	vars.Workspace = app.Workspace
 	//
 	vars.Workspace = app.Workspace
 

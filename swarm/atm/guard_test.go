@@ -27,7 +27,7 @@ func TestEvaluateCommand(t *testing.T) {
 	log.GetLogger(ctx).SetLogLevel(log.Verbose)
 
 	var vars = api.NewVars()
-	vars.Config = &api.AppConfig{}
+	// vars.Config = &api.AppConfig{}
 
 	tests := []struct {
 		command string

@@ -31,7 +31,7 @@ type CommandCheck struct {
 
 // EvaluateCommand consults LLM to evaluate the safety of a command
 func EvaluateCommand(ctx context.Context, vs vos.System, vars *api.Vars, command string, args []string) (bool, error) {
-	if vars.Config.Unsafe {
+	if vars.Unsafe {
 		log.GetLogger(ctx).Infof("⚠️ unsafe mode - skipping security check\n")
 		return true, nil
 	}
@@ -69,7 +69,7 @@ func EvaluateCommand(ctx context.Context, vs vos.System, vars *api.Vars, command
 		},
 		// Tools:    vars.Config.SystemTools,
 		// RunTool:  runTool,
-		MaxTurns: vars.Config.MaxTurns,
+		MaxTurns: vars.MaxTurns,
 		Vars:     vars,
 	}
 

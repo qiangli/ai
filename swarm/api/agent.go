@@ -138,13 +138,15 @@ type Agent struct {
 	//
 	Message string
 	Format  string
-	New     bool
+
+	New bool
 	// MaxHistory int
 	// MaxSpan    int
+
 	LogLevel LogLevel
 
 	//
-	Config *AgentsConfig
+	// Config *AgentsConfig
 }
 
 // ... existing code ...
@@ -173,7 +175,7 @@ func (a *Agent) Clone() *Agent {
 		New:          a.New,
 		LogLevel:     a.LogLevel,
 		//
-		Config: a.Config,
+		// Config: a.Config,
 	}
 }
 

@@ -301,17 +301,17 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 			RawInput:  input,
 			Arguments: c.Arguments,
 			//
-			MaxTurns: nzl(vars.Config.MaxTurns, c.MaxTurns, ac.MaxTurns, defaultMaxTurns),
-			MaxTime:  nzl(vars.Config.MaxTime, c.MaxTime, ac.MaxTime, defaultMaxTime),
+			MaxTurns: nzl(vars.MaxTurns, c.MaxTurns, ac.MaxTurns, defaultMaxTurns),
+			MaxTime:  nzl(vars.MaxTime, c.MaxTime, ac.MaxTime, defaultMaxTime),
 			//
-			Message:  nvl(vars.Config.Message, c.Message, ac.Message),
-			Format:   nvl(vars.Config.Format, c.Format, ac.Format),
-			New:      nbl(vars.Config.New, c.New, ac.New),
+			Message:  nvl(vars.Message, c.Message, ac.Message),
+			Format:   nvl(vars.Format, c.Format, ac.Format),
+			New:      nbl(vars.New, c.New, ac.New),
 			LogLevel: api.Quiet,
 			//
 			Dependencies: c.Dependencies,
 			//
-			Config: ac,
+			// Config: ac,
 		}
 
 		// hard limit
@@ -319,7 +319,7 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 		agent.MaxTime = min(agent.MaxTime, maxTimeLimit)
 
 		// log
-		agent.LogLevel = api.ToLogLevel(nvl(vars.Config.LogLevel, c.LogLevel, ac.LogLevel, "quiet"))
+		agent.LogLevel = api.ToLogLevel(nvl(vars.LogLevel.String(), c.LogLevel, ac.LogLevel, "quiet"))
 
 		// llm model [alias/]level
 		model := nvl(c.Model, ac.Model)
@@ -330,9 +330,9 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 				Model: model,
 			}
 		} else {
-			alias, level := resolveModelLevel(vars.Config.Models, model)
+			alias, level := resolveModelLevel(vars.Models, model)
 			if v, err := loadModel(owner, alias, level, secrets, assets); err != nil {
-				return nil, fmt.Errorf("failed to load model: %s %s %v", vars.Config.Models, model, err)
+				return nil, fmt.Errorf("failed to load model: %s %s %v", vars.Models, model, err)
 			} else {
 				agent.Model = v
 			}

@@ -44,7 +44,7 @@ func dummyChatCompletion(model *api.Model, vars *api.Vars) *openai.ChatCompletio
 	return &openai.ChatCompletion{
 		ID: uuid.NewString(),
 		Choices: []openai.ChatCompletionChoice{
-			dummyChatCompletionChoice(vars.Config.DryRunContent),
+			dummyChatCompletionChoice(vars.DryRunContent),
 		},
 		Created:           time.Now().Unix(),
 		Model:             model.Model,

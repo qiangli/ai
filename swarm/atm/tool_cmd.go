@@ -87,8 +87,8 @@ func RunCommandVerbose(ctx context.Context, vs vos.System, command string, args 
 	return out, nil
 }
 
-func ExecCommand(ctx context.Context, vs vos.System, command string, args []string, verbose bool) (string, error) {
-	if verbose {
+func ExecCommand(ctx context.Context, vs vos.System, vars *api.Vars, command string, args []string) (string, error) {
+	if vars.LogLevel == api.Verbose {
 		return RunCommandVerbose(ctx, vs, command, args)
 	}
 	return RunCommand(ctx, vs, command, args)
@@ -115,7 +115,7 @@ func RunRestricted(ctx context.Context, vs vos.System, vars *api.Vars, command s
 		return "", err
 	}
 	if safe {
-		return ExecCommand(ctx, vs, command, args, vars.Config.IsVerbose())
+		return ExecCommand(ctx, vs, vars, command, args)
 	}
 
 	return "", fmt.Errorf("%s %s: Not permitted", command, strings.Join(args, " "))

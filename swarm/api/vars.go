@@ -7,8 +7,24 @@ const (
 
 // global context
 type Vars struct {
-	Config *AppConfig `json:"config"`
+	// Config *AppConfig `json:"config"`
+	LogLevel   LogLevel
+	ChatID     string
+	New        *bool
+	MaxTurns   int
+	MaxTime    int
+	MaxHistory int
+	MaxSpan    int
+	Message    string
+	Format     string
+	Models     string
 
+	Unsafe bool
+
+	DryRun        bool
+	DryRunContent string
+
+	//
 	Workspace string `json:"workspace"`
 
 	//
@@ -20,7 +36,23 @@ type Vars struct {
 
 func (v *Vars) Clone() *Vars {
 	clone := &Vars{
-		Config:    v.Config,
+		// Config:    v.Config,
+		LogLevel:   v.LogLevel,
+		ChatID:     v.ChatID,
+		New:        v.New,
+		MaxTurns:   v.MaxTurns,
+		MaxTime:    v.MaxTime,
+		MaxHistory: v.MaxHistory,
+		MaxSpan:    v.MaxSpan,
+		Message:    v.Message,
+		Format:     v.Format,
+		Models:     v.Models,
+		//
+		Unsafe: v.Unsafe,
+		//
+		DryRun:        v.DryRun,
+		DryRunContent: v.DryRunContent,
+		//
 		Workspace: v.Workspace,
 		Extra:     make(map[string]string),
 		History:   make([]*Message, len(v.History)),

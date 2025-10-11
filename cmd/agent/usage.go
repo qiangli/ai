@@ -132,26 +132,26 @@ func Help(ctx context.Context, cmd *cobra.Command, args []string) error {
 	}
 	log.GetLogger(ctx).SetLogLevel(api.ToLogLevel("info"))
 
-	vars, err := agent.InitVars(cfg)
-	if err != nil {
-		return err
-	}
+	// vars, err := agent.InitVars(cfg)
+	// if err != nil {
+	// 	return err
+	// }
 
 	if len(args) > 0 {
 		for _, v := range args {
 			switch v {
 			case "agents", "agent":
-				return HelpAgents(ctx, vars)
+				return HelpAgents(ctx, cfg)
 			case "commands", "command":
 				return HelpCommands(ctx)
 			case "tools", "tool":
-				return HelpTools(ctx, vars)
+				return HelpTools(ctx, cfg)
 			case "models", "model", "aliases", "alias":
-				return HelpModels(ctx, vars)
+				return HelpModels(ctx, cfg)
 			case "history":
-				return HelpHistory(ctx, vars)
+				return HelpHistory(ctx, cfg)
 			case "info":
-				return HelpInfo(ctx, vars)
+				return HelpInfo(ctx, cfg)
 			}
 		}
 	}
@@ -178,7 +178,7 @@ func Help(ctx context.Context, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func HelpInfo(ctx context.Context, vars *api.Vars) error {
+func HelpInfo(ctx context.Context, app *api.AppConfig) error {
 	const format = `System info:
 
 %v
@@ -202,7 +202,7 @@ AI Environment:
 		return err
 	}
 
-	ac, err := json.MarshalIndent(vars.Config, "", "  ")
+	ac, err := json.MarshalIndent(app, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -230,7 +230,7 @@ AI Environment:
 	return nil
 }
 
-func HelpAgents(ctx context.Context, vars *api.Vars) error {
+func HelpAgents(ctx context.Context, app *api.AppConfig) error {
 	const format = `Available agents:
 
 %s
@@ -251,8 +251,8 @@ AI will choose an appropriate agent based on your message if no agent is specifi
 * If you specify agents at both the beginning and end of a message, the last one takes precedence.
 * You can place command options anywhere in your message. To include options as part of the message, use quotes or escape '\'.
 `
-	assets := conf.Assets(vars.Config)
-	list, count, _ := atmconf.ListAgents(assets, vars.Config.User.Email)
+	assets := conf.Assets(app)
+	list, count, _ := atmconf.ListAgents(assets, app.User.Email)
 	log.GetLogger(ctx).Infof(format, list, count)
 
 	return nil
@@ -289,7 +289,7 @@ func collectSystemInfo() (string, error) {
 	return string(jd), nil
 }
 
-func HelpTools(ctx context.Context, vars *api.Vars) error {
+func HelpTools(ctx context.Context, app *api.AppConfig) error {
 
 	const listTpl = `Available tools:
 
@@ -298,14 +298,14 @@ Total: %v
 
 Tools are used by agents to perform specific tasks. They are automatically selected based on the agent's capabilities and your input message.
 `
-	assets := conf.Assets(vars.Config)
-	list, count, _ := atmconf.ListTools(assets, vars.Config.User.Email)
+	assets := conf.Assets(app)
+	list, count, _ := atmconf.ListTools(assets, app.User.Email)
 
 	log.GetLogger(ctx).Infof(listTpl, list, count)
 	return nil
 }
 
-func HelpModels(ctx context.Context, vars *api.Vars) error {
+func HelpModels(ctx context.Context, app *api.AppConfig) error {
 
 	const listTpl = `Available models:
 
@@ -314,24 +314,24 @@ Total: %v
 
 Model Alias can be used to reference a group of LLM models. You can mix and match different providers for one alias.
 `
-	assets := conf.Assets(vars.Config)
-	list, count, _ := atmconf.ListModels(assets, vars.Config.User.Email)
+	assets := conf.Assets(app)
+	list, count, _ := atmconf.ListModels(assets, app.User.Email)
 
 	log.GetLogger(ctx).Infof(listTpl, list, count)
 	return nil
 }
 
-func HelpHistory(ctx context.Context, vars *api.Vars) error {
+func HelpHistory(ctx context.Context, app *api.AppConfig) error {
 
 	const listTpl = `Available messages:
 
 %s
 Total: %v
 `
-	mem := agent.NewFileMemStore(vars.Config)
+	mem := agent.NewFileMemStore(app)
 	list, count, _ := atmconf.ListHistory(mem, &api.MemOption{
-		MaxHistory: vars.Config.MaxHistory,
-		MaxSpan:    vars.Config.MaxSpan,
+		MaxHistory: app.MaxHistory,
+		MaxSpan:    app.MaxSpan,
 	})
 
 	log.GetLogger(ctx).Infof(listTpl, list, count)

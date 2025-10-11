@@ -90,7 +90,7 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 	if r.Message != "" {
 		query = r.Message + "\n" + query
 	}
-	var chatID = h.vars.Config.ChatID
+	var chatID = h.vars.ChatID
 	var history []*api.Message
 
 	// 1. New System Message
@@ -121,6 +121,9 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 
 	// 2. Historical Messages - skip system role
 	if !r.New {
+		// if r.History == "" {
+
+		// }
 		list, _ := h.summarize(ctx, req, query)
 		if len(list) > 0 {
 			log.GetLogger(ctx).Debugf("using %v messaages from history\n", len(list))
@@ -306,7 +309,6 @@ func (h *agentHandler) callAgent(parent *api.Request, agent string, prompt strin
 	req := parent.Clone()
 	req.Agent = agent
 	input := req.RawInput.Clone()
-	// input.Agent = agent
 	// prepend additional instruction to user query
 	input.Message = prompt + "\n" + input.Message
 	req.RawInput = input
