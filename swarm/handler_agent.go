@@ -256,7 +256,7 @@ func (h *agentHandler) makePrompt(ctx context.Context, parent *api.Request, s st
 		return s, nil
 	}
 	// @agent instruction...
-	agent, instruction := split2(content[1:], " ", "")
+	agent, instruction := split2(content, " ", "")
 	prompt, err := h.callAgent(parent, agent, instruction)
 
 	if err != nil {
@@ -269,8 +269,7 @@ func (h *agentHandler) makePrompt(ctx context.Context, parent *api.Request, s st
 }
 
 // dynamcally make LLM model
-func (h *agentHandler) makeModel(ctx context.Context, parent *api.Request, s string) (*api.Model, error) {
-	agent := strings.TrimPrefix(s, "@")
+func (h *agentHandler) makeModel(ctx context.Context, parent *api.Request, agent string) (*api.Model, error) {
 	out, err := h.callAgent(parent, agent, "")
 	if err != nil {
 		return nil, err
@@ -307,7 +306,9 @@ func (h *agentHandler) contextHistory(ctx context.Context, parent *api.Request, 
 	return list, nil
 }
 
-func (h *agentHandler) callAgent(parent *api.Request, agent string, prompt string) (string, error) {
+func (h *agentHandler) callAgent(parent *api.Request, s string, prompt string) (string, error) {
+	agent := strings.TrimPrefix(s, "@")
+
 	req := parent.Clone()
 	req.Parent = h.agent
 	req.Agent = agent
