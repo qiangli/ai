@@ -148,6 +148,8 @@ func Help(ctx context.Context, cmd *cobra.Command, args []string) error {
 				return HelpTools(ctx, vars)
 			case "models", "model", "aliases", "alias":
 				return HelpModels(ctx, vars)
+			case "history":
+				return HelpHistory(ctx, vars)
 			case "info":
 				return HelpInfo(ctx, vars)
 			}
@@ -314,6 +316,23 @@ Model Alias can be used to reference a group of LLM models. You can mix and matc
 `
 	assets := conf.Assets(vars.Config)
 	list, count, _ := atmconf.ListModels(assets, vars.Config.User.Email)
+
+	log.GetLogger(ctx).Infof(listTpl, list, count)
+	return nil
+}
+
+func HelpHistory(ctx context.Context, vars *api.Vars) error {
+
+	const listTpl = `Available messages:
+
+%s
+Total: %v
+`
+	mem := agent.NewFileMemStore(vars.Config)
+	list, count, _ := atmconf.ListHistory(mem, &api.MemOption{
+		MaxHistory: vars.Config.MaxHistory,
+		MaxSpan:    vars.Config.MaxSpan,
+	})
 
 	log.GetLogger(ctx).Infof(listTpl, list, count)
 	return nil

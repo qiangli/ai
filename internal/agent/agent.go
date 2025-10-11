@@ -47,15 +47,15 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	}
 	// History
 	mem := NewFileMemStore(cfg)
-	history, err := mem.Load(&api.MemOption{
-		MaxHistory: cfg.MaxHistory,
-		MaxSpan:    cfg.MaxSpan,
-	})
-	if err != nil {
-		return err
-	}
-	initLen := len(history)
-	vars.History = history
+	// history, err := mem.Load(&api.MemOption{
+	// 	MaxHistory: cfg.MaxHistory,
+	// 	MaxSpan:    cfg.MaxSpan,
+	// })
+	// if err != nil {
+	// 	return err
+	// }
+	// initLen := len(history)
+	// vars.History = history
 
 	showInput(ctx, cfg, input)
 
@@ -85,6 +85,8 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		Blobs:    blobs,
 		OS:       os,
 		FS:       fs,
+		//
+		History: mem,
 	}
 
 	if len(vars.History) > 0 {
@@ -120,9 +122,16 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		cfg.Stdout = cfg.Stdout + v.Content
 	}
 
-	if len(vars.History) > initLen {
+	// if len(vars.History) > initLen {
+	// 	log.GetLogger(ctx).Debugf("Saving conversation\n")
+	// 	if err := mem.Save(vars.History[initLen:]); err != nil {
+	// 		log.GetLogger(ctx).Errorf("error saving conversation history: %v", err)
+	// 	}
+	// }
+
+	if len(vars.History) > 0 {
 		log.GetLogger(ctx).Debugf("Saving conversation\n")
-		if err := mem.Save(vars.History[initLen:]); err != nil {
+		if err := mem.Save(vars.History); err != nil {
 			log.GetLogger(ctx).Errorf("error saving conversation history: %v", err)
 		}
 	}

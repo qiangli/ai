@@ -18,7 +18,7 @@ type FileMemStore struct {
 	base string
 }
 
-func NewFileMemStore(app *api.AppConfig) *FileMemStore {
+func NewFileMemStore(app *api.AppConfig) api.MemStore {
 	chatDir := filepath.Join(app.Base, "chat")
 	cid := app.ChatID
 	if cid == "" {

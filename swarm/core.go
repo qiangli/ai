@@ -34,6 +34,8 @@ type Swarm struct {
 
 	OS vos.System
 	FS vfs.FileSystem
+
+	History api.MemStore
 }
 
 func (s *Swarm) Clone() *Swarm {

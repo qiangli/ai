@@ -43,7 +43,9 @@ func (r *AIKit) Call(ctx context.Context, vars *api.Vars, _ api.SecretToken, tf 
 	return atm.CallKit(r, tf.Config.Kit, tf.Name, callArgs...)
 }
 
-func (r *AIKit) ListAgents(ctx context.Context, vars *api.Vars, _ string, _ map[string]any) (string, error) {
+func (r *AIKit) ListAgents(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
+	log.GetLogger(ctx).Debugf("List agents: %s %+v\n", tf, args)
+
 	var user = r.sw.User.Email
 	// cached list
 	key := ListCacheKey{
@@ -125,7 +127,7 @@ func (r *AIKit) AgentSpawn(ctx context.Context, _ *api.Vars, _ string, args map[
 }
 
 func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
-	log.GetLogger(ctx).Debugf("List tool: %s %+v\n", tf, args)
+	log.GetLogger(ctx).Debugf("List tools: %s %+v\n", tf, args)
 
 	var user = r.sw.User.Email
 	// cached list
@@ -214,7 +216,7 @@ func (r *AIKit) ToolExecute(ctx context.Context, _ *api.Vars, tf string, args ma
 }
 
 func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
-	log.GetLogger(ctx).Debugf("List model: %s %+v\n", tf, args)
+	log.GetLogger(ctx).Debugf("List models: %s %+v\n", tf, args)
 
 	var user = r.sw.User.Email
 	// cached list
@@ -234,5 +236,32 @@ func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, tf string, args 
 	var v = fmt.Sprintf("Available models: %v\n\n%s\n", count, list)
 	listToolsCache.Add(key, v)
 
+	return v, nil
+}
+
+func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
+	log.GetLogger(ctx).Debugf("List messages: %s %+v\n", tf, args)
+
+	maxHistory, err := atm.GetIntProp("max_history", args)
+	if err != nil {
+		return "", err
+	}
+	maxSpan, err := atm.GetIntProp("max_span", args)
+	if err != nil {
+		return "", err
+	}
+
+	list, count, err := conf.ListHistory(r.sw.History, &api.MemOption{
+		MaxHistory: maxHistory,
+		MaxSpan:    maxSpan,
+	})
+	if err != nil {
+		return "", err
+	}
+	if count > 0 {
+		log.GetLogger(ctx).Infof("⣿ recalling %v messages in memory less than %v minutes old\n", count, maxSpan)
+	}
+
+	var v = fmt.Sprintf("Available messages: %v\n\n%s\n", count, list)
 	return v, nil
 }
