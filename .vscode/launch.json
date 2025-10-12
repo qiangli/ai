@@ -16,14 +16,16 @@
 			},
 			"args": [
 				"--verbose",
-				"--new",
-				"@new",
+				"@context",
 				"--max-time",
 				"900",
+				"--max-history",
+				"100",
+				"--max-span",
+				"14400",
 				"--message",
-				"help",
-				"generate a random password"
-
+				// "generate a random password"
+				"what is the weather"
 			],
 			"showLog": false,
 			"stopOnEntry": false

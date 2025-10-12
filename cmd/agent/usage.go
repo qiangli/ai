@@ -148,7 +148,7 @@ func Help(ctx context.Context, cmd *cobra.Command, args []string) error {
 				return HelpTools(ctx, cfg)
 			case "models", "model", "aliases", "alias":
 				return HelpModels(ctx, cfg)
-			case "history":
+			case "history", "messages", "message":
 				return HelpHistory(ctx, cfg)
 			case "info":
 				return HelpInfo(ctx, cfg)
