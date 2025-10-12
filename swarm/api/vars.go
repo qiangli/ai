@@ -7,6 +7,9 @@ const (
 
 // global context
 type Vars struct {
+	Agent   string `json:"agent"`
+	Message string `json:"message"`
+
 	LogLevel LogLevel `json:"log_level"`
 
 	ChatID     string `json:"chat_id"`
@@ -16,17 +19,16 @@ type Vars struct {
 	MaxHistory int    `json:"max_history"`
 	MaxSpan    int    `json:"max_span"`
 	Context    string `json:"context"`
-	Message    string `json:"message"`
 	Format     string `json:"format"`
 	Models     string `json:"models"`
 
-	Unsafe bool `json:"unsafe"`
+	Unsafe    bool   `json:"unsafe"`
+	Workspace string `json:"workspace"`
 
-	DryRun        bool   `json:"dry_run"`
-	DryRunContent string `json:"dry_run_content"`
-	Workspace     string `json:"workspace"`
+	DryRun        bool   `json:"-"`
+	DryRunContent string `json:"-"`
 
-	Extra map[string]string `json:"extra"`
+	Extra map[string]string `json:"-"`
 
 	// conversation history
 	History []*Message `json:"-"`
@@ -34,25 +36,28 @@ type Vars struct {
 
 func (v *Vars) Clone() *Vars {
 	clone := &Vars{
-		// Config:    v.Config,
-		LogLevel:   v.LogLevel,
+		Agent:   v.Agent,
+		Message: v.Message,
+		//
 		ChatID:     v.ChatID,
 		New:        v.New,
-		MaxTurns:   v.MaxTurns,
-		MaxTime:    v.MaxTime,
 		MaxHistory: v.MaxHistory,
 		MaxSpan:    v.MaxSpan,
 		Context:    v.Context,
-		Message:    v.Message,
-		Format:     v.Format,
-		Models:     v.Models,
 		//
-		Unsafe: v.Unsafe,
+		MaxTurns: v.MaxTurns,
+		MaxTime:  v.MaxTime,
+		Models:   v.Models,
+		//
+		Format: v.Format,
+		//
+		Unsafe:    v.Unsafe,
+		Workspace: v.Workspace,
+		//
+		LogLevel: v.LogLevel,
 		//
 		DryRun:        v.DryRun,
 		DryRunContent: v.DryRunContent,
-		//
-		Workspace: v.Workspace,
 		//
 		Extra:   make(map[string]string),
 		History: make([]*Message, len(v.History)),
