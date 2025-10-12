@@ -7,32 +7,29 @@ const (
 
 // global context
 type Vars struct {
-	// Config *AppConfig `json:"config"`
-	LogLevel   LogLevel
-	ChatID     string
-	MaxTurns   int
-	MaxTime    int
-	New        *bool
-	MaxHistory int
-	MaxSpan    int
-	Context    string
-	Message    string
-	Format     string
-	Models     string
+	LogLevel LogLevel `json:"log_level"`
 
-	Unsafe bool
+	ChatID     string `json:"chat_id"`
+	MaxTurns   int    `json:"max_turns"`
+	MaxTime    int    `json:"max_time"`
+	New        *bool  `json:"new"`
+	MaxHistory int    `json:"max_history"`
+	MaxSpan    int    `json:"max_span"`
+	Context    string `json:"context"`
+	Message    string `json:"message"`
+	Format     string `json:"format"`
+	Models     string `json:"models"`
 
-	DryRun        bool
-	DryRunContent string
+	Unsafe bool `json:"unsafe"`
 
-	//
-	Workspace string `json:"workspace"`
+	DryRun        bool   `json:"dry_run"`
+	DryRunContent string `json:"dry_run_content"`
+	Workspace     string `json:"workspace"`
 
-	//
 	Extra map[string]string `json:"extra"`
 
 	// conversation history
-	History []*Message
+	History []*Message `json:"-"`
 }
 
 func (v *Vars) Clone() *Vars {
@@ -56,8 +53,9 @@ func (v *Vars) Clone() *Vars {
 		DryRunContent: v.DryRunContent,
 		//
 		Workspace: v.Workspace,
-		Extra:     make(map[string]string),
-		History:   make([]*Message, len(v.History)),
+		//
+		Extra:   make(map[string]string),
+		History: make([]*Message, len(v.History)),
 	}
 
 	// Copy the Extra map
