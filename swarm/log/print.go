@@ -174,12 +174,3 @@ func (r *defaultLogger) SetLogLevel(level Level) {
 		}
 	}
 }
-
-// func (r *defaultLogger) SetLogOutput(w io.Writer) {
-// 	r.printLogger.SetLogger(w)
-
-// 	r.debugLogger.SetLogger(w)
-// 	r.infoLogger.SetLogger(w)
-// 	r.errLogger.SetLogger(w)
-// 	r.promptLogger.SetLogger(w)
-// }

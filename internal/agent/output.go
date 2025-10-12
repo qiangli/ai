@@ -89,6 +89,8 @@ func processImageContent(ctx context.Context, cfg *api.AppConfig, message *api.O
 		imageFile = filepath.Join(os.TempDir(), "image.png")
 	}
 
+	log.GetLogger(ctx).Infof("image file: %s\n", imageFile)
+
 	if err := saveImage(ctx, message.Content, imageFile); err != nil {
 		log.GetLogger(ctx).Errorf("failed to save image: %v\n", err)
 		return

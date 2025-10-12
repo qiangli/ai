@@ -16,4 +16,6 @@ agents:
       quality: "standard"
       size: "1024x1024"
       style: "natural"
+    functions:
+      - "fs:*"
  ###

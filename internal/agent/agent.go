@@ -110,7 +110,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	}
 
 	// TODO output as funtion return value
-	cfg.Stdout = ""
+	// cfg.Stdout = ""
 
 	for _, v := range resp.Messages {
 		out := &api.Output{
@@ -120,8 +120,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		}
 
 		processOutput(ctx, cfg, out)
-
-		cfg.Stdout = cfg.Stdout + v.Content
+		// cfg.Stdout = cfg.Stdout + v.Content
 	}
 
 	if len(vars.History) > initLen {
@@ -155,7 +154,6 @@ func processOutput(ctx context.Context, cfg *api.AppConfig, message *api.Output)
 		processImageContent(ctx, cfg, message)
 	default:
 		processTextContent(ctx, cfg, message)
-		// log.GetLogger(ctx).Debugf("Unsupported content type: %s\n", message.ContentType)
 	}
 }
 
