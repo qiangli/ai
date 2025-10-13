@@ -52,7 +52,11 @@ func Chat(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		// resp, err = openai.Send(ctx, req)
 		resp, err = gemini.Send(ctx, req)
 	case "openai":
-		resp, err = openai.Send(ctx, req)
+		if req.Model.IsImage() {
+			resp, err = openai.ImageGen(ctx, req)
+		} else {
+			resp, err = openai.Send(ctx, req)
+		}
 	case "anthropic":
 		resp, err = anthropic.Send(ctx, req)
 	default:

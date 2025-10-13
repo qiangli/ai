@@ -9,6 +9,10 @@ import (
 )
 
 func TestProcessImageContent(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	var filename = "c78c48fa-622c-437e-b0b1-44c31c7c1f94"
 
 	ctx := context.TODO()

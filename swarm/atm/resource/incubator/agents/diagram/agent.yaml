@@ -83,6 +83,6 @@ agents:
 
         Result
         - The assistant’s output should be a ready-to-import draw.io diagram XML by default, accompanied by a readable specification and import guidance. If the user requests alternatives, also include DOT or Mermaid equivalents.
-    functions:
-      - "@tool"
+    # functions:
+    #   - "fs:*"
 ###

@@ -57,14 +57,6 @@ func (r *SystemKit) GetFileInfo(ctx context.Context, vars *api.Vars, name string
 }
 
 // https://mimesniff.spec.whatwg.org/
-// type FileContent struct {
-// 	MimeType string
-// 	Content  []byte
-
-// 	// Optional message to LLM
-// 	// Message string
-// }
-
 // ReadFile returns mime type and the raw file content
 func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (any, error) {
 	path, err := r.getStr("path", args)

@@ -2,6 +2,8 @@ package api
 
 import (
 	"fmt"
+
+	"github.com/charmbracelet/x/exp/slice"
 )
 
 type InputType string
@@ -78,6 +80,12 @@ type Model struct {
 
 func (r *Model) String() string {
 	return fmt.Sprintf("%s/%s", r.Provider, r.Model)
+}
+
+// TODO feature flags
+func (r *Model) IsImage() bool {
+	list := []string{"dall-e-2", "dall-e-3", "gpt-image-1"}
+	return slice.ContainsAny(list, r.Model)
 }
 
 type ModelsConfig struct {
