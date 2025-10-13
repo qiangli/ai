@@ -125,13 +125,15 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 	// skip system role
 	if !r.New {
 		var list []*api.Message
+		var emoji = "•"
 		if r.Context != "" {
 			list, _ = h.contextHistory(ctx, req, r.Context, query)
+			emoji = "🤖"
 		} else {
 			list = h.vars.History
 		}
 		if len(list) > 0 {
-			log.GetLogger(ctx).Infof("🤖 context messages: %v\n", len(list))
+			log.GetLogger(ctx).Infof("%s context messages: %v\n", emoji, len(list))
 			for i, msg := range list {
 				if msg.Role != api.RoleSystem {
 					history = append(history, msg)
