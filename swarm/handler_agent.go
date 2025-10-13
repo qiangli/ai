@@ -223,8 +223,9 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 			//
 			ContentType: result.Result.MimeType,
 			Content:     result.Result.Value,
-			Role:        nvl(result.Role, api.RoleAssistant),
-			Sender:      r.Name,
+			// TODO encode result.Result.Content
+			Role:   nvl(result.Role, api.RoleAssistant),
+			Sender: r.Name,
 		}
 		// TODO add Value field to message?
 		history = append(history, &message)

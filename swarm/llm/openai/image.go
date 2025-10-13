@@ -37,6 +37,10 @@ func generateImage(ctx context.Context, req *llm.Request) (*llm.Response, error)
 	prompt := strings.Join(messages, "\n")
 	model := req.Model.Model
 
+	if req.Vars.IsTrace() {
+		log.GetLogger(ctx).Debugf("prompt: %s\n", prompt)
+	}
+
 	log.GetLogger(ctx).Infof("@%s %s/%s\n", req.Agent, req.Model.Provider, model)
 
 	var imageFormat = openai.ImageGenerateParamsResponseFormatB64JSON
@@ -96,8 +100,8 @@ func generateImage(ctx context.Context, req *llm.Request) (*llm.Response, error)
 
 	return &llm.Response{
 		Result: &api.Result{
-			MimeType: api.ContentTypeB64JSON,
-			Content:  []byte(image.Data[0].B64JSON),
+			MimeType: api.ContentTypeImageB64,
+			Value:    image.Data[0].B64JSON,
 		},
 	}, nil
 }

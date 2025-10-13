@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -135,4 +136,12 @@ func head(s string, maxLen int) string {
 		return s[:maxLen] + "..."
 	}
 	return s
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
+// data:[<media-type>][;base64],<data>
+func dataURL(mime string, raw []byte) string {
+	encoded := base64.StdEncoding.EncodeToString(raw)
+	d := fmt.Sprintf("data:%s;base64,%s", mime, encoded)
+	return d
 }

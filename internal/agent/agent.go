@@ -148,9 +148,9 @@ func processOutput(ctx context.Context, cfg *api.AppConfig, message *api.Output)
 	}
 
 	switch message.ContentType {
-	case api.ContentTypeText, "":
-		processTextContent(ctx, cfg, message)
-	case api.ContentTypeB64JSON:
+	// case api.ContentTypeText, "":
+	// 	processTextContent(ctx, cfg, message)
+	case api.ContentTypeImageB64:
 		processImageContent(ctx, cfg, message)
 	default:
 		processTextContent(ctx, cfg, message)

@@ -3,6 +3,7 @@ package swarm
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
@@ -125,20 +126,31 @@ func (h *agentHandler) dispatch(ctx context.Context, v *api.ToolFunc, args map[s
 
 func (h *agentHandler) toResult(v any) *api.Result {
 	if r, ok := v.(*api.Result); ok {
-		if r.MimeType != api.ContentTypeB64JSON {
+		if len(r.Content) == 0 {
 			return r
+		}
+		if r.MimeType == api.ContentTypeImageB64 {
+			return r
+		}
+		if strings.HasPrefix(r.MimeType, "text/") {
+			return &api.Result{
+				MimeType: r.MimeType,
+				Value:    string(r.Content),
+			}
 		}
 		// image
 		// transform media response into data uri
-		id, err := h.save(r)
-		if err != nil {
-			return &api.Result{
-				Value: err.Error(),
-			}
-		}
-		dataURI := fmt.Sprintf("data:application/x.dhnt.blob;mime=%s;%s", r.MimeType, id)
+		// id, err := h.save(r)
+		// if err != nil {
+		// 	return &api.Result{
+		// 		Value: err.Error(),
+		// 	}
+		// }
+		// dataURI := fmt.Sprintf("data:application/x.dhnt.blob;mime=%s;%s", r.MimeType, id)
+		data := dataURL(r.MimeType, r.Content)
 		return &api.Result{
-			Value: fmt.Sprintf("The image is available as: %s", dataURI),
+			MimeType: r.MimeType,
+			Value:    data,
 		}
 	}
 	if s, ok := v.(string); ok {

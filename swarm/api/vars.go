@@ -80,6 +80,10 @@ func NewVars() *Vars {
 	}
 }
 
+func (r *Vars) IsTrace() bool {
+	return r.LogLevel == Tracing
+}
+
 func (r *Vars) Get(key string) string {
 	if r.Extra == nil {
 		return ""

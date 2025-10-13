@@ -3,13 +3,11 @@ package api
 import (
 	"fmt"
 	"strings"
-
-	"github.com/openai/openai-go/v2"
+	// "github.com/openai/openai-go/v2"
 )
 
 const (
-	ContentTypeText    = "text"
-	ContentTypeB64JSON = string(openai.ImageGenerateParamsResponseFormatB64JSON)
+	ContentTypeImageB64 = "img/base64"
 )
 
 type ClipboardProvider interface {
