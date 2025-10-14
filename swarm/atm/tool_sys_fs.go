@@ -44,12 +44,12 @@ func (r *SystemKit) RenameFile(ctx context.Context, vars *api.Vars, name string,
 	return "File renamed successfully", nil
 }
 
-func (r *SystemKit) GetFileInfo(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) FileInfo(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	path, err := r.getStr("path", args)
 	if err != nil {
 		return "", err
 	}
-	info, err := r.fs.GetFileInfo(path)
+	info, err := r.fs.FileInfo(path)
 	if err != nil {
 		return "", err
 	}

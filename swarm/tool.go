@@ -140,16 +140,16 @@ func (h *agentHandler) toResult(v any) *api.Result {
 		}
 		// image
 		// transform media response into data url
-		key, err := h.save(r)
+		presigned, err := h.save(r)
 		if err != nil {
 			return &api.Result{
 				Value: err.Error(),
 			}
 		}
-		dataURL := fmt.Sprintf("https://ai.dhnt.io/blobs/file?key=%s", key)
+
 		return &api.Result{
 			MimeType: r.MimeType,
-			Value:    dataURL,
+			Value:    presigned,
 		}
 	}
 	if s, ok := v.(string); ok {
@@ -162,6 +162,7 @@ func (h *agentHandler) toResult(v any) *api.Result {
 	}
 }
 
+// save and get the presigned url
 func (h *agentHandler) save(v *api.Result) (string, error) {
 	id := NewBlobID()
 	b := &api.Blob{
@@ -170,5 +171,8 @@ func (h *agentHandler) save(v *api.Result) (string, error) {
 		Content:  v.Content,
 	}
 	err := h.sw.Blobs.Put(id, b)
-	return id, err
+	if err != nil {
+		return "", err
+	}
+	return h.sw.Blobs.Presign(id)
 }

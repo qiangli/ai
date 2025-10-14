@@ -20,6 +20,11 @@ type BlobStorage struct {
 	fs     vfs.FileStore
 }
 
+func (r *BlobStorage) Presign(ID string) (string, error) {
+	// TODO sign
+	return r.fs.Locator(ID)
+}
+
 func (r *BlobStorage) Put(ID string, blob *api.Blob) error {
 	if err := r.fs.WriteFile(path.Join(r.bucket, ID), blob.Content); err != nil {
 		return err
@@ -95,12 +100,12 @@ type CloudStorage struct {
 	Token string
 }
 
-func (r CloudStorage) Endpoint(key string) string {
-	return fmt.Sprintf("%s/blobs/file?key=%s", r.Base, key)
+func (r CloudStorage) Locator(key string) (string, error) {
+	return r.endpoint(key), nil
 }
 
 func (r CloudStorage) ReadFile(key string) ([]byte, error) {
-	req, err := http.NewRequest(http.MethodGet, r.Endpoint(key), nil)
+	req, err := http.NewRequest(http.MethodGet, r.endpoint(key), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +126,7 @@ func (r CloudStorage) ReadFile(key string) ([]byte, error) {
 }
 
 func (r CloudStorage) WriteFile(key string, data []byte) error {
-	req, err := http.NewRequest(http.MethodPut, r.Endpoint(key), bytes.NewBuffer(data))
+	req, err := http.NewRequest(http.MethodPut, r.endpoint(key), bytes.NewBuffer(data))
 	if err != nil {
 		return err
 	}
@@ -139,6 +144,10 @@ func (r CloudStorage) WriteFile(key string, data []byte) error {
 	}
 
 	return nil
+}
+
+func (r CloudStorage) endpoint(key string) string {
+	return fmt.Sprintf("%s/blobs/file?key=%s", r.Base, key)
 }
 
 func NewCloudStorage(cfg *CloudConfig) (vfs.FileStore, error) {

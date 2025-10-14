@@ -10,6 +10,7 @@ import (
 type BlobStore interface {
 	Put(ID string, blob *Blob) error
 	Get(ID string) (*Blob, error)
+	Presign(ID string) (string, error)
 	// List() ([]*Blob, error)
 }
 

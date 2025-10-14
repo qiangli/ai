@@ -15,7 +15,7 @@ type FileSystem interface {
 	ListDirectory(string) ([]string, error)
 	CreateDirectory(string) error
 	RenameFile(string, string) error
-	GetFileInfo(string) (*FileInfo, error)
+	FileInfo(string) (*FileInfo, error)
 	// EditFile
 	SearchFiles(pattern string, path string, options *SearchOptions) (string, error)
 }
@@ -23,6 +23,17 @@ type FileSystem interface {
 type FileStore interface {
 	ReadFile(string) ([]byte, error)
 	WriteFile(string, []byte) error
+
+	// aka:
+	// absolute path for file, endpoint for rest, and url for web
+	Locator(string) (string, error)
+}
+
+type Workspace interface {
+	FileSystem
+
+	Chdir(dir string) error
+	Getwd() (string, error)
 }
 
 type SearchOptions struct {
@@ -123,7 +134,7 @@ func (s *LocalFS) RenameFile(source, destination string) error {
 	return os.Rename(validSource, validDest)
 }
 
-func (s *LocalFS) GetFileInfo(path string) (*FileInfo, error) {
+func (s *LocalFS) FileInfo(path string) (*FileInfo, error) {
 	validPath, err := s.validatePath(path)
 	if err != nil {
 		return nil, err
@@ -153,6 +164,10 @@ func (s *LocalFS) WriteFile(path string, content []byte) error {
 	}
 
 	return os.WriteFile(validPath, content, 0644)
+}
+
+func (s *LocalFS) Locator(path string) (string, error) {
+	return s.validatePath(path)
 }
 
 func (s *LocalFS) validatePath(path string) (string, error) {
