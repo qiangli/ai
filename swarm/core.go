@@ -60,7 +60,7 @@ func (s *Swarm) Clone() *Swarm {
 }
 
 // Function to clear all environment variables execep essential ones
-func clearAllEnv() {
+func ClearAllEnv() {
 	essentialEnv := []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
 
 	essentialMap := make(map[string]bool, len(essentialEnv))
@@ -88,8 +88,8 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		return api.NewBadRequestError("missing raw input in request")
 	}
 
-	// before entering the loop clear all env
-	clearAllEnv()
+	// // before entering the loop clear all env
+	// clearAllEnv()
 
 	var ctx = req.Context()
 	var resetLogLevel = true
