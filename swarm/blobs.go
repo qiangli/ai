@@ -11,10 +11,9 @@ import (
 	"github.com/qiangli/ai/swarm/vfs"
 )
 
-// a simple in memory object store
 type BlobStorage struct {
 	bucket string
-	fs     vfs.FileSystem
+	fs     vfs.FileStore
 }
 
 func (r *BlobStorage) Put(ID string, blob *api.Blob) error {
@@ -63,8 +62,9 @@ func NewBlobID() string {
 	return uuid.NewString()
 }
 
-func NewBlobStorage(fs vfs.FileSystem) *BlobStorage {
+func NewBlobStorage(bucket string, fs vfs.FileStore) *BlobStorage {
 	return &BlobStorage{
-		fs: fs,
+		bucket: bucket,
+		fs:     fs,
 	}
 }

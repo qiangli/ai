@@ -10,14 +10,19 @@ import (
 // FileSystem is a virtual file system that provides a set of operations
 // to interact with the file system in a controlled manner.
 type FileSystem interface {
+	FileStore
+
 	ListDirectory(string) ([]string, error)
 	CreateDirectory(string) error
 	RenameFile(string, string) error
 	GetFileInfo(string) (*FileInfo, error)
-	ReadFile(string) ([]byte, error)
-	WriteFile(string, []byte) error
 	// EditFile
 	SearchFiles(pattern string, path string, options *SearchOptions) (string, error)
+}
+
+type FileStore interface {
+	ReadFile(string) ([]byte, error)
+	WriteFile(string, []byte) error
 }
 
 type SearchOptions struct {

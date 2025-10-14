@@ -79,7 +79,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	var fs = vfs.NewLocalFS(cfg.Workspace)
 	var os = vos.NewLocalSystem()
 	var tools = swarm.NewToolSystem(user, secrets, assets, fs, os)
-	var blobs = swarm.NewBlobStorage(fs)
+	var blobs = swarm.NewBlobStorage("blobs", fs)
 
 	sw := &swarm.Swarm{
 		Vars:     vars,

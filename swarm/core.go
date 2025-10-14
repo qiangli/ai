@@ -88,9 +88,6 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		return api.NewBadRequestError("missing raw input in request")
 	}
 
-	// // before entering the loop clear all env
-	// clearAllEnv()
-
 	var ctx = req.Context()
 	var resetLogLevel = true
 
