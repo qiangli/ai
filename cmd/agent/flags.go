@@ -94,9 +94,9 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.String("output", "", "Save final response to a file.")
 	flags.MarkHidden("output")
 
-	// resource
-	flags.String("resource", "resource.json", "Resource configuration")
-	flags.MarkHidden("resource")
+	// // resource
+	// flags.String("resource", "resource.json", "Resource configuration")
+	// flags.MarkHidden("resource")
 
 	flags.String("image-viewer", "", "Image viewer")
 	flags.MarkHidden("image-viewer")

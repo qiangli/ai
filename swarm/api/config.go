@@ -53,8 +53,8 @@ type AppConfig struct {
 
 	ConfigFile string
 
-	// rename WebResource?
-	AgentResource *AgentResource
+	// // rename WebResource?
+	// AgentResource *AgentResource
 
 	Agent string
 	// Command string
@@ -134,7 +134,7 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		Version:    cfg.Version,
 		ConfigFile: cfg.ConfigFile,
 		//
-		AgentResource: cfg.AgentResource,
+		// AgentResource: cfg.AgentResource,
 		//
 		Agent:  cfg.Agent,
 		Models: cfg.Models,

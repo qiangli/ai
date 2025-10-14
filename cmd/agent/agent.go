@@ -60,16 +60,6 @@ func init() {
 		key := strings.ReplaceAll(f.Name, "-", "_")
 		viper.BindPFlag(key, f)
 	})
-
-	// obsolete
-	// // Bind the flags to viper using dots
-	// viper.BindPFlag("mcp.server_root", flags.Lookup("mcp-server-root"))
-
-	// viper.BindPFlag("sql.db_name", flags.Lookup("sql-db-name"))
-	// viper.BindPFlag("sql.db_host", flags.Lookup("sql-db-host"))
-	// viper.BindPFlag("sql.db_port", flags.Lookup("sql-db-port"))
-	// viper.BindPFlag("sql.db_username", flags.Lookup("sql-db-username"))
-	// viper.BindPFlag("sql.db_password", flags.Lookup("sql-db-password"))
 }
 
 func Run(cmd *cobra.Command, args []string) error {

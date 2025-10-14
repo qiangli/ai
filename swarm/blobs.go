@@ -1,8 +1,11 @@
 package swarm
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"path"
 
 	"github.com/google/uuid"
@@ -66,5 +69,61 @@ func NewBlobStorage(bucket string, fs vfs.FileStore) *BlobStorage {
 	return &BlobStorage{
 		bucket: bucket,
 		fs:     fs,
+	}
+}
+
+type CloudStorage struct {
+	Token    string
+	Endpoint string
+}
+
+func (r CloudStorage) ReadFile(key string) ([]byte, error) {
+	url := fmt.Sprintf("%s?key=%s", r.Endpoint, key)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+r.Token)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to read file: %s", resp.Status)
+	}
+
+	return io.ReadAll(resp.Body)
+}
+
+func (r CloudStorage) WriteFile(key string, data []byte) error {
+	url := fmt.Sprintf("%s?key=%s", r.Endpoint, key)
+	req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(data))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+r.Token)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to write file: %s", resp.Status)
+	}
+
+	return nil
+}
+
+func NewCloudStorage(endpoint, token string) vfs.FileStore {
+	return &CloudStorage{
+		Endpoint: endpoint,
+		Token:    token,
 	}
 }

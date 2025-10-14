@@ -193,15 +193,15 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	//
 	ParseArgs(viper, app, args, defaultAgent)
 
-	// resource
-	resource := viper.GetString("resource")
-	if resource != "" {
-		ar, err := api.LoadAgentResource(filepath.Join(app.Base, resource))
-		if err != nil {
-			return err
-		}
-		app.AgentResource = ar
-	}
+	// // resource
+	// resource := viper.GetString("resource")
+	// if resource != "" {
+	// 	ar, err := api.LoadAgentResource(filepath.Join(app.Base, resource))
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	app.AgentResource = ar
+	// }
 
 	// log.GetLogger(ctx).Debugf("parsed: %+v\n", app)
 
