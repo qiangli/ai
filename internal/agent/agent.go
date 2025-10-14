@@ -32,8 +32,6 @@ func RunAgent(ctx context.Context, app *api.AppConfig) error {
 }
 
 func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) error {
-	// name := input.Agent
-	// command := input.Command
 	name := cfg.Agent
 	if name == "" {
 		name = "agent"
@@ -76,11 +74,13 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	var secrets = conf.LocalSecrets
 	var adapters = adapter.GetAdapters()
 
-	var fs = vfs.NewLocalFS(cfg.Workspace)
-	var os = vos.NewLocalSystem()
-	var tools = swarm.NewToolSystem(user, secrets, assets, fs, os)
-	var blobs = swarm.NewBlobStorage("blobs", fs)
-
+	var lfs = vfs.NewLocalFS()
+	var los = vos.NewLocalSystem()
+	var tools = swarm.NewToolSystem(user, secrets, assets, lfs, los)
+	blobs, err := conf.NewBlobs(cfg, "")
+	if err != nil {
+		return err
+	}
 	sw := &swarm.Swarm{
 		Vars:     vars,
 		User:     user,
@@ -89,8 +89,8 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		Tools:    tools,
 		Adapters: adapters,
 		Blobs:    blobs,
-		OS:       os,
-		FS:       fs,
+		OS:       los,
+		FS:       lfs,
 		//
 		History: mem,
 	}

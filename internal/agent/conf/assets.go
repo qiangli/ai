@@ -8,6 +8,7 @@ import (
 	"github.com/qiangli/ai/swarm/atm/resource"
 )
 
+// default assets with resource.json and standard
 func Assets(app *api.AppConfig) api.AssetManager {
 	var assets = conf.NewAssetManager()
 

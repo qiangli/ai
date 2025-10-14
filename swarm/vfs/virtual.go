@@ -72,13 +72,10 @@ func (f *FileInfo) String() string {
 }
 
 type LocalFS struct {
-	base string
 }
 
-func NewLocalFS(base string) FileSystem {
-	return &LocalFS{
-		base: base,
-	}
+func NewLocalFS() FileSystem {
+	return &LocalFS{}
 }
 
 func (s *LocalFS) ListDirectory(path string) ([]string, error) {
@@ -105,7 +102,7 @@ func (s *LocalFS) ListDirectory(path string) ([]string, error) {
 }
 
 func (s *LocalFS) CreateDirectory(path string) error {
-	validPath, err := s.validatePath(filepath.Join(s.base, path))
+	validPath, err := s.validatePath(path)
 	if err != nil {
 		return err
 	}

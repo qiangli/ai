@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"path"
 
 	"github.com/google/uuid"
@@ -65,21 +66,41 @@ func NewBlobID() string {
 	return uuid.NewString()
 }
 
-func NewBlobStorage(bucket string, fs vfs.FileStore) *BlobStorage {
+func NewBlobStorage(bucket string, fs vfs.FileStore) (*BlobStorage, error) {
 	return &BlobStorage{
 		bucket: bucket,
 		fs:     fs,
+	}, nil
+}
+
+type CloudConfig struct {
+	Base  string
+	Token string
+}
+
+func LoadCloudConfig(conf string) (*CloudConfig, error) {
+	var v CloudConfig
+	d, err := os.ReadFile(conf)
+	if err != nil {
+		return nil, err
 	}
+	if err = json.Unmarshal(d, &v); err != nil {
+		return nil, err
+	}
+	return &v, nil
 }
 
 type CloudStorage struct {
-	Token    string
-	Endpoint string
+	Base  string
+	Token string
+}
+
+func (r CloudStorage) Endpoint(key string) string {
+	return fmt.Sprintf("%s/blobs/file?key=%s", r.Base, key)
 }
 
 func (r CloudStorage) ReadFile(key string) ([]byte, error) {
-	url := fmt.Sprintf("%s?key=%s", r.Endpoint, key)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequest(http.MethodGet, r.Endpoint(key), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -93,15 +114,14 @@ func (r CloudStorage) ReadFile(key string) ([]byte, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to read file: %s", resp.Status)
+		return nil, fmt.Errorf("failed to read blob %s: %s", key, resp.Status)
 	}
 
 	return io.ReadAll(resp.Body)
 }
 
 func (r CloudStorage) WriteFile(key string, data []byte) error {
-	url := fmt.Sprintf("%s?key=%s", r.Endpoint, key)
-	req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(data))
+	req, err := http.NewRequest(http.MethodPut, r.Endpoint(key), bytes.NewBuffer(data))
 	if err != nil {
 		return err
 	}
@@ -115,15 +135,15 @@ func (r CloudStorage) WriteFile(key string, data []byte) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to write file: %s", resp.Status)
+		return fmt.Errorf("failed to write blob %s: %s", key, resp.Status)
 	}
 
 	return nil
 }
 
-func NewCloudStorage(endpoint, token string) vfs.FileStore {
+func NewCloudStorage(cfg *CloudConfig) (vfs.FileStore, error) {
 	return &CloudStorage{
-		Endpoint: endpoint,
-		Token:    token,
-	}
+		Base:  cfg.Base,
+		Token: cfg.Token,
+	}, nil
 }

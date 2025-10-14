@@ -139,18 +139,17 @@ func (h *agentHandler) toResult(v any) *api.Result {
 			}
 		}
 		// image
-		// transform media response into data uri
-		// id, err := h.save(r)
-		// if err != nil {
-		// 	return &api.Result{
-		// 		Value: err.Error(),
-		// 	}
-		// }
-		// dataURI := fmt.Sprintf("data:application/x.dhnt.blob;mime=%s;%s", r.MimeType, id)
-		data := dataURL(r.MimeType, r.Content)
+		// transform media response into data url
+		key, err := h.save(r)
+		if err != nil {
+			return &api.Result{
+				Value: err.Error(),
+			}
+		}
+		dataURL := fmt.Sprintf("https://ai.dhnt.io/blobs/file?key=%s", key)
 		return &api.Result{
 			MimeType: r.MimeType,
-			Value:    data,
+			Value:    dataURL,
 		}
 	}
 	if s, ok := v.(string); ok {
