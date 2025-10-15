@@ -8,7 +8,7 @@ import (
 )
 
 func NewBlobs(app *api.AppConfig, bucket string) (*swarm.BlobStorage, error) {
-	cfg, err := swarm.LoadCloudConfig(filepath.Join(app.Base, "dhnt.json"))
+	cfg, err := api.LoadResourceConfig(filepath.Join(app.Base, "dhnt.json"))
 	if err != nil {
 		return nil, err
 	}

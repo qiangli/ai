@@ -70,17 +70,19 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	resp := &api.Response{}
 
 	var user = &api.User{}
-	var assets = conf.Assets(cfg)
 	var secrets = conf.LocalSecrets
 	var adapters = adapter.GetAdapters()
-
 	var lfs = vfs.NewLocalFS()
 	var los = vos.NewLocalSystem()
-	var tools = swarm.NewToolSystem(user, secrets, assets, lfs, los)
+	assets, err := conf.Assets(cfg)
+	if err != nil {
+		return err
+	}
 	blobs, err := conf.NewBlobs(cfg, "")
 	if err != nil {
 		return err
 	}
+	var tools = swarm.NewToolSystem(user, secrets, assets, lfs, los)
 	sw := &swarm.Swarm{
 		Vars:     vars,
 		User:     user,

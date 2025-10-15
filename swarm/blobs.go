@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"path"
 
 	"github.com/google/uuid"
@@ -78,23 +77,6 @@ func NewBlobStorage(bucket string, fs vfs.FileStore) (*BlobStorage, error) {
 	}, nil
 }
 
-type CloudConfig struct {
-	Base  string
-	Token string
-}
-
-func LoadCloudConfig(conf string) (*CloudConfig, error) {
-	var v CloudConfig
-	d, err := os.ReadFile(conf)
-	if err != nil {
-		return nil, err
-	}
-	if err = json.Unmarshal(d, &v); err != nil {
-		return nil, err
-	}
-	return &v, nil
-}
-
 type CloudStorage struct {
 	Base  string
 	Token string
@@ -150,7 +132,7 @@ func (r CloudStorage) endpoint(key string) string {
 	return fmt.Sprintf("%s/blobs/file?key=%s", r.Base, key)
 }
 
-func NewCloudStorage(cfg *CloudConfig) (vfs.FileStore, error) {
+func NewCloudStorage(cfg *api.ResourceConfig) (vfs.FileStore, error) {
 	return &CloudStorage{
 		Base:  cfg.Base,
 		Token: cfg.Token,

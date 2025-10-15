@@ -9,18 +9,27 @@ import (
 )
 
 // default assets with resource.json and standard
-func Assets(app *api.AppConfig) api.AssetManager {
+func Assets(app *api.AppConfig) (api.AssetManager, error) {
 	var assets = conf.NewAssetManager()
 
-	if ar, err := api.LoadAgentResource(filepath.Join(app.Base, "resource.json")); err == nil {
-		for _, v := range ar.Resources {
-			assets.AddStore(&resource.WebStore{
-				Base:  v.Base,
-				Token: v.Token,
-			})
-		}
+	// if ar, err := api.LoadAgentResource(filepath.Join(app.Base, "resource.json")); err == nil {
+	// 	for _, v := range ar.Resources {
+	// 		assets.AddStore(&resource.WebStore{
+	// 			Base:  v.Base,
+	// 			Token: v.Token,
+	// 		})
+	// 	}
+	// }
+
+	cfg, err := api.LoadResourceConfig(filepath.Join(app.Base, "dhnt.json"))
+	if err != nil {
+		return nil, err
 	}
+	assets.AddStore(&resource.WebStore{
+		Base:  cfg.Base,
+		Token: cfg.Token,
+	})
 
 	assets.AddStore(resource.NewStandardStore())
-	return assets
+	return assets, nil
 }

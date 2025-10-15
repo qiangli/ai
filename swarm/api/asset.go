@@ -1,8 +1,29 @@
 package api
 
 import (
+	"encoding/json"
+	"os"
+
 	"github.com/google/uuid"
 )
+
+// TODO
+type ResourceConfig struct {
+	Base  string `json:"base"`
+	Token string `json:"token"`
+}
+
+func LoadResourceConfig(conf string) (*ResourceConfig, error) {
+	var v ResourceConfig
+	d, err := os.ReadFile(conf)
+	if err != nil {
+		return nil, err
+	}
+	if err = json.Unmarshal(d, &v); err != nil {
+		return nil, err
+	}
+	return &v, nil
+}
 
 type AssetStore any
 
