@@ -138,19 +138,23 @@ func (h *agentHandler) toResult(v any) *api.Result {
 				Value:    string(r.Content),
 			}
 		}
-		// image
-		// transform media response into data url
-		presigned, err := h.save(r)
-		if err != nil {
-			return &api.Result{
-				Value: err.Error(),
-			}
-		}
-
 		return &api.Result{
 			MimeType: r.MimeType,
-			Value:    presigned,
+			Value:    dataURL(r.MimeType, r.Content),
 		}
+		// // image
+		// // transform media response into data url
+		// presigned, err := h.save(r)
+		// if err != nil {
+		// 	return &api.Result{
+		// 		Value: err.Error(),
+		// 	}
+		// }
+
+		// return &api.Result{
+		// 	MimeType: r.MimeType,
+		// 	Value:    presigned,
+		// }
 	}
 	if s, ok := v.(string); ok {
 		return &api.Result{
