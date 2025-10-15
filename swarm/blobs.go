@@ -20,7 +20,7 @@ type BlobStorage struct {
 }
 
 func (r *BlobStorage) Presign(ID string) (string, error) {
-	// TODO sign
+	// TODO the locator is presigned, should be done here?
 	return r.fs.Locator(ID)
 }
 
@@ -82,12 +82,43 @@ type CloudStorage struct {
 	Token string
 }
 
+// generate presigned url given the key
 func (r CloudStorage) Locator(key string) (string, error) {
-	return r.endpoint(key), nil
+	endpoint := fmt.Sprintf("%s/blobs/presign?key=%s", r.Base, key)
+	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Authorization", "Bearer "+r.Token)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to read blob %s: %s", key, resp.Status)
+	}
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	var v = struct {
+		Token string
+	}{}
+	if err := json.Unmarshal(b, &v); err != nil {
+		return "", err
+	}
+	locator := fmt.Sprintf("%s/cloud/locator/%s", r.Base, v.Token)
+	return locator, nil
 }
 
 func (r CloudStorage) ReadFile(key string) ([]byte, error) {
-	req, err := http.NewRequest(http.MethodGet, r.endpoint(key), nil)
+	endpoint := fmt.Sprintf("%s/blobs/file?key=%s", r.Base, key)
+	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +139,8 @@ func (r CloudStorage) ReadFile(key string) ([]byte, error) {
 }
 
 func (r CloudStorage) WriteFile(key string, data []byte) error {
-	req, err := http.NewRequest(http.MethodPut, r.endpoint(key), bytes.NewBuffer(data))
+	endpoint := fmt.Sprintf("%s/blobs/file?key=%s", r.Base, key)
+	req, err := http.NewRequest(http.MethodPut, endpoint, bytes.NewBuffer(data))
 	if err != nil {
 		return err
 	}
@@ -126,10 +158,6 @@ func (r CloudStorage) WriteFile(key string, data []byte) error {
 	}
 
 	return nil
-}
-
-func (r CloudStorage) endpoint(key string) string {
-	return fmt.Sprintf("%s/blobs/file?key=%s", r.Base, key)
 }
 
 func NewCloudStorage(cfg *api.ResourceConfig) (vfs.FileStore, error) {
