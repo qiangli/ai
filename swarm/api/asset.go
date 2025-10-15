@@ -3,11 +3,11 @@ package api
 import (
 	"encoding/json"
 	"os"
+	"strings"
 
 	"github.com/google/uuid"
 )
 
-// TODO
 type ResourceConfig struct {
 	Base  string `json:"base"`
 	Token string `json:"token"`
@@ -22,6 +22,7 @@ func LoadResourceConfig(conf string) (*ResourceConfig, error) {
 	if err = json.Unmarshal(d, &v); err != nil {
 		return nil, err
 	}
+	v.Base = strings.TrimSuffix(v.Base, "/")
 	return &v, nil
 }
 

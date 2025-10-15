@@ -1,6 +1,7 @@
 package conf
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -26,7 +27,7 @@ func Assets(app *api.AppConfig) (api.AssetManager, error) {
 		return nil, err
 	}
 	assets.AddStore(&resource.WebStore{
-		Base:  cfg.Base,
+		Base:  fmt.Sprintf("%s/resource", cfg.Base),
 		Token: cfg.Token,
 	})
 

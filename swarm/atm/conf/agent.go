@@ -306,8 +306,6 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 			LogLevel:   api.Quiet,
 			//
 			Dependencies: c.Dependencies,
-			//
-			// Config: ac,
 		}
 
 		// hard limit
@@ -417,6 +415,10 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 	ac, err := getAgent(owner, pack, as)
 	if err != nil {
 		return nil, err
+	}
+
+	if ac == nil {
+		return nil, fmt.Errorf("no such agent: %s", agent)
 	}
 
 	// access to models/tools is implicitly granted if user has permission to run the agent

@@ -83,6 +83,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		return err
 	}
 	var tools = swarm.NewToolSystem(user, secrets, assets, lfs, los)
+
 	sw := &swarm.Swarm{
 		Vars:     vars,
 		User:     user,
