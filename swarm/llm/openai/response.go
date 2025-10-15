@@ -38,19 +38,119 @@ func SendV3(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	return resp, err
 }
 
+// func respond(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+// 	client, err := NewClientV3(req.Model, req.Vars)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	var resp = &llm.Response{}
+
+// 	params := responses.ResponseNewParams{
+// 		Model: req.Model.Model,
+// 		Input: responses.ResponseNewParamsInputUnion{
+// 			OfString: openai.String(req.Message),
+// 		},
+// 		// Temperature:     openai.Float(0.7),
+// 		// MaxOutputTokens: openai.Int(512),
+// 	}
+
+// 	if len(req.Messages) > 0 {
+// 		var messages []responses.ResponseInputItemUnionParam
+// 		for _, v := range req.Messages {
+// 			switch v.Role {
+// 			// case "system", "developer":
+// 			// 	messages = append(messages, defineInputParam(v.Role, v.Content))
+// 			case "assistant":
+// 				messages = append(messages, defineAssistantInputParam(v.Role, v.Content))
+// 			case "user":
+// 				if v.ContentType != "" {
+// 					messages = append(messages, defineFileInputParam(v.Role, "", v.Content))
+// 				} else {
+// 					messages = append(messages, defineUserInputParam(v.Role, v.Content))
+// 				}
+// 			default:
+// 				// log.GetLogger(ctx).Errorf("Role not supported: %s", v.Role)
+// 			}
+// 		}
+// 		params.Input = responses.ResponseNewParamsInputUnion{
+// 			OfInputItemList: messages,
+// 		}
+// 	}
+
+// 	if len(req.Tools) > 0 {
+// 		var tools []responses.ToolUnionParam
+// 		for _, f := range req.Tools {
+// 			tools = append(tools, defineToolV3(f.ID(), f.Description, f.Parameters))
+// 		}
+// 		params.Tools = tools
+// 	}
+
+// 	//
+// 	result, err := client.Responses.New(ctx, params)
+// 	if err != nil {
+// 		return resp, err
+// 	}
+
+// 	params.PreviousResponseID = openai.String(result.ID)
+// 	params.Input = responses.ResponseNewParamsInputUnion{}
+
+// 	var calls []*ToolCall
+// 	for _, output := range result.Output {
+// 		if output.Type == "function_call" {
+// 			v := output.AsFunctionCall()
+// 			calls = append(calls, &ToolCall{
+// 				ID:        v.CallID,
+// 				Name:      v.Name,
+// 				Arguments: v.Arguments,
+// 			})
+// 		}
+// 	}
+// 	results := runToolsV3(ctx, req.RunTool, calls, maxThreadLimit)
+// 	for i, out := range results {
+// 		if out == nil {
+// 			params.Input.OfInputItemList = append(params.Input.OfInputItemList, responses.ResponseInputItemParamOfFunctionCallOutput(calls[i].ID, "no result"))
+// 			continue
+// 		}
+// 		if out.State == api.StateExit {
+// 			resp.Result = out
+// 			return resp, nil
+// 		}
+// 		params.Input.OfInputItemList = append(params.Input.OfInputItemList, responses.ResponseInputItemParamOfFunctionCallOutput(calls[i].ID, out.Value))
+// 	}
+
+// 	// No tools calls made, we already have our final response
+// 	if len(params.Input.OfInputItemList) == 0 {
+// 		resp.Result = &api.Result{
+// 			Value: result.OutputText(),
+// 		}
+// 		return resp, nil
+// 	}
+
+// 	// Make a final call with our tools results and no tools to get the final output
+// 	params.Tools = nil
+// 	result, err = client.Responses.New(ctx, params)
+// 	if err != nil {
+// 		return resp, err
+// 	}
+
+// 	resp.Result = &api.Result{
+// 		Value: result.OutputText(),
+// 	}
+// 	return resp, nil
+// }
+
 func respond(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	client, err := NewClientV3(req.Model, req.Vars)
 	if err != nil {
 		return nil, err
 	}
 
-	var resp = &llm.Response{}
-
 	params := responses.ResponseNewParams{
 		Model: req.Model.Model,
-		Input: responses.ResponseNewParamsInputUnion{
-			OfString: openai.String(req.Message),
-		},
+		// Input: responses.ResponseNewParamsInputUnion{
+		// 	OfString: openai.String(req.Message),
+		// },
 		// Temperature:     openai.Float(0.7),
 		// MaxOutputTokens: openai.Int(512),
 	}
@@ -86,57 +186,84 @@ func respond(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		params.Tools = tools
 	}
 
-	//
-	result, err := client.Responses.New(ctx, params)
-	if err != nil {
-		return resp, err
+	maxTurns := req.MaxTurns
+	if maxTurns == 0 {
+		maxTurns = 1
 	}
 
-	params.PreviousResponseID = openai.String(result.ID)
-	params.Input = responses.ResponseNewParamsInputUnion{}
+	var resp = &llm.Response{}
 
-	var calls []*ToolCall
-	for _, output := range result.Output {
-		if output.Type == "function_call" {
-			v := output.AsFunctionCall()
-			calls = append(calls, &ToolCall{
-				ID:        v.CallID,
-				Name:      v.Name,
-				Arguments: v.Arguments,
-			})
+	log.GetLogger(ctx).Debugf("[OpenAI] params messages: %v tools: %v\n", len(params.Input.OfInputItemList), len(params.Tools))
+
+	for tries := range maxTurns {
+		log.GetLogger(ctx).Infof("Ⓞ @%s [%v] %s/%s\n", req.Agent, tries, req.Model.Provider, req.Model.Model)
+
+		log.GetLogger(ctx).Debugf("📡 sending request to %s: %v of %v\n%+v\n", req.Model.BaseUrl, tries, maxTurns, req)
+
+		//
+		result, err := client.Responses.New(ctx, params)
+		if err != nil {
+			log.GetLogger(ctx).Errorf("❌ %s\n", err)
+			return nil, err
 		}
-	}
-	results := runToolsV3(ctx, req.RunTool, calls, maxThreadLimit)
-	for i, out := range results {
-		if out == nil {
-			params.Input.OfInputItemList = append(params.Input.OfInputItemList, responses.ResponseInputItemParamOfFunctionCallOutput(calls[i].ID, "no result"))
-			continue
+		log.GetLogger(ctx).Infof("(%v)\n", result.Status)
+
+		params.PreviousResponseID = openai.String(result.ID)
+		params.Input = responses.ResponseNewParamsInputUnion{}
+
+		var calls []*ToolCall
+		for _, output := range result.Output {
+			if output.Type == "function_call" {
+				v := output.AsFunctionCall()
+				calls = append(calls, &ToolCall{
+					ID:        v.CallID,
+					Name:      v.Name,
+					Arguments: v.Arguments,
+				})
+			}
 		}
-		if out.State == api.StateExit {
-			resp.Result = out
+
+		//
+		if len(calls) == 0 {
+			resp.Result = &api.Result{
+				Value: result.OutputText(),
+			}
 			return resp, nil
 		}
-		params.Input.OfInputItemList = append(params.Input.OfInputItemList, responses.ResponseInputItemParamOfFunctionCallOutput(calls[i].ID, out.Value))
-	}
 
-	// No tools calls made, we already have our final response
-	if len(params.Input.OfInputItemList) == 0 {
-		resp.Result = &api.Result{
-			Value: result.OutputText(),
+		results := runToolsV3(ctx, req.RunTool, calls, maxThreadLimit)
+		for i, out := range results {
+			if out == nil {
+				params.Input.OfInputItemList = append(params.Input.OfInputItemList, responses.ResponseInputItemParamOfFunctionCallOutput(calls[i].ID, "no result"))
+				continue
+			}
+			if out.State == api.StateExit {
+				resp.Result = out
+				return resp, nil
+			}
+			params.Input.OfInputItemList = append(params.Input.OfInputItemList, responses.ResponseInputItemParamOfFunctionCallOutput(calls[i].ID, out.Value))
 		}
-		return resp, nil
+
+		// // No tools calls made, we already have our final response
+		// if len(params.Input.OfInputItemList) == 0 {
+		// 	resp.Result = &api.Result{
+		// 		Value: result.OutputText(),
+		// 	}
+		// 	return resp, nil
+		// }
+
+		// Make a final call with our tools results and no tools to get the final output
+		// params.Tools = nil
+		// result, err = client.Responses.New(ctx, params)
+		// if err != nil {
+		// 	return resp, err
+		// }
+
+		// resp.Result = &api.Result{
+		// 	Value: result.OutputText(),
+		// }
 	}
 
-	// Make a final call with our tools results and no tools to get the final output
-	params.Tools = nil
-	result, err = client.Responses.New(ctx, params)
-	if err != nil {
-		return resp, err
-	}
-
-	resp.Result = &api.Result{
-		Value: result.OutputText(),
-	}
 	return resp, nil
 }
 

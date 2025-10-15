@@ -59,44 +59,43 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	model := req.Model.Model
 
 	params := openai.ChatCompletionNewParams{
 		Seed:  openai.Int(0),
-		Model: model,
+		Model: req.Model.Model,
 	}
 
-	var messages []openai.ChatCompletionMessageParamUnion
-	for _, v := range req.Messages {
-		// https://platform.openai.com/docs/guides/text-generation#developer-messages
-		switch v.Role {
-		// case "system":
-		// 	messages = append(messages, openai.SystemMessage(v.Content))
-		case "assistant":
-			messages = append(messages, openai.AssistantMessage(v.Content))
-		case "user":
-			if v.ContentType != "" {
-				messages = append(messages, openai.UserMessage(toContentPart(v.ContentType, []byte(v.Content))))
-			} else {
-				messages = append(messages, openai.UserMessage(v.Content))
+	if len(req.Messages) > 0 {
+		var messages []openai.ChatCompletionMessageParamUnion
+		for _, v := range req.Messages {
+			// https://platform.openai.com/docs/guides/text-generation#developer-messages
+			switch v.Role {
+			// case "system":
+			// 	messages = append(messages, openai.SystemMessage(v.Content))
+			case "assistant":
+				messages = append(messages, openai.AssistantMessage(v.Content))
+			case "user":
+				if v.ContentType != "" {
+					messages = append(messages, openai.UserMessage(toContentPart(v.ContentType, []byte(v.Content))))
+				} else {
+					messages = append(messages, openai.UserMessage(v.Content))
+				}
+			// case "tool":
+			// 	return openai.ToolMessage(content, id), nil
+			// case "developer":
+			// 	messages = append(messages, openai.DeveloperMessage(v.Content))
+			default:
+				// log.GetLogger(ctx).Errorf("Role not supported: %s", v.Role)
 			}
-		// case "tool":
-		// 	return openai.ToolMessage(content, id), nil
-		// case "developer":
-		// 	messages = append(messages, openai.DeveloperMessage(v.Content))
-		default:
-			// log.GetLogger(ctx).Errorf("Role not supported: %s", v.Role)
 		}
+		params.Messages = messages
 	}
-	params.Messages = messages
 
 	if len(req.Tools) > 0 {
 		var tools []openai.ChatCompletionToolUnionParam
 		for _, f := range req.Tools {
-
 			tools = append(tools, defineTool(f.ID(), f.Description, f.Parameters))
 		}
-
 		params.Tools = tools
 	}
 
@@ -110,7 +109,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	log.GetLogger(ctx).Debugf("[OpenAI] params messages: %v tools: %v\n", len(params.Messages), len(params.Tools))
 
 	for tries := range maxTurns {
-		log.GetLogger(ctx).Infof("Ⓞ @%s [%v] %s/%s\n", req.Agent, tries, req.Model.Provider, model)
+		log.GetLogger(ctx).Infof("Ⓞ @%s [%v] %s/%s\n", req.Agent, tries, req.Model.Provider, req.Model.Model)
 
 		log.GetLogger(ctx).Debugf("📡 sending request to %s: %v of %v\n%+v\n", req.Model.BaseUrl, tries, maxTurns, req)
 
