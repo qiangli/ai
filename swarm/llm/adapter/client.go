@@ -24,8 +24,9 @@ var adapterRegistry map[string]llm.LLMAdapter
 func init() {
 	adapterRegistry = make(map[string]llm.LLMAdapter)
 	adapterRegistry["chat"] = Chat
-	adapterRegistry["image"] = Image
+	adapterRegistry["text"] = Chat
 	adapterRegistry["response"] = Response
+	adapterRegistry["image"] = Image
 }
 
 var defaultAdapters = &adapters{}
