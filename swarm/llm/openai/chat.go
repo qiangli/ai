@@ -70,8 +70,8 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	for _, v := range req.Messages {
 		// https://platform.openai.com/docs/guides/text-generation#developer-messages
 		switch v.Role {
-		case "system":
-			messages = append(messages, openai.SystemMessage(v.Content))
+		// case "system":
+		// 	messages = append(messages, openai.SystemMessage(v.Content))
 		case "assistant":
 			messages = append(messages, openai.AssistantMessage(v.Content))
 		case "user":
@@ -85,7 +85,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		// case "developer":
 		// 	messages = append(messages, openai.DeveloperMessage(v.Content))
 		default:
-			log.GetLogger(ctx).Errorf("Role not supported: %s", v.Role)
+			// log.GetLogger(ctx).Errorf("Role not supported: %s", v.Role)
 		}
 	}
 	params.Messages = messages
@@ -122,7 +122,6 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		log.GetLogger(ctx).Infof("(%v)\n", completion.Choices[0].FinishReason)
 
 		toolCalls := completion.Choices[0].Message.ToolCalls
-
 		if len(toolCalls) == 0 {
 			resp.Role = string(completion.Choices[0].Message.Role)
 			resp.Result = &api.Result{
@@ -133,17 +132,26 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		}
 
 		params.Messages = append(params.Messages, completion.Choices[0].Message.ToParam())
-		results := runTools(ctx, req.RunTool, toolCalls, maxThreadLimit)
+		// results := runTools(ctx, req.RunTool, toolCalls, maxThreadLimit)
+		calls := make([]*ToolCall, len(toolCalls))
+		for i, v := range toolCalls {
+			calls[i] = &ToolCall{
+				ID:        v.ID,
+				Name:      v.Function.Name,
+				Arguments: v.Function.Arguments,
+			}
+		}
+		results := runToolsV3(ctx, req.RunTool, calls, maxThreadLimit)
 		for i, out := range results {
 			if out == nil {
-				params.Messages = append(params.Messages, openai.ToolMessage("no result", toolCalls[i].ID))
+				params.Messages = append(params.Messages, openai.ToolMessage("no result", calls[i].ID))
 				continue
 			}
 			if out.State == api.StateExit {
 				resp.Result = out
 				return resp, nil
 			}
-			params.Messages = append(params.Messages, openai.ToolMessage(out.Value, toolCalls[i].ID))
+			params.Messages = append(params.Messages, openai.ToolMessage(out.Value, calls[i].ID))
 		}
 	}
 

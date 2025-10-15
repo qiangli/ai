@@ -191,10 +191,16 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 		Model: model,
 		//
 		RunTool: runTool,
-		//
+		// agent tool
 		Arguments: args,
 		//
 		Vars: h.vars,
+	}
+
+	// openai v3
+	request.Message = query
+	if r.Instruction != nil {
+		request.Instruction = r.Instruction.Content
 	}
 
 	var adapter llm.LLMAdapter = adapter.Chat

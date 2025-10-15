@@ -53,6 +53,10 @@ type Request struct {
 	Vars *api.Vars
 
 	Arguments map[string]any
+
+	// openai v3
+	Instruction string
+	Message     string
 }
 
 func (r *Request) String() string {

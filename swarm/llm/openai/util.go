@@ -5,33 +5,56 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/openai/openai-go/v2"
+	// "github.com/openai/openai-go/v2"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
 )
 
+type ToolCall struct {
+	ID        string
+	Name      string
+	Arguments string
+}
+
 // run all the tool calls and return the results in the same sequence as the tool call list
-func runTools(
+// func runTools(
+// 	parent context.Context,
+// 	runner api.ToolRunner,
+// 	toolCalls []openai.ChatCompletionMessageToolCallUnion,
+// 	max int,
+// ) []*api.Result {
+// 	calls := make([]*ToolCall, len(toolCalls))
+// 	for i, v := range toolCalls {
+// 		calls[i] = &ToolCall{
+// 			ID:        v.ID,
+// 			Name:      v.Function.Name,
+// 			Arguments: v.Function.Arguments,
+// 		}
+// 	}
+// 	return runToolsV3(parent, runner, calls, max)
+// }
+
+func runToolsV3(
 	parent context.Context,
 	runner api.ToolRunner,
-	toolCalls []openai.ChatCompletionMessageToolCallUnion,
+	calls []*ToolCall,
 	max int,
 ) []*api.Result {
-	switch len(toolCalls) {
+	switch len(calls) {
 	case 0:
 		return nil
 	case 1:
-		return []*api.Result{runTool(parent, runner, toolCalls[0])}
+		return []*api.Result{runTool(parent, runner, calls[0])}
 	default:
-		return runToolsInParallel(parent, runner, toolCalls, max)
+		return runToolsInParallel(parent, runner, calls, max)
 	}
 }
 
 func runToolsInParallel(
 	parent context.Context,
 	runner api.ToolRunner,
-	toolCalls []openai.ChatCompletionMessageToolCallUnion,
+	toolCalls []*ToolCall,
 	max int,
 ) []*api.Result {
 	var wg sync.WaitGroup
@@ -47,7 +70,7 @@ func runToolsInParallel(
 	for i, toolCall := range toolCalls {
 		wg.Add(1)
 
-		go func(i int, toolCall openai.ChatCompletionMessageToolCallUnion) {
+		go func(i int, toolCall *ToolCall) {
 			defer wg.Done()
 
 			select {
@@ -57,9 +80,9 @@ func runToolsInParallel(
 				return
 			}
 
-			var name = toolCall.Function.Name
+			var name = toolCall.Name
 			var props map[string]any
-			if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &props); err != nil {
+			if err := json.Unmarshal([]byte(toolCall.Arguments), &props); err != nil {
 				results[i] = &api.Result{
 					Value: err.Error(),
 				}
@@ -96,11 +119,11 @@ func runToolsInParallel(
 func runTool(
 	ctx context.Context,
 	runner api.ToolRunner,
-	toolCall openai.ChatCompletionMessageToolCallUnion,
+	toolCall *ToolCall,
 ) *api.Result {
-	var name = toolCall.Function.Name
+	var name = toolCall.Name
 	var props map[string]any
-	if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &props); err != nil {
+	if err := json.Unmarshal([]byte(toolCall.Arguments), &props); err != nil {
 		return &api.Result{
 			Value: err.Error(),
 		}

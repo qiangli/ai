@@ -24,7 +24,8 @@ var adapterRegistry map[string]llm.LLMAdapter
 func init() {
 	adapterRegistry = make(map[string]llm.LLMAdapter)
 	adapterRegistry["chat"] = Chat
-	adapterRegistry["image-gen"] = ImageGen
+	adapterRegistry["image"] = Image
+	adapterRegistry["response"] = Response
 }
 
 var defaultAdapters = &adapters{}
@@ -72,7 +73,7 @@ func Chat(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	return resp, nil
 }
 
-func ImageGen(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func Image(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	var err error
 	var resp *llm.Response
 
@@ -87,6 +88,36 @@ func ImageGen(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		return nil, fmt.Errorf("Not supported: %s", provider)
 	case "openai":
 		resp, err = openai.ImageGen(ctx, req)
+	case "anthropic":
+		return nil, fmt.Errorf("Not supported: %s", provider)
+	default:
+		return nil, fmt.Errorf("Unknown provider: %s", provider)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, fmt.Errorf("No response")
+	}
+	return resp, nil
+}
+
+func Response(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+	var err error
+	var resp *llm.Response
+
+	if req.Model == nil {
+		return nil, fmt.Errorf("No LLM model provided")
+	}
+
+	provider := req.Model.Provider
+	//
+	switch provider {
+	case "gemini":
+		return nil, fmt.Errorf("Not supported: %s", provider)
+	case "openai":
+		resp, err = openai.SendV3(ctx, req)
 	case "anthropic":
 		return nil, fmt.Errorf("Not supported: %s", provider)
 	default:
