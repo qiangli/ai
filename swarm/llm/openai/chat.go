@@ -6,14 +6,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/openai/openai-go/v2"
-	"github.com/openai/openai-go/v2/option"
-	"github.com/openai/openai-go/v2/packages/param"
+	"github.com/openai/openai-go/v3"
+	"github.com/openai/openai-go/v3/packages/param"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
-	"github.com/qiangli/ai/swarm/middleware"
+	// "github.com/qiangli/ai/swarm/middleware"
 )
 
 const maxThreadLimit = 8
@@ -31,15 +30,6 @@ func defineTool(name, description string, parameters map[string]any) openai.Chat
 			},
 		},
 	}
-}
-
-func NewClient(model *api.Model, vars *api.Vars) (*openai.Client, error) {
-	client := openai.NewClient(
-		option.WithAPIKey(model.ApiKey),
-		option.WithBaseURL(model.BaseUrl),
-		option.WithMiddleware(middleware.Middleware(model, vars)),
-	)
-	return &client, nil
 }
 
 func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {

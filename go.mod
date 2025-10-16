@@ -27,6 +27,7 @@ require (
 	github.com/charmbracelet/x/term v0.2.1
 	github.com/creack/pty v1.1.24
 	github.com/docker/docker v28.5.0+incompatible
+	github.com/ebitengine/oto/v3 v3.4.0
 	github.com/expr-lang/expr v1.17.6
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gen2brain/beeep v0.11.1

@@ -5,35 +5,28 @@ import (
 	"encoding/json"
 	"sync"
 
-	// "github.com/openai/openai-go/v2"
+	"github.com/openai/openai-go/v3"
+	"github.com/openai/openai-go/v3/option"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
+	"github.com/qiangli/ai/swarm/middleware"
 )
+
+func NewClient(model *api.Model, vars *api.Vars) (*openai.Client, error) {
+	client := openai.NewClient(
+		option.WithAPIKey(model.ApiKey),
+		option.WithBaseURL(model.BaseUrl),
+		option.WithMiddleware(middleware.Middleware(model, vars)),
+	)
+	return &client, nil
+}
 
 type ToolCall struct {
 	ID        string
 	Name      string
 	Arguments string
 }
-
-// run all the tool calls and return the results in the same sequence as the tool call list
-// func runTools(
-// 	parent context.Context,
-// 	runner api.ToolRunner,
-// 	toolCalls []openai.ChatCompletionMessageToolCallUnion,
-// 	max int,
-// ) []*api.Result {
-// 	calls := make([]*ToolCall, len(toolCalls))
-// 	for i, v := range toolCalls {
-// 		calls[i] = &ToolCall{
-// 			ID:        v.ID,
-// 			Name:      v.Function.Name,
-// 			Arguments: v.Function.Arguments,
-// 		}
-// 	}
-// 	return runToolsV3(parent, runner, calls, max)
-// }
 
 func runToolsV3(
 	parent context.Context,

@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/openai/openai-go/v2"
+	"github.com/openai/openai-go/v3"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm"
@@ -35,13 +35,12 @@ func generateImage(ctx context.Context, req *llm.Request) (*llm.Response, error)
 	}
 
 	prompt := strings.Join(messages, "\n")
-	model := req.Model.Model
 
 	if req.Vars.IsTrace() {
 		log.GetLogger(ctx).Debugf("prompt: %s\n", prompt)
 	}
 
-	log.GetLogger(ctx).Infof("@%s %s/%s\n", req.Agent, req.Model.Provider, model)
+	log.GetLogger(ctx).Infof("@%s %s/%s\n", req.Agent, req.Model.Provider, req.Model.Model)
 
 	var imageFormat = openai.ImageGenerateParamsResponseFormatB64JSON
 
@@ -86,7 +85,7 @@ func generateImage(ctx context.Context, req *llm.Request) (*llm.Response, error)
 
 	image, err := client.Images.Generate(ctx, openai.ImageGenerateParams{
 		Prompt:         prompt,
-		Model:          model,
+		Model:          req.Model.Model,
 		ResponseFormat: imageFormat,
 		Quality:        imageQuality,
 		Size:           imageSize,
