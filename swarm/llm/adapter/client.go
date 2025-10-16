@@ -28,6 +28,8 @@ func init() {
 	adapterRegistry["response"] = Response
 	adapterRegistry["image"] = Image
 	adapterRegistry["tts"] = TTS
+	adapterRegistry["audio"] = Audio
+	adapterRegistry["video"] = Video
 }
 
 var defaultAdapters = &adapters{}
@@ -55,11 +57,7 @@ func Chat(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		// resp, err = openai.Send(ctx, req)
 		resp, err = gemini.Send(ctx, req)
 	case "openai":
-		if req.Model.IsImage() {
-			resp, err = openai.ImageGen(ctx, req)
-		} else {
-			resp, err = openai.Send(ctx, req)
-		}
+		resp, err = openai.Send(ctx, req)
 	case "anthropic":
 		resp, err = anthropic.Send(ctx, req)
 	default:
@@ -89,7 +87,7 @@ func Image(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	case "gemini":
 		return nil, fmt.Errorf("Not supported: %s", provider)
 	case "openai":
-		resp, err = openai.ImageGen(ctx, req)
+		resp, err = openai.Image(ctx, req)
 	case "anthropic":
 		return nil, fmt.Errorf("Not supported: %s", provider)
 	default:
@@ -150,6 +148,66 @@ func TTS(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		return nil, fmt.Errorf("Not supported: %s", provider)
 	case "openai":
 		resp, err = openai.TTS(ctx, req)
+	case "anthropic":
+		return nil, fmt.Errorf("Not supported: %s", provider)
+	default:
+		return nil, fmt.Errorf("Unknown provider: %s", provider)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, fmt.Errorf("No response")
+	}
+	return resp, nil
+}
+
+func Audio(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+	var err error
+	var resp *llm.Response
+
+	if req.Model == nil {
+		return nil, fmt.Errorf("No LLM model provided")
+	}
+
+	provider := req.Model.Provider
+	//
+	switch provider {
+	case "gemini":
+		return nil, fmt.Errorf("Not supported: %s", provider)
+	case "openai":
+		resp, err = openai.Audio(ctx, req)
+	case "anthropic":
+		return nil, fmt.Errorf("Not supported: %s", provider)
+	default:
+		return nil, fmt.Errorf("Unknown provider: %s", provider)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, fmt.Errorf("No response")
+	}
+	return resp, nil
+}
+
+func Video(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+	var err error
+	var resp *llm.Response
+
+	if req.Model == nil {
+		return nil, fmt.Errorf("No LLM model provided")
+	}
+
+	provider := req.Model.Provider
+	//
+	switch provider {
+	case "gemini":
+		return nil, fmt.Errorf("Not supported: %s", provider)
+	case "openai":
+		resp, err = openai.Video(ctx, req)
 	case "anthropic":
 		return nil, fmt.Errorf("Not supported: %s", provider)
 	default:

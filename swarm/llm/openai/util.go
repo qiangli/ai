@@ -3,6 +3,7 @@ package openai
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 	"sync"
 
 	"github.com/openai/openai-go/v3"
@@ -133,4 +134,33 @@ func runTool(
 
 	log.GetLogger(ctx).Debugf("\n* tool call: %s out: %s\n", name, out)
 	return out
+}
+
+func GetStrArg(key string, args map[string]any, val string) string {
+	if args != nil {
+		if arg, found := args[key]; found {
+			if v, ok := arg.(string); ok {
+				return v
+			}
+		}
+	}
+	return val
+}
+
+func GetIntArg(key string, args map[string]any, val int) int {
+	if args != nil {
+		if arg, found := args[key]; found {
+			if str, ok := arg.(string); ok {
+				if v, err := strconv.Atoi(str); err == nil {
+					return v
+				} else {
+					return val
+				}
+			}
+			if v, ok := arg.(int); ok {
+				return v
+			}
+		}
+	}
+	return val
 }

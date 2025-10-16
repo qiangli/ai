@@ -2,8 +2,7 @@ package api
 
 import (
 	"fmt"
-
-	"github.com/charmbracelet/x/exp/slice"
+	// "github.com/charmbracelet/x/exp/slice"
 )
 
 type InputType string
@@ -44,6 +43,12 @@ const (
 	// Text-to-speech
 	// Transcription
 	// embeddings
+
+	FeatureChat  Feature = "chat"
+	FeatureImage Feature = "image"
+	FeatureAudio Feature = "audio"
+	FeatureTTS   Feature = "tts"
+	FeatureVideo Feature = "video"
 )
 
 // Level represents the "intelligence" level of the model. i.e. basic, regular, advanced
@@ -82,11 +87,10 @@ func (r *Model) String() string {
 	return fmt.Sprintf("%s/%s", r.Provider, r.Model)
 }
 
-// TODO feature flags
-func (r *Model) IsImage() bool {
-	list := []string{"dall-e-2", "dall-e-3", "gpt-image-1"}
-	return slice.ContainsAny(list, r.Model)
-}
+// func (r *Model) IsImage() bool {
+// 	list := []string{"dall-e-2", "dall-e-3", "gpt-image-1"}
+// 	return slice.ContainsAny(list, r.Model)
+// }
 
 type ModelsConfig struct {
 	Alias string `yaml:"alias"`
