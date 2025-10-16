@@ -41,32 +41,36 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	log.GetLogger(ctx).Debugf("Serve agent: %s\n", r.Name)
 
 	// advices
-	noop := func(vars *api.Vars, _ *api.Request, _ *api.Response, _ api.Advice) error {
-		return nil
-	}
-	if r.BeforeAdvice != nil {
-		if err := r.BeforeAdvice(h.vars, req, resp, noop); err != nil {
-			return err
-		}
-	}
+	// noop := func(vars *api.Vars, _ *api.Request, _ *api.Response, _ api.Advice) error {
+	// 	return nil
+	// }
+	// if r.BeforeAdvice != nil {
+	// 	if err := r.BeforeAdvice(h.vars, req, resp, noop); err != nil {
+	// 		return err
+	// 	}
+	// }
 
-	if r.AroundAdvice != nil {
-		next := func(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
-			return h.handle(ctx, req, resp)
-		}
-		if err := r.AroundAdvice(h.vars, req, resp, next); err != nil {
-			return err
-		}
-	} else {
-		if err := h.handle(ctx, req, resp); err != nil {
-			return err
-		}
-	}
+	// if r.AroundAdvice != nil {
+	// 	next := func(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
+	// 		return h.handle(ctx, req, resp)
+	// 	}
+	// 	if err := r.AroundAdvice(h.vars, req, resp, next); err != nil {
+	// 		return err
+	// 	}
+	// } else {
+	// 	if err := h.handle(ctx, req, resp); err != nil {
+	// 		return err
+	// 	}
+	// }
 
-	if r.AfterAdvice != nil {
-		if err := r.AfterAdvice(h.vars, req, resp, noop); err != nil {
-			return err
-		}
+	// if r.AfterAdvice != nil {
+	// 	if err := r.AfterAdvice(h.vars, req, resp, noop); err != nil {
+	// 		return err
+	// 	}
+	// }
+
+	if err := h.handle(ctx, req, resp); err != nil {
+		return err
 	}
 
 	return nil
@@ -85,11 +89,6 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 		return s, nil
 	}
 
-	// prepend message to user query
-	var query = req.RawInput.Query()
-	if r.Message != "" {
-		query = r.Message + "\n" + query
-	}
 	var chatID = h.vars.ChatID
 	var history []*api.Message
 
@@ -113,11 +112,24 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 			ChatID:  chatID,
 			Created: time.Now(),
 			//
-			Role:    nvl(r.Instruction.Role, api.RoleSystem),
+			Role:    api.RoleSystem,
 			Content: content,
 			Sender:  r.Name,
 		})
 		log.GetLogger(ctx).Debugf("Added system role message: %v\n", len(history))
+	}
+	// Additional system message
+	// developer (openai)| model (gemini)| system (anthropic)
+	if r.Message != "" {
+		req.Messages = append(req.Messages, &api.Message{
+			ID:      uuid.NewString(),
+			ChatID:  chatID,
+			Created: time.Now(),
+			//
+			Role:    api.RoleSystem,
+			Content: r.Message,
+			Sender:  r.Name,
+		})
 	}
 
 	// 2. Historical Messages
@@ -127,7 +139,7 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 		var list []*api.Message
 		var emoji = "•"
 		if r.Context != "" {
-			list, _ = h.contextHistory(ctx, req, r.Context, query)
+			list, _ = h.contextHistory(ctx, req, r.Context, req.RawInput.Query())
 			emoji = "🤖"
 		} else {
 			list = h.vars.History
@@ -150,7 +162,7 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 		Created: time.Now(),
 		//
 		Role:    api.RoleUser,
-		Content: query,
+		Content: req.RawInput.Query(),
 		Sender:  r.Name,
 	})
 
@@ -197,11 +209,11 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 		Vars: h.vars,
 	}
 
-	// openai v3
-	request.Message = query
+	// openai/tts
 	if r.Instruction != nil {
 		request.Instruction = r.Instruction.Content
 	}
+	request.Query = r.RawInput.Query()
 
 	var adapter llm.LLMAdapter = adapter.Chat
 	if h.agent.Adapter != "" {

@@ -2,8 +2,8 @@ package swarm
 
 import (
 	"context"
-	"encoding/json"
-	"maps"
+	// "encoding/json"
+	// "maps"
 	"os"
 	"strings"
 	"time"
@@ -91,7 +91,6 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	var ctx = req.Context()
 	var resetLogLevel = true
 
-	maxlog := MaxLogHandler(500)
 	agentHandler := NewAgentHandler(r)
 
 	log.GetLogger(ctx).Debugf("*** Agent: %s parent: %+v\n", req.Agent, req.Parent)
@@ -100,6 +99,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		start := time.Now()
 		log.GetLogger(ctx).Debugf("Creating agent: %s %s\n", req.Agent, start)
 
+		//
 		agent, err := r.createAgent(ctx, req)
 		if err != nil {
 			return err
@@ -112,40 +112,41 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 			log.GetLogger(ctx).SetLogLevel(agent.LogLevel)
 		}
 
-		// dependencies
-		for _, dep := range agent.Dependencies {
-			depReq := &api.Request{
-				Agent:    dep,
-				RawInput: req.RawInput,
-			}
-			depResp := &api.Response{}
-			if err := r.Run(depReq, depResp); err != nil {
-				return err
-			}
+		// // dependencies
+		// for _, dep := range agent.Dependencies {
+		// 	depReq := &api.Request{
+		// 		Agent:    dep,
+		// 		RawInput: req.RawInput,
+		// 	}
+		// 	depResp := &api.Response{}
+		// 	if err := r.Run(depReq, depResp); err != nil {
+		// 		return err
+		// 	}
 
-			// decode prevous result
-			// decode content as name=value and save in vars.Extra for subsequent agents
-			if v, ok := r.Vars.Extra[extraResult]; ok && len(v) > 0 {
-				var params = make(map[string]string)
-				if err := json.Unmarshal([]byte(v), &params); err == nil {
-					maps.Copy(r.Vars.Extra, params)
-				}
-			}
+		// 	// decode prevous result
+		// 	// decode content as name=value and save in vars.Extra for subsequent agents
+		// 	if v, ok := r.Vars.Extra[extraResult]; ok && len(v) > 0 {
+		// 		var params = make(map[string]string)
+		// 		if err := json.Unmarshal([]byte(v), &params); err == nil {
+		// 			maps.Copy(r.Vars.Extra, params)
+		// 		}
+		// 	}
 
-			log.GetLogger(ctx).Debugf("dependency complete: %s %+v\n", dep, depResp)
-		}
+		// 	log.GetLogger(ctx).Debugf("dependency complete: %s %+v\n", dep, depResp)
+		// }
 
-		//
-		if agent.Entrypoint != nil {
-			if err := agent.Entrypoint(r.Vars, &api.Agent{
-				Name:    agent.Name,
-				Display: agent.Display,
-			}, req.RawInput); err != nil {
-				return err
-			}
-		}
+		// //
+		// if agent.Entrypoint != nil {
+		// 	if err := agent.Entrypoint(r.Vars, &api.Agent{
+		// 		Name:    agent.Name,
+		// 		Display: agent.Display,
+		// 	}, req.RawInput); err != nil {
+		// 		return err
+		// 	}
+		// }
 
 		timeout := TimeoutHandler(agentHandler(r.Vars, agent), time.Duration(agent.MaxTime)*time.Second, "timed out")
+		maxlog := MaxLogHandler(500)
 		chain := NewChain(maxlog)
 		if err := chain.Then(timeout).Serve(req, resp); err != nil {
 			return err

@@ -1,9 +1,9 @@
 package api
 
 import (
-	"encoding/json"
+	// "encoding/json"
 	"html/template"
-	"os"
+	// "os"
 	"strings"
 )
 
@@ -121,13 +121,13 @@ type Agent struct {
 
 	Arguments map[string]any
 
-	Dependencies []string
-	Entrypoint   Entrypoint
+	// Dependencies []string
+	// Entrypoint   Entrypoint
 
-	// advices
-	BeforeAdvice Advice
-	AfterAdvice  Advice
-	AroundAdvice Advice
+	// // advices
+	// BeforeAdvice Advice
+	// AfterAdvice  Advice
+	// AroundAdvice Advice
 
 	// LLM adapter
 	Adapter string
@@ -149,30 +149,30 @@ type Agent struct {
 
 func (a *Agent) Clone() *Agent {
 	return &Agent{
-		Owner:        a.Owner,
-		Name:         a.Name,
-		Display:      a.Display,
-		Description:  a.Description,
-		Instruction:  a.Instruction,
-		RawInput:     a.RawInput,
-		Model:        a.Model,
-		Tools:        a.Tools,
-		Arguments:    a.cloneArguments(),
-		Dependencies: a.Dependencies,
-		Entrypoint:   a.Entrypoint,
-		BeforeAdvice: a.BeforeAdvice,
-		AfterAdvice:  a.AfterAdvice,
-		AroundAdvice: a.AroundAdvice,
-		Adapter:      a.Adapter,
-		Message:      a.Message,
-		Format:       a.Format,
-		MaxTurns:     a.MaxTurns,
-		MaxTime:      a.MaxTime,
-		New:          a.New,
-		MaxHistory:   a.MaxHistory,
-		MaxSpan:      a.MaxSpan,
-		Context:      a.Context,
-		LogLevel:     a.LogLevel,
+		Owner:       a.Owner,
+		Name:        a.Name,
+		Display:     a.Display,
+		Description: a.Description,
+		Instruction: a.Instruction,
+		RawInput:    a.RawInput,
+		Model:       a.Model,
+		Tools:       a.Tools,
+		Arguments:   a.cloneArguments(),
+		// Dependencies: a.Dependencies,
+		// Entrypoint:   a.Entrypoint,
+		// BeforeAdvice: a.BeforeAdvice,
+		// AfterAdvice:  a.AfterAdvice,
+		// AroundAdvice: a.AroundAdvice,
+		Adapter:    a.Adapter,
+		Message:    a.Message,
+		Format:     a.Format,
+		MaxTurns:   a.MaxTurns,
+		MaxTime:    a.MaxTime,
+		New:        a.New,
+		MaxHistory: a.MaxHistory,
+		MaxSpan:    a.MaxSpan,
+		Context:    a.Context,
+		LogLevel:   a.LogLevel,
 	}
 }
 
@@ -235,11 +235,11 @@ type AgentConfig struct {
 	// kit:name
 	Functions []string `yaml:"functions"`
 
-	Dependencies []string `yaml:"dependencies"`
+	// Dependencies []string `yaml:"dependencies"`
 
-	Entrypoint string `yaml:"entrypoint"`
+	// Entrypoint string `yaml:"entrypoint"`
 
-	Advices *AdviceConfig `yaml:"advices"`
+	// Advices *AdviceConfig `yaml:"advices"`
 
 	// chat|image-get|docker/aider oh gptr
 	Adapter string `yaml:"adapter"`
@@ -281,7 +281,7 @@ type AgentConfig struct {
 }
 
 type Instruction struct {
-	Role string `yaml:"role"`
+	// Role string `yaml:"role"`
 	// TODO add new field
 	// Source ? resource/file/cloud...
 	// prefix supported: file: resource:
@@ -302,16 +302,16 @@ type AdviceConfig struct {
 // If a function returns Result with an Agent, execution will be transferred to that Agent.
 // type Function = func(context.Context, *Vars, string, map[string]any) (*Result, error)
 
-type Advice func(*Vars, *Request, *Response, Advice) error
+// type Advice func(*Vars, *Request, *Response, Advice) error
 
-type Entrypoint func(*Vars, *Agent, *UserInput) error
+// type Entrypoint func(*Vars, *Agent, *UserInput) error
 
-type AgentResource struct {
-	// web resource base url
-	// http://localhost:18080/resource/
+// type AgentResource struct {
+// 	// web resource base url
+// 	// http://localhost:18080/resource/
 
-	Resources []*Resource `json:"resources"`
-}
+// 	Resources []*Resource `json:"resources"`
+// }
 
 type Resource struct {
 	// web resource base url
@@ -323,14 +323,14 @@ type Resource struct {
 	Token string `json:"token"`
 }
 
-func LoadAgentResource(p string) (*AgentResource, error) {
-	var ar AgentResource
-	data, err := os.ReadFile(p)
-	if err != nil {
-		return nil, err
-	}
-	if err := json.Unmarshal(data, &ar); err != nil {
-		return nil, err
-	}
-	return &ar, nil
-}
+// func LoadAgentResource(p string) (*AgentResource, error) {
+// 	var ar AgentResource
+// 	data, err := os.ReadFile(p)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	if err := json.Unmarshal(data, &ar); err != nil {
+// 		return nil, err
+// 	}
+// 	return &ar, nil
+// }

@@ -3,7 +3,6 @@ package openai
 import (
 	"context"
 	"io"
-	"strings"
 
 	"github.com/openai/openai-go/v3"
 
@@ -30,16 +29,16 @@ func tts(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		return nil, err
 	}
 
-	messages := make([]string, 0)
-	for _, v := range req.Messages {
-		messages = append(messages, v.Content)
-	}
-	prompt := strings.Join(messages, "\n")
+	// messages := make([]string, 0)
+	// for _, v := range req.Messages {
+	// 	messages = append(messages, v.Content)
+	// }
+	// prompt := strings.Join(messages, "\n")
 
 	result, err := client.Audio.Speech.New(ctx, openai.AudioSpeechNewParams{
 		Model:          req.Model.Model,
-		Instructions:   openai.String(prompt),
-		Input:          req.Message,
+		Instructions:   openai.String(req.Instruction),
+		Input:          req.Query,
 		ResponseFormat: openai.AudioSpeechNewParamsResponseFormatPCM,
 		Voice:          openai.AudioSpeechNewParamsVoiceAlloy,
 	})

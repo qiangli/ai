@@ -56,7 +56,7 @@ type Request struct {
 
 	// openai v3
 	Instruction string
-	Message     string
+	Query       string
 }
 
 func (r *Request) String() string {

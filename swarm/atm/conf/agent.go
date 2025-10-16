@@ -291,21 +291,21 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 			//
 			Instruction: c.Instruction,
 			//
-			RawInput:  input,
+			RawInput: input,
+			//
+			LogLevel: api.Quiet,
+			Message:  nvl(vars.Message, c.Message, ac.Message),
+			Format:   nvl(vars.Format, c.Format, ac.Format),
+			Context:  nvl(vars.Context, c.Context, ac.Context),
+			//
 			Arguments: c.Arguments,
 			//
 			MaxTurns: nzl(vars.MaxTurns, c.MaxTurns, ac.MaxTurns, defaultMaxTurns),
 			MaxTime:  nzl(vars.MaxTime, c.MaxTime, ac.MaxTime, defaultMaxTime),
 			//
-			Message:    nvl(vars.Message, c.Message, ac.Message),
-			Format:     nvl(vars.Format, c.Format, ac.Format),
 			New:        nbl(vars.New, c.New, ac.New),
 			MaxHistory: nzl(vars.MaxHistory, c.MaxHistory, ac.MaxHistory, defaultMaxHistory),
 			MaxSpan:    nzl(vars.MaxSpan, c.MaxSpan, ac.MaxSpan, defaultMaxSpan),
-			Context:    nvl(vars.Context, c.Context, ac.Context),
-			LogLevel:   api.Quiet,
-			//
-			Dependencies: c.Dependencies,
 		}
 
 		// hard limit
@@ -354,14 +354,14 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 		}
 		agent.Tools = funcs
 
-		if c.Advices != nil {
-			// TODO
-			return nil, fmt.Errorf("advice no supported: %+v", c.Advices)
-		}
-		if c.Entrypoint != "" {
-			// TODO
-			return nil, fmt.Errorf("entrypoint not supported: %s", c.Entrypoint)
-		}
+		// if c.Advices != nil {
+		// 	// TODO
+		// 	return nil, fmt.Errorf("advice no supported: %+v", c.Advices)
+		// }
+		// if c.Entrypoint != "" {
+		// 	// TODO
+		// 	return nil, fmt.Errorf("entrypoint not supported: %s", c.Entrypoint)
+		// }
 
 		return &agent, nil
 	}
