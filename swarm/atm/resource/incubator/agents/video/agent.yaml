@@ -1,0 +1,21 @@
+###
+new: true
+agents:
+  - name: "video"
+    display: "🎥 Video Creator"
+    description: "Agent specialized in generating videos based on user inputs for multimedia applications."
+    model: "@model"
+    instruction:
+      content: |
+        As a video creation agent, your role is to generate videos that align with the user's input,
+        style preferences, and specifications, ensuring high-quality and tailored multimedia content.
+    adapter: "video"
+    arguments:
+      seconds: 4
+      size: "720x1280"
+      input_reference: |
+        @web search Google and find a suitable image based on the user query.
+        Download the image and encode the content in base64 for the final response.
+    functions:
+      - "fs:*"
+###

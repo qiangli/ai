@@ -3,7 +3,6 @@ package openai
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/openai/openai-go/v3"
@@ -45,7 +44,7 @@ func genVideo(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	}
 
 	if v := GetStrArg("input_reference", req.Arguments, ""); v != "" {
-		ref, err := os.Open(v)
+		ref, err := fetchContent(v)
 		if err != nil {
 			return nil, err
 		}

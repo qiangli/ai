@@ -2,9 +2,16 @@ package openai
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/openai/openai-go/v3"
@@ -97,7 +104,6 @@ func runToolsInParallel(
 			log.GetLogger(parent).Debugf("\n* tool call: %s out: %s\n", name, out)
 			results[i] = out
 
-			// 	if out.State == api.StateExit || out.State == api.StateTransfer {
 			if out.State == api.StateExit {
 				cancel()
 			}
@@ -194,4 +200,41 @@ func toFloat64(x any, val float64) float64 {
 		return v
 	}
 	return val
+}
+
+// resource supports the following:
+// + data:<mime>;base64,
+// + http:// and https://
+// + file:/
+// assume local file if no scheme is provided
+func fetchContent(resource string) (io.Reader, error) {
+	// Check for data URI
+	if strings.HasPrefix(resource, "data:") {
+		commaIndex := strings.Index(resource, ",")
+		if commaIndex == -1 {
+			return nil, errors.New("invalid data URL")
+		}
+		data := resource[commaIndex+1:]
+		reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(data))
+		return reader, nil
+	}
+
+	// Check for HTTP/HTTPS URL
+	if strings.HasPrefix(resource, "http://") || strings.HasPrefix(resource, "https://") {
+		resp, err := http.Get(resource)
+		if err != nil {
+			return nil, err
+		}
+		return resp.Body, nil
+	}
+
+	// file URI or local file
+	// Assume local file if no scheme is provided
+	p := strings.TrimPrefix(resource, "file:/")
+	p = filepath.Join("/", p)
+	file, err := os.Open(p)
+	if err != nil {
+		return nil, err
+	}
+	return file, nil
 }
