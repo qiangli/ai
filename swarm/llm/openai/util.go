@@ -3,6 +3,7 @@ package openai
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"sync"
 
@@ -161,6 +162,36 @@ func GetIntArg(key string, args map[string]any, val int) int {
 				return v
 			}
 		}
+	}
+	return val
+}
+
+func toBool(x any, val bool) bool {
+	if v, ok := x.(bool); ok {
+		return v
+	}
+	if v, err := strconv.ParseBool(fmt.Sprintf("%s", x)); err == nil {
+		return v
+	}
+	return val
+}
+
+func toInt64(x any, val int64) int64 {
+	if v, ok := x.(int64); ok {
+		return v
+	}
+	if v, err := strconv.ParseInt(fmt.Sprintf("%s", x), 0, 64); err == nil {
+		return v
+	}
+	return val
+}
+
+func toFloat64(x any, val float64) float64 {
+	if v, ok := x.(float64); ok {
+		return v
+	}
+	if v, err := strconv.ParseFloat(fmt.Sprintf("%s", x), 64); err == nil {
+		return v
 	}
 	return val
 }

@@ -34,11 +34,10 @@ func tts(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	for _, v := range req.Messages {
 		messages = append(messages, v.Content)
 	}
-
 	prompt := strings.Join(messages, "\n")
 
 	result, err := client.Audio.Speech.New(ctx, openai.AudioSpeechNewParams{
-		Model:          openai.SpeechModelTTS1,
+		Model:          req.Model.Model,
 		Instructions:   openai.String(prompt),
 		Input:          req.Message,
 		ResponseFormat: openai.AudioSpeechNewParamsResponseFormatPCM,

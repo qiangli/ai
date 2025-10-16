@@ -44,15 +44,12 @@ func respond(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		return nil, err
 	}
 
-	params := responses.ResponseNewParams{
+	var params = responses.ResponseNewParams{
 		Model: req.Model.Model,
-		// Input: responses.ResponseNewParamsInputUnion{
-		// 	OfString: openai.String(req.Message),
-		// },
-		// Temperature:     openai.Float(0.7),
-		// MaxOutputTokens: openai.Int(512),
 	}
-
+	if req.Arguments != nil {
+		setResponseNewParams(&params, req.Arguments)
+	}
 	if len(req.Messages) > 0 {
 		var messages []responses.ResponseInputItemUnionParam
 		for _, v := range req.Messages {
@@ -75,7 +72,6 @@ func respond(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 			OfInputItemList: messages,
 		}
 	}
-
 	if len(req.Tools) > 0 {
 		var tools []responses.ToolUnionParam
 		for _, f := range req.Tools {
@@ -84,7 +80,7 @@ func respond(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		params.Tools = tools
 	}
 
-	maxTurns := req.MaxTurns
+	var maxTurns = req.MaxTurns
 	if maxTurns == 0 {
 		maxTurns = 1
 	}
@@ -202,5 +198,61 @@ func defineToolV3(name, description string, parameters map[string]any) responses
 			Description: openai.String(description),
 			Parameters:  openai.FunctionParameters(parameters),
 		},
+	}
+}
+
+func setResponseNewParams(params *responses.ResponseNewParams, args map[string]any) {
+	// Whether to run the model response in the background.
+	// [Learn more](https://platform.openai.com/docs/guides/background).
+	if v, ok := args["background"]; ok {
+		params.Background = openai.Bool(toBool(v, false))
+	}
+
+	// An upper bound for the number of tokens that can be generated for a response,
+	// including visible output tokens and
+	// [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+	if v, ok := args["max_output_tokens"]; ok {
+		params.MaxOutputTokens = openai.Int(toInt64(v, 512))
+	}
+
+	// The maximum number of total calls to built-in tools that can be processed in a
+	// response. This maximum number applies across all built-in tool calls, not per
+	// individual tool. Any further attempts to call a tool by the model will be
+	// ignored.
+	if v, ok := args["max_tool_calls"]; ok {
+		params.MaxToolCalls = openai.Int(toInt64(v, 0))
+	}
+
+	// Whether to allow the model to run tool calls in parallel.
+	if v, ok := args["parallel_tool_calls"]; ok {
+		params.ParallelToolCalls = openai.Bool(toBool(v, false))
+	}
+
+	// Whether to store the generated model response for later retrieval via API.
+	if v, ok := args["store"]; ok {
+		params.Store = openai.Bool(toBool(v, false))
+	}
+
+	// What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+	// make the output more random, while lower values like 0.2 will make it more
+	// focused and deterministic. We generally recommend altering this or `top_p` but
+	// not both.
+	if v, ok := args["temperature"]; ok {
+		params.Temperature = openai.Float(toFloat64(v, 0.2))
+	}
+
+	// An integer between 0 and 20 specifying the number of most likely tokens to
+	// return at each token position, each with an associated log probability.
+	if v, ok := args["top_logprobs"]; ok {
+		params.TopLogprobs = openai.Int(toInt64(v, 0))
+	}
+
+	// An alternative to sampling with temperature, called nucleus sampling, where the
+	// model considers the results of the tokens with top_p probability mass. So 0.1
+	// means only the tokens comprising the top 10% probability mass are considered.
+	//
+	// We generally recommend altering this or `temperature` but not both.
+	if v, ok := args["top_p"]; ok {
+		params.TopP = openai.Float(toFloat64(v, 0.1))
 	}
 }

@@ -33,7 +33,6 @@ func genImage(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	for _, v := range req.Messages {
 		messages = append(messages, v.Content)
 	}
-
 	prompt := strings.Join(messages, "\n")
 
 	if req.Vars.IsTrace() {

@@ -50,11 +50,12 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		return nil, err
 	}
 
-	params := openai.ChatCompletionNewParams{
-		Seed:  openai.Int(0),
+	var params = openai.ChatCompletionNewParams{
 		Model: req.Model.Model,
 	}
-
+	if req.Arguments != nil {
+		setChatCompletionNewParams(&params, req.Arguments)
+	}
 	if len(req.Messages) > 0 {
 		var messages []openai.ChatCompletionMessageParamUnion
 		for _, v := range req.Messages {
@@ -80,7 +81,6 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		}
 		params.Messages = messages
 	}
-
 	if len(req.Tools) > 0 {
 		var tools []openai.ChatCompletionToolUnionParam
 		for _, f := range req.Tools {
@@ -89,7 +89,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		params.Tools = tools
 	}
 
-	maxTurns := req.MaxTurns
+	var maxTurns = req.MaxTurns
 	if maxTurns == 0 {
 		maxTurns = 1
 	}
@@ -180,5 +180,73 @@ func toContentPart(mimeType string, raw []byte) []openai.ChatCompletionContentPa
 				FileData: param.NewOpt(dataURL(mimeType, raw)),
 			}),
 		}
+	}
+}
+func setChatCompletionNewParams(params *openai.ChatCompletionNewParams, args map[string]any) {
+	// Number between -2.0 and 2.0. Positive values penalize new tokens based on their
+	// existing frequency in the text so far, decreasing the model's likelihood to
+	// repeat the same line verbatim.
+	if v, ok := args["frequency_penalty"]; ok {
+		params.FrequencyPenalty = openai.Float(toFloat64(v, 0.0))
+	}
+
+	// Whether to return log probabilities of the output tokens or not. If true,
+	// returns the log probabilities of each output token returned in the `content` of
+	// `message`.
+	if v, ok := args["logprobs"]; ok {
+		params.Logprobs = openai.Bool(toBool(v, false))
+	}
+
+	// An upper bound for the number of tokens that can be generated for a completion,
+	// including visible output tokens and reasoning tokens.
+	if v, ok := args["max_completion_tokens"]; ok {
+		params.MaxCompletionTokens = openai.Int(toInt64(v, 512))
+	}
+
+	// The maximum number of tokens that can be generated in the chat completion.
+	if v, ok := args["max_tokens"]; ok {
+		params.MaxTokens = openai.Int(toInt64(v, 512))
+	}
+
+	// How many chat completion choices to generate for each input message.
+	if v, ok := args["n"]; ok {
+		params.N = openai.Int(toInt64(v, 1))
+	}
+
+	// Number between -2.0 and 2.0. Positive values penalize new tokens based on
+	// whether they appear in the text so far, increasing the model's likelihood to
+	// talk about new topics.
+	if v, ok := args["presence_penalty"]; ok {
+		params.PresencePenalty = openai.Float(toFloat64(v, 0.0))
+	}
+
+	// If specified, the system will make a best effort to sample deterministically.
+	if v, ok := args["seed"]; ok {
+		params.Seed = openai.Int(toInt64(v, 0))
+	}
+
+	// Whether or not to store the output of this chat completion request.
+	if v, ok := args["store"]; ok {
+		params.Store = openai.Bool(toBool(v, false))
+	}
+
+	// What sampling temperature to use, between 0 and 2.
+	if v, ok := args["temperature"]; ok {
+		params.Temperature = openai.Float(toFloat64(v, 0.0))
+	}
+
+	// An integer specifying the number of most likely tokens to return.
+	if v, ok := args["top_logprobs"]; ok {
+		params.TopLogprobs = openai.Int(toInt64(v, 0))
+	}
+
+	// An alternative to sampling with temperature, called nucleus sampling.
+	if v, ok := args["top_p"]; ok {
+		params.TopP = openai.Float(toFloat64(v, 0.0))
+	}
+
+	// Whether to enable parallel function calling during tool use.
+	if v, ok := args["parallel_tool_calls"]; ok {
+		params.ParallelToolCalls = openai.Bool(toBool(v, false))
 	}
 }
