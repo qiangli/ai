@@ -64,8 +64,8 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 			}
 			// https://platform.openai.com/docs/guides/text-generation#developer-messages
 			switch v.Role {
-			// case "system":
-			// 	messages = append(messages, openai.SystemMessage(v.Content))
+			case "system":
+				messages = append(messages, openai.SystemMessage(v.Content))
 			case "assistant":
 				messages = append(messages, openai.AssistantMessage(v.Content))
 			case "user":

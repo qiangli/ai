@@ -2,6 +2,8 @@ package openai
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
@@ -51,10 +53,15 @@ func respond(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		setResponseNewParams(&params, req.Arguments)
 	}
 	if len(req.Messages) > 0 {
+		var instructions []string
 		var messages []responses.ResponseInputItemUnionParam
 		for _, v := range req.Messages {
+			if len(v.Content) == 0 {
+				return nil, fmt.Errorf("empty message")
+			}
 			switch v.Role {
-			// case "system", "developer":
+			case "system", "developer":
+				instructions = append(instructions, v.Content)
 			// 	messages = append(messages, defineInputParam(v.Role, v.Content))
 			case "assistant":
 				messages = append(messages, defineAssistantInputParam(v.Role, v.Content))
@@ -67,6 +74,9 @@ func respond(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 			default:
 				// log.GetLogger(ctx).Errorf("Role not supported: %s", v.Role)
 			}
+		}
+		if len(instructions) > 0 {
+			params.Instructions = openai.String(strings.Join(instructions, "\n"))
 		}
 		params.Input = responses.ResponseNewParamsInputUnion{
 			OfInputItemList: messages,

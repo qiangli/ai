@@ -79,6 +79,11 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.Bool("stdin", false, "Read input from stdin. '-'")
 	flags.MarkHidden("stdin")
 
+	// disable auto is-piped check/ignore stdin flags
+	// this is for vscode debugging or in cases when reading stdin is not desiirable
+	flags.Bool("no-stdin", false, "Disable reading input from stdin")
+	flags.MarkHidden("no-stdin")
+
 	flags.Bool("pb-read", false, "Read input from clipboard. '{'")
 	flags.Bool("pb-tail", false, "Read input from clipboard and wait. '{{'")
 	flags.MarkHidden("pb-read")

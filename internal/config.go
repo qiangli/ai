@@ -330,13 +330,15 @@ func ParseSpecialChars(viper *fangs.Viper, app *api.AppConfig, args []string) []
 		}
 	}
 
-	isPiped := func() bool {
-		stat, _ := os.Stdin.Stat()
-		return (stat.Mode() & os.ModeCharDevice) == 0
+	if !viper.GetBool("no_stdin") {
+		isPiped := func() bool {
+			stat, _ := os.Stdin.Stat()
+			return (stat.Mode() & os.ModeCharDevice) == 0
+		}
+		// app.IsPiped = isPiped()
+		app.Stdin = isStdin || stdin || isPiped()
 	}
 
-	app.IsPiped = isPiped()
-	app.Stdin = isStdin || stdin
 	app.Clipin = isClipin || pbRead || pbReadWait
 	app.ClipWait = isClipWait || pbReadWait
 	app.Clipout = isClipout || pbWrite || pbWriteAppend

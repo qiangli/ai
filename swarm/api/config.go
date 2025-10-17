@@ -73,8 +73,8 @@ type AppConfig struct {
 	Clipout    bool
 	ClipAppend bool
 
-	IsPiped bool
-	Stdin   bool
+	// IsPiped bool
+	Stdin bool
 
 	// Output format: raw or markdown
 	Format string
@@ -146,8 +146,8 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		ClipWait:   cfg.ClipWait,
 		Clipout:    cfg.Clipout,
 		ClipAppend: cfg.ClipAppend,
-		IsPiped:    cfg.IsPiped,
-		Stdin:      cfg.Stdin,
+		// IsPiped:    cfg.IsPiped,
+		Stdin: cfg.Stdin,
 		//
 		Format: cfg.Format,
 		Output: cfg.Output,
@@ -199,7 +199,7 @@ func (cfg *AppConfig) IsTracing() bool {
 }
 
 func (r *AppConfig) IsStdin() bool {
-	return r.Stdin || r.IsPiped
+	return r.Stdin
 }
 
 func (r *AppConfig) IsClipin() bool {

@@ -18,6 +18,7 @@
 				// "@iconvert",
 				// "@news",
 				"@video",
+				"--no-stdin=true",
 				"--message",
 				// "generate a random password"
 				// "what is the weather in dublin ca"
