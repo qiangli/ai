@@ -2,6 +2,7 @@ package atm
 
 import (
 	"context"
+	"math/rand"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
@@ -37,6 +38,67 @@ func (r *WebAuthKit) DownloadContent(ctx context.Context, vars *api.Vars, name s
 
 	log.GetLogger(ctx).Debugf("💾 downloading %q to %q \n", link, file)
 	return webtool.Download(ctx, link, file)
+}
+
+// type SearchTool func(context.Context, string, int) (string, error)
+
+// Search the web using available search tools.
+func (r *WebAuthKit) Search(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	query, err := GetStrProp("query", args)
+	if err != nil {
+		return "", err
+	}
+	max, err := GetIntProp("max_results", args)
+	if err != nil {
+		return "", err
+	}
+	if max <= 0 {
+		max = 1
+	}
+	if max > 10 {
+		max = 10
+	}
+
+	ddg := func() (string, error) {
+		log.GetLogger(ctx).Debugf("🦆 ddg query: %q max: %d\n", query, max)
+		return webtool.DDG(ctx, query, max)
+	}
+	bing := func() (string, error) {
+		log.GetLogger(ctx).Debugf("🅱️ bing query: %q max: %d\n", query, max)
+		return webtool.Bing(ctx, query, max)
+	}
+	brave := func() (string, error) {
+		apiKey, err := r.token()
+		if err != nil {
+			return "", err
+		}
+		log.GetLogger(ctx).Debugf("🦁 brave query: %q max: %d\n", query, max)
+		return webtool.Brave(ctx, apiKey, query, max)
+	}
+	google := func() (string, error) {
+		// engine_id:api_key
+		key, err := r.token()
+		if err != nil {
+			return "", err
+		}
+		seID, apiKey := split2(key, ":", "")
+
+		log.GetLogger(ctx).Debugf("🅖 google query: %q max: %d\n", query, max)
+		return webtool.Google(ctx, apiKey, seID, query, max)
+	}
+
+	// log.GetLogger(ctx).Debugf("🦆 ddg query: %q max: %d\n", query, max)
+	// return webtool.DDG(ctx, query, max)
+	var tools = []func() (string, error){
+		bing,
+		ddg,
+		brave,
+		google,
+	}
+
+	// random
+	idx := rand.Intn(len(tools))
+	return tools[idx]()
 }
 
 // Search the web using DuckDuckGo.

@@ -2,6 +2,23 @@ kit: "web"
 type: "web"
 
 tools:
+  - name: "search"
+    description: "Search the web using available search tools and return formatted results"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The search query string"
+        max_results:
+          type: "integer"
+          description: "Maximum number of results to return"
+          default: 5
+          minimum: 1
+          maximum: 10
+      required:
+        - query
+  
   - name: "fetch_content"
     description: "Fetch and process content from webpage URL and convert HTML to text"
     parameters:
