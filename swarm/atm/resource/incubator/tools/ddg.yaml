@@ -1,10 +1,10 @@
-kit: "bing"
+kit: "ddg"
 type: "web"
 
 tools:
-  - name: "bing_search"
-    display: "🅱️ Bing Search"
-    description: "Search the web using Bing and return formatted results"
+  - name: "ddg_search"
+    display: "🦆 DDG Search"
+    description: "Search the web using DuckDuckGo and return formatted results"
     parameters:
       type: "object"
       properties:

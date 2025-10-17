@@ -38,7 +38,7 @@ var (
 	listToolsCache  = expirable.NewLRU[ListCacheKey, string](10000, nil, time.Second*900)
 )
 
-func (r *AIKit) Call(ctx context.Context, vars *api.Vars, _ api.SecretToken, tf *api.ToolFunc, args map[string]any) (any, error) {
+func (r *AIKit) Call(ctx context.Context, vars *api.Vars, owner string, tf *api.ToolFunc, args map[string]any) (any, error) {
 	callArgs := []any{ctx, vars, tf.Name, args}
 	return atm.CallKit(r, tf.Config.Kit, tf.Name, callArgs...)
 }

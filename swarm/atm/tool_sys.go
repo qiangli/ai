@@ -29,7 +29,7 @@ func (r *SystemKit) getArray(key string, args map[string]any) ([]string, error) 
 	return GetArrayProp(key, args)
 }
 
-func (r *SystemKit) Call(ctx context.Context, vars *api.Vars, token api.SecretToken, tf *api.ToolFunc, args map[string]any) (any, error) {
+func (r *SystemKit) Call(ctx context.Context, vars *api.Vars, _ *api.ToolEnv, tf *api.ToolFunc, args map[string]any) (any, error) {
 	callArgs := []any{ctx, vars, tf.Name, args}
 	v, err := CallKit(r, tf.Config.Kit, tf.Name, callArgs...)
 	if err != nil {

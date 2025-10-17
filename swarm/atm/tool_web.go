@@ -9,12 +9,18 @@ import (
 	webtool "github.com/qiangli/ai/swarm/tool/web/util"
 )
 
-// WebAuthKit must be per tool/func call
-type WebAuthKit struct {
-	token api.SecretToken
+// webAuthKit must be per tool/func call
+type webAuthKit struct {
+	secrets api.SecretStore
+	owner   string
+	key     string
 }
 
-func (r *WebAuthKit) FetchContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *webAuthKit) token() (string, error) {
+	return r.secrets.Get(r.owner, r.key)
+}
+
+func (r *webAuthKit) FetchContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	link, err := GetStrProp("url", args)
 	if err != nil {
 		return "", err
@@ -26,7 +32,7 @@ func (r *WebAuthKit) FetchContent(ctx context.Context, vars *api.Vars, name stri
 	return content, err
 }
 
-func (r *WebAuthKit) DownloadContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *webAuthKit) DownloadContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	link, err := GetStrProp("url", args)
 	if err != nil {
 		return "", err
@@ -40,10 +46,8 @@ func (r *WebAuthKit) DownloadContent(ctx context.Context, vars *api.Vars, name s
 	return webtool.Download(ctx, link, file)
 }
 
-// type SearchTool func(context.Context, string, int) (string, error)
-
 // Search the web using available search tools.
-func (r *WebAuthKit) Search(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *webAuthKit) Search(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	query, err := GetStrProp("query", args)
 	if err != nil {
 		return "", err
@@ -60,40 +64,38 @@ func (r *WebAuthKit) Search(ctx context.Context, vars *api.Vars, name string, ar
 	}
 
 	ddg := func() (string, error) {
-		log.GetLogger(ctx).Debugf("🦆 ddg query: %q max: %d\n", query, max)
+		log.GetLogger(ctx).Debugf("🦆 search ddg query: %q max: %d\n", query, max)
 		return webtool.DDG(ctx, query, max)
 	}
 	bing := func() (string, error) {
-		log.GetLogger(ctx).Debugf("🅱️ bing query: %q max: %d\n", query, max)
+		log.GetLogger(ctx).Debugf("🅱️ search bing query: %q max: %d\n", query, max)
 		return webtool.Bing(ctx, query, max)
 	}
-	brave := func() (string, error) {
-		apiKey, err := r.token()
-		if err != nil {
-			return "", err
-		}
-		log.GetLogger(ctx).Debugf("🦁 brave query: %q max: %d\n", query, max)
-		return webtool.Brave(ctx, apiKey, query, max)
-	}
-	google := func() (string, error) {
-		// engine_id:api_key
-		key, err := r.token()
-		if err != nil {
-			return "", err
-		}
-		seID, apiKey := split2(key, ":", "")
+	// brave := func() (string, error) {
+	// 	apiKey, err := r.token()
+	// 	if err != nil {
+	// 		return "", err
+	// 	}
+	// 	log.GetLogger(ctx).Debugf("🦁 brave query: %q max: %d\n", query, max)
+	// 	return webtool.Brave(ctx, apiKey, query, max)
+	// }
+	// google := func() (string, error) {
+	// 	// engine_id:api_key
+	// 	key, err := r.token()
+	// 	if err != nil {
+	// 		return "", err
+	// 	}
+	// 	seID, apiKey := split2(key, ":", "")
 
-		log.GetLogger(ctx).Debugf("🅖 google query: %q max: %d\n", query, max)
-		return webtool.Google(ctx, apiKey, seID, query, max)
-	}
+	// 	log.GetLogger(ctx).Debugf("🅖 google query: %q max: %d\n", query, max)
+	// 	return webtool.Google(ctx, apiKey, seID, query, max)
+	// }
 
-	// log.GetLogger(ctx).Debugf("🦆 ddg query: %q max: %d\n", query, max)
-	// return webtool.DDG(ctx, query, max)
 	var tools = []func() (string, error){
 		bing,
 		ddg,
-		brave,
-		google,
+		// brave,
+		// google,
 	}
 
 	// random
@@ -102,7 +104,7 @@ func (r *WebAuthKit) Search(ctx context.Context, vars *api.Vars, name string, ar
 }
 
 // Search the web using DuckDuckGo.
-func (r *WebAuthKit) DdgSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *webAuthKit) DdgSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	query, err := GetStrProp("query", args)
 	if err != nil {
 		return "", err
@@ -123,7 +125,7 @@ func (r *WebAuthKit) DdgSearch(ctx context.Context, vars *api.Vars, name string,
 }
 
 // Search the web using Bing.
-func (r *WebAuthKit) BingSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *webAuthKit) BingSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	query, err := GetStrProp("query", args)
 	if err != nil {
 		return "", err
@@ -144,7 +146,7 @@ func (r *WebAuthKit) BingSearch(ctx context.Context, vars *api.Vars, name string
 }
 
 // Search the web using Brave.
-func (r *WebAuthKit) BraveSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *webAuthKit) BraveSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	query, err := GetStrProp("query", args)
 	if err != nil {
 		return "", err
@@ -170,7 +172,7 @@ func (r *WebAuthKit) BraveSearch(ctx context.Context, vars *api.Vars, name strin
 }
 
 // Search the web using Google.
-func (r *WebAuthKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *webAuthKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	query, err := GetStrProp("query", args)
 	if err != nil {
 		return "", err
@@ -197,20 +199,25 @@ func (r *WebAuthKit) GoogleSearch(ctx context.Context, vars *api.Vars, name stri
 	return webtool.Google(ctx, apiKey, seID, query, max)
 }
 
-// wrapper for WebAuthKit
+// wrapper for webAuthKit
 type WebKit struct {
+	secrets api.SecretStore
 }
 
-func NewWebKit() *WebKit {
-	return &WebKit{}
+func NewWebKit(secrets api.SecretStore) *WebKit {
+	return &WebKit{
+		secrets: secrets,
+	}
 }
 
-func (r *WebKit) Call(ctx context.Context, vars *api.Vars, token api.SecretToken, tf *api.ToolFunc, args map[string]any) (any, error) {
+func (r *WebKit) Call(ctx context.Context, vars *api.Vars, env *api.ToolEnv, tf *api.ToolFunc, args map[string]any) (any, error) {
 	callArgs := []any{ctx, vars, tf.Name, args}
 
 	// forward to web auth kit
-	wk := &WebAuthKit{
-		token: token,
+	wk := &webAuthKit{
+		secrets: r.secrets,
+		owner:   env.Owner,
+		key:     tf.ApiKey,
 	}
 	return CallKit(wk, tf.Kit, tf.Name, callArgs...)
 }

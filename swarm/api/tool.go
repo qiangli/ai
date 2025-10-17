@@ -147,10 +147,14 @@ type ConnectorConfig struct {
 	Extra map[string]string `yaml:"extra"`
 }
 
-type SecretToken func() (string, error)
+// per tool call vars
+type ToolEnv struct {
+	// User  string
+	Owner string
+}
 
 type ToolKit interface {
-	Call(context.Context, *Vars, SecretToken, *ToolFunc, map[string]any) (any, error)
+	Call(context.Context, *Vars, *ToolEnv, *ToolFunc, map[string]any) (any, error)
 }
 
 type ToolSystem interface {

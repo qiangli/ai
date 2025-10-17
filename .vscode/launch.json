@@ -18,7 +18,7 @@
 				// "@iconvert",
 				// "@news",
 				// "@video",
-				"@ask",
+				"@search",
 				"--no-stdin=true",
 				"--message",
 				// "generate a random password",

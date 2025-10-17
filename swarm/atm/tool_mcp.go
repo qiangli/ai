@@ -12,13 +12,16 @@ import (
 )
 
 type McpKit struct {
+	secrets api.SecretStore
 }
 
-func NewMcpKit() *McpKit {
-	return &McpKit{}
+func NewMcpKit(secrets api.SecretStore) *McpKit {
+	return &McpKit{
+		secrets: secrets,
+	}
 }
 
-func (r *McpKit) Call(ctx context.Context, vars *api.Vars, token api.SecretToken, tf *api.ToolFunc, args map[string]any) (any, error) {
+func (r *McpKit) Call(ctx context.Context, vars *api.Vars, env *api.ToolEnv, tf *api.ToolFunc, args map[string]any) (any, error) {
 	var tid = tf.ID()
 
 	log.GetLogger(ctx).Debugf("🎖️ calling MCP tool: %s with args: %+v\n", tid, args)
@@ -28,7 +31,7 @@ func (r *McpKit) Call(ctx context.Context, vars *api.Vars, token api.SecretToken
 	}
 
 	client := mcpcli.NewMcpClient(tf.Config.Connector)
-	tk, err := token()
+	tk, err := r.secrets.Get(env.Owner, tf.ApiKey)
 	if err != nil {
 		return "", err
 	}

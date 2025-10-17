@@ -18,7 +18,7 @@ func NewFuncKit(user *api.User, assets api.AssetManager) *FuncKit {
 	}
 }
 
-func (r *FuncKit) Call(ctx context.Context, vars *api.Vars, _ api.SecretToken, tf *api.ToolFunc, args map[string]any) (any, error) {
+func (r *FuncKit) Call(ctx context.Context, vars *api.Vars, _ *api.ToolEnv, tf *api.ToolFunc, args map[string]any) (any, error) {
 	callArgs := []any{ctx, vars, tf.Name, args}
 	return CallKit(r, tf.Config.Kit, tf.Name, callArgs...)
 }

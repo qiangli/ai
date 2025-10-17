@@ -48,8 +48,9 @@ func NewToolSystem(
 		kits: make(map[any]api.ToolKit),
 	}
 
-	web := atm.NewWebKit()
+	web := atm.NewWebKit(secrets)
 	ts.AddKit(NewKitKey(api.ToolTypeFunc, "web"), web)
+
 	ts.AddKit(NewKitKey(api.ToolTypeFunc, "ddg"), web)
 	ts.AddKit(NewKitKey(api.ToolTypeFunc, "google"), web)
 	ts.AddKit(NewKitKey(api.ToolTypeFunc, "bing"), web)
@@ -58,10 +59,10 @@ func NewToolSystem(
 
 	// default by type
 	ts.AddKit(api.ToolTypeFunc, atm.NewFuncKit(user, assets))
-	ts.AddKit(api.ToolTypeWeb, atm.NewWebKit())
+	ts.AddKit(api.ToolTypeWeb, atm.NewWebKit(secrets))
 	ts.AddKit(api.ToolTypeSystem, atm.NewSystemKit(fs, vs))
-	ts.AddKit(api.ToolTypeMcp, atm.NewMcpKit())
-	ts.AddKit(api.ToolTypeFaas, atm.NewFaasKit())
+	ts.AddKit(api.ToolTypeMcp, atm.NewMcpKit(secrets))
+	ts.AddKit(api.ToolTypeFaas, atm.NewFaasKit(secrets))
 
 	return ts
 }
