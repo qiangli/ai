@@ -22,6 +22,8 @@ import (
 	"github.com/qiangli/ai/swarm/middleware"
 )
 
+const maxThreadLimit = 3
+
 func NewClient(model *api.Model, vars *api.Vars) (*openai.Client, error) {
 	client := openai.NewClient(
 		option.WithAPIKey(model.ApiKey),

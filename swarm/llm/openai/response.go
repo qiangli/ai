@@ -47,7 +47,8 @@ func respond(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	}
 
 	var params = responses.ResponseNewParams{
-		Model: req.Model.Model,
+		Model:           req.Model.Model,
+		MaxOutputTokens: openai.Int(512),
 	}
 	if req.Arguments != nil {
 		setResponseNewParams(&params, req.Arguments)

@@ -5,6 +5,7 @@ agents:
     display: "🚀 Agent"
     description: "Dispatch to the most appropriate agent based on the user's input."
     model: default/any
+    adapter: "text"
     instruction:
       content: |
         ### Agent Selection Guidelines

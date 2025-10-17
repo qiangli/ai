@@ -15,8 +15,6 @@ import (
 	// "github.com/qiangli/ai/swarm/middleware"
 )
 
-const maxThreadLimit = 8
-
 // https://platform.openai.com/docs/models
 
 // https://github.com/openai/openai-go/tree/main/examples
