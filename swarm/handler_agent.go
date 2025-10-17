@@ -139,8 +139,9 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 		var list []*api.Message
 		var emoji = "•"
 		if r.Context != "" {
+			// continue without context if failed
 			if resolved, err := h.mustResolveContext(ctx, req, r.Context); err != nil {
-				return err
+				log.GetLogger(ctx).Errorf("failed to resolve context %s: %v\n", r.Context, err)
 			} else {
 				list = resolved
 				emoji = "🤖"
