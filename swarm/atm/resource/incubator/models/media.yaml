@@ -1,0 +1,25 @@
+##
+alias: "media"
+provider: "openai"
+base_url: "https://api.openai.com/v1/"
+api_key: "openai"
+
+models:
+  L1:
+    model: "gpt-5-nano"
+  L2:
+    model: "gpt-5-nano"
+  L3:
+    model: "gpt-5-nano"
+  Image1:
+    model: "dall-e-3"
+  Image2:
+    model: "gpt-image-1"
+  Video:
+    model: "sora-2"
+  TTS:
+    model: "gpt-4o-mini-tts"
+  Transcription:
+    model: "whisper-1"
+  Transcription2:
+    model: "gpt-4o-transcribe"

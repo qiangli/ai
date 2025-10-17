@@ -1,5 +1,6 @@
 ###
-context: "@context"
+# context: "@context"
+new: true
 agents:
   - name: "video"
     display: "🎥 Video Creator"
@@ -16,6 +17,7 @@ agents:
       input_reference: |
         @web search Google and find a suitable image based on the user query.
         Download the image and encode the content in base64 for the final response.
+
     functions:
       - "fs:*"
 ###
