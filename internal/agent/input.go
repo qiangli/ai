@@ -312,9 +312,10 @@ func pasteConfirm(ctx context.Context) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if answer == "send" {
+	switch answer {
+	case "send":
 		return true, nil
-	} else if answer == "append" {
+	case "append":
 		return false, nil
 	}
 	return false, fmt.Errorf("canceled")

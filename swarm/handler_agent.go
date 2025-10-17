@@ -102,7 +102,7 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 		}
 
 		// dynamic @prompt if requested
-		content, err = h.makePrompt(ctx, req, content)
+		content, err = h.resolvePrompt(ctx, req, content)
 		if err != nil {
 			return err
 		}
@@ -139,8 +139,12 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 		var list []*api.Message
 		var emoji = "•"
 		if r.Context != "" {
-			list, _ = h.contextHistory(ctx, req, r.Context, req.RawInput.Query())
-			emoji = "🤖"
+			if resolved, err := h.mustResolveContext(ctx, req, r.Context); err != nil {
+				return err
+			} else {
+				list = resolved
+				emoji = "🤖"
+			}
 		} else {
 			list = h.vars.History
 		}
@@ -173,6 +177,16 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 		maps.Copy(args, r.Arguments)
 		maps.Copy(args, req.Arguments)
 	}
+	// check agents in args
+	for key, val := range args {
+		if v, ok := val.(string); ok {
+			resolved, err := h.resolveArgument(ctx, req, v)
+			if err != nil {
+				return err
+			}
+			args[key] = resolved
+		}
+	}
 
 	history = append(history, req.Messages...)
 	log.GetLogger(ctx).Debugf("Added user role message: %v\n", len(history))
@@ -184,16 +198,13 @@ func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.R
 	// var runTool = h.toolCall(h.vars, h.agent)
 	var runTool = h.createCaller()
 
-	var model = r.Model
 	// resolve if model is @agent
-	if strings.HasPrefix(model.Model, "@") {
-		if v, err := h.makeModel(ctx, req, model.Model); err != nil {
-			return err
-		} else {
-			model = v
-		}
+	var model *api.Model
+	if v, err := h.resolveModel(ctx, req, r.Model); err != nil {
+		return err
+	} else {
+		model = v
 	}
-
 	var request = llm.Request{
 		Agent:    r.Name,
 		Messages: history,
@@ -280,15 +291,12 @@ func (h *agentHandler) exec(req *api.Request, resp *api.Response) error {
 
 // dynamically generate prompt if content starts with @<agent>
 // otherwise, return s unchanged
-func (h *agentHandler) makePrompt(ctx context.Context, parent *api.Request, s string) (string, error) {
-	content := strings.TrimSpace(s)
-	if !strings.HasPrefix(content, "@") {
+func (h *agentHandler) resolvePrompt(ctx context.Context, parent *api.Request, s string) (string, error) {
+	agent, query, found := parseAgentCommand(s)
+	if !found {
 		return s, nil
 	}
-	// @agent instruction...
-	agent, instruction := split2(content, " ", "")
-	prompt, err := h.callAgent(parent, agent, instruction)
-
+	prompt, err := h.callAgent(parent, agent, query)
 	if err != nil {
 		return "", err
 	}
@@ -298,9 +306,13 @@ func (h *agentHandler) makePrompt(ctx context.Context, parent *api.Request, s st
 	return prompt, nil
 }
 
-// dynamcally make LLM model
-func (h *agentHandler) makeModel(ctx context.Context, parent *api.Request, agent string) (*api.Model, error) {
-	out, err := h.callAgent(parent, agent, "")
+// dynamcally make LLM model; return s as is if not an agent command
+func (h *agentHandler) resolveModel(ctx context.Context, parent *api.Request, m *api.Model) (*api.Model, error) {
+	agent, query, found := parseAgentCommand(m.Model)
+	if !found {
+		return m, nil
+	}
+	out, err := h.callAgent(parent, agent, query)
 	if err != nil {
 		return nil, err
 	}
@@ -320,7 +332,11 @@ func (h *agentHandler) makeModel(ctx context.Context, parent *api.Request, agent
 	return &model, nil
 }
 
-func (h *agentHandler) contextHistory(ctx context.Context, parent *api.Request, agent, query string) ([]*api.Message, error) {
+func (h *agentHandler) mustResolveContext(ctx context.Context, parent *api.Request, s string) ([]*api.Message, error) {
+	agent, query, found := parseAgentCommand(s)
+	if !found {
+		return nil, fmt.Errorf("invalid context: %s", s)
+	}
 	out, err := h.callAgent(parent, agent, query)
 	if err != nil {
 		return nil, err
@@ -333,6 +349,20 @@ func (h *agentHandler) contextHistory(ctx context.Context, parent *api.Request, 
 
 	log.GetLogger(ctx).Debugf("dynamic context messages: (%v) %s\n", len(list), head(out, 100))
 	return list, nil
+}
+
+// call agent if found. otherwise return s as is
+func (h *agentHandler) resolveArgument(ctx context.Context, parent *api.Request, s string) (any, error) {
+	agent, query, found := parseAgentCommand(s)
+	if !found {
+		return s, nil
+	}
+	out, err := h.callAgent(parent, agent, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }
 
 func (h *agentHandler) callAgent(parent *api.Request, s string, prompt string) (string, error) {

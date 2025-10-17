@@ -1,5 +1,5 @@
 ###
-new: true
+context: "@context"
 agents:
   - name: "video"
     display: "🎥 Video Creator"

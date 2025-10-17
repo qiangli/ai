@@ -145,3 +145,14 @@ func dataURL(mime string, raw []byte) string {
 	d := fmt.Sprintf("data:%s;base64,%s", mime, encoded)
 	return d
 }
+
+// parse s and look for agent. return app config and true if found.
+func parseAgentCommand(s string) (string, string, bool) {
+	v := strings.TrimSpace(s)
+	// TODO support models/history command line flags
+	if !strings.HasPrefix(v, "@") {
+		return "", "", false
+	}
+	agent, msg := split2(v, " ", "")
+	return agent, msg, true
+}

@@ -59,6 +59,9 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	if len(req.Messages) > 0 {
 		var messages []openai.ChatCompletionMessageParamUnion
 		for _, v := range req.Messages {
+			if len(v.Content) == 0 {
+				return nil, fmt.Errorf("empty message content")
+			}
 			// https://platform.openai.com/docs/guides/text-generation#developer-messages
 			switch v.Role {
 			// case "system":
@@ -81,6 +84,11 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		}
 		params.Messages = messages
 	}
+
+	if len(req.Messages) == 0 {
+		return nil, fmt.Errorf("no input message")
+	}
+
 	if len(req.Tools) > 0 {
 		var tools []openai.ChatCompletionToolUnionParam
 		for _, f := range req.Tools {
