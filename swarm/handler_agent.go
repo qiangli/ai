@@ -362,7 +362,19 @@ func (h *agentHandler) resolveArgument(ctx context.Context, parent *api.Request,
 		return nil, err
 	}
 
-	return out, nil
+	type ArgResult struct {
+		Result string
+		Error  string
+	}
+
+	var arg ArgResult
+	if err := json.Unmarshal([]byte(out), &arg); err != nil {
+		return nil, err
+	}
+	if arg.Error != "" {
+		return nil, fmt.Errorf("failed resolve argument: %s", arg.Error)
+	}
+	return arg.Result, nil
 }
 
 func (h *agentHandler) callAgent(parent *api.Request, s string, prompt string) (string, error) {

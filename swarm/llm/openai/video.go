@@ -48,7 +48,7 @@ func genVideo(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		if err != nil {
 			return nil, err
 		}
-		params.InputReference = ref
+		params.InputReference = openai.File(ref, "reference.jpg", "image/jpeg")
 	}
 	if v := GetStrArg("seconds", req.Arguments, "4"); v != "" {
 		params.Seconds = openai.VideoSeconds(v)
