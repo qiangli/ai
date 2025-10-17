@@ -172,7 +172,7 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	vars.MaxHistory = app.MaxHistory
 	vars.Context = app.Context
 	vars.MaxSpan = app.MaxSpan
-	vars.Message = app.Message
+	// vars.Message = app.Message
 	vars.Format = app.Format
 	vars.Models = app.Models
 	vars.Unsafe = app.Unsafe

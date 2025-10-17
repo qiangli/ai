@@ -7,8 +7,8 @@ const (
 
 // global context
 type Vars struct {
-	Agent   string `json:"agent"`
-	Message string `json:"message"`
+	// Agent   string `json:"agent"`
+	// Message string `json:"message"`
 
 	LogLevel LogLevel `json:"log_level"`
 
@@ -36,8 +36,8 @@ type Vars struct {
 
 func (v *Vars) Clone() *Vars {
 	clone := &Vars{
-		Agent:   v.Agent,
-		Message: v.Message,
+		// Agent:   v.Agent,
+		// Message: v.Message,
 		//
 		ChatID:     v.ChatID,
 		New:        v.New,

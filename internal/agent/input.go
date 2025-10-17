@@ -43,12 +43,12 @@ func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clip
 	// --message flag - ignore the rest (mainly intended for testing)
 	// changed to be prepended to other messages
 	// support default values from agents config.
-	if cfg.Message != "" {
-		msg := trimInputMessage(strings.Join(cfg.Args, " "))
-		return &api.UserInput{
-			Message: msg,
-		}, nil
-	}
+	// if cfg.Message != "" {
+	// 	msg := trimInputMessage(strings.Join(cfg.Args, " "))
+	// 	return &api.UserInput{
+	// 		Message: msg,
+	// 	}, nil
+	// }
 
 	// collecting message content from various sources
 	if clipper == nil {
@@ -99,6 +99,9 @@ func userInput(
 	editor api.EditorProvider,
 ) (*api.UserInput, error) {
 	var msg = trimInputMessage(strings.Join(cfg.Args, " "))
+	if cfg.Message != "" {
+		msg = cfg.Message + " " + msg
+	}
 
 	// stdin
 	var stdinData string

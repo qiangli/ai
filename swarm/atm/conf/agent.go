@@ -292,7 +292,7 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 			RawInput: input,
 			//
 			LogLevel: api.Quiet,
-			Message:  nvl(vars.Message, c.Message, ac.Message),
+			Message:  nvl(c.Message, ac.Message),
 			Format:   nvl(vars.Format, c.Format, ac.Format),
 			//
 			Arguments: c.Arguments,
