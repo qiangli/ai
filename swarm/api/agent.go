@@ -121,14 +121,6 @@ type Agent struct {
 
 	Arguments map[string]any
 
-	// Dependencies []string
-	// Entrypoint   Entrypoint
-
-	// // advices
-	// BeforeAdvice Advice
-	// AfterAdvice  Advice
-	// AroundAdvice Advice
-
 	// LLM adapter
 	Adapter string
 
@@ -158,21 +150,16 @@ func (a *Agent) Clone() *Agent {
 		Model:       a.Model,
 		Tools:       a.Tools,
 		Arguments:   a.cloneArguments(),
-		// Dependencies: a.Dependencies,
-		// Entrypoint:   a.Entrypoint,
-		// BeforeAdvice: a.BeforeAdvice,
-		// AfterAdvice:  a.AfterAdvice,
-		// AroundAdvice: a.AroundAdvice,
-		Adapter:    a.Adapter,
-		Message:    a.Message,
-		Format:     a.Format,
-		MaxTurns:   a.MaxTurns,
-		MaxTime:    a.MaxTime,
-		New:        a.New,
-		MaxHistory: a.MaxHistory,
-		MaxSpan:    a.MaxSpan,
-		Context:    a.Context,
-		LogLevel:   a.LogLevel,
+		Adapter:     a.Adapter,
+		Message:     a.Message,
+		Format:      a.Format,
+		MaxTurns:    a.MaxTurns,
+		MaxTime:     a.MaxTime,
+		New:         a.New,
+		MaxHistory:  a.MaxHistory,
+		MaxSpan:     a.MaxSpan,
+		Context:     a.Context,
+		LogLevel:    a.LogLevel,
 	}
 }
 
@@ -235,13 +222,9 @@ type AgentConfig struct {
 	// kit:name
 	Functions []string `yaml:"functions"`
 
-	// Dependencies []string `yaml:"dependencies"`
+	Sub *SubConfig `yaml:"sub"`
 
-	// Entrypoint string `yaml:"entrypoint"`
-
-	// Advices *AdviceConfig `yaml:"advices"`
-
-	// chat|image-get|docker/aider oh gptr
+	// chat|image|docker/aider oh gptr
 	Adapter string `yaml:"adapter"`
 
 	//
@@ -291,27 +274,25 @@ type Instruction struct {
 	Type string `yaml:"type"`
 }
 
-type AdviceConfig struct {
-	Before string `yaml:"before"`
-	After  string `yaml:"after"`
-	Around string `yaml:"around"`
+type FlowType string
+
+const (
+	FlowTypeSeqence   FlowType = "seqence"
+	FlowTypeParallel  FlowType = "parallel"
+	FlowTypeLoop      FlowType = "loop"
+	FlowTypeCondition FlowType = "condition"
+)
+
+type SubConfig struct {
+	Flow        FlowType      `yaml:"flow"`
+	Concurrency int           `yaml:"concurrency"`
+	Tasks       []*TaskConfig `yaml:"tasks"`
 }
 
-// Swarm Agents can call functions directly.
-// Function should usually return a string values.
-// If a function returns Result with an Agent, execution will be transferred to that Agent.
-// type Function = func(context.Context, *Vars, string, map[string]any) (*Result, error)
-
-// type Advice func(*Vars, *Request, *Response, Advice) error
-
-// type Entrypoint func(*Vars, *Agent, *UserInput) error
-
-// type AgentResource struct {
-// 	// web resource base url
-// 	// http://localhost:18080/resource/
-
-// 	Resources []*Resource `json:"resources"`
-// }
+type TaskConfig struct {
+	Agent string `yaml:"agent"`
+	Tool  string `yaml:"tool"`
+}
 
 type Resource struct {
 	// web resource base url
@@ -322,15 +303,3 @@ type Resource struct {
 	// access token
 	Token string `json:"token"`
 }
-
-// func LoadAgentResource(p string) (*AgentResource, error) {
-// 	var ar AgentResource
-// 	data, err := os.ReadFile(p)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if err := json.Unmarshal(data, &ar); err != nil {
-// 		return nil, err
-// 	}
-// 	return &ar, nil
-// }

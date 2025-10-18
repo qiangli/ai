@@ -1,0 +1,68 @@
+###
+pack: gptr
+# https://github.com/assafelovic/gpt-researcher
+agents:
+  - name: "gptr"
+    display: "🚀 GPT Researcher Main"
+    description: "Description"
+    model: L1
+    instruction:
+      content: |
+        Create a task-specific agent based on a research query.
+    sub:
+      flow: "sequence"
+      tasks:
+        - agent: "gptr/planner"
+        - agent: "gptr/researcher"
+        - agent: "gptr/publisher"
+    functions:
+      - "agent:gptr/planner"
+      - "agent:gptr/researcher"
+      - "agent:gptr/publisher"
+      - "web:*"
+      - "ddg:*"
+  
+  - name: "gptr/planner"
+    display: "🌐 GPT Planner"
+    description: "Description"
+    model: L1
+    instruction:
+      content: |
+        Generate questions that collectively form an objective opinion on the task.
+    # functions:
+    #   - "kit:*"
+  
+  - name: "gptr/researcher"
+    display: "🌐 GPT Researcher"
+    description: "Description"
+    model: L1
+    instruction:
+      content: |
+        Use a crawler agent for gathering information for each question.
+    sub:
+      flow: paralell
+      concurrency: 8
+      tasks:
+        - tool: ddg:ddg_search
+        - tool: google:google_search
+        - tool: web:crawl
+    arguments:
+      - query: string
+      - parent_query: string
+      - report_type: string
+    functions:
+      - "ddg:*"
+      - "google:*"
+      - "brave:*"
+  
+  - name: "gptr/publisher"
+    display: "🌐 GPT Publisher"
+    description: "Description"
+    model: L1
+    instruction:
+      content: |
+        Summarize and source-track each resource
+        Filter and aggregate summaries into a final research report
+    functions:
+      - "kit:*"
+###
