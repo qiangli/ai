@@ -40,16 +40,19 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 
 	log.GetLogger(ctx).Debugf("Serve agent: %s\n", r.Name)
 
-	if h.agent.Sub != nil {
-		switch h.agent.Sub.Flow {
-		case api.FlowTypeSeqence:
+	// flow control agent
+	if h.agent.Flow != nil {
+		switch h.agent.Flow.Type {
+		case api.FlowTypeSequence:
 			return h.flowSequence(req, resp)
 		case api.FlowTypeParallel:
 			return h.flowParallel(req, resp)
-		case api.FlowTypeCondition:
-			return h.flowCondition(req, resp)
-		case api.FlowTypeLoop:
-			return h.flowLoop(req, resp)
+		case api.FlowTypeChoice:
+			return h.flowChoice(req, resp)
+		case api.FlowTypeMap:
+			return h.flowMap(req, resp)
+		default:
+			return fmt.Errorf("not supported yet %v", h.agent.Flow)
 		}
 	} else {
 		if err := h.entry(ctx, req, resp); err != nil {

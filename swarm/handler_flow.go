@@ -17,10 +17,10 @@ func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error 
 	return nil
 }
 
-func (h *agentHandler) flowCondition(req *api.Request, resp *api.Response) error {
+func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
 	return nil
 }
 
-func (h *agentHandler) flowLoop(req *api.Request, resp *api.Response) error {
+func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 	return nil
 }

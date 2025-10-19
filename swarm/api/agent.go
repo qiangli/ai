@@ -139,7 +139,7 @@ type Agent struct {
 	LogLevel LogLevel
 
 	//
-	Sub *Sub
+	Flow *Flow
 }
 
 func (a *Agent) Clone() *Agent {
@@ -164,16 +164,21 @@ func (a *Agent) Clone() *Agent {
 		Context:     a.Context,
 		LogLevel:    a.LogLevel,
 		//
-		Sub: a.Sub,
+		Flow: a.Flow,
 	}
 }
 
-type Sub struct {
-	Flow  FlowType
-	Tasks []*Task
+type Flow struct {
+	Type        FlowType
+	Expression  string
+	Input       string
+	Output      string
+	Concurrency int
+	Retry       int
+	Actions     []*Action
 }
 
-type Task struct {
+type Action struct {
 	Tool *ToolFunc
 }
 
@@ -236,7 +241,7 @@ type AgentConfig struct {
 	// kit:name
 	Functions []string `yaml:"functions"`
 
-	Sub *SubConfig `yaml:"sub"`
+	Routine *RoutineConfig `yaml:"routine"`
 
 	// chat|image|docker/aider oh gptr
 	Adapter string `yaml:"adapter"`
@@ -291,15 +296,39 @@ type Instruction struct {
 type FlowType string
 
 const (
-	FlowTypeSeqence   FlowType = "seqence"
-	FlowTypeParallel  FlowType = "parallel"
-	FlowTypeLoop      FlowType = "loop"
-	FlowTypeCondition FlowType = "condition"
+	// actions are executed sequentially
+	FlowTypeSequence FlowType = "sequence"
+	// actions are executed in parallel and the final result will be a list
+	FlowTypeParallel FlowType = "parallel"
+	// action(s) are executed in a loop with a counter or expression evaluated for each cycle
+	FlowTypeLoop FlowType = "loop"
+	// one of the actions is selected based on an expression or randomly if no expression is provided
+	// expression must evaluate to an integer (zero based).
+	// true/false is acceptable if there are only two actions.
+	FlowTypeChoice FlowType = "choice"
+	// The map flow creates a new array populated with the results of calling the action(s)
+	// on every element in the input array
+	FlowTypeMap FlowType = "map"
+	// The reduce flow executes the action(s) on each element of the array, in order,
+	// passing in the return value from the calculation on the preceding element.
+	// The final result of running the reducer across all elements of the array is returned as a single value.
+	// The first time that the flow is run, an initial value is read from the result of the previous agent
+	// or empty if the flow is the root agent.
+	FlowTypeReduce FlowType = "reduce"
+	//
+	FlowTypeNest FlowType = "nest"
 )
 
-type SubConfig struct {
-	Flow        FlowType        `yaml:"flow"`
+type RoutineConfig struct {
+	Flow FlowType `yaml:"flow"`
+	// input object key. action input is read from this key. default: result
+	Input string `yaml:"input"`
+	// output object key. action output is saved with this key. default: result
+	Output string `yaml:"output"`
+	// go template syntax
+	Expression  string          `yaml:"expression"`
 	Concurrency int             `yaml:"concurrency"`
+	Retry       int             `yaml:"retry"`
 	Actions     []*ActionConfig `yaml:"actions"`
 }
 

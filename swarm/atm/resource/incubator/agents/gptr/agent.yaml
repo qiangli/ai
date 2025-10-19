@@ -1,4 +1,6 @@
 ###
+
+## agent pack
 pack: gptr
 # 
 # adapted from https://github.com/assafelovic/gpt-researcher
@@ -12,13 +14,15 @@ agents:
     routine:
       flow: "sequence"
       actions:
-        - agent: "gptr/choose_agent"
-        - agent: "gptr/web_search"
-        - agent: "gptr/research_queries"
-        - agent: "gptr/scrape"
-        - agent: "gptr/curate"
-        - agent: "gptr/report"
+        - "gptr/user_input"
+        - "gptr/choose_agent"
+        - "gptr/web_search"
+        - "gptr/research_queries"
+        - "gptr/scrape"
+        - "gptr/curate"
+        - "gptr/report"
     functions:
+      - "agent:gptr/user_input"
       - "agent:gptr/choose_agent"
       - "agent:gptr/web_search"
       - "agent:gptr/research_queries"
@@ -26,20 +30,60 @@ agents:
       - "agent:gptr/curate"
       - "agent:gptr/report"
   
+  - name: "gptr/user_input"
+    display: "🖥️  User Input"
+    description: "Detect user preferences for the GPT Researcher tool."
+    model: smart_llm/fast
+    instruction:
+      content: |
+        You are an agent designed for research on any given task. Your current objective is to identify the following elements from the user's query:
+
+        + Tone of the report:
+          Example values:
+            "objective", "formal", "analytical", "persuasive", "informative", "explanatory", "descriptive", "critical", "comparative", "speculative",
+            "reflective", "narrative", "humorous", "optimistic", "pessimistic"
+          Multiple values are allowed, e.g., "formal, analytical, and objective". If a tone not listed above is detected in the user's input, it should also be considered valid.
+
+        + Total word count limit for document generation. The default is `500`.
+          Guidelines:
+            - Use 500 words for a short summary.
+            - Use 1000 words for a detailed and in-depth report.
+            - Do not exceed 2000 words for an extensive research report unless explicitly requested by the user for more.
+
+        + Report format: The preferred format for report generation. The default is `markdown`.
+          Formats such as `MLA`, `CMS`, `Harvard style`, `IEEE`, etc., should be used if specified by the user.
+
+        + Language: The language to be used for the final research report. The default is `English`.
+
+        The final response must be structured as valid JSON:
+        {
+          "tone": "detected tone from user input",
+          "total_words": "derived total words from user input",
+          "report_format": "desired report format from user",
+          "language": "preferred language by user"
+        }
+    arguments: 
+      tone: "objective"
+      total_words: 500
+      language: "english"
+      report_format: "markdown"
+
   - name: "gptr/choose_agent"
-    display: "🤖 Choose agent"
+    display: "🤖 Choose Agent"
     description: "Chooses the agent automatically"
-    model: smart_llm/smart_llm_model
+    model: smart_llm/smart
     arguments:
       temperature: 0.15
     instruction:
       content: |
-        This task involves researching a given topic, regardless of its complexity or the availability of a definitive answer. The research is conducted by a specific server, defined by its type and role, with each server requiring distinct instructions.
+        This task involves researching a given topic, regardless of its complexity or the availability of a definitive answer.
+        The research is conducted by a specific server, defined by its type and role, with each server requiring distinct instructions.
         
-        Agent
-        The server is determined by the field of the topic and the specific name of the server that could be utilized to research the topic provided. Agents are categorized by their area of expertise, and each server type is associated with a corresponding emoji.
+        The server is determined by the field of the topic and the specific name of the server that could be utilized to research the topic provided.
+        Agents are categorized by their area of expertise, and each server type is associated with a corresponding emoji.
 
-        examples:
+        Examples:
+
         task: "should I invest in apple stocks?"
         response:
         {
@@ -59,25 +103,22 @@ agents:
             "agent_role_prompt": "You are a world-travelled AI tour guide assistant. Your main purpose is to draft engaging, insightful, unbiased, and well-structured travel reports on given locations, including history, attractions, and cultural insights."
         }
     message: |
-      #!ai --mime-type=text/go-template
+      #! --mime-type=text/go-template --arguments "name=value,namve=value,"
       task: {{.query}}
   
   - name: "gptr/web_search"
     display: "🔍 Web Search"
     description: "Get web search results for a given query."
-    arguments:
-       query: ""
-    sub:
+    routine:
       flow: choice
-      retry: 0
-      concurrency: 0
+      retry: 3
+      concurrency: 1
       actions:
-        - ddg:ddg_search
-        - bing:bing_search
-        - google:google_search
-        - brave:brave_search
+        - ddg_search
+        - bing_search
+        - google_search
+        - brave_search
     functions:
-      - "web:*"
       - "ddg:*"
       - "bing:*"
       - "google:*"
@@ -85,61 +126,64 @@ agents:
   
   - name: "gptr/research_queries"
     display: "🤔 Planning the research strategy and subtasks"
-    description: "Generate sub-queries using the specified LLM model."
-    model: smart_llm/strategic_llm_model
+    description: "Generate sub_queries using the specified LLM model."
+    model: smart_llm/strategic
     arguments:
-      query: ""
-      result: ""
-      max_iterations: 3
       max_tokens: 4000
-      reasoning_effort: medium        
+      reasoning_effort: medium
+      #
+      max_iterations: 3
     instruction:
       content: |
-        You are a seasoned research assistant tasked with generating search queries to find relevant information for the following task: "{{.query}}".
-        Context: {{.result}}
+        #! --mime-type=x-go-template
+        You are a seasoned research assistant tasked with generating search queries to find relevant information for the following task:
+        "{{.query}}".
+    message: |
+      #! --mime-type=x-go-template
+      Context: {{.result}}
 
-        Use this context to inform and refine your search queries. The context provides real-time web information that can help you generate more specific and relevant queries. Consider any current events, recent developments, or specific details mentioned in the context that could enhance the search queries.
+      Use this context to inform and refine your search queries. The context provides real-time web information that can help you generate more specific and relevant queries. Consider any current events, recent developments, or specific details mentioned in the context that could enhance the search queries.
 
-        Write {{.max_iterations}} google search queries to search online that form an objective opinion from the following task: "{{.query}}"
+      Write {{.max_iterations}} search queries to search online that form an objective opinion from the following task:
+      "{{.query}}"
 
-        Assume the current date is {{.now}} if required.
-        You must respond with a list of strings in the following format:
+      Assume the current date is {{.now}} if required.
+
+      You must respond with a list of strings in the following JSON array object format:
         [
-          {{ $queries := list }}
-          {{ range $i := until $maxIterations }}
-            {{ $query := printf "\"query %d\"" (add $i 1) }}
-            {{ $queries = append $queries $query }}
-          {{ end }}
-          {{ join $queries ", " }}
-        ].
-        The response should contain ONLY the list.
+          "query 1",
+          "query 2",
+          ...
+        ]
+      The response should contain ONLY the list.
   
   - name: "gptr/scrape"
     display: "🌐 Scraper"
-    description: "Runs a uery across multiple retrievers and scrapes the resulting URLs."
-    arguments:
-      query: ""
-      result: ""
+    description: "Runs a query across multiple retrievers and scrapes the resulting URLs."
+    routine:
+      flow: map
+      concurrency: 5
+      actions:
+        # - crawl
+        - get_content
     functions:
       - "web:*"
   
   - name: "gptr/curate"
     display: "⚖️ Evaluating and curating sources"
     description: "Ranks sources and curates data based on their relevance, credibility and reliability."
-    model: smart_llm/smart_llm_model
+    model: smart_llm/smart
     arguments:
       temperature: 0.2
       max_tokens: 8000
       #
-      # query: ""
-      # result: ""
-      max_results: 10
+      max_results: 5
     instruction:
       content: |
-        #! --mimte-type=text/template
+        #! --mimte-type=text/x-go-template
         {{.agent_role_prompt}}
     message: |
-      #! --mime-type=text/template
+      #! --mime-type=text/x-go-template
       Your goal is to evaluate and curate the provided scraped content for the research task: "{{.query}}"
         while prioritizing the inclusion of relevant and high-quality information, especially sources containing statistics, numbers, or concrete data.
 
@@ -166,34 +210,31 @@ agents:
         - Keep marginally relevant or incomplete sources if they contain valuable data or insights.
 
       SOURCES LIST TO EVALUATE:
-      {{.result}}
+      {{prettyJson .result}}
 
       You MUST return your response in the EXACT sources JSON list format as the original sources.
       The response MUST not contain any markdown format or additional text (like ```json), just the JSON list!
-
+  
   - name: "gptr/report"
     display: "📝 Report"
     description: "Generates the final report"
-    model: smart_llm/smart_llm_model
+    model: smart_llm/smart
     arguments:
       temperature: 0.35
       max_tokens: 6000
       #
-      # query: ""
-      # result: ""
-      #
       tone: "objective"
-      language: "English"
+      language: "english"
       report_format: "markdown"
       total_words: 1200
-      date: "{{time.Now()}}"
+      date: "{{now}}"
     instruction:
       content: |
-        #! --mime-type=text/template
+        #! --mime-type=text/x-go-template
         {{.agent_role_prompt}}
     message: |
-      #! --mime-type=text/template
-      Information: "{{.result}}"
+      #! --mime-type=text/x-go-template
+      Information: "{{prettyJson .result}}"
       ---
       Using the above information, answer the following query or task: "{{.query}}" in a detailed report --
       The report should focus on the answer to the query, should be well structured, informative,
@@ -221,16 +262,19 @@ agents:
       Please do your best, this is very important to me.
       Assume that the current date is {{.date}}.
 
-##
+## tool kit
+# kit: external
+
+## model set
 set: smart_llm
 provider: "openai"
 base_url: "https://api.openai.com/v1/"
 api_key: "openai"
 models:
-  L1:
-    model: "gpt-5-nano"
-  smart_llm_model:
+  fast:
+    model: "gpt-4o-mini"
+  smart:
     model: "gpt-4.1"
-  strategic_llm_model:
+  strategic:
     model: "o4-mini"
 ###
