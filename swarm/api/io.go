@@ -3,7 +3,6 @@ package api
 import (
 	"fmt"
 	"strings"
-	// "github.com/openai/openai-go/v2"
 )
 
 const (
@@ -23,7 +22,8 @@ type EditorProvider interface {
 }
 
 type UserInput struct {
-	// Agent string `json:"agent"`
+	// Agent string `json:"-"`
+	// Args []string `json:"-"`
 
 	// query - command line args
 	Message string `json:"message"`

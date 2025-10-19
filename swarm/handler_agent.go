@@ -40,43 +40,27 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 
 	log.GetLogger(ctx).Debugf("Serve agent: %s\n", r.Name)
 
-	// advices
-	// noop := func(vars *api.Vars, _ *api.Request, _ *api.Response, _ api.Advice) error {
-	// 	return nil
-	// }
-	// if r.BeforeAdvice != nil {
-	// 	if err := r.BeforeAdvice(h.vars, req, resp, noop); err != nil {
-	// 		return err
-	// 	}
-	// }
-
-	// if r.AroundAdvice != nil {
-	// 	next := func(vars *api.Vars, req *api.Request, resp *api.Response, _ api.Advice) error {
-	// 		return h.handle(ctx, req, resp)
-	// 	}
-	// 	if err := r.AroundAdvice(h.vars, req, resp, next); err != nil {
-	// 		return err
-	// 	}
-	// } else {
-	// 	if err := h.handle(ctx, req, resp); err != nil {
-	// 		return err
-	// 	}
-	// }
-
-	// if r.AfterAdvice != nil {
-	// 	if err := r.AfterAdvice(h.vars, req, resp, noop); err != nil {
-	// 		return err
-	// 	}
-	// }
-
-	if err := h.handle(ctx, req, resp); err != nil {
-		return err
+	if h.agent.Sub != nil {
+		switch h.agent.Sub.Flow {
+		case api.FlowTypeSeqence:
+			return h.flowSequence(req, resp)
+		case api.FlowTypeParallel:
+			return h.flowParallel(req, resp)
+		case api.FlowTypeCondition:
+			return h.flowCondition(req, resp)
+		case api.FlowTypeLoop:
+			return h.flowLoop(req, resp)
+		}
+	} else {
+		if err := h.entry(ctx, req, resp); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func (h *agentHandler) handle(ctx context.Context, req *api.Request, resp *api.Response) error {
+func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Response) error {
 	var r = h.agent
 
 	// apply template/load

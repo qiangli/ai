@@ -93,6 +93,10 @@ func (r *Model) String() string {
 // }
 
 type ModelsConfig struct {
+	// TODO deprecate alias in favor of set
+	// model set name
+	Set string `yaml:"set"`
+
 	Alias string `yaml:"alias"`
 
 	// default LLM model for ModelConfig

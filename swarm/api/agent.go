@@ -137,6 +137,9 @@ type Agent struct {
 	Context    string
 
 	LogLevel LogLevel
+
+	//
+	Sub *Sub
 }
 
 func (a *Agent) Clone() *Agent {
@@ -160,7 +163,18 @@ func (a *Agent) Clone() *Agent {
 		MaxSpan:     a.MaxSpan,
 		Context:     a.Context,
 		LogLevel:    a.LogLevel,
+		//
+		Sub: a.Sub,
 	}
+}
+
+type Sub struct {
+	Flow  FlowType
+	Tasks []*Task
+}
+
+type Task struct {
+	Tool *ToolFunc
 }
 
 func (a *Agent) cloneArguments() map[string]any {
@@ -284,12 +298,12 @@ const (
 )
 
 type SubConfig struct {
-	Flow        FlowType      `yaml:"flow"`
-	Concurrency int           `yaml:"concurrency"`
-	Tasks       []*TaskConfig `yaml:"tasks"`
+	Flow        FlowType        `yaml:"flow"`
+	Concurrency int             `yaml:"concurrency"`
+	Actions     []*ActionConfig `yaml:"actions"`
 }
 
-type TaskConfig struct {
+type ActionConfig struct {
 	Agent string `yaml:"agent"`
 	Tool  string `yaml:"tool"`
 }
