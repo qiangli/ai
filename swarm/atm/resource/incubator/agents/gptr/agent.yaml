@@ -11,16 +11,16 @@ agents:
     description: |
       GPT Researcher is an agent designed for research on any given task.
       The agent produces detailed, factual, and unbiased research reports with citations.
-    routine:
-      flow: "sequence"
+    flow:
+      type: "sequence"
       actions:
-        - "gptr/user_input"
-        - "gptr/choose_agent"
-        - "gptr/web_search"
-        - "gptr/research_queries"
-        - "gptr/scrape"
-        - "gptr/curate"
-        - "gptr/report"
+        - "agent:gptr/user_input"
+        - "agent:gptr/choose_agent"
+        - "agent:gptr/web_search"
+        - "agent:gptr/research_queries"
+        - "agent:gptr/scrape"
+        - "agent:gptr/curate"
+        - "agent:gptr/report"
     functions:
       - "agent:gptr/user_input"
       - "agent:gptr/choose_agent"
@@ -109,15 +109,15 @@ agents:
   - name: "gptr/web_search"
     display: "🔍 Web Search"
     description: "Get web search results for a given query."
-    routine:
-      flow: choice
+    flow:
+      type: choice
       retry: 3
       concurrency: 1
       actions:
-        - ddg_search
-        - bing_search
-        - google_search
-        - brave_search
+        - ddg:ddg_search
+        - bing:bing_search
+        - google:google_search
+        - brave:brave_search
     functions:
       - "ddg:*"
       - "bing:*"
@@ -160,12 +160,12 @@ agents:
   - name: "gptr/scrape"
     display: "🌐 Scraper"
     description: "Runs a query across multiple retrievers and scrapes the resulting URLs."
-    routine:
-      flow: map
+    flow:
+      type: map
       concurrency: 5
       actions:
-        # - crawl
-        - get_content
+        # - web:crawl
+        - web:get_content
     functions:
       - "web:*"
   

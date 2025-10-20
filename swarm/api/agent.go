@@ -110,7 +110,10 @@ type Agent struct {
 	Display     string
 	Description string
 
+	// system prompt
 	Instruction *Instruction
+	// user query
+	Message string
 
 	RawInput *UserInput
 
@@ -125,8 +128,7 @@ type Agent struct {
 	Adapter string
 
 	//
-	Message string
-	Format  string
+	Format string
 
 	MaxTurns int
 	MaxTime  int

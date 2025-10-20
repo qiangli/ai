@@ -1,0 +1,23 @@
+###
+agents:
+  - name: "flow"
+    display: "🚀 Flow Control"
+    description: "Flow Orchestrator"
+    flow:
+      # sequence | parallel | loop | choice | map | reduce
+      type: sequence
+      # actions:
+      #   - |
+      #     @search weahter in new york
+      #   - |
+      #     @search weahter in beijing
+      #   - |
+      #     @new summarize all search results and compare the weather in beijin and new york
+      #   - |
+      #     @agent format  the response
+    functions:
+      - "agent:agent"
+      - "agent:tool"
+      - "agent:new"
+      - "vars:*"
+###

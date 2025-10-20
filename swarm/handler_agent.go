@@ -105,19 +105,6 @@ func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Re
 		})
 		log.GetLogger(ctx).Debugf("Added system role message: %v\n", len(history))
 	}
-	// Additional system message
-	// developer (openai)| model (gemini)| system (anthropic)
-	if r.Message != "" {
-		req.Messages = append(req.Messages, &api.Message{
-			ID:      uuid.NewString(),
-			ChatID:  chatID,
-			Created: time.Now(),
-			//
-			Role:    api.RoleSystem,
-			Content: r.Message,
-			Sender:  r.Name,
-		})
-	}
 
 	// 2. Historical Messages
 	// support dynamic context history
@@ -148,6 +135,19 @@ func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Re
 	}
 
 	// 3. New User Message
+	// Additional user message
+	if r.Message != "" {
+		req.Messages = append(req.Messages, &api.Message{
+			ID:      uuid.NewString(),
+			ChatID:  chatID,
+			Created: time.Now(),
+			//
+			Role:    api.RoleUser,
+			Content: r.Message,
+			Sender:  r.Name,
+		})
+	}
+
 	req.Messages = append(req.Messages, &api.Message{
 		ID:      uuid.NewString(),
 		ChatID:  chatID,
@@ -183,7 +183,6 @@ func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Re
 	initLen := len(history)
 
 	//
-	// var runTool = h.toolCall(h.vars, h.agent)
 	var runTool = h.createCaller()
 
 	// resolve if model is @agent

@@ -50,7 +50,7 @@ func (h *agentHandler) callTool(ctx context.Context, tf *api.ToolFunc, args map[
 		ctx = context.WithValue(ctx, atm.ModelsContextKey, h.agent.Model)
 	}
 
-	// result, err := h.dispatch(ctx, h.vars, h.agent, v, args)
+	//
 	result, err := h.dispatch(ctx, tf, args)
 
 	if err != nil {
