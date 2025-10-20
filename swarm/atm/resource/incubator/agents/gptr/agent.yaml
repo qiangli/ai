@@ -288,16 +288,18 @@ agents:
 ## tool kit
 # kit: external
 
-## model set
-set: smart_llm
-provider: "openai"
-base_url: "https://api.openai.com/v1/"
-api_key: "openai"
+## models
 models:
-  fast:
-    model: "gpt-4o-mini"
-  smart:
-    model: "gpt-4.1"
-  strategic:
-    model: "o4-mini"
+  - set: smart_llm
+    alias: smart_llm
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
+    models:
+      fast:
+        model: "gpt-4o-mini"
+      smart:
+        model: "gpt-4.1"
+      strategic:
+        model: "o4-mini"
 ###
