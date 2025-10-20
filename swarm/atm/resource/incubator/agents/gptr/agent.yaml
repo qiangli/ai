@@ -11,6 +11,8 @@ agents:
     description: |
       GPT Researcher is an agent designed for research on any given task.
       The agent produces detailed, factual, and unbiased research reports with citations.
+    arguments:
+      original_query: "{{.query}}"
     flow:
       type: "sequence"
       actions:
@@ -34,6 +36,9 @@ agents:
     display: "🖥️  User Input"
     description: "Detect user preferences for the GPT Researcher tool."
     model: smart_llm/fast
+    message: |
+      #! --mime-type=text/x-go-template
+      {{.original_query}}
     instruction:
       content: |
         You are an agent designed for research on any given task. Your current objective is to identify the following elements from the user's query:
@@ -74,6 +79,9 @@ agents:
     model: smart_llm/smart
     arguments:
       temperature: 0.15
+    message: |
+      #! --mime-type=text/go-template
+      task: {{.original_query}}
     instruction:
       content: |
         This task involves researching a given topic, regardless of its complexity or the availability of a definitive answer.
@@ -102,22 +110,20 @@ agents:
             "server":  "🌍 Travel Agent",
             "agent_role_prompt": "You are a world-travelled AI tour guide assistant. Your main purpose is to draft engaging, insightful, unbiased, and well-structured travel reports on given locations, including history, attractions, and cultural insights."
         }
-    message: |
-      #! --mime-type=text/go-template --arguments "name=value,namve=value,"
-      task: {{.query}}
-  
+
   - name: "gptr/web_search"
     display: "🔍 Web Search"
     description: "Get web search results for a given query."
-    flow:
-      type: choice
-      retry: 3
-      concurrency: 1
-      actions:
-        - ddg:ddg_search
-        - bing:bing_search
-        - google:google_search
-        - brave:brave_search
+    model: smart_llm/fast
+    message: |
+      #! --mime-type=text/x-go-template
+      search the web for the following content:
+      {{.original_query}}
+    instruction:
+      content: |
+        As a web search assistant, you are responsible for processing user queries and providing accurate
+        search results from the web. When a user submits a query, analyze the main components of the query,
+        perform a web search, and return the most relevant results.
     functions:
       - "ddg:*"
       - "bing:*"
@@ -137,15 +143,17 @@ agents:
       content: |
         #! --mime-type=x-go-template
         You are a seasoned research assistant tasked with generating search queries to find relevant information for the following task:
-        "{{.query}}".
+        "{{.original_query}}".
     message: |
       #! --mime-type=x-go-template
       Context: {{.result}}
 
-      Use this context to inform and refine your search queries. The context provides real-time web information that can help you generate more specific and relevant queries. Consider any current events, recent developments, or specific details mentioned in the context that could enhance the search queries.
+      Use this context to inform and refine your search queries. The context provides real-time web information
+      that can help you generate more specific and relevant queries. Consider any current events, recent developments,
+      or specific details mentioned in the context that could enhance the search queries.
 
       Write {{.max_iterations}} search queries to search online that form an objective opinion from the following task:
-      "{{.query}}"
+      "{{.original_query}}"
 
       Assume the current date is {{.now}} if required.
 
@@ -164,11 +172,26 @@ agents:
       type: map
       concurrency: 5
       actions:
-        # - web:crawl
-        - web:get_content
+        - "agent:gptr/crawl"
+    functions:
+      - "agent:gptr/crawl"
+  
+  - name: "gptr/crawl"
+    display: "🌐 Web Crawler"
+    description: "Runs a query across multiple retrievers and scrapes the resulting URLs."
+    model: smart_llm/fast
+    instrution:
+      content: |
+        You are a specialized web crawler. For each query, execute a search and follow only
+        the immediate links one level deep. Collect and merge the content from these pages
+        to provide comprehensive information relevant to the user query.
     functions:
       - "web:*"
-  
+      - "ddg:*"
+      - "bing:*"
+      - "google:*"
+      - "brave:*"
+
   - name: "gptr/curate"
     display: "⚖️ Evaluating and curating sources"
     description: "Ranks sources and curates data based on their relevance, credibility and reliability."
@@ -184,7 +207,7 @@ agents:
         {{.agent_role_prompt}}
     message: |
       #! --mime-type=text/x-go-template
-      Your goal is to evaluate and curate the provided scraped content for the research task: "{{.query}}"
+      Your goal is to evaluate and curate the provided scraped content for the research task: "{{.original_query}}"
         while prioritizing the inclusion of relevant and high-quality information, especially sources containing statistics, numbers, or concrete data.
 
       The final curated list will be used as context for creating a research report, so prioritize:
@@ -236,7 +259,7 @@ agents:
       #! --mime-type=text/x-go-template
       Information: "{{prettyJson .result}}"
       ---
-      Using the above information, answer the following query or task: "{{.query}}" in a detailed report --
+      Using the above information, answer the following query or task: "{{.original_query}}" in a detailed report --
       The report should focus on the answer to the query, should be well structured, informative,
       in-depth, and comprehensive, with facts and numbers if available and at least {{.total_words}} words.
       You should strive to write the report as long as you can using all relevant and necessary information provided.
