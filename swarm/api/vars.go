@@ -1,5 +1,9 @@
 package api
 
+import (
+	"fmt"
+)
+
 const (
 	VarsEnvContainer = "container"
 	VarsEnvHost      = "host"
@@ -28,10 +32,11 @@ type Vars struct {
 	DryRun        bool   `json:"-"`
 	DryRunContent string `json:"-"`
 
-	Extra map[string]string `json:"-"`
+	// Extra map[string]string `json:"-"`
 
 	// conversation history
-	History []*Message `json:"-"`
+	History []*Message     `json:"-"`
+	Global  map[string]any `json:"-"`
 }
 
 func (v *Vars) Clone() *Vars {
@@ -59,13 +64,14 @@ func (v *Vars) Clone() *Vars {
 		DryRun:        v.DryRun,
 		DryRunContent: v.DryRunContent,
 		//
-		Extra:   make(map[string]string),
+		// Extra:   make(map[string]string),
 		History: make([]*Message, len(v.History)),
+		Global:  make(map[string]any),
 	}
 
 	// Copy the Extra map
-	for key, value := range v.Extra {
-		clone.Extra[key] = value
+	for key, value := range v.Global {
+		clone.Global[key] = value
 	}
 
 	// Copy the History slice
@@ -76,7 +82,7 @@ func (v *Vars) Clone() *Vars {
 
 func NewVars() *Vars {
 	return &Vars{
-		Extra: map[string]string{},
+		Global: map[string]any{},
 	}
 }
 
@@ -84,20 +90,23 @@ func (r *Vars) IsTrace() bool {
 	return r.LogLevel == Tracing
 }
 
-func (r *Vars) Get(key string) string {
-	if r.Extra == nil {
+func (r *Vars) Get(key string) any {
+	if r.Global == nil {
 		return ""
 	}
-	return r.Extra[key]
+	return r.Global[key]
 }
 
 func (r *Vars) GetString(key string) string {
-	if r.Extra == nil {
+	if r.Global == nil {
 		return ""
 	}
-	v, ok := r.Extra[key]
+	val, ok := r.Global[key]
 	if !ok {
 		return ""
 	}
-	return v
+	if s, ok := val.(string); ok {
+		return s
+	}
+	return fmt.Sprintf("%v", val)
 }

@@ -16,8 +16,9 @@ import (
 	"github.com/qiangli/ai/swarm/vos"
 )
 
-// extra result key
-const extraResult = "result"
+// global key
+const globalQuery = "query"
+const globalResult = "result"
 
 type Swarm struct {
 	Vars *api.Vars

@@ -32,6 +32,8 @@ type agentHandler struct {
 	vars  *api.Vars
 	//
 	sw *Swarm
+
+	globals map[string]any
 }
 
 func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
@@ -249,7 +251,7 @@ func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Re
 		history = append(history, &message)
 	}
 	//
-	h.vars.Extra[extraResult] = result.Result.Value
+	h.vars.Global[globalResult] = result.Result.Value
 	h.vars.History = history
 
 	//

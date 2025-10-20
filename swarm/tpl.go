@@ -1,7 +1,7 @@
 package swarm
 
 import (
-	// "bytes"
+	"bytes"
 	"encoding/json"
 	"strings"
 	"text/template"
@@ -36,19 +36,19 @@ var tplFuncMap = template.FuncMap{
 	"now": now,
 }
 
-// func applyDefaultTemplate(tpl string, data any) (string, error) {
-// 	t, err := template.New("tpl").Funcs(tplFuncMap).Parse(tpl)
-// 	if err != nil {
-// 		return "", err
-// 	}
+func applyTemplate(tpl string, data any, funcMap template.FuncMap) (string, error) {
+	t, err := template.New("swarm").Funcs(funcMap).Parse(tpl)
+	if err != nil {
+		return "", err
+	}
 
-// 	var buf bytes.Buffer
-// 	if err := t.Execute(&buf, data); err != nil {
-// 		return "", err
-// 	}
+	var buf bytes.Buffer
+	if err := t.Execute(&buf, data); err != nil {
+		return "", err
+	}
 
-// 	return buf.String(), nil
-// }
+	return buf.String(), nil
+}
 
 func prettyJson(obj any) (string, error) {
 	jsonData, err := json.MarshalIndent(obj, "", "  ")
