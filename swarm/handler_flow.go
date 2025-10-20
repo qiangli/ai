@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
@@ -133,13 +134,21 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 	if err != nil {
 		return err
 	}
+
+	var wg sync.WaitGroup
 	var resps = make([]*api.Response, len(list))
+
 	for i, v := range list {
-		nreq := req.Clone()
-		nreq.RawInput = &api.UserInput{
-			Message: v,
-		}
-		h.flowSequence(req, resps[i])
+		wg.Add(1)
+		go func(i int, v string) {
+			nreq := req.Clone()
+			nreq.RawInput = &api.UserInput{
+				Message: v,
+			}
+			nresp := new(api.Response)
+			h.flowSequence(nreq, nresp)
+			resps[i] = nresp
+		}(i, v)
 	}
 	var results []string
 	for _, v := range resps {
