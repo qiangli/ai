@@ -198,7 +198,7 @@ type AgentsConfig struct {
 	// agent app name
 	Name string `yaml:"name"`
 
-	// [alias/]level
+	// set/level
 	Model string `yaml:"model"`
 
 	Agents []*AgentConfig `yaml:"agents"`
@@ -241,7 +241,7 @@ type AgentConfig struct {
 	// kit:name
 	Functions []string `yaml:"functions"`
 
-	Routine *RoutineConfig `yaml:"routine"`
+	Routine *FlowConfig `yaml:"routine"`
 
 	// chat|image|docker/aider oh gptr
 	Adapter string `yaml:"adapter"`
@@ -290,6 +290,7 @@ type Instruction struct {
 	Content string `yaml:"content"`
 	// template or not
 	// tpl
+	// text/x-go-template
 	Type string `yaml:"type"`
 }
 
@@ -318,23 +319,25 @@ const (
 	FlowTypeNest FlowType = "nest"
 )
 
-type RoutineConfig struct {
+type FlowConfig struct {
 	Flow FlowType `yaml:"flow"`
-	// input object key. action input is read from this key. default: result
-	Input string `yaml:"input"`
-	// output object key. action output is saved with this key. default: result
-	Output string `yaml:"output"`
+	// // input object key. action input is read from this key. default: result
+	// Input string `yaml:"input"`
+	// // output object key. action output is saved with this key. default: result
+	// Output string `yaml:"output"`
 	// go template syntax
-	Expression  string          `yaml:"expression"`
-	Concurrency int             `yaml:"concurrency"`
-	Retry       int             `yaml:"retry"`
-	Actions     []*ActionConfig `yaml:"actions"`
+	Expression  string   `yaml:"expression"`
+	Concurrency int      `yaml:"concurrency"`
+	Retry       int      `yaml:"retry"`
+	Actions     []string `yaml:"actions"`
 }
 
-type ActionConfig struct {
-	Agent string `yaml:"agent"`
-	Tool  string `yaml:"tool"`
-}
+// type ActionConfig struct {
+// 	// Agent string `yaml:"agent"`
+
+// 	// kit:name
+// 	Tool  string `yaml:"tool"`
+// }
 
 type Resource struct {
 	// web resource base url
