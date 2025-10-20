@@ -2,91 +2,155 @@ package swarm
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"maps"
+	"math/rand"
+	"strconv"
+	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
 )
 
 // flow actions
-func (h *agentHandler) action(ctx context.Context, tf api.ToolCondition) error {
+func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, tf *api.ToolFunc) error {
 	var r = h.agent
-
-	// apply template/load
-	// apply := func(vars *api.Vars, ext, s string) (string, error) {
-	// 	//
-	// 	if ext == "tpl" {
-	// 		// TODO custom template func?
-	// 		return applyTemplate(s, vars, tplFuncMap)
-	// 	}
-	// 	return s, nil
-	// }
 
 	// merge args
 	var args = make(map[string]any)
-	maps.Copy(args, h.globals)
+	// defaults from agent first
 	if r.Arguments != nil {
 		maps.Copy(args, r.Arguments)
 	}
-
-	// // check agents in args
-	// for key, val := range args {
-	// 	if v, ok := val.(string); ok {
-	// 		resolved, err := h.resolveArgument(ctx, req, v)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		args[key] = resolved
-	// 	}
-	// }
-
-	args["query"] = h.agent.RawInput.Query()
+	// copy globals
+	maps.Copy(args, h.vars.Global)
+	// check agents in args for string values
+	for key, val := range args {
+		if v, ok := val.(string); ok {
+			resolved, err := h.resolveArgument(ctx, req, v)
+			if err != nil {
+				return err
+			}
+			args[key] = resolved
+		}
+	}
+	// secode pass: templated args
+	for key, val := range args {
+		if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
+			resolved, err := applyTemplate(v, args, tplFuncMap)
+			if err != nil {
+				return err
+			}
+			args[key] = resolved
+		}
+	}
 
 	log.GetLogger(ctx).Debugf("Added user role message: %+v\n", args)
 
-	// //
-	// var runTool = h.createCaller()
-	// runTool(ctx)
+	var runTool = h.createCaller()
+	result, err := runTool(ctx, tf.ID(), args)
+	if err != nil {
+		return err
+	}
 
-	// // h.vars.Extra[extraResult] = result.Result.Value
-	// // h.vars.History = history
-
-	// // resp.Agent = r
-	// resp.Result = result.Result
+	resp.Agent = r
+	resp.Result = result
+	// TODO check states?
 	return nil
 }
 
 func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error {
-	ctx, cancel := context.WithCancel(context.TODO())
-	defer cancel()
-
-	// var shared = make(map[string]any)
-
-	for _, action := range h.agent.Flow.Actions {
-		if action.Tool.Type == api.ToolTypeAgent {
-			req := api.NewRequest(ctx, action.Tool.Name, h.agent.RawInput.Clone())
-			req.Parent = h.agent
-
-			resp := &api.Response{}
-			if err := h.exec(req, resp); err != nil {
-				return err
-			}
+	ctx := req.Context()
+	nreq := req.Clone()
+	nresp := &api.Response{}
+	for _, v := range h.agent.Flow.Actions {
+		if err := h.doAction(ctx, nreq, nresp, v.Tool); err != nil {
+			return err
 		}
-
-		// args := make(map[string]any)
-		// h.callTool(ctx, action.Tool, args)
+		nreq.RawInput = &api.UserInput{
+			Message: resp.Result.Value,
+		}
 	}
+	resp.Result = nresp.Result
 	return nil
 }
 
 func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error {
-	return nil
+	return api.NewUnsupportedError("parallel")
+}
+
+func (h *agentHandler) flowLoop(req *api.Request, resp *api.Response) error {
+	return api.NewUnsupportedError("loop")
+}
+
+func (h *agentHandler) flowNest(req *api.Request, resp *api.Response) error {
+	return api.NewUnsupportedError("nest")
 }
 
 func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
+	var which int
+	// evaluate express or random
+	if h.agent.Flow.Expression != "" {
+		v, err := applyTemplate(h.agent.Flow.Expression, h.vars.Global, tplFuncMap)
+		if err != nil {
+			return err
+		}
+		if v, err := strconv.ParseInt(v, 0, 64); err != nil {
+			return err
+		} else {
+			which = int(v)
+		}
+	} else {
+		which = rand.Intn(len(h.agent.Flow.Actions))
+	}
+	if which < 0 && which >= len(h.agent.Flow.Actions) {
+		return fmt.Errorf("index out of bound; %v", which)
+	}
+
+	ctx := req.Context()
+
+	v := h.agent.Flow.Actions[which]
+	if err := h.doAction(ctx, req, resp, v.Tool); err != nil {
+		return err
+	}
 	return nil
 }
 
 func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
+	result, ok := h.vars.Global[globalResult]
+	if !ok {
+		return fmt.Errorf("no result found")
+	}
+	var s string
+	if v, ok := result.(string); ok {
+		s = v
+	} else {
+		s = fmt.Sprintf("%v", v)
+	}
+	var list []string
+	err := json.Unmarshal([]byte(s), &list)
+	if err != nil {
+		return err
+	}
+	var resps = make([]*api.Response, len(list))
+	for i, v := range list {
+		nreq := req.Clone()
+		nreq.RawInput = &api.UserInput{
+			Message: v,
+		}
+		h.flowSequence(req, resps[i])
+	}
+	var results []string
+	for _, v := range resps {
+		results = append(results, v.Result.Value)
+	}
+	resp.Result = &api.Result{
+		Value: strings.Join(results, "\n"),
+	}
 	return nil
+}
+
+func (h *agentHandler) flowReduce(req *api.Request, resp *api.Response) error {
+	return api.NewUnsupportedError("reduce")
 }

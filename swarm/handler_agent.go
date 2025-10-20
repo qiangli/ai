@@ -32,27 +32,50 @@ type agentHandler struct {
 	vars  *api.Vars
 	//
 	sw *Swarm
-
-	globals map[string]any
 }
 
 func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	var r = h.agent
 	var ctx = req.Context()
+	var query = req.RawInput.Query()
+	h.vars.Global[globalQuery] = query
 
-	log.GetLogger(ctx).Debugf("Serve agent: %s\n", r.Name)
+	log.GetLogger(ctx).Debugf("Serve agent: %s query: %s\n", r.Name, query)
 
 	// flow control agent
 	if h.agent.Flow != nil {
+		if len(h.agent.Flow.Actions) == 0 {
+			return fmt.Errorf("missing actions in flow")
+		}
 		switch h.agent.Flow.Type {
 		case api.FlowTypeSequence:
-			return h.flowSequence(req, resp)
+			if err := h.flowSequence(req, resp); err != nil {
+				return err
+			}
 		case api.FlowTypeParallel:
-			return h.flowParallel(req, resp)
+			if err := h.flowParallel(req, resp); err != nil {
+				return err
+			}
 		case api.FlowTypeChoice:
-			return h.flowChoice(req, resp)
+			if err := h.flowChoice(req, resp); err != nil {
+				return err
+			}
 		case api.FlowTypeMap:
-			return h.flowMap(req, resp)
+			if err := h.flowMap(req, resp); err != nil {
+				return err
+			}
+		case api.FlowTypeLoop:
+			if err := h.flowLoop(req, resp); err != nil {
+				return err
+			}
+		case api.FlowTypeReduce:
+			if err := h.flowReduce(req, resp); err != nil {
+				return err
+			}
+		case api.FlowTypeNest:
+			if err := h.flowNest(req, resp); err != nil {
+				return err
+			}
 		default:
 			return fmt.Errorf("not supported yet %v", h.agent.Flow)
 		}
@@ -61,6 +84,17 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 			return err
 		}
 	}
+
+	// if result is json, unpack for subsequnent agents/actions
+	if len(resp.Result.Value) > 0 {
+		var resultMap = make(map[string]any)
+		if err := json.Unmarshal([]byte(resp.Result.Value), &resultMap); err == nil {
+			maps.Copy(h.vars.Global, resultMap)
+		}
+	}
+	h.vars.Global[globalResult] = resp.Result.Value
+
+	log.GetLogger(ctx).Debugf("completed: %s global: %+v\n", r.Name, h.vars.Global)
 
 	return nil
 }
@@ -250,10 +284,8 @@ func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Re
 		// TODO add Value field to message?
 		history = append(history, &message)
 	}
-	//
-	h.vars.Global[globalResult] = result.Result.Value
-	h.vars.History = history
 
+	h.vars.History = history
 	//
 	resp.Messages = history[initLen:]
 	resp.Agent = r

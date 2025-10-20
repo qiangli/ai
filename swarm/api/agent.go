@@ -173,8 +173,6 @@ func (a *Agent) Clone() *Agent {
 type Flow struct {
 	Type        FlowType
 	Expression  string
-	Input       string
-	Output      string
 	Concurrency int
 	Retry       int
 	Actions     []*Action
@@ -306,7 +304,6 @@ const (
 	FlowTypeLoop FlowType = "loop"
 	// one of the actions is selected based on an expression or randomly if no expression is provided
 	// expression must evaluate to an integer (zero based).
-	// true/false is acceptable if there are only two actions.
 	FlowTypeChoice FlowType = "choice"
 	// The map flow creates a new array populated with the results of calling the action(s)
 	// on every element in the input array
