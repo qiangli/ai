@@ -77,16 +77,60 @@ func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error 
 	return nil
 }
 
-func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error {
-	return api.NewUnsupportedError("parallel")
-}
-
 func (h *agentHandler) flowLoop(req *api.Request, resp *api.Response) error {
-	return api.NewUnsupportedError("loop")
+	eval := func(exp string) (bool, error) {
+		v, err := applyTemplate(exp, h.vars.Global, tplFuncMap)
+		if err != nil {
+			return false, err
+		}
+		return strconv.ParseBool(v)
+	}
+
+	for {
+		ok, err := eval(h.agent.Flow.Expression)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return nil
+		}
+		if ok {
+			if err := h.flowSequence(req, resp); err != nil {
+				return err
+			}
+		}
+	}
 }
 
-func (h *agentHandler) flowNest(req *api.Request, resp *api.Response) error {
-	return api.NewUnsupportedError("nest")
+func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error {
+	var wg sync.WaitGroup
+
+	var resps = make([]*api.Response, len(h.agent.Flow.Actions))
+	var ctx = req.Context()
+	for i, v := range h.agent.Flow.Actions {
+		wg.Add(1)
+		go func(i int, v *api.Action) {
+			nresp := new(api.Response)
+			err := h.doAction(ctx, req, nresp, v.Tool)
+			if err != nil {
+				if nresp.Result == nil {
+					nresp.Result = &api.Result{}
+				}
+				nresp.Result.Value += err.Error()
+			}
+			resps[i] = nresp
+		}(i, v)
+	}
+	wg.Wait()
+
+	var results []string
+	for _, v := range resps {
+		results = append(results, v.Result.Value)
+	}
+	resp.Result = &api.Result{
+		Value: strings.Join(results, "\n"),
+	}
+	return nil
 }
 
 func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
@@ -137,7 +181,6 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 
 	var wg sync.WaitGroup
 	var resps = make([]*api.Response, len(list))
-
 	for i, v := range list {
 		wg.Add(1)
 		go func(i int, v string) {
@@ -150,6 +193,8 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 			resps[i] = nresp
 		}(i, v)
 	}
+	wg.Wait()
+
 	var results []string
 	for _, v := range resps {
 		results = append(results, v.Result.Value)
@@ -162,4 +207,8 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 
 func (h *agentHandler) flowReduce(req *api.Request, resp *api.Response) error {
 	return api.NewUnsupportedError("reduce")
+}
+
+func (h *agentHandler) flowNest(req *api.Request, resp *api.Response) error {
+	return api.NewUnsupportedError("nest")
 }
