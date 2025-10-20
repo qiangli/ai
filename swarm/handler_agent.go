@@ -127,13 +127,36 @@ func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Re
 	var r = h.agent
 
 	// apply template/load
-	apply := func(vars *api.Vars, ext, s string) (string, error) {
-		//
+	// TODO  vars -> data may break some existing config
+	apply := func(data map[string]any, ext, s string) (string, error) {
+		if strings.HasPrefix(s, "#!") {
+			parts := strings.SplitN(s, "\n", 2)
+			if len(parts) == 2 {
+				// remove hashbang line
+				return applyTemplate(parts[1], data, tplFuncMap)
+			}
+			// remove hashbang
+			return applyTemplate(parts[0][2:], data, tplFuncMap)
+		}
 		if ext == "tpl" {
-			// TODO custom template func?
-			return applyTemplate(s, vars, tplFuncMap)
+			return applyTemplate(s, data, tplFuncMap)
 		}
 		return s, nil
+	}
+
+	resolve := func(data map[string]any, ext, s string) (string, error) {
+		// update the request instruction
+		content, err := apply(data, ext, s)
+		if err != nil {
+			return "", err
+		}
+
+		// dynamic @prompt if requested
+		content, err = h.resolvePrompt(ctx, req, content)
+		if err != nil {
+			return "", err
+		}
+		return content, nil
 	}
 
 	var chatID = h.vars.ChatID
@@ -142,17 +165,25 @@ func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Re
 	// 1. New System Message
 	// system role prompt as first message
 	if r.Instruction != nil {
-		// update the request instruction
-		content, err := apply(h.vars, r.Instruction.Type, r.Instruction.Content)
+		// // update the request instruction
+		// content, err := apply(h.vars.Global, r.Instruction.Type, r.Instruction.Content)
+		// if err != nil {
+		// 	return err
+		// }
+
+		// // dynamic @prompt if requested
+		// content, err = h.resolvePrompt(ctx, req, content)
+		// if err != nil {
+		// 	return err
+		// }
+
+		content, err := resolve(h.vars.Global, r.Instruction.Type, r.Instruction.Content)
 		if err != nil {
 			return err
 		}
 
-		// dynamic @prompt if requested
-		content, err = h.resolvePrompt(ctx, req, content)
-		if err != nil {
-			return err
-		}
+		// update instruction
+		r.Instruction.Content = content
 
 		history = append(history, &api.Message{
 			ID:      uuid.NewString(),
@@ -197,13 +228,17 @@ func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Re
 	// 3. New User Message
 	// Additional user message
 	if r.Message != "" {
+		msg, err := resolve(h.vars.Global, "", r.Message)
+		if err != nil {
+			return err
+		}
 		req.Messages = append(req.Messages, &api.Message{
 			ID:      uuid.NewString(),
 			ChatID:  chatID,
 			Created: time.Now(),
 			//
 			Role:    api.RoleUser,
-			Content: r.Message,
+			Content: msg,
 			Sender:  r.Name,
 		})
 	}
