@@ -35,12 +35,36 @@ type agentHandler struct {
 }
 
 func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
-	var r = h.agent
+	// var r = h.agent
 	var ctx = req.Context()
 	var query = req.RawInput.Query()
+
+	// merge args from agents
 	h.vars.Global[globalQuery] = query
 
-	log.GetLogger(ctx).Debugf("Serve agent: %s query: %s\n", r.Name, query)
+	if h.agent.Arguments != nil {
+		for key, val := range h.agent.Arguments {
+			// @agent arg
+			if v, ok := val.(string); ok {
+				if resolved, err := h.resolveArgument(ctx, req, v); err != nil {
+					return err
+				} else {
+					val = resolved
+				}
+			}
+			// templated
+			if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
+				if resolved, err := applyTemplate(v, h.vars.Global, tplFuncMap); err != nil {
+					return err
+				} else {
+					val = resolved
+				}
+			}
+			h.vars.Global[key] = val
+		}
+	}
+
+	log.GetLogger(ctx).Debugf("Serve agent: %s query: %s global: %+v\n", h.agent.Name, query, h.vars.Global)
 
 	// flow control agent
 	if h.agent.Flow != nil {
@@ -94,7 +118,7 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	}
 	h.vars.Global[globalResult] = resp.Result.Value
 
-	log.GetLogger(ctx).Debugf("completed: %s global: %+v\n", r.Name, h.vars.Global)
+	log.GetLogger(ctx).Debugf("completed: %s global: %+v\n", h.agent.Name, h.vars.Global)
 
 	return nil
 }
@@ -194,23 +218,32 @@ func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Re
 		Sender:  r.Name,
 	})
 
-	// merge args
-	var args map[string]any
-	if r.Arguments != nil || req.Arguments != nil {
-		args = make(map[string]any)
-		maps.Copy(args, r.Arguments)
-		maps.Copy(args, req.Arguments)
-	}
-	// check agents in args
-	for key, val := range args {
-		if v, ok := val.(string); ok {
-			resolved, err := h.resolveArgument(ctx, req, v)
-			if err != nil {
-				return err
+	// merge request args
+	var args = make(map[string]any)
+	// copy globals including agent args
+	maps.Copy(args, h.vars.Global)
+
+	if req.Arguments != nil {
+		for key, val := range req.Arguments {
+			if v, ok := val.(string); ok {
+				if resolved, err := h.resolveArgument(ctx, req, v); err != nil {
+					return err
+				} else {
+					val = resolved
+				}
 			}
-			args[key] = resolved
+			if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
+				if resolved, err := applyTemplate(v, args, tplFuncMap); err != nil {
+					return err
+				} else {
+					val = resolved
+				}
+			}
+			args[key] = val
 		}
 	}
+
+	log.GetLogger(ctx).Debugf("Added user role message: %+v\n", args)
 
 	history = append(history, req.Messages...)
 	log.GetLogger(ctx).Debugf("Added user role message: %v\n", len(history))

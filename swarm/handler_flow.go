@@ -18,32 +18,28 @@ import (
 func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, tf *api.ToolFunc) error {
 	var r = h.agent
 
-	// merge args
+	// merge request args
 	var args = make(map[string]any)
-	// defaults from agent first
-	if r.Arguments != nil {
-		maps.Copy(args, r.Arguments)
-	}
-	// copy globals
+	// copy globals including agent args
 	maps.Copy(args, h.vars.Global)
-	// check agents in args for string values
-	for key, val := range args {
-		if v, ok := val.(string); ok {
-			resolved, err := h.resolveArgument(ctx, req, v)
-			if err != nil {
-				return err
+
+	if req.Arguments != nil {
+		for key, val := range req.Arguments {
+			if v, ok := val.(string); ok {
+				if resolved, err := h.resolveArgument(ctx, req, v); err != nil {
+					return err
+				} else {
+					val = resolved
+				}
 			}
-			args[key] = resolved
-		}
-	}
-	// secode pass: templated args
-	for key, val := range args {
-		if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-			resolved, err := applyTemplate(v, args, tplFuncMap)
-			if err != nil {
-				return err
+			if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
+				if resolved, err := applyTemplate(v, args, tplFuncMap); err != nil {
+					return err
+				} else {
+					val = resolved
+				}
 			}
-			args[key] = resolved
+			args[key] = val
 		}
 	}
 
