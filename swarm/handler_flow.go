@@ -95,12 +95,8 @@ func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error 
 	}
 	wg.Wait()
 
-	var results []string
-	for _, v := range resps {
-		results = append(results, v.Result.Value)
-	}
 	resp.Result = &api.Result{
-		Value: strings.Join(results, "\n"),
+		Value: marshalResponseList(resps),
 	}
 	return nil
 }
@@ -137,21 +133,10 @@ func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
 func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 	result, ok := h.sw.Vars.Global[globalResult]
 	if !ok {
-		// return fmt.Errorf("no result found")
 		result = h.sw.Vars.Global[globalQuery]
 	}
-	var s string
-	if v, ok := result.(string); ok {
-		s = v
-	} else {
-		s = fmt.Sprintf("%v", v)
-	}
-	var list []string
-	err := json.Unmarshal([]byte(s), &list)
-	if err != nil {
-		// return err
-		list = []string{s}
-	}
+
+	list := unmarshalResultList(result)
 
 	var wg sync.WaitGroup
 	var resps = make([]*api.Response, len(list))
@@ -175,17 +160,8 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 	}
 	wg.Wait()
 
-	var results []string
-	for _, v := range resps {
-		results = append(results, v.Result.Value)
-	}
-
-	b, err := json.Marshal(result)
-	if err != nil {
-		return err
-	}
 	resp.Result = &api.Result{
-		Value: string(b),
+		Value: marshalResponseList(resps),
 	}
 	return nil
 }
@@ -196,4 +172,33 @@ func (h *agentHandler) flowReduce(req *api.Request, resp *api.Response) error {
 
 func (h *agentHandler) flowNest(req *api.Request, resp *api.Response) error {
 	return api.NewUnsupportedError("nest")
+}
+
+// unmarshal result into a list.
+// if the result is not a list, return the the result as list
+func unmarshalResultList(result any) []string {
+	var s string
+	if v, ok := result.(string); ok {
+		s = v
+	} else {
+		s = fmt.Sprintf("%v", v)
+	}
+	var list []string
+	err := json.Unmarshal([]byte(s), &list)
+	if err != nil {
+		list = []string{s}
+	}
+	return list
+}
+
+func marshalResponseList(resps []*api.Response) string {
+	var results []string
+	for _, v := range resps {
+		results = append(results, v.Result.Value)
+	}
+	b, err := json.Marshal(results)
+	if err != nil {
+		return strings.Join(results, " ")
+	}
+	return string(b)
 }
