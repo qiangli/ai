@@ -251,7 +251,7 @@ type AgentConfig struct {
 	// kit:name
 	Functions []string `yaml:"functions"`
 
-	Routine *FlowConfig `yaml:"routine"`
+	Flow *FlowConfig `yaml:"flow"`
 
 	// chat|image|docker/aider oh gptr
 	Adapter string `yaml:"adapter"`
@@ -285,8 +285,6 @@ type AgentConfig struct {
 	// security
 	Filters []*IOFilter  `yaml:"filters"`
 	Guards  []*ToolGuard `yaml:"guards"`
-
-	Flow *Flow `yaml:"flow"`
 
 	//
 	Store AssetStore `yaml:"-"`
@@ -332,7 +330,7 @@ const (
 )
 
 type FlowConfig struct {
-	Flow FlowType `yaml:"flow"`
+	Type FlowType `yaml:"type"`
 	// // input object key. action input is read from this key. default: result
 	// Input string `yaml:"input"`
 	// // output object key. action output is saved with this key. default: result

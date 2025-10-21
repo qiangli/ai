@@ -304,7 +304,6 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 			MaxHistory: nzl(vars.MaxHistory, c.MaxHistory, ac.MaxHistory, defaultMaxHistory),
 			MaxSpan:    nzl(vars.MaxSpan, c.MaxSpan, ac.MaxSpan, defaultMaxSpan),
 			//
-			Flow: c.Flow,
 		}
 		// log
 		agent.LogLevel = api.ToLogLevel(nvl(vars.LogLevel.String(), c.LogLevel, ac.LogLevel, "quiet"))
@@ -391,6 +390,31 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 			funcs = append(funcs, v)
 		}
 		agent.Tools = funcs
+
+		// flow
+		if c.Flow != nil {
+			var actionMap = make(map[string]*api.Action)
+			for _, v := range agent.Tools {
+				actionMap[v.Kit+":"+v.Name] = &api.Action{
+					Tool: v,
+				}
+			}
+			flow := &api.Flow{
+				Type:        c.Flow.Type,
+				Expression:  c.Flow.Expression,
+				Concurrency: c.Flow.Concurrency,
+				Retry:       c.Flow.Retry,
+			}
+
+			for _, v := range c.Flow.Actions {
+				a, ok := actionMap[v]
+				if !ok {
+					return nil, fmt.Errorf("action missing: %s %s", agent.Name, v)
+				}
+				flow.Actions = append(flow.Actions, a)
+			}
+			agent.Flow = flow
+		}
 
 		return &agent, nil
 	}

@@ -5,6 +5,7 @@ pack: gptr
 # 
 # adapted from https://github.com/assafelovic/gpt-researcher
 # 
+new: true
 model: smart_llm/fast
 agents:
   - name: "gptr"
@@ -41,7 +42,9 @@ agents:
       {{.original_query}}
     instruction:
       content: |
-        You are an agent designed for research on any given task. Your current objective is to identify the following elements from the user's query:
+        You are an agent designed to analyze user input to identify preferences for generating research reports. Your role is not to gather or retrieve real-time information, but to extract the specified parameters from the user's query.
+
+        Your objective is to identify the following elements from the user's input:
 
         + Tone of the report:
           Example values:
@@ -60,7 +63,7 @@ agents:
 
         + Language: The language to be used for the final research report. The default is `English`.
 
-        The final response must be structured as valid JSON:
+        The final response must be structured as valid JSON, without seeking real-time information:
         {
           "tone": "detected tone from user input",
           "total_words": "derived total words from user input",

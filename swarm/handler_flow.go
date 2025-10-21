@@ -66,7 +66,7 @@ func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error 
 			return err
 		}
 		nreq.RawInput = &api.UserInput{
-			Message: resp.Result.Value,
+			Message: nresp.Result.Value,
 		}
 	}
 	resp.Result = nresp.Result

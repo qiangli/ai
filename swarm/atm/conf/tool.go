@@ -191,7 +191,7 @@ func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 
 			tool := &api.ToolFunc{
 				Kit:         tc.Kit,
-				Type:        v.Type,
+				Type:        nvl(v.Type, tc.Type),
 				Name:        v.Name,
 				Description: v.Description,
 				Parameters:  v.Parameters,
