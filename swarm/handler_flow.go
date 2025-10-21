@@ -161,7 +161,8 @@ func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
 func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 	result, ok := h.sw.Vars.Global[globalResult]
 	if !ok {
-		return fmt.Errorf("no result found")
+		// return fmt.Errorf("no result found")
+		result = h.sw.Vars.Global[globalQuery]
 	}
 	var s string
 	if v, ok := result.(string); ok {
@@ -172,7 +173,8 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 	var list []string
 	err := json.Unmarshal([]byte(s), &list)
 	if err != nil {
-		return err
+		// return err
+		list = []string{s}
 	}
 
 	var wg sync.WaitGroup
