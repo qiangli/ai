@@ -132,11 +132,6 @@ func Help(ctx context.Context, cmd *cobra.Command, args []string) error {
 	}
 	log.GetLogger(ctx).SetLogLevel(api.ToLogLevel("info"))
 
-	// vars, err := agent.InitVars(cfg)
-	// if err != nil {
-	// 	return err
-	// }
-
 	if len(args) > 0 {
 		for _, v := range args {
 			switch v {

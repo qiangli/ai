@@ -81,7 +81,7 @@ agents:
     description: "Chooses the agent automatically"
     model: smart_llm/smart
     arguments:
-      temperature: 0.15
+      # temperature: 0.15
     message: |
       #! --mime-type=text/go-template
       task: {{.original_query}}
@@ -139,7 +139,7 @@ agents:
     description: "Generate sub_queries using the specified LLM model."
     model: smart_llm/strategic
     arguments:
-      max_tokens: 4000
+      max_completion_tokens: 4000
       reasoning_effort: medium
       #
       max_iterations: 3
@@ -200,8 +200,8 @@ agents:
     description: "Ranks sources and curates data based on their relevance, credibility and reliability."
     model: smart_llm/smart
     arguments:
-      temperature: 0.2
-      max_tokens: 8000
+      # temperature: 0.2
+      max_completion_tokens: 8000
       #
       max_results: 5
     instruction:
@@ -246,8 +246,8 @@ agents:
     description: "Generates the final report"
     model: smart_llm/smart
     arguments:
-      temperature: 0.35
-      max_tokens: 6000
+      # temperature: 0.35
+      max_completion_tokens: 6000
       #
       tone: "objective"
       language: "english"

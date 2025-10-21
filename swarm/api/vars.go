@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"maps"
 )
 
 const (
@@ -41,9 +42,6 @@ type Vars struct {
 
 func (v *Vars) Clone() *Vars {
 	clone := &Vars{
-		// Agent:   v.Agent,
-		// Message: v.Message,
-		//
 		ChatID:     v.ChatID,
 		New:        v.New,
 		MaxHistory: v.MaxHistory,
@@ -70,9 +68,7 @@ func (v *Vars) Clone() *Vars {
 	}
 
 	// Copy the Extra map
-	for key, value := range v.Global {
-		clone.Global[key] = value
-	}
+	maps.Copy(clone.Global, v.Global)
 
 	// Copy the History slice
 	copy(clone.History, v.History)

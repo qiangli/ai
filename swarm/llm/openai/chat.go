@@ -210,9 +210,9 @@ func setChatCompletionNewParams(params *openai.ChatCompletionNewParams, args map
 	}
 
 	// The maximum number of tokens that can be generated in the chat completion.
-	if v, ok := args["max_tokens"]; ok {
-		params.MaxTokens = openai.Int(toInt64(v, 512))
-	}
+	// if v, ok := args["max_tokens"]; ok {
+	// 	params.MaxTokens = openai.Int(toInt64(v, 512))
+	// }
 
 	// How many chat completion choices to generate for each input message.
 	if v, ok := args["n"]; ok {

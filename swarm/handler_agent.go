@@ -16,37 +16,50 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func NewAgentHandler(sw *Swarm) func(*api.Vars, *api.Agent) Handler {
-	return func(vars *api.Vars, agent *api.Agent) Handler {
+func NewAgentHandler(sw *Swarm) func(*api.Agent) Handler {
+	return func(agent *api.Agent) Handler {
 		return &agentHandler{
-			vars:  vars,
 			agent: agent,
-			//
-			sw: sw,
+			sw:    sw,
 		}
 	}
 }
 
 type agentHandler struct {
 	agent *api.Agent
-	vars  *api.Vars
-	//
-	sw *Swarm
+	sw    *Swarm
 }
 
 func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
-	// var r = h.agent
 	var ctx = req.Context()
-	var query = req.RawInput.Query()
+	log.GetLogger(ctx).Debugf("Serve agent: %s global: %+v\n", h.agent.Name, h.sw.Vars.Global)
 
-	// merge args from agents
-	h.vars.Global[globalQuery] = query
+	h.sw.Vars.Global[globalQuery] = req.RawInput.Query()
 
+	if err := h.doFlow(req, resp); err != nil {
+		h.sw.Vars.Global[globalResult] = err.Error()
+		return err
+	}
+
+	// if result is json, unpack for subsequnent agents/actions
+	if len(resp.Result.Value) > 0 {
+		var resultMap = make(map[string]any)
+		if err := json.Unmarshal([]byte(resp.Result.Value), &resultMap); err == nil {
+			maps.Copy(h.sw.Vars.Global, resultMap)
+		}
+	}
+	h.sw.Vars.Global[globalResult] = resp.Result.Value
+
+	log.GetLogger(ctx).Debugf("completed: %s global: %+v\n", h.agent.Name, h.sw.Vars.Global)
+	return nil
+}
+
+func (h *agentHandler) doFlow(req *api.Request, resp *api.Response) error {
 	if h.agent.Arguments != nil {
 		for key, val := range h.agent.Arguments {
 			// @agent arg
 			if v, ok := val.(string); ok {
-				if resolved, err := h.resolveArgument(ctx, req, v); err != nil {
+				if resolved, err := h.resolveArgument(req, v); err != nil {
 					return err
 				} else {
 					val = resolved
@@ -54,17 +67,15 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 			}
 			// templated
 			if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-				if resolved, err := applyTemplate(v, h.vars.Global, tplFuncMap); err != nil {
+				if resolved, err := applyTemplate(v, h.sw.Vars.Global, tplFuncMap); err != nil {
 					return err
 				} else {
 					val = resolved
 				}
 			}
-			h.vars.Global[key] = val
+			h.sw.Vars.Global[key] = val
 		}
 	}
-
-	log.GetLogger(ctx).Debugf("Serve agent: %s query: %s global: %+v\n", h.agent.Name, query, h.vars.Global)
 
 	// flow control agent
 	if h.agent.Flow != nil {
@@ -104,26 +115,16 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 			return fmt.Errorf("not supported yet %v", h.agent.Flow)
 		}
 	} else {
-		if err := h.entry(ctx, req, resp); err != nil {
+		if err := h.doAgent(req, resp); err != nil {
 			return err
 		}
 	}
 
-	// if result is json, unpack for subsequnent agents/actions
-	if len(resp.Result.Value) > 0 {
-		var resultMap = make(map[string]any)
-		if err := json.Unmarshal([]byte(resp.Result.Value), &resultMap); err == nil {
-			maps.Copy(h.vars.Global, resultMap)
-		}
-	}
-	h.vars.Global[globalResult] = resp.Result.Value
-
-	log.GetLogger(ctx).Debugf("completed: %s global: %+v\n", h.agent.Name, h.vars.Global)
-
 	return nil
 }
 
-func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Response) error {
+func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
+	var ctx = req.Context()
 	var r = h.agent
 
 	// apply template/load
@@ -159,25 +160,13 @@ func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Re
 		return content, nil
 	}
 
-	var chatID = h.vars.ChatID
+	var chatID = h.sw.Vars.ChatID
 	var history []*api.Message
 
 	// 1. New System Message
 	// system role prompt as first message
 	if r.Instruction != nil {
-		// // update the request instruction
-		// content, err := apply(h.vars.Global, r.Instruction.Type, r.Instruction.Content)
-		// if err != nil {
-		// 	return err
-		// }
-
-		// // dynamic @prompt if requested
-		// content, err = h.resolvePrompt(ctx, req, content)
-		// if err != nil {
-		// 	return err
-		// }
-
-		content, err := resolve(h.vars.Global, r.Instruction.Type, r.Instruction.Content)
+		content, err := resolve(h.sw.Vars.Global, r.Instruction.Type, r.Instruction.Content)
 		if err != nil {
 			return err
 		}
@@ -212,7 +201,7 @@ func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Re
 				emoji = "🤖"
 			}
 		} else {
-			list = h.vars.History
+			list = h.sw.Vars.History
 		}
 		if len(list) > 0 {
 			log.GetLogger(ctx).Infof("%s context messages: %v\n", emoji, len(list))
@@ -228,7 +217,7 @@ func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Re
 	// 3. New User Message
 	// Additional user message
 	if r.Message != "" {
-		msg, err := resolve(h.vars.Global, "", r.Message)
+		msg, err := resolve(h.sw.Vars.Global, "", r.Message)
 		if err != nil {
 			return err
 		}
@@ -256,12 +245,12 @@ func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Re
 	// merge request args
 	var args = make(map[string]any)
 	// copy globals including agent args
-	maps.Copy(args, h.vars.Global)
+	maps.Copy(args, h.sw.Vars.Global)
 
 	if req.Arguments != nil {
 		for key, val := range req.Arguments {
 			if v, ok := val.(string); ok {
-				if resolved, err := h.resolveArgument(ctx, req, v); err != nil {
+				if resolved, err := h.resolveArgument(req, v); err != nil {
 					return err
 				} else {
 					val = resolved
@@ -315,7 +304,7 @@ func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Re
 		// agent tool
 		Arguments: args,
 		//
-		Vars: h.vars,
+		Vars: h.sw.Vars,
 	}
 
 	// openai/tts
@@ -360,7 +349,7 @@ func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Re
 		history = append(history, &message)
 	}
 
-	h.vars.History = history
+	h.sw.Vars.History = history
 	//
 	resp.Messages = history[initLen:]
 	resp.Agent = r
@@ -376,7 +365,7 @@ func (h *agentHandler) exec(req *api.Request, resp *api.Response) error {
 		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself.", req.Agent))
 	}
 
-	if err := h.sw.Clone().Run(req, resp); err != nil {
+	if err := h.sw.Run(req, resp); err != nil {
 		return err
 	}
 	if resp.Result == nil {
@@ -448,7 +437,7 @@ func (h *agentHandler) mustResolveContext(ctx context.Context, parent *api.Reque
 }
 
 // call agent if found. otherwise return s as is
-func (h *agentHandler) resolveArgument(ctx context.Context, parent *api.Request, s string) (any, error) {
+func (h *agentHandler) resolveArgument(parent *api.Request, s string) (any, error) {
 	agent, query, found := parseAgentCommand(s)
 	if !found {
 		return s, nil

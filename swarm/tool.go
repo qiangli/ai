@@ -94,7 +94,7 @@ func (h *agentHandler) callAgentTool(ctx context.Context, tf *api.ToolFunc, args
 
 func (h *agentHandler) callAITool(ctx context.Context, tf *api.ToolFunc, args map[string]any) (any, error) {
 	aiKit := NewAIKit(h)
-	return aiKit.Call(ctx, h.vars, "", tf, args)
+	return aiKit.Call(ctx, h.sw.Vars, "", tf, args)
 }
 
 // vars *api.Vars, agent *api.Agent,
@@ -114,13 +114,10 @@ func (h *agentHandler) dispatch(ctx context.Context, v *api.ToolFunc, args map[s
 		return nil, err
 	}
 
-	// token := func() (string, error) {
-	// 	return h.sw.Secrets.Get(h.agent.Owner, v.ApiKey)
-	// }
 	env := &api.ToolEnv{
 		Owner: h.agent.Owner,
 	}
-	out, err := kit.Call(ctx, h.vars, env, v, args)
+	out, err := kit.Call(ctx, h.sw.Vars, env, v, args)
 	if err != nil {
 		return nil, fmt.Errorf("failed to call function tool %s %s: %w", v.Kit, v.Name, err)
 	}

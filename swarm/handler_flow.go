@@ -21,12 +21,12 @@ func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api
 	// merge request args
 	var args = make(map[string]any)
 	// copy globals including agent args
-	maps.Copy(args, h.vars.Global)
+	maps.Copy(args, h.sw.Vars.Global)
 
 	if req.Arguments != nil {
 		for key, val := range req.Arguments {
 			if v, ok := val.(string); ok {
-				if resolved, err := h.resolveArgument(ctx, req, v); err != nil {
+				if resolved, err := h.resolveArgument(req, v); err != nil {
 					return err
 				} else {
 					val = resolved
@@ -75,7 +75,7 @@ func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error 
 
 func (h *agentHandler) flowLoop(req *api.Request, resp *api.Response) error {
 	eval := func(exp string) (bool, error) {
-		v, err := applyTemplate(exp, h.vars.Global, tplFuncMap)
+		v, err := applyTemplate(exp, h.sw.Vars.Global, tplFuncMap)
 		if err != nil {
 			return false, err
 		}
@@ -106,13 +106,13 @@ func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error 
 	for i, v := range h.agent.Flow.Actions {
 		wg.Add(1)
 		go func(i int, v *api.Action) {
+			defer wg.Done()
+
 			nresp := new(api.Response)
-			err := h.doAction(ctx, req, nresp, v.Tool)
-			if err != nil {
-				if nresp.Result == nil {
-					nresp.Result = &api.Result{}
+			if err := h.doAction(ctx, req, nresp, v.Tool); err != nil {
+				nresp.Result = &api.Result{
+					Value: err.Error(),
 				}
-				nresp.Result.Value += err.Error()
 			}
 			resps[i] = nresp
 		}(i, v)
@@ -133,7 +133,7 @@ func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
 	var which int
 	// evaluate express or random
 	if h.agent.Flow.Expression != "" {
-		v, err := applyTemplate(h.agent.Flow.Expression, h.vars.Global, tplFuncMap)
+		v, err := applyTemplate(h.agent.Flow.Expression, h.sw.Vars.Global, tplFuncMap)
 		if err != nil {
 			return err
 		}
@@ -159,7 +159,7 @@ func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
 }
 
 func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
-	result, ok := h.vars.Global[globalResult]
+	result, ok := h.sw.Vars.Global[globalResult]
 	if !ok {
 		return fmt.Errorf("no result found")
 	}
@@ -180,12 +180,18 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 	for i, v := range list {
 		wg.Add(1)
 		go func(i int, v string) {
+			defer wg.Done()
+
 			nreq := req.Clone()
 			nreq.RawInput = &api.UserInput{
 				Message: v,
 			}
 			nresp := new(api.Response)
-			h.flowSequence(nreq, nresp)
+			if err := h.flowSequence(nreq, nresp); err != nil {
+				nresp.Result = &api.Result{
+					Value: err.Error(),
+				}
+			}
 			resps[i] = nresp
 		}(i, v)
 	}

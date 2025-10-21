@@ -215,7 +215,7 @@ func resolveModelLevel(models, model string) (string, string) {
 	return alias, level
 }
 
-func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent string, rawInput *api.UserInput, secrets api.SecretStore, assets api.AssetManager) (*api.Agent, error) {
+func CreateAgent(ctx context.Context, vars *api.Vars, agent string, auth *api.User, rawInput *api.UserInput, secrets api.SecretStore, assets api.AssetManager) (*api.Agent, error) {
 	//
 	findAgentConfig := func(ac *api.AgentsConfig, pack, sub string) (*api.AgentConfig, error) {
 		n := pack
