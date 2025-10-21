@@ -203,8 +203,13 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 	for _, v := range resps {
 		results = append(results, v.Result.Value)
 	}
+
+	b, err := json.Marshal(result)
+	if err != nil {
+		return err
+	}
 	resp.Result = &api.Result{
-		Value: strings.Join(results, "\n"),
+		Value: string(b),
 	}
 	return nil
 }
