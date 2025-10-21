@@ -9,8 +9,8 @@ type InputType string
 type OutputType string
 type Feature string
 
-type ModelSet = map[string]*Model
-type ModelSetConfig = map[string]*ModelConfig
+// type ModelSet = map[string]*Model
+// type ModelSetConfig = map[string]*ModelConfig
 
 const (
 	//
@@ -91,15 +91,13 @@ type ModelsConfig struct {
 	// model set name
 	Set string `yaml:"set"`
 
-	// default LLM model for ModelConfig
-	Model string `yaml:"model"`
-
+	// provider
 	Provider string `yaml:"provider"`
 	BaseUrl  string `yaml:"base_url"`
 	// name of api key
 	ApiKey string `yaml:"api_key"`
 
-	Models ModelSetConfig `yaml:"models"`
+	Models map[string]*ModelConfig `yaml:"models"`
 }
 
 type ModelConfig struct {

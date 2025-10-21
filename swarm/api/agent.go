@@ -202,8 +202,6 @@ type AgentsConfig struct {
 	Model string `yaml:"model"`
 
 	Agents []*AgentConfig `yaml:"agents"`
-	Tools  []*ToolConfig  `yaml:"tools"`
-	Models []*ModelConfig `yaml:"models"`
 
 	//
 	MaxTurns int `yaml:"max_turns"`
@@ -224,6 +222,18 @@ type AgentsConfig struct {
 
 	// logging: quiet | informative | verbose
 	LogLevel string `yaml:"log_level"`
+
+	// toolkit
+	Kit   string        `yaml:"kit"`
+	Type  string        `yaml:"type"`
+	Tools []*ToolConfig `yaml:"tools"`
+
+	// modelset
+	Set      string                  `yaml:"set"`
+	Provider string                  `yaml:"provider"`
+	BaseUrl  string                  `yaml:"base_url"`
+	ApiKey   string                  `yaml:"api_key"`
+	Models   map[string]*ModelConfig `yaml:"models"`
 }
 
 type AgentConfig struct {
@@ -234,7 +244,7 @@ type AgentConfig struct {
 	//
 	Instruction *Instruction `yaml:"instruction"`
 
-	// [alias/]level
+	// set/level
 	Model string `yaml:"model"`
 
 	// tools defined in tools config

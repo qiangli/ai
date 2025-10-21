@@ -90,9 +90,9 @@ func loadModelsData(data [][]byte) (*api.ModelsConfig, error) {
 		if v.Provider == "" {
 			v.Provider = merged.Provider
 		}
-		if v.Model == "" {
-			v.Model = merged.Model
-		}
+		// if v.Model == "" {
+		// 	v.Model = merged.Model
+		// }
 		if v.ApiKey == "" {
 			v.ApiKey = merged.ApiKey
 		}

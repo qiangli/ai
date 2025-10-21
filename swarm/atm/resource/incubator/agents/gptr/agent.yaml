@@ -125,10 +125,11 @@ agents:
         search results from the web. When a user submits a query, analyze the main components of the query,
         perform a web search, and return the most relevant results.
     functions:
-      - "ddg:*"
-      - "bing:*"
-      - "google:*"
-      - "brave:*"
+      - "gptr:*"
+      # - "ddg:*"
+      # - "bing:*"
+      # - "google:*"
+      # - "brave:*"
   
   - name: "gptr/research_queries"
     display: "🤔 Planning the research strategy and subtasks"
@@ -286,20 +287,36 @@ agents:
       Assume that the current date is {{.date}}.
 
 ## tool kit
-# kit: external
-
+kit: "gptr"
+type: "web"
+tools:
+  - name: "search"
+    description: "Search the web using available search tools and return formatted results"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The search query string"
+        max_results:
+          type: "integer"
+          description: "Maximum number of results to return"
+          default: 5
+          minimum: 1
+          maximum: 10
+      required:
+        - query
+  
 ## models
+set: smart_llm
+provider: "openai"
+base_url: "https://api.openai.com/v1/"
+api_key: "openai"
 models:
-  - set: smart_llm
-    alias: smart_llm
-    provider: "openai"
-    base_url: "https://api.openai.com/v1/"
-    api_key: "openai"
-    models:
-      fast:
-        model: "gpt-4o-mini"
-      smart:
-        model: "gpt-4.1"
-      strategic:
-        model: "o4-mini"
+  fast:
+    model: "gpt-4o-mini"
+  smart:
+    model: "gpt-4.1"
+  strategic:
+    model: "o4-mini"
 ###

@@ -68,6 +68,7 @@ type ToolsConfig struct {
 	// func (server) | system (client) | remote
 	Type string `yaml:"type"`
 
+	// provider
 	Provider string `yaml:"provider"`
 	BaseUrl  string `yaml:"base_url"`
 	// name of api key
