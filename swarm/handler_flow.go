@@ -4,46 +4,22 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"maps"
 	"math/rand"
 	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/log"
 )
 
 // flow actions
 func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, tf *api.ToolFunc) error {
 	var r = h.agent
 
-	// merge request args
-	var args = make(map[string]any)
-	// copy globals including agent args
-	maps.Copy(args, h.sw.Vars.Global)
-
-	if req.Arguments != nil {
-		for key, val := range req.Arguments {
-			if v, ok := val.(string); ok {
-				if resolved, err := h.resolveArgument(req, v); err != nil {
-					return err
-				} else {
-					val = resolved
-				}
-			}
-			if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-				if resolved, err := applyTemplate(v, args, tplFuncMap); err != nil {
-					return err
-				} else {
-					val = resolved
-				}
-			}
-			args[key] = val
-		}
+	args, err := h.applyArguments(req)
+	if err != nil {
+		return err
 	}
-
-	log.GetLogger(ctx).Debugf("Added user role message: %+v\n", args)
 
 	var runTool = h.createCaller()
 	result, err := runTool(ctx, tf.ID(), args)

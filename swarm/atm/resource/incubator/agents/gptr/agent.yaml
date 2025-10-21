@@ -249,10 +249,10 @@ agents:
       # temperature: 0.35
       max_completion_tokens: 6000
       #
-      tone: "objective"
-      language: "english"
-      report_format: "markdown"
-      total_words: 1200
+      # tone: "objective"
+      # language: "english"
+      # report_format: "markdown"
+      # total_words: 1200
       date: "{{now}}"
     instruction:
       content: |

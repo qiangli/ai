@@ -21,13 +21,12 @@ type Request struct {
 	Parent *Agent
 
 	// The name/command of the active agent
-	Agent string
+	Agent     string
+	Arguments map[string]any
 
 	Messages []*Message
 
 	RawInput *UserInput
-
-	Arguments map[string]any
 
 	// ctx should only be modified via copying the whole request WithContext.
 	// It is unexported to prevent people from using Context wrong

@@ -55,6 +55,9 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 }
 
 func (h *agentHandler) doFlow(req *api.Request, resp *api.Response) error {
+	// TODO need to support:
+	// overwrite and default only something similar to shell env:
+	// ${ENV:-"default"}
 	if h.agent.Arguments != nil {
 		for key, val := range h.agent.Arguments {
 			// @agent arg
@@ -123,9 +126,43 @@ func (h *agentHandler) doFlow(req *api.Request, resp *api.Response) error {
 	return nil
 }
 
+func (h *agentHandler) applyArguments(req *api.Request) (map[string]any, error) {
+	var ctx = req.Context()
+	// merge request args
+	var args = make(map[string]any)
+	// copy globals including agent args
+	maps.Copy(args, h.sw.Vars.Global)
+	if req.Arguments != nil {
+		for key, val := range req.Arguments {
+			if v, ok := val.(string); ok {
+				if resolved, err := h.resolveArgument(req, v); err != nil {
+					return nil, err
+				} else {
+					val = resolved
+				}
+			}
+			if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
+				if resolved, err := applyTemplate(v, args, tplFuncMap); err != nil {
+					return nil, err
+				} else {
+					val = resolved
+				}
+			}
+			args[key] = val
+		}
+	}
+	log.GetLogger(ctx).Debugf("global args: %+v\n", args)
+	return args, nil
+}
+
 func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 	var ctx = req.Context()
 	var r = h.agent
+
+	args, err := h.applyArguments(req)
+	if err != nil {
+		return err
+	}
 
 	// apply template/load
 	// TODO  vars -> data may break some existing config
@@ -241,33 +278,6 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 		Content: req.RawInput.Query(),
 		Sender:  r.Name,
 	})
-
-	// merge request args
-	var args = make(map[string]any)
-	// copy globals including agent args
-	maps.Copy(args, h.sw.Vars.Global)
-
-	if req.Arguments != nil {
-		for key, val := range req.Arguments {
-			if v, ok := val.(string); ok {
-				if resolved, err := h.resolveArgument(req, v); err != nil {
-					return err
-				} else {
-					val = resolved
-				}
-			}
-			if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-				if resolved, err := applyTemplate(v, args, tplFuncMap); err != nil {
-					return err
-				} else {
-					val = resolved
-				}
-			}
-			args[key] = val
-		}
-	}
-
-	log.GetLogger(ctx).Debugf("Added user role message: %+v\n", args)
 
 	history = append(history, req.Messages...)
 	log.GetLogger(ctx).Debugf("Added user role message: %v\n", len(history))
