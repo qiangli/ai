@@ -16,7 +16,6 @@ import (
 
 func RunAgent(ctx context.Context, app *api.AppConfig) error {
 	log.GetLogger(ctx).Debugf("Agent: %s %v\n", app.Agent, app.Args)
-
 	in, err := GetUserInput(ctx, app)
 	if err != nil {
 		return err
@@ -115,16 +114,16 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	// TODO output as funtion return value
 	// cfg.Stdout = ""
 
-	for _, v := range resp.Messages {
-		out := &api.Output{
-			Display:     display,
-			ContentType: v.ContentType,
-			Content:     v.Content,
-		}
+	// for _, v := range resp.Messages {
+	// 	out := &api.Output{
+	// 		Display:     display,
+	// 		ContentType: v.ContentType,
+	// 		Content:     v.Content,
+	// 	}
 
-		processOutput(ctx, cfg, out)
-		// cfg.Stdout = cfg.Stdout + v.Content
-	}
+	// 	processOutput(ctx, cfg, out)
+	// 	// cfg.Stdout = cfg.Stdout + v.Content
+	// }
 
 	if len(vars.History) > initLen {
 		log.GetLogger(ctx).Debugf("Saving conversation\n")
@@ -132,6 +131,25 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 			log.GetLogger(ctx).Errorf("error saving conversation history: %v", err)
 		}
 	}
+
+	var out *api.Output
+	if resp.Result != nil {
+		out = &api.Output{
+			Display:     display,
+			ContentType: resp.Result.MimeType,
+			Content:     resp.Result.Value,
+		}
+	} else {
+		if len(resp.Messages) > 0 {
+			msg := resp.Messages[len(resp.Messages)-1]
+			out = &api.Output{
+				Display:     display,
+				ContentType: msg.ContentType,
+				Content:     msg.Content,
+			}
+		}
+	}
+	processOutput(ctx, cfg, out)
 
 	log.GetLogger(ctx).Debugf("Agent task completed: %v\n", cfg.Args)
 	return nil
