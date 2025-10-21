@@ -286,6 +286,8 @@ type AgentConfig struct {
 	Filters []*IOFilter  `yaml:"filters"`
 	Guards  []*ToolGuard `yaml:"guards"`
 
+	Flow *Flow `yaml:"flow"`
+
 	//
 	Store AssetStore `yaml:"-"`
 	// relative to root

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"time"
+	// "time"
 
 	"dario.cat/mergo"
-	"github.com/hashicorp/golang-lru/v2/expirable"
+	// "github.com/hashicorp/golang-lru/v2/expirable"
 	"gopkg.in/yaml.v3"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -20,11 +20,11 @@ type ModelCacheKey struct {
 	Models string
 }
 
-var (
-	modelCache = expirable.NewLRU[ModelCacheKey, map[string]*api.Model](10000, nil, time.Second*180)
-)
+// var (
+// 	modelCache = expirable.NewLRU[ModelCacheKey, map[string]*api.Model](10000, nil, time.Second*180)
+// )
 
-func loadModel(owner, set, level string, secrets api.SecretStore, assets api.AssetManager) (*api.Model, error) {
+func loadModel(owner, set, level string, assets api.AssetManager) (*api.Model, error) {
 	provide := func(mc *api.ModelsConfig, level string) (*api.Model, error) {
 		c, ok := mc.Models[level]
 		if !ok {
@@ -42,21 +42,22 @@ func loadModel(owner, set, level string, secrets api.SecretStore, assets api.Ass
 			return nil, fmt.Errorf("model not found: %s/%s", mc.Set, level)
 		}
 
-		ak, err := secrets.Get(owner, c.ApiKey)
-		if err != nil {
-			return nil, err
-		}
+		// ak, err := secrets.Get(owner, c.ApiKey)
+		// if err != nil {
+		// 	return nil, err
+		// }
 
 		m := &api.Model{
 			Provider: c.Provider,
 			Model:    c.Model,
 			BaseUrl:  c.BaseUrl,
-			ApiKey:   ak,
+			ApiKey:   c.ApiKey,
 		}
 
 		return m, nil
 	}
 
+	//
 	mc, err := assets.FindModels(owner, set)
 	if err != nil {
 		return nil, err

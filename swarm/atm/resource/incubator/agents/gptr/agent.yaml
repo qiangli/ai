@@ -5,6 +5,7 @@ pack: gptr
 # 
 # adapted from https://github.com/assafelovic/gpt-researcher
 # 
+model: smart_llm/fast
 agents:
   - name: "gptr"
     display: "🚀 GPT Researcher"
@@ -35,7 +36,6 @@ agents:
   - name: "gptr/user_input"
     display: "🖥️  User Input"
     description: "Detect user preferences for the GPT Researcher tool."
-    model: smart_llm/fast
     message: |
       #! --mime-type=text/x-go-template
       {{.original_query}}
@@ -180,7 +180,6 @@ agents:
   - name: "gptr/crawl"
     display: "🌐 Web Crawler"
     description: "Runs a query across multiple retrievers and scrapes the resulting URLs."
-    model: smart_llm/fast
     instrution:
       content: |
         You are a specialized web crawler. For each query, execute a search and follow only

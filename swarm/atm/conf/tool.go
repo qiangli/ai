@@ -56,6 +56,7 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 		return loadAgentTool(ac, name)
 	}
 
+	//
 	tc, err := assets.FindToolkit(owner, kit)
 	if err != nil {
 		return nil, err
@@ -71,6 +72,58 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 	}
 
 	return nil, fmt.Errorf("tool func not found: %s", s)
+}
+
+func LoadLocalToolFunc(local *api.AgentsConfig, owner, s string, secrets api.SecretStore, assets api.AssetManager) ([]*api.ToolFunc, error) {
+	kit, name := api.KitName(s).Decode()
+	if name == "" {
+		return nil, fmt.Errorf("invalid tool call id: %s", s)
+	}
+
+	// return tool or the kit
+	filter := func(tools []*api.ToolFunc) ([]*api.ToolFunc, error) {
+		var filtered = filterTool(tools, kit, name)
+		if len(filtered) == 0 {
+			return nil, fmt.Errorf("no such tool: %s", s)
+		}
+		return filtered, nil
+	}
+
+	// builtin "agent" toolkit
+	// any agent can be used a tool
+	// @name
+	// agent:name
+	if kit == api.ToolTypeAgent {
+		if name == local.Name {
+			return nil, fmt.Errorf("recursion not supported: %s", name)
+		}
+		for _, v := range local.Agents {
+			if name == v.Name {
+				return loadAgentTool(local, name)
+			}
+		}
+	}
+
+	//
+	var tc *api.ToolsConfig
+	if kit == local.Kit {
+		tc = &api.ToolsConfig{
+			Kit:   kit,
+			Type:  local.Type,
+			Tools: local.Tools,
+		}
+	}
+
+	if tc != nil {
+		v, err := loadTools(tc, owner, secrets)
+		if err != nil {
+			return nil, err
+		}
+		return filter(v)
+	}
+
+	// no error
+	return nil, nil
 }
 
 func loadToolData(data [][]byte) (*api.ToolsConfig, error) {

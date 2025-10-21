@@ -296,6 +296,13 @@ func (h *agentHandler) entry(ctx context.Context, req *api.Request, resp *api.Re
 	} else {
 		model = v
 	}
+	//
+	if ak, err := h.sw.Secrets.Get(h.agent.Owner, model.ApiKey); err != nil {
+		return err
+	} else {
+		model.ApiKey = ak
+	}
+
 	var request = llm.Request{
 		Agent:    r.Name,
 		Messages: history,

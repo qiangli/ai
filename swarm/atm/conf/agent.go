@@ -303,6 +303,8 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 			New:        nbl(vars.New, c.New, ac.New),
 			MaxHistory: nzl(vars.MaxHistory, c.MaxHistory, ac.MaxHistory, defaultMaxHistory),
 			MaxSpan:    nzl(vars.MaxSpan, c.MaxSpan, ac.MaxSpan, defaultMaxSpan),
+			//
+			Flow: c.Flow,
 		}
 		// log
 		agent.LogLevel = api.ToLogLevel(nvl(vars.LogLevel.String(), c.LogLevel, ac.LogLevel, "quiet"))
@@ -323,31 +325,58 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 		context := strings.TrimSpace(nvl(vars.Context, c.Context, ac.Context))
 		agent.Context = context
 
-		// llm model [alias/]level
+		// llm model set[/level]
 		// @model support
-		// TODO ai trigger
+		// flow does not require a model
 		model := strings.TrimSpace(nvl(c.Model, ac.Model))
-		if strings.HasPrefix(model, "@") {
-			// defer model provider resolution
-			agent.Model = &api.Model{
-				Model: model,
-			}
-		} else {
-			alias, level := resolveModelLevel(vars.Models, model)
-			if v, err := loadModel(owner, alias, level, secrets, assets); err != nil {
-				return nil, fmt.Errorf("failed to load model: %s %s %v", vars.Models, model, err)
+		if model != "" && agent.Flow == nil {
+			if strings.HasPrefix(model, "@") {
+				// defer model provider resolution
+				agent.Model = &api.Model{
+					Model: model,
+				}
 			} else {
-				agent.Model = v
+				set, level := resolveModelLevel(vars.Models, model)
+				// local
+				if ac.Set == set {
+					for k, v := range ac.Models {
+						if k == level {
+							agent.Model = &api.Model{
+								Model:    v.Model,
+								Provider: nvl(v.Provider, ac.Provider),
+								BaseUrl:  nvl(v.BaseUrl, ac.BaseUrl),
+								ApiKey:   nvl(v.ApiKey, ac.ApiKey),
+							}
+						}
+					}
+				}
+				if agent.Model == nil {
+					if v, err := loadModel(owner, set, level, assets); err != nil {
+						return nil, fmt.Errorf("failed to load model: %s %s %v", vars.Models, model, err)
+					} else {
+						agent.Model = v
+					}
+				}
 			}
 		}
 
 		// tools
 		funcMap := make(map[string]*api.ToolFunc)
+		// kit:*
 		for _, v := range c.Functions {
-			// kit:*
-			tools, err := LoadToolFunc(owner, v, secrets, assets)
-			if err != nil {
+			var tools []*api.ToolFunc
+			// local
+			if v, err := LoadLocalToolFunc(ac, owner, v, secrets, assets); err != nil {
 				return nil, err
+			} else {
+				tools = v
+			}
+			if tools == nil {
+				if v, err := LoadToolFunc(owner, v, secrets, assets); err != nil {
+					return nil, err
+				} else {
+					tools = v
+				}
 			}
 			for _, fn := range tools {
 				id := fn.ID()
@@ -362,15 +391,6 @@ func CreateAgent(ctx context.Context, vars *api.Vars, auth *api.User, agent stri
 			funcs = append(funcs, v)
 		}
 		agent.Tools = funcs
-
-		// if c.Advices != nil {
-		// 	// TODO
-		// 	return nil, fmt.Errorf("advice no supported: %+v", c.Advices)
-		// }
-		// if c.Entrypoint != "" {
-		// 	// TODO
-		// 	return nil, fmt.Errorf("entrypoint not supported: %s", c.Entrypoint)
-		// }
 
 		return &agent, nil
 	}
