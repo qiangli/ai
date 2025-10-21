@@ -16,7 +16,7 @@ import (
 
 type ModelCacheKey struct {
 	Owner string
-	// alias
+	// set
 	Models string
 }
 
@@ -24,7 +24,7 @@ var (
 	modelCache = expirable.NewLRU[ModelCacheKey, map[string]*api.Model](10000, nil, time.Second*180)
 )
 
-func loadModel(owner, alias, level string, secrets api.SecretStore, assets api.AssetManager) (*api.Model, error) {
+func loadModel(owner, set, level string, secrets api.SecretStore, assets api.AssetManager) (*api.Model, error) {
 	provide := func(mc *api.ModelsConfig, level string) (*api.Model, error) {
 		c, ok := mc.Models[level]
 		if !ok {
@@ -39,7 +39,7 @@ func loadModel(owner, alias, level string, secrets api.SecretStore, assets api.A
 		}
 
 		if c == nil {
-			return nil, fmt.Errorf("model not found: %s/%s", mc.Alias, level)
+			return nil, fmt.Errorf("model not found: %s/%s", mc.Set, level)
 		}
 
 		ak, err := secrets.Get(owner, c.ApiKey)
@@ -57,7 +57,7 @@ func loadModel(owner, alias, level string, secrets api.SecretStore, assets api.A
 		return m, nil
 	}
 
-	mc, err := assets.FindModels(owner, alias)
+	mc, err := assets.FindModels(owner, set)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func loadModel(owner, alias, level string, secrets api.SecretStore, assets api.A
 		return provide(mc, level)
 	}
 
-	return nil, fmt.Errorf("model not found: %s %s", alias, level)
+	return nil, fmt.Errorf("model not found: %s %s", set, level)
 }
 
 func loadModelsData(data [][]byte) (*api.ModelsConfig, error) {
@@ -100,7 +100,7 @@ func loadModelsData(data [][]byte) (*api.ModelsConfig, error) {
 		// validate
 		// provider is required for model
 		if v.Provider == "" {
-			return nil, fmt.Errorf("missing provider: %s", merged.Alias)
+			return nil, fmt.Errorf("missing provider: %s", merged.Set)
 		}
 	}
 
@@ -127,14 +127,14 @@ func listModelsATM(owner string, as api.ATMSupport, models map[string]*api.Model
 			return fmt.Errorf("invalid config. no model defined: %s", v.Name)
 		}
 		//
-		if mc.Alias == "" {
-			mc.Alias = modelName(v.Name)
+		if mc.Set == "" {
+			mc.Set = modelName(v.Name)
 		}
-		if _, ok := models[mc.Alias]; ok {
+		if _, ok := models[mc.Set]; ok {
 			continue
 		}
 
-		models[mc.Alias] = mc
+		models[mc.Set] = mc
 	}
 	return nil
 }
@@ -175,13 +175,13 @@ func listModelsAsset(as api.AssetFS, base string, models map[string]*api.ModelsC
 		}
 
 		//
-		if mc.Alias == "" {
-			mc.Alias = modelName(v.Name())
+		if mc.Set == "" {
+			mc.Set = modelName(v.Name())
 		}
-		if _, ok := models[mc.Alias]; ok {
+		if _, ok := models[mc.Set]; ok {
 			continue
 		}
-		models[mc.Alias] = mc
+		models[mc.Set] = mc
 	}
 	return nil
 }

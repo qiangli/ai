@@ -9,8 +9,8 @@ type InputType string
 type OutputType string
 type Feature string
 
-type ModelAlias = map[string]*Model
-type ModelAliasConfig = map[string]*ModelConfig
+type ModelSet = map[string]*Model
+type ModelSetConfig = map[string]*ModelConfig
 
 const (
 	//
@@ -87,17 +87,9 @@ func (r *Model) String() string {
 	return fmt.Sprintf("%s/%s", r.Provider, r.Model)
 }
 
-// func (r *Model) IsImage() bool {
-// 	list := []string{"dall-e-2", "dall-e-3", "gpt-image-1"}
-// 	return slice.ContainsAny(list, r.Model)
-// }
-
 type ModelsConfig struct {
-	// TODO deprecate alias in favor of set
 	// model set name
 	Set string `yaml:"set"`
-
-	Alias string `yaml:"alias"`
 
 	// default LLM model for ModelConfig
 	Model string `yaml:"model"`
@@ -107,7 +99,7 @@ type ModelsConfig struct {
 	// name of api key
 	ApiKey string `yaml:"api_key"`
 
-	Models ModelAliasConfig `yaml:"models"`
+	Models ModelSetConfig `yaml:"models"`
 }
 
 type ModelConfig struct {

@@ -207,11 +207,11 @@ func (r *assetManager) ListModels(owner string) (map[string]*api.ModelsConfig, e
 	return models, nil
 }
 
-func (r *assetManager) FindModels(owner string, alias string) (*api.ModelsConfig, error) {
+func (r *assetManager) FindModels(owner string, set string) (*api.ModelsConfig, error) {
 	var content []byte
 	for _, v := range r.assets {
 		if as, ok := v.(api.ATMSupport); ok {
-			if v, err := as.RetrieveModel(owner, alias); err != nil {
+			if v, err := as.RetrieveModel(owner, set); err != nil {
 				// return nil, err
 				continue
 			} else {
@@ -219,7 +219,7 @@ func (r *assetManager) FindModels(owner string, alias string) (*api.ModelsConfig
 				break
 			}
 		} else if as, ok := v.(api.AssetFS); ok {
-			if v, err := as.ReadFile(path.Join("models", alias+".yaml")); err != nil {
+			if v, err := as.ReadFile(path.Join("models", set+".yaml")); err != nil {
 				// return nil, err
 				continue
 			} else {
@@ -235,14 +235,14 @@ func (r *assetManager) FindModels(owner string, alias string) (*api.ModelsConfig
 
 	mc, err := loadModelsData([][]byte{content})
 	if err != nil {
-		return nil, fmt.Errorf("failed to load models: %s. %v", alias, err)
+		return nil, fmt.Errorf("failed to load models: %s. %v", set, err)
 	}
 	if mc == nil || len(mc.Models) == 0 {
-		return nil, fmt.Errorf("invalid models config: %s", alias)
+		return nil, fmt.Errorf("invalid models config: %s", set)
 	}
 
 	//
-	mc.Alias = alias
+	mc.Set = set
 
 	return mc, nil
 }
@@ -295,7 +295,7 @@ func ListModels(assets api.AssetManager, user string) (string, int, error) {
 	models, _ := assets.ListModels(user)
 
 	list := []string{}
-	for alias, tc := range models {
+	for set, tc := range models {
 		var keys []string
 		for k := range tc.Models {
 			keys = append(keys, k)
@@ -303,7 +303,7 @@ func ListModels(assets api.AssetManager, user string) (string, int, error) {
 		sort.Strings(keys)
 		for _, level := range keys {
 			v := tc.Models[level]
-			list = append(list, fmt.Sprintf("%s/%s:\n    %s\n    %s\n    %s\n    %s\n", alias, level, v.Provider, v.Model, v.BaseUrl, v.ApiKey))
+			list = append(list, fmt.Sprintf("%s/%s:\n    %s\n    %s\n    %s\n    %s\n", set, level, v.Provider, v.Model, v.BaseUrl, v.ApiKey))
 		}
 	}
 
