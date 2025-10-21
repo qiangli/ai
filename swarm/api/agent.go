@@ -1,9 +1,7 @@
 package api
 
 import (
-	// "encoding/json"
 	"html/template"
-	// "os"
 	"strings"
 )
 
@@ -14,6 +12,7 @@ const (
 	RoleTool      = "tool"
 )
 
+// Agent handler
 type Handler interface {
 	Serve(*Request, *Response) error
 }
@@ -64,6 +63,8 @@ type TemplateFuncMap = template.FuncMap
 // [@][owner:]pack[/sub]
 // @[owner:]<agent>
 // agent: pack[/sub]
+// @any
+// @*
 type AgentName string
 
 func (a AgentName) String() string {
@@ -198,7 +199,7 @@ type AgentsConfig struct {
 	// agent app name
 	Name string `yaml:"name"`
 
-	// set/level
+	// set/level key - not the LLM model
 	Model string `yaml:"model"`
 
 	Agents []*AgentConfig `yaml:"agents"`
@@ -224,11 +225,13 @@ type AgentsConfig struct {
 	LogLevel string `yaml:"log_level"`
 
 	// toolkit
+	// kit:any
 	Kit   string        `yaml:"kit"`
 	Type  string        `yaml:"type"`
 	Tools []*ToolConfig `yaml:"tools"`
 
-	// modelset
+	// model set
+	// set/any
 	Set      string                  `yaml:"set"`
 	Provider string                  `yaml:"provider"`
 	BaseUrl  string                  `yaml:"base_url"`
@@ -293,13 +296,11 @@ type AgentConfig struct {
 }
 
 type Instruction struct {
-	// Role string `yaml:"role"`
-	// TODO add new field
-	// Source ? resource/file/cloud...
 	// prefix supported: file: resource:
+	// #! [--mime-type=text/x-go-template]
 	Content string `yaml:"content"`
-	// template or not
-	// tpl
+
+	// content type
 	// text/x-go-template
 	Type string `yaml:"type"`
 }
@@ -331,23 +332,13 @@ const (
 
 type FlowConfig struct {
 	Type FlowType `yaml:"type"`
-	// // input object key. action input is read from this key. default: result
-	// Input string `yaml:"input"`
-	// // output object key. action output is saved with this key. default: result
-	// Output string `yaml:"output"`
+
 	// go template syntax
 	Expression  string   `yaml:"expression"`
 	Concurrency int      `yaml:"concurrency"`
 	Retry       int      `yaml:"retry"`
 	Actions     []string `yaml:"actions"`
 }
-
-// type ActionConfig struct {
-// 	// Agent string `yaml:"agent"`
-
-// 	// kit:name
-// 	Tool  string `yaml:"tool"`
-// }
 
 type Resource struct {
 	// web resource base url

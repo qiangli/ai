@@ -27,7 +27,7 @@ type ToolFunc struct {
 
 	Body *FuncBody
 
-	// agent name of agent tool
+	// agent name if this tool references an agent
 	Agent string
 
 	//
@@ -53,16 +53,14 @@ func (r *ToolFunc) ID() string {
 
 // Toolkit configuration
 type ToolsConfig struct {
-	// kit name
-	// Namespace:
-	//
-	// func class
-	// Agent name
+	// kit name specifies a namespace.
+	// e.g. but not limited to:
+	// class name
 	// MCP server name
-	// Virtual file system name
-	// Container name
-	// Virtual machine name
-	// Tool/function (Gemini)
+	// virtual filesystem name
+	// container name
+	// virtual machine name
+	// tool/function (Gemini)
 	Kit string `yaml:"kit"`
 
 	// func (server) | system (client) | remote
@@ -113,7 +111,8 @@ type FuncBody struct {
 	Url      string `yaml:"url"`
 }
 
-// TODO condidtion needs to be met for tools to be enabled
+// TODO
+// condidtion needs to be met for tools to be enabled
 type ToolCondition struct {
 	// required env list
 	Env []string `yaml:"env"`

@@ -2,56 +2,10 @@ package api
 
 import (
 	"fmt"
-	// "github.com/charmbracelet/x/exp/slice"
 )
 
-type InputType string
-type OutputType string
-type Feature string
-
-// type ModelSet = map[string]*Model
-// type ModelSetConfig = map[string]*ModelConfig
-
-const (
-	//
-	// InputTypeUnknown InputType = ""
-	// InputTypeText    InputType = "text"
-	// InputTypeImage   InputType = "image"
-
-	//
-	OutputTypeUnknown OutputType = ""
-	OutputTypeText    OutputType = "text"
-	OutputTypeImage   OutputType = "image"
-
-	// feature:
-	// vision
-	// natural language
-	// coding
-	// input_text
-	// input_image
-	// audio/video
-	// output_text
-	// output_image
-	// caching
-	// tool_calling
-	// reasoning
-	// level1
-	// leval2
-	// level3
-	// cost-optimized
-	// realtime
-	// Text-to-speech
-	// Transcription
-	// embeddings
-
-	FeatureChat  Feature = "chat"
-	FeatureImage Feature = "image"
-	FeatureAudio Feature = "audio"
-	FeatureTTS   Feature = "tts"
-	FeatureVideo Feature = "video"
-)
-
-// Level represents the "intelligence" level of the model. i.e. basic, regular, advanced
+// Level represents the "intelligence" level of the model.
+// i.e. basic, regular, advanced
 // for example, OpenAI: gpt-4.1-mini, gpt-4.1, o3
 type Level = string
 
@@ -94,7 +48,7 @@ type ModelsConfig struct {
 	// provider
 	Provider string `yaml:"provider"`
 	BaseUrl  string `yaml:"base_url"`
-	// name of api key
+	// name of api lookup key - never the actual api token
 	ApiKey string `yaml:"api_key"`
 
 	Models map[string]*ModelConfig `yaml:"models"`
