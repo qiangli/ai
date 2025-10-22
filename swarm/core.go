@@ -76,11 +76,11 @@ func ClearAllEnv() {
 }
 
 func (r *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
-	return conf.CreateAgent(ctx, r.Vars, req.Agent, r.User, req.RawInput, r.Secrets, r.Assets)
+	return conf.CreateAgent(ctx, r.Vars, req.Name, r.User, req.RawInput, r.Secrets, r.Assets)
 }
 
 func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
-	if req.Agent == "" {
+	if req.Name == "" {
 		return api.NewBadRequestError("missing agent in request")
 	}
 	if req.RawInput == nil {
@@ -92,11 +92,11 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 
 	agentHandler := NewAgentHandler(r)
 
-	log.GetLogger(ctx).Debugf("*** Agent: %s parent: %+v\n", req.Agent, req.Parent)
+	log.GetLogger(ctx).Debugf("*** Agent: %s parent: %+v\n", req.Name, req.Parent)
 
 	for {
 		start := time.Now()
-		log.GetLogger(ctx).Debugf("Creating agent: %s %s\n", req.Agent, start)
+		log.GetLogger(ctx).Debugf("Creating agent: %s %s\n", req.Name, start)
 
 		//
 		agent, err := r.createAgent(ctx, req)
@@ -120,13 +120,13 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 
 		// update the request
 		if resp.Result != nil && resp.Result.State == api.StateTransfer {
-			log.GetLogger(ctx).Debugf("Agent transfer: %s => %s\n", req.Agent, resp.Result.NextAgent)
-			req.Agent = resp.Result.NextAgent
+			log.GetLogger(ctx).Debugf("Agent transfer: %s => %s\n", req.Name, resp.Result.NextAgent)
+			req.Name = resp.Result.NextAgent
 			continue
 		}
 
 		end := time.Now()
-		log.GetLogger(ctx).Debugf("Agent complete: %s %s elapsed: %s\n", req.Agent, end, end.Sub(start))
+		log.GetLogger(ctx).Debugf("Agent complete: %s %s elapsed: %s\n", req.Name, end, end.Sub(start))
 		return nil
 	}
 }

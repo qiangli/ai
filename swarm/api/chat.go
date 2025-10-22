@@ -21,7 +21,7 @@ type Request struct {
 	Parent *Agent
 
 	// The name/command of the active agent
-	Agent     string
+	Name      string
 	Arguments map[string]any
 
 	Messages []*Message
@@ -34,10 +34,10 @@ type Request struct {
 	ctx context.Context
 }
 
-func NewRequest(ctx context.Context, agent string, input *UserInput) *Request {
+func NewRequest(ctx context.Context, name string, input *UserInput) *Request {
 	return &Request{
 		ctx:      ctx,
-		Agent:    agent,
+		Name:     name,
 		RawInput: input,
 	}
 }

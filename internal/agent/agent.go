@@ -65,7 +65,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	showInput(ctx, cfg, input)
 
 	req := &api.Request{
-		Agent:    name,
+		Name:     name,
 		RawInput: input,
 	}
 	resp := &api.Response{}

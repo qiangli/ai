@@ -371,8 +371,8 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 func (h *agentHandler) exec(req *api.Request, resp *api.Response) error {
 	// prevent loop
 	// TODO support recursion?
-	if h.agent.Name == req.Agent {
-		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself.", req.Agent))
+	if h.agent.Name == req.Name {
+		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself.", req.Name))
 	}
 
 	if err := h.sw.Run(req, resp); err != nil {
@@ -473,11 +473,11 @@ func (h *agentHandler) resolveArgument(parent *api.Request, s string) (any, erro
 }
 
 func (h *agentHandler) callAgent(parent *api.Request, s string, prompt string) (string, error) {
-	agent := strings.TrimPrefix(s, "@")
+	name := strings.TrimPrefix(s, "@")
 
 	req := parent.Clone()
 	req.Parent = h.agent
-	req.Agent = agent
+	req.Name = name
 	// prepend additional instruction to user query
 	if len(prompt) > 0 {
 		req.RawInput.Message = prompt + "\n" + req.RawInput.Message
