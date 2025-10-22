@@ -90,6 +90,9 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	var ctx = req.Context()
 	var resetLogLevel = true
 
+	if r.User == nil || r.Vars == nil {
+		return api.NewInternalServerError("invalid config. user or vars not initialized")
+	}
 	agentHandler := NewAgentHandler(r)
 
 	log.GetLogger(ctx).Debugf("*** Agent: %s parent: %+v\n", req.Name, req.Parent)

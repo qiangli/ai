@@ -87,7 +87,11 @@ Instruction: %s
 	if ac != nil {
 		for _, v := range ac.Agents {
 			if v.Name == agent {
-				return fmt.Sprintf(tpl, v.Name, v.Display, v.Description, clip(v.Instruction.Content, 1000)), nil
+				var prompt = ""
+				if v.Instruction != nil {
+					prompt = clip(v.Instruction.Content, 1000)
+				}
+				return fmt.Sprintf(tpl, v.Name, v.Display, v.Description, prompt), nil
 			}
 		}
 	}
@@ -111,8 +115,13 @@ func (r *AIKit) AgentSpawn(ctx context.Context, _ *api.Vars, _ string, args map[
 	if err != nil {
 		return nil, err
 	}
-
-	req := api.NewRequest(ctx, agent, r.h.agent.RawInput.Clone())
+	var input *api.UserInput
+	if r.h.agent != nil && r.h.agent.RawInput != nil {
+		input = r.h.agent.RawInput.Clone()
+	} else {
+		input = &api.UserInput{}
+	}
+	req := api.NewRequest(ctx, agent, input)
 	req.Parent = r.h.agent
 
 	resp := &api.Response{}
