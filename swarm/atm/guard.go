@@ -30,7 +30,7 @@ type CommandCheck struct {
 }
 
 // EvaluateCommand consults LLM to evaluate the safety of a command
-func EvaluateCommand(ctx context.Context, vs vos.System, vars *api.Vars, command string, args []string) (bool, error) {
+func EvaluateCommand(ctx context.Context, user *api.User, secrets api.SecretStore, vs vos.System, vars *api.Vars, command string, args []string) (bool, error) {
 	if vars.Unsafe {
 		log.GetLogger(ctx).Infof("⚠️ unsafe mode - skipping security check\n")
 		return true, nil
@@ -54,7 +54,21 @@ func EvaluateCommand(ctx context.Context, vs vos.System, vars *api.Vars, command
 		return false, err
 	}
 
-	var model = ctx.Value(ModelsContextKey).(*api.Model)
+	var model *api.Model
+	if v, ok := ctx.Value(ModelsContextKey).(*api.Model); ok {
+		model = v
+	} else {
+		return false, fmt.Errorf("no model key found in context")
+	}
+
+	ak, err := secrets.Get(user.Email, model.ApiKey)
+	if err != nil {
+		return false, err
+	}
+	token := func() string {
+		return ak
+	}
+
 	req := &llm.Request{
 		Model: model,
 		Messages: []*api.Message{
@@ -71,6 +85,7 @@ func EvaluateCommand(ctx context.Context, vs vos.System, vars *api.Vars, command
 		// RunTool:  runTool,
 		MaxTurns: vars.MaxTurns,
 		Vars:     vars,
+		Token:    token,
 	}
 
 	log.GetLogger(ctx).Debugf("evaluateCommand:\n%s %v\n", command, args)

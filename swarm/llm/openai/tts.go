@@ -24,7 +24,7 @@ func TTS(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 }
 
 func tts(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	client, err := NewClient(req.Model, req.Vars)
+	client, err := NewClient(req.Model, req.Token(), req.Vars)
 	if err != nil {
 		return nil, err
 	}

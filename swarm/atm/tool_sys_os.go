@@ -23,7 +23,7 @@ func (r *SystemKit) Run(ctx context.Context, vars *api.Vars, name string, args m
 	if err != nil {
 		return "", err
 	}
-	return RunRestricted(ctx, r.os, vars, command, argsList)
+	return RunRestricted(ctx, r.user, r.secrets, r.os, vars, command, argsList)
 }
 
 func (r *SystemKit) Cd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {

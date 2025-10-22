@@ -24,9 +24,21 @@ import (
 
 const maxThreadLimit = 3
 
-func NewClient(model *api.Model, vars *api.Vars) (*openai.Client, error) {
+func NewClient(model *api.Model, token string, vars *api.Vars) (*openai.Client, error) {
 	client := openai.NewClient(
-		option.WithAPIKey(model.ApiKey),
+		option.WithAPIKey(token),
+		option.WithBaseURL(model.BaseUrl),
+		option.WithMiddleware(middleware.Middleware(model, vars)),
+	)
+	return &client, nil
+}
+
+// https://platform.openai.com/docs/api-reference/responses
+// https://platform.openai.com/docs/guides/function-calling
+// https://github.com/csotherden/openai-go-responses-examples/tree/main
+func NewClientV3(model *api.Model, token string, vars *api.Vars) (*openai.Client, error) {
+	client := openai.NewClient(
+		option.WithAPIKey(token),
 		option.WithBaseURL(model.BaseUrl),
 		option.WithMiddleware(middleware.Middleware(model, vars)),
 	)

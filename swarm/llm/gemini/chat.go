@@ -81,7 +81,7 @@ func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	client, err := NewClient(
 		ctx,
-		req.Model.ApiKey,
+		req.Token(),
 		req.Model.BaseUrl,
 	)
 	if err != nil {

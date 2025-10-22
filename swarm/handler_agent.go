@@ -296,10 +296,18 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 		model = v
 	}
 	//
-	if ak, err := h.sw.Secrets.Get(h.agent.Owner, model.ApiKey); err != nil {
+	// if ak, err := h.sw.Secrets.Get(h.agent.Owner, model.ApiKey); err != nil {
+	// 	return err
+	// } else {
+	// 	model.ApiKey = ak
+	// }
+
+	ak, err := h.sw.Secrets.Get(h.agent.Owner, model.ApiKey)
+	if err != nil {
 		return err
-	} else {
-		model.ApiKey = ak
+	}
+	token := func() string {
+		return ak
 	}
 
 	var request = llm.Request{
@@ -315,6 +323,8 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 		Arguments: args,
 		//
 		Vars: h.sw.Vars,
+		//
+		Token: token,
 	}
 
 	// openai/tts
@@ -418,12 +428,12 @@ func (h *agentHandler) resolveModel(ctx context.Context, parent *api.Request, m 
 
 	log.GetLogger(ctx).Infof("🤖 model: %s/%s\n", model.Provider, model.Model)
 
-	// replace api key
-	ak, err := h.sw.Secrets.Get(h.sw.User.Email, model.ApiKey)
-	if err != nil {
-		return nil, err
-	}
-	model.ApiKey = ak
+	// // replace api key
+	// ak, err := h.sw.Secrets.Get(h.sw.User.Email, model.ApiKey)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// model.ApiKey = ak
 	return &model, nil
 }
 

@@ -60,7 +60,7 @@ func NewToolSystem(
 	// default by type
 	ts.AddKit(api.ToolTypeFunc, atm.NewFuncKit(user, assets))
 	ts.AddKit(api.ToolTypeWeb, atm.NewWebKit(secrets))
-	ts.AddKit(api.ToolTypeSystem, atm.NewSystemKit(fs, vs))
+	ts.AddKit(api.ToolTypeSystem, atm.NewSystemKit(user, fs, vs, secrets))
 	ts.AddKit(api.ToolTypeMcp, atm.NewMcpKit(secrets))
 	ts.AddKit(api.ToolTypeFaas, atm.NewFaasKit(secrets))
 

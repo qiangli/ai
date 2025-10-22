@@ -8,10 +8,6 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-// type LLMAdapter interface {
-// 	Send(context.Context, *Request) (*Response, error)
-// }
-
 type LLMAdapter func(context.Context, *Request) (*Response, error)
 
 type AdapterRegistry interface {
@@ -29,12 +25,11 @@ const (
 	L1 Level = "L1"
 	L2 Level = "L2"
 	L3 Level = "L3"
+
 	//
 	Image Level = "image"
 	TTS   Level = "tts"
 )
-
-// type ToolRunner func(context.Context, string, map[string]any) (*api.Result, error)
 
 type Request struct {
 	Agent string
@@ -53,6 +48,9 @@ type Request struct {
 	Vars *api.Vars
 
 	Arguments map[string]any
+
+	// get api token for LLM model
+	Token func() string
 
 	// openai v3
 	Instruction string

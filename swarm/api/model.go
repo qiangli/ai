@@ -33,7 +33,7 @@ type Model struct {
 	Provider string `json:"provider"`
 	BaseUrl  string `json:"base_url"`
 
-	// secret key or LLM provider api key/token if resolved
+	// api token lookup key
 	ApiKey string `json:"api_key"`
 }
 

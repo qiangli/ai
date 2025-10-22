@@ -10,15 +10,24 @@ import (
 	"github.com/qiangli/ai/swarm/vos"
 )
 
+type testSecretStore struct {
+}
+
+var secrets api.SecretStore = &testSecretStore{}
+
+func (r *testSecretStore) Get(owner, key string) (string, error) {
+	return os.Getenv("OPENAI_API_KEY"), nil
+}
+
 func TestEvaluateCommand(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
 
 	m := &api.Model{
-		Model:    "gpt-5-nano",
-		BaseUrl:  "https://api.openai.com/v1",
-		ApiKey:   os.Getenv("OPENAI_API_KEY"),
+		Model:   "gpt-5-nano",
+		BaseUrl: "https://api.openai.com/v1",
+		// ApiKey:   os.Getenv("OPENAI_API_KEY"),
 		Provider: "openai",
 	}
 
@@ -27,7 +36,7 @@ func TestEvaluateCommand(t *testing.T) {
 	log.GetLogger(ctx).SetLogLevel(log.Verbose)
 
 	var vars = api.NewVars()
-	// vars.Config = &api.AppConfig{}
+	var user = &api.User{}
 
 	tests := []struct {
 		command string
@@ -49,7 +58,7 @@ func TestEvaluateCommand(t *testing.T) {
 	vs := vos.NewLocalSystem()
 
 	for _, test := range tests {
-		resp, err := EvaluateCommand(ctx, vs, vars, test.command, test.args)
+		resp, err := EvaluateCommand(ctx, user, secrets, vs, vars, test.command, test.args)
 		if err != nil {
 			t.Errorf("evaluate command: %v\n%+v", err, resp)
 			return

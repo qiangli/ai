@@ -63,7 +63,7 @@ func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 }
 
 func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	client := NewClient(req.Model, req.Vars, req.Model.ApiKey)
+	client := NewClient(req.Model, req.Vars, req.Token())
 	model := anthropic.Model(req.Model.Model)
 
 	var system []anthropic.TextBlockParam

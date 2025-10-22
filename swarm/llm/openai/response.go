@@ -6,27 +6,13 @@ import (
 	"strings"
 
 	"github.com/openai/openai-go/v3"
-	"github.com/openai/openai-go/v3/option"
 	"github.com/openai/openai-go/v3/responses"
 	"github.com/openai/openai-go/v3/shared/constant"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
-	"github.com/qiangli/ai/swarm/middleware"
 )
-
-// https://platform.openai.com/docs/api-reference/responses
-// https://platform.openai.com/docs/guides/function-calling
-// https://github.com/csotherden/openai-go-responses-examples/tree/main
-func NewClientV3(model *api.Model, vars *api.Vars) (*openai.Client, error) {
-	client := openai.NewClient(
-		option.WithAPIKey(model.ApiKey),
-		option.WithBaseURL(model.BaseUrl),
-		option.WithMiddleware(middleware.Middleware(model, vars)),
-	)
-	return &client, nil
-}
 
 func SendV3(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	log.GetLogger(ctx).Debugf(">OPENAI v3:\n req: %+v\n", req)
@@ -41,7 +27,7 @@ func SendV3(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 }
 
 func respond(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	client, err := NewClientV3(req.Model, req.Vars)
+	client, err := NewClientV3(req.Model, req.Token(), req.Vars)
 	if err != nil {
 		return nil, err
 	}

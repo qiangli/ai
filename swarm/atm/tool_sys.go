@@ -10,14 +10,18 @@ import (
 )
 
 type SystemKit struct {
-	fs vfs.FileSystem
-	os vos.System
+	user    *api.User
+	fs      vfs.FileSystem
+	os      vos.System
+	secrets api.SecretStore
 }
 
-func NewSystemKit(fs vfs.FileSystem, os vos.System) *SystemKit {
+func NewSystemKit(user *api.User, fs vfs.FileSystem, os vos.System, secrets api.SecretStore) *SystemKit {
 	return &SystemKit{
-		fs: fs,
-		os: os,
+		user:    user,
+		fs:      fs,
+		os:      os,
+		secrets: secrets,
 	}
 }
 

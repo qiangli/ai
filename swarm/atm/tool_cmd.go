@@ -94,8 +94,8 @@ func ExecCommand(ctx context.Context, vs vos.System, vars *api.Vars, command str
 	return RunCommand(ctx, vs, command, args)
 }
 
-func RunRestricted(ctx context.Context, vs vos.System, vars *api.Vars, command string, args []string) (string, error) {
-	safe, err := EvaluateCommand(ctx, vs, vars, command, args)
+func RunRestricted(ctx context.Context, user *api.User, secrets api.SecretStore, vs vos.System, vars *api.Vars, command string, args []string) (string, error) {
+	safe, err := EvaluateCommand(ctx, user, secrets, vs, vars, command, args)
 	if err != nil {
 		return "", err
 	}

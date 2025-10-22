@@ -42,11 +42,6 @@ func loadModel(owner, set, level string, assets api.AssetManager) (*api.Model, e
 			return nil, fmt.Errorf("model not found: %s/%s", mc.Set, level)
 		}
 
-		// ak, err := secrets.Get(owner, c.ApiKey)
-		// if err != nil {
-		// 	return nil, err
-		// }
-
 		m := &api.Model{
 			Provider: c.Provider,
 			Model:    c.Model,
