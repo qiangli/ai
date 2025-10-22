@@ -94,10 +94,10 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("pb-write")
 	flags.MarkHidden("pb-append")
 
-	// output
-	// flags.StringVar(&internal.OutputFlag, "output", "", "Save final response to a file.")
-	flags.String("output", "", "Save final response to a file.")
-	flags.MarkHidden("output")
+	// // output
+	// // flags.StringVar(&internal.OutputFlag, "output", "", "Save final response to a file.")
+	// flags.String("output", "", "Save final response to a file.")
+	// flags.MarkHidden("output")
 
 	// // resource
 	// flags.String("resource", "resource.json", "Resource configuration")

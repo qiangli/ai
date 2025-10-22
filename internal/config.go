@@ -85,7 +85,7 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 
 	// app.Files = viper.GetStringSlice("file")
 	app.Format = viper.GetString("format")
-	app.Output = viper.GetString("output")
+	// app.Output = viper.GetString("output")
 
 	//
 	app.Message = viper.GetString("message")

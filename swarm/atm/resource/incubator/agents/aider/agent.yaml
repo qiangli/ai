@@ -1,0 +1,13 @@
+###
+agents:
+  - name: "aider"
+    display: "🌐 Aider"
+    description: |
+      Aider lets you pair program with LLMs to start a new project or build on your existing codebase.
+    model: L1
+    instruction:
+      content: |
+        System role prompt goes here
+    functions:
+      - "kit:*"
+###

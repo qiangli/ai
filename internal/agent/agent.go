@@ -3,6 +3,8 @@ package agent
 import (
 	"context"
 	_ "embed"
+	"os"
+	"path/filepath"
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/agent/conf"
@@ -172,7 +174,8 @@ func processOutput(ctx context.Context, cfg *api.AppConfig, message *api.Output)
 	// case api.ContentTypeText, "":
 	// 	processTextContent(ctx, cfg, message)
 	case api.ContentTypeImageB64:
-		processImageContent(ctx, cfg, message)
+		var imageFile = filepath.Join(os.TempDir(), "image.png")
+		processImageContent(ctx, imageFile, message)
 	default:
 		processTextContent(ctx, cfg, message)
 	}

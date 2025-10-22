@@ -59,9 +59,9 @@ func processTextContent(ctx context.Context, cfg *api.AppConfig, output *api.Out
 		}
 	}
 
-	if cfg.Output != "" {
-		SaveOutput(cfg.Output, output)
-	}
+	// if cfg.Output != "" {
+	// 	SaveOutput(cfg.Output, output)
+	// }
 
 	if cfg.Format == "tts" {
 		SpeakOutput(ctx, cfg, output)
@@ -81,13 +81,13 @@ func SpeakOutput(ctx context.Context, cfg *api.AppConfig, output *api.Output) {
 	// }
 }
 
-func processImageContent(ctx context.Context, cfg *api.AppConfig, message *api.Output) {
-	var imageFile string
-	if cfg.Output != "" {
-		imageFile = cfg.Output
-	} else {
-		imageFile = filepath.Join(os.TempDir(), "image.png")
-	}
+func processImageContent(ctx context.Context, imageFile string, message *api.Output) {
+	// var imageFile = filepath.Join(os.TempDir(), "image.png")
+	// if cfg.Output != "" {
+	// 	imageFile = cfg.Output
+	// } else {
+	// 	imageFile = filepath.Join(os.TempDir(), "image.png")
+	// }
 
 	log.GetLogger(ctx).Infof("image file: %s\n", imageFile)
 

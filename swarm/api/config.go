@@ -79,8 +79,8 @@ type AppConfig struct {
 	// Output format: raw or markdown
 	Format string
 
-	// output file for saving response
-	Output string
+	// // output file for saving response
+	// Output string
 
 	// user
 	User *User
@@ -150,7 +150,7 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		Stdin: cfg.Stdin,
 		//
 		Format: cfg.Format,
-		Output: cfg.Output,
+		// Output: cfg.Output,
 		//
 		ChatID:     cfg.ChatID,
 		New:        cfg.New,
