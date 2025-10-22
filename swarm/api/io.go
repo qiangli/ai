@@ -23,6 +23,7 @@ type EditorProvider interface {
 
 type UserInput struct {
 	// Agent string `json:"-"`
+	// original arguments
 	// Args []string `json:"-"`
 
 	// query - command line args
@@ -31,7 +32,7 @@ type UserInput struct {
 	// query - clipboard/stdin/editor
 	Content string `json:"content"`
 
-	// cached file contents
+	// cached media contents
 	Messages []*Message `json:"-"`
 }
 

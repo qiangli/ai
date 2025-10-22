@@ -16,11 +16,12 @@ type Chat struct {
 	// data
 	Title string `json:"title"`
 }
+
 type Request struct {
 	// parent agent
 	Parent *Agent
 
-	// The name/command of the active agent
+	// The name of the active agent/tool
 	Name      string
 	Arguments map[string]any
 
