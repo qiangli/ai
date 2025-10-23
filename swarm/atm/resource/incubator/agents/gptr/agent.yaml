@@ -7,6 +7,7 @@ pack: gptr
 # 
 new: true
 model: smart_llm/fast
+log_level: info
 agents:
   - name: "gptr"
     display: "🚀 GPT Researcher"
@@ -183,11 +184,16 @@ agents:
   - name: "gptr/crawl"
     display: "🌐 Web Crawler"
     description: "Runs a query across multiple retrievers and scrapes the resulting URLs."
+    arguments:
+      maximum_attempts: 5
     instrution:
       content: |
-        You are a specialized web crawler. For each query, execute a search and follow only
-        the immediate links one level deep. Collect and merge the content from these pages
-        to provide comprehensive information relevant to the user query.
+        #! --mime-type=text/x-go-template
+        You are a specialized web crawler. The maximum attempts allowed are {{.maximum_attempts}}.
+        For each query, execute a search and follow only the immediate links one level deep.
+        If the fetch returns empty results or errors, continue with more search and fetch tool calls.
+        Collect and merge the content from these pages to provide comprehensive information 
+        relevant to the user query.
     functions:
       - "web:*"
       - "ddg:*"
