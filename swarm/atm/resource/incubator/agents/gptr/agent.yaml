@@ -4,12 +4,12 @@
 pack: gptr
 # 
 # adapted from https://github.com/assafelovic/gpt-researcher
-# 
-new: true
+#
 model: smart_llm/fast
 log_level: info
 agents:
   - name: "gptr"
+    new: true
     display: "🚀 GPT Researcher"
     description: |
       GPT Researcher is an agent designed for research on any given task.
@@ -36,6 +36,7 @@ agents:
       - "agent:gptr/report"
   
   - name: "gptr/user_input"
+    new: true
     display: "🖥️  User Input"
     description: "Detect user preferences for the GPT Researcher tool."
     message: |
@@ -78,6 +79,7 @@ agents:
       report_format: "markdown"
 
   - name: "gptr/choose_agent"
+    new: true
     display: "🤖 Choose Agent"
     description: "Chooses the agent automatically"
     model: smart_llm/smart
@@ -116,6 +118,7 @@ agents:
         }
 
   - name: "gptr/web_search"
+    new: true
     display: "🔍 Web Search"
     description: "Get web search results for a given query."
     model: smart_llm/fast
@@ -136,11 +139,12 @@ agents:
       - "brave:*"
   
   - name: "gptr/research_queries"
+    new: true
     display: "🤔 Planning the research strategy and subtasks"
     description: "Generate sub_queries using the specified LLM model."
     model: smart_llm/strategic
     arguments:
-      max_completion_tokens: 4000
+      # max_completion_tokens: 8000
       reasoning_effort: medium
       #
       max_iterations: 3
@@ -182,6 +186,7 @@ agents:
       - "agent:gptr/crawl"
   
   - name: "gptr/crawl"
+    new: true
     display: "🌐 Web Crawler"
     description: "Runs a query across multiple retrievers and scrapes the resulting URLs."
     arguments:
@@ -202,12 +207,13 @@ agents:
       - "brave:*"
 
   - name: "gptr/curate"
+    new: true
     display: "⚖️ Evaluating and curating sources"
     description: "Ranks sources and curates data based on their relevance, credibility and reliability."
     model: smart_llm/smart
     arguments:
       # temperature: 0.2
-      max_completion_tokens: 8000
+      # max_completion_tokens: 10000
       #
       max_results: 5
     instruction:
@@ -248,12 +254,13 @@ agents:
       The response MUST not contain any markdown format or additional text (like ```json), just the JSON list!
   
   - name: "gptr/report"
+    new: true
     display: "📝 Report"
     description: "Generates the final report"
     model: smart_llm/smart
     arguments:
       # temperature: 0.35
-      max_completion_tokens: 10000
+      # max_completion_tokens: 10000
       #
       # tone: "objective"
       # language: "english"
