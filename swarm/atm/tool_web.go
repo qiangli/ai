@@ -25,9 +25,21 @@ func (r *webAuthKit) FetchContent(ctx context.Context, vars *api.Vars, name stri
 	if err != nil {
 		return "", err
 	}
+	start, err := GetIntProp("start_index", args)
+	if err != nil {
+		return "", err
+	}
+	max, err := GetIntProp("max_length", args)
+	if err != nil {
+		return "", err
+	}
+	raw, err := GetBoolProp("raw", args)
+	if err != nil {
+		return "", err
+	}
 
 	log.GetLogger(ctx).Debugf("○ fetching url: %q\n", link)
-	content, err := webtool.Fetch(ctx, link)
+	content, err := webtool.FetchContent(ctx, link, start, max, raw)
 	log.GetLogger(ctx).Debugf("  content length: %v error: %v\n", len(content), err)
 	return content, err
 }

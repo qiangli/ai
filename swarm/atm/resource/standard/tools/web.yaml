@@ -3,13 +3,25 @@ type: "web"
 
 tools:
   - name: "fetch_content"
-    description: "Fetch and process content from webpage URL and convert HTML to text"
+    description: "Fetch a URL from the internet and extracts its content as text"
     parameters:
       type: "object"
       properties:
         url:
           type: "string"
-          description: "The webpage URL to fetch content from"
+          description: "The web page URL to fetch content from"
+        max_length:
+          type: "integer"
+          description: "Maximum number of characters to return (default: 8000)"
+          default: 8000
+        start_index:
+          type: "integer"
+          description: "Start content from this character index (default: 0)"
+          default: 0
+        raw:
+          type: "boolean"
+          description:  "Get raw content without text conversion (default: false)"
+          default: false
       required:
         - url
 

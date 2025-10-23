@@ -32,14 +32,13 @@ func TestScrape(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.url, func(t *testing.T) {
 			cli.UserAgent = web.UserAgent()
-			result, err := cli.Call(ctx, test.url)
+			result, err := cli.Scrape(ctx, test.url)
 			if err != nil {
 				t.Errorf("expected no error, got %v", err)
 			}
 			t.Logf("result: %s\n", result)
 		})
 	}
-
 }
 
 func TestFetch(t *testing.T) {

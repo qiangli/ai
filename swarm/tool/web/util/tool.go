@@ -2,10 +2,6 @@ package util
 
 import (
 	"context"
-	"fmt"
-	"io"
-	"net/http"
-	"os"
 
 	"github.com/qiangli/ai/swarm/tool/web/bing"
 	"github.com/qiangli/ai/swarm/tool/web/brave"
@@ -14,30 +10,8 @@ import (
 	"github.com/qiangli/ai/swarm/tool/web/scrape"
 )
 
-const maxPageSize = 8000
-
-func Download(ctx context.Context, url, file string) (string, error) {
-	out, err := os.Create(file)
-	if err != nil {
-		return "", err
-	}
-	defer out.Close()
-
-	resp, err := http.Get(url)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%q downloaded succesfully. saved locally as %q", url, file), nil
-}
-
-// Fetch and parse content from a webpage
-func Fetch(ctx context.Context, url string) (string, error) {
+// Scrape and parse content from a webpage
+func Scrape(ctx context.Context, url string) (string, error) {
 	scraper, err := scrape.New()
 	if err != nil {
 		return "", err

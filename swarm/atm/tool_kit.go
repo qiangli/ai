@@ -177,3 +177,29 @@ func GetArrayProp(key string, props map[string]any) ([]string, error) {
 	}
 	return strs, nil
 }
+
+func GetBoolProp(key string, props map[string]any) (bool, error) {
+	val, ok := props[key]
+	if !ok {
+		if IsRequired(key, props) {
+			return false, fmt.Errorf("missing property: %s", key)
+		}
+		return false, nil
+	}
+	if v, ok := val.(bool); ok {
+		return v, nil
+	}
+
+	str, ok := val.(string)
+	if !ok {
+		return false, fmt.Errorf("property '%s' must be a boolean or a string representing a boolean: true or false", key)
+	}
+	switch str {
+	case "true":
+		return true, nil
+	case "false":
+		return false, nil
+	default:
+		return false, fmt.Errorf("property '%s' is a string but not a valid boolean value", key)
+	}
+}

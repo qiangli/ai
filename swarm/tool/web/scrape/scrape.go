@@ -90,12 +90,12 @@ func (s Scraper) Description() string {
 	`
 }
 
-// Call scrapes a website and returns the site data.
+// Scrape scrapes a website and returns the site data.
 //
 // The function takes a context.Context object for managing the execution
 // context and a string input representing the URL of the website to be scraped.
 // It returns a string containing the scraped data and an error if any.
-func (s Scraper) Call(ctx context.Context, input string) (string, error) {
+func (s Scraper) Scrape(ctx context.Context, input string) (string, error) {
 	u, err := url.ParseRequestURI(input)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", ErrScrapingFailed, err)
@@ -127,6 +127,7 @@ func (s Scraper) Call(ctx context.Context, input string) (string, error) {
 	var siteData strings.Builder
 	homePageLinks := make(map[string]bool)
 	scrapedLinks := make(map[string]bool)
+
 	scrapedLinksMutex := sync.RWMutex{}
 
 	c.OnRequest(func(r *colly.Request) {
@@ -175,7 +176,7 @@ func (s Scraper) Call(ctx context.Context, input string) (string, error) {
 		link := e.Attr("href")
 		absoluteLink := e.Request.AbsoluteURL(link)
 
-		// // Only visit the page if it hasn't been visited yet
+		// Only visit the page if it hasn't been visited yet
 		scrapedLinksMutex.Lock()
 
 		if len(scrapedLinks) < s.MaxLink {
