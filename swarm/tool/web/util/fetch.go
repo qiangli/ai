@@ -15,7 +15,6 @@ import (
 
 const maxPageSize = 1024 * 1024
 
-// TODO cloud workspace
 func Download(ctx context.Context, url, file string) (string, error) {
 	out, err := os.Create(file)
 	if err != nil {
@@ -29,14 +28,20 @@ func Download(ctx context.Context, url, file string) (string, error) {
 	}
 	req.Header.Set("User-Agent", web.UserAgent())
 
-	client := &http.Client{}
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 10 {
+				return fmt.Errorf("Stopped after 10 redirects")
+			}
+			return nil
+		},
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
 
-	// TODO cloud storage
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
 		return "", err
@@ -45,13 +50,22 @@ func Download(ctx context.Context, url, file string) (string, error) {
 }
 
 func FetchContent(ctx context.Context, url string, start, max int, raw bool) (string, error) {
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 10 {
+				return fmt.Errorf("Stopped after 10 redirects")
+			}
+			return nil
+		},
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return "", fmt.Errorf("Error creating request for URL %q: %v", url, err)
 	}
 	req.Header.Set("User-Agent", web.UserAgent())
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("Error fetching URL %q: %v", url, err)
 	}
