@@ -43,7 +43,7 @@ func (h *agentHandler) createAICaller() api.ToolRunner {
 }
 
 func (h *agentHandler) callTool(ctx context.Context, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
-	log.GetLogger(ctx).Infof("⣿ %s:%s %+v\n", tf.Kit, tf.Name, args)
+	log.GetLogger(ctx).Infof("⣿ %s:%s %+v\n", tf.Kit, tf.Name, formatArgs(args))
 
 	// add model to system kit for command evaluation
 	if tf.Type == api.ToolTypeSystem {

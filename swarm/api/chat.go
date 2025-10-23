@@ -141,13 +141,13 @@ func (r *Result) String() string {
 		sb.WriteString(fmt.Sprintf(" %s", r.NextAgent))
 	}
 	if r.Value != "" {
-		sb.WriteString(fmt.Sprintf(" %s", head(r.Value, 100)))
+		sb.WriteString(fmt.Sprintf(" %s [%v]", abbreviate(r.Value, 64), len(r.Value)))
 	}
 	if r.MimeType != "" {
 		sb.WriteString(fmt.Sprintf(" %s", r.MimeType))
 	}
 	if len(r.Content) > 0 {
-		sb.WriteString(fmt.Sprintf(" content: %v bytes", len(r.Content)))
+		sb.WriteString(fmt.Sprintf(" %s [%v]", abbreviate(string(r.Content), 64), len(r.Content)))
 	}
 	s := strings.TrimSpace(sb.String())
 	if len(s) == 0 {
@@ -156,13 +156,20 @@ func (r *Result) String() string {
 	return s
 }
 
-// head trims the string to the maxLen and replaces newlines with /.
-func head(s string, maxLen int) string {
+// abbreviate trims the string, keeping the beginning and end if exceeding maxLen.
+// after replacing newlines with .
+func abbreviate(s string, maxLen int) string {
 	s = strings.ReplaceAll(s, "\n", "•")
 	s = strings.Join(strings.Fields(s), " ")
 	s = strings.TrimSpace(s)
+
 	if len(s) > maxLen {
-		return s[:maxLen] + "..."
+		// Calculate the length for each part
+		keepLen := (maxLen - 3) / 2
+		start := s[:keepLen]
+		end := s[len(s)-keepLen:]
+		return start + "..." + end
 	}
+
 	return s
 }

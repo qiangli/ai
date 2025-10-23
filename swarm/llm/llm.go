@@ -78,12 +78,9 @@ type Response struct {
 
 func (r *Response) String() string {
 	var sb strings.Builder
-	// sb.WriteString(fmt.Sprintf("ContentType: %s\n", r.ContentType))
-	// sb.WriteString(fmt.Sprintf("Content: %d\n", len(r.Content)))
-	// sb.WriteString(fmt.Sprintf("Agent: %s\n", r.Agent))
 	sb.WriteString(fmt.Sprintf("Role: %s\n", r.Role))
 	if r.Result != nil {
-		sb.WriteString(fmt.Sprintf("Model: %s\n", r.Result))
+		sb.WriteString(fmt.Sprintf("Result: %s\n", r.Result))
 	}
 	return sb.String()
 }

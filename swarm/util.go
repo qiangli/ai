@@ -91,25 +91,25 @@ func nbl(a ...bool) bool {
 	return false
 }
 
-// return the first non zero value
-func nzl(a ...int) int {
-	for _, v := range a {
-		if v > 0 {
-			return v
-		}
-	}
-	return 0
-}
+// // return the first non zero value
+// func nzl(a ...int) int {
+// 	for _, v := range a {
+// 		if v > 0 {
+// 			return v
+// 		}
+// 	}
+// 	return 0
+// }
 
-// trim name if it ends in .yaml/.yml
-func trimYaml(name string) string {
-	if strings.HasSuffix(name, ".yaml") {
-		name = strings.TrimSuffix(name, ".yaml")
-	} else if strings.HasSuffix(name, ".yml") {
-		name = strings.TrimSuffix(name, ".yml")
-	}
-	return name
-}
+// // trim name if it ends in .yaml/.yml
+// func trimYaml(name string) string {
+// 	if strings.HasSuffix(name, ".yaml") {
+// 		name = strings.TrimSuffix(name, ".yaml")
+// 	} else if strings.HasSuffix(name, ".yml") {
+// 		name = strings.TrimSuffix(name, ".yml")
+// 	}
+// 	return name
+// }
 
 // head trims the string to the maxLen and replaces newlines with /.
 func head(s string, maxLen int) string {
@@ -139,4 +139,36 @@ func parseAgentCommand(s string) (string, string, bool) {
 	}
 	agent, msg := split2(v, " ", "")
 	return agent, msg, true
+}
+
+func formatArgs(args map[string]any) string {
+	var sb strings.Builder
+	sb.WriteString("map[")
+	for k, v := range args {
+		if s, ok := v.(string); ok && len(s) > 16 {
+			sb.WriteString(fmt.Sprintf("%s: %s [%v],", k, abbreviate(s, 16), len(s)))
+			continue
+		}
+		sb.WriteString(fmt.Sprintf("%s: %v,", k, v))
+	}
+	sb.WriteString("]")
+	return sb.String()
+}
+
+// abbreviate trims the string, keeping the beginning and end if exceeding maxLen.
+// after replacing newlines with .
+func abbreviate(s string, maxLen int) string {
+	s = strings.ReplaceAll(s, "\n", "•")
+	s = strings.Join(strings.Fields(s), " ")
+	s = strings.TrimSpace(s)
+
+	if len(s) > maxLen {
+		// Calculate the length for each part
+		keepLen := (maxLen - 3) / 2
+		start := s[:keepLen]
+		end := s[len(s)-keepLen:]
+		return start + "..." + end
+	}
+
+	return s
 }

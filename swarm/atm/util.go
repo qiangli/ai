@@ -30,13 +30,13 @@ func toPascalCase(name string) string {
 	return strings.Join(words, "")
 }
 
-// baseCommand returns the last part of the string separated by /.
-func baseCommand(s string) string {
-	s = strings.TrimSpace(s)
-	s = strings.Trim(s, "/")
-	sa := strings.Split(s, "/")
-	return sa[len(sa)-1]
-}
+// // baseCommand returns the last part of the string separated by /.
+// func baseCommand(s string) string {
+// 	s = strings.TrimSpace(s)
+// 	s = strings.Trim(s, "/")
+// 	sa := strings.Split(s, "/")
+// 	return sa[len(sa)-1]
+// }
 
 // split2 splits string s by sep into two parts. if there is only one part,
 // use val as the second part

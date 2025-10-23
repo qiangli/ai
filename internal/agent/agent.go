@@ -104,6 +104,9 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	}
 
 	log.GetLogger(ctx).Debugf("Agent %+v\n", resp.Agent)
+	if resp.Result != nil {
+		log.GetLogger(ctx).Debugf("Result content %s\n", resp.Result.Value)
+	}
 	for _, m := range resp.Messages {
 		log.GetLogger(ctx).Debugf("Message %+v\n", m)
 	}
@@ -112,20 +115,6 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	if resp.Agent != nil {
 		display = resp.Agent.Display
 	}
-
-	// TODO output as funtion return value
-	// cfg.Stdout = ""
-
-	// for _, v := range resp.Messages {
-	// 	out := &api.Output{
-	// 		Display:     display,
-	// 		ContentType: v.ContentType,
-	// 		Content:     v.Content,
-	// 	}
-
-	// 	processOutput(ctx, cfg, out)
-	// 	// cfg.Stdout = cfg.Stdout + v.Content
-	// }
 
 	if len(vars.History) > initLen {
 		log.GetLogger(ctx).Debugf("Saving conversation\n")

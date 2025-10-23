@@ -132,8 +132,8 @@ agents:
       - "gptr:*"
       # - "ddg:*"
       # - "bing:*"
-      # - "google:*"
-      # - "brave:*"
+      - "google:*"
+      - "brave:*"
   
   - name: "gptr/research_queries"
     display: "🤔 Planning the research strategy and subtasks"
@@ -253,7 +253,7 @@ agents:
     model: smart_llm/smart
     arguments:
       # temperature: 0.35
-      max_completion_tokens: 6000
+      max_completion_tokens: 10000
       #
       # tone: "objective"
       # language: "english"
@@ -291,7 +291,7 @@ agents:
       - Write the report in a {{.tone}} tone.
 
       You MUST write the report in the following language: {{.language}}.
-      Please do your best, this is very important to me.
+      The report SHOULD be approximately {{.total_words}} words long.
       Assume that the current date is {{.date}}.
 
 ## tool kit

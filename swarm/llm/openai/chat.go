@@ -114,7 +114,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 			log.GetLogger(ctx).Errorf("❌ %s\n", err)
 			return nil, err
 		}
-		log.GetLogger(ctx).Infof("(%v)\n", completion.Choices[0].FinishReason)
+		log.GetLogger(ctx).Infof("(%s)\n", formatReason(completion.Choices[0].FinishReason))
 
 		toolCalls := completion.Choices[0].Message.ToolCalls
 		if len(toolCalls) == 0 {
