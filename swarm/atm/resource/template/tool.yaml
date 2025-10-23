@@ -1,0 +1,25 @@
+###
+kit: <tool kit name>
+
+# supported tool type:
+# func: (builtin) PR required
+# web: (builtin) PR required
+# mcp: model context protocol
+# agent: this is the agent you created
+# faas: inline function body (python)
+type: "func | web | mcp | agent | faas"
+# Add an entry "<key-name>" with your service API Key at:
+# https://ai.dhnt.io/settings/api-key
+api_key: "<key-name>"
+
+# mcp
+connector:
+  base_url: "<service endpoint>"
+
+# func | web
+tools:
+  - name: ""
+    description: ""
+    parameters: {}
+    body:
+###

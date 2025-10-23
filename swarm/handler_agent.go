@@ -1,11 +1,13 @@
 package swarm
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"maps"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,17 +19,23 @@ import (
 )
 
 func NewAgentHandler(sw *Swarm) func(*api.Agent) Handler {
+	var fm = tplFuncMap
+	fm["user"] = func() *api.User {
+		return sw.User
+	}
 	return func(agent *api.Agent) Handler {
 		return &agentHandler{
-			agent: agent,
-			sw:    sw,
+			agent:   agent,
+			sw:      sw,
+			funcMap: fm,
 		}
 	}
 }
 
 type agentHandler struct {
-	agent *api.Agent
-	sw    *Swarm
+	agent   *api.Agent
+	sw      *Swarm
+	funcMap template.FuncMap
 }
 
 func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
@@ -70,7 +78,7 @@ func (h *agentHandler) doFlow(req *api.Request, resp *api.Response) error {
 			}
 			// templated
 			if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-				if resolved, err := applyTemplate(v, h.sw.Vars.Global, tplFuncMap); err != nil {
+				if resolved, err := h.applyTemplate(v, h.sw.Vars.Global); err != nil {
 					return err
 				} else {
 					val = resolved
@@ -142,7 +150,7 @@ func (h *agentHandler) applyArguments(req *api.Request) (map[string]any, error) 
 				}
 			}
 			if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-				if resolved, err := applyTemplate(v, args, tplFuncMap); err != nil {
+				if resolved, err := h.applyTemplate(v, args); err != nil {
 					return nil, err
 				} else {
 					val = resolved
@@ -171,13 +179,13 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 			parts := strings.SplitN(s, "\n", 2)
 			if len(parts) == 2 {
 				// remove hashbang line
-				return applyTemplate(parts[1], data, tplFuncMap)
+				return h.applyTemplate(parts[1], data)
 			}
 			// remove hashbang
-			return applyTemplate(parts[0][2:], data, tplFuncMap)
+			return h.applyTemplate(parts[0][2:], data)
 		}
 		if ext == "tpl" {
-			return applyTemplate(s, data, tplFuncMap)
+			return h.applyTemplate(s, data)
 		}
 		return s, nil
 	}
@@ -503,4 +511,18 @@ func (h *agentHandler) callAgent(parent *api.Request, s string, prompt string) (
 		return "", fmt.Errorf("empty response")
 	}
 	return resp.Result.Value, nil
+}
+
+func (h *agentHandler) applyTemplate(tpl string, data any) (string, error) {
+	t, err := template.New("swarm").Funcs(h.funcMap).Parse(tpl)
+	if err != nil {
+		return "", err
+	}
+
+	var buf bytes.Buffer
+	if err := t.Execute(&buf, data); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }

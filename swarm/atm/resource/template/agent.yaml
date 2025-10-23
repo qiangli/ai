@@ -1,12 +1,21 @@
 ###
+pack: "<package>"
+
 agents:
   - name: "name"
     display: "🌐 Display Name"
-    description: "Description"
-    model: L1
+    description: "Short description"
+    # specify the model set/level you created at https://ai.dhnt.io/models
+    # by convention, L1, L2, L3 are used. "any" can be used to
+    # refer to any of L1, L2, L3 and in that search order.
+    model: "set/level"
     instruction:
       content: |
-        System role prompt goes here
+        <system role prompt goes here>
     functions:
+      # specify the tool kit:name you created at https://ai.dhnt.io/tools
+      # use wildcard '*' to include all functions from the toolkit.
+      # multiple kits can be specified but keep in mind LLM service providers impose limits.
+      # e.g. max 128 by OpenAI.
       - "kit:*"
 ###

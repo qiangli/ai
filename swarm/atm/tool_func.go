@@ -4,17 +4,20 @@ import (
 	"context"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/tool/memory"
 )
 
 type FuncKit struct {
 	user   *api.User
 	assets api.AssetManager
+	kgm    *memory.KGManager
 }
 
 func NewFuncKit(user *api.User, assets api.AssetManager) *FuncKit {
 	return &FuncKit{
 		user:   user,
 		assets: assets,
+		kgm:    memory.NewKGManager(),
 	}
 }
 

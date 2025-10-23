@@ -1,0 +1,151 @@
+##
+kit: "memory"
+type: "func"
+
+tools:
+  - name: "create_entities"
+    description: "Create multiple new entities in the knowledge graph"
+    parameters:
+      type: "object"
+      properties:
+        entities:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              name:
+                type: "string"
+                description: The name of the entity"
+              entity_type:
+                type: "string"
+                description: "he type of the entity"
+              observations:
+                type: "array"
+                items:
+                  type: "string"
+                description: "An array of observation contents associated with the entity"
+      required: ["entities"]
+
+  - name: "create_relations"
+    description: "Create multiple new relations between entities in the knowledge graph. Relations should be in active voice"
+    parameters:
+      type: "object"
+      properties:
+        relations:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              from:
+                type: "string"
+                description: "The name of the entity where the relation starts"
+              to:
+                type: "string"
+                description: "The name of the entity where the relation ends"
+              relation_type:
+                type: "string"
+                description: "The type of the relation"
+            required: ["from", "to", "relation_type"]
+      required: ["relations"]
+
+  - name: "add_observations"
+    description: "Add new observations to existing entities in the knowledge graph"
+    parameters:
+      type: "object"
+      properties:
+        observations:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              entity_name:
+                type: "string"
+                description: "The name of the entity to add the observations to"
+              contents:
+                type: "array"
+                items:
+                  type: "string"
+                description: An array of observation contents to add"
+            required: ["entity_name", "contents"]
+      required: ["observations"]
+
+  - name: "delete_entities"
+    description: "Delete multiple entities and their associated relations from the knowledge graph"
+    parameters:
+      type: "object"
+      properties:
+        entity_names:
+          type: "array"
+          items:
+            type: "string"
+          description: "An array of entity names to delete"
+      required: ["entity_names"]
+
+  - name: "delete_observations"
+    description: "Delete specific observations from entities in the knowledge graph"
+    parameters:
+      type: "object"
+      properties:
+        deletions:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              entity_name:
+                type: "string"
+                description: "Target entity"
+              observations:
+                type: "array"
+                items:
+                  type: "string"
+                description: "An array of observations to delete"
+            required: ["entity_name", "observations"]
+      required: ["deletions"]
+
+  - name: "delete_relations"
+    description: "Delete multiple relations from the knowledge graph"
+    parameters:
+      type: "object"
+      properties:
+        relations:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              from:
+                type: "string"
+                description: "The name of the entity where the relation starts"
+              to:
+                type: "string"
+                description: "The name of the entity where the relation ends"
+              relation_type:
+                type: "string"
+                description: "The type of the relation"
+            required: ["from", "to", "relation_type"]
+      required: ["relations"]
+
+  - name: "read_graph"
+    description: "Read the entire knowledge graph"
+    parameters: {}
+
+  - name: "search_nodes"
+    description: "Search for nodes in the knowledge graph based on a query"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The search query to match against entity names, types, and observation content"
+      required: ["query"]
+
+  - name: "open_nodes"
+    description: "Open specific nodes in the knowledge graph by their names"
+    parameters:
+      type: "object"
+      properties:
+        names:
+          type: "array"
+          items:
+            type: "string"
+          description: "An array of entity names to retrieve"
+      required: ["names"]

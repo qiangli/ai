@@ -2,7 +2,7 @@
 new: true
 agents:
   - name: "context"
-    display: "🌐 Context Summarizer"
+    display: "🤖 Context Summarizer"
     description: |
       Efficiently extracts and summarizes relevant historical conversation messages
       to optimize understanding and support prompt responses to new user queries.

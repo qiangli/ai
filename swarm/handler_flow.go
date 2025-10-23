@@ -51,7 +51,7 @@ func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error 
 
 func (h *agentHandler) flowLoop(req *api.Request, resp *api.Response) error {
 	eval := func(exp string) (bool, error) {
-		v, err := applyTemplate(exp, h.sw.Vars.Global, tplFuncMap)
+		v, err := h.applyTemplate(exp, h.sw.Vars.Global)
 		if err != nil {
 			return false, err
 		}
@@ -105,7 +105,7 @@ func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
 	var which int
 	// evaluate express or random
 	if h.agent.Flow.Expression != "" {
-		v, err := applyTemplate(h.agent.Flow.Expression, h.sw.Vars.Global, tplFuncMap)
+		v, err := h.applyTemplate(h.agent.Flow.Expression, h.sw.Vars.Global)
 		if err != nil {
 			return err
 		}
