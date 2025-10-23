@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+
+	"github.com/qiangli/ai/swarm/tool/web"
 )
 
 const maxPageSize = 1024 * 1024
@@ -21,7 +23,14 @@ func Download(ctx context.Context, url, file string) (string, error) {
 	}
 	defer out.Close()
 
-	resp, err := http.Get(url)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("User-Agent", web.UserAgent())
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -32,11 +41,17 @@ func Download(ctx context.Context, url, file string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%q downloaded succesfully. saved locally as %q", url, file), nil
+	return fmt.Sprintf("%q downloaded successfully. saved locally as %q", url, file), nil
 }
 
 func FetchContent(ctx context.Context, url string, start, max int, raw bool) (string, error) {
-	resp, err := http.Get(url)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return "", fmt.Errorf("Error creating request for URL %q: %v", url, err)
+	}
+	req.Header.Set("User-Agent", web.UserAgent())
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("Error fetching URL %q: %v", url, err)
 	}
@@ -75,7 +90,6 @@ func ExtractTextFromHTML(html string) (string, error) {
 		return "", fmt.Errorf("error parsing HTML: %v", err)
 	}
 
-	// Use goquery to extract text
 	text := doc.Text()
 	return text, nil
 }
