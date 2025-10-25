@@ -487,6 +487,18 @@ func CreateAgent(ctx context.Context, vars *api.Vars, agent string, auth *api.Us
 			return nil, err
 		}
 
+		// embedded
+		for _, v := range c.Embed {
+			// nomalize agent name, remove prefix "agent:""
+			n := strings.TrimSpace(v)
+			n = strings.ToLower(n)
+			n = strings.TrimPrefix(n, "agent:")
+			if a, err := CreateAgent(ctx, vars, n, auth, rawInput, secrets, assets); err != nil {
+				return nil, err
+			} else {
+				agent.Embed = append(agent.Embed, a)
+			}
+		}
 		return agent, nil
 	}
 

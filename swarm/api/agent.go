@@ -143,6 +143,9 @@ type Agent struct {
 
 	//
 	Flow *Flow
+
+	//
+	Embed []*Agent
 }
 
 func (a *Agent) Clone() *Agent {
@@ -168,6 +171,8 @@ func (a *Agent) Clone() *Agent {
 		LogLevel:    a.LogLevel,
 		//
 		Flow: a.Flow,
+		//
+		Embed: a.Embed,
 	}
 }
 
@@ -288,6 +293,10 @@ type AgentConfig struct {
 	// security
 	Filters []*IOFilter  `yaml:"filters"`
 	Guards  []*ToolGuard `yaml:"guards"`
+
+	// inherit agents
+	// message/instruction/tools
+	Embed []string `yaml:"embed"`
 
 	//
 	Store AssetStore `yaml:"-"`

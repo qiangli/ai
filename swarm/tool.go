@@ -13,6 +13,13 @@ import (
 
 func (h *agentHandler) createCaller() api.ToolRunner {
 	toolMap := make(map[string]*api.ToolFunc)
+	// inherit tools of embedded agents
+	for _, agent := range h.agent.Embed {
+		for _, v := range agent.Tools {
+			toolMap[v.ID()] = v
+		}
+	}
+	// the active agent
 	for _, v := range h.agent.Tools {
 		toolMap[v.ID()] = v
 	}

@@ -207,17 +207,20 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 
 	var chatID = h.sw.Vars.ChatID
 	var history []*api.Message
+	var instructions []string
 
 	// 1. New System Message
 	// system role prompt as first message
-	if r.Instruction != nil {
-		content, err := resolve(h.sw.Vars.Global, r.Instruction.Type, r.Instruction.Content)
+	// inherit embedded agent instructions
+	addContext := func(in *api.Instruction, sender string) error {
+		content, err := resolve(h.sw.Vars.Global, in.Type, in.Content)
 		if err != nil {
 			return err
 		}
 
 		// update instruction
-		r.Instruction.Content = content
+		// r.Instruction.Content = content
+		instructions = append(instructions, content)
 
 		history = append(history, &api.Message{
 			ID:      uuid.NewString(),
@@ -226,9 +229,36 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 			//
 			Role:    api.RoleSystem,
 			Content: content,
-			Sender:  r.Name,
+			Sender:  sender,
 		})
 		log.GetLogger(ctx).Debugf("Added system role message: %v\n", len(history))
+		return nil
+	}
+	for _, v := range r.Embed {
+		if v.Instruction != nil {
+			addContext(v.Instruction, r.Name)
+		}
+	}
+	if r.Instruction != nil {
+		addContext(r.Instruction, r.Name)
+		// content, err := resolve(h.sw.Vars.Global, r.Instruction.Type, r.Instruction.Content)
+		// if err != nil {
+		// 	return err
+		// }
+
+		// // update instruction
+		// r.Instruction.Content = content
+
+		// history = append(history, &api.Message{
+		// 	ID:      uuid.NewString(),
+		// 	ChatID:  chatID,
+		// 	Created: time.Now(),
+		// 	//
+		// 	Role:    api.RoleSystem,
+		// 	Content: content,
+		// 	Sender:  r.Name,
+		// })
+		// log.GetLogger(ctx).Debugf("Added system role message: %v\n", len(history))
 	}
 
 	// 2. Historical Messages
@@ -261,6 +291,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 
 	// 3. New User Message
 	// Additional user message
+	// embeded messages not inherited for now
 	if r.Message != "" {
 		msg, err := resolve(h.sw.Vars.Global, "", r.Message)
 		if err != nil {
@@ -336,8 +367,8 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 	}
 
 	// openai/tts
-	if r.Instruction != nil {
-		request.Instruction = r.Instruction.Content
+	if len(instructions) > 0 {
+		request.Instruction = strings.Join(instructions, "\n")
 	}
 	request.Query = r.RawInput.Query()
 

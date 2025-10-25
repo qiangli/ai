@@ -95,8 +95,8 @@ agents:
           - If preferences are unclear or not provided, use tool calling to retrieve the user’s predefined alert settings.
 
         2. **Deliver Alerts**:
-          - Notify the user upon timer expiration using their preferred method: sound, vibration, or banner.
-          - Default to sending a chat notification if no preferences are found through input or settings.
+          - Notify the user upon timer expiration using their preferred methods.
+          - Default to sending a chat alert notification if no preferences are found through input or settings.
 
         3. **User Interaction**:
           - Provide clear and immediate alerts to ensure the user is aware of the timer's expiration.
@@ -107,7 +107,12 @@ agents:
         - Use fallback options efficiently to handle any errors in detecting or delivering notifications.
         - Maintain a user-friendly approach, ensuring alerts are clear and accessible.
     functions:
-      - "chat:message"
+      - "alert:chat"
+      # - "alert:discord"
+      # - "alert:slack"
+      # - "alert:zoom"
+      - "user:settings"
+      - "user:profile"
 
 ###
 kit: "cron"
