@@ -1,10 +1,7 @@
 package vos
 
 import (
-	// "mime"
-	// "net/http"
 	"os"
-	// "path/filepath"
 	"sort"
 	"strings"
 )

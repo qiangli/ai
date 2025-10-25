@@ -81,15 +81,15 @@ func nvl(a ...string) string {
 	return ""
 }
 
-// return first true value
-func nbl(a ...bool) bool {
-	for _, v := range a {
-		if v {
-			return v
-		}
-	}
-	return false
-}
+// // return first true value
+// func nbl(a ...bool) bool {
+// 	for _, v := range a {
+// 		if v {
+// 			return v
+// 		}
+// 	}
+// 	return false
+// }
 
 // // return the first non zero value
 // func nzl(a ...int) int {
@@ -169,6 +169,5 @@ func abbreviate(s string, maxLen int) string {
 		end := s[len(s)-keepLen:]
 		return start + "..." + end
 	}
-
 	return s
 }

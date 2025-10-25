@@ -40,15 +40,4 @@ func (r *SystemKit) Call(ctx context.Context, vars *api.Vars, _ *api.ToolEnv, tf
 		return nil, fmt.Errorf("failed to call system tool %s %s: %w", tf.Config.Kit, tf.Name, err)
 	}
 	return v, err
-
-	// var result api.Result
-	// if s, ok := v.(string); ok {
-	// 	result.Value = s
-	// } else if c, ok := v.(*api.Blob); ok {
-	// 	result.Content = c.Content
-	// 	result.MimeType = c.MimeType
-	// } else {
-	// 	result.Value = fmt.Sprintf("%v", v)
-	// }
-	// return &result, nil
 }

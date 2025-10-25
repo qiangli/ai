@@ -1,0 +1,9 @@
+###
+kit: "cron"
+type: "mcp"
+
+connector:
+  base_url: "https://ai.dhnt.io/mcp"
+  tag: "cron"
+
+###
