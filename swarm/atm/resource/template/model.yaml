@@ -1,6 +1,5 @@
 ###
 set: <model set name>
-
 provider: "anthropic | gemini | openai"
 # for openai-compatible services, you need to change to the appropriate base url.
 base_url: "https://api.openai.com/v1/"

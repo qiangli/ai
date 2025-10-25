@@ -1,0 +1,34 @@
+###
+pack: "package"
+agents:
+  - name: "name"
+    display: "🌐 Display Name"
+    description: "Short description for agent discovery"
+    model: "default/any"
+    message: |
+      optional preset user message prepended to user input
+    instruction:
+      content: |
+        system role prompt goes here
+    functions:
+      - "kit:*"
+      - "agent:<agent>"
+
+###
+kit: "toolkit"
+type: "func | web | mcp | agent | faas"
+tools:
+  - name: ""
+    description: ""
+    parameters: {}
+    body:
+
+###
+set: "model_set"
+models:
+  <level>:
+    model: "<model name>"
+    provider: ""
+    api_key: ""
+    base_url: ""
+###

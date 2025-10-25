@@ -1,21 +1,26 @@
 ###
-pack: "<package>"
-
+pack: "package"
+#  additional flag/option supported
 agents:
   - name: "name"
     display: "🌐 Display Name"
-    description: "Short description"
+    description: "Short description for agent discovery"
     # specify the model set/level you created at https://ai.dhnt.io/models
-    # by convention, L1, L2, L3 are used. "any" can be used to
+    # by convention, if L1, L2, L3 are used. "any" can be used to
     # refer to any of L1, L2, L3 and in that search order.
-    model: "set/level"
+    # model: "set/level"
+    model: "default/any"
+    message: |
+      optional preset user message prepended to user input
     instruction:
       content: |
-        <system role prompt goes here>
+        system role prompt goes here
     functions:
       # specify the tool kit:name you created at https://ai.dhnt.io/tools
-      # use wildcard '*' to include all functions from the toolkit.
+      # use wildcard '*' to include all functions from the tool kit.
       # multiple kits can be specified but keep in mind LLM service providers impose limits.
       # e.g. max 128 by OpenAI.
+      # agent can be used as tool. use "agent" as the kit name.
       - "kit:*"
+      - "agent:<agent>"
 ###
