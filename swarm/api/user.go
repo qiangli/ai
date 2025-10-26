@@ -1,5 +1,9 @@
 package api
 
+type ContextKey string
+
+const SwarmUserContextKey ContextKey = "swarm_user"
+
 type User struct {
 	// uuid
 	ID string `json:"id"`

@@ -11,7 +11,7 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func (h *agentHandler) createCaller() api.ToolRunner {
+func (h *agentHandler) createCaller(user *api.User) api.ToolRunner {
 	toolMap := make(map[string]*api.ToolFunc)
 	// inherit tools of embedded agents
 	for _, agent := range h.agent.Embed {
@@ -29,7 +29,8 @@ func (h *agentHandler) createCaller() api.ToolRunner {
 		if !ok {
 			return nil, fmt.Errorf("tool not found: %s", tid)
 		}
-		return h.callTool(ctx, v, args)
+
+		return h.callTool(context.WithValue(ctx, api.SwarmUserContextKey, user), v, args)
 	}
 }
 

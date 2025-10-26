@@ -325,7 +325,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 	initLen := len(history)
 
 	//
-	var runTool = h.createCaller()
+	var runTool = h.createCaller(h.sw.User)
 
 	// resolve if model is @agent
 	var model *api.Model

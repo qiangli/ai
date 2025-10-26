@@ -21,7 +21,7 @@ func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api
 		return err
 	}
 
-	var runTool = h.createCaller()
+	var runTool = h.createCaller(h.sw.User)
 	result, err := runTool(ctx, tf.ID(), args)
 	if err != nil {
 		return err
