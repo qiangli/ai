@@ -10,7 +10,8 @@ func TestLoadAgentData(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
-	file, err := os.Open("../resource/incubator/agents/gptr/agent.yaml")
+	// file, err := os.Open("../resource/incubator/agents/gptr/agent.yaml")
+	file, err := os.Open("../resource/incubator/agents/think/agent.yaml")
 	if err != nil {
 		t.Fatalf("failed to open file: %v", err)
 	}

@@ -1,0 +1,10 @@
+###
+kit: "mcp"
+
+tools:
+  - type: mcp
+    base_url: "https://ai.dhnt.io/mcp"
+    api_key: "mymcp"
+    filter:
+      - "key": "*val*ue*"
+###
