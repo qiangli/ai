@@ -5,54 +5,47 @@ agents:
   - name: "timer"
     display: "⏱️ Timer"
     description: |
-      Identifies user intent to start or cancel a timer and extracts precise duration details for setting one.
-      Dispatches requests to appropriate agents, ensuring user-friendly interactions.
+      Identifies whether the user wants to start or cancel a timer and transfers control for handling.
     model: "default/any"
     instruction:
       content: |
-        You are responsible for handling initial user interactions
-        regarding timers. Your main tasks are:
+        Your role is to determine the user's intention regarding timers and delegate the task to a specific agent.
 
-        1. **Analyze User Intent**: Accurately determine if the user intends to set a new timer
-          or cancel an existing one based on the user's input.
+        1. **Detect User Intent**:
+           - Determine if the user wants to start a new timer or cancel an existing one.
 
-        2. **Set Duration for Timer**:
-          - If the user's intent is to start a timer, extract and interpret the duration specified.
-          - Ensure the duration is identified in hours, minutes, and seconds, closely matching the user's request.
-
-        3. **Dispatch to Appropriate Agent**:
-          - Call `agent_transfer("timer/start")` if a new timer is to be set, passing the validated duration.
-          - Call `agent_transfer("timer/cancel")` if the intent is to cancel an existing timer.
+        2. **Delegate to Appropriate Agent**:
+           - Use `agent_transfer("timer/start")` if the intention is to start a timer.
+           - Use `agent_transfer("timer/cancel")` if the intention is to cancel a timer.
 
         Guidelines:
-        - Focus on identifying key phrases and keywords that indicate starting or canceling a timer.
-        - Accurately parse the duration information from the user's request, accommodating various formats like "2 hours", "30 minutes", or "90 seconds".
-        - Handle ambiguous requests by asking clarifying questions to ensure accurate intent determination and correct duration extraction.
-        - Maintain a polite and supportive tone to assist the user effectively.
+        - Identify key phrases indicating either starting or canceling a timer.
+        - Direct the request to the appropriate specialist agent without handling the setting or canceling internally.
+        - Provide clarification if needed to ensure the correct interpretation of the user's intent.    
     functions:
       - "ai:agent_transfer"
 
   - name: "timer/start"
     display: "⏳ Start Timer"
     description: |
-      Parses user input to extract duration and reminder message, validates details, and initiates timers using tool calling for efficient timer management and notification readiness.
+      Parses user input to extract duration and subject line, validates details, and initiates timers using tool calling for efficient timer management and notification readiness.
     model: "default/any"
     instruction:
       content: |
         You are responsible for managing the initiation of timers. Your main tasks are:
 
-        1. **Parse User Input**: Directly interpret user input to extract and understand both the duration details and a short reminder message for the timer.
+        1. **Parse User Input**: Directly interpret user input to extract and understand both the duration details and a short subject line for the timer.
 
         2. **Validate Duration**:
           - Ensure the parsed duration is accurate and feasible for timer initiation, verifying correct units (hours, minutes, seconds).
 
         3. **Start Timer**:
-          - Use tool calling to initiate the timer with the specified duration and associated reminder message.
+          - Use tool calling to initiate the timer with the specified duration and associated subject line.
           - Confirm successful timer start to the user or calling process.
 
         Guidelines:
         - Address any discrepancies in duration by seeking user clarification if needed.
-        - Extract a concise reminder message from user input to enhance notification usability.
+        - Extract a concise subject line from user input to enhance notification usability.
         - Provide feedback on the timer status and any potential errors encountered during initiation.
         - Ensure a seamless and efficient process for starting timers to enhance user experience.
     functions:
@@ -107,17 +100,21 @@ agents:
         - Use fallback options efficiently to handle any errors in detecting or delivering notifications.
         - Maintain a user-friendly approach, ensuring alerts are clear and accessible.
     functions:
-      - "alert:chat"
+      - "agent:chat"
+      - "cron:*"
       # - "alert:discord"
       # - "alert:slack"
       # - "alert:zoom"
-      - "user:settings"
-      - "user:profile"
 
-###
 kit: "cron"
-type: "mcp"
-connector:
-  base_url: "https://ai.dhnt.io/mcp"
-  token: "dhnt_mcp"
+provider: "dhnt"
+base_url: "https://ai.dhnt.io/mcp"
+api_key: "dhnt"
+tools:
+  - type: mcp
+    filter:
+      "dhnt.io/mcp/kit": "cron"
+  - type: mcp
+    filter:
+      "dhnt.io/mcp/kit": "time"
 ###
