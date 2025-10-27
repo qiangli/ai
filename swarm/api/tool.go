@@ -72,7 +72,7 @@ type ToolsConfig struct {
 	// name of api key
 	ApiKey string `yaml:"api_key"`
 
-	Connector *ConnectorConfig `yaml:"connector"`
+	// Connector *ConnectorConfig `yaml:"connector"`
 
 	// system commands used by tools
 	Commands []string `yaml:"commands"`
@@ -130,7 +130,7 @@ type ToolCondition struct {
 
 type ConnectorConfig struct {
 	// mcp | ssh ...
-	Proto string `yaml:"proto"`
+	// Proto string `yaml:"proto"`
 
 	// mcp stdin/stdout
 	// https://github.com/modelcontextprotocol/servers/tree/main
@@ -143,8 +143,10 @@ type ConnectorConfig struct {
 	// https://drive.google.com/drive/folders
 	// mailto:someone@example.com
 
+	// optional as of now
 	Provider string `yaml:"provider"`
-	BaseUrl  string `yaml:"base_url"`
+
+	BaseUrl string `yaml:"base_url"`
 	// name of api lookup key
 	ApiKey string `yaml:"api_key"`
 

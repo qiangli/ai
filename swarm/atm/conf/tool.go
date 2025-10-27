@@ -157,17 +157,17 @@ func loadToolData(data [][]byte) (*api.ToolsConfig, error) {
 		}
 	}
 
-	if v := merged.Connector; v != nil {
-		if v.BaseUrl == "" {
-			v.BaseUrl = merged.BaseUrl
-		}
-		if v.Provider == "" {
-			v.Provider = merged.Provider
-		}
-		if v.ApiKey == "" {
-			v.ApiKey = merged.ApiKey
-		}
-	}
+	// if v := merged.Connector; v != nil {
+	// 	if v.BaseUrl == "" {
+	// 		v.BaseUrl = merged.BaseUrl
+	// 	}
+	// 	if v.Provider == "" {
+	// 		v.Provider = merged.Provider
+	// 	}
+	// 	if v.ApiKey == "" {
+	// 		v.ApiKey = merged.ApiKey
+	// 	}
+	// }
 
 	return merged, nil
 }
@@ -189,9 +189,18 @@ func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 				continue
 			}
 
+			var toolType = nvl(v.Type, tc.Type)
+			if toolType == "" {
+				return nil, fmt.Errorf("Missing tool type: %s", tc.Kit)
+			}
+			// load separately
+			if toolType == api.ToolTypeMcp {
+				continue
+			}
+
 			tool := &api.ToolFunc{
 				Kit:         tc.Kit,
-				Type:        nvl(v.Type, tc.Type),
+				Type:        toolType,
 				Name:        v.Name,
 				Description: v.Description,
 				Parameters:  v.Parameters,
@@ -205,26 +214,26 @@ func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 				//
 				Config: tc,
 			}
-			if tool.Type == "" {
-				return nil, fmt.Errorf("Missing tool type: %s %s", tc.Kit, tool.Name)
-			}
-
 			// TODO merge description/parameters for agent tool?
 
 			toolMap[tool.ID()] = tool
 		}
 	}
 
-	// connector mcp
-	if tc.Connector != nil {
+	//
+	for _, v := range tc.Tools {
+		var toolType = nvl(v.Type, tc.Type)
+		if toolType != api.ToolTypeMcp {
+			continue
+		}
 		var token string
-		apiKey := nvl(tc.Connector.ApiKey, tc.ApiKey)
+		apiKey := nvl(v.ApiKey, tc.ApiKey)
 		if v, err := secrets.Get(owner, apiKey); err != nil {
 			return nil, err
 		} else {
 			token = v
 		}
-		mcpTools, err := listMcpTools(tc, token)
+		mcpTools, err := listMcpTools(tc.Kit, v, token)
 		if err != nil {
 			return nil, err
 		}
@@ -232,6 +241,25 @@ func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 			toolMap[tool.ID()] = tool
 		}
 	}
+
+	// TODO deprecated in favor of tools
+	// connector mcp
+	// if tc.Connector != nil {
+	// 	var token string
+	// 	apiKey := nvl(tc.Connector.ApiKey, tc.ApiKey)
+	// 	if v, err := secrets.Get(owner, apiKey); err != nil {
+	// 		return nil, err
+	// 	} else {
+	// 		token = v
+	// 	}
+	// 	mcpTools, err := listMcpTools(tc, token)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	for _, tool := range mcpTools {
+	// 		toolMap[tool.ID()] = tool
+	// 	}
+	// }
 
 	var tools = make([]*api.ToolFunc, 0)
 	for _, v := range toolMap {

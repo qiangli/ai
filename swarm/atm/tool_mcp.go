@@ -26,11 +26,15 @@ func (r *McpKit) Call(ctx context.Context, vars *api.Vars, env *api.ToolEnv, tf 
 
 	log.GetLogger(ctx).Debugf("🎖️ calling MCP tool: %s with args: %+v\n", tid, args)
 
-	if tf.Config == nil || tf.Config.Connector == nil || tf.Config.Connector.BaseUrl == "" {
-		return "", fmt.Errorf("mcp not configured: %s", tid)
-	}
+	// if tf.Config == nil || tf.Config.Connector == nil || tf.Config.Connector.BaseUrl == "" {
+	// 	return "", fmt.Errorf("mcp not configured: %s", tid)
+	// }
 
-	client := mcpcli.NewMcpClient(tf.Config.Connector)
+	client := mcpcli.NewMcpClient(&api.ConnectorConfig{
+		BaseUrl:  tf.BaseUrl,
+		ApiKey:   tf.ApiKey,
+		Provider: tf.Provider,
+	})
 	tk, err := r.secrets.Get(env.Owner, tf.ApiKey)
 	if err != nil {
 		return "", err

@@ -176,8 +176,7 @@ func (r *assetManager) FindToolkit(owner string, kit string) (*api.ToolsConfig, 
 	if err != nil {
 		return nil, err
 	}
-	// NOTE: this may change
-	if tc == nil || (len(tc.Tools) == 0 && tc.Connector == nil) {
+	if tc == nil || (len(tc.Tools) == 0) {
 		return nil, fmt.Errorf("invalid config. no tools defined: %s", kit)
 	}
 

@@ -8,15 +8,19 @@ import (
 	mcpcli "github.com/qiangli/ai/swarm/mcp"
 )
 
-func listMcpTools(tc *api.ToolsConfig, token string) ([]*api.ToolFunc, error) {
+func listMcpTools(kit string, tc *api.ToolConfig, token string) ([]*api.ToolFunc, error) {
 	ctx := context.Background()
 
-	if tc.Connector == nil || tc.Connector.BaseUrl == "" {
-		return nil, fmt.Errorf("Invalid mcp config. Missing URL")
+	if tc.BaseUrl == "" {
+		return nil, fmt.Errorf("Invalid connector config. Missing URL")
 	}
 
 	// log.Debugf("Connecting to MCP server at %s", tc.Connector.BaseUrl)
-	client := mcpcli.NewMcpClient(tc.Connector)
+	client := mcpcli.NewMcpClient(&api.ConnectorConfig{
+		Provider: tc.Provider,
+		BaseUrl:  tc.BaseUrl,
+		ApiKey:   tc.ApiKey,
+	})
 	session, err := client.Connect(ctx, token)
 	if err != nil {
 		return nil, err
@@ -37,18 +41,18 @@ func listMcpTools(tc *api.ToolsConfig, token string) ([]*api.ToolFunc, error) {
 			return nil, err
 		}
 		tool := &api.ToolFunc{
-			Kit:         tc.Kit,
+			Kit:         kit,
 			Type:        api.ToolTypeMcp,
 			Name:        v.Name,
 			Description: v.Description,
 			Parameters:  params,
 			Body:        nil,
 			//
-			Provider: nvl(tc.Connector.Provider, tc.Provider),
-			BaseUrl:  nvl(tc.Connector.BaseUrl, tc.BaseUrl),
-			ApiKey:   nvl(tc.Connector.ApiKey, tc.ApiKey),
+			Provider: tc.Provider,
+			BaseUrl:  tc.BaseUrl,
+			ApiKey:   tc.ApiKey,
 			//
-			Config: tc,
+			// Config: tc,
 		}
 
 		tools = append(tools, tool)
