@@ -19,7 +19,8 @@
 				// "@news",
 				// "@video",
 				// "@gptr",
-				"@eval",
+				// "@eval",
+				"@think",
 				"--no-stdin=true",
 				"--message",
 				"give me a summary report of the state of the arts on vibe coding using LLM",
@@ -27,12 +28,12 @@
 				// "what is the weather in dublin ca",
 				// "use sora from openai to make a video of a german shepard puppy running in bamboo forest. save the video in /tmp as gsd-puppy.mp4",
 				"--verbose",
-				// "--max-time",
-				// "900",
+				"--max-time",
+				"900",
 				// "--max-history",
 				// "100",
-				"--max-span",
-				"14400"
+				// "--max-span",
+				// "14400"
 			],
 			"showLog": false,
 			"stopOnEntry": false
