@@ -237,11 +237,15 @@ type AgentsConfig struct {
 
 	// model set
 	// set/any
-	Set      string                  `yaml:"set"`
-	Provider string                  `yaml:"provider"`
-	BaseUrl  string                  `yaml:"base_url"`
-	ApiKey   string                  `yaml:"api_key"`
-	Models   map[string]*ModelConfig `yaml:"models"`
+	Set    string                  `yaml:"set"`
+	Models map[string]*ModelConfig `yaml:"models"`
+
+	// TODO separate?
+	// model/tool shared default values
+	Provider string `yaml:"provider"`
+	BaseUrl  string `yaml:"base_url"`
+	// api lookup key
+	ApiKey string `yaml:"api_key"`
 }
 
 type AgentConfig struct {

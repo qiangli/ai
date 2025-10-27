@@ -337,11 +337,12 @@ func CreateAgent(ctx context.Context, vars *api.Vars, agent string, auth *api.Us
 			} else {
 				set, level := resolveModelLevel(vars.Models, model)
 				// local
-				if ac.Set == set {
+				if set == ac.Set {
 					for k, v := range ac.Models {
 						if k == level {
 							agent.Model = &api.Model{
-								Model:    v.Model,
+								Model: v.Model,
+								//
 								Provider: nvl(v.Provider, ac.Provider),
 								BaseUrl:  nvl(v.BaseUrl, ac.BaseUrl),
 								ApiKey:   nvl(v.ApiKey, ac.ApiKey),
@@ -349,6 +350,7 @@ func CreateAgent(ctx context.Context, vars *api.Vars, agent string, auth *api.Us
 						}
 					}
 				}
+				// load external model if not defined locally
 				if agent.Model == nil {
 					if v, err := loadModel(owner, set, level, assets); err != nil {
 						return nil, fmt.Errorf("failed to load model: %s %s %v", vars.Models, model, err)
@@ -370,6 +372,7 @@ func CreateAgent(ctx context.Context, vars *api.Vars, agent string, auth *api.Us
 			} else {
 				tools = v
 			}
+			// load external kit if not defined locally
 			if tools == nil {
 				if v, err := LoadToolFunc(owner, v, secrets, assets); err != nil {
 					return nil, err

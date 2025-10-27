@@ -74,6 +74,7 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 	return nil, fmt.Errorf("tool func not found: %s", s)
 }
 
+// try load local
 func LoadLocalToolFunc(local *api.AgentsConfig, owner, s string, secrets api.SecretStore, assets api.AssetManager) ([]*api.ToolFunc, error) {
 	kit, name := api.KitName(s).Decode()
 	if name == "" {
@@ -91,8 +92,7 @@ func LoadLocalToolFunc(local *api.AgentsConfig, owner, s string, secrets api.Sec
 
 	// builtin "agent" toolkit
 	// any agent can be used a tool
-	// @name
-	// agent:name
+	// agent:<agent name>
 	if kit == api.ToolTypeAgent {
 		if name == local.Name {
 			return nil, fmt.Errorf("recursion not supported: %s", name)
@@ -104,13 +104,18 @@ func LoadLocalToolFunc(local *api.AgentsConfig, owner, s string, secrets api.Sec
 		}
 	}
 
-	//
+	// if kit refers to a kit in the same local config as the agents.
+	// local takes precedence.
 	var tc *api.ToolsConfig
 	if kit == local.Kit {
 		tc = &api.ToolsConfig{
 			Kit:   kit,
 			Type:  local.Type,
 			Tools: local.Tools,
+			//
+			Provider: local.Provider,
+			BaseUrl:  local.BaseUrl,
+			ApiKey:   local.ApiKey,
 		}
 	}
 
@@ -122,7 +127,7 @@ func LoadLocalToolFunc(local *api.AgentsConfig, owner, s string, secrets api.Sec
 		return filter(v)
 	}
 
-	// no error
+	// no error, external kit will be resolved next
 	return nil, nil
 }
 

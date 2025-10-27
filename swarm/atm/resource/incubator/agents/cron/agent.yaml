@@ -8,7 +8,7 @@ agents:
     description: |
       Efficiently manage, schedule, and run automated tasks and jobs by
       analyzing user input and selecting the appropriate agent.
-    model: "default/any"
+    model: "cron/basic"
     instruction:
       content: |
         As a Task Scheduler agent, you analyze user input to determine the intent, 
@@ -24,6 +24,14 @@ agents:
       - "cron:*"
       - "ai:list_agents"
       - "ai:agent_info"
+
+set: "cron"
+models:
+  basic:
+    model: "gpt-5-nano"
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
 
 kit: "cron"
 provider: "dhnt"
