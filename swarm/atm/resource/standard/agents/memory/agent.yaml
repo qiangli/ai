@@ -5,7 +5,7 @@ agents:
     display: "🤖 Memory"
     description: |
       Persistent memory using a local knowledge graph
-    model: "default/any"
+    model: "memory/basic"
     instruction:
       content: |
         #! --mime-type=text/x-go-template
@@ -34,4 +34,21 @@ agents:
             c) Store facts about them as observations
     functions:
       - "memory:*"
+
+set: "memory"
+models:
+  basic:
+    model: "gpt-5-nano"
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
+
+kit: "memory"
+tools:
+  - type: mcp
+    provider: "dhnt"
+    base_url: "https://ai.dhnt.io/mcp"
+    api_key: "dhnt"
+    filter:
+      "dhnt.io/mcp/kit": "memory"
 ###
