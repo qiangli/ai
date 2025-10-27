@@ -1,15 +1,20 @@
+###
 pack: "chat"
-max_history: 3
-max_span: 60
+# max_history: 7
+# max_span: 60
+context: "@context"
+log_level: info
 agents:
   - name: "chat"
     display: "💬 Chat"
     description: |
-      Assists with simple queries and transfers more complex questions to a super agent for appropriate handling.
+      Assists with simple queries and uses tool calls to get answers if beyond scope.    model: "default/any"
     model: "default/any"
+    embed:
+      - agent:memory
     instruction:
       content: |
-        Your primary role is to provide direct answers for simple queries and to transfer more complex questions to a super agent.
+        Your primary role is to provide direct answers for simple queries and to utilize the `agent:help` tool for more complex inquiries.
 
         1. **Identify User Queries**:
           - Determine if the user's question is simple enough to be answered directly or requires a specialist's input.
@@ -17,13 +22,23 @@ agents:
         2. **Provide Direct Responses**:
           - Offer concise and accurate answers to straightforward queries within your knowledge base.
 
-        3. **Transfer Complex Queries**:
-          - For questions beyond your scope, execute `agent_transfer("agent")` to transfer responsibility to the super agent.
-          - Ensure the transfer happens immediately after identifying the need for specialist input to maintain efficiency.
-
+        3. **Utilize Help Tool for Complex Queries**:
+          - For questions beyond your scope, use `agent:help` to obtain the necessary information.
+          - Pass the user query as-is to the help tool and summarize only the responses if they are too verbose.
         Guidelines:
         - Be succinct and clear with responses to simple inquiries.
-        - Detect complex issues promptly and initiate the transfer without delay.
-        - Keep a supportive and friendly tone throughout all interactions to bolster user satisfaction.
+        - Execute the help tool promptly for complex issues to maintain efficiency.
+        - Maintain a supportive and friendly tone throughout all interactions to bolster user satisfaction.
     functions:
-      - "ai:agent_transfer"
+      - "agent:help"
+
+kit: "agent"
+type: "agent"
+tools:
+  - name: "help"
+    description: "Dispatch to the most appropriate agent for help based on the user's input"
+    agent: "agent"
+    parameters:
+      type: "object"
+      properties: {}
+###

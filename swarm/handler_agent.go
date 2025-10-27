@@ -452,6 +452,9 @@ func (h *agentHandler) resolvePrompt(ctx context.Context, parent *api.Request, s
 
 // dynamcally make LLM model; return s as is if not an agent command
 func (h *agentHandler) resolveModel(ctx context.Context, parent *api.Request, m *api.Model) (*api.Model, error) {
+	if m == nil {
+		return nil, fmt.Errorf("missling model")
+	}
 	agent, query, found := parseAgentCommand(m.Model)
 	if !found {
 		return m, nil
