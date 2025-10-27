@@ -3,6 +3,7 @@ package conf
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/qiangli/ai/swarm/api"
 	mcpcli "github.com/qiangli/ai/swarm/mcp"
@@ -54,7 +55,11 @@ func listMcpTools(kit string, tc *api.ToolConfig, token string) ([]*api.ToolFunc
 			//
 			// Config: tc,
 		}
-
+		meta := v.GetMeta()
+		if len(meta) > 0 {
+			tool.Extra = make(map[string]any)
+			maps.Copy(tool.Extra, meta)
+		}
 		tools = append(tools, tool)
 	}
 

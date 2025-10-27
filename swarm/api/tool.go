@@ -41,7 +41,7 @@ type ToolFunc struct {
 	// name of api key - used to resolve api key/token before tool call
 	ApiKey string
 
-	Extra map[string]string
+	Extra map[string]any
 }
 
 // ID returns a unique identifier for the tool,

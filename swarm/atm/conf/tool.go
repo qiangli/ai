@@ -220,7 +220,7 @@ func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 		}
 	}
 
-	//
+	// contact mcp servers and fetch the list of tools
 	for _, v := range tc.Tools {
 		var toolType = nvl(v.Type, tc.Type)
 		if toolType != api.ToolTypeMcp {
@@ -237,8 +237,23 @@ func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 		if err != nil {
 			return nil, err
 		}
+
+		// return true if extra is empty or has the name/val in the filter
+		met := func(extra map[string]any) bool {
+			if len(extra) == 0 || len(v.Filter) == 0 {
+				return true
+			}
+			for key, f := range v.Filter {
+				if m, ok := extra[key]; ok && m == f {
+					return true
+				}
+			}
+			return false
+		}
 		for _, tool := range mcpTools {
-			toolMap[tool.ID()] = tool
+			if met(tool.Extra) {
+				toolMap[tool.ID()] = tool
+			}
 		}
 	}
 
