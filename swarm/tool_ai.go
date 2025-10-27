@@ -40,7 +40,7 @@ var (
 
 func (r *AIKit) Call(ctx context.Context, vars *api.Vars, owner string, tf *api.ToolFunc, args map[string]any) (any, error) {
 	callArgs := []any{ctx, vars, tf.Name, args}
-	return atm.CallKit(r, tf.Config.Kit, tf.Name, callArgs...)
+	return atm.CallKit(r, tf.Kit, tf.Name, callArgs...)
 }
 
 func (r *AIKit) ListAgents(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {

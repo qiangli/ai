@@ -33,7 +33,7 @@ type ToolFunc struct {
 	//
 	State State
 	//
-	Config *ToolsConfig
+	// Config *ToolsConfig
 
 	//
 	Provider string

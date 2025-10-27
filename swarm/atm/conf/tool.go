@@ -180,49 +180,45 @@ func loadToolData(data [][]byte) (*api.ToolsConfig, error) {
 func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*api.ToolFunc, error) {
 	var toolMap = make(map[string]*api.ToolFunc)
 
-	conditionMet := func(name string, c *api.ToolCondition) bool {
-		return true
-	}
+	// conditionMet := func(name string, c *api.ToolCondition) bool {
+	// 	return true
+	// }
 
-	// for _, tc := range kits {
-	if len(tc.Tools) > 0 {
-		for _, v := range tc.Tools {
-			// log.Debugf("Kit: %s tool: %s - %s\n", tc.Kit, v.Name, v.Description)
+	for _, v := range tc.Tools {
+		// log.Debugf("Kit: %s tool: %s - %s\n", tc.Kit, v.Name, v.Description)
 
-			// condition check
-			if !conditionMet(v.Name, v.Condition) {
-				continue
-			}
+		// // condition check
+		// if !conditionMet(v.Name, v.Condition) {
+		// 	continue
+		// }
 
-			var toolType = nvl(v.Type, tc.Type)
-			if toolType == "" {
-				return nil, fmt.Errorf("Missing tool type: %s", tc.Kit)
-			}
-			// load separately
-			if toolType == api.ToolTypeMcp {
-				continue
-			}
-
-			tool := &api.ToolFunc{
-				Kit:         tc.Kit,
-				Type:        toolType,
-				Name:        v.Name,
-				Description: v.Description,
-				Parameters:  v.Parameters,
-				Body:        v.Body,
-				//
-				Agent: v.Agent,
-				//
-				Provider: nvl(v.Provider, tc.Provider),
-				BaseUrl:  nvl(v.BaseUrl, tc.BaseUrl),
-				ApiKey:   nvl(v.ApiKey, tc.ApiKey),
-				//
-				Config: tc,
-			}
-			// TODO merge description/parameters for agent tool?
-
-			toolMap[tool.ID()] = tool
+		var toolType = nvl(v.Type, tc.Type)
+		if toolType == "" {
+			return nil, fmt.Errorf("Missing tool type: %s", tc.Kit)
 		}
+		// load separately
+		if toolType == api.ToolTypeMcp {
+			continue
+		}
+
+		tool := &api.ToolFunc{
+			Kit:         tc.Kit,
+			Type:        toolType,
+			Name:        v.Name,
+			Description: v.Description,
+			Parameters:  v.Parameters,
+			Body:        v.Body,
+			//
+			Agent: v.Agent,
+			//
+			Provider: nvl(v.Provider, tc.Provider),
+			BaseUrl:  nvl(v.BaseUrl, tc.BaseUrl),
+			ApiKey:   nvl(v.ApiKey, tc.ApiKey),
+			//
+			// Config: tc,
+		}
+		// TODO merge description/parameters for agent tool?
+		toolMap[tool.ID()] = tool
 	}
 
 	// contact mcp servers and fetch the list of tools
@@ -238,7 +234,12 @@ func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 		} else {
 			token = v
 		}
-		mcpTools, err := listMcpTools(tc.Kit, v, token)
+		connector := &api.ConnectorConfig{
+			Provider: nvl(v.Provider, tc.Provider),
+			BaseUrl:  nvl(v.BaseUrl, tc.BaseUrl),
+			ApiKey:   nvl(v.ApiKey, tc.ApiKey),
+		}
+		mcpTools, err := listMcpTools(tc.Kit, connector, token)
 		if err != nil {
 			return nil, err
 		}
@@ -312,10 +313,10 @@ func loadAgentTool(ac *api.AgentsConfig, name string) ([]*api.ToolFunc, error) {
 				//
 				Agent: c.Name,
 				//
-				Config: &api.ToolsConfig{
-					Kit:  "agent",
-					Type: api.ToolTypeAgent,
-				},
+				// Config: &api.ToolsConfig{
+				// 	Kit:  "agent",
+				// 	Type: api.ToolTypeAgent,
+				// },
 			}
 			return []*api.ToolFunc{tool}, nil
 		}
