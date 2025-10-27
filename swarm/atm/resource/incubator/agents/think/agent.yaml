@@ -159,8 +159,9 @@ models:
 kit: "think"
 tools:
   - type: mcp
+    provider: "dhnt"
     base_url: "https://ai.dhnt.io/mcp"
-    api_key: "mcp"
+    api_key: "dhnt"
     filter:
       "dhnt.io/mcp/kit": "think"
 ###
