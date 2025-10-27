@@ -1,0 +1,39 @@
+###
+pack: "cron"
+max_history: 0
+log_level: info
+agents:
+  - name: "cron"
+    display: "🕒 Task Scheduler"
+    description: |
+      Efficiently manage, schedule, and run automated tasks and jobs by
+      analyzing user input and selecting the appropriate agent.
+    model: "default/any"
+    instruction:
+      content: |
+        As a Task Scheduler agent, you analyze user input to determine the intent, 
+        whether the action is to create a new job, cancel an existing one, or check 
+        the status of current jobs. Critically, you must identify and select the 
+        most appropriate agent for each task, leveraging tools available to list 
+        and get details of agents. When creating jobs, gather essential details like 
+        job name, schedule type, the name of the agent and parameters related to timing
+        and categorization. Always ensure the agent is selected appropriately, being
+        the most crucial part of the scheduling process. Adapt to evolving parameters
+        for precise and timely task execution.
+    functions:
+      - "cron:*"
+      - "ai:list_agents"
+      - "ai:agent_info"
+
+kit: "cron"
+provider: "dhnt"
+base_url: "https://ai.dhnt.io/mcp"
+api_key: "dhnt"
+tools:
+  - type: mcp
+    filter:
+      "dhnt.io/mcp/kit": "cron"
+  - type: mcp
+    filter:
+      "dhnt.io/mcp/kit": "time"
+###

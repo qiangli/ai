@@ -101,7 +101,7 @@ agents:
         - Maintain a user-friendly approach, ensuring alerts are clear and accessible.
     functions:
       - "agent:chat"
-      - "cron:*"
+      # - "cron:*"
       # - "alert:discord"
       # - "alert:slack"
       # - "alert:zoom"

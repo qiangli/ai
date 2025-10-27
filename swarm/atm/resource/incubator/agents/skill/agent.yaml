@@ -1,0 +1,14 @@
+###
+pack: "skill"
+agents:
+  - name: "skill"
+    display: "🌐 Skill"
+    description: "skill"
+    model: "default/any"
+    instruction:
+      content: |
+        system role prompt goes here
+    functions:
+      - "kit:*"
+      - "agent:<agent>"
+###
