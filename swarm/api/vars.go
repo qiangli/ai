@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"maps"
+	"sync"
 )
 
 const (
@@ -10,11 +11,64 @@ const (
 	VarsEnvHost      = "host"
 )
 
+type Global struct {
+	env map[string]any
+	mu  sync.RWMutex
+}
+
+func (g *Global) Get(key string) (any, bool) {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	if v, ok := g.env[key]; ok {
+		return v, ok
+	}
+	return nil, false
+}
+
+func (g *Global) Set(key string, val any) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	g.env[key] = val
+}
+
+func (g *Global) Add(src map[string]any) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	maps.Copy(g.env, src)
+}
+
+// func (g *Global) CopyTo(dst map[string]any) {
+// 	g.mu.Lock()
+// 	defer g.mu.Unlock()
+// 	maps.Copy(dst, g.env)
+// }
+
+// thread safe access the env
+func (g *Global) Apply(fn func(map[string]any) error) error {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return fn(g.env)
+}
+
+func (g *Global) Clone() *Global {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	env := make(map[string]any)
+	maps.Copy(env, g.env)
+	return &Global{
+		env: env,
+	}
+}
+
+func NewGlobal() *Global {
+	return &Global{
+		env: make(map[string]any),
+	}
+}
+
 // global context
 type Vars struct {
-	// Agent   string `json:"agent"`
-	// Message string `json:"message"`
-
 	LogLevel LogLevel `json:"log_level"`
 
 	ChatID     string `json:"chat_id"`
@@ -36,8 +90,9 @@ type Vars struct {
 	// Extra map[string]string `json:"-"`
 
 	// conversation history
-	History []*Message     `json:"-"`
-	Global  map[string]any `json:"-"`
+	History []*Message `json:"-"`
+
+	Global *Global `json:"-"`
 }
 
 func (v *Vars) Clone() *Vars {
@@ -64,11 +119,8 @@ func (v *Vars) Clone() *Vars {
 		//
 		// Extra:   make(map[string]string),
 		History: make([]*Message, len(v.History)),
-		Global:  make(map[string]any),
+		Global:  v.Global.Clone(),
 	}
-
-	// Copy the Extra map
-	maps.Copy(clone.Global, v.Global)
 
 	// Copy the History slice
 	copy(clone.History, v.History)
@@ -78,7 +130,7 @@ func (v *Vars) Clone() *Vars {
 
 func NewVars() *Vars {
 	return &Vars{
-		Global: map[string]any{},
+		Global: NewGlobal(),
 	}
 }
 
@@ -86,18 +138,18 @@ func (r *Vars) IsTrace() bool {
 	return r.LogLevel == Tracing
 }
 
-func (r *Vars) Get(key string) any {
+func (r *Vars) Get(key string) (any, bool) {
 	if r.Global == nil {
-		return ""
+		return "", false
 	}
-	return r.Global[key]
+	return r.Global.Get(key)
 }
 
 func (r *Vars) GetString(key string) string {
 	if r.Global == nil {
 		return ""
 	}
-	val, ok := r.Global[key]
+	val, ok := r.Global.Get(key)
 	if !ok {
 		return ""
 	}

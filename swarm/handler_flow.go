@@ -131,9 +131,11 @@ func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
 }
 
 func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
-	result, ok := h.sw.Vars.Global[globalResult]
+	// if the map flow is the first in the pipeline
+	// use query
+	result, ok := h.sw.Vars.Global.Get(globalResult)
 	if !ok {
-		result = h.sw.Vars.Global[globalQuery]
+		result, _ = h.sw.Vars.Global.Get(globalQuery)
 	}
 
 	list := unmarshalResultList(result)

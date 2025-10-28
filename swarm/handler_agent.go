@@ -42,10 +42,10 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	var ctx = req.Context()
 	log.GetLogger(ctx).Debugf("Serve agent: %s global: %+v\n", h.agent.Name, h.sw.Vars.Global)
 
-	h.sw.Vars.Global[globalQuery] = req.RawInput.Query()
+	h.sw.Vars.Global.Set(globalQuery, req.RawInput.Query())
 
 	if err := h.doFlow(req, resp); err != nil {
-		h.sw.Vars.Global[globalResult] = err.Error()
+		h.sw.Vars.Global.Set(globalResult, err.Error())
 		return err
 	}
 
@@ -53,10 +53,10 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	if len(resp.Result.Value) > 0 {
 		var resultMap = make(map[string]any)
 		if err := json.Unmarshal([]byte(resp.Result.Value), &resultMap); err == nil {
-			maps.Copy(h.sw.Vars.Global, resultMap)
+			h.sw.Vars.Global.Add(resultMap)
 		}
 	}
-	h.sw.Vars.Global[globalResult] = resp.Result.Value
+	h.sw.Vars.Global.Set(globalResult, resp.Result.Value)
 
 	log.GetLogger(ctx).Debugf("completed: %s global: %+v\n", h.agent.Name, h.sw.Vars.Global)
 	return nil
@@ -78,13 +78,13 @@ func (h *agentHandler) doFlow(req *api.Request, resp *api.Response) error {
 			}
 			// templated
 			if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-				if resolved, err := h.applyTemplate(v, h.sw.Vars.Global); err != nil {
+				if resolved, err := h.applyGlobal(v); err != nil {
 					return err
 				} else {
 					val = resolved
 				}
 			}
-			h.sw.Vars.Global[key] = val
+			h.sw.Vars.Global.Set(key, val)
 		}
 	}
 
@@ -139,7 +139,11 @@ func (h *agentHandler) applyArguments(req *api.Request) (map[string]any, error) 
 	// merge request args
 	var args = make(map[string]any)
 	// copy globals including agent args
-	maps.Copy(args, h.sw.Vars.Global)
+	h.sw.Vars.Global.Apply(func(src map[string]any) error {
+		maps.Copy(args, src)
+		return nil
+	})
+
 	if req.Arguments != nil {
 		for key, val := range req.Arguments {
 			if v, ok := val.(string); ok {
@@ -174,25 +178,25 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 
 	// apply template/load
 	// TODO  vars -> data may break some existing config
-	apply := func(data map[string]any, ext, s string) (string, error) {
+	applyGlobal := func(ext, s string) (string, error) {
 		if strings.HasPrefix(s, "#!") {
 			parts := strings.SplitN(s, "\n", 2)
 			if len(parts) == 2 {
 				// remove hashbang line
-				return h.applyTemplate(parts[1], data)
+				return h.applyGlobal(parts[1])
 			}
 			// remove hashbang
-			return h.applyTemplate(parts[0][2:], data)
+			return h.applyGlobal(parts[0][2:])
 		}
 		if ext == "tpl" {
-			return h.applyTemplate(s, data)
+			return h.applyGlobal(s)
 		}
 		return s, nil
 	}
 
-	resolve := func(data map[string]any, ext, s string) (string, error) {
+	resolveGlobal := func(ext, s string) (string, error) {
 		// update the request instruction
-		content, err := apply(data, ext, s)
+		content, err := applyGlobal(ext, s)
 		if err != nil {
 			return "", err
 		}
@@ -213,7 +217,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 	// system role prompt as first message
 	// inherit embedded agent instructions
 	addContext := func(in *api.Instruction, sender string) error {
-		content, err := resolve(h.sw.Vars.Global, in.Type, in.Content)
+		content, err := resolveGlobal(in.Type, in.Content)
 		if err != nil {
 			return err
 		}
@@ -293,7 +297,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 	// Additional user message
 	// embeded messages not inherited for now
 	if r.Message != "" {
-		msg, err := resolve(h.sw.Vars.Global, "", r.Message)
+		msg, err := resolveGlobal("", r.Message)
 		if err != nil {
 			return err
 		}
@@ -559,4 +563,20 @@ func (h *agentHandler) applyTemplate(tpl string, data any) (string, error) {
 	}
 
 	return buf.String(), nil
+}
+
+func (h *agentHandler) applyGlobal(tpl string) (string, error) {
+	var out string
+	fn := func(data map[string]any) error {
+		if v, err := h.applyTemplate(tpl, data); err != nil {
+			return err
+		} else {
+			out = v
+		}
+		return nil
+	}
+	if err := h.sw.Vars.Global.Apply(fn); err != nil {
+		return "", err
+	}
+	return out, nil
 }
