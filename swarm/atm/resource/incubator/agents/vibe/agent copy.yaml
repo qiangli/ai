@@ -8,7 +8,7 @@ agents:
     description: |
       The vibe coding prompt agent transforms user instructions into structured prompts for AI code generation,
       autonomously gathering context, seeking details, and crafting the final prompt for the vibe coding tool.
-    model: "default/L1"
+    model: "default/L3"
     instruction:
       content: |
         You are the prompt engineering agent for vibe coding.

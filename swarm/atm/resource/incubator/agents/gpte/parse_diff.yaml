@@ -1,0 +1,21 @@
+##
+pack: gpte
+model: default/L1
+max_history: 0
+log_level: verbose
+agents:
+  - name: "parse_diff"
+    display: "🤖 Parse Diff"
+    description: |
+      Parses a diff string in the unified git diff format
+    instruction:
+      content: |
+        You are tasked with parsing a diff string provided in the unified git diff format.
+        Analyze the input string to extract file differences and convert these details into a structured dictionary format.
+        
+        User Input:
+        - The input diff string to be analyzed.
+
+        Returns:
+        - dict: A dictionary consisting of Diff objects, organized by filename.
+    arguments: 

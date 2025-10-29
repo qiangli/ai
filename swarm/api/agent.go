@@ -298,8 +298,8 @@ type AgentConfig struct {
 	Filters []*IOFilter  `yaml:"filters"`
 	Guards  []*ToolGuard `yaml:"guards"`
 
-	// inherit agents
-	// message/instruction/tools
+	// inherit parent agents'
+	// message/instruction, model, and tools
 	Embed []string `yaml:"embed"`
 
 	//
@@ -331,16 +331,18 @@ const (
 	// expression must evaluate to an integer (zero based).
 	FlowTypeChoice FlowType = "choice"
 	// The map flow creates a new array populated with the results of calling the action(s)
-	// on every element in the input array
+	// on every item in the input array
 	FlowTypeMap FlowType = "map"
 	// The reduce flow executes the action(s) on each element of the array, in order,
 	// passing in the return value from the calculation on the preceding element.
 	// The final result of running the reducer across all elements of the array is returned as a single value.
 	// The first time that the flow is run, an initial value is read from the result of the previous agent
-	// or empty if the flow is the root agent.
+	// or user query if the flow is the root agent.
 	FlowTypeReduce FlowType = "reduce"
-	//
+	// TBD
 	FlowTypeNest FlowType = "nest"
+	// Delegate the flow control to a shell (bash script syntax)
+	FlowTypeShell FlowType = "shell"
 )
 
 type FlowConfig struct {

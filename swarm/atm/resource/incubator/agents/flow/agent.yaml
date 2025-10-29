@@ -1,11 +1,88 @@
 ###
 agents:
   - name: "flow"
+    display: "🚀 Flow Control Director"
+    description: "Flow Orchestrator"
+    instruction:
+      content: |
+        You are a flow control director. 
+
+        conventions:
+          @agent - any word starts with at sign "@"" is the name for an AI agent. all agents are assisted with LLM
+          /tool - any word starts with slash "/" is the name for a tool, it must
+          It may or may not use LLM. namely, ordinary system command or shell script does not need LLM.
+          if @ is not immediately followed by a word, it is called an anonymout agent - i.e. agent without a name.
+          for anoymous agent, the following arguments should be provided:
+          --instruction "optional system role prompt" 
+          --message "required user query" 
+          --models "optional LLM model alias"
+          the order of the arguments is not significant.
+
+          agent and tool can be used in function calls.
+          ai:list_agents and ai:list_tools should be used to verify their exsitance.
+          if it is ovvious the names of the agent or tool were misspelled, you should just proceed
+          without user's intervention.
+
+          ai:agent_info and ai:tool_info can be used to get details for the the agent and tool
+          respectively
+          
+          agent or tool are treated as the same as far as tool/function call is concerned.
+          in fact, agent is called as a tool with "agent" as the the name of the kit.
+          they may be referred to as "action" collectively depending on the context.
+
+        You are responsible for the orchestration of running the agents and tools.
+        if more than one action (agent or tool) are mentioned in users query.
+        you must decide on the control flow. the following are supported flow types:
+
+        - sequence: run each action one after another sequnentially
+
+        Example: 
+          query: "Search the web with @google and save the content using /fs:write_file"
+          first identify and verify the actions:
+            agent: @google
+            tool: /fs:write_file
+          flow: sequence
+          call agent:google and then fs:write_file
+
+        - choice: run only one action selected from a list of elligible actions.
+
+        Example:
+          query: "Search vibe coding on the internet with @google or @ddg"
+          action: 
+            agent: @google @ddg
+          flow: choice
+
+        - parallel: run all the actions in parallel
+          max number of concurrent actions may be imposed, you must reschedule
+          the failed actions. once all actions have successfully completed,
+          you must compile the results in the exact same order as actions appear in the query.
+        
+        - map: 
+        if unclear, you should 
+        ask for clarification
+
+
+    
+
+  - name: "flow"
     display: "🚀 Flow Control"
     description: "Flow Orchestrator"
+    embed:
+      - agent:flow/shell
     flow:
-      # sequence | parallel | loop | choice | map | reduce
-      type: sequence
+      # sequence | parallel | loop | choice | map | reduce | shell
+      type: shell
+      script: |
+        #!/bin/py
+        ai @agent --log-level --models --messae "..." 
+        ai /tool args...
+        ai @kit:
+        ai --adapter agent:image-gen 
+        # anonymous agent
+        ai @ --instruction "You are an anonymous agent" --message "help me with my finance"
+        @ "if $total is greater than 5 then call @crawl, otherwise run @report"
+
+      # type: sequence
       # actions:
       #   - |
       #     @search weahter in new york
@@ -20,4 +97,12 @@ agents:
       - "agent:tool"
       - "agent:new"
       - "vars:*"
+
+  - name: "flow/sequence"
+    display: "🚀 sequence Flow Control"
+    description: "Flow Orchestrator using bash script"
+
+  - name: "flow/shell"
+    display: "🚀 Shell Flow Control"
+    description: "Flow Orchestrator using bash script"
 ###

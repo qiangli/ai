@@ -1,0 +1,20 @@
+##
+pack: gpte
+model: default/L1
+max_history: 0
+log_level: verbose
+agents:
+  - name: "to_file_dict"
+    display: "File to Code Block Mapper"
+    description: |
+      Extracts file paths and code blocks from input strings,
+      intelligently filtering out extraneous content, and outputs a JSON
+      dictionary mapping filenames to code blocks.
+    instruction:
+      content: |
+        Your task is to analyze input queries to identify and extract file paths
+        along with their corresponding code blocks. Filter out any unrelated
+        content and return a structured JSON object where each file path serves
+        as a key and its associated code block is the value. This role excels
+        at organizing code snippets by file location, even when the input
+        contains extraneous information.

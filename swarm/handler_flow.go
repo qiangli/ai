@@ -138,11 +138,11 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 		result, _ = h.sw.Vars.Global.Get(globalQuery)
 	}
 
-	list := unmarshalResultList(result)
+	tasks := unmarshalResultList(result)
 
 	var wg sync.WaitGroup
-	var resps = make([]*api.Response, len(list))
-	for i, v := range list {
+	var resps = make([]*api.Response, len(tasks))
+	for i, v := range tasks {
 		wg.Add(1)
 		go func(i int, v string) {
 			defer wg.Done()
