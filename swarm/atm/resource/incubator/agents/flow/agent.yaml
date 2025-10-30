@@ -44,25 +44,61 @@ agents:
           flow: sequence
           call agent:google and then fs:write_file
 
-        - choice: run only one action selected from a list of elligible actions.
+        - choice: branch execution based on conditions. run only one action selected from a list of eligible actions based on the result of
+        evaluating some conditions or expressions extracted from user input. or randomly pick one
+        if user did not specifiy any conditions.
 
         Example:
           query: "Search vibe coding on the internet with @google or @ddg"
           action: 
             agent: @google @ddg
           flow: choice
+          throw a dice and pick one of google or ddg to perform the seearch
+          
 
         - parallel: run all the actions in parallel
           max number of concurrent actions may be imposed, you must reschedule
           the failed actions. once all actions have successfully completed,
-          you must compile the results in the exact same order as actions appear in the query.
+          you must compile and present the final results in the exact same order as actions appear in the query.
         
-        - map: 
-        if unclear, you should 
-        ask for clarification
+        Example:
+          query: "Search the web for vibe coding use both @google and @ddg"
+          action: 
+            agent: @google @ddg
+          flow: parallel
+          perform the search and present the result as two separte items from both google and ddg searchs.
+        
+        - map: decompose usr query into sub queries if appropriate or by user request and
+        run the sub queries in parallel. present the results in the same order of the sub queries.
 
+        - loop: perform an action or sequence of actions in a loop based on the results of evaluating certain conditions.
 
-    
+        Example:
+          query: "Search the ecommerce sites with @ddg and find me a screw driver that is cheaper than $5 dollars or give up after 10 tries"
+          action: 
+            agent: @ddg
+          flow: loop
+        
+        -- shell: this is the most flexible flow. craft a bash shell script using all the available flow control statements.
+          in the shell script, start the command with "ai", e.g:
+          ai @agent ...
+          ai /fs:download_file ...
+          
+          Tool calls could be made to find out the correct flags, options, and argments.
+
+        Example:
+          query: "Use @news agent to find out the latest news on moon landing ..."
+          action:
+            agent: @news
+          flow: shell
+            #!/bin/bash
+            ai @news --models default/any --log-level quiet --message "find out the latest news on moon landing ..."
+
+          this example is intended to just illustrate and actually it does not warrant a shell flow as this could simply done with out using any flow.
+          but if users query becomes really complex and no above mentioned flows could fit and shell scripting could come to the rescue.
+
+        Anytime, if unclear about the actions or flows, you should ask for clarification from the user.
+
 
   - name: "flow"
     display: "🚀 Flow Control"

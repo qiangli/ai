@@ -323,26 +323,30 @@ type FlowType string
 const (
 	// actions are executed sequentially
 	FlowTypeSequence FlowType = "sequence"
-	// actions are executed in parallel and the final result will be a list
-	FlowTypeParallel FlowType = "parallel"
-	// action(s) are executed in a loop with a counter or expression evaluated for each cycle
-	FlowTypeLoop FlowType = "loop"
+
 	// one of the actions is selected based on an expression or randomly if no expression is provided
 	// expression must evaluate to an integer (zero based).
 	FlowTypeChoice FlowType = "choice"
+
+	// actions are executed in parallel and the final result will be a list
+	FlowTypeParallel FlowType = "parallel"
+
 	// The map flow creates a new array populated with the results of calling the action(s)
 	// on every item in the input array
 	FlowTypeMap FlowType = "map"
+
+	// action(s) are executed in a loop with a counter or expression evaluated for each cycle
+	FlowTypeLoop FlowType = "loop"
+
 	// The reduce flow executes the action(s) on each element of the array, in order,
 	// passing in the return value from the calculation on the preceding element.
 	// The final result of running the reducer across all elements of the array is returned as a single value.
 	// The first time that the flow is run, an initial value is read from the result of the previous agent
 	// or user query if the flow is the root agent.
 	FlowTypeReduce FlowType = "reduce"
-	// TBD
-	FlowTypeNest FlowType = "nest"
-	// Delegate the flow control to a shell (bash script syntax)
-	FlowTypeShell FlowType = "shell"
+
+	// Delegate the flow control to a shell script (bash script syntax)
+	FlowTypeScript FlowType = "script"
 )
 
 type FlowConfig struct {

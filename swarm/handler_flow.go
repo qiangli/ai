@@ -172,7 +172,7 @@ func (h *agentHandler) flowReduce(req *api.Request, resp *api.Response) error {
 	return api.NewUnsupportedError("reduce")
 }
 
-func (h *agentHandler) flowNest(req *api.Request, resp *api.Response) error {
+func (h *agentHandler) flowScript(req *api.Request, resp *api.Response) error {
 	return api.NewUnsupportedError("nest")
 }
 

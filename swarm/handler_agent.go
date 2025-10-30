@@ -118,8 +118,8 @@ func (h *agentHandler) doFlow(req *api.Request, resp *api.Response) error {
 			if err := h.flowReduce(req, resp); err != nil {
 				return err
 			}
-		case api.FlowTypeNest:
-			if err := h.flowNest(req, resp); err != nil {
+		case api.FlowTypeScript:
+			if err := h.flowScript(req, resp); err != nil {
 				return err
 			}
 		default:
@@ -338,12 +338,6 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 	} else {
 		model = v
 	}
-	//
-	// if ak, err := h.sw.Secrets.Get(h.agent.Owner, model.ApiKey); err != nil {
-	// 	return err
-	// } else {
-	// 	model.ApiKey = ak
-	// }
 
 	ak, err := h.sw.Secrets.Get(h.agent.Owner, model.ApiKey)
 	if err != nil {
