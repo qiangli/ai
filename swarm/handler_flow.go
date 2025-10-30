@@ -1,15 +1,18 @@
 package swarm
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/rand"
 	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/shell/tool/sh"
 )
 
 // flow actions
@@ -33,6 +36,8 @@ func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api
 	return nil
 }
 
+// FlowTypeSequence executes actions one after another, where each
+// subsequent action uses the previous action's response as input.
 func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error {
 	ctx := req.Context()
 	nreq := req.Clone()
@@ -45,10 +50,15 @@ func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error 
 			Message: nresp.Result.Value,
 		}
 	}
+
+	// final result
 	resp.Result = nresp.Result
 	return nil
 }
 
+// FlowTypeLoop executes actions repetitively in a loop. The loop can use a counter or
+// evaluate an expression for each iteration, allowing for repeated execution with varying
+// parameters or conditions.
 func (h *agentHandler) flowLoop(req *api.Request, resp *api.Response) error {
 	eval := func(exp string) (bool, error) {
 		v, err := h.applyTemplate(exp, h.sw.Vars.Global)
@@ -67,6 +77,7 @@ func (h *agentHandler) flowLoop(req *api.Request, resp *api.Response) error {
 			return nil
 		}
 		if ok {
+			// use the same request and respone
 			if err := h.flowSequence(req, resp); err != nil {
 				return err
 			}
@@ -74,16 +85,19 @@ func (h *agentHandler) flowLoop(req *api.Request, resp *api.Response) error {
 	}
 }
 
+// FlowTypeParallel executes actions simultaneously, returning the combined results as a list.
+// This allows for concurrent processing of independent actions.
 func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error {
-	var wg sync.WaitGroup
-
-	var resps = make([]*api.Response, len(h.agent.Flow.Actions))
 	var ctx = req.Context()
+	var resps = make([]*api.Response, len(h.agent.Flow.Actions))
+
+	var wg sync.WaitGroup
 	for i, v := range h.agent.Flow.Actions {
 		wg.Add(1)
 		go func(i int, v *api.Action) {
 			defer wg.Done()
 
+			// use the same request
 			nresp := new(api.Response)
 			if err := h.doAction(ctx, req, nresp, v.Tool); err != nil {
 				nresp.Result = &api.Result{
@@ -101,6 +115,9 @@ func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error 
 	return nil
 }
 
+// FlowTypeChoice selects and executes a single action based on an evaluated expression.
+// If no expression is provided, an action is chosen randomly. The expression must evaluate
+// to an integer that selects the action index, starting from zero.
 func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
 	var which int
 	// evaluate express or random
@@ -130,6 +147,8 @@ func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
 	return nil
 }
 
+// FlowTypeMap applies specified action(s) to each element in the input array, creating a new
+// array populated with the results.
 func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 	// if the map flow is the first in the pipeline
 	// use query
@@ -140,8 +159,9 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 
 	tasks := unmarshalResultList(result)
 
-	var wg sync.WaitGroup
 	var resps = make([]*api.Response, len(tasks))
+
+	var wg sync.WaitGroup
 	for i, v := range tasks {
 		wg.Add(1)
 		go func(i int, v string) {
@@ -168,16 +188,67 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 	return nil
 }
 
+// FlowTypeReduce applies action(s) sequentially to each element of an input array, accumulating
+// results. It passes the result of each action as input to the next. The process returns a single
+// accumulated value. If at the root, an initial value is sourced from a previous agent or user query.
 func (h *agentHandler) flowReduce(req *api.Request, resp *api.Response) error {
-	return api.NewUnsupportedError("reduce")
+	// if the map flow is the first in the pipeline
+	// use query
+	result, ok := h.sw.Vars.Global.Get(globalResult)
+	if !ok {
+		result, _ = h.sw.Vars.Global.Get(globalQuery)
+	}
+
+	tasks := unmarshalResultList(result)
+
+	nreq := req.Clone()
+	// single response with empty initial result
+	nresp := new(api.Response)
+	nresp.Result = &api.Result{
+		Value: "",
+	}
+	const tpl = `
+Accumulator:
+	%s
+
+CurrentValue:
+	%s
+
+Index:
+	%v
+	`
+	for i, v := range tasks {
+		nreq.RawInput = &api.UserInput{
+			Message: fmt.Sprintf(tpl, nresp.Result.Value, v, i),
+		}
+		if err := h.flowSequence(nreq, nresp); err != nil {
+			nresp.Result = &api.Result{
+				Value: err.Error(),
+			}
+		}
+	}
+
+	resp.Result = nresp.Result
+	return nil
 }
 
+// FlowTypeScript delegates control to a shell script using bash script syntax, enabling
+// complex flow control scenarios driven by external scripting logic.
 func (h *agentHandler) flowScript(req *api.Request, resp *api.Response) error {
-	return api.NewUnsupportedError("nest")
+	if h.agent.Flow == nil || h.agent.Flow.Script == "" {
+		return fmt.Errorf("missing script content for script flow: %v", h.agent.Name)
+	}
+
+	result := runScript(h.agent.Flow.Script)
+	resp.Result = &api.Result{
+		Value: result,
+	}
+
+	return nil
 }
 
-// unmarshal result into a list.
-// if the result is not a list, return the the result as list
+// Unmarshal the result into a list.
+// If the result isn't a list, return the result as a single-item list.
 func unmarshalResultList(result any) []string {
 	var s string
 	if v, ok := result.(string); ok {
@@ -203,4 +274,41 @@ func marshalResponseList(resps []*api.Response) string {
 		return strings.Join(results, " ")
 	}
 	return string(b)
+}
+
+// TODO config script runner in app config
+func runScript(script string) string {
+	prStdout, pwStdout := io.Pipe()
+	prStderr, pwStderr := io.Pipe()
+	defer prStdout.Close()
+	defer prStderr.Close()
+
+	ioe := &sh.IOE{Stdin: nil, Stdout: pwStdout, Stderr: pwStderr}
+	defer pwStdout.Close()
+	defer pwStderr.Close()
+
+	vs := sh.NewLocalSystem(ioe)
+	args := []string{"-c", script}
+	sh.Gosh(vs, args)
+
+	outputChan := make(chan string)
+	errorChan := make(chan string)
+
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, prStdout)
+		outputChan <- buf.String()
+	}()
+
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, prStderr)
+		errorChan <- buf.String()
+	}()
+
+	result := <-outputChan
+	if err := <-errorChan; err != "" {
+		result = fmt.Sprintf("%s\nError: %s", result, err)
+	}
+	return result
 }

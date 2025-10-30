@@ -182,6 +182,7 @@ type Flow struct {
 	Concurrency int
 	Retry       int
 	Actions     []*Action
+	Script      string
 }
 
 type Action struct {
@@ -321,31 +322,35 @@ type Instruction struct {
 type FlowType string
 
 const (
-	// actions are executed sequentially
+	// FlowTypeSequence executes actions one after another, where each
+	// subsequent action uses the previous action's response as input.
 	FlowTypeSequence FlowType = "sequence"
 
-	// one of the actions is selected based on an expression or randomly if no expression is provided
-	// expression must evaluate to an integer (zero based).
+	// FlowTypeChoice selects and executes a single action based on an evaluated expression.
+	// If no expression is provided, an action is chosen randomly. The expression must evaluate
+	// to an integer that selects the action index, starting from zero.
 	FlowTypeChoice FlowType = "choice"
 
-	// actions are executed in parallel and the final result will be a list
+	// FlowTypeParallel executes actions simultaneously, returning the combined results as a list.
+	// This allows for concurrent processing of independent actions.
 	FlowTypeParallel FlowType = "parallel"
 
-	// The map flow creates a new array populated with the results of calling the action(s)
-	// on every item in the input array
+	// FlowTypeMap applies specified action(s) to each element in the input array, creating a new
+	// array populated with the results.
 	FlowTypeMap FlowType = "map"
 
-	// action(s) are executed in a loop with a counter or expression evaluated for each cycle
+	// FlowTypeLoop executes actions repetitively in a loop. The loop can use a counter or
+	// evaluate an expression for each iteration, allowing for repeated execution with varying
+	// parameters or conditions.
 	FlowTypeLoop FlowType = "loop"
 
-	// The reduce flow executes the action(s) on each element of the array, in order,
-	// passing in the return value from the calculation on the preceding element.
-	// The final result of running the reducer across all elements of the array is returned as a single value.
-	// The first time that the flow is run, an initial value is read from the result of the previous agent
-	// or user query if the flow is the root agent.
+	// FlowTypeReduce applies action(s) sequentially to each element of an input array, accumulating
+	// results. It passes the result of each action as input to the next. The process returns a single
+	// accumulated value. If at the root, an initial value is sourced from a previous agent or user query.
 	FlowTypeReduce FlowType = "reduce"
 
-	// Delegate the flow control to a shell script (bash script syntax)
+	// FlowTypeScript delegates control to a shell script using bash script syntax, enabling
+	// complex flow control scenarios driven by external scripting logic.
 	FlowTypeScript FlowType = "script"
 )
 
@@ -353,10 +358,15 @@ type FlowConfig struct {
 	Type FlowType `yaml:"type"`
 
 	// go template syntax
-	Expression  string   `yaml:"expression"`
-	Concurrency int      `yaml:"concurrency"`
-	Retry       int      `yaml:"retry"`
-	Actions     []string `yaml:"actions"`
+	Expression  string `yaml:"expression"`
+	Concurrency int    `yaml:"concurrency"`
+	Retry       int    `yaml:"retry"`
+
+	// agent/tool list for non script flow
+	Actions []string `yaml:"actions"`
+
+	// content of the script for flow type: script
+	Script string `yaml:"script"`
 }
 
 type Resource struct {

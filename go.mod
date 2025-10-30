@@ -1,8 +1,8 @@
 module github.com/qiangli/ai
 
-go 1.24.0
+go 1.24.7
 
-toolchain go1.24.3
+toolchain go1.24.9
 
 require (
 	dario.cat/mergo v1.0.2
@@ -46,6 +46,7 @@ require (
 	github.com/openai/openai-go/v2 v2.7.1
 	github.com/openai/openai-go/v3 v3.6.1
 	github.com/qiangli/filesearch v0.0.0-20250727212022-dcfddd1c92de
+	github.com/qiangli/shell v0.0.2
 	github.com/sahilm/fuzzy v0.1.1
 	github.com/shirou/gopsutil/v4 v4.25.9
 	github.com/spf13/cobra v1.10.1
@@ -214,6 +215,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gotest.tools/v3 v3.5.1 // indirect
 	layeh.com/gopher-luar v1.0.11 // indirect
+	mvdan.cc/sh/v3 v3.12.0 // indirect
 )
 
 replace github.com/zyedidia/micro/v2 => github.com/qiangli/micro/v2 v2.0.5
