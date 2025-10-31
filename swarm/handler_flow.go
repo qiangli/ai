@@ -11,7 +11,10 @@ import (
 	"strings"
 	"sync"
 
+	"mvdan.cc/sh/v3/interp"
+
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/shell/tool/sh"
 )
 
@@ -239,7 +242,9 @@ func (h *agentHandler) flowScript(req *api.Request, resp *api.Response) error {
 		return fmt.Errorf("missing script content for script flow: %v", h.agent.Name)
 	}
 
-	result := h.runScript(h.agent.Flow.Script)
+	ctx := req.Context()
+
+	result := h.runScript(ctx, h.agent.Flow.Script)
 	resp.Result = &api.Result{
 		Value: result,
 	}
@@ -247,7 +252,24 @@ func (h *agentHandler) flowScript(req *api.Request, resp *api.Response) error {
 	return nil
 }
 
-func (h *agentHandler) runScript(script string) string {
+func (h *agentHandler) newExecHandler(ioe *sh.IOE) sh.ExecHandler {
+
+	return func(ctx context.Context, args []string) (bool, error) {
+		log.GetLogger(ctx).Debugf("parent: %s args: %+v\n", h.agent.Name, args)
+		if args[0] == "ai" || strings.HasPrefix(args[0], "@") {
+			fmt.Fprintf(ioe.Stdout, "ai args: %+v\n", args)
+			return true, nil
+		}
+		// allow bash built in
+		if interp.IsBuiltin(args[0]) {
+			return false, nil
+		}
+		// block other commands
+		return true, nil
+	}
+}
+
+func (h *agentHandler) runScript(ctx context.Context, script string) string {
 	prStdout, pwStdout := io.Pipe()
 	prStderr, pwStderr := io.Pipe()
 	defer prStdout.Close()
@@ -260,9 +282,8 @@ func (h *agentHandler) runScript(script string) string {
 	// global env
 	//TODO
 	vs := sh.NewVirtualSystem(h.sw.OS, h.sw.Workspace, ioe)
-
-	args := []string{"-c", script}
-	sh.Gosh(vs, args)
+	vs.ExecHandler = h.newExecHandler(ioe)
+	vs.RunScript(ctx, script)
 
 	outputChan := make(chan string)
 	errorChan := make(chan string)
