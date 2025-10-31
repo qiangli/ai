@@ -12,8 +12,10 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
-	"github.com/qiangli/ai/swarm/vfs"
-	"github.com/qiangli/ai/swarm/vos"
+	// "github.com/qiangli/ai/swarm/vfs"
+	// "github.com/qiangli/ai/swarm/vos"
+	"github.com/qiangli/shell/tool/sh/vfs"
+	"github.com/qiangli/shell/tool/sh/vos"
 )
 
 func RunAgent(ctx context.Context, app *api.AppConfig) error {
@@ -86,15 +88,15 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	var tools = swarm.NewToolSystem(user, secrets, assets, lfs, los)
 
 	sw := &swarm.Swarm{
-		Vars:     vars,
-		User:     user,
-		Secrets:  secrets,
-		Assets:   assets,
-		Tools:    tools,
-		Adapters: adapters,
-		Blobs:    blobs,
-		OS:       los,
-		FS:       lfs,
+		Vars:      vars,
+		User:      user,
+		Secrets:   secrets,
+		Assets:    assets,
+		Tools:     tools,
+		Adapters:  adapters,
+		Blobs:     blobs,
+		OS:        los,
+		Workspace: lfs,
 		//
 		History: mem,
 	}

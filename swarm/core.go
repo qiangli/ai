@@ -10,8 +10,8 @@ import (
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
-	"github.com/qiangli/ai/swarm/vfs"
-	"github.com/qiangli/ai/swarm/vos"
+	"github.com/qiangli/shell/tool/sh/vfs"
+	"github.com/qiangli/shell/tool/sh/vos"
 )
 
 // global key
@@ -31,32 +31,11 @@ type Swarm struct {
 
 	Blobs api.BlobStore
 
-	OS vos.System
-	FS vfs.FileSystem
+	OS        vos.System
+	Workspace vfs.Workspace
 
 	History api.MemStore
 }
-
-// func (s *Swarm) Clone() *Swarm {
-// 	return &Swarm{
-// 		Vars: s.Vars.Clone(),
-// 		//
-// 		User: s.User,
-// 		//
-// 		Secrets: s.Secrets,
-// 		Assets:  s.Assets,
-// 		Tools:   s.Tools,
-// 		//
-// 		Adapters: s.Adapters,
-// 		//
-// 		Blobs: s.Blobs,
-// 		//
-// 		OS: s.OS,
-// 		FS: s.FS,
-// 		//
-// 		History: s.History,
-// 	}
-// }
 
 // Function to clear all environment variables execep essential ones
 func ClearAllEnv() {

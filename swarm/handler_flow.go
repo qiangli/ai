@@ -239,12 +239,49 @@ func (h *agentHandler) flowScript(req *api.Request, resp *api.Response) error {
 		return fmt.Errorf("missing script content for script flow: %v", h.agent.Name)
 	}
 
-	result := runScript(h.agent.Flow.Script)
+	result := h.runScript(h.agent.Flow.Script)
 	resp.Result = &api.Result{
 		Value: result,
 	}
 
 	return nil
+}
+
+func (h *agentHandler) runScript(script string) string {
+	prStdout, pwStdout := io.Pipe()
+	prStderr, pwStderr := io.Pipe()
+	defer prStdout.Close()
+	defer prStderr.Close()
+
+	ioe := &sh.IOE{Stdin: nil, Stdout: pwStdout, Stderr: pwStderr}
+	defer pwStdout.Close()
+	defer pwStderr.Close()
+
+	vs := sh.NewVirtualSystem(h.sw.OS, h.sw.Workspace, ioe)
+
+	args := []string{"-c", script}
+	sh.Gosh(vs, args)
+
+	outputChan := make(chan string)
+	errorChan := make(chan string)
+
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, prStdout)
+		outputChan <- buf.String()
+	}()
+
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, prStderr)
+		errorChan <- buf.String()
+	}()
+
+	result := <-outputChan
+	if err := <-errorChan; err != "" {
+		result = fmt.Sprintf("%s\nError: %s", result, err)
+	}
+	return result
 }
 
 // Unmarshal the result into a list.
@@ -274,41 +311,4 @@ func marshalResponseList(resps []*api.Response) string {
 		return strings.Join(results, " ")
 	}
 	return string(b)
-}
-
-// TODO config script runner in app config
-func runScript(script string) string {
-	prStdout, pwStdout := io.Pipe()
-	prStderr, pwStderr := io.Pipe()
-	defer prStdout.Close()
-	defer prStderr.Close()
-
-	ioe := &sh.IOE{Stdin: nil, Stdout: pwStdout, Stderr: pwStderr}
-	defer pwStdout.Close()
-	defer pwStderr.Close()
-
-	vs := sh.NewLocalSystem(ioe)
-	args := []string{"-c", script}
-	sh.Gosh(vs, args)
-
-	outputChan := make(chan string)
-	errorChan := make(chan string)
-
-	go func() {
-		var buf bytes.Buffer
-		io.Copy(&buf, prStdout)
-		outputChan <- buf.String()
-	}()
-
-	go func() {
-		var buf bytes.Buffer
-		io.Copy(&buf, prStderr)
-		errorChan <- buf.String()
-	}()
-
-	result := <-outputChan
-	if err := <-errorChan; err != "" {
-		result = fmt.Sprintf("%s\nError: %s", result, err)
-	}
-	return result
 }

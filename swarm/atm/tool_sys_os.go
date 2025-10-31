@@ -6,13 +6,13 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-func (r *SystemKit) Man(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	command, err := r.getStr("command", args)
-	if err != nil {
-		return "", err
-	}
-	return r.os.Man(command)
-}
+// func (r *SystemKit) Man(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+// 	command, err := r.getStr("command", args)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return r.os.Man(command)
+// }
 
 func (r *SystemKit) Run(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	command, err := r.getStr("command", args)

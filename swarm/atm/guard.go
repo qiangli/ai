@@ -15,7 +15,8 @@ import (
 	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
-	"github.com/qiangli/ai/swarm/vos"
+	// "github.com/qiangli/ai/swarm/vos"
+	"github.com/qiangli/shell/tool/sh/vos"
 )
 
 type ContextKey string
