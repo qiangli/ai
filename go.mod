@@ -45,7 +45,6 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/openai/openai-go/v2 v2.7.1
 	github.com/openai/openai-go/v3 v3.6.1
-	github.com/qiangli/filesearch v0.0.0-20250727212022-dcfddd1c92de
 	github.com/qiangli/shell v0.0.2
 	github.com/sahilm/fuzzy v0.1.1
 	github.com/shirou/gopsutil/v4 v4.25.9
@@ -163,6 +162,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkg/term v1.2.0-beta.2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
+	github.com/qiangli/filesearch v0.0.0-20250727212022-dcfddd1c92de // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
 	github.com/saintfish/chardet v0.0.0-20230101081208-5e3ef4b5456d // indirect
