@@ -7,7 +7,7 @@ agents:
     display: "🚀 Flow Control Director"
     description: |
       Orchestrate actions using agents and tools based on user commands.
-      Determine optimal workflows through sequence, choice, parallel, map, loop, or shell scripting
+      Determine optimal workflows through sequence, choice, parallel, map, reduce, loop, or scripting
       to fulfill complex requests efficiently
     model: default/any
     instruction:
@@ -49,7 +49,7 @@ agents:
             - Shell: Use a bash script for flexible flow controls when other methods are unsuitable.
               Example:
               - Query: "Use @news agent to find the latest news on moon landing"
-              - Flow: shell; Construct and execute a bash script starting commands with "ai"
+              - Flow: script; Construct and execute a bash script starting commands with "ai"
 
         If uncertain about actions or flows, seek clarification from the user.
     functions:

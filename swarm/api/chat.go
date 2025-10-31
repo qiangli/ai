@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"maps"
 	"strings"
 	"time"
 )
@@ -97,9 +98,7 @@ func (r *Request) Clone() *Request {
 
 	if r.Arguments != nil {
 		r2.Arguments = make(map[string]any, len(r.Arguments))
-		for k, v := range r.Arguments {
-			r2.Arguments[k] = v
-		}
+		maps.Copy(r2.Arguments, r.Arguments)
 	}
 	return r2
 }

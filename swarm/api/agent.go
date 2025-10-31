@@ -2,6 +2,7 @@ package api
 
 import (
 	"html/template"
+	"maps"
 	"strings"
 )
 
@@ -146,6 +147,8 @@ type Agent struct {
 
 	//
 	Embed []*Agent
+
+	Environment map[string]any
 }
 
 func (a *Agent) Clone() *Agent {
@@ -172,7 +175,8 @@ func (a *Agent) Clone() *Agent {
 		//
 		Flow: a.Flow,
 		//
-		Embed: a.Embed,
+		Embed:       a.Embed,
+		Environment: a.cloneEnvironment(),
 	}
 }
 
@@ -194,9 +198,16 @@ func (a *Agent) cloneArguments() map[string]any {
 		return nil
 	}
 	clone := make(map[string]any, len(a.Arguments))
-	for k, v := range a.Arguments {
-		clone[k] = v
+	maps.Copy(clone, a.Arguments)
+	return clone
+}
+
+func (a *Agent) cloneEnvironment() map[string]any {
+	if a.Environment == nil {
+		return nil
 	}
+	clone := make(map[string]any, len(a.Environment))
+	maps.Copy(clone, a.Environment)
 	return clone
 }
 
@@ -247,6 +258,9 @@ type AgentsConfig struct {
 	BaseUrl  string `yaml:"base_url"`
 	// api lookup key
 	ApiKey string `yaml:"api_key"`
+
+	// pack level global vars
+	Environment map[string]any `yaml:"environment"`
 }
 
 type AgentConfig struct {
@@ -294,6 +308,9 @@ type AgentConfig struct {
 
 	// default values for parameters
 	Arguments map[string]any `yaml:"arguments"`
+
+	// agent global vars
+	Environment map[string]any `yaml:"environment"`
 
 	// security
 	Filters []*IOFilter  `yaml:"filters"`

@@ -37,12 +37,6 @@ func (g *Global) Add(src map[string]any) {
 	maps.Copy(g.env, src)
 }
 
-// func (g *Global) CopyTo(dst map[string]any) {
-// 	g.mu.Lock()
-// 	defer g.mu.Unlock()
-// 	maps.Copy(dst, g.env)
-// }
-
 // thread safe access the env
 func (g *Global) Apply(fn func(map[string]any) error) error {
 	g.mu.Lock()

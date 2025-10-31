@@ -3,6 +3,7 @@ package conf
 import (
 	"context"
 	"fmt"
+	"maps"
 	"os"
 	"path"
 	"strings"
@@ -305,6 +306,15 @@ func CreateAgent(ctx context.Context, vars *api.Vars, agent string, auth *api.Us
 			MaxSpan:    nzl(vars.MaxSpan, c.MaxSpan, ac.MaxSpan, defaultMaxSpan),
 			//
 		}
+		// merge global vars
+		agent.Environment = ac.Environment
+		if len(c.Environment) > 0 {
+			if agent.Environment == nil {
+				agent.Environment = make(map[string]any)
+			}
+			maps.Copy(agent.Environment, c.Environment)
+		}
+
 		// log
 		agent.LogLevel = api.ToLogLevel(nvl(vars.LogLevel.String(), c.LogLevel, ac.LogLevel, "quiet"))
 
