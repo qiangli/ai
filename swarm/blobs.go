@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/vfs"
+	"github.com/qiangli/shell/tool/sh/vfs"
 )
 
 type BlobStorage struct {

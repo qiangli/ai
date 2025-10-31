@@ -257,6 +257,8 @@ func (h *agentHandler) runScript(script string) string {
 	defer pwStdout.Close()
 	defer pwStderr.Close()
 
+	// global env
+	//TODO
 	vs := sh.NewVirtualSystem(h.sw.OS, h.sw.Workspace, ioe)
 
 	args := []string{"-c", script}
