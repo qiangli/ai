@@ -1,5 +1,11 @@
 package api
 
+// agent or tool
+type AgentTool struct {
+	Agent *Agent
+	Tool  *ToolFunc
+}
+
 // per session values for AppConfig
 type App struct {
 	// root agent

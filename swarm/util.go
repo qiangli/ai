@@ -3,11 +3,8 @@ package swarm
 import (
 	"encoding/base64"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"strings"
-
-	"github.com/qiangli/ai/swarm/api"
 )
 
 func clip(s string, max int) string {
@@ -173,79 +170,4 @@ func abbreviate(s string, maxLen int) string {
 		return start + "..." + end
 	}
 	return s
-}
-
-// Custom type for string array
-type stringSlice []string
-
-// String method to satisfy the flag.Value interface
-func (s *stringSlice) String() string {
-	return fmt.Sprint(*s)
-}
-
-// Set method to satisfy the flag.Value interface
-func (s *stringSlice) Set(value string) error {
-	*s = append(*s, value)
-	return nil
-}
-
-func parseCommandFlags(args []string) (*api.Agent, error) {
-	fs := flag.NewFlagSet("swarm_bash_flow", flag.ContinueOnError)
-
-	var arg stringSlice
-	fs.Var(&arg, "arg", "argument name=value (can be used multiple times)")
-	arguments := fs.String("arguments", "", "arguments map in JSON format")
-	//
-	instruction := fs.String("instruction", "", "System role prompt message")
-	message := fs.String("message", "", "User input message")
-	maxHistory := fs.Int("max-history", 0, "Max historic messages to retrieve")
-	maxSpan := fs.Int("max-span", 0, "Historic message retrieval span (minutes)")
-	maxTurns := fs.Int("max-turns", 3, "Max conversation turns")
-	maxTime := fs.Int("max-time", 30, "Max timeout (seconds)")
-	format := fs.String("format", "markdown", "Output as raw, text, json, or markdown")
-	logLevel := fs.String("log-level", "", "Log level: quiet, info, verbose, trace")
-
-	err := fs.Parse(args)
-	if err != nil {
-		return nil, err
-	}
-
-	var agent = api.Agent{
-		Instruction: &api.Instruction{Content: *instruction},
-		RawInput:    &api.UserInput{Message: *message},
-		//
-		MaxHistory: *maxHistory,
-		MaxSpan:    *maxSpan,
-		MaxTurns:   *maxTurns,
-		MaxTime:    *maxTime,
-		Format:     *format,
-		LogLevel:   api.ToLogLevel(*logLevel),
-	}
-
-	agentArgs := make(map[string]any)
-	// Parse individual args
-	for _, v := range arg {
-		parts := strings.SplitN(v, "=", 2)
-		if len(parts) == 2 {
-			agentArgs[parts[0]] = parts[1]
-		} else {
-			return nil, fmt.Errorf("invalid argument format: %s", v)
-		}
-	}
-	// Parse JSON arguments
-	if *arguments != "" {
-		var jsonArgs map[string]any
-		if err := json.Unmarshal([]byte(*arguments), &jsonArgs); err != nil {
-			return nil, fmt.Errorf("invalid JSON arguments: %w", err)
-		}
-		// Merge JSON arguments into appArgs, respecting precedence
-		for key, value := range jsonArgs {
-			if _, exists := agentArgs[key]; !exists {
-				agentArgs[key] = value
-			}
-		}
-	}
-	agent.Arguments = agentArgs
-
-	return &agent, nil
 }

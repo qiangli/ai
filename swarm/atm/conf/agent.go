@@ -304,7 +304,6 @@ func CreateAgent(ctx context.Context, vars *api.Vars, agent string, auth *api.Us
 			New:        nbl(vars.New, c.New, ac.New),
 			MaxHistory: nzl(vars.MaxHistory, c.MaxHistory, ac.MaxHistory, defaultMaxHistory),
 			MaxSpan:    nzl(vars.MaxSpan, c.MaxSpan, ac.MaxSpan, defaultMaxSpan),
-			//
 		}
 		// merge global vars
 		agent.Environment = ac.Environment

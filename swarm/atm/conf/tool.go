@@ -197,7 +197,7 @@ func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 			return nil, fmt.Errorf("Missing tool type: %s", tc.Kit)
 		}
 		// load separately
-		if toolType == api.ToolTypeMcp {
+		if toolType == string(api.ToolTypeMcp) {
 			continue
 		}
 
@@ -304,8 +304,8 @@ func loadAgentTool(ac *api.AgentsConfig, name string) ([]*api.ToolFunc, error) {
 			maps.Copy(params, c.Parameters)
 
 			tool := &api.ToolFunc{
-				Kit:         api.ToolTypeAgent,
-				Type:        api.ToolTypeAgent,
+				Kit:         string(api.ToolTypeAgent),
+				Type:        string(api.ToolTypeAgent),
 				Name:        c.Name,
 				Description: c.Description,
 				Parameters:  params,

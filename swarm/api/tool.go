@@ -6,13 +6,16 @@ import (
 	"strings"
 )
 
+// TODO real type of string
+type ToolType = string
+
 const (
-	ToolTypeFunc   = "func"
-	ToolTypeSystem = "system"
-	ToolTypeWeb    = "web"
-	ToolTypeMcp    = "mcp"
-	ToolTypeFaas   = "faas"
-	ToolTypeAgent  = "agent"
+	ToolTypeFunc   ToolType = "func"
+	ToolTypeSystem ToolType = "system"
+	ToolTypeWeb    ToolType = "web"
+	ToolTypeMcp    ToolType = "mcp"
+	ToolTypeFaas   ToolType = "faas"
+	ToolTypeAgent  ToolType = "agent"
 )
 
 type ToolRunner func(context.Context, string, map[string]any) (*Result, error)
@@ -32,8 +35,6 @@ type ToolFunc struct {
 
 	//
 	State State
-	//
-	// Config *ToolsConfig
 
 	//
 	Provider string
@@ -42,6 +43,32 @@ type ToolFunc struct {
 	ApiKey string
 
 	Extra map[string]any
+}
+
+func (r *ToolFunc) Clone() *ToolFunc {
+	// Create a new ToolFunc
+	clone := *r
+
+	// NOTE Deep copy the Body?
+	clone.Body = r.Body
+
+	// Deep copy the Parameters map
+	if r.Parameters != nil {
+		clone.Parameters = make(map[string]any, len(r.Parameters))
+		for k, v := range r.Parameters {
+			clone.Parameters[k] = v
+		}
+	}
+
+	// Deep copy the Extra map
+	if r.Extra != nil {
+		clone.Extra = make(map[string]any, len(r.Extra))
+		for k, v := range r.Extra {
+			clone.Extra[k] = v
+		}
+	}
+
+	return &clone
 }
 
 // ID returns a unique identifier for the tool,
@@ -174,6 +201,13 @@ func (r KitName) String() string {
 	return string(r)
 }
 
+// agent:
+// agent__
+func (r KitName) IsAgent() bool {
+	kit, _ := r.Decode()
+	return kit == string(ToolTypeAgent)
+}
+
 // kit__name
 // kit:*
 // kit:name
@@ -215,6 +249,11 @@ func (r KitName) Decode() (string, string) {
 		kit, name = split2(s, ":", "*")
 	}
 	return kit, name
+}
+
+func (r KitName) ID() string {
+	kit, name := r.Decode()
+	return fmt.Sprintf("%s__%s", kit, name)
 }
 
 type ToolGuard struct {
