@@ -33,22 +33,18 @@ func (s *stringSlice) Set(value string) error {
 // @ args...
 // / args...
 func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
-	var name string
+	if len(args) == 0 {
+		return nil, fmt.Errorf("missing args")
+	}
 	// ignore trigger word "ai"
-	if len(args) > 0 {
-		name = strings.ToLower(args[0])
-		if name == "ai" {
-			args = args[1:]
-		}
+	if len(args) > 0 && strings.ToLower(args[0]) == "ai" {
+		args = args[1:]
 	}
 	if len(args) == 0 {
 		return nil, fmt.Errorf("empty command line")
 	}
-	if name == "" {
-		name = args[0]
-		args = args[1:]
-	}
-	name = strings.ToLower(name)
+	var name = strings.ToLower(args[0])
+	args = args[1:]
 
 	//
 	fs := flag.NewFlagSet("dhnt.io ai", flag.ContinueOnError)
@@ -59,6 +55,7 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 	//
 	var arg stringSlice
 	fs.Var(&arg, "arg", "argument name=value (can be used multiple times)")
+
 	// common args
 	maxHistory := fs.Int("max-history", 0, "Max historic messages to retrieve")
 	maxSpan := fs.Int("max-span", 0, "Historic message retrieval span (minutes)")
@@ -66,6 +63,12 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 	maxTime := fs.Int("max-time", 30, "Max timeout (seconds)")
 	format := fs.String("format", "json", "Output as text or json")
 	logLevel := fs.String("log-level", "", "Log level: quiet, info, verbose, trace")
+
+	err := fs.Parse(args)
+	if err != nil {
+		return nil, err
+	}
+
 	var common = map[string]any{
 		"max-history": *maxHistory,
 		"max-span":    *maxSpan,
@@ -75,9 +78,10 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 		"log-level":   *logLevel,
 	}
 
-	err := fs.Parse(args)
-	if err != nil {
-		return nil, err
+	// prepend messsage to non flag/option args
+	var msg = strings.Join(fs.Args(), " ")
+	if *message != "" {
+		msg = *message + " " + msg
 	}
 
 	// better way?
@@ -118,16 +122,16 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 		}
 	}
 
-	newAgent := func() *api.Agent {
+	newAgent := func(s string) *api.Agent {
 		return &api.Agent{
 			Owner: owner,
-			Name:  name[1:],
+			Name:  s,
 			//
 			Instruction: &api.Instruction{
 				Content: strings.TrimSpace(*instruction),
 			},
 			RawInput: &api.UserInput{
-				Message: strings.TrimSpace(*message),
+				Message: strings.TrimSpace(msg),
 			},
 			Arguments: atArgs,
 			//
@@ -137,8 +141,12 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 		}
 	}
 
-	newTool := func() *api.ToolFunc {
-		kit, name := api.KitName(name[1:]).Decode()
+	newTool := func(s string) *api.ToolFunc {
+		kit, name := api.KitName(s).Decode()
+		// add message as query arg for tools
+		// ideally parameters should be checked if query property is requested
+		// query is message+content
+		atArgs["query"] = message
 		return &api.ToolFunc{
 			Kit:       kit,
 			Name:      name,
@@ -153,9 +161,9 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 
 	switch name[0] {
 	case '@':
-		at.Agent = newAgent()
+		at.Agent = newAgent(name[1:])
 	case '/':
-		at.Tool = newTool()
+		at.Tool = newTool(name[1:])
 	default:
 		// unreachable
 		// system/builtin bash command

@@ -11,7 +11,7 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func (h *agentHandler) createCaller(user *api.User) api.ToolRunner {
+func (h *agentHandler) buildAgentToolMap() map[string]*api.ToolFunc {
 	toolMap := make(map[string]*api.ToolFunc)
 	// inherit tools of embedded agents
 	for _, agent := range h.agent.Embed {
@@ -23,6 +23,11 @@ func (h *agentHandler) createCaller(user *api.User) api.ToolRunner {
 	for _, v := range h.agent.Tools {
 		toolMap[v.ID()] = v
 	}
+	return toolMap
+}
+
+func (h *agentHandler) createCaller(user *api.User) api.ToolRunner {
+	toolMap := h.buildAgentToolMap()
 
 	return func(ctx context.Context, tid string, args map[string]any) (*api.Result, error) {
 		v, ok := toolMap[tid]

@@ -14,6 +14,7 @@ import (
 	"mvdan.cc/sh/v3/interp"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/shell/tool/sh"
 )
@@ -243,22 +244,56 @@ func (h *agentHandler) flowScript(req *api.Request, resp *api.Response) error {
 	}
 
 	ctx := req.Context()
-
-	result := h.runScript(ctx, h.agent.Flow.Script)
-	resp.Result = &api.Result{
-		Value: result,
+	if err := h.runScript(ctx, req, resp, h.agent.Flow.Script); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (h *agentHandler) newExecHandler(ioe *sh.IOE) sh.ExecHandler {
-
+func (h *agentHandler) newExecHandler(req *api.Request, resp *api.Response) sh.ExecHandler {
+	var memo = h.buildAgentToolMap()
 	return func(ctx context.Context, args []string) (bool, error) {
 		log.GetLogger(ctx).Debugf("parent: %s args: %+v\n", h.agent.Name, args)
-		if args[0] == "ai" || strings.HasPrefix(args[0], "@") {
-			fmt.Fprintf(ioe.Stdout, "ai: %+v\n", args)
-			return true, nil
+		isAi := func(s string) bool {
+			return s == "ai" || strings.HasPrefix(s, "@") || strings.HasPrefix(s, "/")
+		}
+		if isAi(strings.ToLower(args[0])) {
+			log.GetLogger(ctx).Debugf("running ai agent/tool: %+v\n", args)
+			at, err := conf.ParseAgentToolArgs(h.agent.Owner, args)
+			if err != nil {
+				return true, err
+			}
+			// agent tool
+			nreq := req.Clone()
+			nresp := new(api.Response)
+
+			var kit string
+			var name string
+			if at.Agent != nil {
+				nreq.Parent = h.agent
+				nreq.Name = at.Agent.Name
+				nreq.RawInput = at.Agent.RawInput
+				nreq.Arguments = at.Agent.Arguments
+				kit = "agent"
+				name = nvl(at.Agent.Name, "anonymous")
+			} else if at.Tool != nil {
+				nreq.Parent = h.agent
+				nreq.Name = at.Tool.Name
+				nreq.RawInput = &api.UserInput{}
+				nreq.Arguments = at.Tool.Arguments
+				kit = at.Tool.Kit
+				name = at.Tool.Name
+			} else {
+				// dicard
+				return true, nil
+			}
+			id := api.KitName(kit + ":" + name).ID()
+			v, ok := memo[id]
+			if !ok {
+				return true, fmt.Errorf("agent tool not declared for %s: %s", h.agent.Name, at.Agent.Name)
+			}
+			return true, h.doAction(ctx, nreq, nresp, v)
 		}
 		// allow bash built in
 		if interp.IsBuiltin(args[0]) {
@@ -269,7 +304,7 @@ func (h *agentHandler) newExecHandler(ioe *sh.IOE) sh.ExecHandler {
 	}
 }
 
-func (h *agentHandler) runScript(ctx context.Context, script string) string {
+func (h *agentHandler) runScript(ctx context.Context, req *api.Request, resp *api.Response, script string) error {
 	prStdout, pwStdout := io.Pipe()
 	prStderr, pwStderr := io.Pipe()
 	defer prStdout.Close()
@@ -281,9 +316,15 @@ func (h *agentHandler) runScript(ctx context.Context, script string) string {
 
 	// global env
 	//TODO
+	nreq := req.Clone()
+	nresp := new(api.Response)
+
 	vs := sh.NewVirtualSystem(h.sw.OS, h.sw.Workspace, ioe)
-	vs.ExecHandler = h.newExecHandler(ioe)
-	vs.RunScript(ctx, script)
+	vs.ExecHandler = h.newExecHandler(nreq, nresp)
+
+	if err := vs.RunScript(ctx, script); err != nil {
+		return err
+	}
 
 	outputChan := make(chan string)
 	errorChan := make(chan string)
@@ -300,11 +341,15 @@ func (h *agentHandler) runScript(ctx context.Context, script string) string {
 		errorChan <- buf.String()
 	}()
 
+	// record both ouput and error as the result
 	result := <-outputChan
 	if err := <-errorChan; err != "" {
 		result = fmt.Sprintf("%s\nError: %s", result, err)
 	}
-	return result
+	resp.Result = &api.Result{
+		Value: result,
+	}
+	return nil
 }
 
 // Unmarshal the result into a list.

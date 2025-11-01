@@ -1,26 +1,12 @@
 ###
-
-## agent pack
 pack: gpte
 # 
 # https://github.com/AntonOsika/gpt-engineer
 #
-model: default/L1
+model: gpte/L1
 max_history: 0
-log_level: info
+log_level: verbose
 agents:
-  - name: "gpte/user_input"
-    new: true
-    display: "🖥️  User Input"
-    description: "Detect user preferences for the GPT Researcher tool."
-    message: |
-      #! --mime-type=text/x-go-template
-      {{.original_query}}
-    instruction:
-      content: |
-        You are an agent designed to analyze user input to identify 
-    arguments: 
-
   - name: "gpte"
     new: true
     display: "🚀 GPT Engineer"
@@ -32,148 +18,38 @@ agents:
     arguments:
       original_query: "{{.query}}"
     flow:
-      type: "sequence"
-      actions:
-        - "agent:gpte/user_input"
-        - "agent:gpte/gen_code"
+      type: "script"
+      script: |
+        #!/bin/bash
+        /agent:gpte/search
     functions:
-      - "agent:gpte/user_input"
-      - "agent:gpte/gen_code"
+      - "agent:gpte/search"
   
-  - name: "gpte/user_input"
+  - name: "gpte/web_search"
     new: true
-    display: "🖥️  User Input"
-    description: "Detect user preferences for the GPT Researcher tool."
-    message: |
-      #! --mime-type=text/x-go-template
-      {{.original_query}}
+    display: "🔍 Web Search"
+    description: "Get web search results for a given query."
     instruction:
       content: |
-        You are an agent designed to analyze user input to identify 
-    arguments: 
-
-  - name: "gpte/choose_agent"
-    new: true
-    display: "🤖 Choose Agent"
-    description: "Chooses the agent automatically"
-    model: smart_llm/smart
-    arguments:
-      # temperature: 0.15
-    message: |
-      #! --mime-type=text/go-template
-      task: {{.original_query}}
-    instruction:
-      content: |
-        This task involves researching a given topic, regardless of its complexity or the availability of a definitive answer.
-
-  - name: "gpte/cli-agent"
-    new: true
-    display: "🤖 Choose Agent"
-    description: "Chooses the agent automatically"
-    model: smart_llm/smart
-    arguments:
-      # temperature: 0.15
-    message: |
-      #! --mime-type=text/go-template
-      task: {{.original_query}}
-    instruction:
-      content: |
-        The `CliAgent` class is responsible for managing the lifecycle of code generation and improvement
-        using an AI model. It orchestrates the generation of new code and the improvement of existing code
-        based on given prompts and utilizes a memory system and execution environment for processing.
-
-        Parameters
-        ----------
-        memory : BaseMemory
-            An instance of a class that adheres to the BaseMemory interface, used for storing and retrieving
-            information during the code generation process.
-        execution_env : BaseExecutionEnv
-            An instance of a class that adheres to the BaseExecutionEnv interface, used for executing code
-            and managing the execution environment.
-        ai : AI, optional
-            An instance of the AI class that manages calls to the language model. If not provided, a default
-            instance is created.
-        code_gen_fn : CodeGenType, optional
-            A callable that takes an AI instance, a prompt, and a memory instance to generate code. Defaults
-            to the `gen_code` function.
-        improve_fn : ImproveType, optional
-            A callable that takes an AI instance, a prompt, a FilesDict instance, and a memory instance to
-            improve code. Defaults to the `improve` function.
-        process_code_fn : CodeProcessor, optional
-            A callable that takes an AI instance, an execution environment, and a FilesDict instance to
-            process code. Defaults to the `execute_entrypoint` function.
-        preprompts_holder : PrepromptsHolder, optional
-            An instance of PrepromptsHolder that manages preprompt templates. If not provided, a default
-            instance is created using the PREPROMPTS_PATH.
-
-        Attributes
-        ----------
-        memory : BaseMemory
-            The memory instance where the agent stores and retrieves information.
-        execution_env : BaseExecutionEnv
-            The execution environment instance where the agent executes and manages code.
-        ai : AI
-            The AI instance used for interacting with the language model.
-        code_gen_fn : CodeGenType
-            The function used for generating code.
-        improve_fn : ImproveType
-            The function used for improving code.
-        process_code_fn : CodeProcessor
-            The function used for processing code.
-        preprompts_holder : PrepromptsHolder
-            The holder for preprompt templates.
-
-## LLM adapter
-adapters:
-  - name: "ai"
-    description: |
-      A class that interfaces with language models for conversation management and message serialization.
-
-      This class provides methods to start and advance conversations, handle message serialization,
-      and implement backoff strategies for rate limit errors when interacting with the OpenAI API.
-
-      Attributes
-      ----------
-      temperature : float
-          The temperature setting for the language model.
-      azure_endpoint : str
-          The endpoint URL for the Azure-hosted language model.
-      model_name : str
-          The name of the language model to use.
-      streaming : bool
-          A flag indicating whether to use streaming for the language model.
-      llm : BaseChatModel
-          The language model instance for conversation management.
-      token_usage_log : TokenUsageLog
-          A log for tracking token usage during conversations.
-
-      Methods
-      -------
-      start(system: str, user: str, step_name: str) -> List[Message]
-          Start the conversation with a system message and a user message.
-      next(messages: List[Message], prompt: Optional[str], step_name: str) -> List[Message]
-          Advances the conversation by sending message history to LLM and updating with the response.
-      backoff_inference(messages: List[Message]) -> Any
-          Perform inference using the language model with an exponential backoff strategy.
-      serialize_messages(messages: List[Message]) -> str
-          Serialize a list of messages to a JSON string.
-      deserialize_messages(jsondictstr: str) -> List[Message]
-          Deserialize a JSON string to a list of messages.
-      _create_chat_model() -> BaseChatModel
-          Create a chat model with the specified model name and temperature.    
-    arguments:
-      model: "gpt-4o"
-      temperature: 0.1
-      streaming: true
-      vision: false
-
+        As a web search assistant, you are responsible for processing user queries and providing accurate
+        search results from the web. When a user submits a query, analyze the main components of the query,
+        perform a web search using one or more available search tools, and return the most relevant results.
+        You may receive results in various formats such as plain text, markdown, json, or html. Extract and convert
+        these results into a uniform format that is easily readable and presentable to the user. You do not
+        need to use all tools. If a search tool fails due to reasons such as rate limiting or service
+        downtime, try another one. If all tools fail, wait for a few seconds and attempt again.
+    functions:
+      - "gpte:search"
+      - "ddg:*"
+      - "bing:*"
+      - "google:*"
+      - "brave:*"
 
 ## tool kit
 kit: "gpte"
-type: "file_store"
 tools:
   - name: "search"
-    description: "Search the web using available search tools and return formatted results"
+    description: "Search the web using DuckDuckGo and return search results."
     parameters:
       type: "object"
       properties:
@@ -188,17 +64,39 @@ tools:
           maximum: 10
       required:
         - query
-  
+    body:
+      language: python
+      code: |
+        import http.client
+        import urllib.parse
+        import ssl
+
+        def search(q): 
+            params = urllib.parse.urlencode({'q': q})
+            context = ssl._create_unverified_context()
+            conn = http.client.HTTPSConnection("html.duckduckgo.com", context=context)
+            conn.request("GET", f"/html/?{params}")
+            response = conn.getresponse()
+            data = response.read()
+            conn.close()
+            return data
+
+        def main(args):
+            q = args.get("query", "")
+            if not q:
+                return {"error": "Query parameter is required"}
+            return search(q)
+
 ## models
-set: default
+set: gpte
 provider: "openai"
 base_url: "https://api.openai.com/v1/"
 api_key: "openai"
 models:
   L1:
     model: "gpt-4o-mini"
-  Coding:
+  L2:
     model: "gpt-4.1"
-  reasoning:
+  L3:
     model: "o4-mini"
 ###
