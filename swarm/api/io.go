@@ -22,14 +22,11 @@ type EditorProvider interface {
 }
 
 type UserInput struct {
-	// Agent string `json:"-"`
-	// original arguments
-	// Args []string `json:"-"`
-
 	// query - command line args
 	Message string `json:"message"`
 
 	// query - clipboard/stdin/editor
+	// message is moved to content if editor is used
 	Content string `json:"content"`
 
 	// cached media contents
@@ -38,18 +35,10 @@ type UserInput struct {
 
 func (r *UserInput) String() string {
 	return fmt.Sprintf("message: %v content: %v", len(r.Message), len(r.Content))
-	// var sb strings.Builder
-	// // sb.WriteString(fmt.Sprintf("Agent: %s\n", r.Agent))
-	// sb.WriteString(fmt.Sprintf("message#: %v ", len(r.Message)))
-	// sb.WriteString(fmt.Sprintf("content#: %v ", len(r.Content)))
-	// // sb.WriteString(fmt.Sprintf("Intent: %s\n", r.Intent()))
-
-	// return sb.String()
 }
 
 func (r *UserInput) Clone() *UserInput {
 	return &UserInput{
-		// Agent:    r.Agent,
 		Message:  r.Message,
 		Content:  r.Content,
 		Messages: append([]*Message(nil), r.Messages...),

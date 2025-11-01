@@ -129,19 +129,20 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 			RawInput: &api.UserInput{
 				Message: strings.TrimSpace(*message),
 			},
-			//
-			Adapter:   "",
-			Model:     nil,
-			Tools:     nil,
 			Arguments: atArgs,
+			//
+			Adapter: "",
+			Model:   nil,
+			Tools:   nil,
 		}
 	}
 
 	newTool := func() *api.ToolFunc {
 		kit, name := api.KitName(name[1:]).Decode()
 		return &api.ToolFunc{
-			Kit:  kit,
-			Name: name,
+			Kit:       kit,
+			Name:      name,
+			Arguments: atArgs,
 			// required fields need to be set later
 			Type:       "",
 			Parameters: nil,

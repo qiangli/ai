@@ -42,7 +42,12 @@ type ToolFunc struct {
 	// name of api key - used to resolve api key/token before tool call
 	ApiKey string
 
+	// extra features.
+	// e.g labels for mcp for filtering tools
 	Extra map[string]any
+
+	// default arguments
+	Arguments map[string]any
 }
 
 func (r *ToolFunc) Clone() *ToolFunc {

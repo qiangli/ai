@@ -12,8 +12,6 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
-	// "github.com/qiangli/ai/swarm/vfs"
-	// "github.com/qiangli/ai/swarm/vos"
 	"github.com/qiangli/shell/tool/sh/vfs"
 	"github.com/qiangli/shell/tool/sh/vos"
 )

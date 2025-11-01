@@ -39,17 +39,9 @@ func GetUserInput(ctx context.Context, cfg *api.AppConfig) (*api.UserInput, erro
 	return getUserInput(ctx, cfg, nil, nil, nil)
 }
 
+// user query: message and content
+// cfg.Message is prepended to message collected from command line --message flag or the non flag/option args.
 func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clipper api.ClipboardProvider, editor api.EditorProvider) (*api.UserInput, error) {
-	// --message flag - ignore the rest (mainly intended for testing)
-	// changed to be prepended to other messages
-	// support default values from agents config.
-	// if cfg.Message != "" {
-	// 	msg := trimInputMessage(strings.Join(cfg.Args, " "))
-	// 	return &api.UserInput{
-	// 		Message: msg,
-	// 	}, nil
-	// }
-
 	// collecting message content from various sources
 	if clipper == nil {
 		clipper = util.NewClipboard()
@@ -98,6 +90,7 @@ func userInput(
 	clipboard api.ClipboardProvider,
 	editor api.EditorProvider,
 ) (*api.UserInput, error) {
+	// user input message
 	var msg = trimInputMessage(strings.Join(cfg.Args, " "))
 	if cfg.Message != "" {
 		msg = cfg.Message + " " + msg
@@ -203,7 +196,7 @@ func userInput(
 		return &api.UserInput{}, nil
 	}
 
-	return &api.UserInput{Content: data}, nil
+	return &api.UserInput{Message: "", Content: data}, nil
 }
 
 func LaunchEditor(editor string, content string) (string, error) {
