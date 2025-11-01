@@ -257,7 +257,7 @@ func (h *agentHandler) newExecHandler(ioe *sh.IOE) sh.ExecHandler {
 	return func(ctx context.Context, args []string) (bool, error) {
 		log.GetLogger(ctx).Debugf("parent: %s args: %+v\n", h.agent.Name, args)
 		if args[0] == "ai" || strings.HasPrefix(args[0], "@") {
-			fmt.Fprintf(ioe.Stdout, "ai args: %+v\n", args)
+			fmt.Fprintf(ioe.Stdout, "ai: %+v\n", args)
 			return true, nil
 		}
 		// allow bash built in
