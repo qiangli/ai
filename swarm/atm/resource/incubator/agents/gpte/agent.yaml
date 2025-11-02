@@ -22,6 +22,7 @@ agents:
       script: |
         #!/bin/bash
         /agent:gpte/web_search --message "$query"
+        echo "$result"
     functions:
       - "agent:gpte/web_search"
   

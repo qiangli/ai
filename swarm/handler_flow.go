@@ -257,7 +257,7 @@ func (h *agentHandler) flowScript(req *api.Request, resp *api.Response) error {
 		vs.System.Setenv(k, v)
 	}
 
-	vs.ExecHandler = h.newExecHandler(req, resp)
+	vs.ExecHandler = h.newExecHandler(vs, req, resp)
 
 	if err := vs.RunScript(ctx, h.agent.Flow.Script); err != nil {
 		return err
@@ -269,7 +269,7 @@ func (h *agentHandler) flowScript(req *api.Request, resp *api.Response) error {
 	return nil
 }
 
-func (h *agentHandler) newExecHandler(req *api.Request, resp *api.Response) sh.ExecHandler {
+func (h *agentHandler) newExecHandler(vs *sh.VirtualSystem, req *api.Request, resp *api.Response) sh.ExecHandler {
 	var memo = h.buildAgentToolMap()
 	return func(ctx context.Context, args []string) (bool, error) {
 		if h.agent == nil {
@@ -315,9 +315,14 @@ func (h *agentHandler) newExecHandler(req *api.Request, resp *api.Response) sh.E
 			if !ok {
 				return true, fmt.Errorf("agent tool not declared for %s: %s", h.agent.Name, id)
 			}
+
+			vs.System.Setenv(globalQuery, nreq.RawInput.Query())
+
 			if err := h.doAction(ctx, nreq, nresp, action); err != nil {
 				return true, err
 			}
+			vs.System.Setenv(globalResult, nresp.Result.Value)
+
 			resp.Result = nresp.Result
 			return true, nil
 		}
