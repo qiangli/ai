@@ -32,7 +32,11 @@ func RunAgent(ctx context.Context, app *api.AppConfig) error {
 	return RunSwarm(ctx, app, in)
 }
 
+var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
+
 func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) error {
+	swarm.ClearAllEnv(essentialEnv)
+
 	name := cfg.Agent
 	if name == "" {
 		name = "agent"

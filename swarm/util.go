@@ -4,8 +4,26 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 )
+
+var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
+
+// ClearAllEnv clears all environment variables execep for the keeps
+func ClearAllEnv(keeps []string) {
+	var memo = make(map[string]bool, len(keeps))
+	for _, key := range keeps {
+		memo[key] = true
+	}
+
+	for _, env := range os.Environ() {
+		key := strings.Split(env, "=")[0]
+		if !memo[key] {
+			os.Unsetenv(key)
+		}
+	}
+}
 
 func clip(s string, max int) string {
 	if max > 0 && len(s) > max {

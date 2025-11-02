@@ -19,14 +19,15 @@
 				// "@iconvert",
 				// "@news",
 				// "@video",
-				"@gptr",
+				// "@gptr",
 				// "@think",
 				// "@timer",
 				// "--message", "set a timer for 10 minutes",
 				// "@chat",
-				// "--message", "tell me a joke",
+				"@gpte",
+				"--message", "tell me a joke",
 				// "@cron",
-				"--message", "schedule a chat on climate change at 3:00 pm tomorrow pdt",
+				// "--message", "schedule a chat on climate change at 3:00 pm tomorrow pdt",
 				"--no-stdin=true",
 				// "--message",
 				// "how to design a multi agent system",
@@ -41,6 +42,7 @@
 				// "100",
 				// "--max-span",
 				// "14400"
+				"about", "space technology"
 			],
 			"showLog": false,
 			"stopOnEntry": false

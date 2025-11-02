@@ -95,7 +95,7 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 	}
 
 	// agent/tool default arguments
-	var atArgs map[string]any
+	var atArgs = make(map[string]any)
 	// Parse JSON arguments
 	if *arguments != "" {
 		if err := json.Unmarshal([]byte(*arguments), &atArgs); err != nil {
@@ -103,9 +103,6 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 		}
 	}
 
-	if len(args) > 0 && atArgs == nil {
-		atArgs = make(map[string]any)
-	}
 	// Parse individual args
 	for _, v := range arg {
 		parts := strings.SplitN(v, "=", 2)

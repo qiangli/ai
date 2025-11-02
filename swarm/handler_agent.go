@@ -90,8 +90,8 @@ func (h *agentHandler) doFlow(req *api.Request, resp *api.Response) error {
 
 	// flow control agent
 	if h.agent.Flow != nil {
-		if len(h.agent.Flow.Actions) == 0 {
-			return fmt.Errorf("missing actions in flow")
+		if len(h.agent.Flow.Actions) == 0 && len(h.agent.Flow.Script) == 0 {
+			return fmt.Errorf("missing actions or script in flow")
 		}
 		switch h.agent.Flow.Type {
 		case api.FlowTypeSequence:

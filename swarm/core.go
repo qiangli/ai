@@ -2,8 +2,6 @@ package swarm
 
 import (
 	"context"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -35,23 +33,6 @@ type Swarm struct {
 	Workspace vfs.Workspace
 
 	History api.MemStore
-}
-
-// Function to clear all environment variables execep essential ones
-func ClearAllEnv() {
-	essentialEnv := []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
-
-	essentialMap := make(map[string]bool, len(essentialEnv))
-	for _, key := range essentialEnv {
-		essentialMap[key] = true
-	}
-
-	for _, env := range os.Environ() {
-		key := strings.Split(env, "=")[0]
-		if !essentialMap[key] {
-			os.Unsetenv(key)
-		}
-	}
 }
 
 func (r *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
