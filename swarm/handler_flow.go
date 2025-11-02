@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
+	// "io"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -303,16 +303,19 @@ func (h *agentHandler) newExecHandler(req *api.Request, resp *api.Response) sh.E
 		return true, nil
 	}
 }
-
 func (h *agentHandler) runScript(ctx context.Context, req *api.Request, resp *api.Response, script string) error {
-	prStdout, pwStdout := io.Pipe()
-	prStderr, pwStderr := io.Pipe()
-	defer prStdout.Close()
-	defer prStderr.Close()
+	// prStdout, pwStdout := io.Pipe()
+	// prStderr, pwStderr := io.Pipe()
+	// defer pwStdout.Close()
+	// defer pwStderr.Close()
 
-	ioe := &sh.IOE{Stdin: nil, Stdout: pwStdout, Stderr: pwStderr}
-	defer pwStdout.Close()
-	defer pwStderr.Close()
+	var b bytes.Buffer
+	// c.Stdout = &b
+	// c.Stderr = &b
+
+	ioe := &sh.IOE{Stdin: nil, Stdout: &b, Stderr: &b}
+
+	// // ioe := &sh.IOE{Stdin: nil, Stdout: pwStdout, Stderr: pwStderr}
 
 	// global env
 	//TODO
@@ -326,28 +329,39 @@ func (h *agentHandler) runScript(ctx context.Context, req *api.Request, resp *ap
 		return err
 	}
 
-	outputChan := make(chan string)
-	errorChan := make(chan string)
+	// // outputChan := make(chan string)
+	// // errorChan := make(chan string)
 
-	go func() {
-		var buf bytes.Buffer
-		io.Copy(&buf, prStdout)
-		outputChan <- buf.String()
-	}()
+	// // go func() {
+	// // 	var buf bytes.Buffer
+	// // 	io.Copy(&buf, prStdout)
+	// // 	prStdout.Close()
+	// // 	outputChan <- buf.String()
+	// // 	close(outputChan)
+	// // }()
 
-	go func() {
-		var buf bytes.Buffer
-		io.Copy(&buf, prStderr)
-		errorChan <- buf.String()
-	}()
+	// // go func() {
+	// // 	var buf bytes.Buffer
+	// // 	io.Copy(&buf, prStderr)
+	// // 	prStderr.Close()
+	// // 	errorChan <- buf.String()
+	// // 	close(errorChan)
+	// // }()
 
-	// record both ouput and error as the result
-	result := <-outputChan
-	if err := <-errorChan; err != "" {
-		result = fmt.Sprintf("%s\nError: %s", result, err)
-	}
+	// // var result, stderr string
+	// // select {
+	// // case out := <-outputChan:
+	// // 	result = out
+	// // case err := <-errorChan:
+	// // 	stderr = err
+	// // }
+
+	// if stderr != "" {
+	// 	result = fmt.Sprintf("%s\nError: %s", result, stderr)
+	// }
+
 	resp.Result = &api.Result{
-		Value: result,
+		Value: b.String(),
 	}
 	return nil
 }
