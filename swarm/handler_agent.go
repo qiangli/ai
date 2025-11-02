@@ -41,11 +41,11 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	var ctx = req.Context()
 	log.GetLogger(ctx).Debugf("Serve agent: %s global: %+v\n", h.agent.Name, h.sw.Vars.Global)
 
+	// this needs to happen before everything else
+	h.sw.Vars.Global.Set(globalQuery, req.RawInput.Query())
 	if err := h.setGlobalEnv(req); err != nil {
 		return err
 	}
-
-	h.sw.Vars.Global.Set(globalQuery, req.RawInput.Query())
 
 	if err := h.doFlow(req, resp); err != nil {
 		h.sw.Vars.Global.Set(globalResult, err.Error())
