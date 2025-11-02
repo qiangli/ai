@@ -12,6 +12,7 @@ import (
 
 	"mvdan.cc/sh/v3/interp"
 
+	"github.com/charmbracelet/x/exp/slice"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
@@ -319,8 +320,11 @@ func (h *agentHandler) newExecHandler(vs *sh.VirtualSystem, req *api.Request, re
 			vs.System.Setenv(globalQuery, nreq.RawInput.Query())
 
 			if err := h.doAction(ctx, nreq, nresp, action); err != nil {
+				vs.System.Setenv(globalError, err.Error())
+				fmt.Fprintln(vs.IOE.Stderr, err.Error())
 				return true, err
 			}
+			fmt.Fprintln(vs.IOE.Stdout, nresp.Result.Value)
 			vs.System.Setenv(globalResult, nresp.Result.Value)
 
 			resp.Result = nresp.Result
@@ -330,9 +334,26 @@ func (h *agentHandler) newExecHandler(vs *sh.VirtualSystem, req *api.Request, re
 		if interp.IsBuiltin(args[0]) {
 			return false, nil
 		}
+		// allow list
+		allowed := []string{"env", "printenv", "head", "tail", "cat", "grep"}
+		if slice.ContainsAny(allowed, args[0]) {
+			h.doBashCustom(vs, args)
+			return true, nil
+		}
 		// block other commands
 		return true, nil
 	}
+}
+
+func (h *agentHandler) doBashCustom(vs *sh.VirtualSystem, args []string) (string, error) {
+	switch args[0] {
+	case "env", "printenv":
+		for k, v := range vs.System.Environ() {
+			fmt.Fprintf(vs.IOE.Stdout, "%s=%v\n", k, v)
+		}
+	default:
+	}
+	return "", nil
 }
 
 // Unmarshal the result into a list.

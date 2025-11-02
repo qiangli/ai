@@ -15,6 +15,7 @@ import (
 // global key
 const globalQuery = "query"
 const globalResult = "result"
+const globalError = "error"
 
 type Swarm struct {
 	Vars *api.Vars

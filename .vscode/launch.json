@@ -45,8 +45,8 @@
 				// "100",
 				// "--max-span",
 				// "14400"
-				"about",
-				"space technology"
+				// "about",
+				// "space technology"
 			],
 			"showLog": false,
 			"stopOnEntry": false
