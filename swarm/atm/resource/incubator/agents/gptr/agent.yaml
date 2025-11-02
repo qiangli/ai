@@ -14,7 +14,7 @@ agents:
     description: |
       GPT Researcher is an agent designed for research on any given task.
       The agent produces detailed, factual, and unbiased research reports with citations.
-    arguments:
+    environment:
       original_query: "{{.query}}"
     flow:
       type: "sequence"
@@ -72,11 +72,16 @@ agents:
           "report_format": "desired report format from user",
           "language": "preferred language by user"
         }
+    environment:
+      tone: "{{.tone}}"
+      total_words: "{{.total_words}}"
+      report_format: "{{.report_format}}"
+      language: "{{.language}}"
     arguments: 
       tone: "objective"
       total_words: 500
-      language: "english"
       report_format: "markdown"
+      language: "english"
 
   - name: "gptr/choose_agent"
     new: true
