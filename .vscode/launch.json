@@ -25,7 +25,9 @@
 				// "--message", "set a timer for 10 minutes",
 				// "@chat",
 				"@gpte",
-				"--message", "tell me a joke",
+				// "--message", "tell me a joke",
+				"--message",
+				"what is the weather today in dublin ca",
 				// "@cron",
 				// "--message", "schedule a chat on climate change at 3:00 pm tomorrow pdt",
 				"--no-stdin=true",
@@ -42,7 +44,8 @@
 				// "100",
 				// "--max-span",
 				// "14400"
-				"about", "space technology"
+				"about",
+				"space technology"
 			],
 			"showLog": false,
 			"stopOnEntry": false

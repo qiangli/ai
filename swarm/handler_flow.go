@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	// "io"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -287,7 +286,6 @@ func (h *agentHandler) flowScript(req *api.Request, resp *api.Response) error {
 	resp.Result = &api.Result{
 		Value: b.String(),
 	}
-
 	return nil
 }
 
@@ -337,7 +335,23 @@ func (h *agentHandler) newExecHandler(req *api.Request, resp *api.Response) sh.E
 			if !ok {
 				return true, fmt.Errorf("agent tool not declared for %s: %s", h.agent.Name, id)
 			}
-			return true, h.doAction(ctx, nreq, nresp, v)
+
+			// update env $query
+			if nreq.RawInput != nil {
+				h.sw.Vars.Global.Set("query", nreq.RawInput.Query())
+			}
+
+			nerr := h.doAction(ctx, nreq, nresp, v)
+			if nerr != nil {
+				resp.Result = &api.Result{
+					Value: nerr.Error(),
+				}
+			} else {
+				resp.Result = nresp.Result
+			}
+
+			h.sw.Vars.Global.Set("result", nresp.Result.Value)
+			return true, nerr
 		}
 		// allow bash built in
 		if interp.IsBuiltin(args[0]) {
@@ -347,69 +361,6 @@ func (h *agentHandler) newExecHandler(req *api.Request, resp *api.Response) sh.E
 		return true, nil
 	}
 }
-
-// func (h *agentHandler) runScript(ctx context.Context, req *api.Request, resp *api.Response, script string) error {
-// 	// prStdout, pwStdout := io.Pipe()
-// 	// prStderr, pwStderr := io.Pipe()
-// 	// defer pwStdout.Close()
-// 	// defer pwStderr.Close()
-
-// 	var b bytes.Buffer
-// 	// c.Stdout = &b
-// 	// c.Stderr = &b
-
-// 	ioe := &sh.IOE{Stdin: nil, Stdout: &b, Stderr: &b}
-
-// 	// // ioe := &sh.IOE{Stdin: nil, Stdout: pwStdout, Stderr: pwStderr}
-
-// 	// global env
-// 	//TODO
-// 	nreq := req.Clone()
-// 	nresp := new(api.Response)
-
-// 	vs := sh.NewVirtualSystem(h.sw.OS, h.sw.Workspace, ioe)
-// 	vs.ExecHandler = h.newExecHandler(nreq, nresp)
-
-// 	if err := vs.RunScript(ctx, script); err != nil {
-// 		return err
-// 	}
-
-// 	// // outputChan := make(chan string)
-// 	// // errorChan := make(chan string)
-
-// 	// // go func() {
-// 	// // 	var buf bytes.Buffer
-// 	// // 	io.Copy(&buf, prStdout)
-// 	// // 	prStdout.Close()
-// 	// // 	outputChan <- buf.String()
-// 	// // 	close(outputChan)
-// 	// // }()
-
-// 	// // go func() {
-// 	// // 	var buf bytes.Buffer
-// 	// // 	io.Copy(&buf, prStderr)
-// 	// // 	prStderr.Close()
-// 	// // 	errorChan <- buf.String()
-// 	// // 	close(errorChan)
-// 	// // }()
-
-// 	// // var result, stderr string
-// 	// // select {
-// 	// // case out := <-outputChan:
-// 	// // 	result = out
-// 	// // case err := <-errorChan:
-// 	// // 	stderr = err
-// 	// // }
-
-// 	// if stderr != "" {
-// 	// 	result = fmt.Sprintf("%s\nError: %s", result, stderr)
-// 	// }
-
-// 	resp.Result = &api.Result{
-// 		Value: b.String(),
-// 	}
-// 	return nil
-// }
 
 // Unmarshal the result into a list.
 // If the result isn't a list, return the result as a single-item list.
