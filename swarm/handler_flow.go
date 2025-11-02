@@ -311,20 +311,21 @@ func (h *agentHandler) newExecHandler(req *api.Request, resp *api.Response) sh.E
 			nreq := req.Clone()
 			nresp := new(api.Response)
 
+			nreq.RawInput = &api.UserInput{
+				Message: at.Message,
+			}
+			nreq.Arguments = at.Arguments
+
 			var kit string
 			var name string
 			if at.Agent != nil {
 				nreq.Parent = h.agent
 				nreq.Name = at.Agent.Name
-				nreq.RawInput = at.Agent.RawInput
-				nreq.Arguments = at.Agent.Arguments
 				kit = "agent"
 				name = nvl(at.Agent.Name, "anonymous")
 			} else if at.Tool != nil {
 				nreq.Parent = h.agent
 				nreq.Name = at.Tool.Name
-				nreq.RawInput = &api.UserInput{}
-				nreq.Arguments = at.Tool.Arguments
 				kit = at.Tool.Kit
 				name = at.Tool.Name
 			} else {

@@ -83,6 +83,8 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 	if *message != "" {
 		msg = *message + " " + msg
 	}
+	msg = strings.TrimSpace(msg)
+	content := strings.TrimSpace(*instruction)
 
 	// better way?
 	isSet := func(fl string) bool {
@@ -119,18 +121,23 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 		}
 	}
 
+	// add message as query arg for tools
+	// ideally parameters should be checked if query property is requested
+	// query is message+content
+	atArgs["query"] = msg
+
 	newAgent := func(s string) *api.Agent {
 		return &api.Agent{
 			Owner: owner,
 			Name:  s,
 			//
-			Instruction: &api.Instruction{
-				Content: strings.TrimSpace(*instruction),
-			},
-			RawInput: &api.UserInput{
-				Message: strings.TrimSpace(msg),
-			},
-			Arguments: atArgs,
+			// Instruction: &api.Instruction{
+			// 	Content: content,
+			// },
+			// RawInput: &api.UserInput{
+			// 	Message: msg,
+			// },
+			// Arguments: atArgs,
 			//
 			Adapter: "",
 			Model:   nil,
@@ -140,10 +147,6 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 
 	newTool := func(s string) *api.ToolFunc {
 		kit, name := api.KitName(s).Decode()
-		// add message as query arg for tools
-		// ideally parameters should be checked if query property is requested
-		// query is message+content
-		atArgs["query"] = msg
 		return &api.ToolFunc{
 			Kit:       kit,
 			Name:      name,
@@ -154,7 +157,12 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 		}
 	}
 
-	var at = &api.AgentTool{}
+	var at = &api.AgentTool{
+		Owner:       owner,
+		Message:     msg,
+		Instruction: content,
+		Arguments:   atArgs,
+	}
 
 	switch name[0] {
 	case '@':
