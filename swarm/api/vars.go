@@ -31,7 +31,7 @@ func (g *Global) Set(key string, val any) {
 	g.env[key] = val
 }
 
-// add all srcc to global env
+// copy all src values to the global env
 func (g *Global) Add(src map[string]any) {
 	g.mu.Lock()
 	defer g.mu.Unlock()

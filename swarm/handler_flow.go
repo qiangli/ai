@@ -22,13 +22,11 @@ import (
 func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, tf *api.ToolFunc) error {
 	var r = h.agent
 
-	args, err := h.globalEnv(req)
-	if err != nil {
-		return err
-	}
+	env := h.globalEnv()
+	h.mapAssign(req, env, req.Arguments, false)
 
 	var runTool = h.createCaller(h.sw.User)
-	result, err := runTool(ctx, tf.ID(), args)
+	result, err := runTool(ctx, tf.ID(), env)
 	if err != nil {
 		return err
 	}
@@ -36,15 +34,13 @@ func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api
 	resp.Agent = r
 	resp.Result = result
 	// TODO check states?
+	h.sw.Vars.Global.Set(globalResult, resp.Result.Value)
 	return nil
 }
 
 // FlowTypeSequence executes actions one after another, where each
 // subsequent action uses the previous action's response as input.
 func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error {
-	if h.agent == nil || h.agent.Flow == nil {
-		return fmt.Errorf("flow sequence missing flow actions: %s", req.Name)
-	}
 	ctx := req.Context()
 	nreq := req.Clone()
 	nresp := &api.Response{}
@@ -66,12 +62,11 @@ func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error 
 // evaluate an expression for each iteration, allowing for repeated execution with varying
 // parameters or conditions.
 func (h *agentHandler) flowLoop(req *api.Request, resp *api.Response) error {
-	if h.agent == nil || h.agent.Flow == nil {
-		return fmt.Errorf("flow loop missing agent or flow config")
-	}
+	env := h.globalEnv()
+	h.mapAssign(req, env, req.Arguments, false)
 
 	eval := func(exp string) (bool, error) {
-		v, err := h.applyTemplate(exp, h.sw.Vars.Global)
+		v, err := h.applyTemplate(exp, env)
 		if err != nil {
 			return false, err
 		}
@@ -98,10 +93,6 @@ func (h *agentHandler) flowLoop(req *api.Request, resp *api.Response) error {
 // FlowTypeParallel executes actions simultaneously, returning the combined results as a list.
 // This allows for concurrent processing of independent actions.
 func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error {
-	if h.agent == nil || h.agent.Flow == nil {
-		return fmt.Errorf("flow parallel missing agent or flow config")
-	}
-
 	var ctx = req.Context()
 	var resps = make([]*api.Response, len(h.agent.Flow.Actions))
 
@@ -133,14 +124,13 @@ func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error 
 // If no expression is provided, an action is chosen randomly. The expression must evaluate
 // to an integer that selects the action index, starting from zero.
 func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
-	if h.agent == nil || h.agent.Flow == nil {
-		return fmt.Errorf("flow chocie missing agent or flow config")
-	}
+	env := h.globalEnv()
+	h.mapAssign(req, env, req.Arguments, false)
 
 	var which int
 	// evaluate express or random
 	if h.agent.Flow.Expression != "" {
-		v, err := h.applyTemplate(h.agent.Flow.Expression, h.sw.Vars.Global)
+		v, err := h.applyTemplate(h.agent.Flow.Expression, env)
 		if err != nil {
 			return err
 		}
@@ -253,31 +243,21 @@ Index:
 // FlowTypeScript delegates control to a shell script using bash script syntax, enabling
 // complex flow control scenarios driven by external scripting logic.
 func (h *agentHandler) flowScript(req *api.Request, resp *api.Response) error {
-	if h.agent == nil || h.agent.Flow == nil || h.agent.Flow.Script == "" {
-		return fmt.Errorf("script flow missing agent or script: %v", req.Name)
-	}
-
 	ctx := req.Context()
 	var b bytes.Buffer
 
 	ioe := &sh.IOE{Stdin: nil, Stdout: &b, Stderr: &b}
-
-	nreq := req.Clone()
-	nresp := new(api.Response)
-
 	vs := sh.NewVirtualSystem(h.sw.OS, h.sw.Workspace, ioe)
 
-	// global env
-	// TODO batch set?
-	env, err := h.globalEnv(req)
-	if err != nil {
-		return err
-	}
+	// set global env for bash script
+	env := h.globalEnv()
+	h.mapAssign(req, env, req.Arguments, false)
+
 	for k, v := range env {
 		vs.System.Setenv(k, v)
 	}
 
-	vs.ExecHandler = h.newExecHandler(nreq, nresp)
+	vs.ExecHandler = h.newExecHandler(req, resp)
 
 	if err := vs.RunScript(ctx, h.agent.Flow.Script); err != nil {
 		return err
@@ -331,27 +311,15 @@ func (h *agentHandler) newExecHandler(req *api.Request, resp *api.Response) sh.E
 				return true, nil
 			}
 			id := api.KitName(kit + ":" + name).ID()
-			v, ok := memo[id]
+			action, ok := memo[id]
 			if !ok {
 				return true, fmt.Errorf("agent tool not declared for %s: %s", h.agent.Name, id)
 			}
-
-			// update env $query
-			if nreq.RawInput != nil {
-				h.sw.Vars.Global.Set("query", nreq.RawInput.Query())
+			if err := h.doAction(ctx, nreq, nresp, action); err != nil {
+				return true, err
 			}
-
-			nerr := h.doAction(ctx, nreq, nresp, v)
-			if nerr != nil {
-				resp.Result = &api.Result{
-					Value: nerr.Error(),
-				}
-			} else {
-				resp.Result = nresp.Result
-			}
-
-			h.sw.Vars.Global.Set("result", nresp.Result.Value)
-			return true, nerr
+			resp.Result = nresp.Result
+			return true, nil
 		}
 		// allow bash built in
 		if interp.IsBuiltin(args[0]) {

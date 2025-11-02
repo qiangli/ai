@@ -41,6 +41,10 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	var ctx = req.Context()
 	log.GetLogger(ctx).Debugf("Serve agent: %s global: %+v\n", h.agent.Name, h.sw.Vars.Global)
 
+	if err := h.setGlobalEnv(req); err != nil {
+		return err
+	}
+
 	h.sw.Vars.Global.Set(globalQuery, req.RawInput.Query())
 
 	if err := h.doFlow(req, resp); err != nil {
@@ -62,31 +66,6 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 }
 
 func (h *agentHandler) doFlow(req *api.Request, resp *api.Response) error {
-	// TODO need to support:
-	// overwrite and default only something similar to shell env:
-	// ${ENV:-"default"}
-	if h.agent.Arguments != nil {
-		for key, val := range h.agent.Arguments {
-			// @agent arg
-			if v, ok := val.(string); ok {
-				if resolved, err := h.resolveArgument(req, v); err != nil {
-					return err
-				} else {
-					val = resolved
-				}
-			}
-			// templated
-			if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-				if resolved, err := h.applyGlobal(v); err != nil {
-					return err
-				} else {
-					val = resolved
-				}
-			}
-			h.sw.Vars.Global.Set(key, val)
-		}
-	}
-
 	// flow control agent
 	if h.agent.Flow != nil {
 		if len(h.agent.Flow.Actions) == 0 && len(h.agent.Flow.Script) == 0 {
@@ -133,42 +112,40 @@ func (h *agentHandler) doFlow(req *api.Request, resp *api.Response) error {
 	return nil
 }
 
+// copy values from src to dst after calling @agent and applying template if required
+func (h *agentHandler) mapAssign(req *api.Request, dst, src map[string]any, override bool) error {
+	for key, val := range src {
+		if !override {
+			if _, ok := dst[key]; ok {
+				continue
+			}
+		}
+		// @agent value support
+		if v, ok := val.(string); ok {
+			if resolved, err := h.resolveArgument(req, v); err != nil {
+				return err
+			} else {
+				val = resolved
+			}
+		}
+		// go template value support
+		if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
+			if resolved, err := h.applyTemplate(v, dst); err != nil {
+				return err
+			} else {
+				val = resolved
+			}
+		}
+		dst[key] = val
+	}
+	return nil
+}
+
 // create a copy of current global vars
 // merge agent environment, update with values from agent arguments if non existant
-// merge request arguments if not existant.
 // support @agent call and go template as value
-func (h *agentHandler) globalEnv(req *api.Request) (map[string]any, error) {
-
-	// copy from src to dst after calling @agent and applying go template if required
-	copy := func(dst, src map[string]any, override bool) error {
-		for key, val := range src {
-			if !override {
-				if _, ok := dst[key]; ok {
-					continue
-				}
-			}
-			// @agent value support
-			if v, ok := val.(string); ok {
-				if resolved, err := h.resolveArgument(req, v); err != nil {
-					return err
-				} else {
-					val = resolved
-				}
-			}
-			// go template value support
-			if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-				if resolved, err := h.applyTemplate(v, dst); err != nil {
-					return err
-				} else {
-					val = resolved
-				}
-			}
-			dst[key] = val
-		}
-		return nil
-	}
-
-	var ctx = req.Context()
+func (h *agentHandler) setGlobalEnv(req *api.Request) error {
+	// var ctx = req.Context()
 	// merge request args
 	var env = make(map[string]any)
 	// copy globals including agent args
@@ -176,35 +153,42 @@ func (h *agentHandler) globalEnv(req *api.Request) (map[string]any, error) {
 
 	// agent global env takes precedence
 	if h.agent.Environment != nil {
-		copy(env, h.agent.Environment, true)
+		h.mapAssign(req, env, h.agent.Environment, true)
 	}
 
 	// set agent and req defaults
 	// set only when the key does not exist
 	if h.agent.Arguments != nil {
-		copy(env, h.agent.Arguments, false)
+		h.mapAssign(req, env, h.agent.Arguments, false)
 	}
-	if req.Arguments != nil {
-		copy(env, req.Arguments, false)
-	}
+
+	// if req.Arguments != nil {
+	// 	copy(env, req.Arguments, false)
+	// }
 
 	// add query
-	if req.RawInput != nil {
-		env["query"] = req.RawInput.Query()
-	}
+	// if req.RawInput != nil {
+	// 	env["query"] = req.RawInput.Query()
+	// }
 
-	log.GetLogger(ctx).Debugf("global env: %+v\n", env)
-	return env, nil
+	h.sw.Vars.Global.Add(env)
+
+	log.GetLogger(req.Context()).Debugf("global env: %+v\n", env)
+	return nil
+}
+
+func (h *agentHandler) globalEnv() map[string]any {
+	var env = make(map[string]any)
+	h.sw.Vars.Global.Copy(env)
+	return env
 }
 
 func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 	var ctx = req.Context()
 	var r = h.agent
 
-	args, err := h.globalEnv(req)
-	if err != nil {
-		return err
-	}
+	env := h.globalEnv()
+	h.mapAssign(req, env, req.Arguments, false)
 
 	// apply template/load
 	// TODO  vars -> data may break some existing config
@@ -213,13 +197,14 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 			parts := strings.SplitN(s, "\n", 2)
 			if len(parts) == 2 {
 				// remove hashbang line
-				return h.applyGlobal(parts[1])
+				// return h.applyGlobal(parts[1])
+				return h.applyTemplate(parts[1], env)
 			}
 			// remove hashbang
-			return h.applyGlobal(parts[0][2:])
+			return h.applyTemplate(parts[0][2:], env)
 		}
 		if ext == "tpl" {
-			return h.applyGlobal(s)
+			return h.applyTemplate(s, env)
 		}
 		return s, nil
 	}
@@ -369,7 +354,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 		//
 		RunTool: runTool,
 		// agent tool
-		Arguments: args,
+		Arguments: env,
 		//
 		Vars: h.sw.Vars,
 		//
@@ -571,18 +556,18 @@ func (h *agentHandler) applyTemplate(tpl string, data any) (string, error) {
 	return buf.String(), nil
 }
 
-func (h *agentHandler) applyGlobal(tpl string) (string, error) {
-	var out string
-	fn := func(data map[string]any) error {
-		if v, err := h.applyTemplate(tpl, data); err != nil {
-			return err
-		} else {
-			out = v
-		}
-		return nil
-	}
-	if err := h.sw.Vars.Global.Apply(fn); err != nil {
-		return "", err
-	}
-	return out, nil
-}
+// func (h *agentHandler) applyGlobal(tpl string) (string, error) {
+// 	var out string
+// 	fn := func(data map[string]any) error {
+// 		if v, err := h.applyTemplate(tpl, data); err != nil {
+// 			return err
+// 		} else {
+// 			out = v
+// 		}
+// 		return nil
+// 	}
+// 	if err := h.sw.Vars.Global.Apply(fn); err != nil {
+// 		return "", err
+// 	}
+// 	return out, nil
+// }
