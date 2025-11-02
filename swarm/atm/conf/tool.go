@@ -194,7 +194,7 @@ func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 
 		var toolType = nvl(v.Type, tc.Type)
 		if toolType == "" {
-			return nil, fmt.Errorf("Missing tool type: %s", tc.Kit)
+			return nil, fmt.Errorf("Missing tool type. kit: %s tool: %s", tc.Kit, v.Name)
 		}
 		// load separately
 		if toolType == string(api.ToolTypeMcp) {

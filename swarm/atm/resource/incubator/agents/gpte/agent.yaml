@@ -21,9 +21,9 @@ agents:
       type: "script"
       script: |
         #!/bin/bash
-        /agent:gpte/search
+        /agent:gpte/web_search
     functions:
-      - "agent:gpte/search"
+      - "agent:gpte/web_search"
   
   - name: "gpte/web_search"
     new: true
@@ -39,7 +39,7 @@ agents:
         need to use all tools. If a search tool fails due to reasons such as rate limiting or service
         downtime, try another one. If all tools fail, wait for a few seconds and attempt again.
     functions:
-      - "gpte:search"
+      - "gpte:ddg_search"
       - "ddg:*"
       - "bing:*"
       - "google:*"
@@ -48,8 +48,9 @@ agents:
 ## tool kit
 kit: "gpte"
 tools:
-  - name: "search"
+  - name: "ddg_search"
     description: "Search the web using DuckDuckGo and return search results."
+    type: "faas"
     parameters:
       type: "object"
       properties:

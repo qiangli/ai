@@ -143,7 +143,7 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 		// add message as query arg for tools
 		// ideally parameters should be checked if query property is requested
 		// query is message+content
-		atArgs["query"] = message
+		atArgs["query"] = msg
 		return &api.ToolFunc{
 			Kit:       kit,
 			Name:      name,

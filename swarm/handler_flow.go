@@ -43,6 +43,9 @@ func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api
 // FlowTypeSequence executes actions one after another, where each
 // subsequent action uses the previous action's response as input.
 func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error {
+	if h.agent == nil || h.agent.Flow == nil {
+		return fmt.Errorf("flow sequence missing flow actions: %s", req.Name)
+	}
 	ctx := req.Context()
 	nreq := req.Clone()
 	nresp := &api.Response{}
@@ -64,6 +67,10 @@ func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error 
 // evaluate an expression for each iteration, allowing for repeated execution with varying
 // parameters or conditions.
 func (h *agentHandler) flowLoop(req *api.Request, resp *api.Response) error {
+	if h.agent == nil || h.agent.Flow == nil {
+		return fmt.Errorf("flow loop missing agent or flow config")
+	}
+
 	eval := func(exp string) (bool, error) {
 		v, err := h.applyTemplate(exp, h.sw.Vars.Global)
 		if err != nil {
@@ -92,6 +99,10 @@ func (h *agentHandler) flowLoop(req *api.Request, resp *api.Response) error {
 // FlowTypeParallel executes actions simultaneously, returning the combined results as a list.
 // This allows for concurrent processing of independent actions.
 func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error {
+	if h.agent == nil || h.agent.Flow == nil {
+		return fmt.Errorf("flow parallel missing agent or flow config")
+	}
+
 	var ctx = req.Context()
 	var resps = make([]*api.Response, len(h.agent.Flow.Actions))
 
@@ -123,6 +134,10 @@ func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error 
 // If no expression is provided, an action is chosen randomly. The expression must evaluate
 // to an integer that selects the action index, starting from zero.
 func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
+	if h.agent == nil || h.agent.Flow == nil {
+		return fmt.Errorf("flow chocie missing agent or flow config")
+	}
+
 	var which int
 	// evaluate express or random
 	if h.agent.Flow.Expression != "" {
@@ -239,13 +254,29 @@ Index:
 // FlowTypeScript delegates control to a shell script using bash script syntax, enabling
 // complex flow control scenarios driven by external scripting logic.
 func (h *agentHandler) flowScript(req *api.Request, resp *api.Response) error {
-	if h.agent.Flow == nil || h.agent.Flow.Script == "" {
-		return fmt.Errorf("missing script content for script flow: %v", h.agent.Name)
+	if h.agent == nil || h.agent.Flow == nil || h.agent.Flow.Script == "" {
+		return fmt.Errorf("script flow missing agent or script: %v", req.Name)
 	}
 
 	ctx := req.Context()
-	if err := h.runScript(ctx, req, resp, h.agent.Flow.Script); err != nil {
+	var b bytes.Buffer
+
+	ioe := &sh.IOE{Stdin: nil, Stdout: &b, Stderr: &b}
+
+	// global env
+	//TODO
+	nreq := req.Clone()
+	nresp := new(api.Response)
+
+	vs := sh.NewVirtualSystem(h.sw.OS, h.sw.Workspace, ioe)
+	vs.ExecHandler = h.newExecHandler(nreq, nresp)
+
+	if err := vs.RunScript(ctx, h.agent.Flow.Script); err != nil {
 		return err
+	}
+
+	resp.Result = &api.Result{
+		Value: b.String(),
 	}
 
 	return nil
@@ -254,6 +285,9 @@ func (h *agentHandler) flowScript(req *api.Request, resp *api.Response) error {
 func (h *agentHandler) newExecHandler(req *api.Request, resp *api.Response) sh.ExecHandler {
 	var memo = h.buildAgentToolMap()
 	return func(ctx context.Context, args []string) (bool, error) {
+		if h.agent == nil {
+			return true, fmt.Errorf("missing agent: %v", req.Name)
+		}
 		log.GetLogger(ctx).Debugf("parent: %s args: %+v\n", h.agent.Name, args)
 		isAi := func(s string) bool {
 			return s == "ai" || strings.HasPrefix(s, "@") || strings.HasPrefix(s, "/")
@@ -291,7 +325,7 @@ func (h *agentHandler) newExecHandler(req *api.Request, resp *api.Response) sh.E
 			id := api.KitName(kit + ":" + name).ID()
 			v, ok := memo[id]
 			if !ok {
-				return true, fmt.Errorf("agent tool not declared for %s: %s", h.agent.Name, at.Agent.Name)
+				return true, fmt.Errorf("agent tool not declared for %s: %s", h.agent.Name, id)
 			}
 			return true, h.doAction(ctx, nreq, nresp, v)
 		}
@@ -303,68 +337,69 @@ func (h *agentHandler) newExecHandler(req *api.Request, resp *api.Response) sh.E
 		return true, nil
 	}
 }
-func (h *agentHandler) runScript(ctx context.Context, req *api.Request, resp *api.Response, script string) error {
-	// prStdout, pwStdout := io.Pipe()
-	// prStderr, pwStderr := io.Pipe()
-	// defer pwStdout.Close()
-	// defer pwStderr.Close()
 
-	var b bytes.Buffer
-	// c.Stdout = &b
-	// c.Stderr = &b
+// func (h *agentHandler) runScript(ctx context.Context, req *api.Request, resp *api.Response, script string) error {
+// 	// prStdout, pwStdout := io.Pipe()
+// 	// prStderr, pwStderr := io.Pipe()
+// 	// defer pwStdout.Close()
+// 	// defer pwStderr.Close()
 
-	ioe := &sh.IOE{Stdin: nil, Stdout: &b, Stderr: &b}
+// 	var b bytes.Buffer
+// 	// c.Stdout = &b
+// 	// c.Stderr = &b
 
-	// // ioe := &sh.IOE{Stdin: nil, Stdout: pwStdout, Stderr: pwStderr}
+// 	ioe := &sh.IOE{Stdin: nil, Stdout: &b, Stderr: &b}
 
-	// global env
-	//TODO
-	nreq := req.Clone()
-	nresp := new(api.Response)
+// 	// // ioe := &sh.IOE{Stdin: nil, Stdout: pwStdout, Stderr: pwStderr}
 
-	vs := sh.NewVirtualSystem(h.sw.OS, h.sw.Workspace, ioe)
-	vs.ExecHandler = h.newExecHandler(nreq, nresp)
+// 	// global env
+// 	//TODO
+// 	nreq := req.Clone()
+// 	nresp := new(api.Response)
 
-	if err := vs.RunScript(ctx, script); err != nil {
-		return err
-	}
+// 	vs := sh.NewVirtualSystem(h.sw.OS, h.sw.Workspace, ioe)
+// 	vs.ExecHandler = h.newExecHandler(nreq, nresp)
 
-	// // outputChan := make(chan string)
-	// // errorChan := make(chan string)
+// 	if err := vs.RunScript(ctx, script); err != nil {
+// 		return err
+// 	}
 
-	// // go func() {
-	// // 	var buf bytes.Buffer
-	// // 	io.Copy(&buf, prStdout)
-	// // 	prStdout.Close()
-	// // 	outputChan <- buf.String()
-	// // 	close(outputChan)
-	// // }()
+// 	// // outputChan := make(chan string)
+// 	// // errorChan := make(chan string)
 
-	// // go func() {
-	// // 	var buf bytes.Buffer
-	// // 	io.Copy(&buf, prStderr)
-	// // 	prStderr.Close()
-	// // 	errorChan <- buf.String()
-	// // 	close(errorChan)
-	// // }()
+// 	// // go func() {
+// 	// // 	var buf bytes.Buffer
+// 	// // 	io.Copy(&buf, prStdout)
+// 	// // 	prStdout.Close()
+// 	// // 	outputChan <- buf.String()
+// 	// // 	close(outputChan)
+// 	// // }()
 
-	// // var result, stderr string
-	// // select {
-	// // case out := <-outputChan:
-	// // 	result = out
-	// // case err := <-errorChan:
-	// // 	stderr = err
-	// // }
+// 	// // go func() {
+// 	// // 	var buf bytes.Buffer
+// 	// // 	io.Copy(&buf, prStderr)
+// 	// // 	prStderr.Close()
+// 	// // 	errorChan <- buf.String()
+// 	// // 	close(errorChan)
+// 	// // }()
 
-	// if stderr != "" {
-	// 	result = fmt.Sprintf("%s\nError: %s", result, stderr)
-	// }
+// 	// // var result, stderr string
+// 	// // select {
+// 	// // case out := <-outputChan:
+// 	// // 	result = out
+// 	// // case err := <-errorChan:
+// 	// // 	stderr = err
+// 	// // }
 
-	resp.Result = &api.Result{
-		Value: b.String(),
-	}
-	return nil
-}
+// 	// if stderr != "" {
+// 	// 	result = fmt.Sprintf("%s\nError: %s", result, stderr)
+// 	// }
+
+// 	resp.Result = &api.Result{
+// 		Value: b.String(),
+// 	}
+// 	return nil
+// }
 
 // Unmarshal the result into a list.
 // If the result isn't a list, return the result as a single-item list.
