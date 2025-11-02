@@ -17,15 +17,25 @@ agents:
     environment:
       original_query: "{{.query}}"
     flow:
-      type: "sequence"
-      actions:
-        - "agent:gptr/user_input"
-        - "agent:gptr/choose_agent"
-        - "agent:gptr/web_search"
-        - "agent:gptr/research_queries"
-        - "agent:gptr/scrape"
-        - "agent:gptr/curate"
-        - "agent:gptr/report"
+      # type: "sequence"
+      # actions:
+      #   - "agent:gptr/user_input"
+      #   - "agent:gptr/choose_agent"
+      #   - "agent:gptr/web_search"
+      #   - "agent:gptr/research_queries"
+      #   - "agent:gptr/scrape"
+      #   - "agent:gptr/curate"
+      #   - "agent:gptr/report"
+      type: "script"
+      script: |
+        #!/bin/bash
+        /agent:gptr/user_input
+        /agent:gptr/choose_agent
+        /agent:gptr/web_search
+        /agent:gptr/research_queries
+        /agent:gptr/scrape
+        /agent:gptr/curate
+        /agent:gptr/report
     functions:
       - "agent:gptr/user_input"
       - "agent:gptr/choose_agent"

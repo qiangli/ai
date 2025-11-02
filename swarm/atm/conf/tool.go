@@ -290,6 +290,9 @@ func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 }
 
 func loadAgentTool(ac *api.AgentsConfig, name string) ([]*api.ToolFunc, error) {
+	if ac == nil {
+		return nil, fmt.Errorf("nil config: %s", name)
+	}
 	for _, c := range ac.Agents {
 		if c.Name == name {
 			var params = map[string]any{
