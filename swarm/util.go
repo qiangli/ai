@@ -10,6 +10,9 @@ import (
 
 var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
 
+// informative logging max value length
+const maxInfoTextLen = 32
+
 // ClearAllEnv clears all environment variables execep for the keeps
 func ClearAllEnv(keeps []string) {
 	var memo = make(map[string]bool, len(keeps))
@@ -163,8 +166,8 @@ func formatArgs(args map[string]any) string {
 	var sb strings.Builder
 	sb.WriteString("map[")
 	for k, v := range args {
-		if s, ok := v.(string); ok && len(s) > 16 {
-			sb.WriteString(fmt.Sprintf("%s: %s [%v],", k, abbreviate(s, 16), len(s)))
+		if s, ok := v.(string); ok && len(s) > maxInfoTextLen {
+			sb.WriteString(fmt.Sprintf("%s: %s [%v],", k, abbreviate(s, maxInfoTextLen), len(s)))
 			continue
 		}
 		sb.WriteString(fmt.Sprintf("%s: %v,", k, v))
