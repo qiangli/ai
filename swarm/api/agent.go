@@ -124,6 +124,7 @@ type Agent struct {
 	// Functions that the agent can call
 	Tools []*ToolFunc
 
+	// default values
 	Arguments map[string]any
 
 	// LLM adapter
@@ -148,6 +149,7 @@ type Agent struct {
 	//
 	Embed []*Agent
 
+	// global values
 	Environment map[string]any
 }
 

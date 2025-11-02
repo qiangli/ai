@@ -23,7 +23,7 @@ import (
 func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, tf *api.ToolFunc) error {
 	var r = h.agent
 
-	args, err := h.applyArguments(req)
+	args, err := h.globalEnv(req)
 	if err != nil {
 		return err
 	}
@@ -263,12 +263,21 @@ func (h *agentHandler) flowScript(req *api.Request, resp *api.Response) error {
 
 	ioe := &sh.IOE{Stdin: nil, Stdout: &b, Stderr: &b}
 
-	// global env
-	//TODO
 	nreq := req.Clone()
 	nresp := new(api.Response)
 
 	vs := sh.NewVirtualSystem(h.sw.OS, h.sw.Workspace, ioe)
+
+	// global env
+	// TODO batch set?
+	env, err := h.globalEnv(req)
+	if err != nil {
+		return err
+	}
+	for k, v := range env {
+		vs.System.Setenv(k, v)
+	}
+
 	vs.ExecHandler = h.newExecHandler(nreq, nresp)
 
 	if err := vs.RunScript(ctx, h.agent.Flow.Script); err != nil {

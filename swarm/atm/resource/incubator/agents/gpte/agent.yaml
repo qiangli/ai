@@ -21,7 +21,7 @@ agents:
       type: "script"
       script: |
         #!/bin/bash
-        /agent:gpte/web_search
+        /agent:gpte/web_search --message "$query"
     functions:
       - "agent:gpte/web_search"
   

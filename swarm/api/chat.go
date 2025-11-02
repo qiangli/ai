@@ -23,7 +23,9 @@ type Request struct {
 	Parent *Agent
 
 	// The name of the active agent/tool
-	Name      string
+	Name string
+
+	// default values
 	Arguments map[string]any
 
 	Messages []*Message

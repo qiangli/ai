@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"maps"
 	"strings"
 	"text/template"
 	"time"
@@ -134,44 +133,75 @@ func (h *agentHandler) doFlow(req *api.Request, resp *api.Response) error {
 	return nil
 }
 
-func (h *agentHandler) applyArguments(req *api.Request) (map[string]any, error) {
-	var ctx = req.Context()
-	// merge request args
-	var args = make(map[string]any)
-	// copy globals including agent args
-	h.sw.Vars.Global.Apply(func(src map[string]any) error {
-		maps.Copy(args, src)
-		return nil
-	})
+// create a copy of current global vars
+// merge agent environment, update with values from agent arguments if non existant
+// merge request arguments if not existant.
+// support @agent call and go template as value
+func (h *agentHandler) globalEnv(req *api.Request) (map[string]any, error) {
 
-	if req.Arguments != nil {
-		for key, val := range req.Arguments {
+	// copy from src to dst after calling @agent and applying go template if required
+	copy := func(dst, src map[string]any, override bool) error {
+		for key, val := range src {
+			if !override {
+				if _, ok := dst[key]; ok {
+					continue
+				}
+			}
+			// @agent value support
 			if v, ok := val.(string); ok {
 				if resolved, err := h.resolveArgument(req, v); err != nil {
-					return nil, err
+					return err
 				} else {
 					val = resolved
 				}
 			}
+			// go template value support
 			if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-				if resolved, err := h.applyTemplate(v, args); err != nil {
-					return nil, err
+				if resolved, err := h.applyTemplate(v, dst); err != nil {
+					return err
 				} else {
 					val = resolved
 				}
 			}
-			args[key] = val
+			dst[key] = val
 		}
+		return nil
 	}
-	log.GetLogger(ctx).Debugf("global args: %+v\n", args)
-	return args, nil
+
+	var ctx = req.Context()
+	// merge request args
+	var env = make(map[string]any)
+	// copy globals including agent args
+	h.sw.Vars.Global.Copy(env)
+
+	// agent global env takes precedence
+	if h.agent.Environment != nil {
+		copy(env, h.agent.Environment, true)
+	}
+
+	// set agent and req defaults
+	// set only when the key does not exist
+	if h.agent.Arguments != nil {
+		copy(env, h.agent.Arguments, false)
+	}
+	if req.Arguments != nil {
+		copy(env, req.Arguments, false)
+	}
+
+	// add query
+	if req.RawInput != nil {
+		env["query"] = req.RawInput.Query()
+	}
+
+	log.GetLogger(ctx).Debugf("global env: %+v\n", env)
+	return env, nil
 }
 
 func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 	var ctx = req.Context()
 	var r = h.agent
 
-	args, err := h.applyArguments(req)
+	args, err := h.globalEnv(req)
 	if err != nil {
 		return err
 	}
@@ -245,24 +275,6 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 	}
 	if r.Instruction != nil {
 		addContext(r.Instruction, r.Name)
-		// content, err := resolve(h.sw.Vars.Global, r.Instruction.Type, r.Instruction.Content)
-		// if err != nil {
-		// 	return err
-		// }
-
-		// // update instruction
-		// r.Instruction.Content = content
-
-		// history = append(history, &api.Message{
-		// 	ID:      uuid.NewString(),
-		// 	ChatID:  chatID,
-		// 	Created: time.Now(),
-		// 	//
-		// 	Role:    api.RoleSystem,
-		// 	Content: content,
-		// 	Sender:  r.Name,
-		// })
-		// log.GetLogger(ctx).Debugf("Added system role message: %v\n", len(history))
 	}
 
 	// 2. Historical Messages

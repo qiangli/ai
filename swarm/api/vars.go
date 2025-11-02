@@ -31,17 +31,25 @@ func (g *Global) Set(key string, val any) {
 	g.env[key] = val
 }
 
+// add all srcc to global env
 func (g *Global) Add(src map[string]any) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	maps.Copy(g.env, src)
 }
 
-// thread safe access the env
+// thread safe access to the env
 func (g *Global) Apply(fn func(map[string]any) error) error {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	return fn(g.env)
+}
+
+// copy all global env to dst
+func (g *Global) Copy(dst map[string]any) {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	maps.Copy(dst, g.env)
 }
 
 func (g *Global) Clone() *Global {
