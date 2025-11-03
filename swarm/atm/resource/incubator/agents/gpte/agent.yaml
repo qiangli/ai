@@ -1,6 +1,6 @@
 ###
 pack: gpte
-# 
+#
 # https://github.com/AntonOsika/gpt-engineer
 #
 model: gpte/L1
@@ -11,25 +11,64 @@ agents:
     new: true
     display: "🚀 GPT Engineer"
     description: |
-      gpt-engineer lets you:
-      Specify software in natural language
-      Sit back and watch as an AI writes and executes the code
-      Ask the AI to implement improvements
+      This intelligent software engineer agent transforms natural language input into software development tasks.
+      Users can specify software requirements, watch AI generate and execute code, and request project improvements.
+      It interprets queries, categorizes intentions, extracts preferences, and guides AI actions, making software creation and enhancement seamless.
     environment:
       original_query: "{{.query}}"
+    instruction:
+      content: |
+        You are an intelligent agent designed to analyze users' queries related to software generation and improvement. Your task is to interpret and categorize their inputs into a structured JSON object. 
+
+        Follow these steps:
+
+        1. **Intent Detection**: Identify the user's intent with respect to the available options. These include:
+          - `--generate`: The user wants code generated from the prompt.
+          - `--improve`: The user seeks improvements on an existing project.
+          - `--clarify`: The user desires a clarification discussion before implementation.
+          - `--verbose`: The user needs detailed logging for debugging.
+          - `--prompt_file`: Indicates a specified file contains the user's prompt.
+          - `--entrypoint_prompt`: Indicates that a specific entrypoint is defined.
+          - `--image_directory`: Specifies an image directory path.
+
+        2. **Preference Extraction**: Parse out any explicit or implicit preferences highlighted by the user. If the user specifies parts using or implying options markers (`--`), note these preferences.
+
+        3. **Message Compilation**: After identifying user preferences, isolate and compile the main message intended to be used as the user role prompt.
+
+        4. **JSON Construction**: Create a JSON object with the following structure:
+          ```json
+          {
+            "intent": "string",             // Determined intent based on options: one of generate, improve, or clarify
+            "preferences": {                // Extracted user preferences
+              "verbose": "boolean",
+              "prompt_file": "string",
+              "entrypoint_prompt": "string",
+              "image_directory": "string"
+            },
+            "message": "string"             // The core message/content for the prompt
+          }
+
+  - name: "gpte/code"
+    display: "Code Agent"
+    description: |
+      This agent is responsible for managing the lifecycle of code generation and improvement
+      using an AI model. It orchestrates the generation of new code and the improvement of existing code
+      based on given prompts.
     flow:
-      type: "sequence"
+      expressin: "agent:gpte/{{.intent}}"
+      type: "choice"
+      default: "agent:gpte/generate"
       actions:
-        - "agent:gpte/gen_code"
-        - "agent:gpte/to_file_dict"
-        - "gpte/gen_entrypoint"
+        - "agent:gpte/generate"
+        - "agent:gpte/improve"
+        - "agent:gpte/clarify"
     functions:
-      - "agent:gpte/gen_code"
-      - "agent:gpte/to_file_dict"
-      - "gpte/gen_entrypoint"
-  
-  - name: "gpte/gen_code"
-    display: "🤖 Generate Code"
+      - "agent:gpte/generate"
+      - "agent:gpte/improve"
+      - "agent:gpte/clarify"
+
+  - name: "gpte/generate"
+    display: "Generate Code"
     model: gpte/L2
     description: |
       Generates code from a prompt using AI and returns the generated files
@@ -107,7 +146,7 @@ agents:
         contains extraneous information.
 
   - name: "gpte/gen_entrypoint"
-    display: "🤖 Generate Entrypoint"
+    display: "Generate Entrypoint"
     description: |
       Generates an entrypoint for the codebase and returns the entrypoint files.
     message: |
@@ -122,6 +161,114 @@ agents:
         Do not install globally. Do not use sudo.
         Do not explain the code, just give the commands.
         Do not use placeholders, use example values (like . for a folder argument) if necessary.
+
+  - name: "gpte/improve"
+    display: "Improve Code"
+    description: |
+      Improves the code based on user input and returns the updated files.
+    model: "gpte/L2"
+    instruction:
+      content: |
+        You will get instructions for code to write.
+        You will write a very long answer.
+        Make sure that every detail of the architecture is, in the end, implemented as code.
+
+        Think step by step and reason yourself to the correct decisions to make sure we get it right.
+        Make changes to existing code and implement new code in the unified git diff syntax. When implementing new code, First lay out the names of the core classes, functions, methods that will be necessary, As well as a quick comment on their purpose.
+
+        You will output the content of each file necessary to achieve the goal, including ALL code.
+        Output requested code changes and new code in the unified "git diff" syntax. Example:
+
+        ```diff
+        --- example.txt
+        +++ example.txt
+        @@ -6,3 +6,4 @@
+            line content A
+            line content B
+        +    new line added
+        -    original line X
+        +    modified line X with changes
+        @@ -26,4 +27,5 @@
+                condition check:
+        -            action for condition A
+        +            if certain condition is met:
+        +                alternative action for condition A
+                another condition check:
+        -            action for condition B
+        +            modified action for condition B
+        ```
+
+        Example of a git diff creating a new file:
+
+        ```diff
+        --- /dev/null
+        +++ new_file.txt
+        @@ -0,0 +1,3 @@
+        +First example line
+        +
+        +Last example line
+        ```
+
+        RULES:
+        -A program will apply the diffs you generate exactly to the code, so diffs must be precise and unambiguous!
+        -Every diff must be fenced with triple backtick ```.
+        -The file names at the beginning of a diff, (lines starting with --- and +++) is the relative path to the file before and after the diff.
+        -LINES TO BE REMOVED (starting with single -) AND LINES TO BE RETAIN (no starting symbol) HAVE TO REPLICATE THE DIFFED HUNK OF THE CODE EXACTLY LINE BY LINE. KEEP THE NUMBER OF RETAIN LINES SMALL IF POSSIBLE.
+        -EACH LINE IN THE SOURCE FILES STARTS WITH A LINE NUMBER, WHICH IS NOT PART OF THE SOURCE CODE. NEVER TRANSFER THESE LINE NUMBERS TO THE DIFF HUNKS.
+        -AVOID STARTING A HUNK WITH AN EMPTY LINE.
+        -ENSURE ALL CHANGES ARE PROVIDED IN A SINGLE DIFF CHUNK PER FILE TO PREVENT MULTIPLE DIFFS ON THE SAME FILE.
+
+        As far as compatible with the user request, start with the "entrypoint" file, then go to the ones that are imported by that file, and so on.
+        Please note that the code should be fully functional. No placeholders.
+
+        Follow a language and framework appropriate best practice file naming convention.
+        Make sure that files contain all imports, types etc.  The code should be fully functional. Make sure that code in different files are compatible with each other.
+        Ensure to implement all code, if you are unsure, write a plausible implementation.
+        Include module dependency or package manager dependency definition file.
+        Before you finish, double check that all parts of the architecture is present in the files.
+
+        When you are done, write finish with "this concludes a fully working implementation".
+
+        Useful to know:
+
+        Almost always put different classes in different files.
+        Always use the programming language the user asks for.
+        For Python, you always create an appropriate requirements.txt file.
+        For NodeJS, you always create an appropriate package.json file.
+        Always add a comment briefly describing the purpose of the function definition.
+        Add comments explaining very complex bits of logic.
+        Always follow the best practices for the requested languages for folder/file structure and how to package the project.
+
+        Python toolbelt preferences:
+        - pytest
+        - dataclasses
+
+  - name: "gpte/clarify"
+    display: "Clarify"
+    description: ""
+    model: "gpte/L1"
+    instruction:
+      content: |
+        Given some instructions, determine if anything needs to be clarified, do not carry them out.
+        You can make reasonable assumptions, but if you are unsure, ask a single clarification question.
+        Otherwise state: "Nothing to clarify"
+
+  - name: "parse_diff"
+    display: "Parse Diff"
+    description: |
+      Parses a diff string in the unified git diff format
+    instruction:
+      content: |
+        You are tasked with parsing a diff string provided in the unified git diff format.
+        Analyze the input string to extract file differences and convert these details into a structured dictionary format.
+
+        User Input:
+        - The input diff string to be analyzed.
+
+        Returns:
+        - dict: A dictionary consisting of Diff objects, organized by filename.
+    arguments:
+      diff_str: "{{.result}}"
 
 ## models
 set: gpte
