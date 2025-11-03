@@ -77,10 +77,12 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	root := "/"
 
 	var user = &api.User{}
-	var secrets = conf.LocalSecrets
 	var adapters = adapter.GetAdapters()
+
+	var secrets = conf.LocalSecrets
 	var lfs = vfs.NewLocalFS(root)
 	var los = vos.NewLocalSystem(root)
+
 	assets, err := conf.Assets(cfg)
 	if err != nil {
 		return err

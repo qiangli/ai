@@ -18,7 +18,8 @@ agents:
       original_query: "{{.query}}"
     instruction:
       content: |
-        You are an intelligent agent designed to analyze users' queries related to software generation and improvement. Your task is to interpret and categorize their inputs into a structured JSON object. 
+        You are an intelligent agent designed to analyze users' queries related to software generation and improvement.
+        Your task is to interpret and categorize their inputs into a structured JSON object. 
 
         Follow these steps:
 
@@ -38,7 +39,7 @@ agents:
         4. **JSON Construction**: Create a JSON object with the following structure:
           ```json
           {
-            "intent": "string",             // Determined intent based on options: one of generate, improve, or clarify
+            "intent": "string",             // Determined intent based on options: generate, improve, or clarify
             "preferences": {                // Extracted user preferences
               "verbose": "boolean",
               "prompt_file": "string",
@@ -47,8 +48,19 @@ agents:
             },
             "message": "string"             // The core message/content for the prompt
           }
+    flow:
+      expression: "agent:gpte/{{default .intent generate}}"
+      type: "choice"
+      actions:
+        - "agent:gpte/generate"
+        - "agent:gpte/improve"
+        - "agent:gpte/clarify"
+    functions:
+      - "agent:gpte/generate"
+      - "agent:gpte/improve"
+      - "agent:gpte/clarify"
 
-  - name: "gpte/code"
+  - name: "gpte/generate"
     display: "Code Agent"
     description: |
       This agent is responsible for managing the lifecycle of code generation and improvement
@@ -67,7 +79,7 @@ agents:
       - "agent:gpte/improve"
       - "agent:gpte/clarify"
 
-  - name: "gpte/generate"
+  - name: "gpte/gen_code"
     display: "Generate Code"
     model: gpte/L2
     description: |
@@ -127,21 +139,6 @@ agents:
         Python toolbelt preferences:
         - pytest
         - dataclasses
-
-  - name: "gpte/to_file_dict"
-    display: "File to Code Block Mapper"
-    description: |
-      Extracts file paths and code blocks from input strings,
-      intelligently filtering out extraneous content, and outputs a JSON
-      dictionary mapping filenames to code blocks.
-    instruction:
-      content: |
-        Your task is to analyze input queries to identify and extract file paths
-        along with their corresponding code blocks. Filter out any unrelated
-        content and return a structured JSON object where each file path serves
-        as a key and its associated code block is the value. This role excels
-        at organizing code snippets by file location, even when the input
-        contains extraneous information.
 
   - name: "gpte/gen_entrypoint"
     display: "Generate Entrypoint"
@@ -241,14 +238,68 @@ agents:
         - pytest
         - dataclasses
 
+  - name: "gpte/self_heal"
+    display: "Self Heal"
+    description: |
+      Attempts to execute the code from the entrypoint and if it fails, sends the error output back to the AI with instructions to fix.
+
+      Notes:
+      This code will make `max_attempts` to try and fix the code
+      before giving up.
+      This makes the assuption that the previous step was `gen_entrypoint`,
+      this code could work with `simple_gen`, or `gen_clarified_code` as well.
+    message: |
+      A program with this specification was requested:
+      {prompt}, but running it produced the following output:
+      {stdout_full}
+      and the following errors:
+      {stderr_full}.
+      Please change it so that it fulfills the requirements.
+    instruction:
+      content: |
+        You are an advanced AI agent with the ability to diagnose and self-heal code execution issues. 
+        Your responsibilities include:
+
+        1. **Validate and Execute**: Verify the presence of an entrypoint file and initiate its execution.
+          
+        2. **Error Handling**: Upon encountering errors, analyze them and generate an improved prompt for code refinement.
+
+        3. **Tool Utilization**: Employ available tools for resolution:
+          - **sh:run**: Execute code by providing `files_dict` and optional parameters.
+          - **agent:improve**: Enhance the code using `files_dict` and a generated prompt based on code execution issues.
+
+        4. **Iteration**: Continue attempting to solve errors, adhering to a maximum of max_attempts: `{{.max_attempts}}`. Your aim is to ensure the code successfully meets the specified requirements.
+    arguments:
+      max_attempts: "3"
+    functions:
+      - "agent:gpte/improve"
+      - "sh:run"
+      - "fs:*"
+
   - name: "gpte/clarify"
     display: "Clarify"
-    description: ""
+    description: |
+      Generate code based on clarifications obtained from the user and saves it to a specified workspace.
     instruction:
       content: |
         Given some instructions, determine if anything needs to be clarified, do not carry them out.
         You can make reasonable assumptions, but if you are unsure, ask a single clarification question.
         Otherwise state: "Nothing to clarify"
+
+  - name: "gpte/to_file_dict"
+    display: "File to Code Block Mapper"
+    description: |
+      Extracts file paths and code blocks from input strings,
+      intelligently filtering out extraneous content, and outputs a JSON
+      dictionary mapping filenames to code blocks.
+    instruction:
+      content: |
+        Your task is to analyze input queries to identify and extract file paths
+        along with their corresponding code blocks. Filter out any unrelated
+        content and return a structured JSON object where each file path serves
+        as a key and its associated code block is the value. This role excels
+        at organizing code snippets by file location, even when the input
+        contains extraneous information.
 
   - name: "gpte/parse_diff"
     display: "Parse Diff"
@@ -266,44 +317,6 @@ agents:
         - dict: A dictionary consisting of Diff objects, organized by filename.
     arguments:
       diff_str: "{{.result}}"
-
-  - name: "gpte/self_heal"
-    display: "Parse Diff"
-    description: |
-      Attempts to execute the code from the entrypoint and if it fails, sends the error output back to the AI with instructions to fix.
-
-      Notes:
-      This code will make `MAX_SELF_HEAL_ATTEMPTS` to try and fix the code
-      before giving up.
-      This makes the assuption that the previous step was `gen_entrypoint`,
-      this code could work with `simple_gen`, or `gen_clarified_code` as well.
-    message: |
-        A program with this specification was requested:
-        {prompt}, but running it produced the following output:
-        {stdout_full}
-        and the following errors:
-        {stderr_full}.
-        Please change it so that it fulfills the requirements.
-    instruction:
-      content: |
-        You are an advanced AI agent with the ability to diagnose and self-heal code execution issues. 
-        Your responsibilities include:
-
-        1. **Validate and Execute**: Verify the presence of an entrypoint file and initiate its execution.
-          
-        2. **Error Handling**: Upon encountering errors, analyze them and generate an improved prompt for code refinement.
-
-        3. **Tool Utilization**: Employ available tools for resolution:
-          - **sh:run**: Execute code by providing `files_dict` and optional parameters.
-          - **agent:improve**: Enhance the code using `files_dict` and a generated prompt based on code execution issues.
-
-        4. **Iteration**: Continue attempting to solve errors, adhering to a maximum of `{{.max_attempts}}`. Your aim is to ensure the code successfully meets the specified requirements.
-    arguments:
-      max_attempts: "3"
-    functions:
-      - "agent:gpte/improve"
-      - "sh:run"
-      - "fs:*"
 
 ## models
 set: gpte

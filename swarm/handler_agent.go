@@ -53,7 +53,7 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 		return err
 	}
 
-	if err := h.doFlow(req, resp); err != nil {
+	if err := h.doAgentFlow(req, resp); err != nil {
 		h.sw.Vars.Global.Set(globalResult, err.Error())
 		return err
 	}
@@ -71,7 +71,16 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	return nil
 }
 
-func (h *agentHandler) doFlow(req *api.Request, resp *api.Response) error {
+// run agent first if there is instruction followed by the flow.
+// otherwise, run the flow only
+func (h *agentHandler) doAgentFlow(req *api.Request, resp *api.Response) error {
+	// run agent
+	if h.agent.Instruction != nil && h.agent.Instruction.Content != "" {
+		if err := h.doAgent(req, resp); err != nil {
+			return err
+		}
+	}
+
 	// flow control agent
 	if h.agent.Flow != nil {
 		if len(h.agent.Flow.Actions) == 0 && len(h.agent.Flow.Script) == 0 {
@@ -108,10 +117,6 @@ func (h *agentHandler) doFlow(req *api.Request, resp *api.Response) error {
 			}
 		default:
 			return fmt.Errorf("not supported yet %v", h.agent.Flow)
-		}
-	} else {
-		if err := h.doAgent(req, resp); err != nil {
-			return err
 		}
 	}
 

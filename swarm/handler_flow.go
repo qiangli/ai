@@ -123,24 +123,42 @@ func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error 
 
 // FlowTypeChoice selects and executes a single action based on an evaluated expression.
 // If no expression is provided, an action is chosen randomly. The expression must evaluate
-// to an integer that selects the action index, starting from zero.
+// to a string (tool ID), false/true, or an integer that selects the action index, starting from zero.
 func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
 	env := h.globalEnv()
 	h.mapAssign(req, env, req.Arguments, false)
 
-	var which int
+	var which int = -1
 	// evaluate express or random
 	if h.agent.Flow.Expression != "" {
 		v, err := h.applyTemplate(h.agent.Flow.Expression, env)
 		if err != nil {
 			return err
 		}
-		if v, err := strconv.ParseInt(v, 0, 64); err != nil {
-			return err
-		} else {
-			which = int(v)
+		// match the action id
+		id := api.KitName(v).ID()
+		for i, action := range h.agent.Flow.Actions {
+			if id == action.Tool.ID() {
+				which = i
+			}
+		}
+		//
+		if b, err := strconv.ParseBool(v); err == nil {
+			if b {
+				which = 1
+			} else {
+				which = 0
+			}
+		}
+		if which < 0 {
+			if v, err := strconv.ParseInt(v, 0, 64); err != nil {
+				return err
+			} else {
+				which = int(v)
+			}
 		}
 	} else {
+		// random
 		which = rand.Intn(len(h.agent.Flow.Actions))
 	}
 	if which < 0 && which >= len(h.agent.Flow.Actions) {
