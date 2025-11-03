@@ -1,11 +1,11 @@
 package swarm
 
 import (
-	"maps"
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"strings"
 	"text/template"
 	"time"

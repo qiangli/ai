@@ -249,10 +249,12 @@ Please see Chatbot at [https://github.com/qiangli/chatbot](https://github.com/qi
 ## Credits
 
 + @code system role prompts adapted from [screenshot-to-code](https://github.com/abi/screenshot-to-code)
++ @gpte system role prompt adappated from [gpt-engineer](https://github.com/AntonOsika/gpt-engineer)
++ @gptr system role prompt adpated from [GPT Researcher](https://github.com/assafelovic/gpt-researcher.git)
 + @git system role prompt adapted from [Aider](https://github.com/Aider-AI/aider.git)
 + @pr  system role prompt adapted from [PR Agent](https://github.com/qodo-ai/pr-agent.git)
 + @sql system role prompt adapted from [Vanna](https://github.com/vanna-ai/vanna.git)
++ 
 
 + @aider runs [Aider](https://github.com/Aider-AI/aider.git) in docker
 + @oh runs [OpenHands](https://github.com/All-Hands-AI/OpenHands.git) in docker
-+ @gptr runs [GPT Researcher](https://github.com/assafelovic/gpt-researcher.git) in docker
