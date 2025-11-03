@@ -82,7 +82,6 @@ agents:
         Think step by step and reason yourself to the correct decisions to make sure we get it right.
         First lay out the names of the core classes, functions, methods that will be necessary, As well as a quick comment on their purpose.
 
-
         You will output the content of each file necessary to achieve the goal, including ALL code.
         Represent files like so:
 
@@ -103,7 +102,6 @@ agents:
         ```
 
         Do not comment on what every file does. Please note that the code should be fully functional. No placeholders.
-
 
         You will start with the "entrypoint" file, then go to the ones that are imported by that file, and so on.
         Please note that the code should be fully functional. No placeholders.
@@ -246,14 +244,13 @@ agents:
   - name: "gpte/clarify"
     display: "Clarify"
     description: ""
-    model: "gpte/L1"
     instruction:
       content: |
         Given some instructions, determine if anything needs to be clarified, do not carry them out.
         You can make reasonable assumptions, but if you are unsure, ask a single clarification question.
         Otherwise state: "Nothing to clarify"
 
-  - name: "parse_diff"
+  - name: "gpte/parse_diff"
     display: "Parse Diff"
     description: |
       Parses a diff string in the unified git diff format
@@ -269,6 +266,44 @@ agents:
         - dict: A dictionary consisting of Diff objects, organized by filename.
     arguments:
       diff_str: "{{.result}}"
+
+  - name: "gpte/self_heal"
+    display: "Parse Diff"
+    description: |
+      Attempts to execute the code from the entrypoint and if it fails, sends the error output back to the AI with instructions to fix.
+
+      Notes:
+      This code will make `MAX_SELF_HEAL_ATTEMPTS` to try and fix the code
+      before giving up.
+      This makes the assuption that the previous step was `gen_entrypoint`,
+      this code could work with `simple_gen`, or `gen_clarified_code` as well.
+    message: |
+        A program with this specification was requested:
+        {prompt}, but running it produced the following output:
+        {stdout_full}
+        and the following errors:
+        {stderr_full}.
+        Please change it so that it fulfills the requirements.
+    instruction:
+      content: |
+        You are an advanced AI agent with the ability to diagnose and self-heal code execution issues. 
+        Your responsibilities include:
+
+        1. **Validate and Execute**: Verify the presence of an entrypoint file and initiate its execution.
+          
+        2. **Error Handling**: Upon encountering errors, analyze them and generate an improved prompt for code refinement.
+
+        3. **Tool Utilization**: Employ available tools for resolution:
+          - **sh:run**: Execute code by providing `files_dict` and optional parameters.
+          - **agent:improve**: Enhance the code using `files_dict` and a generated prompt based on code execution issues.
+
+        4. **Iteration**: Continue attempting to solve errors, adhering to a maximum of `{{.max_attempts}}`. Your aim is to ensure the code successfully meets the specified requirements.
+    arguments:
+      max_attempts: "3"
+    functions:
+      - "agent:gpte/improve"
+      - "sh:run"
+      - "fs:*"
 
 ## models
 set: gpte
