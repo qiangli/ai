@@ -67,17 +67,19 @@ agents:
       using an AI model. It orchestrates the generation of new code and the improvement of existing code
       based on given prompts.
     flow:
-      expressin: "agent:gpte/{{.intent}}"
-      type: "choice"
-      default: "agent:gpte/generate"
-      actions:
-        - "agent:gpte/generate"
-        - "agent:gpte/improve"
-        - "agent:gpte/clarify"
+      type: "script"
+      script: |
+        #!/bin/bash
+        set -x
+        agent:gpte/gen_code > code_dict
+        agent:gpte/gen_entrypoint > entry_dict
+        cat code_dict entry_dict | agent:gpte/to_file_dict > file_dict
+        cat file_dict | agent:gpte/execute
     functions:
-      - "agent:gpte/generate"
-      - "agent:gpte/improve"
-      - "agent:gpte/clarify"
+      - "agent:gpte/gen_code"
+      - "agent:gpte/gen_entrypoint"
+      - "agent:gpte/to_file_dict"
+      - "agent:gpte/execute"
 
   - name: "gpte/gen_code"
     display: "Generate Code"
@@ -144,6 +146,7 @@ agents:
     display: "Generate Entrypoint"
     description: |
       Generates an entrypoint for the codebase and returns the entrypoint files.
+    model: gpte/L2
     message: |
       Make a unix script that
       a) installs dependencies
@@ -157,11 +160,15 @@ agents:
         Do not explain the code, just give the commands.
         Do not use placeholders, use example values (like . for a folder argument) if necessary.
 
+        Response format:
+
+        {"ENTRYPOINT_FILE": "final generated enttrypoint script"}
+
   - name: "gpte/improve"
     display: "Improve Code"
     description: |
       Improves the code based on user input and returns the updated files.
-    model: "gpte/L2"
+    model: gpte/L2
     instruction:
       content: |
         You will get instructions for code to write.
@@ -248,6 +255,7 @@ agents:
       before giving up.
       This makes the assuption that the previous step was `gen_entrypoint`,
       this code could work with `simple_gen`, or `gen_clarified_code` as well.
+    model: gpte/L2
     message: |
       A program with this specification was requested:
       {prompt}, but running it produced the following output:
@@ -265,7 +273,7 @@ agents:
         2. **Error Handling**: Upon encountering errors, analyze them and generate an improved prompt for code refinement.
 
         3. **Tool Utilization**: Employ available tools for resolution:
-          - **sh:run**: Execute code by providing `files_dict` and optional parameters.
+          - **sh:exec**: Execute code by providing `files_dict` and optional parameters.
           - **agent:improve**: Enhance the code using `files_dict` and a generated prompt based on code execution issues.
 
         4. **Iteration**: Continue attempting to solve errors, adhering to a maximum of max_attempts: `{{.max_attempts}}`. Your aim is to ensure the code successfully meets the specified requirements.
@@ -273,18 +281,64 @@ agents:
       max_attempts: "3"
     functions:
       - "agent:gpte/improve"
-      - "sh:run"
+      - "sh:*"
       - "fs:*"
 
   - name: "gpte/clarify"
     display: "Clarify"
     description: |
       Generate code based on clarifications obtained from the user and saves it to a specified workspace.
+    model: gpte/L2
     instruction:
       content: |
         Given some instructions, determine if anything needs to be clarified, do not carry them out.
         You can make reasonable assumptions, but if you are unsure, ask a single clarification question.
         Otherwise state: "Nothing to clarify"
+
+  - name: "gpte/execute"
+    display: "Execute Entrypoint"
+    description: |
+      Executes the entrypoint of the codebase.
+    message: |
+      #! --mime-type=text/x-go-template
+      files_dict:
+
+      {{.query}}
+    instruction:
+      content: |
+        You are an execution agent tasked with managing an input file dictionary.
+        Your key responsibilities include saving the files to the correct paths in the current workspace
+        and executing the entrypoint file using the "sh:exec" tool. Follow these detailed steps:
+
+        File Saving:
+
+        Iterate over files_dict, which contains filenames as keys and their source code content as values.
+        For each file in files_dict, utilize the "fs:*" filesystem tools to save each file with its corresponding content to the current workspace, ensuring accurate paths.
+        
+        Identify the Entrypoint:
+
+        Confirm that the entrypoint file, indicated by ENTRYPOINT_FILE, is among the saved files.
+        
+        Entry Validation:
+
+        If the ENTRYPOINT_FILE is not present after saving, halt further execution since it is crucial for the operation.
+        Execution:
+
+        Extract the command corresponding to the entrypoint file from files_dict.
+        Execute the entrypoint using the tool "sh:*" shell commands, with the command formatted appropriately.
+        
+        Tool Calls:
+
+        Adhere to the defined specifications. For file saving, use the format like `fs:write_file` with filename and content.
+        For execution, follow `sh:exec` with the entry point file as specified.
+        
+        Output and Feedback:
+
+        Notify the user upon successful execution and suggest alternative methods for running the code if necessary.
+        Ensure to handle all operations reliably, providing the user with the ability to interrupt the process if needed.
+    functions:
+      - "sh:*"
+      - "fs:*"
 
   - name: "gpte/to_file_dict"
     display: "File to Code Block Mapper"

@@ -2,17 +2,17 @@
 type: "system"
 
 tools:
-  - name: "man"
-    description: |
-      Find and display the manual documentation page for a command. Note: not all commands have manual pages.
-    parameters:
-      type: "object"
-      properties:
-        command:
-          type: "string"
-          description: "The command to get the manual page for."
-      required:
-        - command
+  # - name: "man"
+  #   description: |
+  #     Find and display the manual documentation page for a command. Note: not all commands have manual pages.
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       command:
+  #         type: "string"
+  #         description: "The command to get the manual page for."
+  #     required:
+  #       - command
 
   - name: "exec"
     description: "Executes a specified command within the user's environment, allowing optional flags and arguments to be passed via 'args'. Note: some security restrictions may apply."
