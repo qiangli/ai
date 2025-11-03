@@ -18,4 +18,5 @@ agents:
 
         Returns:
         - dict: A dictionary consisting of Diff objects, organized by filename.
-    arguments: 
+    arguments:
+      diff_str: "{{.result}}"

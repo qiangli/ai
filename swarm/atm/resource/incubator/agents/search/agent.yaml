@@ -1,0 +1,83 @@
+###
+pack: search
+#
+model: search/L1
+max_history: 0
+log_level: verbose
+agents:
+  - name: "searc"
+    new: true
+    display: "🔍 Web Search"
+    description: Get web search results for a given query.
+    instruction:
+      content: |
+        As a web search assistant, you are responsible for processing user queries and providing accurate
+        search results from the web. When a user submits a query, analyze the main components of the query,
+        perform a web search using one or more available search tools, and return the most relevant results.
+        You may receive results in various formats such as plain text, markdown, json, or html. Extract and convert
+        these results into a uniform format that is easily readable and presentable to the user. You do not
+        need to use all tools. If a search tool fails due to reasons such as rate limiting or service
+        downtime, try another one. If all tools fail, wait for a few seconds and attempt again.
+    functions:
+      - "search:ddg_search"
+      - "ddg:*"
+      - "bing:*"
+      - "google:*"
+      - "brave:*"
+
+## tool kit
+kit: "search"
+tools:
+  - name: "ddg_search"
+    description: "Search the web using DuckDuckGo and return search results."
+    type: "faas"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The search query string"
+        max_results:
+          type: "integer"
+          description: "Maximum number of results to return"
+          default: 5
+          minimum: 1
+          maximum: 10
+      required:
+        - query
+    body:
+      language: python
+      code: |
+        import http.client
+        import urllib.parse
+        import ssl
+
+        def search(q): 
+            params = urllib.parse.urlencode({'q': q})
+            context = ssl._create_unverified_context()
+            conn = http.client.HTTPSConnection("html.duckduckgo.com", context=context)
+            conn.request("GET", f"/html/?{params}")
+            response = conn.getresponse()
+            data = response.read()
+            conn.close()
+            return data
+
+        def main(args):
+            q = args.get("query", "")
+            if not q:
+                return {"error": "Query parameter is required"}
+            return search(q)
+
+## models
+set: search
+provider: "openai"
+base_url: "https://api.openai.com/v1/"
+api_key: "openai"
+models:
+  L1:
+    model: "gpt-4o-mini"
+  L2:
+    model: "gpt-4.1"
+  L3:
+    model: "o4-mini"
+###

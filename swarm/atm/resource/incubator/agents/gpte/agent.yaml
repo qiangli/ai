@@ -18,76 +18,110 @@ agents:
     environment:
       original_query: "{{.query}}"
     flow:
-      type: "script"
-      script: |
-        #!/bin/bash
-        /agent:gpte/web_search --message "$query"
-        echo "$result"
+      type: "sequence"
+      actions:
+        - "agent:gpte/gen_code"
+        - "agent:gpte/to_file_dict"
+        - "gpte/gen_entrypoint"
     functions:
-      - "agent:gpte/web_search"
+      - "agent:gpte/gen_code"
+      - "agent:gpte/to_file_dict"
+      - "gpte/gen_entrypoint"
   
-  - name: "gpte/web_search"
-    new: true
-    display: "🔍 Web Search"
-    description: "Get web search results for a given query."
+  - name: "gpte/gen_code"
+    display: "🤖 Generate Code"
+    model: gpte/L2
+    description: |
+      Generates code from a prompt using AI and returns the generated files
+      and returns a dictionary of file names to their respective source code content.
     instruction:
       content: |
-        As a web search assistant, you are responsible for processing user queries and providing accurate
-        search results from the web. When a user submits a query, analyze the main components of the query,
-        perform a web search using one or more available search tools, and return the most relevant results.
-        You may receive results in various formats such as plain text, markdown, json, or html. Extract and convert
-        these results into a uniform format that is easily readable and presentable to the user. You do not
-        need to use all tools. If a search tool fails due to reasons such as rate limiting or service
-        downtime, try another one. If all tools fail, wait for a few seconds and attempt again.
-    functions:
-      - "gpte:ddg_search"
-      - "ddg:*"
-      - "bing:*"
-      - "google:*"
-      - "brave:*"
+        You will get instructions for code to write.
+        You will write a very long answer.
+        Make sure that every detail of the architecture is, in the end, implemented as code.
 
-## tool kit
-kit: "gpte"
-tools:
-  - name: "ddg_search"
-    description: "Search the web using DuckDuckGo and return search results."
-    type: "faas"
-    parameters:
-      type: "object"
-      properties:
-        query:
-          type: "string"
-          description: "The search query string"
-        max_results:
-          type: "integer"
-          description: "Maximum number of results to return"
-          default: 5
-          minimum: 1
-          maximum: 10
-      required:
-        - query
-    body:
-      language: python
-      code: |
-        import http.client
-        import urllib.parse
-        import ssl
+        Think step by step and reason yourself to the correct decisions to make sure we get it right.
+        First lay out the names of the core classes, functions, methods that will be necessary, As well as a quick comment on their purpose.
 
-        def search(q): 
-            params = urllib.parse.urlencode({'q': q})
-            context = ssl._create_unverified_context()
-            conn = http.client.HTTPSConnection("html.duckduckgo.com", context=context)
-            conn.request("GET", f"/html/?{params}")
-            response = conn.getresponse()
-            data = response.read()
-            conn.close()
-            return data
 
-        def main(args):
-            q = args.get("query", "")
-            if not q:
-                return {"error": "Query parameter is required"}
-            return search(q)
+        You will output the content of each file necessary to achieve the goal, including ALL code.
+        Represent files like so:
+
+        FILENAME
+        ```
+        CODE
+        ```
+
+        The following tokens must be replaced like so:
+        FILENAME is the lowercase combined path and file name including the file extension
+        CODE is the code in the file
+
+        Example representation of a file:
+
+        src/hello_world.py
+        ```
+        print("Hello World")
+        ```
+
+        Do not comment on what every file does. Please note that the code should be fully functional. No placeholders.
+
+
+        You will start with the "entrypoint" file, then go to the ones that are imported by that file, and so on.
+        Please note that the code should be fully functional. No placeholders.
+
+        Follow a language and framework appropriate best practice file naming convention.
+        Make sure that files contain all imports, types etc.  The code should be fully functional. Make sure that code in different files are compatible with each other.
+        Ensure to implement all code, if you are unsure, write a plausible implementation.
+        Include module dependency or package manager dependency definition file.
+        Before you finish, double check that all parts of the architecture is present in the files.
+
+        When you are done, write finish with "this concludes a fully working implementation".
+
+        Useful to know:
+
+        Almost always put different classes in different files.
+        Always use the programming language the user asks for.
+        For Python, you always create an appropriate requirements.txt file.
+        For NodeJS, you always create an appropriate package.json file.
+        Always add a comment briefly describing the purpose of the function definition.
+        Add comments explaining very complex bits of logic.
+        Always follow the best practices for the requested languages for folder/file structure and how to package the project.
+
+        Python toolbelt preferences:
+        - pytest
+        - dataclasses
+
+  - name: "gpte/to_file_dict"
+    display: "File to Code Block Mapper"
+    description: |
+      Extracts file paths and code blocks from input strings,
+      intelligently filtering out extraneous content, and outputs a JSON
+      dictionary mapping filenames to code blocks.
+    instruction:
+      content: |
+        Your task is to analyze input queries to identify and extract file paths
+        along with their corresponding code blocks. Filter out any unrelated
+        content and return a structured JSON object where each file path serves
+        as a key and its associated code block is the value. This role excels
+        at organizing code snippets by file location, even when the input
+        contains extraneous information.
+
+  - name: "gpte/gen_entrypoint"
+    display: "🤖 Generate Entrypoint"
+    description: |
+      Generates an entrypoint for the codebase and returns the entrypoint files.
+    message: |
+      Make a unix script that
+      a) installs dependencies
+      b) runs all necessary parts of the codebase (in parallel if necessary)
+    instruction:
+      content: |
+        You will get information about a codebase that is currently on disk in the current folder.
+        The user will ask you to write a script that runs the code in a specific way.
+        You will answer with code blocks that include all the necessary terminal commands.
+        Do not install globally. Do not use sudo.
+        Do not explain the code, just give the commands.
+        Do not use placeholders, use example values (like . for a folder argument) if necessary.
 
 ## models
 set: gpte
@@ -98,7 +132,8 @@ models:
   L1:
     model: "gpt-4o-mini"
   L2:
-    model: "gpt-4.1"
+    model: "gpt-4o"
+    # model: "gpt-4.1"
   L3:
     model: "o4-mini"
 ###
