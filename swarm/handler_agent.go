@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"maps"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -9,6 +10,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/Masterminds/sprig/v3"
 	"github.com/google/uuid"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -17,24 +19,28 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func NewAgentHandler(sw *Swarm) func(*api.Agent) Handler {
-	var fm = tplFuncMap
+func NewAgentHandler(sw *Swarm) (func(*api.Agent) Handler, error) {
+	var fm = sprig.FuncMap()
+	maps.Copy(fm, tplFuncMap)
 	fm["user"] = func() *api.User {
 		return sw.User
 	}
+
+	tpl := template.New("swarm").Funcs(fm)
+
 	return func(agent *api.Agent) Handler {
 		return &agentHandler{
-			agent:   agent,
-			sw:      sw,
-			funcMap: fm,
+			agent:    agent,
+			sw:       sw,
+			template: tpl,
 		}
-	}
+	}, nil
 }
 
 type agentHandler struct {
-	agent   *api.Agent
-	sw      *Swarm
-	funcMap template.FuncMap
+	agent    *api.Agent
+	sw       *Swarm
+	template *template.Template
 }
 
 func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
@@ -543,7 +549,7 @@ func (h *agentHandler) callAgent(parent *api.Request, s string, prompt string) (
 }
 
 func (h *agentHandler) applyTemplate(tpl string, data any) (string, error) {
-	t, err := template.New("swarm").Funcs(h.funcMap).Parse(tpl)
+	t, err := h.template.Parse(tpl)
 	if err != nil {
 		return "", err
 	}
