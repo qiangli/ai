@@ -10,8 +10,6 @@ import (
 	"strings"
 	"sync"
 
-	"mvdan.cc/sh/v3/interp"
-
 	"github.com/charmbracelet/x/exp/slice"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
@@ -348,17 +346,27 @@ func (h *agentHandler) newExecHandler(vs *sh.VirtualSystem, req *api.Request, re
 			resp.Result = nresp.Result
 			return true, nil
 		}
-		// allow bash built in
-		if interp.IsBuiltin(args[0]) {
-			return false, nil
-		}
-		// allow list
-		allowed := []string{"env", "printenv", "head", "tail", "cat", "grep"}
+
+		// internal list
+		allowed := []string{"env", "printenv"}
 		if slice.ContainsAny(allowed, args[0]) {
 			h.doBashCustom(vs, args)
 			return true, nil
 		}
+
+		// bash core utils
+		if did, err := sh.RunCoreUtils(ctx, vs, args); did {
+			return did, err
+		}
+
+		// // bash subshell
+		// if sh.IsShell(args[0]) {
+		// 	err := sh.Gosh(ctx, vs, args)
+		// 	return true, err
+		// }
+
 		// block other commands
+		fmt.Fprintf(vs.IOE.Stderr, "command not supported: %s %+v\n", args[0], args[1:])
 		return true, nil
 	}
 }
