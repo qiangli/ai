@@ -23,9 +23,9 @@ type maxLogHandler struct {
 func (h *maxLogHandler) Serve(r *api.Request, w *api.Response) error {
 	ctx := r.Context()
 	log.GetLogger(ctx).Debugf("Request: %+v\n", r)
-	if len(r.Messages) > 0 {
-		log.GetLogger(ctx).Debugf("%s %s\n", r.Messages[0].Role, clip(r.Messages[0].Content, h.max))
-	}
+	// if len(r.Messages) > 0 {
+	// 	log.GetLogger(ctx).Debugf("%s %s\n", r.Messages[0].Role, clip(r.Messages[0].Content, h.max))
+	// }
 
 	err := h.next.Serve(r, w)
 

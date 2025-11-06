@@ -295,7 +295,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 			for i, msg := range list {
 				if msg.Role != api.RoleSystem {
 					history = append(history, msg)
-					log.GetLogger(ctx).Debugf("Added historical message: %v %s %s\n", i, msg.Role, head(msg.Content, 100))
+					log.GetLogger(ctx).Debugf("Added historical message [%v]: %s %s\n", i, msg.Role, head(msg.Content, 100))
 				}
 			}
 		}
@@ -309,7 +309,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 		if err != nil {
 			return err
 		}
-		req.Messages = append(req.Messages, &api.Message{
+		history = append(history, &api.Message{
 			ID:      uuid.NewString(),
 			ChatID:  chatID,
 			Created: time.Now(),
@@ -320,7 +320,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 		})
 	}
 
-	req.Messages = append(req.Messages, &api.Message{
+	history = append(history, &api.Message{
 		ID:      uuid.NewString(),
 		ChatID:  chatID,
 		Created: time.Now(),
@@ -330,8 +330,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 		Sender:  r.Name,
 	})
 
-	history = append(history, req.Messages...)
-	log.GetLogger(ctx).Debugf("Added user role message: %v\n", len(history))
+	log.GetLogger(ctx).Debugf("Added messages: %v\n", len(history))
 
 	// Request
 	initLen := len(history)

@@ -25,10 +25,15 @@ type Request struct {
 	// The name of the active agent/tool
 	Name string
 
+	// //
+	// Instruction string
+	// Models      string
+	// Functions   []string
+
 	// default values
 	Arguments map[string]any
 
-	Messages []*Message
+	// Messages []*Message
 
 	RawInput *UserInput
 
@@ -88,11 +93,11 @@ func (r *Request) Clone() *Request {
 	r2 := new(Request)
 	*r2 = *r
 
-	// fields
-	if r.Messages != nil {
-		r2.Messages = make([]*Message, len(r.Messages))
-		copy(r2.Messages, r.Messages)
-	}
+	// // fields
+	// if r.Messages != nil {
+	// 	r2.Messages = make([]*Message, len(r.Messages))
+	// 	copy(r2.Messages, r.Messages)
+	// }
 
 	if r.RawInput != nil {
 		r2.RawInput = r.RawInput.Clone()
