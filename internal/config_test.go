@@ -45,7 +45,7 @@ func TestParseConfig(t *testing.T) {
 		// },
 		{
 			args:         []string{"@"},
-			expected:     []string{defaultAgent, ""},
+			expected:     []string{"anonymous", ""},
 			expectedArgs: []string{},
 		},
 		{
@@ -55,7 +55,7 @@ func TestParseConfig(t *testing.T) {
 		},
 		{
 			args:         []string{"@", "test"},
-			expected:     []string{defaultAgent, ""},
+			expected:     []string{"anonymous", ""},
 			expectedArgs: []string{"test"},
 		},
 		{
@@ -65,7 +65,7 @@ func TestParseConfig(t *testing.T) {
 		},
 		{
 			args:         []string{"test", "@"},
-			expected:     []string{defaultAgent, ""},
+			expected:     []string{"anonymous", ""},
 			expectedArgs: []string{"test"},
 		},
 		{

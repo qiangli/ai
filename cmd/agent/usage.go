@@ -47,7 +47,6 @@ There are multiple ways to interact with this AI tool.
 
 + Read from standard input:
 
-  ai @agent --stdin
   ai @agent -
 
 Ctrl+D to send, Ctrl+C to cancel.
@@ -68,18 +67,12 @@ eof
 
 + Reading from system clipboard:
 
-  ai @agent [message...] --pb-read
   ai @agent [message...] {
-  ai @agent [message...] --pb-tail
   ai @agent [message...] {{
 
 Use system copy (Ctrl+C on Unix) to add selected contents.
 Ctrl+C to cancel.
 
-+ Composing with text editor:
-
-  export AI_EDITOR=nano # default: builtin
-  ai @agent -e
 `
 
 type HelpData struct {

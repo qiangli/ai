@@ -3,7 +3,7 @@ package internal
 import (
 	"fmt"
 	"os"
-	"os/user"
+	// "os/user"
 	"path/filepath"
 	"slices"
 
@@ -14,13 +14,13 @@ import (
 	// "github.com/qiangli/ai/swarm/log"
 )
 
-func getCurrentUser() string {
-	currentUser, err := user.Current()
-	if err != nil {
-		return "unkown"
-	}
-	return currentUser.Username
-}
+// func getCurrentUser() string {
+// 	currentUser, err := user.Current()
+// 	if err != nil {
+// 		return "unkown"
+// 	}
+// 	return currentUser.Username
+// }
 
 // func printAIEnv() {
 // 	// Get the current environment variables
@@ -48,19 +48,19 @@ func Validate(app *api.AppConfig) error {
 	return nil
 }
 
-// resolveWorkspaceDir returns the workspace directory.
-// If the workspace is not provided, it returns the temp dir.
-func resolveWorkspaceDir(ws string) (string, error) {
-	if ws != "" {
-		return ensureWorkspace(ws)
-	}
-	// ws, err := os.Getwd()
-	// if err != nil {
-	// 	return "", err
-	// }
-	// return resolveRepoDir(ws)
-	return tempDir()
-}
+// // resolveWorkspaceDir returns the workspace directory.
+// // If the workspace is not provided, it returns the temp dir.
+// func resolveWorkspaceDir(ws string) (string, error) {
+// 	if ws != "" {
+// 		return ensureWorkspace(ws)
+// 	}
+// 	// ws, err := os.Getwd()
+// 	// if err != nil {
+// 	// 	return "", err
+// 	// }
+// 	// return resolveRepoDir(ws)
+// 	return tempDir()
+// }
 
 // // resolveRepoDir returns the directory of the current git repository
 // func resolveRepoDir(ws string) (string, error) {
@@ -82,8 +82,8 @@ func resolveWorkspaceDir(ws string) (string, error) {
 // 	return os.UserHomeDir()
 // }
 
-func tempDir() (string, error) {
-	return os.TempDir(), nil
+func tempDir() string {
+	return os.TempDir()
 }
 
 // // detectGitRepo returns the directory of the git repository
@@ -124,7 +124,7 @@ func ensureWorkspace(ws string) (string, error) {
 // ValidatePath returns the absolute path of the given path.
 // If the path is empty, it returns an error.
 // If the path is not an absolute path, it converts it to an absolute path.
-// If the path exists, it returns its absolute path.
+// If the path does not exist, it returns its absolute path.
 func validatePath(path string) (string, error) {
 	if path == "" {
 		return "", fmt.Errorf("path is empty")

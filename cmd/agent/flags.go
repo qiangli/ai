@@ -1,8 +1,6 @@
 package agent
 
 import (
-	// "os"
-
 	"github.com/spf13/cobra"
 )
 
@@ -12,6 +10,8 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.String("arguments", "", "arguments map in JSON format")
 	flags.StringArray("arg", []string{}, "argument name=value (can be used multiple times)")
 
+	// flags.StringArray("env", []string{}, "environment variable name=value (can be used multiple times)")
+
 	// --agent agent/command or @agent/command
 	flags.StringP("agent", "a", "", "Specify the agent to use. shorthand: @<agent>")
 	flags.String("instruction", "", "System role prompt")
@@ -20,9 +20,9 @@ func addAgentFlags(cmd *cobra.Command) {
 	// flags.String("chat", "", "Continue conversation using chat ID")
 	// flags.MarkHidden("chat")
 
-	flags.BoolP("new", "n", false, "Start a new conversation. max-history=0 and max-span=0")
+	flags.Bool("new", false, "Start a new conversation. max-history=0 and max-span=0")
 
-	flags.String("context", "", "Agent for summarizing history")
+	// flags.String("context", "", "Agent for summarizing history")
 
 	flags.Int("max-history", 3, "Max historic messages to retrieve")
 	flags.Int("max-span", 480, "Historic message retrieval span (minutes)")
@@ -36,7 +36,7 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	flags.String("log-level", "", "Log level: quiet, info, verbose, trace")
 
-	flags.Bool("quiet", false, "Operate quietly. nnly show final response. log-level=quiet")
+	flags.Bool("quiet", false, "Operate quietly, only show final response. log-level=quiet")
 	flags.Bool("info", false, "Show progress")
 	flags.Bool("verbose", false, "Show progress and debugging information")
 	flags.Bool("trace", false, "Turn on tracing")
@@ -48,8 +48,9 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	// LLM
 	// a set of models grouped under one name for convenience from potentially different service providers
-	flags.StringP("models", "m", "", "LLM model alias defined in the models set")
+	flags.StringP("models", "m", "", "LLM model alias defined in the model set")
 	// flags.MarkHidden("models")
+	// flags.StringP("tools", "t", "", "LLM functions defined in the tool kit")
 
 	// //
 	// flags.Bool("dry-run", false, "Enable dry run mode. No API call will be made")

@@ -1,20 +1,19 @@
 package conf
 
 import (
-	// "os"
 	"path/filepath"
 
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 )
 
-func NewBlobs(app *api.AppConfig, bucket string) (*swarm.BlobStorage, error) {
-	cfg, err := api.LoadResourceConfig(filepath.Join(app.Workspace, "dhnt.json"))
+func NewBlobs(cfg *api.AppConfig, bucket string) (*swarm.BlobStorage, error) {
+	res, err := api.LoadResourceConfig(filepath.Join(cfg.Base, "dhnt.json"))
 	if err != nil {
 		return nil, err
 	}
 
-	fs, err := swarm.NewCloudStorage(cfg)
+	fs, err := swarm.NewCloudStorage(res)
 	if err != nil {
 		return nil, err
 	}

@@ -48,13 +48,13 @@ func ToLogLevel(level string) LogLevel {
 	}
 }
 
+// command line
 type AppConfig struct {
-	// Version string
+	// app root path
+	// $HOME/.ai/
+	Base string
 
 	// ConfigFile string
-
-	// // rename WebResource?
-	// AgentResource *AgentResource
 
 	Agent string
 
@@ -67,6 +67,12 @@ type AppConfig struct {
 	// --message takes precedence, skip stdin
 	// command line arguments
 	Message string
+
+	// // file/stdin (-) input
+	// Inputs []string
+
+	// // file/stdout(-) outputs
+	// Outputs []string
 
 	Instruction string
 
@@ -111,7 +117,8 @@ type AppConfig struct {
 	//
 	// Base string
 
-	// workspace root
+	// workspace root.
+	// default: <Base>/workspace
 	Workspace string
 
 	// Interactive bool

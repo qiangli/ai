@@ -2,7 +2,6 @@ package conf
 
 import (
 	"fmt"
-	// "os"
 	"path/filepath"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -11,24 +10,15 @@ import (
 )
 
 // default assets with resource.json and standard
-func Assets(app *api.AppConfig) (api.AssetManager, error) {
+func Assets(cfg *api.AppConfig) (api.AssetManager, error) {
 	var assets = conf.NewAssetManager()
-
-	// if ar, err := api.LoadAgentResource(filepath.Join(app.Base, "resource.json")); err == nil {
-	// 	for _, v := range ar.Resources {
-	// 		assets.AddStore(&resource.WebStore{
-	// 			Base:  v.Base,
-	// 			Token: v.Token,
-	// 		})
-	// 	}
-	// }
-	cfg, err := api.LoadResourceConfig(filepath.Join(app.Workspace, "dhnt.json"))
+	res, err := api.LoadResourceConfig(filepath.Join(cfg.Base, "dhnt.json"))
 	if err != nil {
 		return nil, err
 	}
 	assets.AddStore(&resource.WebStore{
-		Base:  fmt.Sprintf("%s/resource", cfg.Base),
-		Token: cfg.Token,
+		Base:  fmt.Sprintf("%s/resource", res.Base),
+		Token: res.Token,
 	})
 
 	assets.AddStore(resource.NewStandardStore())

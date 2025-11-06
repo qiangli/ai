@@ -2,7 +2,7 @@ package internal
 
 import (
 	"embed"
-	// "fmt"
+	"fmt"
 	"os"
 	// "os/exec"
 	"path/filepath"
@@ -80,20 +80,24 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	// app.Version = Version
 	// app.User = &api.User{}
 
-	//
-	// workspace
-	// ws := viper.GetString("workspace")
-
-	// // ws, err := resolveWorkspaceDir(ws)
-	// // if err != nil {
-	// // 	return fmt.Errorf("failed to resolve workspace: %w", err)
-	// // }
-	// app.Workspace = ws
-
-	if v, err := os.UserHomeDir(); err != nil {
+	// set app base to <home>/.ai
+	home, err := os.UserHomeDir()
+	if err != nil {
 		return err
+	}
+	app.Base = filepath.Join(home, ".ai")
+
+	//
+	// workspace is required for ai to properly operate
+	// default to <app.Base>/workspace
+	ws := viper.GetString("workspace")
+	if ws == "" {
+		ws = filepath.Join(app.Base, "workspace")
+	}
+	if v, err := ensureWorkspace(ws); err != nil {
+		return fmt.Errorf("failed to resolve workspace: %w", err)
 	} else {
-		app.Workspace = filepath.Join(v, ".ai")
+		app.Workspace = v
 	}
 
 	// app.DryRun = viper.GetBool("dry_run")
@@ -236,6 +240,7 @@ func ParseArgs(viper *fangs.Viper, app *api.AppConfig, args []string, defaultAge
 
 // return the agent/command and the rest of the args
 func ParseAgentArgs(app *api.AppConfig, args []string, defaultAgent string) []string {
+	// TODO deprecate
 	shellAgent := "shell"
 
 	// first or last arg could be the agent/command
@@ -260,8 +265,9 @@ func ParseAgentArgs(app *api.AppConfig, args []string, defaultAgent string) []st
 			arg = args[0]
 			args = args[1:]
 		}
+		// override agent at the end of the command line
 		// agent check only
-		// slash could file path
+		// slash could be file path
 		if isAgent(args[len(args)-1]) {
 			arg = args[len(args)-1]
 			args = args[:len(args)-1]
@@ -274,6 +280,10 @@ func ParseAgentArgs(app *api.AppConfig, args []string, defaultAgent string) []st
 			agent = shellAgent + arg
 		} else {
 			agent = arg[1:]
+			// @ -> @anonymous ad hoc agent definition and execution
+			if agent == "" {
+				agent = "anonymous"
+			}
 		}
 	}
 
