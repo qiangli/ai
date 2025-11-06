@@ -71,10 +71,10 @@ agents:
       script: |
         #!/bin/bash
         set -x
-        agent:gpte/gen_code > code_dict
-        agent:gpte/gen_entrypoint > entry_dict
-        cat code_dict entry_dict | agent:gpte/to_file_dict > file_dict
-        cat file_dict | agent:gpte/execute
+        /agent:gpte/gen_code > code_dict
+        /agent:gpte/gen_entrypoint > entry_dict
+        /agent:gpte/to_file_dict --message "$(cat code_dict entry_dict)" > file_dict
+        /agent:gpte/execute --message "$(cat file_dict)"
     functions:
       - "agent:gpte/gen_code"
       - "agent:gpte/gen_entrypoint"

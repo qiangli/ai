@@ -12,7 +12,8 @@ func TestLoadAgentData(t *testing.T) {
 	}
 	// file, err := os.Open("../resource/incubator/agents/gptr/agent.yaml")
 	// file, err := os.Open("../resource/incubator/agents/think/agent.yaml")
-	file, err := os.Open("../resource/incubator/agents/cron/agent.yaml")
+	// file, err := os.Open("../resource/incubator/agents/cron/agent.yaml")
+	file, err := os.Open("../resource/incubator/agents/gpte/agent.yaml")
 	if err != nil {
 		t.Fatalf("failed to open file: %v", err)
 	}
