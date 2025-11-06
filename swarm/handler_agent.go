@@ -111,8 +111,8 @@ func (h *agentHandler) doAgentFlow(req *api.Request, resp *api.Response) error {
 			if err := h.flowReduce(req, resp); err != nil {
 				return err
 			}
-		case api.FlowTypeScript:
-			if err := h.flowScript(req, resp); err != nil {
+		case api.FlowTypeShell:
+			if err := h.flowShell(req, resp); err != nil {
 				return err
 			}
 		default:

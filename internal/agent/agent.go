@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/agent/conf"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
@@ -23,9 +22,9 @@ func RunAgent(ctx context.Context, app *api.AppConfig) error {
 		return err
 	}
 
-	if in.IsEmpty() && app.Message == "" {
-		return internal.NewUserInputError("no query provided")
-	}
+	// if in.IsEmpty() && app.Message == "" {
+	// 	return internal.NewUserInputError("no query provided")
+	// }
 
 	// in.Agent = app.Agent
 

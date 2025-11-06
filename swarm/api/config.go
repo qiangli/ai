@@ -219,7 +219,7 @@ func (r *AppConfig) IsSpecial() bool {
 }
 
 func (r *AppConfig) HasInput() bool {
-	return r.Message != ""
+	return r.Message != "" || r.Agent != ""
 }
 
 func (cfg *AppConfig) Interactive() bool {

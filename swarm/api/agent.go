@@ -368,9 +368,9 @@ const (
 	// accumulated value. If at the root, an initial value is sourced from a previous agent or user query.
 	FlowTypeReduce FlowType = "reduce"
 
-	// FlowTypeScript delegates control to a shell script using bash script syntax, enabling
+	// FlowTypeShell delegates control to a shell script using bash script syntax, enabling
 	// complex flow control scenarios driven by external scripting logic.
-	FlowTypeScript FlowType = "script"
+	FlowTypeShell FlowType = "shell"
 )
 
 type FlowConfig struct {

@@ -3,7 +3,6 @@ package agent
 import (
 	"context"
 	"os"
-	// "strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -11,8 +10,6 @@ import (
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/agent"
-	// "github.com/qiangli/ai/internal/bubble"
-	// "github.com/qiangli/ai/internal/watch"
 	"github.com/qiangli/ai/shell"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"

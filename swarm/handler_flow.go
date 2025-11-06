@@ -257,9 +257,9 @@ Index:
 	return nil
 }
 
-// FlowTypeScript delegates control to a shell script using bash script syntax, enabling
+// FlowTypeShell delegates control to a shell script using bash script syntax, enabling
 // complex flow control scenarios driven by external scripting logic.
-func (h *agentHandler) flowScript(req *api.Request, resp *api.Response) error {
+func (h *agentHandler) flowShell(req *api.Request, resp *api.Response) error {
 	ctx := req.Context()
 	var b bytes.Buffer
 

@@ -120,7 +120,7 @@ agents:
     instruction:
       content: ""
     flow:
-      type: script
+      type: shell
       script:
         #!/bin/bash
         echo hello world!

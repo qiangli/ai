@@ -13,14 +13,14 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.StringArray("arg", []string{}, "argument name=value (can be used multiple times)")
 
 	// --agent agent/command or @agent/command
-	flags.StringP("agent", "a", "", "Specify the agent to use as @<agent>")
-	flags.String("instruction", "", "System role prompt message")
-	flags.String("message", "", "Input message")
+	flags.StringP("agent", "a", "", "Specify the agent to use. shorthand: @<agent>")
+	flags.String("instruction", "", "System role prompt")
+	flags.String("message", "", "User query")
 
 	// flags.String("chat", "", "Continue conversation using chat ID")
 	// flags.MarkHidden("chat")
 
-	flags.BoolP("new", "n", false, "Start a new conversation. Ignore max-history and max-span")
+	flags.BoolP("new", "n", false, "Start a new conversation. max-history=0 and max-span=0")
 
 	flags.String("context", "", "Agent for summarizing history")
 
@@ -32,11 +32,11 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.String("format", "markdown", "Output as raw, text, json, or markdown")
 
 	// flags.Bool("unsafe", false, "Allow unsafe operations (skip security check)")
-	flags.StringP("workspace", "w", "", "Workspace directory path")
+	flags.StringP("workspace", "w", "", "Workspace root path")
 
 	flags.String("log-level", "", "Log level: quiet, info, verbose, trace")
 
-	flags.Bool("quiet", false, "Operate quietly. Only show final response")
+	flags.Bool("quiet", false, "Operate quietly. nnly show final response. log-level=quiet")
 	flags.Bool("info", false, "Show progress")
 	flags.Bool("verbose", false, "Show progress and debugging information")
 	flags.Bool("trace", false, "Turn on tracing")
@@ -48,7 +48,7 @@ func addAgentFlags(cmd *cobra.Command) {
 
 	// LLM
 	// a set of models grouped under one name for convenience from potentially different service providers
-	flags.StringP("models", "m", "", "LLM model alias defined in the models directory")
+	flags.StringP("models", "m", "", "LLM model alias defined in the models set")
 	// flags.MarkHidden("models")
 
 	// //

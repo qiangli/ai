@@ -26,7 +26,7 @@ agents:
       #   - "agent:gptr/scrape"
       #   - "agent:gptr/curate"
       #   - "agent:gptr/report"
-      type: "script"
+      type: "shell"
       script: |
         #!/bin/bash
         /agent:gptr/user_input

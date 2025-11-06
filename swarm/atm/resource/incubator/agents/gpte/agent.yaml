@@ -67,7 +67,7 @@ agents:
       using an AI model. It orchestrates the generation of new code and the improvement of existing code
       based on given prompts.
     flow:
-      type: "script"
+      type: "shell"
       script: |
         #!/bin/bash
         set -x
