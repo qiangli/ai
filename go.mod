@@ -59,7 +59,7 @@ require (
 	golang.org/x/term v0.36.0
 	golang.org/x/text v0.30.0
 	google.golang.org/api v0.255.0
-	google.golang.org/genai v1.33.0
+	google.golang.org/genai v1.34.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v3 v3.0.1
 )
