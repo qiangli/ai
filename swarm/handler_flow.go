@@ -264,7 +264,7 @@ func (h *agentHandler) flowScript(req *api.Request, resp *api.Response) error {
 	var b bytes.Buffer
 
 	ioe := &sh.IOE{Stdin: nil, Stdout: &b, Stderr: &b}
-	vs := sh.NewVirtualSystem(h.sw.OS, h.sw.Workspace, ioe)
+	vs := sh.NewVirtualSystem(h.sw.Root, h.sw.OS, h.sw.Workspace, ioe)
 
 	// set global env for bash script
 	env := h.globalEnv()

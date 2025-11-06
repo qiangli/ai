@@ -18,7 +18,7 @@ func TestNewBlobs(t *testing.T) {
 		t.FailNow()
 	}
 	app := &api.AppConfig{
-		Base: filepath.Join(home, ".ai"),
+		Workspace: filepath.Join(home, ".ai"),
 	}
 	nb, err := NewBlobs(app, "")
 	if err != nil {

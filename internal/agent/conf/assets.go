@@ -2,6 +2,7 @@ package conf
 
 import (
 	"fmt"
+	// "os"
 	"path/filepath"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -21,8 +22,7 @@ func Assets(app *api.AppConfig) (api.AssetManager, error) {
 	// 		})
 	// 	}
 	// }
-
-	cfg, err := api.LoadResourceConfig(filepath.Join(app.Base, "dhnt.json"))
+	cfg, err := api.LoadResourceConfig(filepath.Join(app.Workspace, "dhnt.json"))
 	if err != nil {
 		return nil, err
 	}

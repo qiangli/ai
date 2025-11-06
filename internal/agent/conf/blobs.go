@@ -1,6 +1,7 @@
 package conf
 
 import (
+	// "os"
 	"path/filepath"
 
 	"github.com/qiangli/ai/swarm"
@@ -8,7 +9,7 @@ import (
 )
 
 func NewBlobs(app *api.AppConfig, bucket string) (*swarm.BlobStorage, error) {
-	cfg, err := api.LoadResourceConfig(filepath.Join(app.Base, "dhnt.json"))
+	cfg, err := api.LoadResourceConfig(filepath.Join(app.Workspace, "dhnt.json"))
 	if err != nil {
 		return nil, err
 	}

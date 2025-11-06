@@ -2,9 +2,9 @@ package internal
 
 import (
 	"embed"
-	"fmt"
+	// "fmt"
 	"os"
-	"os/exec"
+	// "os/exec"
 	"path/filepath"
 	"strings"
 
@@ -13,7 +13,7 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-const DefaultEditor = "ai -i edit"
+const DefaultEditor = "vi"
 
 const StdinRedirect = "-"
 
@@ -74,20 +74,38 @@ func InitConfig(viper *fangs.Viper) error {
 }
 
 func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
-	app.ConfigFile = viper.ConfigFileUsed()
+	// app.ConfigFile = viper.ConfigFileUsed()
 	//
-	app.Base = filepath.Dir(app.ConfigFile)
-	app.Version = Version
-	app.User = &api.User{}
+	// app.Base = filepath.Dir(app.ConfigFile)
+	// app.Version = Version
+	// app.User = &api.User{}
 
-	app.DryRun = viper.GetBool("dry_run")
-	app.DryRunContent = viper.GetString("dry_run_content")
+	//
+	// workspace
+	// ws := viper.GetString("workspace")
+
+	// // ws, err := resolveWorkspaceDir(ws)
+	// // if err != nil {
+	// // 	return fmt.Errorf("failed to resolve workspace: %w", err)
+	// // }
+	// app.Workspace = ws
+
+	if v, err := os.UserHomeDir(); err != nil {
+		return err
+	} else {
+		app.Workspace = filepath.Join(v, ".ai")
+	}
+
+	// app.DryRun = viper.GetBool("dry_run")
+	// app.DryRunContent = viper.GetString("dry_run_content")
 
 	// app.Files = viper.GetStringSlice("file")
 	app.Format = viper.GetString("format")
 	// app.Output = viper.GetString("output")
 
 	//
+	app.Instruction = viper.GetString("instruction")
+
 	app.Message = viper.GetString("message")
 
 	// app.Template = viper.GetString("template")
@@ -108,26 +126,20 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	// }
 	// app.Temp = temp
 
-	// workspace
-	ws := viper.GetString("workspace")
-	if ws == "" {
-		ws = filepath.Join(app.Base, "workspace")
-	}
-	ws, err := resolveWorkspaceDir(ws)
-	if err != nil {
-		return fmt.Errorf("failed to resolve workspace: %w", err)
-	}
-	app.Workspace = ws
-
 	//
-	if viper.IsSet("new") {
-		newchat := viper.GetBool("new")
-		app.New = &newchat
-	}
-	app.ChatID = viper.GetString("chat")
+	// if viper.IsSet("new") {
+	// 	// newchat := viper.GetBool("new")
+	// 	// app.New = &newchat
+	// }
+	// app.ChatID = viper.GetString("chat")
 	app.MaxHistory = viper.GetInt("max_history")
 	app.MaxSpan = viper.GetInt("max_span")
 	app.Context = viper.GetString("context")
+
+	if viper.GetBool("new") {
+		app.MaxHistory = 0
+		app.MaxSpan = 0
+	}
 
 	app.MaxTurns = viper.GetInt("max_turns")
 	app.MaxTime = viper.GetInt("max_time")
@@ -151,7 +163,7 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 		app.LogLevel = "quiet"
 	}
 
-	app.Unsafe = viper.GetBool("unsafe")
+	// app.Unsafe = viper.GetBool("unsafe")
 	// toList := func(s string) []string {
 	// 	sa := strings.Split(s, ",")
 	// 	var list []string
@@ -166,32 +178,32 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	// app.DenyList = toList(viper.GetString("deny"))
 	// app.AllowList = toList(viper.GetString("allow"))
 
-	app.Editor = viper.GetString("editor")
-	app.Editing = viper.GetBool("edit")
-	app.Interactive = viper.GetBool("interactive")
+	// app.Editor = viper.GetString("editor")
+	// app.Editing = viper.GetBool("edit")
+	// app.Interactive = viper.GetBool("interactive")
 
-	app.Watch = viper.GetBool("watch")
-	app.ClipWatch = viper.GetBool("pb_watch")
+	// app.Watch = viper.GetBool("watch")
+	// app.ClipWatch = viper.GetBool("pb_watch")
 
-	shell := viper.GetString("shell")
-	if shell == "" {
-		shell = "bash"
-	}
-	shellBin, _ := exec.LookPath(shell)
-	if shellBin == "" {
-		shellBin = "/bin/bash"
-	}
-	app.Shell = shellBin
+	// shell := viper.GetString("shell")
+	// if shell == "" {
+	// 	shell = "bash"
+	// }
+	// shellBin, _ := exec.LookPath(shell)
+	// if shellBin == "" {
+	// 	shellBin = "/bin/bash"
+	// }
+	// app.Shell = shellBin
 
 	// default agent:
 	// --agent, "ask"
-	var defaultAgent = viper.GetString("agent")
+	var agent = viper.GetString("agent")
 	// if defaultAgent == "" {
 	// 	defaultAgent = "agent"
 	// }
 
 	//
-	ParseArgs(viper, app, args, defaultAgent)
+	ParseArgs(viper, app, args, agent)
 
 	// // resource
 	// resource := viper.GetString("resource")
@@ -211,7 +223,15 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 func ParseArgs(viper *fangs.Viper, app *api.AppConfig, args []string, defaultAgent string) {
 	newArgs := ParseAgentArgs(app, args, defaultAgent)
 	newArgs = ParseSpecialChars(viper, app, newArgs)
-	app.Args = newArgs
+	// app.Args = newArgs
+	// append to message
+	if len(newArgs) > 0 {
+		app.Message = app.Message + "\n" + strings.Join(newArgs, " ")
+	}
+	// var msg = trimInputMessage(strings.Join(cfg.Args, " "))
+	// if cfg.Message != "" {
+	// 	msg = cfg.Message + " " + msg
+	// }
 }
 
 // return the agent/command and the rest of the args

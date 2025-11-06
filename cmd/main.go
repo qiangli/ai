@@ -24,9 +24,6 @@ Usage:
 Examples:
 {{.Example}}{{end}}
 
-Miscellaneous:
-  ai /setup                      Setup configuration
-
 Use "{{.CommandPath}} /help [agents|tools|models]" for more information.
 `
 

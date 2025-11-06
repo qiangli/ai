@@ -2,11 +2,11 @@ package setup
 
 import (
 	"context"
-	"errors"
-	"io/fs"
+	// "errors"
+	// "io/fs"
 	"os"
 	"os/exec"
-	"path/filepath"
+	// "path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -46,51 +46,51 @@ func init() {
 // Use the configFileContent variable in your application as needed
 func setupConfig(cfg *api.AppConfig) error {
 
-	if _, err := os.Stat(cfg.ConfigFile); errors.Is(err, os.ErrNotExist) {
-		base := filepath.Dir(cfg.ConfigFile)
-		if err := os.MkdirAll(base, os.ModePerm); err != nil {
-			return err
-		}
-		cfgData := internal.GetConfigData()
-		err = fs.WalkDir(cfgData, ".", func(relPath string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
+	// if _, err := os.Stat(cfg.ConfigFile); errors.Is(err, os.ErrNotExist) {
+	// 	base := filepath.Dir(cfg.ConfigFile)
+	// 	if err := os.MkdirAll(base, os.ModePerm); err != nil {
+	// 		return err
+	// 	}
+	// 	cfgData := internal.GetConfigData()
+	// 	err = fs.WalkDir(cfgData, ".", func(relPath string, d fs.DirEntry, err error) error {
+	// 		if err != nil {
+	// 			return err
+	// 		}
 
-			stripped := relPath
-			if strings.HasPrefix(relPath, "data/") {
-				stripped = strings.TrimPrefix(relPath, "data/")
-			}
-			fullPath := filepath.Join(base, stripped)
+	// 		stripped := relPath
+	// 		if strings.HasPrefix(relPath, "data/") {
+	// 			stripped = strings.TrimPrefix(relPath, "data/")
+	// 		}
+	// 		fullPath := filepath.Join(base, stripped)
 
-			if d.IsDir() {
-				return nil
-			}
+	// 		if d.IsDir() {
+	// 			return nil
+	// 		}
 
-			if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
-				return err
-			}
+	// 		if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+	// 			return err
+	// 		}
 
-			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-				data, err := cfgData.ReadFile(relPath)
-				if err != nil {
-					return err
-				}
-				if err := os.WriteFile(fullPath, data, 0600); err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-	}
+	// 		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+	// 			data, err := cfgData.ReadFile(relPath)
+	// 			if err != nil {
+	// 				return err
+	// 			}
+	// 			if err := os.WriteFile(fullPath, data, 0600); err != nil {
+	// 				return err
+	// 			}
+	// 		}
+	// 		return nil
+	// 	})
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 	//
-	editor := cfg.Editor
-	if editor == "" {
-		editor = internal.DefaultEditor
-	}
+	editor := "vi"
+	// if editor == "" {
+	// 	editor = internal.DefaultEditor
+	// }
 	// support simple args for editor command line
 	cmdArgs := strings.Fields(editor)
 	var bin string
@@ -99,7 +99,7 @@ func setupConfig(cfg *api.AppConfig) error {
 	if len(cmdArgs) > 1 {
 		args = cmdArgs[1:]
 	}
-	args = append(args, cfg.ConfigFile)
+	// args = append(args, cfg.ConfigFile)
 
 	cmd := exec.Command(bin, args...)
 	cmd.Stdin = os.Stdin

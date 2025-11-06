@@ -247,7 +247,7 @@ AI will choose an appropriate agent based on your message if no agent is specifi
 * You can place command options anywhere in your message. To include options as part of the message, use quotes or escape '\'.
 `
 	assets, _ := conf.Assets(app)
-	list, count, _ := atmconf.ListAgents(assets, app.User.Email)
+	list, count, _ := atmconf.ListAgents(assets, app.User)
 	log.GetLogger(ctx).Infof(format, list, count)
 
 	return nil
@@ -294,7 +294,7 @@ Total: %v
 Tools are used by agents to perform specific tasks. They are automatically selected based on the agent's capabilities and your input message.
 `
 	assets, _ := conf.Assets(app)
-	list, count, _ := atmconf.ListTools(assets, app.User.Email)
+	list, count, _ := atmconf.ListTools(assets, app.User)
 
 	log.GetLogger(ctx).Infof(listTpl, list, count)
 	return nil
@@ -310,7 +310,7 @@ Total: %v
 Model Alias can be used to reference a group of LLM models. You can mix and match different providers for one alias.
 `
 	assets, _ := conf.Assets(app)
-	list, count, _ := atmconf.ListModels(assets, app.User.Email)
+	list, count, _ := atmconf.ListModels(assets, app.User)
 
 	log.GetLogger(ctx).Infof(listTpl, list, count)
 	return nil

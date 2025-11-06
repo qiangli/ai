@@ -88,7 +88,8 @@ func copyScriptToClipboard(_ *api.AppConfig, script string) error {
 }
 
 func editScript(ctx context.Context, cfg *api.AppConfig, script string) error {
-	editor := cfg.Editor
+	// editor := cfg.Editor
+	editor := "vi"
 
 	log.GetLogger(ctx).Debugf("Using editor: %s\n", editor)
 

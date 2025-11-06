@@ -17,7 +17,7 @@ import (
 )
 
 func RunAgent(ctx context.Context, app *api.AppConfig) error {
-	log.GetLogger(ctx).Debugf("Agent: %s %v\n", app.Agent, app.Args)
+	log.GetLogger(ctx).Debugf("Agent: %s\n", app.Agent)
 	in, err := GetUserInput(ctx, app)
 	if err != nil {
 		return err
@@ -74,7 +74,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	}
 	resp := &api.Response{}
 
-	root := "/"
+	root := cfg.Workspace
 
 	var user = &api.User{}
 	var adapters = adapter.GetAdapters()
@@ -94,6 +94,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	var tools = swarm.NewToolSystem(user, secrets, assets, lfs, los)
 
 	sw := &swarm.Swarm{
+		Root:      root,
 		Vars:      vars,
 		User:      user,
 		Secrets:   secrets,
@@ -150,7 +151,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	}
 	processOutput(ctx, cfg, out)
 
-	log.GetLogger(ctx).Debugf("Agent task completed: %v\n", cfg.Args)
+	log.GetLogger(ctx).Debugf("Agent task completed\n")
 	return nil
 }
 
@@ -183,8 +184,8 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 
 	// Setting configuration values from the app to vars
 	vars.LogLevel = api.ToLogLevel(app.LogLevel)
-	vars.ChatID = app.ChatID
-	vars.New = app.New
+	// vars.ChatID = app.ChatID
+	// vars.New = app.New
 	vars.MaxTurns = app.MaxTurns
 	vars.MaxTime = app.MaxTime
 	vars.MaxHistory = app.MaxHistory
@@ -193,11 +194,9 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	// vars.Message = app.Message
 	vars.Format = app.Format
 	vars.Models = app.Models
-	vars.Unsafe = app.Unsafe
-	vars.DryRun = app.DryRun
-	vars.DryRunContent = app.DryRunContent
-	//
-	vars.Workspace = app.Workspace
+	// vars.Unsafe = app.Unsafe
+	// vars.DryRun = app.DryRun
+	// vars.DryRunContent = app.DryRunContent
 	//
 	vars.Workspace = app.Workspace
 

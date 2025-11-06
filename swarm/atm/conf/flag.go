@@ -47,14 +47,15 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 	args = args[1:]
 
 	//
-	fs := flag.NewFlagSet("dhnt.io ai", flag.ContinueOnError)
+	fs := flag.NewFlagSet("ai", flag.ContinueOnError)
 	arguments := fs.String("arguments", "", "arguments map in JSON format")
+	var arg stringSlice
+	fs.Var(&arg, "arg", "argument name=value (can be used multiple times)")
+
 	//
 	instruction := fs.String("instruction", "", "System role prompt message")
 	message := fs.String("message", "", "User input message")
 	//
-	var arg stringSlice
-	fs.Var(&arg, "arg", "argument name=value (can be used multiple times)")
 
 	// common args
 	maxHistory := fs.Int("max-history", 0, "Max historic messages to retrieve")
@@ -130,14 +131,6 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 		return &api.Agent{
 			Owner: owner,
 			Name:  s,
-			//
-			// Instruction: &api.Instruction{
-			// 	Content: content,
-			// },
-			// RawInput: &api.UserInput{
-			// 	Message: msg,
-			// },
-			// Arguments: atArgs,
 			//
 			Adapter: "",
 			Model:   nil,

@@ -84,10 +84,10 @@ func WatchRepo(ctx context.Context, cfg *api.AppConfig) error {
 
 		//success
 		log.GetLogger(ctx).Infof("ai executed successfully: %s\n", line)
-		if err := replaceContentInFile(path, line, prefix, cfg.Stdout); err != nil {
-			log.GetLogger(ctx).Errorf("Error replacing content in file: %s\n", err)
-			return
-		}
+		// if err := replaceContentInFile(path, line, prefix, cfg.Stdout); err != nil {
+		// 	log.GetLogger(ctx).Errorf("Error replacing content in file: %s\n", err)
+		// 	return
+		// }
 	}
 
 	// Unmodified         StatusCode = ' '

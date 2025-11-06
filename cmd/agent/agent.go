@@ -3,7 +3,7 @@ package agent
 import (
 	"context"
 	"os"
-	"strconv"
+	// "strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -11,8 +11,8 @@ import (
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/agent"
-	"github.com/qiangli/ai/internal/bubble"
-	"github.com/qiangli/ai/internal/watch"
+	// "github.com/qiangli/ai/internal/bubble"
+	// "github.com/qiangli/ai/internal/watch"
 	"github.com/qiangli/ai/shell"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
@@ -75,75 +75,75 @@ func Run(cmd *cobra.Command, args []string) error {
 	}
 
 	// watch mode
-	if cfg.Watch {
-		if err := watch.WatchRepo(ctx, cfg); err != nil {
-			log.GetLogger(ctx).Errorf("%v\n", err)
-		}
-		return nil
-	}
-	if cfg.ClipWatch {
-		if err := watch.WatchClipboard(ctx, cfg); err != nil {
-			log.GetLogger(ctx).Errorf("%v\n", err)
-		}
-		return nil
-	}
+	// if cfg.Watch {
+	// 	if err := watch.WatchRepo(ctx, cfg); err != nil {
+	// 		log.GetLogger(ctx).Errorf("%v\n", err)
+	// 	}
+	// 	return nil
+	// }
+	// if cfg.ClipWatch {
+	// 	if err := watch.WatchClipboard(ctx, cfg); err != nil {
+	// 		log.GetLogger(ctx).Errorf("%v\n", err)
+	// 	}
+	// 	return nil
+	// }
 
 	// interactive mode
 	// $ ai -i or $ ai --interactive
-	if cfg.Interactive {
-		// bubble
-		if len(cfg.Args) > 0 && cfg.Args[0] == "bubble" {
-			// _, err := bubble.BubbleGum(cfg.Args[1:])
-			if len(cfg.Args) < 3 {
-				bubble.Help()
-				return nil
-			}
-			sub := cfg.Args[1]
-			prompt := cfg.Args[2]
+	if cfg.Interactive() {
+		// // bubble
+		// if len(cfg.Args) > 0 && cfg.Args[0] == "bubble" {
+		// 	// _, err := bubble.BubbleGum(cfg.Args[1:])
+		// 	if len(cfg.Args) < 3 {
+		// 		bubble.Help()
+		// 		return nil
+		// 	}
+		// 	sub := cfg.Args[1]
+		// 	prompt := cfg.Args[2]
 
-			var err error
-			var result string
-			switch sub {
-			case "confirm":
-				result, err = bubble.Confirm(prompt)
-			case "choose":
-				if len(cfg.Args) < 5 {
-					log.GetLogger(ctx).Errorf("%v\n", "Not enough args")
-					return nil
-				}
-				multi, _ := strconv.ParseBool(cfg.Args[4])
-				result, err = bubble.Choose(prompt, cfg.Args[4:], multi)
-			case "file":
-				var p string
-				if len(cfg.Args) > 3 {
-					p = cfg.Args[3]
-				}
-				result, err = bubble.PickFile(prompt, p)
-			case "write":
-				var placeholder, value string
-				if len(cfg.Args) > 3 {
-					placeholder = cfg.Args[3]
-				}
-				if len(cfg.Args) > 4 {
-					value = cfg.Args[4]
-				}
-				result, err = bubble.Write(prompt, placeholder, value)
-			case "edit":
-				var placeholder, value string
-				if len(cfg.Args) > 3 {
-					placeholder = cfg.Args[3]
-				}
-				if len(cfg.Args) > 4 {
-					value = cfg.Args[4]
-				}
-				result, err = bubble.Edit(prompt, placeholder, value)
-			}
-			if err != nil {
-				log.GetLogger(ctx).Errorf("%v\n", err)
-			}
-			log.GetLogger(ctx).Printf("%s\n", result)
-			return nil
-		}
+		// 	var err error
+		// 	var result string
+		// 	switch sub {
+		// 	case "confirm":
+		// 		result, err = bubble.Confirm(prompt)
+		// 	case "choose":
+		// 		if len(cfg.Args) < 5 {
+		// 			log.GetLogger(ctx).Errorf("%v\n", "Not enough args")
+		// 			return nil
+		// 		}
+		// 		multi, _ := strconv.ParseBool(cfg.Args[4])
+		// 		result, err = bubble.Choose(prompt, cfg.Args[4:], multi)
+		// 	case "file":
+		// 		var p string
+		// 		if len(cfg.Args) > 3 {
+		// 			p = cfg.Args[3]
+		// 		}
+		// 		result, err = bubble.PickFile(prompt, p)
+		// 	case "write":
+		// 		var placeholder, value string
+		// 		if len(cfg.Args) > 3 {
+		// 			placeholder = cfg.Args[3]
+		// 		}
+		// 		if len(cfg.Args) > 4 {
+		// 			value = cfg.Args[4]
+		// 		}
+		// 		result, err = bubble.Write(prompt, placeholder, value)
+		// 	case "edit":
+		// 		var placeholder, value string
+		// 		if len(cfg.Args) > 3 {
+		// 			placeholder = cfg.Args[3]
+		// 		}
+		// 		if len(cfg.Args) > 4 {
+		// 			value = cfg.Args[4]
+		// 		}
+		// 		result, err = bubble.Edit(prompt, placeholder, value)
+		// 	}
+		// 	if err != nil {
+		// 		log.GetLogger(ctx).Errorf("%v\n", err)
+		// 	}
+		// 	log.GetLogger(ctx).Printf("%s\n", result)
+		// 	return nil
+		// }
 
 		if err := shell.Shell(ctx, cfg); err != nil {
 			log.GetLogger(ctx).Errorf("%v\n", err)
@@ -153,7 +153,7 @@ func Run(cmd *cobra.Command, args []string) error {
 
 	// $ ai
 	// if no args and no input, show help
-	if !cfg.HasInput() && !cfg.IsSpecial() && !cfg.Editing {
+	if !cfg.HasInput() {
 		if err := cmd.Help(); err != nil {
 			return err
 		}

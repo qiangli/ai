@@ -18,6 +18,9 @@ const globalResult = "result"
 const globalError = "error"
 
 type Swarm struct {
+	// TODO experimental
+	Root string
+
 	Vars *api.Vars
 
 	User *api.User

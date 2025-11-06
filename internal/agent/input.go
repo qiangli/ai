@@ -47,7 +47,7 @@ func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clip
 		clipper = util.NewClipboard()
 	}
 	if editor == nil {
-		editor = NewEditor(cfg.Editor)
+		editor = NewEditor("vi")
 	}
 
 	input, err := userInput(ctx, cfg, stdin, clipper, editor)
@@ -91,10 +91,10 @@ func userInput(
 	editor api.EditorProvider,
 ) (*api.UserInput, error) {
 	// user input message
-	var msg = trimInputMessage(strings.Join(cfg.Args, " "))
-	if cfg.Message != "" {
-		msg = cfg.Message + " " + msg
-	}
+	// var msg = trimInputMessage(strings.Join(cfg.Args, " "))
+	// if cfg.Message != "" {
+	// 	msg = cfg.Message + " " + msg
+	// }
 
 	// stdin
 	var stdinData string
@@ -170,33 +170,34 @@ func userInput(
 	}
 
 	var content = cat(stdinData, clipinData, "\n")
+	return &api.UserInput{Message: cfg.Message, Content: content}, nil
 
-	//
-	if !cfg.Editing {
-		return &api.UserInput{Message: msg, Content: content}, nil
-	}
+	// //
+	// if !cfg.Editing {
+	// 	return &api.UserInput{Message: msg, Content: content}, nil
+	// }
 
-	// send all collected inputs to the editor and start the editor
-	content = cat(msg, content, "\n")
+	// // send all collected inputs to the editor and start the editor
+	// content = cat(msg, content, "\n")
 
-	if cfg.Editor != "" {
-		log.GetLogger(ctx).Debugf("Using editor: %s\n", cfg.Editor)
-		data, err := editor.Launch(content)
-		if err != nil {
-			return nil, err
-		}
-		return &api.UserInput{Content: data}, nil
-	}
+	// if cfg.Editor != "" {
+	// 	log.GetLogger(ctx).Debugf("Using editor: %s\n", cfg.Editor)
+	// 	data, err := editor.Launch(content)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	return &api.UserInput{Content: data}, nil
+	// }
 
-	data, canceled, err := SimpleEditor("Editor", content)
-	if err != nil {
-		return nil, err
-	}
-	if canceled {
-		return &api.UserInput{}, nil
-	}
+	// data, canceled, err := SimpleEditor("Editor", content)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if canceled {
+	// 	return &api.UserInput{}, nil
+	// }
 
-	return &api.UserInput{Message: "", Content: data}, nil
+	// return &api.UserInput{Message: "", Content: data}, nil
 }
 
 func LaunchEditor(editor string, content string) (string, error) {

@@ -2,8 +2,8 @@ package history
 
 import (
 	"context"
-	"errors"
-	"fmt"
+	// "errors"
+	// "fmt"
 	"os"
 	"path/filepath"
 
@@ -45,10 +45,11 @@ func init() {
 }
 
 func historyConfig(ctx context.Context, cfg *api.AppConfig) error {
-	if _, err := os.Stat(cfg.ConfigFile); errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("Configuration not found")
-	}
-	base := filepath.Dir(cfg.ConfigFile)
+	// if _, err := os.Stat(cfg.ConfigFile); errors.Is(err, os.ErrNotExist) {
+	// 	return fmt.Errorf("Configuration not found")
+	// }
+	// base := filepath.Dir(cfg.ConfigFile)
+	base, _ := os.UserHomeDir()
 	histRoot := filepath.Join(base, "chat")
 	var args = []string{"--sort", "time"}
 	if flagReverse {
