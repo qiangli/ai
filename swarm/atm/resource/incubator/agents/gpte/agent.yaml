@@ -49,7 +49,7 @@ agents:
             "message": "string"             // The core message/content for the prompt
           }
     flow:
-      expression: "agent:gpte/{{default .intent generate}}"
+      expression: "agent:gpte/{{default \"generate\" .intent}}"
       type: "choice"
       actions:
         - "agent:gpte/generate"

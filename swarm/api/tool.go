@@ -80,7 +80,7 @@ func (r *ToolFunc) Clone() *ToolFunc {
 // combining the tool kit and name.
 // A string that must match the pattern '^[a-zA-Z0-9_-]+$'."
 func (r *ToolFunc) ID() string {
-	return fmt.Sprintf("%s__%s", r.Kit, r.Name)
+	return toolID(r.Kit, r.Name)
 }
 
 // Toolkit configuration
@@ -256,9 +256,20 @@ func (r KitName) Decode() (string, string) {
 	return kit, name
 }
 
+// ^[a-zA-Z0-9_-]+$
 func (r KitName) ID() string {
 	kit, name := r.Decode()
-	return fmt.Sprintf("%s__%s", kit, name)
+	return toolID(kit, name)
+}
+
+// TODO all special chars?
+// ^[a-zA-Z0-9_-]+$
+func tr(s string) string {
+	return strings.ReplaceAll(s, "/", "-")
+}
+
+func toolID(kit, name string) string {
+	return fmt.Sprintf("%s__%s", kit, tr(name))
 }
 
 type ToolGuard struct {
