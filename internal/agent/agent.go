@@ -84,7 +84,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	}
 	resp := &api.Response{}
 
-	root := cfg.Workspace
+	var root = cfg.Workspace
 
 	var user = &api.User{}
 	var adapters = adapter.GetAdapters()
@@ -101,7 +101,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	if err != nil {
 		return err
 	}
-	var tools = swarm.NewToolSystem(user, secrets, assets, lfs, los)
+	var tools = swarm.NewToolSystem(root, user, secrets, assets, lfs, los)
 
 	sw := &swarm.Swarm{
 		ChatID:    uuid.NewString(),
@@ -210,7 +210,7 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	// vars.DryRun = app.DryRun
 	// vars.DryRunContent = app.DryRunContent
 	//
-	vars.Workspace = app.Workspace
+	// vars.Workspace = app.Workspace
 
 	return vars, nil
 }

@@ -84,6 +84,6 @@ import (
 // 	return vars.Temp, nil
 // }
 
-func (r *SystemKit) WorkspaceDir(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	return vars.Workspace, nil
+func (r *SystemKit) WorkspaceRoot(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	return r.workspace, nil
 }

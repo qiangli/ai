@@ -83,8 +83,8 @@ type Vars struct {
 	// Format     string `json:"format"`
 	// Models     string `json:"models"`
 
-	Unsafe    bool   `json:"unsafe"`
-	Workspace string `json:"workspace"`
+	Unsafe bool `json:"unsafe"`
+	// Workspace string `json:"workspace"`
 
 	// DryRun        bool   `json:"-"`
 	// DryRunContent string `json:"-"`
@@ -109,8 +109,8 @@ func (v *Vars) Clone() *Vars {
 		//
 		// Format: v.Format,
 		//
-		Unsafe:    v.Unsafe,
-		Workspace: v.Workspace,
+		Unsafe: v.Unsafe,
+		// Workspace: v.Workspace,
 		//
 		LogLevel: v.LogLevel,
 		//

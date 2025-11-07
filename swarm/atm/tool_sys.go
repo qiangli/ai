@@ -12,18 +12,20 @@ import (
 )
 
 type SystemKit struct {
-	user    *api.User
-	fs      vfs.FileSystem
-	os      vos.System
-	secrets api.SecretStore
+	workspace string
+	user      *api.User
+	fs        vfs.FileSystem
+	os        vos.System
+	secrets   api.SecretStore
 }
 
-func NewSystemKit(user *api.User, fs vfs.FileSystem, os vos.System, secrets api.SecretStore) *SystemKit {
+func NewSystemKit(workspace string, user *api.User, fs vfs.FileSystem, os vos.System, secrets api.SecretStore) *SystemKit {
 	return &SystemKit{
-		user:    user,
-		fs:      fs,
-		os:      os,
-		secrets: secrets,
+		workspace: workspace,
+		user:      user,
+		fs:        fs,
+		os:        os,
+		secrets:   secrets,
 	}
 }
 

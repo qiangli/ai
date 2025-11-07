@@ -10,11 +10,12 @@ import (
 )
 
 type toolSystem struct {
-	user    *api.User
-	assets  api.AssetManager
-	secrets api.SecretStore
-	fs      vfs.FileSystem
-	vs      vos.System
+	workspace string
+	user      *api.User
+	assets    api.AssetManager
+	secrets   api.SecretStore
+	fs        vfs.FileSystem
+	vs        vos.System
 	//
 	kits map[any]api.ToolKit
 }
@@ -32,6 +33,7 @@ func NewKitKey(fnType, kit string) KitKey {
 }
 
 func NewToolSystem(
+	workspace string,
 	user *api.User,
 	secrets api.SecretStore,
 	assets api.AssetManager,
@@ -39,11 +41,12 @@ func NewToolSystem(
 	vs vos.System,
 ) api.ToolSystem {
 	ts := &toolSystem{
-		user:    user,
-		secrets: secrets,
-		assets:  assets,
-		fs:      fs,
-		vs:      vs,
+		workspace: workspace,
+		user:      user,
+		secrets:   secrets,
+		assets:    assets,
+		fs:        fs,
+		vs:        vs,
 		//
 		kits: make(map[any]api.ToolKit),
 	}
@@ -60,7 +63,7 @@ func NewToolSystem(
 	// default by type
 	ts.AddKit(api.ToolTypeFunc, atm.NewFuncKit(user, assets))
 	ts.AddKit(api.ToolTypeWeb, atm.NewWebKit(secrets))
-	ts.AddKit(api.ToolTypeSystem, atm.NewSystemKit(user, fs, vs, secrets))
+	ts.AddKit(api.ToolTypeSystem, atm.NewSystemKit(workspace, user, fs, vs, secrets))
 	ts.AddKit(api.ToolTypeMcp, atm.NewMcpKit(secrets))
 	ts.AddKit(api.ToolTypeFaas, atm.NewFaasKit(secrets))
 
