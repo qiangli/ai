@@ -47,9 +47,9 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.MarkHidden("trace")
 
 	// LLM
-	// a set of models grouped under one name for convenience from potentially different service providers
-	flags.StringP("models", "m", "", "LLM model alias defined in the model set")
-	// flags.MarkHidden("models")
+	// a set of model grouped under one name for convenience from potentially different service providers
+	flags.StringP("model", "m", "", "LLM model alias defined in the model set")
+	// flags.MarkHidden("model")
 	// flags.StringP("tools", "t", "", "LLM functions defined in the tool kit")
 
 	// //

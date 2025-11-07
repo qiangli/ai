@@ -107,7 +107,7 @@ type AppConfig struct {
 	// history @agent
 	Context string
 
-	Models string
+	Model string
 
 	//
 	LogLevel string
@@ -150,8 +150,8 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		//
 		// AgentResource: cfg.AgentResource,
 		//
-		Agent:  cfg.Agent,
-		Models: cfg.Models,
+		Agent: cfg.Agent,
+		Model: cfg.Model,
 		//
 		// Args:       cfg.Args,
 		Message: cfg.Message,

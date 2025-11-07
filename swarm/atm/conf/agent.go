@@ -353,7 +353,7 @@ func CreateAgent(ctx context.Context, req *api.Request, auth *api.User, secrets 
 					Model: model,
 				}
 			} else {
-				set, level := resolveModelLevel(req.RawInput.Models, model)
+				set, level := resolveModelLevel(req.RawInput.Model, model)
 				// local
 				if set == ac.Set {
 					for k, v := range ac.Models {
@@ -371,7 +371,7 @@ func CreateAgent(ctx context.Context, req *api.Request, auth *api.User, secrets 
 				// load external model if not defined locally
 				if agent.Model == nil {
 					if v, err := loadModel(owner, set, level, assets); err != nil {
-						return nil, fmt.Errorf("failed to load model: %s %s %v", req.RawInput.Models, model, err)
+						return nil, fmt.Errorf("failed to load model: %s %s %v", req.RawInput.Model, model, err)
 					} else {
 						agent.Model = v
 					}

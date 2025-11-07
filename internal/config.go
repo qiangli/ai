@@ -380,11 +380,11 @@ func ParseSpecialChars(viper *fangs.Viper, app *api.AppConfig, args []string) []
 func ParseLLM(viper *fangs.Viper, app *api.AppConfig) error {
 	// LLM config
 	//
-	alias := viper.GetString("models")
+	alias := viper.GetString("model")
 	// if alias == "" {
 	// 	alias = "openai"
 	// }
-	app.Models = alias
+	app.Model = alias
 
 	return nil
 }

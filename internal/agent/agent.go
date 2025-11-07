@@ -37,7 +37,7 @@ func RunAgent(ctx context.Context, app *api.AppConfig) error {
 	// in.Context = app.Context
 	in.MaxSpan = app.MaxSpan
 	in.Format = app.Format
-	in.Models = app.Models
+	in.Model = app.Model
 
 	return RunSwarm(ctx, app, in)
 }
