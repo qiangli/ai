@@ -5,7 +5,7 @@ model: search/L1
 max_history: 0
 log_level: verbose
 agents:
-  - name: "searc"
+  - name: "search"
     new: true
     display: "🔍 Web Search"
     description: Get web search results for a given query.

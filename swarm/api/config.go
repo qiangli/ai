@@ -53,13 +53,12 @@ type AppConfig struct {
 	// app root path
 	// $HOME/.ai/
 	Base string
+	// user id/email
+	User string
 
 	// ConfigFile string
 
 	Agent string
-
-	// user id/email
-	User string
 
 	// Command string
 	// Args []string

@@ -191,9 +191,9 @@ type Flow struct {
 	Script      string
 }
 
-type Action struct {
-	Tool *ToolFunc
-}
+// type Action struct {
+// 	Tool *ToolFunc
+// }
 
 func (a *Agent) cloneArguments() map[string]any {
 	if a.Arguments == nil {

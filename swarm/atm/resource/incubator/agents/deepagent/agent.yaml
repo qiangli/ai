@@ -1,0 +1,143 @@
+###
+# https://github.com/RUC-NLPIR/DeepAgent/tree/main
+pack: "deepagent"
+model: "llm/auxiliary"
+agents:
+  - name: "deepagent"
+    display: "🌐 Deep Agent"
+    description: |
+      DeepAgent is an end-to-end deep reasoning agent that performs autonomous thinking, tool discovery, and action execution within a single, coherent reasoning process.
+      This paradigm shifts away from traditional, predefined workflows, allowing the agent to maintain a global perspective on the entire task and dynamically discover tools on an as-needed basis.
+    model: "llm/reasoning"
+    message: |
+        Now, begin your reasoning for the following query:
+    instruction:
+      content: |
+        You are a highly capable reasoning assistant, able to perform tool searches and tool calls to accurately answer questions.
+        Your core abilities include:
+
+        - Searching for helpful tools: Write {BEGIN_TOOL_SEARCH} your tool search query {END_TOOL_SEARCH}.
+          The system will search and analyze available tools, then return a list of relevant tools in the format {BEGIN_TOOL_SEARCH_RESULT} helpful tools with descriptions and parameters {END_TOOL_SEARCH_RESULT}.
+
+        - Calling a tool and receiving its response: Write {BEGIN_TOOL_CALL}\n{{"name": "tool_name", "arguments": {{"param1": "value1", "param2": "value2", ...}}}}\n{END_TOOL_CALL}.
+          The system will provide the tool's response in the format {BEGIN_TOOL_RESPONSE}\ntool response\n{END_TOOL_RESPONSE}.
+
+        - Performing thought folding:  
+          If your reasoning history becomes too lengthy, you encounter too many failed tool calls, realize a change in direction is needed, or in similar situations, you may generate a thought folding marker
+          "{FOLD_THOUGHT}".
+          When the system detects the marker "{FOLD_THOUGHT}", it will pause your reasoning and thoroughly summarize your current interaction history and task progress. Afterward, you can begin a new round of reasoning.
+
+        Example:
+
+        In order to accomplish ..., I require a ... tool. Therefore, I will search for it:
+
+        {BEGIN_TOOL_SEARCH}...{END_TOOL_SEARCH}
+
+        {BEGIN_TOOL_SEARCH_RESULT}
+        [{{"name": "...", "description": "...", "parameters": {{ "type": "object", "properties": {{ "param1": {{ "type": "string", "description": "..." }}, "param2": {{ "type": "string", "description": "..." }} }}, "required": ["param1"] }} }}, ... (other helpful tools)]
+        {END_TOOL_SEARCH_RESULT}
+
+        Now I can try to call the ... tool:
+
+        {BEGIN_TOOL_CALL}
+        {{"name": "...", "arguments": {{"param1": "value1", "param2": "value2"}}}}
+        {END_TOOL_CALL}
+
+        {BEGIN_TOOL_RESPONSE}
+        ... (tool response)
+        {END_TOOL_RESPONSE}
+
+        Now I have ..., I can now proceed to ...
+
+        ... (More reasoning and tool calls)
+
+        Finally, with the above ... information, I can now answer the question.
+
+        \\boxed{{...YOUR ANSWER...}}
+
+        If you get stuck or your reasoning becomes too lengthy, you can fold your thoughts:
+
+        Opus, my reasoning has become too lengthy and I've made too many tool calls without finding the needed information.
+        It may be wise to reconsider my approach. Therefore, I will fold my thoughts now.
+
+        {FOLD_THOUGHT}
+
+        The system will clear your previous thoughts and you can continue your new round of reasoning, guided by the summarized interaction history.
+
+        Remember:
+        - Use {BEGIN_TOOL_SEARCH} tool search query {END_TOOL_SEARCH} to search for more tools if the current tools are not enough.
+        - Use {BEGIN_TOOL_CALL}\n{{"name": "tool_name", "arguments": {{"param1": "value1", "param2": "value2", ...}}}}\n{END_TOOL_CALL} to call a tool.
+        - Use {FOLD_THOUGHT} to fold your thoughts and start a new round of reasoning.
+        - Always strictly follow the specified formats for tool search, tool call, and thought folding.
+        - Ensure tool names and parameters are provided accurately in each tool call.
+        - Once you have gathered enough information to answer the question, present your final answer in the following format and stop reasoning.
+          
+          {
+          "anwser": "<your final anwser here>",
+          "error": "<if anything went wrong>"
+          }
+    functions:
+      - "agent:*"
+      - "agent:<agent>"
+
+  - name: "name"
+    display: "Display Name"
+    description: "Short description for agent discovery"
+    model: "default/any"
+    message: |
+      optional preset user message prepended to user input
+    instruction:
+      content: |
+        system role prompt goes here
+    functions:
+      - "kit:*"
+      - "agent:<agent>"
+
+  - name: "name"
+    display: "🌐 Display Name"
+    description: "Short description for agent discovery"
+    model: "default/any"
+    message: |
+      optional preset user message prepended to user input
+    instruction:
+      content: |
+        system role prompt goes here
+    functions:
+      - "kit:*"
+      - "agent:<agent>"
+
+  - name: "name"
+    display: "🌐 Display Name"
+    description: "Short description for agent discovery"
+    model: "default/any"
+    message: |
+      optional preset user message prepended to user input
+    instruction:
+      content: |
+        system role prompt goes here
+    functions:
+      - "kit:*"
+      - "agent:<agent>"
+
+# ###
+# kit: "toolkit"
+# type: "func | web | mcp | agent | faas"
+# tools:
+#   - name: ""
+#     description: ""
+#     parameters: {}
+#     body:
+
+###
+set: "llm"
+provider: "openai"
+base_url: "https://api.openai.com/v1/"
+api_key: "openai"
+models:
+  auxiliary:
+    model: "gpt-4o-mini"
+    # model: "gpt-4.1"
+  reasoning:
+    model: "o3‑mini"
+    # model: "o4-mini"
+###

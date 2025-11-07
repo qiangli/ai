@@ -95,7 +95,8 @@ type ToolsConfig struct {
 	// tool/function (Gemini)
 	Kit string `yaml:"kit"`
 
-	// func (server) | system (client) | remote
+	// action type:
+	// func, system, agent...
 	Type string `yaml:"type"`
 
 	// provider
@@ -107,7 +108,7 @@ type ToolsConfig struct {
 	// Connector *ConnectorConfig `yaml:"connector"`
 
 	// system commands used by tools
-	Commands []string `yaml:"commands"`
+	// Commands []string `yaml:"commands"`
 
 	Tools []*ToolConfig `yaml:"tools"`
 }

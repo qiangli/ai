@@ -43,6 +43,12 @@ type agentHandler struct {
 	template *template.Template
 }
 
+// Serve calls the language model adapter with the messages list (after applying the system prompt).
+// If the resulting response contains tool_calls, the tool runner will then call the tools.
+// The tools kit executes the tools and adds the responses to the messages list.
+// The adapter then calls the language model again.
+// The process repeats until no more tool_calls are present in the response.
+// The agent handler then returns the full list of messages.
 func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	var ctx = req.Context()
 	log.GetLogger(ctx).Debugf("Serve agent: %s global: %+v\n", h.agent.Name, h.sw.Vars.Global)

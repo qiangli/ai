@@ -1,5 +1,14 @@
 package api
 
+type Action struct {
+	Name      string
+	Arguments map[string]any
+
+	//
+	Tool  *ToolFunc
+	Agent *Agent
+}
+
 // //
 // type AppInput struct {
 // 	Owner string
