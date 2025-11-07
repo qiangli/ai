@@ -8,7 +8,7 @@ agents:
     instruction:
       content: |
         You are a flow control director.
-    # sequence | choice | parallel | loop | map | reduce | script
+    # sequence | choice | parallel | loop | map | reduce | shell
     environment:
       name: value
       work_dir: "/tmp"
@@ -21,7 +21,7 @@ agents:
         - agent:flow/loop
         - agent:flow/map
         - agent:flow/reduce
-        - agent:flow/script
+        - agent:flow/shell
     functions:
       - agent:flow/sequence
       - agent:flow/choice
@@ -29,7 +29,7 @@ agents:
       - agent:flow/loop
       - agent:flow/map
       - agent:flow/reduce
-      - agent:flow/script
+      - agent:flow/shell
 
   - name: "flow/sequence"
     display: "Sequence Flow Control"
@@ -114,14 +114,14 @@ agents:
       - "google:*"
       - "ddg:*"
 
-  - name: "flow/script"
-    display: "Script Flow Control"
+  - name: "flow/shell"
+    display: "Shell Flow Control"
     description: ""
     instruction:
       content: ""
     flow:
-      type: shell
-      script:
+      type: "shell"
+      script: |
         #!/bin/bash
         echo hello world!
 ###

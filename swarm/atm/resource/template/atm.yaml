@@ -1,4 +1,5 @@
 ###
+# agent with local tools and models
 pack: "package"
 agents:
   - name: "name"
