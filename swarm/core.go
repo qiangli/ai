@@ -19,7 +19,8 @@ const globalError = "error"
 
 type Swarm struct {
 	// TODO experimental
-	Root string
+	Root   string
+	ChatID string
 
 	Vars *api.Vars
 
@@ -40,7 +41,7 @@ type Swarm struct {
 }
 
 func (r *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
-	return conf.CreateAgent(ctx, r.Vars, req.Name, r.User, req.RawInput, r.Secrets, r.Assets)
+	return conf.CreateAgent(ctx, req, r.User, r.Secrets, r.Assets)
 }
 
 func (r *Swarm) Run(req *api.Request, resp *api.Response) error {

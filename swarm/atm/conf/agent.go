@@ -216,7 +216,9 @@ func resolveModelLevel(models, model string) (string, string) {
 	return alias, level
 }
 
-func CreateAgent(ctx context.Context, vars *api.Vars, agent string, auth *api.User, rawInput *api.UserInput, secrets api.SecretStore, assets api.AssetManager) (*api.Agent, error) {
+func CreateAgent(ctx context.Context, req *api.Request, auth *api.User, secrets api.SecretStore, assets api.AssetManager) (*api.Agent, error) {
+	var agent = req.Name
+	// var input = req.RawInput
 	//
 	findAgentConfig := func(ac *api.AgentsConfig, pack, sub string) (*api.AgentConfig, error) {
 		n := pack
@@ -277,10 +279,10 @@ func CreateAgent(ctx context.Context, vars *api.Vars, agent string, auth *api.Us
 	newAgent := func(
 		ac *api.AgentsConfig,
 		c *api.AgentConfig,
-		vars *api.Vars,
+		// vars *api.Vars,
 		user string,
 		owner string,
-		input *api.UserInput,
+		// input *api.UserInput,
 	) (*api.Agent, error) {
 		var agent = api.Agent{
 			Owner:   owner,
@@ -290,21 +292,28 @@ func CreateAgent(ctx context.Context, vars *api.Vars, agent string, auth *api.Us
 			Display:     c.Display,
 			Description: c.Description,
 			//
-			RawInput: input,
+			RawInput: req.RawInput,
 			//
 			LogLevel: api.Quiet,
-			Message:  nvl(c.Message, ac.Message),
-			Format:   nvl(vars.Format, c.Format, ac.Format),
-			//
-			Arguments: c.Arguments,
-			//
-			MaxTurns: nzl(vars.MaxTurns, c.MaxTurns, ac.MaxTurns, defaultMaxTurns),
-			MaxTime:  nzl(vars.MaxTime, c.MaxTime, ac.MaxTime, defaultMaxTime),
-			//
-			New:        nbl(vars.New, c.New, ac.New),
-			MaxHistory: nzl(vars.MaxHistory, c.MaxHistory, ac.MaxHistory, defaultMaxHistory),
-			MaxSpan:    nzl(vars.MaxSpan, c.MaxSpan, ac.MaxSpan, defaultMaxSpan),
 		}
+		//
+		agent.Arguments = c.Arguments
+		if len(req.RawInput.Arguments) > 0 {
+			if agent.Arguments == nil {
+				agent.Arguments = make(map[string]any)
+			}
+			maps.Copy(agent.Arguments, req.RawInput.Arguments)
+		}
+		agent.New = nbl(req.RawInput.New, c.New, ac.New)
+
+		agent.Message = nvl(req.RawInput.Message, c.Message, ac.Message)
+		agent.Format = nvl(req.RawInput.Format, c.Format, ac.Format)
+		//
+		agent.MaxTurns = nzl(req.RawInput.MaxTurns, c.MaxTurns, ac.MaxTurns, defaultMaxTurns)
+		agent.MaxTime = nzl(req.RawInput.MaxTime, c.MaxTime, ac.MaxTime, defaultMaxTime)
+		agent.MaxHistory = nzl(req.RawInput.MaxHistory, c.MaxHistory, ac.MaxHistory, defaultMaxHistory)
+		agent.MaxSpan = nzl(req.RawInput.MaxSpan, c.MaxSpan, ac.MaxSpan, defaultMaxSpan)
+
 		// merge global vars
 		agent.Environment = ac.Environment
 		if len(c.Environment) > 0 {
@@ -315,7 +324,7 @@ func CreateAgent(ctx context.Context, vars *api.Vars, agent string, auth *api.Us
 		}
 
 		// log
-		agent.LogLevel = api.ToLogLevel(nvl(vars.LogLevel.String(), c.LogLevel, ac.LogLevel, "quiet"))
+		agent.LogLevel = api.ToLogLevel(nvl(req.RawInput.LogLevel, c.LogLevel, ac.LogLevel, "quiet"))
 
 		// hard limit
 		agent.MaxTurns = min(agent.MaxTurns, maxTurnsLimit)
@@ -330,7 +339,7 @@ func CreateAgent(ctx context.Context, vars *api.Vars, agent string, auth *api.Us
 
 		// context
 		// TODO ai trigger
-		context := strings.TrimSpace(nvl(vars.Context, c.Context, ac.Context))
+		context := strings.TrimSpace(nvl(c.Context, ac.Context))
 		agent.Context = context
 
 		// llm model set[/level]
@@ -344,7 +353,7 @@ func CreateAgent(ctx context.Context, vars *api.Vars, agent string, auth *api.Us
 					Model: model,
 				}
 			} else {
-				set, level := resolveModelLevel(vars.Models, model)
+				set, level := resolveModelLevel(req.RawInput.Models, model)
 				// local
 				if set == ac.Set {
 					for k, v := range ac.Models {
@@ -362,7 +371,7 @@ func CreateAgent(ctx context.Context, vars *api.Vars, agent string, auth *api.Us
 				// load external model if not defined locally
 				if agent.Model == nil {
 					if v, err := loadModel(owner, set, level, assets); err != nil {
-						return nil, fmt.Errorf("failed to load model: %s %s %v", vars.Models, model, err)
+						return nil, fmt.Errorf("failed to load model: %s %s %v", req.RawInput.Models, model, err)
 					} else {
 						agent.Model = v
 					}
@@ -495,7 +504,7 @@ func CreateAgent(ctx context.Context, vars *api.Vars, agent string, auth *api.Us
 			return nil, err
 		}
 
-		agent, err := newAgent(ac, c, vars, user, owner, rawInput)
+		agent, err := newAgent(ac, c, user, owner)
 		if err != nil {
 			return nil, err
 		}
@@ -506,7 +515,11 @@ func CreateAgent(ctx context.Context, vars *api.Vars, agent string, auth *api.Us
 			n := strings.TrimSpace(v)
 			n = strings.ToLower(n)
 			n = strings.TrimPrefix(n, "agent:")
-			if a, err := CreateAgent(ctx, vars, n, auth, rawInput, secrets, assets); err != nil {
+			nreq := &api.Request{
+				Name:     n,
+				RawInput: req.RawInput,
+			}
+			if a, err := CreateAgent(ctx, nreq, auth, secrets, assets); err != nil {
 				return nil, err
 			} else {
 				agent.Embed = append(agent.Embed, a)

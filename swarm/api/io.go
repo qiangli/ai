@@ -31,6 +31,22 @@ type UserInput struct {
 
 	// cached media contents
 	Messages []*Message `json:"-"`
+
+	// experimental
+	Instruction *Instruction `json:"instruction"`
+	Model       string       `json:"model"`
+	Functions   []string     `json:"functions"`
+
+	MaxTurns   int    `json:"max_turns"`
+	MaxTime    int    `json:"max_time"`
+	New        *bool  `json:"new"`
+	MaxHistory int    `json:"max_history"`
+	MaxSpan    int    `json:"max_span"`
+	Models     string `json:"models"`
+	Format     string `json:"format"`
+	LogLevel   string `json:"log_level"`
+
+	Arguments map[string]any `json:"arguments"`
 }
 
 func (r *UserInput) String() string {

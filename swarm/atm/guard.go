@@ -83,7 +83,8 @@ func EvaluateCommand(ctx context.Context, user *api.User, secrets api.SecretStor
 		},
 		// Tools:    vars.Config.SystemTools,
 		// RunTool:  runTool,
-		MaxTurns: vars.MaxTurns,
+		// MaxTurns: vars.MaxTurns,
+		MaxTurns: 3,
 		Vars:     vars,
 		Token:    token,
 	}

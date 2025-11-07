@@ -42,9 +42,9 @@ func fake(
 // dummyChatCompletion createa a dummy ChatCompletion
 func dummyChatCompletion(model *api.Model, vars *api.Vars) *openai.ChatCompletion {
 	return &openai.ChatCompletion{
-		ID: uuid.NewString(),
+		ID:      uuid.NewString(),
 		Choices: []openai.ChatCompletionChoice{
-			dummyChatCompletionChoice(vars.DryRunContent),
+			// dummyChatCompletionChoice(vars.DryRunContent),
 		},
 		Created:           time.Now().Unix(),
 		Model:             model.Model,

@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/google/uuid"
+
 	"github.com/qiangli/ai/internal/agent/conf"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
@@ -27,6 +29,15 @@ func RunAgent(ctx context.Context, app *api.AppConfig) error {
 	// }
 
 	// in.Agent = app.Agent
+
+	in.LogLevel = app.LogLevel
+	in.MaxTurns = app.MaxTurns
+	in.MaxTime = app.MaxTime
+	in.MaxHistory = app.MaxHistory
+	// in.Context = app.Context
+	in.MaxSpan = app.MaxSpan
+	in.Format = app.Format
+	in.Models = app.Models
 
 	return RunSwarm(ctx, app, in)
 }
@@ -93,6 +104,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	var tools = swarm.NewToolSystem(user, secrets, assets, lfs, los)
 
 	sw := &swarm.Swarm{
+		ChatID:    uuid.NewString(),
 		Root:      root,
 		Vars:      vars,
 		User:      user,
@@ -183,17 +195,18 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 
 	// Setting configuration values from the app to vars
 	vars.LogLevel = api.ToLogLevel(app.LogLevel)
-	// vars.ChatID = app.ChatID
+	// // vars.ChatID = app.ChatID
 	// vars.New = app.New
-	vars.MaxTurns = app.MaxTurns
-	vars.MaxTime = app.MaxTime
-	vars.MaxHistory = app.MaxHistory
-	vars.Context = app.Context
-	vars.MaxSpan = app.MaxSpan
-	// vars.Message = app.Message
-	vars.Format = app.Format
-	vars.Models = app.Models
-	// vars.Unsafe = app.Unsafe
+	// vars.MaxTurns = app.MaxTurns
+	// vars.MaxTime = app.MaxTime
+	// vars.MaxHistory = app.MaxHistory
+	// vars.Context = app.Context
+	// vars.MaxSpan = app.MaxSpan
+	// // vars.Message = app.Message
+	// vars.Format = app.Format
+	// vars.Models = app.Models
+
+	vars.Unsafe = false
 	// vars.DryRun = app.DryRun
 	// vars.DryRunContent = app.DryRunContent
 	//

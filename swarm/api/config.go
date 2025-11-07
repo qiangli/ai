@@ -100,7 +100,7 @@ type AppConfig struct {
 	// ChatID string
 
 	// conversation history
-	// New        *bool
+	New        *bool
 	MaxHistory int
 	MaxSpan    int
 

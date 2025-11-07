@@ -25,12 +25,8 @@ type Request struct {
 	// The name of the active agent/tool
 	Name string
 
-	// //
-	// Instruction string
-	// Models      string
-	// Functions   []string
-
 	// default values
+	// agent:tool call args
 	Arguments map[string]any
 
 	// Messages []*Message

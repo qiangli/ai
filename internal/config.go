@@ -131,10 +131,10 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	// app.Temp = temp
 
 	//
-	// if viper.IsSet("new") {
-	// 	// newchat := viper.GetBool("new")
-	// 	// app.New = &newchat
-	// }
+	if viper.IsSet("new") {
+		newchat := viper.GetBool("new")
+		app.New = &newchat
+	}
 	// app.ChatID = viper.GetString("chat")
 	app.MaxHistory = viper.GetInt("max_history")
 	app.MaxSpan = viper.GetInt("max_span")

@@ -235,7 +235,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 		return content, nil
 	}
 
-	var chatID = h.sw.Vars.ChatID
+	var chatID = h.sw.ChatID
 	var history []*api.Message
 	var instructions []string
 
