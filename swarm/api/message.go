@@ -8,9 +8,13 @@ import (
 	"time"
 )
 
-// Agent handler
+// Action handler
 type Handler interface {
 	Serve(*Request, *Response) error
+}
+
+type Middleware interface {
+	Handle(*Request, *Response, *Handler) error
 }
 
 type Message struct {

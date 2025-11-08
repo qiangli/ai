@@ -53,14 +53,23 @@ type ToolRunner func(context.Context, string, map[string]any) (*Result, error)
 
 type Action struct {
 	// agent/tool name
-	Name string
+	Name string `json:"name"`
 
 	// arguments including name
-	Arguments map[string]any
+	Arguments map[string]any `json:"arguments"`
 
 	//
-	Tool  *ToolFunc
-	Agent *Agent
+	Tool  *ToolFunc `json:"-"`
+	Agent *Agent    `json:"-"`
+}
+
+// openai: ChatCompletionMessageToolCallUnion
+// genai: FunctionCall
+// anthropic: ToolUseBlock
+type ToolCall struct {
+	ID        string         `json:"id"`
+	Name      string         `json:"name"`
+	Arguments map[string]any `json:"arguments"`
 }
 
 type AppConfig struct {
