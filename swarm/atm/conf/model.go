@@ -11,7 +11,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/llm"
+	// "github.com/qiangli/ai/swarm/llm"
 )
 
 type ModelCacheKey struct {
@@ -28,8 +28,8 @@ func loadModel(owner, set, level string, assets api.AssetManager) (*api.Model, e
 	provide := func(mc *api.ModelsConfig, level string) (*api.Model, error) {
 		c, ok := mc.Models[level]
 		if !ok {
-			if level == llm.Any {
-				for _, k := range []string{llm.L1, llm.L2, llm.L3} {
+			if level == api.Any {
+				for _, k := range []string{api.L1, api.L2, api.L3} {
 					if v, ok := mc.Models[k]; ok {
 						c = v
 						break

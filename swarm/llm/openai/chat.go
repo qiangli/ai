@@ -105,7 +105,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	log.GetLogger(ctx).Debugf("[OpenAI] params messages: %v tools: %v\n", len(params.Messages), len(params.Tools))
 
 	for tries := range maxTurns {
-		log.GetLogger(ctx).Infof("Ⓞ @%s [%v] %s/%s\n", req.Agent, tries, req.Model.Provider, req.Model.Model)
+		log.GetLogger(ctx).Infof("Ⓞ @%s [%v] %s/%s\n", req.Name, tries, req.Model.Provider, req.Model.Model)
 
 		log.GetLogger(ctx).Debugf("📡 sending request to %s: %v of %v\n%+v\n", req.Model.BaseUrl, tries, maxTurns, req)
 
@@ -118,8 +118,8 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 
 		toolCalls := completion.Choices[0].Message.ToolCalls
 		if len(toolCalls) == 0 {
-			resp.Role = string(completion.Choices[0].Message.Role)
 			resp.Result = &api.Result{
+				Role:     string(completion.Choices[0].Message.Role),
 				MimeType: "text/plain",
 				Value:    completion.Choices[0].Message.Content,
 			}

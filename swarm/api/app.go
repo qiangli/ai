@@ -14,13 +14,13 @@ type Action struct {
 
 type AppConfig struct {
 	// app root. default: $HOME/.ai/
-	Base string `yaml:"base"`
+	Base string `yaml:"-"`
 
-	// email
-	User string `yaml:"user"`
+	// auth email
+	User string `yaml:"-"`
 
 	// workspace root. default: <base>/workspace
-	Workspace string
+	Workspace string `yaml:"-"`
 
 	// action name and arguments
 	Name      string         `yaml:"name"`
@@ -44,7 +44,7 @@ type AppConfig struct {
 	// output format: json | text
 	Format string `yaml:"format"`
 
-	// memory
+	// memory context
 	// max history: 0 max span: 0
 	New        *bool  `yaml:"new,omitempty"`
 	MaxHistory int    `yaml:"max_history"`
@@ -62,12 +62,6 @@ type AppConfig struct {
 	ApiKey string `yaml:"api_key"`
 
 	// toolkit
-	// kit:any
-	// Kit   string        `yaml:"kit"`
-	// Type  string        `yaml:"type"`
-	// Tools []*ToolConfig `yaml:"tools"`
-
-	// tools
 
 	// kit name specifies a namespace.
 	// e.g. but not limited to:
@@ -81,44 +75,11 @@ type AppConfig struct {
 
 	// action type:
 	// func, system, agent...
-	Type string `yaml:"type"`
-
-	// // provider
-	// Provider string `yaml:"provider"`
-	// BaseUrl  string `yaml:"base_url"`
-	// // name of api key
-	// ApiKey string `yaml:"api_key"`
-
-	// Connector *ConnectorConfig `yaml:"connector"`
-
-	// system commands used by tools
-	// Commands []string `yaml:"commands"`
-
+	Type  string        `yaml:"type"`
 	Tools []*ToolConfig `yaml:"tools"`
 
-	// model set
-	// set/any
-	// Set    string                  `yaml:"set"`
-	// Models map[string]*ModelConfig `yaml:"models"`
-
-	// TODO separate?
-	// model/tool shared default values
-	// Provider string `yaml:"provider"`
-	// BaseUrl  string `yaml:"base_url"`
-	// api lookup key
-	// ApiKey string `yaml:"api_key"`
-
-	// model
-
-	// model set name
-	Set string `yaml:"set"`
-
-	// // provider
-	// Provider string `yaml:"provider"`
-	// BaseUrl  string `yaml:"base_url"`
-	// // name of api lookup key - never the actual api token
-	// ApiKey string `yaml:"api_key"`
-
+	// modelset name
+	Set    string                  `yaml:"set"`
 	Models map[string]*ModelConfig `yaml:"models"`
 
 	// app level global vars
@@ -135,16 +96,12 @@ type AppConfig struct {
 // Clone is a shallow copy of member fields of the configration
 func (cfg *AppConfig) Clone() *AppConfig {
 	return &AppConfig{
-		// Version:    cfg.Version,
-		// ConfigFile: cfg.ConfigFile,
+		Name:      cfg.Name,
+		Arguments: cfg.Arguments,
+		Model:     cfg.Model,
 		//
-		// AgentResource: cfg.AgentResource,
-		//
-		Name:  cfg.Name,
-		Model: cfg.Model,
-		//
-		// Args:       cfg.Args,
-		Message: cfg.Message,
+		Message:     cfg.Message,
+		Instruction: cfg.Instruction,
 		// Editor:     cfg.Editor,
 		// Clipin:     cfg.Clipin,
 		// ClipWait:   cfg.ClipWait,
@@ -157,7 +114,7 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		// Output: cfg.Output,
 		//
 		// ChatID:     cfg.ChatID,
-		// New:        cfg.New,
+		New:        cfg.New,
 		MaxHistory: cfg.MaxHistory,
 		MaxSpan:    cfg.MaxSpan,
 		Context:    cfg.Context,
@@ -165,8 +122,8 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		LogLevel: cfg.LogLevel,
 		//
 		// Unsafe:      cfg.Unsafe,
-		// Base:        cfg.Base,
-		// Workspace:   cfg.Workspace,
+		Base:      cfg.Base,
+		Workspace: cfg.Workspace,
 		// Interactive: cfg.Interactive,
 		// Editing:     cfg.Editing,
 		// Shell:       cfg.Shell,

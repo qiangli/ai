@@ -361,7 +361,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 	}
 
 	var request = llm.Request{
-		Agent:    r.Name,
+		Name:     r.Name,
 		Messages: history,
 		MaxTurns: r.MaxTurns,
 		Tools:    r.Tools,
@@ -412,7 +412,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 			ContentType: result.Result.MimeType,
 			Content:     result.Result.Value,
 			// TODO encode result.Result.Content
-			Role:   nvl(result.Role, api.RoleAssistant),
+			Role:   nvl(result.Result.Role, api.RoleAssistant),
 			Sender: r.Name,
 		}
 		// TODO add Value field to message?

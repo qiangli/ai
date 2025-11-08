@@ -39,7 +39,7 @@ func genImage(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		log.GetLogger(ctx).Debugf("prompt: %s\n", prompt)
 	}
 
-	log.GetLogger(ctx).Infof("@%s %s/%s\n", req.Agent, req.Model.Provider, req.Model.Model)
+	log.GetLogger(ctx).Infof("@%s %s/%s\n", req.Name, req.Model.Provider, req.Model.Model)
 
 	var imageFormat = openai.ImageGenerateParamsResponseFormatB64JSON
 

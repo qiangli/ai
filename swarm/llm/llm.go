@@ -2,8 +2,6 @@ package llm
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
 )
@@ -16,71 +14,75 @@ type AdapterRegistry interface {
 
 // Level represents the "intelligence" level of the model. i.e. basic, regular, advanced
 // for example, OpenAI: gpt-4.1-mini, gpt-4.1, o3
-type Level = api.Level
+// type Level = api.Level
 
-const (
-	// any of L1/L2/L3
-	Any Level = "any"
+// const (
+// 	// any of L1/L2/L3
+// 	Any Level = "any"
 
-	L1 Level = "L1"
-	L2 Level = "L2"
-	L3 Level = "L3"
+// 	L1 Level = "L1"
+// 	L2 Level = "L2"
+// 	L3 Level = "L3"
 
-	//
-	Image Level = "image"
-	TTS   Level = "tts"
-)
+// 	//
+// 	Image Level = "image"
+// 	TTS   Level = "tts"
+// )
 
-type Request struct {
-	Agent string
+type Request = api.Request
 
-	Model *api.Model
+// type Request struct {
+// 	Name string
 
-	Messages []*api.Message
+// 	Model *api.Model
 
-	MaxTurns int
+// 	Messages []*api.Message
 
-	RunTool api.ToolRunner
+// 	MaxTurns int
 
-	Tools []*api.ToolFunc
+// 	RunTool api.ToolRunner
 
-	// Experimenal
-	Vars *api.Vars
+// 	Tools []*api.ToolFunc
 
-	Arguments map[string]any
+// 	// Experimenal
+// 	Vars *api.Vars
 
-	// get api token for LLM model
-	Token func() string
+// 	Arguments map[string]any
 
-	// openai v3
-	Instruction string
-	Query       string
-}
+// 	// get api token for LLM model
+// 	Token func() string
 
-func (r *Request) String() string {
-	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("Agent: %s\n", r.Agent))
-	if r.Model != nil {
-		sb.WriteString(fmt.Sprintf("Model: %s/%s\n", r.Model.Provider, r.Model.Model))
-	}
-	sb.WriteString(fmt.Sprintf("MaxTurns: %d\n", r.MaxTurns))
-	sb.WriteString(fmt.Sprintf("Tools: %d\n", len(r.Tools)))
-	sb.WriteString(fmt.Sprintf("Messages: %d\n", len(r.Messages)))
+// 	// openai v3
+// 	Instruction string
+// 	Query       string
+// }
 
-	return sb.String()
-}
+// func (r *Request) String() string {
+// 	var sb strings.Builder
+// 	sb.WriteString(fmt.Sprintf("Name: %s\n", r.Name))
+// 	if r.Model != nil {
+// 		sb.WriteString(fmt.Sprintf("Model: %s/%s\n", r.Model.Provider, r.Model.Model))
+// 	}
+// 	sb.WriteString(fmt.Sprintf("MaxTurns: %d\n", r.MaxTurns))
+// 	sb.WriteString(fmt.Sprintf("Tools: %d\n", len(r.Tools)))
+// 	sb.WriteString(fmt.Sprintf("Messages: %d\n", len(r.Messages)))
 
-type Response struct {
-	Role string
+// 	return sb.String()
+// }
 
-	Result *api.Result
-}
+// type Response struct {
+// 	// Role string
 
-func (r *Response) String() string {
-	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("Role: %s\n", r.Role))
-	if r.Result != nil {
-		sb.WriteString(fmt.Sprintf("Result: %s\n", r.Result))
-	}
-	return sb.String()
-}
+// 	Result *api.Result
+// }
+
+type Response = api.Response
+
+// func (r *Response) String() string {
+// 	var sb strings.Builder
+// 	// sb.WriteString(fmt.Sprintf("Role: %s\n", r.Role))
+// 	if r.Result != nil {
+// 		sb.WriteString(fmt.Sprintf("Result: %s\n", r.Result))
+// 	}
+// 	return sb.String()
+// }

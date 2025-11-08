@@ -106,7 +106,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	var temperature = anthropic.Float(0.0)
 
 	for tries := range maxTurns {
-		log.GetLogger(ctx).Infof("Ⓐ @%s [%v] %s/%s\n", req.Agent, tries, req.Model.Provider, model)
+		log.GetLogger(ctx).Infof("Ⓐ @%s [%v] %s/%s\n", req.Name, tries, req.Model.Provider, model)
 
 		log.GetLogger(ctx).Debugf("📡 sending request to %s: %v of %v\n%+v\n", req.Model.BaseUrl, tries, maxTurns, req)
 
@@ -179,9 +179,8 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		}
 
 		if len(toolResults) == 0 {
-			resp.Role = string(completion.Role)
-			// resp.Content = b.String()
 			resp.Result = &api.Result{
+				Role:  string(completion.Role),
 				Value: b.String(),
 			}
 			break
