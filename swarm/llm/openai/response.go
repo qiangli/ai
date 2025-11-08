@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -102,14 +103,19 @@ func respond(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		params.PreviousResponseID = openai.String(result.ID)
 		params.Input = responses.ResponseNewParamsInputUnion{}
 
-		var calls []*ToolCall
+		var calls []*api.ToolCall
 		for _, output := range result.Output {
 			if output.Type == "function_call" {
 				v := output.AsFunctionCall()
-				calls = append(calls, &ToolCall{
+				var props map[string]any
+				if err := json.Unmarshal([]byte(v.Arguments), &props); err != nil {
+					return nil, err
+				}
+
+				calls = append(calls, &api.ToolCall{
 					ID:        v.CallID,
 					Name:      v.Name,
-					Arguments: v.Arguments,
+					Arguments: props,
 				})
 			}
 		}

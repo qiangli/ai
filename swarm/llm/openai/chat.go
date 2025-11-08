@@ -3,6 +3,7 @@ package openai
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -128,12 +129,17 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 
 		params.Messages = append(params.Messages, completion.Choices[0].Message.ToParam())
 		// results := runTools(ctx, req.RunTool, toolCalls, maxThreadLimit)
-		calls := make([]*ToolCall, len(toolCalls))
+		calls := make([]*api.ToolCall, len(toolCalls))
 		for i, v := range toolCalls {
-			calls[i] = &ToolCall{
+			var props map[string]any
+			if err := json.Unmarshal([]byte(v.Function.Arguments), &props); err != nil {
+				return nil, err
+			}
+
+			calls[i] = &api.ToolCall{
 				ID:        v.ID,
 				Name:      v.Function.Name,
-				Arguments: v.Function.Arguments,
+				Arguments: props,
 			}
 		}
 		results := runToolsV3(ctx, req.RunTool, calls, maxThreadLimit)
@@ -239,12 +245,17 @@ func callLoop(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 
 		params.Messages = append(params.Messages, completion.Choices[0].Message.ToParam())
 		// results := runTools(ctx, req.RunTool, toolCalls, maxThreadLimit)
-		calls := make([]*ToolCall, len(toolCalls))
+		calls := make([]*api.ToolCall, len(toolCalls))
 		for i, v := range toolCalls {
-			calls[i] = &ToolCall{
+			var props map[string]any
+			if err := json.Unmarshal([]byte(v.Function.Arguments), &props); err != nil {
+				return nil, err
+			}
+
+			calls[i] = &api.ToolCall{
 				ID:        v.ID,
 				Name:      v.Function.Name,
-				Arguments: v.Function.Arguments,
+				Arguments: props,
 			}
 		}
 		results := runToolsV3(ctx, req.RunTool, calls, maxThreadLimit)

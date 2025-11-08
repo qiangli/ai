@@ -3,7 +3,6 @@ package openai
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -45,16 +44,16 @@ func NewClientV3(model *api.Model, token string, vars *api.Vars) (*openai.Client
 	return &client, nil
 }
 
-type ToolCall struct {
-	ID        string
-	Name      string
-	Arguments string
-}
+// type ToolCall struct {
+// 	ID        string
+// 	Name      string
+// 	Arguments string
+// }
 
 func runToolsV3(
 	parent context.Context,
 	runner api.ToolRunner,
-	calls []*ToolCall,
+	calls []*api.ToolCall,
 	max int,
 ) []*api.Result {
 	switch len(calls) {
@@ -70,7 +69,7 @@ func runToolsV3(
 func runToolsInParallel(
 	parent context.Context,
 	runner api.ToolRunner,
-	toolCalls []*ToolCall,
+	toolCalls []*api.ToolCall,
 	max int,
 ) []*api.Result {
 	var wg sync.WaitGroup
@@ -86,7 +85,7 @@ func runToolsInParallel(
 	for i, toolCall := range toolCalls {
 		wg.Add(1)
 
-		go func(i int, toolCall *ToolCall) {
+		go func(i int, toolCall *api.ToolCall) {
 			defer wg.Done()
 
 			select {
@@ -97,13 +96,13 @@ func runToolsInParallel(
 			}
 
 			var name = toolCall.Name
-			var props map[string]any
-			if err := json.Unmarshal([]byte(toolCall.Arguments), &props); err != nil {
-				results[i] = &api.Result{
-					Value: err.Error(),
-				}
-				return
-			}
+			var props = toolCall.Arguments
+			// if err := json.Unmarshal([]byte(toolCall.Arguments), &props); err != nil {
+			// 	results[i] = &api.Result{
+			// 		Value: err.Error(),
+			// 	}
+			// 	return
+			// }
 
 			log.GetLogger(parent).Debugf("\n* tool call: %v %s props: %+v\n", i, name, props)
 
@@ -134,15 +133,16 @@ func runToolsInParallel(
 func runTool(
 	ctx context.Context,
 	runner api.ToolRunner,
-	toolCall *ToolCall,
+	toolCall *api.ToolCall,
 ) *api.Result {
 	var name = toolCall.Name
-	var props map[string]any
-	if err := json.Unmarshal([]byte(toolCall.Arguments), &props); err != nil {
-		return &api.Result{
-			Value: err.Error(),
-		}
-	}
+	var props = toolCall.Arguments
+	// var props map[string]any
+	// if err := json.Unmarshal([]byte(toolCall.Arguments), &props); err != nil {
+	// 	return &api.Result{
+	// 		Value: err.Error(),
+	// 	}
+	// }
 
 	log.GetLogger(ctx).Debugf("\n* tool call: %s props: %+v\n", name, props)
 
