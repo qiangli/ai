@@ -191,10 +191,6 @@ type Flow struct {
 	Script      string
 }
 
-// type Action struct {
-// 	Tool *ToolFunc
-// }
-
 func (a *Agent) cloneArguments() map[string]any {
 	if a.Arguments == nil {
 		return nil
@@ -213,59 +209,8 @@ func (a *Agent) cloneEnvironment() map[string]any {
 	return clone
 }
 
+// pack config
 type AgentsConfig AppConfig
-
-// // agent app config
-// type AgentsConfig struct {
-// 	// agent app name
-// 	Name string `yaml:"name"`
-
-// 	// set/level key - not the LLM model
-// 	Model string `yaml:"model"`
-
-// 	Agents []*AgentConfig `yaml:"agents"`
-
-// 	//
-// 	MaxTurns int `yaml:"max_turns"`
-// 	MaxTime  int `yaml:"max_time"`
-
-// 	// user message
-// 	Message string `yaml:"message"`
-
-// 	// output format: json | text
-// 	Format string `yaml:"format"`
-
-// 	// memory
-// 	// max history: 0 max span: 0
-// 	New        *bool  `yaml:"new,omitempty"`
-// 	MaxHistory int    `yaml:"max_history"`
-// 	MaxSpan    int    `yaml:"max_span"`
-// 	Context    string `yaml:"context"`
-
-// 	// logging: quiet | informative | verbose
-// 	LogLevel string `yaml:"log_level"`
-
-// 	// toolkit
-// 	// kit:any
-// 	Kit   string        `yaml:"kit"`
-// 	Type  string        `yaml:"type"`
-// 	Tools []*ToolConfig `yaml:"tools"`
-
-// 	// model set
-// 	// set/any
-// 	Set    string                  `yaml:"set"`
-// 	Models map[string]*ModelConfig `yaml:"models"`
-
-// 	// TODO separate?
-// 	// model/tool shared default values
-// 	Provider string `yaml:"provider"`
-// 	BaseUrl  string `yaml:"base_url"`
-// 	// api lookup key
-// 	ApiKey string `yaml:"api_key"`
-
-// 	// pack level global vars
-// 	Environment map[string]any `yaml:"environment"`
-// }
 
 type AgentConfig struct {
 	Name        string `yaml:"name"`

@@ -41,19 +41,7 @@ func (r *Model) String() string {
 	return fmt.Sprintf("%s/%s", r.Provider, r.Model)
 }
 
-// type ModelsConfig struct {
-// 	// model set name
-// 	Set string `yaml:"set"`
-
-// 	// provider
-// 	Provider string `yaml:"provider"`
-// 	BaseUrl  string `yaml:"base_url"`
-// 	// name of api lookup key - never the actual api token
-// 	ApiKey string `yaml:"api_key"`
-
-// 	Models map[string]*ModelConfig `yaml:"models"`
-// }
-
+// modelset config
 type ModelsConfig AppConfig
 
 type ModelConfig struct {
