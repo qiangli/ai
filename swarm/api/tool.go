@@ -18,8 +18,6 @@ const (
 	ToolTypeAgent  ToolType = "agent"
 )
 
-type ToolRunner func(context.Context, string, map[string]any) (*Result, error)
-
 type ToolFunc struct {
 	Type string
 

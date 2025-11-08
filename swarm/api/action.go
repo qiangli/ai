@@ -1,5 +1,56 @@
 package api
 
+import (
+	"context"
+	"html/template"
+	"strings"
+)
+
+type State int
+
+func (r State) String() string {
+	switch r {
+	case StateDefault:
+		return "DEFAULT"
+	case StateExit:
+		return "EXIT"
+	case StateTransfer:
+		return "TRANSFER"
+	case StateInputWait:
+		return "INPUT_WAIT"
+	}
+	return "DEFAULT"
+}
+
+func (r State) Equal(s string) bool {
+	return strings.ToUpper(s) == r.String()
+}
+
+func ParseState(s string) State {
+	switch strings.ToUpper(s) {
+	case "EXIT":
+		return StateExit
+	case "TRANSFER":
+		return StateTransfer
+	case "INPUT_WAIT":
+		return StateInputWait
+	default:
+		return StateDefault
+	}
+}
+
+const (
+	StateDefault State = iota
+
+	StateExit
+	StateTransfer
+	StateInputWait
+)
+
+type TemplateFuncMap = template.FuncMap
+
+type ToolRunner func(context.Context, string, map[string]any) (*Result, error)
+
 type Action struct {
 	// agent/tool name
 	Name string

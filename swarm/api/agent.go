@@ -1,7 +1,6 @@
 package api
 
 import (
-	"html/template"
 	"maps"
 	"strings"
 )
@@ -12,54 +11,6 @@ const (
 	RoleUser      = "user"
 	RoleTool      = "tool"
 )
-
-// Agent handler
-type Handler interface {
-	Serve(*Request, *Response) error
-}
-
-type State int
-
-func (r State) String() string {
-	switch r {
-	case StateDefault:
-		return "DEFAULT"
-	case StateExit:
-		return "EXIT"
-	case StateTransfer:
-		return "TRANSFER"
-	case StateInputWait:
-		return "INPUT_WAIT"
-	}
-	return "DEFAULT"
-}
-
-func (r State) Equal(s string) bool {
-	return strings.ToUpper(s) == r.String()
-}
-
-func ParseState(s string) State {
-	switch strings.ToUpper(s) {
-	case "EXIT":
-		return StateExit
-	case "TRANSFER":
-		return StateTransfer
-	case "INPUT_WAIT":
-		return StateInputWait
-	default:
-		return StateDefault
-	}
-}
-
-const (
-	StateDefault State = iota
-
-	StateExit
-	StateTransfer
-	StateInputWait
-)
-
-type TemplateFuncMap = template.FuncMap
 
 // [@][owner:]pack[/sub]
 // @[owner:]<agent>

@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+// Agent handler
+type Handler interface {
+	Serve(*Request, *Response) error
+}
+
 type Message struct {
 	// message id
 	ID string `json:"id"`
