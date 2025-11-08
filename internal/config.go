@@ -296,7 +296,7 @@ func ParseAgentArgs(app *api.AppConfig, args []string, defaultAgent string) []st
 	// if len(parts) > 1 {
 	// 	app.Command = parts[1]
 	// }
-	app.Agent = agent
+	app.Name = agent
 
 	return args
 }

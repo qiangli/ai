@@ -88,8 +88,8 @@ func TestParseConfig(t *testing.T) {
 				t.Fatalf("expected no error, got %v", err)
 			}
 
-			if cfg.Agent != test.expected[0] {
-				t.Fatalf("expected %v, got %s", test.expected, cfg.Agent)
+			if cfg.Name != test.expected[0] {
+				t.Fatalf("expected %v, got %s", test.expected, cfg.Name)
 			}
 
 			// if cfg.Agent != test.expected[0] || cfg.Command != test.expected[1] {

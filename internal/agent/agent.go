@@ -18,7 +18,7 @@ import (
 )
 
 func RunAgent(ctx context.Context, app *api.AppConfig) error {
-	log.GetLogger(ctx).Debugf("Agent: %s\n", app.Agent)
+	log.GetLogger(ctx).Debugf("Agent: %s\n", app.Name)
 	in, err := GetUserInput(ctx, app)
 	if err != nil {
 		return err
@@ -47,7 +47,7 @@ var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
 func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) error {
 	swarm.ClearAllEnv(essentialEnv)
 
-	name := cfg.Agent
+	name := cfg.Name
 	if name == "" {
 		name = "agent"
 	}
