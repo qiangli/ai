@@ -83,35 +83,37 @@ func (r *ToolFunc) ID() string {
 	return toolID(r.Kit, r.Name)
 }
 
-// Toolkit configuration
-type ToolsConfig struct {
-	// kit name specifies a namespace.
-	// e.g. but not limited to:
-	// class name
-	// MCP server name
-	// virtual filesystem name
-	// container name
-	// virtual machine name
-	// tool/function (Gemini)
-	Kit string `yaml:"kit"`
+// // Toolkit configuration
+// type ToolsConfig struct {
+// 	// kit name specifies a namespace.
+// 	// e.g. but not limited to:
+// 	// class name
+// 	// MCP server name
+// 	// virtual filesystem name
+// 	// container name
+// 	// virtual machine name
+// 	// tool/function (Gemini)
+// 	Kit string `yaml:"kit"`
 
-	// action type:
-	// func, system, agent...
-	Type string `yaml:"type"`
+// 	// action type:
+// 	// func, system, agent...
+// 	Type string `yaml:"type"`
 
-	// provider
-	Provider string `yaml:"provider"`
-	BaseUrl  string `yaml:"base_url"`
-	// name of api key
-	ApiKey string `yaml:"api_key"`
+// 	// provider
+// 	Provider string `yaml:"provider"`
+// 	BaseUrl  string `yaml:"base_url"`
+// 	// name of api key
+// 	ApiKey string `yaml:"api_key"`
 
-	// Connector *ConnectorConfig `yaml:"connector"`
+// 	// Connector *ConnectorConfig `yaml:"connector"`
 
-	// system commands used by tools
-	// Commands []string `yaml:"commands"`
+// 	// system commands used by tools
+// 	// Commands []string `yaml:"commands"`
 
-	Tools []*ToolConfig `yaml:"tools"`
-}
+// 	Tools []*ToolConfig `yaml:"tools"`
+// }
+
+type ToolsConfig AppConfig
 
 type ToolConfig struct {
 	Type string `yaml:"type"`

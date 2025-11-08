@@ -54,25 +54,74 @@ type AppConfig struct {
 	// logging: quiet | informative | verbose
 	LogLevel string `yaml:"log_level"`
 
+	// tool or model provider
+	Provider string `yaml:"provider"`
+	BaseUrl  string `yaml:"base_url"`
+
+	// api token lookup key
+	ApiKey string `yaml:"api_key"`
+
 	// toolkit
 	// kit:any
-	Kit   string        `yaml:"kit"`
-	Type  string        `yaml:"type"`
+	// Kit   string        `yaml:"kit"`
+	// Type  string        `yaml:"type"`
+	// Tools []*ToolConfig `yaml:"tools"`
+
+	// tools
+
+	// kit name specifies a namespace.
+	// e.g. but not limited to:
+	// class name
+	// MCP server name
+	// virtual filesystem name
+	// container name
+	// virtual machine name
+	// tool/function (Gemini)
+	Kit string `yaml:"kit"`
+
+	// action type:
+	// func, system, agent...
+	Type string `yaml:"type"`
+
+	// // provider
+	// Provider string `yaml:"provider"`
+	// BaseUrl  string `yaml:"base_url"`
+	// // name of api key
+	// ApiKey string `yaml:"api_key"`
+
+	// Connector *ConnectorConfig `yaml:"connector"`
+
+	// system commands used by tools
+	// Commands []string `yaml:"commands"`
+
 	Tools []*ToolConfig `yaml:"tools"`
 
 	// model set
 	// set/any
-	Set    string                  `yaml:"set"`
-	Models map[string]*ModelConfig `yaml:"models"`
+	// Set    string                  `yaml:"set"`
+	// Models map[string]*ModelConfig `yaml:"models"`
 
 	// TODO separate?
 	// model/tool shared default values
-	Provider string `yaml:"provider"`
-	BaseUrl  string `yaml:"base_url"`
+	// Provider string `yaml:"provider"`
+	// BaseUrl  string `yaml:"base_url"`
 	// api lookup key
-	ApiKey string `yaml:"api_key"`
+	// ApiKey string `yaml:"api_key"`
 
-	// pack level global vars
+	// model
+
+	// model set name
+	Set string `yaml:"set"`
+
+	// // provider
+	// Provider string `yaml:"provider"`
+	// BaseUrl  string `yaml:"base_url"`
+	// // name of api lookup key - never the actual api token
+	// ApiKey string `yaml:"api_key"`
+
+	Models map[string]*ModelConfig `yaml:"models"`
+
+	// app level global vars
 	Environment map[string]any `yaml:"environment"`
 
 	// TODO use arguments

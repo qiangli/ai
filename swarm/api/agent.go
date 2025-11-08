@@ -213,57 +213,59 @@ func (a *Agent) cloneEnvironment() map[string]any {
 	return clone
 }
 
-// agent app config
-type AgentsConfig struct {
-	// agent app name
-	Name string `yaml:"name"`
+type AgentsConfig AppConfig
 
-	// set/level key - not the LLM model
-	Model string `yaml:"model"`
+// // agent app config
+// type AgentsConfig struct {
+// 	// agent app name
+// 	Name string `yaml:"name"`
 
-	Agents []*AgentConfig `yaml:"agents"`
+// 	// set/level key - not the LLM model
+// 	Model string `yaml:"model"`
 
-	//
-	MaxTurns int `yaml:"max_turns"`
-	MaxTime  int `yaml:"max_time"`
+// 	Agents []*AgentConfig `yaml:"agents"`
 
-	// user message
-	Message string `yaml:"message"`
+// 	//
+// 	MaxTurns int `yaml:"max_turns"`
+// 	MaxTime  int `yaml:"max_time"`
 
-	// output format: json | text
-	Format string `yaml:"format"`
+// 	// user message
+// 	Message string `yaml:"message"`
 
-	// memory
-	// max history: 0 max span: 0
-	New        *bool  `yaml:"new,omitempty"`
-	MaxHistory int    `yaml:"max_history"`
-	MaxSpan    int    `yaml:"max_span"`
-	Context    string `yaml:"context"`
+// 	// output format: json | text
+// 	Format string `yaml:"format"`
 
-	// logging: quiet | informative | verbose
-	LogLevel string `yaml:"log_level"`
+// 	// memory
+// 	// max history: 0 max span: 0
+// 	New        *bool  `yaml:"new,omitempty"`
+// 	MaxHistory int    `yaml:"max_history"`
+// 	MaxSpan    int    `yaml:"max_span"`
+// 	Context    string `yaml:"context"`
 
-	// toolkit
-	// kit:any
-	Kit   string        `yaml:"kit"`
-	Type  string        `yaml:"type"`
-	Tools []*ToolConfig `yaml:"tools"`
+// 	// logging: quiet | informative | verbose
+// 	LogLevel string `yaml:"log_level"`
 
-	// model set
-	// set/any
-	Set    string                  `yaml:"set"`
-	Models map[string]*ModelConfig `yaml:"models"`
+// 	// toolkit
+// 	// kit:any
+// 	Kit   string        `yaml:"kit"`
+// 	Type  string        `yaml:"type"`
+// 	Tools []*ToolConfig `yaml:"tools"`
 
-	// TODO separate?
-	// model/tool shared default values
-	Provider string `yaml:"provider"`
-	BaseUrl  string `yaml:"base_url"`
-	// api lookup key
-	ApiKey string `yaml:"api_key"`
+// 	// model set
+// 	// set/any
+// 	Set    string                  `yaml:"set"`
+// 	Models map[string]*ModelConfig `yaml:"models"`
 
-	// pack level global vars
-	Environment map[string]any `yaml:"environment"`
-}
+// 	// TODO separate?
+// 	// model/tool shared default values
+// 	Provider string `yaml:"provider"`
+// 	BaseUrl  string `yaml:"base_url"`
+// 	// api lookup key
+// 	ApiKey string `yaml:"api_key"`
+
+// 	// pack level global vars
+// 	Environment map[string]any `yaml:"environment"`
+// }
 
 type AgentConfig struct {
 	Name        string `yaml:"name"`
