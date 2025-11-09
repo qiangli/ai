@@ -73,7 +73,7 @@ func NewGlobal() *Global {
 type Vars struct {
 	LogLevel LogLevel `json:"log_level"`
 
-	// ChatID     string `json:"chat_id"`
+	ChatID string `json:"chat_id"`
 	// MaxTurns   int    `json:"max_turns"`
 	// MaxTime    int    `json:"max_time"`
 	// New        *bool  `json:"new"`

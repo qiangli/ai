@@ -4,10 +4,10 @@ import (
 	"embed"
 	"fmt"
 	"os"
-	// "os/exec"
 	"path/filepath"
 	"strings"
 
+	"github.com/google/uuid"
 	fangs "github.com/spf13/viper"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -135,7 +135,10 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 		newchat := viper.GetBool("new")
 		app.New = &newchat
 	}
-	// app.ChatID = viper.GetString("chat")
+	app.ChatID = viper.GetString("chat")
+	if app.ChatID == "" {
+		app.ChatID = uuid.NewString()
+	}
 	app.MaxHistory = viper.GetInt("max_history")
 	app.MaxSpan = viper.GetInt("max_span")
 	app.Context = viper.GetString("context")

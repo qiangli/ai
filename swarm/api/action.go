@@ -83,6 +83,8 @@ type AppConfig struct {
 	// workspace root. default: <base>/workspace
 	Workspace string `yaml:"-"`
 
+	ChatID string `yaml:"-"`
+
 	// action name and arguments
 	Name      string         `yaml:"name"`
 	Arguments map[string]any `yaml:"arguments"`

@@ -15,7 +15,7 @@
 				"AI_DEBUG": "true",
 			},
 			"args": [
-				"@eval",
+				// "@eval",
 				// "@iconvert",
 				// "@news",
 				// "@video",
@@ -26,7 +26,7 @@
 				// "@chat",
 				// "@gptr",
 				// "@gpte",
-				// "@ask",
+				"@ask",
 				// "--message", "tell me a joke",
 				"--message",
 				"what is the weather today in dublin ca",

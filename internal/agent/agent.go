@@ -59,19 +59,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		return err
 	}
 
-	// History
-	// preload - may not be used depending on context agent
 	mem := NewFileMemStore(cfg)
-	// history, err := mem.Load(&api.MemOption{
-	// 	MaxHistory: cfg.MaxHistory,
-	// 	MaxSpan:    cfg.MaxSpan,
-	// })
-	// if err != nil {
-	// 	return err
-	// }
-
-	// initLen := len(history)
-	// vars.History = history
 
 	showInput(ctx, cfg, input)
 
@@ -133,13 +121,6 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		display = resp.Agent.Display
 	}
 
-	// if len(vars.History) > initLen {
-	// 	log.GetLogger(ctx).Debugf("Saving conversation\n")
-	// 	if err := mem.Save(vars.History[initLen:]); err != nil {
-	// 		log.GetLogger(ctx).Errorf("error saving conversation history: %v", err)
-	// 	}
-	// }
-
 	var out *api.Output
 	if resp.Result != nil {
 		out = &api.Output{
@@ -192,7 +173,7 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 
 	// Setting configuration values from the app to vars
 	vars.LogLevel = api.ToLogLevel(app.LogLevel)
-	// // vars.ChatID = app.ChatID
+	vars.ChatID = app.ChatID
 	// vars.New = app.New
 	// vars.MaxTurns = app.MaxTurns
 	// vars.MaxTime = app.MaxTime

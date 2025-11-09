@@ -12,8 +12,6 @@ func MemoryMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 				ctx := req.Context()
 
-				log.GetLogger(ctx).Debugf("memory: %+v\n", req)
-
 				history, err := sw.History.Load(&api.MemOption{
 					MaxHistory: agent.MaxHistory,
 					MaxSpan:    agent.MaxSpan,
@@ -27,9 +25,7 @@ func MemoryMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 
 				log.GetLogger(ctx).Debugf("Loading conversation messages: %v\n", initLen)
 
-				if err := next.Serve(req, resp); err != nil {
-					return err
-				}
+				err = next.Serve(req, resp)
 
 				if len(sw.Vars.History) > initLen {
 					log.GetLogger(ctx).Debugf("Saving conversation messages: %v\n", (len(sw.Vars.History) - initLen))
@@ -37,7 +33,8 @@ func MemoryMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 						log.GetLogger(ctx).Errorf("error saving conversation history: %v", err)
 					}
 				}
-				return nil
+
+				return err
 			})
 		}
 	}

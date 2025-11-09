@@ -20,17 +20,17 @@ type FileMemStore struct {
 }
 
 func NewFileMemStore(app *api.AppConfig) api.MemStore {
-	chatDir := filepath.Join(app.Workspace, "chat")
+	base := filepath.Join(app.Workspace, "chat")
 	// cid := app.ChatID
-	var cid string
-	if cid == "" {
-		// if app.New != nil && *app.New {
-		cid = uuid.NewString()
-		// } else if last, err := findLastChatID(chatDir); err == nil {
-		// 	cid = last
-		// }
-	}
-	base := filepath.Join(chatDir, cid)
+	// if cid == "" {
+	// 	// if app.New != nil && *app.New {
+	// 	cid = uuid.NewString()
+	// 	app.ChatID = cid
+	// 	// } else if last, err := findLastChatID(chatDir); err == nil {
+	// 	// 	cid = last
+	// 	// }
+	// }
+	// base := filepath.Join(chatDir, cid)
 	return &FileMemStore{
 		base: base,
 		app:  app,
