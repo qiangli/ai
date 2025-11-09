@@ -106,4 +106,25 @@ tools:
           description: "A unique identifier for the message"
       required:
         - "id"
+  - name: "clear_messages"
+    description: "Erase all current and new conversation messages from memory"
+    parameters:
+      type: object
+      properties: {}
+  - name: "load_messages"
+    description: "Recall messages from previous conversations into memory using specified conditions."
+    parameters:
+      type: "object"
+      properties:
+        max_history:
+          type: "integer"
+          description: "The maximum number of past messages to retrieve"
+          default: 3
+          minimum: 0
+        max_span:
+          type: "integer"
+          description: "The time frame, in minutes, to look back for past messages"
+          default: 1440
+          minimum: 0
+
  ###

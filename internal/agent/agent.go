@@ -58,23 +58,20 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	if err != nil {
 		return err
 	}
+
 	// History
 	// preload - may not be used depending on context agent
 	mem := NewFileMemStore(cfg)
-	history, err := mem.Load(&api.MemOption{
-		MaxHistory: cfg.MaxHistory,
-		MaxSpan:    cfg.MaxSpan,
-	})
-	if err != nil {
-		return err
-	}
-	// TODO depends on new/max-history,max-span/context flags
-	// if len(vars.History) > 0 {
-	// 	log.GetLogger(ctx).Infof("⣿ recalling %v messages in memory less than %v minutes old\n", len(vars.History), cfg.MaxSpan)
+	// history, err := mem.Load(&api.MemOption{
+	// 	MaxHistory: cfg.MaxHistory,
+	// 	MaxSpan:    cfg.MaxSpan,
+	// })
+	// if err != nil {
+	// 	return err
 	// }
 
-	initLen := len(history)
-	vars.History = history
+	// initLen := len(history)
+	// vars.History = history
 
 	showInput(ctx, cfg, input)
 
@@ -136,12 +133,12 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		display = resp.Agent.Display
 	}
 
-	if len(vars.History) > initLen {
-		log.GetLogger(ctx).Debugf("Saving conversation\n")
-		if err := mem.Save(vars.History[initLen:]); err != nil {
-			log.GetLogger(ctx).Errorf("error saving conversation history: %v", err)
-		}
-	}
+	// if len(vars.History) > initLen {
+	// 	log.GetLogger(ctx).Debugf("Saving conversation\n")
+	// 	if err := mem.Save(vars.History[initLen:]); err != nil {
+	// 		log.GetLogger(ctx).Errorf("error saving conversation history: %v", err)
+	// 	}
+	// }
 
 	var out *api.Output
 	if resp.Result != nil {

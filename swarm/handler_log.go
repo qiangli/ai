@@ -26,24 +26,3 @@ func MaxLogMiddleware(n int) api.Middleware {
 	}
 	return mw
 }
-
-// type maxLogHandler struct {
-// 	next api.Handler
-// 	max  int
-// }
-
-// func (h *maxLogHandler) Serve(r *api.Request, w *api.Response) error {
-// 	ctx := r.Context()
-// 	log.GetLogger(ctx).Debugf("Request: %+v\n", r)
-
-// 	err := h.next.Serve(r, w)
-
-// 	log.GetLogger(ctx).Debugf("Response: %+v\n", w)
-// 	if w.Messages != nil {
-// 		for _, m := range w.Messages {
-// 			log.GetLogger(ctx).Debugf("%s %s\n", m.Role, clip(m.Content, h.max))
-// 		}
-// 	}
-
-// 	return err
-// }
