@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
-	// "github.com/qiangli/ai/swarm/vfs"
 	"github.com/qiangli/shell/tool/sh/vfs"
 )
 

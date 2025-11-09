@@ -292,3 +292,37 @@ func (r *AIKit) MessageInfo(_ context.Context, _ *api.Vars, _ string, args map[s
 		Value: string(b),
 	}, nil
 }
+
+func (r *AIKit) ClearHistory(_ context.Context, vars *api.Vars, _ string, _ map[string]any) (*api.Result, error) {
+	vars.ClearHistory()
+	return &api.Result{
+		Value: "success",
+	}, nil
+}
+
+func (r *AIKit) AddHistory(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	data, err := atm.GetStrProp("messages", args)
+	if err != nil {
+		return nil, err
+	}
+
+	var messages []*api.Message
+	if err := json.Unmarshal([]byte(data), &messages); err != nil {
+		return nil, err
+	}
+	vars.AddHistory(messages)
+	return &api.Result{
+		Value: "success",
+	}, nil
+}
+
+func (r *AIKit) ListHistory(_ context.Context, vars *api.Vars, _ string, _ map[string]any) (*api.Result, error) {
+	var messages = vars.ListHistory()
+	b, err := json.Marshal(messages)
+	if err != nil {
+		return nil, err
+	}
+	return &api.Result{
+		Value: string(b),
+	}, nil
+}

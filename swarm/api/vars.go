@@ -93,6 +93,31 @@ type Vars struct {
 	History []*Message `json:"-"`
 
 	Global *Global `json:"-"`
+
+	mu sync.RWMutex
+}
+
+// Clear messages from history
+func (v *Vars) ClearHistory() {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	v.History = []*Message{}
+}
+
+// Append messages to history
+func (v *Vars) AddHistory(messages []*Message) {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	v.History = append(v.History, messages...)
+}
+
+// Return a copy of all current messages in history
+func (v *Vars) ListHistory() []*Message {
+	v.mu.RLock()
+	defer v.mu.RUnlock()
+	hist := make([]*Message, len(v.History))
+	copy(hist, v.History)
+	return hist
 }
 
 func (v *Vars) Clone() *Vars {

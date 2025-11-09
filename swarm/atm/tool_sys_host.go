@@ -2,11 +2,6 @@ package atm
 
 import (
 	"context"
-	// "fmt"
-	// _ "image/gif"
-	// _ "image/jpeg"
-	// _ "image/png"
-	// "strings"
 
 	"github.com/qiangli/ai/swarm/api"
 )

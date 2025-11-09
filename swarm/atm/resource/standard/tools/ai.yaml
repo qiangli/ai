@@ -96,8 +96,9 @@ tools:
           description: "The time frame, in minutes, to look back for past messages"
           default: 1440
           minimum: 0
+  
   - name: "message_info"
-    description: "Retrieve detailed information for a specific message"
+    description: "Retrieve detailed information for a specific message from past conversations by id."
     parameters:
       type: "object"
       properties:
@@ -106,36 +107,26 @@ tools:
           description: "A unique identifier for the message"
       required:
         - "id"
-  - name: "clear_messages"
-    description: "Erase all current and new conversation messages from memory"
+  
+  - name: "list_history"
+    description: "Retrieve all messages from the ongoing conversation history log"
     parameters:
       type: object
       properties: {}
-  - name: "load_messages"
-    description: "Recall messages from previous conversations into memory using specified conditions."
+  
+  - name: "clear_history"
+    description: "Erase all messages from the ongoing conversation history log"
     parameters:
-      type: "object"
-      properties:
-        max_history:
-          type: "integer"
-          description: "The maximum number of past messages to retrieve"
-          default: 3
-          minimum: 0
-        max_span:
-          type: "integer"
-          description: "The time frame, in minutes, to look back for past messages"
-          default: 1440
-          minimum: 0
-  - name: "add_messages"
-    description: "Add list of messages to memory store"
+      type: object
+      properties: {}
+  
+  - name: "add_history"
+    description: "Append a list of messages to the ongoing conversation history log"
     parameters:
       type: "object"
       properties:
         messages:
-          type: "array"
-          items:
-            type: object
-            properties: {}
-          description: "An array of messages to save"
+          type: "string"
+          description: "A JSON-encoded array of message objects to be appended"
       required: ["messages"]
  ###
