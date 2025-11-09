@@ -13,9 +13,13 @@ type Handler interface {
 	Serve(*Request, *Response) error
 }
 
-type Middleware interface {
-	Handle(*Request, *Response, *Handler) error
+type HandlerFunc func(req *Request, res *Response) error
+
+func (f HandlerFunc) Serve(req *Request, res *Response) error {
+	return f(req, res)
 }
+
+type Middleware func(Handler) Handler
 
 type Message struct {
 	// message id
@@ -191,13 +195,15 @@ type Result struct {
 	State State
 	// The agent name to transfer to for StateTransfer
 	NextAgent string
+
+	//
+	Actions []*ToolCall
 }
 
 func (r *Result) String() string {
 	var sb strings.Builder
-	if r.State != StateDefault {
-		sb.WriteString(r.State.String())
-	}
+	sb.WriteString(r.State.String())
+
 	if r.NextAgent != "" {
 		sb.WriteString(fmt.Sprintf(" %s", r.NextAgent))
 	}

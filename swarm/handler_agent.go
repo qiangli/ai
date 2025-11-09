@@ -19,22 +19,27 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func NewAgentHandler(sw *Swarm) (func(*api.Agent) Handler, error) {
+func AgentMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 	var fm = sprig.FuncMap()
 	maps.Copy(fm, tplFuncMap)
 	fm["user"] = func() *api.User {
 		return sw.User
 	}
-
 	tpl := template.New("swarm").Funcs(fm)
 
-	return func(agent *api.Agent) Handler {
-		return &agentHandler{
+	return func(agent *api.Agent) api.Middleware {
+		var ah = &agentHandler{
 			agent:    agent,
 			sw:       sw,
 			template: tpl,
 		}
-	}, nil
+
+		return func(next Handler) Handler {
+			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
+				return ah.Serve(req, resp)
+			})
+		}
+	}
 }
 
 type agentHandler struct {
@@ -383,6 +388,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 	}
 	request.Query = r.RawInput.Query()
 
+	// loop
 	var adapter llm.LLMAdapter = adapter.Chat
 	if h.agent.Adapter != "" {
 		if v, err := h.sw.Adapters.Get(h.agent.Adapter); err == nil {
@@ -395,6 +401,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 	// LLM adapter
 	// TODO model <-> adapter
 	result, err := adapter(ctx, &request)
+	// client
 	if err != nil {
 		return err
 	}

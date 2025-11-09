@@ -3,22 +3,26 @@ package swarm
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/qiangli/ai/swarm/api"
 )
 
-// TimeoutHandler returns a [Handler] that times out if the time limit is reached.
-//
-// The new Handler calls thext next handler's Serve to handle each request, but if a
-// call runs for longer than its time limit, the handler responds with
-// a timeout error.
-func TimeoutHandler(next Handler, dt time.Duration, msg string) Handler {
-	return &timeoutHandler{
-		next:    next,
-		content: msg,
-		dt:      dt,
+func TimeoutMiddleware(max int) api.Middleware {
+	mw := func(next Handler) Handler {
+		th := &timeoutHandler{
+			next:    next,
+			content: fmt.Sprintf("timed out after %v seconds.", max),
+			dt:      time.Duration(max) * time.Second,
+		}
+
+		return HandlerFunc(func(req *api.Request, res *api.Response) error {
+			return th.Serve(req, res)
+		})
 	}
+
+	return mw
 }
 
 // ErrHandlerTimeout is returned on [Response]
@@ -26,7 +30,7 @@ func TimeoutHandler(next Handler, dt time.Duration, msg string) Handler {
 var ErrHandlerTimeout = errors.New("Agent service timeout")
 
 type timeoutHandler struct {
-	next    Handler
+	next    api.Handler
 	content string
 	dt      time.Duration
 }

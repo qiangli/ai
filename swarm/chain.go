@@ -11,6 +11,12 @@ func (h *emptyHandler) Serve(r *api.Request, w *api.Response) error {
 	return nil
 }
 
+var emptyMiddleware = func(Handler) Handler {
+	return HandlerFunc(func(*api.Request, *api.Response) error {
+		return nil
+	})
+}
+
 // A Handler responds to a request.
 //
 // [Handler.Serve] should write reply headers and data to the [ResponseWriter]
@@ -45,32 +51,34 @@ type Handler = api.Handler
 // ordinary functions as handlers. If f is a function
 // with the appropriate signature, HandlerFunc(f) is a
 // [Handler] that calls f.
-type HandlerFunc func(*api.Request, *api.Response) error
+// type HandlerFunc func(*api.Request, *api.Response) error
 
-// Serve calls f(w, r).
-func (f HandlerFunc) Serve(r *api.Request, w *api.Response) error {
-	return f(r, w)
-}
+type HandlerFunc = api.HandlerFunc
+
+// // Serve calls f(w, r).
+// func (f HandlerFunc) Serve(r *api.Request, w *api.Response) error {
+// 	return f(r, w)
+// }
 
 // A constructor for a piece of middleware.
 // Some middleware use this constructor out of the box,
 // so in most cases you can just pass somepackage.New
-type Constructor func(Handler) Handler
+// type Constructor func(api.Middleware) api.Middleware
 
 // Chain acts as a list of Handler constructors.
 // Chain is effectively immutable:
 // once created, it will always hold
 // the same set of constructors in the same order.
 type Chain struct {
-	constructors []Constructor
+	constructors []api.Middleware
 }
 
 // New creates a new chain,
 // memorizing the given list of middleware constructors.
 // New serves no other function,
 // constructors are only called upon a call to Then().
-func NewChain(constructors ...Constructor) Chain {
-	return Chain{append(([]Constructor)(nil), constructors...)}
+func NewChain(constructors ...api.Middleware) Chain {
+	return Chain{append(([]api.Middleware)(nil), constructors...)}
 }
 
 // Then chains the middleware and returns the final Handler.
@@ -97,8 +105,10 @@ func NewChain(constructors ...Constructor) Chain {
 // For proper middleware, this should cause no problems.
 //
 // Then() treats nil as DefaultServeMux.
-func (c Chain) Then(h Handler) Handler {
+func (c Chain) Then(h api.Handler) api.Handler {
 	if h == nil {
+		// h = api.HandlerFunc(&emptyHandler{})
+		// h = api.Middleware(*emptyHandler{})
 		h = &emptyHandler{}
 	}
 
@@ -136,8 +146,8 @@ func (c Chain) ThenFunc(fn HandlerFunc) Handler {
 //	extChain := stdChain.Append(m3, m4)
 //	// requests in stdChain go m1 -> m2
 //	// requests in extChain go m1 -> m2 -> m3 -> m4
-func (c Chain) Append(constructors ...Constructor) Chain {
-	newCons := make([]Constructor, 0, len(c.constructors)+len(constructors))
+func (c Chain) Append(constructors ...api.Middleware) Chain {
+	newCons := make([]api.Middleware, 0, len(c.constructors)+len(constructors))
 	newCons = append(newCons, c.constructors...)
 	newCons = append(newCons, constructors...)
 

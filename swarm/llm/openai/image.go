@@ -98,6 +98,7 @@ func genImage(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 
 	return &llm.Response{
 		Result: &api.Result{
+			State:    api.StateExit,
 			MimeType: api.ContentTypeImageB64,
 			Value:    image.Data[0].B64JSON,
 		},

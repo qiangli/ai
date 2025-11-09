@@ -8,16 +8,24 @@ import (
 
 type State int
 
+const (
+	StateExit State = iota
+
+	StateTransfer
+	StateInputWait
+	StateToolCall
+)
+
 func (r State) String() string {
 	switch r {
-	case StateDefault:
-		return "DEFAULT"
 	case StateExit:
 		return "EXIT"
 	case StateTransfer:
 		return "TRANSFER"
 	case StateInputWait:
 		return "INPUT_WAIT"
+	case StateToolCall:
+		return "TOOL_CALL"
 	}
 	return "DEFAULT"
 }
@@ -34,18 +42,11 @@ func ParseState(s string) State {
 		return StateTransfer
 	case "INPUT_WAIT":
 		return StateInputWait
-	default:
-		return StateDefault
+	case "TOOL_CALL":
+		return StateToolCall
 	}
+	return StateExit
 }
-
-const (
-	StateDefault State = iota
-
-	StateExit
-	StateTransfer
-	StateInputWait
-)
 
 type TemplateFuncMap = template.FuncMap
 

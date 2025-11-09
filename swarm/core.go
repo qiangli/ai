@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -59,17 +60,18 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	if r.User == nil || r.Vars == nil {
 		return api.NewInternalServerError("invalid config. user or vars not initialized")
 	}
-	agentHandler, err := NewAgentHandler(r)
-	if err != nil {
-		return err
-	}
+
+	agentMiddlWare := AgentMiddlewareFunc(r)
 
 	log.GetLogger(ctx).Debugf("*** Agent: %s parent: %+v\n", req.Name, req.Parent)
+
+	final := HandlerFunc(func(req *api.Request, res *api.Response) error {
+		return nil
+	})
 
 	for {
 		start := time.Now()
 		log.GetLogger(ctx).Debugf("Creating agent: %s %s\n", req.Name, start)
-
 		//
 		agent, err := r.createAgent(ctx, req)
 		if err != nil {
@@ -83,15 +85,22 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 			log.GetLogger(ctx).SetLogLevel(agent.LogLevel)
 		}
 
-		timeout := TimeoutHandler(agentHandler(agent), time.Duration(agent.MaxTime)*time.Second, "timed out")
-		maxlog := MaxLogHandler(500)
-		chain := NewChain(maxlog)
-		if err := chain.Then(timeout).Serve(req, resp); err != nil {
+		chain := NewChain(
+			TimeoutMiddleware(agent.MaxTime),
+			MaxLogMiddleware(500),
+			agentMiddlWare(agent),
+		)
+
+		if err := chain.Then(final).Serve(req, resp); err != nil {
 			return err
 		}
 
-		// update the request
-		if resp.Result != nil && resp.Result.State == api.StateTransfer {
+		if resp.Result == nil {
+			// some thing went wrong
+			return fmt.Errorf("nil result running %q", agent.Name)
+		}
+
+		if resp.Result.State == api.StateTransfer {
 			log.GetLogger(ctx).Debugf("Agent transfer: %s => %s\n", req.Name, resp.Result.NextAgent)
 			req.Name = resp.Result.NextAgent
 			continue
