@@ -109,8 +109,6 @@ type ToolConfig struct {
 	// filter by match key=values (comma, separated)
 	// include all tools that match
 	Filter map[string]string `yaml:"filter"`
-
-	// Extra map[string]string `yaml:"extra"`
 }
 
 type FuncBody struct {
@@ -153,8 +151,6 @@ type ConnectorConfig struct {
 	BaseUrl string `yaml:"base_url"`
 	// name of api lookup key
 	ApiKey string `yaml:"api_key"`
-
-	// Extra map[string]string `yaml:"extra"`
 }
 
 // per tool call vars

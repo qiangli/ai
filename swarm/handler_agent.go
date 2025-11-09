@@ -167,8 +167,6 @@ func (h *agentHandler) mapAssign(req *api.Request, dst, src map[string]any, over
 // merge agent environment, update with values from agent arguments if non existant
 // support @agent call and go template as value
 func (h *agentHandler) setGlobalEnv(req *api.Request) error {
-	// var ctx = req.Context()
-	// merge request args
 	var env = make(map[string]any)
 	// copy globals including agent args
 	h.sw.Vars.Global.Copy(env)
@@ -183,15 +181,6 @@ func (h *agentHandler) setGlobalEnv(req *api.Request) error {
 	if h.agent.Arguments != nil {
 		h.mapAssign(req, env, h.agent.Arguments, false)
 	}
-
-	// if req.Arguments != nil {
-	// 	copy(env, req.Arguments, false)
-	// }
-
-	// add query
-	// if req.RawInput != nil {
-	// 	env["query"] = req.RawInput.Query()
-	// }
 
 	h.sw.Vars.Global.Add(env)
 
@@ -260,7 +249,6 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 		}
 
 		// update instruction
-		// r.Instruction.Content = content
 		instructions = append(instructions, content)
 
 		history = append(history, &api.Message{
