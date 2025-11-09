@@ -59,6 +59,7 @@ agents:
       - "agent:gpte/generate"
       - "agent:gpte/improve"
       - "agent:gpte/clarify"
+      - "fs:*"
 
   - name: "gpte/generate"
     display: "Code Agent"
@@ -80,6 +81,7 @@ agents:
       - "agent:gpte/gen_entrypoint"
       - "agent:gpte/to_file_dict"
       - "agent:gpte/execute"
+      - "fs:*"
 
   - name: "gpte/gen_code"
     display: "Generate Code"
@@ -141,6 +143,8 @@ agents:
         Python toolbelt preferences:
         - pytest
         - dataclasses
+    functions:
+      - "fs:*"
 
   - name: "gpte/gen_entrypoint"
     display: "Generate Entrypoint"
@@ -163,6 +167,8 @@ agents:
         Response format:
 
         {"ENTRYPOINT_FILE": "final generated enttrypoint script"}
+    functions:
+      - "fs:*"
 
   - name: "gpte/improve"
     display: "Improve Code"

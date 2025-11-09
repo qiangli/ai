@@ -126,5 +126,16 @@ tools:
           description: "The time frame, in minutes, to look back for past messages"
           default: 1440
           minimum: 0
-
+  - name: "add_messages"
+    description: "Add list of messages to memory store"
+    parameters:
+      type: "object"
+      properties:
+        messages:
+          type: "array"
+          items:
+            type: object
+            properties: {}
+          description: "An array of messages to save"
+      required: ["messages"]
  ###

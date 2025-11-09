@@ -11,6 +11,7 @@ import (
 	"github.com/qiangli/ai/internal/agent/conf"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/db"
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/shell/tool/sh/vfs"
@@ -23,12 +24,6 @@ func RunAgent(ctx context.Context, app *api.AppConfig) error {
 	if err != nil {
 		return err
 	}
-
-	// if in.IsEmpty() && app.Message == "" {
-	// 	return internal.NewUserInputError("no query provided")
-	// }
-
-	// in.Agent = app.Agent
 
 	in.LogLevel = app.LogLevel
 	in.MaxTurns = app.MaxTurns
@@ -59,7 +54,12 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		return err
 	}
 
-	mem := NewFileMemStore(cfg)
+	// mem := NewFileMemStore(cfg)
+	mem, err := db.OpenMemoryStore(cfg)
+	if err != nil {
+		return err
+	}
+	defer mem.Close()
 
 	showInput(ctx, cfg, input)
 

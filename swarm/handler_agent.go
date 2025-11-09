@@ -376,7 +376,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 	}
 	request.Query = r.RawInput.Query()
 
-	// loop
+	//
 	var adapter llm.LLMAdapter = adapter.Chat
 	if h.agent.Adapter != "" {
 		if v, err := h.sw.Adapters.Get(h.agent.Adapter); err == nil {
