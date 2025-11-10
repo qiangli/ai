@@ -2,8 +2,10 @@ package swarm
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"maps"
+	"strings"
 	"text/template"
 	"time"
 
@@ -132,4 +134,104 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		log.GetLogger(ctx).Debugf("Agent complete: %s %s elapsed: %s\n", req.Name, end, end.Sub(start))
 		return nil
 	}
+}
+
+// copy values from src to dst after calling @agent and applying template if required
+func mapAssign(sw *Swarm, agent *api.Agent, req *api.Request, dst, src map[string]any, override bool) error {
+	for key, val := range src {
+		if !override {
+			if _, ok := dst[key]; ok {
+				continue
+			}
+		}
+		// @agent value support
+		if v, ok := val.(string); ok {
+			if resolved, err := resolveArgument(sw, agent, req, v); err != nil {
+				return err
+			} else {
+				val = resolved
+			}
+		}
+		// go template value support
+		if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
+			if resolved, err := applyTemplate(sw.template, v, dst); err != nil {
+				return err
+			} else {
+				val = resolved
+			}
+		}
+		dst[key] = val
+	}
+	return nil
+}
+
+func globalEnv(sw *Swarm) map[string]any {
+	var env = make(map[string]any)
+	sw.Vars.Global.Copy(env)
+	return env
+}
+
+func execAgent(sw *Swarm, agent *api.Agent, req *api.Request, resp *api.Response) error {
+	// prevent loop
+	// TODO support recursion?
+	if agent != nil && agent.Name == req.Name {
+		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself.", req.Name))
+	}
+
+	if err := sw.Run(req, resp); err != nil {
+		return err
+	}
+	if resp.Result == nil {
+		return fmt.Errorf("Empty result")
+	}
+	return nil
+}
+
+// call agent if found. otherwise return s as is
+func resolveArgument(sw *Swarm, agent *api.Agent, req *api.Request, s string) (any, error) {
+	name, query, found := parseAgentCommand(s)
+	if !found {
+		return s, nil
+	}
+	out, err := callAgent(sw, agent, req, name, query)
+	if err != nil {
+		return nil, err
+	}
+
+	type ArgResult struct {
+		Result string
+		Error  string
+	}
+
+	var arg ArgResult
+	if err := json.Unmarshal([]byte(out), &arg); err != nil {
+		return nil, err
+	}
+	if arg.Error != "" {
+		return nil, fmt.Errorf("failed resolve argument: %s", arg.Error)
+	}
+	return arg.Result, nil
+}
+
+func callAgent(sw *Swarm, agent *api.Agent, req *api.Request, s string, prompt string) (string, error) {
+	name := strings.TrimPrefix(s, "@")
+
+	nreq := req.Clone()
+	nreq.Parent = agent
+	nreq.Name = name
+	// prepend additional instruction to user query
+	if len(prompt) > 0 {
+		nreq.RawInput.Message = prompt + "\n" + nreq.RawInput.Message
+	}
+
+	nresp := &api.Response{}
+
+	err := execAgent(sw, agent, nreq, nresp)
+	if err != nil {
+		return "", err
+	}
+	if nresp.Result == nil {
+		return "", fmt.Errorf("empty response")
+	}
+	return nresp.Result.Value, nil
 }

@@ -18,13 +18,11 @@ import (
 )
 
 func AgentMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
-
 	return func(agent *api.Agent) api.Middleware {
 		var ah = &agentHandler{
 			agent: agent,
 			sw:    sw,
 		}
-
 		return func(next Handler) Handler {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 				return ah.Serve(req, resp)
@@ -124,35 +122,6 @@ func (h *agentHandler) doAgentFlow(req *api.Request, resp *api.Response) error {
 	return nil
 }
 
-// copy values from src to dst after calling @agent and applying template if required
-func mapAssign(sw *Swarm, agent *api.Agent, req *api.Request, dst, src map[string]any, override bool) error {
-	for key, val := range src {
-		if !override {
-			if _, ok := dst[key]; ok {
-				continue
-			}
-		}
-		// @agent value support
-		if v, ok := val.(string); ok {
-			if resolved, err := resolveArgument(sw, agent, req, v); err != nil {
-				return err
-			} else {
-				val = resolved
-			}
-		}
-		// go template value support
-		if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-			if resolved, err := applyTemplate(sw.template, v, dst); err != nil {
-				return err
-			} else {
-				val = resolved
-			}
-		}
-		dst[key] = val
-	}
-	return nil
-}
-
 // create a copy of current global vars
 // merge agent environment, update with values from agent arguments if non existant
 // support @agent call and go template as value
@@ -176,12 +145,6 @@ func (h *agentHandler) setGlobalEnv(req *api.Request) error {
 
 	log.GetLogger(req.Context()).Debugf("global env: %+v\n", env)
 	return nil
-}
-
-func globalEnv(sw *Swarm) map[string]any {
-	var env = make(map[string]any)
-	sw.Vars.Global.Copy(env)
-	return env
 }
 
 func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
@@ -427,22 +390,6 @@ func (h *agentHandler) exec(req *api.Request, resp *api.Response) error {
 	return execAgent(h.sw, h.agent, req, resp)
 }
 
-func execAgent(sw *Swarm, agent *api.Agent, req *api.Request, resp *api.Response) error {
-	// prevent loop
-	// TODO support recursion?
-	if agent != nil && agent.Name == req.Name {
-		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself.", req.Name))
-	}
-
-	if err := sw.Run(req, resp); err != nil {
-		return err
-	}
-	if resp.Result == nil {
-		return fmt.Errorf("Empty result")
-	}
-	return nil
-}
-
 // dynamically generate prompt if content starts with @<agent>
 // otherwise, return s unchanged
 func (h *agentHandler) resolvePrompt(ctx context.Context, parent *api.Request, s string) (string, error) {
@@ -508,57 +455,8 @@ func (h *agentHandler) mustResolveContext(ctx context.Context, parent *api.Reque
 	return list, nil
 }
 
-// call agent if found. otherwise return s as is
-func resolveArgument(sw *Swarm, agent *api.Agent, req *api.Request, s string) (any, error) {
-	name, query, found := parseAgentCommand(s)
-	if !found {
-		return s, nil
-	}
-	out, err := callAgent(sw, agent, req, name, query)
-	if err != nil {
-		return nil, err
-	}
-
-	type ArgResult struct {
-		Result string
-		Error  string
-	}
-
-	var arg ArgResult
-	if err := json.Unmarshal([]byte(out), &arg); err != nil {
-		return nil, err
-	}
-	if arg.Error != "" {
-		return nil, fmt.Errorf("failed resolve argument: %s", arg.Error)
-	}
-	return arg.Result, nil
-}
-
 func (h *agentHandler) callAgent(req *api.Request, s string, prompt string) (string, error) {
 	return callAgent(h.sw, h.agent, req, s, prompt)
-}
-
-func callAgent(sw *Swarm, agent *api.Agent, req *api.Request, s string, prompt string) (string, error) {
-	name := strings.TrimPrefix(s, "@")
-
-	nreq := req.Clone()
-	nreq.Parent = agent
-	nreq.Name = name
-	// prepend additional instruction to user query
-	if len(prompt) > 0 {
-		nreq.RawInput.Message = prompt + "\n" + nreq.RawInput.Message
-	}
-
-	nresp := &api.Response{}
-
-	err := execAgent(sw, agent, nreq, nresp)
-	if err != nil {
-		return "", err
-	}
-	if nresp.Result == nil {
-		return "", fmt.Errorf("empty response")
-	}
-	return nresp.Result.Value, nil
 }
 
 func applyTemplate(tpl *template.Template, text string, data any) (string, error) {
