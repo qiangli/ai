@@ -25,10 +25,40 @@ func (g *Global) Get(key string) (any, bool) {
 	return nil, false
 }
 
+func (g *Global) GetEnvs(keys []string) map[string]any {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	envs := make(map[string]any)
+	if len(keys) == 0 {
+		maps.Copy(envs, g.env)
+		return envs
+	}
+	for _, k := range keys {
+		envs[k] = g.env[k]
+	}
+	return envs
+}
+
 func (g *Global) Set(key string, val any) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	g.env[key] = val
+}
+
+func (g *Global) SetEnvs(envs map[string]any) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	for k, v := range envs {
+		g.env[k] = v
+	}
+}
+
+func (g *Global) UnsetEnvs(keys []string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	for _, k := range keys {
+		delete(g.env, k)
+	}
 }
 
 // copy all src values to the global env

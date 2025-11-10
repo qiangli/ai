@@ -96,7 +96,7 @@ tools:
           description: "The time frame, in minutes, to look back for past messages"
           default: 1440
           minimum: 0
-  
+
   - name: "message_info"
     description: "Retrieve detailed information for a specific message from past conversations by id."
     parameters:
@@ -107,26 +107,148 @@ tools:
           description: "A unique identifier for the message"
       required:
         - "id"
-  
-  - name: "list_history"
+
+  - name: "context_get_messages"
     description: "Retrieve all messages from the ongoing conversation history log"
     parameters:
-      type: object
+      type: "object"
       properties: {}
-  
-  - name: "clear_history"
-    description: "Erase all messages from the ongoing conversation history log"
-    parameters:
-      type: object
-      properties: {}
-  
-  - name: "add_history"
-    description: "Append a list of messages to the ongoing conversation history log"
+
+  - name: "context_set_messages"
+    description: "Reset all messages with the new list in the ongoing conversation history log"
     parameters:
       type: "object"
       properties:
         messages:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              id:
+                type: "string"
+              chat_id:
+                type: "string"
+              created:
+                type: "string"
+                format: "date-time"
+              content_type:
+                type: "string"
+              content:
+                type: "string"
+              role:
+                type: "string"
+                description: "system, assistant, or user."
+            required:
+              - content
+              - role
+      description: "An array of message objects to be added. If empty, clear the history log"
+
+  - name: "get_envs"
+    description: "Get specific or all environment variables"
+    parameters:
+      type: "object"
+      properties:
+        keys:
+          type: "array"
+          description: "An array of environment variable names to retrieve. If not provided, all environment variables will be returned"
+          items:
+            type: "string"
+
+  - name: "set_envs"
+    description: "Set environment variables"
+    parameters:
+      type: "object"
+      properties:
+      description: "An object containing key-value pairs of environment variables to set"
+
+  - name: "unset_envs"
+    description: "Clear environment variables"
+    parameters:
+      type: "object"
+      properties:
+        keys:
+          type: "array"
+          description: "An array of environment variable names to unset."
+          items:
+            type: "string"
+      required: ["keys"]
+
+  - name: "agent_get_prompt"
+    description: "Return the system role instruction for the current active agent"
+    parameters:
+      type: "object"
+      properties: {}
+
+  - name: "agent_set_prompt"
+    description: "Update the system role instruction for the current active agent"
+    parameters:
+      type: "object"
+      properties:
+        instruction:
           type: "string"
-          description: "A JSON-encoded array of message objects to be appended"
-      required: ["messages"]
- ###
+          description: "System role instruction. Can be a blank string"
+      required: ["instruction"]
+
+  - name: "agent_get_query"
+    description: "Return the user role message for the current active agent"
+    parameters:
+      type: "object"
+      properties: {}
+
+  - name: "agent_set_query"
+    description: "Update the user role message for the current active agent"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "User role input message. Can be blank"
+      required: ["query"]
+
+  - name: "agent_get_model"
+    description: "Retrieve the LLM provider, base_url, model used for the current active agent"
+    parameters:
+      type: "object"
+      properties: {}
+
+  - name: "agent_set_model"
+    description: "Update the LLM model for the current active agent"
+    parameters:
+      type: "object"
+      properties:
+        provider:
+          type: "string"
+          description: "LLM service provider name: openai, gemini, or anthropic"
+        base_url:
+          type: "string"
+          description: "LLM service endpoint"
+        model:
+          type: "string"
+          description: "Exact model string supported by the respective provider"
+        api_key:
+          type: "string"
+          description: "This is the API token lookup key. Not the actual token for accessing the service"
+      required: ["provider", "base_url", "model", "api_key"]
+
+  - name: "agent_get_tools"
+    description: "Retrieve all or specified tools from the current active agent"
+    parameters:
+      type: "object"
+      properties:
+        ids:
+          type: "array"
+          description: "An array of tool ids to retrieve. If not provided, return all tools available to the curent active agent"
+          items:
+            type: "string"
+
+  - name: "agent_set_tools"
+    description: "Reset all tools with the new set of tools for the current active agent. Tool id must be valid obtained from ai:list_tools"
+    parameters:
+      type: "object"
+      properties:
+        ids:
+          type: "array"
+          description: "An array of tool ids to add. If empty, all tools will be cleared."
+          items:
+            type: "string"
+        required: ["ids"]

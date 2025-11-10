@@ -293,14 +293,18 @@ func (r *AIKit) MessageInfo(_ context.Context, _ *api.Vars, _ string, args map[s
 	}, nil
 }
 
-func (r *AIKit) ClearHistory(_ context.Context, vars *api.Vars, _ string, _ map[string]any) (*api.Result, error) {
-	vars.ClearHistory()
+func (r *AIKit) ContextGetMessages(_ context.Context, vars *api.Vars, _ string, _ map[string]any) (*api.Result, error) {
+	var messages = vars.ListHistory()
+	b, err := json.Marshal(messages)
+	if err != nil {
+		return nil, err
+	}
 	return &api.Result{
-		Value: "success",
+		Value: string(b),
 	}, nil
 }
 
-func (r *AIKit) AddHistory(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+func (r *AIKit) ContextSetMessages(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
 	data, err := atm.GetStrProp("messages", args)
 	if err != nil {
 		return nil, err
@@ -316,13 +320,247 @@ func (r *AIKit) AddHistory(_ context.Context, vars *api.Vars, _ string, args map
 	}, nil
 }
 
-func (r *AIKit) ListHistory(_ context.Context, vars *api.Vars, _ string, _ map[string]any) (*api.Result, error) {
-	var messages = vars.ListHistory()
-	b, err := json.Marshal(messages)
+func (r *AIKit) GetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	keys, err := atm.GetArrayProp("keys", args)
+	if err != nil {
+		return nil, err
+	}
+
+	envs := vars.Global.GetEnvs(keys)
+	b, err := json.Marshal(envs)
 	if err != nil {
 		return nil, err
 	}
 	return &api.Result{
 		Value: string(b),
+	}, nil
+}
+
+func (r *AIKit) SetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	vars.Global.SetEnvs(args)
+	return &api.Result{
+		Value: "success",
+	}, nil
+}
+
+func (r *AIKit) UnsetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	keys, err := atm.GetArrayProp("keys", args)
+	if err != nil {
+		return nil, err
+	}
+
+	vars.Global.UnsetEnvs(keys)
+	return &api.Result{
+		Value: "success",
+	}, nil
+}
+
+func (r *AIKit) AgentGetPrompt(_ context.Context, vars *api.Vars, _ string, _ map[string]any) (*api.Result, error) {
+	if r.h == nil || r.h.agent == nil {
+		return nil, fmt.Errorf("No active agent found")
+	}
+	var p string
+	if r.h.agent.Instruction != nil {
+		p = r.h.agent.Instruction.Content
+	}
+	return &api.Result{
+		Value: p,
+	}, nil
+}
+
+func (r *AIKit) AgentSetPrompt(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	if r.h == nil || r.h.agent == nil {
+		return nil, fmt.Errorf("No active agent found")
+	}
+	instruction, err := atm.GetStrProp("instruction", args)
+	if err != nil {
+		return nil, err
+	}
+
+	r.h.agent.Instruction = &api.Instruction{
+		Content: instruction,
+	}
+	return &api.Result{
+		Value: "success",
+	}, nil
+}
+
+func (r *AIKit) AgentGetQuery(_ context.Context, vars *api.Vars, _ string, _ map[string]any) (*api.Result, error) {
+	if r.h == nil || r.h.agent == nil {
+		return nil, fmt.Errorf("No active agent found")
+	}
+	var q string
+	if r.h.agent.RawInput != nil {
+		q = r.h.agent.RawInput.Query()
+	}
+	return &api.Result{
+		Value: q,
+	}, nil
+}
+
+func (r *AIKit) AgentSetQuery(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	if r.h == nil || r.h.agent == nil {
+		return nil, fmt.Errorf("No active agent found")
+	}
+	query, err := atm.GetStrProp("query", args)
+	if err != nil {
+		return nil, err
+	}
+
+	if r.h.agent.RawInput != nil {
+		r.h.agent.RawInput.Message = query
+	} else {
+		r.h.agent.RawInput = &api.UserInput{
+			Message: query,
+		}
+	}
+	return &api.Result{
+		Value: "success",
+	}, nil
+}
+
+func (r *AIKit) AgentGetModel(_ context.Context, vars *api.Vars, _ string, _ map[string]any) (*api.Result, error) {
+	if r.h == nil || r.h.agent == nil {
+		return nil, fmt.Errorf("No active agent found")
+	}
+	if r.h.agent.Model == nil {
+		return nil, fmt.Errorf("Model not set for the current agent")
+
+	}
+	m := &api.Model{
+		Provider: r.h.agent.Model.Provider,
+		BaseUrl:  r.h.agent.Model.BaseUrl,
+		Model:    r.h.agent.Model.Model,
+		ApiKey:   r.h.agent.Model.ApiKey,
+	}
+	b, err := json.Marshal(m)
+	if err != nil {
+		return nil, err
+	}
+	return &api.Result{
+		Value: string(b),
+	}, nil
+}
+
+func (r *AIKit) AgentSetModel(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	if r.h == nil || r.h.agent == nil {
+		return nil, fmt.Errorf("No active agent found")
+	}
+
+	provider, err := atm.GetStrProp("provider", args)
+	if err != nil {
+		return nil, err
+	}
+	baseURL, err := atm.GetStrProp("base_url", args)
+	if err != nil {
+		return nil, err
+	}
+	model, err := atm.GetStrProp("model", args)
+	if err != nil {
+		return nil, err
+	}
+	apiKey, err := atm.GetStrProp("api_key", args)
+	if err != nil {
+		return nil, err
+	}
+	r.h.agent.Model = &api.Model{
+		Provider: provider,
+		BaseUrl:  baseURL,
+		Model:    model,
+		ApiKey:   apiKey,
+	}
+	return &api.Result{
+		Value: "success",
+	}, nil
+}
+
+func (r *AIKit) AgentGetTools(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	if r.h == nil || r.h.agent == nil {
+		return nil, fmt.Errorf("No active agent found")
+	}
+	ids, err := atm.GetStrProp("ids", args)
+	if err != nil {
+		return nil, err
+	}
+	var tools []*api.ToolFunc
+	if len(ids) > 0 {
+		var memo = make(map[string]*api.ToolFunc)
+		for _, v := range r.h.agent.Tools {
+			memo[v.ID()] = v
+		}
+		for _, id := range ids {
+			k := api.KitName(id).ID()
+			if v, ok := memo[k]; ok {
+				tools = append(tools, v)
+			}
+		}
+	} else {
+		tools = r.h.agent.Tools
+	}
+
+	b, err := json.Marshal(tools)
+	if err != nil {
+		return nil, err
+	}
+	return &api.Result{
+		Value: string(b),
+	}, nil
+}
+
+func (r *AIKit) AgentSetTools(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	if r.h == nil || r.h.agent == nil {
+		return nil, fmt.Errorf("No active agent found")
+	}
+	ids, err := atm.GetArrayProp("ids", args)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(ids) == 0 {
+		return nil, fmt.Errorf("missing tool ids")
+	}
+	var memo = make(map[string]struct{})
+	for _, k := range ids {
+		id := api.KitName(k).ID()
+		memo[id] = struct{}{}
+	}
+
+	// this implementatin is incomplete
+	// TODO caching/mcp tools
+	list, err := r.sw.Assets.ListToolkit(r.sw.User.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	var tools []*api.ToolFunc
+	for kit, tc := range list {
+		for _, v := range tc.Tools {
+			id := api.KitName(kit + ":" + v.Name).ID()
+			if _, ok := memo[id]; !ok {
+				continue
+			}
+			tool := &api.ToolFunc{
+				Kit:         tc.Kit,
+				Type:        v.Type,
+				Name:        v.Name,
+				Description: v.Description,
+				Parameters:  v.Parameters,
+				Body:        v.Body,
+				//
+				Agent: v.Agent,
+				//
+				Provider: nvl(v.Provider, tc.Provider),
+				BaseUrl:  nvl(v.BaseUrl, tc.BaseUrl),
+				ApiKey:   nvl(v.ApiKey, tc.ApiKey),
+				//
+			}
+			tools = append(tools, tool)
+		}
+	}
+
+	r.h.agent.Tools = tools
+
+	return &api.Result{
+		Value: "success",
 	}, nil
 }

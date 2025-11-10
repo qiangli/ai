@@ -1,15 +1,8 @@
 ###
-# max_history: 100
-context: "@context"
 # max_time: 100
-timeout: "@timeout"
-instruction: "@prompt"
-log_level: info
-logger: "@logger"
-message: "@query"
-tool: "@tool"
-model: "@model"
-environment: ""
+# timeout: "@timeout"
+# log_level: info
+# logger: "@logger"
 agents:
   - name: "new"
     display: "🤖 Creator Agent"
@@ -21,10 +14,26 @@ agents:
       historical messages as appropriate to the current user input. What is more,
       it dynamically determines and runs tools if they are helpful for answering
       users' queries as well.
+    # message: |
+    #   @query
     instruction:
       content: |
         @prompt
+    context: "@context"
     model: "@model"
     functions:
       - "@tool"
+      # - "ai:context_get_messages"
+      # - "ai:context_set_messages"
+      # - "ai:get_envs"
+      # - "ai:set_envs"
+      # - "ai:unset_envs"
+      # - "ai:agent_get_prompt"
+      # - "ai:agent_set_prompt"
+      # - "ai:agent_get_query"
+      # - "ai:agent_set_query"
+      # - "ai:agent_get_model"
+      # - "ai:agent_set_model"
+      # - "ai:agent_get_tools"
+      # - "ai:agent_set_tools"
 ###
