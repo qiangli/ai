@@ -15,7 +15,8 @@ func InferenceMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 		return func(next Handler) Handler {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 				ctx := req.Context()
-				log.GetLogger(ctx).Debugf("🟦 (llm): %s adapter: %s\n", agent.Name, agent.Adapter)
+				// log.GetLogger(ctx).Debugf("🟦 (llm): %s adapter: %s\n", agent.Name, agent.Adapter)
+				log.GetLogger(ctx).Debugf("🔗 (llm): %s adapter: %s\n", agent.Name, agent.Adapter)
 
 				var adapter llm.LLMAdapter = adapter.Chat
 				if agent.Adapter != "" {

@@ -7,17 +7,20 @@ import (
 	"time"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/log"
 )
 
-func TimeoutMiddleware(max int) api.Middleware {
+func TimeoutMiddleware(agent *api.Agent) api.Middleware {
 	mw := func(next Handler) Handler {
 		th := &timeoutHandler{
 			next:    next,
-			content: fmt.Sprintf("timed out after %v seconds.", max),
-			dt:      time.Duration(max) * time.Second,
+			content: fmt.Sprintf("%q timed out after %v seconds.", agent.Name, agent.MaxTime),
+			dt:      time.Duration(agent.MaxTime) * time.Second,
 		}
 
 		return HandlerFunc(func(req *api.Request, res *api.Response) error {
+			log.GetLogger(req.Context()).Debugf("🔗 (timeout): %s max_time: %v\n", agent.Name, agent.MaxTime)
+
 			return th.Serve(req, res)
 		})
 	}

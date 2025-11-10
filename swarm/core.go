@@ -113,7 +113,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		}
 
 		chain := NewChain(
-			TimeoutMiddleware(agent.MaxTime),
+			TimeoutMiddleware(agent),
 			logMiddleware(agent, 100),
 			//
 			envMiddleware(agent),

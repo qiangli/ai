@@ -20,13 +20,13 @@ import (
 	// "github.com/qiangli/ai/swarm/log"
 )
 
-// ContextMiddlewareFunc loads the dynamical modle
 func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 	return func(agent *api.Agent) api.Middleware {
 		return func(next Handler) Handler {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 				ctx := req.Context()
-				log.GetLogger(ctx).Debugf("🟦 (context): %s adapter: %s\n", agent.Name)
+				// log.GetLogger(ctx).Debugf("🟦 (context): %s adapter: %s\n", agent.Name)
+				log.GetLogger(ctx).Debugf("🔗 (context): %s max_history: %v max_span: %v\n", agent.Name, agent.MaxHistory, agent.MaxSpan)
 
 				// var ctx = req.Context()
 				// var r = h.agent

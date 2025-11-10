@@ -12,7 +12,7 @@ func ModelMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 				nreq := req.Clone()
 				ctx := nreq.Context()
-				log.GetLogger(ctx).Debugf("🟦 (model): %s %s\n", agent.Name, agent.Model)
+				log.GetLogger(ctx).Debugf("🔗 (model): %s model: %s\n", agent.Name, agent.Model)
 
 				var model *api.Model = agent.Model
 

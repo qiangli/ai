@@ -26,6 +26,8 @@ func AgentMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 				next:  next,
 			}
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
+				log.GetLogger(req.Context()).Debugf("🔗 (agent): %s flow: %+v\n", agent.Name, agent.Flow)
+
 				return ah.Serve(req, resp)
 			})
 		}
