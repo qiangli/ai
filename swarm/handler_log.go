@@ -17,7 +17,7 @@ func MaxLogMiddlewareFunc(sw *Swarm) func(*api.Agent, int) api.Middleware {
 
 				err := next.Serve(req, resp)
 
-				logger.Debugf("🔗 (log): %s resp: %+v\n", agent.Name, resp)
+				logger.Debugf("agent: %s resp: %+v\n", agent.Name, resp)
 				if resp.Messages != nil {
 					for _, m := range resp.Messages {
 						logger.Debugf("%s %s\n", m.Role, clip(m.Content, n))

@@ -15,7 +15,6 @@ func InferenceMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 		return func(next Handler) Handler {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 				ctx := req.Context()
-				// log.GetLogger(ctx).Debugf("🟦 (llm): %s adapter: %s\n", agent.Name, agent.Adapter)
 				log.GetLogger(ctx).Debugf("🔗 (llm): %s adapter: %s\n", agent.Name, agent.Adapter)
 
 				var adapter llm.LLMAdapter = adapter.Chat
@@ -30,8 +29,6 @@ func InferenceMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 				// LLM adapter
 				// TODO model <-> adapter
 				result, err := adapter(ctx, req)
-
-				// client
 				if err != nil {
 					return err
 				}
@@ -39,6 +36,7 @@ func InferenceMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 				if result.Result == nil {
 					return fmt.Errorf("Empty response")
 				}
+				resp.Result = result.Result
 
 				return next.Serve(req, resp)
 			})

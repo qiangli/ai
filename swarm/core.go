@@ -92,7 +92,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	log.GetLogger(ctx).Debugf("*** Agent: %s parent: %+v\n", req.Name, req.Parent)
 
 	final := HandlerFunc(func(req *api.Request, res *api.Response) error {
-		log.GetLogger(ctx).Debugf(" (final): %s\n", req.Name)
+		log.GetLogger(ctx).Debugf("🔗 (final): %s\n", req.Name)
 		return nil
 	})
 

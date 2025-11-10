@@ -238,7 +238,7 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 				// 	return err
 				// }
 
-				if err := next.Serve(req, resp); err != nil {
+				if err := next.Serve(nreq, resp); err != nil {
 					return err
 				}
 
