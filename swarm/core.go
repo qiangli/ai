@@ -84,9 +84,9 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	logMiddleware := MaxLogMiddlewareFunc(r)
 	envMiddleware := EnvMiddlewareFunc(r)
 	memMiddleware := MemoryMiddlewareFunc(r)
-	modelMiddleware := ModelMiddlewareFunc(r)
 	agentMiddlWare := AgentMiddlewareFunc(r)
 	contextMiddleware := ContextMiddlewareFunc(r)
+	modelMiddleware := ModelMiddlewareFunc(r)
 	inferMiddelWare := InferenceMiddlewareFunc(r)
 
 	log.GetLogger(ctx).Debugf("*** Agent: %s parent: %+v\n", req.Name, req.Parent)
@@ -118,9 +118,9 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 			//
 			envMiddleware(agent),
 			memMiddleware(agent),
-			modelMiddleware(agent),
 			agentMiddlWare(agent),
 			contextMiddleware(agent),
+			modelMiddleware(agent),
 			inferMiddelWare(agent),
 		)
 
