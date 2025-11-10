@@ -3,7 +3,11 @@ package swarm
 import (
 	"context"
 	"fmt"
+	"maps"
+	"text/template"
 	"time"
+
+	"github.com/Masterminds/sprig/v3"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
@@ -39,6 +43,9 @@ type Swarm struct {
 	Workspace vfs.Workspace
 
 	History api.MemStore
+
+	// TODO
+	template *template.Template
 }
 
 func (r *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
@@ -61,7 +68,15 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		return api.NewInternalServerError("invalid config. user or vars not initialized")
 	}
 
+	var fm = sprig.FuncMap()
+	maps.Copy(fm, tplFuncMap)
+	fm["user"] = func() *api.User {
+		return r.User
+	}
+	r.template = template.New("swarm").Funcs(fm)
+
 	logMiddleware := MaxLogMiddlewareFunc(r)
+	envMiddleware := EnvMiddlewareFunc(r)
 	memMiddleware := MemoryMiddlewareFunc(r)
 	modelMiddleware := ModelMiddlewareFunc(r)
 	agentMiddlWare := AgentMiddlewareFunc(r)
@@ -91,6 +106,8 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		chain := NewChain(
 			TimeoutMiddleware(agent.MaxTime),
 			logMiddleware(agent, 100),
+			//
+			envMiddleware(agent),
 			memMiddleware(agent),
 			modelMiddleware(agent),
 			agentMiddlWare(agent),

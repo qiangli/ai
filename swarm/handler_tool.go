@@ -97,7 +97,7 @@ func (h *agentHandler) callAgentTool(ctx context.Context, tf *api.ToolFunc, args
 
 	resp := &api.Response{}
 
-	err := h.exec(req, resp)
+	err := execAgent(h.sw, h.agent, req, resp)
 	if err != nil {
 		return nil, err
 	}

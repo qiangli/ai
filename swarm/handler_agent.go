@@ -5,12 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"maps"
 	"strings"
 	"text/template"
 	"time"
 
-	"github.com/Masterminds/sprig/v3"
 	"github.com/google/uuid"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -20,18 +18,11 @@ import (
 )
 
 func AgentMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
-	var fm = sprig.FuncMap()
-	maps.Copy(fm, tplFuncMap)
-	fm["user"] = func() *api.User {
-		return sw.User
-	}
-	tpl := template.New("swarm").Funcs(fm)
 
 	return func(agent *api.Agent) api.Middleware {
 		var ah = &agentHandler{
-			agent:    agent,
-			sw:       sw,
-			template: tpl,
+			agent: agent,
+			sw:    sw,
 		}
 
 		return func(next Handler) Handler {
@@ -43,9 +34,8 @@ func AgentMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 }
 
 type agentHandler struct {
-	agent    *api.Agent
-	sw       *Swarm
-	template *template.Template
+	agent *api.Agent
+	sw    *Swarm
 }
 
 // Serve calls the language model adapter with the messages list (after applying the system prompt).
@@ -135,7 +125,7 @@ func (h *agentHandler) doAgentFlow(req *api.Request, resp *api.Response) error {
 }
 
 // copy values from src to dst after calling @agent and applying template if required
-func (h *agentHandler) mapAssign(req *api.Request, dst, src map[string]any, override bool) error {
+func mapAssign(sw *Swarm, agent *api.Agent, req *api.Request, dst, src map[string]any, override bool) error {
 	for key, val := range src {
 		if !override {
 			if _, ok := dst[key]; ok {
@@ -144,7 +134,7 @@ func (h *agentHandler) mapAssign(req *api.Request, dst, src map[string]any, over
 		}
 		// @agent value support
 		if v, ok := val.(string); ok {
-			if resolved, err := h.resolveArgument(req, v); err != nil {
+			if resolved, err := resolveArgument(sw, agent, req, v); err != nil {
 				return err
 			} else {
 				val = resolved
@@ -152,7 +142,7 @@ func (h *agentHandler) mapAssign(req *api.Request, dst, src map[string]any, over
 		}
 		// go template value support
 		if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-			if resolved, err := h.applyTemplate(v, dst); err != nil {
+			if resolved, err := applyTemplate(sw.template, v, dst); err != nil {
 				return err
 			} else {
 				val = resolved
@@ -173,13 +163,13 @@ func (h *agentHandler) setGlobalEnv(req *api.Request) error {
 
 	// agent global env takes precedence
 	if h.agent.Environment != nil {
-		h.mapAssign(req, env, h.agent.Environment, true)
+		mapAssign(h.sw, h.agent, req, env, h.agent.Environment, true)
 	}
 
 	// set agent and req defaults
 	// set only when the key does not exist
 	if h.agent.Arguments != nil {
-		h.mapAssign(req, env, h.agent.Arguments, false)
+		mapAssign(h.sw, h.agent, req, env, h.agent.Arguments, false)
 	}
 
 	h.sw.Vars.Global.Add(env)
@@ -188,9 +178,9 @@ func (h *agentHandler) setGlobalEnv(req *api.Request) error {
 	return nil
 }
 
-func (h *agentHandler) globalEnv() map[string]any {
+func globalEnv(sw *Swarm) map[string]any {
 	var env = make(map[string]any)
-	h.sw.Vars.Global.Copy(env)
+	sw.Vars.Global.Copy(env)
 	return env
 }
 
@@ -198,8 +188,8 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 	var ctx = req.Context()
 	var r = h.agent
 
-	env := h.globalEnv()
-	h.mapAssign(req, env, req.Arguments, false)
+	env := globalEnv(h.sw)
+	// h.mapAssign(req, env, req.Arguments, false)
 
 	// apply template/load
 	// TODO  vars -> data may break some existing config
@@ -209,13 +199,13 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 			if len(parts) == 2 {
 				// remove hashbang line
 				// return h.applyGlobal(parts[1])
-				return h.applyTemplate(parts[1], env)
+				return applyTemplate(h.sw.template, parts[1], env)
 			}
 			// remove hashbang
-			return h.applyTemplate(parts[0][2:], env)
+			return applyTemplate(h.sw.template, parts[0][2:], env)
 		}
 		if ext == "tpl" {
-			return h.applyTemplate(s, env)
+			return applyTemplate(h.sw.template, s, env)
 		}
 		return s, nil
 	}
@@ -440,7 +430,7 @@ func (h *agentHandler) exec(req *api.Request, resp *api.Response) error {
 func execAgent(sw *Swarm, agent *api.Agent, req *api.Request, resp *api.Response) error {
 	// prevent loop
 	// TODO support recursion?
-	if agent.Name == req.Name {
+	if agent != nil && agent.Name == req.Name {
 		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself.", req.Name))
 	}
 
@@ -519,12 +509,12 @@ func (h *agentHandler) mustResolveContext(ctx context.Context, parent *api.Reque
 }
 
 // call agent if found. otherwise return s as is
-func (h *agentHandler) resolveArgument(parent *api.Request, s string) (any, error) {
-	agent, query, found := parseAgentCommand(s)
+func resolveArgument(sw *Swarm, agent *api.Agent, req *api.Request, s string) (any, error) {
+	name, query, found := parseAgentCommand(s)
 	if !found {
 		return s, nil
 	}
-	out, err := h.callAgent(parent, agent, query)
+	out, err := callAgent(sw, agent, req, name, query)
 	if err != nil {
 		return nil, err
 	}
@@ -571,8 +561,8 @@ func callAgent(sw *Swarm, agent *api.Agent, req *api.Request, s string, prompt s
 	return nresp.Result.Value, nil
 }
 
-func (h *agentHandler) applyTemplate(tpl string, data any) (string, error) {
-	t, err := h.template.Parse(tpl)
+func applyTemplate(tpl *template.Template, text string, data any) (string, error) {
+	t, err := tpl.Parse(text)
 	if err != nil {
 		return "", err
 	}
