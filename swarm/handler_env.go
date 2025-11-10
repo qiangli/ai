@@ -12,11 +12,11 @@ func EnvMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 				nreq := req.Clone()
 				ctx := nreq.Context()
-				env := globalEnv(sw)
+				env := sw.globalEnv()
 
 				log.GetLogger(ctx).Debugf("🟦 (env): %s %+v\n", agent.Name, env)
 
-				mapAssign(sw, agent, req, env, req.Arguments, false)
+				sw.mapAssign(agent, req, env, req.Arguments, false)
 
 				err := next.Serve(nreq, resp)
 

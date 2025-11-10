@@ -21,7 +21,7 @@ import (
 func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, tf *api.ToolFunc) error {
 	var r = h.agent
 
-	env := globalEnv(h.sw)
+	env := h.sw.globalEnv()
 	// h.mapAssign(req, env, req.Arguments, false)
 
 	var runTool = h.createCaller(h.sw.User)
@@ -61,7 +61,7 @@ func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error 
 // evaluate an expression for each iteration, allowing for repeated execution with varying
 // parameters or conditions.
 func (h *agentHandler) flowLoop(req *api.Request, resp *api.Response) error {
-	env := globalEnv(h.sw)
+	env := h.sw.globalEnv()
 	// h.mapAssign(req, env, req.Arguments, false)
 
 	eval := func(exp string) (bool, error) {
@@ -123,7 +123,7 @@ func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error 
 // If no expression is provided, an action is chosen randomly. The expression must evaluate
 // to a string (tool ID), false/true, or an integer that selects the action index, starting from zero.
 func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
-	env := globalEnv(h.sw)
+	env := h.sw.globalEnv()
 	// h.mapAssign(req, env, req.Arguments, false)
 
 	var which int = -1
@@ -267,7 +267,7 @@ func (h *agentHandler) flowShell(req *api.Request, resp *api.Response) error {
 	vs := sh.NewVirtualSystem(h.sw.Root, h.sw.OS, h.sw.Workspace, ioe)
 
 	// // set global env for bash script
-	env := globalEnv(h.sw)
+	env := h.sw.globalEnv()
 	// h.mapAssign(req, env, req.Arguments, false)
 
 	for k, v := range env {

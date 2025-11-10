@@ -132,13 +132,13 @@ func (h *agentHandler) setGlobalEnv(req *api.Request) error {
 
 	// agent global env takes precedence
 	if h.agent.Environment != nil {
-		mapAssign(h.sw, h.agent, req, env, h.agent.Environment, true)
+		h.sw.mapAssign(h.agent, req, env, h.agent.Environment, true)
 	}
 
 	// set agent and req defaults
 	// set only when the key does not exist
 	if h.agent.Arguments != nil {
-		mapAssign(h.sw, h.agent, req, env, h.agent.Arguments, false)
+		h.sw.mapAssign(h.agent, req, env, h.agent.Arguments, false)
 	}
 
 	h.sw.Vars.Global.Add(env)
@@ -151,7 +151,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 	var ctx = req.Context()
 	var r = h.agent
 
-	env := globalEnv(h.sw)
+	env := h.sw.globalEnv()
 	// h.mapAssign(req, env, req.Arguments, false)
 
 	// apply template/load
@@ -387,7 +387,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 
 // run sub agent with inherited env
 func (h *agentHandler) exec(req *api.Request, resp *api.Response) error {
-	return execAgent(h.sw, h.agent, req, resp)
+	return h.sw.execAgent(h.agent, req, resp)
 }
 
 // dynamically generate prompt if content starts with @<agent>
@@ -405,35 +405,6 @@ func (h *agentHandler) resolvePrompt(ctx context.Context, parent *api.Request, s
 	log.GetLogger(ctx).Infof("🤖 prompt: %s\n", head(prompt, 100))
 
 	return prompt, nil
-}
-
-// dynamcally make LLM model; return s as is if not an agent command
-func resolveModel(sw *Swarm, parent *api.Agent, ctx context.Context, req *api.Request, m *api.Model) (*api.Model, error) {
-	if m == nil {
-		return nil, fmt.Errorf("missling model")
-	}
-	agent, query, found := parseAgentCommand(m.Model)
-	if !found {
-		return m, nil
-	}
-	out, err := callAgent(sw, parent, req, agent, query)
-	if err != nil {
-		return nil, err
-	}
-	var model api.Model
-	if err := json.Unmarshal([]byte(out), &model); err != nil {
-		return nil, err
-	}
-
-	log.GetLogger(ctx).Infof("🤖 model: %s/%s\n", model.Provider, model.Model)
-
-	// // replace api key
-	// ak, err := h.sw.Secrets.Get(h.sw.User.Email, model.ApiKey)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// model.ApiKey = ak
-	return &model, nil
 }
 
 func (h *agentHandler) mustResolveContext(ctx context.Context, parent *api.Request, s string) ([]*api.Message, error) {
@@ -456,7 +427,7 @@ func (h *agentHandler) mustResolveContext(ctx context.Context, parent *api.Reque
 }
 
 func (h *agentHandler) callAgent(req *api.Request, s string, prompt string) (string, error) {
-	return callAgent(h.sw, h.agent, req, s, prompt)
+	return h.sw.callAgent(h.agent, req, s, prompt)
 }
 
 func applyTemplate(tpl *template.Template, text string, data any) (string, error) {

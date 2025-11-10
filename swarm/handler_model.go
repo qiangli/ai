@@ -17,7 +17,7 @@ func ModelMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 				var model *api.Model = agent.Model
 
 				// resolve if model is @agent
-				if v, err := resolveModel(sw, agent, ctx, nreq, agent.Model); err != nil {
+				if v, err := sw.resolveModel(agent, ctx, nreq, agent.Model); err != nil {
 					return err
 				} else {
 					model = v

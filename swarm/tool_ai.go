@@ -126,7 +126,7 @@ func (r *AIKit) AgentSpawn(ctx context.Context, _ *api.Vars, _ string, args map[
 
 	resp := &api.Response{}
 
-	if err := execAgent(r.h.sw, r.h.agent, req, resp); err != nil {
+	if err := r.h.sw.execAgent(r.h.agent, req, resp); err != nil {
 		return nil, err
 	}
 
