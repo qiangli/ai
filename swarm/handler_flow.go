@@ -17,24 +17,28 @@ import (
 	"github.com/qiangli/shell/tool/sh"
 )
 
-// flow actions
+// // flow actions
+// func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, tf *api.ToolFunc) error {
+// 	// var r = h.agent
+
+// 	env := h.sw.globalEnv()
+// 	// h.mapAssign(req, env, req.Arguments, false)
+
+// 	var runTool = h.sw.createCaller(h.sw.User, h.agent)
+// 	result, err := runTool(ctx, tf.ID(), env)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	resp.Agent = h.agent
+// 	resp.Result = result
+// 	// TODO check states?
+// 	h.sw.Vars.Global.Set(globalResult, resp.Result.Value)
+// 	return nil
+// }
+
 func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, tf *api.ToolFunc) error {
-	var r = h.agent
-
-	env := h.sw.globalEnv()
-	// h.mapAssign(req, env, req.Arguments, false)
-
-	var runTool = h.createCaller(h.sw.User)
-	result, err := runTool(ctx, tf.ID(), env)
-	if err != nil {
-		return err
-	}
-
-	resp.Agent = r
-	resp.Result = result
-	// TODO check states?
-	h.sw.Vars.Global.Set(globalResult, resp.Result.Value)
-	return nil
+	return h.sw.doAction(ctx, h.agent, req, resp, tf)
 }
 
 // FlowTypeSequence executes actions one after another, where each
@@ -287,7 +291,7 @@ func (h *agentHandler) flowShell(req *api.Request, resp *api.Response) error {
 }
 
 func (h *agentHandler) newExecHandler(vs *sh.VirtualSystem, req *api.Request, resp *api.Response) sh.ExecHandler {
-	var memo = h.buildAgentToolMap()
+	var memo = h.sw.buildAgentToolMap(h.agent)
 	return func(ctx context.Context, args []string) (bool, error) {
 		if h.agent == nil {
 			return true, fmt.Errorf("missing agent: %v", req.Name)

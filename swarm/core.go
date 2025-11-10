@@ -63,6 +63,10 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		return api.NewBadRequestError("missing raw input in request")
 	}
 
+	if req.Parent != nil && req.Parent.Name == req.Name {
+		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself not supported.", req.Name))
+	}
+
 	var ctx = req.Context()
 	var resetLogLevel = true
 
@@ -82,10 +86,13 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	memMiddleware := MemoryMiddlewareFunc(r)
 	modelMiddleware := ModelMiddlewareFunc(r)
 	agentMiddlWare := AgentMiddlewareFunc(r)
+	contextMiddleware := ContextMiddlewareFunc(r)
+	inferMiddelWare := InferenceMiddlewareFunc(r)
 
 	log.GetLogger(ctx).Debugf("*** Agent: %s parent: %+v\n", req.Name, req.Parent)
 
 	final := HandlerFunc(func(req *api.Request, res *api.Response) error {
+		log.GetLogger(ctx).Debugf(" (final): %s\n", req.Name)
 		return nil
 	})
 
@@ -113,6 +120,8 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 			memMiddleware(agent),
 			modelMiddleware(agent),
 			agentMiddlWare(agent),
+			contextMiddleware(agent),
+			inferMiddelWare(agent),
 		)
 
 		if err := chain.Then(final).Serve(req, resp); err != nil {
@@ -121,7 +130,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 
 		if resp.Result == nil {
 			// some thing went wrong
-			return fmt.Errorf("nil result running %q", agent.Name)
+			return fmt.Errorf("Empty result running %q", agent.Name)
 		}
 
 		if resp.Result.State == api.StateTransfer {
@@ -165,16 +174,17 @@ func (r *Swarm) mapAssign(agent *api.Agent, req *api.Request, dst, src map[strin
 	return nil
 }
 
+// make a copy of golbal env
 func (r *Swarm) globalEnv() map[string]any {
 	var env = make(map[string]any)
 	r.Vars.Global.Copy(env)
 	return env
 }
 
-func (r *Swarm) execAgent(agent *api.Agent, req *api.Request, resp *api.Response) error {
+func (r *Swarm) RunSub(parent *api.Agent, req *api.Request, resp *api.Response) error {
 	// prevent loop
 	// TODO support recursion?
-	if agent != nil && agent.Name == req.Name {
+	if parent != nil && parent.Name == req.Name {
 		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself.", req.Name))
 	}
 
@@ -184,6 +194,7 @@ func (r *Swarm) execAgent(agent *api.Agent, req *api.Request, resp *api.Response
 	if resp.Result == nil {
 		return fmt.Errorf("Empty result")
 	}
+
 	return nil
 }
 
@@ -213,11 +224,11 @@ func (r *Swarm) resolveArgument(agent *api.Agent, req *api.Request, s string) (a
 	return arg.Result, nil
 }
 
-func (r *Swarm) callAgent(agent *api.Agent, req *api.Request, s string, prompt string) (string, error) {
+func (r *Swarm) callAgent(parent *api.Agent, req *api.Request, s string, prompt string) (string, error) {
 	name := strings.TrimPrefix(s, "@")
 
 	nreq := req.Clone()
-	nreq.Parent = agent
+	nreq.Parent = parent
 	nreq.Name = name
 	// prepend additional instruction to user query
 	if len(prompt) > 0 {
@@ -226,7 +237,7 @@ func (r *Swarm) callAgent(agent *api.Agent, req *api.Request, s string, prompt s
 
 	nresp := &api.Response{}
 
-	err := r.execAgent(agent, nreq, nresp)
+	err := r.RunSub(parent, nreq, nresp)
 	if err != nil {
 		return "", err
 	}
@@ -263,4 +274,40 @@ func (r *Swarm) resolveModel(parent *api.Agent, ctx context.Context, req *api.Re
 	// }
 	// model.ApiKey = ak
 	return &model, nil
+}
+
+// dynamically generate prompt if content starts with @<agent>
+// otherwise, return s unchanged
+func (r *Swarm) resolvePrompt(parent *api.Agent, req *api.Request, s string) (string, error) {
+	name, query, found := parseAgentCommand(s)
+	if !found {
+		return s, nil
+	}
+	prompt, err := r.callAgent(parent, req, name, query)
+	if err != nil {
+		return "", err
+	}
+
+	// log.GetLogger(ctx).Infof("🤖 prompt: %s\n", head(prompt, 100))
+
+	return prompt, nil
+}
+
+func (r *Swarm) mustResolveContext(parent *api.Agent, req *api.Request, s string) ([]*api.Message, error) {
+	name, query, found := parseAgentCommand(s)
+	if !found {
+		return nil, fmt.Errorf("invalid context: %s", s)
+	}
+	out, err := r.callAgent(parent, req, name, query)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []*api.Message
+	if err := json.Unmarshal([]byte(out), &list); err != nil {
+		return nil, err
+	}
+
+	// log.GetLogger(ctx).Debugf("dynamic context messages: (%v) %s\n", len(list), head(out, 100))
+	return list, nil
 }

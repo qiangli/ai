@@ -20,11 +20,11 @@ type AIKit struct {
 	callTool api.ToolRunner
 }
 
-func NewAIKit(h *agentHandler) *AIKit {
+func NewAIKit(sw *Swarm, agent *api.Agent) *AIKit {
 	return &AIKit{
-		sw:       h.sw,
-		h:        h,
-		callTool: h.createAICaller(),
+		sw: sw,
+		// h:        h,
+		callTool: sw.createAICaller(agent),
 	}
 }
 
@@ -126,7 +126,7 @@ func (r *AIKit) AgentSpawn(ctx context.Context, _ *api.Vars, _ string, args map[
 
 	resp := &api.Response{}
 
-	if err := r.h.sw.execAgent(r.h.agent, req, resp); err != nil {
+	if err := r.h.sw.RunSub(r.h.agent, req, resp); err != nil {
 		return nil, err
 	}
 
