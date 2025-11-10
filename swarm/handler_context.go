@@ -1,23 +1,14 @@
 package swarm
 
 import (
-	// "bytes"
-	// "context"
-	// "encoding/json"
 	"fmt"
 	"strings"
-	// "text/template"
 	"time"
 
 	"github.com/google/uuid"
 
 	"github.com/qiangli/ai/swarm/api"
-	// "github.com/qiangli/ai/swarm/llm"
-	// "github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
-	// "fmt"
-	// "github.com/qiangli/ai/swarm/api"
-	// "github.com/qiangli/ai/swarm/log"
 )
 
 func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
@@ -25,17 +16,9 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 		return func(next Handler) Handler {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 				ctx := req.Context()
-				// log.GetLogger(ctx).Debugf("🟦 (context): %s adapter: %s\n", agent.Name)
 				log.GetLogger(ctx).Debugf("🔗 (context): %s max_history: %v max_span: %v\n", agent.Name, agent.MaxHistory, agent.MaxSpan)
-
-				// var ctx = req.Context()
-				// var r = h.agent
-
 				env := sw.globalEnv()
-				// h.mapAssign(req, env, req.Arguments, false)
 
-				// apply template/load
-				// TODO  vars -> data may break some existing config
 				applyGlobal := func(ext, s string) (string, error) {
 					if strings.HasPrefix(s, "#!") {
 						parts := strings.SplitN(s, "\n", 2)
@@ -123,7 +106,7 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 						list = sw.Vars.History
 					}
 					if len(list) > 0 {
-						log.GetLogger(ctx).Infof("%s context messages: %v\n", emoji, len(list))
+						log.GetLogger(ctx).Debugf("%s context messages: %v\n", emoji, len(list))
 						for i, msg := range list {
 							if msg.Role != api.RoleSystem {
 								history = append(history, msg)
@@ -170,40 +153,6 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 				//
 				var runTool = sw.createCaller(sw.User, agent)
 
-				// // resolve if model is @agent
-				// var model *api.Model
-				// if v, err := h.resolveModel(ctx, req, agent.Model); err != nil {
-				// 	return err
-				// } else {
-				// 	model = v
-				// }
-
-				// model := h.agent.Model
-
-				// ak, err := h.sw.Secrets.Get(h.agent.Owner, model.ApiKey)
-				// if err != nil {
-				// 	return err
-				// }
-				// token := func() string {
-				// 	return ak
-				// }
-
-				// var request = llm.Request{
-				// 	Name:     agent.Name,
-				// 	Messages: history,
-				// 	MaxTurns: agent.MaxTurns,
-				// 	Tools:    agent.Tools,
-				// 	//
-				// 	// Model: model,
-				// 	// Token: token,
-				// 	//
-				// 	RunTool: runTool,
-				// 	// agent tool
-				// 	Arguments: env,
-				// 	//
-				// 	Vars: h.sw.Vars,
-				// }
-
 				nreq := req.Clone()
 				nreq.Name = agent.Name
 				nreq.Messages = history
@@ -219,25 +168,7 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 				}
 				nreq.Query = agent.RawInput.Query()
 
-				//
-				// var adapter llm.LLMAdapter = adapter.Chat
-				// if h.agent.Adapter != "" {
-				// 	if v, err := h.sw.Adapters.Get(h.agent.Adapter); err == nil {
-				// 		adapter = v
-				// 	} else {
-				// 		return err
-				// 	}
-				// }
-
-				// // LLM adapter
-				// // TODO model <-> adapter
-				// result, err := adapter(ctx, nreq)
-
-				// // client
-				// if err != nil {
-				// 	return err
-				// }
-
+				// call next
 				if err := next.Serve(nreq, resp); err != nil {
 					return err
 				}

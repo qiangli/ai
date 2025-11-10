@@ -308,6 +308,5 @@ func (r *Swarm) mustResolveContext(parent *api.Agent, req *api.Request, s string
 		return nil, err
 	}
 
-	// log.GetLogger(ctx).Debugf("dynamic context messages: (%v) %s\n", len(list), head(out, 100))
 	return list, nil
 }

@@ -180,25 +180,21 @@ func (sw *Swarm) toResult(v any) *api.Result {
 }
 
 // flow actions
-func (sw *Swarm) doAction(ctx context.Context, agent *api.Agent, req *api.Request, resp *api.Response, tf *api.ToolFunc) error {
-
+func (sw *Swarm) doAction(ctx context.Context, agent *api.Agent, tf *api.ToolFunc) (*api.Result, error) {
 	env := sw.globalEnv()
-	sw.mapAssign(agent, req, env, req.Arguments, false)
 
 	var runTool = sw.createCaller(sw.User, agent)
 	result, err := runTool(ctx, tf.ID(), env)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if result == nil {
-		return fmt.Errorf("no result")
+		return nil, fmt.Errorf("no result")
 	}
 
-	resp.Agent = agent
-	resp.Result = result
 	// TODO check states?
-	sw.Vars.Global.Set(globalResult, resp.Result.Value)
-	return nil
+	sw.Vars.Global.Set(globalResult, result.Value)
+	return result, nil
 }
 
 // // save and get the presigned url

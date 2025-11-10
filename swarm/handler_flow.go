@@ -17,28 +17,11 @@ import (
 	"github.com/qiangli/shell/tool/sh"
 )
 
-// // flow actions
-// func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, tf *api.ToolFunc) error {
-// 	// var r = h.agent
-
-// 	env := h.sw.globalEnv()
-// 	// h.mapAssign(req, env, req.Arguments, false)
-
-// 	var runTool = h.sw.createCaller(h.sw.User, h.agent)
-// 	result, err := runTool(ctx, tf.ID(), env)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	resp.Agent = h.agent
-// 	resp.Result = result
-// 	// TODO check states?
-// 	h.sw.Vars.Global.Set(globalResult, resp.Result.Value)
-// 	return nil
-// }
-
-func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, tf *api.ToolFunc) error {
-	return h.sw.doAction(ctx, h.agent, req, resp, tf)
+func (h *agentHandler) doAction(ctx context.Context, _ *api.Request, resp *api.Response, tf *api.ToolFunc) error {
+	result, err := h.sw.doAction(ctx, h.agent, tf)
+	resp.Agent = h.agent
+	resp.Result = result
+	return err
 }
 
 // FlowTypeSequence executes actions one after another, where each
