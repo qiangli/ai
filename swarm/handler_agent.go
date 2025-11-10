@@ -337,44 +337,54 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 	//
 	var runTool = h.createCaller(h.sw.User)
 
-	// resolve if model is @agent
-	var model *api.Model
-	if v, err := h.resolveModel(ctx, req, r.Model); err != nil {
-		return err
-	} else {
-		model = v
-	}
+	// // resolve if model is @agent
+	// var model *api.Model
+	// if v, err := h.resolveModel(ctx, req, r.Model); err != nil {
+	// 	return err
+	// } else {
+	// 	model = v
+	// }
 
-	ak, err := h.sw.Secrets.Get(h.agent.Owner, model.ApiKey)
-	if err != nil {
-		return err
-	}
-	token := func() string {
-		return ak
-	}
+	// model := h.agent.Model
 
-	var request = llm.Request{
-		Name:     r.Name,
-		Messages: history,
-		MaxTurns: r.MaxTurns,
-		Tools:    r.Tools,
-		//
-		Model: model,
-		//
-		RunTool: runTool,
-		// agent tool
-		Arguments: env,
-		//
-		Vars: h.sw.Vars,
-		//
-		Token: token,
-	}
+	// ak, err := h.sw.Secrets.Get(h.agent.Owner, model.ApiKey)
+	// if err != nil {
+	// 	return err
+	// }
+	// token := func() string {
+	// 	return ak
+	// }
+
+	// var request = llm.Request{
+	// 	Name:     r.Name,
+	// 	Messages: history,
+	// 	MaxTurns: r.MaxTurns,
+	// 	Tools:    r.Tools,
+	// 	//
+	// 	// Model: model,
+	// 	// Token: token,
+	// 	//
+	// 	RunTool: runTool,
+	// 	// agent tool
+	// 	Arguments: env,
+	// 	//
+	// 	Vars: h.sw.Vars,
+	// }
+
+	nreq := req.Clone()
+	nreq.Name = r.Name
+	nreq.Messages = history
+	nreq.MaxTurns = r.MaxTurns
+	nreq.Tools = r.Tools
+	nreq.RunTool = runTool
+	nreq.Arguments = env
+	nreq.Vars = h.sw.Vars
 
 	// openai/tts
 	if len(instructions) > 0 {
-		request.Instruction = strings.Join(instructions, "\n")
+		nreq.Instruction = strings.Join(instructions, "\n")
 	}
-	request.Query = r.RawInput.Query()
+	nreq.Query = r.RawInput.Query()
 
 	//
 	var adapter llm.LLMAdapter = adapter.Chat
@@ -388,7 +398,7 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 
 	// LLM adapter
 	// TODO model <-> adapter
-	result, err := adapter(ctx, &request)
+	result, err := adapter(ctx, nreq)
 	// client
 	if err != nil {
 		return err
@@ -424,13 +434,17 @@ func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 
 // run sub agent with inherited env
 func (h *agentHandler) exec(req *api.Request, resp *api.Response) error {
+	return execAgent(h.sw, h.agent, req, resp)
+}
+
+func execAgent(sw *Swarm, agent *api.Agent, req *api.Request, resp *api.Response) error {
 	// prevent loop
 	// TODO support recursion?
-	if h.agent.Name == req.Name {
+	if agent.Name == req.Name {
 		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself.", req.Name))
 	}
 
-	if err := h.sw.Run(req, resp); err != nil {
+	if err := sw.Run(req, resp); err != nil {
 		return err
 	}
 	if resp.Result == nil {
@@ -457,7 +471,7 @@ func (h *agentHandler) resolvePrompt(ctx context.Context, parent *api.Request, s
 }
 
 // dynamcally make LLM model; return s as is if not an agent command
-func (h *agentHandler) resolveModel(ctx context.Context, parent *api.Request, m *api.Model) (*api.Model, error) {
+func resolveModel(sw *Swarm, parent *api.Agent, ctx context.Context, req *api.Request, m *api.Model) (*api.Model, error) {
 	if m == nil {
 		return nil, fmt.Errorf("missling model")
 	}
@@ -465,7 +479,7 @@ func (h *agentHandler) resolveModel(ctx context.Context, parent *api.Request, m 
 	if !found {
 		return m, nil
 	}
-	out, err := h.callAgent(parent, agent, query)
+	out, err := callAgent(sw, parent, req, agent, query)
 	if err != nil {
 		return nil, err
 	}
@@ -530,27 +544,31 @@ func (h *agentHandler) resolveArgument(parent *api.Request, s string) (any, erro
 	return arg.Result, nil
 }
 
-func (h *agentHandler) callAgent(parent *api.Request, s string, prompt string) (string, error) {
+func (h *agentHandler) callAgent(req *api.Request, s string, prompt string) (string, error) {
+	return callAgent(h.sw, h.agent, req, s, prompt)
+}
+
+func callAgent(sw *Swarm, agent *api.Agent, req *api.Request, s string, prompt string) (string, error) {
 	name := strings.TrimPrefix(s, "@")
 
-	req := parent.Clone()
-	req.Parent = h.agent
-	req.Name = name
+	nreq := req.Clone()
+	nreq.Parent = agent
+	nreq.Name = name
 	// prepend additional instruction to user query
 	if len(prompt) > 0 {
-		req.RawInput.Message = prompt + "\n" + req.RawInput.Message
+		nreq.RawInput.Message = prompt + "\n" + nreq.RawInput.Message
 	}
 
-	resp := &api.Response{}
+	nresp := &api.Response{}
 
-	err := h.exec(req, resp)
+	err := execAgent(sw, agent, nreq, nresp)
 	if err != nil {
 		return "", err
 	}
-	if resp.Result == nil {
+	if nresp.Result == nil {
 		return "", fmt.Errorf("empty response")
 	}
-	return resp.Result.Value, nil
+	return nresp.Result.Value, nil
 }
 
 func (h *agentHandler) applyTemplate(tpl string, data any) (string, error) {

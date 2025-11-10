@@ -147,6 +147,8 @@ func (r *Request) Clone() *Request {
 	// 	r2.Messages = make([]*Message, len(r.Messages))
 	// 	copy(r2.Messages, r.Messages)
 	// }
+	// r2.Model = r.Model
+	// r2.Token = r.Token
 
 	if r.RawInput != nil {
 		r2.RawInput = r.RawInput.Clone()

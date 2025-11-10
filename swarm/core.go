@@ -61,7 +61,9 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		return api.NewInternalServerError("invalid config. user or vars not initialized")
 	}
 
+	logMiddleware := MaxLogMiddlewareFunc(r)
 	memMiddleware := MemoryMiddlewareFunc(r)
+	modelMiddleware := ModelMiddlewareFunc(r)
 	agentMiddlWare := AgentMiddlewareFunc(r)
 
 	log.GetLogger(ctx).Debugf("*** Agent: %s parent: %+v\n", req.Name, req.Parent)
@@ -88,8 +90,9 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 
 		chain := NewChain(
 			TimeoutMiddleware(agent.MaxTime),
-			MaxLogMiddleware(500),
+			logMiddleware(agent, 100),
 			memMiddleware(agent),
+			modelMiddleware(agent),
 			agentMiddlWare(agent),
 		)
 

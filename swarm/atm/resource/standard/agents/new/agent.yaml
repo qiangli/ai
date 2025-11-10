@@ -1,5 +1,15 @@
 ###
+# max_history: 100
 context: "@context"
+# max_time: 100
+timeout: "@timeout"
+instruction: "@prompt"
+log_level: info
+logger: "@logger"
+message: "@query"
+tool: "@tool"
+model: "@model"
+environment: ""
 agents:
   - name: "new"
     display: "🤖 Creator Agent"
@@ -13,7 +23,7 @@ agents:
       users' queries as well.
     instruction:
       content: |
-        @prompt you are an intelligent agent
+        @prompt
     model: "@model"
     functions:
       - "@tool"

@@ -6,7 +6,7 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-type LLMAdapter func(context.Context, *Request) (*Response, error)
+type LLMAdapter func(context.Context, *api.Request) (*api.Response, error)
 
 type AdapterRegistry interface {
 	Get(key string) (LLMAdapter, error)

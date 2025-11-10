@@ -6,23 +6,24 @@ import (
 )
 
 // MaxLogMiddleware returns a [api.Middleware] that logs the request and response
-func MaxLogMiddleware(n int) api.Middleware {
-	mw := func(next Handler) Handler {
-		return HandlerFunc(func(req *api.Request, resp *api.Response) error {
-			ctx := req.Context()
-			log.GetLogger(ctx).Debugf("Request: %+v\n", req)
+// for debugging. trim text to max length of n.
+func MaxLogMiddlewareFunc(sw *Swarm) func(*api.Agent, int) api.Middleware {
+	return func(agent *api.Agent, n int) api.Middleware {
+		return func(next Handler) Handler {
+			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
+				logger := log.GetLogger(req.Context())
+				logger.Debugf("🟦 (log) request: %+v\n", req)
 
-			err := next.Serve(req, resp)
+				err := next.Serve(req, resp)
 
-			log.GetLogger(ctx).Debugf("Response: %+v\n", resp)
-			if resp.Messages != nil {
-				for _, m := range resp.Messages {
-					log.GetLogger(ctx).Debugf("%s %s\n", m.Role, clip(m.Content, n))
+				logger.Debugf("🟦 (log) response: %+v\n", resp)
+				if resp.Messages != nil {
+					for _, m := range resp.Messages {
+						logger.Debugf("%s %s\n", m.Role, clip(m.Content, n))
+					}
 				}
-			}
-
-			return err
-		})
+				return err
+			})
+		}
 	}
-	return mw
 }
