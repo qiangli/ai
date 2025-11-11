@@ -104,6 +104,8 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		History: mem,
 	}
 
+	sw.InitTemplate()
+
 	if err := sw.Run(req, resp); err != nil {
 		return err
 	}

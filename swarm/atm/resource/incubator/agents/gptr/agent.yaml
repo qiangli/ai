@@ -263,7 +263,7 @@ agents:
         - Keep marginally relevant or incomplete sources if they contain valuable data or insights.
 
       SOURCES LIST TO EVALUATE:
-      {{prettyJson .result}}
+      {{toPrettyJson .result}}
 
       You MUST return your response in the EXACT sources JSON list format as the original sources.
       The response MUST not contain any markdown format or additional text (like ```json), just the JSON list!
@@ -288,7 +288,7 @@ agents:
         {{.agent_role_prompt}}
     message: |
       #! --mime-type=text/x-go-template
-      Information: "{{prettyJson .result}}"
+      Information: "{{toPrettyJson .result}}"
       ---
       Using the above information, answer the following query or task: "{{.original_query}}" in a detailed report --
       The report should focus on the answer to the query, should be well structured, informative,
