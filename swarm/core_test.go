@@ -62,6 +62,9 @@ func defaultSwarm(cfg *api.AppConfig) (*Swarm, error) {
 }
 
 func TestTemplate(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	home, _ := os.UserHomeDir()
 	base := filepath.Join(home, ".ai")
 	cfg := &api.AppConfig{
@@ -82,7 +85,7 @@ func TestTemplate(t *testing.T) {
 		Kit:   "agent",
 		Agent: "ask",
 	})
-	sw.Vars.Global.Set("__current_agent", &api.Agent{
+	sw.Vars.Global.Set("__parent_agent", &api.Agent{
 		Name: "test",
 		Model: &api.Model{
 			Provider: "openai",
@@ -93,11 +96,11 @@ func TestTemplate(t *testing.T) {
 		Tools: tools,
 	})
 
-	text := `this is from ai: {{ai "@ask-me" "--log-level=verbose"  "what is the weather in dublin ca."}}`
+	text := `this is from ai: {{ai "@ask-me" "--log-level=verbose"  "tell me a joke"}}`
 	data := map[string]any{}
 	content, err := sw.applyTemplate(text, data)
+	t.Logf("content: %v\n", content)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	t.Logf("%v", content)
 }

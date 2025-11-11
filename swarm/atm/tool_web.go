@@ -51,7 +51,7 @@ func (r *webAuthKit) FetchContent(ctx context.Context, vars *api.Vars, name stri
 	var content string
 	for range 3 {
 		if v, err := cli.Fetch(ctx, link); err != nil || len(v) == 0 {
-			time.Sleep(3 * time.Second)
+			time.Sleep(1 * time.Second)
 			continue
 		} else {
 			content = v

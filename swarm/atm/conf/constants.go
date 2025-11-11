@@ -8,4 +8,4 @@ const defaultMaxTurns = 50
 const defaultMaxTime = 600 // 10 min
 
 const defaultMaxSpan = 1440 // 24 hours
-const defaultMaxHistory = 100
+const defaultMaxHistory = 1
