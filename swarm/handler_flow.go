@@ -1,7 +1,6 @@
 package swarm
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,9 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/charmbracelet/x/exp/slice"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/shell/tool/sh"
 )
 
@@ -247,121 +244,19 @@ Index:
 // complex flow control scenarios driven by external scripting logic.
 func (h *agentHandler) flowShell(req *api.Request, resp *api.Response) error {
 	ctx := req.Context()
-	var b bytes.Buffer
-	ioe := &sh.IOE{Stdin: strings.NewReader(req.RawInput.Query()), Stdout: &b, Stderr: &b}
-	vs := sh.NewVirtualSystem(h.sw.Root, h.sw.OS, h.sw.Workspace, ioe)
 
-	// // set global env for bash script
-	env := h.sw.globalEnv()
-	// h.mapAssign(req, env, req.Arguments, false)
-
-	for k, v := range env {
-		vs.System.Setenv(k, v)
-	}
-
-	vs.ExecHandler = h.newExecHandler(vs, req, resp)
-
-	if err := vs.RunScript(ctx, h.agent.Flow.Script); err != nil {
+	result, err := h.sw.runScript(ctx, h.agent, h.agent.Flow.Script)
+	if err != nil {
 		return err
 	}
 
 	resp.Result = &api.Result{
-		Value: b.String(),
+		Value: result,
 	}
 	return nil
 }
 
-func (h *agentHandler) newExecHandler(vs *sh.VirtualSystem, req *api.Request, resp *api.Response) sh.ExecHandler {
-	// var memo = h.sw.buildAgentToolMap(h.agent)
-	return func(ctx context.Context, args []string) (bool, error) {
-		if h.agent == nil {
-			return true, fmt.Errorf("missing agent: %v", req.Name)
-		}
-		log.GetLogger(ctx).Debugf("parent: %s args: %+v\n", h.agent.Name, args)
-		isAi := func(s string) bool {
-			return s == "ai" || strings.HasPrefix(s, "@") || strings.HasPrefix(s, "/")
-		}
-		if isAi(strings.ToLower(args[0])) {
-			log.GetLogger(ctx).Debugf("running ai agent/tool: %+v\n", args)
-			runner := h.sw.agentRunner(vs, h.agent)
-			result, err := runner(ctx, args)
-			if err != nil {
-				return true, err
-			}
-			// at, err := conf.ParseAgentToolArgs(h.agent.Owner, args)
-			// if err != nil {
-			// 	return true, err
-			// }
-			// // agent tool
-			// nreq := req.Clone()
-			// nresp := new(api.Response)
-
-			// nreq.RawInput = &api.UserInput{
-			// 	Message: at.Message,
-			// }
-			// nreq.Arguments = at.Arguments
-
-			// var kit string
-			// var name string
-			// if at.Agent != nil {
-			// 	nreq.Parent = h.agent
-			// 	nreq.Name = at.Agent.Name
-			// 	kit = "agent"
-			// 	name = nvl(at.Agent.Name, "anonymous")
-			// } else if at.Tool != nil {
-			// 	nreq.Parent = h.agent
-			// 	nreq.Name = at.Tool.Name
-			// 	kit = at.Tool.Kit
-			// 	name = at.Tool.Name
-			// } else {
-			// 	// dicard
-			// 	return true, nil
-			// }
-			// id := api.KitName(kit + ":" + name).ID()
-			// action, ok := memo[id]
-			// if !ok {
-			// 	return true, fmt.Errorf("agent tool not declared for %s: %s", h.agent.Name, id)
-			// }
-
-			// vs.System.Setenv(globalQuery, nreq.RawInput.Query())
-
-			// if err := h.doAction(ctx, nreq, nresp, action); err != nil {
-			// 	vs.System.Setenv(globalError, err.Error())
-			// 	fmt.Fprintln(vs.IOE.Stderr, err.Error())
-			// 	return true, err
-			// }
-			// fmt.Fprintln(vs.IOE.Stdout, nresp.Result.Value)
-			// vs.System.Setenv(globalResult, nresp.Result.Value)
-
-			resp.Result = result
-			return true, nil
-		}
-
-		// internal list
-		allowed := []string{"env", "printenv"}
-		if slice.ContainsAny(allowed, args[0]) {
-			h.doBashCustom(vs, args)
-			return true, nil
-		}
-
-		// bash core utils
-		if did, err := sh.RunCoreUtils(ctx, vs, args); did {
-			return did, err
-		}
-
-		// // bash subshell
-		// if sh.IsShell(args[0]) {
-		// 	err := sh.Gosh(ctx, vs, args)
-		// 	return true, err
-		// }
-
-		// block other commands
-		fmt.Fprintf(vs.IOE.Stderr, "command not supported: %s %+v\n", args[0], args[1:])
-		return true, nil
-	}
-}
-
-func (h *agentHandler) doBashCustom(vs *sh.VirtualSystem, args []string) (string, error) {
+func doBashCustom(vs *sh.VirtualSystem, args []string) (string, error) {
 	switch args[0] {
 	case "env", "printenv":
 		for k, v := range vs.System.Environ() {

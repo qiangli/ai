@@ -18,9 +18,13 @@ agents:
     #   @query
     instruction:
       content: |
-        @prompt
-    context: "@context"
-    model: "@model"
+       #! 
+       {{ai @ask}}
+    context: |
+      #!
+    model: |
+      #!
+      
     functions:
       - "@tool"
       # - "ai:context_get_messages"

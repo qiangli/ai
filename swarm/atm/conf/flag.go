@@ -123,13 +123,10 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 		}
 	}
 
+	//
+	atArgs["name"] = name
 	atArgs["message"] = msg
 	atArgs["instruction"] = prompt
-	atArgs["name"] = name
-
-	// add message as query arg for tools
-	// ideally parameters should be checked if query property is requested
-	atArgs["query"] = msg
 
 	newAgent := func(s string) *api.Agent {
 		return &api.Agent{

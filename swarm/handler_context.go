@@ -1,8 +1,8 @@
 package swarm
 
 import (
+	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,80 +12,75 @@ import (
 )
 
 func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
+
 	return func(agent *api.Agent) api.Middleware {
+
+		mustResolveContext := func(parent *api.Agent, req *api.Request, s string) ([]*api.Message, error) {
+			name, query, found := parseAgentCommand(s)
+			if !found {
+				return nil, fmt.Errorf("invalid context: %s", s)
+			}
+			out, err := sw.callAgent(parent, req, name, query)
+			if err != nil {
+				return nil, err
+			}
+
+			var list []*api.Message
+			if err := json.Unmarshal([]byte(out), &list); err != nil {
+				return nil, err
+			}
+
+			return list, nil
+		}
+
+		// resolvePrompt := func(parent *api.Agent, req *api.Request, s string) (string, error) {
+		// 	name, query, found := parseAgentCommand(s)
+		// 	if !found {
+		// 		return s, nil
+		// 	}
+		// 	out, err := sw.callAgent(parent, req, name, query)
+		// 	if err != nil {
+		// 		return "", err
+		// 	}
+
+		// 	return out, nil
+		// }
 		return func(next Handler) Handler {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 				ctx := req.Context()
 				log.GetLogger(ctx).Debugf("🔗 (context): %s max_history: %v max_span: %v\n", agent.Name, agent.MaxHistory, agent.MaxSpan)
 				env := sw.globalEnv()
 
-				applyGlobal := func(ext, s string) (string, error) {
-					if strings.HasPrefix(s, "#!") {
-						parts := strings.SplitN(s, "\n", 2)
-						if len(parts) == 2 {
-							// remove hashbang line
-							// return h.applyGlobal(parts[1])
-							return sw.applyTemplate(parts[1], env)
-						}
-						// remove hashbang
-						return sw.applyTemplate(parts[0][2:], env)
-					}
-					if ext == "tpl" {
-						return sw.applyTemplate(s, env)
-					}
-					return s, nil
-				}
+				// resolveGlobal := func(ext, s string) (string, error) {
+				// 	// update the request instruction
+				// 	content, err := sw.applyGlobal(ext, s, env)
+				// 	if err != nil {
+				// 		return "", err
+				// 	}
 
-				resolveGlobal := func(ext, s string) (string, error) {
-					// update the request instruction
-					content, err := applyGlobal(ext, s)
-					if err != nil {
-						return "", err
-					}
-
-					// dynamic @prompt if requested
-					content, err = sw.resolvePrompt(agent, req, content)
-					if err != nil {
-						return "", err
-					}
-					return content, nil
-				}
+				// 	// dynamic @ if requested
+				// 	content, err = resolvePrompt(agent, req, content)
+				// 	if err != nil {
+				// 		return "", err
+				// 	}
+				// 	return content, nil
+				// }
 
 				var chatID = sw.ChatID
 				var history []*api.Message
-				var instructions []string
 
 				// 1. New System Message
 				// system role prompt as first message
-				// inherit embedded agent instructions
-				addContext := func(in *api.Instruction, sender string) error {
-					content, err := resolveGlobal(in.Type, in.Content)
-					if err != nil {
-						return err
-					}
-
-					// update instruction
-					instructions = append(instructions, content)
-
+				if agent.Instruction != nil {
 					history = append(history, &api.Message{
 						ID:      uuid.NewString(),
 						ChatID:  chatID,
 						Created: time.Now(),
 						//
 						Role:    api.RoleSystem,
-						Content: content,
-						Sender:  sender,
+						Content: agent.Instruction.Content,
+						Sender:  agent.Name,
 					})
-					log.GetLogger(ctx).Debugf("Added system role message: %v\n", len(history))
-					return nil
-				}
-				for _, v := range agent.Embed {
-					if v.Instruction != nil {
-						addContext(v.Instruction, agent.Name)
-					}
-				}
-				if agent.Instruction != nil {
-					addContext(agent.Instruction, agent.Name)
 				}
 
 				// 2. Historical Messages
@@ -96,7 +91,7 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 					var emoji = "•"
 					if agent.Context != "" {
 						// continue without context if failed
-						if resolved, err := sw.mustResolveContext(agent, req, agent.Context); err != nil {
+						if resolved, err := mustResolveContext(agent, req, agent.Context); err != nil {
 							log.GetLogger(ctx).Errorf("failed to resolve context %s: %v\n", agent.Context, err)
 						} else {
 							list = resolved
@@ -118,30 +113,13 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 
 				// 3. New User Message
 				// Additional user message
-				// embeded messages not inherited for now
-				if agent.Message != "" {
-					msg, err := resolveGlobal("", agent.Message)
-					if err != nil {
-						return err
-					}
-					history = append(history, &api.Message{
-						ID:      uuid.NewString(),
-						ChatID:  chatID,
-						Created: time.Now(),
-						//
-						Role:    api.RoleUser,
-						Content: msg,
-						Sender:  agent.Name,
-					})
-				}
-
 				history = append(history, &api.Message{
 					ID:      uuid.NewString(),
 					ChatID:  chatID,
 					Created: time.Now(),
 					//
 					Role:    api.RoleUser,
-					Content: req.RawInput.Query(),
+					Content: req.Query,
 					Sender:  agent.Name,
 				})
 
@@ -161,12 +139,6 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 				nreq.RunTool = runTool
 				nreq.Arguments = env
 				nreq.Vars = sw.Vars
-
-				// openai/tts
-				if len(instructions) > 0 {
-					nreq.Instruction = strings.Join(instructions, "\n")
-				}
-				nreq.Query = agent.RawInput.Query()
 
 				// call next
 				if err := next.Serve(nreq, resp); err != nil {

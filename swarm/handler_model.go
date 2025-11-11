@@ -1,6 +1,8 @@
 package swarm
 
 import (
+	"encoding/json"
+
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
 )
@@ -15,11 +17,17 @@ func ModelMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 
 				var model *api.Model = agent.Model
 
-				// resolve if model is @agent
-				if v, err := sw.resolveModel(agent, ctx, req, agent.Model); err != nil {
-					return err
-				} else {
-					model = v
+				name, query, found := parseAgentCommand(model.Model)
+				if found {
+					out, err := sw.callAgent(agent, req, name, query)
+					if err != nil {
+						return err
+					}
+					var v api.Model
+					if err := json.Unmarshal([]byte(out), &v); err != nil {
+						return err
+					}
+					model = &v
 				}
 
 				//
@@ -31,11 +39,10 @@ func ModelMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 					return ak
 				}
 
-				nreq := req.Clone()
-				nreq.Model = model
-				nreq.Token = token
+				req.Model = model
+				req.Token = token
 
-				err = next.Serve(nreq, resp)
+				err = next.Serve(req, resp)
 
 				return err
 			})

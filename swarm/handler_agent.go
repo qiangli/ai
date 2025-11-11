@@ -53,14 +53,18 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 		return err
 	}
 
+	var result string
+	if resp.Result != nil {
+		result = resp.Result.Value
+	}
 	// if result is json, unpack for subsequnent agents/actions
-	if len(resp.Result.Value) > 0 {
+	if len(result) > 0 {
 		var resultMap = make(map[string]any)
-		if err := json.Unmarshal([]byte(resp.Result.Value), &resultMap); err == nil {
+		if err := json.Unmarshal([]byte(result), &resultMap); err == nil {
 			h.sw.Vars.Global.Add(resultMap)
 		}
 	}
-	h.sw.Vars.Global.Set(globalResult, resp.Result.Value)
+	h.sw.Vars.Global.Set(globalResult, result)
 
 	log.GetLogger(ctx).Debugf("completed: %s global: %+v\n", h.agent.Name, h.sw.Vars.Global)
 	return nil
@@ -69,6 +73,10 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 // run agent first if there is instruction followed by the flow.
 // otherwise, run the flow only
 func (h *agentHandler) doAgentFlow(req *api.Request, resp *api.Response) error {
+	if h.agent.Instruction == nil && h.agent.Flow == nil {
+		return api.NewBadRequestError("missing instruction and flow")
+	}
+
 	// run agent
 	if h.agent.Instruction != nil && h.agent.Instruction.Content != "" {
 		if err := h.doAgent(req, resp); err != nil {

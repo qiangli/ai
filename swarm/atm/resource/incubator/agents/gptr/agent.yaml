@@ -192,6 +192,14 @@ agents:
   - name: "gptr/scrape"
     display: "🌐 Scraper"
     description: "Runs a query across multiple retrievers and scrapes the resulting URLs."
+    message: |
+      #! --mime-type=x-go-template
+      {{.result}}
+    instruction:
+      content: |
+          Please verify if the input query is a list of strings in JSON format.
+          If it is, simply return it. If not, format the input into a JSON list of strings.
+          Ensure there is no other content in the response, as the subsequent process will parse it strictly as JSON.
     flow:
       type: map
       concurrency: 5
@@ -206,7 +214,10 @@ agents:
     description: "Runs a query across multiple retrievers and scrapes the resulting URLs."
     arguments:
       maximum_attempts: 5
-    instrution:
+    message: |
+      #! --mime-type=text/x-go-template
+      {{.result}}
+    instruction:
       content: |
         #! --mime-type=text/x-go-template
         You are a specialized web crawler. The maximum attempts allowed are {{.maximum_attempts}}.

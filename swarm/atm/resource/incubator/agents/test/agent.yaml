@@ -1,0 +1,139 @@
+
+## agent pack
+pack: test
+model: smart_llm/fast
+log_level: debug
+max_history: 0
+max_time: 900
+agents:
+  - name: "test"
+    new: true
+    display: "🚀 GPT Test"
+    description: |
+      GPT test description
+    environment:
+      original_query: "{{.query}}"
+    flow:
+      # type: "sequence"
+      # actions:
+      type: "shell"
+      script: |
+        #!/bin/bash
+        /agent:test/research_queries
+        /agent:test/scrape
+    functions:
+      - "agent:test/research_queries"
+      - "agent:test/scrape"
+  
+  - name: "test/research_queries"
+    new: true
+    display: "🤔 Planning the research strategy and subtasks"
+    description: "Generate sub_queries using the specified LLM model."
+    model: smart_llm/strategic
+    arguments:
+      # max_completion_tokens: 8000
+      reasoning_effort: medium
+      #
+      max_iterations: 3
+    instruction:
+      content: |
+        #! --mime-type=x-go-template
+        You are a seasoned research assistant tasked with generating search queries to find relevant information for the following task:
+        "{{.original_query}}".
+    message: |
+      #! --mime-type=x-go-template
+      Context: {{.result}}
+
+      Use this context to inform and refine your search queries. The context provides real-time web information
+      that can help you generate more specific and relevant queries. Consider any current events, recent developments,
+      or specific details mentioned in the context that could enhance the search queries.
+
+      Write {{.max_iterations}} search queries to search online that form an objective opinion from the following task:
+      "{{.original_query}}"
+
+      Assume the current date is {{.now}} if required.
+
+      You must respond with a list of strings in the following JSON array object format:
+        [
+          "query 1",
+          "query 2",
+          ...
+        ]
+      The response should contain ONLY the list.
+  
+  - name: "test/scrape"
+    display: "🌐 Scraper"
+    description: "Runs a query across multiple retrievers and scrapes the resulting URLs."
+    message: |
+      #! --mime-type=x-go-template
+      {{.result}}
+    instruction:
+      content: |
+          Please verify if the input query is a list of strings in JSON format.
+          If it is, simply return it. If not, format the input into a JSON list of strings.
+          Ensure there is no other content in the response, as the subsequent process will parse it strictly as JSON.
+    flow:
+      type: map
+      concurrency: 1
+      actions:
+        - "agent:test/crawl"
+    functions:
+      - "agent:test/crawl"
+  
+  - name: "test/crawl"
+    new: true
+    display: "🌐 Web Crawler"
+    description: "Runs a query across multiple retrievers and scrapes the resulting URLs."
+    arguments:
+      maximum_attempts: 5
+    message: |
+      #! --mime-type=text/x-go-template
+      {{.result}}
+    instruction:
+      content: |
+        #! --mime-type=text/x-go-template
+        You are a specialized web crawler. The maximum attempts allowed are {{.maximum_attempts}}.
+        For each query, execute a search and follow only the immediate links one level deep.
+        If the fetch returns empty results or errors, continue with more search and fetch tool calls.
+        Collect and merge the content from these pages to provide comprehensive information 
+        relevant to the user query.
+    functions:
+      - "web:*"
+      - "ddg:*"
+      - "bing:*"
+      - "google:*"
+      - "brave:*"
+
+kit: "test"
+type: "web"
+tools:
+  - name: "search"
+    description: "Search the web using available search tools and return formatted results"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The search query string"
+        max_results:
+          type: "integer"
+          description: "Maximum number of results to return"
+          default: 5
+          minimum: 1
+          maximum: 10
+      required:
+        - query
+  
+## models
+set: smart_llm
+provider: "openai"
+base_url: "https://api.openai.com/v1/"
+api_key: "openai"
+models:
+  fast:
+    model: "gpt-4o-mini"
+  smart:
+    model: "gpt-4.1"
+  strategic:
+    model: "o4-mini"
+###
