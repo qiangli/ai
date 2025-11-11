@@ -25,13 +25,13 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 						if len(parts) == 2 {
 							// remove hashbang line
 							// return h.applyGlobal(parts[1])
-							return applyTemplate(sw.template, parts[1], env)
+							return sw.applyTemplate(parts[1], env)
 						}
 						// remove hashbang
-						return applyTemplate(sw.template, parts[0][2:], env)
+						return sw.applyTemplate(parts[0][2:], env)
 					}
 					if ext == "tpl" {
-						return applyTemplate(sw.template, s, env)
+						return sw.applyTemplate(s, env)
 					}
 					return s, nil
 				}

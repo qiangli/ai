@@ -58,10 +58,10 @@ func (sw *Swarm) createAICaller(agent *api.Agent) api.ToolRunner {
 func (sw *Swarm) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
 	log.GetLogger(ctx).Infof("⣿ %s:%s %+v\n", tf.Kit, tf.Name, formatArgs(args))
 
-	// add model to system kit for command evaluation
-	if tf.Type == api.ToolTypeSystem {
-		ctx = context.WithValue(ctx, atm.ModelsContextKey, agent.Model)
-	}
+	// // add model to system kit for command evaluation
+	// if tf.Type == api.ToolTypeSystem {
+	// 	ctx = context.WithValue(ctx, atm.ModelsContextKey, agent.Model)
+	// }
 
 	//
 	result, err := sw.dispatch(ctx, agent, tf, args)

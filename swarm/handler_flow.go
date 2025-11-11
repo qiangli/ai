@@ -52,7 +52,7 @@ func (h *agentHandler) flowLoop(req *api.Request, resp *api.Response) error {
 	// h.mapAssign(req, env, req.Arguments, false)
 
 	eval := func(exp string) (bool, error) {
-		v, err := applyTemplate(h.sw.template, exp, env)
+		v, err := h.sw.applyTemplate(exp, env)
 		if err != nil {
 			return false, err
 		}
@@ -116,7 +116,7 @@ func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
 	var which int = -1
 	// evaluate express or random
 	if h.agent.Flow.Expression != "" {
-		v, err := applyTemplate(h.sw.template, h.agent.Flow.Expression, env)
+		v, err := h.sw.applyTemplate(h.agent.Flow.Expression, env)
 		if err != nil {
 			return err
 		}

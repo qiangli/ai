@@ -1,4 +1,4 @@
-package swarm
+package util
 
 import (
 	"encoding/json"
@@ -19,7 +19,7 @@ func splitLines(s string) []string {
 }
 
 // TODO: jq, *Case
-var tplFuncMap = template.FuncMap{
+var TplFuncMap = template.FuncMap{
 	"maxLen":     maxLen,
 	"trim":       strings.TrimSpace,
 	"toLower":    strings.ToLower,

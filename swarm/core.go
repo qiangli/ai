@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -15,6 +16,7 @@ import (
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
+	"github.com/qiangli/ai/swarm/util"
 	"github.com/qiangli/shell/tool/sh/vfs"
 	"github.com/qiangli/shell/tool/sh/vos"
 )
@@ -75,12 +77,13 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	}
 
 	var fm = sprig.FuncMap()
-	maps.Copy(fm, tplFuncMap)
+	maps.Copy(fm, util.TplFuncMap)
 	fm["user"] = func() *api.User {
 		return r.User
 	}
 	r.template = template.New("swarm").Funcs(fm)
 
+	//
 	logMiddleware := MaxLogMiddlewareFunc(r)
 	envMiddleware := EnvMiddlewareFunc(r)
 	memMiddleware := MemoryMiddlewareFunc(r)
@@ -163,7 +166,7 @@ func (r *Swarm) mapAssign(agent *api.Agent, req *api.Request, dst, src map[strin
 		}
 		// go template value support
 		if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-			if resolved, err := applyTemplate(r.template, v, dst); err != nil {
+			if resolved, err := r.applyTemplate(v, dst); err != nil {
 				return err
 			} else {
 				val = resolved
@@ -298,4 +301,18 @@ func (r *Swarm) mustResolveContext(parent *api.Agent, req *api.Request, s string
 	}
 
 	return list, nil
+}
+
+func (r *Swarm) applyTemplate(text string, data any) (string, error) {
+	t, err := r.template.Parse(text)
+	if err != nil {
+		return "", err
+	}
+
+	var buf bytes.Buffer
+	if err := t.Execute(&buf, data); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }

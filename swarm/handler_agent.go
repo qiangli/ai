@@ -1,10 +1,8 @@
 package swarm
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"text/template"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
@@ -147,18 +145,4 @@ func (h *agentHandler) setGlobalEnv(req *api.Request) error {
 
 func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
 	return h.next.Serve(req, resp)
-}
-
-func applyTemplate(tpl *template.Template, text string, data any) (string, error) {
-	t, err := tpl.Parse(text)
-	if err != nil {
-		return "", err
-	}
-
-	var buf bytes.Buffer
-	if err := t.Execute(&buf, data); err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
 }
