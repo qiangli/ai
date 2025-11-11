@@ -78,24 +78,24 @@ func FetchContent(ctx context.Context, url string, start, max int, raw bool) (st
 
 	content := string(body)
 
-	if !raw {
-		if v, err := ExtractTextFromHTML(content); err != nil {
-			return "", err
-		} else {
-			content = v
-		}
-	}
-	if start < 0 {
-		start = 0
-	}
-	size := len(content)
+	// if !raw {
+	// 	if v, err := ExtractTextFromHTML(content); err != nil {
+	// 		return "", err
+	// 	} else {
+	// 		content = v
+	// 	}
+	// }
+	// if start < 0 {
+	// 	start = 0
+	// }
+	// size := len(content)
 
-	if start >= size {
-		return "", fmt.Errorf("invalid start_index: %v. the size of the page is: %v ", start, size)
-	}
-	end := min(start+max, size)
+	// if start >= size {
+	// 	return "", fmt.Errorf("invalid start_index: %v. the size of the page is: %v ", start, size)
+	// }
+	// end := min(start+max, size)
 
-	return content[start:end], nil
+	return content, nil
 }
 
 func ExtractTextFromHTML(html string) (string, error) {

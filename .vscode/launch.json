@@ -29,7 +29,7 @@
 				"@ask",
 				// "--message", "tell me a joke",
 				"--message",
-				"what is the weather today in dublin ca",
+				"what is the weather today in nyc",
 				// "@cron",
 				// "--message", "schedule a chat on climate change at 3:00 pm tomorrow pdt",
 				"--no-stdin=true",

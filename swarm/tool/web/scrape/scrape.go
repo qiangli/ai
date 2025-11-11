@@ -96,6 +96,8 @@ func (s Scraper) Description() string {
 // context and a string input representing the URL of the website to be scraped.
 // It returns a string containing the scraped data and an error if any.
 func (s Scraper) Scrape(ctx context.Context, input string) (string, error) {
+	s.UserAgent = web.UserAgent()
+
 	u, err := url.ParseRequestURI(input)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", ErrScrapingFailed, err)
@@ -245,6 +247,8 @@ func (s Scraper) Scrape(ctx context.Context, input string) (string, error) {
 
 // Fetch and parse content from a webpage
 func (s Scraper) Fetch(ctx context.Context, input string) (string, error) {
+	s.UserAgent = web.UserAgent()
+
 	u, err := url.ParseRequestURI(input)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", ErrScrapingFailed, err)

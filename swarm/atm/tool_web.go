@@ -2,10 +2,13 @@ package atm
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
+	"time"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
+	"github.com/qiangli/ai/swarm/tool/web/scrape"
 	webtool "github.com/qiangli/ai/swarm/tool/web/util"
 )
 
@@ -33,13 +36,42 @@ func (r *webAuthKit) FetchContent(ctx context.Context, vars *api.Vars, name stri
 	if err != nil {
 		return "", err
 	}
-	raw, err := GetBoolProp("raw", args)
+	// raw, err := GetBoolProp("raw", args)
+	// if err != nil {
+	// 	return "", err
+	// }
+
+	log.GetLogger(ctx).Debugf("○ fetching url: %q\n", link)
+	// content, err := webtool.FetchContent(ctx, link, start, max, raw)
+	cli, err := scrape.New()
 	if err != nil {
 		return "", err
 	}
 
-	log.GetLogger(ctx).Debugf("○ fetching url: %q\n", link)
-	content, err := webtool.FetchContent(ctx, link, start, max, raw)
+	var content string
+	for range 3 {
+		if v, err := cli.Fetch(ctx, link); err != nil || len(v) == 0 {
+			time.Sleep(3 * time.Second)
+			continue
+		} else {
+			content = v
+			break
+		}
+	}
+
+	size := len(content)
+	if size == 0 {
+		return "", fmt.Errorf("empty content")
+	}
+	if start < 0 {
+		start = 0
+	}
+	if start >= size {
+		return "", fmt.Errorf("invalid start_index: %v. the size of the page is: %v ", start, size)
+	}
+	end := min(start+max, size)
+	content = content[start:end]
+
 	log.GetLogger(ctx).Debugf("  content length: %v error: %v\n", len(content), err)
 	return content, err
 }
