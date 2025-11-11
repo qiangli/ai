@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"maps"
+	"os"
 	"strings"
 	"text/template"
 	"time"
@@ -16,7 +16,7 @@ import (
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
-	"github.com/qiangli/ai/swarm/util"
+	"github.com/qiangli/shell/tool/sh"
 	"github.com/qiangli/shell/tool/sh/vfs"
 	"github.com/qiangli/shell/tool/sh/vos"
 )
@@ -52,8 +52,63 @@ type Swarm struct {
 	template *template.Template
 }
 
+// https://pkg.go.dev/text/template
+// https://masterminds.github.io/sprig/
+func (r *Swarm) initTemplate(ctx context.Context) {
+	var fm = sprig.FuncMap()
+	// overridge sprig
+	fm["user"] = func() *api.User {
+		return r.User
+	}
+	// OS
+	getenv := func(key string) string {
+		v, ok := r.Vars.Global.Get(key)
+		if !ok {
+			return ""
+		}
+		if s, ok := v.(string); ok {
+			return s
+		}
+		return fmt.Sprintf("%v", v)
+	}
+	fm["env"] = getenv
+	fm["expandenv"] = func(s string) string {
+		// bash name is leaked with os.Expand but ok.
+		// bash is replaced with own that supports executing agent/tool
+		return os.Expand(s, getenv)
+	}
+	// Network:
+	fm["getHostByName"] = func() string {
+		return "localhost"
+	}
+
+	// ai
+	fm["ai"] = func(args ...string) string {
+		var b bytes.Buffer
+		ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
+		vs := sh.NewVirtualSystem(r.Root, r.OS, r.Workspace, ioe)
+		var agent *api.Agent
+		if v, ok := r.Vars.Global.Get("__current_agent"); ok {
+			agent = v.(*api.Agent)
+		}
+		runner := r.agentRunner(vs, agent)
+		result, err := runner(ctx, args)
+		if err != nil {
+			return err.Error()
+		}
+		if result == nil {
+			return ""
+		}
+		return result.Value
+	}
+
+	r.template = template.New("swarm").Funcs(fm)
+}
+
 func (r *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
-	return conf.CreateAgent(ctx, req, r.User, r.Secrets, r.Assets)
+	agent, err := conf.CreateAgent(ctx, req, r.User, r.Secrets, r.Assets)
+	r.Vars.Global.Set("__current_agent", agent)
+	return agent, err
 }
 
 // Run calls the language model with the messages list (after applying the system prompt). If the resulting AIMessage contains tool_calls, the graph will then call the tools. The tools node executes the tools and adds the responses to the messages list as ToolMessage objects. The agent node then calls the language model again. The process repeats until no more tool_calls are present in the response. The agent then returns the full list of messages.
@@ -76,12 +131,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		return api.NewInternalServerError("invalid config. user or vars not initialized")
 	}
 
-	var fm = sprig.FuncMap()
-	maps.Copy(fm, util.TplFuncMap)
-	fm["user"] = func() *api.User {
-		return r.User
-	}
-	r.template = template.New("swarm").Funcs(fm)
+	r.initTemplate(ctx)
 
 	//
 	logMiddleware := MaxLogMiddlewareFunc(r)

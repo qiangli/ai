@@ -12,13 +12,12 @@ import (
 
 	"github.com/charmbracelet/x/exp/slice"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/shell/tool/sh"
 )
 
-func (h *agentHandler) doAction(ctx context.Context, _ *api.Request, resp *api.Response, tf *api.ToolFunc) error {
-	result, err := h.sw.doAction(ctx, h.agent, tf)
+func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, tf *api.ToolFunc) error {
+	result, err := h.sw.doAction(ctx, h.agent, tf, req.Arguments)
 	resp.Agent = h.agent
 	resp.Result = result
 	return err
@@ -249,8 +248,7 @@ Index:
 func (h *agentHandler) flowShell(req *api.Request, resp *api.Response) error {
 	ctx := req.Context()
 	var b bytes.Buffer
-
-	ioe := &sh.IOE{Stdin: nil, Stdout: &b, Stderr: &b}
+	ioe := &sh.IOE{Stdin: strings.NewReader(req.RawInput.Query()), Stdout: &b, Stderr: &b}
 	vs := sh.NewVirtualSystem(h.sw.Root, h.sw.OS, h.sw.Workspace, ioe)
 
 	// // set global env for bash script
@@ -274,7 +272,7 @@ func (h *agentHandler) flowShell(req *api.Request, resp *api.Response) error {
 }
 
 func (h *agentHandler) newExecHandler(vs *sh.VirtualSystem, req *api.Request, resp *api.Response) sh.ExecHandler {
-	var memo = h.sw.buildAgentToolMap(h.agent)
+	// var memo = h.sw.buildAgentToolMap(h.agent)
 	return func(ctx context.Context, args []string) (bool, error) {
 		if h.agent == nil {
 			return true, fmt.Errorf("missing agent: %v", req.Name)
@@ -285,52 +283,57 @@ func (h *agentHandler) newExecHandler(vs *sh.VirtualSystem, req *api.Request, re
 		}
 		if isAi(strings.ToLower(args[0])) {
 			log.GetLogger(ctx).Debugf("running ai agent/tool: %+v\n", args)
-			at, err := conf.ParseAgentToolArgs(h.agent.Owner, args)
+			runner := h.sw.agentRunner(vs, h.agent)
+			result, err := runner(ctx, args)
 			if err != nil {
 				return true, err
 			}
-			// agent tool
-			nreq := req.Clone()
-			nresp := new(api.Response)
+			// at, err := conf.ParseAgentToolArgs(h.agent.Owner, args)
+			// if err != nil {
+			// 	return true, err
+			// }
+			// // agent tool
+			// nreq := req.Clone()
+			// nresp := new(api.Response)
 
-			nreq.RawInput = &api.UserInput{
-				Message: at.Message,
-			}
-			nreq.Arguments = at.Arguments
+			// nreq.RawInput = &api.UserInput{
+			// 	Message: at.Message,
+			// }
+			// nreq.Arguments = at.Arguments
 
-			var kit string
-			var name string
-			if at.Agent != nil {
-				nreq.Parent = h.agent
-				nreq.Name = at.Agent.Name
-				kit = "agent"
-				name = nvl(at.Agent.Name, "anonymous")
-			} else if at.Tool != nil {
-				nreq.Parent = h.agent
-				nreq.Name = at.Tool.Name
-				kit = at.Tool.Kit
-				name = at.Tool.Name
-			} else {
-				// dicard
-				return true, nil
-			}
-			id := api.KitName(kit + ":" + name).ID()
-			action, ok := memo[id]
-			if !ok {
-				return true, fmt.Errorf("agent tool not declared for %s: %s", h.agent.Name, id)
-			}
+			// var kit string
+			// var name string
+			// if at.Agent != nil {
+			// 	nreq.Parent = h.agent
+			// 	nreq.Name = at.Agent.Name
+			// 	kit = "agent"
+			// 	name = nvl(at.Agent.Name, "anonymous")
+			// } else if at.Tool != nil {
+			// 	nreq.Parent = h.agent
+			// 	nreq.Name = at.Tool.Name
+			// 	kit = at.Tool.Kit
+			// 	name = at.Tool.Name
+			// } else {
+			// 	// dicard
+			// 	return true, nil
+			// }
+			// id := api.KitName(kit + ":" + name).ID()
+			// action, ok := memo[id]
+			// if !ok {
+			// 	return true, fmt.Errorf("agent tool not declared for %s: %s", h.agent.Name, id)
+			// }
 
-			vs.System.Setenv(globalQuery, nreq.RawInput.Query())
+			// vs.System.Setenv(globalQuery, nreq.RawInput.Query())
 
-			if err := h.doAction(ctx, nreq, nresp, action); err != nil {
-				vs.System.Setenv(globalError, err.Error())
-				fmt.Fprintln(vs.IOE.Stderr, err.Error())
-				return true, err
-			}
-			fmt.Fprintln(vs.IOE.Stdout, nresp.Result.Value)
-			vs.System.Setenv(globalResult, nresp.Result.Value)
+			// if err := h.doAction(ctx, nreq, nresp, action); err != nil {
+			// 	vs.System.Setenv(globalError, err.Error())
+			// 	fmt.Fprintln(vs.IOE.Stderr, err.Error())
+			// 	return true, err
+			// }
+			// fmt.Fprintln(vs.IOE.Stdout, nresp.Result.Value)
+			// vs.System.Setenv(globalResult, nresp.Result.Value)
 
-			resp.Result = nresp.Result
+			resp.Result = result
 			return true, nil
 		}
 

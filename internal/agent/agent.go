@@ -8,12 +8,12 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/qiangli/ai/internal/agent/conf"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/db"
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
+	"github.com/qiangli/ai/swarm/util/conf"
 	"github.com/qiangli/shell/tool/sh/vfs"
 	"github.com/qiangli/shell/tool/sh/vos"
 )

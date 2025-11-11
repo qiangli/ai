@@ -3,16 +3,22 @@ package swarm
 import (
 	"context"
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
+	"github.com/qiangli/shell/tool/sh"
 )
 
+// inherit parent tools including embedded agents
 func (sw *Swarm) buildAgentToolMap(agent *api.Agent) map[string]*api.ToolFunc {
 	toolMap := make(map[string]*api.ToolFunc)
+	if agent == nil {
+		return toolMap
+	}
 	// inherit tools of embedded agents
 	for _, agent := range agent.Embed {
 		for _, v := range agent.Tools {
@@ -24,6 +30,64 @@ func (sw *Swarm) buildAgentToolMap(agent *api.Agent) map[string]*api.ToolFunc {
 		toolMap[v.ID()] = v
 	}
 	return toolMap
+}
+
+func (sw *Swarm) agentRunner(vs *sh.VirtualSystem, agent *api.Agent) func(context.Context, []string) (*api.Result, error) {
+	// log.GetLogger(ctx).Debugf("running ai agent/tool: %+v\n", args)
+	var memo = sw.buildAgentToolMap(agent)
+
+	return func(ctx context.Context, args []string) (*api.Result, error) {
+		at, err := conf.ParseAgentToolArgs(agent.Owner, args)
+		if err != nil {
+			return nil, err
+		}
+		// agent tool
+		// nreq := req.Clone()
+		// nresp := new(api.Response)
+
+		// nreq.RawInput = &api.UserInput{
+		// 	Message: at.Message,
+		// }
+		// nreq.Arguments = at.Arguments
+
+		var kit string
+		var name string
+		if at.Agent != nil {
+			// nreq.Parent = agent
+			// nreq.Name = at.Agent.Name
+			kit = "agent"
+			name = nvl(at.Agent.Name, "anonymous")
+		} else if at.Tool != nil {
+			// nreq.Parent = agent
+			// nreq.Name = at.Tool.Name
+			kit = at.Tool.Kit
+			name = at.Tool.Name
+		} else {
+			return nil, fmt.Errorf("invalid ai command")
+		}
+		id := api.KitName(kit + ":" + name).ID()
+		action, ok := memo[id]
+		if !ok {
+			return nil, fmt.Errorf("agent tool not declared for %s: %s", agent.Name, id)
+		}
+
+		vs.System.Setenv(globalQuery, at.Message)
+
+		result, err := sw.doAction(ctx, agent, action, at.Arguments)
+		if err != nil {
+			vs.System.Setenv(globalError, err.Error())
+			fmt.Fprintln(vs.IOE.Stderr, err.Error())
+			return nil, err
+		}
+		// resp.Agent = agent
+		// resp.Result = result
+
+		fmt.Fprintln(vs.IOE.Stdout, result.Value)
+		vs.System.Setenv(globalResult, result.Value)
+
+		// resp.Result = nresp.Result
+		return result, nil
+	}
 }
 
 func (sw *Swarm) createCaller(user *api.User, agent *api.Agent) api.ToolRunner {
@@ -180,8 +244,12 @@ func (sw *Swarm) toResult(v any) *api.Result {
 }
 
 // flow actions
-func (sw *Swarm) doAction(ctx context.Context, agent *api.Agent, tf *api.ToolFunc) (*api.Result, error) {
+func (sw *Swarm) doAction(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
 	env := sw.globalEnv()
+
+	if len(args) > 0 {
+		maps.Copy(env, args)
+	}
 
 	var runTool = sw.createCaller(sw.User, agent)
 	result, err := runTool(ctx, tf.ID(), env)

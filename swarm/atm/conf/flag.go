@@ -65,6 +65,7 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 	format := fs.String("format", "json", "Output as text or json")
 	logLevel := fs.String("log-level", "", "Log level: quiet, info, verbose, trace")
 
+	//
 	err := fs.Parse(args)
 	if err != nil {
 		return nil, err
@@ -85,7 +86,7 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 		msg = *message + " " + msg
 	}
 	msg = strings.TrimSpace(msg)
-	content := strings.TrimSpace(*instruction)
+	prompt := strings.TrimSpace(*instruction)
 
 	// better way?
 	isSet := func(fl string) bool {
@@ -122,9 +123,12 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 		}
 	}
 
+	atArgs["message"] = msg
+	atArgs["instruction"] = prompt
+	atArgs["name"] = name
+
 	// add message as query arg for tools
 	// ideally parameters should be checked if query property is requested
-	// query is message+content
 	atArgs["query"] = msg
 
 	newAgent := func(s string) *api.Agent {
@@ -153,7 +157,7 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 	var at = &api.AgentTool{
 		Owner:       owner,
 		Message:     msg,
-		Instruction: content,
+		Instruction: prompt,
 		Arguments:   atArgs,
 	}
 
