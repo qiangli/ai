@@ -10,9 +10,7 @@ func MemoryMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 	return func(agent *api.Agent) api.Middleware {
 		return func(next Handler) Handler {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
-				ctx := req.Context()
-
-				logger := log.GetLogger(ctx)
+				logger := log.GetLogger(req.Context())
 
 				logger.Debugf("🔗 (mem): %s\n", agent.Name)
 

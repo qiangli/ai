@@ -10,14 +10,13 @@ func ModelMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 	return func(agent *api.Agent) api.Middleware {
 		return func(next Handler) Handler {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
-				nreq := req.Clone()
-				ctx := nreq.Context()
+				ctx := req.Context()
 				log.GetLogger(ctx).Debugf("🔗 (model): %s model: %s\n", agent.Name, agent.Model)
 
 				var model *api.Model = agent.Model
 
 				// resolve if model is @agent
-				if v, err := sw.resolveModel(agent, ctx, nreq, agent.Model); err != nil {
+				if v, err := sw.resolveModel(agent, ctx, req, agent.Model); err != nil {
 					return err
 				} else {
 					model = v
@@ -32,6 +31,7 @@ func ModelMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 					return ak
 				}
 
+				nreq := req.Clone()
 				nreq.Model = model
 				nreq.Token = token
 

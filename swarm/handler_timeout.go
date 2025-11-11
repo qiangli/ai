@@ -38,11 +38,11 @@ type timeoutHandler struct {
 	dt      time.Duration
 }
 
-func (h *timeoutHandler) Serve(r *api.Request, w *api.Response) error {
-	ctx, cancelCtx := context.WithTimeout(r.Context(), h.dt)
+func (h *timeoutHandler) Serve(req *api.Request, resp *api.Response) error {
+	ctx, cancelCtx := context.WithTimeout(req.Context(), h.dt)
 	defer cancelCtx()
 
-	r = r.WithContext(ctx)
+	nreq := req.WithContext(ctx)
 
 	done := make(chan struct{})
 	panicChan := make(chan any, 1)
@@ -54,7 +54,7 @@ func (h *timeoutHandler) Serve(r *api.Request, w *api.Response) error {
 			}
 		}()
 
-		if err := h.next.Serve(r, w); err != nil {
+		if err := h.next.Serve(nreq, resp); err != nil {
 			panicChan <- err
 		}
 
@@ -67,8 +67,8 @@ func (h *timeoutHandler) Serve(r *api.Request, w *api.Response) error {
 	case <-done:
 		return nil
 	case <-ctx.Done():
-		w.Messages = []*api.Message{{Content: h.content}}
-		w.Agent = nil
+		resp.Messages = []*api.Message{{Content: h.content}}
+		resp.Agent = nil
 	}
 
 	return ErrHandlerTimeout

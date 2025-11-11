@@ -12,7 +12,6 @@ func MaxLogMiddlewareFunc(sw *Swarm) func(*api.Agent, int) api.Middleware {
 		return func(next Handler) Handler {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 				logger := log.GetLogger(req.Context())
-				// logger.Debugf("🟦 (log) request: %+v\n", req)
 				logger.Debugf("🔗 (log): %s log_level: %v req: %+v\n", agent.Name, agent.LogLevel, req)
 
 				err := next.Serve(req, resp)
