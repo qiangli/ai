@@ -91,7 +91,8 @@ func EvaluateCommand(ctx context.Context, user *api.User, secrets api.SecretStor
 
 	log.GetLogger(ctx).Debugf("evaluateCommand:\n%s %v\n", command, args)
 
-	resp, err := adapter.Chat(ctx, req)
+	chat := &adapter.ChatAdapter{}
+	resp, err := chat.Call(ctx, req)
 	if err != nil {
 		return false, err
 	}

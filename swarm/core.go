@@ -264,15 +264,6 @@ func (r *Swarm) resolveModel(parent *api.Agent, ctx context.Context, req *api.Re
 	if err := json.Unmarshal([]byte(out), &model); err != nil {
 		return nil, err
 	}
-
-	log.GetLogger(ctx).Infof("🤖 model: %s/%s\n", model.Provider, model.Model)
-
-	// // replace api key
-	// ak, err := h.sw.Secrets.Get(h.sw.User.Email, model.ApiKey)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// model.ApiKey = ak
 	return &model, nil
 }
 
@@ -287,8 +278,6 @@ func (r *Swarm) resolvePrompt(parent *api.Agent, req *api.Request, s string) (st
 	if err != nil {
 		return "", err
 	}
-
-	// log.GetLogger(ctx).Infof("🤖 prompt: %s\n", head(prompt, 100))
 
 	return prompt, nil
 }

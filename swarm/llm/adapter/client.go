@@ -10,7 +10,8 @@ import (
 	"github.com/qiangli/ai/swarm/llm/openai"
 )
 
-type adapters struct{}
+type adapters struct {
+}
 
 func (r *adapters) Get(key string) (llm.LLMAdapter, error) {
 	if v, ok := adapterRegistry[key]; ok {
@@ -19,26 +20,28 @@ func (r *adapters) Get(key string) (llm.LLMAdapter, error) {
 	return nil, fmt.Errorf("LLM adapter %q not found", key)
 }
 
+var defaultAdapters = &adapters{}
+
 var adapterRegistry map[string]llm.LLMAdapter
 
 func init() {
 	adapterRegistry = make(map[string]llm.LLMAdapter)
-	adapterRegistry["chat"] = Chat
-	adapterRegistry["text"] = Response
-	adapterRegistry["response"] = Response
-	adapterRegistry["image"] = Image
-	adapterRegistry["tts"] = TTS
-	adapterRegistry["audio"] = Audio
-	adapterRegistry["video"] = Video
+	adapterRegistry["chat"] = &ChatAdapter{}
+	adapterRegistry["text"] = &ResponseAdapter{}
+	adapterRegistry["response"] = &ResponseAdapter{}
+	adapterRegistry["image"] = &ImageAdapter{}
+	adapterRegistry["tts"] = &TtsAdapter{}
+	adapterRegistry["audio"] = &AudioAdapter{}
+	adapterRegistry["video"] = &VideoAdapter{}
 }
-
-var defaultAdapters = &adapters{}
 
 func GetAdapters() llm.AdapterRegistry {
 	return defaultAdapters
 }
 
-func Chat(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+type ChatAdapter struct{}
+
+func (r *ChatAdapter) Call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	var err error
 	var resp *llm.Response
 
@@ -73,7 +76,9 @@ func Chat(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	return resp, nil
 }
 
-func Image(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+type ImageAdapter struct{}
+
+func (r *ImageAdapter) Call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	var err error
 	var resp *llm.Response
 
@@ -103,7 +108,9 @@ func Image(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	return resp, nil
 }
 
-func Response(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+type ResponseAdapter struct{}
+
+func (r *ResponseAdapter) Call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	var err error
 	var resp *llm.Response
 
@@ -133,7 +140,9 @@ func Response(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	return resp, nil
 }
 
-func TTS(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+type TtsAdapter struct{}
+
+func (r *TtsAdapter) Call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	var err error
 	var resp *llm.Response
 
@@ -163,7 +172,9 @@ func TTS(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	return resp, nil
 }
 
-func Audio(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+type AudioAdapter struct{}
+
+func (r *AudioAdapter) Call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	var err error
 	var resp *llm.Response
 
@@ -193,7 +204,9 @@ func Audio(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	return resp, nil
 }
 
-func Video(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+type VideoAdapter struct{}
+
+func (r *VideoAdapter) Call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	var err error
 	var resp *llm.Response
 
