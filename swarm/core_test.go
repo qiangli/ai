@@ -1,7 +1,6 @@
 package swarm
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -74,17 +73,27 @@ func TestTemplate(t *testing.T) {
 		t.FailNow()
 	}
 
-	// req := &api.Request{
-	// 	Name: "ask",
-	// 	RawInput: &api.UserInput{
-	// 		Message: "",
-	// 	},
-	// }
-	ctx := context.TODO()
-	sw.initTemplate(ctx)
-	// sw.createAgent(ctx, req)
+	sw.InitTemplate()
 
-	text := `this is from ai: {{ai "@ask" "--verbose" "what is the weather in dublin ca."}}`
+	var tools []*api.ToolFunc
+	tools = append(tools, &api.ToolFunc{
+		Type:  api.ToolTypeAgent,
+		Name:  "ask-me",
+		Kit:   "agent",
+		Agent: "ask",
+	})
+	sw.Vars.Global.Set("__current_agent", &api.Agent{
+		Name: "test",
+		Model: &api.Model{
+			Provider: "openai",
+			BaseUrl:  "https://api.openai.com/v1/",
+			ApiKey:   "openai",
+			Model:    "gpt-5-nano",
+		},
+		Tools: tools,
+	})
+
+	text := `this is from ai: {{ai "@ask-me" "--log-level=verbose"  "what is the weather in dublin ca."}}`
 	data := map[string]any{}
 	content, err := sw.applyTemplate(text, data)
 	if err != nil {

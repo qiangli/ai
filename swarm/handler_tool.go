@@ -37,7 +37,11 @@ func (sw *Swarm) agentRunner(vs *sh.VirtualSystem, agent *api.Agent) func(contex
 	var memo = sw.buildAgentToolMap(agent)
 
 	return func(ctx context.Context, args []string) (*api.Result, error) {
-		at, err := conf.ParseAgentToolArgs(agent.Owner, args)
+		var owner string
+		if agent != nil {
+			owner = agent.Owner
+		}
+		at, err := conf.ParseAgentToolArgs(owner, args)
 		if err != nil {
 			return nil, err
 		}
@@ -154,7 +158,13 @@ func (sw *Swarm) callAgentType(ctx context.Context, agent *api.Agent, tf *api.To
 
 func (sw *Swarm) callAgentTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	// NOTE: is original input always appropriate for the tools?
-	req := api.NewRequest(ctx, tf.Agent, agent.RawInput.Clone())
+	var input *api.UserInput
+	if agent.RawInput != nil {
+		input = agent.RawInput.Clone()
+	} else {
+		input = &api.UserInput{}
+	}
+	req := api.NewRequest(ctx, tf.Agent, input)
 	req.Parent = agent
 	req.RawInput.Message, _ = atm.GetStrProp("query", args)
 	req.Arguments = args

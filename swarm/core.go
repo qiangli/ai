@@ -54,7 +54,7 @@ type Swarm struct {
 
 // https://pkg.go.dev/text/template
 // https://masterminds.github.io/sprig/
-func (r *Swarm) initTemplate(ctx context.Context) {
+func (r *Swarm) InitTemplate() {
 	var fm = sprig.FuncMap()
 	// overridge sprig
 	fm["user"] = func() *api.User {
@@ -88,9 +88,12 @@ func (r *Swarm) initTemplate(ctx context.Context) {
 		ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
 		vs := sh.NewVirtualSystem(r.Root, r.OS, r.Workspace, ioe)
 		var agent *api.Agent
-		if v, ok := r.Vars.Global.Get("__current_agent"); ok {
+		if v, ok := r.Vars.Global.Get("__parent_agent"); ok {
 			agent = v.(*api.Agent)
+		} else {
+			return "Error: missing agent"
 		}
+		ctx := context.Background()
 		runner := r.agentRunner(vs, agent)
 		result, err := runner(ctx, args)
 		if err != nil {
@@ -107,7 +110,9 @@ func (r *Swarm) initTemplate(ctx context.Context) {
 
 func (r *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
 	agent, err := conf.CreateAgent(ctx, req, r.User, r.Secrets, r.Assets)
-	r.Vars.Global.Set("__current_agent", agent)
+	if err == nil && req.Parent != nil {
+		r.Vars.Global.Set("__parent_agent", req.Parent)
+	}
 	return agent, err
 }
 
@@ -130,8 +135,6 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	if r.User == nil || r.Vars == nil {
 		return api.NewInternalServerError("invalid config. user or vars not initialized")
 	}
-
-	r.initTemplate(ctx)
 
 	//
 	logMiddleware := MaxLogMiddlewareFunc(r)
