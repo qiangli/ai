@@ -285,6 +285,7 @@ func CreateAgent(ctx context.Context, req *api.Request, auth *api.User, secrets 
 		// input *api.UserInput,
 	) (*api.Agent, error) {
 		var agent = api.Agent{
+			Parent:  req.Parent,
 			Owner:   owner,
 			Adapter: c.Adapter,
 			//

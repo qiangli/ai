@@ -56,6 +56,8 @@ func (a AgentName) Equal(s string) bool {
 }
 
 type Agent struct {
+	Parent *Agent
+
 	Owner string
 
 	// The name of the agent.
@@ -106,6 +108,7 @@ type Agent struct {
 
 func (a *Agent) Clone() *Agent {
 	return &Agent{
+		Parent:      a.Parent,
 		Owner:       a.Owner,
 		Name:        a.Name,
 		Display:     a.Display,

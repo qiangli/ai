@@ -57,6 +57,11 @@ type Swarm struct {
 	middlewares []func(*api.Agent) api.Middleware
 }
 
+func (r *Swarm) Init() {
+	r.InitTemplate()
+	r.InitChain()
+}
+
 // https://pkg.go.dev/text/template
 // https://masterminds.github.io/sprig/
 func (r *Swarm) InitTemplate() {
@@ -112,7 +117,7 @@ func (r *Swarm) InitTemplate() {
 	r.template = template.New("swarm").Funcs(fm)
 }
 
-func (r *Swarm) InitMiddleWare() {
+func (r *Swarm) InitChain() {
 	r.middlewares = []func(*api.Agent) api.Middleware{
 		TimeoutMiddleware,
 		MaxLogMiddlewareFunc(r),
@@ -132,13 +137,14 @@ func (r *Swarm) InitMiddleWare() {
 	}
 }
 
-func (r *Swarm) NewChain(a *api.Agent) api.Handler {
+func (r *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
+	log.GetLogger(ctx).Infof("🔗 (init): %s\n", a.Name)
 	var mds = make([]api.Middleware, len(r.middlewares))
 	for i, v := range r.middlewares {
 		mds[i] = v(a)
 	}
 	final := HandlerFunc(func(req *api.Request, res *api.Response) error {
-		log.GetLogger(req.Context()).Debugf("🔗 (final): %s\n", req.Name)
+		log.GetLogger(req.Context()).Infof("🔗 (final): %s\n", req.Name)
 		return nil
 	})
 	chain := NewChain(mds...).Then(final)
@@ -167,31 +173,43 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 	}
 
 	var ctx = req.Context()
-	var resetLogLevel = true
+	logger := log.GetLogger(ctx)
+
+	setLogLevel := func(a *api.Agent) {
+		ll := a.LogLevel
+		for {
+			if a.Parent == nil {
+				break
+			}
+			a = a.Parent
+			ll = a.LogLevel
+		}
+		logger.SetLogLevel(ll)
+	}
 
 	if r.User == nil || r.Vars == nil {
 		return api.NewInternalServerError("invalid config. user or vars not initialized")
 	}
 
-	log.GetLogger(ctx).Debugf("🚀 %s parent: %+v\n", req.Name, req.Parent)
-
 	for {
 		start := time.Now()
-		log.GetLogger(ctx).Debugf("creating agent: %s %s\n", req.Name, start)
+		logger.Debugf("creating agent: %s %s\n", req.Name, start)
 		//
 		agent, err := r.createAgent(ctx, req)
 		if err != nil {
 			return err
 		}
 
-		// reset log level
-		// subsequent agents will inhefit the same log level
-		if resetLogLevel {
-			resetLogLevel = false
-			log.GetLogger(ctx).SetLogLevel(agent.LogLevel)
+		setLogLevel(agent)
+
+		logger.Infof("🚀 %s", agent.Name)
+		if agent.Parent != nil {
+			logger.Infof(" ← %s\n", agent.Parent.Name)
+		} else {
+			logger.Infof("\n")
 		}
 
-		if err := r.NewChain(agent).Serve(req, resp); err != nil {
+		if err := r.NewChain(ctx, agent).Serve(req, resp); err != nil {
 			return err
 		}
 
@@ -201,13 +219,13 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		}
 
 		if resp.Result.State == api.StateTransfer {
-			log.GetLogger(ctx).Debugf("Agent transfer: %s => %s\n", req.Name, resp.Result.NextAgent)
+			logger.Debugf("Agent transfer: %s => %s\n", req.Name, resp.Result.NextAgent)
 			req.Name = resp.Result.NextAgent
 			continue
 		}
 
 		end := time.Now()
-		log.GetLogger(ctx).Debugf("Agent complete: %s %s elapsed: %s\n", req.Name, end, end.Sub(start))
+		logger.Debugf("Agent complete: %s %s elapsed: %s\n", req.Name, end, end.Sub(start))
 		return nil
 	}
 }
