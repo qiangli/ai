@@ -244,15 +244,4 @@ func (cfg *AppConfig) Interactive() bool {
 	return ok
 }
 
-// agent or tool
-// TODO redesign: agent <-> tool same?
-type AgentTool struct {
-	Agent *Agent
-	Tool  *ToolFunc
-
-	//
-	Owner       string
-	Instruction string
-	Message     string
-	Arguments   map[string]any
-}
+type AgentTool AppConfig

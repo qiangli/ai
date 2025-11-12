@@ -17,9 +17,9 @@ func ModelMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 
 				var model *api.Model = agent.Model
 
-				name, query, found := parseAgentCommand(model.Model)
+				at, found := parseAgentCommand(model.Model)
 				if found {
-					out, err := sw.callAgent(agent, req, name, query)
+					out, err := sw.callAgent(agent, req, at.Name, at.Message)
 					if err != nil {
 						return err
 					}

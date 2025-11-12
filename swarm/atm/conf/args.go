@@ -23,39 +23,64 @@ func (s *stringSlice) Set(value string) error {
 	return nil
 }
 
-// name:
+// ParseArgs returns nil and no error for non agent tool commands
+// agent tool name must start with @ or /
+// ai:
 // ai @name args...
 // ai /name args...
+//
 // @name args...
 // /name args...
 //
 // anoymous:
 // @ args...
 // / args...
-func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
+func ParseArgs(args []string) (*api.AgentTool, error) {
 	if len(args) == 0 {
-		return nil, fmt.Errorf("missing args")
+		return nil, fmt.Errorf("missing command args")
 	}
-	// ignore trigger word "ai"
+	// skip trigger word "ai"
 	if len(args) > 0 && strings.ToLower(args[0]) == "ai" {
 		args = args[1:]
 	}
 	if len(args) == 0 {
-		return nil, fmt.Errorf("empty command line")
+		return nil, fmt.Errorf("empty ai command args")
 	}
-	var name = strings.ToLower(args[0])
+
+	var name = args[0]
 	args = args[1:]
 
-	//
+	var kit string
+	var ftype string
+	switch name[0] {
+	case '@':
+		name = strings.ToLower(name[1:])
+		ftype = api.ToolTypeAgent
+	case '/':
+		name = strings.ToLower(name[1:])
+		if strings.HasPrefix(name, "agent:") {
+			ftype = api.ToolTypeAgent
+		}
+		kit, _ = api.KitName(name[1:]).Decode()
+	default:
+		// not an agent/tool command
+		return nil, nil
+	}
+	if name == "" {
+		name = "anonymous"
+	}
+
 	fs := flag.NewFlagSet("ai", flag.ContinueOnError)
-	arguments := fs.String("arguments", "", "arguments map in JSON format")
+
 	var arg stringSlice
 	fs.Var(&arg, "arg", "argument name=value (can be used multiple times)")
+	arguments := fs.String("arguments", "", "arguments map in JSON format")
 
 	//
 	instruction := fs.String("instruction", "", "System role prompt message")
 	message := fs.String("message", "", "User input message")
 	//
+	model := fs.String("model", "", "LLM model alias defined in the model set")
 
 	// common args
 	maxHistory := fs.Int("max-history", 0, "Max historic messages to retrieve")
@@ -86,10 +111,12 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 		msg = *message + " " + msg
 	}
 	msg = strings.TrimSpace(msg)
+
 	prompt := strings.TrimSpace(*instruction)
 
-	// better way?
+	//
 	isSet := func(fl string) bool {
+		fl = strings.ToLower(fl)
 		for _, v := range args {
 			if v == "--"+fl || v == "-"+fl || strings.HasPrefix(v, "--"+fl+"=") || strings.HasPrefix(v, "-"+fl+"=") {
 				return true
@@ -99,6 +126,7 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 	}
 
 	// agent/tool default arguments
+	// precedence: <common>, arg slice, arguments
 	var atArgs = make(map[string]any)
 	// Parse JSON arguments
 	if *arguments != "" {
@@ -106,8 +134,7 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 			return nil, fmt.Errorf("invalid JSON arguments: %w", err)
 		}
 	}
-
-	// Parse individual args
+	// Parse individual arg in the slice
 	for _, v := range arg {
 		parts := strings.SplitN(v, "=", 2)
 		if len(parts) == 2 {
@@ -123,49 +150,19 @@ func ParseAgentToolArgs(owner string, args []string) (*api.AgentTool, error) {
 		}
 	}
 
-	//
+	// update the map
 	atArgs["name"] = name
 	atArgs["message"] = msg
 	atArgs["instruction"] = prompt
-
-	newAgent := func(s string) *api.Agent {
-		return &api.Agent{
-			Owner: owner,
-			Name:  s,
-			//
-			Adapter: "",
-			Model:   nil,
-			Tools:   nil,
-		}
-	}
-
-	newTool := func(s string) *api.ToolFunc {
-		kit, name := api.KitName(s).Decode()
-		return &api.ToolFunc{
-			Kit:       kit,
-			Name:      name,
-			Arguments: atArgs,
-			// required fields need to be set later
-			Type:       "",
-			Parameters: nil,
-		}
-	}
+	atArgs["model"] = *model
 
 	var at = &api.AgentTool{
-		Owner:       owner,
 		Message:     msg,
 		Instruction: prompt,
 		Arguments:   atArgs,
-	}
-
-	switch name[0] {
-	case '@':
-		at.Agent = newAgent(name[1:])
-	case '/':
-		at.Tool = newTool(name[1:])
-	default:
-		// unreachable
-		// system/builtin bash command
+		Kit:         kit,
+		Name:        name,
+		Type:        ftype,
 	}
 
 	return at, nil

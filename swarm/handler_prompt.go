@@ -11,11 +11,11 @@ import (
 func InstructionMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 	return func(agent *api.Agent) api.Middleware {
 		resolve := func(parent *api.Agent, req *api.Request, s string) (string, error) {
-			name, query, found := parseAgentCommand(s)
+			at, found := parseAgentCommand(s)
 			if !found {
 				return s, nil
 			}
-			out, err := sw.callAgent(parent, req, name, query)
+			out, err := sw.callAgent(parent, req, at.Name, at.Message)
 			if err != nil {
 				return "", err
 			}

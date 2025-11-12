@@ -285,11 +285,11 @@ func (sw *Swarm) RunSub(parent *api.Agent, req *api.Request, resp *api.Response)
 
 // call agent if found. otherwise return s as is
 func (sw *Swarm) resolveArgument(agent *api.Agent, req *api.Request, s string) (any, error) {
-	name, query, found := parseAgentCommand(s)
+	at, found := parseAgentCommand(s)
 	if !found {
 		return s, nil
 	}
-	out, err := sw.callAgent(agent, req, name, query)
+	out, err := sw.callAgent(agent, req, at.Name, at.Message)
 	if err != nil {
 		return nil, err
 	}
@@ -450,27 +450,12 @@ func (sw *Swarm) agentRunner(vs *sh.VirtualSystem, agent *api.Agent) func(contex
 	var memo = sw.buildAgentToolMap(agent)
 
 	return func(ctx context.Context, args []string) (*api.Result, error) {
-		var owner string
-		if agent != nil {
-			owner = agent.Owner
-		}
-		at, err := conf.ParseAgentToolArgs(owner, args)
+		at, err := conf.ParseArgs(args)
 		if err != nil {
 			return nil, err
 		}
 
-		var kit string
-		var name string
-		if at.Agent != nil {
-			kit = "agent"
-			name = nvl(at.Agent.Name, "anonymous")
-		} else if at.Tool != nil {
-			kit = at.Tool.Kit
-			name = at.Tool.Name
-		} else {
-			return nil, fmt.Errorf("invalid ai command")
-		}
-		id := api.KitName(kit + ":" + name).ID()
+		id := api.KitName(at.Name).ID()
 		action, ok := memo[id]
 		if !ok {
 			return nil, fmt.Errorf("agent tool not declared for %s: %s", agent.Name, id)

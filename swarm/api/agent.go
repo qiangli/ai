@@ -89,11 +89,9 @@ type Agent struct {
 	MaxTurns int
 	MaxTime  int
 
-	// New        bool
 	MaxHistory int
 	MaxSpan    int
-
-	Context string
+	Context    string
 
 	LogLevel LogLevel
 
@@ -107,7 +105,8 @@ type Agent struct {
 	Environment map[string]any
 }
 
-// no historical messages for LLM context
+// if true, skip historical messages for LLM context
+// --new command line flag sets --max-history=0
 func (a *Agent) New() bool {
 	return a.MaxHistory == 0
 }

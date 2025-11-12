@@ -6,6 +6,11 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/u-root/u-root/pkg/shlex"
+
+	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm/conf"
 )
 
 var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
@@ -152,14 +157,13 @@ func dataURL(mime string, raw []byte) string {
 }
 
 // parse s and look for agent. return app config and true if found.
-func parseAgentCommand(s string) (string, string, bool) {
-	v := strings.TrimSpace(s)
-	// TODO support models/history command line flags
-	if !strings.HasPrefix(v, "@") {
-		return "", "", false
+func parseAgentCommand(s string) (*api.AgentTool, bool) {
+	argv := shlex.Argv(s)
+	at, err := conf.ParseArgs(argv)
+	if err != nil || at == nil {
+		return nil, false
 	}
-	agent, msg := split2(v, " ", "")
-	return agent, msg, true
+	return at, true
 }
 
 func formatArgs(args map[string]any) string {
