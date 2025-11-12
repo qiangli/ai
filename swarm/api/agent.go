@@ -89,10 +89,11 @@ type Agent struct {
 	MaxTurns int
 	MaxTime  int
 
-	New        bool
+	// New        bool
 	MaxHistory int
 	MaxSpan    int
-	Context    string
+
+	Context string
 
 	LogLevel LogLevel
 
@@ -104,6 +105,11 @@ type Agent struct {
 
 	// global values
 	Environment map[string]any
+}
+
+// no historical messages for LLM context
+func (a *Agent) New() bool {
+	return a.MaxHistory == 0
 }
 
 func (a *Agent) Clone() *Agent {
@@ -123,11 +129,11 @@ func (a *Agent) Clone() *Agent {
 		Format:      a.Format,
 		MaxTurns:    a.MaxTurns,
 		MaxTime:     a.MaxTime,
-		New:         a.New,
-		MaxHistory:  a.MaxHistory,
-		MaxSpan:     a.MaxSpan,
-		Context:     a.Context,
-		LogLevel:    a.LogLevel,
+		// New:         a.New,
+		MaxHistory: a.MaxHistory,
+		MaxSpan:    a.MaxSpan,
+		Context:    a.Context,
+		LogLevel:   a.LogLevel,
 		//
 		Flow: a.Flow,
 		//
@@ -198,7 +204,7 @@ type AgentConfig struct {
 
 	// memory
 	// max history: 0 max span: 0
-	New        *bool  `yaml:"new,omitempty"`
+	// New        *bool  `yaml:"new,omitempty"`
 	MaxHistory int    `yaml:"max_history"`
 	MaxSpan    int    `yaml:"max_span"`
 	Context    string `yaml:"context"`

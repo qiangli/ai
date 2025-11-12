@@ -305,13 +305,14 @@ func CreateAgent(ctx context.Context, req *api.Request, auth *api.User, secrets 
 			}
 			maps.Copy(agent.Arguments, req.RawInput.Arguments)
 		}
-		agent.New = nbl(req.RawInput.New, c.New, ac.New)
+		// agent.New = nbl(req.RawInput.New, c.New, ac.New)
 
 		agent.Message = nvl(req.RawInput.Message, c.Message, ac.Message)
 		agent.Format = nvl(req.RawInput.Format, c.Format, ac.Format)
 		//
 		agent.MaxTurns = nzl(req.RawInput.MaxTurns, c.MaxTurns, ac.MaxTurns, defaultMaxTurns)
 		agent.MaxTime = nzl(req.RawInput.MaxTime, c.MaxTime, ac.MaxTime, defaultMaxTime)
+
 		agent.MaxHistory = nzl(req.RawInput.MaxHistory, c.MaxHistory, ac.MaxHistory, defaultMaxHistory)
 		agent.MaxSpan = nzl(req.RawInput.MaxSpan, c.MaxSpan, ac.MaxSpan, defaultMaxSpan)
 

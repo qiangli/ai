@@ -7,11 +7,9 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-// System role instruction
+// System role prompt
 func InstructionMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
-
 	return func(agent *api.Agent) api.Middleware {
-
 		resolve := func(parent *api.Agent, req *api.Request, s string) (string, error) {
 			name, query, found := parseAgentCommand(s)
 			if !found {

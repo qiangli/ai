@@ -109,7 +109,7 @@ type AppConfig struct {
 
 	// memory context
 	// max history: 0 max span: 0
-	New        *bool  `yaml:"new,omitempty"`
+	// New        *bool  `yaml:"new,omitempty"`
 	MaxHistory int    `yaml:"max_history"`
 	MaxSpan    int    `yaml:"max_span"`
 	Context    string `yaml:"context"`
@@ -177,7 +177,7 @@ func (cfg *AppConfig) Clone() *AppConfig {
 		// Output: cfg.Output,
 		//
 		// ChatID:     cfg.ChatID,
-		New:        cfg.New,
+		// New:        cfg.New,
 		MaxHistory: cfg.MaxHistory,
 		MaxSpan:    cfg.MaxSpan,
 		Context:    cfg.Context,

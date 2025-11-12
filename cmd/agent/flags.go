@@ -21,8 +21,9 @@ func addAgentFlags(cmd *cobra.Command) {
 	// flags.MarkHidden("chat")
 
 	flags.Bool("new", false, "Start a new conversation. max-history=0 and max-span=0")
-
-	// flags.String("context", "", "Agent for summarizing history")
+	flags.String("context", "", "Agent for summarizing history")
+	flags.MarkHidden("new")
+	flags.MarkHidden("context")
 
 	flags.Int("max-history", 3, "Max historic messages to retrieve")
 	flags.Int("max-span", 480, "Historic message retrieval span (minutes)")

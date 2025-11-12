@@ -60,7 +60,7 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 				// 2. Historical Messages
 				// support dynamic context history
 				// skip system role
-				if !agent.New {
+				if !agent.New() {
 					var list []*api.Message
 					var emoji = "•"
 					if agent.Context != "" {
