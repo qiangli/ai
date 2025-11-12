@@ -33,38 +33,12 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 			return list, nil
 		}
 
-		// resolvePrompt := func(parent *api.Agent, req *api.Request, s string) (string, error) {
-		// 	name, query, found := parseAgentCommand(s)
-		// 	if !found {
-		// 		return s, nil
-		// 	}
-		// 	out, err := sw.callAgent(parent, req, name, query)
-		// 	if err != nil {
-		// 		return "", err
-		// 	}
-
-		// 	return out, nil
-		// }
 		return func(next Handler) Handler {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
-				ctx := req.Context()
-				log.GetLogger(ctx).Debugf("🔗 (context): %s max_history: %v max_span: %v\n", agent.Name, agent.MaxHistory, agent.MaxSpan)
+				logger := log.GetLogger(req.Context())
+				logger.Debugf("🔗 (context): %s max_history: %v max_span: %v\n", agent.Name, agent.MaxHistory, agent.MaxSpan)
+
 				env := sw.globalEnv()
-
-				// resolveGlobal := func(ext, s string) (string, error) {
-				// 	// update the request instruction
-				// 	content, err := sw.applyGlobal(ext, s, env)
-				// 	if err != nil {
-				// 		return "", err
-				// 	}
-
-				// 	// dynamic @ if requested
-				// 	content, err = resolvePrompt(agent, req, content)
-				// 	if err != nil {
-				// 		return "", err
-				// 	}
-				// 	return content, nil
-				// }
 
 				var chatID = sw.ChatID
 				var history []*api.Message
@@ -92,7 +66,7 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 					if agent.Context != "" {
 						// continue without context if failed
 						if resolved, err := mustResolveContext(agent, req, agent.Context); err != nil {
-							log.GetLogger(ctx).Errorf("failed to resolve context %s: %v\n", agent.Context, err)
+							logger.Errorf("failed to resolve context %s: %v\n", agent.Context, err)
 						} else {
 							list = resolved
 							emoji = "🤖"
@@ -101,11 +75,11 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 						list = sw.Vars.History
 					}
 					if len(list) > 0 {
-						log.GetLogger(ctx).Debugf("%s context messages: %v\n", emoji, len(list))
+						logger.Debugf("%s context messages: %v\n", emoji, len(list))
 						for i, msg := range list {
 							if msg.Role != api.RoleSystem {
+								logger.Debugf("adding [%v]: %s %s (%v)\n", i, msg.Role, abbreviate(msg.Content, 100), len(msg.Content))
 								history = append(history, msg)
-								log.GetLogger(ctx).Debugf("Added historical message [%v]: %s %s\n", i, msg.Role, head(msg.Content, 100))
 							}
 						}
 					}
@@ -123,7 +97,13 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 					Sender:  agent.Name,
 				})
 
-				log.GetLogger(ctx).Debugf("Added messages: %v\n", len(history))
+				logger.Debugf("messages total: %v\n", len(history))
+
+				if logger.IsTrace() {
+					for i, v := range history {
+						logger.Debugf("[%v] %+v\n", i, v)
+					}
+				}
 
 				// Request
 				initLen := len(history)

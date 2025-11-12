@@ -26,8 +26,9 @@ func InstructionMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 		}
 		return func(next Handler) Handler {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
-				ctx := req.Context()
-				log.GetLogger(ctx).Debugf("🔗 (instruction): %s max_history: %v max_span: %v\n", agent.Name, agent.MaxHistory, agent.MaxSpan)
+				logger := log.GetLogger(req.Context())
+				logger.Debugf("🔗 (instruction): %s\n", agent.Name)
+
 				env := sw.globalEnv()
 
 				var instructions []string
@@ -68,11 +69,17 @@ func InstructionMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 
 				req.Instruction = strings.Join(instructions, "\n")
 
+				logger.Debugf("instructions (%v): %s (%v)\n", len(instructions), abbreviate(req.Instruction, 64), len(req.Instruction))
+				if logger.IsTrace() {
+					for i, v := range instructions {
+						logger.Debugf("instructions[%v]: %s\n", i, v)
+					}
+				}
+
 				// call next
 				if err := next.Serve(req, resp); err != nil {
 					return err
 				}
-
 				return nil
 			})
 		}

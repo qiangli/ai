@@ -11,7 +11,7 @@ func ToolMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 				logger := log.GetLogger(req.Context())
 
-				logger.Debugf("🔗 (tool): %s\n", agent.Name)
+				logger.Debugf("🔗 (tool): %s %v\n", agent.Name, len(agent.Tools))
 
 				var tools = make(map[string]*api.ToolFunc)
 
@@ -38,6 +38,13 @@ func ToolMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 					}
 					agent.Tools = list
 				}
+
+				if logger.IsTrace() {
+					for i, v := range agent.Tools {
+						logger.Debugf("[%v] %s %s %s %s\n", i, v.Type, v.Kit, v.Name, abbreviate(v.Description, 64))
+					}
+				}
+				logger.Debugf("total: %v\n", len(agent.Tools))
 
 				return next.Serve(req, resp)
 			})

@@ -79,18 +79,18 @@ type Request struct {
 	ctx context.Context
 }
 
-func (r *Request) String() string {
-	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("Name: %s\n", r.Name))
-	if r.Model != nil {
-		sb.WriteString(fmt.Sprintf("Model: %s/%s\n", r.Model.Provider, r.Model.Model))
-	}
-	sb.WriteString(fmt.Sprintf("MaxTurns: %d\n", r.MaxTurns))
-	sb.WriteString(fmt.Sprintf("Tools: %d\n", len(r.Tools)))
-	sb.WriteString(fmt.Sprintf("Messages: %d\n", len(r.Messages)))
+// func (r *Request) String() string {
+// 	var sb strings.Builder
+// 	sb.WriteString(fmt.Sprintf("Name: %s\n", r.Name))
+// 	if r.Model != nil {
+// 		sb.WriteString(fmt.Sprintf("Model: %s/%s\n", r.Model.Provider, r.Model.Model))
+// 	}
+// 	sb.WriteString(fmt.Sprintf("MaxTurns: %d\n", r.MaxTurns))
+// 	sb.WriteString(fmt.Sprintf("Tools: %d\n", len(r.Tools)))
+// 	sb.WriteString(fmt.Sprintf("Messages: %d\n", len(r.Messages)))
 
-	return sb.String()
-}
+// 	return sb.String()
+// }
 
 func NewRequest(ctx context.Context, name string, input *UserInput) *Request {
 	return &Request{
@@ -172,13 +172,13 @@ type Response struct {
 	Result *Result
 }
 
-func (r *Response) String() string {
-	var sb strings.Builder
-	if r.Result != nil {
-		sb.WriteString(fmt.Sprintf("Result: %s\n", r.Result))
-	}
-	return sb.String()
-}
+// func (r *Response) String() string {
+// 	var sb strings.Builder
+// 	if r.Result != nil {
+// 		sb.WriteString(fmt.Sprintf("Result: %s\n", r.Result))
+// 	}
+// 	return sb.String()
+// }
 
 // Result encapsulates the possible return values for agent/function.
 type Result struct {

@@ -15,7 +15,8 @@ func InferenceMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 		return func(next Handler) Handler {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 				ctx := req.Context()
-				log.GetLogger(ctx).Debugf("🔗 (llm): %s adapter: %s\n", agent.Name, agent.Adapter)
+				logger := log.GetLogger(ctx)
+				logger.Debugf("🔗 (llm): %s adapter: %s\n", agent.Name, agent.Adapter)
 
 				var adapter llm.LLMAdapter = &adapter.ChatAdapter{}
 				if agent.Adapter != "" {
@@ -37,6 +38,11 @@ func InferenceMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 					return fmt.Errorf("Empty response")
 				}
 				resp.Result = result.Result
+
+				logger.Debugf("%s (%v)\n", abbreviate(result.Result.Value, 64), len(result.Result.Value))
+				if logger.IsTrace() {
+					logger.Debugf("result: %s\n", result.Result.Value)
+				}
 
 				return next.Serve(req, resp)
 			})

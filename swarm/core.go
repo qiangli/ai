@@ -154,7 +154,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 
 	inferMiddelWare := InferenceMiddlewareFunc(r)
 
-	log.GetLogger(ctx).Debugf("*** Agent: %s parent: %+v\n", req.Name, req.Parent)
+	log.GetLogger(ctx).Debugf("🚀 %s parent: %+v\n", req.Name, req.Parent)
 
 	final := HandlerFunc(func(req *api.Request, res *api.Response) error {
 		log.GetLogger(ctx).Debugf("🔗 (final): %s\n", req.Name)
@@ -163,7 +163,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 
 	for {
 		start := time.Now()
-		log.GetLogger(ctx).Debugf("Creating agent: %s %s\n", req.Name, start)
+		log.GetLogger(ctx).Debugf("creating agent: %s %s\n", req.Name, start)
 		//
 		agent, err := r.createAgent(ctx, req)
 		if err != nil {

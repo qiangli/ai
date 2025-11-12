@@ -25,8 +25,8 @@ func QueryMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 
 		return func(next Handler) Handler {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
-				ctx := req.Context()
-				log.GetLogger(ctx).Debugf("🔗 (query): %s max_history: %v max_span: %v\n", agent.Name, agent.MaxHistory, agent.MaxSpan)
+				logger := log.GetLogger(req.Context())
+				logger.Debugf("🔗 (query): %s\n", agent.Name)
 				env := sw.globalEnv()
 
 				if agent.Message != "" {
@@ -48,10 +48,14 @@ func QueryMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 					req.Query = req.Query + "\n" + input
 				}
 
+				logger.Debugf("query: %s (%v)\n", abbreviate(req.Query, 64), len(req.Query))
+				if logger.IsTrace() {
+					logger.Debugf("query: %s\n", req.Query)
+				}
+
 				if err := next.Serve(req, resp); err != nil {
 					return err
 				}
-
 				return nil
 			})
 		}
