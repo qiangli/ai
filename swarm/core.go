@@ -53,6 +53,8 @@ type Swarm struct {
 
 	// TODO
 	template *template.Template
+
+	middlewares []func(*api.Agent) api.Middleware
 }
 
 // https://pkg.go.dev/text/template
@@ -110,6 +112,39 @@ func (r *Swarm) InitTemplate() {
 	r.template = template.New("swarm").Funcs(fm)
 }
 
+func (r *Swarm) InitMiddleWare() {
+	r.middlewares = []func(*api.Agent) api.Middleware{
+		TimeoutMiddleware,
+		MaxLogMiddlewareFunc(r),
+		EnvMiddlewareFunc(r),
+		MemoryMiddlewareFunc(r),
+		//
+		InstructionMiddlewareFunc(r),
+		QueryMiddlewareFunc(r),
+		ContextMiddlewareFunc(r),
+		AgentMiddlewareFunc(r),
+		//
+		ToolMiddlewareFunc(r),
+		//
+		ModelMiddlewareFunc(r),
+		//
+		InferenceMiddlewareFunc(r),
+	}
+}
+
+func (r *Swarm) NewChain(a *api.Agent) api.Handler {
+	var mds = make([]api.Middleware, len(r.middlewares))
+	for i, v := range r.middlewares {
+		mds[i] = v(a)
+	}
+	final := HandlerFunc(func(req *api.Request, res *api.Response) error {
+		log.GetLogger(req.Context()).Debugf("🔗 (final): %s\n", req.Name)
+		return nil
+	})
+	chain := NewChain(mds...).Then(final)
+	return chain
+}
+
 func (r *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
 	agent, err := conf.CreateAgent(ctx, req, r.User, r.Secrets, r.Assets)
 	if err == nil && req.Parent != nil {
@@ -138,28 +173,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		return api.NewInternalServerError("invalid config. user or vars not initialized")
 	}
 
-	//
-	logMiddleware := MaxLogMiddlewareFunc(r)
-	envMiddleware := EnvMiddlewareFunc(r)
-	memMiddleware := MemoryMiddlewareFunc(r)
-
-	instructMiddleware := InstructionMiddlewareFunc(r)
-	QueryMiddleware := QueryMiddlewareFunc(r)
-	contextMiddleware := ContextMiddlewareFunc(r)
-	agentMiddlWare := AgentMiddlewareFunc(r)
-
-	toolMiddleWare := ToolMiddlewareFunc(r)
-
-	modelMiddleware := ModelMiddlewareFunc(r)
-
-	inferMiddelWare := InferenceMiddlewareFunc(r)
-
 	log.GetLogger(ctx).Debugf("🚀 %s parent: %+v\n", req.Name, req.Parent)
-
-	final := HandlerFunc(func(req *api.Request, res *api.Response) error {
-		log.GetLogger(ctx).Debugf("🔗 (final): %s\n", req.Name)
-		return nil
-	})
 
 	for {
 		start := time.Now()
@@ -177,24 +191,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 			log.GetLogger(ctx).SetLogLevel(agent.LogLevel)
 		}
 
-		chain := NewChain(
-			TimeoutMiddleware(agent),
-			logMiddleware(agent, 100),
-			//
-			envMiddleware(agent),
-			memMiddleware(agent),
-			//
-			instructMiddleware(agent),
-			QueryMiddleware(agent),
-			contextMiddleware(agent),
-			agentMiddlWare(agent),
-			toolMiddleWare(agent),
-			modelMiddleware(agent),
-			//
-			inferMiddelWare(agent),
-		)
-
-		if err := chain.Then(final).Serve(req, resp); err != nil {
+		if err := r.NewChain(agent).Serve(req, resp); err != nil {
 			return err
 		}
 
