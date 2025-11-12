@@ -148,8 +148,8 @@ agents:
         perform a web search, and return the most relevant results.
     functions:
       - "gptr:*"
-      # - "ddg:*"
-      # - "bing:*"
+      - "ddg:*"
+      - "bing:*"
       - "google:*"
       - "brave:*"
   

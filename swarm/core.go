@@ -57,22 +57,22 @@ type Swarm struct {
 	middlewares []func(*api.Agent) api.Middleware
 }
 
-func (r *Swarm) Init() {
-	r.InitTemplate()
-	r.InitChain()
+func (sw *Swarm) Init() {
+	sw.InitTemplate()
+	sw.InitChain()
 }
 
 // https://pkg.go.dev/text/template
 // https://masterminds.github.io/sprig/
-func (r *Swarm) InitTemplate() {
+func (sw *Swarm) InitTemplate() {
 	var fm = sprig.FuncMap()
 	// overridge sprig
 	fm["user"] = func() *api.User {
-		return r.User
+		return sw.User
 	}
 	// OS
 	getenv := func(key string) string {
-		v, ok := r.Vars.Global.Get(key)
+		v, ok := sw.Vars.Global.Get(key)
 		if !ok {
 			return ""
 		}
@@ -96,15 +96,15 @@ func (r *Swarm) InitTemplate() {
 	fm["ai"] = func(args ...string) string {
 		var b bytes.Buffer
 		ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
-		vs := sh.NewVirtualSystem(r.Root, r.OS, r.Workspace, ioe)
+		vs := sh.NewVirtualSystem(sw.Root, sw.OS, sw.Workspace, ioe)
 		var agent *api.Agent
-		if v, ok := r.Vars.Global.Get("__parent_agent"); ok {
+		if v, ok := sw.Vars.Global.Get("__parent_agent"); ok {
 			agent = v.(*api.Agent)
 		} else {
 			return "Error: missing agent"
 		}
 		ctx := context.Background()
-		result, err := r.runAgent(ctx, vs, agent, args)
+		result, err := sw.runAgent(ctx, vs, agent, args)
 		if err != nil {
 			return err.Error()
 		}
@@ -114,33 +114,33 @@ func (r *Swarm) InitTemplate() {
 		return result.Value
 	}
 
-	r.template = template.New("swarm").Funcs(fm)
+	sw.template = template.New("swarm").Funcs(fm)
 }
 
-func (r *Swarm) InitChain() {
-	r.middlewares = []func(*api.Agent) api.Middleware{
+func (sw *Swarm) InitChain() {
+	sw.middlewares = []func(*api.Agent) api.Middleware{
 		TimeoutMiddleware,
-		MaxLogMiddlewareFunc(r),
-		EnvMiddlewareFunc(r),
-		MemoryMiddlewareFunc(r),
+		MaxLogMiddlewareFunc(sw),
+		EnvMiddlewareFunc(sw),
+		MemoryMiddlewareFunc(sw),
 		//
-		InstructionMiddlewareFunc(r),
-		QueryMiddlewareFunc(r),
-		ContextMiddlewareFunc(r),
-		AgentMiddlewareFunc(r),
+		InstructionMiddlewareFunc(sw),
+		QueryMiddlewareFunc(sw),
+		ContextMiddlewareFunc(sw),
+		AgentMiddlewareFunc(sw),
 		//
-		ToolMiddlewareFunc(r),
+		ToolMiddlewareFunc(sw),
 		//
-		ModelMiddlewareFunc(r),
+		ModelMiddlewareFunc(sw),
 		//
-		InferenceMiddlewareFunc(r),
+		InferenceMiddlewareFunc(sw),
 	}
 }
 
-func (r *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
+func (sw *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
 	log.GetLogger(ctx).Infof("🔗 (init): %s\n", a.Name)
-	var mds = make([]api.Middleware, len(r.middlewares))
-	for i, v := range r.middlewares {
+	var mds = make([]api.Middleware, len(sw.middlewares))
+	for i, v := range sw.middlewares {
 		mds[i] = v(a)
 	}
 	final := HandlerFunc(func(req *api.Request, res *api.Response) error {
@@ -151,16 +151,16 @@ func (r *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
 	return chain
 }
 
-func (r *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
-	agent, err := conf.CreateAgent(ctx, req, r.User, r.Secrets, r.Assets)
+func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
+	agent, err := conf.CreateAgent(ctx, req, sw.User, sw.Secrets, sw.Assets)
 	if err == nil && req.Parent != nil {
-		r.Vars.Global.Set("__parent_agent", req.Parent)
+		sw.Vars.Global.Set("__parent_agent", req.Parent)
 	}
 	return agent, err
 }
 
 // Run calls the language model with the messages list (after applying the system prompt). If the resulting AIMessage contains tool_calls, the graph will then call the tools. The tools node executes the tools and adds the responses to the messages list as ToolMessage objects. The agent node then calls the language model again. The process repeats until no more tool_calls are present in the response. The agent then returns the full list of messages.
-func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
+func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 	if req.Name == "" {
 		return api.NewBadRequestError("missing agent in request")
 	}
@@ -187,7 +187,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		logger.SetLogLevel(ll)
 	}
 
-	if r.User == nil || r.Vars == nil {
+	if sw.User == nil || sw.Vars == nil {
 		return api.NewInternalServerError("invalid config. user or vars not initialized")
 	}
 
@@ -195,7 +195,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 		start := time.Now()
 		logger.Debugf("creating agent: %s %s\n", req.Name, start)
 		//
-		agent, err := r.createAgent(ctx, req)
+		agent, err := sw.createAgent(ctx, req)
 		if err != nil {
 			return err
 		}
@@ -209,7 +209,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 			logger.Infof("\n")
 		}
 
-		if err := r.NewChain(ctx, agent).Serve(req, resp); err != nil {
+		if err := sw.NewChain(ctx, agent).Serve(req, resp); err != nil {
 			return err
 		}
 
@@ -231,7 +231,7 @@ func (r *Swarm) Run(req *api.Request, resp *api.Response) error {
 }
 
 // copy values from src to dst after calling @agent and applying template if required
-func (r *Swarm) mapAssign(agent *api.Agent, req *api.Request, dst, src map[string]any, override bool) error {
+func (sw *Swarm) mapAssign(agent *api.Agent, req *api.Request, dst, src map[string]any, override bool) error {
 	for key, val := range src {
 		if !override {
 			if _, ok := dst[key]; ok {
@@ -240,7 +240,7 @@ func (r *Swarm) mapAssign(agent *api.Agent, req *api.Request, dst, src map[strin
 		}
 		// @agent value support
 		if v, ok := val.(string); ok {
-			if resolved, err := r.resolveArgument(agent, req, v); err != nil {
+			if resolved, err := sw.resolveArgument(agent, req, v); err != nil {
 				return err
 			} else {
 				val = resolved
@@ -248,7 +248,7 @@ func (r *Swarm) mapAssign(agent *api.Agent, req *api.Request, dst, src map[strin
 		}
 		// go template value support
 		if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-			if resolved, err := r.applyTemplate(v, dst); err != nil {
+			if resolved, err := sw.applyTemplate(v, dst); err != nil {
 				return err
 			} else {
 				val = resolved
@@ -260,20 +260,20 @@ func (r *Swarm) mapAssign(agent *api.Agent, req *api.Request, dst, src map[strin
 }
 
 // make a copy of golbal env
-func (r *Swarm) globalEnv() map[string]any {
+func (sw *Swarm) globalEnv() map[string]any {
 	var env = make(map[string]any)
-	r.Vars.Global.Copy(env)
+	sw.Vars.Global.Copy(env)
 	return env
 }
 
-func (r *Swarm) RunSub(parent *api.Agent, req *api.Request, resp *api.Response) error {
+func (sw *Swarm) RunSub(parent *api.Agent, req *api.Request, resp *api.Response) error {
 	// prevent loop
 	// TODO support recursion?
 	if parent != nil && parent.Name == req.Name {
 		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself.", req.Name))
 	}
 
-	if err := r.Run(req, resp); err != nil {
+	if err := sw.Run(req, resp); err != nil {
 		return err
 	}
 	if resp.Result == nil {
@@ -284,12 +284,12 @@ func (r *Swarm) RunSub(parent *api.Agent, req *api.Request, resp *api.Response) 
 }
 
 // call agent if found. otherwise return s as is
-func (r *Swarm) resolveArgument(agent *api.Agent, req *api.Request, s string) (any, error) {
+func (sw *Swarm) resolveArgument(agent *api.Agent, req *api.Request, s string) (any, error) {
 	name, query, found := parseAgentCommand(s)
 	if !found {
 		return s, nil
 	}
-	out, err := r.callAgent(agent, req, name, query)
+	out, err := sw.callAgent(agent, req, name, query)
 	if err != nil {
 		return nil, err
 	}
@@ -309,7 +309,7 @@ func (r *Swarm) resolveArgument(agent *api.Agent, req *api.Request, s string) (a
 	return arg.Result, nil
 }
 
-func (r *Swarm) callAgent(parent *api.Agent, req *api.Request, s string, prompt string) (string, error) {
+func (sw *Swarm) callAgent(parent *api.Agent, req *api.Request, s string, prompt string) (string, error) {
 	name := strings.TrimPrefix(s, "@")
 
 	nreq := req.Clone()
@@ -322,7 +322,7 @@ func (r *Swarm) callAgent(parent *api.Agent, req *api.Request, s string, prompt 
 
 	nresp := &api.Response{}
 
-	err := r.RunSub(parent, nreq, nresp)
+	err := sw.RunSub(parent, nreq, nresp)
 	if err != nil {
 		return "", err
 	}
@@ -332,8 +332,8 @@ func (r *Swarm) callAgent(parent *api.Agent, req *api.Request, s string, prompt 
 	return nresp.Result.Value, nil
 }
 
-func (r *Swarm) applyTemplate(text string, data any) (string, error) {
-	t, err := r.template.Parse(text)
+func (sw *Swarm) applyTemplate(text string, data any) (string, error) {
+	t, err := sw.template.Parse(text)
 	if err != nil {
 		return "", err
 	}
@@ -600,27 +600,27 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 	return sw.toResult(out), nil
 }
 
-func (sw *Swarm) toResult(v any) *api.Result {
-	if r, ok := v.(*api.Result); ok {
-		if len(r.Content) == 0 {
-			return r
+func (sw *Swarm) toResult(data any) *api.Result {
+	if v, ok := data.(*api.Result); ok {
+		if len(v.Content) == 0 {
+			return v
 		}
-		if r.MimeType == api.ContentTypeImageB64 {
-			return r
+		if v.MimeType == api.ContentTypeImageB64 {
+			return v
 		}
-		if strings.HasPrefix(r.MimeType, "text/") {
+		if strings.HasPrefix(v.MimeType, "text/") {
 			return &api.Result{
-				MimeType: r.MimeType,
-				Value:    string(r.Content),
+				MimeType: v.MimeType,
+				Value:    string(v.Content),
 			}
 		}
 		return &api.Result{
-			MimeType: r.MimeType,
-			Value:    dataURL(r.MimeType, r.Content),
+			MimeType: v.MimeType,
+			Value:    dataURL(v.MimeType, v.Content),
 		}
 		// // image
 		// // transform media response into data url
-		// presigned, err := h.save(r)
+		// presigned, err := sw.save(sw)
 		// if err != nil {
 		// 	return &api.Result{
 		// 		Value: err.Error(),
@@ -628,17 +628,17 @@ func (sw *Swarm) toResult(v any) *api.Result {
 		// }
 
 		// return &api.Result{
-		// 	MimeType: r.MimeType,
+		// 	MimeType: v.MimeType,
 		// 	Value:    presigned,
 		// }
 	}
-	if s, ok := v.(string); ok {
+	if s, ok := data.(string); ok {
 		return &api.Result{
 			Value: s,
 		}
 	}
 	return &api.Result{
-		Value: fmt.Sprintf("%v", v),
+		Value: fmt.Sprintf("%v", data),
 	}
 }
 

@@ -263,5 +263,9 @@ func (r *WebKit) Call(ctx context.Context, vars *api.Vars, env *api.ToolEnv, tf 
 		owner:   env.Owner,
 		key:     tf.ApiKey,
 	}
-	return CallKit(wk, tf.Kit, tf.Name, callArgs...)
+	result, err := CallKit(wk, tf.Kit, tf.Name, callArgs...)
+	if err != nil {
+		return nil, fmt.Errorf("error: %v. please try again after few seconds.", err)
+	}
+	return result, nil
 }
