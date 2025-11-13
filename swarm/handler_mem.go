@@ -22,18 +22,20 @@ func MemoryMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 					return err
 				}
 
-				initLen := len(history)
-				sw.Vars.History = history
+				// initLen := len(history)
+				sw.Vars.InitHistory(history)
 
-				logger.Debugf("init messages: %v\n", initLen)
+				logger.Debugf("init messages: %v\n", len(history))
 
 				err = next.Serve(req, resp)
 
-				nlen := (len(sw.Vars.History) - initLen)
+				nhist := sw.Vars.GetNewHistory()
+				nlen := len(nhist)
+				// nlen := (len(sw.Vars.History) - initLen)
 				logger.Debugf("new messages: %v\n", nlen)
 
 				if nlen > 0 {
-					if err := sw.History.Save(sw.Vars.History[initLen:]); err != nil {
+					if err := sw.History.Save(nhist); err != nil {
 						logger.Errorf("error saving history: %v", err)
 					}
 					logger.Debugf("saved messages: %v\n", nlen)

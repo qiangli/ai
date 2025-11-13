@@ -389,12 +389,8 @@ func (r *AIKit) AgentGetQuery(_ context.Context, vars *api.Vars, _ string, _ map
 	if r.h == nil || r.h.agent == nil {
 		return nil, fmt.Errorf("No active agent found")
 	}
-	var q string
-	if r.h.agent.RawInput != nil {
-		q = r.h.agent.RawInput.Query()
-	}
 	return &api.Result{
-		Value: q,
+		Value: r.h.agent.Message,
 	}, nil
 }
 
@@ -407,13 +403,7 @@ func (r *AIKit) AgentSetQuery(_ context.Context, vars *api.Vars, _ string, args 
 		return nil, err
 	}
 
-	if r.h.agent.RawInput != nil {
-		r.h.agent.RawInput.Message = query
-	} else {
-		r.h.agent.RawInput = &api.UserInput{
-			Message: query,
-		}
-	}
+	r.h.agent.Message = query
 	return &api.Result{
 		Value: "success",
 	}, nil

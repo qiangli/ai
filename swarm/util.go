@@ -196,3 +196,8 @@ func abbreviate(s string, maxLen int) string {
 	}
 	return s
 }
+
+// concat joins the s by sep.
+func concat(sep byte, s ...string) string {
+	return strings.Join(s, string(sep))
+}

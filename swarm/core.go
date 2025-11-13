@@ -309,27 +309,22 @@ func (sw *Swarm) resolveArgument(agent *api.Agent, req *api.Request, s string) (
 	return arg.Result, nil
 }
 
-func (sw *Swarm) callAgent(parent *api.Agent, req *api.Request, s string, prompt string) (string, error) {
-	name := strings.TrimPrefix(s, "@")
-
-	nreq := req.Clone()
-	nreq.Parent = parent
-	nreq.Name = name
+func (sw *Swarm) callAgent(parent *api.Agent, req *api.Request, name string, message string) (string, error) {
+	req.Parent = parent
+	req.Name = strings.TrimPrefix(name, "@")
 	// prepend additional instruction to user query
-	if len(prompt) > 0 {
-		nreq.RawInput.Message = prompt + "\n" + nreq.RawInput.Message
-	}
+	req.Query = concat('\n', message, req.Query)
 
-	nresp := &api.Response{}
+	resp := &api.Response{}
 
-	err := sw.RunSub(parent, nreq, nresp)
+	err := sw.RunSub(parent, req, resp)
 	if err != nil {
 		return "", err
 	}
-	if nresp.Result == nil {
+	if resp.Result == nil || resp.Result.Value == "" {
 		return "", fmt.Errorf("empty response")
 	}
-	return nresp.Result.Value, nil
+	return resp.Result.Value, nil
 }
 
 func (sw *Swarm) applyTemplate(text string, data any) (string, error) {

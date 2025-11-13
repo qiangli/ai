@@ -29,7 +29,6 @@ func RunAgent(ctx context.Context, app *api.AppConfig) error {
 	in.MaxTurns = app.MaxTurns
 	in.MaxTime = app.MaxTime
 	in.MaxHistory = app.MaxHistory
-	// in.Context = app.Context
 	in.MaxSpan = app.MaxSpan
 	in.Format = app.Format
 	in.Model = app.Model

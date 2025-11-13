@@ -28,7 +28,7 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 				}
 				maps.Copy(nreq.Arguments, at.Arguments)
 			}
-			out, err := sw.callAgent(parent, req, at.Name, at.Message)
+			out, err := sw.callAgent(parent, nreq, at.Name, at.Message)
 			if err != nil {
 				return nil, err
 			}
@@ -67,7 +67,7 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 
 				// 2. Historical Messages
 				// skip system role
-				for i, msg := range sw.Vars.History {
+				for i, msg := range sw.Vars.ListHistory() {
 					if msg.Role != api.RoleSystem {
 						logger.Debugf("adding [%v]: %s %s (%v)\n", i, msg.Role, abbreviate(msg.Content, 100), len(msg.Content))
 						history = append(history, msg)
@@ -171,8 +171,7 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 					history = append(history, &message)
 				}
 
-				// always append: mem will save the diff
-				sw.Vars.History = append(sw.Vars.History, history...)
+				sw.Vars.AddHistory(history)
 				//
 				resp.Messages = history[initLen:]
 				resp.Agent = agent
