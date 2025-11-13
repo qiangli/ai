@@ -53,15 +53,17 @@ type TemplateFuncMap = template.FuncMap
 type ToolRunner func(context.Context, string, map[string]any) (*Result, error)
 
 type Action struct {
+	ID string `json:"id"`
+
 	// agent/tool name
 	Name string `json:"name"`
 
 	// arguments including name
 	Arguments map[string]any `json:"arguments"`
 
-	//
-	Tool  *ToolFunc `json:"-"`
-	Agent *Agent    `json:"-"`
+	// //
+	// Tool  *ToolFunc `json:"-"`
+	// Agent *Agent    `json:"-"`
 }
 
 // openai: ChatCompletionMessageToolCallUnion

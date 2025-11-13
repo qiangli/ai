@@ -13,8 +13,8 @@ import (
 	"github.com/qiangli/shell/tool/sh"
 )
 
-func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, tf *api.ToolFunc) error {
-	result, err := h.sw.doAction(ctx, h.agent, tf, req.Arguments)
+func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, action *api.Action) error {
+	result, err := h.sw.doAction(ctx, h.agent, action.ID, req.Arguments)
 	resp.Agent = h.agent
 	resp.Result = result
 	return err
@@ -27,7 +27,7 @@ func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error 
 	nreq := req.Clone()
 	nresp := &api.Response{}
 	for _, v := range h.agent.Flow.Actions {
-		if err := h.doAction(ctx, nreq, nresp, v.Tool); err != nil {
+		if err := h.doAction(ctx, nreq, nresp, v); err != nil {
 			return err
 		}
 		nreq.RawInput = &api.UserInput{
@@ -86,7 +86,7 @@ func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error 
 
 			// use the same request
 			nresp := new(api.Response)
-			if err := h.doAction(ctx, req, nresp, v.Tool); err != nil {
+			if err := h.doAction(ctx, req, nresp, v); err != nil {
 				nresp.Result = &api.Result{
 					Value: err.Error(),
 				}
@@ -119,7 +119,7 @@ func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
 		// match the action id
 		id := api.KitName(v).ID()
 		for i, action := range h.agent.Flow.Actions {
-			if id == action.Tool.ID() {
+			if id == action.ID {
 				which = i
 			}
 		}
@@ -149,7 +149,7 @@ func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
 	ctx := req.Context()
 
 	v := h.agent.Flow.Actions[which]
-	if err := h.doAction(ctx, req, resp, v.Tool); err != nil {
+	if err := h.doAction(ctx, req, resp, v); err != nil {
 		return err
 	}
 	return nil

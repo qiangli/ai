@@ -419,7 +419,9 @@ func CreateAgent(ctx context.Context, req *api.Request, auth *api.User, secrets 
 			var actionMap = make(map[string]*api.Action)
 			for _, v := range agent.Tools {
 				actionMap[v.Kit+":"+v.Name] = &api.Action{
-					Tool: v,
+					ID:        v.ID(),
+					Name:      v.Name,
+					Arguments: v.Arguments,
 				}
 			}
 			flow := &api.Flow{

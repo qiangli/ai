@@ -465,7 +465,7 @@ func (sw *Swarm) agentRunner(vs *sh.VirtualSystem, agent *api.Agent) func(contex
 
 		vs.System.Setenv(globalQuery, at.Message)
 
-		result, err := sw.doAction(ctx, agent, action, at.Arguments)
+		result, err := sw.doAction(ctx, agent, action.ID(), at.Arguments)
 		if err != nil {
 			vs.System.Setenv(globalError, err.Error())
 			fmt.Fprintln(vs.IOE.Stderr, err.Error())
@@ -641,7 +641,7 @@ func (sw *Swarm) toResult(data any) *api.Result {
 }
 
 // flow actions
-func (sw *Swarm) doAction(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
+func (sw *Swarm) doAction(ctx context.Context, agent *api.Agent, id string, args map[string]any) (*api.Result, error) {
 	env := sw.globalEnv()
 
 	if len(args) > 0 {
@@ -650,7 +650,7 @@ func (sw *Swarm) doAction(ctx context.Context, agent *api.Agent, tf *api.ToolFun
 
 	// var runTool = sw.createCaller(sw.User, agent)
 	var runTool = agent.ToolCaller
-	result, err := runTool(ctx, tf.ID(), env)
+	result, err := runTool(ctx, id, env)
 	if err != nil {
 		return nil, err
 	}
