@@ -75,6 +75,12 @@ tools:
         - "tool"
         - "parameters"
 
+  - name: "tool_calllog"
+    description: "Get the tool call history for the current user session"
+    parameters:
+      type: "object"
+      properties: {}
+  
   - name: "list_models"
     description: "List all AI language model aliases created by the current user"
     parameters:

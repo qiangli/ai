@@ -97,14 +97,16 @@ func (sw *Swarm) InitTemplate() {
 		var b bytes.Buffer
 		ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
 		vs := sh.NewVirtualSystem(sw.Root, sw.OS, sw.Workspace, ioe)
-		var agent *api.Agent
+		var parent *api.Agent
 		if v, ok := sw.Vars.Global.Get("__parent_agent"); ok {
-			agent = v.(*api.Agent)
+			parent = v.(*api.Agent)
 		} else {
 			return "Error: missing agent"
 		}
 		ctx := context.Background()
-		result, err := sw.runAgent(ctx, vs, agent, args)
+		result, err := sw.runAgent(ctx, vs, parent, args)
+		// result, err := sw.doAction(ctx, vs, parent, args)
+
 		if err != nil {
 			return err.Error()
 		}
@@ -481,7 +483,18 @@ func (sw *Swarm) createCaller(user *api.User, agent *api.Agent) api.ToolRunner {
 			return nil, fmt.Errorf("tool not found: %s", tid)
 		}
 
-		return sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, user), agent, v, args)
+		result, err := sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, user), agent, v, args)
+		// log calls
+		sw.Vars.AddToolCall(&api.ToolCallEntry{
+			ID:        tid,
+			Kit:       v.Kit,
+			Name:      v.Name,
+			Arguments: v.Arguments,
+			Result:    result,
+			Error:     err,
+			Timestamp: time.Now(),
+		})
+		return result, err
 	}
 }
 

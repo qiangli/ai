@@ -91,7 +91,7 @@ func LoadLocalToolFunc(local *api.AgentsConfig, owner, s string, secrets api.Sec
 	}
 
 	// builtin "agent" toolkit
-	// any agent can be used a tool
+	// any agent can be used as a tool
 	// agent:<agent name>
 	if kit == api.ToolTypeAgent {
 		if name == local.Name {
@@ -315,11 +315,6 @@ func loadAgentTool(ac *api.AgentsConfig, name string) ([]*api.ToolFunc, error) {
 				Body:        nil,
 				//
 				Agent: c.Name,
-				//
-				// Config: &api.ToolsConfig{
-				// 	Kit:  "agent",
-				// 	Type: api.ToolTypeAgent,
-				// },
 			}
 			return []*api.ToolFunc{tool}, nil
 		}

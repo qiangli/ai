@@ -2,8 +2,10 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 )
 
 // TODO real type of string
@@ -242,4 +244,24 @@ func toolID(kit, name string) string {
 
 type ToolGuard struct {
 	Agent string
+}
+
+type ToolCallEntry struct {
+	ID        string         `json:"id"`
+	Kit       string         `json:"kit"`
+	Name      string         `json:"name"`
+	Arguments map[string]any `json:"arguments"`
+
+	Error  error `json:"error"`
+	Result any   `json:"result"`
+
+	Timestamp time.Time `json:"timestamp"`
+}
+
+func (r *ToolCallEntry) ToJSON() (string, error) {
+	bytes, err := json.Marshal(r)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
 }

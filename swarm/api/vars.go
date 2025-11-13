@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"maps"
 	"sync"
@@ -126,6 +127,8 @@ type Vars struct {
 
 	Global *Global `json:"-"`
 
+	toolcalls []*ToolCallEntry `json:"-"`
+
 	mu sync.RWMutex
 }
 
@@ -169,6 +172,23 @@ func (v *Vars) ListHistory() []*Message {
 	return hist
 }
 
+func (v *Vars) AddToolCall(item *ToolCallEntry) {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	v.toolcalls = append(v.toolcalls, item)
+}
+
+func (v *Vars) ToolCalllog() (string, error) {
+	v.mu.RLock()
+	defer v.mu.RUnlock()
+	b, err := json.Marshal(v.toolcalls)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+// ... existing code ...
 func (v *Vars) Clone() *Vars {
 	clone := &Vars{
 		// ChatID:     v.ChatID,
