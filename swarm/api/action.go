@@ -52,11 +52,9 @@ func ParseState(s string) State {
 
 type TemplateFuncMap = template.FuncMap
 
-// type ToolRunner func(context.Context, string, map[string]any) (*Result, error)
-
 type Action struct {
 	// unique identifier
-	ID string `json:"id"`
+	ID string `json:"-"`
 
 	// agent/tool name
 	Name string `json:"name"`
@@ -65,20 +63,19 @@ type Action struct {
 	Arguments map[string]any `json:"arguments"`
 }
 
+// openai: ChatCompletionMessageToolCallUnion
+// genai: FunctionCall
+// anthropic: ToolUseBlock
+type ToolCall Action
+
 type ActionRunner interface {
 	Run(context.Context, string, map[string]any) (any, error)
 }
 
-// openai: ChatCompletionMessageToolCallUnion
-// genai: FunctionCall
-// anthropic: ToolUseBlock
-type ToolCall struct {
-	ID        string         `json:"id"`
-	Name      string         `json:"name"`
-	Arguments map[string]any `json:"arguments"`
-}
-
 type AppConfig struct {
+	// unique identifier
+	ID string `yaml:"-"`
+
 	// app root. default: $HOME/.ai/
 	Base string `yaml:"-"`
 
@@ -103,6 +100,9 @@ type AppConfig struct {
 	// set/level key - not the LLM model
 	Model string `yaml:"model"`
 
+	//
+	Pack string `yaml:"pack"`
+
 	Agents []*AgentConfig `yaml:"agents"`
 
 	//
@@ -113,8 +113,6 @@ type AppConfig struct {
 	Format string `yaml:"format"`
 
 	// memory context
-	// max history: 0 max span: 0
-	// New        *bool  `yaml:"new,omitempty"`
 	MaxHistory int    `yaml:"max_history"`
 	MaxSpan    int    `yaml:"max_span"`
 	Context    string `yaml:"context"`
@@ -122,20 +120,20 @@ type AppConfig struct {
 	// logging: quiet | informative | verbose
 	LogLevel string `yaml:"log_level"`
 
-	// tool or model provider
+	// tool / model provider
 	Provider string `yaml:"provider"`
 	BaseUrl  string `yaml:"base_url"`
 
 	// api token lookup key
 	ApiKey string `yaml:"api_key"`
 
-	// toolkit
+	// tool kit
 
-	// kit name specifies a namespace.
-	// e.g. but not limited to:
+	// kit specifies a namespace
+	//
 	// class name
 	// MCP server name
-	// virtual filesystem name
+	// file system
 	// container name
 	// virtual machine name
 	// tool/function (Gemini)
