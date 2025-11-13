@@ -114,20 +114,20 @@ type Vars struct {
 	// Format     string `json:"format"`
 	// Models     string `json:"models"`
 
-	Unsafe bool `json:"unsafe"`
+	// Unsafe bool `json:"unsafe"`
 	// Workspace string `json:"workspace"`
 
 	// DryRun        bool   `json:"-"`
 	// DryRunContent string `json:"-"`
+
+	Global *Global `json:"-"`
 
 	// conversation history
 	history []*Message `json:"-"`
 	// initial size of hisotry
 	initLen int `json:"-"`
 
-	Global *Global `json:"-"`
-
-	toolcalls []*ToolCallEntry `json:"-"`
+	toolcallHistory []*ToolCallEntry `json:"-"`
 
 	mu sync.RWMutex
 }
@@ -175,13 +175,13 @@ func (v *Vars) ListHistory() []*Message {
 func (v *Vars) AddToolCall(item *ToolCallEntry) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
-	v.toolcalls = append(v.toolcalls, item)
+	v.toolcallHistory = append(v.toolcallHistory, item)
 }
 
 func (v *Vars) ToolCalllog() (string, error) {
 	v.mu.RLock()
 	defer v.mu.RUnlock()
-	b, err := json.Marshal(v.toolcalls)
+	b, err := json.Marshal(v.toolcallHistory)
 	if err != nil {
 		return "", err
 	}
@@ -191,7 +191,7 @@ func (v *Vars) ToolCalllog() (string, error) {
 // ... existing code ...
 func (v *Vars) Clone() *Vars {
 	clone := &Vars{
-		// ChatID:     v.ChatID,
+		ChatID: v.ChatID,
 		// New:        v.New,
 		// MaxHistory: v.MaxHistory,
 		// MaxSpan:    v.MaxSpan,
@@ -203,7 +203,7 @@ func (v *Vars) Clone() *Vars {
 		//
 		// Format: v.Format,
 		//
-		Unsafe: v.Unsafe,
+		// Unsafe: v.Unsafe,
 		// Workspace: v.Workspace,
 		//
 		LogLevel: v.LogLevel,

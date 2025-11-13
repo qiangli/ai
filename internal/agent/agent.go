@@ -185,7 +185,7 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	// vars.Format = app.Format
 	// vars.Models = app.Models
 
-	vars.Unsafe = false
+	// vars.Unsafe = false
 	// vars.DryRun = app.DryRun
 	// vars.DryRunContent = app.DryRunContent
 	//

@@ -155,10 +155,15 @@ func (sw *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
 
 func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
 	agent, err := conf.CreateAgent(ctx, req, sw.User, sw.Secrets, sw.Assets)
-	if err == nil && req.Parent != nil {
+	if err != nil {
+		return nil, err
+	}
+
+	agent.ToolCaller = sw.createCaller(agent)
+	if req.Parent != nil {
 		sw.Vars.Global.Set("__parent_agent", req.Parent)
 	}
-	return agent, err
+	return agent, nil
 }
 
 // Run calls the language model with the messages list (after applying the system prompt). If the resulting AIMessage contains tool_calls, the graph will then call the tools. The tools node executes the tools and adds the responses to the messages list as ToolMessage objects. The agent node then calls the language model again. The process repeats until no more tool_calls are present in the response. The agent then returns the full list of messages.
@@ -474,7 +479,7 @@ func (sw *Swarm) agentRunner(vs *sh.VirtualSystem, agent *api.Agent) func(contex
 	}
 }
 
-func (sw *Swarm) createCaller(user *api.User, agent *api.Agent) api.ToolRunner {
+func (sw *Swarm) createCaller(agent *api.Agent) api.ToolRunner {
 	toolMap := sw.buildAgentToolMap(agent)
 
 	return func(ctx context.Context, tid string, args map[string]any) (*api.Result, error) {
@@ -483,7 +488,7 @@ func (sw *Swarm) createCaller(user *api.User, agent *api.Agent) api.ToolRunner {
 			return nil, fmt.Errorf("tool not found: %s", tid)
 		}
 
-		result, err := sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, user), agent, v, args)
+		result, err := sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, sw.User), agent, v, args)
 		// log calls
 		sw.Vars.AddToolCall(&api.ToolCallEntry{
 			ID:        tid,
@@ -643,7 +648,8 @@ func (sw *Swarm) doAction(ctx context.Context, agent *api.Agent, tf *api.ToolFun
 		maps.Copy(env, args)
 	}
 
-	var runTool = sw.createCaller(sw.User, agent)
+	// var runTool = sw.createCaller(sw.User, agent)
+	var runTool = agent.ToolCaller
 	result, err := runTool(ctx, tf.ID(), env)
 	if err != nil {
 		return nil, err

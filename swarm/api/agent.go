@@ -103,6 +103,9 @@ type Agent struct {
 
 	// global values
 	Environment map[string]any
+
+	//
+	ToolCaller ToolRunner
 }
 
 // if true, skip historical messages for LLM context
