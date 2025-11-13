@@ -135,7 +135,7 @@ func ContextMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
 				nreq.Name = agent.Name
 				nreq.MaxTurns = agent.MaxTurns
 				nreq.Tools = agent.Tools
-				nreq.RunTool = agent.ToolCaller
+				nreq.Runner = agent.Runner
 				nreq.Arguments = env
 				nreq.Vars = sw.Vars
 

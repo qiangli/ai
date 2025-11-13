@@ -196,13 +196,15 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 			log.GetLogger(ctx).Debugf("\n* tool call: %v %s args: %+v\n", i, name, args)
 
 			//
-			out, err := req.RunTool(ctx, name, args)
+			data, err := req.Runner.Run(ctx, name, args)
+			var out *api.Result
 			if err != nil {
 				out = &api.Result{
 					Value: fmt.Sprintf("%s", err),
 				}
+			} else {
+				out = api.ToResult(data)
 			}
-
 			log.GetLogger(ctx).Debugf("* tool call: %s out: %s\n", name, out)
 			resp.Result = out
 

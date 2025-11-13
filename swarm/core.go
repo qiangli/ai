@@ -159,7 +159,7 @@ func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent,
 		return nil, err
 	}
 
-	agent.ToolCaller = sw.createCaller(agent)
+	agent.Runner = sw.createCaller(agent)
 	if req.Parent != nil {
 		sw.Vars.Global.Set("__parent_agent", req.Parent)
 	}
@@ -479,44 +479,106 @@ func (sw *Swarm) agentRunner(vs *sh.VirtualSystem, agent *api.Agent) func(contex
 	}
 }
 
-func (sw *Swarm) createCaller(agent *api.Agent) api.ToolRunner {
+type AgentRunner struct {
+	sw      *Swarm
+	agent   *api.Agent
+	toolMap map[string]*api.ToolFunc
+}
+
+func NewAgentRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
 	toolMap := sw.buildAgentToolMap(agent)
-
-	return func(ctx context.Context, tid string, args map[string]any) (*api.Result, error) {
-		v, ok := toolMap[tid]
-		if !ok {
-			return nil, fmt.Errorf("tool not found: %s", tid)
-		}
-
-		result, err := sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, sw.User), agent, v, args)
-		// log calls
-		sw.Vars.AddToolCall(&api.ToolCallEntry{
-			ID:        tid,
-			Kit:       v.Kit,
-			Name:      v.Name,
-			Arguments: v.Arguments,
-			Result:    result,
-			Error:     err,
-			Timestamp: time.Now(),
-		})
-		return result, err
+	return &AgentRunner{
+		sw:      sw,
+		agent:   agent,
+		toolMap: toolMap,
 	}
 }
 
-func (sw *Swarm) createAICaller(agent *api.Agent) api.ToolRunner {
-	return func(ctx context.Context, tid string, args map[string]any) (*api.Result, error) {
-		tools, err := conf.LoadToolFunc(agent.Owner, tid, sw.Secrets, sw.Assets)
-		if err != nil {
-			return nil, err
-		}
-		for _, v := range tools {
-			id := v.ID()
-			if id == tid {
-				return sw.callTool(ctx, agent, v, args)
-			}
-		}
-		return nil, fmt.Errorf("invalid tool: %s", tid)
+func (r *AgentRunner) Run(ctx context.Context, tid string, args map[string]any) (any, error) {
+	v, ok := r.toolMap[tid]
+	if !ok {
+		return nil, fmt.Errorf("tool not found: %s", tid)
 	}
+
+	result, err := r.sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, r.sw.User), r.agent, v, args)
+	// log calls
+	r.sw.Vars.AddToolCall(&api.ToolCallEntry{
+		ID:        tid,
+		Kit:       v.Kit,
+		Name:      v.Name,
+		Arguments: v.Arguments,
+		Result:    result,
+		Error:     err,
+		Timestamp: time.Now(),
+	})
+	return result, err
+}
+
+func (sw *Swarm) createCaller(agent *api.Agent) api.ActionRunner {
+	// toolMap := sw.buildAgentToolMap(agent)
+
+	// return func(ctx context.Context, tid string, args map[string]any) (any, error) {
+	// 	v, ok := toolMap[tid]
+	// 	if !ok {
+	// 		return nil, fmt.Errorf("tool not found: %s", tid)
+	// 	}
+
+	// 	result, err := sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, sw.User), agent, v, args)
+	// 	// log calls
+	// 	sw.Vars.AddToolCall(&api.ToolCallEntry{
+	// 		ID:        tid,
+	// 		Kit:       v.Kit,
+	// 		Name:      v.Name,
+	// 		Arguments: v.Arguments,
+	// 		Result:    result,
+	// 		Error:     err,
+	// 		Timestamp: time.Now(),
+	// 	})
+	// 	return result, err
+	// }
+	return NewAgentRunner(sw, agent)
+}
+
+type AIAgentRunner struct {
+	sw    *Swarm
+	agent *api.Agent
+}
+
+func NewAIAgentRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
+	return &AIAgentRunner{
+		sw:    sw,
+		agent: agent,
+	}
+}
+func (r *AIAgentRunner) Run(ctx context.Context, tid string, args map[string]any) (any, error) {
+	tools, err := conf.LoadToolFunc(r.agent.Owner, tid, r.sw.Secrets, r.sw.Assets)
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range tools {
+		id := v.ID()
+		if id == tid {
+			return r.sw.callTool(ctx, r.agent, v, args)
+		}
+	}
+	return nil, fmt.Errorf("invalid tool: %s", tid)
+}
+
+func (sw *Swarm) createAICaller(agent *api.Agent) api.ActionRunner {
+	// return func(ctx context.Context, tid string, args map[string]any) (any, error) {
+	// 	tools, err := conf.LoadToolFunc(agent.Owner, tid, sw.Secrets, sw.Assets)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	for _, v := range tools {
+	// 		id := v.ID()
+	// 		if id == tid {
+	// 			return sw.callTool(ctx, agent, v, args)
+	// 		}
+	// 	}
+	// 	return nil, fmt.Errorf("invalid tool: %s", tid)
+	// }
+	return NewAIAgentRunner(sw, agent)
 }
 
 func (sw *Swarm) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
@@ -579,7 +641,7 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 		if err != nil {
 			return nil, err
 		}
-		return sw.toResult(out), nil
+		return ToResult(out), nil
 	}
 
 	// custom kits
@@ -595,10 +657,10 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 	if err != nil {
 		return nil, fmt.Errorf("failed to call function tool %s %s: %w", v.Kit, v.Name, err)
 	}
-	return sw.toResult(out), nil
+	return ToResult(out), nil
 }
 
-func (sw *Swarm) toResult(data any) *api.Result {
+func ToResult(data any) *api.Result {
 	if v, ok := data.(*api.Result); ok {
 		if len(v.Content) == 0 {
 			return v
@@ -649,16 +711,17 @@ func (sw *Swarm) doAction(ctx context.Context, agent *api.Agent, id string, args
 	}
 
 	// var runTool = sw.createCaller(sw.User, agent)
-	var runTool = agent.ToolCaller
-	result, err := runTool(ctx, id, env)
+	var runTool = agent.Runner
+	v, err := runTool.Run(ctx, id, env)
 	if err != nil {
 		return nil, err
 	}
-	if result == nil {
+	if v == nil {
 		return nil, fmt.Errorf("no result")
 	}
 
 	// TODO check states?
+	result := ToResult(v)
 	sw.Vars.Global.Set(globalResult, result.Value)
 	return result, nil
 }

@@ -57,7 +57,7 @@ type Request struct {
 
 	MaxTurns int
 
-	RunTool ToolRunner
+	Runner ActionRunner
 
 	Tools []*ToolFunc
 

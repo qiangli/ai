@@ -17,7 +17,7 @@ import (
 type AIKit struct {
 	sw       *Swarm
 	h        *agentHandler
-	callTool api.ToolRunner
+	callTool api.ActionRunner
 }
 
 func NewAIKit(sw *Swarm, agent *api.Agent) *AIKit {
@@ -193,7 +193,7 @@ Parameters: %s
 	return "", fmt.Errorf("unknown tool: %s", tid)
 }
 
-func (r *AIKit) ToolExecute(ctx context.Context, _ *api.Vars, tf string, args map[string]any) (*api.Result, error) {
+func (r *AIKit) ToolExecute(ctx context.Context, _ *api.Vars, tf string, args map[string]any) (any, error) {
 	log.GetLogger(ctx).Debugf("Tool execute: %s %+v\n", tf, args)
 
 	tid, err := atm.GetStrProp("tool", args)
@@ -208,14 +208,14 @@ func (r *AIKit) ToolExecute(ctx context.Context, _ *api.Vars, tf string, args ma
 			return nil, err
 		}
 		log.GetLogger(ctx).Debugf("Tool execute: tid: %s params: %+v\n", tid, params)
-		return r.callTool(ctx, tid, params)
+		return r.callTool.Run(ctx, tid, params)
 	}
 
 	// LLM (openai) sometimes does not provide parameters in the args as defined in the tool yaml.
 	// returning the error does force to correct this but with multiple calls.
 	// we try args instead. if successful, it means correct parameters are provided at the top level.
 	log.GetLogger(ctx).Debugf("Tool execute: try ***args*** instead. tid: %s params: %+v\n", tid, args)
-	out, err := r.callTool(ctx, tid, args)
+	out, err := r.callTool.Run(ctx, tid, args)
 	if err != nil {
 		return nil, fmt.Errorf("required parameters not found in: %+v. error: %v", args, err)
 	}

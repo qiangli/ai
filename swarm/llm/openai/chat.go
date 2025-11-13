@@ -143,7 +143,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 				Arguments: props,
 			}
 		}
-		results := runToolsV3(ctx, req.RunTool, calls, maxThreadLimit)
+		results := runToolsV3(ctx, req.Runner, calls, maxThreadLimit)
 		for i, out := range results {
 			if out == nil {
 				params.Messages = append(params.Messages, openai.ToolMessage("no result", calls[i].ID))

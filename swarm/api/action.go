@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"encoding/base64"
+	"fmt"
 	"html/template"
 	"strings"
 )
@@ -50,9 +52,10 @@ func ParseState(s string) State {
 
 type TemplateFuncMap = template.FuncMap
 
-type ToolRunner func(context.Context, string, map[string]any) (*Result, error)
+// type ToolRunner func(context.Context, string, map[string]any) (*Result, error)
 
 type Action struct {
+	// unique identifier
 	ID string `json:"id"`
 
 	// agent/tool name
@@ -60,10 +63,10 @@ type Action struct {
 
 	// arguments including name
 	Arguments map[string]any `json:"arguments"`
+}
 
-	// //
-	// Tool  *ToolFunc `json:"-"`
-	// Agent *Agent    `json:"-"`
+type ActionRunner interface {
+	Run(context.Context, string, map[string]any) (any, error)
 }
 
 // openai: ChatCompletionMessageToolCallUnion
@@ -247,3 +250,53 @@ func (cfg *AppConfig) Interactive() bool {
 }
 
 type AgentTool AppConfig
+
+func ToResult(data any) *Result {
+	if v, ok := data.(*Result); ok {
+		if len(v.Content) == 0 {
+			return v
+		}
+		if v.MimeType == ContentTypeImageB64 {
+			return v
+		}
+		if strings.HasPrefix(v.MimeType, "text/") {
+			return &Result{
+				MimeType: v.MimeType,
+				Value:    string(v.Content),
+			}
+		}
+		return &Result{
+			MimeType: v.MimeType,
+			Value:    dataURL(v.MimeType, v.Content),
+		}
+		// // image
+		// // transform media response into data url
+		// presigned, err := sw.save(sw)
+		// if err != nil {
+		// 	return &api.Result{
+		// 		Value: err.Error(),
+		// 	}
+		// }
+
+		// return &api.Result{
+		// 	MimeType: v.MimeType,
+		// 	Value:    presigned,
+		// }
+	}
+	if s, ok := data.(string); ok {
+		return &Result{
+			Value: s,
+		}
+	}
+	return &Result{
+		Value: fmt.Sprintf("%v", data),
+	}
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
+// data:[<media-type>][;base64],<data>
+func dataURL(mime string, raw []byte) string {
+	encoded := base64.StdEncoding.EncodeToString(raw)
+	d := fmt.Sprintf("data:%s;base64,%s", mime, encoded)
+	return d
+}

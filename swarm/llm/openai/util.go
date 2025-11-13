@@ -52,7 +52,7 @@ func NewClientV3(model *api.Model, token string, vars *api.Vars) (*openai.Client
 
 func runToolsV3(
 	parent context.Context,
-	runner api.ToolRunner,
+	runner api.ActionRunner,
 	calls []*api.ToolCall,
 	max int,
 ) []*api.Result {
@@ -68,7 +68,7 @@ func runToolsV3(
 
 func runToolsInParallel(
 	parent context.Context,
-	runner api.ToolRunner,
+	runner api.ActionRunner,
 	toolCalls []*api.ToolCall,
 	max int,
 ) []*api.Result {
@@ -106,7 +106,7 @@ func runToolsInParallel(
 
 			log.GetLogger(parent).Debugf("\n* tool call: %v %s props: %+v\n", i, name, props)
 
-			out, err := runner(ctx, name, props)
+			data, err := runner.Run(ctx, name, props)
 			if err != nil {
 				results[i] = &api.Result{
 					Value: err.Error(),
@@ -114,7 +114,10 @@ func runToolsInParallel(
 				return
 			}
 
+			out := api.ToResult(data)
+
 			log.GetLogger(parent).Debugf("\n* tool call: %s out: %s\n", name, out)
+
 			results[i] = out
 
 			if out.State == api.StateExit {
@@ -132,7 +135,7 @@ func runToolsInParallel(
 
 func runTool(
 	ctx context.Context,
-	runner api.ToolRunner,
+	runner api.ActionRunner,
 	toolCall *api.ToolCall,
 ) *api.Result {
 	var name = toolCall.Name
@@ -146,13 +149,13 @@ func runTool(
 
 	log.GetLogger(ctx).Debugf("\n* tool call: %s props: %+v\n", name, props)
 
-	out, err := runner(ctx, name, props)
+	data, err := runner.Run(ctx, name, props)
 	if err != nil {
 		return &api.Result{
 			Value: err.Error(),
 		}
 	}
-
+	out := api.ToResult(data)
 	log.GetLogger(ctx).Debugf("\n* tool call: %s out: %s\n", name, out)
 	return out
 }

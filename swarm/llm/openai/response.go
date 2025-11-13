@@ -128,7 +128,7 @@ func respond(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 			return resp, nil
 		}
 
-		results := runToolsV3(ctx, req.RunTool, calls, maxThreadLimit)
+		results := runToolsV3(ctx, req.Runner, calls, maxThreadLimit)
 		for i, out := range results {
 			if out == nil {
 				params.Input.OfInputItemList = append(params.Input.OfInputItemList, responses.ResponseInputItemParamOfFunctionCallOutput(calls[i].ID, "no result"))
