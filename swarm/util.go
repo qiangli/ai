@@ -117,15 +117,15 @@ func nvl(a ...string) string {
 // 	return false
 // }
 
-// // return the first non zero value
-// func nzl(a ...int) int {
-// 	for _, v := range a {
-// 		if v > 0 {
-// 			return v
-// 		}
-// 	}
-// 	return 0
-// }
+// return the first non zero value
+func nzl(a ...int) int {
+	for _, v := range a {
+		if v > 0 {
+			return v
+		}
+	}
+	return 0
+}
 
 // // trim name if it ends in .yaml/.yml
 // func trimYaml(name string) string {
@@ -200,4 +200,12 @@ func abbreviate(s string, maxLen int) string {
 // concat joins the s by sep.
 func concat(sep byte, s ...string) string {
 	return strings.Join(s, string(sep))
+}
+
+func NilSafe[T any](ptr *T) T {
+	var zeroValue T
+	if ptr != nil {
+		return *ptr
+	}
+	return zeroValue
 }

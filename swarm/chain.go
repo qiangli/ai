@@ -105,7 +105,7 @@ func NewChain(constructors ...api.Middleware) Chain {
 // For proper middleware, this should cause no problems.
 //
 // Then() treats nil as DefaultServeMux.
-func (c Chain) Then(h api.Handler) api.Handler {
+func (c Chain) Then(a *api.Agent, h api.Handler) api.Handler {
 	if h == nil {
 		// h = api.HandlerFunc(&emptyHandler{})
 		// h = api.Middleware(*emptyHandler{})
@@ -113,7 +113,7 @@ func (c Chain) Then(h api.Handler) api.Handler {
 	}
 
 	for i := range c.constructors {
-		h = c.constructors[len(c.constructors)-1-i](h)
+		h = c.constructors[len(c.constructors)-1-i](a, h)
 	}
 
 	return h
@@ -128,13 +128,13 @@ func (c Chain) Then(h api.Handler) api.Handler {
 //	c.ThenFunc(fn)
 //
 // ThenFunc provides all the guarantees of Then.
-func (c Chain) ThenFunc(fn HandlerFunc) Handler {
+func (c Chain) ThenFunc(a *api.Agent, fn HandlerFunc) Handler {
 	// This nil check cannot be removed due to the "nil is not nil" common mistake in Go.
 	// Required due to: https://stackoverflow.com/questions/33426977/how-to-golang-check-a-variable-is-nil
 	if fn == nil {
-		return c.Then(nil)
+		return c.Then(a, nil)
 	}
-	return c.Then(fn)
+	return c.Then(a, fn)
 }
 
 // Append extends a chain, adding the specified constructors

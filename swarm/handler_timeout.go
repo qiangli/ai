@@ -10,8 +10,8 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func TimeoutMiddleware(agent *api.Agent) api.Middleware {
-	mw := func(next Handler) Handler {
+func TimeoutMiddleware(sw *Swarm) api.Middleware {
+	return func(agent *api.Agent, next Handler) Handler {
 		th := &timeoutHandler{
 			next:    next,
 			content: fmt.Sprintf("%q timed out after %v seconds.", agent.Name, agent.MaxTime),
@@ -24,8 +24,6 @@ func TimeoutMiddleware(agent *api.Agent) api.Middleware {
 			return th.Serve(req, res)
 		})
 	}
-
-	return mw
 }
 
 // ErrHandlerTimeout is returned on [Response]

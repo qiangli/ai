@@ -19,7 +19,7 @@ func (f HandlerFunc) Serve(req *Request, res *Response) error {
 	return f(req, res)
 }
 
-type Middleware func(Handler) Handler
+type Middleware func(*Agent, Handler) Handler
 
 type Message struct {
 	// message id

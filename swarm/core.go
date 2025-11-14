@@ -54,12 +54,15 @@ type Swarm struct {
 	// TODO
 	template *template.Template
 
-	middlewares []func(*api.Agent) api.Middleware
+	middlewares []api.Middleware
+
+	agentMaker *AgentMaker
 }
 
 func (sw *Swarm) Init() {
 	sw.InitTemplate()
 	sw.InitChain()
+	sw.agentMaker = NewAgentMaker(sw)
 }
 
 // https://pkg.go.dev/text/template
@@ -120,50 +123,52 @@ func (sw *Swarm) InitTemplate() {
 }
 
 func (sw *Swarm) InitChain() {
-	sw.middlewares = []func(*api.Agent) api.Middleware{
-		TimeoutMiddleware,
-		MaxLogMiddlewareFunc(sw),
-		EnvMiddlewareFunc(sw),
-		MemoryMiddlewareFunc(sw),
+	sw.middlewares = []api.Middleware{
+
+		TimeoutMiddleware(sw),
+		MaxLogMiddleware(sw),
+		EnvMiddleware(sw),
+		MemoryMiddleware(sw),
 		//
-		InstructionMiddlewareFunc(sw),
-		QueryMiddlewareFunc(sw),
-		ContextMiddlewareFunc(sw),
-		AgentMiddlewareFunc(sw),
+		InstructionMiddleware(sw),
+		QueryMiddleware(sw),
+		ContextMiddleware(sw),
+		AgentMiddleware(sw),
 		//
-		ToolMiddlewareFunc(sw),
+		ToolMiddleware(sw),
 		//
-		ModelMiddlewareFunc(sw),
+		ModelMiddleware(sw),
 		//
-		InferenceMiddlewareFunc(sw),
+		InferenceMiddleware(sw),
 	}
 }
 
 func (sw *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
 	log.GetLogger(ctx).Infof("🔗 (init): %s\n", a.Name)
-	var mds = make([]api.Middleware, len(sw.middlewares))
-	for i, v := range sw.middlewares {
-		mds[i] = v(a)
-	}
+	// var mds = make([]api.Middleware, len(sw.middlewares))
+	// for i, v := range sw.middlewares {
+	// 	mds[i] = v(a)
+	// }
 	final := HandlerFunc(func(req *api.Request, res *api.Response) error {
 		log.GetLogger(req.Context()).Infof("🔗 (final): %s\n", req.Name)
 		return nil
 	})
-	chain := NewChain(mds...).Then(final)
+	chain := NewChain(sw.middlewares...).Then(a, final)
 	return chain
 }
 
-func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
-	agent, err := conf.CreateAgent(ctx, req, sw.User, sw.Secrets, sw.Assets)
-	if err != nil {
-		return nil, err
-	}
+func (sw *Swarm) createAgent(ctx context.Context, name string) (*api.Agent, error) {
+	// // agent, err := conf.CreateAgent(ctx, req, sw.User, sw.Secrets, sw.Assets)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	agent.Runner = sw.createCaller(agent)
-	if req.Parent != nil {
-		sw.Vars.Global.Set("__parent_agent", req.Parent)
-	}
-	return agent, nil
+	// agent.Runner = sw.createCaller(agent)
+	// if req.Parent != nil {
+	// 	sw.Vars.Global.Set("__parent_agent", req.Parent)
+	// }
+	// return agent, nil
+	return sw.agentMaker.CreateAgent(ctx, name)
 }
 
 // Run calls the language model with the messages list (after applying the system prompt). If the resulting AIMessage contains tool_calls, the graph will then call the tools. The tools node executes the tools and adds the responses to the messages list as ToolMessage objects. The agent node then calls the language model again. The process repeats until no more tool_calls are present in the response. The agent then returns the full list of messages.
@@ -202,19 +207,19 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 		start := time.Now()
 		logger.Debugf("creating agent: %s %s\n", req.Name, start)
 		//
-		agent, err := sw.createAgent(ctx, req)
+		agent, err := sw.createAgent(ctx, req.Name)
 		if err != nil {
 			return err
 		}
 
 		setLogLevel(agent)
 
-		logger.Infof("🚀 %s", agent.Name)
-		if agent.Parent != nil {
-			logger.Infof(" ← %s\n", agent.Parent.Name)
-		} else {
-			logger.Infof("\n")
-		}
+		logger.Infof("🚀 %s ← %s\n", agent.Name, NilSafe(agent.Parent).Name)
+		// if agent.Parent != nil {
+		// 	logger.Infof(" ← %s\n", agent.Parent.Name)
+		// } else {
+		// 	logger.Infof("\n")
+		// }
 
 		if err := sw.NewChain(ctx, agent).Serve(req, resp); err != nil {
 			return err

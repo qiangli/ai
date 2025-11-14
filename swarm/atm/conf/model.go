@@ -23,7 +23,7 @@ type ModelCacheKey struct {
 // 	modelCache = expirable.NewLRU[ModelCacheKey, map[string]*api.Model](10000, nil, time.Second*180)
 // )
 
-func loadModel(owner, set, level string, assets api.AssetManager) (*api.Model, error) {
+func LoadModel(owner, set, level string, assets api.AssetManager) (*api.Model, error) {
 	provide := func(mc *api.ModelsConfig, level string) (*api.Model, error) {
 		c, ok := mc.Models[level]
 		if !ok {

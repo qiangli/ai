@@ -8,20 +8,18 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func AgentMiddlewareFunc(sw *Swarm) func(*api.Agent) api.Middleware {
-	return func(agent *api.Agent) api.Middleware {
-		return func(next Handler) Handler {
-			var ah = &agentHandler{
-				agent: agent,
-				sw:    sw,
-				next:  next,
-			}
-			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
-				log.GetLogger(req.Context()).Debugf("🔗 (agent): %s flow: %+v\n", agent.Name, agent.Flow)
-
-				return ah.Serve(req, resp)
-			})
+func AgentMiddleware(sw *Swarm) api.Middleware {
+	return func(agent *api.Agent, next Handler) Handler {
+		var ah = &agentHandler{
+			agent: agent,
+			sw:    sw,
+			next:  next,
 		}
+		return HandlerFunc(func(req *api.Request, resp *api.Response) error {
+			log.GetLogger(req.Context()).Debugf("🔗 (agent): %s flow: %+v\n", agent.Name, agent.Flow)
+
+			return ah.Serve(req, resp)
+		})
 	}
 }
 
