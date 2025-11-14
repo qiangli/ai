@@ -10,15 +10,9 @@ func addAgentFlags(cmd *cobra.Command) {
 	flags.String("arguments", "", "arguments map in JSON format")
 	flags.StringArray("arg", []string{}, "argument name=value (can be used multiple times)")
 
-	// flags.StringArray("env", []string{}, "environment variable name=value (can be used multiple times)")
-
-	// --agent agent/command or @agent/command
 	flags.StringP("agent", "a", "", "Specify the agent to use. shorthand: @<agent>")
 	flags.String("instruction", "", "System role prompt")
 	flags.String("message", "", "User query")
-
-	// flags.String("chat", "", "Continue conversation using chat ID")
-	// flags.MarkHidden("chat")
 
 	flags.Bool("new", false, "Start a new conversation. max-history=0 and max-span=0")
 	flags.String("context", "", "Agent for summarizing history")
@@ -50,6 +44,7 @@ func addAgentFlags(cmd *cobra.Command) {
 	// LLM
 	// a set of model grouped under one name for convenience from potentially different service providers
 	flags.StringP("model", "m", "", "LLM model alias defined in the model set")
+
 	// flags.MarkHidden("model")
 	// flags.StringP("tools", "t", "", "LLM functions defined in the tool kit")
 
