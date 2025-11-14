@@ -22,13 +22,13 @@ func MemoryMiddleware(sw *Swarm) api.Middleware {
 			}
 
 			// initLen := len(history)
-			agent.InitHistory(history)
+			sw.Vars.InitHistory(history)
 
 			logger.Debugf("init messages: %v\n", len(history))
 
 			err = next.Serve(req, resp)
 
-			nhist := agent.GetNewHistory()
+			nhist := sw.Vars.GetNewHistory()
 			nlen := len(nhist)
 			// nlen := (len(sw.Vars.History) - initLen)
 			logger.Debugf("new messages: %v\n", nlen)

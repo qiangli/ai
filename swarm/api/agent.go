@@ -3,7 +3,7 @@ package api
 import (
 	"maps"
 	"strings"
-	"sync"
+	// "sync"
 )
 
 const (
@@ -108,53 +108,53 @@ type Agent struct {
 	//
 	Runner ActionRunner
 
-	mu sync.RWMutex
+	// mu sync.RWMutex
 
-	// conversation history
-	history []*Message `json:"-"`
-	// initial size of hisotry
-	initLen int `json:"-"`
+	// // conversation history
+	// history []*Message `json:"-"`
+	// // initial size of hisotry
+	// initLen int `json:"-"`
 }
 
-// Clear messages from history
-func (a *Agent) ClearHistory() {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	a.history = []*Message{}
-	a.initLen = 0
-}
+// // Clear messages from history
+// func (a *Agent) ClearHistory() {
+// 	a.mu.Lock()
+// 	defer a.mu.Unlock()
+// 	a.history = []*Message{}
+// 	a.initLen = 0
+// }
 
-func (a *Agent) InitHistory(messages []*Message) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	a.history = messages
-	a.initLen = len(messages)
-}
+// func (a *Agent) InitHistory(messages []*Message) {
+// 	a.mu.Lock()
+// 	defer a.mu.Unlock()
+// 	a.history = messages
+// 	a.initLen = len(messages)
+// }
 
-func (a *Agent) GetNewHistory() []*Message {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	if len(a.history) > a.initLen {
-		return a.history[a.initLen:]
-	}
-	return nil
-}
+// func (a *Agent) GetNewHistory() []*Message {
+// 	a.mu.Lock()
+// 	defer a.mu.Unlock()
+// 	if len(a.history) > a.initLen {
+// 		return a.history[a.initLen:]
+// 	}
+// 	return nil
+// }
 
-// Append messages to history
-func (a *Agent) AddHistory(messages []*Message) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	a.history = append(a.history, messages...)
-}
+// // Append messages to history
+// func (a *Agent) AddHistory(messages []*Message) {
+// 	a.mu.Lock()
+// 	defer a.mu.Unlock()
+// 	a.history = append(a.history, messages...)
+// }
 
-// Return a copy of all current messages in history
-func (a *Agent) ListHistory() []*Message {
-	a.mu.RLock()
-	defer a.mu.RUnlock()
-	hist := make([]*Message, len(a.history))
-	copy(hist, a.history)
-	return hist
-}
+// // Return a copy of all current messages in history
+// func (a *Agent) ListHistory() []*Message {
+// 	a.mu.RLock()
+// 	defer a.mu.RUnlock()
+// 	hist := make([]*Message, len(a.history))
+// 	copy(hist, a.history)
+// 	return hist
+// }
 
 // if true, skip historical messages for LLM context
 // --new command line flag sets --max-history=0
@@ -190,10 +190,10 @@ func (a *Agent) Clone() *Agent {
 		Embed:       a.Embed,
 		Environment: a.cloneEnvironment(),
 		//
-		history: make([]*Message, len(a.history)),
+		// history: make([]*Message, len(a.history)),
 	}
 
-	copy(clone.history, a.history)
+	// copy(clone.history, a.history)
 	return clone
 }
 

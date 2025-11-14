@@ -122,10 +122,10 @@ type Vars struct {
 
 	Global *Global `json:"-"`
 
-	// // conversation history
-	// history []*Message `json:"-"`
-	// // initial size of hisotry
-	// initLen int `json:"-"`
+	// conversation history
+	history []*Message `json:"-"`
+	// initial size of hisotry
+	initLen int `json:"-"`
 
 	toolcallHistory []*ToolCallEntry `json:"-"`
 
@@ -172,14 +172,54 @@ func (v *Vars) Clone() *Vars {
 		// DryRunContent: v.DryRunContent,
 		//
 		// Extra:   make(map[string]string),
-		// history: make([]*Message, len(v.history)),
-		Global: v.Global.Clone(),
+		history: make([]*Message, len(v.history)),
+		Global:  v.Global.Clone(),
 	}
 
 	// Copy the History slice
-	// copy(clone.history, v.history)
+	copy(clone.history, v.history)
 
 	return clone
+}
+
+// Clear messages from history
+func (v *Vars) ClearHistory() {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	v.history = []*Message{}
+	v.initLen = 0
+}
+
+func (v *Vars) InitHistory(messages []*Message) {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	v.history = messages
+	v.initLen = len(messages)
+}
+
+func (v *Vars) GetNewHistory() []*Message {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	if len(v.history) > v.initLen {
+		return v.history[v.initLen:]
+	}
+	return nil
+}
+
+// Append messages to history
+func (v *Vars) AddHistory(messages []*Message) {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	v.history = append(v.history, messages...)
+}
+
+// Return a copy of all current messages in history
+func (v *Vars) ListHistory() []*Message {
+	v.mu.RLock()
+	defer v.mu.RUnlock()
+	hist := make([]*Message, len(v.history))
+	copy(hist, v.history)
+	return hist
 }
 
 func NewVars() *Vars {

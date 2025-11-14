@@ -16,7 +16,7 @@ type MemoryStore struct {
 
 func OpenMemoryStore(cfg *api.AppConfig) (*MemoryStore, error) {
 	const ddl = `CREATE TABLE IF NOT EXISTS chats (
-			"id" TEXT NOT NULL PRIMARY KEY,		
+			"id" TEXT NOT NULL,		
 			"chat_id" TEXT,
 			"created" DATETIME,
 			"content_type" TEXT,
