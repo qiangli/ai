@@ -157,18 +157,19 @@ func (sw *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
 	return chain
 }
 
-func (sw *Swarm) createAgent(ctx context.Context, name string) (*api.Agent, error) {
-	// // agent, err := conf.CreateAgent(ctx, req, sw.User, sw.Secrets, sw.Assets)
-	// if err != nil {
-	// 	return nil, err
-	// }
+func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
+	// agent, err := conf.CreateAgent(ctx, req, sw.User, sw.Secrets, sw.Assets)
+	agent, err := sw.agentMaker.CreateAgent(ctx, req.Name)
 
-	// agent.Runner = sw.createCaller(agent)
-	// if req.Parent != nil {
-	// 	sw.Vars.Global.Set("__parent_agent", req.Parent)
-	// }
-	// return agent, nil
-	return sw.agentMaker.CreateAgent(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	agent.Runner = sw.createCaller(agent)
+	if req.Parent != nil {
+		sw.Vars.Global.Set("__parent_agent", req.Parent)
+	}
+	return agent, nil
 }
 
 // Run calls the language model with the messages list (after applying the system prompt). If the resulting AIMessage contains tool_calls, the graph will then call the tools. The tools node executes the tools and adds the responses to the messages list as ToolMessage objects. The agent node then calls the language model again. The process repeats until no more tool_calls are present in the response. The agent then returns the full list of messages.
@@ -207,7 +208,7 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 		start := time.Now()
 		logger.Debugf("creating agent: %s %s\n", req.Name, start)
 		//
-		agent, err := sw.createAgent(ctx, req.Name)
+		agent, err := sw.createAgent(ctx, req)
 		if err != nil {
 			return err
 		}
