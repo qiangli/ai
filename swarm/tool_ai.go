@@ -300,7 +300,7 @@ func (r *AIKit) MessageInfo(_ context.Context, _ *api.Vars, _ string, args map[s
 }
 
 func (r *AIKit) ContextGetMessages(_ context.Context, vars *api.Vars, _ string, _ map[string]any) (*api.Result, error) {
-	var messages = vars.ListHistory()
+	var messages = r.h.agent.ListHistory()
 	b, err := json.Marshal(messages)
 	if err != nil {
 		return nil, err
@@ -320,7 +320,7 @@ func (r *AIKit) ContextSetMessages(_ context.Context, vars *api.Vars, _ string, 
 	if err := json.Unmarshal([]byte(data), &messages); err != nil {
 		return nil, err
 	}
-	vars.AddHistory(messages)
+	r.h.agent.AddHistory(messages)
 	return &api.Result{
 		Value: "success",
 	}, nil
