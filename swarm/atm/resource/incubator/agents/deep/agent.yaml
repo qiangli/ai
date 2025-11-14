@@ -2,6 +2,7 @@
 # https://github.com/RUC-NLPIR/DeepAgent/tree/main
 pack: "deep"
 model: "llm/aux"
+log_level: info
 agents:
   - name: "deep"
     display: "🌐 Deep Agent"
@@ -12,6 +13,7 @@ agents:
       to maintain a global perspective on the entire task and dynamically discover tools
       on an as-needed basis.
     model: "llm/reasoning"
+    log_level: debug
     environment:
       # save query for use by other agents 
       "question": "{{.query}}"
@@ -33,7 +35,7 @@ agents:
         - Performing thought folding:  
           If your reasoning history becomes too lengthy, you encounter too many failed tool calls,
           realize a change in direction is needed, or in similar situations,
-          you may generate a thought folding by calling the tool: "deep:fold_thought"
+          you may generate a thought folding by calling the tool: "agent:deep/fold_thought"
           The tool will thoroughly summarize your current interaction history and task progress.
           Afterward, you can begin a new round of reasoning.
         
@@ -44,7 +46,7 @@ agents:
 
         In order to accomplish ..., I require a ... tool. Therefore, I will search for it:
 
-        Call "deep:tool_search".
+        Call "agent:deep/tool_search".
 
         {BEGIN_TOOL_SEARCH}
         ...
@@ -79,15 +81,15 @@ agents:
         Oops, my reasoning has become too lengthy and I've made too many tool calls without finding the needed information.
         It may be wise to reconsider my approach. Therefore, I will fold my thoughts now.
 
-        Call "deep:fold_thought"
+        Call "agent:deep/fold_thought"
 
         The system will clear your previous thoughts and you can continue your new round of reasoning,
         guided by the summarized interaction history.
 
         Remember:
-        - Use deep:tool_search tool to search for more tools if the current tools are not enough.
+        - Use agent:deep/tool_search tool to search for more tools if the current tools are not enough.
         - Use ai:tool_execute to call a tool.
-        - Use deep:fold_thought to fold your thoughts and start a new round of reasoning.
+        - Use agent:deep/fold_thought to fold your thoughts and start a new round of reasoning.
         - Always strictly follow the specified formats for tool search, tool call, and thought folding.
         - Ensure tool names and parameters are provided accurately in each tool call.
         - Once you have gathered enough information to answer the question, present your final answer in the following format and stop reasoning.
@@ -96,11 +98,13 @@ agents:
           "anwser": "<your final anwser here>",
           "error": "<if anything went wrong>"
           }
+        - Call agent:deep/report for formatting at the end.
 
     functions:
       - "agent:deep/tool_search"
       - "agent:deep/fold_thought"
       - "agent:deep/response_analysis"
+      - "agent:deep/report"
       - "ai:tool_execute"
       - "web:*"
       - "ddg:*"
@@ -430,6 +434,25 @@ agents:
       - "ai:agent_get_query"
       - "ai:agent_set_query"
 
+  - name: "deep/report"
+    display: "Report formatter"
+    description: "Format the input JSON into a specific format"
+    model: "llm/aux"
+    log_level: debug
+    message: |
+      #! mime-type=plain/x-go-template
+      User query: 
+      {{.question}}
+      
+      Input JSON to be formatted:
+      {{.result}}
+    instruction:
+      content: |
+        You are a report formatting agent. Your task is to format the input JSON into a specific format. 
+        If the user specifies a different format in their query, use that format. 
+        Otherwise, default to formatting the output in Markdown. Do not alter the content,
+        only convert and format it.
+    
 ###
 set: "llm"
 provider: "openai"
