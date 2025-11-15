@@ -30,7 +30,7 @@
 				// "@gptr/crawl",
 				// "@test",
 				"--message",
-				"what is the weather today in nyc",
+				"what is the weather today in dublin ca",
 				// "@cron",
 				// "--message", "schedule a chat on climate change at 3:00 pm tomorrow pdt",
 				"--no-stdin=true",

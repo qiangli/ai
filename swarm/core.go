@@ -174,7 +174,6 @@ func (sw *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
 }
 
 func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
-	// agent, err := conf.CreateAgent(ctx, req, sw.User, sw.Secrets, sw.Assets)
 	agent, err := sw.agentMaker.CreateAgent(ctx, req.Name)
 
 	if err != nil {
@@ -182,9 +181,9 @@ func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent,
 	}
 
 	// for sub agent/action or tool call
-	agent.Runner = NewAgentToolRunner(sw, req.Parent)
+	agent.Runner = NewAgentToolRunner(sw, agent)
 	if req.Parent != nil {
-		sw.Vars.Global.Set("__parent_agent_"+req.Parent.Name, req.Parent)
+		sw.Vars.Global.Set("__parent_agent_"+req.Parent.Name, agent.Name)
 	}
 	return agent, nil
 }
