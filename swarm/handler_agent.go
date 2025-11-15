@@ -169,7 +169,9 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	log.GetLogger(ctx).Debugf("Serve agent: %s global: %+v\n", h.agent.Name, h.sw.Vars.Global)
 
 	// this needs to happen before everything else
-	h.sw.Vars.Global.Set(globalQuery, req.RawInput.Query())
+	// h.sw.Vars.Global.Set(globalQuery, req.RawInput.Query())
+	h.sw.Vars.Global.Set(globalQuery, req.Query)
+
 	if err := h.setGlobalEnv(req); err != nil {
 		return err
 	}
@@ -236,10 +238,10 @@ func (h *agentHandler) doAgentFlow(req *api.Request, resp *api.Response) error {
 			if err := h.flowLoop(req, resp); err != nil {
 				return err
 			}
-		case api.FlowTypeReduce:
-			if err := h.flowReduce(req, resp); err != nil {
-				return err
-			}
+		// case api.FlowTypeReduce:
+		// 	if err := h.flowReduce(req, resp); err != nil {
+		// 		return err
+		// 	}
 		case api.FlowTypeShell:
 			if err := h.flowShell(req, resp); err != nil {
 				return err

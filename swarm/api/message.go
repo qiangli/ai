@@ -48,7 +48,7 @@ type Request struct {
 	Name      string
 	Arguments map[string]any
 
-	RawInput *UserInput
+	// RawInput *UserInput
 
 	// LLM
 	Model *Model
@@ -93,11 +93,14 @@ type Request struct {
 // }
 
 func NewRequest(ctx context.Context, name string, input *UserInput) *Request {
-	return &Request{
-		ctx:      ctx,
-		Name:     name,
-		RawInput: input,
+	req := &Request{
+		ctx:       ctx,
+		Name:      name,
+		Query:     input.Query(),
+		Arguments: input.Arguments,
+		Messages:  input.Messages,
 	}
+	return req
 }
 
 // Context returns the request's context.
@@ -150,9 +153,9 @@ func (r *Request) Clone() *Request {
 	// r2.Model = r.Model
 	// r2.Token = r.Token
 
-	if r.RawInput != nil {
-		r2.RawInput = r.RawInput.Clone()
-	}
+	// if r.RawInput != nil {
+	// 	r2.RawInput = r.RawInput.Clone()
+	// }
 
 	if r.Arguments != nil {
 		r2.Arguments = make(map[string]any, len(r.Arguments))

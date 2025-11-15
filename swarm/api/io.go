@@ -37,13 +37,13 @@ type UserInput struct {
 	// Model       string       `json:"model"`
 	// Functions   []string     `json:"functions"`
 
-	MaxTurns   int    `json:"max_turns"`
-	MaxTime    int    `json:"max_time"`
-	MaxHistory int    `json:"max_history"`
-	MaxSpan    int    `json:"max_span"`
-	Model      string `json:"model"`
-	Format     string `json:"format"`
-	LogLevel   string `json:"log_level"`
+	// MaxTurns   int    `json:"max_turns"`
+	// MaxTime    int    `json:"max_time"`
+	// MaxHistory int    `json:"max_history"`
+	// MaxSpan    int    `json:"max_span"`
+	// Model      string `json:"model"`
+	// Format     string `json:"format"`
+	// LogLevel   string `json:"log_level"`
 
 	Arguments map[string]any `json:"arguments"`
 }

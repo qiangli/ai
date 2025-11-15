@@ -128,11 +128,12 @@ func (r *AIKit) AgentSpawn(ctx context.Context, _ *api.Vars, _ string, args map[
 		input = &api.UserInput{}
 	}
 	req := api.NewRequest(ctx, agent, input)
-	req.Parent = r.h.agent
+	nreq := req.WithContext(ctx)
+	nreq.Parent = r.h.agent
 
 	resp := &api.Response{}
 
-	if err := r.h.sw.RunSub(r.h.agent, req, resp); err != nil {
+	if err := r.h.sw.RunSub(r.h.agent, nreq, resp); err != nil {
 		return nil, err
 	}
 

@@ -206,9 +206,9 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 	if req.Name == "" {
 		return api.NewBadRequestError("missing agent in request")
 	}
-	if req.RawInput == nil {
-		return api.NewBadRequestError("missing raw input in request")
-	}
+	// if req.RawInput == nil {
+	// 	return api.NewBadRequestError("missing raw input in request")
+	// }
 
 	if req.Parent != nil && req.Parent.Name == req.Name {
 		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself not supported.", req.Name))
@@ -638,15 +638,15 @@ func (sw *Swarm) callAgentTool(ctx context.Context, agent *api.Agent, tf *api.To
 	// var req *api.Request
 	msg, _ := atm.GetStrProp("message", args)
 	input := &api.UserInput{
-		Message: msg,
+		Message:   msg,
+		Arguments: args,
 	}
-	nreq := api.NewRequest(ctx, tf.Agent, input)
-	nreq.Parent = agent
-	nreq.Arguments = args
+	req := api.NewRequest(ctx, tf.Agent, input)
+	req.Parent = agent
 
 	resp := &api.Response{}
 
-	err := sw.RunSub(agent, nreq, resp)
+	err := sw.RunSub(agent, req, resp)
 	if err != nil {
 		return nil, err
 	}

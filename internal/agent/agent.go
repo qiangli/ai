@@ -24,13 +24,13 @@ func RunAgent(ctx context.Context, app *api.AppConfig) error {
 		return err
 	}
 
-	in.LogLevel = app.LogLevel
-	in.MaxTurns = app.MaxTurns
-	in.MaxTime = app.MaxTime
-	in.MaxHistory = app.MaxHistory
-	in.MaxSpan = app.MaxSpan
-	in.Format = app.Format
-	in.Model = app.Model
+	// in.LogLevel = app.LogLevel
+	// in.MaxTurns = app.MaxTurns
+	// in.MaxTime = app.MaxTime
+	// in.MaxHistory = app.MaxHistory
+	// in.MaxSpan = app.MaxSpan
+	// in.Format = app.Format
+	// in.Model = app.Model
 
 	return RunSwarm(ctx, app, in)
 }
@@ -62,10 +62,11 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 
 	showInput(ctx, cfg, input)
 
-	req := &api.Request{
-		Name:     name,
-		RawInput: input,
-	}
+	// req := &api.Request{
+	// 	Name:     name,
+	// 	RawInput: input,
+	// }
+	req := api.NewRequest(ctx, name, input)
 	resp := &api.Response{}
 
 	var root = cfg.Workspace
