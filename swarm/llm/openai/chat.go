@@ -107,9 +107,9 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	log.GetLogger(ctx).Debugf("[OpenAI] params messages: %v tools: %v\n", len(params.Messages), len(params.Tools))
 
 	for tries := range maxTurns {
-		log.GetLogger(ctx).Infof("Ⓞ @%s [%v/%v] %s/%s\n", req.Name, tries, maxTurns, req.Model.Provider, req.Model.Model)
+		log.GetLogger(ctx).Infof("Ⓞ @%s chat [%v/%v] %s/%s\n", req.Name, tries, maxTurns, req.Model.Provider, req.Model.Model)
 
-		log.GetLogger(ctx).Debugf("📡 sending request to %s: %v of %v\n%+v\n", req.Model.BaseUrl, tries, maxTurns, req)
+		log.GetLogger(ctx).Debugf("📡 sending chat request to %s: %v of %v\n%+v\n", req.Model.BaseUrl, tries, maxTurns, req)
 
 		completion, err := client.Chat.Completions.New(ctx, params)
 		if err != nil {
