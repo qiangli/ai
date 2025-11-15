@@ -120,9 +120,9 @@ func runToolsInParallel(
 
 			results[i] = out
 
-			if out.State == api.StateExit {
-				cancel()
-			}
+			// if out.State == api.StateExit {
+			// 	cancel()
+			// }
 		}(i, toolCall)
 	}
 

@@ -134,10 +134,10 @@ func respond(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 				params.Input.OfInputItemList = append(params.Input.OfInputItemList, responses.ResponseInputItemParamOfFunctionCallOutput(calls[i].ID, "no result"))
 				continue
 			}
-			if out.State == api.StateExit {
-				resp.Result = out
-				return resp, nil
-			}
+			// if out.State == api.StateExit {
+			// 	resp.Result = out
+			// 	return resp, nil
+			// }
 			params.Input.OfInputItemList = append(params.Input.OfInputItemList, responses.ResponseInputItemParamOfFunctionCallOutput(calls[i].ID, out.Value))
 		}
 	}

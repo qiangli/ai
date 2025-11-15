@@ -13,6 +13,7 @@ type State int
 const (
 	StateExit State = iota
 
+	// TODO terminate state for early tool call termination/cancclation
 	StateTransfer
 	StateInputWait
 	StateToolCall

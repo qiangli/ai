@@ -158,9 +158,9 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 				log.GetLogger(ctx).Debugf("* tool call: %s out: %s\n", name, out)
 				resp.Result = out
 
-				if out.State == api.StateExit {
-					return resp, nil
-				}
+				// if out.State == api.StateExit {
+				// 	return resp, nil
+				// }
 				// if out.State == api.StateTransfer {
 				// 	return resp, nil
 				// }

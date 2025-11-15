@@ -149,10 +149,10 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 				params.Messages = append(params.Messages, openai.ToolMessage("no result", calls[i].ID))
 				continue
 			}
-			if out.State == api.StateExit {
-				resp.Result = out
-				return resp, nil
-			}
+			// if out.State == api.StateExit {
+			// 	resp.Result = out
+			// 	return resp, nil
+			// }
 			params.Messages = append(params.Messages, openai.ToolMessage(out.Value, calls[i].ID))
 		}
 	}
