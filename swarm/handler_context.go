@@ -72,31 +72,6 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 				}
 			}
 
-			// if !agent.New() {
-			// 	var list []*api.Message
-			// 	var emoji = "•"
-			// 	if agent.Context != "" {
-			// 		// continue without context if failed
-			// 		if resolved, err := mustResolveContext(agent, req, agent.Context); err != nil {
-			// 			logger.Errorf("failed to resolve context %s: %v\n", agent.Context, err)
-			// 		} else {
-			// 			list = resolved
-			// 			emoji = "🤖"
-			// 		}
-			// 	} else {
-			// 		list = sw.Vars.History
-			// 	}
-			// 	if len(list) > 0 {
-			// 		logger.Debugf("%s context messages: %v\n", emoji, len(list))
-			// 		for i, msg := range list {
-			// 			if msg.Role != api.RoleSystem {
-			// 				logger.Debugf("adding [%v]: %s %s (%v)\n", i, msg.Role, abbreviate(msg.Content, 100), len(msg.Content))
-			// 				history = append(history, msg)
-			// 			}
-			// 		}
-			// 	}
-			// }
-
 			// 3. New User Message
 			// Additional user message
 			var message = &api.Message{
@@ -106,7 +81,7 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 				//
 				Role:    api.RoleUser,
 				Content: req.Query,
-				Sender:  agent.Name,
+				Sender:  sw.User.Email,
 			}
 			history = append(history, message)
 

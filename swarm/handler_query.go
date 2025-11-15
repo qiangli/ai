@@ -41,10 +41,6 @@ func QueryMiddleware(sw *Swarm) api.Middleware {
 
 				req.Query = content
 			}
-			// input := req.RawInput.Query()
-			// if input != "" {
-			// 	req.Query = req.Query + "\n" + input
-			// }
 
 			logger.Debugf("query: %s (%v)\n", abbreviate(req.Query, 64), len(req.Query))
 			if logger.IsTrace() {

@@ -213,13 +213,13 @@ func (r *Result) String() string {
 		sb.WriteString(fmt.Sprintf(" %s", r.NextAgent))
 	}
 	if r.Value != "" {
-		sb.WriteString(fmt.Sprintf(" %s %s [%v]", r.Role, abbreviate(r.Value, 64), len(r.Value)))
+		sb.WriteString(fmt.Sprintf(" %s %s (%v)", r.Role, abbreviate(r.Value, 64), len(r.Value)))
 	}
 	if r.MimeType != "" {
 		sb.WriteString(fmt.Sprintf(" %s", r.MimeType))
 	}
 	if len(r.Content) > 0 {
-		sb.WriteString(fmt.Sprintf(" %s [%v]", abbreviate(string(r.Content), 64), len(r.Content)))
+		sb.WriteString(fmt.Sprintf(" %s (%v)", abbreviate(string(r.Content), 64), len(r.Content)))
 	}
 	s := strings.TrimSpace(sb.String())
 	if len(s) == 0 {

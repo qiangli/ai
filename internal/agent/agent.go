@@ -41,12 +41,12 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	logger := log.GetLogger(ctx)
 	swarm.ClearAllEnv(essentialEnv)
 
-	name := cfg.Name
-	if name == "" {
-		name = "agent"
-	}
+	// name := cfg.Name
+	// if name == "" {
+	// 	name = "agent"
+	// }
 
-	logger.Debugf("Running agent %q\n", name)
+	// logger.Debugf("Running agent %q\n", name)
 
 	vars, err := InitVars(cfg)
 	if err != nil {
@@ -62,11 +62,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 
 	showInput(ctx, cfg, input)
 
-	// req := &api.Request{
-	// 	Name:     name,
-	// 	RawInput: input,
-	// }
-	req := api.NewRequest(ctx, name, input)
+	req := api.NewRequest(ctx, cfg.Name, input)
 	resp := &api.Response{}
 
 	var root = cfg.Workspace
@@ -118,7 +114,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		logger.Debugf("Message %+v\n", m)
 	}
 
-	var display = name
+	var display = cfg.Name
 	if resp.Agent != nil {
 		display = resp.Agent.Display
 	}

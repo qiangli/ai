@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
+
 	// "maps"
 	"os"
 	"slices"
@@ -137,8 +139,36 @@ func (sw *Swarm) InitTemplate(agent *api.Agent) *template.Template {
 }
 
 func (sw *Swarm) InitChain() {
+	start := func(_ *Swarm) api.Middleware {
+		return func(agent *api.Agent, next Handler) Handler {
+			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
+				logger := log.GetLogger(req.Context())
+
+				setLogLevel := func(a *api.Agent) {
+					ll := a.LogLevel
+					for {
+						if a.Parent == nil {
+							break
+						}
+						a = a.Parent
+						ll = a.LogLevel
+					}
+					logger.SetLogLevel(ll)
+				}
+
+				logger.Debugf("🔗 (init): %s\n", agent.Name)
+
+				setLogLevel(agent)
+
+				logger.Infof("🚀 %s ← %s\n", agent.Name, NilSafe(agent.Parent).Name)
+
+				return next.Serve(req, resp)
+			})
+		}
+	}
+
 	sw.middlewares = []api.Middleware{
-		//input
+		start(sw),
 		TimeoutMiddleware(sw),
 		LogMiddleware(sw),
 		EnvMiddleware(sw),
@@ -147,10 +177,9 @@ func (sw *Swarm) InitChain() {
 		InstructionMiddleware(sw),
 		QueryMiddleware(sw),
 		ContextMiddleware(sw),
+		//
 		AgentMiddleware(sw),
-		//
 		ToolMiddleware(sw),
-		//
 		ModelMiddleware(sw),
 		//
 		InferenceMiddleware(sw),
@@ -163,11 +192,11 @@ func (sw *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
 	// if len(a.Chain) > 0 {
 
 	// }
-	log.GetLogger(ctx).Infof("🔗 (init): %s\n", a.Name)
 	// var mds = make([]api.Middleware, len(sw.middlewares))
 	// for i, v := range sw.middlewares {
 	// 	mds[i] = v(a)
 	// }
+
 	final := HandlerFunc(func(req *api.Request, res *api.Response) error {
 		log.GetLogger(req.Context()).Infof("🔗 (final): %s\n", req.Name)
 		return nil
@@ -177,8 +206,42 @@ func (sw *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
 	return chain
 }
 
+func (sw *Swarm) GetDefaultAgent() (string, error) {
+	hist, err := sw.History.Load(&api.MemOption{
+		MaxHistory: 3,
+		MaxSpan:    math.MaxInt,
+	})
+	if err != nil {
+		return "", err
+	}
+	max := len(hist)
+	if max == 0 {
+		return "", err
+	}
+	for i := max - 1; i > 0; i-- {
+		v := hist[i]
+		if v.Role != api.RoleUser && v.Sender != "" {
+			return v.Sender, nil
+		}
+	}
+	return "", nil
+}
+
 func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
-	agent, err := sw.agentMaker.CreateAgent(ctx, req.Name)
+	var name = req.Name
+	// default agnet
+	if name == "" {
+		v, err := sw.GetDefaultAgent()
+		if err != nil {
+			return nil, err
+		}
+		if v != "" {
+			name = v
+		} else {
+			name = "agent"
+		}
+	}
+	agent, err := sw.agentMaker.CreateAgent(ctx, name)
 
 	if err != nil {
 		return nil, err
@@ -217,18 +280,6 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 	var ctx = req.Context()
 	logger := log.GetLogger(ctx)
 
-	setLogLevel := func(a *api.Agent) {
-		ll := a.LogLevel
-		for {
-			if a.Parent == nil {
-				break
-			}
-			a = a.Parent
-			ll = a.LogLevel
-		}
-		logger.SetLogLevel(ll)
-	}
-
 	for {
 		start := time.Now()
 		logger.Debugf("creating agent: %s %s\n", req.Name, start)
@@ -238,10 +289,6 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 		if err != nil {
 			return err
 		}
-
-		setLogLevel(agent)
-
-		logger.Infof("🚀 %s ← %s\n", agent.Name, NilSafe(agent.Parent).Name)
 
 		// init
 		if err := sw.NewChain(ctx, agent).Serve(req, resp); err != nil {

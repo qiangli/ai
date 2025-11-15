@@ -113,7 +113,7 @@ func (ap *AgentMaker) newAgent(
 	ac *api.AgentsConfig,
 	c *api.AgentConfig,
 	// vars *api.Vars,
-	user string,
+	// _ string,
 	owner string,
 	// input *api.UserInput,
 ) (*api.Agent, error) {
@@ -345,178 +345,6 @@ func (ap *AgentMaker) normalizeAgentName(pack, name string) string {
 
 // , auth *api.User, secrets api.SecretStore, assets api.AssetManager
 func (ap *AgentMaker) CreateAgent(ctx context.Context, agent string) (*api.Agent, error) {
-	// var agent = req.Name
-	// var input = req.RawInput
-	//
-
-	// newAgent := func(
-	// 	ac *api.AgentsConfig,
-	// 	c *api.AgentConfig,
-	// 	// vars *api.Vars,
-	// 	user string,
-	// 	owner string,
-	// 	// input *api.UserInput,
-	// ) (*api.Agent, error) {
-	// 	var agent = api.Agent{
-	// 		Parent:  req.Parent,
-	// 		Owner:   owner,
-	// 		Adapter: c.Adapter,
-	// 		//
-	// 		Name:        c.Name,
-	// 		Display:     c.Display,
-	// 		Description: c.Description,
-	// 		//
-	// 		RawInput: req.RawInput,
-	// 		//
-	// 		LogLevel: api.Quiet,
-	// 	}
-	// 	//
-	// 	agent.Arguments = c.Arguments
-	// 	if len(req.RawInput.Arguments) > 0 {
-	// 		if agent.Arguments == nil {
-	// 			agent.Arguments = make(map[string]any)
-	// 		}
-	// 		maps.Copy(agent.Arguments, req.RawInput.Arguments)
-	// 	}
-	// 	// agent.New = nbl(req.RawInput.New, c.New, ac.New)
-
-	// 	agent.Message = nvl(req.RawInput.Message, c.Message, ac.Message)
-	// 	agent.Format = nvl(req.RawInput.Format, c.Format, ac.Format)
-	// 	//
-	// 	agent.MaxTurns = nzl(req.RawInput.MaxTurns, c.MaxTurns, ac.MaxTurns, defaultMaxTurns)
-	// 	agent.MaxTime = nzl(req.RawInput.MaxTime, c.MaxTime, ac.MaxTime, defaultMaxTime)
-
-	// 	agent.MaxHistory = nzl(req.RawInput.MaxHistory, c.MaxHistory, ac.MaxHistory, defaultMaxHistory)
-	// 	agent.MaxSpan = nzl(req.RawInput.MaxSpan, c.MaxSpan, ac.MaxSpan, defaultMaxSpan)
-
-	// 	// merge global vars
-	// 	agent.Environment = ac.Environment
-	// 	if len(c.Environment) > 0 {
-	// 		if agent.Environment == nil {
-	// 			agent.Environment = make(map[string]any)
-	// 		}
-	// 		maps.Copy(agent.Environment, c.Environment)
-	// 	}
-
-	// 	// log
-	// 	agent.LogLevel = api.ToLogLevel(nvl(req.RawInput.LogLevel, c.LogLevel, ac.LogLevel, "quiet"))
-
-	// 	// hard limit
-	// 	agent.MaxTurns = min(agent.MaxTurns, maxTurnsLimit)
-	// 	agent.MaxTime = min(agent.MaxTime, maxTimeLimit)
-
-	// 	// instruction
-	// 	// TODO ai trigger
-	// 	if c.Instruction != nil {
-	// 		c.Instruction.Content = strings.TrimSpace(c.Instruction.Content)
-	// 		agent.Instruction = c.Instruction
-	// 	}
-
-	// 	// context
-	// 	// TODO ai trigger
-	// 	context := strings.TrimSpace(nvl(c.Context, ac.Context))
-	// 	agent.Context = context
-
-	// 	// llm model set[/level]
-	// 	// @model support
-	// 	// flow does not require a model
-	// 	model := strings.TrimSpace(nvl(c.Model, ac.Model))
-	// 	if model != "" && agent.Flow == nil {
-	// 		if strings.HasPrefix(model, "@") {
-	// 			// defer model provider resolution
-	// 			agent.Model = &api.Model{
-	// 				Model: model,
-	// 			}
-	// 		} else {
-	// 			set, level := resolveModelLevel(req.RawInput.Model, model)
-	// 			// local
-	// 			if set == ac.Set {
-	// 				for k, v := range ac.Models {
-	// 					if k == level {
-	// 						agent.Model = &api.Model{
-	// 							Model: v.Model,
-	// 							//
-	// 							Provider: nvl(v.Provider, ac.Provider),
-	// 							BaseUrl:  nvl(v.BaseUrl, ac.BaseUrl),
-	// 							ApiKey:   nvl(v.ApiKey, ac.ApiKey),
-	// 						}
-	// 					}
-	// 				}
-	// 			}
-	// 			// load external model if not defined locally
-	// 			if agent.Model == nil {
-	// 				if v, err := loadModel(owner, set, level, assets); err != nil {
-	// 					return nil, fmt.Errorf("failed to load model: %s %s %v", req.RawInput.Model, model, err)
-	// 				} else {
-	// 					agent.Model = v
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-
-	// 	// tools
-	// 	funcMap := make(map[string]*api.ToolFunc)
-	// 	// kit:*
-	// 	for _, v := range c.Functions {
-	// 		var tools []*api.ToolFunc
-	// 		// local
-	// 		if v, err := LoadLocalToolFunc(ac, owner, v, secrets, assets); err != nil {
-	// 			return nil, err
-	// 		} else {
-	// 			tools = v
-	// 		}
-	// 		// load external kit if not defined locally
-	// 		if tools == nil {
-	// 			if v, err := LoadToolFunc(owner, v, secrets, assets); err != nil {
-	// 				return nil, err
-	// 			} else {
-	// 				tools = v
-	// 			}
-	// 		}
-	// 		for _, fn := range tools {
-	// 			id := fn.ID()
-	// 			if id == "" {
-	// 				return nil, fmt.Errorf("agent tool ID is empty: %s", c.Name)
-	// 			}
-	// 			funcMap[id] = fn
-	// 		}
-	// 	}
-	// 	var funcs []*api.ToolFunc
-	// 	for _, v := range funcMap {
-	// 		funcs = append(funcs, v)
-	// 	}
-	// 	agent.Tools = funcs
-
-	// 	// flow
-	// 	if c.Flow != nil {
-	// 		var actionMap = make(map[string]*api.Action)
-	// 		for _, v := range agent.Tools {
-	// 			actionMap[v.Kit+":"+v.Name] = &api.Action{
-	// 				ID:        v.ID(),
-	// 				Name:      v.Name,
-	// 				Arguments: v.Arguments,
-	// 			}
-	// 		}
-	// 		flow := &api.Flow{
-	// 			Type:        c.Flow.Type,
-	// 			Expression:  c.Flow.Expression,
-	// 			Concurrency: c.Flow.Concurrency,
-	// 			Retry:       c.Flow.Retry,
-	// 			Script:      c.Flow.Script,
-	// 		}
-
-	// 		for _, v := range c.Flow.Actions {
-	// 			a, ok := actionMap[v]
-	// 			if !ok {
-	// 				return nil, fmt.Errorf("action missing: %s %s", agent.Name, v)
-	// 			}
-	// 			flow.Actions = append(flow.Actions, a)
-	// 		}
-	// 		agent.Flow = flow
-	// 	}
-
-	// 	return &agent, nil
-	// }
 
 	// create the agent
 	// agent: owner:pack/sub
@@ -587,7 +415,7 @@ func (ap *AgentMaker) CreateAgent(ctx context.Context, agent string) (*api.Agent
 			return nil, err
 		}
 
-		agent, err := ap.newAgent(ac, c, user, owner)
+		agent, err := ap.newAgent(ac, c, owner)
 		if err != nil {
 			return nil, err
 		}

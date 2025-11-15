@@ -202,11 +202,7 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	// default agent:
 	// --agent, "ask"
 	var agent = viper.GetString("agent")
-	// if defaultAgent == "" {
-	// 	defaultAgent = "agent"
-	// }
 
-	//
 	ParseArgs(viper, app, args, agent)
 
 	// // resource
