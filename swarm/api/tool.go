@@ -84,7 +84,7 @@ func (r *ToolFunc) ID() string {
 }
 
 // Toolkit config
-type ToolsConfig AppConfig
+type ToolsConfig ActionConfig
 
 type ToolConfig struct {
 	Type string `yaml:"type"`

@@ -126,7 +126,7 @@ func (sw *Swarm) InitChain() {
 	sw.middlewares = []api.Middleware{
 		//input
 		TimeoutMiddleware(sw),
-		MaxLogMiddleware(sw),
+		LogMiddleware(sw),
 		EnvMiddleware(sw),
 		MemoryMiddleware(sw),
 		//
@@ -177,7 +177,11 @@ func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent,
 // If the resulting AI Message contains tool_calls, the orchestrator will then call the tools.
 // The tools node executes the tools and adds the responses to the messages list as ToolMessage objects. The agent node then calls the language model again. The process repeats until no more tool_calls are present in the response. The agent then returns the full list of messages.
 func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
+	if sw.User == nil || sw.Vars == nil {
+		return api.NewInternalServerError("invalid config. user or vars not initialized")
+	}
 
+	// request
 	if req.Name == "" {
 		return api.NewBadRequestError("missing agent in request")
 	}
@@ -202,10 +206,6 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 			ll = a.LogLevel
 		}
 		logger.SetLogLevel(ll)
-	}
-
-	if sw.User == nil || sw.Vars == nil {
-		return api.NewInternalServerError("invalid config. user or vars not initialized")
 	}
 
 	for {
@@ -459,7 +459,7 @@ func (sw *Swarm) agentRunner(vs *sh.VirtualSystem, agent *api.Agent) func(contex
 	var memo = sw.buildAgentToolMap(agent)
 
 	return func(ctx context.Context, args []string) (*api.Result, error) {
-		at, err := conf.ParseArgs(args)
+		at, err := conf.ParseActionArgs(args)
 		if err != nil {
 			return nil, err
 		}

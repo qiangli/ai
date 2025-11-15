@@ -35,7 +35,7 @@ func (s *stringSlice) Set(value string) error {
 // anoymous:
 // @ args...
 // / args...
-func ParseArgs(args []string) (*api.AgentTool, error) {
+func ParseActionArgs(args []string) (*api.ActionConfig, error) {
 	if len(args) == 0 {
 		return nil, fmt.Errorf("missing command args")
 	}
@@ -156,7 +156,7 @@ func ParseArgs(args []string) (*api.AgentTool, error) {
 	atArgs["instruction"] = prompt
 	atArgs["model"] = *model
 
-	var at = &api.AgentTool{
+	var at = &api.ActionConfig{
 		Message:     msg,
 		Instruction: prompt,
 		Arguments:   atArgs,

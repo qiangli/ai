@@ -1,0 +1,62 @@
+###
+pack: "chain"
+
+creator: "@new"
+# chain:
+#   middelware: "chain/middelware"
+
+agents:
+  - name: "chain"
+    display: "Middleware Chain"
+    description: "Custom middleware chain"
+    message: |
+      optional preset user message prepended to user input
+    instruction:
+      content: |
+        system role prompt goes here
+    functions:
+      - "kit:*"
+      - "agent:<agent>"
+
+  - name: "chain/middelware"
+    display: "Middleware Chain"
+    description: "Custom middleware chain"
+    chain:
+      middleware:
+          - input
+          #
+          - timeout
+          - log
+          - env
+          - memory
+          - instruction
+          - query
+          - context
+          - agent
+          - tool
+          - model
+          - inferecne
+          #
+          - output
+    flow:
+      type: sequence
+      actions:
+        - input
+        #
+        - timeout
+        - log
+        - env
+        - memory
+        - instruction
+        - query
+        - context
+        - agent
+        - tool
+        - model
+        - inferecne
+        #
+        - output
+    functions:
+      - "kit:*"
+      - "agent:<agent>"
+###

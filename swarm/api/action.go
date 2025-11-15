@@ -18,8 +18,8 @@ const (
 	StateToolCall
 )
 
-func (r State) String() string {
-	switch r {
+func (s State) String() string {
+	switch s {
 	case StateExit:
 		return "EXIT"
 	case StateTransfer:
@@ -32,12 +32,12 @@ func (r State) String() string {
 	return "EXIT"
 }
 
-func (r State) Equal(s string) bool {
-	return strings.ToUpper(s) == r.String()
+func (s State) Equal(state string) bool {
+	return strings.ToUpper(state) == s.String()
 }
 
-func ParseState(s string) State {
-	switch strings.ToUpper(s) {
+func ParseState(state string) State {
+	switch strings.ToUpper(state) {
 	case "EXIT":
 		return StateExit
 	case "TRANSFER":
@@ -72,7 +72,7 @@ type ActionRunner interface {
 	Run(context.Context, string, map[string]any) (any, error)
 }
 
-type AppConfig struct {
+type ActionConfig struct {
 	// unique identifier
 	ID string `yaml:"-"`
 
@@ -86,6 +86,12 @@ type AppConfig struct {
 	Workspace string `yaml:"-"`
 
 	ChatID string `yaml:"-"`
+
+	// name of custom creator agent for this agent configuration
+	Creator string `yaml:"creator"`
+
+	// middleware chain
+	Chain *ChainConfig `yaml:"chain"`
 
 	// action name and arguments
 	Name      string         `yaml:"name"`
@@ -160,8 +166,8 @@ type AppConfig struct {
 }
 
 // Clone is a shallow copy of member fields of the configration
-func (cfg *AppConfig) Clone() *AppConfig {
-	return &AppConfig{
+func (cfg *ActionConfig) Clone() *ActionConfig {
+	return &ActionConfig{
 		Name:      cfg.Name,
 		Arguments: cfg.Arguments,
 		Model:     cfg.Model,
@@ -205,6 +211,8 @@ func (cfg *AppConfig) Clone() *AppConfig {
 	}
 }
 
+type AppConfig ActionConfig
+
 func (cfg *AppConfig) IsNew() bool {
 	// return cfg.New != nil && *cfg.New
 	return cfg.MaxHistory == 0
@@ -226,28 +234,26 @@ func (cfg *AppConfig) IsTracing() bool {
 	return ToLogLevel(cfg.LogLevel) == Tracing
 }
 
-func (r *AppConfig) IsStdin() bool {
-	return r.Stdin
+func (cfg *AppConfig) IsStdin() bool {
+	return cfg.Stdin
 }
 
-func (r *AppConfig) IsClipin() bool {
-	return r.Clipin
+func (cfg *AppConfig) IsClipin() bool {
+	return cfg.Clipin
 }
 
-func (r *AppConfig) IsSpecial() bool {
-	return r.IsStdin() || r.IsClipin()
+func (cfg *AppConfig) IsSpecial() bool {
+	return cfg.IsStdin() || cfg.IsClipin()
 }
 
-func (r *AppConfig) HasInput() bool {
-	return r.Message != "" || r.Name != ""
+func (cfg *AppConfig) HasInput() bool {
+	return cfg.Message != "" || cfg.Name != ""
 }
 
 func (cfg *AppConfig) Interactive() bool {
 	_, ok := cfg.Arguments["interactive"]
 	return ok
 }
-
-type AgentTool AppConfig
 
 func ToResult(data any) *Result {
 	if v, ok := data.(*Result); ok {

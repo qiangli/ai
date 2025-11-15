@@ -157,9 +157,9 @@ func dataURL(mime string, raw []byte) string {
 }
 
 // parse s and look for agent. return app config and true if found.
-func parseAgentCommand(s string) (*api.AgentTool, bool) {
+func parseAgentCommand(s string) (*api.ActionConfig, bool) {
 	argv := shlex.Argv(s)
-	at, err := conf.ParseArgs(argv)
+	at, err := conf.ParseActionArgs(argv)
 	if err != nil || at == nil {
 		return nil, false
 	}

@@ -5,9 +5,9 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-// MaxLogMiddleware returns a [api.Middleware] that logs the request and response
+// LogMiddleware returns a [api.Middleware] that logs the request and response
 // for debugging. trim text to max length of n.
-func MaxLogMiddleware(sw *Swarm) api.Middleware {
+func LogMiddleware(sw *Swarm) api.Middleware {
 	return func(agent *api.Agent, next Handler) Handler {
 		return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 			logger := log.GetLogger(req.Context())

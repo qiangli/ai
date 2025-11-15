@@ -225,7 +225,7 @@ func (a *Agent) cloneEnvironment() map[string]any {
 }
 
 // pack config
-type AgentsConfig AppConfig
+type AgentsConfig ActionConfig
 
 type AgentConfig struct {
 	Display     string `yaml:"display"`
@@ -239,6 +239,12 @@ type AgentConfig struct {
 
 	// chat|image|docker/aider oh gptr
 	Adapter string `yaml:"adapter"`
+
+	// name of custom creator agent for this agent configuration
+	Creator string `yaml:"creator"`
+
+	// middleware chain
+	Chain *ChainConfig `yaml:"chain"`
 
 	// default agents config
 	Name      string         `yaml:"name"`
@@ -355,4 +361,9 @@ type Resource struct {
 
 	// access token
 	Token string `json:"token"`
+}
+
+type ChainConfig struct {
+	// action list
+	Middleware []string `yaml:"middelware"`
 }
