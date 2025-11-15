@@ -3,7 +3,7 @@ pack: "input"
 log_level: verbose
 agents:
   - name: "input"
-    display: "Input Parser"
+    display: "Input Interpreter"
     description: |
       The Command-Line Input Parsing Agent is a robust tool designed to interpret and convert mixed-mode user inputs,
       comprising both command-line arguments and natural language text, into a structured JSON format.
@@ -197,4 +197,24 @@ agents:
 
         Your role is to meticulously apply these principles to parse inputs accurately into a structured JSON,
         resolving conflicts and prioritizing recent definitions to ensure consistency and precision in the output.
+
+  - name: "input/parse"
+    display: "Input Parser"
+    description: |
+      Processes input text, converting it to structured JSON format for downstream processing.
+    flow:
+      type: sequence
+      actions:
+        - "sh:parse"
+    instruction:
+      content:
+
+  - name: "input/noop"
+    display: "No-Op Parser"
+    description: |
+      Return the input text without any modifications.
+    message: |
+      {{.query}}
+    instruction:
+      content:
 ###

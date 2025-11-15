@@ -19,7 +19,6 @@ import (
 )
 
 func RunAgent(ctx context.Context, app *api.AppConfig) error {
-	log.GetLogger(ctx).Debugf("Agent: %s\n", app.Name)
 	in, err := GetUserInput(ctx, app)
 	if err != nil {
 		return err
@@ -39,6 +38,7 @@ func RunAgent(ctx context.Context, app *api.AppConfig) error {
 var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
 
 func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) error {
+	logger := log.GetLogger(ctx)
 	swarm.ClearAllEnv(essentialEnv)
 
 	name := cfg.Name
@@ -46,7 +46,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		name = "agent"
 	}
 
-	log.GetLogger(ctx).Debugf("Running agent %q with swarm\n", name)
+	logger.Debugf("Running agent %q\n", name)
 
 	vars, err := InitVars(cfg)
 	if err != nil {
@@ -109,12 +109,12 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		return err
 	}
 
-	log.GetLogger(ctx).Debugf("Agent %+v\n", resp.Agent)
+	logger.Debugf("Agent %+v\n", resp.Agent)
 	if resp.Result != nil {
-		log.GetLogger(ctx).Debugf("Result content %s\n", resp.Result.Value)
+		logger.Debugf("Result content %s\n", resp.Result.Value)
 	}
 	for _, m := range resp.Messages {
-		log.GetLogger(ctx).Debugf("Message %+v\n", m)
+		logger.Debugf("Message %+v\n", m)
 	}
 
 	var display = name
@@ -141,7 +141,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	}
 	processOutput(ctx, cfg, out)
 
-	log.GetLogger(ctx).Debugf("Agent task completed\n")
+	logger.Debugf("Agent task completed\n")
 	return nil
 }
 

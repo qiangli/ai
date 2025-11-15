@@ -1,0 +1,31 @@
+###
+pack: "output"
+log_level: debug
+agents:
+  - name: "output"
+    display: "Output Formatter"
+    description: "Converts input text to the requested format."
+    model: "default/any"
+    message: |
+      #! mime-type=text/x-go-template
+      User query: 
+      {{.original_query}}
+
+      Input: 
+      {{.result}}
+    instruction:
+      content: |
+        Your role is to format input text according to the user's request.
+        Adhere to the specified format in their query; if none is provided,
+        use Markdown as the default. Focus only on format conversion, without
+        altering the actual content.
+
+  - name: "output/noop"
+    display: "No-Op Formatter"
+    description: "Returns the input text without any modifications."
+    model: "default/any"
+    message: |
+      {{.result}}
+    instruction:
+      content:
+###

@@ -172,7 +172,9 @@ func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent,
 	return agent, nil
 }
 
-// Run calls the language model with the messages list (after applying the system prompt). If the resulting AIMessage contains tool_calls, the graph will then call the tools. The tools node executes the tools and adds the responses to the messages list as ToolMessage objects. The agent node then calls the language model again. The process repeats until no more tool_calls are present in the response. The agent then returns the full list of messages.
+// Run calls the language model with the messages list (after applying the system prompt).
+// If the resulting AI Message contains tool_calls, the orchestrator will then call the tools.
+// The tools node executes the tools and adds the responses to the messages list as ToolMessage objects. The agent node then calls the language model again. The process repeats until no more tool_calls are present in the response. The agent then returns the full list of messages.
 func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 	if req.Name == "" {
 		return api.NewBadRequestError("missing agent in request")
