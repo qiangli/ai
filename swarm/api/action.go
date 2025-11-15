@@ -29,7 +29,7 @@ func (r State) String() string {
 	case StateToolCall:
 		return "TOOL_CALL"
 	}
-	return "DEFAULT"
+	return "EXIT"
 }
 
 func (r State) Equal(s string) bool {

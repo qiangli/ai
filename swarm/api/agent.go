@@ -228,15 +228,8 @@ func (a *Agent) cloneEnvironment() map[string]any {
 type AgentsConfig AppConfig
 
 type AgentConfig struct {
-	Name        string `yaml:"name"`
 	Display     string `yaml:"display"`
 	Description string `yaml:"description"`
-
-	//
-	Instruction *Instruction `yaml:"instruction"`
-
-	// set/level
-	Model string `yaml:"model"`
 
 	// tools defined in tools config
 	// kit:name
@@ -247,12 +240,19 @@ type AgentConfig struct {
 	// chat|image|docker/aider oh gptr
 	Adapter string `yaml:"adapter"`
 
+	// default agents config
+	Name      string         `yaml:"name"`
+	Arguments map[string]any `yaml:"arguments"`
+
+	Message string `yaml:"message"`
+
+	Instruction *Instruction `yaml:"instruction"`
+
+	Model string `yaml:"model"`
+
 	//
 	MaxTurns int `yaml:"max_turns"`
 	MaxTime  int `yaml:"max_time"`
-
-	// user message
-	Message string `yaml:"message"`
 
 	// output format: json | text
 	Format string `yaml:"format"`
@@ -269,9 +269,6 @@ type AgentConfig struct {
 
 	// agent as tool
 	Parameters map[string]any `yaml:"parameters"`
-
-	// default values for parameters
-	Arguments map[string]any `yaml:"arguments"`
 
 	// agent global vars
 	Environment map[string]any `yaml:"environment"`

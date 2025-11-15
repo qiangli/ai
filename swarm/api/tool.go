@@ -89,10 +89,10 @@ type ToolsConfig AppConfig
 type ToolConfig struct {
 	Type string `yaml:"type"`
 
-	Name string `yaml:"name"`
+	Name        string `yaml:"name"`
+	Description string `yaml:"description"`
 
-	Description string         `yaml:"description"`
-	Parameters  map[string]any `yaml:"parameters"`
+	Parameters map[string]any `yaml:"parameters"`
 
 	Body *FuncBody `yaml:"body"`
 

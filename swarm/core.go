@@ -124,7 +124,7 @@ func (sw *Swarm) InitTemplate() {
 
 func (sw *Swarm) InitChain() {
 	sw.middlewares = []api.Middleware{
-
+		//input
 		TimeoutMiddleware(sw),
 		MaxLogMiddleware(sw),
 		EnvMiddleware(sw),
@@ -140,6 +140,7 @@ func (sw *Swarm) InitChain() {
 		ModelMiddleware(sw),
 		//
 		InferenceMiddleware(sw),
+		// output
 	}
 }
 
@@ -176,6 +177,7 @@ func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent,
 // If the resulting AI Message contains tool_calls, the orchestrator will then call the tools.
 // The tools node executes the tools and adds the responses to the messages list as ToolMessage objects. The agent node then calls the language model again. The process repeats until no more tool_calls are present in the response. The agent then returns the full list of messages.
 func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
+
 	if req.Name == "" {
 		return api.NewBadRequestError("missing agent in request")
 	}
@@ -209,7 +211,8 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 	for {
 		start := time.Now()
 		logger.Debugf("creating agent: %s %s\n", req.Name, start)
-		//
+
+		// creator
 		agent, err := sw.createAgent(ctx, req)
 		if err != nil {
 			return err
@@ -218,12 +221,8 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 		setLogLevel(agent)
 
 		logger.Infof("🚀 %s ← %s\n", agent.Name, NilSafe(agent.Parent).Name)
-		// if agent.Parent != nil {
-		// 	logger.Infof(" ← %s\n", agent.Parent.Name)
-		// } else {
-		// 	logger.Infof("\n")
-		// }
 
+		// init
 		if err := sw.NewChain(ctx, agent).Serve(req, resp); err != nil {
 			return err
 		}
