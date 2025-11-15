@@ -1,4 +1,6 @@
 ###
+pack: "ask"
+log_level: info
 agents:
   - name: "ask"
     display: "💬 Q&A"

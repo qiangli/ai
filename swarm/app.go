@@ -526,6 +526,11 @@ func (ap *AgentMaker) CreateAgent(ctx context.Context, agent string) (*api.Agent
 		owner = user
 	}
 
+	//
+	if pack == "" {
+		return nil, fmt.Errorf("missing agent pack")
+	}
+
 	// cached agent
 
 	key := AgentCacheKey{

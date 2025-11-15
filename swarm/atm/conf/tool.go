@@ -44,7 +44,7 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 		return filter(v)
 	}
 
-	// builtin "agent" toolkit
+	// builtin "agent:" toolkit
 	// any agent can be used a tool
 	// @name
 	// agent:name
@@ -90,7 +90,7 @@ func LoadLocalToolFunc(local *api.AgentsConfig, owner, s string, secrets api.Sec
 		return filtered, nil
 	}
 
-	// builtin "agent" toolkit
+	// builtin "agent:" toolkit
 	// any agent can be used as a tool
 	// agent:<agent name>
 	if kit == api.ToolTypeAgent {
