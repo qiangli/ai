@@ -327,7 +327,7 @@ func (r *AIKit) ContextSetMessages(_ context.Context, vars *api.Vars, _ string, 
 	if err := json.Unmarshal([]byte(data), &messages); err != nil {
 		return nil, err
 	}
-	r.sw.Vars.AddHistory(messages)
+	r.sw.Vars.SetHistory(messages)
 	return &api.Result{
 		Value: "success",
 	}, nil

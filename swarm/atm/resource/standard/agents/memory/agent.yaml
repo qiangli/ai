@@ -1,5 +1,5 @@
 ###
-new: true
+max_history: 0
 agents:
   - name: "memory"
     display: "🤖 Memory"

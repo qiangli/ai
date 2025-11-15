@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/db"
@@ -23,14 +24,6 @@ func RunAgent(ctx context.Context, app *api.AppConfig) error {
 	if err != nil {
 		return err
 	}
-
-	// in.LogLevel = app.LogLevel
-	// in.MaxTurns = app.MaxTurns
-	// in.MaxTime = app.MaxTime
-	// in.MaxHistory = app.MaxHistory
-	// in.MaxSpan = app.MaxSpan
-	// in.Format = app.Format
-	// in.Model = app.Model
 
 	return RunSwarm(ctx, app, in)
 }
@@ -67,7 +60,10 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 
 	var root = cfg.Workspace
 
-	var user = &api.User{}
+	who, _ := util.WhoAmI()
+	var user = &api.User{
+		Display: who,
+	}
 	var adapters = adapter.GetAdapters()
 
 	var secrets = conf.LocalSecrets
@@ -102,8 +98,12 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 
 	sw.Init()
 
+	// TODO remove error return from Run?
 	if err := sw.Run(req, resp); err != nil {
-		return err
+		// return err
+		resp.Result = &api.Result{
+			Value: err.Error(),
+		}
 	}
 
 	logger.Debugf("Agent %+v\n", resp.Agent)

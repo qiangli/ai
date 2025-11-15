@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
+	// "fmt"
 	"maps"
 	"sync"
 )
@@ -151,8 +151,9 @@ type Vars struct {
 
 	// conversation history
 	history []*Message `json:"-"`
+
 	// initial size of hisotry
-	initLen int `json:"-"`
+	// initLen int `json:"-"`
 
 	toolcallHistory []*ToolCallEntry `json:"-"`
 
@@ -195,9 +196,7 @@ func (v *Vars) Clone() *Vars {
 		//
 		LogLevel: v.LogLevel,
 		//
-		// DryRun:        v.DryRun,
-		// DryRunContent: v.DryRunContent,
-		//
+
 		// Extra:   make(map[string]string),
 		history: make([]*Message, len(v.history)),
 		Global:  v.Global.Clone(),
@@ -214,23 +213,12 @@ func (v *Vars) ClearHistory() {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	v.history = []*Message{}
-	v.initLen = 0
 }
 
-func (v *Vars) InitHistory(messages []*Message) {
+func (v *Vars) SetHistory(messages []*Message) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	v.history = messages
-	v.initLen = len(messages)
-}
-
-func (v *Vars) GetNewHistory() []*Message {
-	v.mu.Lock()
-	defer v.mu.Unlock()
-	if len(v.history) > v.initLen {
-		return v.history[v.initLen:]
-	}
-	return nil
 }
 
 // Append messages to history
@@ -259,23 +247,23 @@ func (r *Vars) IsTrace() bool {
 	return r.LogLevel == Tracing
 }
 
-func (r *Vars) Get(key string) (any, bool) {
-	if r.Global == nil {
-		return "", false
-	}
-	return r.Global.Get(key)
-}
+// func (r *Vars) Get(key string) (any, bool) {
+// 	if r.Global == nil {
+// 		return "", false
+// 	}
+// 	return r.Global.Get(key)
+// }
 
-func (r *Vars) GetString(key string) string {
-	if r.Global == nil {
-		return ""
-	}
-	val, ok := r.Global.Get(key)
-	if !ok {
-		return ""
-	}
-	if s, ok := val.(string); ok {
-		return s
-	}
-	return fmt.Sprintf("%v", val)
-}
+// func (r *Vars) GetString(key string) string {
+// 	if r.Global == nil {
+// 		return ""
+// 	}
+// 	val, ok := r.Global.Get(key)
+// 	if !ok {
+// 		return ""
+// 	}
+// 	if s, ok := val.(string); ok {
+// 		return s
+// 	}
+// 	return fmt.Sprintf("%v", val)
+// }

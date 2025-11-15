@@ -5,9 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math"
-
-	// "maps"
 	"os"
 	"slices"
 	"strings"
@@ -32,8 +29,7 @@ const globalResult = "result"
 const globalError = "error"
 
 type Swarm struct {
-	// TODO experimental
-	Root   string
+	// swarm session id
 	ChatID string
 
 	Vars *api.Vars
@@ -41,24 +37,25 @@ type Swarm struct {
 	User *api.User
 
 	Secrets api.SecretStore
-	Assets  api.AssetManager
-	Tools   api.ToolSystem
+
+	Assets api.AssetManager
+
+	Tools api.ToolSystem
 
 	Adapters llm.AdapterRegistry
 
 	Blobs api.BlobStore
 
+	// virtual system
+	Root      string
 	OS        vos.System
 	Workspace vfs.Workspace
 
 	History api.MemStore
 
-	// TODO
-	// template *template.Template
-
+	// internal
 	middlewares []api.Middleware
-
-	agentMaker *AgentMaker
+	agentMaker  *AgentMaker
 }
 
 func (sw *Swarm) Init() {
@@ -105,15 +102,6 @@ func (sw *Swarm) InitTemplate(agent *api.Agent) *template.Template {
 		}
 		id := api.KitName(at.Name).ID()
 
-		// var b bytes.Buffer
-		// ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
-		// vs := sh.NewVirtualSystem(sw.Root, sw.OS, sw.Workspace, ioe)
-		// var agent *api.Agent
-		// if v, ok := sw.Vars.Global.GetAgent(at.Name); ok {
-		// 	agent = v.(*api.Agent)
-		// } else {
-		// 	return fmt.Sprintf("Error: missing agent %q in env", at.Name)
-		// }
 		ctx := context.Background()
 		// result, err := ExecAction(ctx, parent, args)
 		// v, err := parent.Runner.Run(ctx, id, args)
@@ -128,10 +116,7 @@ func (sw *Swarm) InitTemplate(agent *api.Agent) *template.Template {
 		if err != nil {
 			return err.Error()
 		}
-		// result := api.ToResult(v)
-		// if result == nil {
-		// 	return ""
-		// }
+
 		return result.Value
 	}
 
@@ -167,6 +152,10 @@ func (sw *Swarm) InitChain() {
 		}
 	}
 
+	// logging, analytics, and debugging.
+	// prompts, tool selection, and output formatting.
+	// retries, fallbacks, early termination.
+	// rate limits, guardrails, pii detection.
 	sw.middlewares = []api.Middleware{
 		start(sw),
 		TimeoutMiddleware(sw),
@@ -183,20 +172,13 @@ func (sw *Swarm) InitChain() {
 		ModelMiddleware(sw),
 		//
 		InferenceMiddleware(sw),
-		// metrics
 		// output
 	}
 }
 
 func (sw *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
 	// if len(a.Chain) > 0 {
-
 	// }
-	// var mds = make([]api.Middleware, len(sw.middlewares))
-	// for i, v := range sw.middlewares {
-	// 	mds[i] = v(a)
-	// }
-
 	final := HandlerFunc(func(req *api.Request, res *api.Response) error {
 		log.GetLogger(req.Context()).Infof("🔗 (final): %s\n", req.Name)
 		return nil
@@ -206,40 +188,42 @@ func (sw *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
 	return chain
 }
 
-func (sw *Swarm) GetDefaultAgent() (string, error) {
-	hist, err := sw.History.Load(&api.MemOption{
-		MaxHistory: 3,
-		MaxSpan:    math.MaxInt,
-	})
-	if err != nil {
-		return "", err
-	}
-	max := len(hist)
-	if max == 0 {
-		return "", err
-	}
-	for i := max - 1; i > 0; i-- {
-		v := hist[i]
-		if v.Role != api.RoleUser && v.Sender != "" {
-			return v.Sender, nil
-		}
-	}
-	return "", nil
-}
+// func (sw *Swarm) GetDefaultAgent() (string, error) {
+// 	// hist, err := sw.History.Load(&api.MemOption{
+// 	// 	MaxHistory: 100,
+// 	// 	MaxSpan:    math.MaxInt,
+// 	// })
+// 	// if err != nil {
+// 	// 	return "", err
+// 	// }
+// 	// max := len(hist)
+// 	// if max == 0 {
+// 	// 	return "", err
+// 	// }
+// 	// for i := max - 1; i > 0; i-- {
+// 	// 	v := hist[i]
+// 	// 	// not "agent"
+// 	// 	if v.Role != api.RoleUser && v.Sender != "" && v.Sender != "agent" {
+// 	// 		return v.Sender, nil
+// 	// 	}
+// 	// }
+// 	// return "", nil
+// }
 
 func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
 	var name = req.Name
 	// default agnet
 	if name == "" {
-		v, err := sw.GetDefaultAgent()
-		if err != nil {
-			return nil, err
-		}
-		if v != "" {
-			name = v
-		} else {
-			name = "agent"
-		}
+		// v, err := sw.GetDefaultAgent()
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// if v != "" {
+		// 	name = v
+		// } else {
+		// 	name = "agent"
+		// }
+		log.GetLogger(ctx).Debugf("agent not specified.\n")
 	}
 	agent, err := sw.agentMaker.CreateAgent(ctx, name)
 
@@ -264,14 +248,6 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 	if sw.User == nil || sw.Vars == nil {
 		return api.NewInternalServerError("invalid config. user or vars not initialized")
 	}
-
-	// request
-	if req.Name == "" {
-		return api.NewBadRequestError("missing agent in request")
-	}
-	// if req.RawInput == nil {
-	// 	return api.NewBadRequestError("missing raw input in request")
-	// }
 
 	if req.Parent != nil && req.Parent.Name == req.Name {
 		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself not supported.", req.Name))
@@ -495,12 +471,6 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, parent *api.Age
 	}
 }
 
-// // run agent command line args.
-// func (sw *AgentScriptRunner) runAgent(ctx context.Context, vs *sh.VirtualSystem, parent *api.Agent, args []string) (*api.Result, error) {
-// 	runner := sw.agentRunner(vs, parent)
-// 	return runner(ctx, args)
-// }
-
 func applyGlobal(tpl *template.Template, ext, s string, env map[string]any) (string, error) {
 	if strings.HasPrefix(s, "#!") {
 		parts := strings.SplitN(s, "\n", 2)
@@ -568,30 +538,6 @@ func (r *AgentScriptRunner) runner(vs *sh.VirtualSystem, agent *api.Agent) func(
 		return result, nil
 	}
 }
-
-// func ExecAction(ctx context.Context, agent *api.Agent, args []string) (*api.Result, error) {
-// 	at, err := conf.ParseActionArgs(args)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	id := api.KitName(at.Name).ID()
-
-// 	// vs.System.Setenv(globalQuery, at.Message)
-
-// 	// result, err := r.sw.RunAction(ctx, agent, action.ID(), at.Arguments)
-// 	data, err := agent.Runner.Run(ctx, id, at.Arguments)
-// 	if err != nil {
-// 		// vs.System.Setenv(globalError, err.Error())
-// 		// fmt.Fprintln(vs.IOE.Stderr, err.Error())
-// 		return nil, err
-// 	}
-// 	result := api.ToResult(data)
-
-// 	// fmt.Fprintln(vs.IOE.Stdout, result.Value)
-// 	// vs.System.Setenv(globalResult, result.Value)
-
-// 	return result, nil
-// }
 
 type AgentToolRunner struct {
 	sw      *Swarm

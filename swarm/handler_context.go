@@ -1,9 +1,7 @@
 package swarm
 
 import (
-	"encoding/json"
 	"fmt"
-	"maps"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,28 +12,28 @@ import (
 
 func ContextMiddleware(sw *Swarm) api.Middleware {
 
-	mustResolveContext := func(parent *api.Agent, req *api.Request, s string) ([]*api.Message, error) {
-		at, found := parseAgentCommand(s)
-		if !found {
-			return nil, fmt.Errorf("invalid context: %s", s)
-		}
-		nreq := req.Clone()
-		if len(at.Arguments) > 0 {
-			if nreq.Arguments == nil {
-				at.Arguments = make(map[string]any)
-			}
-			maps.Copy(nreq.Arguments, at.Arguments)
-		}
-		out, err := sw.callAgent(parent, nreq, at.Name, at.Message)
-		if err != nil {
-			return nil, err
-		}
-		var list []*api.Message
-		if err := json.Unmarshal([]byte(out), &list); err != nil {
-			return nil, err
-		}
-		return list, nil
-	}
+	// mustResolveContext := func(parent *api.Agent, req *api.Request, s string) ([]*api.Message, error) {
+	// 	at, found := parseAgentCommand(s)
+	// 	if !found {
+	// 		return nil, fmt.Errorf("invalid context: %s", s)
+	// 	}
+	// 	nreq := req.Clone()
+	// 	if len(at.Arguments) > 0 {
+	// 		if nreq.Arguments == nil {
+	// 			at.Arguments = make(map[string]any)
+	// 		}
+	// 		maps.Copy(nreq.Arguments, at.Arguments)
+	// 	}
+	// 	out, err := sw.callAgent(parent, nreq, at.Name, at.Message)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	var list []*api.Message
+	// 	if err := json.Unmarshal([]byte(out), &list); err != nil {
+	// 		return nil, err
+	// 	}
+	// 	return list, nil
+	// }
 
 	return func(agent *api.Agent, next Handler) Handler {
 		return HandlerFunc(func(req *api.Request, resp *api.Response) error {
@@ -63,7 +61,7 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 				history = append(history, prompt)
 			}
 
-			// 2. Historical Messages
+			// 2. Context Messages
 			// skip system role
 			for i, msg := range sw.Vars.ListHistory() {
 				if msg.Role != api.RoleSystem {
@@ -71,6 +69,17 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 					history = append(history, msg)
 				}
 			}
+
+			var emoji = "•"
+			// // override if context agent is specified
+			// if agent.Context != "" {
+			// 	if resolved, err := mustResolveContext(agent, req, agent.Context); err != nil {
+			// 		logger.Errorf("failed to resolve context %s: %v\n", agent.Context, err)
+			// 	} else {
+			// 		history = resolved
+			// 		emoji = "🤖"
+			// 	}
+			// }
 
 			// 3. New User Message
 			// Additional user message
@@ -84,17 +93,6 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 				Sender:  sw.User.Email,
 			}
 			history = append(history, message)
-
-			var emoji = "•"
-			// override if context agent is specified
-			if agent.Context != "" {
-				if resolved, err := mustResolveContext(agent, req, agent.Context); err != nil {
-					logger.Errorf("failed to resolve context %s: %v\n", agent.Context, err)
-				} else {
-					history = resolved
-					emoji = "🤖"
-				}
-			}
 
 			logger.Infof("%s context messages: %v\n", emoji, len(history))
 			if logger.IsTrace() {
