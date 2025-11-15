@@ -28,7 +28,7 @@ func QueryMiddleware(sw *Swarm) api.Middleware {
 			env := sw.globalEnv()
 
 			if agent.Message != "" {
-				content, err := sw.applyGlobal("", agent.Message, env)
+				content, err := applyGlobal(agent.Template, "", agent.Message, env)
 				if err != nil {
 					return err
 				}

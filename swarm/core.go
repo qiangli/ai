@@ -52,7 +52,7 @@ type Swarm struct {
 	History api.MemStore
 
 	// TODO
-	template *template.Template
+	// template *template.Template
 
 	middlewares []api.Middleware
 
@@ -60,14 +60,14 @@ type Swarm struct {
 }
 
 func (sw *Swarm) Init() {
-	sw.InitTemplate()
+	// sw.InitTemplate()
 	sw.InitChain()
 	sw.agentMaker = NewAgentMaker(sw)
 }
 
 // https://pkg.go.dev/text/template
 // https://masterminds.github.io/sprig/
-func (sw *Swarm) InitTemplate() {
+func (sw *Swarm) InitTemplate(agent *api.Agent) *template.Template {
 	var fm = sprig.FuncMap()
 	// overridge sprig
 	fm["user"] = func() *api.User {
@@ -106,12 +106,12 @@ func (sw *Swarm) InitTemplate() {
 		// var b bytes.Buffer
 		// ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
 		// vs := sh.NewVirtualSystem(sw.Root, sw.OS, sw.Workspace, ioe)
-		var agent *api.Agent
-		if v, ok := sw.Vars.Global.Get("__parent_agent_" + at.Name); ok {
-			agent = v.(*api.Agent)
-		} else {
-			return fmt.Sprintf("Error: missing agent %q in env", at.Name)
-		}
+		// var agent *api.Agent
+		// if v, ok := sw.Vars.Global.GetAgent(at.Name); ok {
+		// 	agent = v.(*api.Agent)
+		// } else {
+		// 	return fmt.Sprintf("Error: missing agent %q in env", at.Name)
+		// }
 		ctx := context.Background()
 		// result, err := ExecAction(ctx, parent, args)
 		// v, err := parent.Runner.Run(ctx, id, args)
@@ -133,7 +133,7 @@ func (sw *Swarm) InitTemplate() {
 		return result.Value
 	}
 
-	sw.template = template.New("swarm").Funcs(fm)
+	return template.New("swarm").Funcs(fm)
 }
 
 func (sw *Swarm) InitChain() {
@@ -160,6 +160,9 @@ func (sw *Swarm) InitChain() {
 }
 
 func (sw *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
+	// if len(a.Chain) > 0 {
+
+	// }
 	log.GetLogger(ctx).Infof("🔗 (init): %s\n", a.Name)
 	// var mds = make([]api.Middleware, len(sw.middlewares))
 	// for i, v := range sw.middlewares {
@@ -169,6 +172,7 @@ func (sw *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
 		log.GetLogger(req.Context()).Infof("🔗 (final): %s\n", req.Name)
 		return nil
 	})
+
 	chain := NewChain(sw.middlewares...).Then(a, final)
 	return chain
 }
@@ -180,11 +184,13 @@ func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent,
 		return nil, err
 	}
 
-	// for sub agent/action or tool call
+	// // for sub agent/action or tool call
 	agent.Runner = NewAgentToolRunner(sw, agent)
-	if req.Parent != nil {
-		sw.Vars.Global.Set("__parent_agent_"+req.Parent.Name, agent.Name)
-	}
+	agent.Template = sw.InitTemplate(agent)
+	// // if req.Parent != nil {
+	// 	// sw.Vars.Global.Set("__parent_agent_"+req.Parent.Name, agent.Name)
+	// // }
+	// sw.Vars.Global.SetAgent(agent)
 	return agent, nil
 }
 
@@ -277,7 +283,7 @@ func (sw *Swarm) mapAssign(agent *api.Agent, req *api.Request, dst, src map[stri
 		}
 		// go template value support
 		if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-			if resolved, err := sw.applyTemplate(v, dst); err != nil {
+			if resolved, err := applyTemplate(agent.Template, v, dst); err != nil {
 				return err
 			} else {
 				val = resolved
@@ -356,8 +362,8 @@ func (sw *Swarm) callAgent(parent *api.Agent, req *api.Request, name string, mes
 	return resp.Result.Value, nil
 }
 
-func (sw *Swarm) applyTemplate(text string, data any) (string, error) {
-	t, err := sw.template.Parse(text)
+func applyTemplate(tpl *template.Template, text string, data any) (string, error) {
+	t, err := tpl.Parse(text)
 	if err != nil {
 		return "", err
 	}
@@ -448,18 +454,18 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, parent *api.Age
 // 	return runner(ctx, args)
 // }
 
-func (sw *Swarm) applyGlobal(ext, s string, env map[string]any) (string, error) {
+func applyGlobal(tpl *template.Template, ext, s string, env map[string]any) (string, error) {
 	if strings.HasPrefix(s, "#!") {
 		parts := strings.SplitN(s, "\n", 2)
 		if len(parts) == 2 {
 			// remove hashbang line
-			return sw.applyTemplate(parts[1], env)
+			return applyTemplate(tpl, parts[1], env)
 		}
 		// remove hashbang
-		return sw.applyTemplate(parts[0][2:], env)
+		return applyTemplate(tpl, parts[0][2:], env)
 	}
 	if ext == "tpl" {
-		return sw.applyTemplate(s, env)
+		return applyTemplate(tpl, s, env)
 	}
 	return s, nil
 }

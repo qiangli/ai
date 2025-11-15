@@ -156,46 +156,46 @@ func LoadAgentsData(data [][]byte) (*api.AgentsConfig, error) {
 	return merged, nil
 }
 
-func getAgent(owner string, pack string, asset api.AssetStore) (*api.AgentsConfig, error) {
-	var content []byte
-	if as, ok := asset.(api.ATMSupport); ok {
-		if v, err := as.RetrieveAgent(owner, pack); err != nil {
-			return nil, err
-		} else {
-			content = []byte(v.Content)
-		}
-	} else if as, ok := asset.(api.AssetFS); ok {
-		if v, err := as.ReadFile(path.Join("agents", pack, "agent.yaml")); err != nil {
-			return nil, err
-		} else {
-			content = v
+// func getAgent(owner string, pack string, asset api.AssetStore) (*api.AgentsConfig, error) {
+// 	var content []byte
+// 	if as, ok := asset.(api.ATMSupport); ok {
+// 		if v, err := as.RetrieveAgent(owner, pack); err != nil {
+// 			return nil, err
+// 		} else {
+// 			content = []byte(v.Content)
+// 		}
+// 	} else if as, ok := asset.(api.AssetFS); ok {
+// 		if v, err := as.ReadFile(path.Join("agents", pack, "agent.yaml")); err != nil {
+// 			return nil, err
+// 		} else {
+// 			content = v
 
-		}
-	}
+// 		}
+// 	}
 
-	if len(content) == 0 {
-		return nil, nil
-	}
+// 	if len(content) == 0 {
+// 		return nil, nil
+// 	}
 
-	//
-	ac, err := LoadAgentsData([][]byte{content})
-	if err != nil {
-		return nil, err
-	}
-	if ac == nil || len(ac.Agents) == 0 {
-		return nil, fmt.Errorf("invalid config. no agent defined: %s", pack)
-	}
+// 	//
+// 	ac, err := LoadAgentsData([][]byte{content})
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	if ac == nil || len(ac.Agents) == 0 {
+// 		return nil, fmt.Errorf("invalid config. no agent defined: %s", pack)
+// 	}
 
-	//
-	ac.Name = pack
+// 	//
+// 	ac.Name = pack
 
-	// agents
-	for _, v := range ac.Agents {
-		v.Name = normalizeAgentName(pack, v.Name)
-	}
+// 	// agents
+// 	for _, v := range ac.Agents {
+// 		v.Name = normalizeAgentName(pack, v.Name)
+// 	}
 
-	return ac, nil
-}
+// 	return ac, nil
+// }
 
 // func resolveModelLevel(models, model string) (string, string) {
 // 	// models takes precedence over model

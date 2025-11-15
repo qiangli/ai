@@ -3,6 +3,7 @@ package api
 import (
 	"maps"
 	"strings"
+	"text/template"
 	// "sync"
 )
 
@@ -108,6 +109,8 @@ type Agent struct {
 
 	//
 	Runner ActionRunner
+
+	Template *template.Template
 
 	// mu sync.RWMutex
 

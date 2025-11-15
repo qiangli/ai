@@ -1,10 +1,16 @@
 package swarm
 
 import (
+	// "context"
 	"encoding/json"
 	"fmt"
+	// "os"
+	// "text/template"
+
+	// "github.com/Masterminds/sprig/v3"
 
 	"github.com/qiangli/ai/swarm/api"
+	// "github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
 )
 
@@ -15,6 +21,8 @@ func AgentMiddleware(sw *Swarm) api.Middleware {
 			sw:    sw,
 			next:  next,
 		}
+		// ah.initTemplate()
+		// ah.initChain()
 		return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 			log.GetLogger(req.Context()).Debugf("🔗 (agent): %s flow: %+v\n", agent.Name, agent.Flow)
 
@@ -28,7 +36,127 @@ type agentHandler struct {
 	sw    *Swarm
 
 	next api.Handler
+
+	// template *template.Template
+
+	// middlewares []api.Middleware
 }
+
+// // https://pkg.go.dev/text/template
+// // https://masterminds.github.io/sprig/
+// func (h *agentHandler) initTemplate() {
+// 	sw := h.sw
+
+// 	var fm = sprig.FuncMap()
+// 	// overridge sprig
+// 	fm["user"] = func() *api.User {
+// 		return sw.User
+// 	}
+// 	// OS
+// 	getenv := func(key string) string {
+// 		env, ok := h.agent.Environment.Get(key)
+// 		if !ok {
+// 			v, ok := sw.Vars.Global.Get(key)
+// 			if !ok {
+// 				return ""
+// 			} else {
+// 				env = v
+// 			}
+// 		}
+// 		if s, ok := env.(string); ok {
+// 			return s
+// 		}
+// 		return fmt.Sprintf("%v", env)
+// 	}
+// 	fm["env"] = getenv
+// 	fm["expandenv"] = func(s string) string {
+// 		// bash name is leaked with os.Expand but ok.
+// 		// bash is replaced with own that supports executing agent/tool
+// 		return os.Expand(s, getenv)
+// 	}
+// 	// Network:
+// 	fm["getHostByName"] = func() string {
+// 		return "localhost"
+// 	}
+
+// 	// ai
+// 	fm["ai"] = func(args ...string) string {
+// 		at, err := conf.ParseActionArgs(args)
+// 		if err != nil {
+// 			return err.Error()
+// 		}
+// 		id := api.KitName(at.Name).ID()
+
+// 		// var b bytes.Buffer
+// 		// ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
+// 		// vs := sh.NewVirtualSystem(sw.Root, sw.OS, sw.Workspace, ioe)
+// 		// var agent *api.Agent
+// 		// if v, ok := sw.Vars.Global.GetAgent(at.Name); ok {
+// 		// 	agent = v.(*api.Agent)
+// 		// } else {
+// 		// 	return fmt.Sprintf("Error: missing agent %q in env", at.Name)
+// 		// }
+// 		ctx := context.Background()
+// 		// result, err := ExecAction(ctx, parent, args)
+// 		// v, err := parent.Runner.Run(ctx, id, args)
+
+// 		data, err := h.agent.Runner.Run(ctx, id, at.Arguments)
+// 		if err != nil {
+// 			// vs.System.Setenv(globalError, err.Error())
+// 			// fmt.Fprintln(vs.IOE.Stderr, err.Error())
+// 			return err.Error()
+// 		}
+// 		result := api.ToResult(data)
+// 		if err != nil {
+// 			return err.Error()
+// 		}
+// 		// result := api.ToResult(v)
+// 		// if result == nil {
+// 		// 	return ""
+// 		// }
+// 		return result.Value
+// 	}
+
+// 	h.template = template.New("swarm-agent").Funcs(fm)
+// }
+
+// func (h *agentHandler) initChain() {
+// 	sw := h.sw
+// 	h.middlewares = []api.Middleware{
+// 		//input
+// 		TimeoutMiddleware(sw),
+// 		LogMiddleware(sw),
+// 		EnvMiddleware(sw),
+// 		MemoryMiddleware(sw),
+// 		//
+// 		InstructionMiddleware(sw),
+// 		QueryMiddleware(sw),
+// 		ContextMiddleware(sw),
+// 		AgentMiddleware(sw),
+// 		//
+// 		ToolMiddleware(sw),
+// 		//
+// 		ModelMiddleware(sw),
+// 		//
+// 		InferenceMiddleware(sw),
+// 		// metrics
+// 		// output
+// 	}
+// }
+
+// func (h *agentHandler) NewChain(ctx context.Context, a *api.Agent) api.Handler {
+// 	log.GetLogger(ctx).Infof("🔗 (init): %s\n", a.Name)
+// 	// var mds = make([]api.Middleware, len(sw.middlewares))
+// 	// for i, v := range sw.middlewares {
+// 	// 	mds[i] = v(a)
+// 	// }
+// 	final := HandlerFunc(func(req *api.Request, res *api.Response) error {
+// 		log.GetLogger(req.Context()).Infof("🔗 (final): %s\n", req.Name)
+// 		return nil
+// 	})
+// 	chain := NewChain(h.middlewares...).Then(a, final)
+// 	return chain
+// }
 
 // Serve calls the language model adapter with the messages list (after applying the system prompt).
 // If the resulting response contains tool_calls, the tool runner will then call the tools.

@@ -23,6 +23,28 @@ func NewEnvironment() *Environment {
 	}
 }
 
+// TODO
+// func AgentEnvKey(name string) string {
+// 	return "__agent_" + name
+// }
+
+// func (g *Environment) GetAgent(name string) (any, bool) {
+// 	g.mu.RLock()
+// 	defer g.mu.RUnlock()
+// 	key := AgentEnvKey(name)
+// 	if v, ok := g.env[key]; ok {
+// 		return v, ok
+// 	}
+// 	return nil, false
+// }
+
+// func (g *Environment) SetAgent(agent *Agent) {
+// 	g.mu.Lock()
+// 	defer g.mu.Unlock()
+// 	key := AgentEnvKey(agent.Name)
+// 	g.env[key] = agent
+// }
+
 func (g *Environment) Get(key string) (any, bool) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
