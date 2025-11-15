@@ -12,12 +12,18 @@ const (
 	VarsEnvHost      = "host"
 )
 
-type Global struct {
+type Environment struct {
 	env map[string]any
 	mu  sync.RWMutex
 }
 
-func (g *Global) Get(key string) (any, bool) {
+func NewEnvironment() *Environment {
+	return &Environment{
+		env: make(map[string]any),
+	}
+}
+
+func (g *Environment) Get(key string) (any, bool) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 	if v, ok := g.env[key]; ok {
@@ -26,7 +32,12 @@ func (g *Global) Get(key string) (any, bool) {
 	return nil, false
 }
 
-func (g *Global) GetEnvs(keys []string) map[string]any {
+func (g *Environment) GetAllEnvs() map[string]any {
+	return g.GetEnvs(nil)
+}
+
+// Return envs specified by keys
+func (g *Environment) GetEnvs(keys []string) map[string]any {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 	envs := make(map[string]any)
@@ -40,13 +51,13 @@ func (g *Global) GetEnvs(keys []string) map[string]any {
 	return envs
 }
 
-func (g *Global) Set(key string, val any) {
+func (g *Environment) Set(key string, val any) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	g.env[key] = val
 }
 
-func (g *Global) SetEnvs(envs map[string]any) {
+func (g *Environment) SetEnvs(envs map[string]any) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	for k, v := range envs {
@@ -54,7 +65,7 @@ func (g *Global) SetEnvs(envs map[string]any) {
 	}
 }
 
-func (g *Global) UnsetEnvs(keys []string) {
+func (g *Environment) UnsetEnvs(keys []string) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	for _, k := range keys {
@@ -62,41 +73,35 @@ func (g *Global) UnsetEnvs(keys []string) {
 	}
 }
 
-// copy all src values to the global env
-func (g *Global) Add(src map[string]any) {
+// copy all src values to the environment env
+func (g *Environment) Add(src map[string]any) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	maps.Copy(g.env, src)
 }
 
 // thread safe access to the env
-func (g *Global) Apply(fn func(map[string]any) error) error {
+func (g *Environment) Apply(fn func(map[string]any) error) error {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	return fn(g.env)
 }
 
-// copy all global env to dst
-func (g *Global) Copy(dst map[string]any) {
+// copy all environment env to dst
+func (g *Environment) Copy(dst map[string]any) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 	maps.Copy(dst, g.env)
 }
 
-func (g *Global) Clone() *Global {
+func (g *Environment) Clone() *Environment {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
 	env := make(map[string]any)
 	maps.Copy(env, g.env)
-	return &Global{
+	return &Environment{
 		env: env,
-	}
-}
-
-func NewGlobal() *Global {
-	return &Global{
-		env: make(map[string]any),
 	}
 }
 
@@ -120,7 +125,7 @@ type Vars struct {
 	// DryRun        bool   `json:"-"`
 	// DryRunContent string `json:"-"`
 
-	Global *Global `json:"-"`
+	Global *Environment `json:"-"`
 
 	// conversation history
 	history []*Message `json:"-"`
@@ -224,7 +229,7 @@ func (v *Vars) ListHistory() []*Message {
 
 func NewVars() *Vars {
 	return &Vars{
-		Global: NewGlobal(),
+		Global: NewEnvironment(),
 	}
 }
 

@@ -3,7 +3,7 @@ package swarm
 import (
 	"context"
 	"fmt"
-	"maps"
+	// "maps"
 	// "os"
 	"path"
 	"strings"
@@ -160,13 +160,9 @@ func (ap *AgentMaker) newAgent(
 	agent.MaxSpan = nzl(c.MaxSpan, ac.MaxSpan, defaultMaxSpan)
 
 	// merge global vars
-	agent.Environment = ac.Environment
-	if len(c.Environment) > 0 {
-		if agent.Environment == nil {
-			agent.Environment = make(map[string]any)
-		}
-		maps.Copy(agent.Environment, c.Environment)
-	}
+	agent.Environment = api.NewEnvironment()
+	agent.Environment.SetEnvs(ac.Environment)
+	agent.Environment.SetEnvs(c.Environment)
 
 	// log
 	agent.LogLevel = api.ToLogLevel(nvl(c.LogLevel, ac.LogLevel, "quiet"))

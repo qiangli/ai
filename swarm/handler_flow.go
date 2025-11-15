@@ -14,9 +14,9 @@ import (
 )
 
 func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, action *api.Action) error {
-	result, err := h.sw.doAction(ctx, h.agent, action.ID, req.Arguments)
+	result, err := h.agent.Runner.Run(ctx, action.ID, req.Arguments)
 	resp.Agent = h.agent
-	resp.Result = result
+	resp.Result = api.ToResult(result)
 	return err
 }
 
@@ -245,13 +245,16 @@ Index:
 func (h *agentHandler) flowShell(req *api.Request, resp *api.Response) error {
 	ctx := req.Context()
 
-	result, err := h.sw.runScript(ctx, h.agent, h.agent.Flow.Script)
+	runner := NewAgentScriptRunner(h.sw, h.agent)
+	data, err := runner.Run(ctx, h.agent.Flow.Script, req.Arguments)
 	if err != nil {
 		return err
 	}
 
+	result := api.ToResult(data)
+
 	resp.Result = &api.Result{
-		Value: result,
+		Value: result.Value,
 	}
 	return nil
 }

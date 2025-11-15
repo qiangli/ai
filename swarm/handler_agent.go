@@ -75,9 +75,9 @@ func (h *agentHandler) doAgentFlow(req *api.Request, resp *api.Response) error {
 		return api.NewBadRequestError("missing instruction and flow")
 	}
 
-	// run agent
+	// run llm inference
 	if h.agent.Instruction != nil && h.agent.Instruction.Content != "" {
-		if err := h.doAgent(req, resp); err != nil {
+		if err := h.next.Serve(req, resp); err != nil {
 			return err
 		}
 	}
@@ -134,7 +134,7 @@ func (h *agentHandler) setGlobalEnv(req *api.Request) error {
 
 	// agent global env takes precedence
 	if h.agent.Environment != nil {
-		h.sw.mapAssign(h.agent, req, env, h.agent.Environment, true)
+		h.sw.mapAssign(h.agent, req, env, h.agent.Environment.GetEnvs(nil), true)
 	}
 
 	// set agent and req defaults
@@ -143,12 +143,12 @@ func (h *agentHandler) setGlobalEnv(req *api.Request) error {
 		h.sw.mapAssign(h.agent, req, env, h.agent.Arguments, false)
 	}
 
-	h.sw.Vars.Global.Add(env)
+	// h.sw.Vars.Global.Add(env)
 
 	log.GetLogger(req.Context()).Debugf("global env: %+v\n", env)
 	return nil
 }
 
-func (h *agentHandler) doAgent(req *api.Request, resp *api.Response) error {
-	return h.next.Serve(req, resp)
-}
+// func (h *agentHandler) doNext(req *api.Request, resp *api.Response) error {
+// 	return h.next.Serve(req, resp)
+// }

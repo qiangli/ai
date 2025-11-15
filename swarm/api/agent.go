@@ -103,7 +103,8 @@ type Agent struct {
 	Embed []*Agent
 
 	// global values
-	Environment map[string]any
+	// Environment map[string]any
+	Environment *Environment
 
 	//
 	Runner ActionRunner
@@ -188,9 +189,10 @@ func (a *Agent) Clone() *Agent {
 		Flow: a.Flow,
 		//
 		Embed:       a.Embed,
-		Environment: a.cloneEnvironment(),
+		Environment: a.Environment.Clone(),
 		//
 		// history: make([]*Message, len(a.history)),
+		Runner: a.Runner,
 	}
 
 	// copy(clone.history, a.history)
@@ -215,14 +217,14 @@ func (a *Agent) cloneArguments() map[string]any {
 	return clone
 }
 
-func (a *Agent) cloneEnvironment() map[string]any {
-	if a.Environment == nil {
-		return nil
-	}
-	clone := make(map[string]any, len(a.Environment))
-	maps.Copy(clone, a.Environment)
-	return clone
-}
+// func (a *Agent) cloneEnvironment() map[string]any {
+// 	if a.Environment == nil {
+// 		return nil
+// 	}
+// 	clone := make(map[string]any, len(a.Environment))
+// 	maps.Copy(clone, a.Environment)
+// 	return clone
+// }
 
 // pack config
 type AgentsConfig ActionConfig

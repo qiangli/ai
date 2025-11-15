@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"maps"
+	// "maps"
 	"os"
 	"slices"
 	"strings"
@@ -97,25 +97,39 @@ func (sw *Swarm) InitTemplate() {
 
 	// ai
 	fm["ai"] = func(args ...string) string {
-		var b bytes.Buffer
-		ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
-		vs := sh.NewVirtualSystem(sw.Root, sw.OS, sw.Workspace, ioe)
-		var parent *api.Agent
-		if v, ok := sw.Vars.Global.Get("__parent_agent"); ok {
-			parent = v.(*api.Agent)
-		} else {
-			return "Error: missing agent"
-		}
-		ctx := context.Background()
-		result, err := sw.runAgent(ctx, vs, parent, args)
-		// result, err := sw.doAction(ctx, vs, parent, args)
-
+		at, err := conf.ParseActionArgs(args)
 		if err != nil {
 			return err.Error()
 		}
-		if result == nil {
-			return ""
+		id := api.KitName(at.Name).ID()
+
+		// var b bytes.Buffer
+		// ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
+		// vs := sh.NewVirtualSystem(sw.Root, sw.OS, sw.Workspace, ioe)
+		var agent *api.Agent
+		if v, ok := sw.Vars.Global.Get("__parent_agent_" + at.Name); ok {
+			agent = v.(*api.Agent)
+		} else {
+			return fmt.Sprintf("Error: missing agent %q in env", at.Name)
 		}
+		ctx := context.Background()
+		// result, err := ExecAction(ctx, parent, args)
+		// v, err := parent.Runner.Run(ctx, id, args)
+
+		data, err := agent.Runner.Run(ctx, id, at.Arguments)
+		if err != nil {
+			// vs.System.Setenv(globalError, err.Error())
+			// fmt.Fprintln(vs.IOE.Stderr, err.Error())
+			return err.Error()
+		}
+		result := api.ToResult(data)
+		if err != nil {
+			return err.Error()
+		}
+		// result := api.ToResult(v)
+		// if result == nil {
+		// 	return ""
+		// }
 		return result.Value
 	}
 
@@ -140,6 +154,7 @@ func (sw *Swarm) InitChain() {
 		ModelMiddleware(sw),
 		//
 		InferenceMiddleware(sw),
+		// metrics
 		// output
 	}
 }
@@ -166,9 +181,10 @@ func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent,
 		return nil, err
 	}
 
-	agent.Runner = sw.createCaller(agent)
+	// for sub agent/action or tool call
+	agent.Runner = NewAgentToolRunner(sw, req.Parent)
 	if req.Parent != nil {
-		sw.Vars.Global.Set("__parent_agent", req.Parent)
+		sw.Vars.Global.Set("__parent_agent_"+req.Parent.Name, req.Parent)
 	}
 	return agent, nil
 }
@@ -355,19 +371,31 @@ func (sw *Swarm) applyTemplate(text string, data any) (string, error) {
 	return buf.String(), nil
 }
 
-func (sw *Swarm) runScript(ctx context.Context, parent *api.Agent, script string) (string, error) {
+type AgentScriptRunner struct {
+	sw    *Swarm
+	agent *api.Agent
+}
+
+func NewAgentScriptRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
+	return &AgentScriptRunner{
+		sw:    sw,
+		agent: agent,
+	}
+}
+
+func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[string]any) (any, error) {
 	var b bytes.Buffer
 	ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
-	vs := sh.NewVirtualSystem(sw.Root, sw.OS, sw.Workspace, ioe)
+	vs := sh.NewVirtualSystem(r.sw.Root, r.sw.OS, r.sw.Workspace, ioe)
 
 	// set global env for bash script
-	env := sw.globalEnv()
+	env := r.sw.globalEnv()
 
 	for k, v := range env {
 		vs.System.Setenv(k, v)
 	}
 
-	vs.ExecHandler = sw.newExecHandler(vs, parent)
+	vs.ExecHandler = r.newExecHandler(vs, r.agent)
 
 	if err := vs.RunScript(ctx, script); err != nil {
 		return "", err
@@ -376,7 +404,8 @@ func (sw *Swarm) runScript(ctx context.Context, parent *api.Agent, script string
 	return b.String(), nil
 }
 
-func (sw *Swarm) newExecHandler(vs *sh.VirtualSystem, parent *api.Agent) sh.ExecHandler {
+func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, parent *api.Agent) sh.ExecHandler {
+	runner := r.runner(vs, parent)
 	return func(ctx context.Context, args []string) (bool, error) {
 		if parent == nil {
 			return true, fmt.Errorf("missing parent agent")
@@ -388,7 +417,7 @@ func (sw *Swarm) newExecHandler(vs *sh.VirtualSystem, parent *api.Agent) sh.Exec
 		if isAi(strings.ToLower(args[0])) {
 			log.GetLogger(ctx).Debugf("running ai agent/tool: %+v\n", args)
 
-			_, err := sw.runAgent(ctx, vs, parent, args)
+			_, err := runner(ctx, args)
 			if err != nil {
 				return true, err
 			}
@@ -414,11 +443,11 @@ func (sw *Swarm) newExecHandler(vs *sh.VirtualSystem, parent *api.Agent) sh.Exec
 	}
 }
 
-// run agent command line args.
-func (sw *Swarm) runAgent(ctx context.Context, vs *sh.VirtualSystem, parent *api.Agent, args []string) (*api.Result, error) {
-	runner := sw.agentRunner(vs, parent)
-	return runner(ctx, args)
-}
+// // run agent command line args.
+// func (sw *AgentScriptRunner) runAgent(ctx context.Context, vs *sh.VirtualSystem, parent *api.Agent, args []string) (*api.Result, error) {
+// 	runner := sw.agentRunner(vs, parent)
+// 	return runner(ctx, args)
+// }
 
 func (sw *Swarm) applyGlobal(ext, s string, env map[string]any) (string, error) {
 	if strings.HasPrefix(s, "#!") {
@@ -437,6 +466,7 @@ func (sw *Swarm) applyGlobal(ext, s string, env map[string]any) (string, error) 
 }
 
 // inherit parent tools including embedded agents
+// TODO cache
 func (sw *Swarm) buildAgentToolMap(agent *api.Agent) map[string]*api.ToolFunc {
 	toolMap := make(map[string]*api.ToolFunc)
 	if agent == nil {
@@ -455,29 +485,30 @@ func (sw *Swarm) buildAgentToolMap(agent *api.Agent) map[string]*api.ToolFunc {
 	return toolMap
 }
 
-func (sw *Swarm) agentRunner(vs *sh.VirtualSystem, agent *api.Agent) func(context.Context, []string) (*api.Result, error) {
-	var memo = sw.buildAgentToolMap(agent)
+func (r *AgentScriptRunner) runner(vs *sh.VirtualSystem, agent *api.Agent) func(context.Context, []string) (*api.Result, error) {
+	// var memo = r.sw.buildAgentToolMap(agent)
 
 	return func(ctx context.Context, args []string) (*api.Result, error) {
 		at, err := conf.ParseActionArgs(args)
 		if err != nil {
 			return nil, err
 		}
-
 		id := api.KitName(at.Name).ID()
-		action, ok := memo[id]
-		if !ok {
-			return nil, fmt.Errorf("agent tool not declared for %s: %s", agent.Name, id)
-		}
+		// action, ok := memo[id]
+		// if !ok {
+		// 	return nil, fmt.Errorf("agent tool not declared for %s: %s", agent.Name, id)
+		// }
 
 		vs.System.Setenv(globalQuery, at.Message)
 
-		result, err := sw.doAction(ctx, agent, action.ID(), at.Arguments)
+		// result, err := r.sw.RunAction(ctx, agent, action.ID(), at.Arguments)
+		data, err := agent.Runner.Run(ctx, id, at.Arguments)
 		if err != nil {
 			vs.System.Setenv(globalError, err.Error())
 			fmt.Fprintln(vs.IOE.Stderr, err.Error())
 			return nil, err
 		}
+		result := api.ToResult(data)
 
 		fmt.Fprintln(vs.IOE.Stdout, result.Value)
 		vs.System.Setenv(globalResult, result.Value)
@@ -486,22 +517,46 @@ func (sw *Swarm) agentRunner(vs *sh.VirtualSystem, agent *api.Agent) func(contex
 	}
 }
 
-type AgentRunner struct {
+// func ExecAction(ctx context.Context, agent *api.Agent, args []string) (*api.Result, error) {
+// 	at, err := conf.ParseActionArgs(args)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	id := api.KitName(at.Name).ID()
+
+// 	// vs.System.Setenv(globalQuery, at.Message)
+
+// 	// result, err := r.sw.RunAction(ctx, agent, action.ID(), at.Arguments)
+// 	data, err := agent.Runner.Run(ctx, id, at.Arguments)
+// 	if err != nil {
+// 		// vs.System.Setenv(globalError, err.Error())
+// 		// fmt.Fprintln(vs.IOE.Stderr, err.Error())
+// 		return nil, err
+// 	}
+// 	result := api.ToResult(data)
+
+// 	// fmt.Fprintln(vs.IOE.Stdout, result.Value)
+// 	// vs.System.Setenv(globalResult, result.Value)
+
+// 	return result, nil
+// }
+
+type AgentToolRunner struct {
 	sw      *Swarm
 	agent   *api.Agent
 	toolMap map[string]*api.ToolFunc
 }
 
-func NewAgentRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
+func NewAgentToolRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
 	toolMap := sw.buildAgentToolMap(agent)
-	return &AgentRunner{
+	return &AgentToolRunner{
 		sw:      sw,
 		agent:   agent,
 		toolMap: toolMap,
 	}
 }
 
-func (r *AgentRunner) Run(ctx context.Context, tid string, args map[string]any) (any, error) {
+func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]any) (any, error) {
 	v, ok := r.toolMap[tid]
 	if !ok {
 		return nil, fmt.Errorf("tool not found: %s", tid)
@@ -521,43 +576,19 @@ func (r *AgentRunner) Run(ctx context.Context, tid string, args map[string]any) 
 	return result, err
 }
 
-func (sw *Swarm) createCaller(agent *api.Agent) api.ActionRunner {
-	// toolMap := sw.buildAgentToolMap(agent)
-
-	// return func(ctx context.Context, tid string, args map[string]any) (any, error) {
-	// 	v, ok := toolMap[tid]
-	// 	if !ok {
-	// 		return nil, fmt.Errorf("tool not found: %s", tid)
-	// 	}
-
-	// 	result, err := sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, sw.User), agent, v, args)
-	// 	// log calls
-	// 	sw.Vars.AddToolCall(&api.ToolCallEntry{
-	// 		ID:        tid,
-	// 		Kit:       v.Kit,
-	// 		Name:      v.Name,
-	// 		Arguments: v.Arguments,
-	// 		Result:    result,
-	// 		Error:     err,
-	// 		Timestamp: time.Now(),
-	// 	})
-	// 	return result, err
-	// }
-	return NewAgentRunner(sw, agent)
-}
-
-type AIAgentRunner struct {
+type AIAgentToolRunner struct {
 	sw    *Swarm
 	agent *api.Agent
 }
 
-func NewAIAgentRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
-	return &AIAgentRunner{
+func NewAIAgentToolRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
+	return &AIAgentToolRunner{
 		sw:    sw,
 		agent: agent,
 	}
 }
-func (r *AIAgentRunner) Run(ctx context.Context, tid string, args map[string]any) (any, error) {
+
+func (r *AIAgentToolRunner) Run(ctx context.Context, tid string, args map[string]any) (any, error) {
 	tools, err := conf.LoadToolFunc(r.agent.Owner, tid, r.sw.Secrets, r.sw.Assets)
 	if err != nil {
 		return nil, err
@@ -569,23 +600,6 @@ func (r *AIAgentRunner) Run(ctx context.Context, tid string, args map[string]any
 		}
 	}
 	return nil, fmt.Errorf("invalid tool: %s", tid)
-}
-
-func (sw *Swarm) createAICaller(agent *api.Agent) api.ActionRunner {
-	// return func(ctx context.Context, tid string, args map[string]any) (any, error) {
-	// 	tools, err := conf.LoadToolFunc(agent.Owner, tid, sw.Secrets, sw.Assets)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	for _, v := range tools {
-	// 		id := v.ID()
-	// 		if id == tid {
-	// 			return sw.callTool(ctx, agent, v, args)
-	// 		}
-	// 	}
-	// 	return nil, fmt.Errorf("invalid tool: %s", tid)
-	// }
-	return NewAIAgentRunner(sw, agent)
 }
 
 func (sw *Swarm) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
@@ -610,24 +624,24 @@ func (sw *Swarm) callAgentType(ctx context.Context, agent *api.Agent, tf *api.To
 
 	// ai tool
 	if tf.Kit == "ai" {
-		return sw.callAITool(ctx, agent, tf, args)
+		return sw.callAIAgentTool(ctx, agent, tf, args)
 	}
 	return nil, api.NewUnsupportedError("agent kit: " + tf.Kit)
 }
 
 func (sw *Swarm) callAgentTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
-	var req *api.Request
+	// var req *api.Request
 	msg, _ := atm.GetStrProp("message", args)
 	input := &api.UserInput{
 		Message: msg,
 	}
-	req = api.NewRequest(ctx, tf.Agent, input)
-	req.Parent = agent
-	req.Arguments = args
+	nreq := api.NewRequest(ctx, tf.Agent, input)
+	nreq.Parent = agent
+	nreq.Arguments = args
 
 	resp := &api.Response{}
 
-	err := sw.RunSub(agent, req, resp)
+	err := sw.RunSub(agent, nreq, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -635,7 +649,7 @@ func (sw *Swarm) callAgentTool(ctx context.Context, agent *api.Agent, tf *api.To
 	return resp.Result, nil
 }
 
-func (sw *Swarm) callAITool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
+func (sw *Swarm) callAIAgentTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	aiKit := NewAIKit(sw, agent)
 	return aiKit.Call(ctx, sw.Vars, "", tf, args)
 }
@@ -707,30 +721,6 @@ func ToResult(data any) *api.Result {
 	return &api.Result{
 		Value: fmt.Sprintf("%v", data),
 	}
-}
-
-// flow actions
-func (sw *Swarm) doAction(ctx context.Context, agent *api.Agent, id string, args map[string]any) (*api.Result, error) {
-	env := sw.globalEnv()
-
-	if len(args) > 0 {
-		maps.Copy(env, args)
-	}
-
-	// var runTool = sw.createCaller(sw.User, agent)
-	var runTool = agent.Runner
-	v, err := runTool.Run(ctx, id, env)
-	if err != nil {
-		return nil, err
-	}
-	if v == nil {
-		return nil, fmt.Errorf("no result")
-	}
-
-	// TODO check states?
-	result := ToResult(v)
-	sw.Vars.Global.Set(globalResult, result.Value)
-	return result, nil
 }
 
 // // save and get the presigned url

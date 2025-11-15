@@ -15,16 +15,22 @@ import (
 )
 
 type AIKit struct {
-	sw       *Swarm
-	h        *agentHandler
-	callTool api.ActionRunner
+	sw *Swarm
+	h  *agentHandler
+	// callTool api.ActionRunner
+	agent *api.Agent
+}
+
+func (r *AIKit) Run(ctx context.Context, id string, args map[string]any) (any, error) {
+	return NewAIAgentToolRunner(r.sw, r.agent).Run(ctx, id, args)
 }
 
 func NewAIKit(sw *Swarm, agent *api.Agent) *AIKit {
 	return &AIKit{
 		sw: sw,
 		// h:        h,
-		callTool: sw.createAICaller(agent),
+		// callTool: sw.createAICaller(agent),
+		agent: agent,
 	}
 }
 
@@ -208,14 +214,14 @@ func (r *AIKit) ToolExecute(ctx context.Context, _ *api.Vars, tf string, args ma
 			return nil, err
 		}
 		log.GetLogger(ctx).Debugf("Tool execute: tid: %s params: %+v\n", tid, params)
-		return r.callTool.Run(ctx, tid, params)
+		return r.Run(ctx, tid, params)
 	}
 
 	// LLM (openai) sometimes does not provide parameters in the args as defined in the tool yaml.
 	// returning the error does force to correct this but with multiple calls.
 	// we try args instead. if successful, it means correct parameters are provided at the top level.
 	log.GetLogger(ctx).Debugf("Tool execute: try ***args*** instead. tid: %s params: %+v\n", tid, args)
-	out, err := r.callTool.Run(ctx, tid, args)
+	out, err := r.Run(ctx, tid, args)
 	if err != nil {
 		return nil, fmt.Errorf("required parameters not found in: %+v. error: %v", args, err)
 	}
