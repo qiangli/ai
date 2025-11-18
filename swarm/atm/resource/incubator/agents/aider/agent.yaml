@@ -18,17 +18,12 @@ agents:
       original_query: "{{.query}}"
     instruction:
       content: |
-        Detect the user's programming language from their request or by exploring the local file system using "ai:set_envs" tool to update the "language" environment variable.
-
-        **Aider Chat Modes**:
-        
-        - **Code Mode:** For implementing code changes based on user requests.
-        - **Ask Mode:** For discussing and answering questions about code without making changes.
-        - **Architect Mode:** For suggesting and implementing architectural changes using a specialized model.
-
+        Detect the user's programming language from their request
+        or by exploring the local file system using "ai:set_envs" tool to update the "language" environment variable.
+     
         Always prioritize task delegation to the appropriate sub-agent based on the specific task context:
-        - Use "agent:aider/ask" for question-answering.
-        - Use "agent:aider/code" for code modifications.
+        - Use "agent:aider/ask" for discussing and answering questions about code without making changes.
+        - Use "agent:aider/code" for implementing code changes based on user requests.
         - Use "agent:aider/architect" for architectural advice and modifications.
 
         For more details on sub-agents, refer to "ai:agent_info" tool call.
@@ -137,7 +132,10 @@ api_key: "anthropic"
 
 models:
   L1:
-    model: "claude-3-5-haiku-latest"
+    model: "gpt-5-nano"
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
   L2:
     model: "claude-sonnet-4-0"
   L3:

@@ -29,6 +29,7 @@ func (s *stringSlice) Set(value string) error {
 // ai @name args...
 // ai /name args...
 //
+// agent:name
 // @name args...
 // /name args...
 //
@@ -63,8 +64,13 @@ func ParseActionArgs(args []string) (*api.ActionConfig, error) {
 		}
 		kit, _ = api.KitName(name[1:]).Decode()
 	default:
-		// not an agent/tool command
-		return nil, nil
+		if strings.HasPrefix(name, "agent:") {
+			name = strings.ToLower(name[6:])
+			ftype = api.ToolTypeAgent
+		} else {
+			// not an agent/tool command
+			return nil, nil
+		}
 	}
 	if name == "" {
 		name = "anonymous"

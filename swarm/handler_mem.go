@@ -9,7 +9,6 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-// MemoryMiddleware manages the loading/saving messages
 func MemoryMiddleware(sw *Swarm) api.Middleware {
 
 	mustResolveContext := func(parent *api.Agent, req *api.Request, s string) ([]*api.Message, error) {
@@ -60,24 +59,11 @@ func MemoryMiddleware(sw *Swarm) api.Middleware {
 			// 	return err
 			// }
 
-			// // initLen := len(history)
 			sw.Vars.SetHistory(history)
 
 			// logger.Debugf("init messages: %v\n", len(history))
 
 			err := next.Serve(req, resp)
-
-			// nhist := sw.Vars.GetNewHistory()
-			// nlen := len(nhist)
-			// // nlen := (len(sw.Vars.History) - initLen)
-			// logger.Debugf("new messages: %v\n", nlen)
-
-			// if nlen > 0 {
-			// 	if err := sw.History.Save(nhist); err != nil {
-			// 		logger.Errorf("error saving history: %v", err)
-			// 	}
-			// 	logger.Debugf("saved messages: %v\n", nlen)
-			// }
 
 			return err
 		})

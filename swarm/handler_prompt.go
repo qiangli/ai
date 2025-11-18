@@ -30,7 +30,7 @@ func InstructionMiddleware(sw *Swarm) api.Middleware {
 
 			var instructions []string
 
-			add := func(in *api.Instruction, sender string) error {
+			add := func(in *api.Instruction) error {
 				content, err := applyGlobal(agent.Template, in.Type, in.Content, env)
 				if err != nil {
 					return err
@@ -55,7 +55,7 @@ func InstructionMiddleware(sw *Swarm) api.Middleware {
 					return addAll(v)
 				}
 				if a.Instruction != nil {
-					return add(a.Instruction, a.Name)
+					return add(a.Instruction)
 				}
 				return nil
 			}

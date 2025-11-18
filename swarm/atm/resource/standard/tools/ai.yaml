@@ -164,8 +164,10 @@ tools:
     description: "Set environment variables"
     parameters:
       type: "object"
-      properties:
-      description: "An object containing key-value pairs of environment variables to set"
+      properties: {}
+      description: |
+        An JSON object map of environment variables, represented as key-value pairs.
+        Each key is a string, and the value can be any data type, including objects and primitive types.
 
   - name: "unset_envs"
     description: "Clear environment variables"

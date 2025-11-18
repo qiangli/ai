@@ -161,15 +161,16 @@ func (sw *Swarm) InitChain() {
 		TimeoutMiddleware(sw),
 		LogMiddleware(sw),
 		EnvMiddleware(sw),
-		MemoryMiddleware(sw),
 		//
+		ModelMiddleware(sw),
+		ToolMiddleware(sw),
+		//
+		MemoryMiddleware(sw),
 		InstructionMiddleware(sw),
 		QueryMiddleware(sw),
 		ContextMiddleware(sw),
 		//
 		AgentMiddleware(sw),
-		ToolMiddleware(sw),
-		ModelMiddleware(sw),
 		//
 		InferenceMiddleware(sw),
 		// output
@@ -436,6 +437,7 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, parent *api.Age
 
 func applyGlobal(tpl *template.Template, ext, s string, env map[string]any) (string, error) {
 	if strings.HasPrefix(s, "#!") {
+		// TODO parse the command line args?
 		parts := strings.SplitN(s, "\n", 2)
 		if len(parts) == 2 {
 			// remove hashbang line
@@ -443,6 +445,9 @@ func applyGlobal(tpl *template.Template, ext, s string, env map[string]any) (str
 		}
 		// remove hashbang
 		return applyTemplate(tpl, parts[0][2:], env)
+	}
+	if strings.HasPrefix(s, "{{") && strings.HasSuffix(s, "}}") {
+		return applyTemplate(tpl, s, env)
 	}
 	if ext == "tpl" {
 		return applyTemplate(tpl, s, env)
