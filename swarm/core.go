@@ -177,8 +177,6 @@ func (sw *Swarm) InitChain() {
 }
 
 func (sw *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
-	// if len(a.Chain) > 0 {
-	// }
 	final := HandlerFunc(func(req *api.Request, res *api.Response) error {
 		log.GetLogger(req.Context()).Infof("🔗 (final): %s\n", req.Name)
 		return nil
@@ -188,41 +186,10 @@ func (sw *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
 	return chain
 }
 
-// func (sw *Swarm) GetDefaultAgent() (string, error) {
-// 	// hist, err := sw.History.Load(&api.MemOption{
-// 	// 	MaxHistory: 100,
-// 	// 	MaxSpan:    math.MaxInt,
-// 	// })
-// 	// if err != nil {
-// 	// 	return "", err
-// 	// }
-// 	// max := len(hist)
-// 	// if max == 0 {
-// 	// 	return "", err
-// 	// }
-// 	// for i := max - 1; i > 0; i-- {
-// 	// 	v := hist[i]
-// 	// 	// not "agent"
-// 	// 	if v.Role != api.RoleUser && v.Sender != "" && v.Sender != "agent" {
-// 	// 		return v.Sender, nil
-// 	// 	}
-// 	// }
-// 	// return "", nil
-// }
-
 func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
 	var name = req.Name
-	// default agnet
 	if name == "" {
-		// v, err := sw.GetDefaultAgent()
-		// if err != nil {
-		// 	return nil, err
-		// }
-		// if v != "" {
-		// 	name = v
-		// } else {
-		// 	name = "agent"
-		// }
+		// anonymous
 		log.GetLogger(ctx).Debugf("agent not specified.\n")
 	}
 	agent, err := sw.agentMaker.CreateAgent(ctx, name)
@@ -231,13 +198,9 @@ func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent,
 		return nil, err
 	}
 
-	// // for sub agent/action or tool call
+	// for sub agent/action or tool call
 	agent.Runner = NewAgentToolRunner(sw, agent)
 	agent.Template = sw.InitTemplate(agent)
-	// // if req.Parent != nil {
-	// 	// sw.Vars.Global.Set("__parent_agent_"+req.Parent.Name, agent.Name)
-	// // }
-	// sw.Vars.Global.SetAgent(agent)
 	return agent, nil
 }
 

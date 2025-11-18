@@ -4,7 +4,6 @@ import (
 	"maps"
 	"strings"
 	"text/template"
-	// "sync"
 )
 
 const (
@@ -100,7 +99,6 @@ type Agent struct {
 	//
 	Flow *Flow
 
-	//
 	Embed []*Agent
 
 	// global values
@@ -288,8 +286,13 @@ type AgentConfig struct {
 	Filters []*IOFilter  `yaml:"filters"`
 	Guards  []*ToolGuard `yaml:"guards"`
 
-	// inherit parent agents'
-	// message/instruction, model, and tools
+	// inherit from parent:
+	// environment
+	// context
+	// instruction
+	// message
+	// model
+	// tools
 	Embed []string `yaml:"embed"`
 
 	//
