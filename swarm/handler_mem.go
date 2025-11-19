@@ -41,9 +41,10 @@ func MemoryMiddleware(sw *Swarm) api.Middleware {
 			var history []*api.Message
 			// var emoji = "•"
 			// override if context agent is specified
-			if agent.Context != "" {
-				if resolved, err := mustResolveContext(agent, req, agent.Context); err != nil {
-					logger.Errorf("failed to resolve context %s: %v\n", agent.Context, err)
+			c := agent.Arguments.GetString("context")
+			if c != "" {
+				if resolved, err := mustResolveContext(agent, req, c); err != nil {
+					logger.Errorf("failed to resolve context %s: %v\n", c, err)
 				} else {
 					history = resolved
 					// emoji = "🤖"

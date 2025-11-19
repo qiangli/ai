@@ -153,13 +153,23 @@ func (ap *AgentMaker) newAgent(
 
 	//
 	agent.Message = nvl(c.Message, ac.Message)
-	agent.Format = nvl(c.Format, ac.Format)
-	//
-	agent.MaxTurns = nzl(c.MaxTurns, ac.MaxTurns, defaultMaxTurns)
-	agent.MaxTime = nzl(c.MaxTime, ac.MaxTime, defaultMaxTime)
 
-	agent.MaxHistory = nzl(c.MaxHistory, ac.MaxHistory, defaultMaxHistory)
-	agent.MaxSpan = nzl(c.MaxSpan, ac.MaxSpan, defaultMaxSpan)
+	// agent.Format = nvl(c.Format, ac.Format)
+	args.Set("format", nvl(c.Format, ac.Format))
+	//
+	maxTurns := nzl(c.MaxTurns, ac.MaxTurns, defaultMaxTurns)
+	maxTime := nzl(c.MaxTime, ac.MaxTime, defaultMaxTime)
+	// hard limit
+	maxTurns = min(maxTurns, maxTurnsLimit)
+	maxTime = min(maxTime, maxTimeLimit)
+
+	args.Set("max_turns", maxTurns)
+	args.Set("max_time", maxTime)
+
+	maxHistory := nzl(c.MaxHistory, ac.MaxHistory, defaultMaxHistory)
+	maxSpan := nzl(c.MaxSpan, ac.MaxSpan, defaultMaxSpan)
+	args.Set("max_history", maxHistory)
+	args.Set("max_span", maxSpan)
 
 	// merge global vars
 	agent.Environment = api.NewEnvironment()
@@ -170,8 +180,8 @@ func (ap *AgentMaker) newAgent(
 	agent.LogLevel = api.ToLogLevel(nvl(c.LogLevel, ac.LogLevel, "quiet"))
 
 	// hard limit
-	agent.MaxTurns = min(agent.MaxTurns, maxTurnsLimit)
-	agent.MaxTime = min(agent.MaxTime, maxTimeLimit)
+	// agent.MaxTurns = min(agent.MaxTurns, maxTurnsLimit)
+	// agent.MaxTime = min(agent.MaxTime, maxTimeLimit)
 
 	// instruction
 	// TODO ai trigger
@@ -183,7 +193,8 @@ func (ap *AgentMaker) newAgent(
 	// context
 	// TODO ai trigger
 	context := strings.TrimSpace(nvl(c.Context, ac.Context))
-	agent.Context = context
+	// agent.Context = context
+	args.Set("context", context)
 
 	// llm model set[/level]
 	// @model support

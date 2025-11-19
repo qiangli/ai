@@ -12,14 +12,15 @@ import (
 
 func TimeoutMiddleware(sw *Swarm) api.Middleware {
 	return func(agent *api.Agent, next Handler) Handler {
+		maxTime := agent.Arguments.GetInt("max_time")
 		th := &timeoutHandler{
 			next:    next,
-			content: fmt.Sprintf("%q timed out after %v seconds.", agent.Name, agent.MaxTime),
-			dt:      time.Duration(agent.MaxTime) * time.Second,
+			content: fmt.Sprintf("%q timed out after %v seconds.", agent.Name, maxTime),
+			dt:      time.Duration(maxTime) * time.Second,
 		}
 
 		return HandlerFunc(func(req *api.Request, res *api.Response) error {
-			log.GetLogger(req.Context()).Debugf("🔗 (timeout): %s max_time: %v\n", agent.Name, agent.MaxTime)
+			log.GetLogger(req.Context()).Debugf("🔗 (timeout): %s max_time: %v\n", agent.Name, maxTime)
 
 			return th.Serve(req, res)
 		})

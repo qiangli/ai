@@ -12,9 +12,11 @@ import (
 func ContextMiddleware(sw *Swarm) api.Middleware {
 
 	return func(agent *api.Agent, next Handler) Handler {
+		maxHistory := agent.Arguments.GetInt("max_history")
+		maxSpan := agent.Arguments.GetInt("max_span")
 		return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 			logger := log.GetLogger(req.Context())
-			logger.Debugf("🔗 (context): %s max_history: %v max_span: %v\n", agent.Name, agent.MaxHistory, agent.MaxSpan)
+			logger.Debugf("🔗 (context): %s max_history: %v max_span: %v\n", agent.Name, maxHistory, maxSpan)
 
 			var chatID = sw.ChatID
 			var env = sw.globalEnv()

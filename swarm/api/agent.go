@@ -67,6 +67,7 @@ type Agent struct {
 
 	// system prompt
 	Instruction *Instruction
+
 	// user query
 	Message string
 
@@ -83,15 +84,16 @@ type Agent struct {
 	// LLM adapter
 	Adapter string
 
-	//
-	Format string
+	// //
+	// Format string
 
-	MaxTurns int
-	MaxTime  int
+	// MaxTurns int
+	// MaxTime  int
 
-	MaxHistory int
-	MaxSpan    int
-	Context    string
+	// MaxHistory int
+	// MaxSpan    int
+
+	// Context    string
 
 	LogLevel LogLevel
 
@@ -160,7 +162,7 @@ type Agent struct {
 // if true, skip historical messages for LLM context
 // --new command line flag sets --max-history=0
 func (a *Agent) New() bool {
-	return a.MaxHistory == 0
+	return a.Arguments.GetInt("max_history") == 0
 }
 
 func (a *Agent) Clone() *Agent {
@@ -177,14 +179,14 @@ func (a *Agent) Clone() *Agent {
 		Arguments:   a.cloneArguments(),
 		Adapter:     a.Adapter,
 		Message:     a.Message,
-		Format:      a.Format,
-		MaxTurns:    a.MaxTurns,
-		MaxTime:     a.MaxTime,
+		// Format:      a.Format,
+		// MaxTurns:    a.MaxTurns,
+		// MaxTime:     a.MaxTime,
 		// New:         a.New,
-		MaxHistory: a.MaxHistory,
-		MaxSpan:    a.MaxSpan,
-		Context:    a.Context,
-		LogLevel:   a.LogLevel,
+		// MaxHistory: a.MaxHistory,
+		// MaxSpan:    a.MaxSpan,
+		// Context:    a.Context,
+		LogLevel: a.LogLevel,
 		//
 		Flow: a.Flow,
 		//
