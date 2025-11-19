@@ -63,10 +63,10 @@ func InstructionMiddleware(sw *Swarm) api.Middleware {
 			if err := addAll(agent); err != nil {
 				return err
 			}
+			instruction := strings.Join(instructions, "\n")
+			req.SetInstruction(instruction)
 
-			req.Instruction = strings.Join(instructions, "\n")
-
-			logger.Debugf("instructions (%v): %s (%v)\n", len(instructions), abbreviate(req.Instruction, 64), len(req.Instruction))
+			logger.Debugf("instructions (%v): %s (%v)\n", len(instructions), abbreviate(instruction, 64), len(instruction))
 			if logger.IsTrace() {
 				for i, v := range instructions {
 					logger.Debugf("instructions[%v]: %s\n", i, v)

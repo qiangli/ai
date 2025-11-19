@@ -65,17 +65,17 @@ func genImage(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	var imageStyle = openai.ImageGenerateParamsStyleNatural
 
 	if v := req.Arguments; v != nil {
-		if key, ok := v["quality"].(string); ok {
+		if key := v.GetString("quality"); key != "" {
 			if q, ok := qualityMap[key]; ok {
 				imageQuality = q
 			}
 		}
-		if key, ok := v["size"].(string); ok {
+		if key := v.GetString("size"); key != "" {
 			if s, ok := sizeMap[key]; ok {
 				imageSize = s
 			}
 		}
-		if key, ok := v["style"].(string); ok {
+		if key := v.GetString("style"); key != "" {
 			if s, ok := styleMap[key]; ok {
 				imageStyle = s
 			}

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"maps"
 	"strings"
 	"text/template"
 )
@@ -79,7 +78,7 @@ type Agent struct {
 	Tools []*ToolFunc
 
 	// default values
-	Arguments map[string]any
+	Arguments *Arguments
 
 	// LLM adapter
 	Adapter string
@@ -209,13 +208,11 @@ type Flow struct {
 	Script      string
 }
 
-func (a *Agent) cloneArguments() map[string]any {
+func (a *Agent) cloneArguments() *Arguments {
 	if a.Arguments == nil {
 		return nil
 	}
-	clone := make(map[string]any, len(a.Arguments))
-	maps.Copy(clone, a.Arguments)
-	return clone
+	return a.Arguments.Clone()
 }
 
 // func (a *Agent) cloneEnvironment() map[string]any {

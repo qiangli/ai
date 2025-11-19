@@ -131,7 +131,9 @@ func (ap *AgentMaker) newAgent(
 		LogLevel: api.Quiet,
 	}
 	//
-	agent.Arguments = c.Arguments
+	args := api.NewArguments()
+	args.Add(c.Arguments)
+	agent.Arguments = args
 	// if len(req.RawInput.Arguments) > 0 {
 	// 	if agent.Arguments == nil {
 	// 		agent.Arguments = make(map[string]any)
@@ -260,11 +262,11 @@ func (ap *AgentMaker) newAgent(
 	if c.Flow != nil {
 		var actionMap = make(map[string]*api.Action)
 		for _, v := range agent.Tools {
-			actionMap[v.Kit+":"+v.Name] = &api.Action{
-				ID:        v.ID(),
-				Name:      v.Name,
-				Arguments: v.Arguments,
-			}
+			actionMap[v.Kit+":"+v.Name] = api.NewAction(
+				v.ID(),
+				v.Name,
+				v.Arguments,
+			)
 		}
 		flow := &api.Flow{
 			Type:        c.Flow.Type,

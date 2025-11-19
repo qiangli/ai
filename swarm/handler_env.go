@@ -10,7 +10,13 @@ func EnvMiddleware(sw *Swarm) api.Middleware {
 	return func(agent *api.Agent, next Handler) Handler {
 		return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 			env := sw.globalEnv()
-			sw.mapAssign(agent, req, env, req.Arguments, false)
+			var args map[string]any
+			if req.Arguments != nil {
+				req.Arguments.Copy(args)
+			} else {
+				args = make(map[string]any)
+			}
+			sw.mapAssign(agent, req, env, args, false)
 
 			log.GetLogger(req.Context()).Debugf("🔗 (env): %s env: %+v\n", agent.Name, env)
 

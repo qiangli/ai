@@ -39,10 +39,10 @@ func QueryMiddleware(sw *Swarm) api.Middleware {
 					return err
 				}
 
-				req.Query = content
+				req.SetQuery(content)
 			}
-
-			logger.Debugf("query: %s (%v)\n", abbreviate(req.Query, 64), len(req.Query))
+			query := req.Query()
+			logger.Debugf("query: %s (%v)\n", abbreviate(query, 64), len(query))
 			if logger.IsTrace() {
 				logger.Debugf("query: %s\n", req.Query)
 			}

@@ -5,7 +5,10 @@ import (
 	"encoding/base64"
 	"fmt"
 	"html/template"
+	"maps"
+	"strconv"
 	"strings"
+	"sync"
 )
 
 type State int
@@ -55,19 +58,144 @@ type TemplateFuncMap = template.FuncMap
 
 type Action struct {
 	// unique identifier
-	ID string `json:"-"`
+	ID string
 
 	// agent/tool name
-	Name string `json:"name"`
+	Name string
 
 	// arguments including name
-	Arguments map[string]any `json:"arguments"`
+	Arguments *Arguments
+}
+
+func NewAction(id string, name string, args map[string]any) *Action {
+	return &Action{
+		ID:   id,
+		Name: name,
+		Arguments: &Arguments{
+			args: args,
+		},
+	}
+}
+
+type Arguments struct {
+	args map[string]any
+	mu   sync.RWMutex
+}
+
+func NewArguments() *Arguments {
+	return &Arguments{
+		args: make(map[string]any),
+	}
+}
+
+func (r *Arguments) Query() string {
+	return r.GetString("query")
+}
+
+func (r *Arguments) SetQuery(s string) {
+	r.Set("query", s)
+}
+
+func (r *Arguments) Instruction() string {
+	return r.GetString("instruction")
+}
+
+func (r *Arguments) SetInstruction(s string) {
+	r.Set("instruction", s)
+}
+
+func (r *Arguments) Get(key string) (any, bool) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	v, ok := r.args[key]
+	return v, ok
+}
+
+func (r *Arguments) GetString(key string) string {
+	if v, ok := r.Get(key); ok {
+		return ToString(v)
+	}
+	return ""
+}
+
+func (r *Arguments) GetInt(key string) int {
+	if v, ok := r.Get(key); ok {
+		return ToInt(v)
+	}
+	return 0
+}
+
+func (r *Arguments) Set(key string, data any) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.args[key] = data
+}
+
+func (r *Arguments) SetArgs(args map[string]any) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for k, v := range args {
+		r.args[k] = v
+	}
+}
+
+func (r *Arguments) GetAllArgs() map[string]any {
+	return r.GetArgs(nil)
+}
+
+// Return args specified by keys
+func (r *Arguments) GetArgs(keys []string) map[string]any {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	args := make(map[string]any)
+	if len(keys) == 0 {
+		maps.Copy(args, r.args)
+		return args
+	}
+	for _, k := range keys {
+		args[k] = r.args[k]
+	}
+	return args
+}
+
+func (r *Arguments) Add(src map[string]any) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	maps.Copy(r.args, src)
+}
+
+func (r *Arguments) Copy(dst map[string]any) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	maps.Copy(dst, r.args)
+}
+
+func (r *Arguments) Clone() *Arguments {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	args := make(map[string]any)
+	maps.Copy(args, r.args)
+	return &Arguments{
+		args: args,
+	}
 }
 
 // openai: ChatCompletionMessageToolCallUnion
 // genai: FunctionCall
 // anthropic: ToolUseBlock
 type ToolCall Action
+
+func NewToolCall(id string, name string, args map[string]any) *ToolCall {
+	tc := &ToolCall{
+		ID:   id,
+		Name: name,
+		Arguments: &Arguments{
+			args: args,
+		},
+	}
+	return tc
+}
 
 type ActionRunner interface {
 	Run(context.Context, string, map[string]any) (any, error)
@@ -304,4 +432,42 @@ func dataURL(mime string, raw []byte) string {
 	encoded := base64.StdEncoding.EncodeToString(raw)
 	d := fmt.Sprintf("data:%s;base64,%s", mime, encoded)
 	return d
+}
+
+func ToString(data any) string {
+	if data == nil {
+		return ""
+	}
+	if s, ok := data.(string); ok {
+		return s
+	}
+	return fmt.Sprintf("%v", data)
+}
+
+func ToInt(data any) int {
+	if data == nil {
+		return 0
+	}
+	if i, ok := data.(int); ok {
+		return i
+	}
+	if i, ok := data.(int8); ok {
+		return int(i)
+	}
+	if i, ok := data.(int16); ok {
+		return int(i)
+	}
+	if i, ok := data.(int32); ok {
+		return int(i)
+	}
+	if i, ok := data.(int64); ok {
+		return int(i)
+	}
+	if s, ok := data.(string); ok {
+		i, err := strconv.Atoi(s)
+		if err == nil {
+			return i
+		}
+	}
+	return 0
 }

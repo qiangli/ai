@@ -55,7 +55,7 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 				Created: time.Now(),
 				//
 				Role:    api.RoleUser,
-				Content: req.Query,
+				Content: req.Query(),
 				Sender:  sw.User.Email,
 			}
 			history = append(history, message)
@@ -70,10 +70,10 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 			// request
 			nreq := req.Clone()
 			nreq.Name = agent.Name
-			nreq.MaxTurns = agent.MaxTurns
+			// nreq.MaxTurns = agent.MaxTurns
 			nreq.Tools = agent.Tools
 			nreq.Runner = agent.Runner
-			nreq.Arguments = env
+			nreq.Arguments.Add(env)
 			nreq.Vars = sw.Vars
 
 			//

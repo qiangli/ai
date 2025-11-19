@@ -144,13 +144,13 @@ func (h *agentHandler) setGlobalEnv(req *api.Request) error {
 
 	// agent global env takes precedence
 	if h.agent.Environment != nil {
-		h.sw.mapAssign(h.agent, req, env, h.agent.Environment.GetEnvs(nil), true)
+		h.sw.mapAssign(h.agent, req, env, h.agent.Environment.GetAllEnvs(), true)
 	}
 
 	// set agent and req defaults
 	// set only when the key does not exist
 	if h.agent.Arguments != nil {
-		h.sw.mapAssign(h.agent, req, env, h.agent.Arguments, false)
+		h.sw.mapAssign(h.agent, req, env, h.agent.Arguments.GetAllArgs(), false)
 	}
 
 	// h.sw.Vars.Global.Add(env)

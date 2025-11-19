@@ -335,7 +335,7 @@ func (sw *Swarm) callAgent(parent *api.Agent, req *api.Request, name string, mes
 	req.Parent = parent
 	req.Name = strings.TrimPrefix(name, "@")
 	// prepend additional instruction to user query
-	req.Query = concat('\n', message, req.Query)
+	req.SetQuery(concat('\n', message, req.Query()))
 
 	resp := &api.Response{}
 

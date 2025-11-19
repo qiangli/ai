@@ -157,7 +157,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		}
 	}
 
-	maxTurns := req.MaxTurns
+	maxTurns := req.MaxTurns()
 	if maxTurns == 0 {
 		maxTurns = 1
 	}

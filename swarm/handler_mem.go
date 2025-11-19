@@ -3,7 +3,6 @@ package swarm
 import (
 	"encoding/json"
 	"fmt"
-	"maps"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
@@ -19,9 +18,9 @@ func MemoryMiddleware(sw *Swarm) api.Middleware {
 		nreq := req.Clone()
 		if len(at.Arguments) > 0 {
 			if nreq.Arguments == nil {
-				at.Arguments = make(map[string]any)
+				nreq.Arguments = api.NewArguments()
 			}
-			maps.Copy(nreq.Arguments, at.Arguments)
+			nreq.Arguments.Copy(at.Arguments)
 		}
 		out, err := sw.callAgent(parent, nreq, at.Name, at.Message)
 		if err != nil {

@@ -96,7 +96,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		tools[i] = anthropic.ToolUnionParam{OfTool: toolParam}
 	}
 
-	maxTurns := req.MaxTurns
+	maxTurns := req.MaxTurns()
 	if maxTurns == 0 {
 		maxTurns = 1
 	}

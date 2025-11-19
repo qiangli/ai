@@ -14,7 +14,13 @@ import (
 )
 
 func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, action *api.Action) error {
-	result, err := h.agent.Runner.Run(ctx, action.ID, req.Arguments)
+	var args map[string]any
+	if req.Arguments != nil {
+		req.Arguments.Copy(args)
+	} else {
+		args = make(map[string]any)
+	}
+	result, err := h.agent.Runner.Run(ctx, action.ID, args)
 	resp.Agent = h.agent
 	resp.Result = api.ToResult(result)
 	return err
@@ -33,7 +39,7 @@ func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error 
 		// nreq.RawInput = &api.UserInput{
 		// 	Message: nresp.Result.Value,
 		// }
-		nreq.Query = nresp.Result.Value
+		nreq.SetQuery(nresp.Result.Value)
 	}
 
 	// final result
@@ -180,7 +186,7 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 			// nreq.RawInput = &api.UserInput{
 			// 	Message: v,
 			// }
-			nreq.Query = v
+			nreq.SetQuery(v)
 			nresp := new(api.Response)
 			if err := h.flowSequence(nreq, nresp); err != nil {
 				nresp.Result = &api.Result{
@@ -249,7 +255,13 @@ func (h *agentHandler) flowShell(req *api.Request, resp *api.Response) error {
 	ctx := req.Context()
 
 	runner := NewAgentScriptRunner(h.sw, h.agent)
-	data, err := runner.Run(ctx, h.agent.Flow.Script, req.Arguments)
+	var args map[string]any
+	if req.Arguments != nil {
+		req.Arguments.Copy(args)
+	} else {
+		args = make(map[string]any)
+	}
+	data, err := runner.Run(ctx, h.agent.Flow.Script, args)
 	if err != nil {
 		return err
 	}

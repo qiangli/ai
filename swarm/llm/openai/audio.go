@@ -38,7 +38,7 @@ func transcribe(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 
 	var filename string
 	if req.Arguments != nil {
-		if file, found := req.Arguments["file"]; found {
+		if file, found := req.Arguments.Get("file"); found {
 			if v, ok := file.(string); ok {
 				filename = v
 			}

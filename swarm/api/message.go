@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"fmt"
-	"maps"
 	"strings"
 	"time"
 )
@@ -46,7 +45,7 @@ type Request struct {
 
 	// active action name
 	Name      string
-	Arguments map[string]any
+	Arguments *Arguments
 
 	// RawInput *UserInput
 
@@ -55,7 +54,7 @@ type Request struct {
 
 	Messages []*Message
 
-	MaxTurns int
+	// MaxTurns int
 
 	Runner ActionRunner
 
@@ -69,14 +68,34 @@ type Request struct {
 	// get api token for LLM model
 	Token func() string
 
-	// openai v3
-	Instruction string
-	Query       string
+	// // openai v3
+	// Instruction string
+	// Query       string
 
 	// ctx should only be modified via copying the whole request WithContext.
 	// It is unexported to prevent people from using Context wrong
 	// and mutating the contexts held by callers of the same request.
 	ctx context.Context
+}
+
+func (r *Request) Query() string {
+	return r.Arguments.Query()
+}
+
+func (r *Request) SetQuery(s string) {
+	r.Arguments.SetQuery(s)
+}
+
+func (r *Request) Instruction() string {
+	return r.Arguments.Instruction()
+}
+
+func (r *Request) SetInstruction(s string) {
+	r.SetInstruction(s)
+}
+
+func (r *Request) MaxTurns() int {
+	return r.Arguments.GetInt("max_turns")
 }
 
 // func (r *Request) String() string {
@@ -96,9 +115,15 @@ func NewRequest(ctx context.Context, name string, input *UserInput) *Request {
 	req := &Request{
 		ctx:       ctx,
 		Name:      name,
-		Query:     input.Query(),
-		Arguments: input.Arguments,
-		Messages:  input.Messages,
+		Arguments: NewArguments(),
+		// Query:     input.Query(),
+		// Arguments: input.Arguments,
+		// Messages:  input.Messages,
+	}
+	if input != nil {
+		req.Arguments.SetArgs(input.Arguments)
+		req.Arguments.SetQuery(input.Query())
+		req.Messages = input.Messages
 	}
 	return req
 }
@@ -158,8 +183,7 @@ func (r *Request) Clone() *Request {
 	// }
 
 	if r.Arguments != nil {
-		r2.Arguments = make(map[string]any, len(r.Arguments))
-		maps.Copy(r2.Arguments, r.Arguments)
+		r2.Arguments = r.Arguments.Clone()
 	}
 	return r2
 }

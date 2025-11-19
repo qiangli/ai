@@ -43,14 +43,29 @@ func genVideo(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		Size:    openai.VideoSize720x1280,
 	}
 
-	if v := GetStrArg("input_reference", req.Arguments, ""); v != "" {
+	getStrArg := func(key string, args *api.Arguments, val string) string {
+		v := args.GetString(key)
+		if v != "" {
+			return v
+		}
+		return val
+	}
+	getIntArg := func(key string, args *api.Arguments, val int) int {
+		v := args.GetInt(key)
+		if v != 0 {
+			return v
+		}
+		return val
+	}
+
+	if v := getStrArg("input_reference", req.Arguments, ""); v != "" {
 		ref, err := fetchContent(v)
 		if err != nil {
 			return nil, err
 		}
 		params.InputReference = openai.File(ref, "reference.jpg", "image/jpeg")
 	}
-	if v := GetStrArg("seconds", req.Arguments, "4"); v != "" {
+	if v := getStrArg("seconds", req.Arguments, "4"); v != "" {
 		params.Seconds = openai.VideoSeconds(v)
 	}
 	var sizeMap = map[string]openai.VideoSize{
@@ -59,12 +74,12 @@ func genVideo(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		"1024x1792": openai.VideoSize1024x1792,
 		"1792x1024": openai.VideoSize1792x1024,
 	}
-	if size := GetStrArg("size", req.Arguments, "720x1280"); size != "" {
+	if size := getStrArg("size", req.Arguments, "720x1280"); size != "" {
 		if v, ok := sizeMap[size]; ok {
 			params.Size = v
 		}
 	}
-	var pollIntervalMs = GetIntArg("poll_interval", req.Arguments, 1000)
+	var pollIntervalMs = getIntArg("poll_interval", req.Arguments, 1000)
 
 	video, err := client.Videos.NewAndPoll(ctx, params, pollIntervalMs)
 	if err != nil {
