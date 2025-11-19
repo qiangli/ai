@@ -1,12 +1,11 @@
 ###
 pack: search
 #
-model: search/L1
+model: "llm/L1"
 max_history: 0
-log_level: verbose
+log_level: debug
 agents:
   - name: "search"
-    new: true
     display: "🔍 Web Search"
     description: Get web search results for a given query.
     instruction:
@@ -14,17 +13,18 @@ agents:
         As a web search assistant, you are responsible for processing user queries and providing accurate
         search results from the web. When a user submits a query, analyze the main components of the query,
         perform a web search using one or more available search tools, and return the most relevant results.
-        You may receive results in various formats such as plain text, markdown, json, or html. Extract and convert
+        After obtaining a URL, follow the link and fetch the content to provide the user with a summary. You may
+        receive results in various formats such as plain text, markdown, json, or html. Extract and convert
         these results into a uniform format that is easily readable and presentable to the user. You do not
         need to use all tools. If a search tool fails due to reasons such as rate limiting or service
         downtime, try another one. If all tools fail, wait for a few seconds and attempt again.
     functions:
-      - "search:ddg_search"
+      # - "search:ddg_search"
       - "ddg:*"
       - "bing:*"
       - "google:*"
       - "brave:*"
-
+      - "web:*"
 ## tool kit
 kit: "search"
 tools:
@@ -69,7 +69,7 @@ tools:
             return search(q)
 
 ## models
-set: search
+set: llm
 provider: "openai"
 base_url: "https://api.openai.com/v1/"
 api_key: "openai"

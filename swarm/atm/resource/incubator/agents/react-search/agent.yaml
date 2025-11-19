@@ -1,11 +1,11 @@
 ###
-new: true
+pack: "react-search"
 log_level: info
 agents:
   - name: "react-search"
     display: "🔍 ReAct Web Search"
     description: "Specializes in web searches using multiple search engines to provide timely and accurate information."
-    model: gpt5/L1
+    model: llm/L1
     instruction:
       content: |
         Your role is to perform comprehensive web searches across various search engines like Google, Bing, DuckDuckGo, and Brave.
@@ -59,7 +59,8 @@ agents:
       - "google:*"
       - "brave:*"
 
-set: gpt5
+###
+set: llm
 provider: "openai"
 base_url: "https://api.openai.com/v1/"
 api_key: "openai"

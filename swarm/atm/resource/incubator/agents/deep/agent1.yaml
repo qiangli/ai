@@ -5,7 +5,7 @@ model: "llm/aux"
 log_level: info
 agents:
   - name: "deep"
-    display: "🌐 Deep Agent"
+    display: "Deep Agent"
     description: |
       deep is an end-to-end deep reasoning agent that performs autonomous thinking, 
       tool discovery, and action execution within a single, coherent reasoning process.
@@ -25,12 +25,10 @@ agents:
         to accurately answer questions. Your core abilities include:
 
         - Searching for helpful tools: "agent:deep/tool_search" with your tool search query.
-          The tool will search and analyze available tools, then return a list of relevant tools in the format
-          {BEGIN_TOOL_SEARCH_RESULT} helpful tools with descriptions and parameters{END_TOOL_SEARCH_RESULT}.
+          The tool will search and analyze available tools, then return a list of relevant tools.
 
         - Calling a tool and receiving its response: "ai:tool_execute" with the required arguments.
-          The tool will provide the tool's response in the Format:
-          {BEGIN_TOOL_RESPONSE}\ntool response\n{END_TOOL_RESPONSE}.
+          The tool will provide the tool's response.
 
         - Performing thought folding:  
           If your reasoning history becomes too lengthy, you encounter too many failed tool calls,
@@ -48,25 +46,13 @@ agents:
 
         Call "agent:deep/tool_search".
 
-        {BEGIN_TOOL_SEARCH}
         ...
-        {END_TOOL_SEARCH}
-
-        {BEGIN_TOOL_SEARCH_RESULT}
-        ...
-        {END_TOOL_SEARCH_RESULT}
 
         Now I can try to call the ... tool:
 
         Use "ai:tool_execute".
 
-        {BEGIN_TOOL_CALL}
-        ...
-        {END_TOOL_CALL}
-
-        {BEGIN_TOOL_RESPONSE}
         ... (tool response)
-        {END_TOOL_RESPONSE}
 
         Now I have ..., I can now proceed to ...
 
@@ -87,7 +73,7 @@ agents:
         guided by the summarized interaction history.
 
         Remember:
-        - Use agent:deep/tool_search tool to search for more tools if the current tools are not enough.
+        - Use agent:deep/tool_search to search for more tools if the current tools are not enough.
         - Use ai:tool_execute to call a tool.
         - Use agent:deep/fold_thought to fold your thoughts and start a new round of reasoning.
         - Always strictly follow the specified formats for tool search, tool call, and thought folding.
@@ -99,7 +85,6 @@ agents:
           "error": "<if anything went wrong>"
           }
         - Call agent:deep/report for formatting at the end.
-
     functions:
       - "agent:deep/tool_search"
       - "agent:deep/fold_thought"
@@ -355,6 +340,7 @@ agents:
     functions:
       - "ai:list_tools"
       - "ai:tool_info"
+      - "agent:deep/response_analysis"
 
   - name: "deep/response_analysis"
     display: "Response analysis Assistant"

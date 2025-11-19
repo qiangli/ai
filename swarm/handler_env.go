@@ -1,6 +1,8 @@
 package swarm
 
 import (
+	"fmt"
+
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
 )
@@ -28,9 +30,11 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 			ll := nreq.Arguments.GetString("log_level")
 			logger.SetLogLevel(api.ToLogLevel(ll))
 
-			logger.Debugf("🔗 (init): %s\n", agent.Name)
-
-			logger.Infof("🚀 %s ← %s\n", agent.Name, NilSafe(agent.Parent).Name)
+			var parent string
+			if agent.Parent != nil {
+				parent = fmt.Sprintf("%s → ", agent.Parent.Name)
+			}
+			logger.Infof("🚀 %s%s\n", parent, agent.Name)
 
 			return next.Serve(nreq, resp)
 		})

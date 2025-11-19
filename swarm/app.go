@@ -112,49 +112,23 @@ func (ap *AgentMaker) getAgentConfig(ac *api.AgentsConfig, pack, sub string) (*a
 func (ap *AgentMaker) newAgent(
 	ac *api.AgentsConfig,
 	c *api.AgentConfig,
-	// vars *api.Vars,
-	// _ string,
 	owner string,
-	// input *api.UserInput,
 ) (*api.Agent, error) {
 	var agent = api.Agent{
-		// Parent:  req.Parent,
 		Owner:   owner,
 		Adapter: c.Adapter,
 		//
 		Name:        c.Name,
 		Display:     c.Display,
 		Description: c.Description,
-		//
-		// RawInput: req.RawInput
-		// LogLevel: api.Quiet,
 	}
 	//
 	args := api.NewArguments()
 	args.Add(c.Arguments)
 	agent.Arguments = args
-	// if len(req.RawInput.Arguments) > 0 {
-	// 	if agent.Arguments == nil {
-	// 		agent.Arguments = make(map[string]any)
-	// 	}
-	// 	maps.Copy(agent.Arguments, req.RawInput.Arguments)
-	// }
-	// agent.New = nbl(req.RawInput.New, c.New, ac.New)
-
-	// agent.Message = nvl(req.RawInput.Message, c.Message, ac.Message)
-	// agent.Format = nvl(req.RawInput.Format, c.Format, ac.Format)
-	// //
-	// agent.MaxTurns = nzl(req.RawInput.MaxTurns, c.MaxTurns, ac.MaxTurns, defaultMaxTurns)
-	// agent.MaxTime = nzl(req.RawInput.MaxTime, c.MaxTime, ac.MaxTime, defaultMaxTime)
-
-	// agent.MaxHistory = nzl(req.RawInput.MaxHistory, c.MaxHistory, ac.MaxHistory, defaultMaxHistory)
-	// agent.MaxSpan = nzl(req.RawInput.MaxSpan, c.MaxSpan, ac.MaxSpan, defaultMaxSpan)
-
 	//
 	agent.Message = nvl(c.Message, ac.Message)
-	// args.Set("message", nvl(c.Message, ac.Message))
 
-	// agent.Format = nvl(c.Format, ac.Format)
 	args.Set("format", nvl(c.Format, ac.Format))
 	//
 	maxTurns := nzl(c.MaxTurns, ac.MaxTurns, defaultMaxTurns)
@@ -177,12 +151,7 @@ func (ap *AgentMaker) newAgent(
 	agent.Environment.SetEnvs(c.Environment)
 
 	// log
-	// agent.LogLevel = api.ToLogLevel(nvl(c.LogLevel, ac.LogLevel, "quiet"))
 	args.Set("log_level", nvl(c.LogLevel, ac.LogLevel, "quiet"))
-
-	// hard limit
-	// agent.MaxTurns = min(agent.MaxTurns, maxTurnsLimit)
-	// agent.MaxTime = min(agent.MaxTime, maxTimeLimit)
 
 	// instruction
 	// TODO ai trigger
@@ -194,7 +163,6 @@ func (ap *AgentMaker) newAgent(
 	// context
 	// TODO ai trigger
 	context := strings.TrimSpace(nvl(c.Context, ac.Context))
-	// agent.Context = context
 	args.Set("context", context)
 
 	// llm model set[/level]
