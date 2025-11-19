@@ -343,8 +343,8 @@ func (sw *Swarm) callAgent(parent *api.Agent, req *api.Request, name string, mes
 	if err != nil {
 		return "", err
 	}
-	if resp.Result == nil || resp.Result.Value == "" {
-		return "", fmt.Errorf("empty response")
+	if resp.Result == nil {
+		return "", nil
 	}
 	return resp.Result.Value, nil
 }

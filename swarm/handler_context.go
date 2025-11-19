@@ -1,7 +1,6 @@
 package swarm
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -86,9 +85,8 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 			}
 
 			if resp.Result == nil {
-				return fmt.Errorf("Empty response")
+				resp.Result = &api.Result{}
 			}
-
 			var result = resp.Result
 
 			// Response

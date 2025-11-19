@@ -1,8 +1,6 @@
 package swarm
 
 import (
-	"fmt"
-
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/llm/adapter"
@@ -34,7 +32,9 @@ func InferenceMiddleware(sw *Swarm) api.Middleware {
 			}
 
 			if result.Result == nil {
-				return fmt.Errorf("Empty response")
+				result.Result = &api.Result{
+					Value: "Empty response",
+				}
 			}
 			resp.Result = result.Result
 

@@ -91,7 +91,7 @@ func (r *Request) Instruction() string {
 }
 
 func (r *Request) SetInstruction(s string) {
-	r.SetInstruction(s)
+	r.Arguments.SetInstruction(s)
 }
 
 func (r *Request) MaxTurns() int {

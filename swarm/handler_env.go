@@ -12,9 +12,8 @@ func EnvMiddleware(sw *Swarm) api.Middleware {
 			env := sw.globalEnv()
 			var args map[string]any
 			if req.Arguments != nil {
-				req.Arguments.Copy(args)
-			} else {
 				args = make(map[string]any)
+				req.Arguments.Copy(args)
 			}
 			sw.mapAssign(agent, req, env, args, false)
 
