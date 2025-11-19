@@ -14,7 +14,6 @@ import (
 	"github.com/Masterminds/sprig/v3"
 
 	"github.com/qiangli/ai/swarm/api"
-	// "github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
@@ -124,62 +123,16 @@ func (sw *Swarm) InitTemplate(agent *api.Agent) *template.Template {
 }
 
 func (sw *Swarm) InitChain() {
-	start := func(_ *Swarm) api.Middleware {
-		return func(agent *api.Agent, next Handler) Handler {
-			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
-				logger := log.GetLogger(req.Context())
-				// var merged = make(map[string]any)
-				// var merge func(*api.Agent)
-				// merge = func(a *api.Agent) {
-				// 	if a.Parent != nil {
-				// 		merge(a.Parent)
-				// 	}
-				// 	a.Arguments.Copy(merged)
-				// }
-				var args = make(map[string]any)
-				if agent.Arguments != nil {
-					agent.Arguments.Copy(args)
-				}
-				if req.Arguments != nil {
-					req.Arguments.Copy(args)
-				}
-				nreq := req.Clone()
-				nreq.Arguments.SetArgs(args)
-
-				// setLogLevel := func(a *api.Agent) {
-				// 	ll := a.Arguments.GetString("log_level")
-				// 	for {
-				// 		if a.Parent == nil {
-				// 			break
-				// 		}
-				// 		a = a.Parent
-				// 		ll = a.Arguments.GetString("log_level")
-				// 	}
-				// 	logger.SetLogLevel(api.ToLogLevel(ll))
-				// }
-
-				ll := nreq.Arguments.GetString("log_level")
-				logger.SetLogLevel(api.ToLogLevel(ll))
-
-				logger.Debugf("🔗 (init): %s\n", agent.Name)
-				// setLogLevel(agent)
-
-				logger.Infof("🚀 %s ← %s\n", agent.Name, NilSafe(agent.Parent).Name)
-
-				return next.Serve(nreq, resp)
-			})
-		}
-	}
 
 	// logging, analytics, and debugging.
 	// prompts, tool selection, and output formatting.
 	// retries, fallbacks, early termination.
 	// rate limits, guardrails, pii detection.
 	sw.middlewares = []api.Middleware{
-		start(sw),
+		InitEnvMiddleware(sw),
+		//
 		TimeoutMiddleware(sw),
 		LogMiddleware(sw),
-		EnvMiddleware(sw),
 		//
 		ModelMiddleware(sw),
 		ToolMiddleware(sw),
