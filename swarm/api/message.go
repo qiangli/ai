@@ -120,9 +120,14 @@ func NewRequest(ctx context.Context, name string, input *UserInput) *Request {
 		// Arguments: input.Arguments,
 		// Messages:  input.Messages,
 	}
+	// TODO redo query handling
 	if input != nil {
+		query := input.Query()
+		if query == "" && input.Arguments != nil {
+			query = ToString(input.Arguments["query"])
+		}
+		req.Arguments.SetQuery(query)
 		req.Arguments.SetArgs(input.Arguments)
-		req.Arguments.SetQuery(input.Query())
 		req.Messages = input.Messages
 	}
 	return req
