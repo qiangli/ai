@@ -65,10 +65,10 @@ type Agent struct {
 	Display     string
 	Description string
 
-	// system prompt
+	// system prompt from config
 	Instruction *Instruction
 
-	// user query
+	// user query from config
 	Message string
 
 	RawInput *UserInput
@@ -95,7 +95,7 @@ type Agent struct {
 
 	// Context    string
 
-	LogLevel LogLevel
+	// LogLevel LogLevel
 
 	//
 	Flow *Flow
@@ -186,7 +186,7 @@ func (a *Agent) Clone() *Agent {
 		// MaxHistory: a.MaxHistory,
 		// MaxSpan:    a.MaxSpan,
 		// Context:    a.Context,
-		LogLevel: a.LogLevel,
+		// LogLevel: a.LogLevel,
 		//
 		Flow: a.Flow,
 		//

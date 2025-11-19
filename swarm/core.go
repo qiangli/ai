@@ -128,26 +128,45 @@ func (sw *Swarm) InitChain() {
 		return func(agent *api.Agent, next Handler) Handler {
 			return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 				logger := log.GetLogger(req.Context())
-
-				setLogLevel := func(a *api.Agent) {
-					ll := a.LogLevel
-					for {
-						if a.Parent == nil {
-							break
-						}
-						a = a.Parent
-						ll = a.LogLevel
-					}
-					logger.SetLogLevel(ll)
+				// var merged = make(map[string]any)
+				// var merge func(*api.Agent)
+				// merge = func(a *api.Agent) {
+				// 	if a.Parent != nil {
+				// 		merge(a.Parent)
+				// 	}
+				// 	a.Arguments.Copy(merged)
+				// }
+				var args = make(map[string]any)
+				if agent.Arguments != nil {
+					agent.Arguments.Copy(args)
 				}
+				if req.Arguments != nil {
+					req.Arguments.Copy(args)
+				}
+				nreq := req.Clone()
+				nreq.Arguments.SetArgs(args)
+
+				// setLogLevel := func(a *api.Agent) {
+				// 	ll := a.Arguments.GetString("log_level")
+				// 	for {
+				// 		if a.Parent == nil {
+				// 			break
+				// 		}
+				// 		a = a.Parent
+				// 		ll = a.Arguments.GetString("log_level")
+				// 	}
+				// 	logger.SetLogLevel(api.ToLogLevel(ll))
+				// }
+
+				ll := nreq.Arguments.GetString("log_level")
+				logger.SetLogLevel(api.ToLogLevel(ll))
 
 				logger.Debugf("🔗 (init): %s\n", agent.Name)
-
-				setLogLevel(agent)
+				// setLogLevel(agent)
 
 				logger.Infof("🚀 %s ← %s\n", agent.Name, NilSafe(agent.Parent).Name)
 
-				return next.Serve(req, resp)
+				return next.Serve(nreq, resp)
 			})
 		}
 	}

@@ -126,9 +126,8 @@ func (ap *AgentMaker) newAgent(
 		Display:     c.Display,
 		Description: c.Description,
 		//
-		// RawInput: req.RawInput,
-		//
-		LogLevel: api.Quiet,
+		// RawInput: req.RawInput
+		// LogLevel: api.Quiet,
 	}
 	//
 	args := api.NewArguments()
@@ -153,6 +152,7 @@ func (ap *AgentMaker) newAgent(
 
 	//
 	agent.Message = nvl(c.Message, ac.Message)
+	// args.Set("message", nvl(c.Message, ac.Message))
 
 	// agent.Format = nvl(c.Format, ac.Format)
 	args.Set("format", nvl(c.Format, ac.Format))
@@ -177,7 +177,8 @@ func (ap *AgentMaker) newAgent(
 	agent.Environment.SetEnvs(c.Environment)
 
 	// log
-	agent.LogLevel = api.ToLogLevel(nvl(c.LogLevel, ac.LogLevel, "quiet"))
+	// agent.LogLevel = api.ToLogLevel(nvl(c.LogLevel, ac.LogLevel, "quiet"))
+	args.Set("log_level", nvl(c.LogLevel, ac.LogLevel, "quiet"))
 
 	// hard limit
 	// agent.MaxTurns = min(agent.MaxTurns, maxTurnsLimit)

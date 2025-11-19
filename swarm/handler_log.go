@@ -9,9 +9,10 @@ import (
 // for debugging. trim text to max length of n.
 func LogMiddleware(sw *Swarm) api.Middleware {
 	return func(agent *api.Agent, next Handler) Handler {
+		logLevel := agent.Arguments.GetString("log_level")
 		return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 			logger := log.GetLogger(req.Context())
-			logger.Debugf("🔗 (log): %s log_level: %v req: %+v\n", agent.Name, agent.LogLevel, req)
+			logger.Debugf("🔗 (log): %s log_level: %v req: %+v\n", agent.Name, logLevel, req)
 
 			err := next.Serve(req, resp)
 
