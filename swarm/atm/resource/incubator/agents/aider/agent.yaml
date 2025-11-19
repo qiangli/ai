@@ -5,6 +5,7 @@ pack: "aider"
 log_level: "info"
 max_history: 0
 max_time: 900
+max_turns: 100
 agents:
   - name: "aider"
     display: "Aider"

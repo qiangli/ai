@@ -14,7 +14,7 @@ import (
 	"github.com/Masterminds/sprig/v3"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/atm"
+	// "github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
@@ -597,9 +597,9 @@ func (sw *Swarm) callAgentType(ctx context.Context, agent *api.Agent, tf *api.To
 
 func (sw *Swarm) callAgentTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	// var req *api.Request
-	msg, _ := atm.GetStrProp("message", args)
+	// msg, _ := atm.GetStrProp("message", args)
 	input := &api.UserInput{
-		Message:   msg,
+		// Message:   msg,
 		Arguments: args,
 	}
 	req := api.NewRequest(ctx, tf.Agent, input)

@@ -106,7 +106,10 @@ func parseUserInput(line string, prefix string) (*api.UserInput, error) {
 		parts := strings.SplitN(line, " ", 2)
 		// in.Agent = parts[0][1:]
 		if len(parts) > 1 {
-			in.Message = parts[1]
+			args := make(map[string]any)
+			args["query"] = parts[1]
+			in.Arguments = args
+			// in.Message = parts[1]
 		}
 		return in, nil
 	}
@@ -122,9 +125,13 @@ func parseUserInput(line string, prefix string) (*api.UserInput, error) {
 	// 	return in, nil
 	// }
 
-	return &api.UserInput{
-		Message: line,
-	}, nil
+	ui := &api.UserInput{
+		// Message: line,
+	}
+	args := make(map[string]any)
+	args["query"] = line
+	ui.Arguments = args
+	return ui, nil
 }
 
 func replaceContentInFile(path, line string, prefix string, content string) error {

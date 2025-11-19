@@ -79,7 +79,7 @@ func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clip
 	// 	}
 	// }
 
-	log.GetLogger(ctx).Debugf("\n%s\n%s\n", input.Message, clipText(input.Content, clipMaxLen))
+	log.GetLogger(ctx).Debugf("\n%s\n%+v\n", input.Query(), input.Arguments)
 	return input, nil
 }
 
@@ -170,7 +170,12 @@ func userInput(
 	}
 
 	var content = cat(stdinData, clipinData, "\n")
-	return &api.UserInput{Message: cfg.Message, Content: content}, nil
+	args := make(map[string]any)
+	query := cat(cfg.Message, content, "\n")
+	args["query"] = query
+	return &api.UserInput{
+		Arguments: args,
+	}, nil
 
 	// //
 	// if !cfg.Editing {
