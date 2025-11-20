@@ -132,9 +132,9 @@ func (g *Environment) Clone() *Environment {
 
 // global context
 type Vars struct {
-	LogLevel LogLevel `json:"log_level"`
+	// LogLevel LogLevel `json:"log_level"`
 
-	ChatID string `json:"chat_id"`
+	// ID string `json:"chat_id"`
 	// MaxTurns   int    `json:"max_turns"`
 	// MaxTime    int    `json:"max_time"`
 	// New        *bool  `json:"new"`
@@ -182,7 +182,7 @@ func (v *Vars) ToolCalllog() (string, error) {
 // ... existing code ...
 func (v *Vars) Clone() *Vars {
 	clone := &Vars{
-		ChatID: v.ChatID,
+		// ChatID: v.ChatID,
 		// New:        v.New,
 		// MaxHistory: v.MaxHistory,
 		// MaxSpan:    v.MaxSpan,
@@ -197,7 +197,7 @@ func (v *Vars) Clone() *Vars {
 		// Unsafe: v.Unsafe,
 		// Workspace: v.Workspace,
 		//
-		LogLevel: v.LogLevel,
+		// LogLevel: v.LogLevel,
 		//
 
 		// Extra:   make(map[string]string),
@@ -246,9 +246,9 @@ func NewVars() *Vars {
 	}
 }
 
-func (r *Vars) IsTrace() bool {
-	return r.LogLevel == Tracing
-}
+// func (r *Vars) IsTrace() bool {
+// 	return r.LogLevel == Tracing
+// }
 
 // func (r *Vars) Get(key string) (any, bool) {
 // 	if r.Global == nil {

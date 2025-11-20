@@ -170,8 +170,8 @@ func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	var vars = api.NewVars()
 
 	// Setting configuration values from the app to vars
-	vars.LogLevel = api.ToLogLevel(app.LogLevel)
-	vars.ChatID = app.ChatID
+	// vars.LogLevel = api.ToLogLevel(app.LogLevel)
+	// vars.ChatID = app.ChatID
 	// vars.New = app.New
 	// vars.MaxTurns = app.MaxTurns
 	// vars.MaxTime = app.MaxTime

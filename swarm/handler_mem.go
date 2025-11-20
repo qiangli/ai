@@ -16,11 +16,11 @@ func MemoryMiddleware(sw *Swarm) api.Middleware {
 			return nil, fmt.Errorf("invalid context: %s", s)
 		}
 		nreq := req.Clone()
+		if nreq.Arguments == nil {
+			nreq.Arguments = api.NewArguments()
+		}
 		if len(at.Arguments) > 0 {
-			if nreq.Arguments == nil {
-				nreq.Arguments = api.NewArguments()
-			}
-			nreq.Arguments.Copy(at.Arguments)
+			nreq.Arguments.Add(at.Arguments)
 		}
 		out, err := sw.callAgent(parent, nreq, at.Name, at.Message)
 		if err != nil {

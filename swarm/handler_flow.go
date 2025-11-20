@@ -14,11 +14,9 @@ import (
 )
 
 func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, action *api.Action) error {
-	var args map[string]any
+	var args = make(map[string]any)
 	if req.Arguments != nil {
 		req.Arguments.Copy(args)
-	} else {
-		args = make(map[string]any)
 	}
 	result, err := h.agent.Runner.Run(ctx, action.ID, args)
 	resp.Agent = h.agent
@@ -255,12 +253,13 @@ func (h *agentHandler) flowShell(req *api.Request, resp *api.Response) error {
 	ctx := req.Context()
 
 	runner := NewAgentScriptRunner(h.sw, h.agent)
-	var args map[string]any
+
+	// make a copy of the args which already include args from the agent
+	var args = make(map[string]any)
 	if req.Arguments != nil {
 		req.Arguments.Copy(args)
-	} else {
-		args = make(map[string]any)
 	}
+
 	data, err := runner.Run(ctx, h.agent.Flow.Script, args)
 	if err != nil {
 		return err

@@ -88,9 +88,9 @@ func RunCommandVerbose(ctx context.Context, vs vos.System, command string, args 
 }
 
 func ExecCommand(ctx context.Context, vs vos.System, vars *api.Vars, command string, args []string) (string, error) {
-	if vars.LogLevel == api.Verbose {
-		return RunCommandVerbose(ctx, vs, command, args)
-	}
+	// if vars.LogLevel == api.Verbose {
+	// 	return RunCommandVerbose(ctx, vs, command, args)
+	// }
 	return RunCommand(ctx, vs, command, args)
 }
 
