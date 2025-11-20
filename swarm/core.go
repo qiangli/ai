@@ -572,11 +572,11 @@ func (sw *Swarm) callAgentType(ctx context.Context, agent *api.Agent, tf *api.To
 func (sw *Swarm) callAgentTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	// var req *api.Request
 	// msg, _ := atm.GetStrProp("message", args)
-	input := &api.UserInput{
-		// Message:   msg,
-		Arguments: args,
-	}
-	req := api.NewRequest(ctx, tf.Agent, input)
+	// input := &api.UserInput{
+	// 	// Message:   msg,
+	// 	Arguments: args,
+	// }
+	req := api.NewRequest(ctx, tf.Agent, args)
 	req.Parent = agent
 
 	resp := &api.Response{}

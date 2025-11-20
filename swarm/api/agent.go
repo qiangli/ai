@@ -71,7 +71,7 @@ type Agent struct {
 	// user query from config
 	// Message string
 
-	RawInput *UserInput
+	// RawInput *UserInput
 
 	// The model to be used by the agent
 	Model *Model
@@ -129,7 +129,7 @@ func (a *Agent) Clone() *Agent {
 		Display:     a.Display,
 		Description: a.Description,
 		// Instruction: a.Instruction,
-		RawInput:  a.RawInput,
+		// RawInput:  a.RawInput,
 		Model:     a.Model,
 		Tools:     a.Tools,
 		Arguments: a.cloneArguments(),

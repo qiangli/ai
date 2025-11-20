@@ -111,7 +111,7 @@ func (r *Request) MaxTurns() int {
 // 	return sb.String()
 // }
 
-func NewRequest(ctx context.Context, name string, input *UserInput) *Request {
+func NewRequest(ctx context.Context, name string, args map[string]any) *Request {
 	req := &Request{
 		ctx:       ctx,
 		Name:      name,
@@ -120,15 +120,16 @@ func NewRequest(ctx context.Context, name string, input *UserInput) *Request {
 		// Arguments: input.Arguments,
 		// Messages:  input.Messages,
 	}
-	// TODO redo query handling
-	if input != nil {
-		req.Arguments.Add(input.Arguments)
-		req.Messages = input.Messages
-		query := input.Query()
-		if query != "" {
-			req.Arguments.SetQuery(query)
-		}
-	}
+	// // TODO redo query handling
+	// if input != nil {
+	// 	req.Arguments.Add(input.Arguments)
+	// 	req.Messages = input.Messages
+	// 	query := input.Query()
+	// 	if query != "" {
+	// 		req.Arguments.SetQuery(query)
+	// 	}
+	// }
+	req.Arguments.Add(args)
 	return req
 }
 

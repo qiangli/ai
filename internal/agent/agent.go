@@ -55,7 +55,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 
 	showInput(ctx, cfg, input)
 
-	req := api.NewRequest(ctx, cfg.Name, input)
+	req := api.NewRequest(ctx, cfg.Name, input.Arguments)
 	resp := &api.Response{}
 
 	var root = cfg.Workspace

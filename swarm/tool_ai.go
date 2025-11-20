@@ -121,13 +121,13 @@ func (r *AIKit) AgentSpawn(ctx context.Context, _ *api.Vars, _ string, args map[
 	if err != nil {
 		return nil, err
 	}
-	var input *api.UserInput
-	if r.h.agent != nil && r.h.agent.RawInput != nil {
-		input = r.h.agent.RawInput.Clone()
-	} else {
-		input = &api.UserInput{}
-	}
-	req := api.NewRequest(ctx, agent, input)
+	// var input *api.UserInput
+	// if r.h.agent != nil && r.h.agent.RawInput != nil {
+	// 	input = r.h.agent.RawInput.Clone()
+	// } else {
+	// 	input = &api.UserInput{}
+	// }
+	req := api.NewRequest(ctx, agent, args)
 	nreq := req.WithContext(ctx)
 	nreq.Parent = r.h.agent
 
