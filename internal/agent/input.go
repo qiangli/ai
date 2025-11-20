@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/qiangli/ai/internal"
+	// "github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
@@ -46,38 +46,11 @@ func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clip
 	if clipper == nil {
 		clipper = util.NewClipboard()
 	}
-	if editor == nil {
-		editor = NewEditor("vi")
-	}
 
-	input, err := userInput(ctx, cfg, stdin, clipper, editor)
+	input, err := userInput(ctx, cfg, stdin, clipper)
 	if err != nil {
 		return nil, err
 	}
-
-	// attachments
-	// input.Files = cfg.Files
-	// input.Template = cfg.Template
-
-	// special inputs
-
-	// // take screenshot - append to file list
-	// if cfg.Screenshot {
-	// 	if img, err := takeScreenshot(cfg); err != nil {
-	// 		return nil, err
-	// 	} else {
-	// 		input.Files = append(input.Files, img)
-	// 	}
-	// }
-
-	// // get voice input - append to message
-	// if cfg.Voice {
-	// 	if txt, err := voiceInput(cfg); err != nil {
-	// 		return nil, err
-	// 	} else {
-	// 		input.Message = input.Message + " " + txt
-	// 	}
-	// }
 
 	log.GetLogger(ctx).Debugf("\n%s\n%+v\n", input.Query(), input.Arguments)
 	return input, nil
@@ -88,14 +61,7 @@ func userInput(
 	cfg *api.AppConfig,
 	stdin io.Reader,
 	clipboard api.ClipboardProvider,
-	editor api.EditorProvider,
 ) (*api.UserInput, error) {
-	// user input message
-	// var msg = trimInputMessage(strings.Join(cfg.Args, " "))
-	// if cfg.Message != "" {
-	// 	msg = cfg.Message + " " + msg
-	// }
-
 	// stdin
 	var stdinData string
 	if cfg.IsStdin() {
@@ -176,33 +142,6 @@ func userInput(
 	return &api.UserInput{
 		Arguments: args,
 	}, nil
-
-	// //
-	// if !cfg.Editing {
-	// 	return &api.UserInput{Message: msg, Content: content}, nil
-	// }
-
-	// // send all collected inputs to the editor and start the editor
-	// content = cat(msg, content, "\n")
-
-	// if cfg.Editor != "" {
-	// 	log.GetLogger(ctx).Debugf("Using editor: %s\n", cfg.Editor)
-	// 	data, err := editor.Launch(content)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	return &api.UserInput{Content: data}, nil
-	// }
-
-	// data, canceled, err := SimpleEditor("Editor", content)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// if canceled {
-	// 	return &api.UserInput{}, nil
-	// }
-
-	// return &api.UserInput{Message: "", Content: data}, nil
 }
 
 func LaunchEditor(editor string, content string) (string, error) {
@@ -259,48 +198,7 @@ func PrintInput(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) {
 
 	// query and files for info only
 	var msg = clipText(input.Query(), clipMaxLen)
-	// for _, v := range input.Files {
-	// 	msg += fmt.Sprintf("\n+ %s", v)
-	// }
 	renderInputContent(ctx, msg)
-
-	// // attachments
-	// for _, v := range input.Files {
-	// 	ext := filepath.Ext(v)
-	// 	var emoji string
-	// 	// TODO more extensions
-	// 	switch ext {
-	// 	case "txt", "yaml", "yml", "md":
-	// 		emoji = "📄"
-	// 	case "png", "jpg", "jpeg", "gif", "webp":
-	// 		emoji = "🖼️"
-	// 	default:
-	// 		emoji = "💾"
-	// 	}
-	// 	log.GetLogger(ctx).Infof("%s attachment: %s\n", emoji, v)
-	// }
-
-	// for _, v := range input.Messages {
-	// 	var emoji string
-	// 	ps := strings.SplitN(v.ContentType, "/", 2)
-	// 	switch ps[0] {
-	// 	case "text":
-	// 		emoji = "📄"
-	// 	case "image":
-	// 		emoji = "🖼️"
-	// 	default:
-	// 		emoji = "💾"
-	// 	}
-	// 	var content string
-	// 	if v.ContentType == "" || strings.HasPrefix(v.ContentType, "text/") {
-	// 		content = clipText(v.Content, 100)
-	// 	} else if strings.HasPrefix(v.ContentType, "image/") && strings.HasPrefix(v.Content, "data:") {
-	// 		content = clipText(v.Content, 100)
-	// 	} else {
-	// 		content = "[binary]"
-	// 	}
-	// 	log.GetLogger(ctx).Infof("%s attachment type: %s Len: %v content: %s\n", emoji, v.ContentType, len(v.Content), content)
-	// }
 }
 
 // pasteConfirm prompts the user to append, send, or cancel the input
@@ -328,22 +226,22 @@ func renderInputContent(ctx context.Context, content string) {
 	log.GetLogger(ctx).Infof("\n%s\n", md)
 }
 
-// trimInputMessage trims the input message by removing leading and trailing spaces
-// and also removes any trailing clipboard redirection markers.
-func trimInputMessage(s string) string {
-	msg := strings.TrimSpace(s)
-	for {
-		old := msg
+// // trimInputMessage trims the input message by removing leading and trailing spaces
+// // and also removes any trailing clipboard redirection markers.
+// func trimInputMessage(s string) string {
+// 	msg := strings.TrimSpace(s)
+// 	for {
+// 		old := msg
 
-		msg = strings.TrimSuffix(msg, internal.ClipoutRedirect2)
-		msg = strings.TrimSuffix(msg, internal.ClipinRedirect2)
-		msg = strings.TrimSuffix(msg, internal.ClipoutRedirect)
-		msg = strings.TrimSuffix(msg, internal.ClipinRedirect)
+// 		msg = strings.TrimSuffix(msg, internal.ClipoutRedirect2)
+// 		msg = strings.TrimSuffix(msg, internal.ClipinRedirect2)
+// 		msg = strings.TrimSuffix(msg, internal.ClipoutRedirect)
+// 		msg = strings.TrimSuffix(msg, internal.ClipinRedirect)
 
-		// If no markers were removed, exit the loop
-		if msg == old {
-			break
-		}
-	}
-	return strings.TrimSpace(msg)
-}
+// 		// If no markers were removed, exit the loop
+// 		if msg == old {
+// 			break
+// 		}
+// 	}
+// 	return strings.TrimSpace(msg)
+// }

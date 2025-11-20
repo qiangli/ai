@@ -58,7 +58,6 @@ type Swarm struct {
 }
 
 func (sw *Swarm) Init() {
-	// sw.InitTemplate()
 	sw.InitChain()
 	sw.agentMaker = NewAgentMaker(sw)
 }
@@ -102,13 +101,8 @@ func (sw *Swarm) InitTemplate(agent *api.Agent) *template.Template {
 		id := api.KitName(at.Name).ID()
 
 		ctx := context.Background()
-		// result, err := ExecAction(ctx, parent, args)
-		// v, err := parent.Runner.Run(ctx, id, args)
-
 		data, err := agent.Runner.Run(ctx, id, at.Arguments)
 		if err != nil {
-			// vs.System.Setenv(globalError, err.Error())
-			// fmt.Fprintln(vs.IOE.Stderr, err.Error())
 			return err.Error()
 		}
 		result := api.ToResult(data)
@@ -422,10 +416,6 @@ func applyGlobal(tpl *template.Template, ext, s string, env map[string]any) (str
 	if strings.HasPrefix(s, "{{") && strings.HasSuffix(s, "}}") {
 		return applyTemplate(tpl, s, env)
 	}
-	// discontinue support
-	// if ext == "tpl" {
-	// 	return applyTemplate(tpl, s, env)
-	// }
 	return s, nil
 }
 
@@ -570,12 +560,6 @@ func (sw *Swarm) callAgentType(ctx context.Context, agent *api.Agent, tf *api.To
 }
 
 func (sw *Swarm) callAgentTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
-	// var req *api.Request
-	// msg, _ := atm.GetStrProp("message", args)
-	// input := &api.UserInput{
-	// 	// Message:   msg,
-	// 	Arguments: args,
-	// }
 	req := api.NewRequest(ctx, tf.Agent, args)
 	req.Parent = agent
 
@@ -594,7 +578,6 @@ func (sw *Swarm) callAIAgentTool(ctx context.Context, agent *api.Agent, tf *api.
 	return aiKit.Call(ctx, sw.Vars, "", tf, args)
 }
 
-// vars *api.Vars, agent *api.Agent,
 func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc, args map[string]any) (*api.Result, error) {
 	// agent tool
 	if v.Type == api.ToolTypeAgent {
@@ -639,19 +622,6 @@ func ToResult(data any) *api.Result {
 			MimeType: v.MimeType,
 			Value:    dataURL(v.MimeType, v.Content),
 		}
-		// // image
-		// // transform media response into data url
-		// presigned, err := sw.save(sw)
-		// if err != nil {
-		// 	return &api.Result{
-		// 		Value: err.Error(),
-		// 	}
-		// }
-
-		// return &api.Result{
-		// 	MimeType: v.MimeType,
-		// 	Value:    presigned,
-		// }
 	}
 	if s, ok := data.(string); ok {
 		return &api.Result{
@@ -662,18 +632,3 @@ func ToResult(data any) *api.Result {
 		Value: fmt.Sprintf("%v", data),
 	}
 }
-
-// // save and get the presigned url
-// func (sw *Swarm) save(v *api.Result) (string, error) {
-// 	id := NewBlobID()
-// 	b := &api.Blob{
-// 		ID:       id,
-// 		MimeType: v.MimeType,
-// 		Content:  v.Content,
-// 	}
-// 	err := sw.Blobs.Put(id, b)
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	return sw.Blobs.Presign(id)
-// }

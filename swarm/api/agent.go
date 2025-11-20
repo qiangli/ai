@@ -164,7 +164,7 @@ func (a *Agent) cloneArguments() *Arguments {
 }
 
 // pack config
-type AgentsConfig ActionConfig
+type AgentsConfig AppConfig
 
 type AgentConfig struct {
 	Display     string `yaml:"display"`

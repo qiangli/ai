@@ -3,6 +3,7 @@ package agent
 import (
 	"context"
 	_ "embed"
+	"maps"
 	"os"
 	"path/filepath"
 
@@ -55,7 +56,11 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 
 	showInput(ctx, cfg, input)
 
-	req := api.NewRequest(ctx, cfg.Name, input.Arguments)
+	var args = make(map[string]any)
+	maps.Copy(args, cfg.ToMap())
+	maps.Copy(args, input.Arguments)
+
+	req := api.NewRequest(ctx, cfg.Name, args)
 	resp := &api.Response{}
 
 	var root = cfg.Workspace

@@ -127,10 +127,7 @@ func (ap *AgentMaker) newAgent(
 	args.Add(c.Arguments)
 	agent.Arguments = args
 	//
-	// args.Set("message", nvl(c.Message, ac.Message))
-	// only support agent level config
 	args.Set("message", c.Message)
-
 	args.Set("format", nvl(c.Format, ac.Format))
 	//
 	maxTurns := nzl(c.MaxTurns, ac.MaxTurns, defaultMaxTurns)
@@ -159,8 +156,6 @@ func (ap *AgentMaker) newAgent(
 	// TODO ai trigger
 	// only support agent level config
 	if c.Instruction != nil {
-		// c.Instruction.Content = strings.TrimSpace(c.Instruction.Content)
-		// agent.Instruction = c.Instruction
 		instruction := strings.TrimSpace(nvl(c.Instruction.Content))
 		args.Set("instruction", instruction)
 	}
@@ -181,7 +176,6 @@ func (ap *AgentMaker) newAgent(
 				Model: model,
 			}
 		} else {
-			// set, level := ap.resolveModelLevel(req.RawInput.Model, model)
 			set, level := ap.resolveModelLevel(model)
 			// local
 			if set == ac.Set {
@@ -200,7 +194,6 @@ func (ap *AgentMaker) newAgent(
 			// load external model if not defined locally
 			if agent.Model == nil {
 				if v, err := conf.LoadModel(owner, set, level, ap.sw.Assets); err != nil {
-					// return nil, fmt.Errorf("failed to load model: %s %s %v", req.RawInput.Model, model, err)
 					return nil, fmt.Errorf("failed to load model: %s %v", model, err)
 
 				} else {
@@ -433,22 +426,6 @@ func (ap *AgentMaker) CreateAgent(ctx context.Context, agent string) (*api.Agent
 }
 
 func (ap *AgentMaker) resolveModelLevel(model string) (string, string) {
-	// // models takes precedence over model
-	// split := func() (string, string) {
-	// 	// models: alias[/level]
-	// 	// alias, level := split2(models, "/", "")
-
-	// 	// // model: [alias/]level
-	// 	// parts := strings.SplitN(model, "/", 2)
-	// 	// if len(parts) == 2 {
-	// 	// 	return nvl(alias, parts[0]), nvl(level, parts[1])
-	// 	// }
-
-	// 	// return nvl(alias, "default"), nvl(level, model)
-	// }
-
-	// alias/level
-	// alias, level := split()
 	alias, level := split2(model, "/", "any")
 	return alias, level
 }

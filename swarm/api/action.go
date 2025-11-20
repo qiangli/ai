@@ -202,25 +202,19 @@ type ActionRunner interface {
 }
 
 type ActionConfig struct {
-	// unique identifier
-	ID string `yaml:"-"`
+	// kit specifies a namespace for the action
+	// examples:
+	// class name
+	// MCP server name
+	// file system
+	// container name
+	// virtual machine name
+	// tool/function (Gemini)
+	Kit string `yaml:"kit"`
 
-	// app root. default: $HOME/.ai/
-	Base string `yaml:"-"`
-
-	// auth email
-	User string `yaml:"-"`
-
-	// workspace root. default: <base>/workspace
-	Workspace string `yaml:"-"`
-
-	ChatID string `yaml:"-"`
-
-	// name of custom creator agent for this agent configuration
-	Creator string `yaml:"creator"`
-
-	// middleware chain
-	Chain *ChainConfig `yaml:"chain"`
+	// action type:
+	// func, system, agent...
+	Type string `yaml:"type"`
 
 	// action name and arguments
 	Name      string         `yaml:"name"`
@@ -236,9 +230,74 @@ type ActionConfig struct {
 	Model string `yaml:"model"`
 
 	//
-	Pack string `yaml:"pack"`
+	MaxTurns int `yaml:"max_turns"`
+	MaxTime  int `yaml:"max_time"`
 
-	Agents []*AgentConfig `yaml:"agents"`
+	// output format: json | text
+	Format string `yaml:"format"`
+
+	// memory context
+	MaxHistory int    `yaml:"max_history"`
+	MaxSpan    int    `yaml:"max_span"`
+	Context    string `yaml:"context"`
+
+	// logging: quiet | informative | verbose
+	LogLevel string `yaml:"log_level"`
+
+	// app level global vars
+	Environment map[string]any `yaml:"environment"`
+}
+
+func (ac *ActionConfig) ToMap() map[string]any {
+	result := map[string]any{
+		"kit":  ac.Kit,
+		"type": ac.Type,
+		"name": ac.Name,
+		// "arguments":    ac.Arguments,
+		"message":     ac.Message,
+		"instruction": ac.Instruction,
+		"model":       ac.Model,
+		"max_turns":   ac.MaxTurns,
+		"max_time":    ac.MaxTime,
+		"format":      ac.Format,
+		"max_history": ac.MaxHistory,
+		"max_span":    ac.MaxSpan,
+		"context":     ac.Context,
+		"log_level":   ac.LogLevel,
+		// "environment":  ac.Environment,
+	}
+	return result
+}
+
+type AppConfig struct {
+	// ActionConfig
+	//
+	// kit specifies a namespace for the action
+	// examples:
+	// class name
+	// MCP server name
+	// file system
+	// container name
+	// virtual machine name
+	// tool/function (Gemini)
+	Kit string `yaml:"kit"`
+
+	// action type:
+	// func, system, agent...
+	Type string `yaml:"type"`
+
+	// action name and arguments
+	Name      string         `yaml:"name"`
+	Arguments map[string]any `yaml:"arguments"`
+
+	// user message
+	Message string `yaml:"message"`
+
+	// system prompt
+	Instruction string `yaml:"instruction"`
+
+	// set/level key - not the LLM model
+	Model string `yaml:"model"`
 
 	//
 	MaxTurns int `yaml:"max_turns"`
@@ -254,6 +313,63 @@ type ActionConfig struct {
 
 	// logging: quiet | informative | verbose
 	LogLevel string `yaml:"log_level"`
+
+	// app level global vars
+	Environment map[string]any `yaml:"environment"`
+
+	//
+	// unique identifier
+	ID string `yaml:"-"`
+
+	// app root. default: $HOME/.ai/
+	Base string `yaml:"-"`
+
+	// auth email
+	User string `yaml:"-"`
+
+	// workspace root. default: <base>/workspace
+	Workspace string `yaml:"-"`
+
+	Session string `yaml:"-"`
+
+	// name of custom creator agent for this agent configuration
+	Creator string `yaml:"creator"`
+
+	// middleware chain
+	Chain *ChainConfig `yaml:"chain"`
+
+	// // action name and arguments
+	// Name      string         `yaml:"name"`
+	// Arguments map[string]any `yaml:"arguments"`
+
+	// user message
+	// Message string `yaml:"message"`
+
+	// system prompt
+	// Instruction string `yaml:"instruction"`
+
+	// set/level key - not the LLM model
+	// Model string `yaml:"model"`
+
+	//
+	Pack string `yaml:"pack"`
+
+	Agents []*AgentConfig `yaml:"agents"`
+
+	// //
+	// MaxTurns int `yaml:"max_turns"`
+	// MaxTime  int `yaml:"max_time"`
+
+	// // output format: json | text
+	// Format string `yaml:"format"`
+
+	// // memory context
+	// MaxHistory int    `yaml:"max_history"`
+	// MaxSpan    int    `yaml:"max_span"`
+	// Context    string `yaml:"context"`
+
+	// // logging: quiet | informative | verbose
+	// LogLevel string `yaml:"log_level"`
 
 	// tool / model provider
 	Provider string `yaml:"provider"`
@@ -272,19 +388,19 @@ type ActionConfig struct {
 	// container name
 	// virtual machine name
 	// tool/function (Gemini)
-	Kit string `yaml:"kit"`
+	// Kit string `yaml:"kit"`
 
 	// action type:
 	// func, system, agent...
-	Type  string        `yaml:"type"`
+	// Type  string        `yaml:"type"`
 	Tools []*ToolConfig `yaml:"tools"`
 
 	// modelset name
 	Set    string                  `yaml:"set"`
 	Models map[string]*ModelConfig `yaml:"models"`
 
-	// app level global vars
-	Environment map[string]any `yaml:"environment"`
+	// // app level global vars
+	// Environment map[string]any `yaml:"environment"`
 
 	// TODO use arguments
 	Clipin     bool
@@ -294,53 +410,87 @@ type ActionConfig struct {
 	Stdin      bool
 }
 
-// Clone is a shallow copy of member fields of the configration
-func (cfg *ActionConfig) Clone() *ActionConfig {
-	return &ActionConfig{
-		Name:      cfg.Name,
-		Arguments: cfg.Arguments,
-		Model:     cfg.Model,
-		//
-		Message:     cfg.Message,
-		Instruction: cfg.Instruction,
-		// Editor:     cfg.Editor,
-		// Clipin:     cfg.Clipin,
-		// ClipWait:   cfg.ClipWait,
-		// Clipout:    cfg.Clipout,
-		// ClipAppend: cfg.ClipAppend,
-		// IsPiped:    cfg.IsPiped,
-		// Stdin: cfg.Stdin,
-		//
-		Format: cfg.Format,
-		// Output: cfg.Output,
-		//
-		// ChatID:     cfg.ChatID,
-		// New:        cfg.New,
-		MaxHistory: cfg.MaxHistory,
-		MaxSpan:    cfg.MaxSpan,
-		Context:    cfg.Context,
-		//
-		LogLevel: cfg.LogLevel,
-		//
-		// Unsafe:      cfg.Unsafe,
-		Base:      cfg.Base,
-		Workspace: cfg.Workspace,
-		// Interactive: cfg.Interactive,
-		// Editing:     cfg.Editing,
-		// Shell:       cfg.Shell,
-		// Watch:       cfg.Watch,
-		// ClipWatch:   cfg.ClipWatch,
-		MaxTime:  cfg.MaxTime,
-		MaxTurns: cfg.MaxTurns,
-		// Stdout:      cfg.Stdout,
-		// Stderr:      cfg.Stderr,
-		// //
-		// DryRun:        cfg.DryRun,
-		// DryRunContent: cfg.DryRunContent,
+// ToMap converts AppConfig to a map[string]any
+// map only the fileds common in action config.
+func (ac *AppConfig) ToMap() map[string]any {
+	return map[string]any{
+		"kit":  ac.Kit,
+		"type": ac.Type,
+		"name": ac.Name,
+		// "arguments":   ac.Arguments,
+		"message":     ac.Message,
+		"instruction": ac.Instruction,
+		"model":       ac.Model,
+		"max_turns":   ac.MaxTurns,
+		"max_time":    ac.MaxTime,
+		"format":      ac.Format,
+		"max_history": ac.MaxHistory,
+		"max_span":    ac.MaxSpan,
+		"context":     ac.Context,
+		"log_level":   ac.LogLevel,
+		// // "environment": ac.Environment,
+		// "id":          ac.ID,
+		// "base":        ac.Base,
+		// "user":        ac.User,
+		// "workspace":   ac.Workspace,
+		// "chat_id":     ac.ChatID,
+		// "creator":     ac.Creator,
+		// // "chain":       ac.Chain,
+		// "pack":        ac.Pack,
+		// // "agents":      ac.Agents,
+		// "provider":    ac.Provider,
+		// "base_url":    ac.BaseUrl,
+		// "api_key":     ac.ApiKey,
+		// // "tools":       ac.Tools,
+		// "set":         ac.Set,
+		// // "models":      ac.Models,
+		// // "clipin":      ac.Clipin,
+		// // "clipwait":    ac.ClipWait,
+		// // "clipout":     ac.Clipout,
+		// // "clipappend":  ac.ClipAppend,
+		// // "stdin":       ac.Stdin,
 	}
 }
 
-type AppConfig ActionConfig
+// // Clone is a shallow copy of member fields of the configration
+// func (cfg *ActionConfig) Clone() *ActionConfig {
+// 	return &ActionConfig{
+// 		Kit:  cfg.Kit,
+// 		Type: cfg.Type,
+// 		//
+// 		Name:      cfg.Name,
+// 		Arguments: cfg.Arguments,
+// 		Model:     cfg.Model,
+// 		//
+// 		Message:     cfg.Message,
+// 		Instruction: cfg.Instruction,
+// 		// Editor:     cfg.Editor,
+// 		// Clipin:     cfg.Clipin,
+// 		// ClipWait:   cfg.ClipWait,
+// 		// Clipout:    cfg.Clipout,
+// 		// ClipAppend: cfg.ClipAppend,
+// 		// IsPiped:    cfg.IsPiped,
+// 		// Stdin: cfg.Stdin,
+// 		//
+// 		Format: cfg.Format,
+
+// 		MaxHistory: cfg.MaxHistory,
+// 		MaxSpan:    cfg.MaxSpan,
+// 		Context:    cfg.Context,
+// 		//
+// 		LogLevel: cfg.LogLevel,
+
+// 		// Base:      cfg.Base,
+// 		// Workspace: cfg.Workspace,
+
+// 		MaxTime:  cfg.MaxTime,
+// 		MaxTurns: cfg.MaxTurns,
+// 		//
+// 		Environment: cfg.Environment,
+// 	}
+// }
+
+// type AppConfig ActionConfig
 
 func (cfg *AppConfig) IsNew() bool {
 	// return cfg.New != nil && *cfg.New
