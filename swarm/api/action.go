@@ -249,23 +249,49 @@ type ActionConfig struct {
 }
 
 func (ac *ActionConfig) ToMap() map[string]any {
-	result := map[string]any{
-		"kit":  ac.Kit,
-		"type": ac.Type,
-		"name": ac.Name,
-		// "arguments":    ac.Arguments,
-		"message":     ac.Message,
-		"instruction": ac.Instruction,
-		"model":       ac.Model,
-		"max_turns":   ac.MaxTurns,
-		"max_time":    ac.MaxTime,
-		"format":      ac.Format,
-		"max_history": ac.MaxHistory,
-		"max_span":    ac.MaxSpan,
-		"context":     ac.Context,
-		"log_level":   ac.LogLevel,
-		// "environment":  ac.Environment,
+	result := make(map[string]any)
+
+	if ac.Kit != "" {
+		result["kit"] = ac.Kit
 	}
+	if ac.Type != "" {
+		result["type"] = ac.Type
+	}
+	if ac.Name != "" {
+		result["name"] = ac.Name
+	}
+
+	if ac.Message != "" {
+		result["message"] = ac.Message
+	}
+	if ac.Instruction != "" {
+		result["instruction"] = ac.Instruction
+	}
+	if ac.Model != "" {
+		result["model"] = ac.Model
+	}
+	if ac.MaxTurns > 0 {
+		result["max_turns"] = ac.MaxTurns
+	}
+	if ac.MaxTime > 0 {
+		result["max_time"] = ac.MaxTime
+	}
+	if ac.Format != "" {
+		result["format"] = ac.Format
+	}
+	if ac.MaxHistory > 0 {
+		result["max_history"] = ac.MaxHistory
+	}
+	if ac.MaxSpan > 0 {
+		result["max_span"] = ac.MaxSpan
+	}
+	if ac.Context != "" {
+		result["context"] = ac.Context
+	}
+	if ac.LogLevel != "" {
+		result["log_level"] = ac.LogLevel
+	}
+
 	return result
 }
 
@@ -411,86 +437,53 @@ type AppConfig struct {
 }
 
 // ToMap converts AppConfig to a map[string]any
-// map only the fileds common in action config.
+// map only the fileds common in action config
+// and only for non zero values.
 func (ac *AppConfig) ToMap() map[string]any {
-	return map[string]any{
-		"kit":  ac.Kit,
-		"type": ac.Type,
-		"name": ac.Name,
-		// "arguments":   ac.Arguments,
-		"message":     ac.Message,
-		"instruction": ac.Instruction,
-		"model":       ac.Model,
-		"max_turns":   ac.MaxTurns,
-		"max_time":    ac.MaxTime,
-		"format":      ac.Format,
-		"max_history": ac.MaxHistory,
-		"max_span":    ac.MaxSpan,
-		"context":     ac.Context,
-		"log_level":   ac.LogLevel,
-		// // "environment": ac.Environment,
-		// "id":          ac.ID,
-		// "base":        ac.Base,
-		// "user":        ac.User,
-		// "workspace":   ac.Workspace,
-		// "chat_id":     ac.ChatID,
-		// "creator":     ac.Creator,
-		// // "chain":       ac.Chain,
-		// "pack":        ac.Pack,
-		// // "agents":      ac.Agents,
-		// "provider":    ac.Provider,
-		// "base_url":    ac.BaseUrl,
-		// "api_key":     ac.ApiKey,
-		// // "tools":       ac.Tools,
-		// "set":         ac.Set,
-		// // "models":      ac.Models,
-		// // "clipin":      ac.Clipin,
-		// // "clipwait":    ac.ClipWait,
-		// // "clipout":     ac.Clipout,
-		// // "clipappend":  ac.ClipAppend,
-		// // "stdin":       ac.Stdin,
+	result := make(map[string]any)
+
+	if ac.Kit != "" {
+		result["kit"] = ac.Kit
 	}
+	if ac.Type != "" {
+		result["type"] = ac.Type
+	}
+	if ac.Name != "" {
+		result["name"] = ac.Name
+	}
+	if ac.Message != "" {
+		result["message"] = ac.Message
+	}
+	if ac.Instruction != "" {
+		result["instruction"] = ac.Instruction
+	}
+	if ac.Model != "" {
+		result["model"] = ac.Model
+	}
+	if ac.MaxTurns > 0 {
+		result["max_turns"] = ac.MaxTurns
+	}
+	if ac.MaxTime > 0 {
+		result["max_time"] = ac.MaxTime
+	}
+	if ac.Format != "" {
+		result["format"] = ac.Format
+	}
+	if ac.MaxHistory > 0 {
+		result["max_history"] = ac.MaxHistory
+	}
+	if ac.MaxSpan > 0 {
+		result["max_span"] = ac.MaxSpan
+	}
+	if ac.Context != "" {
+		result["context"] = ac.Context
+	}
+	if ac.LogLevel != "" {
+		result["log_level"] = ac.LogLevel
+	}
+
+	return result
 }
-
-// // Clone is a shallow copy of member fields of the configration
-// func (cfg *ActionConfig) Clone() *ActionConfig {
-// 	return &ActionConfig{
-// 		Kit:  cfg.Kit,
-// 		Type: cfg.Type,
-// 		//
-// 		Name:      cfg.Name,
-// 		Arguments: cfg.Arguments,
-// 		Model:     cfg.Model,
-// 		//
-// 		Message:     cfg.Message,
-// 		Instruction: cfg.Instruction,
-// 		// Editor:     cfg.Editor,
-// 		// Clipin:     cfg.Clipin,
-// 		// ClipWait:   cfg.ClipWait,
-// 		// Clipout:    cfg.Clipout,
-// 		// ClipAppend: cfg.ClipAppend,
-// 		// IsPiped:    cfg.IsPiped,
-// 		// Stdin: cfg.Stdin,
-// 		//
-// 		Format: cfg.Format,
-
-// 		MaxHistory: cfg.MaxHistory,
-// 		MaxSpan:    cfg.MaxSpan,
-// 		Context:    cfg.Context,
-// 		//
-// 		LogLevel: cfg.LogLevel,
-
-// 		// Base:      cfg.Base,
-// 		// Workspace: cfg.Workspace,
-
-// 		MaxTime:  cfg.MaxTime,
-// 		MaxTurns: cfg.MaxTurns,
-// 		//
-// 		Environment: cfg.Environment,
-// 	}
-// }
-
-// type AppConfig ActionConfig
 
 func (cfg *AppConfig) IsNew() bool {
 	// return cfg.New != nil && *cfg.New

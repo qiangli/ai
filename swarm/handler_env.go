@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"fmt"
+	"maps"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
@@ -14,13 +15,15 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 			logger := log.GetLogger(req.Context())
 
 			// update envs and args
+			envs := sw.globalEnv()
+
 			// environment
-			var envs = make(map[string]any)
+			// var envs = make(map[string]any)
+			// query/result/error
+			// maps.Copy(envs, global)
 			if agent.Environment != nil {
 				agent.Environment.Copy(envs)
 			}
-			global := sw.globalEnv()
-			sw.mapAssign(agent, req, global, envs, true)
 
 			// args
 			var args = make(map[string]any)
@@ -30,8 +33,13 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 			if req.Arguments != nil {
 				req.Arguments.Copy(args)
 			}
+			// TODO better way for the cyclical ref for applying tempate
+			// chick and egg. env reference to arg and arg to env
 			//
-			sw.mapAssign(agent, req, args, global, false)
+			maps.Copy(envs, args)
+			sw.mapAssign(agent, req, envs, envs, true)
+			//
+			sw.mapAssign(agent, req, args, envs, false)
 
 			nreq := req.Clone()
 			nreq.Arguments.SetArgs(args)

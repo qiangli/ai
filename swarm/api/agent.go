@@ -166,6 +166,52 @@ func (a *Agent) cloneArguments() *Arguments {
 // pack config
 type AgentsConfig AppConfig
 
+func (ac *AgentsConfig) ToMap() map[string]any {
+	result := make(map[string]any)
+
+	if ac.Kit != "" {
+		result["kit"] = ac.Kit
+	}
+	if ac.Type != "" {
+		result["type"] = ac.Type
+	}
+	if ac.Name != "" {
+		result["name"] = ac.Name
+	}
+	if ac.Message != "" {
+		result["message"] = ac.Message
+	}
+	if ac.Instruction != "" {
+		result["instruction"] = ac.Instruction
+	}
+	if ac.Model != "" {
+		result["model"] = ac.Model
+	}
+	if ac.MaxTurns > 0 {
+		result["max_turns"] = ac.MaxTurns
+	}
+	if ac.MaxTime > 0 {
+		result["max_time"] = ac.MaxTime
+	}
+	if ac.Format != "" {
+		result["format"] = ac.Format
+	}
+	if ac.MaxHistory > 0 {
+		result["max_history"] = ac.MaxHistory
+	}
+	if ac.MaxSpan > 0 {
+		result["max_span"] = ac.MaxSpan
+	}
+	if ac.Context != "" {
+		result["context"] = ac.Context
+	}
+	if ac.LogLevel != "" {
+		result["log_level"] = ac.LogLevel
+	}
+
+	return result
+}
+
 type AgentConfig struct {
 	Display     string `yaml:"display"`
 	Description string `yaml:"description"`
@@ -233,6 +279,46 @@ type AgentConfig struct {
 	Store AssetStore `yaml:"-"`
 	// relative to root
 	BaseDir string `yaml:"-"`
+}
+
+func (ac *AgentConfig) ToMap() map[string]any {
+	result := make(map[string]any)
+
+	if ac.Name != "" {
+		result["name"] = ac.Name
+	}
+	if ac.Message != "" {
+		result["message"] = ac.Message
+	}
+	if ac.Instruction != nil && ac.Instruction.Content != "" {
+		result["instruction"] = ac.Instruction.Content
+	}
+	if ac.Model != "" {
+		result["model"] = ac.Model
+	}
+	if ac.MaxTurns > 0 {
+		result["max_turns"] = ac.MaxTurns
+	}
+	if ac.MaxTime > 0 {
+		result["max_time"] = ac.MaxTime
+	}
+	if ac.Format != "" {
+		result["format"] = ac.Format
+	}
+	if ac.MaxHistory > 0 {
+		result["max_history"] = ac.MaxHistory
+	}
+	if ac.MaxSpan > 0 {
+		result["max_span"] = ac.MaxSpan
+	}
+	if ac.Context != "" {
+		result["context"] = ac.Context
+	}
+	if ac.LogLevel != "" {
+		result["log_level"] = ac.LogLevel
+	}
+
+	return result
 }
 
 type Instruction struct {

@@ -72,11 +72,8 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 			// request
 			nreq := req.Clone()
 			nreq.Name = agent.Name
-			// nreq.MaxTurns = agent.MaxTurns
 			nreq.Tools = agent.Tools
 			nreq.Runner = agent.Runner
-			// nreq.Arguments.Add(env)
-			// nreq.Vars = sw.Vars
 
 			//
 			initLen := len(history)

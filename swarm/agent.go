@@ -3,15 +3,12 @@ package swarm
 import (
 	"context"
 	"fmt"
-	// "maps"
-	// "os"
+	"maps"
 	"path"
 	"strings"
 	"time"
 
-	// "dario.cat/mergo"
 	"github.com/hashicorp/golang-lru/v2/expirable"
-	// "gopkg.in/yaml.v3"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
@@ -121,49 +118,37 @@ func (ap *AgentMaker) newAgent(
 		Name:        c.Name,
 		Display:     c.Display,
 		Description: c.Description,
+		//
+		Arguments: api.NewArguments(),
 	}
 	//
-	args := api.NewArguments()
-	args.Add(c.Arguments)
-	agent.Arguments = args
-	//
-	args.Set("message", c.Message)
-	args.Set("format", nvl(c.Format, ac.Format))
-	//
+	args := make(map[string]any)
+	maps.Copy(args, ac.ToMap())
+	maps.Copy(args, c.ToMap())
+
 	maxTurns := nzl(c.MaxTurns, ac.MaxTurns, defaultMaxTurns)
 	maxTime := nzl(c.MaxTime, ac.MaxTime, defaultMaxTime)
 	// hard limit
 	maxTurns = min(maxTurns, maxTurnsLimit)
 	maxTime = min(maxTime, maxTimeLimit)
 
-	args.Set("max_turns", maxTurns)
-	args.Set("max_time", maxTime)
+	args["max_turns"] = maxTurns
+	args["max_time"] = maxTime
 
 	maxHistory := nzl(c.MaxHistory, ac.MaxHistory, defaultMaxHistory)
 	maxSpan := nzl(c.MaxSpan, ac.MaxSpan, defaultMaxSpan)
-	args.Set("max_history", maxHistory)
-	args.Set("max_span", maxSpan)
+	args["max_history"] = maxHistory
+	args["max_span"] = maxSpan
+
+	// log
+	args["log_level"] = nvl(c.LogLevel, ac.LogLevel, "quiet")
+
+	agent.Arguments.SetArgs(args)
 
 	// merge global vars
 	agent.Environment = api.NewEnvironment()
 	agent.Environment.AddEnvs(ac.Environment)
 	agent.Environment.AddEnvs(c.Environment)
-
-	// log
-	args.Set("log_level", nvl(c.LogLevel, ac.LogLevel, "quiet"))
-
-	// instruction
-	// TODO ai trigger
-	// only support agent level config
-	if c.Instruction != nil {
-		instruction := strings.TrimSpace(nvl(c.Instruction.Content))
-		args.Set("instruction", instruction)
-	}
-
-	// context
-	// TODO ai trigger
-	context := strings.TrimSpace(nvl(c.Context, ac.Context))
-	args.Set("context", context)
 
 	// llm model set[/level]
 	// @model support
