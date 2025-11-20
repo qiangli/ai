@@ -24,7 +24,7 @@ func (r *FuncKit) GetLocalTimezone(ctx context.Context, vars *api.Vars, name str
 }
 
 func (r *FuncKit) GetCurrentTime(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	tz, err := GetStrProp("timezone", args)
+	tz, err := api.GetStrProp("timezone", args)
 	if err != nil {
 		return "", err
 	}
@@ -36,15 +36,15 @@ func (r *FuncKit) GetCurrentTime(ctx context.Context, vars *api.Vars, name strin
 }
 
 func (r *FuncKit) ConvertTime(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	source, err := GetStrProp("source_timezone", args)
+	source, err := api.GetStrProp("source_timezone", args)
 	if err != nil {
 		return "", err
 	}
-	target, err := GetStrProp("target_timezone", args)
+	target, err := api.GetStrProp("target_timezone", args)
 	if err != nil {
 		return "", err
 	}
-	t, err := GetStrProp("time", args)
+	t, err := api.GetStrProp("time", args)
 	if err != nil {
 		return "", err
 	}

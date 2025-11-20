@@ -69,7 +69,7 @@ type Agent struct {
 	Instruction *Instruction
 
 	// user query from config
-	Message string
+	// Message string
 
 	RawInput *UserInput
 
@@ -178,26 +178,16 @@ func (a *Agent) Clone() *Agent {
 		Tools:       a.Tools,
 		Arguments:   a.cloneArguments(),
 		Adapter:     a.Adapter,
-		Message:     a.Message,
-		// Format:      a.Format,
-		// MaxTurns:    a.MaxTurns,
-		// MaxTime:     a.MaxTime,
-		// New:         a.New,
-		// MaxHistory: a.MaxHistory,
-		// MaxSpan:    a.MaxSpan,
-		// Context:    a.Context,
-		// LogLevel: a.LogLevel,
+		// Message:     a.Message,
 		//
 		Flow: a.Flow,
 		//
 		Embed:       a.Embed,
 		Environment: a.Environment.Clone(),
 		//
-		// history: make([]*Message, len(a.history)),
 		Runner: a.Runner,
 	}
 
-	// copy(clone.history, a.history)
 	return clone
 }
 
@@ -216,15 +206,6 @@ func (a *Agent) cloneArguments() *Arguments {
 	}
 	return a.Arguments.Clone()
 }
-
-// func (a *Agent) cloneEnvironment() map[string]any {
-// 	if a.Environment == nil {
-// 		return nil
-// 	}
-// 	clone := make(map[string]any, len(a.Environment))
-// 	maps.Copy(clone, a.Environment)
-// 	return clone
-// }
 
 // pack config
 type AgentsConfig ActionConfig
@@ -287,9 +268,7 @@ type AgentConfig struct {
 
 	// inherit from parent:
 	// environment
-	// context
 	// instruction
-	// message
 	// model
 	// tools
 	Embed []string `yaml:"embed"`

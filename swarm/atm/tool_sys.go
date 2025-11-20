@@ -28,11 +28,11 @@ func NewSystemKit(workspace string, user *api.User, fs vfs.FileSystem, os vos.Sy
 }
 
 func (r *SystemKit) getStr(key string, args map[string]any) (string, error) {
-	return GetStrProp(key, args)
+	return api.GetStrProp(key, args)
 }
 
 func (r *SystemKit) getArray(key string, args map[string]any) ([]string, error) {
-	return GetArrayProp(key, args)
+	return api.GetArrayProp(key, args)
 }
 
 func (r *SystemKit) Call(ctx context.Context, vars *api.Vars, _ *api.ToolEnv, tf *api.ToolFunc, args map[string]any) (any, error) {

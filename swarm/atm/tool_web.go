@@ -24,15 +24,15 @@ func (r *webAuthKit) token() (string, error) {
 }
 
 func (r *webAuthKit) FetchContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	link, err := GetStrProp("url", args)
+	link, err := api.GetStrProp("url", args)
 	if err != nil {
 		return "", err
 	}
-	start, err := GetIntProp("start_index", args)
+	start, err := api.GetIntProp("start_index", args)
 	if err != nil {
 		return "", err
 	}
-	max, err := GetIntProp("max_length", args)
+	max, err := api.GetIntProp("max_length", args)
 	if err != nil {
 		return "", err
 	}
@@ -77,11 +77,11 @@ func (r *webAuthKit) FetchContent(ctx context.Context, vars *api.Vars, name stri
 }
 
 func (r *webAuthKit) DownloadContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	link, err := GetStrProp("url", args)
+	link, err := api.GetStrProp("url", args)
 	if err != nil {
 		return "", err
 	}
-	file, err := GetStrProp("file", args)
+	file, err := api.GetStrProp("file", args)
 	if err != nil {
 		return "", err
 	}
@@ -92,11 +92,11 @@ func (r *webAuthKit) DownloadContent(ctx context.Context, vars *api.Vars, name s
 
 // Search the web using available search tools.
 func (r *webAuthKit) Search(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	query, err := GetStrProp("query", args)
+	query, err := api.GetStrProp("query", args)
 	if err != nil {
 		return "", err
 	}
-	max, err := GetIntProp("max_results", args)
+	max, err := api.GetIntProp("max_results", args)
 	if err != nil {
 		return "", err
 	}
@@ -149,11 +149,11 @@ func (r *webAuthKit) Search(ctx context.Context, vars *api.Vars, name string, ar
 
 // Search the web using DuckDuckGo.
 func (r *webAuthKit) DdgSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	query, err := GetStrProp("query", args)
+	query, err := api.GetStrProp("query", args)
 	if err != nil {
 		return "", err
 	}
-	max, err := GetIntProp("max_results", args)
+	max, err := api.GetIntProp("max_results", args)
 	if err != nil {
 		return "", err
 	}
@@ -170,11 +170,11 @@ func (r *webAuthKit) DdgSearch(ctx context.Context, vars *api.Vars, name string,
 
 // Search the web using Bing.
 func (r *webAuthKit) BingSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	query, err := GetStrProp("query", args)
+	query, err := api.GetStrProp("query", args)
 	if err != nil {
 		return "", err
 	}
-	max, err := GetIntProp("max_results", args)
+	max, err := api.GetIntProp("max_results", args)
 	if err != nil {
 		return "", err
 	}
@@ -191,11 +191,11 @@ func (r *webAuthKit) BingSearch(ctx context.Context, vars *api.Vars, name string
 
 // Search the web using Brave.
 func (r *webAuthKit) BraveSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	query, err := GetStrProp("query", args)
+	query, err := api.GetStrProp("query", args)
 	if err != nil {
 		return "", err
 	}
-	max, err := GetIntProp("max_results", args)
+	max, err := api.GetIntProp("max_results", args)
 	if err != nil {
 		return "", err
 	}
@@ -217,11 +217,11 @@ func (r *webAuthKit) BraveSearch(ctx context.Context, vars *api.Vars, name strin
 
 // Search the web using Google.
 func (r *webAuthKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	query, err := GetStrProp("query", args)
+	query, err := api.GetStrProp("query", args)
 	if err != nil {
 		return "", err
 	}
-	max, err := GetIntProp("max_results", args)
+	max, err := api.GetIntProp("max_results", args)
 	if err != nil {
 		return "", err
 	}
