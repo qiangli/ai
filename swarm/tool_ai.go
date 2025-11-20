@@ -373,8 +373,8 @@ func (r *AIKit) AgentGetPrompt(_ context.Context, vars *api.Vars, _ string, _ ma
 		return nil, fmt.Errorf("No active agent found")
 	}
 	var p string
-	if r.h.agent.Instruction != nil {
-		p = r.h.agent.Instruction.Content
+	if r.h.agent != nil {
+		p = r.h.agent.Instruction()
 	}
 	return &api.Result{
 		Value: p,
@@ -390,9 +390,7 @@ func (r *AIKit) AgentSetPrompt(_ context.Context, vars *api.Vars, _ string, args
 		return nil, err
 	}
 
-	r.h.agent.Instruction = &api.Instruction{
-		Content: instruction,
-	}
+	r.h.agent.SetInstruction(instruction)
 	return &api.Result{
 		Value: "success",
 	}, nil

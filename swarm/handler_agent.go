@@ -81,12 +81,14 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 // run agent first if there is instruction followed by the flow.
 // otherwise, run the flow only
 func (h *agentHandler) doAgentFlow(req *api.Request, resp *api.Response) error {
-	if h.agent.Instruction == nil && h.agent.Flow == nil {
+	instruction := h.agent.Instruction()
+	if instruction == "" && h.agent.Flow == nil {
+		// no op?
 		return api.NewBadRequestError("missing instruction and flow")
 	}
 
 	// run llm inference
-	if h.agent.Instruction != nil && h.agent.Instruction.Content != "" {
+	if instruction != "" {
 		if err := h.next.Serve(req, resp); err != nil {
 			return err
 		}

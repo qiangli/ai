@@ -30,8 +30,8 @@ func InstructionMiddleware(sw *Swarm) api.Middleware {
 
 			var instructions []string
 
-			add := func(in *api.Instruction) error {
-				content, err := applyGlobal(agent.Template, in.Type, in.Content, env)
+			add := func(in string) error {
+				content, err := applyGlobal(agent.Template, "", in, env)
 				if err != nil {
 					return err
 				}
@@ -54,8 +54,9 @@ func InstructionMiddleware(sw *Swarm) api.Middleware {
 				for _, v := range a.Embed {
 					return addAll(v)
 				}
-				if a.Instruction != nil {
-					return add(a.Instruction)
+				in := a.Instruction()
+				if in != "" {
+					return add(in)
 				}
 				return nil
 			}

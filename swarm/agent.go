@@ -127,7 +127,9 @@ func (ap *AgentMaker) newAgent(
 	args.Add(c.Arguments)
 	agent.Arguments = args
 	//
-	args.Set("message", nvl(c.Message, ac.Message))
+	// args.Set("message", nvl(c.Message, ac.Message))
+	// only support agent level config
+	args.Set("message", c.Message)
 
 	args.Set("format", nvl(c.Format, ac.Format))
 	//
@@ -155,9 +157,12 @@ func (ap *AgentMaker) newAgent(
 
 	// instruction
 	// TODO ai trigger
+	// only support agent level config
 	if c.Instruction != nil {
-		c.Instruction.Content = strings.TrimSpace(c.Instruction.Content)
-		agent.Instruction = c.Instruction
+		// c.Instruction.Content = strings.TrimSpace(c.Instruction.Content)
+		// agent.Instruction = c.Instruction
+		instruction := strings.TrimSpace(nvl(c.Instruction.Content))
+		args.Set("instruction", instruction)
 	}
 
 	// context

@@ -422,9 +422,10 @@ func applyGlobal(tpl *template.Template, ext, s string, env map[string]any) (str
 	if strings.HasPrefix(s, "{{") && strings.HasSuffix(s, "}}") {
 		return applyTemplate(tpl, s, env)
 	}
-	if ext == "tpl" {
-		return applyTemplate(tpl, s, env)
-	}
+	// discontinue support
+	// if ext == "tpl" {
+	// 	return applyTemplate(tpl, s, env)
+	// }
 	return s, nil
 }
 

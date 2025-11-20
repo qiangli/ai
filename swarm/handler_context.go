@@ -26,14 +26,15 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 			// 1. New System Message
 			// system role prompt as first message
 			var prompt *api.Message
-			if agent.Instruction != nil {
+			instruction := agent.Instruction()
+			if instruction != "" {
 				prompt = &api.Message{
 					ID:      uuid.NewString(),
 					Session: id,
 					Created: time.Now(),
 					//
 					Role:    api.RoleSystem,
-					Content: agent.Instruction.Content,
+					Content: instruction,
 					Sender:  agent.Name,
 				}
 				history = append(history, prompt)

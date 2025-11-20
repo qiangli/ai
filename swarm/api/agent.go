@@ -65,8 +65,8 @@ type Agent struct {
 	Display     string
 	Description string
 
-	// system prompt from config
-	Instruction *Instruction
+	// // system prompt from config
+	// Instruction *Instruction
 
 	// user query from config
 	// Message string
@@ -107,6 +107,14 @@ func (a *Agent) SetMessage(s string) {
 	a.Arguments.Set("message", s)
 }
 
+func (a *Agent) Instruction() string {
+	return a.Arguments.GetString("instruction")
+}
+
+func (a *Agent) SetInstruction(s string) {
+	a.Arguments.Set("instruction", s)
+}
+
 // if true, skip historical messages for LLM context
 // --new command line flag sets --max-history=0
 func (a *Agent) New() bool {
@@ -120,12 +128,12 @@ func (a *Agent) Clone() *Agent {
 		Name:        a.Name,
 		Display:     a.Display,
 		Description: a.Description,
-		Instruction: a.Instruction,
-		RawInput:    a.RawInput,
-		Model:       a.Model,
-		Tools:       a.Tools,
-		Arguments:   a.cloneArguments(),
-		Adapter:     a.Adapter,
+		// Instruction: a.Instruction,
+		RawInput:  a.RawInput,
+		Model:     a.Model,
+		Tools:     a.Tools,
+		Arguments: a.cloneArguments(),
+		Adapter:   a.Adapter,
 		// Message:     a.Message,
 		//
 		Flow: a.Flow,
