@@ -13,6 +13,16 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 		return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 			logger := log.GetLogger(req.Context())
 
+			// update envs and args
+			// environment
+			var envs = make(map[string]any)
+			if agent.Environment != nil {
+				agent.Environment.Copy(envs)
+			}
+			global := sw.globalEnv()
+			sw.mapAssign(agent, req, global, envs, true)
+
+			// args
 			var args = make(map[string]any)
 			if agent.Arguments != nil {
 				agent.Arguments.Copy(args)
@@ -20,9 +30,8 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 			if req.Arguments != nil {
 				req.Arguments.Copy(args)
 			}
-
-			env := sw.globalEnv()
-			sw.mapAssign(agent, req, env, args, false)
+			//
+			sw.mapAssign(agent, req, args, global, false)
 
 			nreq := req.Clone()
 			nreq.Arguments.SetArgs(args)

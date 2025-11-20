@@ -69,7 +69,7 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	if len(result) > 0 {
 		var resultMap = make(map[string]any)
 		if err := json.Unmarshal([]byte(result), &resultMap); err == nil {
-			h.sw.Vars.Global.Add(resultMap)
+			h.sw.Vars.Global.AddEnvs(resultMap)
 		}
 	}
 	h.sw.Vars.Global.Set(globalResult, result)

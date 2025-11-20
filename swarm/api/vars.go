@@ -79,12 +79,15 @@ func (g *Environment) Set(key string, val any) {
 	g.env[key] = val
 }
 
+// Clear all entries from the map and copy the new values
+// while maintaining the same reference.
 func (g *Environment) SetEnvs(envs map[string]any) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	for k, v := range envs {
-		g.env[k] = v
+	for k := range g.env {
+		delete(g.env, k)
 	}
+	maps.Copy(g.env, envs)
 }
 
 func (g *Environment) UnsetEnvs(keys []string) {
@@ -96,7 +99,7 @@ func (g *Environment) UnsetEnvs(keys []string) {
 }
 
 // copy all src values to the environment env
-func (g *Environment) Add(src map[string]any) {
+func (g *Environment) AddEnvs(src map[string]any) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	maps.Copy(g.env, src)

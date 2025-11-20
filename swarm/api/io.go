@@ -23,13 +23,6 @@ type EditorProvider interface {
 }
 
 type UserInput struct {
-	// // query - command line args
-	// Message string `json:"message"`
-
-	// // query - clipboard/stdin/editor
-	// // message is moved to content if editor is used
-	// Content string `json:"content"`
-
 	// cached media contents
 	Messages []*Message `json:"-"`
 

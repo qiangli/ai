@@ -81,7 +81,7 @@ Description: %s
 Instruction: %s
 `
 
-	agent, err := atm.GetStrProp("agent", args)
+	agent, err := api.GetStrProp("agent", args)
 	if err != nil {
 		return "", err
 	}
@@ -105,7 +105,7 @@ Instruction: %s
 }
 
 func (r *AIKit) AgentTransfer(_ context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	agent, err := atm.GetStrProp("agent", args)
+	agent, err := api.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (r *AIKit) AgentTransfer(_ context.Context, _ *api.Vars, _ string, args map
 }
 
 func (r *AIKit) AgentSpawn(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	agent, err := atm.GetStrProp("agent", args)
+	agent, err := api.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ Parameters: %s
 `
 	log.GetLogger(ctx).Debugf("Tool info: %s %+v\n", tf, args)
 
-	tid, err := atm.GetStrProp("tool", args)
+	tid, err := api.GetStrProp("tool", args)
 	if err != nil {
 		return "", err
 	}
@@ -203,7 +203,7 @@ Parameters: %s
 func (r *AIKit) ToolExecute(ctx context.Context, _ *api.Vars, tf string, args map[string]any) (any, error) {
 	log.GetLogger(ctx).Debugf("Tool execute: %s %+v\n", tf, args)
 
-	tid, err := atm.GetStrProp("tool", args)
+	tid, err := api.GetStrProp("tool", args)
 	if err != nil {
 		return nil, err
 	}
@@ -262,11 +262,11 @@ func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, tf string, args 
 func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
 	log.GetLogger(ctx).Debugf("List messages: %s %+v\n", tf, args)
 
-	maxHistory, err := atm.GetIntProp("max_history", args)
+	maxHistory, err := api.GetIntProp("max_history", args)
 	if err != nil {
 		return "", err
 	}
-	maxSpan, err := atm.GetIntProp("max_span", args)
+	maxSpan, err := api.GetIntProp("max_span", args)
 	if err != nil {
 		return "", err
 	}
@@ -287,7 +287,7 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, arg
 }
 
 func (r *AIKit) MessageInfo(_ context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	id, err := atm.GetStrProp("id", args)
+	id, err := api.GetStrProp("id", args)
 	if err != nil {
 		return nil, err
 	}
@@ -318,7 +318,7 @@ func (r *AIKit) ContextGetMessages(_ context.Context, vars *api.Vars, _ string, 
 }
 
 func (r *AIKit) ContextSetMessages(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	data, err := atm.GetStrProp("messages", args)
+	data, err := api.GetStrProp("messages", args)
 	if err != nil {
 		return nil, err
 	}
@@ -334,7 +334,7 @@ func (r *AIKit) ContextSetMessages(_ context.Context, vars *api.Vars, _ string, 
 }
 
 func (r *AIKit) GetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	keys, err := atm.GetArrayProp("keys", args)
+	keys, err := api.GetArrayProp("keys", args)
 	if err != nil {
 		return nil, err
 	}
@@ -357,7 +357,7 @@ func (r *AIKit) SetEnvs(_ context.Context, vars *api.Vars, _ string, args map[st
 }
 
 func (r *AIKit) UnsetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	keys, err := atm.GetArrayProp("keys", args)
+	keys, err := api.GetArrayProp("keys", args)
 	if err != nil {
 		return nil, err
 	}
@@ -385,7 +385,7 @@ func (r *AIKit) AgentSetPrompt(_ context.Context, vars *api.Vars, _ string, args
 	if r.h == nil || r.h.agent == nil {
 		return nil, fmt.Errorf("No active agent found")
 	}
-	instruction, err := atm.GetStrProp("instruction", args)
+	instruction, err := api.GetStrProp("instruction", args)
 	if err != nil {
 		return nil, err
 	}
@@ -403,7 +403,7 @@ func (r *AIKit) AgentGetQuery(_ context.Context, vars *api.Vars, _ string, _ map
 		return nil, fmt.Errorf("No active agent found")
 	}
 	return &api.Result{
-		Value: r.h.agent.Message,
+		Value: r.h.agent.Message(),
 	}, nil
 }
 
@@ -411,12 +411,12 @@ func (r *AIKit) AgentSetQuery(_ context.Context, vars *api.Vars, _ string, args 
 	if r.h == nil || r.h.agent == nil {
 		return nil, fmt.Errorf("No active agent found")
 	}
-	query, err := atm.GetStrProp("query", args)
+	query, err := api.GetStrProp("query", args)
 	if err != nil {
 		return nil, err
 	}
 
-	r.h.agent.Message = query
+	r.h.agent.SetMessage(query)
 	return &api.Result{
 		Value: "success",
 	}, nil
@@ -450,19 +450,19 @@ func (r *AIKit) AgentSetModel(_ context.Context, vars *api.Vars, _ string, args 
 		return nil, fmt.Errorf("No active agent found")
 	}
 
-	provider, err := atm.GetStrProp("provider", args)
+	provider, err := api.GetStrProp("provider", args)
 	if err != nil {
 		return nil, err
 	}
-	baseURL, err := atm.GetStrProp("base_url", args)
+	baseURL, err := api.GetStrProp("base_url", args)
 	if err != nil {
 		return nil, err
 	}
-	model, err := atm.GetStrProp("model", args)
+	model, err := api.GetStrProp("model", args)
 	if err != nil {
 		return nil, err
 	}
-	apiKey, err := atm.GetStrProp("api_key", args)
+	apiKey, err := api.GetStrProp("api_key", args)
 	if err != nil {
 		return nil, err
 	}
@@ -481,7 +481,7 @@ func (r *AIKit) AgentGetTools(_ context.Context, vars *api.Vars, _ string, args 
 	if r.h == nil || r.h.agent == nil {
 		return nil, fmt.Errorf("No active agent found")
 	}
-	ids, err := atm.GetStrProp("ids", args)
+	ids, err := api.GetStrProp("ids", args)
 	if err != nil {
 		return nil, err
 	}
@@ -514,7 +514,7 @@ func (r *AIKit) AgentSetTools(_ context.Context, vars *api.Vars, _ string, args 
 	if r.h == nil || r.h.agent == nil {
 		return nil, fmt.Errorf("No active agent found")
 	}
-	ids, err := atm.GetArrayProp("ids", args)
+	ids, err := api.GetArrayProp("ids", args)
 	if err != nil {
 		return nil, err
 	}

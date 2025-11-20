@@ -306,8 +306,9 @@ func (sw *Swarm) resolveArgument(agent *api.Agent, req *api.Request, s string) (
 func (sw *Swarm) callAgent(parent *api.Agent, req *api.Request, name string, message string) (string, error) {
 	req.Parent = parent
 	req.Name = strings.TrimPrefix(name, "@")
+	req.Name = strings.TrimPrefix(name, "agent:")
 	// prepend additional instruction to user query
-	req.SetQuery(concat('\n', message, req.Query()))
+	// req.SetQuery(concat('\n', message, req.Query()))
 
 	resp := &api.Response{}
 

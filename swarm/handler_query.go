@@ -27,8 +27,9 @@ func QueryMiddleware(sw *Swarm) api.Middleware {
 			logger.Debugf("🔗 (query): %s\n", agent.Name)
 			env := sw.globalEnv()
 
-			if agent.Message != "" {
-				content, err := applyGlobal(agent.Template, "", agent.Message, env)
+			msg := agent.Message()
+			if msg != "" {
+				content, err := applyGlobal(agent.Template, "", msg, env)
 				if err != nil {
 					return err
 				}
@@ -41,6 +42,7 @@ func QueryMiddleware(sw *Swarm) api.Middleware {
 
 				req.SetQuery(content)
 			}
+
 			query := req.Query()
 			logger.Debugf("query: %s (%v)\n", abbreviate(query, 64), len(query))
 			if logger.IsTrace() {

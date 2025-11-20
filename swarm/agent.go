@@ -127,7 +127,7 @@ func (ap *AgentMaker) newAgent(
 	args.Add(c.Arguments)
 	agent.Arguments = args
 	//
-	agent.Message = nvl(c.Message, ac.Message)
+	args.Set("message", nvl(c.Message, ac.Message))
 
 	args.Set("format", nvl(c.Format, ac.Format))
 	//
@@ -147,8 +147,8 @@ func (ap *AgentMaker) newAgent(
 
 	// merge global vars
 	agent.Environment = api.NewEnvironment()
-	agent.Environment.SetEnvs(ac.Environment)
-	agent.Environment.SetEnvs(c.Environment)
+	agent.Environment.AddEnvs(ac.Environment)
+	agent.Environment.AddEnvs(c.Environment)
 
 	// log
 	args.Set("log_level", nvl(c.LogLevel, ac.LogLevel, "quiet"))
@@ -325,7 +325,7 @@ func (ap *AgentMaker) normalizeAgentName(pack, name string) string {
 	return util.NormalizedName(ensure())
 }
 
-// , auth *api.User, secrets api.SecretStore, assets api.AssetManager
+// create agent (class) from config
 func (ap *AgentMaker) CreateAgent(ctx context.Context, agent string) (*api.Agent, error) {
 
 	// create the agent
@@ -407,12 +407,9 @@ func (ap *AgentMaker) CreateAgent(ctx context.Context, agent string) (*api.Agent
 			// nomalize agent name, remove prefix "agent:""
 			n := strings.TrimSpace(v)
 			n = strings.ToLower(n)
+			n = strings.TrimPrefix(n, "@")
 			n = strings.TrimPrefix(n, "agent:")
-			// nreq := &api.Request{
-			// 	Name:     n,
-			// 	// RawInput: req.RawInput,
-			// 	RawInput: &api.UserInput{}
-			// }
+
 			if a, err := ap.CreateAgent(ctx, n); err != nil {
 				return nil, err
 			} else {
