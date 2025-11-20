@@ -25,7 +25,7 @@ type Message struct {
 	ID string `json:"id"`
 
 	// thread id
-	ChatID  string    `json:"chat_id"`
+	Session string    `json:"session"`
 	Created time.Time `json:"created"`
 
 	// data

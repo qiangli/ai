@@ -44,7 +44,7 @@ func defaultSwarm(cfg *api.AppConfig) (*Swarm, error) {
 		return nil, err
 	}
 	sw := &Swarm{
-		ChatID:    uuid.NewString(),
+		ID:        uuid.NewString(),
 		Root:      root,
 		Vars:      vars,
 		User:      user,

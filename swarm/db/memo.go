@@ -17,7 +17,7 @@ type MemoryStore struct {
 func OpenMemoryStore(cfg *api.AppConfig) (*MemoryStore, error) {
 	const ddl = `CREATE TABLE IF NOT EXISTS chats (
 			"id" TEXT NOT NULL,		
-			"chat_id" TEXT,
+			"session" TEXT,
 			"created" DATETIME,
 			"content_type" TEXT,
 			"content" TEXT,
@@ -44,11 +44,11 @@ func (m *MemoryStore) Close() error {
 
 func (m *MemoryStore) Save(messages []*Message) error {
 	const query = `
-        INSERT INTO chats (id, chat_id, created, content_type, content, role, sender)
+        INSERT INTO chats (id, session, created, content_type, content, role, sender)
         VALUES (?, ?, ?, ?, ?, ?, ?)`
 
 	for _, v := range messages {
-		if _, err := m.ds.Execute(query, v.ID, v.ChatID, v.Created, v.ContentType, v.Content, v.Role, v.Sender); err != nil {
+		if _, err := m.ds.Execute(query, v.ID, v.Session, v.Created, v.ContentType, v.Content, v.Role, v.Sender); err != nil {
 			return err
 		}
 	}
@@ -58,7 +58,7 @@ func (m *MemoryStore) Save(messages []*Message) error {
 
 func (m *MemoryStore) Load(opt *MemOption) ([]*Message, error) {
 	const query = `
-		SELECT id, chat_id, created, content_type, content, role, sender
+		SELECT id, session, created, content_type, content, role, sender
 		FROM chats
 		WHERE created >= ? ORDER BY created ASC LIMIT ?`
 
@@ -72,7 +72,7 @@ func (m *MemoryStore) Load(opt *MemOption) ([]*Message, error) {
 
 	for rows.Next() {
 		var msg Message
-		if err := rows.Scan(&msg.ID, &msg.ChatID, &msg.Created, &msg.ContentType, &msg.Content, &msg.Role, &msg.Sender); err != nil {
+		if err := rows.Scan(&msg.ID, &msg.Session, &msg.Created, &msg.ContentType, &msg.Content, &msg.Role, &msg.Sender); err != nil {
 			return nil, err
 		}
 		messages = append(messages, &msg)
@@ -82,7 +82,7 @@ func (m *MemoryStore) Load(opt *MemOption) ([]*Message, error) {
 
 func (m *MemoryStore) Get(id string) (*Message, error) {
 	const query = `
-		SELECT id, chat_id, created, content_type, content, role, sender
+		SELECT id, session, created, content_type, content, role, sender
 		FROM chats
 		WHERE id = ?`
 	var msg Message
@@ -93,7 +93,7 @@ func (m *MemoryStore) Get(id string) (*Message, error) {
 	defer row.Close()
 
 	if row.Next() {
-		if err := row.Scan(&msg.ID, &msg.ChatID, &msg.Created, &msg.ContentType, &msg.Content, &msg.Role, &msg.Sender); err != nil {
+		if err := row.Scan(&msg.ID, &msg.Session, &msg.Created, &msg.ContentType, &msg.Content, &msg.Role, &msg.Sender); err != nil {
 			return nil, err
 		}
 	}

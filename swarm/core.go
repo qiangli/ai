@@ -29,7 +29,7 @@ const globalError = "error"
 
 type Swarm struct {
 	// swarm session id
-	ChatID string
+	ID string
 
 	Vars *api.Vars
 

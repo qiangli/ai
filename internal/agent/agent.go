@@ -81,7 +81,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	var tools = swarm.NewToolSystem(root, user, secrets, assets, lfs, los)
 
 	sw := &swarm.Swarm{
-		ChatID:    uuid.NewString(),
+		ID:        uuid.NewString(),
 		Root:      root,
 		Vars:      vars,
 		User:      user,

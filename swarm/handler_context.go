@@ -18,7 +18,7 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 			logger := log.GetLogger(req.Context())
 			logger.Debugf("🔗 (context): %s max_history: %v max_span: %v\n", agent.Name, maxHistory, maxSpan)
 
-			var chatID = sw.ChatID
+			var id = sw.ID
 			var env = sw.globalEnv()
 
 			var history []*api.Message
@@ -29,7 +29,7 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 			if agent.Instruction != nil {
 				prompt = &api.Message{
 					ID:      uuid.NewString(),
-					ChatID:  chatID,
+					Session: id,
 					Created: time.Now(),
 					//
 					Role:    api.RoleSystem,
@@ -52,7 +52,7 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 			// Additional user message
 			var message = &api.Message{
 				ID:      uuid.NewString(),
-				ChatID:  chatID,
+				Session: id,
 				Created: time.Now(),
 				//
 				Role:    api.RoleUser,
@@ -95,7 +95,7 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 			if result.State != api.StateTransfer {
 				message := api.Message{
 					ID:      uuid.NewString(),
-					ChatID:  chatID,
+					Session: id,
 					Created: time.Now(),
 					//
 					ContentType: result.MimeType,
