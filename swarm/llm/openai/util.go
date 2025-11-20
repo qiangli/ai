@@ -18,16 +18,16 @@ import (
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
-	"github.com/qiangli/ai/swarm/middleware"
+	// "github.com/qiangli/ai/swarm/middleware"
 )
 
 const maxThreadLimit = 3
 
-func NewClient(model *api.Model, token string, vars *api.Vars) (*openai.Client, error) {
+func NewClient(model *api.Model, token string) (*openai.Client, error) {
 	client := openai.NewClient(
 		option.WithAPIKey(token),
 		option.WithBaseURL(model.BaseUrl),
-		option.WithMiddleware(middleware.Middleware(model, vars)),
+		// option.WithMiddleware(middleware.Middleware(model, vars)),
 	)
 	return &client, nil
 }
@@ -35,11 +35,11 @@ func NewClient(model *api.Model, token string, vars *api.Vars) (*openai.Client, 
 // https://platform.openai.com/docs/api-reference/responses
 // https://platform.openai.com/docs/guides/function-calling
 // https://github.com/csotherden/openai-go-responses-examples/tree/main
-func NewClientV3(model *api.Model, token string, vars *api.Vars) (*openai.Client, error) {
+func NewClientV3(model *api.Model, token string) (*openai.Client, error) {
 	client := openai.NewClient(
 		option.WithAPIKey(token),
 		option.WithBaseURL(model.BaseUrl),
-		option.WithMiddleware(middleware.Middleware(model, vars)),
+		// option.WithMiddleware(middleware.Middleware(model, vars)),
 	)
 	return &client, nil
 }

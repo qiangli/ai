@@ -19,7 +19,7 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 			logger.Debugf("🔗 (context): %s max_history: %v max_span: %v\n", agent.Name, maxHistory, maxSpan)
 
 			var id = sw.ID
-			var env = sw.globalEnv()
+			// var env = sw.globalEnv()
 
 			var history []*api.Message
 
@@ -74,8 +74,8 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 			// nreq.MaxTurns = agent.MaxTurns
 			nreq.Tools = agent.Tools
 			nreq.Runner = agent.Runner
-			nreq.Arguments.Add(env)
-			nreq.Vars = sw.Vars
+			// nreq.Arguments.Add(env)
+			// nreq.Vars = sw.Vars
 
 			//
 			initLen := len(history)

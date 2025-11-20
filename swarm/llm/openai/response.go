@@ -28,7 +28,7 @@ func SendV3(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 }
 
 func respond(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	client, err := NewClientV3(req.Model, req.Token(), req.Vars)
+	client, err := NewClientV3(req.Model, req.Token())
 	if err != nil {
 		return nil, err
 	}

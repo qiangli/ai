@@ -61,7 +61,7 @@ type Request struct {
 	Tools []*ToolFunc
 
 	// Experimenal
-	Vars *Vars
+	// Vars *Vars
 
 	// Arguments map[string]any
 

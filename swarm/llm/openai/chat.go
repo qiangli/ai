@@ -44,7 +44,7 @@ func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 }
 
 func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	client, err := NewClient(req.Model, req.Token(), req.Vars)
+	client, err := NewClient(req.Model, req.Token())
 	if err != nil {
 		return nil, err
 	}

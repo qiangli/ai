@@ -24,7 +24,7 @@ func Image(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 }
 
 func genImage(ctx context.Context, req *llm.Request) (*llm.Response, error) {
-	client, err := NewClient(req.Model, req.Token(), req.Vars)
+	client, err := NewClient(req.Model, req.Token())
 	if err != nil {
 		return nil, err
 	}
@@ -35,9 +35,9 @@ func genImage(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	}
 	prompt := strings.Join(messages, "\n")
 
-	if req.Vars.IsTrace() {
-		log.GetLogger(ctx).Debugf("prompt: %s\n", prompt)
-	}
+	// if req.Vars.IsTrace() {
+	// 	log.GetLogger(ctx).Debugf("prompt: %s\n", prompt)
+	// }
 
 	log.GetLogger(ctx).Infof("@%s %s/%s\n", req.Name, req.Model.Provider, req.Model.Model)
 
