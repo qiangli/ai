@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
 )
 
@@ -16,9 +17,8 @@ func ModelMiddleware(sw *Swarm) api.Middleware {
 
 			var model *api.Model = agent.Model
 
-			at, found := parseAgentCommand(model.Model)
-			if found {
-				out, err := sw.callAgent(agent, req, at.Name, at.Message)
+			if conf.IsAgentTool(model.Model) {
+				out, err := sw.RunCommand(req.Context(), agent, model.Model)
 				if err != nil {
 					return err
 				}

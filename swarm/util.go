@@ -158,13 +158,16 @@ func dataURL(mime string, raw []byte) string {
 
 // parse s and look for agent. return app config and true if found.
 // by convention, s starts with agent:name, @name, /name
-func parseAgentCommand(s string) (*api.ActionConfig, bool) {
+func parseAgentCommand(s string) (*api.ActionConfig, error) {
 	argv := shlex.Argv(s)
 	at, err := conf.ParseActionArgs(argv)
-	if err != nil || at == nil {
-		return nil, false
+	if err != nil {
+		return nil, err
 	}
-	return at, true
+	if at == nil {
+		return nil, fmt.Errorf("invalid command: %v", s)
+	}
+	return at, nil
 }
 
 func formatArgs(args map[string]any) string {

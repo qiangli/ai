@@ -24,18 +24,6 @@ func (s *stringSlice) Set(value string) error {
 }
 
 // ParseArgs returns nil and no error for non agent tool commands
-// agent tool name must start with @ or /
-// ai:
-// ai @name args...
-// ai /name args...
-//
-// agent:name
-// @name args...
-// /name args...
-//
-// anoymous:
-// @ args...
-// / args...
 func ParseActionArgs(args []string) (*api.ActionConfig, error) {
 	if len(args) == 0 {
 		return nil, fmt.Errorf("missing command args")
@@ -59,13 +47,13 @@ func ParseActionArgs(args []string) (*api.ActionConfig, error) {
 		ftype = api.ToolTypeAgent
 	case '/':
 		name = strings.ToLower(name[1:])
-		if strings.HasPrefix(name, "agent:") {
-			ftype = api.ToolTypeAgent
-		}
 		kit, _ = api.KitName(name[1:]).Decode()
 	default:
 		if strings.HasPrefix(name, "agent:") {
 			name = strings.ToLower(name[6:])
+			ftype = api.ToolTypeAgent
+		} else if strings.HasSuffix(name, ",") {
+			name = strings.ToLower(name[:len(name)-1])
 			ftype = api.ToolTypeAgent
 		} else {
 			// not an agent/tool command
@@ -172,4 +160,38 @@ func ParseActionArgs(args []string) (*api.ActionConfig, error) {
 	}
 
 	return at, nil
+}
+
+// agent/tool name is "ai" or starts with "agent:", "@" or "/" or ends with ","
+// ai args...
+//
+// agent:name args...
+// @name args...
+// /name args...
+//
+// anoymous:
+// ai args...
+// @ args...
+// / args...
+//
+// name,
+func IsAgentTool(s string) bool {
+	switch s[0] {
+	case '@':
+		return true
+	case '/':
+		return true
+	default:
+		if strings.HasPrefix(s, "agent:") {
+			return true
+		}
+	}
+	s, _ = split2(s, " ", "")
+	if s == "ai" {
+		return true
+	}
+	if strings.HasSuffix(s, ",") {
+		return true
+	}
+	return false
 }

@@ -1,16 +1,17 @@
 package swarm
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	// "maps"
 	"os"
 	"strings"
 	"text/template"
 	"time"
 
 	"github.com/Masterminds/sprig/v3"
+	"github.com/u-root/u-root/pkg/shlex"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
@@ -252,30 +253,9 @@ func (sw *Swarm) globalEnv() map[string]any {
 	return env
 }
 
-func (sw *Swarm) RunSub(parent *api.Agent, req *api.Request, resp *api.Response) error {
-	// prevent loop
-	// TODO support recursion?
-	if parent != nil && parent.Name == req.Name {
-		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself.", req.Name))
-	}
-
-	if err := sw.Run(req, resp); err != nil {
-		return err
-	}
-	if resp.Result == nil {
-		return fmt.Errorf("Empty result")
-	}
-
-	return nil
-}
-
 // call agent if found. otherwise return s as is
 func (sw *Swarm) resolveArgument(agent *api.Agent, req *api.Request, s string) (any, error) {
-	at, found := parseAgentCommand(s)
-	if !found {
-		return s, nil
-	}
-	out, err := sw.callAgent(agent, req, at.Name, at.Message)
+	out, err := sw.resolveCommand(agent, req, s)
 	if err != nil {
 		return nil, err
 	}
@@ -295,55 +275,63 @@ func (sw *Swarm) resolveArgument(agent *api.Agent, req *api.Request, s string) (
 	return arg.Result, nil
 }
 
-func (sw *Swarm) callAgent(parent *api.Agent, req *api.Request, name string, message string) (string, error) {
+func (sw *Swarm) resolveCommand(parent *api.Agent, req *api.Request, s string) (string, error) {
+	if !conf.IsAgentTool(s) {
+		return s, nil
+	}
+	return sw.RunCommand(req.Context(), parent, s)
+}
+
+func (sw *Swarm) RunCommand(ctx context.Context, parent *api.Agent, s string) (string, error) {
+	argv := shlex.Argv(s)
+	at, err := conf.ParseActionArgs(argv)
+	if err != nil {
+		return "", err
+	}
+	if at == nil {
+		return "", fmt.Errorf("invalid agent tool call: %v", s)
+	}
+	return sw.RunAction(ctx, parent, at.Name, at.ToMap())
+}
+
+func (sw *Swarm) RunAction(ctx context.Context, parent *api.Agent, action string, args map[string]any) (string, error) {
+	req := api.NewRequest(ctx, action, args)
 	req.Parent = parent
-	req.Name = strings.TrimPrefix(name, "@")
-	req.Name = strings.TrimPrefix(name, "agent:")
-	// prepend additional instruction to user query
-	// req.SetQuery(concat('\n', message, req.Query()))
 
 	resp := &api.Response{}
-
-	err := sw.RunSub(parent, req, resp)
+	err := sw.Run(req, resp)
 	if err != nil {
 		return "", err
 	}
 	if resp.Result == nil {
-		return "", nil
+		return "no output", nil
 	}
 	return resp.Result.Value, nil
 }
 
-func applyTemplate(tpl *template.Template, text string, data any) (string, error) {
-	t, err := tpl.Parse(text)
-	if err != nil {
-		return "", err
-	}
+// func (sw *Swarm) callAgent(parent *api.Agent, name string, message string) (string, error) {
+// 	args := make(map[string]any)
+// 	args["message"] = message
+// 	maps.Copy(args, parent.Parent.Arguments)
 
-	var buf bytes.Buffer
-	if err := t.Execute(&buf, data); err != nil {
-		return "", err
-	}
+// 	req := api.NewRequest(ctx, name, args)
+// 	req.Parent = parent
+// 	req.Name = strings.TrimPrefix(name, "@")
+// 	req.Name = strings.TrimPrefix(name, "agent:")
+// 	// prepend additional instruction to user query
+// 	// req.SetQuery(concat('\n', message, req.Query()))
 
-	return buf.String(), nil
-}
+// 	resp := &api.Response{}
 
-func applyGlobal(tpl *template.Template, ext, s string, env map[string]any) (string, error) {
-	if strings.HasPrefix(s, "#!") {
-		// TODO parse the command line args?
-		parts := strings.SplitN(s, "\n", 2)
-		if len(parts) == 2 {
-			// remove hashbang line
-			return applyTemplate(tpl, parts[1], env)
-		}
-		// remove hashbang
-		return applyTemplate(tpl, parts[0][2:], env)
-	}
-	if strings.HasPrefix(s, "{{") && strings.HasSuffix(s, "}}") {
-		return applyTemplate(tpl, s, env)
-	}
-	return s, nil
-}
+// 	err := sw.Run(req, resp)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	if resp.Result == nil {
+// 		return "", nil
+// 	}
+// 	return resp.Result.Value, nil
+// }
 
 // inherit parent tools including embedded agents
 // TODO cache
@@ -398,7 +386,7 @@ func (sw *Swarm) callAgentTool(ctx context.Context, agent *api.Agent, tf *api.To
 
 	resp := &api.Response{}
 
-	err := sw.RunSub(agent, req, resp)
+	err := sw.Run(req, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -435,33 +423,4 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 		return nil, fmt.Errorf("failed to call function tool %s %s: %w", v.Kit, v.Name, err)
 	}
 	return ToResult(out), nil
-}
-
-func ToResult(data any) *api.Result {
-	if v, ok := data.(*api.Result); ok {
-		if len(v.Content) == 0 {
-			return v
-		}
-		if v.MimeType == api.ContentTypeImageB64 {
-			return v
-		}
-		if strings.HasPrefix(v.MimeType, "text/") {
-			return &api.Result{
-				MimeType: v.MimeType,
-				Value:    string(v.Content),
-			}
-		}
-		return &api.Result{
-			MimeType: v.MimeType,
-			Value:    dataURL(v.MimeType, v.Content),
-		}
-	}
-	if s, ok := data.(string); ok {
-		return &api.Result{
-			Value: s,
-		}
-	}
-	return &api.Result{
-		Value: fmt.Sprintf("%v", data),
-	}
 }

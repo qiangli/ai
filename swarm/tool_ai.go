@@ -121,19 +121,22 @@ func (r *AIKit) AgentSpawn(ctx context.Context, _ *api.Vars, _ string, args map[
 	if err != nil {
 		return nil, err
 	}
+	if agent == "" {
+		return nil, fmt.Errorf("missing agent name")
+	}
 	// var input *api.UserInput
 	// if r.h.agent != nil && r.h.agent.RawInput != nil {
 	// 	input = r.h.agent.RawInput.Clone()
 	// } else {
 	// 	input = &api.UserInput{}
 	// }
-	req := api.NewRequest(ctx, agent, args)
-	nreq := req.WithContext(ctx)
+	nreq := api.NewRequest(ctx, agent, args)
+	// nreq := req.WithContext(ctx)
 	nreq.Parent = r.h.agent
 
 	resp := &api.Response{}
 
-	if err := r.h.sw.RunSub(r.h.agent, nreq, resp); err != nil {
+	if err := r.h.sw.Run(nreq, resp); err != nil {
 		return nil, err
 	}
 

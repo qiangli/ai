@@ -2,7 +2,6 @@ package swarm
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
@@ -11,18 +10,7 @@ import (
 func MemoryMiddleware(sw *Swarm) api.Middleware {
 
 	mustResolveContext := func(parent *api.Agent, req *api.Request, s string) ([]*api.Message, error) {
-		at, found := parseAgentCommand(s)
-		if !found {
-			return nil, fmt.Errorf("invalid context: %s", s)
-		}
-		nreq := req.Clone()
-		if nreq.Arguments == nil {
-			nreq.Arguments = api.NewArguments()
-		}
-		if len(at.Arguments) > 0 {
-			nreq.Arguments.Add(at.Arguments)
-		}
-		out, err := sw.callAgent(parent, nreq, at.Name, at.Message)
+		out, err := sw.resolveCommand(parent, req, s)
 		if err != nil {
 			return nil, err
 		}

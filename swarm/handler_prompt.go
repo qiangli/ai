@@ -10,15 +10,10 @@ import (
 // System role prompt
 func InstructionMiddleware(sw *Swarm) api.Middleware {
 	resolve := func(parent *api.Agent, req *api.Request, s string) (string, error) {
-		at, found := parseAgentCommand(s)
-		if !found {
-			return s, nil
-		}
-		out, err := sw.callAgent(parent, req, at.Name, at.Message)
+		out, err := sw.resolveCommand(parent, req, s)
 		if err != nil {
 			return "", err
 		}
-
 		return out, nil
 	}
 	return func(agent *api.Agent, next Handler) Handler {
