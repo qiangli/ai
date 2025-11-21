@@ -86,22 +86,17 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, parent *api.Age
 }
 
 func (r *AgentScriptRunner) runner(vs *sh.VirtualSystem, agent *api.Agent) func(context.Context, []string) (*api.Result, error) {
-	// var memo = r.sw.buildAgentToolMap(agent)
-
 	return func(ctx context.Context, args []string) (*api.Result, error) {
 		at, err := conf.ParseActionArgs(args)
 		if err != nil {
 			return nil, err
 		}
 		id := api.KitName(at.Name).ID()
-		// action, ok := memo[id]
-		// if !ok {
-		// 	return nil, fmt.Errorf("agent tool not declared for %s: %s", agent.Name, id)
-		// }
-
+		for k, v := range agent.Environment.GetAllEnvs() {
+			vs.System.Setenv(k, v)
+		}
 		vs.System.Setenv(globalQuery, at.Message)
 
-		// result, err := r.sw.RunAction(ctx, agent, action.ID(), at.Arguments)
 		data, err := agent.Runner.Run(ctx, id, at.Arguments)
 		if err != nil {
 			vs.System.Setenv(globalError, err.Error())

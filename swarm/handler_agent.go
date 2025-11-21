@@ -52,12 +52,8 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	// h.sw.Vars.Global.Set(globalQuery, req.RawInput.Query())
 	h.sw.Vars.Global.Set(globalQuery, req.Query)
 
-	if err := h.setGlobalEnv(req); err != nil {
-		return err
-	}
-
 	if err := h.doAgentFlow(req, resp); err != nil {
-		h.sw.Vars.Global.Set(globalResult, err.Error())
+		h.sw.Vars.Global.Set(globalError, err.Error())
 		return err
 	}
 
@@ -136,31 +132,27 @@ func (h *agentHandler) doAgentFlow(req *api.Request, resp *api.Response) error {
 	return nil
 }
 
-// create a copy of current global vars
-// merge agent environment, update with values from agent arguments if non existant
-// support @agent call and go template as value
-func (h *agentHandler) setGlobalEnv(req *api.Request) error {
-	var env = make(map[string]any)
-	// copy globals including agent args
-	h.sw.Vars.Global.Copy(env)
+// // create a copy of current global vars
+// // merge agent environment, update with values from agent arguments if non existant
+// // support @agent call and go template as value
+// func (h *agentHandler) setGlobalEnv(req *api.Request) error {
+// 	var env = make(map[string]any)
+// 	// copy globals including agent args
+// 	h.sw.Vars.Global.Copy(env)
 
-	// agent global env takes precedence
-	if h.agent.Environment != nil {
-		h.sw.mapAssign(h.agent, req, env, h.agent.Environment.GetAllEnvs(), true)
-	}
+// 	// agent global env takes precedence
+// 	if h.agent.Environment != nil {
+// 		h.sw.mapAssign(h.agent, req, env, h.agent.Environment.GetAllEnvs(), true)
+// 	}
 
-	// set agent and req defaults
-	// set only when the key does not exist
-	if h.agent.Arguments != nil {
-		h.sw.mapAssign(h.agent, req, env, h.agent.Arguments.GetAllArgs(), false)
-	}
+// 	// set agent and req defaults
+// 	// set only when the key does not exist
+// 	if h.agent.Arguments != nil {
+// 		h.sw.mapAssign(h.agent, req, env, h.agent.Arguments.GetAllArgs(), false)
+// 	}
 
-	// h.sw.Vars.Global.Add(env)
+// 	// h.sw.Vars.Global.Add(env)
 
-	log.GetLogger(req.Context()).Debugf("global env: %+v\n", env)
-	return nil
-}
-
-// func (h *agentHandler) doNext(req *api.Request, resp *api.Response) error {
-// 	return h.next.Serve(req, resp)
+// 	log.GetLogger(req.Context()).Debugf("global env: %+v\n", env)
+// 	return nil
 // }

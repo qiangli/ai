@@ -145,10 +145,18 @@ func ParseActionArgs(args []string) (*api.ActionConfig, error) {
 	}
 
 	// update the map
-	atArgs["name"] = name
-	atArgs["message"] = msg
-	atArgs["instruction"] = prompt
-	atArgs["model"] = *model
+	if name != "" {
+		atArgs["name"] = name
+	}
+	if msg != "" {
+		atArgs["message"] = msg
+	}
+	if prompt != "" {
+		atArgs["instruction"] = prompt
+	}
+	if *model != "" {
+		atArgs["model"] = *model
+	}
 
 	var at = &api.ActionConfig{
 		Message:     msg,

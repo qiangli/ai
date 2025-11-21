@@ -14,32 +14,25 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 		return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 			logger := log.GetLogger(req.Context())
 
-			// update envs and args
-			envs := sw.globalEnv()
+			var ctx = req.Context()
 
-			// environment
-			// var envs = make(map[string]any)
-			// query/result/error
-			// maps.Copy(envs, global)
+			// update envs and args
+			// envs
+			var envs = make(map[string]any)
+			maps.Copy(envs, sw.globalEnv())
 			if agent.Environment != nil {
-				agent.Environment.Copy(envs)
+				sw.mapAssign(ctx, agent, envs, agent.Environment.GetAllEnvs(), true)
 			}
+			agent.Environment.SetEnvs(envs)
 
 			// args
 			var args = make(map[string]any)
-			if agent.Arguments != nil {
-				agent.Arguments.Copy(args)
-			}
 			if req.Arguments != nil {
-				req.Arguments.Copy(args)
+				sw.mapAssign(ctx, agent, args, req.Arguments.GetAllArgs(), true)
 			}
-			// TODO better way for the cyclical ref for applying tempate
-			// chick and egg. env reference to arg and arg to env
-			//
-			maps.Copy(envs, args)
-			sw.mapAssign(agent, req, envs, envs, true)
-			//
-			sw.mapAssign(agent, req, args, envs, false)
+			if agent.Arguments != nil {
+				sw.mapAssign(ctx, agent, args, agent.Arguments.GetAllArgs(), false)
+			}
 
 			nreq := req.Clone()
 			nreq.Arguments.SetArgs(args)

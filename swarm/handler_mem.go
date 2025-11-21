@@ -10,7 +10,7 @@ import (
 func MemoryMiddleware(sw *Swarm) api.Middleware {
 
 	mustResolveContext := func(parent *api.Agent, req *api.Request, s string) ([]*api.Message, error) {
-		out, err := sw.resolveCommand(parent, req, s)
+		out, err := sw.expand(req.Context(), parent, s)
 		if err != nil {
 			return nil, err
 		}

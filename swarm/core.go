@@ -218,7 +218,7 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 }
 
 // copy values from src to dst after calling @agent and applying template if required
-func (sw *Swarm) mapAssign(agent *api.Agent, req *api.Request, dst, src map[string]any, override bool) error {
+func (sw *Swarm) mapAssign(ctx context.Context, agent *api.Agent, dst, src map[string]any, override bool) error {
 	for key, val := range src {
 		if !override {
 			if _, ok := dst[key]; ok {
@@ -227,7 +227,7 @@ func (sw *Swarm) mapAssign(agent *api.Agent, req *api.Request, dst, src map[stri
 		}
 		// @agent value support
 		if v, ok := val.(string); ok {
-			if resolved, err := sw.resolveArgument(agent, req, v); err != nil {
+			if resolved, err := sw.resolveArgument(ctx, agent, v); err != nil {
 				return err
 			} else {
 				val = resolved
@@ -254,8 +254,8 @@ func (sw *Swarm) globalEnv() map[string]any {
 }
 
 // call agent if found. otherwise return s as is
-func (sw *Swarm) resolveArgument(agent *api.Agent, req *api.Request, s string) (any, error) {
-	out, err := sw.resolveCommand(agent, req, s)
+func (sw *Swarm) resolveArgument(ctx context.Context, agent *api.Agent, s string) (any, error) {
+	out, err := sw.expand(ctx, agent, s)
 	if err != nil {
 		return nil, err
 	}
@@ -275,11 +275,12 @@ func (sw *Swarm) resolveArgument(agent *api.Agent, req *api.Request, s string) (
 	return arg.Result, nil
 }
 
-func (sw *Swarm) resolveCommand(parent *api.Agent, req *api.Request, s string) (string, error) {
+// expand s for agent/tool similar to $(cmdline...)
+func (sw *Swarm) expand(ctx context.Context, parent *api.Agent, s string) (string, error) {
 	if !conf.IsAgentTool(s) {
 		return s, nil
 	}
-	return sw.RunCommand(req.Context(), parent, s)
+	return sw.RunCommand(ctx, parent, s)
 }
 
 func (sw *Swarm) RunCommand(ctx context.Context, parent *api.Agent, s string) (string, error) {
