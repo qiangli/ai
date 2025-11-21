@@ -92,7 +92,7 @@ func (r *Arguments) Query() string {
 	return r.GetString("query")
 }
 
-func (r *Arguments) SetQuery(s string) {
+func (r *Arguments) SetQuery(s any) {
 	r.Set("query", s)
 }
 
@@ -100,7 +100,7 @@ func (r *Arguments) Instruction() string {
 	return r.GetString("instruction")
 }
 
-func (r *Arguments) SetInstruction(s string) {
+func (r *Arguments) SetInstruction(s any) {
 	r.Set("instruction", s)
 }
 
@@ -528,6 +528,9 @@ func (cfg *AppConfig) Interactive() bool {
 }
 
 func ToResult(data any) *Result {
+	if data == nil {
+		return nil
+	}
 	if v, ok := data.(*Result); ok {
 		if len(v.Content) == 0 {
 			return v

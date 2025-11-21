@@ -20,24 +20,30 @@ func QueryMiddleware(sw *Swarm) api.Middleware {
 		return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 			logger := log.GetLogger(req.Context())
 			logger.Debugf("🔗 (query): %s\n", agent.Name)
-			env := sw.globalEnv()
+
+			var env = req.Arguments.GetAllArgs()
 
 			// convert user message into query if not set
 			query := req.Query()
-			msg := agent.Message()
-			if query == "" && msg != "" {
-				content, err := applyGlobal(agent.Template, "", msg, env)
-				if err != nil {
-					return err
-				}
 
-				// dynamic @agent
-				content, err = resolve(agent, req, content)
-				if err != nil {
-					return err
-				}
+			if query == "" {
+				msg := agent.Message()
+				if msg != "" {
+					content, err := applyGlobal(agent.Template, msg, env)
+					if err != nil {
+						return err
+					}
 
-				req.SetQuery(content)
+					// dynamic @agent
+					content, err = resolve(agent, req, content)
+					if err != nil {
+						return err
+					}
+
+					req.SetQuery(content)
+				} else {
+					req.SetQuery(env[globalQuery])
+				}
 			}
 
 			logger.Debugf("query: %s (%v)\n", abbreviate(query, 64), len(query))

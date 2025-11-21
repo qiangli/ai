@@ -9,6 +9,7 @@ agents:
       ranging from local system intricacies to comprehensive web-based information,
       ensuring clarity and accuracy.
     model: default/any
+    context: "agent:memory"
     instruction:
       content: |
         You are a helpful assistant. Use all available tools to ensure the
@@ -20,6 +21,7 @@ agents:
         answer clearly and concisely, focusing on providing relevant and
         informative responses.
     functions:
+      - "agent:memory"
       - "web:*"
       - "ddg:*"
       - "bing:*"

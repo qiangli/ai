@@ -1,16 +1,10 @@
 package swarm
 
 import (
-	// "context"
 	"encoding/json"
 	"fmt"
-	// "os"
-	// "text/template"
-
-	// "github.com/Masterminds/sprig/v3"
 
 	"github.com/qiangli/ai/swarm/api"
-	// "github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
 )
 
@@ -131,28 +125,3 @@ func (h *agentHandler) doAgentFlow(req *api.Request, resp *api.Response) error {
 
 	return nil
 }
-
-// // create a copy of current global vars
-// // merge agent environment, update with values from agent arguments if non existant
-// // support @agent call and go template as value
-// func (h *agentHandler) setGlobalEnv(req *api.Request) error {
-// 	var env = make(map[string]any)
-// 	// copy globals including agent args
-// 	h.sw.Vars.Global.Copy(env)
-
-// 	// agent global env takes precedence
-// 	if h.agent.Environment != nil {
-// 		h.sw.mapAssign(h.agent, req, env, h.agent.Environment.GetAllEnvs(), true)
-// 	}
-
-// 	// set agent and req defaults
-// 	// set only when the key does not exist
-// 	if h.agent.Arguments != nil {
-// 		h.sw.mapAssign(h.agent, req, env, h.agent.Arguments.GetAllArgs(), false)
-// 	}
-
-// 	// h.sw.Vars.Global.Add(env)
-
-// 	log.GetLogger(req.Context()).Debugf("global env: %+v\n", env)
-// 	return nil
-// }

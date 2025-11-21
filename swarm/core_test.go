@@ -78,7 +78,7 @@ func TestTemplate(t *testing.T) {
 
 	agent := &api.Agent{}
 
-	tpl := sw.InitTemplate(agent)
+	tpl := NewTemplate(sw, agent)
 
 	var tools []*api.ToolFunc
 	tools = append(tools, &api.ToolFunc{

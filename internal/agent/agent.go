@@ -35,13 +35,6 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	logger := log.GetLogger(ctx)
 	swarm.ClearAllEnv(essentialEnv)
 
-	// name := cfg.Name
-	// if name == "" {
-	// 	name = "agent"
-	// }
-
-	// logger.Debugf("Running agent %q\n", name)
-
 	vars, err := InitVars(cfg)
 	if err != nil {
 		return err
@@ -55,13 +48,6 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	defer mem.Close()
 
 	showInput(ctx, cfg, input)
-
-	var args = make(map[string]any)
-	maps.Copy(args, cfg.ToMap())
-	maps.Copy(args, input.Arguments)
-
-	req := api.NewRequest(ctx, cfg.Name, args)
-	resp := &api.Response{}
 
 	var root = cfg.Workspace
 
@@ -103,44 +89,63 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 
 	sw.Init()
 
-	// TODO remove error return from Run?
-	if err := sw.Run(req, resp); err != nil {
-		// return err
-		resp.Result = &api.Result{
-			Value: err.Error(),
-		}
-	}
-
-	logger.Debugf("Agent %+v\n", resp.Agent)
-	if resp.Result != nil {
-		logger.Debugf("Result content %s\n", resp.Result.Value)
-	}
-	for _, m := range resp.Messages {
-		logger.Debugf("Message %+v\n", m)
-	}
-
-	var display = cfg.Name
-	if resp.Agent != nil {
-		display = resp.Agent.Display
-	}
+	var args = make(map[string]any)
+	maps.Copy(args, cfg.ToMap())
+	maps.Copy(args, input.Arguments)
 
 	var out *api.Output
-	if resp.Result != nil {
-		out = &api.Output{
-			Display:     display,
-			ContentType: resp.Result.MimeType,
-			Content:     resp.Result.Value,
-		}
+	if v, err := sw.Execm(ctx, cfg.Name, args); err != nil {
+		return err
 	} else {
-		if len(resp.Messages) > 0 {
-			msg := resp.Messages[len(resp.Messages)-1]
-			out = &api.Output{
-				Display:     display,
-				ContentType: msg.ContentType,
-				Content:     msg.Content,
-			}
+		out = &api.Output{
+			Display:     cfg.Name,
+			ContentType: v.MimeType,
+			Content:     v.Value,
 		}
 	}
+
+	// req := api.NewRequest(ctx, cfg.Name, args)
+	// resp := &api.Response{}
+
+	// // TODO remove error return from Run?
+	// if err := sw.Run(req, resp); err != nil {
+	// 	// return err
+	// 	resp.Result = &api.Result{
+	// 		Value: err.Error(),
+	// 	}
+	// }
+
+	// logger.Debugf("Agent %+v\n", resp.Agent)
+	// if resp.Result != nil {
+	// 	logger.Debugf("Result content %s\n", resp.Result.Value)
+	// }
+	// for _, m := range resp.Messages {
+	// 	logger.Debugf("Message %+v\n", m)
+	// }
+
+	// var display = cfg.Name
+	// if resp.Agent != nil {
+	// 	display = resp.Agent.Display
+	// }
+
+	// var out *api.Output
+	// if resp.Result != nil {
+	// 	out = &api.Output{
+	// 		Display:     display,
+	// 		ContentType: resp.Result.MimeType,
+	// 		Content:     resp.Result.Value,
+	// 	}
+	// } else {
+	// 	if len(resp.Messages) > 0 {
+	// 		msg := resp.Messages[len(resp.Messages)-1]
+	// 		out = &api.Output{
+	// 			Display:     display,
+	// 			ContentType: msg.ContentType,
+	// 			Content:     msg.Content,
+	// 		}
+	// 	}
+	// }
+
 	processOutput(ctx, cfg, out)
 
 	logger.Debugf("Agent task completed\n")

@@ -285,9 +285,9 @@ func ParseAgentArgs(app *api.AppConfig, args []string, defaultAgent string) []st
 		}
 	}
 
-	if agent == "" {
-		agent = defaultAgent
-	}
+	// if agent == "" {
+	// 	agent = defaultAgent
+	// }
 
 	// parts := strings.SplitN(agent, "/", 2)
 	// app.Agent = parts[0]

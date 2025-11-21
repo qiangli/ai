@@ -23,15 +23,20 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 			if agent.Environment != nil {
 				sw.mapAssign(ctx, agent, envs, agent.Environment.GetAllEnvs(), true)
 			}
-			agent.Environment.SetEnvs(envs)
+			agent.Environment.AddEnvs(envs)
 
 			// args
+			// global envs
+			// agent envs
+			// agent args
+			// req args
 			var args = make(map[string]any)
+			maps.Copy(args, envs)
+			if agent.Arguments != nil {
+				sw.mapAssign(ctx, agent, args, agent.Arguments.GetAllArgs(), true)
+			}
 			if req.Arguments != nil {
 				sw.mapAssign(ctx, agent, args, req.Arguments.GetAllArgs(), true)
-			}
-			if agent.Arguments != nil {
-				sw.mapAssign(ctx, agent, args, agent.Arguments.GetAllArgs(), false)
 			}
 
 			nreq := req.Clone()
@@ -45,6 +50,11 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 				parent = fmt.Sprintf("%s → ", agent.Parent.Name)
 			}
 			logger.Infof("🚀 %s%s\n", parent, agent.Name)
+			query := nreq.Arguments.Query()
+			if query != "" {
+				sw.Vars.Global.Set(globalQuery, query)
+				logger.Infof("query: %v\n", parent, query)
+			}
 
 			return next.Serve(nreq, resp)
 		})

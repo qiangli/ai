@@ -63,7 +63,6 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, parent *api.Age
 			if err != nil {
 				return true, err
 			}
-
 			return true, nil
 		}
 
@@ -91,20 +90,23 @@ func (r *AgentScriptRunner) runner(vs *sh.VirtualSystem, agent *api.Agent) func(
 		if err != nil {
 			return nil, err
 		}
-		id := api.KitName(at.Name).ID()
+		id := api.KitName(at.Kit + ":" + at.Name).ID()
 		for k, v := range agent.Environment.GetAllEnvs() {
 			vs.System.Setenv(k, v)
 		}
-		vs.System.Setenv(globalQuery, at.Message)
+		// vs.System.Setenv(globalQuery, at.Message)
 
 		data, err := agent.Runner.Run(ctx, id, at.Arguments)
+
 		if err != nil {
 			vs.System.Setenv(globalError, err.Error())
 			fmt.Fprintln(vs.IOE.Stderr, err.Error())
 			return nil, err
 		}
 		result := api.ToResult(data)
-
+		if result == nil {
+			result = &api.Result{}
+		}
 		fmt.Fprintln(vs.IOE.Stdout, result.Value)
 		vs.System.Setenv(globalResult, result.Value)
 

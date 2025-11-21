@@ -4,13 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	// "maps"
-	"os"
 	"strings"
-	"text/template"
 	"time"
 
-	"github.com/Masterminds/sprig/v3"
 	"github.com/u-root/u-root/pkg/shlex"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -61,62 +57,7 @@ func (sw *Swarm) Init() {
 	sw.agentMaker = NewAgentMaker(sw)
 }
 
-// https://pkg.go.dev/text/template
-// https://masterminds.github.io/sprig/
-func (sw *Swarm) InitTemplate(agent *api.Agent) *template.Template {
-	var fm = sprig.FuncMap()
-	// overridge sprig
-	fm["user"] = func() *api.User {
-		return sw.User
-	}
-	// OS
-	getenv := func(key string) string {
-		v, ok := sw.Vars.Global.Get(key)
-		if !ok {
-			return ""
-		}
-		if s, ok := v.(string); ok {
-			return s
-		}
-		return fmt.Sprintf("%v", v)
-	}
-	fm["env"] = getenv
-	fm["expandenv"] = func(s string) string {
-		// bash name is leaked with os.Expand but ok.
-		// bash is replaced with own that supports executing agent/tool
-		return os.Expand(s, getenv)
-	}
-	// Network:
-	fm["getHostByName"] = func() string {
-		return "localhost"
-	}
-
-	// ai
-	fm["ai"] = func(args ...string) string {
-		at, err := conf.ParseActionArgs(args)
-		if err != nil {
-			return err.Error()
-		}
-		id := api.KitName(at.Name).ID()
-
-		ctx := context.Background()
-		data, err := agent.Runner.Run(ctx, id, at.Arguments)
-		if err != nil {
-			return err.Error()
-		}
-		result := api.ToResult(data)
-		if err != nil {
-			return err.Error()
-		}
-
-		return result.Value
-	}
-
-	return template.New("swarm").Funcs(fm)
-}
-
 func (sw *Swarm) InitChain() {
-
 	// logging, analytics, and debugging.
 	// prompts, tool selection, and output formatting.
 	// retries, fallbacks, early termination.
@@ -152,8 +93,7 @@ func (sw *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
 	return chain
 }
 
-func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent, error) {
-	var name = req.Name
+func (sw *Swarm) CreateAgent(ctx context.Context, name string) (*api.Agent, error) {
 	if name == "" {
 		// anonymous
 		log.GetLogger(ctx).Debugf("agent not specified.\n")
@@ -166,7 +106,7 @@ func (sw *Swarm) createAgent(ctx context.Context, req *api.Request) (*api.Agent,
 
 	// for sub agent/action or tool call
 	agent.Runner = NewAgentToolRunner(sw, agent)
-	agent.Template = sw.InitTemplate(agent)
+	agent.Template = NewTemplate(sw, agent)
 	return agent, nil
 }
 
@@ -190,7 +130,7 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 		logger.Debugf("creating agent: %s %s\n", req.Name, start)
 
 		// creator
-		agent, err := sw.createAgent(ctx, req)
+		agent, err := sw.CreateAgent(ctx, req.Name)
 		if err != nil {
 			return err
 		}
@@ -280,22 +220,73 @@ func (sw *Swarm) expand(ctx context.Context, parent *api.Agent, s string) (strin
 	if !conf.IsAgentTool(s) {
 		return s, nil
 	}
-	return sw.RunCommand(ctx, parent, s)
+	argv := shlex.Argv(s)
+	data, err := sw.ExecCommand(ctx, parent, argv)
+	if err != nil {
+		return "", nil
+	}
+	return api.ToString(data), nil
 }
 
-func (sw *Swarm) RunCommand(ctx context.Context, parent *api.Agent, s string) (string, error) {
-	argv := shlex.Argv(s)
+// func (sw *Swarm) RunCommand(ctx context.Context, parent *api.Agent, argv []string) (any, error) {
+// 	at, err := conf.ParseActionArgs(argv)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	if at == nil {
+// 		return nil, fmt.Errorf("invalid agent tool call: %+v", argv)
+// 	}
+// 	return sw.RunAction(ctx, parent, at.Name, at.ToMap())
+// }
+
+func (sw *Swarm) Execv(ctx context.Context, arg0 string, argv []string) (*api.Result, error) {
+	agent, err := sw.CreateAgent(ctx, arg0)
+	if err != nil {
+		return nil, err
+	}
+	data, err := sw.ExecCommand(ctx, agent, argv)
+	if err != nil {
+		return nil, err
+	}
+	if data == nil {
+		data = ""
+	}
+	return api.ToResult(data), nil
+}
+
+func (sw *Swarm) Execm(ctx context.Context, arg0 string, args map[string]any) (*api.Result, error) {
+	// agent, err := sw.CreateAgent(ctx, arg0)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// id := api.KitName(fmt.Sprintf("agent:%s", agent.Name)).ID()
+
+	// data, err :=  agent.Runner.Run(ctx, id, args)
+	data, err := sw.RunAction(ctx, nil, arg0, args)
+	if err != nil {
+		return nil, err
+	}
+	if data == nil {
+		data = ""
+	}
+	return api.ToResult(data), nil
+}
+
+func (sw *Swarm) ExecCommand(ctx context.Context, agent *api.Agent, argv []string) (any, error) {
 	at, err := conf.ParseActionArgs(argv)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if at == nil {
-		return "", fmt.Errorf("invalid agent tool call: %v", s)
+		return nil, fmt.Errorf("invalid agent tool command: %+v", argv)
 	}
-	return sw.RunAction(ctx, parent, at.Name, at.ToMap())
+	id := api.KitName(at.Kit + ":" + at.Name).ID()
+
+	return agent.Runner.Run(ctx, id, at.Arguments)
 }
 
-func (sw *Swarm) RunAction(ctx context.Context, parent *api.Agent, action string, args map[string]any) (string, error) {
+func (sw *Swarm) RunAction(ctx context.Context, parent *api.Agent, action string, args map[string]any) (any, error) {
 	req := api.NewRequest(ctx, action, args)
 	req.Parent = parent
 
@@ -307,32 +298,8 @@ func (sw *Swarm) RunAction(ctx context.Context, parent *api.Agent, action string
 	if resp.Result == nil {
 		return "no output", nil
 	}
-	return resp.Result.Value, nil
+	return resp.Result, nil
 }
-
-// func (sw *Swarm) callAgent(parent *api.Agent, name string, message string) (string, error) {
-// 	args := make(map[string]any)
-// 	args["message"] = message
-// 	maps.Copy(args, parent.Parent.Arguments)
-
-// 	req := api.NewRequest(ctx, name, args)
-// 	req.Parent = parent
-// 	req.Name = strings.TrimPrefix(name, "@")
-// 	req.Name = strings.TrimPrefix(name, "agent:")
-// 	// prepend additional instruction to user query
-// 	// req.SetQuery(concat('\n', message, req.Query()))
-
-// 	resp := &api.Response{}
-
-// 	err := sw.Run(req, resp)
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	if resp.Result == nil {
-// 		return "", nil
-// 	}
-// 	return resp.Result.Value, nil
-// }
 
 // inherit parent tools including embedded agents
 // TODO cache
@@ -371,7 +338,7 @@ func (sw *Swarm) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFun
 func (sw *Swarm) callAgentType(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	// agent tool
 	if tf.Kit == api.ToolTypeAgent {
-		return sw.callAgentTool(ctx, agent, tf, args)
+		return sw.RunAction(ctx, agent, tf.Agent, args)
 	}
 
 	// ai tool
@@ -381,19 +348,19 @@ func (sw *Swarm) callAgentType(ctx context.Context, agent *api.Agent, tf *api.To
 	return nil, api.NewUnsupportedError("agent kit: " + tf.Kit)
 }
 
-func (sw *Swarm) callAgentTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
-	req := api.NewRequest(ctx, tf.Agent, args)
-	req.Parent = agent
+// func (sw *Swarm) callAgentTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
+// 	req := api.NewRequest(ctx, tf.Agent, args)
+// 	req.Parent = agent
 
-	resp := &api.Response{}
+// 	resp := &api.Response{}
 
-	err := sw.Run(req, resp)
-	if err != nil {
-		return nil, err
-	}
+// 	err := sw.Run(req, resp)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return resp.Result, nil
-}
+// 	return resp.Result, nil
+// }
 
 func (sw *Swarm) callAIAgentTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	aiKit := NewAIKit(sw, agent)

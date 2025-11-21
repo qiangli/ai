@@ -47,30 +47,17 @@ type Request struct {
 	Name      string
 	Arguments *Arguments
 
-	// RawInput *UserInput
-
 	// LLM
 	Model *Model
 
 	Messages []*Message
 
-	// MaxTurns int
-
 	Runner ActionRunner
 
 	Tools []*ToolFunc
 
-	// Experimenal
-	// Vars *Vars
-
-	// Arguments map[string]any
-
 	// get api token for LLM model
 	Token func() string
-
-	// // openai v3
-	// Instruction string
-	// Query       string
 
 	// ctx should only be modified via copying the whole request WithContext.
 	// It is unexported to prevent people from using Context wrong
@@ -82,7 +69,7 @@ func (r *Request) Query() string {
 	return r.Arguments.Query()
 }
 
-func (r *Request) SetQuery(s string) {
+func (r *Request) SetQuery(s any) {
 	r.Arguments.SetQuery(s)
 }
 
@@ -90,7 +77,7 @@ func (r *Request) Instruction() string {
 	return r.Arguments.Instruction()
 }
 
-func (r *Request) SetInstruction(s string) {
+func (r *Request) SetInstruction(s any) {
 	r.Arguments.SetInstruction(s)
 }
 
@@ -98,37 +85,12 @@ func (r *Request) MaxTurns() int {
 	return r.Arguments.GetInt("max_turns")
 }
 
-// func (r *Request) String() string {
-// 	var sb strings.Builder
-// 	sb.WriteString(fmt.Sprintf("Name: %s\n", r.Name))
-// 	if r.Model != nil {
-// 		sb.WriteString(fmt.Sprintf("Model: %s/%s\n", r.Model.Provider, r.Model.Model))
-// 	}
-// 	sb.WriteString(fmt.Sprintf("MaxTurns: %d\n", r.MaxTurns))
-// 	sb.WriteString(fmt.Sprintf("Tools: %d\n", len(r.Tools)))
-// 	sb.WriteString(fmt.Sprintf("Messages: %d\n", len(r.Messages)))
-
-// 	return sb.String()
-// }
-
 func NewRequest(ctx context.Context, name string, args map[string]any) *Request {
 	req := &Request{
 		ctx:       ctx,
 		Name:      name,
 		Arguments: NewArguments(),
-		// Query:     input.Query(),
-		// Arguments: input.Arguments,
-		// Messages:  input.Messages,
 	}
-	// // TODO redo query handling
-	// if input != nil {
-	// 	req.Arguments.Add(input.Arguments)
-	// 	req.Messages = input.Messages
-	// 	query := input.Query()
-	// 	if query != "" {
-	// 		req.Arguments.SetQuery(query)
-	// 	}
-	// }
 	req.Arguments.Add(args)
 	return req
 }

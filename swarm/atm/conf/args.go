@@ -45,16 +45,19 @@ func ParseActionArgs(args []string) (*api.ActionConfig, error) {
 	case '@':
 		name = strings.ToLower(name[1:])
 		ftype = api.ToolTypeAgent
+		kit = api.ToolTypeAgent
 	case '/':
 		name = strings.ToLower(name[1:])
-		kit, _ = api.KitName(name[1:]).Decode()
+		kit, name = api.KitName(name[1:]).Decode()
 	default:
 		if strings.HasPrefix(name, "agent:") {
 			name = strings.ToLower(name[6:])
 			ftype = api.ToolTypeAgent
+			kit = api.ToolTypeAgent
 		} else if strings.HasSuffix(name, ",") {
 			name = strings.ToLower(name[:len(name)-1])
 			ftype = api.ToolTypeAgent
+			kit = api.ToolTypeAgent
 		} else {
 			// not an agent/tool command
 			return nil, nil
@@ -62,6 +65,8 @@ func ParseActionArgs(args []string) (*api.ActionConfig, error) {
 	}
 	if name == "" {
 		name = "anonymous"
+		ftype = api.ToolTypeAgent
+		kit = api.ToolTypeAgent
 	}
 
 	fs := flag.NewFlagSet("ai", flag.ContinueOnError)
@@ -145,6 +150,9 @@ func ParseActionArgs(args []string) (*api.ActionConfig, error) {
 	}
 
 	// update the map
+	if kit != "" {
+		atArgs["kit"] = kit
+	}
 	if name != "" {
 		atArgs["name"] = name
 	}

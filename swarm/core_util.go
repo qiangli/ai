@@ -23,7 +23,11 @@ func applyTemplate(tpl *template.Template, text string, data any) (string, error
 	return buf.String(), nil
 }
 
-func applyGlobal(tpl *template.Template, ext, s string, env map[string]any) (string, error) {
+func isTemplate(s string) bool {
+	return strings.HasPrefix(s, "#!") || (strings.HasPrefix(s, "{{") && strings.HasSuffix(s, "}}"))
+}
+
+func applyGlobal(tpl *template.Template, s string, env map[string]any) (string, error) {
 	if strings.HasPrefix(s, "#!") {
 		// TODO parse the command line args?
 		parts := strings.SplitN(s, "\n", 2)

@@ -21,12 +21,12 @@ func InstructionMiddleware(sw *Swarm) api.Middleware {
 			logger := log.GetLogger(req.Context())
 			logger.Debugf("🔗 (instruction): %s\n", agent.Name)
 
-			env := sw.globalEnv()
+			var env = req.Arguments.GetAllArgs()
 
 			var instructions []string
 
 			add := func(in string) error {
-				content, err := applyGlobal(agent.Template, "", in, env)
+				content, err := applyGlobal(agent.Template, in, env)
 				if err != nil {
 					return err
 				}
