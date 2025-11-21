@@ -135,6 +135,7 @@ func userInput(
 		return ""
 	}
 
+	// update query
 	var content = cat(stdinData, clipinData, "\n")
 	args := make(map[string]any)
 	query := cat(cfg.Message, content, "\n")

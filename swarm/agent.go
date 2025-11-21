@@ -141,7 +141,7 @@ func (ap *AgentMaker) newAgent(
 	args["max_span"] = maxSpan
 
 	// log
-	args["log_level"] = nvl(c.LogLevel, ac.LogLevel, "quiet")
+	args["log_level"] = nvl(c.LogLevel, ac.LogLevel)
 
 	agent.Arguments.SetArgs(args)
 

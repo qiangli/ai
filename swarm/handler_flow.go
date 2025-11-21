@@ -202,51 +202,6 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 	return nil
 }
 
-// // FlowTypeReduce applies action(s) sequentially to each element of an input array, accumulating
-// // results. It passes the result of each action as input to the next. The process returns a single
-// // accumulated value. If at the root, an initial value is sourced from a previous agent or user query.
-// func (h *agentHandler) flowReduce(req *api.Request, resp *api.Response) error {
-// 	// if the map flow is the first in the pipeline
-// 	// use query
-// 	result, ok := h.sw.Vars.Global.Get(globalResult)
-// 	if !ok {
-// 		result, _ = h.sw.Vars.Global.Get(globalQuery)
-// 	}
-
-// 	tasks := unmarshalResultList(result)
-
-// 	nreq := req.Clone()
-// 	// single response with empty initial result
-// 	nresp := new(api.Response)
-// 	nresp.Result = &api.Result{
-// 		Value: "",
-// 	}
-// 	const tpl = `
-// Accumulator:
-// 	%s
-
-// CurrentValue:
-// 	%s
-
-// Index:
-// 	%v
-// 	`
-// 	for i, v := range tasks {
-// 		// nreq.RawInput = &api.UserInput{
-// 		// 	Message: fmt.Sprintf(tpl, nresp.Result.Value, v, i),
-// 		// }
-// 		nreq.Query = fmt.Sprintf(tpl, nresp.Result.Value, v, i)
-// 		if err := h.flowSequence(nreq, nresp); err != nil {
-// 			nresp.Result = &api.Result{
-// 				Value: err.Error(),
-// 			}
-// 		}
-// 	}
-
-// 	resp.Result = nresp.Result
-// 	return nil
-// }
-
 // FlowTypeShell delegates control to a shell script using bash script syntax, enabling
 // complex flow control scenarios driven by external scripting logic.
 func (h *agentHandler) flowShell(req *api.Request, resp *api.Response) error {

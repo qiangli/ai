@@ -2,7 +2,8 @@ package agent
 
 import (
 	"context"
-	_ "embed"
+	"encoding/json"
+	"fmt"
 	"maps"
 	"os"
 	"path/filepath"
@@ -31,6 +32,40 @@ func RunAgent(ctx context.Context, app *api.AppConfig) error {
 
 var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
 
+func loadUser(cfg *api.AppConfig) (*api.User, error) {
+	p := filepath.Join(cfg.Base, "user.json")
+	file, err := os.Open(p)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var user api.User
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&user); err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func storeUser(cfg *api.AppConfig, user *api.User) error {
+	p := filepath.Join(cfg.Base, "user.json")
+	file, err := os.Create(p)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	err = encoder.Encode(user)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) error {
 	logger := log.GetLogger(ctx)
 	swarm.ClearAllEnv(essentialEnv)
@@ -40,7 +75,6 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		return err
 	}
 
-	// mem := NewFileMemStore(cfg)
 	mem, err := db.OpenMemoryStore(cfg)
 	if err != nil {
 		return err
@@ -51,10 +85,25 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 
 	var root = cfg.Workspace
 
+	//
+	var user *api.User
 	who, _ := util.WhoAmI()
-	var user = &api.User{
-		Display: who,
+	if v, err := loadUser(cfg); err != nil {
+		user = &api.User{
+			Display:  who,
+			Settings: make(map[string]any),
+		}
+	} else {
+		user = v
+		user.Display = who
 	}
+	if cfg.Name != "" {
+		user.SetAgent(cfg.Name)
+		storeUser(cfg, user)
+	} else {
+		cfg.Name = user.Agent()
+	}
+
 	var adapters = adapter.GetAdapters()
 
 	var secrets = conf.LocalSecrets
@@ -83,8 +132,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		Blobs:     blobs,
 		OS:        los,
 		Workspace: lfs,
-		//
-		History: mem,
+		History:   mem,
 	}
 
 	sw.Init()
@@ -92,6 +140,11 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	var args = make(map[string]any)
 	maps.Copy(args, cfg.ToMap())
 	maps.Copy(args, input.Arguments)
+
+	// initial query is required.
+	if args["query"] == "" {
+		return fmt.Errorf("%s: query missing", cfg.Name)
+	}
 
 	var out *api.Output
 	if v, err := sw.Execm(ctx, cfg.Name, args); err != nil {
@@ -104,51 +157,11 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 		}
 	}
 
-	// req := api.NewRequest(ctx, cfg.Name, args)
-	// resp := &api.Response{}
-
-	// // TODO remove error return from Run?
-	// if err := sw.Run(req, resp); err != nil {
-	// 	// return err
-	// 	resp.Result = &api.Result{
-	// 		Value: err.Error(),
-	// 	}
-	// }
-
-	// logger.Debugf("Agent %+v\n", resp.Agent)
-	// if resp.Result != nil {
-	// 	logger.Debugf("Result content %s\n", resp.Result.Value)
-	// }
-	// for _, m := range resp.Messages {
-	// 	logger.Debugf("Message %+v\n", m)
-	// }
-
-	// var display = cfg.Name
-	// if resp.Agent != nil {
-	// 	display = resp.Agent.Display
-	// }
-
-	// var out *api.Output
-	// if resp.Result != nil {
-	// 	out = &api.Output{
-	// 		Display:     display,
-	// 		ContentType: resp.Result.MimeType,
-	// 		Content:     resp.Result.Value,
-	// 	}
-	// } else {
-	// 	if len(resp.Messages) > 0 {
-	// 		msg := resp.Messages[len(resp.Messages)-1]
-	// 		out = &api.Output{
-	// 			Display:     display,
-	// 			ContentType: msg.ContentType,
-	// 			Content:     msg.Content,
-	// 		}
-	// 	}
-	// }
-
+	//
 	processOutput(ctx, cfg, out)
 
 	logger.Debugf("Agent task completed\n")
+
 	return nil
 }
 
@@ -166,8 +179,6 @@ func processOutput(ctx context.Context, cfg *api.AppConfig, message *api.Output)
 	}
 
 	switch message.ContentType {
-	// case api.ContentTypeText, "":
-	// 	processTextContent(ctx, cfg, message)
 	case api.ContentTypeImageB64:
 		var imageFile = filepath.Join(os.TempDir(), "image.png")
 		processImageContent(ctx, imageFile, message)
@@ -178,25 +189,6 @@ func processOutput(ctx context.Context, cfg *api.AppConfig, message *api.Output)
 
 func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	var vars = api.NewVars()
-
-	// Setting configuration values from the app to vars
-	// vars.LogLevel = api.ToLogLevel(app.LogLevel)
-	// vars.ChatID = app.ChatID
-	// vars.New = app.New
-	// vars.MaxTurns = app.MaxTurns
-	// vars.MaxTime = app.MaxTime
-	// vars.MaxHistory = app.MaxHistory
-	// vars.Context = app.Context
-	// vars.MaxSpan = app.MaxSpan
-	// // vars.Message = app.Message
-	// vars.Format = app.Format
-	// vars.Models = app.Models
-
-	// vars.Unsafe = false
-	// vars.DryRun = app.DryRun
-	// vars.DryRunContent = app.DryRunContent
-	//
-	// vars.Workspace = app.Workspace
 
 	return vars, nil
 }

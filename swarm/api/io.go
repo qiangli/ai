@@ -1,7 +1,6 @@
 package api
 
 import (
-	// "fmt"
 	"maps"
 	"strings"
 )
@@ -26,19 +25,6 @@ type UserInput struct {
 	// cached media contents
 	Messages []*Message `json:"-"`
 
-	// experimental
-	// Instruction *Instruction `json:"instruction"`
-	// Model       string       `json:"model"`
-	// Functions   []string     `json:"functions"`
-
-	// MaxTurns   int    `json:"max_turns"`
-	// MaxTime    int    `json:"max_time"`
-	// MaxHistory int    `json:"max_history"`
-	// MaxSpan    int    `json:"max_span"`
-	// Model      string `json:"model"`
-	// Format     string `json:"format"`
-	// LogLevel   string `json:"log_level"`
-
 	Arguments map[string]any `json:"arguments"`
 }
 
@@ -47,13 +33,10 @@ func (r *UserInput) String() string {
 		return ""
 	}
 	return ToString(r.Arguments["query"])
-	// return fmt.Sprintf("query: %v content: %v", len(r.Message), len(r.Content))
 }
 
 func (r *UserInput) Clone() *UserInput {
 	ui := &UserInput{
-		// Message:  r.Message,
-		// Content:  r.Content,
 		Messages: append([]*Message(nil), r.Messages...),
 	}
 	if r.Arguments != nil {
@@ -83,16 +66,6 @@ func (r *UserInput) Query() string {
 		return ToString(q)
 	}
 	return ""
-	// switch {
-	// case r.Message == "" && r.Content == "":
-	// 	return ""
-	// case r.Message == "":
-	// 	return r.Content
-	// case r.Content == "":
-	// 	return r.Message
-	// default:
-	// 	return fmt.Sprintf("###\n%s\n###\n%s", r.Message, r.Content)
-	// }
 }
 
 // Intent returns a clipped version of the query.

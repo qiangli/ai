@@ -94,7 +94,6 @@ func (r *AgentScriptRunner) runner(vs *sh.VirtualSystem, agent *api.Agent) func(
 		for k, v := range agent.Environment.GetAllEnvs() {
 			vs.System.Setenv(k, v)
 		}
-		// vs.System.Setenv(globalQuery, at.Message)
 
 		data, err := agent.Runner.Run(ctx, id, at.Arguments)
 

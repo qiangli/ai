@@ -128,13 +128,12 @@ func (a *Agent) Clone() *Agent {
 		Name:        a.Name,
 		Display:     a.Display,
 		Description: a.Description,
-		// Instruction: a.Instruction,
-		// RawInput:  a.RawInput,
+
 		Model:     a.Model,
 		Tools:     a.Tools,
 		Arguments: a.cloneArguments(),
 		Adapter:   a.Adapter,
-		// Message:     a.Message,
+
 		//
 		Flow: a.Flow,
 		//
