@@ -27,29 +27,17 @@ func MemoryMiddleware(sw *Swarm) api.Middleware {
 
 			logger.Debugf("🔗 (mem): %s\n", agent.Name)
 			var history []*api.Message
-			// var emoji = "•"
-			// override if context agent is specified
+
 			c := agent.Arguments.GetString("context")
 			if c != "" {
 				if resolved, err := mustResolveContext(agent, req, c); err != nil {
 					logger.Errorf("failed to resolve context %s: %v\n", c, err)
 				} else {
 					history = resolved
-					// emoji = "🤖"
 				}
 			}
 
-			// history, err := sw.History.Load(&api.MemOption{
-			// 	MaxHistory: agent.MaxHistory,
-			// 	MaxSpan:    agent.MaxSpan,
-			// })
-			// if err != nil {
-			// 	return err
-			// }
-
 			sw.Vars.SetHistory(history)
-
-			// logger.Debugf("init messages: %v\n", len(history))
 
 			err := next.Serve(req, resp)
 

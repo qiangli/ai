@@ -26,7 +26,7 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 			// 1. New System Message
 			// system role prompt as first message
 			var prompt *api.Message
-			instruction := agent.Instruction()
+			instruction := req.Instruction()
 			if instruction != "" {
 				prompt = &api.Message{
 					ID:      uuid.NewString(),

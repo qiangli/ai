@@ -48,7 +48,7 @@ func ParseActionArgs(args []string) (*api.ActionConfig, error) {
 		kit = api.ToolTypeAgent
 	case '/':
 		name = strings.ToLower(name[1:])
-		kit, name = api.KitName(name[1:]).Decode()
+		kit, name = api.KitName(name).Decode()
 	default:
 		if strings.HasPrefix(name, "agent:") {
 			name = strings.ToLower(name[6:])

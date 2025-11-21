@@ -50,11 +50,6 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 				parent = fmt.Sprintf("%s → ", agent.Parent.Name)
 			}
 			logger.Infof("🚀 %s%s\n", parent, agent.Name)
-			query := nreq.Arguments.Query()
-			if query != "" {
-				sw.Vars.Global.Set(globalQuery, query)
-				logger.Infof("query: %v\n", parent, query)
-			}
 
 			return next.Serve(nreq, resp)
 		})
