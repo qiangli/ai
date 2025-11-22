@@ -68,20 +68,45 @@ tools:
           description: "Content to write to the file"
       required: ["path", "content"]
   
-  - name: "search_files"
-    description: "Recursively search for a regex pattern within files in a specified directory path."
+  - name: "edit_file"
+    description: "Modify a file by replacing specified text or patterns. Supports string and regex matching."
     parameters:
       type: "object"
       properties:
-        pattern:
+        path:
           type: "string"
-          description: "Regular expression to match within files."
+          description: "Path of the file to be modified."
+        find:
+          type: "string"
+          description: "Text or pattern to search for in the file."
+        replace:
+          type: "string"
+          description: "Text to use as the replacement."
+        all_occurrences:
+          type: "boolean"
+          description: "If true, replace all occurrences of the match. Default: true."
+        regex:
+          type: "boolean"
+          description: "If true, treat the find pattern as a regular expression. Default: false."
+      required: ["path", "find", "replace"]
+
+  - name: "search_files"
+    description: "Search files recursively for a regex pattern within a specified directory path."
+    parameters:
+      type: "object"
+      properties:
         path:
           type: "string"
           description: "Directory path to search, including all its subdirectories."
+        pattern:
+          type: "string"
+          description: "Regular expression used to match content within files."
+        depth:
+          type: "integer"
+          description: "The maximum number of directory levels to search through. Default: 5."
         exclude:
           type: "array"
           items:
             type: "string"
           description: "List of filename patterns to exclude from the search."
-      required: ["pattern", "path"]
+      required: ["path", "pattern"]

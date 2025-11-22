@@ -2,6 +2,7 @@ package atm
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -44,7 +45,7 @@ func (r *SystemKit) RenameFile(ctx context.Context, vars *api.Vars, name string,
 	return "File renamed successfully", nil
 }
 
-func (r *SystemKit) FileInfo(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) GetFileInfo(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	path, err := api.GetStrProp("path", args)
 	if err != nil {
 		return "", err
@@ -90,11 +91,46 @@ func (r *SystemKit) WriteFile(ctx context.Context, vars *api.Vars, name string, 
 	return "File written successfully", nil
 }
 
+func (r *SystemKit) EditFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	path, err := api.GetStrProp("path", args)
+	if err != nil {
+		return "", err
+	}
+
+	// options
+	find, err := api.GetStrProp("find", args)
+	if err != nil {
+		return "", err
+	}
+	replace, err := api.GetStrProp("replace", args)
+	if err != nil {
+		return "", err
+	}
+	all, err := api.GetBoolProp("all_occurrences", args)
+	if err != nil {
+		all = true
+	}
+	regex, err := api.GetBoolProp("regex", args)
+	if err != nil {
+		all = true
+	}
+
+	options := &vfs.EditOptions{
+		Find:           find,
+		Replace:        replace,
+		AllOccurrences: all,
+		UseRegex:       regex,
+	}
+	replacementCount, err := r.fs.EditFile(path, options)
+	return fmt.Sprintf("File modified successfully. Made %d replacement(s).", replacementCount), nil
+}
+
 func (r *SystemKit) SearchFiles(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	path, err := api.GetStrProp("path", args)
 	if err != nil {
 		return "", err
 	}
+
 	// options
 	pattern, err := api.GetStrProp("pattern", args)
 	if err != nil {
@@ -104,10 +140,8 @@ func (r *SystemKit) SearchFiles(ctx context.Context, vars *api.Vars, name string
 	if err != nil {
 		depth = 5
 	}
-	exclude, err := api.GetArrayProp("exclude", args)
-	if err != nil {
-		return "", err
-	}
+	exclude, _ := api.GetArrayProp("exclude", args)
+
 	options := &vfs.SearchOptions{
 		Pattern:    pattern,
 		Regexp:     true,
