@@ -46,7 +46,7 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/openai/openai-go/v2 v2.7.1
 	github.com/openai/openai-go/v3 v3.8.1
-	github.com/qiangli/shell v0.0.7
+	github.com/qiangli/shell v0.0.8
 	github.com/sahilm/fuzzy v0.1.1
 	github.com/shirou/gopsutil/v4 v4.25.10
 	github.com/spf13/cobra v1.10.1
@@ -108,6 +108,7 @@ require (
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/esiqveland/notify v0.13.3 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.11 // indirect
 	github.com/gdamore/encoding v1.0.1 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect

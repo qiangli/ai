@@ -163,6 +163,8 @@ github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHk
 github.com/frankban/quicktest v1.14.6/go.mod h1:4ptaffx2x8+WTWXmUCuVU6aPUX1/Mz7zb5vbUoiM6w0=
 github.com/fsnotify/fsnotify v1.9.0 h1:2Ml+OJNzbYCTzsxtv8vKSFD9PbJjmhYF14k/jKC7S9k=
 github.com/fsnotify/fsnotify v1.9.0/go.mod h1:8jBTzvmWwFyi3Pb8djgCCO5IBqzKJ/Jwo8TRcHyHii0=
+github.com/gabriel-vasile/mimetype v1.4.11 h1:AQvxbp830wPhHTqc1u7nzoLT+ZFxGY7emj5DR5DYFik=
+github.com/gabriel-vasile/mimetype v1.4.11/go.mod h1:d+9Oxyo1wTzWdyVUPMmXFvp4F9tea18J8ufA774AB3s=
 github.com/gdamore/encoding v1.0.0/go.mod h1:alR0ol34c49FCSBLjhosxzcPHQbf2trDkoo5dl+VrEg=
 github.com/gdamore/encoding v1.0.1 h1:YzKZckdBL6jVt2Gc+5p82qhrGiqMdG/eNs6Wy0u3Uhw=
 github.com/gdamore/encoding v1.0.1/go.mod h1:0Z0cMFinngz9kS1QfMjCP8TY7em3bZYeeklsSDPivEo=
@@ -395,8 +397,8 @@ github.com/qiangli/filesearch v0.0.0-20250727212022-dcfddd1c92de h1:gOVT1i8gIK8A
 github.com/qiangli/filesearch v0.0.0-20250727212022-dcfddd1c92de/go.mod h1:kVZIZEVoXE+vWT0LeW4TGL8tfWTntmSYzaoRW/yBBGA=
 github.com/qiangli/micro/v2 v2.0.5 h1:XV4GiglG87o8eRlA1TSnfwLUQ4Dii3/PH2m7eKARJoE=
 github.com/qiangli/micro/v2 v2.0.5/go.mod h1:tcQAyG10hwSB1Fks8/y0s8Yz6qicD7J0zDSYZt/3pLk=
-github.com/qiangli/shell v0.0.7 h1:3OIb8c19q+0UYBhn6z7IQIoyNO+OUB/V31Ne5aQDHMY=
-github.com/qiangli/shell v0.0.7/go.mod h1:RJrxbJ/WdNju5RSfMo6sNN8WSt6VuZrZUtsP5CxDy9c=
+github.com/qiangli/shell v0.0.8 h1:VX55K8eWqP0jF5bf1XWgeBkjtxp8IztDf6mN3G0JaWY=
+github.com/qiangli/shell v0.0.8/go.mod h1:At52J5/IOAZ7ROPN/uKAS/P9yGMzyqvjAJPLUy2WKBY=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/rivo/uniseg v0.1.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=

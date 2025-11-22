@@ -10,7 +10,7 @@ import (
 )
 
 func (r *SystemKit) ListDirectory(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	path, err := r.getStr("path", args)
+	path, err := api.GetStrProp("path", args)
 	if err != nil {
 		return "", err
 	}
@@ -22,7 +22,7 @@ func (r *SystemKit) ListDirectory(ctx context.Context, vars *api.Vars, name stri
 }
 
 func (r *SystemKit) CreateDirectory(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	path, err := r.getStr("path", args)
+	path, err := api.GetStrProp("path", args)
 	if err != nil {
 		return "", err
 	}
@@ -30,11 +30,11 @@ func (r *SystemKit) CreateDirectory(ctx context.Context, vars *api.Vars, name st
 }
 
 func (r *SystemKit) RenameFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	source, err := r.getStr("source", args)
+	source, err := api.GetStrProp("source", args)
 	if err != nil {
 		return "", err
 	}
-	dest, err := r.getStr("destination", args)
+	dest, err := api.GetStrProp("destination", args)
 	if err != nil {
 		return "", err
 	}
@@ -45,7 +45,7 @@ func (r *SystemKit) RenameFile(ctx context.Context, vars *api.Vars, name string,
 }
 
 func (r *SystemKit) FileInfo(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	path, err := r.getStr("path", args)
+	path, err := api.GetStrProp("path", args)
 	if err != nil {
 		return "", err
 	}
@@ -59,7 +59,7 @@ func (r *SystemKit) FileInfo(ctx context.Context, vars *api.Vars, name string, a
 // https://mimesniff.spec.whatwg.org/
 // ReadFile returns mime type and the raw file content
 func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (any, error) {
-	path, err := r.getStr("path", args)
+	path, err := api.GetStrProp("path", args)
 	if err != nil {
 		return nil, err
 	}
@@ -76,11 +76,11 @@ func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, a
 }
 
 func (r *SystemKit) WriteFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	path, err := r.getStr("path", args)
+	path, err := api.GetStrProp("path", args)
 	if err != nil {
 		return "", err
 	}
-	content, err := r.getStr("content", args)
+	content, err := api.GetStrProp("content", args)
 	if err != nil {
 		return "", err
 	}
@@ -91,26 +91,32 @@ func (r *SystemKit) WriteFile(ctx context.Context, vars *api.Vars, name string, 
 }
 
 func (r *SystemKit) SearchFiles(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	pattern, err := r.getStr("pattern", args)
-	if err != nil {
-		return "", err
-	}
-	path, err := r.getStr("path", args)
+	path, err := api.GetStrProp("path", args)
 	if err != nil {
 		return "", err
 	}
 	// options
-	exclude, err := r.getArray("exclude", args)
+	pattern, err := api.GetStrProp("pattern", args)
+	if err != nil {
+		return "", err
+	}
+	depth, err := api.GetIntProp("depth", args)
+	if err != nil {
+		depth = 5
+	}
+	exclude, err := api.GetArrayProp("exclude", args)
 	if err != nil {
 		return "", err
 	}
 	options := &vfs.SearchOptions{
+		Pattern:    pattern,
 		Regexp:     true,
 		IgnoreCase: true,
 		WordRegexp: false,
 		Exclude:    exclude,
+		Depth:      depth,
 		Follow:     false,
 		Hidden:     true,
 	}
-	return r.fs.SearchFiles(pattern, path, options)
+	return r.fs.SearchFiles(path, options)
 }

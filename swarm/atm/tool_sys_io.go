@@ -20,7 +20,7 @@ import (
 // }
 
 // func (r *SystemKit) WriteStdout(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-// 	content, err := r.getStr("content", args)
+// 	content, err := api.GetStrProp("content", args)
 // 	if err != nil {
 // 		return "", err
 // 	}
@@ -28,7 +28,7 @@ import (
 // }
 
 // func (r *SystemKit) CopyToClipboard(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-// 	content, err := r.getStr("content", args)
+// 	content, err := api.GetStrProp("content", args)
 // 	if err != nil {
 // 		return "", err
 // 	}
@@ -36,7 +36,7 @@ import (
 // }
 
 // func (r *SystemKit) CopyToClipboardAppend(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-// 	content, err := r.getStr("content", args)
+// 	content, err := api.GetStrProp("content", args)
 // 	if err != nil {
 // 		return "", err
 // 	}
@@ -44,7 +44,7 @@ import (
 // }
 
 // func (r *SystemKit) GetUserTextInput(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-// 	prompt, err := r.getStr("prompt", args)
+// 	prompt, err := api.GetStrProp("prompt", args)
 // 	if err != nil {
 // 		return "", err
 // 	}
@@ -52,7 +52,7 @@ import (
 // }
 
 func (r *SystemKit) Confirm(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	prompt, err := r.getStr("prompt", args)
+	prompt, err := api.GetStrProp("prompt", args)
 	if err != nil {
 		return "", err
 	}
@@ -60,7 +60,7 @@ func (r *SystemKit) Confirm(ctx context.Context, vars *api.Vars, name string, ar
 }
 
 // func (r *SystemKit) GetUserChoiceInput(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-// 	prompt, err := r.getStr("prompt", args)
+// 	prompt, err := api.GetStrProp("prompt", args)
 // 	if err != nil {
 // 		return "", err
 // 	}
@@ -72,11 +72,11 @@ func (r *SystemKit) Confirm(ctx context.Context, vars *api.Vars, name string, ar
 // }
 
 // func (r *SystemKit) GetFileContentInput(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-// 	prompt, err := r.getStr("prompt", args)
+// 	prompt, err := api.GetStrProp("prompt", args)
 // 	if err != nil {
 // 		return "", err
 // 	}
-// 	pathname, err := r.getStr("pathname", args)
+// 	pathname, err := api.GetStrProp("pathname", args)
 // 	if err != nil {
 // 		return "", err
 // 	}

@@ -7,7 +7,7 @@ import (
 )
 
 // func (r *SystemKit) Man(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-// 	command, err := r.getStr("command", args)
+// 	command, err := api.GetStrProp("command", args)
 // 	if err != nil {
 // 		return "", err
 // 	}
@@ -15,11 +15,11 @@ import (
 // }
 
 func (r *SystemKit) Run(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	command, err := r.getStr("command", args)
+	command, err := api.GetStrProp("command", args)
 	if err != nil {
 		return "", err
 	}
-	argsList, err := r.getArray("args", args)
+	argsList, err := api.GetArrayProp("args", args)
 	if err != nil {
 		return "", err
 	}
@@ -27,7 +27,7 @@ func (r *SystemKit) Run(ctx context.Context, vars *api.Vars, name string, args m
 }
 
 func (r *SystemKit) Cd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	dir, err := r.getStr("dir", args)
+	dir, err := api.GetStrProp("dir", args)
 	if err != nil {
 		return "", err
 	}
