@@ -91,7 +91,7 @@ func NewRequest(ctx context.Context, name string, args map[string]any) *Request 
 		Name:      name,
 		Arguments: NewArguments(),
 	}
-	req.Arguments.Add(args)
+	req.Arguments.AddArgs(args)
 	return req
 }
 

@@ -17,32 +17,34 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 			var ctx = req.Context()
 
 			// update envs and args
+			//
 			// envs
 			var envs = make(map[string]any)
 			maps.Copy(envs, sw.globalEnv())
 			if agent.Environment != nil {
-				sw.mapAssign(ctx, agent, envs, agent.Environment.GetAllEnvs(), true)
+				aenvs := agent.Environment.GetAllEnvs()
+				sw.mapAssign(ctx, agent, envs, aenvs, true)
 			}
 			agent.Environment.AddEnvs(envs)
 
 			// args
-			// global envs
-			// agent envs
+			//
+			// global/agent envs
 			// agent args
 			// req args
 			var args = make(map[string]any)
 			maps.Copy(args, envs)
 			if agent.Arguments != nil {
-				sw.mapAssign(ctx, agent, args, agent.Arguments.GetAllArgs(), true)
+				aargs := agent.Arguments.GetAllArgs()
+				sw.mapAssign(ctx, agent, args, aargs, true)
 			}
 			if req.Arguments != nil {
-				sw.mapAssign(ctx, agent, args, req.Arguments.GetAllArgs(), true)
+				rargs := req.Arguments.GetAllArgs()
+				sw.mapAssign(ctx, agent, args, rargs, true)
 			}
+			req.Arguments.SetArgs(args)
 
-			nreq := req.Clone()
-			nreq.Arguments.SetArgs(args)
-
-			ll := nreq.Arguments.GetString("log_level")
+			ll := req.Arguments.GetString("log_level")
 			logger.SetLogLevel(api.ToLogLevel(ll))
 
 			var parent string
@@ -51,7 +53,7 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 			}
 			logger.Infof("🚀 %s%s\n", parent, agent.Name)
 
-			return next.Serve(nreq, resp)
+			return next.Serve(req, resp)
 		})
 	}
 }

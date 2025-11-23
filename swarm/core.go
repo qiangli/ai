@@ -160,11 +160,10 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 // copy values from src to dst after calling @agent and applying template if required
 func (sw *Swarm) mapAssign(ctx context.Context, agent *api.Agent, dst, src map[string]any, override bool) error {
 	for key, val := range src {
-		if !override {
-			if _, ok := dst[key]; ok {
-				continue
-			}
+		if _, ok := dst[key]; ok && !override {
+			continue
 		}
+
 		// @agent value support
 		if v, ok := val.(string); ok {
 			if resolved, err := sw.resolveArgument(ctx, agent, v); err != nil {
@@ -255,14 +254,6 @@ func (sw *Swarm) Execv(ctx context.Context, arg0 string, argv []string) (*api.Re
 }
 
 func (sw *Swarm) Execm(ctx context.Context, arg0 string, args map[string]any) (*api.Result, error) {
-	// agent, err := sw.CreateAgent(ctx, arg0)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// id := api.KitName(fmt.Sprintf("agent:%s", agent.Name)).ID()
-
-	// data, err :=  agent.Runner.Run(ctx, id, args)
 	data, err := sw.RunAction(ctx, nil, arg0, args)
 	if err != nil {
 		return nil, err

@@ -125,18 +125,27 @@ func (r *Arguments) GetInt(key string) int {
 	return 0
 }
 
-func (r *Arguments) Set(key string, data any) {
+func (r *Arguments) Set(key string, val any) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.args[key] = data
+	r.args[key] = val
 }
 
+func (r *Arguments) AddArgs(args map[string]any) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	maps.Copy(r.args, args)
+}
+
+// clear all entries and copy args
+// while maintaining the same old reference
 func (r *Arguments) SetArgs(args map[string]any) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	for k, v := range args {
-		r.args[k] = v
+	for k := range r.args {
+		delete(r.args, k)
 	}
+	maps.Copy(r.args, args)
 }
 
 func (r *Arguments) GetAllArgs() map[string]any {
@@ -156,12 +165,6 @@ func (r *Arguments) GetArgs(keys []string) map[string]any {
 		args[k] = r.args[k]
 	}
 	return args
-}
-
-func (r *Arguments) Add(src map[string]any) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	maps.Copy(r.args, src)
 }
 
 func (r *Arguments) Copy(dst map[string]any) {
