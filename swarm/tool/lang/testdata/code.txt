@@ -1,0 +1,34 @@
+package main
+
+      import (
+        "fmt"
+        "io/fs"
+        "path/filepath"
+      )
+
+      func searchFiles(startPath string, pattern string) ([]string, error) {
+        var matches []string
+
+        err := filepath.WalkDir(startPath, func(path string, d fs.DirEntry, err error) error {
+          if err != nil {
+            return err
+          }
+          if matched, err := filepath.Match(pattern, d.Name()); err != nil {
+            return err
+          } else if matched {
+            matches = append(matches, path)
+          }
+          return nil
+        })
+
+        return matches, err
+      }
+
+      func main() {
+        files, err := searchFiles("{{ .path }}", "{{ .pattern }}")
+        if err != nil {
+          fmt.Println("Error:", err)
+          return
+        }
+        fmt.Println("Matches:", files)
+      }

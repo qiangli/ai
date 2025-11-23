@@ -1,0 +1,54 @@
+
+kit: filesystem
+
+# func: inline function body
+type: func
+
+tools:
+  - name: "search_files"
+    description: "Recursively search for files and directories matching a pattern"
+    parameters:
+      type: "object"
+      properties:
+        path:
+          type: "string"
+          description: "Starting path for the search"
+        pattern:
+          type: "string"
+          description: "Search pattern to match against file names"
+    body: |
+      #!golang
+      package main
+
+      import (
+        "fmt"
+        "io/fs"
+        "path/filepath"
+      )
+
+      func searchFiles(startPath string, pattern string) ([]string, error) {
+        var matches []string
+
+        err := filepath.WalkDir(startPath, func(path string, d fs.DirEntry, err error) error {
+          if err != nil {
+            return err
+          }
+          if matched, err := filepath.Match(pattern, d.Name()); err != nil {
+            return err
+          } else if matched {
+            matches = append(matches, path)
+          }
+          return nil
+        })
+
+        return matches, err
+      }
+
+      func main() {
+        files, err := searchFiles("{{ .path }}", "{{ .pattern }}")
+        if err != nil {
+          fmt.Println("Error:", err)
+          return
+        }
+        fmt.Println("Matches:", files)
+      }
