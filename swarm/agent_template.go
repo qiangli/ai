@@ -1,15 +1,18 @@
 package swarm
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
+	"github.com/qiangli/shell/tool/sh"
 )
 
 // https://pkg.go.dev/text/template
@@ -43,6 +46,7 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 		return "localhost"
 	}
 
+	// custom
 	// ai
 	fm["ai"] = func(args ...string) string {
 		ctx := context.Background()
@@ -65,5 +69,47 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 		return result.Value
 	}
 
+	// core utils
+	var core = []string{
+		"base64",
+		"basename",
+		"cat",
+		// "chmod",
+		// "cp",
+		"date",
+		"dirname",
+		"find",
+		"gzip",
+		"head",
+		"ls",
+		// "mkdir",
+		// "mktemp",
+		// "mv",
+		// "rm",
+		"shasum",
+		"tac",
+		"tail",
+		"tar",
+		"touch",
+		"wget",
+		"xargs",
+	}
+	for _, cmd := range core {
+		fm[cmd] = func(args ...string) string {
+			return runCoreUtil(sw, args)
+		}
+	}
+
 	return template.New("swarm").Funcs(fm)
+}
+
+func runCoreUtil(sw *Swarm, args []string) string {
+	var b bytes.Buffer
+	ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
+	vs := sh.NewVirtualSystem(sw.Root, sw.OS, sw.Workspace, ioe)
+	_, err := sh.RunCoreUtils(context.Background(), vs, args)
+	if err != nil {
+		return err.Error()
+	}
+	return b.String()
 }

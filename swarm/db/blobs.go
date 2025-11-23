@@ -1,7 +1,6 @@
 package db
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -144,31 +143,10 @@ func (r CloudStorage) ReadFile(key string, o *vfs.ReadOptions) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	//
-	var content []string
-	scanner := bufio.NewScanner(bytes.NewReader(data))
-	for scanner.Scan() {
-		content = append(content, scanner.Text())
+	lines, err := vfs.ReadLines(bytes.NewReader(data), o.Number, o.Offset, o.Limit)
+	if err != nil {
+		return nil, err
 	}
-
-	if len(content) == 0 {
-		return nil, fmt.Errorf("empty content")
-	}
-
-	startIdx := o.Offset
-	endIdx := startIdx + o.Limit
-	if startIdx >= len(content) {
-		return nil, fmt.Errorf("error: line offset %d exceeds file length (%d lines)", o.Offset, len(content))
-	}
-
-	if endIdx > len(content) {
-		endIdx = len(content)
-	}
-
-	selectedLines := content[startIdx:endIdx]
-	lines := vfs.FormatLinesWithLineNumbers(selectedLines, startIdx+1)
-
 	return []byte(lines), nil
 }
 
