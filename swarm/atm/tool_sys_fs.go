@@ -64,7 +64,21 @@ func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, a
 	if err != nil {
 		return nil, err
 	}
-	raw, err := r.fs.ReadFile(path)
+
+	var opt *vfs.ReadOptions
+
+	num, _ := api.GetBoolProp("number", args)
+	offset, _ := api.GetIntProp("offset", args)
+	limit, _ := api.GetIntProp("limit", args)
+	if num || offset > 0 || limit > 0 {
+		opt = &vfs.ReadOptions{
+			Number: num,
+			Offset: offset,
+			Limit:  limit,
+		}
+	}
+
+	raw, err := r.fs.ReadFile(path, opt)
 	if err != nil {
 		return nil, err
 	}

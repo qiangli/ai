@@ -46,7 +46,7 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/openai/openai-go/v2 v2.7.1
 	github.com/openai/openai-go/v3 v3.8.1
-	github.com/qiangli/shell v0.0.8
+	github.com/qiangli/shell v0.0.9
 	github.com/sahilm/fuzzy v0.1.1
 	github.com/shirou/gopsutil/v4 v4.25.10
 	github.com/spf13/cobra v1.10.1

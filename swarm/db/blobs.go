@@ -1,6 +1,7 @@
 package db
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -43,12 +44,12 @@ func (r *BlobStorage) Put(ID string, blob *api.Blob) error {
 }
 
 func (r *BlobStorage) Get(ID string) (*api.Blob, error) {
-	content, err := r.fs.ReadFile(path.Join(r.bucket, ID))
+	content, err := r.fs.ReadFile(path.Join(r.bucket, ID), nil)
 	if err != nil {
 		return nil, fmt.Errorf("error reading blob content: %w", err)
 	}
 
-	metaData, err := r.fs.ReadFile(path.Join(r.bucket, ID+".json"))
+	metaData, err := r.fs.ReadFile(path.Join(r.bucket, ID+".json"), nil)
 	if err != nil {
 		return nil, fmt.Errorf("error reading blob metadata: %w", err)
 	}
@@ -116,7 +117,7 @@ func (r CloudStorage) Locator(key string) (string, error) {
 	return locator, nil
 }
 
-func (r CloudStorage) ReadFile(key string) ([]byte, error) {
+func (r CloudStorage) ReadFile(key string, o *vfs.ReadOptions) ([]byte, error) {
 	endpoint := fmt.Sprintf("%s/blobs/file?key=%s", r.Base, key)
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
@@ -135,7 +136,40 @@ func (r CloudStorage) ReadFile(key string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to read blob %s: %s", key, resp.Status)
 	}
 
-	return io.ReadAll(resp.Body)
+	if o == nil {
+		return io.ReadAll(resp.Body)
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	//
+	var content []string
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+	for scanner.Scan() {
+		content = append(content, scanner.Text())
+	}
+
+	if len(content) == 0 {
+		return nil, fmt.Errorf("empty content")
+	}
+
+	startIdx := o.Offset
+	endIdx := startIdx + o.Limit
+	if startIdx >= len(content) {
+		return nil, fmt.Errorf("error: line offset %d exceeds file length (%d lines)", o.Offset, len(content))
+	}
+
+	if endIdx > len(content) {
+		endIdx = len(content)
+	}
+
+	selectedLines := content[startIdx:endIdx]
+	lines := vfs.FormatLinesWithLineNumbers(selectedLines, startIdx+1)
+
+	return []byte(lines), nil
 }
 
 func (r CloudStorage) WriteFile(key string, data []byte) error {
