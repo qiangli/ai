@@ -14,7 +14,7 @@ agents:
         concisely summarizing relevant messages from previous conversations
         to enhance the user's current query.
         Core responsibilities:
-        - Use the `ai:list_messages` and `ai:message_info` functions to retrieve historical messages based
+        - Use the `ai:list_messages` and `ai:get_message_info` functions to retrieve historical messages based
           on the user's current input to gather all potential context.
         - Select the minimal set of prior messages that are directly relevant to
           the user's new query based solely on the new input.
@@ -60,5 +60,5 @@ agents:
           language as the current query.
     functions:
       - "ai:list_messages"
-      - "ai:message_info"
+      - "ai:get_message_info"
 ###

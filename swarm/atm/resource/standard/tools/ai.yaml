@@ -9,7 +9,7 @@ tools:
       type: object
       properties: {}
 
-  - name: "agent_info"
+  - name: "get_agent_info"
     description: "Get information about a specific agent"
     parameters:
       type: "object"
@@ -20,7 +20,7 @@ tools:
       required:
         - "agent"
 
-  - name: "agent_transfer"
+  - name: "transfer_agent"
     description: "Trasnfer the current task to a specific agent"
     parameters:
       type: "object"
@@ -31,7 +31,7 @@ tools:
       required:
         - "agent"
 
-  - name: "agent_spawn"
+  - name: "spawn_agent"
     description: "Delegate the current task to a specific agent"
     parameters:
       type: "object"
@@ -48,7 +48,7 @@ tools:
       type: object
       properties: {}
 
-  - name: "tool_info"
+  - name: "get_tool_info"
     description: "Get information about a specific tool"
     parameters:
       type: "object"
@@ -59,7 +59,7 @@ tools:
       required:
         - "tool"
 
-  - name: "tool_execute"
+  - name: "execute_tool"
     description: "Call the tool function"
     parameters:
       type: "object"
@@ -75,7 +75,7 @@ tools:
         - "tool"
         - "parameters"
 
-  - name: "tool_calllog"
+  - name: "get_tool_calllog"
     description: "Get the tool call history for the current user session"
     parameters:
       type: "object"
@@ -103,7 +103,7 @@ tools:
           default: 1440
           minimum: 0
 
-  - name: "message_info"
+  - name: "get_message_info"
     description: "Retrieve detailed information for a specific message from past conversations by id."
     parameters:
       type: "object"

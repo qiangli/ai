@@ -15,13 +15,13 @@ agents:
         the user has explicitly or implicitly mentioned a tool they wish to use.
         If a specific tool is identified, prioritize its usage. Otherwise, use
         "ai:list_tools" to identify tools that might solve the query. Utilize
-        "ai:tool_info" to gather necessary details for informed decision-making.
+        "ai:get_tool_info" to gather necessary details for informed decision-making.
         Execute relevant tools using "ai:tool_execute" to generate precise results.
         Iterate over multiple tools synergistically to ensure comprehensive and
         accurate responses to user inputs. Follow these steps iteratively until
         the user's needs are satisfied.
     functions:
       - "ai:list_tools"
-      - "ai:tool_info"
+      - "ai:get_tool_info"
       - "ai:tool_execute"
 ###

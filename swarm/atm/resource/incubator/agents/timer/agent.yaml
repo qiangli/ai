@@ -15,15 +15,15 @@ agents:
            - Determine if the user wants to start a new timer or cancel an existing one.
 
         2. **Delegate to Appropriate Agent**:
-           - Use `agent_transfer("timer/start")` if the intention is to start a timer.
-           - Use `agent_transfer("timer/cancel")` if the intention is to cancel a timer.
+           - Use `transfer_agent("timer/start")` if the intention is to start a timer.
+           - Use `transfer_agent("timer/cancel")` if the intention is to cancel a timer.
 
         Guidelines:
         - Identify key phrases indicating either starting or canceling a timer.
         - Direct the request to the appropriate specialist agent without handling the setting or canceling internally.
         - Provide clarification if needed to ensure the correct interpretation of the user's intent.    
     functions:
-      - "ai:agent_transfer"
+      - "ai:transfer_agent"
 
   - name: "timer/start"
     display: "⏳ Start Timer"

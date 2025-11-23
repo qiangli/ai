@@ -55,6 +55,6 @@ agents:
     functions:
       - "flow:*"
       - "ai:list_agents"
-      - "ai:agent_info"
+      - "ai:get_agent_info"
       - "ai:list_tools"
-      - "ai:tool_info"
+      - "ai:get_tool_info"

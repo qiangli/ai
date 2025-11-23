@@ -23,7 +23,7 @@ agents:
     functions:
       - "cron:*"
       - "ai:list_agents"
-      - "ai:agent_info"
+      - "ai:get_agent_info"
 
 set: "cron"
 models:

@@ -43,7 +43,7 @@ agents:
       format: "markdown"
     functions:
       - "ai:list_tools"
-      - "ai:tool_info"
+      - "ai:get_tool_info"
       - "ai:tool_execute"
 ###
 set: "react"

@@ -20,7 +20,7 @@ agents:
         which agent and options to utilize, summarizing how they solve the user's
         issue directly with syntax guidance.
 
-        Use function calls like `ai:list_agents` and `ai:agent_info` to fetch
+        Use function calls like `ai:list_agents` and `ai:get_agent_info` to fetch
         necessary details for summary.
 
         Commands for reference:
@@ -38,10 +38,10 @@ agents:
         For further questions, recommend using `@help "more queries"`
     functions:
       - "ai:list_agents"
-      - "ai:agent_info"
+      - "ai:get_agent_info"
       - "ai:list_tools"
-      - "ai:tool_info"
+      - "ai:get_tool_info"
       - "ai:list_models"
       - "ai:list_messages"
-      - "ai:message_info"
+      - "ai:get_message_info"
 ###

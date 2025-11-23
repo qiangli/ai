@@ -113,7 +113,7 @@ agents:
 
         Available tools:
           - "ai:list_messages"
-          - "ai:message_info"
+          - "ai:get_message_info"
           - "ai:context_get_messages"
           - "ai:context_set_messages"
           - "ai:agent_get_prompt"
@@ -147,7 +147,7 @@ agents:
         Directly output the JSON format episode memory. Do not include any other text.
     functions:
       - "ai:list_messages"
-      - "ai:message_info"
+      - "ai:get_message_info"
       - "ai:context_get_messages"
       - "ai:context_set_messages"
       - "ai:agent_get_prompt"
@@ -171,7 +171,7 @@ agents:
 
         Available tools:
           - "ai:list_messages"
-          - "ai:message_info"
+          - "ai:get_message_info"
           - "ai:context_get_messages"
           - "ai:context_set_messages"
           - "ai:agent_get_prompt"
@@ -204,7 +204,7 @@ agents:
         Directly output the JSON format current working memory. Do not include any other text.
     functions:
       - "ai:list_messages"
-      - "ai:message_info"
+      - "ai:get_message_info"
       - "ai:context_get_messages"
       - "ai:context_set_messages"
       - "ai:agent_get_prompt"
@@ -227,7 +227,7 @@ agents:
 
         Available tools:
           - "ai:list_messages"
-          - "ai:message_info"
+          - "ai:get_message_info"
           - "ai:context_get_messages"
           - "ai:context_set_messages"
           - "ai:agent_get_prompt"
@@ -273,7 +273,7 @@ agents:
         Directly output the JSON format tool memory. Do not include any other text.
     functions:
       - "ai:list_messages"
-      - "ai:message_info"
+      - "ai:get_message_info"
       - "ai:context_get_messages"
       - "ai:context_set_messages"
       - "ai:agent_get_prompt"
@@ -339,7 +339,7 @@ agents:
         - tool_search_result
     functions:
       - "ai:list_tools"
-      - "ai:tool_info"
+      - "ai:get_tool_info"
       - "agent:deep/response_analysis"
 
   - name: "deep/response_analysis"
@@ -412,7 +412,7 @@ agents:
       - "agent:deep/working_memory"
       - "agent:deep/tool_memory"
       - "ai:list_messages"
-      - "ai:message_info"
+      - "ai:get_message_info"
       - "ai:context_get_messages"
       - "ai:context_set_messages"
       - "ai:agent_get_prompt"

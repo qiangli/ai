@@ -127,7 +127,7 @@ agents:
         - "Unsure": It is unclear whether the task can be completed
     functions:
       - "ai:list_tools"
-      - "ai:tool_info"
+      - "ai:get_tool_info"
   
   - name: "eval/select_answer"
     display: "Select Better Answer"

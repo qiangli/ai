@@ -91,7 +91,7 @@ agents:
           - Write input context/instructions to a file, tell subagent to read it
           - Ask subagent to write their output to a file, then read it after they return
           - This prevents token bloat and keeps context manageable in both directions
-        - **Parallelize independent work**: When tasks are independent, spawn parallel subagents to work simultaneously
+        - **Parallelize independent work**: When tasks are independent, spawn parallel subagents to work simultaneously with ai:spawn_agent
         - **Clear specifications**: Tell subagent exactly what format/structure you need in their response or output file
         - **Main agent synthesizes**: Subagents gather/execute, main agent integrates results into final deliverable
 
@@ -125,6 +125,10 @@ agents:
         - Only create documentation when explicitly requested
     functions:
       - "fs:*"
+      - "sh:*"
+      - "ai:list_agents"
+      - "ai:get_agent_info"
+      - "ai:spawn_agent"
       - "agent:deep/long_term_memory"
 
   - name: "deep/long_term_memory"

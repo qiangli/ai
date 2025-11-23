@@ -73,7 +73,7 @@ func (r *AIKit) ListAgents(ctx context.Context, vars *api.Vars, tf string, args 
 	return v, nil
 }
 
-func (r *AIKit) AgentInfo(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
+func (r *AIKit) GetAgentInfo(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
 	const tpl = `
 Agent: %s
 Display: %s
@@ -104,7 +104,7 @@ Instruction: %s
 	return "", fmt.Errorf("unknown agent: %s", agent)
 }
 
-func (r *AIKit) AgentTransfer(_ context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+func (r *AIKit) TransferAgent(_ context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
 	agent, err := api.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
@@ -116,7 +116,7 @@ func (r *AIKit) AgentTransfer(_ context.Context, _ *api.Vars, _ string, args map
 	}, nil
 }
 
-func (r *AIKit) AgentSpawn(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+func (r *AIKit) SpawnAgent(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
 	agent, err := api.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
@@ -124,14 +124,8 @@ func (r *AIKit) AgentSpawn(ctx context.Context, _ *api.Vars, _ string, args map[
 	if agent == "" {
 		return nil, fmt.Errorf("missing agent name")
 	}
-	// var input *api.UserInput
-	// if r.h.agent != nil && r.h.agent.RawInput != nil {
-	// 	input = r.h.agent.RawInput.Clone()
-	// } else {
-	// 	input = &api.UserInput{}
-	// }
+
 	nreq := api.NewRequest(ctx, agent, args)
-	// nreq := req.WithContext(ctx)
 	nreq.Parent = r.h.agent
 
 	resp := &api.Response{}
@@ -167,7 +161,7 @@ func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, tf string, args m
 	return v, nil
 }
 
-func (r *AIKit) ToolInfo(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
+func (r *AIKit) GetToolInfo(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
 	const tpl = `
 Tool: %s__%s
 Description: %s
@@ -203,7 +197,7 @@ Parameters: %s
 	return "", fmt.Errorf("unknown tool: %s", tid)
 }
 
-func (r *AIKit) ToolExecute(ctx context.Context, _ *api.Vars, tf string, args map[string]any) (any, error) {
+func (r *AIKit) ExecuteTool(ctx context.Context, _ *api.Vars, tf string, args map[string]any) (any, error) {
 	log.GetLogger(ctx).Debugf("Tool execute: %s %+v\n", tf, args)
 
 	tid, err := api.GetStrProp("tool", args)
@@ -232,7 +226,7 @@ func (r *AIKit) ToolExecute(ctx context.Context, _ *api.Vars, tf string, args ma
 	return out, nil
 }
 
-func (r *AIKit) ToolCalllog(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
+func (r *AIKit) GetToolCalllog(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
 	log.GetLogger(ctx).Debugf("Tool call log: %s %+v\n", tf, args)
 	v, err := vars.ToolCalllog()
 	return v, err
@@ -289,7 +283,7 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, arg
 	return v, nil
 }
 
-func (r *AIKit) MessageInfo(_ context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+func (r *AIKit) GetMessageInfo(_ context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
 	id, err := api.GetStrProp("id", args)
 	if err != nil {
 		return nil, err

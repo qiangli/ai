@@ -27,12 +27,12 @@ agents:
         - Use "agent:aider/code" for implementing code changes based on user requests.
         - Use "agent:aider/architect" for architectural advice and modifications.
 
-        For more details on sub-agents, refer to "ai:agent_info" tool call.
+        For more details on sub-agents, refer to "ai:get_agent_info" tool call.
     functions:
       - "fs:*"
       - "sh:*"
       - "ai:set_envs"
-      - "ai:agent_info"
+      - "ai:get_agent_info"
       - "agent:aider/ask"
       - "agent:aider/code"
       - "agent:aider/architect"
