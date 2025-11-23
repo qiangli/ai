@@ -192,6 +192,9 @@ func ParseActionArgs(args []string) (*api.ActionConfig, error) {
 //
 // name,
 func IsAgentTool(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
 	switch s[0] {
 	case '@':
 		return true

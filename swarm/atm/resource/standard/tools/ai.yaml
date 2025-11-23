@@ -259,4 +259,4 @@ tools:
           description: "An array of tool ids to add. If empty, all tools will be cleared."
           items:
             type: "string"
-        required: ["ids"]
+      required: ["ids"]

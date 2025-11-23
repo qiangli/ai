@@ -9,8 +9,8 @@ agents:
     environment:
       memories: "{{.workspace}}/memory/"
     # context: "@deep/long_term_memory"
-    # embed:
-    #   - "agent:deep/long_term_memory"
+    embed:
+      - "agent:deep/long_term_memory"
     instruction:
       content: |
         #! mime-type=text/x-go-template
