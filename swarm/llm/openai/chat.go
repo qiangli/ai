@@ -125,7 +125,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 				MimeType: "text/plain",
 				Value:    completion.Choices[0].Message.Content,
 			}
-			break
+			return resp, nil
 		}
 
 		params.Messages = append(params.Messages, completion.Choices[0].Message.ToParam())
@@ -156,7 +156,9 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 			params.Messages = append(params.Messages, openai.ToolMessage(out.Value, calls[i].ID))
 		}
 	}
-
+	if resp.Result == nil {
+		return nil, fmt.Errorf("Empty response. Max turns reached: %v", maxTurns)
+	}
 	return resp, nil
 }
 

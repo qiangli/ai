@@ -130,6 +130,7 @@ agents:
       - "ai:get_agent_info"
       - "ai:spawn_agent"
       - "agent:deep/long_term_memory"
+      - "agent:search"
 
   - name: "deep/long_term_memory"
     display: "Long Term Memory"
