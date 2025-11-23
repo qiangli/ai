@@ -46,13 +46,23 @@ tools:
       required: ["path"]
 
   - name: "read_file"
-    description: "Read the complete contents of a file from the file system."
+    description: |
+      Reads the content of a specified file and includes line numbers if number, offset, or limit parameters are used.
     parameters:
       type: "object"
       properties:
         path:
           type: "string"
-          description: "Path to the file to read"
+          description: "The full path to the file that you want to read."
+        number:
+          type: "boolean"
+          description: "Include line numbers in the output, starting from 1, emulating 'cat -n'."
+        offset:
+          type: "integer"
+          description: "The starting line offset (0-indexed) from which to begin reading the file."
+        limit:
+          type: "integer"
+          description: "The maximum number of lines to read from the file. If set to zero or a negative value, the whole file will be returned."
       required: ["path"]
 
   - name: "write_file"
