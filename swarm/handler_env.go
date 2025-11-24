@@ -23,7 +23,9 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 			maps.Copy(envs, sw.globalEnv())
 			if agent.Environment != nil {
 				aenvs := agent.Environment.GetAllEnvs()
-				sw.mapAssign(ctx, agent, envs, aenvs, true)
+				if err := sw.mapAssign(ctx, agent, envs, aenvs, true); err != nil {
+					return err
+				}
 			}
 			agent.Environment.AddEnvs(envs)
 
@@ -36,11 +38,15 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 			maps.Copy(args, envs)
 			if agent.Arguments != nil {
 				aargs := agent.Arguments.GetAllArgs()
-				sw.mapAssign(ctx, agent, args, aargs, true)
+				if err := sw.mapAssign(ctx, agent, args, aargs, true); err != nil {
+					return err
+				}
 			}
 			if req.Arguments != nil {
 				rargs := req.Arguments.GetAllArgs()
-				sw.mapAssign(ctx, agent, args, rargs, true)
+				if err := sw.mapAssign(ctx, agent, args, rargs, true); err != nil {
+					return err
+				}
 			}
 			req.Arguments.SetArgs(args)
 

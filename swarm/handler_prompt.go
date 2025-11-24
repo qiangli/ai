@@ -4,12 +4,16 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
 )
 
 // System role prompt
 func InstructionMiddleware(sw *Swarm) api.Middleware {
 	resolve := func(parent *api.Agent, req *api.Request, s string) (string, error) {
+		if !conf.IsAgentTool(s) {
+			return s, nil
+		}
 		out, err := sw.expand(req.Context(), parent, s)
 		if err != nil {
 			return "", err

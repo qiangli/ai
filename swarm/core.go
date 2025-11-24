@@ -194,6 +194,9 @@ func (sw *Swarm) globalEnv() map[string]any {
 
 // call agent if found. otherwise return s as is
 func (sw *Swarm) resolveArgument(ctx context.Context, agent *api.Agent, s string) (any, error) {
+	if !conf.IsAgentTool(s) {
+		return s, nil
+	}
 	out, err := sw.expand(ctx, agent, s)
 	if err != nil {
 		return nil, err
@@ -216,9 +219,6 @@ func (sw *Swarm) resolveArgument(ctx context.Context, agent *api.Agent, s string
 
 // expand s for agent/tool similar to $(cmdline...)
 func (sw *Swarm) expand(ctx context.Context, parent *api.Agent, s string) (string, error) {
-	if !conf.IsAgentTool(s) {
-		return s, nil
-	}
 	argv := shlex.Argv(s)
 	data, err := sw.ExecCommand(ctx, parent, argv)
 	if err != nil {

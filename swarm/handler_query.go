@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
 )
 
@@ -9,6 +10,9 @@ import (
 func QueryMiddleware(sw *Swarm) api.Middleware {
 
 	resolve := func(parent *api.Agent, req *api.Request, s string) (string, error) {
+		if !conf.IsAgentTool(s) {
+			return s, nil
+		}
 		out, err := sw.expand(req.Context(), parent, s)
 		if err != nil {
 			return "", err

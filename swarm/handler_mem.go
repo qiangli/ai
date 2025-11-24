@@ -2,14 +2,18 @@ package swarm
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
 )
 
 func MemoryMiddleware(sw *Swarm) api.Middleware {
-
 	mustResolveContext := func(parent *api.Agent, req *api.Request, s string) ([]*api.Message, error) {
+		if !conf.IsAgentTool(s) {
+			return nil, fmt.Errorf("invalid agent: %s", s)
+		}
 		out, err := sw.expand(req.Context(), parent, s)
 		if err != nil {
 			return nil, err
