@@ -96,20 +96,27 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 	}
 	for _, cmd := range core {
 		fm[cmd] = func(args ...string) string {
-			return runCoreUtil(sw, args)
+			return RunCoreUtil(sw, cmd, args)
 		}
 	}
 
 	return template.New("swarm").Funcs(fm)
 }
 
-func runCoreUtil(sw *Swarm, args []string) string {
+func RunCoreUtil(sw *Swarm, cmd string, a []string) string {
+	var args []string
+	args = append(args, cmd)
+	args = append(args, a...)
+
 	var b bytes.Buffer
 	ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
 	vs := sh.NewVirtualSystem(sw.Root, sw.OS, sw.Workspace, ioe)
-	_, err := sh.RunCoreUtils(context.Background(), vs, args)
+	done, err := sh.RunCoreUtils(context.Background(), vs, args)
 	if err != nil {
 		return err.Error()
+	}
+	if !done {
+		return "invalid/unsupported command: " + cmd
 	}
 	return b.String()
 }
