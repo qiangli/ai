@@ -51,11 +51,15 @@ func InstructionMiddleware(sw *Swarm) api.Middleware {
 			// merge all including the current agent
 			addAll = func(a *api.Agent) error {
 				for _, v := range a.Embed {
-					return addAll(v)
+					if err := addAll(v); err != nil {
+						return err
+					}
 				}
 				in := a.Instruction()
 				if in != "" {
-					return add(in)
+					if err := add(in); err != nil {
+						return err
+					}
 				}
 				return nil
 			}

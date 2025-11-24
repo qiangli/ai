@@ -1,6 +1,7 @@
 ###
 # https://github.com/langchain-ai/deepagents
 pack: "deep"
+log_level: info
 agents:
   - name: "deep"
     display: "Deep Agent"
@@ -138,7 +139,7 @@ agents:
     model: "llm/L1"
     message:
     environment:
-      memory_path: "{{.memories}}"
+      memory_path: "{{.workspace}}/memory/"
       agent_memory: "{{cat \"/memory/agent.md\"}}"
     instruction:
       content: |

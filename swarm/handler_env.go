@@ -32,10 +32,14 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 			var addAll func(*api.Agent) error
 			addAll = func(a *api.Agent) error {
 				for _, v := range a.Embed {
-					return addAll(v)
+					if err := addAll(v); err != nil {
+						return err
+					}
 				}
 				if a.Environment != nil {
-					return add(a.Environment)
+					if err := add(a.Environment); err != nil {
+						return err
+					}
 				}
 				return nil
 			}
