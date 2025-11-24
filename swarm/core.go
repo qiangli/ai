@@ -55,6 +55,7 @@ type Swarm struct {
 func (sw *Swarm) Init() {
 	sw.InitChain()
 	sw.agentMaker = NewAgentMaker(sw)
+	//
 }
 
 func (sw *Swarm) InitChain() {
@@ -117,7 +118,9 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 	if sw.User == nil || sw.Vars == nil {
 		return api.NewInternalServerError("invalid config. user or vars not initialized")
 	}
-
+	if v, _ := sw.Vars.Global.Get("workspace"); v == "" {
+		return api.NewInternalServerError("invalid config. user or vars not initialized")
+	}
 	if req.Parent != nil && req.Parent.Name == req.Name {
 		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself not supported.", req.Name))
 	}

@@ -190,5 +190,8 @@ func processOutput(ctx context.Context, cfg *api.AppConfig, message *api.Output)
 func InitVars(app *api.AppConfig) (*api.Vars, error) {
 	var vars = api.NewVars()
 
+	// global envs
+	vars.Global.Set("workspace", app.Workspace)
+
 	return vars, nil
 }

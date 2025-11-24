@@ -69,22 +69,7 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 				}
 			}
 
-			// // request
-			// nreq := req.Clone()
-			// nreq.Name = agent.Name
-			// nreq.Tools = agent.Tools
-			// nreq.Runner = agent.Runner
-
-			// //
-			// initLen := len(history)
-			// nreq.Messages = history
-			// // call next
-			// 	if err := next.Serve(nreq, resp); err != nil {
-			// 		return err
-			// 	}
-
 			// request
-			// nreq := req.Clone()
 			req.Name = agent.Name
 			req.Tools = agent.Tools
 			req.Runner = agent.Runner
