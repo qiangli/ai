@@ -12,16 +12,15 @@ func ToolMiddleware(sw *Swarm) api.Middleware {
 
 			logger.Debugf("🔗 (tool): %s %v\n", agent.Name, len(agent.Tools))
 
-			var tools = make(map[string]*api.ToolFunc)
-
 			// inherit tools of embeeded agents
+			// merge all tools including the current agent
 			if agent.Embed != nil {
+				var tools = make(map[string]*api.ToolFunc)
+
 				var addAll func(*api.Agent) error
 				addAll = func(a *api.Agent) error {
-					if a.Embed != nil {
-						for _, v := range a.Embed {
-							return addAll(v)
-						}
+					for _, v := range a.Embed {
+						return addAll(v)
 					}
 					for _, v := range a.Tools {
 						tools[v.ID()] = v

@@ -21,12 +21,26 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 			// envs
 			var envs = make(map[string]any)
 			maps.Copy(envs, sw.globalEnv())
-			if agent.Environment != nil {
-				aenvs := agent.Environment.GetAllEnvs()
-				if err := sw.mapAssign(ctx, agent, envs, aenvs, true); err != nil {
-					return err
-				}
+
+			//
+			// inherit envs of embeded agents
+			// merge into args if not already set in args
+			add := func(e *api.Environment) error {
+				return sw.mapAssign(ctx, agent, envs, e.GetAllEnvs(), true)
 			}
+
+			var addAll func(*api.Agent) error
+			addAll = func(a *api.Agent) error {
+				for _, v := range a.Embed {
+					return addAll(v)
+				}
+				if a.Environment != nil {
+					return add(a.Environment)
+				}
+				return nil
+			}
+
+			addAll(agent)
 			agent.Environment.AddEnvs(envs)
 
 			// args
@@ -48,6 +62,7 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 					return err
 				}
 			}
+
 			req.Arguments.SetArgs(args)
 
 			ll := req.Arguments.GetString("log_level")

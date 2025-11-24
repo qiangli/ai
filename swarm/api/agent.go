@@ -270,7 +270,6 @@ type AgentConfig struct {
 	// inherit from parent:
 	// environment
 	// instruction
-	// model
 	// tools
 	Embed []string `yaml:"embed"`
 

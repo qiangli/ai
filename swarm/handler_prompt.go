@@ -26,7 +26,6 @@ func InstructionMiddleware(sw *Swarm) api.Middleware {
 			logger.Debugf("🔗 (instruction): %s\n", agent.Name)
 
 			var env = req.Arguments.GetAllArgs()
-
 			var instructions []string
 
 			add := func(in string) error {
@@ -49,6 +48,7 @@ func InstructionMiddleware(sw *Swarm) api.Middleware {
 			var addAll func(*api.Agent) error
 
 			// inherit embedded agent instructions
+			// merge all including the current agent
 			addAll = func(a *api.Agent) error {
 				for _, v := range a.Embed {
 					return addAll(v)
@@ -63,6 +63,7 @@ func InstructionMiddleware(sw *Swarm) api.Middleware {
 			if err := addAll(agent); err != nil {
 				return err
 			}
+
 			instruction := strings.Join(instructions, "\n")
 			req.SetInstruction(instruction)
 
