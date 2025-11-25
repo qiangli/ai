@@ -15,9 +15,7 @@ import (
 )
 
 type AIKit struct {
-	sw *Swarm
-	h  *agentHandler
-	// callTool api.ActionRunner
+	sw    *Swarm
 	agent *api.Agent
 }
 
@@ -27,9 +25,7 @@ func (r *AIKit) Run(ctx context.Context, id string, args map[string]any) (any, e
 
 func NewAIKit(sw *Swarm, agent *api.Agent) *AIKit {
 	return &AIKit{
-		sw: sw,
-		// h:        h,
-		// callTool: sw.createAICaller(agent),
+		sw:    sw,
 		agent: agent,
 	}
 }
@@ -126,11 +122,11 @@ func (r *AIKit) SpawnAgent(ctx context.Context, _ *api.Vars, _ string, args map[
 	}
 
 	nreq := api.NewRequest(ctx, agent, args)
-	nreq.Parent = r.h.agent
+	nreq.Parent = r.agent
 
 	resp := &api.Response{}
 
-	if err := r.h.sw.Run(nreq, resp); err != nil {
+	if err := r.sw.Run(nreq, resp); err != nil {
 		return nil, err
 	}
 
@@ -366,12 +362,12 @@ func (r *AIKit) UnsetEnvs(_ context.Context, vars *api.Vars, _ string, args map[
 }
 
 func (r *AIKit) AgentGetPrompt(_ context.Context, vars *api.Vars, _ string, _ map[string]any) (*api.Result, error) {
-	if r.h == nil || r.h.agent == nil {
+	if r.agent == nil {
 		return nil, fmt.Errorf("No active agent found")
 	}
 	var p string
-	if r.h.agent != nil {
-		p = r.h.agent.Instruction()
+	if r.agent != nil {
+		p = r.agent.Instruction()
 	}
 	return &api.Result{
 		Value: p,
@@ -379,7 +375,7 @@ func (r *AIKit) AgentGetPrompt(_ context.Context, vars *api.Vars, _ string, _ ma
 }
 
 func (r *AIKit) AgentSetPrompt(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	if r.h == nil || r.h.agent == nil {
+	if r.agent == nil {
 		return nil, fmt.Errorf("No active agent found")
 	}
 	instruction, err := api.GetStrProp("instruction", args)
@@ -387,23 +383,23 @@ func (r *AIKit) AgentSetPrompt(_ context.Context, vars *api.Vars, _ string, args
 		return nil, err
 	}
 
-	r.h.agent.SetInstruction(instruction)
+	r.agent.SetInstruction(instruction)
 	return &api.Result{
 		Value: "success",
 	}, nil
 }
 
 func (r *AIKit) AgentGetQuery(_ context.Context, vars *api.Vars, _ string, _ map[string]any) (*api.Result, error) {
-	if r.h == nil || r.h.agent == nil {
+	if r.agent == nil {
 		return nil, fmt.Errorf("No active agent found")
 	}
 	return &api.Result{
-		Value: r.h.agent.Message(),
+		Value: r.agent.Message(),
 	}, nil
 }
 
 func (r *AIKit) AgentSetQuery(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	if r.h == nil || r.h.agent == nil {
+	if r.agent == nil {
 		return nil, fmt.Errorf("No active agent found")
 	}
 	query, err := api.GetStrProp("query", args)
@@ -411,25 +407,25 @@ func (r *AIKit) AgentSetQuery(_ context.Context, vars *api.Vars, _ string, args 
 		return nil, err
 	}
 
-	r.h.agent.SetMessage(query)
+	r.agent.SetMessage(query)
 	return &api.Result{
 		Value: "success",
 	}, nil
 }
 
 func (r *AIKit) AgentGetModel(_ context.Context, vars *api.Vars, _ string, _ map[string]any) (*api.Result, error) {
-	if r.h == nil || r.h.agent == nil {
+	if r.agent == nil {
 		return nil, fmt.Errorf("No active agent found")
 	}
-	if r.h.agent.Model == nil {
+	if r.agent.Model == nil {
 		return nil, fmt.Errorf("Model not set for the current agent")
 
 	}
 	m := &api.Model{
-		Provider: r.h.agent.Model.Provider,
-		BaseUrl:  r.h.agent.Model.BaseUrl,
-		Model:    r.h.agent.Model.Model,
-		ApiKey:   r.h.agent.Model.ApiKey,
+		Provider: r.agent.Model.Provider,
+		BaseUrl:  r.agent.Model.BaseUrl,
+		Model:    r.agent.Model.Model,
+		ApiKey:   r.agent.Model.ApiKey,
 	}
 	b, err := json.Marshal(m)
 	if err != nil {
@@ -441,7 +437,7 @@ func (r *AIKit) AgentGetModel(_ context.Context, vars *api.Vars, _ string, _ map
 }
 
 func (r *AIKit) AgentSetModel(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	if r.h == nil || r.h.agent == nil {
+	if r.agent == nil {
 		return nil, fmt.Errorf("No active agent found")
 	}
 
@@ -461,7 +457,7 @@ func (r *AIKit) AgentSetModel(_ context.Context, vars *api.Vars, _ string, args 
 	if err != nil {
 		return nil, err
 	}
-	r.h.agent.Model = &api.Model{
+	r.agent.Model = &api.Model{
 		Provider: provider,
 		BaseUrl:  baseURL,
 		Model:    model,
@@ -473,7 +469,7 @@ func (r *AIKit) AgentSetModel(_ context.Context, vars *api.Vars, _ string, args 
 }
 
 func (r *AIKit) AgentGetTools(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	if r.h == nil || r.h.agent == nil {
+	if r.agent == nil {
 		return nil, fmt.Errorf("No active agent found")
 	}
 	ids, err := api.GetStrProp("ids", args)
@@ -483,7 +479,7 @@ func (r *AIKit) AgentGetTools(_ context.Context, vars *api.Vars, _ string, args 
 	var tools []*api.ToolFunc
 	if len(ids) > 0 {
 		var memo = make(map[string]*api.ToolFunc)
-		for _, v := range r.h.agent.Tools {
+		for _, v := range r.agent.Tools {
 			memo[v.ID()] = v
 		}
 		for _, id := range ids {
@@ -493,7 +489,7 @@ func (r *AIKit) AgentGetTools(_ context.Context, vars *api.Vars, _ string, args 
 			}
 		}
 	} else {
-		tools = r.h.agent.Tools
+		tools = r.agent.Tools
 	}
 
 	b, err := json.Marshal(tools)
@@ -506,7 +502,7 @@ func (r *AIKit) AgentGetTools(_ context.Context, vars *api.Vars, _ string, args 
 }
 
 func (r *AIKit) AgentSetTools(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	if r.h == nil || r.h.agent == nil {
+	if r.agent == nil {
 		return nil, fmt.Errorf("No active agent found")
 	}
 	ids, err := api.GetArrayProp("ids", args)
@@ -556,7 +552,7 @@ func (r *AIKit) AgentSetTools(_ context.Context, vars *api.Vars, _ string, args 
 		}
 	}
 
-	r.h.agent.Tools = tools
+	r.agent.Tools = tools
 
 	return &api.Result{
 		Value: "success",

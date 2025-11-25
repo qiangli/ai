@@ -25,6 +25,8 @@ agents:
       - "agent:deep/workspace"
       - "agent:deep/long_term_memory"
       - "agent:deep/write_todos"
+      - "agent:deep/web_search"
+      - "ai:*"
 
   - name: "deep/agent_memory"
     display: "Agent Memory"

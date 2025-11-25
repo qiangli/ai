@@ -44,15 +44,17 @@ func QueryMiddleware(sw *Swarm) api.Middleware {
 						return err
 					}
 
-					req.SetQuery(content)
+					query = content
 				} else {
-					req.SetQuery(env[globalQuery])
+					query, _ = env[globalQuery].(string)
 				}
 			}
 
+			req.SetQuery(query)
+
 			logger.Debugf("query: %s (%v)\n", abbreviate(query, 64), len(query))
 			if logger.IsTrace() {
-				logger.Debugf("query: %s\n", req.Query)
+				logger.Debugf("query: %s\n", query)
 			}
 
 			if err := next.Serve(req, resp); err != nil {
