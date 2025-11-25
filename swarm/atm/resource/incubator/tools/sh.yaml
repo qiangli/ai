@@ -1,4 +1,5 @@
 ###
+kit: "sh"
 type: "system"
 
 tools:

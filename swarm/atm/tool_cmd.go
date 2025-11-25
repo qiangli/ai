@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
-	// "strings"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
@@ -88,21 +87,5 @@ func RunCommandVerbose(ctx context.Context, vs vos.System, command string, args 
 }
 
 func ExecCommand(ctx context.Context, vs vos.System, vars *api.Vars, command string, args []string) (string, error) {
-	// if vars.LogLevel == api.Verbose {
-	// 	return RunCommandVerbose(ctx, vs, command, args)
-	// }
 	return RunCommand(ctx, vs, command, args)
-}
-
-// TODO
-func RunRestricted(ctx context.Context, user *api.User, secrets api.SecretStore, vs vos.System, vars *api.Vars, command string, args []string) (string, error) {
-	// safe, err := EvaluateCommand(ctx, user, secrets, vs, vars, command, args)
-	// if err != nil {
-	// 	return "", err
-	// }
-	// if safe {
-	return ExecCommand(ctx, vs, vars, command, args)
-	// }
-
-	// return "", fmt.Errorf("%s %s: Not permitted", command, strings.Join(args, " "))
 }
