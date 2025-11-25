@@ -15,10 +15,10 @@ agents:
     model: "llm/reasoning"
     log_level: debug
     environment:
-      # save query for use by other agents 
+      # save query for use by other agents
       "question": "{{.query}}"
     message: |
-        Now, begin your reasoning for the following query:
+      Now, begin your reasoning for the following query:
     instruction:
       content: |
         You are a highly capable reasoning assistant, able to perform tool searches and tool calls
@@ -36,10 +36,10 @@ agents:
           you may generate a thought folding by calling the tool: "agent:deep/fold_thought"
           The tool will thoroughly summarize your current interaction history and task progress.
           Afterward, you can begin a new round of reasoning.
-        
+
         - Extra utilities:
           You can also utilize web search tools to gather information from the Internet if deemed beneficial.
-        
+
         Example:
 
         In order to accomplish ..., I require a ... tool. Therefore, I will search for it:
@@ -100,7 +100,7 @@ agents:
   - name: "deep/episode_memory"
     display: "Episode Memory"
     description: |
-        Summarize the key events and decisions in the agent's reasoning process into structured episode memory.
+      Summarize the key events and decisions in the agent's reasoning process into structured episode memory.
     model: "llm/aux"
     instruction:
       content: |
@@ -280,11 +280,11 @@ agents:
       - "ai:agent_set_prompt"
       - "ai:agent_get_query"
       - "ai:agent_set_query"
-  
+
   - name: "deep/tool_search"
     display: "Tool Selection Assistant"
-    description:  |
-      Select the most relevant tools according to the given search query and previous thoughts. 
+    description: |
+      Select the most relevant tools according to the given search query and previous thoughts.
     model: "llm/aux"
     arguments:
     instruction:
@@ -429,7 +429,7 @@ agents:
       #! mime-type=plain/x-go-template
       User query: 
       {{.question}}
-      
+
       Input JSON to be formatted:
       {{.result}}
     instruction:
@@ -438,7 +438,7 @@ agents:
         If the user specifies a different format in their query, use that format. 
         Otherwise, default to formatting the output in Markdown. Do not alter the content,
         only convert and format it.
-    
+
 ###
 set: "llm"
 provider: "openai"
