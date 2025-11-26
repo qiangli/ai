@@ -231,17 +231,6 @@ func (sw *Swarm) expand(ctx context.Context, parent *api.Agent, s string) (strin
 	return api.ToString(data), nil
 }
 
-// func (sw *Swarm) RunCommand(ctx context.Context, parent *api.Agent, argv []string) (any, error) {
-// 	at, err := conf.ParseActionArgs(argv)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if at == nil {
-// 		return nil, fmt.Errorf("invalid agent tool call: %+v", argv)
-// 	}
-// 	return sw.RunAction(ctx, parent, at.Name, at.ToMap())
-// }
-
 func (sw *Swarm) Execv(ctx context.Context, arg0 string, argv []string) (*api.Result, error) {
 	agent, err := sw.CreateAgent(ctx, arg0)
 	if err != nil {

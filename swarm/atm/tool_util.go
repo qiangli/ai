@@ -38,7 +38,10 @@ func ApplyTemplate(tpl *template.Template, s string, data map[string]any) (strin
 		// remove hashbang
 		return applyTemplate(tpl, parts[0][2:], data)
 	}
-	if strings.HasPrefix(s, "{{") && strings.HasSuffix(s, "}}") {
+	// any string starting with {{
+	// a) to escape, add an additional char .e.g -
+	// b) add {{""}} at the beginning to force applying
+	if strings.HasPrefix(s, "{{") {
 		return applyTemplate(tpl, s, data)
 	}
 	return s, nil
