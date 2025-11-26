@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
 )
@@ -29,7 +30,7 @@ func InstructionMiddleware(sw *Swarm) api.Middleware {
 			var instructions []string
 
 			add := func(in string) error {
-				content, err := applyGlobal(agent.Template, in, env)
+				content, err := atm.ApplyTemplate(agent.Template, in, env)
 				if err != nil {
 					return err
 				}

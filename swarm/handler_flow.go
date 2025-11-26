@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/shell/tool/sh"
 )
 
@@ -53,7 +54,7 @@ func (h *agentHandler) flowLoop(req *api.Request, resp *api.Response) error {
 	// h.mapAssign(req, env, req.Arguments, false)
 
 	eval := func(exp string) (bool, error) {
-		v, err := applyTemplate(h.agent.Template, exp, env)
+		v, err := atm.ApplyTemplate(h.agent.Template, exp, env)
 		if err != nil {
 			return false, err
 		}
@@ -117,7 +118,7 @@ func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
 	var which int = -1
 	// evaluate express or random
 	if h.agent.Flow.Expression != "" {
-		v, err := applyTemplate(h.agent.Template, h.agent.Flow.Expression, env)
+		v, err := atm.ApplyTemplate(h.agent.Template, h.agent.Flow.Expression, env)
 		if err != nil {
 			return err
 		}

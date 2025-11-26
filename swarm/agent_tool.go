@@ -3,11 +3,28 @@ package swarm
 import (
 	"context"
 	"fmt"
+	"io/fs"
+	"os"
 	"time"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
+	"github.com/qiangli/shell/tool/sh/vfs"
 )
+
+// TODO rename and move to api?
+type ToolFS struct {
+	ws vfs.Workspace
+}
+
+func NewToolFS(ws vfs.Workspace) *ToolFS {
+	return &ToolFS{
+		ws: ws,
+	}
+}
+func (r *ToolFS) Open(s string) (fs.File, error) {
+	return r.ws.OpenFile(s, os.O_RDWR, 0o755)
+}
 
 type AgentToolRunner struct {
 	sw      *Swarm

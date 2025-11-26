@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"strings"
 	"time"
 )
@@ -157,8 +158,9 @@ type ConnectorConfig struct {
 
 // per tool call vars
 type ToolEnv struct {
-	// User  string
 	Owner string
+	Agent *Agent
+	FS    fs.FS
 }
 
 type ToolKit interface {

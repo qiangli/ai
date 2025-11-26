@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
 )
@@ -33,7 +34,7 @@ func QueryMiddleware(sw *Swarm) api.Middleware {
 			if query == "" {
 				msg := agent.Message()
 				if msg != "" {
-					content, err := applyGlobal(agent.Template, msg, env)
+					content, err := atm.ApplyTemplate(agent.Template, msg, env)
 					if err != nil {
 						return err
 					}

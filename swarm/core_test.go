@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/db"
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/util/conf"
@@ -100,7 +101,7 @@ func TestTemplate(t *testing.T) {
 
 	text := `this is from ai: {{ai "@ask-me" "--log-level=verbose"  "tell me a joke"}}`
 	data := map[string]any{}
-	content, err := applyTemplate(tpl, text, data)
+	content, err := atm.ApplyTemplate(tpl, text, data)
 	t.Logf("content: %v\n", content)
 	if err != nil {
 		t.Fatalf("%v", err)

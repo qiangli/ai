@@ -1,7 +1,7 @@
 package swarm
 
 import (
-	"encoding/base64"
+	// "encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -148,13 +148,13 @@ func head(s string, maxLen int) string {
 	return s
 }
 
-// https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
-// data:[<media-type>][;base64],<data>
-func dataURL(mime string, raw []byte) string {
-	encoded := base64.StdEncoding.EncodeToString(raw)
-	d := fmt.Sprintf("data:%s;base64,%s", mime, encoded)
-	return d
-}
+// // https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
+// // data:[<media-type>][;base64],<data>
+// func dataURL(mime string, raw []byte) string {
+// 	encoded := base64.StdEncoding.EncodeToString(raw)
+// 	d := fmt.Sprintf("data:%s;base64,%s", mime, encoded)
+// 	return d
+// }
 
 // parse s and look for agent. return app config and true if found.
 // by convention, s starts with agent:name, @name, /name

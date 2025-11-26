@@ -1,4 +1,4 @@
-package swarm
+package atm
 
 import (
 	"bytes"
@@ -23,23 +23,23 @@ func applyTemplate(tpl *template.Template, text string, data any) (string, error
 	return buf.String(), nil
 }
 
-func isTemplate(s string) bool {
+func IsTemplate(s string) bool {
 	return strings.HasPrefix(s, "#!") || (strings.HasPrefix(s, "{{") && strings.HasSuffix(s, "}}"))
 }
 
-func applyGlobal(tpl *template.Template, s string, env map[string]any) (string, error) {
+func ApplyTemplate(tpl *template.Template, s string, data map[string]any) (string, error) {
 	if strings.HasPrefix(s, "#!") {
 		// TODO parse the command line args?
 		parts := strings.SplitN(s, "\n", 2)
 		if len(parts) == 2 {
 			// remove hashbang line
-			return applyTemplate(tpl, parts[1], env)
+			return applyTemplate(tpl, parts[1], data)
 		}
 		// remove hashbang
-		return applyTemplate(tpl, parts[0][2:], env)
+		return applyTemplate(tpl, parts[0][2:], data)
 	}
 	if strings.HasPrefix(s, "{{") && strings.HasSuffix(s, "}}") {
-		return applyTemplate(tpl, s, env)
+		return applyTemplate(tpl, s, data)
 	}
 	return s, nil
 }
@@ -60,7 +60,7 @@ func ToResult(data any) *api.Result {
 		}
 		return &api.Result{
 			MimeType: v.MimeType,
-			Value:    dataURL(v.MimeType, v.Content),
+			Value:    DataURL(v.MimeType, v.Content),
 		}
 	}
 	if s, ok := data.(string); ok {

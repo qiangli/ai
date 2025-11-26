@@ -13,7 +13,7 @@ agents:
       for conducting web research with strategic thinking and context management.
     model: "llm/L2"
     embed:
-      - "deep"
+      - "agent:deep"
     environment:
       temperature: 0.0
     arguments:
@@ -124,7 +124,7 @@ agents:
         - Bias towards focused research over exhaustive exploration
     functions:
       - "agent:research/web_search"
-      - "agent:research/think_tool"
+      - "research:think_tool"
 
   - name: "research/sub_agent"
     display: "Researh Sub Agent"
@@ -199,7 +199,7 @@ agents:
         </Final Response Format>
     functions:
       - "agent:research/web_search"
-      - "agent:research/think_tool"
+      - "research:think_tool"
 
   - name: "research/web_search"
     display: "Web Search"
@@ -275,6 +275,7 @@ tools:
     body:
       language: "template"
       code: |
+        #!
         Reflection recorded: {{.reflection}}
 
 ###

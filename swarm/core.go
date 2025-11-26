@@ -10,6 +10,7 @@ import (
 	"github.com/u-root/u-root/pkg/shlex"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
@@ -177,7 +178,7 @@ func (sw *Swarm) mapAssign(ctx context.Context, agent *api.Agent, dst, src map[s
 		}
 		// go template value support
 		if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-			if resolved, err := applyTemplate(agent.Template, v, dst); err != nil {
+			if resolved, err := atm.ApplyTemplate(agent.Template, v, dst); err != nil {
 				return err
 			} else {
 				val = resolved
@@ -342,20 +343,6 @@ func (sw *Swarm) callAgentType(ctx context.Context, agent *api.Agent, tf *api.To
 	return nil, api.NewUnsupportedError("agent kit: " + tf.Kit)
 }
 
-// func (sw *Swarm) callAgentTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
-// 	req := api.NewRequest(ctx, tf.Agent, args)
-// 	req.Parent = agent
-
-// 	resp := &api.Response{}
-
-// 	err := sw.Run(req, resp)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return resp.Result, nil
-// }
-
 func (sw *Swarm) callAIAgentTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	aiKit := NewAIKit(sw, agent)
 	return aiKit.Call(ctx, sw.Vars, "", tf, args)
@@ -368,7 +355,7 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 		if err != nil {
 			return nil, err
 		}
-		return ToResult(out), nil
+		return atm.ToResult(out), nil
 	}
 
 	// custom kits
@@ -379,10 +366,12 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 
 	env := &api.ToolEnv{
 		Owner: agent.Owner,
+		Agent: agent,
+		FS:    NewToolFS(sw.Workspace),
 	}
 	out, err := kit.Call(ctx, sw.Vars, env, v, args)
 	if err != nil {
 		return nil, fmt.Errorf("failed to call function tool %s %s: %w", v.Kit, v.Name, err)
 	}
-	return ToResult(out), nil
+	return atm.ToResult(out), nil
 }
