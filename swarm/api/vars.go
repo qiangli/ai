@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	// "fmt"
 	"maps"
 	"sync"
 )
@@ -110,31 +109,10 @@ func (g *Environment) Clone() *Environment {
 
 // global context
 type Vars struct {
-	// LogLevel LogLevel `json:"log_level"`
-
-	// ID string `json:"chat_id"`
-	// MaxTurns   int    `json:"max_turns"`
-	// MaxTime    int    `json:"max_time"`
-	// New        *bool  `json:"new"`
-	// MaxHistory int    `json:"max_history"`
-	// MaxSpan    int    `json:"max_span"`
-	// Context    string `json:"context"`
-	// Format     string `json:"format"`
-	// Models     string `json:"models"`
-
-	// Unsafe bool `json:"unsafe"`
-	// Workspace string `json:"workspace"`
-
-	// DryRun        bool   `json:"-"`
-	// DryRunContent string `json:"-"`
-
 	Global *Environment `json:"-"`
 
 	// conversation history
 	history []*Message `json:"-"`
-
-	// initial size of hisotry
-	// initLen int `json:"-"`
 
 	toolcallHistory []*ToolCallEntry `json:"-"`
 
@@ -157,37 +135,18 @@ func (v *Vars) ToolCalllog() (string, error) {
 	return string(b), nil
 }
 
-// ... existing code ...
-func (v *Vars) Clone() *Vars {
-	clone := &Vars{
-		// ChatID: v.ChatID,
-		// New:        v.New,
-		// MaxHistory: v.MaxHistory,
-		// MaxSpan:    v.MaxSpan,
-		// Context:    v.Context,
-		//
-		// MaxTurns: v.MaxTurns,
-		// MaxTime:  v.MaxTime,
-		// Models:   v.Models,
-		//
-		// Format: v.Format,
-		//
-		// Unsafe: v.Unsafe,
-		// Workspace: v.Workspace,
-		//
-		// LogLevel: v.LogLevel,
-		//
+// func (v *Vars) Clone() *Vars {
+// 	clone := &Vars{
+// 		// Extra:   make(map[string]string),
+// 		history: make([]*Message, len(v.history)),
+// 		Global:  v.Global.Clone(),
+// 	}
 
-		// Extra:   make(map[string]string),
-		history: make([]*Message, len(v.history)),
-		Global:  v.Global.Clone(),
-	}
+// 	// Copy the History slice
+// 	copy(clone.history, v.history)
 
-	// Copy the History slice
-	copy(clone.history, v.history)
-
-	return clone
-}
+// 	return clone
+// }
 
 // Clear messages from history
 func (v *Vars) ClearHistory() {
@@ -223,28 +182,3 @@ func NewVars() *Vars {
 		Global: NewEnvironment(),
 	}
 }
-
-// func (r *Vars) IsTrace() bool {
-// 	return r.LogLevel == Tracing
-// }
-
-// func (r *Vars) Get(key string) (any, bool) {
-// 	if r.Global == nil {
-// 		return "", false
-// 	}
-// 	return r.Global.Get(key)
-// }
-
-// func (r *Vars) GetString(key string) string {
-// 	if r.Global == nil {
-// 		return ""
-// 	}
-// 	val, ok := r.Global.Get(key)
-// 	if !ok {
-// 		return ""
-// 	}
-// 	if s, ok := val.(string); ok {
-// 		return s
-// 	}
-// 	return fmt.Sprintf("%v", val)
-// }

@@ -354,10 +354,10 @@ const (
 	// parameters or conditions.
 	FlowTypeLoop FlowType = "loop"
 
-	// FlowTypeReduce applies action(s) sequentially to each element of an input array, accumulating
-	// results. It passes the result of each action as input to the next. The process returns a single
-	// accumulated value. If at the root, an initial value is sourced from a previous agent or user query.
-	FlowTypeReduce FlowType = "reduce"
+	// // FlowTypeReduce applies action(s) sequentially to each element of an input array, accumulating
+	// // results. It passes the result of each action as input to the next. The process returns a single
+	// // accumulated value. If at the root, an initial value is sourced from a previous agent or user query.
+	// FlowTypeReduce FlowType = "reduce"
 
 	// FlowTypeShell delegates control to a shell script using bash script syntax, enabling
 	// complex flow control scenarios driven by external scripting logic.

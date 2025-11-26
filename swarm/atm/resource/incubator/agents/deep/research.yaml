@@ -125,6 +125,7 @@ agents:
     functions:
       - "agent:research/web_search"
       - "research:think_tool"
+      - "fs:*"
 
   - name: "research/sub_agent"
     display: "Researh Sub Agent"

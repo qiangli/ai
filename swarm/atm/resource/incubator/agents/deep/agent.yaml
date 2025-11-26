@@ -38,6 +38,8 @@ agents:
       - "agent:deep/write_todos"
       - "agent:deep/web_search"
       - "ai:*"
+      - "fs:*"
+      - "sh:*"
 
   - name: "deep/agent_memory"
     display: "Agent Memory"
