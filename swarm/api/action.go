@@ -367,38 +367,10 @@ type AppConfig struct {
 	// middleware chain
 	Chain *ChainConfig `yaml:"chain"`
 
-	// // action name and arguments
-	// Name      string         `yaml:"name"`
-	// Arguments map[string]any `yaml:"arguments"`
-
-	// user message
-	// Message string `yaml:"message"`
-
-	// system prompt
-	// Instruction string `yaml:"instruction"`
-
-	// set/level key - not the LLM model
-	// Model string `yaml:"model"`
-
 	//
 	Pack string `yaml:"pack"`
 
 	Agents []*AgentConfig `yaml:"agents"`
-
-	// //
-	// MaxTurns int `yaml:"max_turns"`
-	// MaxTime  int `yaml:"max_time"`
-
-	// // output format: json | text
-	// Format string `yaml:"format"`
-
-	// // memory context
-	// MaxHistory int    `yaml:"max_history"`
-	// MaxSpan    int    `yaml:"max_span"`
-	// Context    string `yaml:"context"`
-
-	// // logging: quiet | informative | verbose
-	// LogLevel string `yaml:"log_level"`
 
 	// tool / model provider
 	Provider string `yaml:"provider"`
@@ -406,18 +378,6 @@ type AppConfig struct {
 
 	// api token lookup key
 	ApiKey string `yaml:"api_key"`
-
-	// tool kit
-
-	// kit specifies a namespace
-	//
-	// class name
-	// MCP server name
-	// file system
-	// container name
-	// virtual machine name
-	// tool/function (Gemini)
-	// Kit string `yaml:"kit"`
 
 	// action type:
 	// func, system, agent...
@@ -427,9 +387,6 @@ type AppConfig struct {
 	// modelset name
 	Set    string                  `yaml:"set"`
 	Models map[string]*ModelConfig `yaml:"models"`
-
-	// // app level global vars
-	// Environment map[string]any `yaml:"environment"`
 
 	// TODO use arguments
 	Clipin     bool

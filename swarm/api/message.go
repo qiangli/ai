@@ -85,6 +85,13 @@ func (r *Request) MaxTurns() int {
 	return r.Arguments.GetInt("max_turns")
 }
 
+func (r *Request) MemOption() *MemOption {
+	var o MemOption
+	o.MaxHistory = r.Arguments.GetInt("max_history")
+	o.MaxSpan = r.Arguments.GetInt("max_span")
+	return &o
+}
+
 func NewRequest(ctx context.Context, name string, args map[string]any) *Request {
 	req := &Request{
 		ctx:       ctx,

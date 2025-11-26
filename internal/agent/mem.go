@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
+	// "github.com/google/uuid"
 
 	"github.com/qiangli/ai/swarm/api"
 )
@@ -20,17 +20,7 @@ type FileMemStore struct {
 }
 
 func NewFileMemStore(app *api.AppConfig) api.MemStore {
-	base := filepath.Join(app.Workspace, "chat")
-	// cid := app.ChatID
-	// if cid == "" {
-	// 	// if app.New != nil && *app.New {
-	// 	cid = uuid.NewString()
-	// 	app.ChatID = cid
-	// 	// } else if last, err := findLastChatID(chatDir); err == nil {
-	// 	// 	cid = last
-	// 	// }
-	// }
-	// base := filepath.Join(chatDir, cid)
+	base := filepath.Join(app.Workspace, "history")
 	return &FileMemStore{
 		base: base,
 		app:  app,
@@ -59,38 +49,38 @@ func (r *FileMemStore) Get(id string) (*api.Message, error) {
 	return nil, api.NewNotFoundError("message id: " + id)
 }
 
-func findLastChatID(base string) (string, error) {
-	entries, err := os.ReadDir(base)
-	if err != nil {
-		return "", err
-	}
+// func findLastChatID(base string) (string, error) {
+// 	entries, err := os.ReadDir(base)
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	var latestTime time.Time
-	var latestDir string
+// 	var latestTime time.Time
+// 	var latestDir string
 
-	for _, entry := range entries {
-		if entry.IsDir() {
-			// Validate if the directory name is a valid UUID
-			if _, err := uuid.Parse(entry.Name()); err != nil {
-				continue
-			}
-			info, err := os.Stat(filepath.Join(base, entry.Name()))
-			if err != nil {
-				continue
-			}
-			if info.ModTime().After(latestTime) {
-				latestTime = info.ModTime()
-				latestDir = entry.Name()
-			}
-		}
-	}
+// 	for _, entry := range entries {
+// 		if entry.IsDir() {
+// 			// Validate if the directory name is a valid UUID
+// 			if _, err := uuid.Parse(entry.Name()); err != nil {
+// 				continue
+// 			}
+// 			info, err := os.Stat(filepath.Join(base, entry.Name()))
+// 			if err != nil {
+// 				continue
+// 			}
+// 			if info.ModTime().After(latestTime) {
+// 				latestTime = info.ModTime()
+// 				latestDir = entry.Name()
+// 			}
+// 		}
+// 	}
 
-	if latestDir == "" {
-		return "", fmt.Errorf("chat not found")
-	}
+// 	if latestDir == "" {
+// 		return "", fmt.Errorf("chat not found")
+// 	}
 
-	return latestDir, nil
-}
+// 	return latestDir, nil
+// }
 
 func LoadHistory(base string, maxHistory, maxSpan int) ([]*api.Message, error) {
 	if maxHistory <= 0 || maxSpan <= 0 {

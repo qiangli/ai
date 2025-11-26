@@ -32,18 +32,29 @@ func MemoryMiddleware(sw *Swarm) api.Middleware {
 			logger.Debugf("🔗 (mem): %s\n", agent.Name)
 			var history []*api.Message
 
-			c := agent.Arguments.GetString("context")
+			c := req.Arguments.GetString("context")
 			if c != "" {
 				if resolved, err := mustResolveContext(agent, req, c); err != nil {
 					logger.Errorf("failed to resolve context %s: %v\n", c, err)
 				} else {
 					history = resolved
 				}
+			} else {
+				opt := req.MemOption()
+				if v, err := sw.History.Load(opt); err != nil {
+					return err
+				} else {
+					history = v
+				}
 			}
 
 			sw.Vars.SetHistory(history)
 
 			err := next.Serve(req, resp)
+
+			if v := sw.Vars.ListHistory(); len(v) > 0 {
+				sw.History.Save(v)
+			}
 
 			return err
 		})

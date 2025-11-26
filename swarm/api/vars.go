@@ -135,19 +135,6 @@ func (v *Vars) ToolCalllog() (string, error) {
 	return string(b), nil
 }
 
-// func (v *Vars) Clone() *Vars {
-// 	clone := &Vars{
-// 		// Extra:   make(map[string]string),
-// 		history: make([]*Message, len(v.history)),
-// 		Global:  v.Global.Clone(),
-// 	}
-
-// 	// Copy the History slice
-// 	copy(clone.history, v.history)
-
-// 	return clone
-// }
-
 // Clear messages from history
 func (v *Vars) ClearHistory() {
 	v.mu.Lock()
