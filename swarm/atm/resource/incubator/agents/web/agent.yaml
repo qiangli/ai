@@ -12,6 +12,8 @@ agents:
       and including a detailed reference list.
     embed:
       - "agent:memory"
+    message: |
+      After answers the question, 
     instruction:
       content: |
         Evaluate and organize content for research tasks with a focus on relevance, 

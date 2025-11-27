@@ -45,6 +45,9 @@ func clip(s string, max int) string {
 }
 
 func structToMap(input any) (map[string]any, error) {
+	if input == nil {
+		return nil, nil
+	}
 	if result, ok := input.(map[string]any); ok {
 		return result, nil
 	}

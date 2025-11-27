@@ -92,16 +92,18 @@ func (r *Arguments) Query() string {
 	return r.GetString("query")
 }
 
-func (r *Arguments) SetQuery(s any) {
+func (r *Arguments) SetQuery(s any) *Arguments {
 	r.Set("query", s)
+	return r
 }
 
 func (r *Arguments) Instruction() string {
 	return r.GetString("instruction")
 }
 
-func (r *Arguments) SetInstruction(s any) {
+func (r *Arguments) SetInstruction(s any) *Arguments {
 	r.Set("instruction", s)
+	return r
 }
 
 func (r *Arguments) Get(key string) (any, bool) {
@@ -125,27 +127,30 @@ func (r *Arguments) GetInt(key string) int {
 	return 0
 }
 
-func (r *Arguments) Set(key string, val any) {
+func (r *Arguments) Set(key string, val any) *Arguments {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.args[key] = val
+	return r
 }
 
-func (r *Arguments) AddArgs(args map[string]any) {
+func (r *Arguments) AddArgs(args map[string]any) *Arguments {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	maps.Copy(r.args, args)
+	return r
 }
 
 // clear all entries and copy args
 // while maintaining the same old reference
-func (r *Arguments) SetArgs(args map[string]any) {
+func (r *Arguments) SetArgs(args map[string]any) *Arguments {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	for k := range r.args {
 		delete(r.args, k)
 	}
 	maps.Copy(r.args, args)
+	return r
 }
 
 func (r *Arguments) GetAllArgs() map[string]any {
@@ -167,10 +172,11 @@ func (r *Arguments) GetArgs(keys []string) map[string]any {
 	return args
 }
 
-func (r *Arguments) Copy(dst map[string]any) {
+func (r *Arguments) Copy(dst map[string]any) *Arguments {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	maps.Copy(dst, r.args)
+	return r
 }
 
 func (r *Arguments) Clone() *Arguments {

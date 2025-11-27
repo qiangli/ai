@@ -85,15 +85,15 @@ func (sw *Swarm) InitChain() {
 	}
 }
 
-func (sw *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
-	final := HandlerFunc(func(req *api.Request, res *api.Response) error {
-		log.GetLogger(req.Context()).Infof("🔗 (final): %s\n", req.Name)
-		return nil
-	})
+// func (sw *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
+// 	final := HandlerFunc(func(req *api.Request, res *api.Response) error {
+// 		log.GetLogger(req.Context()).Infof("🔗 (final): %s\n", req.Name)
+// 		return nil
+// 	})
 
-	chain := NewChain(sw.middlewares...).Then(a, final)
-	return chain
-}
+// 	chain := NewChain(sw.middlewares...).Then(a, final)
+// 	return chain
+// }
 
 func (sw *Swarm) CreateAgent(ctx context.Context, name string) (*api.Agent, error) {
 	if name == "" {
@@ -140,7 +140,12 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 		}
 
 		// init
-		if err := sw.NewChain(ctx, agent).Serve(req, resp); err != nil {
+		final := HandlerFunc(func(req *api.Request, res *api.Response) error {
+			log.GetLogger(req.Context()).Infof("🔗 (final): %s\n", req.Name)
+			return nil
+		})
+		chain := NewChain(sw.middlewares...).Then(agent, final)
+		if err := chain.Serve(req, resp); err != nil {
 			return err
 		}
 
@@ -160,6 +165,61 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 		return nil
 	}
 }
+
+// // CallLLM calls the language model similar to Run but bypassing all the middlewares
+// func (sw *Swarm) CallLLM(req *api.Request, resp *api.Response) error {
+// 	if sw.User == nil || sw.Vars == nil {
+// 		return api.NewInternalServerError("invalid config. user or vars not initialized")
+// 	}
+// 	if v, _ := sw.Vars.Global.Get("workspace"); v == "" {
+// 		return api.NewInternalServerError("invalid config. user or vars not initialized")
+// 	}
+// 	if req.Parent != nil && req.Parent.Name == req.Name {
+// 		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself not supported.", req.Name))
+// 	}
+
+// 	var ctx = req.Context()
+// 	logger := log.GetLogger(ctx)
+
+// 	for {
+// 		start := time.Now()
+// 		logger.Debugf("creating agent: %s %s\n", req.Name, start)
+
+// 		// creator
+// 		agent, err := sw.CreateAgent(ctx, req.Name)
+// 		if err != nil {
+// 			return err
+// 		}
+
+// 		// init
+// 		final := HandlerFunc(func(req *api.Request, res *api.Response) error {
+// 			log.GetLogger(req.Context()).Infof("🔗 (final): %s\n", req.Name)
+// 			return nil
+// 		})
+// 		middlewares := []api.Middleware{
+// 			InferenceMiddleware(sw),
+// 		}
+// 		chain := NewChain(middlewares...).Then(agent, final)
+// 		if err := chain.Serve(req, resp); err != nil {
+// 			return err
+// 		}
+
+// 		if resp.Result == nil {
+// 			// some thing went wrong
+// 			return fmt.Errorf("Empty result running %q", agent.Name)
+// 		}
+
+// 		if resp.Result.State == api.StateTransfer {
+// 			logger.Debugf("Agent transfer: %s => %s\n", req.Name, resp.Result.NextAgent)
+// 			req.Name = resp.Result.NextAgent
+// 			continue
+// 		}
+
+// 		end := time.Now()
+// 		logger.Debugf("Agent complete: %s %s elapsed: %s\n", req.Name, end, end.Sub(start))
+// 		return nil
+// 	}
+// }
 
 // copy values from src to dst after calling @agent and applying template if required
 func (sw *Swarm) mapAssign(ctx context.Context, agent *api.Agent, dst, src map[string]any, override bool) error {

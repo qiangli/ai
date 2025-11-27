@@ -6,11 +6,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/golang-lru/v2/expirable"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
+	"github.com/qiangli/ai/swarm/llm"
+	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
 )
 
@@ -43,6 +46,94 @@ var (
 func (r *AIKit) Call(ctx context.Context, vars *api.Vars, owner string, tf *api.ToolFunc, args map[string]any) (any, error) {
 	callArgs := []any{ctx, vars, tf.Name, args}
 	return atm.CallKit(r, tf.Kit, tf.Name, callArgs...)
+}
+
+func (r *AIKit) CallLlm(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	query, err := api.GetStrProp("query", args)
+	if err != nil {
+		return nil, err
+	}
+	if query == "" {
+		return nil, fmt.Errorf("missing query")
+	}
+	prompt, _ := api.GetStrProp("prompt", args)
+	provider, _ := api.GetStrProp("provider", args)
+	if provider == "" {
+		provider = "openai"
+	}
+	arguments, _ := structToMap(args["arguments"])
+	tools, _ := api.GetArrayProp("tools", args)
+
+	owner := r.sw.User.Email
+
+	var req = &llm.Request{}
+	var messages []*api.Message
+
+	id := uuid.NewString()
+	if prompt != "" {
+		messages = append(messages, &api.Message{
+			ID:      uuid.NewString(),
+			Session: id,
+			Created: time.Now(),
+			//
+			Role:    api.RoleSystem,
+			Content: prompt,
+			Sender:  "",
+		})
+	}
+	messages = append(messages, &api.Message{
+		ID:      uuid.NewString(),
+		Session: id,
+		Created: time.Now(),
+		//
+		Role:    api.RoleUser,
+		Content: query,
+		Sender:  owner,
+	})
+	req.Messages = messages
+
+	// model set: provider
+	// model, err := conf.LoadModel(owner, provider, "any", r.sw.Assets)
+	model, err := r.getModel(provider)
+	if err != nil {
+		return nil, err
+	}
+	ak, err := r.sw.Secrets.Get(owner, provider)
+	if err != nil {
+		return nil, err
+	}
+	token := func() string {
+		return ak
+	}
+	req.Model = model
+	req.Token = token
+
+	// tools
+	if len(tools) > 0 {
+		if v, err := r.getTools(tools); err != nil {
+			return nil, err
+		} else {
+			req.Tools = v
+		}
+	}
+
+	// LLM parameters
+	if arguments != nil {
+		req.Arguments = api.NewArguments().AddArgs(arguments)
+	}
+
+	var adapter llm.LLMAdapter = &adapter.ResponseAdapter{}
+	resp, err := adapter.Call(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.Result == nil {
+		resp.Result = &api.Result{
+			Value: "Empty response",
+		}
+	}
+	return resp.Result, nil
 }
 
 func (r *AIKit) ListAgents(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
@@ -513,6 +604,20 @@ func (r *AIKit) AgentSetTools(_ context.Context, vars *api.Vars, _ string, args 
 	if len(ids) == 0 {
 		return nil, fmt.Errorf("missing tool ids")
 	}
+
+	tools, err := r.getTools(ids)
+	if err != nil {
+		return nil, err
+	}
+	r.agent.Tools = tools
+
+	return &api.Result{
+		Value: "success",
+	}, nil
+}
+
+// return tools by tool kit:name or ids
+func (r *AIKit) getTools(ids []string) ([]*api.ToolFunc, error) {
 	var memo = make(map[string]struct{})
 	for _, k := range ids {
 		id := api.KitName(k).ID()
@@ -551,10 +656,34 @@ func (r *AIKit) AgentSetTools(_ context.Context, vars *api.Vars, _ string, args 
 			tools = append(tools, tool)
 		}
 	}
+	return tools, nil
+}
 
-	r.agent.Tools = tools
-
-	return &api.Result{
-		Value: "success",
-	}, nil
+// return built-in model
+func (r *AIKit) getModel(provider string) (*api.Model, error) {
+	var models = map[string]*api.Model{
+		"anthropic": {
+			Provider: "anthropic",
+			BaseUrl:  "https://api.anthropic.com/",
+			ApiKey:   "anthropic",
+			Model:    "claude-3-5-haiku-latest",
+		},
+		"gemini": {
+			Provider: "gemini",
+			BaseUrl:  "https://generativelanguage.googleapis.com/v1beta/",
+			ApiKey:   "gemini",
+			Model:    "gemini-2.0-flash-lite",
+		},
+		"openai": {
+			Provider: "openai",
+			BaseUrl:  "https://api.openai.com/v1/",
+			ApiKey:   "openai",
+			Model:    "gpt-5-nano",
+		},
+	}
+	m, ok := models[provider]
+	if !ok {
+		return nil, fmt.Errorf("model not found for provider: %s", provider)
+	}
+	return m, nil
 }

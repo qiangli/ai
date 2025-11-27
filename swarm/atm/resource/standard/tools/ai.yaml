@@ -3,6 +3,33 @@ kit: "ai"
 type: "agent"
 
 tools:
+  - name: "call_llm"
+    description: "Connects to the LLM, sends a request, and retrieves a response, with optional tool calls."
+    parameters:
+      type: "object"
+      properties:
+        prompt:
+          type: "string"
+          description: "System role message for the LLM"
+        query:
+          type: "string"
+          description: "User role message for the LLM"
+        provider:
+          type: "string"
+          description: "Name of LLM provider. One of 'anthropic', 'gemini', or 'openai'. Defaults to 'openai' if not specified."
+          default: "openai"
+        arguments:
+          type: "object"
+          description: "Optional arguments for the LLM request"
+          properties: {}
+        tools:
+          type: "array"
+          items:
+            type: "string"
+            description: "Names of tools to call, if any"
+      required:
+        - query
+
   - name: "list_agents"
     description: "Retrieve the list of AI agents accessible to the current user"
     parameters:
