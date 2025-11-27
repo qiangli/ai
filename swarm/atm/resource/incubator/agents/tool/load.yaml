@@ -1,0 +1,88 @@
+###
+kit: tool
+tools:
+  - name: "load"
+    description: "Loads and merges YAML files from a specific base directory"
+    parameters:
+      type: "object"
+      properties:
+        base:
+          type: "string"
+          description: "The base directory containing the YAML files"
+        subdir:
+          type: "string"
+          description: "The subdirectory within the base directory"
+      required:
+        - base
+        - subdir
+    body:
+      language: "golang"
+      code: |
+        package main
+
+        import (
+            "fmt"
+            "gopkg.in/yaml.v3"
+            "io/ioutil"
+            "os"
+            "path/filepath"
+            "sort"
+        )
+
+        func loadAndMergeYAML(baseDir, name string) (map[string]interface{}, error) {
+            subDir := filepath.Join(baseDir, name)
+            files := []string{}
+
+            // Walk the directory to find YAML files
+            filepath.Walk(subDir, func(path string, info os.FileInfo, err error) error {
+                if err != nil {
+                    return err
+                }
+                if !info.IsDir() && filepath.Ext(info.Name()) == ".yaml" {
+                    files = append(files, path)
+                }
+                return nil
+            })
+
+            // Sort the files by name
+            sort.Strings(files)
+
+            // Check if <name>.yaml exists in the base directory and append it
+            mainYamlPath := filepath.Join(baseDir, name+".yaml")
+            if _, err := os.Stat(mainYamlPath); err == nil {
+                files = append(files, mainYamlPath)
+            }
+
+            // Load and merge YAML files
+            merged := make(map[string]interface{})
+            for _, file := range files {
+                data, err := ioutil.ReadFile(file)
+                if err != nil {
+                    return nil, err
+                }
+
+                temp := make(map[string]interface{})
+                if err := yaml.Unmarshal(data, &temp); err != nil {
+                    return nil, err
+                }
+                for k, v := range temp {
+                    merged[k] = v // Later files take precedence
+                }
+            }
+
+            return merged, nil
+        }
+
+        func main() {
+            baseDir := "/path/to/base/dir"
+            name := "subdirectory_name"
+
+            mergedYaml, err := loadAndMergeYAML(baseDir, name)
+            if err != nil {
+                fmt.Printf("Error: %v\n", err)
+                return
+            }
+            // Print only the content of the configuration
+            fmt.Printf("%s\n", mergedYaml)
+        }
+###

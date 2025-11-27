@@ -4,7 +4,7 @@ agents:
   - name: "memory"
     display: "🤖 Memory"
     description: |
-      Persistent memory using a local knowledge graph
+      Persistent memory using a knowledge graph
     model: "memory/basic"
     instruction:
       content: |

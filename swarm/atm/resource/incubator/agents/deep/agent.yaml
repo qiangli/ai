@@ -294,7 +294,7 @@ agents:
         Example: `list_directory {{.memory_path}}` to see what memories you have
         Example: `read_file '{{.memory_path}}deep-agents-guide.md'` to recall saved knowledge
         Example: `write_file('{{.memory_path}}project_context.md', ...)` for project-specific notes, then reference it in agent.md
-        Example: `read_file and write_file('{{.memory_path}}agent.md', ...)` to update your instructions
+        Example: `edit_file('{{.memory_path}}agent.md', ...)` to update your instructions
 
         Remember: To interact with the long term filesystem, you must prefix the filename with the {{.memory_path}} path.
     functions:
