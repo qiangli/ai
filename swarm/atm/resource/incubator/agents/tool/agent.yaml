@@ -7,7 +7,7 @@ agents:
       Manage tool-related operations including loading, storing, creating, 
       reading, updating, and deleting configurations using Golang and YAML.
     model: "llm/L2"
-    enviroment:
+    environment:
       base_dir: "{{.workspace}}/atm/tools"
     instruction:
       content: |
