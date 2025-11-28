@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
@@ -27,6 +28,23 @@ func ModelMiddleware(sw *Swarm) api.Middleware {
 					return err
 				}
 				model = &v
+			}
+
+			// fill default values based on provider
+			// only provider is required
+			if model.Provider == "" {
+				return fmt.Errorf("model is invalid. %+v", model)
+			}
+			if model.ApiKey == "" || model.BaseUrl == "" || model.Model == "" {
+				m, ok := conf.DefaultModels[model.Provider]
+				if !ok {
+					return fmt.Errorf("invaid model: %s", model.Provider)
+				}
+				model.ApiKey = m.ApiKey
+				model.BaseUrl = m.BaseUrl
+				if model.Model == "" {
+					model.Model = m.Model
+				}
 			}
 
 			//

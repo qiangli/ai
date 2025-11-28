@@ -1,7 +1,7 @@
 ###
 pack: "agent"
 agents:
-  - name: "agent/agent"
+  - name: "agent"
     display: "Agent Manager"
     description: |
       Manage all agent operations, including loading, storing, creating, reading, 

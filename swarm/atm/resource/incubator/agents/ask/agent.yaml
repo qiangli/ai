@@ -10,8 +10,8 @@ agents:
       ensuring clarity and accuracy.
     model: default/any
     context: "agent:context"
-    embed:
-      - "agent:memory"
+    # embed:
+    #   - "agent:memory"
     instruction:
       content: |
         You are a helpful assistant. Use all available tools to ensure the

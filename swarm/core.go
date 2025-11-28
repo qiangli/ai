@@ -76,8 +76,8 @@ func (sw *Swarm) InitChain() {
 		MemoryMiddleware(sw),
 		InstructionMiddleware(sw),
 		QueryMiddleware(sw),
-		ContextMiddleware(sw),
 		//
+		ContextMiddleware(sw),
 		AgentMiddleware(sw),
 		//
 		InferenceMiddleware(sw),

@@ -251,9 +251,10 @@ type AgentConfig struct {
 	// memory
 	// max history: 0 max span: 0
 	// New        *bool  `yaml:"new,omitempty"`
-	MaxHistory int    `yaml:"max_history"`
-	MaxSpan    int    `yaml:"max_span"`
-	Context    string `yaml:"context"`
+	MaxHistory int `yaml:"max_history"`
+	MaxSpan    int `yaml:"max_span"`
+
+	Context string `yaml:"context"`
 
 	// logging: quiet | info[rmative] | verbose | trace
 	LogLevel string `yaml:"log_level"`
