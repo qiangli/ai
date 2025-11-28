@@ -15,7 +15,7 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 		if !conf.IsAgentTool(s) {
 			return nil, fmt.Errorf("invalid agent: %s", s)
 		}
-		out, err := sw.expand(req.Context(), parent, s)
+		out, err := sw.expandx(req.Context(), parent, s)
 		if err != nil {
 			return nil, err
 		}

@@ -2,7 +2,7 @@ package swarm
 
 import (
 	"context"
-	"encoding/json"
+	// "encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -237,14 +237,15 @@ func (sw *Swarm) mapAssign(ctx context.Context, agent *api.Agent, dst, src map[s
 			continue
 		}
 
-		// @agent value support
-		if v, ok := val.(string); ok {
-			if resolved, err := sw.resolveArgument(ctx, agent, v); err != nil {
-				return err
-			} else {
-				val = resolved
-			}
-		}
+		// // @agent value support
+		// if v, ok := val.(string); ok {
+		// 	if resolved, err := sw.resolveArgument(ctx, agent, v); err != nil {
+		// 		return err
+		// 	} else {
+		// 		val = resolved
+		// 	}
+		// }
+
 		// go template value support
 		if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
 			if resolved, err := atm.ApplyTemplate(agent.Template, v, dst); err != nil {
@@ -265,33 +266,33 @@ func (sw *Swarm) globalEnv() map[string]any {
 	return env
 }
 
-// call agent if found. otherwise return s as is
-func (sw *Swarm) resolveArgument(ctx context.Context, agent *api.Agent, s string) (any, error) {
-	if !conf.IsAgentTool(s) {
-		return s, nil
-	}
-	out, err := sw.expand(ctx, agent, s)
-	if err != nil {
-		return nil, err
-	}
+// // call agent if found. otherwise return s as is
+// func (sw *Swarm) resolveArgument(ctx context.Context, agent *api.Agent, s string) (any, error) {
+// 	if !conf.IsAgentTool(s) {
+// 		return s, nil
+// 	}
+// 	out, err := sw.expand(ctx, agent, s)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	type ArgResult struct {
-		Result string
-		Error  string
-	}
+// 	type ArgResult struct {
+// 		Result string
+// 		Error  string
+// 	}
 
-	var arg ArgResult
-	if err := json.Unmarshal([]byte(out), &arg); err != nil {
-		return nil, err
-	}
-	if arg.Error != "" {
-		return nil, fmt.Errorf("failed resolve argument: %s", arg.Error)
-	}
-	return arg.Result, nil
-}
+// 	var arg ArgResult
+// 	if err := json.Unmarshal([]byte(out), &arg); err != nil {
+// 		return nil, err
+// 	}
+// 	if arg.Error != "" {
+// 		return nil, fmt.Errorf("failed resolve argument: %s", arg.Error)
+// 	}
+// 	return arg.Result, nil
+// }
 
 // expand s for agent/tool similar to $(cmdline...)
-func (sw *Swarm) expand(ctx context.Context, parent *api.Agent, s string) (string, error) {
+func (sw *Swarm) expandx(ctx context.Context, parent *api.Agent, s string) (string, error) {
 	argv := shlex.Argv(s)
 	data, err := sw.ExecCommand(ctx, parent, argv)
 	if err != nil {

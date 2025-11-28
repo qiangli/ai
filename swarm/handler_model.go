@@ -19,7 +19,7 @@ func ModelMiddleware(sw *Swarm) api.Middleware {
 			var model *api.Model = agent.Model
 
 			if conf.IsAgentTool(model.Model) {
-				out, err := sw.expand(req.Context(), agent, model.Model)
+				out, err := sw.expandx(req.Context(), agent, model.Model)
 				if err != nil {
 					return err
 				}

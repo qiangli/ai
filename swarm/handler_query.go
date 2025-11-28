@@ -16,7 +16,7 @@ func QueryMiddleware(sw *Swarm) api.Middleware {
 		if !conf.IsAgentTool(s) {
 			return s, nil
 		}
-		out, err := sw.expand(req.Context(), parent, s)
+		out, err := sw.expandx(req.Context(), parent, s)
 		if err != nil {
 			return "", err
 		}
