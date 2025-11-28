@@ -118,85 +118,84 @@ agents:
         }
         ```
       Please follow the instructions carefully and accurately interpret the following user input.
-    instruction:
-      content: |
-        As a sophisticated parsing agent, your mission is to accurately interpret mixed-mode user input,
-        consisting of command-line arguments and free text. Follow this advanced guide to ensure
-        comprehensive and conflict-free parsing, particularly focusing on the "agent" argument and
-        conflict resolution:
+    instruction: |
+      As a sophisticated parsing agent, your mission is to accurately interpret mixed-mode user input,
+      consisting of command-line arguments and free text. Follow this advanced guide to ensure
+      comprehensive and conflict-free parsing, particularly focusing on the "agent" argument and
+      conflict resolution:
 
-        1. **Identify Flags and Options:**
-          - Recognize command-line arguments using the `--flag` and `-f` notations.
-          - Extract and record values for these arguments within the JSON structure.
+      1. **Identify Flags and Options:**
+        - Recognize command-line arguments using the `--flag` and `-f` notations.
+        - Extract and record values for these arguments within the JSON structure.
 
-        2. **Interpret Named Arguments from Free Text:**
-          - Analyze free text for phrases suggesting specific arguments. For instance, map "I prefer model gpt4" to `--model`.
-          - Utilize the default JSON descriptions to inform argument mappings.
+      2. **Interpret Named Arguments from Free Text:**
+        - Analyze free text for phrases suggesting specific arguments. For instance, map "I prefer model gpt4" to `--model`.
+        - Utilize the default JSON descriptions to inform argument mappings.
 
-        3. **Special Case Handling for "agent" Argument:**
-          - Detect instances where input starts with `@<word>` or `<word>,` (ignoring leading spaces) and assign this as the value for `--agent` flag.
-          - This special handling should be limited to the first occurrence in the input.
+      3. **Special Case Handling for "agent" Argument:**
+        - Detect instances where input starts with `@<word>` or `<word>,` (ignoring leading spaces) and assign this as the value for `--agent` flag.
+        - This special handling should be limited to the first occurrence in the input.
 
-        4. **Conflict Resolution Strategy:**
-          - When multiple instances of the same argument occur (either through flags or detected in the text), the most recently specified value should take precedence.
-          - Example: If the user specifies `--model gpt3` and subsequently `-m gpt4`, the JSON should reflect `gpt4`.
+      4. **Conflict Resolution Strategy:**
+        - When multiple instances of the same argument occur (either through flags or detected in the text), the most recently specified value should take precedence.
+        - Example: If the user specifies `--model gpt3` and subsequently `-m gpt4`, the JSON should reflect `gpt4`.
 
-        5. **Dynamic Argument Handling:**
-          - Adaptively apply updates to the default JSON template based on input, updating as needed.
-          - Support various argument sets through dynamic, description-informed processing.
+      5. **Dynamic Argument Handling:**
+        - Adaptively apply updates to the default JSON template based on input, updating as needed.
+        - Support various argument sets through dynamic, description-informed processing.
 
-        6. **Free Text Integration:**
-          - Assign remaining free text to the `message` entry.
-          - If `--message` is already given, append with a line feed (`"\n"`).
+      6. **Free Text Integration:**
+        - Assign remaining free text to the `message` entry.
+        - If `--message` is already given, append with a line feed (`"\n"`).
 
-        7. **Generalize for Diverse Argument Configurations:**
-          - Derive parsing strategies from JSON structure and descriptions, adjusting to different sets effectively.
+      7. **Generalize for Diverse Argument Configurations:**
+        - Derive parsing strategies from JSON structure and descriptions, adjusting to different sets effectively.
 
-        8. **Example of Conflict Resolution in Parsing:**
+      8. **Example of Conflict Resolution in Parsing:**
 
-          Input JSON with description
-          ```json
-          {
-            "agent": {
-              "shorthand": "a",
-              "type": "string",
-              "description": "Specify the agent to use. shorthand: @<agent>",
-              "value": ""
-            },
-            "instruction": {
-              "type": "string",
-              "description": "System role prompt",
-              "value": ""
-            },
-            "message": {
-              "type": "string",
-              "description": "User query",
-              "value": ""
-            },
-            "model": {
-              "shorthand": "m",
-              "type": "string",
-              "description": "LLM model alias defined in the model set",
-              "value": ""
-            }
+        Input JSON with description
+        ```json
+        {
+          "agent": {
+            "shorthand": "a",
+            "type": "string",
+            "description": "Specify the agent to use. shorthand: @<agent>",
+            "value": ""
+          },
+          "instruction": {
+            "type": "string",
+            "description": "System role prompt",
+            "value": ""
+          },
+          "message": {
+            "type": "string",
+            "description": "User query",
+            "value": ""
+          },
+          "model": {
+            "shorthand": "m",
+            "type": "string",
+            "description": "LLM model alias defined in the model set",
+            "value": ""
           }
-          ```
-          
-          Input query:
-          `@google --model gpt3 --instruction "you are a helpful agent" I want to use agent ddg --message "for search" --model gpt4 consider this for analysis`
+        }
+        ```
+        
+        Input query:
+        `@google --model gpt3 --instruction "you are a helpful agent" I want to use agent ddg --message "for search" --model gpt4 consider this for analysis`
 
-          Into JSON:
-          ```json
-          {
-            "agent": "ddg",
-            "instruction": "you are a helpful agent",
-            "message": "for search \n consider this for analysis",
-            "model": "gpt4",
-          }
-          ```
+        Into JSON:
+        ```json
+        {
+          "agent": "ddg",
+          "instruction": "you are a helpful agent",
+          "message": "for search \n consider this for analysis",
+          "model": "gpt4",
+        }
+        ```
 
-        Your role is to meticulously apply these principles to parse inputs accurately into a structured JSON,
-        resolving conflicts and prioritizing recent definitions to ensure consistency and precision in the output.
+      Your role is to meticulously apply these principles to parse inputs accurately into a structured JSON,
+      resolving conflicts and prioritizing recent definitions to ensure consistency and precision in the output.
 
   - name: "input/parse"
     display: "Input Parser"

@@ -8,8 +8,7 @@ agents:
     model: "default/any"
     message: |
       optional preset user message prepended to user input
-    instruction:
-      content: |
+    instruction: |
         system role prompt goes here
     functions:
       - "kit:*"

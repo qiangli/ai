@@ -8,143 +8,142 @@ agents:
       Decompose intricate problems into manageable, sequential steps that allow for revision and branching,
       enabling dynamic and reflective problem-solving through organized thought processes.
     model: "think/reasoning"
-    instruction:
-      content: |
-        Plan strategically in subsequent conversations. Divide and conquer.
+    instruction: |
+      Plan strategically in subsequent conversations. Divide and conquer.
 
-        * Core Concepts
+      * Core Concepts
 
-        Sequential Processing
-        Problems are broken down into numbered thought steps that build upon each other,
-        maintaining context and allowing for systematic analysis.
+      Sequential Processing
+      Problems are broken down into numbered thought steps that build upon each other,
+      maintaining context and allowing for systematic analysis.
 
-        Dynamic Revision
-        Any previous thought step can be revised and updated, with the system tracking which thoughts have been modified.
+      Dynamic Revision
+      Any previous thought step can be revised and updated, with the system tracking which thoughts have been modified.
 
-        Alternative Branching
-        Create alternative reasoning paths to explore different approaches to the same problem, allowing for comparative analysis.
+      Alternative Branching
+      Create alternative reasoning paths to explore different approaches to the same problem, allowing for comparative analysis.
 
-        Adaptive Planning
-        The estimated number of thinking steps can be adjusted dynamically as understanding of the problem evolves.
+      Adaptive Planning
+      The estimated number of thinking steps can be adjusted dynamically as understanding of the problem evolves.
 
-        * Session State management:
+      * Session State management:
 
-        Each thinking session maintains:
+      Each thinking session maintains:
 
-        Session metadata: ID, problem statement, creation time, current status
-        Thought sequence: Ordered list of thoughts with timestamps and revision history
-        Progress tracking: Current step and estimated total steps
-        Branch relationships: Links to alternative reasoning paths
-        Status management: Active, completed, or paused sessions
-        
-        * Use Cases:
+      Session metadata: ID, problem statement, creation time, current status
+      Thought sequence: Ordered list of thoughts with timestamps and revision history
+      Progress tracking: Current step and estimated total steps
+      Branch relationships: Links to alternative reasoning paths
+      Status management: Active, completed, or paused sessions
 
-        Complex problem analysis requiring step-by-step breakdown
-        Design decisions needing systematic evaluation
-        Scenarios where initial scope is unclear and may evolve
-        Problems requiring alternative approach exploration
-        Situations needing detailed reasoning documentation
+      * Use Cases:
 
-        Examples:
+      Complex problem analysis requiring step-by-step breakdown
+      Design decisions needing systematic evaluation
+      Scenarios where initial scope is unclear and may evolve
+      Problems requiring alternative approach exploration
+      Situations needing detailed reasoning documentation
 
-        Software architecture design
-        Research methodology planning
-        Strategic business decisions
-        Technical troubleshooting
-        Creative problem solving
-        Academic research planning
+      Examples:
 
-        * Guidline:
+      Software architecture design
+      Research methodology planning
+      Strategic business decisions
+      Technical troubleshooting
+      Creative problem solving
+      Academic research planning
 
-        You must utilize the available tools to plan and solve user queries.
+      * Guidline:
 
-        Three main tools for managing thinking sessions:
+      You must utilize the available tools to plan and solve user queries.
 
-        1. Start Thinking (start_thinking)
-        Begins a new sequential thinking session for a complex problem.
+      Three main tools for managing thinking sessions:
 
-        2. Continue Thinking (continue_thinking)
-        Adds the next thought step, revises previous steps, or creates alternative branches.
+      1. Start Thinking (start_thinking)
+      Begins a new sequential thinking session for a complex problem.
 
-        3. Review Thinking (review_thinking)
-        Provides a complete review of the thinking process for a session.
+      2. Continue Thinking (continue_thinking)
+      Adds the next thought step, revises previous steps, or creates alternative branches.
 
-        Example Usage:
+      3. Review Thinking (review_thinking)
+      Provides a complete review of the thinking process for a session.
 
-        Starting a Thinking Session
-        {
-          "method": "tools/call",
-          "params": {
-            "name": "start_thinking",
-            "arguments": {
-              "problem": "How should I design a scalable microservices architecture?",
-              "sessionId": "architecture_design",
-              "estimatedSteps": 8
-            }
+      Example Usage:
+
+      Starting a Thinking Session
+      {
+        "method": "tools/call",
+        "params": {
+          "name": "start_thinking",
+          "arguments": {
+            "problem": "How should I design a scalable microservices architecture?",
+            "sessionId": "architecture_design",
+            "estimatedSteps": 8
           }
         }
+      }
 
-        Adding Sequential Thoughts
-        {
-          "method": "tools/call", 
-          "params": {
-            "name": "continue_thinking",
-            "arguments": {
-              "sessionId": "architecture_design",
-              "thought": "First, I need to identify the core business domains and their boundaries to determine service decomposition."
-            }
+      Adding Sequential Thoughts
+      {
+        "method": "tools/call", 
+        "params": {
+          "name": "continue_thinking",
+          "arguments": {
+            "sessionId": "architecture_design",
+            "thought": "First, I need to identify the core business domains and their boundaries to determine service decomposition."
           }
         }
+      }
 
-        Revising a Previous Step
-        {
-          "method": "tools/call",
-          "params": {
-            "name": "continue_thinking", 
-            "arguments": {
-              "sessionId": "architecture_design",
-              "thought": "Actually, before identifying domains, I should analyze the current system's pain points and requirements.",
-              "reviseStep": 1
-            }
+      Revising a Previous Step
+      {
+        "method": "tools/call",
+        "params": {
+          "name": "continue_thinking", 
+          "arguments": {
+            "sessionId": "architecture_design",
+            "thought": "Actually, before identifying domains, I should analyze the current system's pain points and requirements.",
+            "reviseStep": 1
           }
         }
+      }
 
-        Creating an Alternative Branch
-        {
-          "method": "tools/call",
-          "params": {
-            "name": "continue_thinking",
-            "arguments": {
-              "sessionId": "architecture_design", 
-              "thought": "Alternative approach: Start with a monolith-first strategy and extract services gradually.",
-              "createBranch": true
-            }
+      Creating an Alternative Branch
+      {
+        "method": "tools/call",
+        "params": {
+          "name": "continue_thinking",
+          "arguments": {
+            "sessionId": "architecture_design", 
+            "thought": "Alternative approach: Start with a monolith-first strategy and extract services gradually.",
+            "createBranch": true
           }
         }
+      }
 
-        Completing the Thinking Process
-        {
-          "method": "tools/call",
-          "params": {
-            "name": "continue_thinking",
-            "arguments": {
-              "sessionId": "architecture_design",
-              "thought": "Based on this analysis, I recommend starting with 3 core services: User Management, Order Processing, and Inventory Management.",
-              "nextNeeded": false
-            }
+      Completing the Thinking Process
+      {
+        "method": "tools/call",
+        "params": {
+          "name": "continue_thinking",
+          "arguments": {
+            "sessionId": "architecture_design",
+            "thought": "Based on this analysis, I recommend starting with 3 core services: User Management, Order Processing, and Inventory Management.",
+            "nextNeeded": false
           }
         }
+      }
 
-        Reviewing the Complete Process
-        {
-          "method": "tools/call",
-          "params": {
-            "name": "review_thinking", 
-            "arguments": {
-              "sessionId": "architecture_design"
-            }
+      Reviewing the Complete Process
+      {
+        "method": "tools/call",
+        "params": {
+          "name": "review_thinking", 
+          "arguments": {
+            "sessionId": "architecture_design"
           }
         }
+      }
     functions:
       - "think:*"
 

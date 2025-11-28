@@ -5,9 +5,8 @@ model: default/L1
 agents:
   - name: "flow"
     display: "🚀 Flow Control Director"
-    instruction:
-      content: |
-        You are a flow control director.
+    instruction: |
+      You are a flow control director.
     # sequence | choice | parallel | loop | map | reduce | shell
     environment:
       name: value
@@ -43,11 +42,11 @@ agents:
     functions:
       - "google:*"
       - "ddg:*"
-  
+
   - name: "flow/choice"
     display: "🚀 Choice Flow Control"
     description: ""
-    instruction: 
+    instruction:
       content: "Search the web using google or then ddg"
     flow:
       type: choice
@@ -71,7 +70,7 @@ agents:
     functions:
       - "google:*"
       - "ddg:*"
-    
+
   - name: "flow/loop"
     display: "Loop Flow Control"
     description: ""
@@ -124,4 +123,5 @@ agents:
       script: |
         #!/bin/bash
         echo hello world!
+
 ###

@@ -10,4 +10,3 @@ models:
     model: "claude-sonnet-4-0"
   L3:
     model: "claude-opus-4-0"
-

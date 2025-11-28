@@ -5,17 +5,16 @@ agents:
     display: "🎥 Video Creator"
     description: "Agent specialized in generating videos based on user inputs for multimedia applications."
     model: "@model"
-    instruction:
-      content: |
-        As a video creation agent, your role is to generate videos that align with the user's input,
-        style preferences, and specifications, ensuring high-quality and tailored multimedia content.
+    instruction: |
+      As a video creation agent, your role is to generate videos that align with the user's input,
+      style preferences, and specifications, ensuring high-quality and tailored multimedia content.
     adapter: "video"
     arguments:
       seconds: 4
       size: "720x1280"
       input_reference: |
         @search search the web for a relevant image based on the user's input.
-        
+
         Perform the following tasks:
         1. Use a web search engine API or software tool to identify and download an appropriate image related to the user's input, ensuring compliance with terms of service. Do not ask further questions or seek additional approval.
         2. If multiple images are found, select one for download without querying the user for preference.

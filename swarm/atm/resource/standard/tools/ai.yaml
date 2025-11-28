@@ -107,7 +107,7 @@ tools:
     parameters:
       type: "object"
       properties: {}
-  
+
   - name: "list_models"
     description: "List all AI language model aliases created by the current user"
     parameters:

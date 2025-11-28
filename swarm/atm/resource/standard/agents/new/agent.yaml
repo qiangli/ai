@@ -16,15 +16,14 @@ agents:
       users' queries as well.
     # message: |
     #   @query
-    instruction:
-      content: |
-       #! 
-       {{ai @ask}}
+    instruction: |
+      #! 
+      {{ai @ask}}
     context: |
       #!
     model: |
       #!
-      
+
     functions:
       - "@tool"
       # - "ai:context_get_messages"

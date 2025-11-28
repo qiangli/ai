@@ -11,9 +11,8 @@ agents:
     description: "Custom middleware chain"
     message: |
       optional preset user message prepended to user input
-    instruction:
-      content: |
-        system role prompt goes here
+    instruction: |
+      system role prompt goes here
     functions:
       - "kit:*"
       - "agent:<agent>"
@@ -23,21 +22,21 @@ agents:
     description: "Custom middleware chain"
     chain:
       middleware:
-          - input
-          #
-          - timeout
-          - log
-          - env
-          - memory
-          - instruction
-          - query
-          - context
-          - agent
-          - tool
-          - model
-          - inferecne
-          #
-          - output
+        - input
+        #
+        - timeout
+        - log
+        - env
+        - memory
+        - instruction
+        - query
+        - context
+        - agent
+        - tool
+        - model
+        - inferecne
+        #
+        - output
     flow:
       type: sequence
       actions:

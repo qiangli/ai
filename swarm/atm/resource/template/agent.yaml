@@ -12,9 +12,8 @@ agents:
     model: "default/any"
     message: |
       optional preset user message prepended to user input
-    instruction:
-      content: |
-        system role prompt goes here
+    instruction: |
+      system role prompt goes here
     flow:
       type: sequence | choice | parallel | loop | map | reduce
       actions:

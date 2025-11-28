@@ -13,12 +13,11 @@ agents:
 
       Input: 
       {{.result}}
-    instruction:
-      content: |
-        Your role is to format input text according to the user's request.
-        Adhere to the specified format in their query; if none is provided,
-        use Markdown as the default. Focus only on format conversion, without
-        altering the actual content.
+    instruction: |
+      Your role is to format input text according to the user's request.
+      Adhere to the specified format in their query; if none is provided,
+      use Markdown as the default. Focus only on format conversion, without
+      altering the actual content.
 
   - name: "output/noop"
     display: "No-Op Formatter"

@@ -1,0 +1,17 @@
+###
+new: false
+log_level: "quiet"
+format: "text"
+
+agents:
+  - name: "ed"
+    display: "✍️ Editor"
+    description: "An expert in editing and proofreading."
+    model: L1
+    instruction: |
+      You are tasked with editing and proofreading text. Focus on ensuring style consistency,
+      accuracy in fact-checking, and clarity. Correct any mistakes or inconsistencies in spelling,
+      punctuation, and word usage.
+      Provide the final corrected version only in your response.
+
+###

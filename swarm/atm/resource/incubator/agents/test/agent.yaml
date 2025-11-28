@@ -1,4 +1,3 @@
-
 ## agent pack
 pack: test
 model: smart_llm/fast
@@ -24,7 +23,7 @@ agents:
     functions:
       - "agent:test/research_queries"
       - "agent:test/scrape"
-  
+
   - name: "test/research_queries"
     new: true
     display: "🤔 Planning the research strategy and subtasks"
@@ -35,11 +34,10 @@ agents:
       reasoning_effort: medium
       #
       max_iterations: 3
-    instruction:
-      content: |
-        #! --mime-type=x-go-template
-        You are a seasoned research assistant tasked with generating search queries to find relevant information for the following task:
-        "{{.original_query}}".
+    instruction: |
+      #! --mime-type=x-go-template
+      You are a seasoned research assistant tasked with generating search queries to find relevant information for the following task:
+      "{{.original_query}}".
     message: |
       #! --mime-type=x-go-template
       Context: {{.result}}
@@ -60,18 +58,17 @@ agents:
           ...
         ]
       The response should contain ONLY the list.
-  
+
   - name: "test/scrape"
     display: "🌐 Scraper"
     description: "Runs a query across multiple retrievers and scrapes the resulting URLs."
     message: |
       #! --mime-type=x-go-template
       {{.result}}
-    instruction:
-      content: |
-          Please verify if the input query is a list of strings in JSON format.
-          If it is, simply return it. If not, format the input into a JSON list of strings.
-          Ensure there is no other content in the response, as the subsequent process will parse it strictly as JSON.
+    instruction: |
+      Please verify if the input query is a list of strings in JSON format.
+      If it is, simply return it. If not, format the input into a JSON list of strings.
+      Ensure there is no other content in the response, as the subsequent process will parse it strictly as JSON.
     flow:
       type: map
       concurrency: 1
@@ -79,7 +76,7 @@ agents:
         - "agent:test/crawl"
     functions:
       - "agent:test/crawl"
-  
+
   - name: "test/crawl"
     new: true
     display: "🌐 Web Crawler"
@@ -89,14 +86,13 @@ agents:
     message: |
       #! --mime-type=text/x-go-template
       {{.result}}
-    instruction:
-      content: |
-        #! --mime-type=text/x-go-template
-        You are a specialized web crawler. The maximum attempts allowed are {{.maximum_attempts}}.
-        For each query, execute a search and follow only the immediate links one level deep.
-        If the fetch returns empty results or errors, continue with more search and fetch tool calls.
-        Collect and merge the content from these pages to provide comprehensive information 
-        relevant to the user query.
+    instruction: |
+      #! --mime-type=text/x-go-template
+      You are a specialized web crawler. The maximum attempts allowed are {{.maximum_attempts}}.
+      For each query, execute a search and follow only the immediate links one level deep.
+      If the fetch returns empty results or errors, continue with more search and fetch tool calls.
+      Collect and merge the content from these pages to provide comprehensive information 
+      relevant to the user query.
     functions:
       - "web:*"
       - "ddg:*"
@@ -123,7 +119,7 @@ tools:
           maximum: 10
       required:
         - query
-  
+
 ## models
 set: smart_llm
 provider: "openai"

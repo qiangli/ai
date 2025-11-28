@@ -10,8 +10,7 @@ agents:
       Determine optimal workflows through sequence, choice, parallel, map, reduce, loop, or scripting
       to fulfill complex requests efficiently
     model: default/any
-    instruction:
-      content: |
+    instruction: |
         You are a flow control director. 
 
         Conventions:

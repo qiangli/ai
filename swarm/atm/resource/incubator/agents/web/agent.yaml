@@ -13,32 +13,30 @@ agents:
     embed:
       - "agent:memory"
     message: |
-      After answers the question, 
-    instruction:
-      content: |
-        Evaluate and organize content for research tasks with a focus on relevance, 
-        credibility, and quantitative information. Maintain diverse perspectives, 
-        avoiding summarization while ensuring comprehensive coverage of up to the 
-        maximum number of relevant sources.
+      After answers the question,
+    instruction: |
+      Evaluate and organize content for research tasks with a focus on relevance, 
+      credibility, and quantitative information. Maintain diverse perspectives, 
+      avoiding summarization while ensuring comprehensive coverage of up to the 
+      maximum number of relevant sources.
 
-        Generate structured, in-depth reports by highlighting key insights, facts, and 
-        numbers. Write in markdown format, ensuring clarity with hyperlinks and 
-        citations. Prioritize recent and credible sources, using tables for data 
-        presentation when necessary. Conclude with a detailed reference list of all 
-        utilized source URLs.
+      Generate structured, in-depth reports by highlighting key insights, facts, and 
+      numbers. Write in markdown format, ensuring clarity with hyperlinks and 
+      citations. Prioritize recent and credible sources, using tables for data 
+      presentation when necessary. Conclude with a detailed reference list of all 
+      utilized source URLs.
     functions:
       - "agent:web/search"
       - "agent:web/research"
       - "agent:web/crawl"
-  
+
   - name: "web/search"
     display: "Web Search"
     description: "Get web search results for a given query."
-    instruction:
-      content: |
-        As a web search assistant, you are responsible for processing user queries and providing accurate
-        search results from the web. When a user submits a query, analyze the main components of the query,
-        perform a web search, and return the most relevant results.
+    instruction: |
+      As a web search assistant, you are responsible for processing user queries and providing accurate
+      search results from the web. When a user submits a query, analyze the main components of the query,
+      perform a web search, and return the most relevant results.
     parameters:
       type: "object"
       properties:
@@ -58,7 +56,7 @@ agents:
       - "bing:*"
       - "google:*"
       - "brave:*"
-  
+
   - name: "web/research"
     display: "Planning the research strategy and subtasks"
     description: "Generate sub queries based on user input"
@@ -80,29 +78,28 @@ agents:
           maximum: 5
       required:
         - query
-    instruction:
-      content: |
-        #! --mime-type=x-go-template
-        You are a seasoned research assistant tasked with generating search queries to find relevant information for the following task:
-        
-        Context: {{.query}}
+    instruction: |
+      #! --mime-type=x-go-template
+      You are a seasoned research assistant tasked with generating search queries to find relevant information for the following task:
 
-        Use this context to inform and refine your search queries. The context provides real-time web information
-        that can help you generate more specific and relevant queries. Consider any current events, recent developments,
-        or specific details mentioned in the context that could enhance the search queries.
+      Context: {{.query}}
 
-        Write {{.max_iterations}} search queries to search online that form an objective opinion.
+      Use this context to inform and refine your search queries. The context provides real-time web information
+      that can help you generate more specific and relevant queries. Consider any current events, recent developments,
+      or specific details mentioned in the context that could enhance the search queries.
 
-        Assume the current date is {{now}} if required.
+      Write {{.max_iterations}} search queries to search online that form an objective opinion.
 
-        You must respond with a list of strings in the following JSON array object format:
-          [
-            "query 1",
-            "query 2",
-            ...
-          ]
-        The response should contain ONLY the list.
-    
+      Assume the current date is {{now}} if required.
+
+      You must respond with a list of strings in the following JSON array object format:
+        [
+          "query 1",
+          "query 2",
+          ...
+        ]
+      The response should contain ONLY the list.
+
   # - name: "web/scrape"
   #   display: "Scraper"
   #   description: "Runs a query across multiple retrievers and scrapes the resulting URLs."
@@ -124,7 +121,7 @@ agents:
   #       - "agent:web/crawl"
   #   functions:
   #     - "agent:web/crawl"
-  
+
   - name: "web/crawl"
     new: true
     display: "Crawler"
@@ -145,14 +142,13 @@ agents:
           maximum: 5
       required:
         - query
-    instruction:
-      content: |
-        #! --mime-type=text/x-go-template
-        You are a specialized web crawler. The maximum attempts allowed are {{.maximum_attempts}}.
-        For each query, execute a search and follow only the immediate links one level deep.
-        If the fetch returns empty results or errors, continue with more search and fetch tool calls.
-        Collect and merge the content from these pages to provide comprehensive information 
-        relevant to the user query.
+    instruction: |
+      #! --mime-type=text/x-go-template
+      You are a specialized web crawler. The maximum attempts allowed are {{.maximum_attempts}}.
+      For each query, execute a search and follow only the immediate links one level deep.
+      If the fetch returns empty results or errors, continue with more search and fetch tool calls.
+      Collect and merge the content from these pages to provide comprehensive information 
+      relevant to the user query.
     functions:
       - "agent:web/search"
       - "web:*"

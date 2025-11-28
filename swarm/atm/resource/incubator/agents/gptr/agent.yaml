@@ -2,7 +2,7 @@
 
 ## agent pack
 pack: gptr
-# 
+#
 # adapted from https://github.com/assafelovic/gpt-researcher
 #
 model: smart_llm/fast
@@ -44,7 +44,7 @@ agents:
       - "agent:gptr/scrape"
       - "agent:gptr/curate"
       - "agent:gptr/report"
-  
+
   - name: "gptr/user_input"
     new: true
     display: "🖥️  User Input"
@@ -52,42 +52,41 @@ agents:
     message: |
       #! --mime-type=text/x-go-template
       {{.original_query}}
-    instruction:
-      content: |
-        You are an agent designed to analyze user input to identify preferences for generating research reports. Your role is not to gather or retrieve real-time information, but to extract the specified parameters from the user's query.
+    instruction: |
+      You are an agent designed to analyze user input to identify preferences for generating research reports. Your role is not to gather or retrieve real-time information, but to extract the specified parameters from the user's query.
 
-        Your objective is to identify the following elements from the user's input:
+      Your objective is to identify the following elements from the user's input:
 
-        + Tone of the report:
-          Example values:
-            "objective", "formal", "analytical", "persuasive", "informative", "explanatory", "descriptive", "critical", "comparative", "speculative",
-            "reflective", "narrative", "humorous", "optimistic", "pessimistic"
-          Multiple values are allowed, e.g., "formal, analytical, and objective". If a tone not listed above is detected in the user's input, it should also be considered valid.
+      + Tone of the report:
+        Example values:
+          "objective", "formal", "analytical", "persuasive", "informative", "explanatory", "descriptive", "critical", "comparative", "speculative",
+          "reflective", "narrative", "humorous", "optimistic", "pessimistic"
+        Multiple values are allowed, e.g., "formal, analytical, and objective". If a tone not listed above is detected in the user's input, it should also be considered valid.
 
-        + Total word count limit for document generation. The default is `500`.
-          Guidelines:
-            - Use 500 words for a short summary.
-            - Use 1000 words for a detailed and in-depth report.
-            - Do not exceed 2000 words for an extensive research report unless explicitly requested by the user for more.
+      + Total word count limit for document generation. The default is `500`.
+        Guidelines:
+          - Use 500 words for a short summary.
+          - Use 1000 words for a detailed and in-depth report.
+          - Do not exceed 2000 words for an extensive research report unless explicitly requested by the user for more.
 
-        + Report format: The preferred format for report generation. The default is `markdown`.
-          Formats such as `MLA`, `CMS`, `Harvard style`, `IEEE`, etc., should be used if specified by the user.
+      + Report format: The preferred format for report generation. The default is `markdown`.
+        Formats such as `MLA`, `CMS`, `Harvard style`, `IEEE`, etc., should be used if specified by the user.
 
-        + Language: The language to be used for the final research report. The default is `English`.
+      + Language: The language to be used for the final research report. The default is `English`.
 
-        The final response must be structured as valid JSON, without seeking real-time information:
-        {
-          "tone": "detected tone from user input",
-          "total_words": "derived total words from user input",
-          "report_format": "desired report format from user",
-          "language": "preferred language by user"
-        }
+      The final response must be structured as valid JSON, without seeking real-time information:
+      {
+        "tone": "detected tone from user input",
+        "total_words": "derived total words from user input",
+        "report_format": "desired report format from user",
+        "language": "preferred language by user"
+      }
     environment:
       tone: "{{.tone}}"
       total_words: "{{.total_words}}"
       report_format: "{{.report_format}}"
       language: "{{.language}}"
-    arguments: 
+    arguments:
       tone: "objective"
       total_words: 500
       report_format: "markdown"
@@ -103,34 +102,33 @@ agents:
     message: |
       #! --mime-type=text/go-template
       task: {{.original_query}}
-    instruction:
-      content: |
-        This task involves researching a given topic, regardless of its complexity or the availability of a definitive answer.
-        The research is conducted by a specific server, defined by its type and role, with each server requiring distinct instructions.
-        
-        The server is determined by the field of the topic and the specific name of the server that could be utilized to research the topic provided.
-        Agents are categorized by their area of expertise, and each server type is associated with a corresponding emoji.
+    instruction: |
+      This task involves researching a given topic, regardless of its complexity or the availability of a definitive answer.
+      The research is conducted by a specific server, defined by its type and role, with each server requiring distinct instructions.
 
-        Examples:
+      The server is determined by the field of the topic and the specific name of the server that could be utilized to research the topic provided.
+      Agents are categorized by their area of expertise, and each server type is associated with a corresponding emoji.
 
-        task: "should I invest in apple stocks?"
-        response:
-        {
-            "server": "💰 Finance Agent",
-            "agent_role_prompt: "You are a seasoned finance analyst AI assistant. Your primary goal is to compose comprehensive, astute, impartial, and methodically arranged financial reports based on provided data and trends."
-        }
-        task: "could reselling sneakers become profitable?"
-        response:
-        {
-            "server":  "📈 Business Analyst Agent",
-            "agent_role_prompt": "You are an experienced AI business analyst assistant. Your main objective is to produce comprehensive, insightful, impartial, and systematically structured business reports based on provided business data, market trends, and strategic analysis."
-        }
-        task: "what are the most interesting sites in Tel Aviv?"
-        response:
-        {
-            "server":  "🌍 Travel Agent",
-            "agent_role_prompt": "You are a world-travelled AI tour guide assistant. Your main purpose is to draft engaging, insightful, unbiased, and well-structured travel reports on given locations, including history, attractions, and cultural insights."
-        }
+      Examples:
+
+      task: "should I invest in apple stocks?"
+      response:
+      {
+          "server": "💰 Finance Agent",
+          "agent_role_prompt: "You are a seasoned finance analyst AI assistant. Your primary goal is to compose comprehensive, astute, impartial, and methodically arranged financial reports based on provided data and trends."
+      }
+      task: "could reselling sneakers become profitable?"
+      response:
+      {
+          "server":  "📈 Business Analyst Agent",
+          "agent_role_prompt": "You are an experienced AI business analyst assistant. Your main objective is to produce comprehensive, insightful, impartial, and systematically structured business reports based on provided business data, market trends, and strategic analysis."
+      }
+      task: "what are the most interesting sites in Tel Aviv?"
+      response:
+      {
+          "server":  "🌍 Travel Agent",
+          "agent_role_prompt": "You are a world-travelled AI tour guide assistant. Your main purpose is to draft engaging, insightful, unbiased, and well-structured travel reports on given locations, including history, attractions, and cultural insights."
+      }
 
   - name: "gptr/web_search"
     new: true
@@ -141,18 +139,17 @@ agents:
       #! --mime-type=text/x-go-template
       search the web for the following content:
       {{.original_query}}
-    instruction:
-      content: |
-        As a web search assistant, you are responsible for processing user queries and providing accurate
-        search results from the web. When a user submits a query, analyze the main components of the query,
-        perform a web search, and return the most relevant results.
+    instruction: |
+      As a web search assistant, you are responsible for processing user queries and providing accurate
+      search results from the web. When a user submits a query, analyze the main components of the query,
+      perform a web search, and return the most relevant results.
     functions:
       - "gptr:*"
       - "ddg:*"
       - "bing:*"
       - "google:*"
       - "brave:*"
-  
+
   - name: "gptr/research_queries"
     new: true
     display: "🤔 Planning the research strategy and subtasks"
@@ -163,11 +160,10 @@ agents:
       reasoning_effort: medium
       #
       max_iterations: 3
-    instruction:
-      content: |
-        #! --mime-type=x-go-template
-        You are a seasoned research assistant tasked with generating search queries to find relevant information for the following task:
-        "{{.original_query}}".
+    instruction: |
+      #! --mime-type=x-go-template
+      You are a seasoned research assistant tasked with generating search queries to find relevant information for the following task:
+      "{{.original_query}}".
     message: |
       #! --mime-type=x-go-template
       Context: {{.result}}
@@ -188,18 +184,17 @@ agents:
           ...
         ]
       The response should contain ONLY the list.
-  
+
   - name: "gptr/scrape"
     display: "🌐 Scraper"
     description: "Runs a query across multiple retrievers and scrapes the resulting URLs."
     message: |
       #! --mime-type=x-go-template
       {{.result}}
-    instruction:
-      content: |
-          Please verify if the input query is a list of strings in JSON format.
-          If it is, simply return it. If not, format the input into a JSON list of strings.
-          Ensure there is no other content in the response, as the subsequent process will parse it strictly as JSON.
+    instruction: |
+      Please verify if the input query is a list of strings in JSON format.
+      If it is, simply return it. If not, format the input into a JSON list of strings.
+      Ensure there is no other content in the response, as the subsequent process will parse it strictly as JSON.
     flow:
       type: map
       concurrency: 5
@@ -207,7 +202,7 @@ agents:
         - "agent:gptr/crawl"
     functions:
       - "agent:gptr/crawl"
-  
+
   - name: "gptr/crawl"
     new: true
     display: "🌐 Web Crawler"
@@ -217,14 +212,13 @@ agents:
     message: |
       #! --mime-type=text/x-go-template
       {{.result}}
-    instruction:
-      content: |
-        #! --mime-type=text/x-go-template
-        You are a specialized web crawler. The maximum attempts allowed are {{.maximum_attempts}}.
-        For each query, execute a search and follow only the immediate links one level deep.
-        If the fetch returns empty results or errors, continue with more search and fetch tool calls.
-        Collect and merge the content from these pages to provide comprehensive information 
-        relevant to the user query.
+    instruction: |
+      #! --mime-type=text/x-go-template
+      You are a specialized web crawler. The maximum attempts allowed are {{.maximum_attempts}}.
+      For each query, execute a search and follow only the immediate links one level deep.
+      If the fetch returns empty results or errors, continue with more search and fetch tool calls.
+      Collect and merge the content from these pages to provide comprehensive information 
+      relevant to the user query.
     functions:
       - "web:*"
       - "ddg:*"
@@ -242,10 +236,9 @@ agents:
       # max_completion_tokens: 10000
       #
       max_results: 5
-    instruction:
-      content: |
-        #! --mimte-type=text/x-go-template
-        {{.agent_role_prompt}}
+    instruction: |
+      #! --mimte-type=text/x-go-template
+      {{.agent_role_prompt}}
     message: |
       #! --mime-type=text/x-go-template
       Your goal is to evaluate and curate the provided scraped content for the research task: "{{.original_query}}"
@@ -278,7 +271,7 @@ agents:
 
       You MUST return your response in the EXACT sources JSON list format as the original sources.
       The response MUST not contain any markdown format or additional text (like ```json), just the JSON list!
-  
+
   - name: "gptr/report"
     new: true
     display: "📝 Report"
@@ -293,10 +286,9 @@ agents:
       # report_format: "markdown"
       # total_words: 1200
       date: "{{now}}"
-    instruction:
-      content: |
-        #! --mime-type=text/x-go-template
-        {{.agent_role_prompt}}
+    instruction: |
+      #! --mime-type=text/x-go-template
+      {{.agent_role_prompt}}
     message: |
       #! --mime-type=text/x-go-template
       Information: "{{toPrettyJson .result}}"
@@ -347,7 +339,7 @@ tools:
           maximum: 10
       required:
         - query
-  
+
 ## models
 set: smart_llm
 provider: "openai"

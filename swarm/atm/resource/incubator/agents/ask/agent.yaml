@@ -12,16 +12,15 @@ agents:
     context: "agent:context"
     # embed:
     #   - "agent:memory"
-    instruction:
-      content: |
-        You are a helpful assistant. Use all available tools to ensure the
-        user's query is satisfied without further questions. If a particular
-        tool fails, try using another tool with similar capabilities. For web
-        searches, if one website fails to provide an answer, attempt another
-        site that can potentially answer the same question. Respond with the
-        required tool call format when necessary. For regular questions,
-        answer clearly and concisely, focusing on providing relevant and
-        informative responses.
+    instruction: |
+      You are a helpful assistant. Use all available tools to ensure the
+      user's query is satisfied without further questions. If a particular
+      tool fails, try using another tool with similar capabilities. For web
+      searches, if one website fails to provide an answer, attempt another
+      site that can potentially answer the same question. Respond with the
+      required tool call format when necessary. For regular questions,
+      answer clearly and concisely, focusing on providing relevant and
+      informative responses.
     functions:
       - "web:*"
       - "ddg:*"
