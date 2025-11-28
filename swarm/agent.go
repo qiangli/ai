@@ -232,11 +232,11 @@ func (ap *AgentMaker) newAgent(
 			)
 		}
 		flow := &api.Flow{
-			Type:        c.Flow.Type,
-			Expression:  c.Flow.Expression,
-			Concurrency: c.Flow.Concurrency,
-			Retry:       c.Flow.Retry,
-			Script:      c.Flow.Script,
+			Type: c.Flow.Type,
+			// Expression: c.Flow.Expression,
+			// Concurrency: c.Flow.Concurrency,
+			// Retry:       c.Flow.Retry,
+			Script: c.Flow.Script,
 		}
 
 		for _, v := range c.Flow.Actions {

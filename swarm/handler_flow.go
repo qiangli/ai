@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
-	"strconv"
+	// "math/rand"
+	// "strconv"
 	"strings"
 	"sync"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/atm"
+	// "github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/shell/tool/sh"
 )
 
@@ -43,37 +43,37 @@ func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error 
 	return nil
 }
 
-// FlowTypeLoop executes actions repetitively in a loop. The loop can use a counter or
-// evaluate an expression for each iteration, allowing for repeated execution with varying
-// parameters or conditions.
-func (h *agentHandler) flowLoop(req *api.Request, resp *api.Response) error {
-	env := h.sw.globalEnv()
-	// h.mapAssign(req, env, req.Arguments, false)
+// // FlowTypeLoop executes actions repetitively in a loop. The loop can use a counter or
+// // evaluate an expression for each iteration, allowing for repeated execution with varying
+// // parameters or conditions.
+// func (h *agentHandler) flowLoop(req *api.Request, resp *api.Response) error {
+// 	env := h.sw.globalEnv()
+// 	// h.mapAssign(req, env, req.Arguments, false)
 
-	eval := func(exp string) (bool, error) {
-		v, err := atm.ApplyTemplate(h.agent.Template, exp, env)
-		if err != nil {
-			return false, err
-		}
-		return strconv.ParseBool(v)
-	}
+// 	eval := func(exp string) (bool, error) {
+// 		v, err := atm.ApplyTemplate(h.agent.Template, exp, env)
+// 		if err != nil {
+// 			return false, err
+// 		}
+// 		return strconv.ParseBool(v)
+// 	}
 
-	for {
-		ok, err := eval(h.agent.Flow.Expression)
-		if err != nil {
-			return err
-		}
-		if !ok {
-			return nil
-		}
-		if ok {
-			// use the same request and respone
-			if err := h.flowSequence(req, resp); err != nil {
-				return err
-			}
-		}
-	}
-}
+// 	for {
+// 		ok, err := eval(h.agent.Flow.Expression)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		if !ok {
+// 			return nil
+// 		}
+// 		if ok {
+// 			// use the same request and respone
+// 			if err := h.flowSequence(req, resp); err != nil {
+// 				return err
+// 			}
+// 		}
+// 	}
+// }
 
 // FlowTypeParallel executes actions simultaneously, returning the combined results as a list.
 // This allows for concurrent processing of independent actions.
@@ -105,58 +105,58 @@ func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error 
 	return nil
 }
 
-// FlowTypeChoice selects and executes a single action based on an evaluated expression.
-// If no expression is provided, an action is chosen randomly. The expression must evaluate
-// to a string (tool ID), false/true, or an integer that selects the action index, starting from zero.
-func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
-	env := h.sw.globalEnv()
-	// h.mapAssign(req, env, req.Arguments, false)
+// // FlowTypeChoice selects and executes a single action based on an evaluated expression.
+// // If no expression is provided, an action is chosen randomly. The expression must evaluate
+// // to a string (tool ID), false/true, or an integer that selects the action index, starting from zero.
+// func (h *agentHandler) flowChoice(req *api.Request, resp *api.Response) error {
+// 	env := h.sw.globalEnv()
+// 	// h.mapAssign(req, env, req.Arguments, false)
 
-	var which int = -1
-	// evaluate express or random
-	if h.agent.Flow.Expression != "" {
-		v, err := atm.ApplyTemplate(h.agent.Template, h.agent.Flow.Expression, env)
-		if err != nil {
-			return err
-		}
-		// match the action id
-		id := api.KitName(v).ID()
-		for i, action := range h.agent.Flow.Actions {
-			if id == action.ID {
-				which = i
-			}
-		}
-		//
-		if b, err := strconv.ParseBool(v); err == nil {
-			if b {
-				which = 1
-			} else {
-				which = 0
-			}
-		}
-		if which < 0 {
-			if v, err := strconv.ParseInt(v, 0, 64); err != nil {
-				return err
-			} else {
-				which = int(v)
-			}
-		}
-	} else {
-		// random
-		which = rand.Intn(len(h.agent.Flow.Actions))
-	}
-	if which < 0 && which >= len(h.agent.Flow.Actions) {
-		return fmt.Errorf("index out of bound; %v", which)
-	}
+// 	var which int = -1
+// 	// evaluate express or random
+// 	if h.agent.Flow.Expression != "" {
+// 		v, err := atm.ApplyTemplate(h.agent.Template, h.agent.Flow.Expression, env)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		// match the action id
+// 		id := api.KitName(v).ID()
+// 		for i, action := range h.agent.Flow.Actions {
+// 			if id == action.ID {
+// 				which = i
+// 			}
+// 		}
+// 		//
+// 		if b, err := strconv.ParseBool(v); err == nil {
+// 			if b {
+// 				which = 1
+// 			} else {
+// 				which = 0
+// 			}
+// 		}
+// 		if which < 0 {
+// 			if v, err := strconv.ParseInt(v, 0, 64); err != nil {
+// 				return err
+// 			} else {
+// 				which = int(v)
+// 			}
+// 		}
+// 	} else {
+// 		// random
+// 		which = rand.Intn(len(h.agent.Flow.Actions))
+// 	}
+// 	if which < 0 && which >= len(h.agent.Flow.Actions) {
+// 		return fmt.Errorf("index out of bound; %v", which)
+// 	}
 
-	ctx := req.Context()
+// 	ctx := req.Context()
 
-	v := h.agent.Flow.Actions[which]
-	if err := h.doAction(ctx, req, resp, v); err != nil {
-		return err
-	}
-	return nil
-}
+// 	v := h.agent.Flow.Actions[which]
+// 	if err := h.doAction(ctx, req, resp, v); err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 // FlowTypeMap applies specified action(s) to each element in the input array, creating a new
 // array populated with the results.

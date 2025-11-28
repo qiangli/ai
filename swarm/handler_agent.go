@@ -97,18 +97,18 @@ func (h *agentHandler) doAgentFlow(req *api.Request, resp *api.Response) error {
 			if err := h.flowParallel(req, resp); err != nil {
 				return err
 			}
-		case api.FlowTypeChoice:
-			if err := h.flowChoice(req, resp); err != nil {
-				return err
-			}
+		// case api.FlowTypeChoice:
+		// 	if err := h.flowChoice(req, resp); err != nil {
+		// 		return err
+		// 	}
 		case api.FlowTypeMap:
 			if err := h.flowMap(req, resp); err != nil {
 				return err
 			}
-		case api.FlowTypeLoop:
-			if err := h.flowLoop(req, resp); err != nil {
-				return err
-			}
+		// case api.FlowTypeLoop:
+		// 	if err := h.flowLoop(req, resp); err != nil {
+		// 		return err
+		// 	}
 		// case api.FlowTypeReduce:
 		// 	if err := h.flowReduce(req, resp); err != nil {
 		// 		return err

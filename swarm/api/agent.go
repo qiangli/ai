@@ -121,6 +121,7 @@ func (a *Agent) New() bool {
 	return a.Arguments.GetInt("max_history") == 0
 }
 
+// for reusing cached agent
 func (a *Agent) Clone() *Agent {
 	clone := &Agent{
 		Parent:      a.Parent,
@@ -147,12 +148,12 @@ func (a *Agent) Clone() *Agent {
 }
 
 type Flow struct {
-	Type        FlowType
-	Expression  string
-	Concurrency int
-	Retry       int
-	Actions     []*Action
-	Script      string
+	Type FlowType
+	// Expression string
+	// Concurrency int
+	// Retry       int
+	Actions []*Action
+	Script  string
 }
 
 func (a *Agent) cloneArguments() *Arguments {
@@ -336,10 +337,10 @@ const (
 	// subsequent action uses the previous action's response as input.
 	FlowTypeSequence FlowType = "sequence"
 
-	// FlowTypeChoice selects and executes a single action based on an evaluated expression.
-	// If no expression is provided, an action is chosen randomly. The expression must evaluate
-	// to an integer that selects the action index, starting from zero.
-	FlowTypeChoice FlowType = "choice"
+	// // FlowTypeChoice selects and executes a single action based on an evaluated expression.
+	// // If no expression is provided, an action is chosen randomly. The expression must evaluate
+	// // to an integer that selects the action index, starting from zero.
+	// FlowTypeChoice FlowType = "choice"
 
 	// FlowTypeParallel executes actions simultaneously, returning the combined results as a list.
 	// This allows for concurrent processing of independent actions.
@@ -349,10 +350,10 @@ const (
 	// array populated with the results.
 	FlowTypeMap FlowType = "map"
 
-	// FlowTypeLoop executes actions repetitively in a loop. The loop can use a counter or
-	// evaluate an expression for each iteration, allowing for repeated execution with varying
-	// parameters or conditions.
-	FlowTypeLoop FlowType = "loop"
+	// // FlowTypeLoop executes actions repetitively in a loop. The loop can use a counter or
+	// // evaluate an expression for each iteration, allowing for repeated execution with varying
+	// // parameters or conditions.
+	// FlowTypeLoop FlowType = "loop"
 
 	// // FlowTypeReduce applies action(s) sequentially to each element of an input array, accumulating
 	// // results. It passes the result of each action as input to the next. The process returns a single
@@ -368,9 +369,9 @@ type FlowConfig struct {
 	Type FlowType `yaml:"type"`
 
 	// go template syntax
-	Expression  string `yaml:"expression"`
-	Concurrency int    `yaml:"concurrency"`
-	Retry       int    `yaml:"retry"`
+	// Expression string `yaml:"expression"`
+	// Concurrency int    `yaml:"concurrency"`
+	// Retry       int    `yaml:"retry"`
 
 	// agent/tool list for non script flow
 	Actions []string `yaml:"actions"`

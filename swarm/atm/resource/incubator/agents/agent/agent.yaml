@@ -51,16 +51,15 @@ agents:
             arguments:
               <name>: <value> # Arguments specific to the agent, its tools, or sub-agents; can use Golang templates `{{"..."}}`
             flow: # Optional - flow actions are executed after the LLM request if instruction or message is provided.
-              type: sequence | choice | parallel | loop | map | shell
-                # sequence: Sequentially executes actions, passing each result to the next
-                # choice: Executes a single action based on an expression or randomly
-                # parallel: Concurrently executes actions; returns results as a list
+              type: sequence | parallel | map | shell
+                # sequence: Sequentially executes actions, passing each result to the next as input message
+                # parallel: Concurrently executes actions using the same input query; returns results as a list
                 # map: Applies actions to each element in an array, forming a new array
-                # loop: Repeatedly executes actions with specified conditions per iteration
                 # shell: Uses bash scripts for complex external logic
-              expression: "<expr>" # Applicable for choice and loop types; can use Golang templates `{{"..."}}`
               script: |
                 # Define bash script logic for the shell flow type
+                # Only supports bash builtin commands and running agents with the "ai" command
+                # i.e.: ai "@agent" ...
               actions:
                 # List the actions to execute; must be defined in the 'functions' section
                 # - kit:name # Example action; replace with valid tool/agent name
