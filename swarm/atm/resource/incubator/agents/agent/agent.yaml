@@ -47,9 +47,9 @@ agents:
               content: |
                 # Define the system role prompt here
             environment:
-              <name>: <value> # Persistent environment variables; values can be Golang templates "{{...}}"
+              <name>: <value> # Persistent environment variables; values can be Golang templates `{{"..."}}`
             arguments:
-              <name>: <value> # Arguments specific to the agent, its tools, or sub-agents; can use Golang templates "{{...}}"
+              <name>: <value> # Arguments specific to the agent, its tools, or sub-agents; can use Golang templates `{{"..."}}`
             flow: # Optional - flow actions are executed after the LLM request if instruction or message is provided.
               type: sequence | choice | parallel | loop | map | shell
                 # sequence: Sequentially executes actions, passing each result to the next
@@ -58,7 +58,7 @@ agents:
                 # map: Applies actions to each element in an array, forming a new array
                 # loop: Repeatedly executes actions with specified conditions per iteration
                 # shell: Uses bash scripts for complex external logic
-              expression: "{{.expr}}" # Applicable for choice and loop types; evaluate as Golang template
+              expression: "<expr>" # Applicable for choice and loop types; can use Golang templates `{{"..."}}`
               script: |
                 # Define bash script logic for the shell flow type
               actions:

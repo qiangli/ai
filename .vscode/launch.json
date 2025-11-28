@@ -15,7 +15,7 @@
 				"AI_DEBUG": "true",
 			},
 			"args": [
-				"@ask",
+				"@agent/agent",
 				// "@eval",
 				// "@iconvert",
 				// "@news",

@@ -85,16 +85,6 @@ func (sw *Swarm) InitChain() {
 	}
 }
 
-// func (sw *Swarm) NewChain(ctx context.Context, a *api.Agent) api.Handler {
-// 	final := HandlerFunc(func(req *api.Request, res *api.Response) error {
-// 		log.GetLogger(req.Context()).Infof("🔗 (final): %s\n", req.Name)
-// 		return nil
-// 	})
-
-// 	chain := NewChain(sw.middlewares...).Then(a, final)
-// 	return chain
-// }
-
 func (sw *Swarm) CreateAgent(ctx context.Context, name string) (*api.Agent, error) {
 	if name == "" {
 		// anonymous

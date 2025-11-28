@@ -3,10 +3,6 @@ agents:
   - name: "guard"
     display: "🌐 Tool Security Guard"
     description: "tool security guard"
-    template:
-      message: true
-      instruction: true
-      query: true
     message: |
       Here is the command and arguments: {{.Extra.Command}} {{.Extra.Args}}
     model: L1
