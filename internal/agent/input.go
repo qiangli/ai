@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"strings"
 
-	// "github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
@@ -138,8 +137,8 @@ func userInput(
 	// update query
 	var content = cat(stdinData, clipinData, "\n")
 	args := make(map[string]any)
-	query := cat(cfg.Message, content, "\n")
-	args["query"] = query
+	msg := cat(cfg.Message, content, "\n")
+	args["message"] = msg
 	return &api.UserInput{
 		Arguments: args,
 	}, nil

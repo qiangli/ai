@@ -128,6 +128,23 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 		if err != nil {
 			return err
 		}
+		// inherit args
+		var addAll func(*api.Agent)
+		addAll = func(a *api.Agent) {
+			if a == nil {
+				return
+			}
+			if a.Parent != nil {
+				addAll(a.Parent)
+			}
+			if a.Arguments != nil {
+				agent.Arguments.AddArgs(a.Arguments.GetAllArgs())
+			}
+		}
+		addAll(req.Parent)
+		if req.Arguments != nil {
+			agent.Arguments.AddArgs(req.Arguments.GetAllArgs())
+		}
 
 		// init
 		final := HandlerFunc(func(req *api.Request, res *api.Response) error {

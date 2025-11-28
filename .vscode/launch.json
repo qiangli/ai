@@ -15,7 +15,7 @@
 				"AI_DEBUG": "true",
 			},
 			"args": [
-				"@agent/agent",
+				// "@agent/agent",
 				// "@eval",
 				// "@iconvert",
 				// "@news",
@@ -27,7 +27,7 @@
 				// "@gptr",
 				// "@gpte",
 				// "@aider",
-				// "@ask",
+				"@ask",
 				// "@research",
 				// "@tool",
 				// "--arg", "kit=agent",

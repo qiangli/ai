@@ -9,6 +9,7 @@ agents:
       ranging from local system intricacies to comprehensive web-based information,
       ensuring clarity and accuracy.
     model: default/any
+    context: "agent:context"
     embed:
       - "agent:memory"
     instruction:
@@ -27,3 +28,4 @@ agents:
       - "bing:*"
       - "google:*"
       - "brave:*"
+      - "agent:context"
