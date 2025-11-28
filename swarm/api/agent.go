@@ -235,9 +235,8 @@ type AgentConfig struct {
 	Name      string         `yaml:"name"`
 	Arguments map[string]any `yaml:"arguments"`
 
-	Message string `yaml:"message"`
-
-	Instruction *Instruction `yaml:"instruction"`
+	Instruction string `yaml:"instruction"`
+	Message     string `yaml:"message"`
 
 	Model string `yaml:"model"`
 
@@ -290,8 +289,8 @@ func (ac *AgentConfig) ToMap() map[string]any {
 	if ac.Message != "" {
 		result["message"] = ac.Message
 	}
-	if ac.Instruction != nil && ac.Instruction.Content != "" {
-		result["instruction"] = ac.Instruction.Content
+	if ac.Instruction != "" {
+		result["instruction"] = ac.Instruction
 	}
 	if ac.Model != "" {
 		result["model"] = ac.Model
@@ -321,15 +320,15 @@ func (ac *AgentConfig) ToMap() map[string]any {
 	return result
 }
 
-type Instruction struct {
-	// prefix supported: file: resource:
-	// #! [--mime-type=text/x-go-template]
-	Content string `yaml:"content"`
+// type Instruction struct {
+// 	// prefix supported: file: resource:
+// 	// #! [--mime-type=text/x-go-template]
+// 	Content string `yaml:"content"`
 
-	// content type
-	// text/x-go-template
-	Type string `yaml:"type"`
-}
+// 	// content type
+// 	// text/x-go-template
+// 	Type string `yaml:"type"`
+// }
 
 type FlowType string
 

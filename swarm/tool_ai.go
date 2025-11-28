@@ -181,8 +181,8 @@ Instruction: %s
 		for _, v := range ac.Agents {
 			if v.Name == agent {
 				var prompt = ""
-				if v.Instruction != nil {
-					prompt = clip(v.Instruction.Content, 1000)
+				if v.Instruction != "" {
+					prompt = clip(v.Instruction, 1000)
 				}
 				return fmt.Sprintf(tpl, v.Name, v.Display, v.Description, prompt), nil
 			}

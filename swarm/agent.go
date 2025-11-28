@@ -70,13 +70,13 @@ func (ap *AgentMaker) getAgentConfig(ac *api.AgentsConfig, pack, sub string) (*a
 	}
 
 	// read the instruction
-	if a.Instruction != nil {
-		ps := a.Instruction.Content
+	if a.Instruction != "" {
+		ps := a.Instruction
 
 		if store, ok := a.Store.(api.AssetFS); ok {
 			switch {
 			case strings.HasPrefix(ps, "file:"):
-				parts := strings.SplitN(a.Instruction.Content, ":", 2)
+				parts := strings.SplitN(a.Instruction, ":", 2)
 				resource := strings.TrimSpace(parts[1])
 				if resource == "" {
 					return nil, fmt.Errorf("empty file in instruction for agent: %s", a.Name)
@@ -86,10 +86,10 @@ func (ap *AgentMaker) getAgentConfig(ac *api.AgentsConfig, pack, sub string) (*a
 				if err != nil {
 					return nil, fmt.Errorf("failed to read instruction from file %q for agent %q: %w", resource, a.Name, err)
 				}
-				a.Instruction.Content = string(content)
+				a.Instruction = string(content)
 				// log.Debugf("Loaded instruction from file %q for agent %q\n", resource, a.Name)
 			case strings.HasPrefix(ps, "resource:"):
-				parts := strings.SplitN(a.Instruction.Content, ":", 2)
+				parts := strings.SplitN(a.Instruction, ":", 2)
 				resource := strings.TrimSpace(parts[1])
 				if resource == "" {
 					return nil, fmt.Errorf("empty resource name in instruction for agent %q", a.Name)
@@ -99,7 +99,7 @@ func (ap *AgentMaker) getAgentConfig(ac *api.AgentsConfig, pack, sub string) (*a
 				if err != nil {
 					return nil, fmt.Errorf("failed to read instruction from resource %q for agent %q: %w", resource, a.Name, err)
 				}
-				a.Instruction.Content = string(content)
+				a.Instruction = string(content)
 			}
 		}
 	}
