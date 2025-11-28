@@ -35,10 +35,7 @@ func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error 
 		if err := h.doAction(ctx, nreq, nresp, v); err != nil {
 			return err
 		}
-		// nreq.RawInput = &api.UserInput{
-		// 	Message: nresp.Result.Value,
-		// }
-		nreq.SetQuery(nresp.Result.Value)
+		nreq.SetMessage(nresp.Result.Value)
 	}
 
 	// final result
@@ -168,7 +165,8 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 	// use query
 	result, ok := h.sw.Vars.Global.Get(globalResult)
 	if !ok {
-		result, _ = h.sw.Vars.Global.Get(globalQuery)
+		// result, _ = h.sw.Vars.Global.Get(globalQuery)
+		result = req.Message()
 	}
 
 	tasks := unmarshalResultList(result)
@@ -182,10 +180,7 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 			defer wg.Done()
 
 			nreq := req.Clone()
-			// nreq.RawInput = &api.UserInput{
-			// 	Message: v,
-			// }
-			nreq.SetQuery(v)
+			nreq.SetMessage(v)
 			nresp := new(api.Response)
 			if err := h.flowSequence(nreq, nresp); err != nil {
 				nresp.Result = &api.Result{

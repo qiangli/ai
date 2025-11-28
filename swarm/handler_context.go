@@ -57,7 +57,7 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 				Created: time.Now(),
 				//
 				Role:    api.RoleUser,
-				Content: req.Query(),
+				Content: req.Message(),
 				Sender:  sw.User.Email,
 			}
 			history = append(history, message)

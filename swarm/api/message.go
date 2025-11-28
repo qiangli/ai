@@ -65,12 +65,12 @@ type Request struct {
 	ctx context.Context
 }
 
-func (r *Request) Query() string {
-	return r.Arguments.Query()
+func (r *Request) Message() string {
+	return r.Arguments.Message()
 }
 
-func (r *Request) SetQuery(s any) {
-	r.Arguments.SetQuery(s)
+func (r *Request) SetMessage(s any) {
+	r.Arguments.SetMessage(s)
 }
 
 func (r *Request) Instruction() string {

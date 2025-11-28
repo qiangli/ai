@@ -88,12 +88,12 @@ func NewArguments() *Arguments {
 	}
 }
 
-func (r *Arguments) Query() string {
-	return r.GetString("query")
+func (r *Arguments) Message() string {
+	return r.GetString("message")
 }
 
-func (r *Arguments) SetQuery(s any) *Arguments {
-	r.Set("query", s)
+func (r *Arguments) SetMessage(s any) *Arguments {
+	r.Set("message", s)
 	return r
 }
 

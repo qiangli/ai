@@ -1,6 +1,8 @@
 package swarm
 
 import (
+	"fmt"
+
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
@@ -29,7 +31,7 @@ func QueryMiddleware(sw *Swarm) api.Middleware {
 			var env = req.Arguments.GetAllArgs()
 
 			// convert user message into query if not set
-			query := req.Query()
+			query := req.Message()
 
 			if query == "" {
 				msg := agent.Message()
@@ -47,11 +49,12 @@ func QueryMiddleware(sw *Swarm) api.Middleware {
 
 					query = content
 				} else {
-					query, _ = env[globalQuery].(string)
+					// query, _ = env[globalQuery].(string)
+					return fmt.Errorf("no input message")
 				}
-			}
 
-			req.SetQuery(query)
+				req.SetMessage(query)
+			}
 
 			logger.Debugf("query: %s (%v)\n", abbreviate(query, 64), len(query))
 			if logger.IsTrace() {

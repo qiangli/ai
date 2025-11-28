@@ -19,7 +19,7 @@ import (
 )
 
 // global key
-const globalQuery = "query"
+// const globalQuery = "query"
 const globalResult = "result"
 const globalError = "error"
 
