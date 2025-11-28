@@ -4,15 +4,239 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	// "math/rand"
-	// "strconv"
 	"strings"
 	"sync"
+	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/qiangli/ai/swarm/api"
-	// "github.com/qiangli/ai/swarm/atm"
+	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/shell/tool/sh"
 )
+
+func AgentFlowMiddleware(sw *Swarm) api.Middleware {
+	return func(agent *api.Agent, next Handler) Handler {
+		var ah = &agentHandler{
+			agent: agent,
+			sw:    sw,
+			next:  next,
+		}
+		// ah.initTemplate()
+		// ah.initChain()
+		return HandlerFunc(func(req *api.Request, resp *api.Response) error {
+			log.GetLogger(req.Context()).Debugf("🔗 (agent): %s flow: %+v\n", agent.Name, agent.Flow)
+
+			return ah.Serve(req, resp)
+		})
+	}
+}
+
+type agentHandler struct {
+	agent *api.Agent
+	sw    *Swarm
+
+	next api.Handler
+}
+
+// Serve calls the language model adapter with the messages list (after applying the system prompt).
+// If the resulting response contains tool_calls, the tool runner will then call the tools.
+// The tools kit executes the tools and adds the responses to the messages list.
+// The adapter then calls the language model again.
+// The process repeats until no more tool_calls are present in the response.
+// The agent handler then returns the full list of messages.
+func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
+	var ctx = req.Context()
+	log.GetLogger(ctx).Debugf("Serve agent: %s global: %+v\n", h.agent.Name, h.sw.Vars.Global)
+
+	// this needs to happen before everything else
+	// h.sw.Vars.Global.Set(globalQuery, req.Query())
+
+	if err := h.doAgentFlow(req, resp); err != nil {
+		h.sw.Vars.Global.Set(globalError, err.Error())
+		return err
+	}
+
+	var result string
+	if resp.Result != nil {
+		result = resp.Result.Value
+	}
+	// if result is json, unpack for subsequnent agents/actions
+	if len(result) > 0 {
+		var resultMap = make(map[string]any)
+		if err := json.Unmarshal([]byte(result), &resultMap); err == nil {
+			h.sw.Vars.Global.AddEnvs(resultMap)
+		}
+	}
+	h.sw.Vars.Global.Set(globalResult, result)
+
+	log.GetLogger(ctx).Debugf("completed: %s global: %+v\n", h.agent.Name, h.sw.Vars.Global)
+	return nil
+}
+
+// run agent first if there is instruction followed by the flow.
+// otherwise, run the flow only
+func (h *agentHandler) doAgentFlow(req *api.Request, resp *api.Response) error {
+	instruction := h.agent.Instruction()
+	if instruction == "" && h.agent.Flow == nil {
+		// no op?
+		return api.NewBadRequestError("missing instruction and flow")
+	}
+
+	// run llm inference
+	if instruction != "" {
+		// if err := h.next.Serve(req, resp); err != nil {
+		// 	return err
+		// }
+		if err := h.handleAgent(req, resp); err != nil {
+			return err
+		}
+	}
+
+	// flow control agent
+	if h.agent.Flow != nil {
+		if len(h.agent.Flow.Actions) == 0 && len(h.agent.Flow.Script) == 0 {
+			return fmt.Errorf("missing actions or script in flow")
+		}
+		switch h.agent.Flow.Type {
+		case api.FlowTypeSequence:
+			if err := h.flowSequence(req, resp); err != nil {
+				return err
+			}
+		case api.FlowTypeParallel:
+			if err := h.flowParallel(req, resp); err != nil {
+				return err
+			}
+		// case api.FlowTypeChoice:
+		// 	if err := h.flowChoice(req, resp); err != nil {
+		// 		return err
+		// 	}
+		case api.FlowTypeMap:
+			if err := h.flowMap(req, resp); err != nil {
+				return err
+			}
+		// case api.FlowTypeLoop:
+		// 	if err := h.flowLoop(req, resp); err != nil {
+		// 		return err
+		// 	}
+		// case api.FlowTypeReduce:
+		// 	if err := h.flowReduce(req, resp); err != nil {
+		// 		return err
+		// 	}
+		case api.FlowTypeShell:
+			if err := h.flowShell(req, resp); err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf("not supported yet %v", h.agent.Flow)
+		}
+	}
+
+	return nil
+}
+
+func (h *agentHandler) handleAgent(req *api.Request, resp *api.Response) error {
+	maxHistory := req.Arguments.GetInt("max_history")
+	maxSpan := req.Arguments.GetInt("max_span")
+
+	logger := log.GetLogger(req.Context())
+	logger.Debugf("🔗 (context): %s max_history: %v max_span: %v\n", h.agent.Name, maxHistory, maxSpan)
+
+	var id = h.sw.ID
+	// var env = sw.globalEnv()
+
+	var history []*api.Message
+
+	// 1. New System Message
+	// system role prompt as first message
+	var prompt *api.Message
+	instruction := req.Instruction()
+	if instruction != "" {
+		prompt = &api.Message{
+			ID:      uuid.NewString(),
+			Session: id,
+			Created: time.Now(),
+			//
+			Role:    api.RoleSystem,
+			Content: instruction,
+			Sender:  h.agent.Name,
+		}
+		history = append(history, prompt)
+	}
+
+	// 2. Context Messages
+	// skip system role
+	for i, msg := range h.sw.Vars.ListHistory() {
+		if msg.Role != api.RoleSystem {
+			logger.Debugf("adding [%v]: %s %s (%v)\n", i, msg.Role, abbreviate(msg.Content, 100), len(msg.Content))
+			history = append(history, msg)
+		}
+	}
+
+	// 3. New User Message
+	// Additional user message
+	var message = &api.Message{
+		ID:      uuid.NewString(),
+		Session: id,
+		Created: time.Now(),
+		//
+		Role:    api.RoleUser,
+		Content: req.Message(),
+		Sender:  h.sw.User.Email,
+	}
+	history = append(history, message)
+
+	logger.Infof("• context messages: %v\n", len(history))
+	if logger.IsTrace() {
+		for i, v := range history {
+			logger.Debugf("[%v] %+v\n", i, v)
+		}
+	}
+
+	// request
+	req.Name = h.agent.Name
+	req.Tools = h.agent.Tools
+	req.Runner = h.agent.Runner
+
+	//
+	initLen := len(history)
+	req.Messages = history
+
+	// call next
+	if err := h.next.Serve(req, resp); err != nil {
+		return err
+	}
+
+	if resp.Result == nil {
+		resp.Result = &api.Result{}
+	}
+	var result = resp.Result
+
+	// Response
+	if result.State != api.StateTransfer {
+		message := api.Message{
+			ID:      uuid.NewString(),
+			Session: id,
+			Created: time.Now(),
+			//
+			ContentType: result.MimeType,
+			Content:     result.Value,
+			// TODO encode result.Result.Content
+			Role:   nvl(result.Role, api.RoleAssistant),
+			Sender: h.agent.Name,
+		}
+		// TODO add Value field to message?
+		history = append(history, &message)
+	}
+
+	h.sw.Vars.AddHistory(history)
+	//
+	resp.Messages = history[initLen:]
+	resp.Agent = h.agent
+	resp.Result = result
+
+	return nil
+}
 
 func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, action *api.Action) error {
 	var args = make(map[string]any)

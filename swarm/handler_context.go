@@ -1,117 +1,63 @@
 package swarm
 
 import (
-	"time"
-
-	"github.com/google/uuid"
+	"encoding/json"
+	"fmt"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
 )
 
+// hitorical context/memory
 func ContextMiddleware(sw *Swarm) api.Middleware {
+	mustResolveContext := func(parent *api.Agent, req *api.Request, s string) ([]*api.Message, error) {
+		if !conf.IsAgentTool(s) {
+			return nil, fmt.Errorf("invalid agent: %s", s)
+		}
+		out, err := sw.expand(req.Context(), parent, s)
+		if err != nil {
+			return nil, err
+		}
+		var list []*api.Message
+		if err := json.Unmarshal([]byte(out), &list); err != nil {
+			return nil, err
+		}
+		return list, nil
+	}
 
 	return func(agent *api.Agent, next Handler) Handler {
-		maxHistory := agent.Arguments.GetInt("max_history")
-		maxSpan := agent.Arguments.GetInt("max_span")
 		return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 			logger := log.GetLogger(req.Context())
-			logger.Debugf("🔗 (context): %s max_history: %v max_span: %v\n", agent.Name, maxHistory, maxSpan)
 
-			var id = sw.ID
-			// var env = sw.globalEnv()
-
+			logger.Debugf("🔗 (mem): %s\n", agent.Name)
 			var history []*api.Message
 
-			// 1. New System Message
-			// system role prompt as first message
-			var prompt *api.Message
-			instruction := req.Instruction()
-			if instruction != "" {
-				prompt = &api.Message{
-					ID:      uuid.NewString(),
-					Session: id,
-					Created: time.Now(),
-					//
-					Role:    api.RoleSystem,
-					Content: instruction,
-					Sender:  agent.Name,
+			c := req.Arguments.GetString("context")
+			if c != "" {
+				if resolved, err := mustResolveContext(agent, req, c); err != nil {
+					logger.Errorf("failed to resolve context %s: %v\n", c, err)
+				} else {
+					history = resolved
 				}
-				history = append(history, prompt)
-			}
-
-			// 2. Context Messages
-			// skip system role
-			for i, msg := range sw.Vars.ListHistory() {
-				if msg.Role != api.RoleSystem {
-					logger.Debugf("adding [%v]: %s %s (%v)\n", i, msg.Role, abbreviate(msg.Content, 100), len(msg.Content))
-					history = append(history, msg)
+			} else {
+				opt := req.MemOption()
+				if v, err := sw.History.Load(opt); err != nil {
+					return err
+				} else {
+					history = v
 				}
 			}
 
-			// 3. New User Message
-			// Additional user message
-			var message = &api.Message{
-				ID:      uuid.NewString(),
-				Session: id,
-				Created: time.Now(),
-				//
-				Role:    api.RoleUser,
-				Content: req.Message(),
-				Sender:  sw.User.Email,
-			}
-			history = append(history, message)
+			sw.Vars.SetHistory(history)
 
-			logger.Infof("• context messages: %v\n", len(history))
-			if logger.IsTrace() {
-				for i, v := range history {
-					logger.Debugf("[%v] %+v\n", i, v)
-				}
+			err := next.Serve(req, resp)
+
+			if v := sw.Vars.ListHistory(); len(v) > 0 {
+				sw.History.Save(v)
 			}
 
-			// request
-			req.Name = agent.Name
-			req.Tools = agent.Tools
-			req.Runner = agent.Runner
-
-			//
-			initLen := len(history)
-			req.Messages = history
-
-			// call next
-			if err := next.Serve(req, resp); err != nil {
-				return err
-			}
-
-			if resp.Result == nil {
-				resp.Result = &api.Result{}
-			}
-			var result = resp.Result
-
-			// Response
-			if result.State != api.StateTransfer {
-				message := api.Message{
-					ID:      uuid.NewString(),
-					Session: id,
-					Created: time.Now(),
-					//
-					ContentType: result.MimeType,
-					Content:     result.Value,
-					// TODO encode result.Result.Content
-					Role:   nvl(result.Role, api.RoleAssistant),
-					Sender: agent.Name,
-				}
-				// TODO add Value field to message?
-				history = append(history, &message)
-			}
-
-			sw.Vars.AddHistory(history)
-			//
-			resp.Messages = history[initLen:]
-			resp.Agent = agent
-			resp.Result = result
-
-			return nil
+			return err
 		})
 	}
 }

@@ -66,19 +66,21 @@ func (sw *Swarm) InitChain() {
 	// rate limits, guardrails, pii detection.
 	sw.middlewares = []api.Middleware{
 		InitEnvMiddleware(sw),
-		//
+
+		// cross cutting
 		TimeoutMiddleware(sw),
 		LogMiddleware(sw),
+
 		//
 		ModelMiddleware(sw),
 		ToolMiddleware(sw),
 		//
-		MemoryMiddleware(sw),
 		InstructionMiddleware(sw),
+		ContextMiddleware(sw),
 		QueryMiddleware(sw),
 		//
-		ContextMiddleware(sw),
-		AgentMiddleware(sw),
+		AgentFlowMiddleware(sw),
+
 		//
 		InferenceMiddleware(sw),
 		// output
