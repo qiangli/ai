@@ -661,27 +661,7 @@ func (r *AIKit) getTools(ids []string) ([]*api.ToolFunc, error) {
 
 // return built-in model
 func (r *AIKit) getModel(provider string) (*api.Model, error) {
-	var models = map[string]*api.Model{
-		"anthropic": {
-			Provider: "anthropic",
-			BaseUrl:  "https://api.anthropic.com/",
-			ApiKey:   "anthropic",
-			Model:    "claude-3-5-haiku-latest",
-		},
-		"gemini": {
-			Provider: "gemini",
-			BaseUrl:  "https://generativelanguage.googleapis.com/v1beta/",
-			ApiKey:   "gemini",
-			Model:    "gemini-2.0-flash-lite",
-		},
-		"openai": {
-			Provider: "openai",
-			BaseUrl:  "https://api.openai.com/v1/",
-			ApiKey:   "openai",
-			Model:    "gpt-5-nano",
-		},
-	}
-	m, ok := models[provider]
+	m, ok := conf.DefaultModels[provider]
 	if !ok {
 		return nil, fmt.Errorf("model not found for provider: %s", provider)
 	}
