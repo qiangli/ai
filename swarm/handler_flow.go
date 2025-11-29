@@ -77,7 +77,7 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 // run agent first if there is instruction followed by the flow.
 // otherwise, run the flow only
 func (h *agentHandler) doAgentFlow(req *api.Request, resp *api.Response) error {
-	instruction := h.agent.Instruction()
+	instruction := h.agent.Instruction
 	if instruction == "" && h.agent.Flow == nil {
 		// no op?
 		return api.NewBadRequestError("missing instruction and flow")
@@ -149,19 +149,18 @@ func (h *agentHandler) handleAgent(req *api.Request, resp *api.Response) error {
 
 	// 1. New System Message
 	// system role prompt as first message
-	var prompt *api.Message
-	instruction := req.Instruction()
-	if instruction != "" {
-		prompt = &api.Message{
+	prompt := h.agent.Prompt()
+	if prompt != "" {
+		v := &api.Message{
 			ID:      uuid.NewString(),
 			Session: id,
 			Created: time.Now(),
 			//
 			Role:    api.RoleSystem,
-			Content: instruction,
+			Content: prompt,
 			Sender:  h.agent.Name,
 		}
-		history = append(history, prompt)
+		history = append(history, v)
 	}
 
 	// 2. Context Messages
@@ -175,16 +174,19 @@ func (h *agentHandler) handleAgent(req *api.Request, resp *api.Response) error {
 
 	// 3. New User Message
 	// Additional user message
-	var message = &api.Message{
-		ID:      uuid.NewString(),
-		Session: id,
-		Created: time.Now(),
-		//
-		Role:    api.RoleUser,
-		Content: req.Message(),
-		Sender:  h.sw.User.Email,
+	var query = h.agent.Query()
+	if query != "" {
+		v := &api.Message{
+			ID:      uuid.NewString(),
+			Session: id,
+			Created: time.Now(),
+			//
+			Role:    api.RoleUser,
+			Content: query,
+			Sender:  h.sw.User.Email,
+		}
+		history = append(history, v)
 	}
-	history = append(history, message)
 
 	logger.Infof("• context messages: %v\n", len(history))
 	if logger.IsTrace() {
@@ -259,7 +261,8 @@ func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error 
 		if err := h.doAction(ctx, nreq, nresp, v); err != nil {
 			return err
 		}
-		nreq.SetMessage(nresp.Result.Value)
+		h.agent.SetQuery(nresp.Result.Value)
+		// h.sw.Vars.Global.Set(globalQuery, nresp.Result.Value)
 	}
 
 	// final result
@@ -312,8 +315,11 @@ func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error 
 			defer wg.Done()
 
 			// use the same request
+			nreq := req.Clone()
+			nreq.Agent = req.Agent.Clone()
 			nresp := new(api.Response)
-			if err := h.doAction(ctx, req, nresp, v); err != nil {
+			//
+			if err := h.doAction(ctx, nreq, nresp, v); err != nil {
 				nresp.Result = &api.Result{
 					Value: err.Error(),
 				}
@@ -387,10 +393,12 @@ func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error 
 func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 	// if the map flow is the first in the pipeline
 	// use query
-	result, ok := h.sw.Vars.Global.Get(globalResult)
-	if !ok {
+	// result, ok := h.sw.Vars.Global.Get(globalResult)
+	result := h.agent.Result()
+	if result == "" {
 		// result, _ = h.sw.Vars.Global.Get(globalQuery)
-		result = req.Message()
+		// result = req.Query
+		result = h.agent.Query()
 	}
 
 	tasks := unmarshalResultList(result)
@@ -404,7 +412,8 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 			defer wg.Done()
 
 			nreq := req.Clone()
-			nreq.SetMessage(v)
+			nreq.Agent = req.Agent.Clone()
+			nreq.Agent.SetQuery(v)
 			nresp := new(api.Response)
 			if err := h.flowSequence(nreq, nresp); err != nil {
 				nresp.Result = &api.Result{

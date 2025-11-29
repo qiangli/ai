@@ -4,7 +4,7 @@ type ContextKey string
 
 const SwarmUserContextKey ContextKey = "swarm_user"
 
-const defaultAgent = "ask"
+const defaultAgent = ""
 
 type User struct {
 	// uuid

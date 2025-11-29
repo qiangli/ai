@@ -31,6 +31,20 @@ func (g *Environment) Get(key string) (any, bool) {
 	return nil, false
 }
 
+func (g *Environment) GetString(key string) string {
+	if v, ok := g.Get(key); ok {
+		return ToString(v)
+	}
+	return ""
+}
+
+func (g *Environment) GetInt(key string) int {
+	if v, ok := g.Get(key); ok {
+		return ToInt(v)
+	}
+	return 0
+}
+
 func (g *Environment) GetAllEnvs() map[string]any {
 	return g.GetEnvs(nil)
 }

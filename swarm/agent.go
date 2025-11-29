@@ -119,6 +119,10 @@ func (ap *AgentMaker) newAgent(
 		Display:     c.Display,
 		Description: c.Description,
 		//
+		Instruction: c.Instruction,
+		Context:     c.Context,
+		Message:     c.Message,
+		//
 		Arguments: api.NewArguments(),
 	}
 	//

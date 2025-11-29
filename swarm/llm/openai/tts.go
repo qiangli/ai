@@ -31,8 +31,8 @@ func tts(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 
 	result, err := client.Audio.Speech.New(ctx, openai.AudioSpeechNewParams{
 		Model:          req.Model.Model,
-		Instructions:   openai.String(req.Instruction()),
-		Input:          req.Message(),
+		Instructions:   openai.String(req.Agent.Prompt()),
+		Input:          req.Agent.Query(),
 		ResponseFormat: openai.AudioSpeechNewParamsResponseFormatPCM,
 		Voice:          openai.AudioSpeechNewParamsVoiceAlloy,
 	})

@@ -65,20 +65,17 @@ type Agent struct {
 	Display     string
 	Description string
 
-	// // system prompt from config
-	// Instruction *Instruction
-
-	// user query from config
-	// Message string
-
-	// RawInput *UserInput
+	//
+	Instruction string
+	Context     string
+	Message     string
 
 	// The model to be used by the agent
 	Model *Model
 	// Functions that the agent can call
 	Tools []*ToolFunc
 
-	// default values
+	// // default values
 	Arguments *Arguments
 
 	// LLM adapter
@@ -97,29 +94,46 @@ type Agent struct {
 	Runner ActionRunner
 
 	Template *template.Template
+
+	// save in environment
+	// Prompt string
+	// Query string
+	// Result string
 }
 
-func (a *Agent) Message() string {
-	return a.Arguments.GetString("message")
+// ai operations
+func (a *Agent) Query() string {
+	return a.Environment.GetString("query")
 }
 
-func (a *Agent) SetMessage(s string) {
-	a.Arguments.Set("message", s)
+func (a *Agent) SetQuery(s string) *Agent {
+	a.Environment.Set("query", s)
+	return a
 }
 
-func (a *Agent) Instruction() string {
-	return a.Arguments.GetString("instruction")
+func (a *Agent) Prompt() string {
+	return a.Environment.GetString("prompt")
 }
 
-func (a *Agent) SetInstruction(s string) {
-	a.Arguments.Set("instruction", s)
+func (a *Agent) SetPrompt(s string) *Agent {
+	a.Environment.Set("prompt", s)
+	return a
+}
+
+func (a *Agent) Result() string {
+	return a.Environment.GetString("result")
+}
+
+func (a *Agent) SetResult(v string) *Agent {
+	a.Environment.Set("result", v)
+	return a
 }
 
 // if true, skip historical messages for LLM context
 // --new command line flag sets --max-history=0
-func (a *Agent) New() bool {
-	return a.Arguments.GetInt("max_history") == 0
-}
+// func (a *Agent) New() bool {
+// 	return a.Environment.GetInt("max_history") == 0
+// }
 
 // for reusing cached agent
 func (a *Agent) Clone() *Agent {
@@ -139,7 +153,7 @@ func (a *Agent) Clone() *Agent {
 		Flow: a.Flow,
 		//
 		Embed:       a.Embed,
-		Environment: a.Environment.Clone(),
+		Environment: a.cloneEnvironment(),
 		//
 		Runner: a.Runner,
 	}
@@ -161,6 +175,13 @@ func (a *Agent) cloneArguments() *Arguments {
 		return nil
 	}
 	return a.Arguments.Clone()
+}
+
+func (a *Agent) cloneEnvironment() *Environment {
+	if a.Environment == nil {
+		return nil
+	}
+	return a.Environment.Clone()
 }
 
 // pack config
@@ -236,6 +257,7 @@ type AgentConfig struct {
 	Arguments map[string]any `yaml:"arguments"`
 
 	Instruction string `yaml:"instruction"`
+	Context     string `yaml:"context"`
 	Message     string `yaml:"message"`
 
 	Model string `yaml:"model"`
@@ -252,8 +274,6 @@ type AgentConfig struct {
 	// New        *bool  `yaml:"new,omitempty"`
 	MaxHistory int `yaml:"max_history"`
 	MaxSpan    int `yaml:"max_span"`
-
-	Context string `yaml:"context"`
 
 	// logging: quiet | info[rmative] | verbose | trace
 	LogLevel string `yaml:"log_level"`

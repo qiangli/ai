@@ -41,11 +41,15 @@ type Message struct {
 
 type Request struct {
 	// parent agent
-	Parent *Agent
+	Agent *Agent
 
 	// active action name
 	Name      string
 	Arguments *Arguments
+
+	// //
+	// Prompt string
+	// Query  string
 
 	// LLM
 	Model *Model
@@ -69,17 +73,22 @@ func (r *Request) Message() string {
 	return r.Arguments.Message()
 }
 
-func (r *Request) SetMessage(s any) {
-	r.Arguments.SetMessage(s)
-}
+// func (r *Request) SetMessage(s string) *Request {
+// 	r.Arguments.SetMessage(s)
+// 	return r
+// }
 
-func (r *Request) Instruction() string {
-	return r.Arguments.Instruction()
-}
+// func (r *Request) SetMessage(s any) {
+// 	r.Arguments.SetMessage(s)
+// }
 
-func (r *Request) SetInstruction(s any) {
-	r.Arguments.SetInstruction(s)
-}
+// func (r *Request) Instruction() string {
+// 	return r.Arguments.Instruction()
+// }
+
+// func (r *Request) SetInstruction(s any) {
+// 	r.Arguments.SetInstruction(s)
+// }
 
 func (r *Request) MaxTurns() int {
 	return r.Arguments.GetInt("max_turns")
@@ -144,18 +153,6 @@ func (r *Request) Clone() *Request {
 	r2 := new(Request)
 	*r2 = *r
 
-	// // fields
-	// if r.Messages != nil {
-	// 	r2.Messages = make([]*Message, len(r.Messages))
-	// 	copy(r2.Messages, r.Messages)
-	// }
-	// r2.Model = r.Model
-	// r2.Token = r.Token
-
-	// if r.RawInput != nil {
-	// 	r2.RawInput = r.RawInput.Clone()
-	// }
-
 	if r.Arguments != nil {
 		r2.Arguments = r.Arguments.Clone()
 	}
@@ -172,14 +169,6 @@ type Response struct {
 
 	Result *Result
 }
-
-// func (r *Response) String() string {
-// 	var sb strings.Builder
-// 	if r.Result != nil {
-// 		sb.WriteString(fmt.Sprintf("Result: %s\n", r.Result))
-// 	}
-// 	return sb.String()
-// }
 
 // Result encapsulates the possible return values for agent/function.
 type Result struct {

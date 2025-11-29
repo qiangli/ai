@@ -97,14 +97,14 @@ func (r *Arguments) SetMessage(s any) *Arguments {
 	return r
 }
 
-func (r *Arguments) Instruction() string {
-	return r.GetString("instruction")
-}
+// func (r *Arguments) Instruction() string {
+// 	return r.GetString("instruction")
+// }
 
-func (r *Arguments) SetInstruction(s any) *Arguments {
-	r.Set("instruction", s)
-	return r
-}
+// func (r *Arguments) SetInstruction(s any) *Arguments {
+// 	r.Set("instruction", s)
+// 	return r
+// }
 
 func (r *Arguments) Get(key string) (any, bool) {
 	r.mu.RLock()

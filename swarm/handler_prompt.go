@@ -56,7 +56,7 @@ func InstructionMiddleware(sw *Swarm) api.Middleware {
 						return err
 					}
 				}
-				in := a.Instruction()
+				in := a.Instruction
 				if in != "" {
 					if err := add(in); err != nil {
 						return err
@@ -65,14 +65,17 @@ func InstructionMiddleware(sw *Swarm) api.Middleware {
 				return nil
 			}
 
-			if err := addAll(agent); err != nil {
-				return err
+			var prompt = agent.Prompt()
+			if prompt == "" {
+				if err := addAll(agent); err != nil {
+					return err
+				}
+
+				prompt = strings.Join(instructions, "\n")
 			}
+			agent.SetPrompt(prompt)
 
-			instruction := strings.Join(instructions, "\n")
-			req.SetInstruction(instruction)
-
-			logger.Debugf("instructions (%v): %s (%v)\n", len(instructions), abbreviate(instruction, 64), len(instruction))
+			logger.Debugf("instructions (%v): %s (%v)\n", len(instructions), abbreviate(prompt, 64), len(prompt))
 			if logger.IsTrace() {
 				for i, v := range instructions {
 					logger.Debugf("instructions[%v]: %s\n", i, v)

@@ -114,7 +114,7 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 	if v, _ := sw.Vars.Global.Get("workspace"); v == "" {
 		return api.NewInternalServerError("invalid config. user or vars not initialized")
 	}
-	if req.Parent != nil && req.Parent.Name == req.Name {
+	if req.Agent != nil && req.Agent.Name == req.Name {
 		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself not supported.", req.Name))
 	}
 
@@ -143,7 +143,7 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 				agent.Arguments.AddArgs(a.Arguments.GetAllArgs())
 			}
 		}
-		addAll(req.Parent)
+		addAll(req.Agent)
 		if req.Arguments != nil {
 			agent.Arguments.AddArgs(req.Arguments.GetAllArgs())
 		}
@@ -342,7 +342,7 @@ func (sw *Swarm) ExecCommand(ctx context.Context, agent *api.Agent, argv []strin
 
 func (sw *Swarm) RunAction(ctx context.Context, parent *api.Agent, action string, args map[string]any) (any, error) {
 	req := api.NewRequest(ctx, action, args)
-	req.Parent = parent
+	req.Agent = parent
 
 	resp := &api.Response{}
 	err := sw.Run(req, resp)

@@ -19,6 +19,9 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 		if err != nil {
 			return nil, err
 		}
+		if out == "" {
+			return nil, nil
+		}
 		var list []*api.Message
 		if err := json.Unmarshal([]byte(out), &list); err != nil {
 			return nil, err
@@ -33,7 +36,7 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 			logger.Debugf("🔗 (mem): %s\n", agent.Name)
 			var history []*api.Message
 
-			c := req.Arguments.GetString("context")
+			var c = agent.Context
 			if c != "" {
 				if resolved, err := mustResolveContext(agent, req, c); err != nil {
 					logger.Errorf("failed to resolve context %s: %v\n", c, err)

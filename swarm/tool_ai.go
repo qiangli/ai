@@ -213,7 +213,7 @@ func (r *AIKit) SpawnAgent(ctx context.Context, _ *api.Vars, _ string, args map[
 	}
 
 	nreq := api.NewRequest(ctx, agent, args)
-	nreq.Parent = r.agent
+	nreq.Agent = r.agent
 
 	resp := &api.Response{}
 
@@ -458,7 +458,7 @@ func (r *AIKit) AgentGetPrompt(_ context.Context, vars *api.Vars, _ string, _ ma
 	}
 	var p string
 	if r.agent != nil {
-		p = r.agent.Instruction()
+		p = r.agent.Prompt()
 	}
 	return &api.Result{
 		Value: p,
@@ -474,7 +474,7 @@ func (r *AIKit) AgentSetPrompt(_ context.Context, vars *api.Vars, _ string, args
 		return nil, err
 	}
 
-	r.agent.SetInstruction(instruction)
+	r.agent.SetPrompt(instruction)
 	return &api.Result{
 		Value: "success",
 	}, nil
@@ -485,7 +485,7 @@ func (r *AIKit) AgentGetQuery(_ context.Context, vars *api.Vars, _ string, _ map
 		return nil, fmt.Errorf("No active agent found")
 	}
 	return &api.Result{
-		Value: r.agent.Message(),
+		Value: r.agent.Query(),
 	}, nil
 }
 
@@ -498,7 +498,7 @@ func (r *AIKit) AgentSetQuery(_ context.Context, vars *api.Vars, _ string, args 
 		return nil, err
 	}
 
-	r.agent.SetMessage(query)
+	r.agent.SetQuery(query)
 	return &api.Result{
 		Value: "success",
 	}, nil
