@@ -286,10 +286,16 @@ type AgentConfig struct {
 	Filters []*IOFilter  `yaml:"filters"`
 	Guards  []*ToolGuard `yaml:"guards"`
 
-	// inherit from parent:
-	// environment
-	// instruction
-	// tools
+	// inherit from embedded parent:
+	// + environment
+	// + instruction
+	// + functions
+	// local scope:
+	// - arguments
+	// - context
+	// - message
+	// - model
+	// - flow/actions
 	Embed []string `yaml:"embed"`
 
 	//

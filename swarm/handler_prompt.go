@@ -65,6 +65,7 @@ func InstructionMiddleware(sw *Swarm) api.Middleware {
 				return nil
 			}
 
+			// system role instructions
 			var prompt = agent.Prompt()
 			if prompt == "" {
 				if err := addAll(agent); err != nil {

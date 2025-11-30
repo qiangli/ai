@@ -142,9 +142,11 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	maps.Copy(args, input.Arguments)
 
 	// initial query is required.
-	if args["message"] == "" {
+	var msg = args["message"]
+	if msg == "" {
 		return fmt.Errorf("%s: message missing", cfg.Name)
 	}
+	sw.Vars.Global.Set("query", msg)
 
 	var out *api.Output
 	if v, err := sw.Execm(ctx, cfg.Name, args); err != nil {

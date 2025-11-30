@@ -13,7 +13,8 @@ func ToolMiddleware(sw *Swarm) api.Middleware {
 			logger.Debugf("🔗 (tool): %s %v\n", agent.Name, len(agent.Tools))
 
 			// inherit tools of embeeded agents
-			// merge all tools including the current agent
+			// deduplicate/merge all tools including the current agent
+			// child tools take precedence.
 			if agent.Embed != nil {
 				var tools = make(map[string]*api.ToolFunc)
 

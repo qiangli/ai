@@ -28,14 +28,14 @@ func QueryMiddleware(sw *Swarm) api.Middleware {
 			logger := log.GetLogger(req.Context())
 			logger.Debugf("🔗 (query): %s\n", agent.Name)
 
-			var env = req.Arguments.GetAllArgs()
+			var allArgs = req.Arguments.GetAllArgs()
 
 			// convert user message into query if not set
 			var query = agent.Query()
 			if query == "" {
 				msg := req.Message()
 				if msg != "" {
-					content, err := atm.ApplyTemplate(agent.Template, msg, env)
+					content, err := atm.ApplyTemplate(agent.Template, msg, allArgs)
 					if err != nil {
 						return err
 					}
@@ -51,6 +51,8 @@ func QueryMiddleware(sw *Swarm) api.Middleware {
 					return fmt.Errorf("no input message")
 				}
 			}
+
+			//
 			if agent.Message != "" {
 				query = agent.Message + "\n" + query
 			}

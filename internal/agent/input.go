@@ -225,23 +225,3 @@ func renderInputContent(ctx context.Context, content string) {
 	md := util.Render(content)
 	log.GetLogger(ctx).Infof("\n%s\n", md)
 }
-
-// // trimInputMessage trims the input message by removing leading and trailing spaces
-// // and also removes any trailing clipboard redirection markers.
-// func trimInputMessage(s string) string {
-// 	msg := strings.TrimSpace(s)
-// 	for {
-// 		old := msg
-
-// 		msg = strings.TrimSuffix(msg, internal.ClipoutRedirect2)
-// 		msg = strings.TrimSuffix(msg, internal.ClipinRedirect2)
-// 		msg = strings.TrimSuffix(msg, internal.ClipoutRedirect)
-// 		msg = strings.TrimSuffix(msg, internal.ClipinRedirect)
-
-// 		// If no markers were removed, exit the loop
-// 		if msg == old {
-// 			break
-// 		}
-// 	}
-// 	return strings.TrimSpace(msg)
-// }
