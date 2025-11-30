@@ -430,7 +430,7 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 	}
 	out, err := kit.Call(ctx, sw.Vars, env, v, args)
 	if err != nil {
-		return nil, fmt.Errorf("failed to call function tool %s %s: %w", v.Kit, v.Name, err)
+		return nil, err
 	}
 	return api.ToResult(out), nil
 }

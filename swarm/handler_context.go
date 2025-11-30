@@ -33,7 +33,7 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 		return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 			logger := log.GetLogger(req.Context())
 
-			logger.Debugf("🔗 (mem): %s\n", agent.Name)
+			logger.Debugf("🔗 (context): %s\n", agent.Name)
 			var history []*api.Message
 
 			var c = agent.Context
@@ -53,6 +53,8 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 			}
 
 			// sw.Vars.SetHistory(history)
+			logger.Debugf("context history: %v\n", len(history))
+
 			agent.SetHistory(history)
 
 			err := next.Serve(req, resp)
