@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"maps"
@@ -550,9 +551,16 @@ func ToString(data any) string {
 	if data == nil {
 		return ""
 	}
-	if s, ok := data.(string); ok {
-		return s
+	if v, ok := data.(string); ok {
+		return v
 	}
+	if v, ok := data.(*Result); ok {
+		return v.Value
+	}
+	if v, err := json.Marshal(data); err == nil {
+		return string(v)
+	}
+
 	return fmt.Sprintf("%v", data)
 }
 

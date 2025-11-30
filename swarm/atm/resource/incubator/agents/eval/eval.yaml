@@ -1,0 +1,27 @@
+###
+pack: "eval"
+log_level: "verbose"
+max_time: 900
+agents:
+  - name: "eval"
+    display: "⚙️ Eval Tool"
+    description: "Evaluation tool"
+    model: "llm/any"
+    context: "agent:context"
+    instruction: |
+      You are an evaluation agent.
+    message: |
+      Tell me a joke.
+    functions:
+      - "agent:context"
+      - "ai:*"
+
+###
+set: "llm"
+provider: "openai"
+base_url: "https://api.openai.com/v1/"
+api_key: "openai"
+models:
+  any:
+    model: "gpt-5-mini"
+###

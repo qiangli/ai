@@ -2,8 +2,6 @@ package api
 
 import (
 	"context"
-	"fmt"
-	"strings"
 	"time"
 )
 
@@ -47,10 +45,6 @@ type Request struct {
 	Name      string
 	Arguments *Arguments
 
-	// //
-	// Prompt string
-	// Query  string
-
 	// LLM
 	Model *Model
 
@@ -72,23 +66,6 @@ type Request struct {
 func (r *Request) Message() string {
 	return r.Arguments.Message()
 }
-
-// func (r *Request) SetMessage(s string) *Request {
-// 	r.Arguments.SetMessage(s)
-// 	return r
-// }
-
-// func (r *Request) SetMessage(s any) {
-// 	r.Arguments.SetMessage(s)
-// }
-
-// func (r *Request) Instruction() string {
-// 	return r.Arguments.Instruction()
-// }
-
-// func (r *Request) SetInstruction(s any) {
-// 	r.Arguments.SetInstruction(s)
-// }
 
 func (r *Request) MaxTurns() int {
 	return r.Arguments.GetInt("max_turns")
@@ -193,42 +170,23 @@ type Result struct {
 }
 
 func (r *Result) String() string {
-	var sb strings.Builder
-	sb.WriteString(r.State.String())
-
-	if r.NextAgent != "" {
-		sb.WriteString(fmt.Sprintf(" %s", r.NextAgent))
-	}
-	if r.Value != "" {
-		sb.WriteString(fmt.Sprintf(" %s %s (%v)", r.Role, abbreviate(r.Value, 64), len(r.Value)))
-	}
-	if r.MimeType != "" {
-		sb.WriteString(fmt.Sprintf(" %s", r.MimeType))
-	}
-	if len(r.Content) > 0 {
-		sb.WriteString(fmt.Sprintf(" %s (%v)", abbreviate(string(r.Content), 64), len(r.Content)))
-	}
-	s := strings.TrimSpace(sb.String())
-	if len(s) == 0 {
-		return "<empty>"
-	}
-	return s
+	return r.Value
 }
 
-// abbreviate trims the string, keeping the beginning and end if exceeding maxLen.
-// after replacing newlines with .
-func abbreviate(s string, maxLen int) string {
-	s = strings.ReplaceAll(s, "\n", "•")
-	s = strings.Join(strings.Fields(s), " ")
-	s = strings.TrimSpace(s)
+// // abbreviate trims the string, keeping the beginning and end if exceeding maxLen.
+// // after replacing newlines with .
+// func abbreviate(s string, maxLen int) string {
+// 	s = strings.ReplaceAll(s, "\n", "•")
+// 	s = strings.Join(strings.Fields(s), " ")
+// 	s = strings.TrimSpace(s)
 
-	if len(s) > maxLen {
-		// Calculate the length for each part
-		keepLen := (maxLen - 3) / 2
-		start := s[:keepLen]
-		end := s[len(s)-keepLen:]
-		return start + "..." + end
-	}
+// 	if len(s) > maxLen {
+// 		// Calculate the length for each part
+// 		keepLen := (maxLen - 3) / 2
+// 		start := s[:keepLen]
+// 		end := s[len(s)-keepLen:]
+// 		return start + "..." + end
+// 	}
 
-	return s
-}
+// 	return s
+// }
