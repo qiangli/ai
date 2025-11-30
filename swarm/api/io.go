@@ -32,7 +32,7 @@ func (r *UserInput) String() string {
 	if r.Arguments == nil {
 		return ""
 	}
-	return ToString(r.Arguments["query"])
+	return ToString(r.Arguments["message"])
 }
 
 func (r *UserInput) Clone() *UserInput {
@@ -61,7 +61,7 @@ func (r *UserInput) Query() string {
 	if r.Arguments == nil {
 		return ""
 	}
-	q, ok := r.Arguments["query"]
+	q, ok := r.Arguments["message"]
 	if ok {
 		return ToString(q)
 	}

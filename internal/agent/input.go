@@ -194,7 +194,7 @@ func PrintInput(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) {
 	if input == nil {
 		return
 	}
-	log.GetLogger(ctx).Debugf("UserInput:\n%s\n", input.String())
+	log.GetLogger(ctx).Debugf("UserInput:\n%+v\n", input)
 
 	// query and files for info only
 	var msg = clipText(input.Query(), clipMaxLen)
