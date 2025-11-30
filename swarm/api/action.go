@@ -98,15 +98,6 @@ func (r *Arguments) SetMessage(s any) *Arguments {
 	return r
 }
 
-// func (r *Arguments) Instruction() string {
-// 	return r.GetString("instruction")
-// }
-
-// func (r *Arguments) SetInstruction(s any) *Arguments {
-// 	r.Set("instruction", s)
-// 	return r
-// }
-
 func (r *Arguments) Get(key string) (any, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -498,44 +489,33 @@ func ToResult(data any) *Result {
 	if data == nil {
 		return nil
 	}
-	if v, ok := data.(*Result); ok {
-		if len(v.Content) == 0 {
-			return v
-		}
-		if v.MimeType == ContentTypeImageB64 {
-			return v
-		}
-		if strings.HasPrefix(v.MimeType, "text/") {
-			return &Result{
-				MimeType: v.MimeType,
-				Value:    string(v.Content),
-			}
-		}
-		return &Result{
-			MimeType: v.MimeType,
-			Value:    dataURL(v.MimeType, v.Content),
-		}
-		// // image
-		// // transform media response into data url
-		// presigned, err := sw.save(sw)
-		// if err != nil {
-		// 	return &api.Result{
-		// 		Value: err.Error(),
-		// 	}
-		// }
-
-		// return &api.Result{
-		// 	MimeType: v.MimeType,
-		// 	Value:    presigned,
-		// }
-	}
 	if s, ok := data.(string); ok {
 		return &Result{
 			Value: s,
 		}
 	}
+	if v, ok := data.(*Result); ok {
+		if len(v.Content) == 0 {
+			return v
+		}
+		return &Result{
+			MimeType: v.MimeType,
+			Value:    mimeToString(v.MimeType, v.Content),
+		}
+	}
+	if v, ok := data.(*Blob); ok {
+		return &Result{
+			MimeType: v.MimeType,
+			Value:    mimeToString(v.MimeType, v.Content),
+		}
+	}
+	if v, err := json.Marshal(data); err == nil {
+		return &Result{
+			Value: string(v),
+		}
+	}
 	return &Result{
-		Value: fmt.Sprintf("%v", data),
+		Value: fmt.Sprintf("%+v", data),
 	}
 }
 
@@ -555,13 +535,28 @@ func ToString(data any) string {
 		return v
 	}
 	if v, ok := data.(*Result); ok {
-		return v.Value
+		if len(v.Content) == 0 {
+			return v.Value
+		}
+		return mimeToString(v.MimeType, v.Content)
+	}
+	if v, ok := data.(*Blob); ok {
+		return mimeToString(v.MimeType, v.Content)
 	}
 	if v, err := json.Marshal(data); err == nil {
 		return string(v)
 	}
+	return fmt.Sprintf("%+v", data)
+}
 
-	return fmt.Sprintf("%v", data)
+func mimeToString(mime string, content []byte) string {
+	if mime == ContentTypeImageB64 {
+		return string(content)
+	}
+	if strings.HasPrefix(mime, "text/") {
+		return string(content)
+	}
+	return dataURL(mime, content)
 }
 
 func ToInt(data any) int {

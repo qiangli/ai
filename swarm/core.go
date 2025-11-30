@@ -414,7 +414,7 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 		if err != nil {
 			return nil, err
 		}
-		return atm.ToResult(out), nil
+		return api.ToResult(out), nil
 	}
 
 	// custom kits
@@ -432,5 +432,5 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 	if err != nil {
 		return nil, fmt.Errorf("failed to call function tool %s %s: %w", v.Kit, v.Name, err)
 	}
-	return atm.ToResult(out), nil
+	return api.ToResult(out), nil
 }

@@ -2,11 +2,8 @@ package atm
 
 import (
 	"bytes"
-	"fmt"
 	"strings"
 	"text/template"
-
-	"github.com/qiangli/ai/swarm/api"
 )
 
 func applyTemplate(tpl *template.Template, text string, data any) (string, error) {
@@ -45,33 +42,4 @@ func ApplyTemplate(tpl *template.Template, s string, data map[string]any) (strin
 		return applyTemplate(tpl, s, data)
 	}
 	return s, nil
-}
-
-func ToResult(data any) *api.Result {
-	if v, ok := data.(*api.Result); ok {
-		if len(v.Content) == 0 {
-			return v
-		}
-		if v.MimeType == api.ContentTypeImageB64 {
-			return v
-		}
-		if strings.HasPrefix(v.MimeType, "text/") {
-			return &api.Result{
-				MimeType: v.MimeType,
-				Value:    string(v.Content),
-			}
-		}
-		return &api.Result{
-			MimeType: v.MimeType,
-			Value:    DataURL(v.MimeType, v.Content),
-		}
-	}
-	if s, ok := data.(string); ok {
-		return &api.Result{
-			Value: s,
-		}
-	}
-	return &api.Result{
-		Value: fmt.Sprintf("%v", data),
-	}
 }
