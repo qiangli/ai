@@ -21,6 +21,12 @@ agents:
       required tool call format when necessary. For regular questions,
       answer clearly and concisely, focusing on providing relevant and
       informative responses.
+
+      For queries involving time-sensitive information, such as weather,
+      flight information, stock data, events, organizations, and people,
+      consult the internet for the latest updates. If unsure about the
+      currentness of information, verify with an online source before
+      responding to ensure the answer is accurate and up-to-date.
     functions:
       - "web:*"
       - "ddg:*"
@@ -30,7 +36,8 @@ agents:
       - "ai:*"
 
 ## models
-provider: "llm"
+set: "llm"
+provider: "openai"
 base_url: "https://api.openai.com/v1/"
 api_key: "openai"
 
