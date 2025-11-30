@@ -20,8 +20,8 @@ import (
 
 // global key
 // const globalQuery = "query"
-const globalResult = "result"
-const globalError = "error"
+// const globalResult = "result"
+// const globalError = "error"
 
 type Swarm struct {
 	// swarm session id

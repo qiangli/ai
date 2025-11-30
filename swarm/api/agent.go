@@ -129,11 +129,18 @@ func (a *Agent) SetResult(v string) *Agent {
 	return a
 }
 
-// if true, skip historical messages for LLM context
-// --new command line flag sets --max-history=0
-// func (a *Agent) New() bool {
-// 	return a.Environment.GetInt("max_history") == 0
-// }
+func (a *Agent) SetHistory(messages []*Message) *Agent {
+	a.Environment.Set("messages", messages)
+	return a
+}
+
+func (a *Agent) History() []*Message {
+	list, _ := a.Environment.Get("messages")
+	if v, ok := list.([]*Message); ok {
+		return v
+	}
+	return nil
+}
 
 // for reusing cached agent
 func (a *Agent) Clone() *Agent {

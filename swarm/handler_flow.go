@@ -53,7 +53,7 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 	// h.sw.Vars.Global.Set(globalQuery, req.Query())
 
 	if err := h.doAgentFlow(req, resp); err != nil {
-		h.sw.Vars.Global.Set(globalError, err.Error())
+		// h.sw.Vars.Global.Set(globalError, err.Error())
 		return err
 	}
 
@@ -68,7 +68,7 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 			h.sw.Vars.Global.AddEnvs(resultMap)
 		}
 	}
-	h.sw.Vars.Global.Set(globalResult, result)
+	// h.sw.Vars.Global.Set(globalResult, result)
 
 	log.GetLogger(ctx).Debugf("completed: %s global: %+v\n", h.agent.Name, h.sw.Vars.Global)
 	return nil
@@ -165,7 +165,7 @@ func (h *agentHandler) handleAgent(req *api.Request, resp *api.Response) error {
 
 	// 2. Context Messages
 	// skip system role
-	for i, msg := range h.sw.Vars.ListHistory() {
+	for i, msg := range h.agent.History() {
 		if msg.Role != api.RoleSystem {
 			logger.Debugf("adding [%v]: %s %s (%v)\n", i, msg.Role, abbreviate(msg.Content, 100), len(msg.Content))
 			history = append(history, msg)
@@ -231,7 +231,8 @@ func (h *agentHandler) handleAgent(req *api.Request, resp *api.Response) error {
 		history = append(history, &message)
 	}
 
-	h.sw.Vars.AddHistory(history)
+	// h.sw.Vars.AddHistory(history)
+	h.agent.SetHistory(history)
 	//
 	resp.Messages = history[initLen:]
 	resp.Agent = h.agent

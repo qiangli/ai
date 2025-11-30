@@ -122,7 +122,8 @@ func (r *AIKit) CallLlm(ctx context.Context, _ *api.Vars, _ string, args map[str
 		req.Arguments = api.NewArguments().AddArgs(arguments)
 	}
 
-	var adapter llm.LLMAdapter = &adapter.ResponseAdapter{}
+	// var adapter = &adapter.ResponseAdapter{}
+	var adapter = &adapter.ChatAdapter{}
 	resp, err := adapter.Call(ctx, req)
 	if err != nil {
 		return nil, err
@@ -391,7 +392,11 @@ func (r *AIKit) GetMessageInfo(_ context.Context, _ *api.Vars, _ string, args ma
 }
 
 func (r *AIKit) ContextGetMessages(_ context.Context, vars *api.Vars, _ string, _ map[string]any) (*api.Result, error) {
-	var messages = r.sw.Vars.ListHistory()
+	// var messages = r.sw.Vars.ListHistory()
+	messages := r.agent.History()
+	if len(messages) == 0 {
+		return &api.Result{}, nil
+	}
 	b, err := json.Marshal(messages)
 	if err != nil {
 		return nil, err
@@ -411,7 +416,8 @@ func (r *AIKit) ContextSetMessages(_ context.Context, vars *api.Vars, _ string, 
 	if err := json.Unmarshal([]byte(data), &messages); err != nil {
 		return nil, err
 	}
-	r.sw.Vars.SetHistory(messages)
+	// r.sw.Vars.SetHistory(messages)
+	r.agent.SetHistory(messages)
 	return &api.Result{
 		Value: "success",
 	}, nil

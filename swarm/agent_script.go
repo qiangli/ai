@@ -98,7 +98,7 @@ func (r *AgentScriptRunner) runner(vs *sh.VirtualSystem, agent *api.Agent) func(
 		data, err := agent.Runner.Run(ctx, id, at.Arguments)
 
 		if err != nil {
-			vs.System.Setenv(globalError, err.Error())
+			// vs.System.Setenv(globalError, err.Error())
 			fmt.Fprintln(vs.IOE.Stderr, err.Error())
 			return nil, err
 		}
@@ -107,7 +107,7 @@ func (r *AgentScriptRunner) runner(vs *sh.VirtualSystem, agent *api.Agent) func(
 			result = &api.Result{}
 		}
 		fmt.Fprintln(vs.IOE.Stdout, result.Value)
-		vs.System.Setenv(globalResult, result.Value)
+		// vs.System.Setenv(globalResult, result.Value)
 
 		return result, nil
 	}
