@@ -351,7 +351,7 @@ func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error 
 // 			return err
 // 		}
 // 		// match the action id
-// 		id := api.KitName(v).ID()
+// 		id := api.Kitname(v).ID()
 // 		for i, action := range h.agent.Flow.Actions {
 // 			if id == action.ID {
 // 				which = i

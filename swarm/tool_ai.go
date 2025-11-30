@@ -262,7 +262,7 @@ Parameters: %s
 		return "", err
 	}
 
-	kit, name := api.KitName(tid).Decode()
+	kit, name := api.Kitname(tid).Decode()
 
 	tc, err := r.sw.Assets.FindToolkit(r.sw.User.Email, kit)
 	if err != nil {
@@ -580,7 +580,7 @@ func (r *AIKit) AgentGetTools(_ context.Context, vars *api.Vars, _ string, args 
 			memo[v.ID()] = v
 		}
 		for _, id := range ids {
-			k := api.KitName(id).ID()
+			k := api.Kitname(id).ID()
 			if v, ok := memo[k]; ok {
 				tools = append(tools, v)
 			}
@@ -626,7 +626,7 @@ func (r *AIKit) AgentSetTools(_ context.Context, vars *api.Vars, _ string, args 
 func (r *AIKit) getTools(ids []string) ([]*api.ToolFunc, error) {
 	var memo = make(map[string]struct{})
 	for _, k := range ids {
-		id := api.KitName(k).ID()
+		id := api.Kitname(k).ID()
 		memo[id] = struct{}{}
 	}
 
@@ -640,7 +640,7 @@ func (r *AIKit) getTools(ids []string) ([]*api.ToolFunc, error) {
 	var tools []*api.ToolFunc
 	for kit, tc := range list {
 		for _, v := range tc.Tools {
-			id := api.KitName(kit + ":" + v.Name).ID()
+			id := api.Kitname(kit + ":" + v.Name).ID()
 			if _, ok := memo[id]; !ok {
 				continue
 			}

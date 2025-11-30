@@ -112,7 +112,7 @@ func agentName(s string) string {
 }
 
 // convert filename to toolkit name
-func kitName(s string) string {
+func Kitname(s string) string {
 	return normalizedName(trimExt(s))
 }
 

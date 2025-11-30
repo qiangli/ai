@@ -55,7 +55,7 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 		if err != nil {
 			return err.Error()
 		}
-		id := api.KitName(at.Kit + ":" + at.Name).ID()
+		id := api.Kitname(at.Kit + ":" + at.Name).ID()
 
 		data, err := agent.Runner.Run(ctx, id, at.Arguments)
 

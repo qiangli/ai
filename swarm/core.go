@@ -335,7 +335,7 @@ func (sw *Swarm) ExecCommand(ctx context.Context, agent *api.Agent, argv []strin
 	if at == nil {
 		return nil, fmt.Errorf("invalid agent tool command: %+v", argv)
 	}
-	id := api.KitName(at.Kit + ":" + at.Name).ID()
+	id := api.Kitname(at.Kit + ":" + at.Name).ID()
 
 	return agent.Runner.Run(ctx, id, at.Arguments)
 }

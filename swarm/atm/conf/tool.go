@@ -24,7 +24,7 @@ var (
 )
 
 func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetManager) ([]*api.ToolFunc, error) {
-	kit, name := api.KitName(s).Decode()
+	kit, name := api.Kitname(s).Decode()
 	if name == "" {
 		return nil, fmt.Errorf("invalid tool call id: %s", s)
 	}
@@ -76,7 +76,7 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 
 // try load local
 func LoadLocalToolFunc(local *api.AgentsConfig, owner, s string, secrets api.SecretStore, assets api.AssetManager) ([]*api.ToolFunc, error) {
-	kit, name := api.KitName(s).Decode()
+	kit, name := api.Kitname(s).Decode()
 	if name == "" {
 		return nil, fmt.Errorf("invalid tool call id: %s", s)
 	}
@@ -344,7 +344,7 @@ func listToolkitATM(owner string, as api.ATMSupport, kits map[string]*api.ToolsC
 		}
 		//
 		if tc.Kit == "" {
-			tc.Kit = kitName(v.Name)
+			tc.Kit = Kitname(v.Name)
 		}
 		if _, ok := kits[tc.Kit]; ok {
 			continue
@@ -392,7 +392,7 @@ func listToolkitAsset(as api.AssetFS, base string, kits map[string]*api.ToolsCon
 
 		//
 		if tc.Kit == "" {
-			tc.Kit = kitName(v.Name())
+			tc.Kit = Kitname(v.Name())
 		}
 		if _, ok := kits[tc.Kit]; ok {
 			continue

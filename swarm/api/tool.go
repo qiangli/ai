@@ -172,15 +172,16 @@ type ToolSystem interface {
 	AddKit(key any, kit ToolKit)
 }
 
-type KitName string
+// Took Kit and Name
+type Kitname string
 
-func (r KitName) String() string {
+func (r Kitname) String() string {
 	return string(r)
 }
 
 // agent:
 // agent__
-func (r KitName) IsAgent() bool {
+func (r Kitname) IsAgent() bool {
 	kit, _ := r.Decode()
 	return kit == string(ToolTypeAgent)
 }
@@ -191,7 +192,7 @@ func (r KitName) IsAgent() bool {
 // agent:name
 // @name
 // @:name
-func (r KitName) Decode() (string, string) {
+func (r Kitname) Decode() (string, string) {
 	split2 := func(s string, sep string, val string) (string, string) {
 		var p1, p2 string
 		parts := strings.SplitN(s, sep, 2)
@@ -229,7 +230,7 @@ func (r KitName) Decode() (string, string) {
 }
 
 // ^[a-zA-Z0-9_-]+$
-func (r KitName) ID() string {
+func (r Kitname) ID() string {
 	kit, name := r.Decode()
 	return toolID(kit, name)
 }

@@ -2,12 +2,8 @@ package api
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
-	"fmt"
 	"html/template"
 	"maps"
-	"strconv"
 	"strings"
 	"sync"
 )
@@ -483,106 +479,4 @@ func (cfg *AppConfig) HasInput() bool {
 func (cfg *AppConfig) Interactive() bool {
 	_, ok := cfg.Arguments["interactive"]
 	return ok
-}
-
-func ToResult(data any) *Result {
-	if data == nil {
-		return nil
-	}
-	if s, ok := data.(string); ok {
-		return &Result{
-			Value: s,
-		}
-	}
-	if v, ok := data.(*Result); ok {
-		if len(v.Content) == 0 {
-			return v
-		}
-		return &Result{
-			MimeType: v.MimeType,
-			Value:    mimeToString(v.MimeType, v.Content),
-		}
-	}
-	if v, ok := data.(*Blob); ok {
-		return &Result{
-			MimeType: v.MimeType,
-			Value:    mimeToString(v.MimeType, v.Content),
-		}
-	}
-	if v, err := json.Marshal(data); err == nil {
-		return &Result{
-			Value: string(v),
-		}
-	}
-	return &Result{
-		Value: fmt.Sprintf("%+v", data),
-	}
-}
-
-// https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
-// data:[<media-type>][;base64],<data>
-func dataURL(mime string, raw []byte) string {
-	encoded := base64.StdEncoding.EncodeToString(raw)
-	d := fmt.Sprintf("data:%s;base64,%s", mime, encoded)
-	return d
-}
-
-func ToString(data any) string {
-	if data == nil {
-		return ""
-	}
-	if v, ok := data.(string); ok {
-		return v
-	}
-	if v, ok := data.(*Result); ok {
-		if len(v.Content) == 0 {
-			return v.Value
-		}
-		return mimeToString(v.MimeType, v.Content)
-	}
-	if v, ok := data.(*Blob); ok {
-		return mimeToString(v.MimeType, v.Content)
-	}
-	if v, err := json.Marshal(data); err == nil {
-		return string(v)
-	}
-	return fmt.Sprintf("%+v", data)
-}
-
-func mimeToString(mime string, content []byte) string {
-	if mime == ContentTypeImageB64 {
-		return string(content)
-	}
-	if strings.HasPrefix(mime, "text/") {
-		return string(content)
-	}
-	return dataURL(mime, content)
-}
-
-func ToInt(data any) int {
-	if data == nil {
-		return 0
-	}
-	if i, ok := data.(int); ok {
-		return i
-	}
-	if i, ok := data.(int8); ok {
-		return int(i)
-	}
-	if i, ok := data.(int16); ok {
-		return int(i)
-	}
-	if i, ok := data.(int32); ok {
-		return int(i)
-	}
-	if i, ok := data.(int64); ok {
-		return int(i)
-	}
-	if s, ok := data.(string); ok {
-		i, err := strconv.Atoi(s)
-		if err == nil {
-			return i
-		}
-	}
-	return 0
 }
