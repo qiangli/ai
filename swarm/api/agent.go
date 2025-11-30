@@ -12,47 +12,38 @@ const (
 	RoleTool      = "tool"
 )
 
-// [@][owner:]pack[/sub]
-// @[owner:]<agent>
-// agent: pack[/sub]
-// @any
+// @pack[/sub]
+// agent:pack[/sub]
 // @*
-type AgentName string
+type Packname string
 
-func (a AgentName) String() string {
+func (a Packname) String() string {
 	return string(a)
 }
 
-// [@][owner:]pack[/sub]
-func (a AgentName) Decode() (owner, pack, sub string) {
-	// @[owner:]agent
-	// agent: pack[/sub]
+// @pack[/sub]
+// agent:pack[/sub]
+func (a Packname) Decode() (string, string) {
 	s := strings.TrimPrefix(string(a), "@")
-	parts := strings.SplitN(s, ":", 2)
-	if len(parts) == 2 {
-		owner = parts[0]
-		parts = strings.SplitN(parts[1], "/", 2)
-	} else {
-		parts = strings.SplitN(parts[0], "/", 2)
-	}
+	s = strings.TrimPrefix(s, "agent:")
+	parts := strings.SplitN(s, "/", 2)
 
-	pack = parts[0]
+	var pack = parts[0]
+	var sub string
 	if len(parts) > 1 {
 		sub = parts[1]
 	}
-	// default sub: "", "<pack>"
-	// pack
-	// pack/pack
+	// entry
 	if sub == pack {
 		sub = ""
 	}
-	return owner, pack, sub
+	return pack, sub
 }
 
-func (a AgentName) Equal(s string) bool {
-	x, y, z := a.Decode()
-	x2, y2, z2 := AgentName(s).Decode()
-	return x == x2 && y == y2 && z == z2
+func (a Packname) Equal(s string) bool {
+	x, y := a.Decode()
+	x2, y2 := Packname(s).Decode()
+	return x == x2 && y == y2
 }
 
 type Agent struct {
@@ -347,16 +338,6 @@ func (ac *AgentConfig) ToMap() map[string]any {
 	return result
 }
 
-// type Instruction struct {
-// 	// prefix supported: file: resource:
-// 	// #! [--mime-type=text/x-go-template]
-// 	Content string `yaml:"content"`
-
-// 	// content type
-// 	// text/x-go-template
-// 	Type string `yaml:"type"`
-// }
-
 type FlowType string
 
 const (
@@ -394,11 +375,6 @@ const (
 
 type FlowConfig struct {
 	Type FlowType `yaml:"type"`
-
-	// go template syntax
-	// Expression string `yaml:"expression"`
-	// Concurrency int    `yaml:"concurrency"`
-	// Retry       int    `yaml:"retry"`
 
 	// agent/tool list for non script flow
 	Actions []string `yaml:"actions"`

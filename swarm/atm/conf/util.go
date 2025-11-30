@@ -107,7 +107,7 @@ func trimExt(s string) string {
 }
 
 // convert filename to agent pack name
-func agentName(s string) string {
+func Packname(s string) string {
 	return normalizedName(trimExt(s))
 }
 

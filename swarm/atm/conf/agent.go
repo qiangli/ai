@@ -29,7 +29,7 @@ var (
 	agentCache = expirable.NewLRU[AgentCacheKey, *api.Agent](10000, nil, time.Second*900)
 )
 
-func normalizeAgentName(pack, name string) string {
+func normalizePackname(pack, name string) string {
 	ensure := func() string {
 		// pack name
 		if name == "" {
@@ -71,7 +71,7 @@ func listAgentsATM(owner string, as api.ATMSupport, packs map[string]*api.Agents
 			continue
 		}
 		for _, v := range ac.Agents {
-			v.Name = normalizeAgentName(ac.Name, v.Name)
+			v.Name = normalizePackname(ac.Name, v.Name)
 			v.Store = as
 		}
 		packs[ac.Name] = ac
@@ -119,13 +119,13 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AgentsCo
 		// correct name and add to list
 		// keep store loader for loading extra resources later
 		if ac.Name == "" {
-			ac.Name = agentName(v.Name())
+			ac.Name = Packname(v.Name())
 		}
 		if _, ok := packs[ac.Name]; ok {
 			continue
 		}
 		for _, v := range ac.Agents {
-			v.Name = normalizeAgentName(ac.Name, v.Name)
+			v.Name = normalizePackname(ac.Name, v.Name)
 			v.Store = as
 			v.BaseDir = base
 		}

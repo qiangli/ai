@@ -12,7 +12,6 @@ import (
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
-	"github.com/qiangli/ai/swarm/atm/resource"
 
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/ai/swarm/util"
@@ -21,8 +20,6 @@ import (
 type AgentCacheKey struct {
 	// user email
 	User string
-	// owner meail
-	Owner string
 	// agent
 	Pack string
 	Sub  string
@@ -291,13 +288,13 @@ func (ap *AgentMaker) getAgent(owner string, pack string, asset api.AssetStore) 
 
 	// agents
 	for _, v := range ac.Agents {
-		v.Name = ap.normalizeAgentName(pack, v.Name)
+		v.Name = ap.normalizePackname(pack, v.Name)
 	}
 
 	return ac, nil
 }
 
-func (ap *AgentMaker) normalizeAgentName(pack, name string) string {
+func (ap *AgentMaker) normalizePackname(pack, name string) string {
 	ensure := func() string {
 		// pack name
 		if name == "" {
@@ -316,12 +313,9 @@ func (ap *AgentMaker) normalizeAgentName(pack, name string) string {
 func (ap *AgentMaker) CreateAgent(ctx context.Context, agent string) (*api.Agent, error) {
 
 	// create the agent
-	// agent: owner:pack/sub
-	var user = ap.sw.User.Email
-	owner, pack, sub := api.AgentName(agent).Decode()
-	if owner == "" {
-		owner = user
-	}
+	// agent: pack/sub
+	// var user = ap.sw.User.Email
+	pack, sub := api.Packname(agent).Decode()
 
 	//
 	if pack == "" {
@@ -329,12 +323,10 @@ func (ap *AgentMaker) CreateAgent(ctx context.Context, agent string) (*api.Agent
 	}
 
 	// cached agent
-
 	key := AgentCacheKey{
-		User:  user,
-		Owner: owner,
-		Pack:  pack,
-		Sub:   sub,
+		User: ap.sw.User.Email,
+		Pack: pack,
+		Sub:  sub,
 	}
 	// return a cloned copy if found
 	if v, ok := agentCache.Get(key); ok {
@@ -343,7 +335,7 @@ func (ap *AgentMaker) CreateAgent(ctx context.Context, agent string) (*api.Agent
 	}
 
 	var ent *api.Record
-	if v, err := ap.sw.Assets.SearchAgent(owner, pack); err != nil {
+	if v, err := ap.sw.Assets.SearchAgent(ap.sw.User.Email, pack); err != nil {
 		return nil, err
 	} else {
 		ent = v
@@ -353,21 +345,20 @@ func (ap *AgentMaker) CreateAgent(ctx context.Context, agent string) (*api.Agent
 		return nil, fmt.Errorf("agent not found: %s", pack)
 	}
 
-	var as api.AssetStore
-	if ent == nil {
-		// super agent auto selection
-		pack = "agent"
-		owner = user
-		as = resource.NewStandardStore()
-	} else {
-		pack = ent.Name
-		owner = ent.Owner
-		as = ent.Store
-	}
+	// var as api.AssetStore
+	// if ent == nil {
+	// 	// super agent auto selection
+	// 	pack = "agent"
+	// 	as = resource.NewStandardStore()
+	// } else {
+	// 	pack = ent.Name
+	// 	// owner = ent.Owner
+	// 	as = ent.Store
+	// }
 
 	// access to models/tools is implicitly granted if user has permission to run the agent
 	// agent config
-	ac, err := ap.getAgent(owner, pack, as)
+	ac, err := ap.getAgent(ent.Owner, ent.Name, ent.Store)
 	if err != nil {
 		return nil, err
 	}
@@ -384,7 +375,7 @@ func (ap *AgentMaker) CreateAgent(ctx context.Context, agent string) (*api.Agent
 			return nil, err
 		}
 
-		agent, err := ap.newAgent(ac, c, owner)
+		agent, err := ap.newAgent(ac, c, ent.Owner)
 		if err != nil {
 			return nil, err
 		}

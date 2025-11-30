@@ -121,7 +121,7 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AgentsConfig, 
 
 	// sub agents
 	for _, v := range ac.Agents {
-		v.Name = normalizeAgentName(pack, v.Name)
+		v.Name = normalizePackname(pack, v.Name)
 		v.Store = asset
 		// TODO base for resource asset? not used and not a problem for now
 	}
