@@ -39,7 +39,7 @@
 				// "write a tool tha runs a simple python hello world and save it in the workspace",
 				"--message", 
 				// "tell me a joke",
-				"show me the query and prompt used for the llm request",
+				"tell me a joke. show me the query and prompt used for the llm request by calling call_llm and other tools",
 				// "@gptr/crawl",
 				// "@agent",
 				// "--message",

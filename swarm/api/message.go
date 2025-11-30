@@ -64,15 +64,24 @@ type Request struct {
 }
 
 func (r *Request) Message() string {
+	if r.Arguments == nil {
+		return ""
+	}
 	return r.Arguments.Message()
 }
 
 func (r *Request) MaxTurns() int {
+	if r.Arguments == nil {
+		return 0
+	}
 	return r.Arguments.GetInt("max_turns")
 }
 
 func (r *Request) MemOption() *MemOption {
 	var o MemOption
+	if r.Arguments == nil {
+		return &o
+	}
 	o.MaxHistory = r.Arguments.GetInt("max_history")
 	o.MaxSpan = r.Arguments.GetInt("max_span")
 	return &o
