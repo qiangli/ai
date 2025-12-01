@@ -239,8 +239,14 @@ AI will choose an appropriate agent based on your message if no agent is specifi
 * If you specify agents at both the beginning and end of a message, the last one takes precedence.
 * You can place command options anywhere in your message. To include options as part of the message, use quotes or escape '\'.
 `
-	assets, _ := conf.Assets(app)
-	list, count, _ := atmconf.ListAgents(assets, app.User)
+	assets, err := conf.Assets(app)
+	if err != nil {
+		return err
+	}
+	list, count, err := atmconf.ListAgents(assets, app.User)
+	if err != nil {
+		return err
+	}
 	log.GetLogger(ctx).Infof(format, list, count)
 
 	return nil
@@ -286,9 +292,14 @@ Total: %v
 
 Tools are used by agents to perform specific tasks. They are automatically selected based on the agent's capabilities and your input message.
 `
-	assets, _ := conf.Assets(app)
-	list, count, _ := atmconf.ListTools(assets, app.User)
-
+	assets, err := conf.Assets(app)
+	if err != nil {
+		return err
+	}
+	list, count, err := atmconf.ListTools(assets, app.User)
+	if err != nil {
+		return err
+	}
 	log.GetLogger(ctx).Infof(listTpl, list, count)
 	return nil
 }
@@ -302,9 +313,14 @@ Total: %v
 
 Model Alias can be used to reference a group of LLM models. You can mix and match different providers for one alias.
 `
-	assets, _ := conf.Assets(app)
-	list, count, _ := atmconf.ListModels(assets, app.User)
-
+	assets, err := conf.Assets(app)
+	if err != nil {
+		return err
+	}
+	list, count, err := atmconf.ListModels(assets, app.User)
+	if err != nil {
+		return err
+	}
 	log.GetLogger(ctx).Infof(listTpl, list, count)
 	return nil
 }
@@ -317,11 +333,13 @@ func HelpHistory(ctx context.Context, app *api.AppConfig) error {
 Total: %v
 `
 	mem := agent.NewFileMemStore(app)
-	list, count, _ := atmconf.ListHistory(mem, &api.MemOption{
+	list, count, err := atmconf.ListHistory(mem, &api.MemOption{
 		MaxHistory: app.MaxHistory,
 		MaxSpan:    app.MaxSpan,
 	})
-
+	if err != nil {
+		return err
+	}
 	log.GetLogger(ctx).Infof(listTpl, list, count)
 	return nil
 }

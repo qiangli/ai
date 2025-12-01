@@ -58,7 +58,7 @@ func listAgentsATM(owner string, as api.ATMSupport, packs map[string]*api.Agents
 	for _, v := range recs {
 		ac, err := LoadAgentsData([][]byte{[]byte(v.Content)})
 		if err != nil {
-			return err
+			return fmt.Errorf("error loading agent data: %s", v.Name)
 		}
 		if ac == nil || len(ac.Agents) == 0 {
 			return fmt.Errorf("invalid config. no agent defined: %s", v.Name)
@@ -109,7 +109,7 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AgentsCo
 
 		ac, err := LoadAgentsData([][]byte{content})
 		if err != nil {
-			return err
+			return fmt.Errorf("error loading agent data: %s", v.Name())
 		}
 		if ac == nil || len(ac.Agents) == 0 {
 			// return fmt.Errorf("invalid config. no agent defined: %s", v.Name())

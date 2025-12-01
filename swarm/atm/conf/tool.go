@@ -383,7 +383,7 @@ func listToolkitAsset(as api.AssetFS, base string, kits map[string]*api.ToolsCon
 
 		tc, err := loadToolData([][]byte{content})
 		if err != nil {
-			return err
+			return fmt.Errorf("error loading tool data: %s\n", v.Name())
 		}
 		if tc == nil || len(tc.Tools) == 0 {
 			// TODO mcp
