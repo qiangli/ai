@@ -1,0 +1,35 @@
+###
+kit: "sh"
+type: "system"
+
+tools:
+  - name: "exec"
+    description: "Execute a specified command within the user's environment, allowing optional flags and arguments to be passed via 'args'. Note: some security restrictions may apply."
+    parameters:
+      type: "object"
+      properties:
+        command:
+          type: "string"
+          description: "The command to execute."
+        args:
+          type: "array"
+          items:
+            type: "string"
+          description: "The arguments to pass to the command. May be empty."
+      required:
+        - command
+
+  - name: "cd"
+    description: "Change the current working directory on user's system."
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "The directory to change to."
+      required:
+        - dir
+
+  - name: "pwd"
+    description: "Print the current working directory on user's system."
+    parameters: {}
