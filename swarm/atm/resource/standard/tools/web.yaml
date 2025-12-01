@@ -20,7 +20,7 @@ tools:
           default: 0
         raw:
           type: "boolean"
-          description:  "Get raw content without text conversion (default: false)"
+          description: "Get raw content without text conversion (default: false)"
           default: false
       required:
         - url
@@ -37,3 +37,74 @@ tools:
           type: "string"
           description: "The full file path to save the content to"
       required: ["url", "file"]
+
+  # search enginges
+  - name: "ddg_search"
+    display: "🦆 DDG Search"
+    description: "Search the web using DuckDuckGo and return formatted results"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The search query string"
+        max_results:
+          type: "integer"
+          description: "Maximum number of results to return"
+          default: 5
+          minimum: 1
+          maximum: 10
+      required:
+        - query
+
+  - name: "bing_search"
+    display: "🅱️ Bing Search"
+    description: "Search the web using Bing and return formatted results"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The search query string"
+        max_results:
+          type: "integer"
+          description: "Maximum number of results to return"
+          default: 5
+          minimum: 1
+          maximum: 10
+      required:
+        - query
+
+  - name: "brave_search"
+    description: "Search the web using Brave and return formatted results"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The search query string"
+        max_results:
+          type: "integer"
+          description: "Maximum number of results to return"
+          default: 5
+          minimum: 1
+          maximum: 10
+      required:
+        - query
+
+  - name: "google_search"
+    description: "Search the web using Google and return formatted results"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The search query string"
+        max_results:
+          type: "integer"
+          description: "Maximum number of results to return"
+          default: 5
+          minimum: 1
+          maximum: 10
+      required:
+        - query

@@ -9,5 +9,4 @@ agents:
       based on user's query using the available tools
     functions:
       - "web:*"
-      # - "ddg:*"
 ###

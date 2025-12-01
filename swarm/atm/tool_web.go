@@ -3,13 +3,16 @@ package atm
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"time"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/ai/swarm/tool/web/scrape"
 	webtool "github.com/qiangli/ai/swarm/tool/web/util"
+)
+
+var (
+	NoResult = "Empty content. This could be due to website bot detection. Please try a different website or try again in a few minutes."
 )
 
 // webAuthKit must be per tool/func call
@@ -61,7 +64,7 @@ func (r *webAuthKit) FetchContent(ctx context.Context, vars *api.Vars, name stri
 
 	size := len(content)
 	if size == 0 {
-		return "", fmt.Errorf("empty content")
+		return NoResult, nil
 	}
 	if start < 0 {
 		start = 0
@@ -90,62 +93,63 @@ func (r *webAuthKit) DownloadContent(ctx context.Context, vars *api.Vars, name s
 	return webtool.Download(ctx, link, file)
 }
 
-// Search the web using available search tools.
-func (r *webAuthKit) Search(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	query, err := api.GetStrProp("query", args)
-	if err != nil {
-		return "", err
-	}
-	max, err := api.GetIntProp("max_results", args)
-	if err != nil {
-		return "", err
-	}
-	if max <= 0 {
-		max = 1
-	}
-	if max > 10 {
-		max = 10
-	}
+// this should be done with an agent in a much more flexible way.
+// // Search the web using available search tools.
+// func (r *webAuthKit) Search(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+// 	query, err := api.GetStrProp("query", args)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	max, err := api.GetIntProp("max_results", args)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	if max <= 0 {
+// 		max = 1
+// 	}
+// 	if max > 10 {
+// 		max = 10
+// 	}
 
-	ddg := func() (string, error) {
-		log.GetLogger(ctx).Debugf("🦆 search ddg query: %q max: %d\n", query, max)
-		return webtool.DDG(ctx, query, max)
-	}
-	bing := func() (string, error) {
-		log.GetLogger(ctx).Debugf("🅱️ search bing query: %q max: %d\n", query, max)
-		return webtool.Bing(ctx, query, max)
-	}
-	// brave := func() (string, error) {
-	// 	apiKey, err := r.token()
-	// 	if err != nil {
-	// 		return "", err
-	// 	}
-	// 	log.GetLogger(ctx).Debugf("🦁 brave query: %q max: %d\n", query, max)
-	// 	return webtool.Brave(ctx, apiKey, query, max)
-	// }
-	// google := func() (string, error) {
-	// 	// engine_id:api_key
-	// 	key, err := r.token()
-	// 	if err != nil {
-	// 		return "", err
-	// 	}
-	// 	seID, apiKey := split2(key, ":", "")
+// 	ddg := func() (string, error) {
+// 		log.GetLogger(ctx).Debugf("🦆 search ddg query: %q max: %d\n", query, max)
+// 		return webtool.DDG(ctx, query, max)
+// 	}
+// 	bing := func() (string, error) {
+// 		log.GetLogger(ctx).Debugf("🅱️ search bing query: %q max: %d\n", query, max)
+// 		return webtool.Bing(ctx, query, max)
+// 	}
+// 	// brave := func() (string, error) {
+// 	// 	apiKey, err := r.token()
+// 	// 	if err != nil {
+// 	// 		return "", err
+// 	// 	}
+// 	// 	log.GetLogger(ctx).Debugf("🦁 brave query: %q max: %d\n", query, max)
+// 	// 	return webtool.Brave(ctx, apiKey, query, max)
+// 	// }
+// 	// google := func() (string, error) {
+// 	// 	// engine_id:api_key
+// 	// 	key, err := r.token()
+// 	// 	if err != nil {
+// 	// 		return "", err
+// 	// 	}
+// 	// 	seID, apiKey := split2(key, ":", "")
 
-	// 	log.GetLogger(ctx).Debugf("🅖 google query: %q max: %d\n", query, max)
-	// 	return webtool.Google(ctx, apiKey, seID, query, max)
-	// }
+// 	// 	log.GetLogger(ctx).Debugf("🅖 google query: %q max: %d\n", query, max)
+// 	// 	return webtool.Google(ctx, apiKey, seID, query, max)
+// 	// }
 
-	var tools = []func() (string, error){
-		bing,
-		ddg,
-		// brave,
-		// google,
-	}
+// 	var tools = []func() (string, error){
+// 		bing,
+// 		ddg,
+// 		// brave,
+// 		// google,
+// 	}
 
-	// random
-	idx := rand.Intn(len(tools))
-	return tools[idx]()
-}
+// 	// random
+// 	idx := rand.Intn(len(tools))
+// 	return tools[idx]()
+// }
 
 // Search the web using DuckDuckGo.
 func (r *webAuthKit) DdgSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {

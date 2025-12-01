@@ -156,6 +156,11 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 
 	//
 	app.LogLevel = viper.GetString("log_level")
+	// default
+	if app.LogLevel == "" {
+		app.LogLevel = "info"
+	}
+	//
 	if viper.GetBool("trace") {
 		app.LogLevel = "trace"
 	}
