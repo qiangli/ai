@@ -138,6 +138,11 @@ func respond(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 			// 	resp.Result = out
 			// 	return resp, nil
 			// }
+			if out.State == api.StateTransfer {
+				resp.Result = out
+				return resp, nil
+			}
+
 			params.Input.OfInputItemList = append(params.Input.OfInputItemList, responses.ResponseInputItemParamOfFunctionCallOutput(calls[i].ID, out.Value))
 		}
 	}

@@ -166,6 +166,7 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 		if resp.Result.State == api.StateTransfer {
 			logger.Debugf("Agent transfer: %s => %s\n", req.Name, resp.Result.NextAgent)
 			req.Name = resp.Result.NextAgent
+			req.Agent = agent
 			continue
 		}
 

@@ -138,7 +138,9 @@ func userInput(
 	// update query
 	var content = cat(stdinData, clipinData, "\n")
 	args := make(map[string]any)
-	msg := cat(cfg.Message, content, "\n")
+	// msg := cat(cfg.Message, content, "\n")
+	msg := cat(cfg.Message, content, "\n###\n")
+	// msg := cat(content, cfg.Message, "\n###\n")
 	args["message"] = msg
 	return &api.UserInput{
 		Arguments: args,

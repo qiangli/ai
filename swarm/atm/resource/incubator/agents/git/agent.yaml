@@ -4,7 +4,6 @@ log_level: "info"
 format: "text"
 message: |
   Generate a detailed git commit message in no more than 100 words and 3 bullet points.
-
 agents:
   - name: "git"
     display: "🚀 Git"
@@ -15,17 +14,17 @@ agents:
       - "agent:memory"
     instruction: |
       You are an intelligent assistant responsible for analyzing the user's intentions
-      regarding git commit messages and delegating further action by calling the correct agent with the tool call `ai:spawn_agent`:
+      regarding git commit messages and delegating further action by transferring to the correct agent with the tool call `ai:transfer_agent`:
 
-      - For concise, one-line commit messages, call `git/short` agent.
+      - For concise, one-line commit messages, transfer to the `git/short` agent.
       - For commit messages adhering to the Conventional Commits specification (structured format including type and description),
-        call `git/long` agent.
+        transfer to `git/long` agent.
 
       Do not provide answers directly; always make a call to the tool function based on your classification of the user's request.
     functions:
-      - "ai:spawn_agent"
-      - "agent:git/short"
-      - "agent:git/long"
+      - "ai:transfer_agent"
+      # - "agent:git/short"
+      # - "agent:git/long"
 
   ##
   # prompt adapted from https://github.com/Aider-AI/aider/blob/main/aider/prompts.py
@@ -49,7 +48,9 @@ agents:
       - Does not exceed 72 characters.
 
       Reply only with the one-line commit message, without any additional text, explanations, line breaks, or code block fencing.
-
+    functions:
+      - "fs:write_file"
+  
   ##
   # https://www.conventionalcommits.org/en/v1.0.0/#summary
   - name: "git/long"
@@ -132,5 +133,6 @@ agents:
 
       ===
       The response must conform strictly to the provided specification without any additional explanations or code block fencing.
-
+    functions:
+      - "fs:write_file"
 ###
