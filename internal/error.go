@@ -44,7 +44,7 @@ func Exit(ctx context.Context, err error) {
 		errMsg = errMsg[:max] + "..."
 	}
 
-	log.GetLogger(ctx).Errorf(errMsg)
+	log.GetLogger(ctx).Errorf(errMsg + "\n")
 
 	switch err.(type) {
 	case *UserInputError:

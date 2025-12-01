@@ -1,16 +1,16 @@
 ###
 pack: flow
-max-history: 0
+max_history: 0
 model: default/L1
 agents:
   - name: "flow"
     display: "🚀 Flow Control Director"
     instruction: |
       You are a flow control director.
-    # sequence | choice | parallel | loop | map | reduce | shell
     environment:
       name: value
       work_dir: "/tmp"
+    # sequence | parallel | map | shell
     flow:
       type: sequence
       actions:
@@ -32,24 +32,10 @@ agents:
 
   - name: "flow/sequence"
     display: "Sequence Flow Control"
-    instruction:
-      content: "Search the web using google and then ddg"
+    instruction: |
+      Search the web using google and then ddg
     flow:
       type: sequence
-      actions:
-        - google:google_search
-        - ddg:ddg_search
-    functions:
-      - "google:*"
-      - "ddg:*"
-
-  - name: "flow/choice"
-    display: "🚀 Choice Flow Control"
-    description: ""
-    instruction:
-      content: "Search the web using google or then ddg"
-    flow:
-      type: choice
       actions:
         - google:google_search
         - ddg:ddg_search
@@ -60,24 +46,10 @@ agents:
   - name: "flow/parallel"
     display: "🚀 Parallel Flow Control"
     description: ""
-    instruction:
-      content: "Search the web using google then ddg simualtaneously"
+    instruction: |
+      Search the web using google then ddg simualtaneously
     flow:
       type: parallel
-      actions:
-        - google:google_search
-        - ddg:ddg_search
-    functions:
-      - "google:*"
-      - "ddg:*"
-
-  - name: "flow/loop"
-    display: "Loop Flow Control"
-    description: ""
-    instruction:
-      content: "Search the web using ddg repeativingly for three times"
-    flow:
-      type: loop
       actions:
         - google:google_search
         - ddg:ddg_search
@@ -88,24 +60,10 @@ agents:
   - name: "flow/map"
     display: "Map Flow Control"
     description: ""
-    instruction:
-      content: "Map"
+    instruction: |
+      Map
     flow:
       type: map
-      actions:
-        - google:google_search
-        - ddg:ddg_search
-    functions:
-      - "google:*"
-      - "ddg:*"
-
-  - name: "flow/reduce"
-    display: "Reduce Flow Control"
-    description: ""
-    instruction:
-      content: ""
-    flow:
-      type: reduce
       actions:
         - google:google_search
         - ddg:ddg_search
@@ -116,8 +74,8 @@ agents:
   - name: "flow/shell"
     display: "Shell Flow Control"
     description: ""
-    instruction:
-      content: ""
+    instruction: |
+      content
     flow:
       type: "shell"
       script: |

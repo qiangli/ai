@@ -1,0 +1,20 @@
+###
+pack: "shooter"
+agents:
+  - name: "shooter"
+    display: "🐝 Shooter Game Maker"
+    description: "Make a shooter game"
+    model: "default/L2"
+    instruction: |
+        Create a single-page app in a single HTML file with the following requirements:
+        - Name: Sky Shooter
+        - Goal: Shoot down as many flying objects as possible to achieve the highest score.
+        - Features: Increasing difficulty, high score tracking, retry button, and dynamic sounds for actions and events.
+        - The UI should be vibrant, with dynamic, animated backgrounds.
+        - The characters and objects should be visually appealing and engaging.
+        - The game should be enjoyable for all age groups.
+        Save the final result as shoot.html in the temp folder in the workspace
+    functions:
+      - "fs:*"
+      - "web:*"
+###

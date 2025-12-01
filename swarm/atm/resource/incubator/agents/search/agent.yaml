@@ -1,5 +1,5 @@
 ###
-pack: search
+pack: "search"
 #
 model: "llm/L1"
 max_history: 0
@@ -18,12 +18,8 @@ agents:
       need to use all tools. If a search tool fails due to reasons such as rate limiting or service
       downtime, try another one. If all tools fail, wait for a few seconds and attempt again.
     functions:
-      # - "search:ddg_search"
-      - "ddg:*"
-      - "bing:*"
-      - "google:*"
-      - "brave:*"
       - "web:*"
+
 ## tool kit
 kit: "search"
 tools:

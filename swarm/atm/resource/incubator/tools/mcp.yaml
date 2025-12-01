@@ -6,5 +6,5 @@ tools:
     base_url: "https://ai.dhnt.io/mcp"
     api_key: "mymcp"
     filter:
-      - "key": "*val*ue*"
+      "key": "*val*ue*"
 ###

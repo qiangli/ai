@@ -111,7 +111,7 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AgentsConfig, 
 
 	ac, err := LoadAgentsData([][]byte{[]byte(content)})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error loading agent data: %s", pack)
 	}
 	if ac == nil || len(ac.Agents) == 0 {
 		return nil, fmt.Errorf("invalid config. no agent defined: %s", pack)

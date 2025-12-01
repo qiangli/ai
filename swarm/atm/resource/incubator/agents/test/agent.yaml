@@ -12,6 +12,7 @@ agents:
       GPT test description
     environment:
       original_query: "{{.query}}"
+    instruction:
     flow:
       # type: "sequence"
       # actions:

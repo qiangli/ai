@@ -26,5 +26,4 @@ agents:
     message: |
       {{.result}}
     instruction:
-      content:
 ###
