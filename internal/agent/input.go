@@ -61,6 +61,18 @@ func userInput(
 	stdin io.Reader,
 	clipboard api.ClipboardProvider,
 ) (*api.UserInput, error) {
+
+	cat := func(a, b, sep string) string {
+		if a != "" && b == "" {
+			return a
+		} else if a == "" && b != "" {
+			return b
+		} else if a != "" && b != "" {
+			return a + sep + b
+		}
+		return ""
+	}
+
 	// stdin
 	var stdinData string
 	if cfg.IsStdin() {
@@ -121,17 +133,6 @@ func userInput(
 		}
 
 		clipinData = strings.TrimSpace(data)
-	}
-
-	cat := func(a, b, sep string) string {
-		if a != "" && b == "" {
-			return a
-		} else if a == "" && b != "" {
-			return b
-		} else if stdinData != "" && clipinData != "" {
-			return a + sep + b
-		}
-		return ""
 	}
 
 	// update query

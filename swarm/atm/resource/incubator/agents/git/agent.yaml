@@ -1,4 +1,5 @@
 ###
+pack: "git"
 log_level: "info"
 format: "text"
 message: |
@@ -10,18 +11,22 @@ agents:
     description: "Generate git commit message based on users input and the provided diffs."
     new: true
     model: "default/L1"
+    embed:
+      - "agent:memory"
     instruction: |
       You are an intelligent assistant responsible for analyzing the user's intentions
-      regarding git commit messages and delegating further action by delegating to the correct agent with the tool call `ai:agent_transfer`:
+      regarding git commit messages and delegating further action by calling the correct agent with the tool call `ai:spawn_agent`:
 
-      - For concise, one-line commit messages, transfer to the `git/short` agent.
+      - For concise, one-line commit messages, call `git/short` agent.
       - For commit messages adhering to the Conventional Commits specification (structured format including type and description),
-        transfer to the `git/long` agent.
+        call `git/long` agent.
 
-      Do not provide answers directly; always make a call to the transfer tool function based on your classification of the user's request.
+      Do not provide answers directly; always make a call to the tool function based on your classification of the user's request.
     functions:
-      - "ai:agent_transfer"
-  
+      - "ai:spawn_agent"
+      - "agent:git/short"
+      - "agent:git/long"
+
   ##
   # prompt adapted from https://github.com/Aider-AI/aider/blob/main/aider/prompts.py
   - name: "git/short"
