@@ -11,9 +11,15 @@
 			"mode": "auto",
 			"program": "${workspaceFolder}/cmd/",
 			"env": {
-				"AI_API_KEY": "${env:OPENAI_API_KEY}",
+				// "OPENAI_API_KEY": "${env:OPENAI_API_KEY}",
+				// "GEMINI_API_KEY": "${env:GEMINI_API_KEY}",
+				// "ANTHROPIC_API_KEY": "${env:ANTHROPIC_API_KEY}",
+				// "BRAVE_API_KEY": "${env:BRAVE_API_KEY}",
+				// "GOOGLE_API_KEY": "${env:GOOGLE_API_KEY}",
+				// "DHNT_API_KEY": "${env:DHNT_API_KEY}",
 				"AI_DEBUG": "true",
 			},
+			"envFile": "${workspaceFolder}/.env",
 			"args": [
 				// "/help",
 				// "agents",

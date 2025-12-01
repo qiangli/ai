@@ -216,13 +216,13 @@ func (r *AIKit) SpawnAgent(ctx context.Context, _ *api.Vars, _ string, args map[
 	nreq := api.NewRequest(ctx, agent, args)
 	nreq.Agent = r.agent
 
-	resp := &api.Response{}
+	nresp := &api.Response{}
 
-	if err := r.sw.Run(nreq, resp); err != nil {
+	if err := r.sw.Run(nreq, nresp); err != nil {
 		return nil, err
 	}
 
-	return resp.Result, nil
+	return nresp.Result, nil
 }
 
 func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
