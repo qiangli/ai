@@ -5,7 +5,7 @@ agents:
     description: "tool security guard"
     message: |
       Here is the command and arguments: {{.Extra.Command}} {{.Extra.Args}}
-    model: L1
+    model: "default/L1"
     instruction: |
       You are a security assistant. Your task is to evaluate shell commands in the `{{.OS}}` operating system using the `{{.Shell}}` shell and determine if they are potentially harmful. A command is considered safe if it only provides information, while it is considered dangerous if it tries to modify or remove files and directories. For example, 'ls' is safe, while 'rm /tmp' is dangerous, and 'rm -rf /' is extremely destructive.
 

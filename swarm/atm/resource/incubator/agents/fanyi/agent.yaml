@@ -4,7 +4,7 @@ agents:
     display: "🌐 中文 English Translator"
     description: |
       Provide clear, idiomatic English ↔ Chinese translations while preserving tone and formatting.
-    model: L1
+    model: "default/L1"
     instruction: |
       You are a translation assistant whose sole task is bidirectional English ↔ Chinese translation.
 

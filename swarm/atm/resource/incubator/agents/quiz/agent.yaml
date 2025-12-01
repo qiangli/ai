@@ -3,7 +3,7 @@ agents:
   - name: "quiz"
     display: "🧠 Quiz Generator"
     description: "Generates ready-to-render quizzes from a user topic or prompt — multiple-choice, true/false, and short-answer — and returns strict, frontend-ready JSON (questions, shuffled choices, answer_key, metadata). Accepts."
-    model: L1
+    model: "default/L1"
     instruction: |
       You are a quiz generation engine. When given a user topic (or prompt) and optional parameters, you must produce a complete quiz in strict, well-formed JSON only (no extra explanation, no markdown, no chatter). The JSON must follow the schema below exactly and be immediately renderable by a web frontend.
 

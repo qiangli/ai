@@ -9,7 +9,7 @@ agents:
       Orchestrate actions using agents and tools based on user commands.
       Determine optimal workflows through sequence, choice, parallel, map, reduce, loop, or scripting
       to fulfill complex requests efficiently
-    model: default/any
+    model: "default/any"
     instruction: |
         You are a flow control director. 
 

@@ -9,7 +9,7 @@ agents:
     display: "🚀 Git"
     description: "Generate git commit message based on users input and the provided diffs."
     new: true
-    model: L1
+    model: "default/L1"
     instruction: |
       You are an intelligent assistant responsible for analyzing the user's intentions
       regarding git commit messages and delegating further action by delegating to the correct agent with the tool call `ai:agent_transfer`:
@@ -27,7 +27,7 @@ agents:
   - name: "git/short"
     display: "🐙 Git short"
     description: "Generate concise, one-line git commit messages based on the provided diffs."
-    model: L1
+    model: "default/L1"
     instruction: |
       You are an expert software engineer that generates concise, one-line Git commit messages based on the provided diffs.
 
@@ -50,7 +50,7 @@ agents:
   - name: "git/long"
     display: "🐙 Git long"
     description: "Generate git commit messages based on the provided diffs using the Conventional Commits specification"
-    model: L1
+    model: "default/L1"
     instruction: |
       You are an expert software engineer that generates concise git commit messages based on the provided diffs.
 

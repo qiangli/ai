@@ -3,7 +3,7 @@ agents:
   - name: "mcp"
     display: "🎖️ MCP"
     description: "A Very Simple MCP agent"
-    model: L1
+    model: "default/L1"
     instruction: |
       You are an agent - please keep going until the user’s query is completely resolved, before ending your turn
       and yielding back to the user. Only terminate your turn when you are sure that the problem is solved, or if

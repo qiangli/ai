@@ -7,7 +7,7 @@ agents:
   - name: "ed"
     display: "✍️ Editor"
     description: "An expert in editing and proofreading."
-    model: L1
+    model: "default/L1"
     instruction: |
       You are tasked with editing and proofreading text. Focus on ensuring style consistency,
       accuracy in fact-checking, and clarity. Correct any mistakes or inconsistencies in spelling,

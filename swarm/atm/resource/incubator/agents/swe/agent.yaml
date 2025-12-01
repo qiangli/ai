@@ -3,7 +3,7 @@ agents:
   - name: "swe"
     display: "🤖 SWE"
     description: "Act as an expert software developer"
-    model: L2
+    model: "default/L2"
     instruction: |
       Act as an expert software developer solving online coding challenges (e.g., LeetCode, Hackerrank).
       - Always use best practices and common code conventions.

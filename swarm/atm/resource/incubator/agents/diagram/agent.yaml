@@ -9,7 +9,7 @@ agents:
       in XML format, capturing complex architecture specifications accurately.
       The agent supports optional formats like Graphviz DOT and Mermaid and generates
       human-readable specifications to complement the diagrams.
-    model: default/any
+    model: "default/any"
     instruction: |
       You are a specialized AI assistant that translates architectural briefs
       into production-ready diagrams for diagrams.net (draw.io).
