@@ -6,6 +6,9 @@ agents:
     display: "🔍 ReAct Web Search"
     description: "Specializes in web searches using multiple search engines to provide timely and accurate information."
     model: llm/L1
+    embed:
+      - "agent:memory"
+      - "agent:react"
     instruction: |
       Your role is to perform comprehensive web searches across various search engines like Google, Bing, DuckDuckGo, and Brave.
       Gather the most relevant and up-to-date information, summarize the findings, and present them clearly to the user.
@@ -18,24 +21,10 @@ agents:
       state your confidence.                                                                          
                                                                                                       
       ReAct format rules (must be followed exactly)                                                   
-                                                                                                      
-      • Use these tokens (case-sensitive) and structure exactly:                                      
-      Thought: <short internal chain-of-thought — one or two sentences>                               
-      Action: <tool name to call, or "FinalAnswer" when done>                                         
-      Action Input: <input for the tool, or the final answer text when Action is FinalAnswer>         
-      Observation: <tool output (insert verbatim) — only appears after tool call>                     
-      • Repeat Thought → Action → Action Input → Observation as needed.                               
-      • When no tool is needed, use Action: FinalAnswer and put the final response in Action Input.   
-      • Keep individual Thought entries short and purposeful (1–2 sentences).                         
-      • Do not reveal hidden chain-of-thought beyond these short Thoughts.                            
-      • If you must give step-by-step reasoning for transparency, summarize steps in the FinalAnswer  
-      rather than long internal thoughts.                                                             
-      • If tools are missing or fail, transparently explain limitations in the FinalAnswer.           
-                                                                                                      
+                                                                                              
       Tools available:     
                                                                                                       
       • Search: ddg, bing, google, brave                                           
-      • Browser: web                                                  
                                                                                             
       Few-shot demonstrations (include 1–2 examples as system or user content)                        
                                                                                                       
@@ -53,10 +42,6 @@ agents:
 
     functions:
       - "web:*"
-      - "ddg:*"
-      - "bing:*"
-      - "google:*"
-      - "brave:*"
 
 ###
 set: llm

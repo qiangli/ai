@@ -11,9 +11,11 @@ agents:
       It utilizes a cyclic Think-Act-Observe approach, employing tools when necessary,
       to provide clear, formatted final answers.
     model: "react/reasoning"
-    message:
+    # arguments:
+    #   format: "markdown"
+    message: |
+      Now, begin your reasoning for the following query. Start by THINKING about what you need to do:
     instruction: |
-      #! mime-type=text/x-go-template
       You are a highly capable reasoning assistant using the ReAct method to solve problems step by step.
       You can search for and use tools as needed.
 
@@ -29,21 +31,13 @@ agents:
       - **One tool call at a time**: After thinking, decide if you need to call a tool. If yes, call exactly one tool
       - **Observe and think again**: After each tool call, think about the results before deciding your next step
       - **Provide final answer**: When you have enough information, provide a clear final answer and stop
-      - **Answer format**: Please present your final answer in the following format: 
-        {{.format}}
-
+      - **Answer format**: Please present your final answer in the following format unless user explicitly requested a different one: 
+        `markdown`
       **Available Tools:**
       You have access to a list_tools/tool_info functions that can help you find relevant tools for your task.
-
-      Now, begin your reasoning for the following query. Start by THINKING about what you need to do:
-
-      {{.query}}
-    arguments:
-      format: "markdown"
     functions:
-      - "ai:list_tools"
-      - "ai:get_tool_info"
-      - "ai:tool_execute"
+      - "ai:*"
+
 ###
 set: "react"
 provider: "openai"

@@ -9,8 +9,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/qiangli/ai/cmd/agent"
-	"github.com/qiangli/ai/cmd/history"
-	"github.com/qiangli/ai/cmd/setup"
+	// "github.com/qiangli/ai/cmd/history"
+	// "github.com/qiangli/ai/cmd/setup"
 	"github.com/qiangli/ai/internal"
 )
 
@@ -33,8 +33,9 @@ ai @ask what is fish
 `
 
 var agentCmd = agent.AgentCmd
-var setupCmd = setup.SetupCmd
-var historyCmd = history.HistoryCmd
+
+// var setupCmd = setup.SetupCmd
+// var historyCmd = history.HistoryCmd
 
 var rootCmd = &cobra.Command{
 	Use:                   "ai [OPTIONS] [@AGENT] MESSAGE...",
@@ -116,18 +117,18 @@ func main() {
 				internal.Exit(ctx, err)
 			}
 			return
-		case "/setup":
-			os.Args = os.Args[1:]
-			if err := setupCmd.Execute(); err != nil {
-				internal.Exit(ctx, err)
-			}
-			return
-		case "/history":
-			os.Args = os.Args[1:]
-			if err := historyCmd.Execute(); err != nil {
-				internal.Exit(ctx, err)
-			}
-			return
+		// case "/setup":
+		// 	os.Args = os.Args[1:]
+		// 	if err := setupCmd.Execute(); err != nil {
+		// 		internal.Exit(ctx, err)
+		// 	}
+		// 	return
+		// case "/history":
+		// 	os.Args = os.Args[1:]
+		// 	if err := historyCmd.Execute(); err != nil {
+		// 		internal.Exit(ctx, err)
+		// 	}
+		// 	return
 		default:
 			internal.Exit(ctx, fmt.Errorf("Slash command not supported: %s", args[1]))
 			return

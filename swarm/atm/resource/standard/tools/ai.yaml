@@ -102,11 +102,11 @@ tools:
         - "tool"
         - "parameters"
 
-  - name: "get_tool_calllog"
-    description: "Get the tool call history for the current user session"
-    parameters:
-      type: "object"
-      properties: {}
+  # - name: "get_tool_calllog"
+  #   description: "Get the tool call history for the current user session"
+  #   parameters:
+  #     type: "object"
+  #     properties: {}
 
   - name: "list_models"
     description: "List all AI language model aliases created by the current user"
@@ -141,40 +141,40 @@ tools:
       required:
         - "id"
 
-  - name: "context_get_messages"
-    description: "Retrieve all messages from the ongoing conversation history log"
-    parameters:
-      type: "object"
-      properties: {}
+  # - name: "context_get_messages"
+  #   description: "Retrieve all messages from the ongoing conversation history log"
+  #   parameters:
+  #     type: "object"
+  #     properties: {}
 
-  - name: "context_set_messages"
-    description: "Reset all messages with the new list in the ongoing conversation history log"
-    parameters:
-      type: "object"
-      properties:
-        messages:
-          type: "array"
-          items:
-            type: "object"
-            properties:
-              id:
-                type: "string"
-              chat_id:
-                type: "string"
-              created:
-                type: "string"
-                format: "date-time"
-              content_type:
-                type: "string"
-              content:
-                type: "string"
-              role:
-                type: "string"
-                description: "system, assistant, or user."
-            required:
-              - content
-              - role
-      description: "An array of message objects to be added. If empty, clear the history log"
+  # - name: "context_set_messages"
+  #   description: "Reset all messages with the new list in the ongoing conversation history log"
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       messages:
+  #         type: "array"
+  #         items:
+  #           type: "object"
+  #           properties:
+  #             id:
+  #               type: "string"
+  #             chat_id:
+  #               type: "string"
+  #             created:
+  #               type: "string"
+  #               format: "date-time"
+  #             content_type:
+  #               type: "string"
+  #             content:
+  #               type: "string"
+  #             role:
+  #               type: "string"
+  #               description: "system, assistant, or user."
+  #           required:
+  #             - content
+  #             - role
+  #     description: "An array of message objects to be added. If empty, clear the history log"
 
   - name: "get_envs"
     description: "Get specific or all environment variables"
@@ -208,82 +208,82 @@ tools:
             type: "string"
       required: ["keys"]
 
-  - name: "agent_get_prompt"
-    description: "Return the system role instruction for the current active agent"
-    parameters:
-      type: "object"
-      properties: {}
+  # - name: "agent_get_prompt"
+  #   description: "Return the system role instruction for the current active agent"
+  #   parameters:
+  #     type: "object"
+  #     properties: {}
 
-  - name: "agent_set_prompt"
-    description: "Update the system role instruction for the current active agent"
-    parameters:
-      type: "object"
-      properties:
-        instruction:
-          type: "string"
-          description: "System role instruction. Can be a blank string"
-      required: ["instruction"]
+  # - name: "agent_set_prompt"
+  #   description: "Update the system role instruction for the current active agent"
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       instruction:
+  #         type: "string"
+  #         description: "System role instruction. Can be a blank string"
+  #     required: ["instruction"]
 
-  - name: "agent_get_query"
-    description: "Return the user role message for the current active agent"
-    parameters:
-      type: "object"
-      properties: {}
+  # - name: "agent_get_query"
+  #   description: "Return the user role message for the current active agent"
+  #   parameters:
+  #     type: "object"
+  #     properties: {}
 
-  - name: "agent_set_query"
-    description: "Update the user role message for the current active agent"
-    parameters:
-      type: "object"
-      properties:
-        query:
-          type: "string"
-          description: "User role input message. Can be blank"
-      required: ["query"]
+  # - name: "agent_set_query"
+  #   description: "Update the user role message for the current active agent"
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       query:
+  #         type: "string"
+  #         description: "User role input message. Can be blank"
+  #     required: ["query"]
 
-  - name: "agent_get_model"
-    description: "Retrieve the LLM provider, base_url, model used for the current active agent"
-    parameters:
-      type: "object"
-      properties: {}
+  # - name: "agent_get_model"
+  #   description: "Retrieve the LLM provider, base_url, model used for the current active agent"
+  #   parameters:
+  #     type: "object"
+  #     properties: {}
 
-  - name: "agent_set_model"
-    description: "Update the LLM model for the current active agent"
-    parameters:
-      type: "object"
-      properties:
-        provider:
-          type: "string"
-          description: "LLM service provider name: openai, gemini, or anthropic"
-        base_url:
-          type: "string"
-          description: "LLM service endpoint"
-        model:
-          type: "string"
-          description: "Exact model string supported by the respective provider"
-        api_key:
-          type: "string"
-          description: "This is the API token lookup key. Not the actual token for accessing the service"
-      required: ["provider", "base_url", "model", "api_key"]
+  # - name: "agent_set_model"
+  #   description: "Update the LLM model for the current active agent"
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       provider:
+  #         type: "string"
+  #         description: "LLM service provider name: openai, gemini, or anthropic"
+  #       base_url:
+  #         type: "string"
+  #         description: "LLM service endpoint"
+  #       model:
+  #         type: "string"
+  #         description: "Exact model string supported by the respective provider"
+  #       api_key:
+  #         type: "string"
+  #         description: "This is the API token lookup key. Not the actual token for accessing the service"
+  #     required: ["provider", "base_url", "model", "api_key"]
 
-  - name: "agent_get_tools"
-    description: "Retrieve all or specified tools from the current active agent"
-    parameters:
-      type: "object"
-      properties:
-        ids:
-          type: "array"
-          description: "An array of tool ids to retrieve. If not provided, return all tools available to the curent active agent"
-          items:
-            type: "string"
+  # - name: "agent_get_tools"
+  #   description: "Retrieve all or specified tools from the current active agent"
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       ids:
+  #         type: "array"
+  #         description: "An array of tool ids to retrieve. If not provided, return all tools available to the curent active agent"
+  #         items:
+  #           type: "string"
 
-  - name: "agent_set_tools"
-    description: "Reset all tools with the new set of tools for the current active agent. Tool id must be valid obtained from ai:list_tools"
-    parameters:
-      type: "object"
-      properties:
-        ids:
-          type: "array"
-          description: "An array of tool ids to add. If empty, all tools will be cleared."
-          items:
-            type: "string"
-      required: ["ids"]
+  # - name: "agent_set_tools"
+  #   description: "Reset all tools with the new set of tools for the current active agent. Tool id must be valid obtained from ai:list_tools"
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       ids:
+  #         type: "array"
+  #         description: "An array of tool ids to add. If empty, all tools will be cleared."
+  #         items:
+  #           type: "string"
+  #     required: ["ids"]

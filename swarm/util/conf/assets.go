@@ -10,16 +10,29 @@ import (
 )
 
 // default assets with resource.json and standard
-func Assets(cfg *api.AppConfig) (api.AssetManager, error) {
+func Assets(app *api.AppConfig) (api.AssetManager, error) {
 	var assets = conf.NewAssetManager()
-	res, err := api.LoadResourceConfig(filepath.Join(cfg.Base, "dhnt.json"))
+
+	cfg, err := api.LoadDHNTConfig(filepath.Join(app.Base, "dhnt.json"))
 	if err != nil {
 		return nil, err
 	}
-	assets.AddStore(&resource.WebStore{
-		Base:  fmt.Sprintf("%s/resource", res.Base),
-		Token: res.Token,
-	})
+
+	for _, res := range cfg.Assets {
+		switch res.Type {
+		case "web":
+			assets.AddStore(&resource.WebStore{
+				Base:  fmt.Sprintf("%s/resource", res.Base),
+				Token: res.Token,
+			})
+		case "file":
+			assets.AddStore(&resource.FileStore{
+				Base: res.Base,
+			})
+		default:
+			return nil, fmt.Errorf("unsupported resource type: %s", res.Type)
+		}
+	}
 
 	assets.AddStore(resource.NewStandardStore())
 	return assets, nil

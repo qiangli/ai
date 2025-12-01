@@ -7,13 +7,13 @@ import (
 	"github.com/qiangli/ai/swarm/db"
 )
 
-func NewBlobs(cfg *api.AppConfig, bucket string) (*db.BlobStorage, error) {
-	res, err := api.LoadResourceConfig(filepath.Join(cfg.Base, "dhnt.json"))
+func NewBlobs(app *api.AppConfig, bucket string) (*db.BlobStorage, error) {
+	cfg, err := api.LoadDHNTConfig(filepath.Join(app.Base, "dhnt.json"))
 	if err != nil {
 		return nil, err
 	}
 
-	fs, err := db.NewCloudStorage(res)
+	fs, err := db.NewCloudStorage(cfg.Blob)
 	if err != nil {
 		return nil, err
 	}
