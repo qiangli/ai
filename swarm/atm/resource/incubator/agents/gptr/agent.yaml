@@ -16,9 +16,8 @@ agents:
       The agent produces detailed, factual, and unbiased research reports with citations.
     environment:
       original_query: "{{.query}}"
-    flow:
-      type: "sequence"
-      actions:
+    instruction: |
+      Pleas execute the following agents in sequence using tool calls:
         - "agent:gptr/user_input"
         - "agent:gptr/choose_agent"
         - "agent:gptr/web_search"
@@ -26,6 +25,20 @@ agents:
         - "agent:gptr/scrape"
         - "agent:gptr/curate"
         - "agent:gptr/report"
+    message: |
+      stop immediately if any of the steps fail. no retry!
+    embed:
+      - "agent:flow/sequence"
+    # flow:
+    #   type: "sequence"
+    #   actions:
+    #     - "agent:gptr/user_input"
+    #     - "agent:gptr/choose_agent"
+    #     - "agent:gptr/web_search"
+    #     - "agent:gptr/research_queries"
+    #     - "agent:gptr/scrape"
+    #     - "agent:gptr/curate"
+    #     - "agent:gptr/report"
       # type: "shell"
       # script: |
       #   #!/bin/bash

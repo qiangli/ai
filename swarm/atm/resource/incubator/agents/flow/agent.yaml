@@ -33,15 +33,17 @@ agents:
   - name: "flow/sequence"
     display: "Sequence Flow Control"
     instruction: |
-      Search the web using google and then ddg
+        Execute a sequence of actions in a pipeline-like manner:
+        1. Start with an initial input query.
+        2. For each action or tool call in the provided list, pass the result of the current action as the input query for the next one.
+        3. If a failure occurs, check if the user has specified a retry policy.
+          - If a retry policy is specified, attempt the action up to the allowed number of retries.
+          - If no retries are specified, terminate the sequence immediately upon failure.
+        This ensures each subsequent action benefits from the context or data derived from the preceding action, maintaining robustness by respecting user-defined failure handling.
     flow:
       type: sequence
-      actions:
-        - google:google_search
-        - ddg:ddg_search
-    functions:
-      - "google:*"
-      - "ddg:*"
+      actions: []
+    functions: []
 
   - name: "flow/parallel"
     display: "🚀 Parallel Flow Control"
