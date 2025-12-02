@@ -1,7 +1,6 @@
 ###
 pack: flow
-max_history: 0
-model: default/L1
+model: "default/any"
 agents:
   - name: "flow"
     display: "🚀 Flow Control Director"
@@ -42,36 +41,68 @@ agents:
         This ensures each subsequent action benefits from the context or data derived from the preceding action, maintaining robustness by respecting user-defined failure handling.
     flow:
       type: sequence
-      actions: []
+      # actions: []
+    functions: []
+
+  - name: "flow/choice"
+    display: "Choice Flow Control"
+    instruction: |
+      You are responsible for interpreting user input and dynamically selecting the
+      most suitable subagent or action to execute from a specified list of actions.
+      These actions are explicitly provided for this flow and must be chosen over
+      any other available tools or actions that might exist for different purposes.
+      This decision is based on evaluating the input context and available options.
+      You should aim to choose the action that best aligns with the user's intent or
+      requirements. If the specific criteria isn't met by a single option, a random
+      choice is made. Employ efficient decision-making logic to ensure optimal
+      outcomes. If the user explicitly requests a retry, then attempt the operation
+      again; otherwise, stop and report the failure immediately.
+    flow:
+      type: choice
+      # actions: []
     functions: []
 
   - name: "flow/parallel"
-    display: "🚀 Parallel Flow Control"
-    description: ""
+    display: "Parallel Flow Control"
     instruction: |
-      Search the web using google then ddg simualtaneously
+      As the system agent for executing parallel actions, your role is to process
+      a series of actions or sub-agents simultaneously, using a provided input
+      query for different tasks. Ensure that each task is executed by its assignee
+      and return the results in JSON format. Each entry in the results list
+      should include:
+
+      - "agent": Name of the sub-agent or action that performed the task.
+      - "result": The response or outcome of the task.
+      - "error": An error message if the task failed, otherwise omit.
+
+      Default to a maximum concurrency of 5 unless otherwise specified, and retry
+      failed actions up to 3 times by default unless a specific retry count is provided by the user.
+      If additional instructions are provided for processing results, summarize the final results accordingly.
     flow:
       type: parallel
-      actions:
-        - google:google_search
-        - ddg:ddg_search
-    functions:
-      - "google:*"
-      - "ddg:*"
+      # actions: []
+    functions: []
 
   - name: "flow/map"
     display: "Map Flow Control"
-    description: ""
     instruction: |
-      Map
+      #!
+      As the flow map agent tasked with Map Flow Control, you will process a list of input items
+      through specified subagents or actions. Your key responsibilities are:
+
+      - Receive a list of input items in various formats (e.g., JSON).
+      - For each item, invoke the appropriate subagent/action via tool call.
+      - Return results that match the format and order of the input items.
+      - Default to a maximum concurrency of 5, unless a user-specified concurrency limit is provided.
+      - Implement retry logic: attempt each item a maximum of 3 times by default for failed calls, 
+        unless a specific retry count is provided by the user.
+
+      Ensure to handle and maintain the execution flow efficiently, managing concurrent calls and retries
+      appropriately within the constraints outlined.
     flow:
       type: map
-      actions:
-        - google:google_search
-        - ddg:ddg_search
-    functions:
-      - "google:*"
-      - "ddg:*"
+      actions: []
+    functions: []
 
   - name: "flow/shell"
     display: "Shell Flow Control"

@@ -12,17 +12,12 @@ agents:
     model: "default/any"
     embed:
       - "agent:memory"
+      - "agent:flow/choice"
     instruction: |
-      You are an intelligent assistant responsible for analyzing the user's intentions
-      regarding git commit messages and delegating further action by spawning the correct agent with the tool call `ai:spawn_agent`:
-
-      - For concise, one-line commit messages, call with the `git/short` agent.
-      - For commit messages adhering to the Conventional Commits specification (structured format including type and description),
-        call with the `git/long` agent.
-
-      Do not provide answers directly; always make a call to the tool function based on your classification of the user's request.
+      Pleas execute one of the following agents based on user's query:
+        - "agent:git/short"
+        - "agent:git/long"
     functions:
-      - "ai:spawn_agent"
       - "agent:git/short"
       - "agent:git/long"
       - "fs:write_file"
@@ -49,8 +44,8 @@ agents:
       - Does not exceed 72 characters.
 
       Reply only with the one-line commit message, without any additional text, explanations, line breaks, or code block fencing.
-    # functions:
-    #   - "fs:write_file"
+    functions:
+      - "fs:write_file"
   
   ##
   # https://www.conventionalcommits.org/en/v1.0.0/#summary
@@ -134,6 +129,6 @@ agents:
 
       ===
       The response must conform strictly to the provided specification without any additional explanations or code block fencing.
-    # functions:
-    #   - "fs:write_file"
+    functions:
+      - "fs:write_file"
 ###

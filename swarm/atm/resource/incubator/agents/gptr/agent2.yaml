@@ -1,11 +1,12 @@
 ###
+
 ## agent pack
-pack: "gptr"
+pack: gptr
 #
 # adapted from https://github.com/assafelovic/gpt-researcher
 #
-model: "smart_llm/fast"
-log_level: "verbose"
+model: smart_llm/fast
+log_level: verbose
 agents:
   - name: "gptr"
     new: true
@@ -13,53 +14,27 @@ agents:
     description: |
       GPT Researcher is an agent designed for research on any given task.
       The agent produces detailed, factual, and unbiased research reports with citations.
-      • Create a task-specific agent based on a research query.                                       
-      • Generate questions that collectively form an objective opinion on the task.                   
-      • Use a crawler agent to gather information for each question.                                  
-      • Summarize and source-track each resource.                                                     
-      • Filter and aggregate the summaries into a final research report.  
-    embed:
-      - "agent:memory"
-      - "agent:flow/parallel"
-    instruction: |                                                                                             
-      Please execute the following agents in parallel using tool calls.
-      Record intermediate results for subsequent steps:
+    environment:
+      original_query: "{{.query}}"
+    instruction: |
+      Pleas execute the following agents in sequence using tool calls:
         - "agent:gptr/user_input"
         - "agent:gptr/choose_agent"
-        - "agent:gptr/researcher"
-
-      Once completed successfully. You should use all the 3 responses to call the publisher tool `agent:gptr/publisher`
-      Save the final report in the workspace with an fitting name based on user query.
+        - "agent:gptr/web_search"
+        - "agent:gptr/research_queries"
+        - "agent:gptr/scrape"
+        - "agent:gptr/curate"
+        - "agent:gptr/report"
+    message: |
+      stop immediately if any of the steps fail. no retry!
+    embed:
+      - "agent:flow/sequence"
     functions:
       - "agent:gptr/user_input"
       - "agent:gptr/choose_agent"
-      - "agent:gptr/researcher"
-      - "agent:gptr/publisher"
-      - "fs:*"
-  
-  - name: "gtpr/researcher"
-    display: "Researcher"
-    embed:
-      - "agent:flow/sequence"
-    instruction: |
-      Retry failed actions if appropriate. Execute the following in seqence:
       - "agent:gptr/web_search"
       - "agent:gptr/research_queries"
       - "agent:gptr/scrape"
-    functions:
-      - "agent:gptr/web_search"
-      - "agent:gptr/research_queries"
-      - "agent:gptr/scrape"
-
-  - name: "gptr/publisher"
-    display: "Publsiher"
-    embed:
-      - "agent:flow/sequence"
-    instruction: |
-      Pleas execute the following agents in sequence using tool calls:
-        - "agent:gptr/curate"
-        - "agent:gptr/report"
-    functions:
       - "agent:gptr/curate"
       - "agent:gptr/report"
 
@@ -67,6 +42,9 @@ agents:
     new: true
     display: "🖥️  User Input"
     description: "Detect user preferences for the GPT Researcher tool."
+    message: |
+      #! --mime-type=text/x-go-template
+      {{.original_query}}
     instruction: |
       You are an agent designed to analyze user input to identify preferences for generating research reports. Your role is not to gather or retrieve real-time information, but to extract the specified parameters from the user's query.
 
@@ -96,11 +74,11 @@ agents:
         "report_format": "desired report format from user",
         "language": "preferred language by user"
       }
-    # environment:
-    #   tone: "{{.tone}}"
-    #   total_words: "{{.total_words}}"
-    #   report_format: "{{.report_format}}"
-    #   language: "{{.language}}"
+    environment:
+      tone: "{{.tone}}"
+      total_words: "{{.total_words}}"
+      report_format: "{{.report_format}}"
+      language: "{{.language}}"
     arguments:
       tone: "objective"
       total_words: 500
@@ -114,6 +92,9 @@ agents:
     model: smart_llm/smart
     arguments:
       # temperature: 0.15
+    message: |
+      #! --mime-type=text/go-template
+      task: {{.original_query}}
     instruction: |
       This task involves researching a given topic, regardless of its complexity or the availability of a definitive answer.
       The research is conducted by a specific server, defined by its type and role, with each server requiring distinct instructions.
@@ -146,6 +127,11 @@ agents:
     new: true
     display: "🔍 Web Search"
     description: "Get web search results for a given query."
+    model: smart_llm/fast
+    message: |
+      #! --mime-type=text/x-go-template
+      search the web for the following content:
+      {{.original_query}}
     instruction: |
       As a web search assistant, you are responsible for processing user queries and providing accurate
       search results from the web. When a user submits a query, analyze the main components of the query,
@@ -164,34 +150,16 @@ agents:
     model: smart_llm/strategic
     arguments:
       # max_completion_tokens: 8000
-      reasoning_effort: "medium"
+      reasoning_effort: medium
       #
       max_iterations: 3
-      now: "{{date}}"
-    parameters:
-      type: "object"
-      properties:
-        query:
-          type: "string"
-          description: "The query string from the user"
-        original_query:
-          type: "string"
-          description: "The user's original query"
-        max_iterations:
-          type: "integer"
-          description: "Maximum number of results to return"
-          default: 5
-          minimum: 3
-          maximum: 10
-      required:
-        - query
-    # instruction: |
-    #   #! --mime-type=x-go-template
-    #   You are a seasoned research assistant tasked with generating search queries to find relevant information for the following task:
-    #   "{{.original_query}}".
+    instruction: |
+      #! --mime-type=x-go-template
+      You are a seasoned research assistant tasked with generating search queries to find relevant information for the following task:
+      "{{.original_query}}".
     message: |
       #! --mime-type=x-go-template
-      Context: {{.query}}
+      Context: {{.result}}
 
       Use this context to inform and refine your search queries. The context provides real-time web information
       that can help you generate more specific and relevant queries. Consider any current events, recent developments,
@@ -213,19 +181,20 @@ agents:
   - name: "gptr/scrape"
     display: "🌐 Scraper"
     description: "Runs a query across multiple retrievers and scrapes the resulting URLs."
+    message: |
+      #! --mime-type=x-go-template
+      {{.result}}
     embed:
       - "agent:flow/map"
     instruction: |
-      Please crawl the content for each of the items in the input query.
-    # instruction: |
-    #   Please verify if the input query is a list of strings in JSON format.
-    #   If it is, simply return it. If not, format the input into a JSON list of strings.
-    #   Ensure there is no other content in the response, as the subsequent process will parse it strictly as JSON.
-    # flow:
-    #   type: map
-    #   concurrency: 5
-    #   actions:
-    #     - "agent:gptr/crawl"
+      Please verify if the input query is a list of strings in JSON format.
+      If it is, simply return it. If not, format the input into a JSON list of strings.
+      Ensure there is no other content in the response, as the subsequent process will parse it strictly as JSON.
+    flow:
+      type: map
+      concurrency: 5
+      actions:
+        - "agent:gptr/crawl"
     functions:
       - "agent:gptr/crawl"
 
@@ -235,9 +204,9 @@ agents:
     description: "Runs a query across multiple retrievers and scrapes the resulting URLs."
     arguments:
       maximum_attempts: 5
-    # message: |
-    #   #! --mime-type=text/x-go-template
-    #   {{.result}}
+    message: |
+      #! --mime-type=text/x-go-template
+      {{.result}}
     instruction: |
       #! --mime-type=text/x-go-template
       You are a specialized web crawler. The maximum attempts allowed are {{.maximum_attempts}}.
@@ -345,26 +314,26 @@ agents:
       The report SHOULD be approximately {{.total_words}} words long.
       Assume that the current date is {{.date}}.
 
-# ## tool kit
-# kit: "gptr"
-# type: "web"
-# tools:
-#   - name: "search"
-#     description: "Search the web using available search tools and return formatted results"
-#     parameters:
-#       type: "object"
-#       properties:
-#         query:
-#           type: "string"
-#           description: "The search query string"
-#         max_results:
-#           type: "integer"
-#           description: "Maximum number of results to return"
-#           default: 5
-#           minimum: 1
-#           maximum: 10
-#       required:
-#         - query
+## tool kit
+kit: "gptr"
+type: "web"
+tools:
+  - name: "search"
+    description: "Search the web using available search tools and return formatted results"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The search query string"
+        max_results:
+          type: "integer"
+          description: "Maximum number of results to return"
+          default: 5
+          minimum: 1
+          maximum: 10
+      required:
+        - query
 
 ## models
 set: smart_llm
