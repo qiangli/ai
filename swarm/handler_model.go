@@ -48,7 +48,7 @@ func ModelMiddleware(sw *Swarm) api.Middleware {
 			}
 
 			//
-			ak, err := sw.Secrets.Get(agent.Owner, model.ApiKey)
+			ak, err := sw.Secrets.Get(sw.User.Email, model.ApiKey)
 			if err != nil {
 				return err
 			}

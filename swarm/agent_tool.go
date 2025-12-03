@@ -27,18 +27,40 @@ func (r *ToolFS) Open(s string) (fs.File, error) {
 }
 
 type AgentToolRunner struct {
+	user    string
 	sw      *Swarm
 	agent   *api.Agent
 	toolMap map[string]*api.ToolFunc
 }
 
-func NewAgentToolRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
+func NewAgentToolRunner(sw *Swarm, user string, agent *api.Agent) api.ActionRunner {
 	toolMap := sw.buildAgentToolMap(agent)
 	return &AgentToolRunner{
 		sw:      sw,
+		user:    user,
 		agent:   agent,
 		toolMap: toolMap,
 	}
+}
+
+func (r *AgentToolRunner) loadTool(tid string) (*api.ToolFunc, error) {
+	v, ok := r.toolMap[tid]
+	if ok {
+		return v, nil
+	}
+
+	// load external
+	tools, err := conf.LoadToolFunc(r.user, tid, r.sw.Secrets, r.sw.Assets)
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range tools {
+		id := v.ID()
+		if id == tid {
+			return v, nil
+		}
+	}
+	return nil, fmt.Errorf("invalid tool: %s", tid)
 }
 
 func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]any) (any, error) {
@@ -47,7 +69,7 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 		return nil, fmt.Errorf("tool not found: %s", tid)
 	}
 
-	result, err := r.sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, r.sw.User), r.agent, v, args)
+	result, err := r.sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, r.user), r.agent, v, args)
 	// log calls
 	r.sw.Vars.AddToolCall(&api.ToolCallEntry{
 		ID:        tid,
@@ -61,28 +83,28 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	return result, err
 }
 
-type AIAgentToolRunner struct {
-	sw    *Swarm
-	agent *api.Agent
-}
+// type AIAgentToolRunner struct {
+// 	sw    *Swarm
+// 	agent *api.Agent
+// }
 
-func NewAIAgentToolRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
-	return &AIAgentToolRunner{
-		sw:    sw,
-		agent: agent,
-	}
-}
+// func NewAIAgentToolRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
+// 	return &AIAgentToolRunner{
+// 		sw:    sw,
+// 		agent: agent,
+// 	}
+// }
 
-func (r *AIAgentToolRunner) Run(ctx context.Context, tid string, args map[string]any) (any, error) {
-	tools, err := conf.LoadToolFunc(r.agent.Owner, tid, r.sw.Secrets, r.sw.Assets)
-	if err != nil {
-		return nil, err
-	}
-	for _, v := range tools {
-		id := v.ID()
-		if id == tid {
-			return r.sw.callTool(ctx, r.agent, v, args)
-		}
-	}
-	return nil, fmt.Errorf("invalid tool: %s", tid)
-}
+// func (r *AIAgentToolRunner) Run(ctx context.Context, tid string, args map[string]any) (any, error) {
+// 	tools, err := conf.LoadToolFunc(r.agent.Owner, tid, r.sw.Secrets, r.sw.Assets)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	for _, v := range tools {
+// 		id := v.ID()
+// 		if id == tid {
+// 			return r.sw.callTool(ctx, r.agent, v, args)
+// 		}
+// 	}
+// 	return nil, fmt.Errorf("invalid tool: %s", tid)
+// }

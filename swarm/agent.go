@@ -109,7 +109,7 @@ func (ap *AgentMaker) newAgent(
 	owner string,
 ) (*api.Agent, error) {
 	var agent = api.Agent{
-		Owner:   owner,
+		// Owner:   owner,
 		Adapter: c.Adapter,
 		//
 		Name:        c.Name,

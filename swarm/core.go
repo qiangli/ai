@@ -54,45 +54,46 @@ type Swarm struct {
 	agentMaker  *AgentMaker
 
 	RootAgent *api.Agent
+	Shell     api.ActionRunner
 }
 
-type ActionDispatcher struct {
-	sw *Swarm
+// type ActionDispatcher struct {
+// 	sw *Swarm
 
-	runner api.ActionRunner
-	shell  api.ActionRunner
-}
+// 	runner api.ActionRunner
+// 	shell  api.ActionRunner
+// }
 
-func NewActionDispatcher(sw *Swarm, agent *api.Agent) api.ActionRunner {
-	runner := NewAgentToolRunner(sw, agent)
-	shell := NewAgentScriptRunner(sw, agent)
+// func NewActionDispatcher(sw *Swarm, agent *api.Agent) api.ActionRunner {
+// 	runner := NewAgentToolRunner(sw, agent)
+// 	shell := NewAgentScriptRunner(sw, agent)
 
-	return &ActionDispatcher{
-		sw:     sw,
-		runner: runner,
-		shell:  shell,
-	}
-}
+// 	return &ActionDispatcher{
+// 		sw:     sw,
+// 		runner: runner,
+// 		shell:  shell,
+// 	}
+// }
 
-func (r *ActionDispatcher) Run(ctx context.Context, s string, args map[string]any) (any, error) {
-	if strings.HasPrefix(s, "#!") || strings.HasSuffix(s, ".yaml") || strings.HasSuffix(s, ".sh") {
-		return r.shell.Run(ctx, s, args)
-	}
-	return r.runner.Run(ctx, s, args)
-}
+// func (r *ActionDispatcher) Run(ctx context.Context, s string, args map[string]any) (any, error) {
+// 	if strings.HasPrefix(s, "#!") || strings.HasSuffix(s, ".yaml") || strings.HasSuffix(s, ".sh") {
+// 		return r.shell.Run(ctx, s, args)
+// 	}
+// 	return r.runner.Run(ctx, s, args)
+// }
 
 func (sw *Swarm) Init() error {
 	sw.InitChain()
 	sw.agentMaker = NewAgentMaker(sw)
 	//
-	root, err := sw.agentMaker.CreateFrom(context.TODO(), "root", "root", resource.RootAgentData)
+	root, err := sw.agentMaker.CreateFrom(context.TODO(), "root", sw.User.Email, resource.RootAgentData)
 	if err != nil {
 		return err
 	}
-	// root.Runner = NewAgentToolRunner(sw, root)
-	root.Runner = NewActionDispatcher(sw, root)
+	root.Runner = NewAgentToolRunner(sw, sw.User.Email, root)
 	root.Template = NewTemplate(sw, root)
 	sw.RootAgent = root
+	sw.Shell = NewAgentScriptRunner(sw, root)
 	return nil
 }
 
@@ -137,8 +138,7 @@ func (sw *Swarm) CreateAgent(ctx context.Context, name string) (*api.Agent, erro
 	agent.Parent = sw.RootAgent
 
 	// for sub agent/action or tool call
-	// agent.Runner = NewAgentToolRunner(sw, agent)
-	agent.Runner = NewActionDispatcher(sw, agent)
+	agent.Runner = NewAgentToolRunner(sw, sw.User.Email, agent)
 	agent.Template = NewTemplate(sw, agent)
 	return agent, nil
 }
@@ -464,7 +464,7 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 	}
 
 	env := &api.ToolEnv{
-		Owner: agent.Owner,
+		Owner: sw.User.Email,
 		Agent: agent,
 		FS:    NewToolFS(sw.Workspace),
 	}

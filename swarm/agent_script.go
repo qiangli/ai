@@ -14,14 +14,14 @@ import (
 )
 
 type AgentScriptRunner struct {
-	sw    *Swarm
-	agent *api.Agent
+	sw     *Swarm
+	parent *api.Agent
 }
 
 func NewAgentScriptRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
 	return &AgentScriptRunner{
-		sw:    sw,
-		agent: agent,
+		sw:     sw,
+		parent: agent,
 	}
 }
 
@@ -38,7 +38,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 		vs.System.Setenv(k, v)
 	}
 
-	vs.ExecHandler = r.newExecHandler(vs, r.agent)
+	vs.ExecHandler = r.newExecHandler(vs)
 
 	if err := vs.RunScript(ctx, script); err != nil {
 		return "", err
@@ -47,13 +47,14 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	return b.String(), nil
 }
 
-func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, parent *api.Agent) sh.ExecHandler {
-	runner := r.runner(vs, parent)
+func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem) sh.ExecHandler {
+	var runner = r.runner(vs, r.parent)
+
 	return func(ctx context.Context, args []string) (bool, error) {
-		if parent == nil {
+		if r.parent == nil {
 			return true, fmt.Errorf("missing parent agent")
 		}
-		log.GetLogger(ctx).Debugf("parent: %s args: %+v\n", parent.Name, args)
+		log.GetLogger(ctx).Debugf("parent: %s args: %+v\n", r.parent.Name, args)
 		isAi := func(s string) bool {
 			return s == "ai" || strings.HasPrefix(s, "@") || strings.HasPrefix(s, "/")
 		}

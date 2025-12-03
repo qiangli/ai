@@ -444,7 +444,7 @@ func (h *agentHandler) flowShell(req *api.Request, resp *api.Response) error {
 		req.Arguments.Copy(args)
 	}
 
-	data, err := h.agent.Runner.Run(ctx, h.agent.Flow.Script, args)
+	data, err := h.sw.Shell.Run(ctx, h.agent.Flow.Script, args)
 	if err != nil {
 		return err
 	}

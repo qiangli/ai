@@ -50,7 +50,7 @@ func (a Packname) Equal(s string) bool {
 type Agent struct {
 	Parent *Agent
 
-	Owner string
+	// Owner string
 
 	// The name of the agent.
 	Name        string
@@ -132,8 +132,8 @@ func (a *Agent) History() []*Message {
 // for reusing cached agent
 func (a *Agent) Clone() *Agent {
 	clone := &Agent{
-		Parent:      a.Parent,
-		Owner:       a.Owner,
+		Parent: a.Parent,
+		// Owner:       a.Owner,
 		Name:        a.Name,
 		Display:     a.Display,
 		Description: a.Description,

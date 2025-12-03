@@ -23,7 +23,7 @@ type AIKit struct {
 }
 
 func (r *AIKit) Run(ctx context.Context, id string, args map[string]any) (any, error) {
-	return NewAIAgentToolRunner(r.sw, r.agent).Run(ctx, id, args)
+	return NewAgentToolRunner(r.sw, r.sw.User.Email, r.agent).Run(ctx, id, args)
 }
 
 func NewAIKit(sw *Swarm, agent *api.Agent) *AIKit {
