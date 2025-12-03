@@ -12,6 +12,7 @@ import (
 	// "github.com/qiangli/ai/cmd/history"
 	// "github.com/qiangli/ai/cmd/setup"
 	"github.com/qiangli/ai/internal"
+	// "github.com/qiangli/ai/swarm/log"
 )
 
 var viper = internal.V
@@ -58,23 +59,27 @@ func main() {
 	// cobra.OnInitialize(initConfig)
 	ctx := context.TODO()
 
-	internal.InitConfig(viper)
+	// internal.InitConfig(viper)
 
 	args := os.Args
 
 	// if no args and no input (piped), show help - short form
 	// $ ai
 	if len(args) <= 1 {
-		isPiped := func() bool {
-			stat, _ := os.Stdin.Stat()
-			return (stat.Mode() & os.ModeCharDevice) == 0
+		// isPiped := func() bool {
+		// 	stat, _ := os.Stdin.Stat()
+		// 	return (stat.Mode() & os.ModeCharDevice) == 0
+		// }
+		// if !isPiped() {
+		// 	if err := rootCmd.Execute(); err != nil {
+		// 		internal.Exit(ctx, err)
+		// 	}
+		// 	return
+		// }
+		if err := rootCmd.Execute(); err != nil {
+			internal.Exit(ctx, err)
 		}
-		if !isPiped() {
-			if err := rootCmd.Execute(); err != nil {
-				internal.Exit(ctx, err)
-			}
-			return
-		}
+		return
 	}
 
 	// slash commands
@@ -138,7 +143,11 @@ func main() {
 	// ai [/agent] ...
 	// $ ai [@AGENT] MESSAGE...
 	// $ ai [--agent AGENT] MESSAGE...
-	if err := agentCmd.Execute(); err != nil {
+	// if err := agentCmd.Execute(); err != nil {
+	// 	internal.Exit(ctx, err)
+	// }
+	// remove "ai" from args
+	if err := agent.Run(ctx, args[1:]); err != nil {
 		internal.Exit(ctx, err)
 	}
 }

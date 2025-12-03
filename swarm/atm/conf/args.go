@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/u-root/u-root/pkg/shlex"
+
 	"github.com/qiangli/ai/swarm/api"
 )
 
@@ -23,51 +25,59 @@ func (s *stringSlice) Set(value string) error {
 	return nil
 }
 
-// ParseArgs returns nil and no error for non agent tool commands
-func ParseActionArgs(args []string) (*api.ActionConfig, error) {
-	if len(args) == 0 {
-		return nil, fmt.Errorf("missing command args")
+// ParseActionArgs parses and converts arguments list to map
+func ParseActionArgs(argv []string) (api.ArgMap, error) {
+	if len(argv) == 0 {
+		return nil, fmt.Errorf("missing command arguments")
 	}
 	// skip trigger word "ai"
-	if len(args) > 0 && strings.ToLower(args[0]) == "ai" {
-		args = args[1:]
+	if len(argv) > 0 && strings.ToLower(argv[0]) == "ai" {
+		argv = argv[1:]
 	}
-	if len(args) == 0 {
-		return nil, fmt.Errorf("empty ai command args")
+	if len(argv) == 0 {
+		return nil, fmt.Errorf("empty ai command arguments")
 	}
 
-	var name = args[0]
-	args = args[1:]
+	var name = argv[0]
 
 	var kit string
-	var ftype string
+	// var ftype string
 	switch name[0] {
 	case '@':
 		name = strings.ToLower(name[1:])
-		ftype = api.ToolTypeAgent
+		// ftype = api.ToolTypeAgent
 		kit = api.ToolTypeAgent
+		argv = argv[1:]
 	case '/':
 		name = strings.ToLower(name[1:])
 		kit, name = api.Kitname(name).Decode()
+		argv = argv[1:]
 	default:
 		if strings.HasPrefix(name, "agent:") {
 			name = strings.ToLower(name[6:])
-			ftype = api.ToolTypeAgent
+			// ftype = api.ToolTypeAgent
 			kit = api.ToolTypeAgent
+			argv = argv[1:]
 		} else if strings.HasSuffix(name, ",") {
 			name = strings.ToLower(name[:len(name)-1])
-			ftype = api.ToolTypeAgent
+			// ftype = api.ToolTypeAgent
 			kit = api.ToolTypeAgent
+			argv = argv[1:]
 		} else {
+			name = ""
+			kit = api.ToolTypeAgent
+
 			// not an agent/tool command
-			return nil, nil
+			// return nil, nil
+			// assume all are agent/tool
+			// use IsAgentTool for checking if needed
 		}
 	}
-	if name == "" {
-		name = "anonymous"
-		ftype = api.ToolTypeAgent
-		kit = api.ToolTypeAgent
-	}
+	// if name == "" {
+	// 	// name = "anonymous"
+	// 	// ftype = api.ToolTypeAgent
+	// 	kit = api.ToolTypeAgent
+	// }
 
 	fs := flag.NewFlagSet("ai", flag.ContinueOnError)
 
@@ -87,10 +97,16 @@ func ParseActionArgs(args []string) (*api.ActionConfig, error) {
 	maxTurns := fs.Int("max-turns", 3, "Max conversation turns")
 	maxTime := fs.Int("max-time", 30, "Max timeout (seconds)")
 	format := fs.String("format", "json", "Output as text or json")
+
+	workspace := fs.String("workspace", "", "Workspace root path")
+
 	logLevel := fs.String("log-level", "", "Log level: quiet, info, verbose, trace")
+	isQuiet := fs.Bool("quiet", false, "Operate quietly, only show final response. log-level=quiet")
+	isInfo := fs.Bool("info", false, "Show progress")
+	isVerbose := fs.Bool("verbose", false, "Show progress and debugging information")
 
 	//
-	err := fs.Parse(args)
+	err := fs.Parse(argv)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +132,7 @@ func ParseActionArgs(args []string) (*api.ActionConfig, error) {
 	//
 	isSet := func(fl string) bool {
 		fl = strings.ToLower(fl)
-		for _, v := range args {
+		for _, v := range argv {
 			if v == "--"+fl || v == "-"+fl || strings.HasPrefix(v, "--"+fl+"=") || strings.HasPrefix(v, "-"+fl+"=") {
 				return true
 			}
@@ -126,10 +142,10 @@ func ParseActionArgs(args []string) (*api.ActionConfig, error) {
 
 	// agent/tool default arguments
 	// precedence: <common>, arg slice, arguments
-	var atArgs = make(map[string]any)
+	var argm = make(map[string]any)
 	// Parse JSON arguments
 	if *arguments != "" {
-		if err := json.Unmarshal([]byte(*arguments), &atArgs); err != nil {
+		if err := json.Unmarshal([]byte(*arguments), &argm); err != nil {
 			return nil, fmt.Errorf("invalid JSON arguments: %w", err)
 		}
 	}
@@ -137,7 +153,7 @@ func ParseActionArgs(args []string) (*api.ActionConfig, error) {
 	for _, v := range arg {
 		parts := strings.SplitN(v, "=", 2)
 		if len(parts) == 2 {
-			atArgs[parts[0]] = parts[1]
+			argm[parts[0]] = parts[1]
 		} else {
 			return nil, fmt.Errorf("invalid argument format: %s", v)
 		}
@@ -145,48 +161,60 @@ func ParseActionArgs(args []string) (*api.ActionConfig, error) {
 	// common flags
 	for k, v := range common {
 		if isSet(k) {
-			atArgs[k] = v
+			argm[k] = v
 		}
 	}
 
+	//
+	if *isVerbose {
+		argm["log-level"] = "verbose"
+	}
+	if *isInfo {
+		argm["log-level"] = "info"
+	}
+	if *isQuiet {
+		argm["log-level"] = "quiet"
+	}
+
 	// update the map
+	argm["workspace"] = *workspace
+
 	if kit != "" {
-		atArgs["kit"] = kit
+		argm["kit"] = kit
 	}
 	if name != "" {
-		atArgs["name"] = name
+		argm["name"] = name
 	}
 	if msg != "" {
-		atArgs["message"] = msg
+		argm["message"] = msg
 	}
 	if prompt != "" {
-		atArgs["instruction"] = prompt
+		argm["instruction"] = prompt
 	}
 	if *model != "" {
-		atArgs["model"] = *model
+		argm["model"] = *model
 	}
 
-	var at = &api.ActionConfig{
-		Message:     msg,
-		Instruction: prompt,
-		Arguments:   atArgs,
-		Kit:         kit,
-		Name:        name,
-		Type:        ftype,
-	}
+	// var at = &api.ActionConfig{
+	// 	Message:     msg,
+	// 	Instruction: prompt,
+	// 	Arguments:   atArgs,
+	// 	Kit:         kit,
+	// 	Name:        name,
+	// 	Type:        ftype,
+	// }
 
-	return at, nil
+	return argm, nil
 }
 
 // agent/tool name is "ai" or starts with "agent:", "@" or "/" or ends with ","
-// ai args...
+// ai name args...
 //
 // agent:name args...
 // @name args...
 // /name args...
 //
 // anoymous:
-// ai args...
 // @ args...
 // / args...
 //
@@ -213,4 +241,16 @@ func IsAgentTool(s string) bool {
 		return true
 	}
 	return false
+}
+
+func ParseActionCommand(s string) (api.ArgMap, error) {
+	argv := shlex.Argv(s)
+	at, err := ParseActionArgs(argv)
+	if err != nil {
+		return nil, err
+	}
+	if at == nil {
+		return nil, fmt.Errorf("invalid command: %v", s)
+	}
+	return at, nil
 }

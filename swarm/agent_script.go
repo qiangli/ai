@@ -90,12 +90,12 @@ func (r *AgentScriptRunner) runner(vs *sh.VirtualSystem, agent *api.Agent) func(
 		if err != nil {
 			return nil, err
 		}
-		id := api.Kitname(at.Kit + ":" + at.Name).ID()
+		id := at.Kitname().ID()
 		for k, v := range agent.Environment.GetAllEnvs() {
 			vs.System.Setenv(k, v)
 		}
 
-		data, err := agent.Runner.Run(ctx, id, at.Arguments)
+		data, err := agent.Runner.Run(ctx, id, at)
 
 		if err != nil {
 			// vs.System.Setenv(globalError, err.Error())

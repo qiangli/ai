@@ -91,17 +91,18 @@ func getHelpData(cmd *cobra.Command) *HelpData {
 	const envPrefix = "AI_"
 
 	// AI_XXX env
-	flagToEnv := make(map[string]string)
-	cmd.Flags().VisitAll(func(flag *pflag.Flag) {
-		n := envPrefix + strings.ToUpper(strings.ReplaceAll(flag.Name, "-", "_"))
-		flagToEnv[flag.Name] = n
-	})
+	// flagToEnv := make(map[string]string)
+	// cmd.Flags().VisitAll(func(flag *pflag.Flag) {
+	// 	n := envPrefix + strings.ToUpper(strings.ReplaceAll(flag.Name, "-", "_"))
+	// 	flagToEnv[flag.Name] = n
+	// })
 
-	names := make([]string, 0, len(flagToEnv))
-	for _, v := range flagToEnv {
-		names = append(names, v)
-	}
-	sort.Strings(names)
+	var names []string
+	// names := make([]string, 0, len(flagToEnv))
+	// for _, v := range flagToEnv {
+	// 	names = append(names, v)
+	// }
+	// sort.Strings(names)
 
 	localFlags := cmd.LocalFlags()
 	inheritedFlags := cmd.InheritedFlags()

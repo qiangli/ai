@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"html/template"
 	"maps"
 	"strings"
@@ -198,6 +199,25 @@ type ActionRunner interface {
 	Run(context.Context, string, map[string]any) (any, error)
 }
 
+type ArgMap map[string]any
+
+func NewArgMap() ArgMap {
+	return make(map[string]any)
+}
+
+func (a ArgMap) Kitname() Kitname {
+	kn := fmt.Sprintf("%s:%s", a["kit"], a["name"])
+	return Kitname(kn)
+}
+
+func (a ArgMap) Kit() string {
+	return a["kit"].(string)
+}
+
+func (a ArgMap) Type() string {
+	return a["type"].(string)
+}
+
 type ActionConfig struct {
 	// kit specifies a namespace for the action
 	// examples:
@@ -242,7 +262,7 @@ type ActionConfig struct {
 	LogLevel string `yaml:"log_level"`
 
 	// app level global vars
-	Environment map[string]any `yaml:"environment"`
+	// Environment map[string]any `yaml:"environment"`
 }
 
 func (ac *ActionConfig) ToMap() map[string]any {

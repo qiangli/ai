@@ -52,28 +52,28 @@ func init() {
 
 // init viper
 func InitConfig(viper *fangs.Viper) error {
-	defaultCfg := os.Getenv("AI_CONFIG")
-	if defaultCfg == "" {
-		if home, err := os.UserHomeDir(); err == nil {
-			defaultCfg = filepath.Join(home, ".ai", "config.yaml")
-		}
-	}
-	if defaultCfg != "" {
-		viper.SetConfigFile(defaultCfg)
-	}
+	// defaultCfg := os.Getenv("AI_CONFIG")
+	// if defaultCfg == "" {
+	// 	if home, err := os.UserHomeDir(); err == nil {
+	// 		defaultCfg = filepath.Join(home, ".ai", "config.yaml")
+	// 	}
+	// }
+	// if defaultCfg != "" {
+	// 	viper.SetConfigFile(defaultCfg)
+	// }
 
-	viper.AutomaticEnv()
-	viper.SetEnvPrefix("ai")
-	viper.BindEnv("api-key", "AI_API_KEY", "OPENAI_API_KEY")
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
+	// viper.AutomaticEnv()
+	// viper.SetEnvPrefix("ai")
+	// viper.BindEnv("api-key", "AI_API_KEY", "OPENAI_API_KEY")
+	// viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 
-	if err := viper.ReadInConfig(); err != nil {
-		return err
-	}
+	// if err := viper.ReadInConfig(); err != nil {
+	// 	return err
+	// }
 	return nil
 }
 
-func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
+func ParseConfig(viper api.ArgMap, app *api.AppConfig, args []string) error {
 	// app.ConfigFile = viper.ConfigFileUsed()
 	//
 	// app.Base = filepath.Dir(app.ConfigFile)
@@ -86,6 +86,8 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 		return err
 	}
 	app.Base = filepath.Join(home, ".ai")
+
+	app.Name = viper.GetString("name")
 
 	//
 	// workspace is required for ai to properly operate
@@ -105,6 +107,11 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 
 	// app.Files = viper.GetStringSlice("file")
 	app.Format = viper.GetString("format")
+	// default
+	if app.Format == "" {
+		app.Format = "markdown"
+	}
+
 	// app.Output = viper.GetString("output")
 
 	//
@@ -139,12 +146,12 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 
 	app.MaxHistory = viper.GetInt("max_history")
 	app.MaxSpan = viper.GetInt("max_span")
-	if viper.IsSet("new") {
-		if viper.GetBool("new") {
-			app.MaxHistory = 0
-			app.MaxSpan = 0
-		}
-	}
+	// if viper.IsSet("new") {
+	// 	if viper.GetBool("new") {
+	// 		app.MaxHistory = 0
+	// 		app.MaxSpan = 0
+	// 	}
+	// }
 	app.Context = viper.GetString("context")
 
 	app.MaxTurns = viper.GetInt("max_turns")
@@ -161,18 +168,18 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 		app.LogLevel = "info"
 	}
 	//
-	if viper.GetBool("trace") {
-		app.LogLevel = "trace"
-	}
-	if viper.GetBool("verbose") {
-		app.LogLevel = "verbose"
-	}
-	if viper.GetBool("info") {
-		app.LogLevel = "info"
-	}
-	if viper.GetBool("quiet") {
-		app.LogLevel = "quiet"
-	}
+	// if viper.GetBool("trace") {
+	// 	app.LogLevel = "trace"
+	// }
+	// if viper.GetBool("verbose") {
+	// 	app.LogLevel = "verbose"
+	// }
+	// if viper.GetBool("info") {
+	// 	app.LogLevel = "info"
+	// }
+	// if viper.GetBool("quiet") {
+	// 	app.LogLevel = "quiet"
+	// }
 
 	// app.Unsafe = viper.GetBool("unsafe")
 	// toList := func(s string) []string {
@@ -208,9 +215,10 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 
 	// default agent:
 	// --agent, "ask"
-	var agent = viper.GetString("agent")
+	// var agent = viper.GetString("agent")
 
-	ParseArgs(viper, app, args, agent)
+	// ParseArgs(viper, app, args, agent)
+	ParseSpecialChars(viper, app, args)
 
 	// // resource
 	// resource := viper.GetString("resource")
@@ -227,95 +235,95 @@ func ParseConfig(viper *fangs.Viper, app *api.AppConfig, args []string) error {
 	return nil
 }
 
-func ParseArgs(viper *fangs.Viper, app *api.AppConfig, args []string, defaultAgent string) {
-	newArgs := ParseAgentArgs(app, args, defaultAgent)
-	newArgs = ParseSpecialChars(viper, app, newArgs)
-	// app.Args = newArgs
-	// append to message
-	if len(newArgs) > 0 {
-		app.Message = app.Message + "\n" + strings.Join(newArgs, " ")
-	}
-	// var msg = trimInputMessage(strings.Join(cfg.Args, " "))
-	// if cfg.Message != "" {
-	// 	msg = cfg.Message + " " + msg
-	// }
-}
+// func ParseArgs(viper api.ArgMap, app *api.AppConfig, args []string, defaultAgent string) {
+// 	// newArgs := ParseAgentArgs(app, args, defaultAgent)
+// 	newArgs := ParseSpecialChars(viper, app, args)
+// 	// app.Args = newArgs
+// 	// append to message
+// 	// if len(newArgs) > 0 {
+// 	// 	app.Message = app.Message + "\n" + strings.Join(newArgs, " ")
+// 	// }
+// 	// var msg = trimInputMessage(strings.Join(cfg.Args, " "))
+// 	// if cfg.Message != "" {
+// 	// 	msg = cfg.Message + " " + msg
+// 	// }
+// }
 
-// return the agent/command and the rest of the args
-func ParseAgentArgs(app *api.AppConfig, args []string, defaultAgent string) []string {
-	// TODO deprecate
-	shellAgent := "shell"
+// // return the agent/command and the rest of the args
+// func ParseAgentArgs(app *api.AppConfig, args []string, defaultAgent string) []string {
+// 	// // TODO deprecate
+// 	// shellAgent := "shell"
 
-	// first or last arg could be the agent/command
-	// the last takes precedence
-	var arg string
-	isAgent := func(s string) bool {
-		return strings.HasPrefix(s, "@")
-	}
-	isSlash := func(s string) bool {
-		return strings.HasPrefix(s, "/")
-	}
-	switch len(args) {
-	case 0:
-		// no args, use default agent
-	case 1:
-		if isSlash(args[0]) || isAgent(args[0]) {
-			arg = args[0]
-			args = args[1:]
-		}
-	default:
-		if isSlash(args[0]) || isAgent(args[0]) {
-			arg = args[0]
-			args = args[1:]
-		}
-		// override agent at the end of the command line
-		// agent check only
-		// slash could be file path
-		if isAgent(args[len(args)-1]) {
-			arg = args[len(args)-1]
-			args = args[:len(args)-1]
-		}
-	}
+// 	// // first or last arg could be the agent/command
+// 	// // the last takes precedence
+// 	// var arg string
+// 	// isAgent := func(s string) bool {
+// 	// 	return strings.HasPrefix(s, "@")
+// 	// }
+// 	// isSlash := func(s string) bool {
+// 	// 	return strings.HasPrefix(s, "/")
+// 	// }
+// 	// switch len(args) {
+// 	// case 0:
+// 	// 	// no args, use default agent
+// 	// case 1:
+// 	// 	if isSlash(args[0]) || isAgent(args[0]) {
+// 	// 		arg = args[0]
+// 	// 		args = args[1:]
+// 	// 	}
+// 	// default:
+// 	// 	if isSlash(args[0]) || isAgent(args[0]) {
+// 	// 		arg = args[0]
+// 	// 		args = args[1:]
+// 	// 	}
+// 	// 	// override agent at the end of the command line
+// 	// 	// agent check only
+// 	// 	// slash could be file path
+// 	// 	if isAgent(args[len(args)-1]) {
+// 	// 		arg = args[len(args)-1]
+// 	// 		args = args[:len(args)-1]
+// 	// 	}
+// 	// }
 
-	var agent string
-	if arg != "" {
-		if arg[0] == '/' {
-			agent = shellAgent + arg
-		} else {
-			agent = arg[1:]
-			// @ -> @anonymous ad hoc agent definition and execution
-			if agent == "" {
-				agent = "anonymous"
-			}
-		}
-	}
+// 	// var agent string
+// 	// if arg != "" {
+// 	// 	if arg[0] == '/' {
+// 	// 		agent = shellAgent + arg
+// 	// 	} else {
+// 	// 		agent = arg[1:]
+// 	// 		// @ -> @anonymous ad hoc agent definition and execution
+// 	// 		if agent == "" {
+// 	// 			agent = "anonymous"
+// 	// 		}
+// 	// 	}
+// 	// }
 
-	// if agent == "" {
-	// 	agent = defaultAgent
-	// }
+// 	// // if agent == "" {
+// 	// // 	agent = defaultAgent
+// 	// // }
 
-	// parts := strings.SplitN(agent, "/", 2)
-	// app.Agent = parts[0]
-	// if len(parts) > 1 {
-	// 	app.Command = parts[1]
-	// }
-	app.Name = agent
+// 	// // parts := strings.SplitN(agent, "/", 2)
+// 	// // app.Agent = parts[0]
+// 	// // if len(parts) > 1 {
+// 	// // 	app.Command = parts[1]
+// 	// // }
+// 	app.Name = agent
 
-	return args
-}
+// 	return args
+// }
 
 // parse special char sequence for stdin/clipboard
 // they can:
 // + be at the end of the args or as a suffix to the last one
 // + be in any order
 // + be multiple instances
-func ParseSpecialChars(viper *fangs.Viper, app *api.AppConfig, args []string) []string {
+func ParseSpecialChars(viper api.ArgMap, app *api.AppConfig, args []string) []string {
 	// special char sequence handling
-	var stdin = viper.GetBool("stdin")
-	var pbRead = viper.GetBool("pb_read")
-	var pbReadWait = viper.GetBool("pb_tail")
-	var pbWrite = viper.GetBool("pb_write")
-	var pbWriteAppend = viper.GetBool("pb_append")
+	// var stdin = viper.GetBool("stdin")
+	// var pbRead = viper.GetBool("pb_read")
+	// var pbReadWait = viper.GetBool("pb_tail")
+	// var pbWrite = viper.GetBool("pb_write")
+	// var pbWriteAppend = viper.GetBool("pb_append")
 	var isStdin, isClipin, isClipWait, isClipout, isClipAppend bool
 
 	newArgs := make([]string, len(args))
@@ -363,24 +371,30 @@ func ParseSpecialChars(viper *fangs.Viper, app *api.AppConfig, args []string) []
 		}
 	}
 
-	if !viper.GetBool("no_stdin") {
-		isPiped := func() bool {
-			stat, _ := os.Stdin.Stat()
-			return (stat.Mode() & os.ModeCharDevice) == 0
-		}
-		// app.IsPiped = isPiped()
-		app.Stdin = isStdin || stdin || isPiped()
-	}
+	// if !viper.GetBool("no_stdin") {
+	// 	isPiped := func() bool {
+	// 		stat, _ := os.Stdin.Stat()
+	// 		return (stat.Mode() & os.ModeCharDevice) == 0
+	// 	}
+	// 	// app.IsPiped = isPiped()
+	// 	app.Stdin = isStdin || stdin || isPiped()
+	// }
 
-	app.Clipin = isClipin || pbRead || pbReadWait
-	app.ClipWait = isClipWait || pbReadWait
-	app.Clipout = isClipout || pbWrite || pbWriteAppend
-	app.ClipAppend = isClipAppend || pbWriteAppend
+	// app.Clipin = isClipin || pbRead || pbReadWait
+	// app.ClipWait = isClipWait || pbReadWait
+	// app.Clipout = isClipout || pbWrite || pbWriteAppend
+	// app.ClipAppend = isClipAppend || pbWriteAppend
+
+	app.Stdin = isStdin
+	app.Clipin = isClipin
+	app.ClipWait = isClipWait
+	app.Clipout = isClipout
+	app.ClipAppend = isClipAppend
 
 	return newArgs
 }
 
-func ParseLLM(viper *fangs.Viper, app *api.AppConfig) error {
+func ParseLLM(viper api.ArgMap, app *api.AppConfig) error {
 	// LLM config
 	//
 	alias := viper.GetString("model")
