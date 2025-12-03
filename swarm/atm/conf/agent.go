@@ -12,7 +12,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/util"
+	// "github.com/qiangli/ai/swarm/util"
 )
 
 type AgentCacheKey struct {
@@ -29,20 +29,20 @@ var (
 	agentCache = expirable.NewLRU[AgentCacheKey, *api.Agent](10000, nil, time.Second*900)
 )
 
-func normalizePackname(pack, name string) string {
-	ensure := func() string {
-		// pack name
-		if name == "" {
-			return pack
-		}
-		parts := strings.SplitN(name, "/", 2)
-		if len(parts) == 1 {
-			return pack
-		}
-		return pack + "/" + parts[1]
-	}
-	return util.NormalizedName(ensure())
-}
+// func normalizePackname(pack, name string) string {
+// 	ensure := func() string {
+// 		// pack name
+// 		if name == "" {
+// 			return pack
+// 		}
+// 		parts := strings.SplitN(name, "/", 2)
+// 		if len(parts) == 1 {
+// 			return pack
+// 		}
+// 		return pack + "/" + parts[1]
+// 	}
+// 	return util.NormalizedName(ensure())
+// }
 
 func listAgentsATM(owner string, as api.ATMSupport, packs map[string]*api.AgentsConfig) error {
 	recs, err := as.ListAgents(owner)
@@ -71,7 +71,7 @@ func listAgentsATM(owner string, as api.ATMSupport, packs map[string]*api.Agents
 			continue
 		}
 		for _, v := range ac.Agents {
-			v.Name = normalizePackname(ac.Name, v.Name)
+			// v.Name = normalizePackname(ac.Name, v.Name)
 			v.Store = as
 		}
 		packs[ac.Name] = ac
@@ -125,7 +125,7 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AgentsCo
 			continue
 		}
 		for _, v := range ac.Agents {
-			v.Name = normalizePackname(ac.Name, v.Name)
+			// v.Name = normalizePackname(ac.Name, v.Name)
 			v.Store = as
 			v.BaseDir = base
 		}

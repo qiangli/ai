@@ -1,0 +1,23 @@
+###
+agents:
+  - name: "root"
+    display: "🚀 root"
+    description: "Ancestor of all agents"
+    model: "default/any"
+    adapter: "text"
+    flow: 
+      type: "shell"
+    functions:
+      - "ai:*"
+      - "fs:*"
+      - "sh:*"
+      - "web:*"
+
+set: "default"
+provider: "openai"
+base_url: "https://api.openai.com/v1/"
+api_key: "openai"
+models:
+  any:
+    model: "gpt-4o-mini"
+###

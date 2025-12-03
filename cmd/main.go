@@ -63,6 +63,11 @@ func main() {
 
 	args := os.Args
 
+	if strings.HasSuffix(args[0], "yaml") {
+
+		return
+	}
+
 	// if no args and no input (piped), show help - short form
 	// $ ai
 	if len(args) <= 1 {

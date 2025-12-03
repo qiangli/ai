@@ -14,7 +14,7 @@ import (
 	"github.com/qiangli/ai/swarm/atm/conf"
 
 	"github.com/qiangli/ai/swarm/log"
-	"github.com/qiangli/ai/swarm/util"
+	// "github.com/qiangli/ai/swarm/util"
 )
 
 type AgentCacheKey struct {
@@ -274,7 +274,10 @@ func (ap *AgentMaker) getAgent(owner string, pack string, asset api.AssetStore) 
 		return nil, nil
 	}
 
-	//
+	return ap.loadAgent(pack, content)
+}
+
+func (ap *AgentMaker) loadAgent(pack string, content []byte) (*api.AgentsConfig, error) {
 	ac, err := conf.LoadAgentsData([][]byte{content})
 	if err != nil {
 		return nil, err
@@ -286,36 +289,36 @@ func (ap *AgentMaker) getAgent(owner string, pack string, asset api.AssetStore) 
 	//
 	ac.Name = pack
 
-	// agents
-	for _, v := range ac.Agents {
-		v.Name = ap.normalizePackname(pack, v.Name)
-	}
+	// // agents
+	// for _, v := range ac.Agents {
+	// 	v.Name = ap.normalizePackname(pack, v.Name)
+	// }
 
 	return ac, nil
 }
 
-func (ap *AgentMaker) normalizePackname(pack, name string) string {
-	ensure := func() string {
-		// pack name
-		if name == "" {
-			return pack
-		}
-		parts := strings.SplitN(name, "/", 2)
-		if len(parts) == 1 {
-			return pack
-		}
-		return pack + "/" + parts[1]
-	}
-	return util.NormalizedName(ensure())
-}
+// func (ap *AgentMaker) normalizePackname(pack, name string) string {
+// 	ensure := func() string {
+// 		// pack name
+// 		if name == "" {
+// 			return pack
+// 		}
+// 		parts := strings.SplitN(name, "/", 2)
+// 		if len(parts) == 1 {
+// 			return pack
+// 		}
+// 		return pack + "/" + parts[1]
+// 	}
+// 	return util.NormalizedName(ensure())
+// }
 
 // create agent (class) from config
-func (ap *AgentMaker) CreateAgent(ctx context.Context, agent string) (*api.Agent, error) {
+func (ap *AgentMaker) Create(ctx context.Context, name string) (*api.Agent, error) {
 
 	// create the agent
 	// agent: pack/sub
 	// var user = ap.sw.User.Email
-	pack, sub := api.Packname(agent).Decode()
+	pack, sub := api.Packname(name).Decode()
 
 	//
 	if pack == "" {
@@ -364,7 +367,7 @@ func (ap *AgentMaker) CreateAgent(ctx context.Context, agent string) (*api.Agent
 	}
 
 	if ac == nil {
-		return nil, fmt.Errorf("no such agent: %s", agent)
+		return nil, fmt.Errorf("no such agent: %s", name)
 	}
 
 	// access to models/tools is implicitly granted if user has permission to run the agent
@@ -382,13 +385,7 @@ func (ap *AgentMaker) CreateAgent(ctx context.Context, agent string) (*api.Agent
 
 		// embedded
 		for _, v := range c.Embed {
-			// nomalize agent name, remove prefix "agent:""
-			n := strings.TrimSpace(v)
-			n = strings.ToLower(n)
-			n = strings.TrimPrefix(n, "@")
-			n = strings.TrimPrefix(n, "agent:")
-
-			if a, err := ap.CreateAgent(ctx, n); err != nil {
+			if a, err := ap.Create(ctx, v); err != nil {
 				return nil, err
 			} else {
 				agent.Embed = append(agent.Embed, a)
@@ -403,6 +400,35 @@ func (ap *AgentMaker) CreateAgent(ctx context.Context, agent string) (*api.Agent
 	} else {
 		return nil, err
 	}
+}
+
+func (ap *AgentMaker) CreateFrom(ctx context.Context, name string, owner string, content []byte) (*api.Agent, error) {
+	pack, sub := api.Packname(name).Decode()
+
+	ac, err := ap.loadAgent(pack, content)
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := ap.getAgentConfig(ac, pack, sub)
+	if err != nil {
+		return nil, err
+	}
+
+	agent, err := ap.newAgent(ac, c, owner)
+	if err != nil {
+		return nil, err
+	}
+
+	// embedded
+	for _, v := range c.Embed {
+		if a, err := ap.Create(ctx, v); err != nil {
+			return nil, err
+		} else {
+			agent.Embed = append(agent.Embed, a)
+		}
+	}
+	return agent, nil
 }
 
 func (ap *AgentMaker) resolveModelLevel(model string) (string, string) {

@@ -19,3 +19,6 @@ var ShellSecuritySystemRole string
 
 //go:embed shell_security_user.md
 var ShellSecurityUserRole string
+
+//go:embed root/agent.yaml
+var RootAgentData []byte

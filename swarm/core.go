@@ -12,6 +12,7 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
+	"github.com/qiangli/ai/swarm/atm/resource"
 	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/shell/tool/sh/vfs"
@@ -51,12 +52,22 @@ type Swarm struct {
 	// internal
 	middlewares []api.Middleware
 	agentMaker  *AgentMaker
+
+	RootAgent *api.Agent
 }
 
-func (sw *Swarm) Init() {
+func (sw *Swarm) Init() error {
 	sw.InitChain()
 	sw.agentMaker = NewAgentMaker(sw)
 	//
+	root, err := sw.agentMaker.CreateFrom(context.TODO(), "root", "root", resource.RootAgentData)
+	if err != nil {
+		return err
+	}
+	root.Runner = NewAgentToolRunner(sw, root)
+	root.Template = NewTemplate(sw, root)
+	sw.RootAgent = root
+	return nil
 }
 
 func (sw *Swarm) InitChain() {
@@ -92,11 +103,12 @@ func (sw *Swarm) CreateAgent(ctx context.Context, name string) (*api.Agent, erro
 		// anonymous
 		log.GetLogger(ctx).Debugf("agent not specified.\n")
 	}
-	agent, err := sw.agentMaker.CreateAgent(ctx, name)
-
+	agent, err := sw.agentMaker.Create(ctx, name)
 	if err != nil {
 		return nil, err
 	}
+
+	agent.Parent = sw.RootAgent
 
 	// for sub agent/action or tool call
 	agent.Runner = NewAgentToolRunner(sw, agent)

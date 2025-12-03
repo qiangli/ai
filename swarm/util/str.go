@@ -4,12 +4,12 @@ import (
 	"strings"
 )
 
-// change name to lower case and replace all space with dash "-"
-func NormalizedName(name string) string {
-	name = strings.TrimSpace(name)
-	name = strings.ToLower(name)
-	return strings.ReplaceAll(name, " ", "-")
-}
+// // change name to lower case and replace all space with dash "-"
+// func NormalizedName(name string) string {
+// 	name = strings.TrimSpace(name)
+// 	name = strings.ToLower(name)
+// 	return strings.ReplaceAll(name, " ", "-")
+// }
 
 // Clip trims the string to the maxLen
 func Clip(text string, maxLen int) string {

@@ -33,6 +33,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	// set global env for bash script
 	env := r.sw.globalEnv()
 
+	// TODO batch set
 	for k, v := range env {
 		vs.System.Setenv(k, v)
 	}
