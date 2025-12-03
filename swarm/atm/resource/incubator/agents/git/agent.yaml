@@ -21,6 +21,7 @@ agents:
       - "agent:git/short"
       - "agent:git/long"
       - "fs:write_file"
+      - "ai:spawn_agent"
 
   ##
   # prompt adapted from https://github.com/Aider-AI/aider/blob/main/aider/prompts.py

@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	// "fmt"
 	"os"
 	"strings"
 
@@ -107,21 +107,25 @@ func main() {
 		case "/help":
 			// agent detailed help
 			// trigger built-in help command
-			nArgs := append([]string{"--help"}, os.Args[1:]...)
-			agentCmd.SetArgs(nArgs)
+			// nArgs := append([]string{"--help"}, os.Args[1:]...)
+			// agentCmd.SetArgs(nArgs)
 			// hack: for showing all config options as usual
 			// cobra is not calling initConfig() for help command
 			// initConfig()
-			if err := agentCmd.Execute(); err != nil {
+			// if err := agentCmd.Execute(); err != nil {
+			// 	internal.Exit(ctx, err)
+			// }
+			err := agent.Help(ctx, args)
+			if err != nil {
 				internal.Exit(ctx, err)
 			}
 			return
-		case "/agent":
-			os.Args = os.Args[1:]
-			if err := agentCmd.Execute(); err != nil {
-				internal.Exit(ctx, err)
-			}
-			return
+		// case "/agent":
+		// 	os.Args = os.Args[1:]
+		// 	if err := agentCmd.Execute(); err != nil {
+		// 		internal.Exit(ctx, err)
+		// 	}
+		// 	return
 		// case "/setup":
 		// 	os.Args = os.Args[1:]
 		// 	if err := setupCmd.Execute(); err != nil {
@@ -135,8 +139,8 @@ func main() {
 		// 	}
 		// 	return
 		default:
-			internal.Exit(ctx, fmt.Errorf("Slash command not supported: %s", args[1]))
-			return
+			// internal.Exit(ctx, fmt.Errorf("Slash command not supported: %s", args[1]))
+			// return
 		}
 	}
 

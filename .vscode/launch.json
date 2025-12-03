@@ -23,6 +23,7 @@
 			"args": [
 				// "/help",
 				// "agents",
+				"/agent:joker",
 				// "@agent/agent",
 				// "@ask",
 				// "@eval",
@@ -52,8 +53,8 @@
 				// "tell me a joke. show me the query and prompt used for the llm request by calling call_llm and other tools",
 				// "@gptr/crawl",
 				// "@agent",
-				// "--message",
-				// "what is the weather today in dublin ca",
+				"--message",
+				"what is the weather today in dublin ca",
 				// "yes",
 				// "the weather in dublin ca",
 				// "@cron",
@@ -76,7 +77,7 @@
 				// "14400"
 				// "about",
 				// "space technology"
-				"tell", "a", "joke"
+				// "tell", "a", "joke"
 			],
 			"showLog": false,
 			"stopOnEntry": false

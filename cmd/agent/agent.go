@@ -48,7 +48,7 @@ func init() {
 
 	AgentCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
 		ctx := context.TODO()
-		err := Help(ctx, cmd, args)
+		err := Help(ctx, args)
 		if err != nil {
 			internal.Exit(ctx, err)
 		}

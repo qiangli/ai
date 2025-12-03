@@ -7,7 +7,7 @@ import (
 	"os"
 	"sort"
 	"strings"
-	"text/template"
+	// "text/template"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -119,7 +119,7 @@ func getHelpData(cmd *cobra.Command) *HelpData {
 	}
 }
 
-func Help(ctx context.Context, cmd *cobra.Command, args []string) error {
+func Help(ctx context.Context, args []string) error {
 	cfg, err := setupAppConfig(ctx, args)
 	if err != nil {
 		return err
@@ -145,25 +145,25 @@ func Help(ctx context.Context, cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// help
-	trimTrailingWhitespaces := func(s string) string {
-		return strings.TrimRightFunc(s, func(r rune) bool {
-			return r == ' ' || r == '\t'
-		})
-	}
+	// // help
+	// trimTrailingWhitespaces := func(s string) string {
+	// 	return strings.TrimRightFunc(s, func(r rune) bool {
+	// 		return r == ' ' || r == '\t'
+	// 	})
+	// }
 
-	data := getHelpData(cmd)
+	// data := getHelpData(cmd)
 
-	tpl, err := template.New("help").Funcs(template.FuncMap{
-		"trimTrailingWhitespaces": trimTrailingWhitespaces,
-	}).Parse(agentUsageTemplate)
-	if err != nil {
-		return err
-	}
+	// tpl, err := template.New("help").Funcs(template.FuncMap{
+	// 	"trimTrailingWhitespaces": trimTrailingWhitespaces,
+	// }).Parse(agentUsageTemplate)
+	// if err != nil {
+	// 	return err
+	// }
 
-	if err := tpl.Execute(cmd.OutOrStdout(), data); err != nil {
-		return nil
-	}
+	// if err := tpl.Execute(cmd.OutOrStdout(), data); err != nil {
+	// 	return nil
+	// }
 	return nil
 }
 
