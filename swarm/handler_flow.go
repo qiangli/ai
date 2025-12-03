@@ -436,8 +436,7 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 // complex flow control scenarios driven by external scripting logic.
 func (h *agentHandler) flowShell(req *api.Request, resp *api.Response) error {
 	ctx := req.Context()
-
-	runner := NewAgentScriptRunner(h.sw, h.agent)
+	// runner := NewAgentScriptRunner(h.sw, h.agent)
 
 	// make a copy of the args which already include args from the agent
 	var args = make(map[string]any)
@@ -445,7 +444,7 @@ func (h *agentHandler) flowShell(req *api.Request, resp *api.Response) error {
 		req.Arguments.Copy(args)
 	}
 
-	data, err := runner.Run(ctx, h.agent.Flow.Script, args)
+	data, err := h.agent.Runner.Run(ctx, h.agent.Flow.Script, args)
 	if err != nil {
 		return err
 	}

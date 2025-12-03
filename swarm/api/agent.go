@@ -86,11 +86,6 @@ type Agent struct {
 	Runner ActionRunner
 
 	Template *template.Template
-
-	// save in environment
-	// Prompt string
-	// Query string
-	// Result string
 }
 
 // ai operations

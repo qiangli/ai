@@ -56,6 +56,31 @@ type Swarm struct {
 	RootAgent *api.Agent
 }
 
+type ActionDispatcher struct {
+	sw *Swarm
+
+	runner api.ActionRunner
+	shell  api.ActionRunner
+}
+
+func NewActionDispatcher(sw *Swarm, agent *api.Agent) api.ActionRunner {
+	runner := NewAgentToolRunner(sw, agent)
+	shell := NewAgentScriptRunner(sw, agent)
+
+	return &ActionDispatcher{
+		sw:     sw,
+		runner: runner,
+		shell:  shell,
+	}
+}
+
+func (r *ActionDispatcher) Run(ctx context.Context, s string, args map[string]any) (any, error) {
+	if strings.HasPrefix(s, "#!") || strings.HasSuffix(s, ".yaml") || strings.HasSuffix(s, ".sh") {
+		return r.shell.Run(ctx, s, args)
+	}
+	return r.runner.Run(ctx, s, args)
+}
+
 func (sw *Swarm) Init() error {
 	sw.InitChain()
 	sw.agentMaker = NewAgentMaker(sw)
@@ -64,7 +89,8 @@ func (sw *Swarm) Init() error {
 	if err != nil {
 		return err
 	}
-	root.Runner = NewAgentToolRunner(sw, root)
+	// root.Runner = NewAgentToolRunner(sw, root)
+	root.Runner = NewActionDispatcher(sw, root)
 	root.Template = NewTemplate(sw, root)
 	sw.RootAgent = root
 	return nil
@@ -111,7 +137,8 @@ func (sw *Swarm) CreateAgent(ctx context.Context, name string) (*api.Agent, erro
 	agent.Parent = sw.RootAgent
 
 	// for sub agent/action or tool call
-	agent.Runner = NewAgentToolRunner(sw, agent)
+	// agent.Runner = NewAgentToolRunner(sw, agent)
+	agent.Runner = NewActionDispatcher(sw, agent)
 	agent.Template = NewTemplate(sw, agent)
 	return agent, nil
 }
