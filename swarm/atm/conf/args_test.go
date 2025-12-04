@@ -198,7 +198,7 @@ func TestParseActionCommand(t *testing.T) {
 	}
 }
 
-func TestIsAgentTool(t *testing.T) {
+func TestIsAction(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected bool
@@ -231,7 +231,7 @@ func TestIsAgentTool(t *testing.T) {
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("Test Case %d", i), func(t *testing.T) {
-			got := IsAgentTool(tt.input)
+			got := IsAction(tt.input)
 			if got != tt.expected {
 				t.Errorf("ParseActionArgs() = %v, want %v", got, tt.expected)
 			}

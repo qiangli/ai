@@ -18,7 +18,7 @@ func ModelMiddleware(sw *Swarm) api.Middleware {
 
 			var model *api.Model = agent.Model
 
-			if conf.IsAgentTool(model.Model) {
+			if conf.IsAction(model.Model) {
 				out, err := sw.expandx(req.Context(), agent, model.Model)
 				if err != nil {
 					return err

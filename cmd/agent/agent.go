@@ -176,6 +176,8 @@ func setupAppConfig(ctx context.Context, argv []string) (*api.AppConfig, error) 
 	if err != nil {
 		return nil, err
 	}
+	// save original for non action commands
+	argm["arguments"] = argv
 	cfg.Arguments = argm
 	level := api.ToLogLevel(cfg.LogLevel)
 	log.GetLogger(ctx).SetLogLevel(level)

@@ -13,7 +13,7 @@ import (
 func QueryMiddleware(sw *Swarm) api.Middleware {
 
 	resolve := func(parent *api.Agent, req *api.Request, s string) (string, error) {
-		if !conf.IsAgentTool(s) {
+		if !conf.IsAction(s) {
 			return s, nil
 		}
 		out, err := sw.expandx(req.Context(), parent, s)

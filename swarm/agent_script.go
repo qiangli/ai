@@ -72,11 +72,11 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem) sh.ExecHandler 
 			return true, fmt.Errorf("missing parent agent")
 		}
 		log.GetLogger(ctx).Debugf("parent: %s args: %+v\n", r.parent.Name, args)
-		isAI := conf.IsAgentTool
+		// isAI := conf.IsAgentTool
 		// isAI := func(s string) bool {
 		// 	return s == "ai" || strings.HasPrefix(s, "@") || strings.HasPrefix(s, "/")
 		// }
-		if isAI(strings.ToLower(args[0])) {
+		if conf.IsAction(strings.ToLower(args[0])) {
 			log.GetLogger(ctx).Debugf("running ai agent/tool: %+v\n", args)
 
 			_, err := runner(ctx, args)

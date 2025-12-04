@@ -336,6 +336,8 @@ func (sw *Swarm) Execv(ctx context.Context, argv []string) (*api.Result, error) 
 }
 
 func (sw *Swarm) Execm(ctx context.Context, argm map[string]any) (*api.Result, error) {
+	log.GetLogger(ctx).Debugf("Execm %+v\n", argm)
+
 	a := api.ArgMap(argm)
 	id := a.Kitname().ID()
 	if id == "" {

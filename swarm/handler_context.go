@@ -12,7 +12,7 @@ import (
 // hitorical context/memory
 func ContextMiddleware(sw *Swarm) api.Middleware {
 	mustResolveContext := func(parent *api.Agent, req *api.Request, s string) ([]*api.Message, error) {
-		if !conf.IsAgentTool(s) {
+		if !conf.IsAction(s) {
 			return nil, fmt.Errorf("invalid agent: %s", s)
 		}
 		out, err := sw.expandx(req.Context(), parent, s)

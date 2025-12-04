@@ -195,20 +195,26 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	return argm, nil
 }
 
-// action (agent/tool) name convention:
-// "ai" or starts with "agent:", "@" or "/" or ends with ","
-// ai name args...
+// IsAction returns true if string s is an action command.
+// action (agent and tool) name convention:
+// "ai" or prefix "agent:", "@" or "/" or suffix ","
 //
-// agent:name args...
-// @name args...
-// /name args...
+// ai [action] message...
+//
+// action
+//   - agent:
+//     agent:pack[/sub]
+//     @pack[/sub]
+//     pack[/sub],
+//
+//   - tool:
+//     /kit[:name]
+//     /agent:pack[/sub]
 //
 // anoymous:
 // @ args...
 // / args...
-//
-// name,
-func IsAgentTool(s string) bool {
+func IsAction(s string) bool {
 	if len(s) == 0 {
 		return false
 	}
