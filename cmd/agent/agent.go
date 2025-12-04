@@ -176,9 +176,9 @@ func setupAppConfig(ctx context.Context, argv []string) (*api.AppConfig, error) 
 	if err != nil {
 		return nil, err
 	}
-	// save original for non action commands
-	argm["arguments"] = argv
-	cfg.Arguments = argm
+	// // save original for non action commands
+	// argm["arguments"] = argv
+	// cfg.Arguments = argm
 	level := api.ToLogLevel(cfg.LogLevel)
 	log.GetLogger(ctx).SetLogLevel(level)
 	log.GetLogger(ctx).Debugf("Config: %+v\n", cfg)
@@ -187,10 +187,23 @@ func setupAppConfig(ctx context.Context, argv []string) (*api.AppConfig, error) 
 }
 
 func Run(ctx context.Context, argv []string) error {
+
 	cfg, err := setupAppConfig(ctx, argv)
 	if err != nil {
 		return err
 	}
+	if !conf.IsAction(argv[0]) {
+		// argm := make(map[string]any)
+		cfg.Arguments["command"] = argv[0]
+		if len(argv) > 1 {
+			cfg.Arguments["arguments"] = argv[1:]
+		}
+		if err := agent.RunSwarm(ctx, cfg); err != nil {
+			log.GetLogger(ctx).Errorf("%v\n", err)
+		}
+		return nil
+	}
+
 	if err := agent.RunAgent(ctx, cfg); err != nil {
 		log.GetLogger(ctx).Errorf("%v\n", err)
 		return nil

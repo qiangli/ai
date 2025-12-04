@@ -51,7 +51,7 @@ func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clip
 		return nil, err
 	}
 
-	log.GetLogger(ctx).Debugf("\n%s\n%+v\n", input.Query(), input.Arguments)
+	// log.GetLogger(ctx).Debugf("\n%s\n%+v\n", input.Query(), input.Arguments)
 	return input, nil
 }
 
@@ -137,13 +137,14 @@ func userInput(
 
 	// update query
 	var content = cat(stdinData, clipinData, "\n")
-	args := make(map[string]any)
+	// args := make(map[string]any)
 	// msg := cat(cfg.Message, content, "\n")
 	msg := cat(cfg.Message, content, "\n###\n")
 	// msg := cat(content, cfg.Message, "\n###\n")
-	args["message"] = msg
+	// args["message"] = msg
 	return &api.UserInput{
-		Arguments: args,
+		// Arguments: args,
+		Message: msg,
 	}, nil
 }
 
@@ -193,14 +194,14 @@ func LaunchEditor(editor string, content string) (string, error) {
 }
 
 // PrintInput prints the user input
-func PrintInput(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) {
-	if input == nil {
-		return
-	}
-	log.GetLogger(ctx).Debugf("UserInput:\n%+v\n", input)
+func PrintInput(ctx context.Context, cfg *api.AppConfig) {
+	// 	if input == nil {
+	// 		return
+	// 	}
+	log.GetLogger(ctx).Debugf("UserInput:\n%+v\n", cfg)
 
 	// query and files for info only
-	var msg = clipText(input.Query(), clipMaxLen)
+	var msg = clipText(cfg.Message, clipMaxLen)
 	renderInputContent(ctx, msg)
 }
 

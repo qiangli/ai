@@ -63,14 +63,11 @@ func main() {
 
 	args := os.Args
 
-	if strings.HasSuffix(args[0], "yaml") {
-
-		return
-	}
+	shebang := strings.HasSuffix(args[0], "yaml") || strings.HasSuffix(args[0], ".sh")
 
 	// if no args and no input (piped), show help - short form
 	// $ ai
-	if len(args) <= 1 {
+	if len(args) <= 1 && !shebang {
 		// isPiped := func() bool {
 		// 	stat, _ := os.Stdin.Stat()
 		// 	return (stat.Mode() & os.ModeCharDevice) == 0
@@ -87,14 +84,24 @@ func main() {
 		return
 	}
 
+	// shebang support
+	if shebang {
+		// argm := make(map[string]any)
+		// argm["command"] = "/sh:bash"
+		// if len(args) > 1 {
+		// argm["arguments"] = args[1:]
+		// }
+		// if err := agent.Run(ctx, args[1:]); err != nil {
+		// 	internal.Exit(ctx, err)
+		// }
+		// return
+		args = append([]string{"/sh:bash", "--script", args[0]}, args[1:]...)
+	}
+
 	// slash commands
 	// intercept builtin commands
 	// $ ai /help [agents|commands|tools|info]
 	//
-	// $ ai /agent
-	// $ ai /setup
-	// $ ai /history
-	// $ ai /!<system-command>
 	if strings.HasPrefix(args[1], "/") {
 		// // /!<command> args...
 		// if strings.HasPrefix(args[1], "/!") {
@@ -156,6 +163,7 @@ func main() {
 	// 	internal.Exit(ctx, err)
 	// }
 	// remove "ai" from args
+
 	if err := agent.Run(ctx, args[1:]); err != nil {
 		internal.Exit(ctx, err)
 	}

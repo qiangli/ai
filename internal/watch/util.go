@@ -108,8 +108,8 @@ func parseUserInput(line string, prefix string) (*api.UserInput, error) {
 		if len(parts) > 1 {
 			args := make(map[string]any)
 			args["query"] = parts[1]
-			in.Arguments = args
-			// in.Message = parts[1]
+			// in.Arguments = args
+			in.Message = parts[1]
 		}
 		return in, nil
 	}
@@ -126,11 +126,12 @@ func parseUserInput(line string, prefix string) (*api.UserInput, error) {
 	// }
 
 	ui := &api.UserInput{
-		// Message: line,
+		Message: line,
 	}
-	args := make(map[string]any)
-	args["query"] = line
-	ui.Arguments = args
+	// args := make(map[string]any)
+	// args["query"] = line
+	// ui.Arguments = args
+
 	return ui, nil
 }
 

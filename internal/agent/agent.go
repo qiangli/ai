@@ -3,7 +3,7 @@ package agent
 import (
 	"context"
 	"encoding/json"
-	"maps"
+	// "maps"
 	"os"
 	"path/filepath"
 
@@ -25,8 +25,9 @@ func RunAgent(ctx context.Context, app *api.AppConfig) error {
 	if err != nil {
 		return err
 	}
+	app.Message = in.Message
 
-	return RunSwarm(ctx, app, in)
+	return RunSwarm(ctx, app)
 }
 
 var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
@@ -65,7 +66,7 @@ func storeUser(cfg *api.AppConfig, user *api.User) error {
 	return nil
 }
 
-func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) error {
+func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 	logger := log.GetLogger(ctx)
 	swarm.ClearAllEnv(essentialEnv)
 
@@ -74,13 +75,15 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	// 	return err
 	// }
 
+	var msg = cfg.Message
+
 	mem, err := db.OpenMemoryStore(cfg)
 	if err != nil {
 		return err
 	}
 	defer mem.Close()
 
-	showInput(ctx, cfg, input)
+	showInput(ctx, cfg)
 
 	var root = cfg.Workspace
 
@@ -139,17 +142,17 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	sw.Init()
 	sw.Vars.Global.Set("workspace", cfg.Workspace)
 
-	var args = make(map[string]any)
-	maps.Copy(args, cfg.Arguments)
-	maps.Copy(args, cfg.ToMap())
-	maps.Copy(args, input.Arguments)
-
-	// initial query is required.
-	var msg = args["message"]
+	// var args = make(map[string]any)
+	// maps.Copy(args, cfg.Arguments)
+	// maps.Copy(args, cfg.ToMap())
+	// // maps.Copy(args, input.Arguments)
+	// // initial query is required.
+	// // var msg = args["message"]
+	// args["message"] = input.Message
 	sw.Vars.Global.Set("query", msg)
 
 	var out *api.Output
-	if v, err := sw.Execm(ctx, args); err != nil {
+	if v, err := sw.Execm(ctx, cfg.Arguments); err != nil {
 		return err
 	} else {
 		out = &api.Output{
@@ -167,12 +170,12 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	return nil
 }
 
-func showInput(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) {
+func showInput(ctx context.Context, cfg *api.AppConfig) {
 	if log.GetLogger(ctx).IsTrace() {
-		log.GetLogger(ctx).Debugf("input: %+v\n", input)
+		log.GetLogger(ctx).Debugf("input: %+v\n", cfg.Message)
 	}
 
-	PrintInput(ctx, cfg, input)
+	PrintInput(ctx, cfg)
 }
 
 func processOutput(ctx context.Context, cfg *api.AppConfig, message *api.Output) {

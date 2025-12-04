@@ -77,7 +77,8 @@ func WatchRepo(ctx context.Context, cfg *api.AppConfig) error {
 		// log.GetLogger(ctx).Debugf("agent: %s\n", in.Agent)
 
 		cfg.Format = "text"
-		if err := agent.RunSwarm(ctx, cfg, in); err != nil {
+		cfg.Message = in.Message
+		if err := agent.RunSwarm(ctx, cfg); err != nil {
 			log.GetLogger(ctx).Errorf("Error running agent: %s\n", err)
 			return
 		}

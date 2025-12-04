@@ -95,6 +95,10 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	isInfo := fs.Bool("info", false, "Show progress")
 	isVerbose := fs.Bool("verbose", false, "Show progress and debugging information")
 
+	// tool
+	command := fs.String("command", "", "Shell command(s) to be executed.")
+	script := fs.String("script", "", "Path to the shell script file to be executed.")
+
 	//
 	err := fs.Parse(argv)
 	if err != nil {
@@ -191,6 +195,12 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	if *workspace != "" {
 		argm["workspace"] = *workspace
 	}
+	if *command != "" {
+		argm["command"] = *command
+	}
+	if *script != "" {
+		argm["script"] = *script
+	}
 
 	return argm, nil
 }
@@ -202,6 +212,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 // ai [action] message...
 //
 // action
+//
 //   - agent:
 //     agent:pack[/sub]
 //     @pack[/sub]
