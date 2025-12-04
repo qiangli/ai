@@ -12,16 +12,16 @@ import (
 	"github.com/mattn/go-isatty"
 	"golang.org/x/term"
 
-	"github.com/qiangli/ai/internal/agent"
+	// "github.com/qiangli/ai/internal/agent"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
 )
 
 func Shell(ctx context.Context, cfg *api.AppConfig) error {
-	vars, err := agent.InitVars(cfg)
-	if err != nil {
-		return err
-	}
+	// vars, err := agent.InitVars(cfg)
+	// if err != nil {
+	// 	return err
+	// }
 
 	// // handle CTRL+C (SIGINT)
 	// signalCh := make(chan os.Signal, 1)
@@ -51,10 +51,10 @@ func Shell(ctx context.Context, cfg *api.AppConfig) error {
 		return nil
 	}
 
-	//
-	initRegistry(vars)
+	// //
+	// initRegistry(vars)
 
-	initRc(vars)
+	// initRc(vars)
 
 	//
 	oldState, err := term.GetState(int(os.Stdin.Fd()))

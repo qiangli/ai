@@ -17,10 +17,8 @@ import (
 )
 
 type Swarm struct {
-	// swarm session id
+	// session id
 	ID string
-
-	Vars *api.Vars
 
 	User *api.User
 
@@ -38,15 +36,17 @@ type Swarm struct {
 	Root      string
 	OS        vos.System
 	Workspace vfs.Workspace
+	History   api.MemStore
 
-	History api.MemStore
-
+	// runtime fields
 	// internal
 	middlewares []api.Middleware
 	agentMaker  *AgentMaker
 
-	RootAgent *api.Agent
-	Shell     api.ActionRunner
+	// RootAgent *api.Agent
+	// Shell     api.ActionRunner
+	//
+	Vars *api.Vars
 }
 
 // type ActionDispatcher struct {
@@ -76,16 +76,20 @@ type Swarm struct {
 
 func (sw *Swarm) Init() error {
 	sw.InitChain()
-	sw.agentMaker = NewAgentMaker(sw)
-	//
-	root, err := sw.agentMaker.CreateFrom(context.TODO(), "root", sw.User.Email, resource.RootAgentData)
+	sw.Vars = api.NewVars()
+
+	maker := NewAgentMaker(sw)
+	root, err := maker.CreateFrom(context.TODO(), "root", sw.User.Email, resource.RootAgentData)
 	if err != nil {
 		return err
 	}
 	root.Runner = NewAgentToolRunner(sw, sw.User.Email, root)
+	root.Shell = NewAgentScriptRunner(sw, root)
 	root.Template = NewTemplate(sw, root)
-	sw.RootAgent = root
-	sw.Shell = NewAgentScriptRunner(sw, root)
+	sw.Vars.RootAgent = root
+	// TODO move to Vars?
+	sw.agentMaker = maker
+
 	return nil
 }
 
@@ -127,7 +131,7 @@ func (sw *Swarm) CreateAgent(ctx context.Context, name string) (*api.Agent, erro
 		return nil, err
 	}
 
-	agent.Parent = sw.RootAgent
+	agent.Parent = sw.Vars.RootAgent
 
 	// for sub agent/action or tool call
 	agent.Runner = NewAgentToolRunner(sw, sw.User.Email, agent)
@@ -149,7 +153,7 @@ func (sw *Swarm) Serve(req *api.Request, resp *api.Response) error {
 		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself not supported.", req.Name))
 	}
 	if req.Agent == nil {
-		req.Agent = sw.RootAgent
+		req.Agent = sw.Vars.RootAgent
 	}
 
 	var ctx = req.Context()
@@ -344,36 +348,29 @@ func (sw *Swarm) Execm(ctx context.Context, argm map[string]any) (*api.Result, e
 	var err error
 	switch kit {
 	case "agent":
-		v, err = sw.runm(ctx, sw.RootAgent, name, argm)
-	case "script":
-		if c, ok := argm["command"]; ok {
-			v, err = sw.Shell.Run(ctx, api.ToString(c), argm)
-		} else if path, ok := argm["script"]; ok {
-			c, err := sw.loadScript(api.ToString(path))
-			if err != nil {
-				return nil, err
-			}
-			v, err = sw.Shell.Run(ctx, c, argm)
-		} else {
-			return nil, fmt.Errorf("")
-		}
+		v, err = sw.runm(ctx, sw.Vars.RootAgent, name, argm)
+	// case "sh":
+	// 	// sh:bash
+	// 	if c, ok := argm["command"]; ok {
+	// 		v, err = sw.Vars.RootAgent.Shell.Run(ctx, api.ToString(c), argm)
+	// 	} else if path, ok := argm["script"]; ok {
+	// 		c, err := sw.loadScript(api.ToString(path))
+	// 		if err != nil {
+	// 			return nil, err
+	// 		}
+	// 		v, err = sw.Vars.RootAgent.Shell.Run(ctx, c, argm)
+	// 	} else {
+	// 		return nil, fmt.Errorf("")
+	// 	}
 	default:
 		// tools
-		v, err = sw.RootAgent.Runner.Run(ctx, id, argm)
+		v, err = sw.Vars.RootAgent.Runner.Run(ctx, id, argm)
 	}
 	if err != nil {
 		return nil, err
 	}
 	result := api.ToResult(v)
 	return result, nil
-}
-
-func (sw *Swarm) loadScript(file string) (string, error) {
-	data, err := sw.Workspace.ReadFile(file, nil)
-	if err != nil {
-		return "", err
-	}
-	return string(data), nil
 }
 
 // Run agent action

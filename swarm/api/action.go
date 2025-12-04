@@ -211,15 +211,15 @@ func (a ArgMap) Kitname() Kitname {
 }
 
 func (a ArgMap) Kit() string {
-	return a["kit"].(string)
+	return ToString(a["kit"])
 }
 
 func (a ArgMap) Name() string {
-	return a["name"].(string)
+	return ToString(a["name"])
 }
 
 func (a ArgMap) Type() string {
-	return a["type"].(string)
+	return ToString(a["type"])
 }
 
 type ActionConfig struct {

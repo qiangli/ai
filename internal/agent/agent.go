@@ -70,10 +70,10 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	logger := log.GetLogger(ctx)
 	swarm.ClearAllEnv(essentialEnv)
 
-	vars, err := InitVars(cfg)
-	if err != nil {
-		return err
-	}
+	// vars, err := InitVars(cfg)
+	// if err != nil {
+	// 	return err
+	// }
 
 	mem, err := db.OpenMemoryStore(cfg)
 	if err != nil {
@@ -121,21 +121,24 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	var tools = swarm.NewToolSystem(root, user, secrets, assets, lfs, los)
 
 	sw := &swarm.Swarm{
-		ID:        uuid.NewString(),
+		ID: uuid.NewString(),
+		// Root:      root,
+		// Vars:      vars,
+		User:     user,
+		Secrets:  secrets,
+		Assets:   assets,
+		Tools:    tools,
+		Adapters: adapters,
+		Blobs:    blobs,
+		//
 		Root:      root,
-		Vars:      vars,
-		User:      user,
-		Secrets:   secrets,
-		Assets:    assets,
-		Tools:     tools,
-		Adapters:  adapters,
-		Blobs:     blobs,
 		OS:        los,
 		Workspace: lfs,
 		History:   mem,
 	}
 
 	sw.Init()
+	sw.Vars.Global.Set("workspace", cfg.Workspace)
 
 	var args = make(map[string]any)
 	maps.Copy(args, cfg.ToMap())
@@ -189,11 +192,11 @@ func processOutput(ctx context.Context, cfg *api.AppConfig, message *api.Output)
 	}
 }
 
-func InitVars(app *api.AppConfig) (*api.Vars, error) {
-	var vars = api.NewVars()
+// func InitVars(app *api.AppConfig) (*api.Vars, error) {
+// 	var vars = api.NewVars()
 
-	// global envs
-	vars.Global.Set("workspace", app.Workspace)
+// 	// global envs
+// 	vars.Global.Set("workspace", app.Workspace)
 
-	return vars, nil
-}
+// 	return vars, nil
+// }

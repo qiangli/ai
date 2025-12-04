@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/shell/tool/sh"
@@ -26,6 +27,22 @@ func NewAgentScriptRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
 }
 
 func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[string]any) (any, error) {
+	if script == "" && args != nil {
+		file := args["script"]
+		if file == "" {
+			return "", fmt.Errorf("bash script required")
+		}
+
+		data, err := r.sw.Workspace.ReadFile(api.ToString(file), nil)
+		if err != nil {
+			return "", err
+		}
+		script = string(data)
+	}
+	if script == "" {
+		return "", fmt.Errorf("missing bash script")
+	}
+
 	var b bytes.Buffer
 	ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
 	vs := sh.NewVirtualSystem(r.sw.Root, r.sw.OS, r.sw.Workspace, ioe)
@@ -81,8 +98,10 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem) sh.ExecHandler 
 			return did, err
 		}
 
+		// TODO restricted
 		// block other commands
-		fmt.Fprintf(vs.IOE.Stderr, "command not supported: %s %+v\n", args[0], args[1:])
+		// fmt.Fprintf(vs.IOE.Stderr, "command not supported: %s %+v\n", args[0], args[1:])
+		atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, args[0], args[1:])
 		return true, nil
 	}
 }

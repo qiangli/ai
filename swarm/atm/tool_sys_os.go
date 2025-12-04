@@ -2,9 +2,10 @@ package atm
 
 import (
 	"context"
-	"fmt"
+	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm/conf"
 )
 
 func (r *SystemKit) Cd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -19,7 +20,7 @@ func (r *SystemKit) Pwd(ctx context.Context, vars *api.Vars, name string, args m
 	return r.os.Getwd()
 }
 
-func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
 	command, err := api.GetStrProp("command", args)
 	if err != nil {
 		return "", err
@@ -28,26 +29,29 @@ func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, name string, args 
 	if err != nil {
 		return "", err
 	}
-	// TODO virtual bash
+
+	if conf.IsAgentTool(command) {
+		argm, err := conf.ParseArguments(strings.Join(argv, " "))
+		result, err := vars.RootAgent.Runner.Run(ctx, command, argm)
+		if err != nil {
+			return "", err
+		}
+		return api.ToString(result), nil
+	}
 	return ExecCommand(ctx, r.os, vars, command, argv)
 }
 
-func (r *SystemKit) Shell(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	// command, err := api.GetStrProp("command", args)
-	// if err != nil {
-	// 	return "", err
-	// }
-	// script, err := api.GetArrayProp("script", args)
-	// if err != nil {
-	// 	return "", err
-	// }
-	// argsList, err := api.GetArrayProp("arguments", args)
-	// if err != nil {
-	// 	return "", err
-	// }
+func (r *SystemKit) Bash(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	command, err := api.GetStrProp("command", args)
+	if err != nil {
+		return "", err
+	}
 
-	// return ExecCommand(ctx, r.os, vars, command, argsList)
-	return "", fmt.Errorf("script not supported: %s", name)
+	result, err := vars.RootAgent.Shell.Run(ctx, command, args)
+	if err != nil {
+		return "", err
+	}
+	return api.ToString(result), nil
 }
 
 func (r *SystemKit) WorkspaceRoot(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {

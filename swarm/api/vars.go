@@ -130,6 +130,13 @@ type Vars struct {
 
 	toolcallHistory []*ToolCallEntry `json:"-"`
 
+	//
+	// Middlewares []Middleware
+
+	RootAgent *Agent
+	// Action    ActionRunner
+	// Shell     ActionRunner
+
 	mu sync.RWMutex
 }
 

@@ -48,9 +48,4 @@ tools:
         script:
           type: "string"
           description: "Path to the shell script file to be executed."
-        arguments:
-          type: "array"
-          items:
-            type: "string"
-          description: "Arguments to be passed to the shell. This can be an empty list."
       required: []

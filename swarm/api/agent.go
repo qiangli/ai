@@ -84,6 +84,7 @@ type Agent struct {
 
 	//
 	Runner ActionRunner
+	Shell  ActionRunner
 
 	Template *template.Template
 }
