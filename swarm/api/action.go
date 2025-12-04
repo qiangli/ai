@@ -214,6 +214,10 @@ func (a ArgMap) Kit() string {
 	return a["kit"].(string)
 }
 
+func (a ArgMap) Name() string {
+	return a["name"].(string)
+}
+
 func (a ArgMap) Type() string {
 	return a["type"].(string)
 }

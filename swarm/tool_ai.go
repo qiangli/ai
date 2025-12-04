@@ -205,24 +205,24 @@ func (r *AIKit) TransferAgent(_ context.Context, _ *api.Vars, _ string, args map
 }
 
 func (r *AIKit) SpawnAgent(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	agent, err := api.GetStrProp("agent", args)
+	name, err := api.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
 	}
-	if agent == "" {
+	if name == "" {
 		return nil, fmt.Errorf("missing agent name")
 	}
 
-	nreq := api.NewRequest(ctx, agent, args)
-	nreq.Agent = r.agent
+	// nreq := api.NewRequest(ctx, agent, args)
+	// nreq.Agent = r.agent
 
-	nresp := &api.Response{}
+	// nresp := &api.Response{}
+	// if err := r.sw.Run(nreq, nresp); err != nil {
+	// 	return nil, err
+	// }
+	// return nresp.Result, nil
 
-	if err := r.sw.Run(nreq, nresp); err != nil {
-		return nil, err
-	}
-
-	return nresp.Result, nil
+	return r.sw.runm(ctx, r.agent, name, args)
 }
 
 func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {

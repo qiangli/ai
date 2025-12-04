@@ -33,3 +33,24 @@ tools:
   - name: "pwd"
     description: "Print the current working directory on user's system."
     parameters: {}
+
+  - name: "shell"
+    description: |
+      Executes a shell script within the user's environment. Users can provide optional flags and arguments via 'args'.
+      Either 'command' or 'script' must be specified; application logic will ensure this requirement.
+      Note: Some security restrictions may apply.
+    parameters:
+      type: "object"
+      properties:
+        command:
+          type: "string"
+          description: "Shell command(s) to be executed."
+        script:
+          type: "string"
+          description: "Path to the shell script file to be executed."
+        args:
+          type: "array"
+          items:
+            type: "string"
+          description: "Arguments to be passed to the command. This can be an empty list."
+      required: []

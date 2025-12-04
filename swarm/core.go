@@ -2,12 +2,9 @@ package swarm
 
 import (
 	"context"
-	// "encoding/json"
 	"fmt"
 	"strings"
 	"time"
-
-	"github.com/u-root/u-root/pkg/shlex"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
@@ -18,11 +15,6 @@ import (
 	"github.com/qiangli/shell/tool/sh/vfs"
 	"github.com/qiangli/shell/tool/sh/vos"
 )
-
-// global key
-// const globalQuery = "query"
-// const globalResult = "result"
-// const globalError = "error"
 
 type Swarm struct {
 	// swarm session id
@@ -143,10 +135,10 @@ func (sw *Swarm) CreateAgent(ctx context.Context, name string) (*api.Agent, erro
 	return agent, nil
 }
 
-// Run calls the language model with the messages list (after applying the system prompt).
+// Serve calls the language model with the messages list (after applying the system prompt).
 // If the resulting AI Message contains tool_calls, the orchestrator will then call the tools.
 // The tools node executes the tools and adds the responses to the messages list as ToolMessage objects. The agent node then calls the language model again. The process repeats until no more tool_calls are present in the response. The agent then returns the full list of messages.
-func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
+func (sw *Swarm) Serve(req *api.Request, resp *api.Response) error {
 	if sw.User == nil || sw.Vars == nil {
 		return api.NewInternalServerError("invalid config. user or vars not initialized")
 	}
@@ -155,6 +147,9 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 	}
 	if req.Agent != nil && req.Agent.Name == req.Name {
 		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself not supported.", req.Name))
+	}
+	if req.Agent == nil {
+		req.Agent = sw.RootAgent
 	}
 
 	var ctx = req.Context()
@@ -214,61 +209,6 @@ func (sw *Swarm) Run(req *api.Request, resp *api.Response) error {
 		return nil
 	}
 }
-
-// // CallLLM calls the language model similar to Run but bypassing all the middlewares
-// func (sw *Swarm) CallLLM(req *api.Request, resp *api.Response) error {
-// 	if sw.User == nil || sw.Vars == nil {
-// 		return api.NewInternalServerError("invalid config. user or vars not initialized")
-// 	}
-// 	if v, _ := sw.Vars.Global.Get("workspace"); v == "" {
-// 		return api.NewInternalServerError("invalid config. user or vars not initialized")
-// 	}
-// 	if req.Parent != nil && req.Parent.Name == req.Name {
-// 		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself not supported.", req.Name))
-// 	}
-
-// 	var ctx = req.Context()
-// 	logger := log.GetLogger(ctx)
-
-// 	for {
-// 		start := time.Now()
-// 		logger.Debugf("creating agent: %s %s\n", req.Name, start)
-
-// 		// creator
-// 		agent, err := sw.CreateAgent(ctx, req.Name)
-// 		if err != nil {
-// 			return err
-// 		}
-
-// 		// init
-// 		final := HandlerFunc(func(req *api.Request, res *api.Response) error {
-// 			log.GetLogger(req.Context()).Infof("🔗 (final): %s\n", req.Name)
-// 			return nil
-// 		})
-// 		middlewares := []api.Middleware{
-// 			InferenceMiddleware(sw),
-// 		}
-// 		chain := NewChain(middlewares...).Then(agent, final)
-// 		if err := chain.Serve(req, resp); err != nil {
-// 			return err
-// 		}
-
-// 		if resp.Result == nil {
-// 			// some thing went wrong
-// 			return fmt.Errorf("Empty result running %q", agent.Name)
-// 		}
-
-// 		if resp.Result.State == api.StateTransfer {
-// 			logger.Debugf("Agent transfer: %s => %s\n", req.Name, resp.Result.NextAgent)
-// 			req.Name = resp.Result.NextAgent
-// 			continue
-// 		}
-
-// 		end := time.Now()
-// 		logger.Debugf("Agent complete: %s %s elapsed: %s\n", req.Name, end, end.Sub(start))
-// 		return nil
-// 	}
-// }
 
 // copy values from src to dst after calling @agent and applying template if required
 func (sw *Swarm) mapAssign(ctx context.Context, agent *api.Agent, dst, src map[string]any, override bool) error {
@@ -333,67 +273,121 @@ func (sw *Swarm) globalEnv() map[string]any {
 
 // expand s for agent/tool similar to $(cmdline...)
 func (sw *Swarm) expandx(ctx context.Context, parent *api.Agent, s string) (string, error) {
-	argv := shlex.Argv(s)
-	data, err := sw.ExecCommand(ctx, parent, argv)
+	data, err := sw.Run(ctx, parent, s)
 	if err != nil {
 		return "", nil
 	}
 	return api.ToString(data), nil
 }
 
-func (sw *Swarm) Execv(ctx context.Context, arg0 string, argv []string) (*api.Result, error) {
-	agent, err := sw.CreateAgent(ctx, arg0)
+// Convert arg string and run agent action
+func (sw *Swarm) Run(ctx context.Context, parent *api.Agent, args string) (*api.Result, error) {
+	argm, err := conf.ParseActionCommand(args)
 	if err != nil {
 		return nil, err
 	}
-	data, err := sw.ExecCommand(ctx, agent, argv)
-	if err != nil {
-		return nil, err
-	}
-	if data == nil {
-		data = ""
-	}
-	return api.ToResult(data), nil
+	return sw.Runm(ctx, parent, argm)
 }
 
-func (sw *Swarm) Execm(ctx context.Context, arg0 string, args map[string]any) (*api.Result, error) {
-	data, err := sw.RunAction(ctx, nil, arg0, args)
+// Convert arg array and run agent action
+func (sw *Swarm) Runv(ctx context.Context, parent *api.Agent, argv []string) (*api.Result, error) {
+	argm, err := conf.ParseActionArgs(argv)
 	if err != nil {
 		return nil, err
 	}
-	if data == nil {
-		data = ""
-	}
-	return api.ToResult(data), nil
+	return sw.Runm(ctx, parent, argm)
 }
 
-func (sw *Swarm) ExecCommand(ctx context.Context, agent *api.Agent, argv []string) (any, error) {
-	at, err := conf.ParseActionArgs(argv)
+// Run agent action
+func (sw *Swarm) Runm(ctx context.Context, parent *api.Agent, argm map[string]any) (*api.Result, error) {
+	am := api.ArgMap(argm)
+	kit := am.Kit()
+	name := am.Name()
+	if kit != api.ToolTypeAgent {
+		return nil, fmt.Errorf("invalid agent: %v", name)
+	}
+	return sw.runm(ctx, parent, name, am)
+}
+
+func (sw *Swarm) Exec(ctx context.Context, args string) (*api.Result, error) {
+	am, err := conf.ParseActionCommand(args)
 	if err != nil {
 		return nil, err
 	}
-	if at == nil {
-		return nil, fmt.Errorf("invalid agent tool command: %+v", argv)
+	if len(am) == 0 {
+		return nil, fmt.Errorf("invalid action command: %s", args)
 	}
-	id := at.Kitname().ID()
-
-	return agent.Runner.Run(ctx, id, at)
+	return sw.Execm(ctx, am)
 }
 
-func (sw *Swarm) RunAction(ctx context.Context, parent *api.Agent, action string, args map[string]any) (any, error) {
-	req := api.NewRequest(ctx, action, args)
+func (sw *Swarm) Execv(ctx context.Context, argv []string) (*api.Result, error) {
+	am, err := conf.ParseActionArgs(argv)
+	if err != nil {
+		return nil, err
+	}
+	if len(am) == 0 {
+		return nil, fmt.Errorf("invalid action command: %+v", argv)
+	}
+	return sw.Execm(ctx, am)
+}
+
+func (sw *Swarm) Execm(ctx context.Context, argm map[string]any) (*api.Result, error) {
+	a := api.ArgMap(argm)
+	id := a.Kitname().ID()
+	if id == "" {
+		return nil, fmt.Errorf("missing action id: %+v", argm)
+	}
+	kit := a.Kit()
+	name := a.Name()
+
+	var v any
+	var err error
+	switch kit {
+	case "agent":
+		v, err = sw.runm(ctx, sw.RootAgent, name, argm)
+	case "script":
+		v, err = sw.Shell.Run(ctx, "", argm)
+	default:
+		// tools
+		v, err = sw.RootAgent.Runner.Run(ctx, id, argm)
+	}
+	if err != nil {
+		return nil, err
+	}
+	result := api.ToResult(v)
+	return result, nil
+}
+
+// Run agent action
+func (sw *Swarm) runm(ctx context.Context, parent *api.Agent, name string, args map[string]any) (*api.Result, error) {
+	req := api.NewRequest(ctx, name, args)
 	req.Agent = parent
 
 	resp := &api.Response{}
-	err := sw.Run(req, resp)
+	err := sw.Serve(req, resp)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if resp.Result == nil {
-		return "no output", nil
+		return nil, fmt.Errorf("no output")
 	}
 	return resp.Result, nil
 }
+
+// func (sw *Swarm) RunAction(ctx context.Context, parent *api.Agent, action string, args map[string]any) (any, error) {
+// 	req := api.NewRequest(ctx, action, args)
+// 	req.Agent = parent
+
+// 	resp := &api.Response{}
+// 	err := sw.Run(req, resp)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	if resp.Result == nil {
+// 		return "no output", nil
+// 	}
+// 	return resp.Result, nil
+// }
 
 // inherit parent tools including embedded agents
 // TODO cache
@@ -432,7 +426,8 @@ func (sw *Swarm) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFun
 func (sw *Swarm) callAgentType(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	// agent tool
 	if tf.Kit == api.ToolTypeAgent {
-		return sw.RunAction(ctx, agent, tf.Agent, args)
+		// return sw.RunAction(ctx, agent, tf.Agent, args)
+		return sw.runm(ctx, agent, tf.Agent, args)
 	}
 
 	// ai tool

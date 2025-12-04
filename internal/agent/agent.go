@@ -149,7 +149,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	sw.Vars.Global.Set("query", msg)
 
 	var out *api.Output
-	if v, err := sw.Execm(ctx, cfg.Name, args); err != nil {
+	if v, err := sw.Execm(ctx, args); err != nil {
 		return err
 	} else {
 		out = &api.Output{
