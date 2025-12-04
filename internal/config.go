@@ -87,6 +87,7 @@ func ParseConfig(viper api.ArgMap, app *api.AppConfig, args []string) error {
 	}
 	app.Base = filepath.Join(home, ".ai")
 
+	app.Kit = viper.GetString("kit")
 	app.Name = viper.GetString("name")
 
 	//

@@ -206,7 +206,7 @@ func NewArgMap() ArgMap {
 }
 
 func (a ArgMap) Kitname() Kitname {
-	kn := fmt.Sprintf("%s:%s", a["kit"], a["name"])
+	kn := fmt.Sprintf("%s:%s", ToString(a["kit"]), ToString(a["name"]))
 	return Kitname(kn)
 }
 

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/shell/tool/sh/vfs"
 )
@@ -64,9 +65,21 @@ func (r *AgentToolRunner) loadTool(tid string) (*api.ToolFunc, error) {
 }
 
 func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]any) (any, error) {
-	v, ok := r.toolMap[tid]
-	if !ok {
-		return nil, fmt.Errorf("tool not found: %s", tid)
+	// v, ok := r.toolMap[tid]
+	// if !ok {
+	// 	return nil, fmt.Errorf("tool not found: %s", tid)
+	// }
+
+	kit, _ := api.Kitname(tid).Decode()
+	// local system command
+	if kit == "" {
+		argv, _ := api.GetArrayProp("arguments", args)
+		return atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, tid, argv)
+	}
+
+	v, err := r.loadTool(tid)
+	if err != nil {
+		return nil, err
 	}
 
 	result, err := r.sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, r.user), r.agent, v, args)
