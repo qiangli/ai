@@ -55,10 +55,11 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem) sh.ExecHandler 
 			return true, fmt.Errorf("missing parent agent")
 		}
 		log.GetLogger(ctx).Debugf("parent: %s args: %+v\n", r.parent.Name, args)
-		isAi := func(s string) bool {
-			return s == "ai" || strings.HasPrefix(s, "@") || strings.HasPrefix(s, "/")
-		}
-		if isAi(strings.ToLower(args[0])) {
+		isAI := conf.IsAgentTool
+		// isAI := func(s string) bool {
+		// 	return s == "ai" || strings.HasPrefix(s, "@") || strings.HasPrefix(s, "/")
+		// }
+		if isAI(strings.ToLower(args[0])) {
 			log.GetLogger(ctx).Debugf("running ai agent/tool: %+v\n", args)
 
 			_, err := runner(ctx, args)
@@ -88,26 +89,30 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem) sh.ExecHandler 
 
 func (r *AgentScriptRunner) runner(vs *sh.VirtualSystem, agent *api.Agent) func(context.Context, []string) (*api.Result, error) {
 	return func(ctx context.Context, args []string) (*api.Result, error) {
-		at, err := conf.ParseActionArgs(args)
-		if err != nil {
-			return nil, err
-		}
-		id := at.Kitname().ID()
+
 		for k, v := range agent.Environment.GetAllEnvs() {
 			vs.System.Setenv(k, v)
 		}
 
-		data, err := agent.Runner.Run(ctx, id, at)
+		// at, err := conf.ParseActionArgs(args)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// id := at.Kitname().ID()
+		// // TODO batch set
+		// data, err := agent.Runner.Run(ctx, id, at)
+
+		result, err := r.sw.Execv(ctx, args)
 
 		if err != nil {
 			// vs.System.Setenv(globalError, err.Error())
 			fmt.Fprintln(vs.IOE.Stderr, err.Error())
 			return nil, err
 		}
-		result := api.ToResult(data)
-		if result == nil {
-			result = &api.Result{}
-		}
+		// result := api.ToResult(data)
+		// if result == nil {
+		// 	result = &api.Result{}
+		// }
 		fmt.Fprintln(vs.IOE.Stdout, result.Value)
 		// vs.System.Setenv(globalResult, result.Value)
 

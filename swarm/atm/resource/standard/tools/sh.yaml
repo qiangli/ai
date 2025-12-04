@@ -11,7 +11,7 @@ tools:
         command:
           type: "string"
           description: "The command to execute."
-        args:
+        arguments:
           type: "array"
           items:
             type: "string"
@@ -34,7 +34,7 @@ tools:
     description: "Print the current working directory on user's system."
     parameters: {}
 
-  - name: "shell"
+  - name: "bash"
     description: |
       Executes a shell script within the user's environment. Users can provide optional flags and arguments via 'args'.
       Either 'command' or 'script' must be specified; application logic will ensure this requirement.
@@ -48,9 +48,9 @@ tools:
         script:
           type: "string"
           description: "Path to the shell script file to be executed."
-        args:
+        arguments:
           type: "array"
           items:
             type: "string"
-          description: "Arguments to be passed to the command. This can be an empty list."
+          description: "Arguments to be passed to the shell. This can be an empty list."
       required: []

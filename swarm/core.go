@@ -346,7 +346,17 @@ func (sw *Swarm) Execm(ctx context.Context, argm map[string]any) (*api.Result, e
 	case "agent":
 		v, err = sw.runm(ctx, sw.RootAgent, name, argm)
 	case "script":
-		v, err = sw.Shell.Run(ctx, "", argm)
+		if c, ok := argm["command"]; ok {
+			v, err = sw.Shell.Run(ctx, api.ToString(c), argm)
+		} else if path, ok := argm["script"]; ok {
+			c, err := sw.loadScript(api.ToString(path))
+			if err != nil {
+				return nil, err
+			}
+			v, err = sw.Shell.Run(ctx, c, argm)
+		} else {
+			return nil, fmt.Errorf("")
+		}
 	default:
 		// tools
 		v, err = sw.RootAgent.Runner.Run(ctx, id, argm)
@@ -356,6 +366,14 @@ func (sw *Swarm) Execm(ctx context.Context, argm map[string]any) (*api.Result, e
 	}
 	result := api.ToResult(v)
 	return result, nil
+}
+
+func (sw *Swarm) loadScript(file string) (string, error) {
+	data, err := sw.Workspace.ReadFile(file, nil)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
 }
 
 // Run agent action

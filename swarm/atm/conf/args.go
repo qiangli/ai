@@ -26,9 +26,10 @@ func (s *stringSlice) Set(value string) error {
 }
 
 // ParseActionArgs parses and converts arguments list to map
+// skipping trigger word "ai"
 func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	if len(argv) == 0 {
-		return nil, fmt.Errorf("missing command arguments")
+		return nil, fmt.Errorf("missing action arguments")
 	}
 	// skip trigger word "ai"
 	if len(argv) > 0 && strings.ToLower(argv[0]) == "ai" {
@@ -39,13 +40,10 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	}
 
 	var name = argv[0]
-
 	var kit string
-	// var ftype string
 	switch name[0] {
 	case '@':
 		name = strings.ToLower(name[1:])
-		// ftype = api.ToolTypeAgent
 		kit = api.ToolTypeAgent
 		argv = argv[1:]
 	case '/':
@@ -55,35 +53,26 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	default:
 		if strings.HasPrefix(name, "agent:") {
 			name = strings.ToLower(name[6:])
-			// ftype = api.ToolTypeAgent
 			kit = api.ToolTypeAgent
 			argv = argv[1:]
 		} else if strings.HasSuffix(name, ",") {
 			name = strings.ToLower(name[:len(name)-1])
-			// ftype = api.ToolTypeAgent
 			kit = api.ToolTypeAgent
 			argv = argv[1:]
 		} else {
 			name = ""
-			kit = api.ToolTypeAgent
-
-			// not an agent/tool command
-			// return nil, nil
-			// assume all are agent/tool
+			// missing action (agent/tool)
 			// use IsAgentTool for checking if needed
 		}
 	}
-	// if name == "" {
-	// 	// name = "anonymous"
-	// 	// ftype = api.ToolTypeAgent
-	// 	kit = api.ToolTypeAgent
-	// }
 
 	fs := flag.NewFlagSet("ai", flag.ContinueOnError)
 
 	var arg stringSlice
 	fs.Var(&arg, "arg", "argument name=value (can be used multiple times)")
-	arguments := fs.String("arguments", "", "arguments map in JSON format")
+	// for LLM: json object format
+	// for human: also support string of name=value delimited by space and array list of name=value in json format
+	arguments := fs.String("arguments", "", "arguments in json object format")
 
 	//
 	instruction := fs.String("instruction", "", "System role prompt message")
@@ -92,6 +81,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	model := fs.String("model", "", "LLM model alias defined in the model set")
 
 	// common args
+	// TODO revisit
 	maxHistory := fs.Int("max-history", 0, "Max historic messages to retrieve")
 	maxSpan := fs.Int("max-span", 0, "Historic message retrieval span (minutes)")
 	maxTurns := fs.Int("max-turns", 3, "Max conversation turns")
@@ -142,13 +132,19 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 
 	// agent/tool default arguments
 	// precedence: <common>, arg slice, arguments
-	var argm = make(map[string]any)
-	// Parse JSON arguments
+	// Parse string arguments
+	var argm map[string]any
 	if *arguments != "" {
-		if err := json.Unmarshal([]byte(*arguments), &argm); err != nil {
-			return nil, fmt.Errorf("invalid JSON arguments: %w", err)
+		if v, err := ParseArguments(*arguments); err != nil {
+			return nil, err
+		} else {
+			argm = v
 		}
 	}
+	if argm == nil {
+		argm = make(map[string]any)
+	}
+
 	// Parse individual arg in the slice
 	for _, v := range arg {
 		parts := strings.SplitN(v, "=", 2)
@@ -177,8 +173,6 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	}
 
 	// update the map
-	argm["workspace"] = *workspace
-
 	if kit != "" {
 		argm["kit"] = kit
 	}
@@ -194,20 +188,15 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	if *model != "" {
 		argm["model"] = *model
 	}
-
-	// var at = &api.ActionConfig{
-	// 	Message:     msg,
-	// 	Instruction: prompt,
-	// 	Arguments:   atArgs,
-	// 	Kit:         kit,
-	// 	Name:        name,
-	// 	Type:        ftype,
-	// }
+	if *workspace != "" {
+		argm["workspace"] = *workspace
+	}
 
 	return argm, nil
 }
 
-// agent/tool name is "ai" or starts with "agent:", "@" or "/" or ends with ","
+// action (agent/tool) name convention:
+// "ai" or starts with "agent:", "@" or "/" or ends with ","
 // ai name args...
 //
 // agent:name args...
@@ -234,6 +223,7 @@ func IsAgentTool(s string) bool {
 		}
 	}
 	s, _ = split2(s, " ", "")
+	// true but empty command
 	if s == "ai" {
 		return true
 	}
@@ -244,13 +234,79 @@ func IsAgentTool(s string) bool {
 }
 
 func ParseActionCommand(s string) (api.ArgMap, error) {
+	if len(s) == 0 {
+		return nil, fmt.Errorf("missing action command")
+	}
 	argv := shlex.Argv(s)
-	at, err := ParseActionArgs(argv)
+	argm, err := ParseActionArgs(argv)
 	if err != nil {
 		return nil, err
 	}
-	if at == nil {
-		return nil, fmt.Errorf("invalid command: %v", s)
+	if len(argm) == 0 {
+		return nil, fmt.Errorf("empty command: %v", s)
 	}
-	return at, nil
+	return argm, nil
+}
+
+// Parse arguments in various forms.
+// + json object
+// + array list of name=value pairs or command line style options
+// + string of name=value pairs or command line style options
+func ParseArguments(args string) (map[string]any, error) {
+	if len(args) == 0 {
+		return nil, nil
+	}
+	// if any of the args starts with "-", an invalid name,
+	// assume command line style options
+	// otherise, treat as name=value pairs
+	isCmdline := func(a []string) bool {
+		for _, v := range a {
+			if strings.HasPrefix(v, "-") {
+				return true
+			}
+		}
+		return false
+	}
+	parse := func(a []string) (map[string]any, error) {
+		if isCmdline(a) {
+			return ParseActionArgs(a)
+		}
+		var m = make(map[string]any)
+		for _, v := range a {
+			s2 := strings.SplitN(v, "=", 2)
+			if len(s2) == 2 {
+				m[s2[0]] = s2[1]
+			}
+		}
+		return m, nil
+	}
+
+	// Parse arguments
+	var argm map[string]any
+	switch {
+	case strings.HasPrefix(args, "{"):
+		if err := json.Unmarshal([]byte(args), &argm); err != nil {
+			return nil, fmt.Errorf("invalid json object arguments: %q error: %w", args, err)
+		}
+	case strings.HasPrefix(args, "["):
+		var argv []string
+		if err := json.Unmarshal([]byte(args), &argv); err != nil {
+			return nil, fmt.Errorf("invalid json array arguments: %q error: %w", args, err)
+		}
+		if v, err := parse(argv); err != nil {
+			return nil, err
+		} else {
+			argm = v
+		}
+	default:
+		// string name=value pairs
+		argv := shlex.Argv(args)
+		if v, err := parse(argv); err != nil {
+			return nil, err
+		} else {
+			argm = v
+		}
+	}
+
+	return argm, nil
 }

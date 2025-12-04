@@ -2,6 +2,7 @@ package atm
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/qiangli/ai/swarm/api"
 )
@@ -23,11 +24,30 @@ func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, name string, args 
 	if err != nil {
 		return "", err
 	}
-	argsList, err := api.GetArrayProp("args", args)
+	argv, err := api.GetArrayProp("arguments", args)
 	if err != nil {
 		return "", err
 	}
-	return ExecCommand(ctx, r.os, vars, command, argsList)
+	// TODO virtual bash
+	return ExecCommand(ctx, r.os, vars, command, argv)
+}
+
+func (r *SystemKit) Shell(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	// command, err := api.GetStrProp("command", args)
+	// if err != nil {
+	// 	return "", err
+	// }
+	// script, err := api.GetArrayProp("script", args)
+	// if err != nil {
+	// 	return "", err
+	// }
+	// argsList, err := api.GetArrayProp("arguments", args)
+	// if err != nil {
+	// 	return "", err
+	// }
+
+	// return ExecCommand(ctx, r.os, vars, command, argsList)
+	return "", fmt.Errorf("script not supported: %s", name)
 }
 
 func (r *SystemKit) WorkspaceRoot(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
