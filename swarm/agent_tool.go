@@ -72,9 +72,11 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 
 	kit, _ := api.Kitname(tid).Decode()
 	// local system command
-	if kit == "" {
+	// sh:*
+	if kit == "sh" {
+		cmd, _ := api.GetStrProp("command", args)
 		argv, _ := api.GetArrayProp("arguments", args)
-		return atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, tid, argv)
+		return atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, cmd, argv)
 	}
 
 	v, err := r.loadTool(tid)

@@ -3,7 +3,6 @@ package agent
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"maps"
 	"os"
 	"path/filepath"
@@ -141,14 +140,12 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig, input *api.UserInput) err
 	sw.Vars.Global.Set("workspace", cfg.Workspace)
 
 	var args = make(map[string]any)
+	maps.Copy(args, cfg.Arguments)
 	maps.Copy(args, cfg.ToMap())
 	maps.Copy(args, input.Arguments)
 
 	// initial query is required.
 	var msg = args["message"]
-	if msg == "" {
-		return fmt.Errorf("%s: message missing", cfg.Name)
-	}
 	sw.Vars.Global.Set("query", msg)
 
 	var out *api.Output
