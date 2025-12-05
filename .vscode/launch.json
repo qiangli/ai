@@ -22,6 +22,10 @@
 			"envFile": "${workspaceFolder}/.env",
 			"args": [
 				// "/help",
+				"/sh:bash",
+				"/bin/ls",
+				"-al",
+				// "/sh:bash", "ls",
 				// "agents",
 				// "/agent:joker",
 				// "@agent/agent",
@@ -53,7 +57,6 @@
 				// "tell me a joke. show me the query and prompt used for the llm request by calling call_llm and other tools",
 				// "@gptr/crawl",
 				// "@agent",
-				"/sh:bash", "ls",
 				// "--message",
 				// "what is the weather today in dublin ca",
 				// "yes",

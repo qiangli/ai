@@ -463,10 +463,10 @@ func (ac *AppConfig) ToMap() map[string]any {
 	return result
 }
 
-func (cfg *AppConfig) IsNew() bool {
-	// return cfg.New != nil && *cfg.New
-	return cfg.MaxHistory == 0
-}
+// func (cfg *AppConfig) IsNew() bool {
+// 	// return cfg.New != nil && *cfg.New
+// 	return cfg.MaxHistory == 0
+// }
 
 func (cfg *AppConfig) IsQuiet() bool {
 	return ToLogLevel(cfg.LogLevel) == Quiet
@@ -497,7 +497,7 @@ func (cfg *AppConfig) IsSpecial() bool {
 }
 
 func (cfg *AppConfig) HasInput() bool {
-	return cfg.Message != "" || cfg.Name != ""
+	return cfg.Message != ""
 }
 
 func (cfg *AppConfig) Interactive() bool {

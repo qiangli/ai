@@ -70,11 +70,6 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 	logger := log.GetLogger(ctx)
 	swarm.ClearAllEnv(essentialEnv)
 
-	// vars, err := InitVars(cfg)
-	// if err != nil {
-	// 	return err
-	// }
-
 	var msg = cfg.Message
 
 	mem, err := db.OpenMemoryStore(cfg)
@@ -82,8 +77,6 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 		return err
 	}
 	defer mem.Close()
-
-	showInput(ctx, cfg)
 
 	var root = cfg.Workspace
 
@@ -99,11 +92,15 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 		user = v
 		user.Display = who
 	}
-	if cfg.Name != "" {
-		user.SetAgent(cfg.Name)
-		storeUser(cfg, user)
-	} else {
-		cfg.Name = user.Agent()
+
+	// agent
+	if cfg.Kit == "agent" {
+		if cfg.Name != "" {
+			user.SetAgent(cfg.Name)
+			storeUser(cfg, user)
+		} else {
+			cfg.Name = user.Agent()
+		}
 	}
 
 	var adapters = adapter.GetAdapters()
@@ -141,15 +138,12 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 
 	sw.Init()
 	sw.Vars.Global.Set("workspace", cfg.Workspace)
-
-	// var args = make(map[string]any)
-	// maps.Copy(args, cfg.Arguments)
-	// maps.Copy(args, cfg.ToMap())
-	// // maps.Copy(args, input.Arguments)
-	// // initial query is required.
-	// // var msg = args["message"]
-	// args["message"] = input.Message
 	sw.Vars.Global.Set("query", msg)
+
+	//
+	if cfg.HasInput() {
+		showInput(ctx, cfg)
+	}
 
 	var out *api.Output
 	if v, err := sw.Execm(ctx, cfg.Arguments); err != nil {

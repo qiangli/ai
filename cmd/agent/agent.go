@@ -96,6 +96,8 @@ func setupAppConfig(ctx context.Context, argv []string) (*api.AppConfig, error) 
 	log.GetLogger(ctx).SetLogLevel(level)
 	log.GetLogger(ctx).Debugf("Config: %+v\n", app)
 
+	maps.Copy(app.Arguments, app.ToMap())
+
 	return app, nil
 }
 
