@@ -121,8 +121,6 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 
 	sw := &swarm.Swarm{
 		ID: uuid.NewString(),
-		// Root:      root,
-		// Vars:      vars,
 		User:     user,
 		Secrets:  secrets,
 		Assets:   assets,
@@ -185,12 +183,3 @@ func processOutput(ctx context.Context, cfg *api.AppConfig, message *api.Output)
 		processTextContent(ctx, cfg, message)
 	}
 }
-
-// func InitVars(app *api.AppConfig) (*api.Vars, error) {
-// 	var vars = api.NewVars()
-
-// 	// global envs
-// 	vars.Global.Set("workspace", app.Workspace)
-
-// 	return vars, nil
-// }

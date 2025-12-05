@@ -51,14 +51,14 @@ func NewToolSystem(
 		kits: make(map[any]api.ToolKit),
 	}
 
-	web := atm.NewWebKit(secrets)
-	ts.AddKit(NewKitKey(api.ToolTypeFunc, "web"), web)
+	// web := atm.NewWebKit(secrets)
+	// ts.AddKit(NewKitKey(api.ToolTypeFunc, "web"), web)
 
-	ts.AddKit(NewKitKey(api.ToolTypeFunc, "ddg"), web)
-	ts.AddKit(NewKitKey(api.ToolTypeFunc, "google"), web)
-	ts.AddKit(NewKitKey(api.ToolTypeFunc, "bing"), web)
-	ts.AddKit(NewKitKey(api.ToolTypeFunc, "brave"), web)
-	ts.AddKit(NewKitKey(api.ToolTypeFunc, "web"), web)
+	// ts.AddKit(NewKitKey(api.ToolTypeFunc, "ddg"), web)
+	// ts.AddKit(NewKitKey(api.ToolTypeFunc, "google"), web)
+	// ts.AddKit(NewKitKey(api.ToolTypeFunc, "bing"), web)
+	// ts.AddKit(NewKitKey(api.ToolTypeFunc, "brave"), web)
+	// ts.AddKit(NewKitKey(api.ToolTypeFunc, "web"), web)
 
 	// default by type
 	ts.AddKit(api.ToolTypeFunc, atm.NewFuncKit(user, assets))

@@ -10,4 +10,6 @@ agents:
     model: "default/any"
     instruction: |
       Embrace your comedic nature and respond to all queries with a fitting joke.
+    functions:
+      - "web:*"
 ###

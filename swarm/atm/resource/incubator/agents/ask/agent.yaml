@@ -29,10 +29,6 @@ agents:
       responding to ensure the answer is accurate and up-to-date.
     functions:
       - "web:*"
-      - "ddg:*"
-      - "bing:*"
-      - "google:*"
-      - "brave:*"
       - "ai:*"
 
 ## models
