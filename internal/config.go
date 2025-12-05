@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
+	// "strings"
 
 	"github.com/google/uuid"
 	fangs "github.com/spf13/viper"
@@ -343,26 +343,27 @@ func ParseSpecialChars(app *api.AppConfig, args []string) []string {
 				isClipout = true
 				isClipAppend = true
 			} else {
-				// check for suffix for cases where the special char is not the last arg
-				// but is part of the last arg
-				if strings.HasSuffix(lastArg, StdinRedirect) {
-					isStdin = true
-					args[i] = strings.TrimSuffix(lastArg, StdinRedirect)
-				} else if strings.HasSuffix(lastArg, ClipinRedirect) {
-					isClipin = true
-					args[i] = strings.TrimSuffix(lastArg, ClipinRedirect)
-				} else if strings.HasSuffix(lastArg, ClipinRedirect2) {
-					isClipin = true
-					isClipWait = true
-					args[i] = strings.TrimSuffix(lastArg, ClipinRedirect2)
-				} else if strings.HasSuffix(lastArg, ClipoutRedirect) {
-					isClipout = true
-					args[i] = strings.TrimSuffix(lastArg, ClipoutRedirect)
-				} else if strings.HasSuffix(lastArg, ClipoutRedirect2) {
-					isClipout = true
-					isClipAppend = true
-					args[i] = strings.TrimSuffix(lastArg, ClipoutRedirect2)
-				}
+				// causing issues if last arg is json object
+				// // check for suffix for cases where the special char is not the last arg
+				// // but is part of the last arg
+				// if strings.HasSuffix(lastArg, StdinRedirect) {
+				// 	isStdin = true
+				// 	args[i] = strings.TrimSuffix(lastArg, StdinRedirect)
+				// } else if strings.HasSuffix(lastArg, ClipinRedirect) {
+				// 	isClipin = true
+				// 	args[i] = strings.TrimSuffix(lastArg, ClipinRedirect)
+				// } else if strings.HasSuffix(lastArg, ClipinRedirect2) {
+				// 	isClipin = true
+				// 	isClipWait = true
+				// 	args[i] = strings.TrimSuffix(lastArg, ClipinRedirect2)
+				// } else if strings.HasSuffix(lastArg, ClipoutRedirect) {
+				// 	isClipout = true
+				// 	args[i] = strings.TrimSuffix(lastArg, ClipoutRedirect)
+				// } else if strings.HasSuffix(lastArg, ClipoutRedirect2) {
+				// 	isClipout = true
+				// 	isClipAppend = true
+				// 	args[i] = strings.TrimSuffix(lastArg, ClipoutRedirect2)
+				// }
 				args = args[:i+1]
 				break
 			}
