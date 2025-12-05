@@ -62,7 +62,7 @@ func WatchRepo(ctx context.Context, cfg *api.AppConfig) error {
 			return
 		}
 
-		in, err := parseUserInput(line, prefix)
+		// in, err := parseUserInput(line, prefix)
 		if err != nil {
 			log.GetLogger(ctx).Errorf("Error parsing user input: %s\n", err)
 			return
@@ -76,8 +76,8 @@ func WatchRepo(ctx context.Context, cfg *api.AppConfig) error {
 
 		// log.GetLogger(ctx).Debugf("agent: %s\n", in.Agent)
 
-		cfg.Format = "text"
-		cfg.Message = in.Message
+		// cfg.Format = "text"
+		// cfg.Message = in.Message
 		if err := agent.RunSwarm(ctx, cfg); err != nil {
 			log.GetLogger(ctx).Errorf("Error running agent: %s\n", err)
 			return

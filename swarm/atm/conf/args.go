@@ -49,7 +49,12 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	case '/':
 		name = strings.ToLower(name[1:])
 		kit, name = api.Kitname(name).Decode()
-		argv = argv[1:]
+		if kit == "" {
+			// not a tool
+			name = ""
+		} else {
+			argv = argv[1:]
+		}
 	default:
 		if strings.HasPrefix(name, "agent:") {
 			name = strings.ToLower(name[6:])
@@ -213,13 +218,14 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 //
 // action
 //
-//   - agent:
+//   - agent: prefix "agent:",  at sign "@" or suffix comma ","
 //     agent:pack[/sub]
 //     @pack[/sub]
 //     pack[/sub],
 //
-//   - tool:
-//     /kit[:name]
+//   - tool: slash command, prefix "/" followed by colon ":" or single component
+//     /kit
+//     /kit:name[/sub]
 //     /agent:pack[/sub]
 //
 // anoymous:
@@ -233,7 +239,13 @@ func IsAction(s string) bool {
 	case '@':
 		return true
 	case '/':
-		return true
+		// assuming NO unix binary directly under root /.
+		s = strings.TrimPrefix(s, "/")
+		sa := strings.SplitN(s, "/", 2)
+		if len(sa) == 1 {
+			return true
+		}
+		return strings.Contains(s, ":")
 	default:
 		if strings.HasPrefix(s, "agent:") {
 			return true

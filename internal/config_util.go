@@ -82,9 +82,9 @@ func Validate(app *api.AppConfig) error {
 // 	return os.UserHomeDir()
 // }
 
-func tempDir() string {
-	return os.TempDir()
-}
+// func tempDir() string {
+// 	return os.TempDir()
+// }
 
 // // detectGitRepo returns the directory of the git repository
 // // containing the given path.
@@ -107,7 +107,7 @@ func tempDir() string {
 // 	return original, nil
 // }
 
-func ensureWorkspace(ws string) (string, error) {
+func EnsureWorkspace(ws string) (string, error) {
 	workspace, err := validatePath(ws)
 	if err != nil {
 		return "", err

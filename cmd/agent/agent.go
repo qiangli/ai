@@ -2,9 +2,13 @@ package agent
 
 import (
 	"context"
-	// "os"
+	"fmt"
+	"maps"
+	"os"
+	"path/filepath"
 	// "strings"
 
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	// "github.com/spf13/pflag"
 
@@ -54,117 +58,7 @@ func init() {
 		}
 	})
 
-	// // Bind the flags to viper using underscores
-	// flags.VisitAll(func(f *pflag.Flag) {
-	// 	key := strings.ReplaceAll(f.Name, "-", "_")
-	// 	viper.BindPFlag(key, f)
-	// })
 }
-
-// func run(cmd *cobra.Command, args []string) error {
-// 	var ctx = context.TODO()
-
-// 	cfg, err := setupAppConfig(ctx, args)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	if err := internal.Validate(cfg); err != nil {
-// 		return err
-// 	}
-
-// 	// watch mode
-// 	// if cfg.Watch {
-// 	// 	if err := watch.WatchRepo(ctx, cfg); err != nil {
-// 	// 		log.GetLogger(ctx).Errorf("%v\n", err)
-// 	// 	}
-// 	// 	return nil
-// 	// }
-// 	// if cfg.ClipWatch {
-// 	// 	if err := watch.WatchClipboard(ctx, cfg); err != nil {
-// 	// 		log.GetLogger(ctx).Errorf("%v\n", err)
-// 	// 	}
-// 	// 	return nil
-// 	// }
-
-// 	// interactive mode
-// 	// $ ai -i or $ ai --interactive
-// 	if cfg.Interactive() {
-// 		// // bubble
-// 		// if len(cfg.Args) > 0 && cfg.Args[0] == "bubble" {
-// 		// 	// _, err := bubble.BubbleGum(cfg.Args[1:])
-// 		// 	if len(cfg.Args) < 3 {
-// 		// 		bubble.Help()
-// 		// 		return nil
-// 		// 	}
-// 		// 	sub := cfg.Args[1]
-// 		// 	prompt := cfg.Args[2]
-
-// 		// 	var err error
-// 		// 	var result string
-// 		// 	switch sub {
-// 		// 	case "confirm":
-// 		// 		result, err = bubble.Confirm(prompt)
-// 		// 	case "choose":
-// 		// 		if len(cfg.Args) < 5 {
-// 		// 			log.GetLogger(ctx).Errorf("%v\n", "Not enough args")
-// 		// 			return nil
-// 		// 		}
-// 		// 		multi, _ := strconv.ParseBool(cfg.Args[4])
-// 		// 		result, err = bubble.Choose(prompt, cfg.Args[4:], multi)
-// 		// 	case "file":
-// 		// 		var p string
-// 		// 		if len(cfg.Args) > 3 {
-// 		// 			p = cfg.Args[3]
-// 		// 		}
-// 		// 		result, err = bubble.PickFile(prompt, p)
-// 		// 	case "write":
-// 		// 		var placeholder, value string
-// 		// 		if len(cfg.Args) > 3 {
-// 		// 			placeholder = cfg.Args[3]
-// 		// 		}
-// 		// 		if len(cfg.Args) > 4 {
-// 		// 			value = cfg.Args[4]
-// 		// 		}
-// 		// 		result, err = bubble.Write(prompt, placeholder, value)
-// 		// 	case "edit":
-// 		// 		var placeholder, value string
-// 		// 		if len(cfg.Args) > 3 {
-// 		// 			placeholder = cfg.Args[3]
-// 		// 		}
-// 		// 		if len(cfg.Args) > 4 {
-// 		// 			value = cfg.Args[4]
-// 		// 		}
-// 		// 		result, err = bubble.Edit(prompt, placeholder, value)
-// 		// 	}
-// 		// 	if err != nil {
-// 		// 		log.GetLogger(ctx).Errorf("%v\n", err)
-// 		// 	}
-// 		// 	log.GetLogger(ctx).Printf("%s\n", result)
-// 		// 	return nil
-// 		// }
-
-// 		if err := shell.Shell(ctx, cfg); err != nil {
-// 			log.GetLogger(ctx).Errorf("%v\n", err)
-// 		}
-// 		return nil
-// 	}
-
-// 	// $ ai
-// 	// if no args and no input, show help
-// 	if !cfg.HasInput() {
-// 		if err := cmd.Help(); err != nil {
-// 			return err
-// 		}
-// 	}
-
-// 	if err := agent.RunAgent(ctx, cfg); err != nil {
-// 		log.GetLogger(ctx).Errorf("%v\n", err)
-// 		return nil
-// 	}
-
-// 	return nil
-// }
 
 func setupAppConfig(ctx context.Context, argv []string) (*api.AppConfig, error) {
 	argm, err := conf.ParseActionArgs(argv)
@@ -172,13 +66,12 @@ func setupAppConfig(ctx context.Context, argv []string) (*api.AppConfig, error) 
 		return nil, err
 	}
 	var cfg = &api.AppConfig{}
-	err = internal.ParseConfig(argm, cfg, argv)
+	err = ParseConfig(ctx, cfg, argv)
 	if err != nil {
 		return nil, err
 	}
-	// // save original for non action commands
-	// argm["arguments"] = argv
-	// cfg.Arguments = argm
+	cfg.Arguments = argm
+
 	level := api.ToLogLevel(cfg.LogLevel)
 	log.GetLogger(ctx).SetLogLevel(level)
 	log.GetLogger(ctx).Debugf("Config: %+v\n", cfg)
@@ -192,21 +85,60 @@ func Run(ctx context.Context, argv []string) error {
 	if err != nil {
 		return err
 	}
+
+	// call local system command as tool:
+	// sh:bash command arguments
 	if !conf.IsAction(argv[0]) {
-		// argm := make(map[string]any)
-		cfg.Arguments["command"] = argv[0]
+		args := make(map[string]any)
+		args["kit"] = "sh"
+		args["name"] = "bash"
+		args["command"] = argv[0]
 		if len(argv) > 1 {
-			cfg.Arguments["arguments"] = argv[1:]
+			args["arguments"] = argv[1:]
 		}
+		maps.Copy(cfg.Arguments, args)
+
 		if err := agent.RunSwarm(ctx, cfg); err != nil {
 			log.GetLogger(ctx).Errorf("%v\n", err)
 		}
 		return nil
 	}
 
-	if err := agent.RunAgent(ctx, cfg); err != nil {
+	if err := agent.RunSwarm(ctx, cfg); err != nil {
 		log.GetLogger(ctx).Errorf("%v\n", err)
 		return nil
 	}
+	return nil
+}
+
+func ParseConfig(ctx context.Context, app *api.AppConfig, args []string) error {
+	// defaults
+	app.Format = "markdown"
+	app.LogLevel = "info"
+
+	app.Session = uuid.NewString()
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	app.Base = filepath.Join(home, ".ai")
+
+	ws := filepath.Join(app.Base, "workspace")
+	if v, err := internal.EnsureWorkspace(ws); err != nil {
+		return fmt.Errorf("failed to resolve workspace: %w", err)
+	} else {
+		app.Workspace = v
+	}
+
+	// stdin//pasteboard
+	internal.ParseSpecialChars(app, args)
+
+	in, err := agent.GetUserInput(ctx, app)
+	if err != nil {
+		return err
+	}
+	app.Message = in.Message
+
 	return nil
 }

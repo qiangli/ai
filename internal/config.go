@@ -87,8 +87,8 @@ func ParseConfig(viper api.ArgMap, app *api.AppConfig, args []string) error {
 	}
 	app.Base = filepath.Join(home, ".ai")
 
-	app.Kit = viper.GetString("kit")
-	app.Name = viper.GetString("name")
+	// app.Kit = viper.GetString("kit")
+	// app.Name = viper.GetString("name")
 
 	//
 	// workspace is required for ai to properly operate
@@ -97,7 +97,7 @@ func ParseConfig(viper api.ArgMap, app *api.AppConfig, args []string) error {
 	if ws == "" {
 		ws = filepath.Join(app.Base, "workspace")
 	}
-	if v, err := ensureWorkspace(ws); err != nil {
+	if v, err := EnsureWorkspace(ws); err != nil {
 		return fmt.Errorf("failed to resolve workspace: %w", err)
 	} else {
 		app.Workspace = v
@@ -116,9 +116,8 @@ func ParseConfig(viper api.ArgMap, app *api.AppConfig, args []string) error {
 	// app.Output = viper.GetString("output")
 
 	//
-	app.Instruction = viper.GetString("instruction")
-
-	app.Message = viper.GetString("message")
+	// app.Instruction = viper.GetString("instruction")
+	// app.Message = viper.GetString("message")
 
 	// app.Template = viper.GetString("template")
 
@@ -144,25 +143,23 @@ func ParseConfig(viper api.ArgMap, app *api.AppConfig, args []string) error {
 	// }
 
 	app.Session = uuid.NewString()
-
-	app.MaxHistory = viper.GetInt("max_history")
-	app.MaxSpan = viper.GetInt("max_span")
+	// app.MaxHistory = viper.GetInt("max_history")
+	// app.MaxSpan = viper.GetInt("max_span")
 	// if viper.IsSet("new") {
 	// 	if viper.GetBool("new") {
 	// 		app.MaxHistory = 0
 	// 		app.MaxSpan = 0
 	// 	}
 	// }
-	app.Context = viper.GetString("context")
+	// app.Context = viper.GetString("context")
+	// app.MaxTurns = viper.GetInt("max_turns")
+	// app.MaxTime = viper.GetInt("max_time")
 
-	app.MaxTurns = viper.GetInt("max_turns")
-	app.MaxTime = viper.GetInt("max_time")
+	// if err := ParseLLM(viper, app); err != nil {
+	// 	return err
+	// }
 
-	if err := ParseLLM(viper, app); err != nil {
-		return err
-	}
-
-	//
+	// //
 	app.LogLevel = viper.GetString("log_level")
 	// default
 	if app.LogLevel == "" {
@@ -219,7 +216,7 @@ func ParseConfig(viper api.ArgMap, app *api.AppConfig, args []string) error {
 	// var agent = viper.GetString("agent")
 
 	// ParseArgs(viper, app, args, agent)
-	ParseSpecialChars(viper, app, args)
+	ParseSpecialChars(app, args)
 
 	// // resource
 	// resource := viper.GetString("resource")
@@ -318,7 +315,7 @@ func ParseConfig(viper api.ArgMap, app *api.AppConfig, args []string) error {
 // + be at the end of the args or as a suffix to the last one
 // + be in any order
 // + be multiple instances
-func ParseSpecialChars(viper api.ArgMap, app *api.AppConfig, args []string) []string {
+func ParseSpecialChars(app *api.AppConfig, args []string) []string {
 	// special char sequence handling
 	// var stdin = viper.GetBool("stdin")
 	// var pbRead = viper.GetBool("pb_read")
@@ -327,7 +324,7 @@ func ParseSpecialChars(viper api.ArgMap, app *api.AppConfig, args []string) []st
 	// var pbWriteAppend = viper.GetBool("pb_append")
 	var isStdin, isClipin, isClipWait, isClipout, isClipAppend bool
 
-	newArgs := make([]string, len(args))
+	// newArgs := make([]string, len(args))
 
 	if len(args) > 0 {
 		for i := len(args) - 1; i >= 0; i-- {
@@ -366,7 +363,7 @@ func ParseSpecialChars(viper api.ArgMap, app *api.AppConfig, args []string) []st
 					isClipAppend = true
 					args[i] = strings.TrimSuffix(lastArg, ClipoutRedirect2)
 				}
-				newArgs = args[:i+1]
+				args = args[:i+1]
 				break
 			}
 		}
@@ -392,17 +389,17 @@ func ParseSpecialChars(viper api.ArgMap, app *api.AppConfig, args []string) []st
 	app.Clipout = isClipout
 	app.ClipAppend = isClipAppend
 
-	return newArgs
+	return args
 }
 
-func ParseLLM(viper api.ArgMap, app *api.AppConfig) error {
-	// LLM config
-	//
-	alias := viper.GetString("model")
-	// if alias == "" {
-	// 	alias = "openai"
-	// }
-	app.Model = alias
+// func ParseLLM(viper api.ArgMap, app *api.AppConfig) error {
+// 	// LLM config
+// 	//
+// 	alias := viper.GetString("model")
+// 	// if alias == "" {
+// 	// 	alias = "openai"
+// 	// }
+// 	app.Model = alias
 
-	return nil
-}
+// 	return nil
+// }
