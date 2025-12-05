@@ -61,26 +61,45 @@ func init() {
 }
 
 func setupAppConfig(ctx context.Context, argv []string) (*api.AppConfig, error) {
-	argm, err := conf.ParseActionArgs(argv)
-	if err != nil {
-		return nil, err
-	}
-	var cfg = &api.AppConfig{}
-	err = ParseConfig(ctx, cfg, argv)
-	if err != nil {
-		return nil, err
-	}
-	cfg.Arguments = argm
+	var app = &api.AppConfig{}
 
-	level := api.ToLogLevel(cfg.LogLevel)
+	// defaults
+	app.Format = "markdown"
+	app.LogLevel = "info"
+	app.Session = uuid.NewString()
+
+	app.Arguments = make(map[string]any)
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	app.Base = filepath.Join(home, ".ai")
+
+	ws := filepath.Join(app.Base, "workspace")
+	if v, err := internal.EnsureWorkspace(ws); err != nil {
+		return nil, fmt.Errorf("failed to resolve workspace: %w", err)
+	} else {
+		app.Workspace = v
+	}
+
+	// stdin//pasteboard
+	internal.ParseSpecialChars(app, argv)
+
+	in, err := agent.GetUserInput(ctx, app)
+	if err != nil {
+		return nil, err
+	}
+	app.Message = in.Message
+
+	level := api.ToLogLevel(app.LogLevel)
 	log.GetLogger(ctx).SetLogLevel(level)
-	log.GetLogger(ctx).Debugf("Config: %+v\n", cfg)
+	log.GetLogger(ctx).Debugf("Config: %+v\n", app)
 
-	return cfg, nil
+	return app, nil
 }
 
 func Run(ctx context.Context, argv []string) error {
-
 	cfg, err := setupAppConfig(ctx, argv)
 	if err != nil {
 		return err
@@ -89,14 +108,14 @@ func Run(ctx context.Context, argv []string) error {
 	// call local system command as tool:
 	// sh:bash command arguments
 	if !conf.IsAction(argv[0]) {
-		args := make(map[string]any)
-		args["kit"] = "sh"
-		args["name"] = "bash"
-		args["command"] = argv[0]
+		argm := make(map[string]any)
+		argm["kit"] = "sh"
+		argm["name"] = "bash"
+		argm["command"] = argv[0]
 		if len(argv) > 1 {
-			args["arguments"] = argv[1:]
+			argm["arguments"] = argv[1:]
 		}
-		maps.Copy(cfg.Arguments, args)
+		maps.Copy(cfg.Arguments, argm)
 
 		if err := agent.RunSwarm(ctx, cfg); err != nil {
 			log.GetLogger(ctx).Errorf("%v\n", err)
@@ -104,41 +123,16 @@ func Run(ctx context.Context, argv []string) error {
 		return nil
 	}
 
+	argm, err := conf.ParseActionArgs(argv)
+	if err != nil {
+		log.GetLogger(ctx).Errorf("%v\n", err)
+		return nil
+	}
+	maps.Copy(cfg.Arguments, argm)
+
 	if err := agent.RunSwarm(ctx, cfg); err != nil {
 		log.GetLogger(ctx).Errorf("%v\n", err)
 		return nil
 	}
-	return nil
-}
-
-func ParseConfig(ctx context.Context, app *api.AppConfig, args []string) error {
-	// defaults
-	app.Format = "markdown"
-	app.LogLevel = "info"
-
-	app.Session = uuid.NewString()
-
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return err
-	}
-	app.Base = filepath.Join(home, ".ai")
-
-	ws := filepath.Join(app.Base, "workspace")
-	if v, err := internal.EnsureWorkspace(ws); err != nil {
-		return fmt.Errorf("failed to resolve workspace: %w", err)
-	} else {
-		app.Workspace = v
-	}
-
-	// stdin//pasteboard
-	internal.ParseSpecialChars(app, args)
-
-	in, err := agent.GetUserInput(ctx, app)
-	if err != nil {
-		return err
-	}
-	app.Message = in.Message
-
 	return nil
 }
