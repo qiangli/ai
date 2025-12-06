@@ -46,7 +46,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	switch name[0] {
 	case '@':
 		name = strings.ToLower(name[1:])
-		kit = api.ToolTypeAgent
+		kit = string(api.ToolTypeAgent)
 		argv = argv[1:]
 	case '/':
 		name = strings.ToLower(name[1:])
@@ -60,11 +60,11 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	default:
 		if strings.HasPrefix(name, "agent:") {
 			name = strings.ToLower(name[6:])
-			kit = api.ToolTypeAgent
+			kit = string(api.ToolTypeAgent)
 			argv = argv[1:]
 		} else if strings.HasSuffix(name, ",") {
 			name = strings.ToLower(name[:len(name)-1])
-			kit = api.ToolTypeAgent
+			kit = string(api.ToolTypeAgent)
 			argv = argv[1:]
 		} else {
 			name = ""

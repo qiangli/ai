@@ -120,7 +120,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 	var tools = swarm.NewToolSystem(root, user, secrets, assets, lfs, los)
 
 	sw := &swarm.Swarm{
-		ID: uuid.NewString(),
+		ID:       uuid.NewString(),
 		User:     user,
 		Secrets:  secrets,
 		Assets:   assets,

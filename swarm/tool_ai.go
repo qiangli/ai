@@ -646,7 +646,7 @@ func (r *AIKit) getTools(ids []string) ([]*api.ToolFunc, error) {
 			}
 			tool := &api.ToolFunc{
 				Kit:         tc.Kit,
-				Type:        v.Type,
+				Type:        api.ToolType(v.Type),
 				Name:        v.Name,
 				Description: v.Description,
 				Parameters:  v.Parameters,

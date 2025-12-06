@@ -48,7 +48,7 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 	// any agent can be used a tool
 	// @name
 	// agent:name
-	if kit == api.ToolTypeAgent {
+	if kit == string(api.ToolTypeAgent) {
 		ac, err := assets.FindAgent(owner, name)
 		if err != nil {
 			return nil, err
@@ -93,7 +93,7 @@ func LoadLocalToolFunc(local *api.AgentsConfig, owner, s string, secrets api.Sec
 	// builtin "agent:" toolkit
 	// any agent can be used as a tool
 	// agent:<agent name>
-	if kit == api.ToolTypeAgent {
+	if kit == string(api.ToolTypeAgent) {
 		if name == local.Name {
 			return nil, fmt.Errorf("recursion not supported: %s", name)
 		}
@@ -203,7 +203,7 @@ func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 
 		tool := &api.ToolFunc{
 			Kit:         tc.Kit,
-			Type:        toolType,
+			Type:        api.ToolType(toolType),
 			Name:        v.Name,
 			Description: v.Description,
 			Parameters:  v.Parameters,
@@ -224,7 +224,7 @@ func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 	// contact mcp servers and fetch the list of tools
 	for _, v := range tc.Tools {
 		var toolType = nvl(v.Type, tc.Type)
-		if toolType != api.ToolTypeMcp {
+		if toolType != string(api.ToolTypeMcp) {
 			continue
 		}
 		var token string
@@ -308,7 +308,7 @@ func loadAgentTool(ac *api.AgentsConfig, name string) ([]*api.ToolFunc, error) {
 
 			tool := &api.ToolFunc{
 				Kit:         string(api.ToolTypeAgent),
-				Type:        string(api.ToolTypeAgent),
+				Type:        api.ToolTypeAgent,
 				Name:        c.Name,
 				Description: c.Description,
 				Parameters:  params,

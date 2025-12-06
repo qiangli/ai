@@ -10,7 +10,7 @@ import (
 )
 
 // TODO real type of string
-type ToolType = string
+type ToolType string
 
 const (
 	ToolTypeFunc   ToolType = "func"
@@ -22,7 +22,7 @@ const (
 )
 
 type ToolFunc struct {
-	Type string
+	Type ToolType
 
 	Kit         string
 	Name        string

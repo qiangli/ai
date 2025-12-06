@@ -307,7 +307,7 @@ func (sw *Swarm) Runm(ctx context.Context, parent *api.Agent, argm map[string]an
 	am := api.ArgMap(argm)
 	kit := am.Kit()
 	name := am.Name()
-	if kit != api.ToolTypeAgent {
+	if kit != string(api.ToolTypeAgent) {
 		return nil, fmt.Errorf("invalid agent: %v", name)
 	}
 	return sw.runm(ctx, parent, name, am)
@@ -442,7 +442,7 @@ func (sw *Swarm) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFun
 
 func (sw *Swarm) callAgentType(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	// agent tool
-	if tf.Kit == api.ToolTypeAgent {
+	if tf.Kit == string(api.ToolTypeAgent) {
 		// return sw.RunAction(ctx, agent, tf.Agent, args)
 		return sw.runm(ctx, agent, tf.Agent, args)
 	}

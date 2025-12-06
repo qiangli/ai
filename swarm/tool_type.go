@@ -21,11 +21,11 @@ type toolSystem struct {
 }
 
 type KitKey struct {
-	Type string
+	Type api.ToolType
 	Kit  string
 }
 
-func NewKitKey(fnType, kit string) KitKey {
+func NewKitKey(fnType api.ToolType, kit string) KitKey {
 	return KitKey{
 		Type: fnType,
 		Kit:  kit,
