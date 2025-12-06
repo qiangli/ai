@@ -15,7 +15,7 @@ func (r *SystemKit) ListDirectory(ctx context.Context, vars *api.Vars, name stri
 	if err != nil {
 		return "", err
 	}
-	list, err := r.fs.ListDirectory(path)
+	list, err := vars.RTE.Workspace.ListDirectory(path)
 	if err != nil {
 		return "", err
 	}
@@ -27,7 +27,7 @@ func (r *SystemKit) CreateDirectory(ctx context.Context, vars *api.Vars, name st
 	if err != nil {
 		return "", err
 	}
-	return "", r.fs.CreateDirectory(path)
+	return "", vars.RTE.Workspace.CreateDirectory(path)
 }
 
 func (r *SystemKit) RenameFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -39,7 +39,7 @@ func (r *SystemKit) RenameFile(ctx context.Context, vars *api.Vars, name string,
 	if err != nil {
 		return "", err
 	}
-	if err := r.fs.RenameFile(source, dest); err != nil {
+	if err := vars.RTE.Workspace.RenameFile(source, dest); err != nil {
 		return "", err
 	}
 	return "File renamed successfully", nil
@@ -50,7 +50,7 @@ func (r *SystemKit) GetFileInfo(ctx context.Context, vars *api.Vars, name string
 	if err != nil {
 		return "", err
 	}
-	info, err := r.fs.FileInfo(path)
+	info, err := vars.RTE.Workspace.FileInfo(path)
 	if err != nil {
 		return "", err
 	}
@@ -78,7 +78,7 @@ func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, a
 		}
 	}
 
-	raw, err := r.fs.ReadFile(path, opt)
+	raw, err := vars.RTE.Workspace.ReadFile(path, opt)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (r *SystemKit) WriteFile(ctx context.Context, vars *api.Vars, name string, 
 	if err != nil {
 		return "", err
 	}
-	if err := r.fs.WriteFile(path, []byte(content)); err != nil {
+	if err := vars.RTE.Workspace.WriteFile(path, []byte(content)); err != nil {
 		return "", err
 	}
 	return "File written successfully", nil
@@ -135,7 +135,7 @@ func (r *SystemKit) EditFile(ctx context.Context, vars *api.Vars, name string, a
 		AllOccurrences: all,
 		UseRegex:       regex,
 	}
-	replacementCount, err := r.fs.EditFile(path, options)
+	replacementCount, err := vars.RTE.Workspace.EditFile(path, options)
 	return fmt.Sprintf("File modified successfully. Made %d replacement(s).", replacementCount), nil
 }
 
@@ -166,5 +166,5 @@ func (r *SystemKit) SearchFiles(ctx context.Context, vars *api.Vars, name string
 		Follow:     false,
 		Hidden:     true,
 	}
-	return r.fs.SearchFiles(path, options)
+	return vars.RTE.Workspace.SearchFiles(path, options)
 }

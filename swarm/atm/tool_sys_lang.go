@@ -25,7 +25,7 @@ func (r *SystemKit) ExecScript(ctx context.Context, vars *api.Vars, env *api.Too
 
 	switch language {
 	case "go", "golang":
-		return lang.Go(ctx, env.FS, nil, code, nil)
+		return lang.Go(ctx, vars, nil, code, nil)
 	case "js", "javascript", "ecmascript":
 		return lang.Javascript(ctx, code)
 	case "template", "text/x-go-template":

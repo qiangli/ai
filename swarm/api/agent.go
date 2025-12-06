@@ -17,14 +17,14 @@ const (
 // @*
 type Packname string
 
-func (a Packname) String() string {
-	return string(a)
+func (r Packname) String() string {
+	return string(r)
 }
 
 // @pack[/sub]
 // agent:pack[/sub]
-func (a Packname) Decode() (string, string) {
-	s := strings.ToLower(string(a))
+func (r Packname) Decode() (string, string) {
+	s := strings.ToLower(string(r))
 	s = strings.TrimPrefix(s, "@")
 	s = strings.TrimPrefix(s, "agent:")
 	parts := strings.SplitN(s, "/", 2)
@@ -41,8 +41,8 @@ func (a Packname) Decode() (string, string) {
 	return pack, sub
 }
 
-func (a Packname) Equal(s string) bool {
-	x, y := a.Decode()
+func (r Packname) Equal(s string) bool {
+	x, y := r.Decode()
 	x2, y2 := Packname(s).Decode()
 	return x == x2 && y == y2
 }

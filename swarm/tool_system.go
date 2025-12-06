@@ -5,18 +5,9 @@ import (
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
-	"github.com/qiangli/shell/tool/sh/vfs"
-	"github.com/qiangli/shell/tool/sh/vos"
 )
 
 type toolSystem struct {
-	workspace string
-	user      *api.User
-	assets    api.AssetManager
-	secrets   api.SecretStore
-	fs        vfs.FileSystem
-	vs        vos.System
-	//
 	kits map[any]api.ToolKit
 }
 
@@ -32,22 +23,8 @@ func NewKitKey(fnType api.ToolType, kit string) KitKey {
 	}
 }
 
-func NewToolSystem(
-	workspace string,
-	user *api.User,
-	secrets api.SecretStore,
-	assets api.AssetManager,
-	fs vfs.FileSystem,
-	vs vos.System,
-) api.ToolSystem {
+func NewToolSystem() api.ToolSystem {
 	ts := &toolSystem{
-		workspace: workspace,
-		user:      user,
-		secrets:   secrets,
-		assets:    assets,
-		fs:        fs,
-		vs:        vs,
-		//
 		kits: make(map[any]api.ToolKit),
 	}
 
@@ -61,11 +38,11 @@ func NewToolSystem(
 	// ts.AddKit(NewKitKey(api.ToolTypeFunc, "web"), web)
 
 	// default by type
-	ts.AddKit(api.ToolTypeFunc, atm.NewFuncKit(user, assets))
-	ts.AddKit(api.ToolTypeWeb, atm.NewWebKit(secrets))
-	ts.AddKit(api.ToolTypeSystem, atm.NewSystemKit(workspace, user, fs, vs, secrets))
-	ts.AddKit(api.ToolTypeMcp, atm.NewMcpKit(secrets))
-	ts.AddKit(api.ToolTypeFaas, atm.NewFaasKit(secrets))
+	ts.AddKit(api.ToolTypeFunc, atm.NewFuncKit())
+	ts.AddKit(api.ToolTypeWeb, atm.NewWebKit())
+	ts.AddKit(api.ToolTypeSystem, atm.NewSystemKit())
+	ts.AddKit(api.ToolTypeMcp, atm.NewMcpKit())
+	ts.AddKit(api.ToolTypeFaas, atm.NewFaasKit())
 
 	return ts
 }

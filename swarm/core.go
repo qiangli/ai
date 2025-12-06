@@ -43,42 +43,44 @@ type Swarm struct {
 	middlewares []api.Middleware
 	agentMaker  *AgentMaker
 
-	// RootAgent *api.Agent
-	// Shell     api.ActionRunner
 	//
 	Vars *api.Vars
 }
 
-// type ActionDispatcher struct {
-// 	sw *Swarm
-
-// 	runner api.ActionRunner
-// 	shell  api.ActionRunner
-// }
-
-// func NewActionDispatcher(sw *Swarm, agent *api.Agent) api.ActionRunner {
-// 	runner := NewAgentToolRunner(sw, agent)
-// 	shell := NewAgentScriptRunner(sw, agent)
-
-// 	return &ActionDispatcher{
-// 		sw:     sw,
-// 		runner: runner,
-// 		shell:  shell,
-// 	}
-// }
-
-// func (r *ActionDispatcher) Run(ctx context.Context, s string, args map[string]any) (any, error) {
-// 	if strings.HasPrefix(s, "#!") || strings.HasSuffix(s, ".yaml") || strings.HasSuffix(s, ".sh") {
-// 		return r.shell.Run(ctx, s, args)
-// 	}
-// 	return r.runner.Run(ctx, s, args)
-// }
-
 func (sw *Swarm) Init() error {
+	// required
+	if sw.Root == "" {
+		return fmt.Errorf("app root not set")
+	}
+	if sw.User == nil {
+		return fmt.Errorf("user not authenticated")
+	}
+	if sw.Secrets == nil {
+		return fmt.Errorf("secret store not initialized")
+	}
+	if sw.Workspace == nil {
+		return fmt.Errorf("workspace not assigned")
+	}
+	if sw.OS == nil {
+		return fmt.Errorf("execution env not avalable")
+	}
+
 	sw.InitChain()
 	sw.Vars = api.NewVars()
 
+	// required by toolkit
+	sw.Vars.RTE = &api.ActionRTEnv{
+		Root:      sw.Root,
+		User:      sw.User,
+		Secrets:   sw.Secrets,
+		Workspace: sw.Workspace,
+		OS:        sw.OS,
+	}
+
 	maker := NewAgentMaker(sw)
+	// TODO move to Vars?
+	sw.agentMaker = maker
+
 	root, err := maker.CreateFrom(context.TODO(), "root", sw.User.Email, resource.RootAgentData)
 	if err != nil {
 		return err
@@ -87,8 +89,6 @@ func (sw *Swarm) Init() error {
 	root.Shell = NewAgentScriptRunner(sw, root)
 	root.Template = NewTemplate(sw, root)
 	sw.Vars.RootAgent = root
-	// TODO move to Vars?
-	sw.agentMaker = maker
 
 	return nil
 }
@@ -391,21 +391,6 @@ func (sw *Swarm) runm(ctx context.Context, parent *api.Agent, name string, args 
 	return resp.Result, nil
 }
 
-// func (sw *Swarm) RunAction(ctx context.Context, parent *api.Agent, action string, args map[string]any) (any, error) {
-// 	req := api.NewRequest(ctx, action, args)
-// 	req.Agent = parent
-
-// 	resp := &api.Response{}
-// 	err := sw.Run(req, resp)
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	if resp.Result == nil {
-// 		return "no output", nil
-// 	}
-// 	return resp.Result, nil
-// }
-
 // inherit parent tools including embedded agents
 // TODO cache
 func (sw *Swarm) buildAgentToolMap(agent *api.Agent) map[string]*api.ToolFunc {
@@ -443,7 +428,6 @@ func (sw *Swarm) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFun
 func (sw *Swarm) callAgentType(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	// agent tool
 	if tf.Kit == string(api.ToolTypeAgent) {
-		// return sw.RunAction(ctx, agent, tf.Agent, args)
 		return sw.runm(ctx, agent, tf.Agent, args)
 	}
 
@@ -456,7 +440,7 @@ func (sw *Swarm) callAgentType(ctx context.Context, agent *api.Agent, tf *api.To
 
 func (sw *Swarm) callAIAgentTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	aiKit := NewAIKit(sw, agent)
-	return aiKit.Call(ctx, sw.Vars, "", tf, args)
+	return aiKit.Call(ctx, sw.Vars, tf, args)
 }
 
 func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc, args map[string]any) (*api.Result, error) {
@@ -476,11 +460,13 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 	}
 
 	env := &api.ToolEnv{
-		Owner: sw.User.Email,
+		// User: sw.User.Email,
 		Agent: agent,
-		FS:    NewToolFS(sw.Workspace),
+		// FS:    NewToolFS(sw.Workspace),
+		// Secrets: sw.Secrets,
 	}
 	out, err := kit.Call(ctx, sw.Vars, env, v, args)
+
 	if err != nil {
 		return nil, err
 	}

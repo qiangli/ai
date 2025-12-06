@@ -8,16 +8,12 @@ import (
 )
 
 type FuncKit struct {
-	user   *api.User
-	assets api.AssetManager
-	kgm    *memory.KGManager
+	kgm *memory.KGManager
 }
 
-func NewFuncKit(user *api.User, assets api.AssetManager) *FuncKit {
+func NewFuncKit() *FuncKit {
 	return &FuncKit{
-		user:   user,
-		assets: assets,
-		kgm:    memory.NewKGManager(),
+		kgm: memory.NewKGManager(),
 	}
 }
 

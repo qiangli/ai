@@ -2,9 +2,19 @@ package api
 
 import (
 	"encoding/json"
+	"io/fs"
 	"maps"
+	"os"
 	"sync"
+
+	"github.com/qiangli/shell/tool/sh/vfs"
+	"github.com/qiangli/shell/tool/sh/vos"
 )
+
+type System = vos.System
+type Workspace = vfs.Workspace
+
+// type FileSystem = vfs.FileSystem
 
 const (
 	VarsEnvContainer = "container"
@@ -121,6 +131,14 @@ func (g *Environment) Clone() *Environment {
 	}
 }
 
+type ActionRTEnv struct {
+	Root      string
+	User      *User
+	Workspace Workspace
+	OS        System
+	Secrets   SecretStore
+}
+
 // global context
 type Vars struct {
 	Global *Environment `json:"-"`
@@ -134,10 +152,20 @@ type Vars struct {
 	// Middlewares []Middleware
 
 	RootAgent *Agent
-	// Action    ActionRunner
-	// Shell     ActionRunner
+
+	RTE *ActionRTEnv
 
 	mu sync.RWMutex
+}
+
+// fs.FS interface
+func (v *Vars) Open(s string) (fs.File, error) {
+	return v.RTE.Workspace.OpenFile(s, os.O_RDWR, 0o755)
+}
+
+// Return secret token for the current user
+func (v *Vars) Token(key string) (string, error) {
+	return v.RTE.Secrets.Get(v.RTE.User.Email, key)
 }
 
 func (v *Vars) AddToolCall(item *ToolCallEntry) {

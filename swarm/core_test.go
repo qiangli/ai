@@ -38,7 +38,7 @@ func defaultSwarm(cfg *api.AppConfig) (*Swarm, error) {
 	if err != nil {
 		return nil, err
 	}
-	var tools = NewToolSystem(root, user, secrets, assets, lfs, los)
+	var tools = NewToolSystem()
 
 	mem, err := db.OpenMemoryStore(cfg)
 	if err != nil {

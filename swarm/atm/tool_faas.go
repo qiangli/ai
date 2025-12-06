@@ -8,17 +8,14 @@ import (
 )
 
 type FaasKit struct {
-	secrets api.SecretStore
 }
 
-func NewFaasKit(secrets api.SecretStore) *FaasKit {
-	return &FaasKit{
-		secrets: secrets,
-	}
+func NewFaasKit() *FaasKit {
+	return &FaasKit{}
 }
 
 func (r *FaasKit) Call(ctx context.Context, vars *api.Vars, env *api.ToolEnv, tf *api.ToolFunc, args map[string]any) (any, error) {
-	tk, err := r.secrets.Get(env.Owner, tf.ApiKey)
+	tk, err := vars.Token(tf.ApiKey)
 	if err != nil {
 		return nil, err
 	}

@@ -17,13 +17,12 @@ var (
 
 // webAuthKit must be per tool/func call
 type webAuthKit struct {
-	secrets api.SecretStore
-	owner   string
-	key     string
+	vars *api.Vars
+	key  string
 }
 
 func (r *webAuthKit) token() (string, error) {
-	return r.secrets.Get(r.owner, r.key)
+	return r.vars.Token(r.key)
 }
 
 func (r *webAuthKit) FetchContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -191,25 +190,22 @@ func (r *webAuthKit) GoogleSearch(ctx context.Context, vars *api.Vars, name stri
 
 // wrapper for webAuthKit
 type WebKit struct {
-	secrets api.SecretStore
 }
 
-func NewWebKit(secrets api.SecretStore) *WebKit {
-	return &WebKit{
-		secrets: secrets,
-	}
+func NewWebKit() *WebKit {
+	return &WebKit{}
 }
 
 func (r *WebKit) Call(ctx context.Context, vars *api.Vars, env *api.ToolEnv, tf *api.ToolFunc, args map[string]any) (any, error) {
 	callArgs := []any{ctx, vars, tf.Name, args}
 
 	// forward to web auth kit
-	wk := &webAuthKit{
-		secrets: r.secrets,
-		owner:   env.Owner,
-		key:     tf.ApiKey,
+	ak := &webAuthKit{
+		vars: vars,
+		key:  tf.ApiKey,
 	}
-	result, err := CallKit(wk, tf.Kit, tf.Name, callArgs...)
+
+	result, err := CallKit(ak, tf.Kit, tf.Name, callArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("error: %v. please try again after few seconds.", err)
 	}

@@ -43,7 +43,7 @@ var (
 	listToolsCache  = expirable.NewLRU[ListCacheKey, string](10000, nil, time.Second*900)
 )
 
-func (r *AIKit) Call(ctx context.Context, vars *api.Vars, owner string, tf *api.ToolFunc, args map[string]any) (any, error) {
+func (r *AIKit) Call(ctx context.Context, vars *api.Vars, tf *api.ToolFunc, args map[string]any) (any, error) {
 	callArgs := []any{ctx, vars, tf.Name, args}
 	return atm.CallKit(r, tf.Kit, tf.Name, callArgs...)
 }
@@ -212,15 +212,6 @@ func (r *AIKit) SpawnAgent(ctx context.Context, _ *api.Vars, _ string, args map[
 	if name == "" {
 		return nil, fmt.Errorf("missing agent name")
 	}
-
-	// nreq := api.NewRequest(ctx, agent, args)
-	// nreq.Agent = r.agent
-
-	// nresp := &api.Response{}
-	// if err := r.sw.Run(nreq, nresp); err != nil {
-	// 	return nil, err
-	// }
-	// return nresp.Result, nil
 
 	return r.sw.runm(ctx, r.agent, name, args)
 }

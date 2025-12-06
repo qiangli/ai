@@ -12,7 +12,6 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/qiangli/ai/swarm/api"
-	// "github.com/qiangli/ai/swarm/util"
 )
 
 type AgentCacheKey struct {
@@ -28,21 +27,6 @@ type AgentCacheKey struct {
 var (
 	agentCache = expirable.NewLRU[AgentCacheKey, *api.Agent](10000, nil, time.Second*900)
 )
-
-// func normalizePackname(pack, name string) string {
-// 	ensure := func() string {
-// 		// pack name
-// 		if name == "" {
-// 			return pack
-// 		}
-// 		parts := strings.SplitN(name, "/", 2)
-// 		if len(parts) == 1 {
-// 			return pack
-// 		}
-// 		return pack + "/" + parts[1]
-// 	}
-// 	return util.NormalizedName(ensure())
-// }
 
 func listAgentsATM(owner string, as api.ATMSupport, packs map[string]*api.AgentsConfig) error {
 	recs, err := as.ListAgents(owner)
@@ -112,7 +96,6 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AgentsCo
 			return fmt.Errorf("error loading agent data: %s", v.Name())
 		}
 		if ac == nil || len(ac.Agents) == 0 {
-			// return fmt.Errorf("invalid config. no agent defined: %s", v.Name())
 			continue
 		}
 

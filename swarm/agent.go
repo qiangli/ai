@@ -109,7 +109,6 @@ func (ap *AgentMaker) newAgent(
 	owner string,
 ) (*api.Agent, error) {
 	var agent = api.Agent{
-		// Owner:   owner,
 		Adapter: c.Adapter,
 		//
 		Name:        c.Name,
@@ -233,10 +232,7 @@ func (ap *AgentMaker) newAgent(
 			)
 		}
 		flow := &api.Flow{
-			Type: c.Flow.Type,
-			// Expression: c.Flow.Expression,
-			// Concurrency: c.Flow.Concurrency,
-			// Retry:       c.Flow.Retry,
+			Type:   c.Flow.Type,
 			Script: c.Flow.Script,
 		}
 
@@ -289,32 +285,11 @@ func (ap *AgentMaker) loadAgent(pack string, content []byte) (*api.AgentsConfig,
 	//
 	ac.Name = pack
 
-	// // agents
-	// for _, v := range ac.Agents {
-	// 	v.Name = ap.normalizePackname(pack, v.Name)
-	// }
-
 	return ac, nil
 }
 
-// func (ap *AgentMaker) normalizePackname(pack, name string) string {
-// 	ensure := func() string {
-// 		// pack name
-// 		if name == "" {
-// 			return pack
-// 		}
-// 		parts := strings.SplitN(name, "/", 2)
-// 		if len(parts) == 1 {
-// 			return pack
-// 		}
-// 		return pack + "/" + parts[1]
-// 	}
-// 	return util.NormalizedName(ensure())
-// }
-
 // create agent (class) from config
 func (ap *AgentMaker) Create(ctx context.Context, name string) (*api.Agent, error) {
-
 	// create the agent
 	// agent: pack/sub
 	// var user = ap.sw.User.Email
@@ -347,17 +322,6 @@ func (ap *AgentMaker) Create(ctx context.Context, name string) (*api.Agent, erro
 	if ent == nil && pack != "" {
 		return nil, fmt.Errorf("agent not found: %s", pack)
 	}
-
-	// var as api.AssetStore
-	// if ent == nil {
-	// 	// super agent auto selection
-	// 	pack = "agent"
-	// 	as = resource.NewStandardStore()
-	// } else {
-	// 	pack = ent.Name
-	// 	// owner = ent.Owner
-	// 	as = ent.Store
-	// }
 
 	// access to models/tools is implicitly granted if user has permission to run the agent
 	// agent config

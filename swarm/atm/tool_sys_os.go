@@ -14,11 +14,11 @@ func (r *SystemKit) Cd(ctx context.Context, vars *api.Vars, name string, args ma
 	if err != nil {
 		return "", err
 	}
-	return "", r.os.Chdir(dir)
+	return "", vars.RTE.OS.Chdir(dir)
 }
 
 func (r *SystemKit) Pwd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	return r.os.Getwd()
+	return vars.RTE.OS.Getwd()
 }
 
 func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
@@ -68,5 +68,5 @@ func (r *SystemKit) Bash(ctx context.Context, vars *api.Vars, name string, args 
 }
 
 func (r *SystemKit) WorkspaceRoot(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	return r.workspace, nil
+	return vars.RTE.Root, nil
 }

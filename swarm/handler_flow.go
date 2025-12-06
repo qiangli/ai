@@ -22,10 +22,9 @@ func AgentFlowMiddleware(sw *Swarm) api.Middleware {
 			sw:    sw,
 			next:  next,
 		}
-		// ah.initTemplate()
-		// ah.initChain()
+
 		return HandlerFunc(func(req *api.Request, resp *api.Response) error {
-			log.GetLogger(req.Context()).Debugf("🔗 (agent): %s flow: %+v\n", agent.Name, agent.Flow)
+			log.GetLogger(req.Context()).Infof("🔗 (agent): %s flow: %+v\n", agent.Name, agent.Flow)
 
 			return ah.Serve(req, resp)
 		})
