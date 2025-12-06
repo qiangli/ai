@@ -148,7 +148,8 @@ func (h *agentHandler) handleAgent(req *api.Request, resp *api.Response) error {
 
 	// 1. New System Message
 	// system role prompt as first message
-	prompt := h.agent.Prompt()
+	// prompt := h.agent.Prompt()
+	prompt := req.Prompt
 	if prompt != "" {
 		v := &api.Message{
 			ID:      uuid.NewString(),
@@ -164,7 +165,7 @@ func (h *agentHandler) handleAgent(req *api.Request, resp *api.Response) error {
 
 	// 2. Context Messages
 	// skip system role
-	for i, msg := range h.agent.History() {
+	for i, msg := range req.History {
 		if msg.Role != api.RoleSystem {
 			logger.Debugf("adding [%v]: %s %s (%v)\n", i, msg.Role, abbreviate(msg.Content, 100), len(msg.Content))
 			history = append(history, msg)
@@ -173,7 +174,8 @@ func (h *agentHandler) handleAgent(req *api.Request, resp *api.Response) error {
 
 	// 3. New User Message
 	// Additional user message
-	var query = h.agent.Query()
+	// var query = h.agent.Query()
+	query := req.Query
 	if query != "" {
 		v := &api.Message{
 			ID:      uuid.NewString(),
@@ -231,7 +233,12 @@ func (h *agentHandler) handleAgent(req *api.Request, resp *api.Response) error {
 	}
 
 	// h.sw.Vars.AddHistory(history)
-	h.agent.SetHistory(history)
+	// h.agent.SetHistory(history)
+	// DODO persist context/history
+	if len(history) > 0 {
+		h.sw.History.Save(history)
+	}
+
 	//
 	resp.Messages = history[initLen:]
 	resp.Agent = h.agent
@@ -261,7 +268,8 @@ func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error 
 		if err := h.doAction(ctx, nreq, nresp, v); err != nil {
 			return err
 		}
-		h.agent.SetQuery(nresp.Result.Value)
+		nreq.Query = nresp.Result.Value
+		// h.agent.SetQuery(nresp.Result.Value)
 		// h.sw.Vars.Global.Set(globalQuery, nresp.Result.Value)
 	}
 
@@ -394,14 +402,15 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 	// if the map flow is the first in the pipeline
 	// use query
 	// result, ok := h.sw.Vars.Global.Get(globalResult)
-	result := h.agent.Result()
-	if result == "" {
-		// result, _ = h.sw.Vars.Global.Get(globalQuery)
-		// result = req.Query
-		result = h.agent.Query()
-	}
+	// result := h.agent.Result()
+	// if result == "" {
+	// 	// result, _ = h.sw.Vars.Global.Get(globalQuery)
+	// 	result = req.Query
+	// 	// result = h.agent.Query()
+	// }
+	var query = req.Query
 
-	tasks := unmarshalResultList(result)
+	tasks := unmarshalList(query)
 
 	var resps = make([]*api.Response, len(tasks))
 
@@ -412,8 +421,9 @@ func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
 			defer wg.Done()
 
 			nreq := req.Clone()
-			nreq.Agent = req.Agent.Clone()
-			nreq.Agent.SetQuery(v)
+			// nreq.Agent = req.Agent.Clone()
+			// nreq.Agent.SetQuery(v)
+			nreq.Query = v
 			nresp := new(api.Response)
 			if err := h.flowSequence(nreq, nresp); err != nil {
 				nresp.Result = &api.Result{
@@ -467,15 +477,16 @@ func doBashCustom(vs *sh.VirtualSystem, args []string) (string, error) {
 	return "", nil
 }
 
-// Unmarshal the result into a list.
-// If the result isn't a list, return the result as a single-item list.
-func unmarshalResultList(result any) []string {
-	var s string
-	if v, ok := result.(string); ok {
-		s = v
-	} else {
-		s = fmt.Sprintf("%v", v)
-	}
+// Unmarshal the value into a list.
+// If the value isn't a list, return the value as a single-item list.
+func unmarshalList(value any) []string {
+	// var s string
+	// if v, ok := value.(string); ok {
+	// 	s = v
+	// } else {
+	// 	s = fmt.Sprintf("%v", v)
+	// }
+	s := api.ToString(value)
 	var list []string
 	err := json.Unmarshal([]byte(s), &list)
 	if err != nil {

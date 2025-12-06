@@ -66,15 +66,16 @@ func InstructionMiddleware(sw *Swarm) api.Middleware {
 			}
 
 			// system role instructions
-			var prompt = agent.Prompt()
+			// var prompt = agent.Prompt()
+			var prompt = req.Prompt
 			if prompt == "" {
 				if err := addAll(agent); err != nil {
 					return err
 				}
 
-				prompt = strings.Join(instructions, "\n")
+				req.Prompt = strings.Join(instructions, "\n")
 			}
-			agent.SetPrompt(prompt)
+			// agent.SetPrompt(prompt)
 
 			logger.Debugf("instructions (%v): %s (%v)\n", len(instructions), abbreviate(prompt, 64), len(prompt))
 			if logger.IsTrace() {

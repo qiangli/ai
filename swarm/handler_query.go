@@ -31,7 +31,8 @@ func QueryMiddleware(sw *Swarm) api.Middleware {
 			var allArgs = req.Arguments.GetAllArgs()
 
 			// convert user message into query if not set
-			var query = agent.Query()
+			// var query = agent.Query()
+			var query = req.Query
 			if query == "" {
 				msg := req.Message()
 				if msg != "" {
@@ -56,7 +57,8 @@ func QueryMiddleware(sw *Swarm) api.Middleware {
 			if agent.Message != "" {
 				query = agent.Message + "\n" + query
 			}
-			agent.SetQuery(query)
+			// agent.SetQuery(query)
+			req.Query = query
 
 			logger.Debugf("query: %s (%v)\n", abbreviate(query, 64), len(query))
 			if logger.IsTrace() {

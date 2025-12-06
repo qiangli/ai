@@ -55,16 +55,17 @@ func ContextMiddleware(sw *Swarm) api.Middleware {
 			// sw.Vars.SetHistory(history)
 			logger.Debugf("context history: %v\n", len(history))
 
-			agent.SetHistory(history)
+			// agent.SetHistory(history)
+			req.History = history
 
 			err := next.Serve(req, resp)
 
 			// if v := sw.Vars.ListHistory(); len(v) > 0 {
 			// 	sw.History.Save(v)
 			// }
-			if v := agent.History(); len(v) > 0 {
-				sw.History.Save(v)
-			}
+			// if v := req.History; len(v) > 0 {
+			// 	sw.History.Save(v)
+			// }
 
 			return err
 		})

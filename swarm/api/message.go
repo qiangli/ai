@@ -61,6 +61,11 @@ type Request struct {
 	// It is unexported to prevent people from using Context wrong
 	// and mutating the contexts held by callers of the same request.
 	ctx context.Context
+
+	//
+	Prompt  string
+	Query   string
+	History []*Message
 }
 
 func (r *Request) Message() string {

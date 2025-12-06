@@ -90,45 +90,45 @@ type Agent struct {
 }
 
 // ai operations
-func (a *Agent) Query() string {
-	return a.Environment.GetString("query")
-}
+// func (a *Agent) Query() string {
+// 	return a.Environment.GetString("query")
+// }
 
-func (a *Agent) SetQuery(s string) *Agent {
-	a.Environment.Set("query", s)
-	return a
-}
+// func (a *Agent) SetQuery(s string) *Agent {
+// 	a.Environment.Set("query", s)
+// 	return a
+// }
 
-func (a *Agent) Prompt() string {
-	return a.Environment.GetString("prompt")
-}
+// func (a *Agent) Prompt() string {
+// 	return a.Environment.GetString("prompt")
+// }
 
-func (a *Agent) SetPrompt(s string) *Agent {
-	a.Environment.Set("prompt", s)
-	return a
-}
+// func (a *Agent) SetPrompt(s string) *Agent {
+// 	a.Environment.Set("prompt", s)
+// 	return a
+// }
 
-func (a *Agent) Result() string {
-	return a.Environment.GetString("result")
-}
+// func (a *Agent) Result() string {
+// 	return a.Environment.GetString("result")
+// }
 
-func (a *Agent) SetResult(v string) *Agent {
-	a.Environment.Set("result", v)
-	return a
-}
+// func (a *Agent) SetResult(v string) *Agent {
+// 	a.Environment.Set("result", v)
+// 	return a
+// }
 
-func (a *Agent) SetHistory(messages []*Message) *Agent {
-	a.Environment.Set("messages", messages)
-	return a
-}
+// func (a *Agent) SetHistory(messages []*Message) *Agent {
+// 	a.Environment.Set("messages", messages)
+// 	return a
+// }
 
-func (a *Agent) History() []*Message {
-	list, _ := a.Environment.Get("messages")
-	if v, ok := list.([]*Message); ok {
-		return v
-	}
-	return nil
-}
+// func (a *Agent) History() []*Message {
+// 	list, _ := a.Environment.Get("messages")
+// 	if v, ok := list.([]*Message); ok {
+// 		return v
+// 	}
+// 	return nil
+// }
 
 // for reusing cached agent
 func (a *Agent) Clone() *Agent {
