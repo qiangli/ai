@@ -19,20 +19,20 @@ tools:
       required:
         - command
 
-  - name: "cd"
-    description: "Change the current working directory on user's system."
-    parameters:
-      type: "object"
-      properties:
-        dir:
-          type: "string"
-          description: "The directory to change to."
-      required:
-        - dir
+  # - name: "cd"
+  #   description: "Change the current working directory on user's system."
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       dir:
+  #         type: "string"
+  #         description: "The directory to change to."
+  #     required:
+  #       - dir
 
-  - name: "pwd"
-    description: "Print the current working directory on user's system."
-    parameters: {}
+  # - name: "pwd"
+  #   description: "Print the current working directory on user's system."
+  #   parameters: {}
 
   - name: "bash"
     description: |
