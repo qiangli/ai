@@ -6,13 +6,13 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/agent"
-	// "github.com/qiangli/ai/shell"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
@@ -32,15 +32,6 @@ var AgentCmd = &cobra.Command{
 }
 
 func init() {
-	// defaultCfg := os.Getenv("AI_CONFIG")
-
-	// pflags := AgentCmd.PersistentFlags()
-	// pflags.String("config", defaultCfg, "config file")
-	// pflags.MarkHidden("config")
-
-	//
-	// addAgentFlags(AgentCmd)
-
 	flags := AgentCmd.Flags()
 	flags.SortFlags = true
 
@@ -56,74 +47,76 @@ func init() {
 
 }
 
-func setupAppConfig(ctx context.Context, argv []string) (*api.AppConfig, error) {
-	var app = &api.AppConfig{}
-
-	// defaults
+func setupAppConfig(ctx context.Context, app *api.AppConfig) error {
 	app.Format = "markdown"
 	app.LogLevel = "info"
 	app.Session = uuid.NewString()
 
-	app.Arguments = make(map[string]any)
-
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	app.Base = filepath.Join(home, ".ai")
 
 	ws := filepath.Join(app.Base, "workspace")
 	if v, err := EnsureWorkspace(ws); err != nil {
-		return nil, fmt.Errorf("failed to resolve workspace: %w", err)
+		return fmt.Errorf("failed to resolve workspace: %w", err)
 	} else {
 		app.Workspace = v
 	}
-
-	// stdin//pasteboard
-	argv = ParseSpecialChars(app, argv)
-	argm, err := conf.ParseActionArgs(argv)
-	if err != nil {
-		return nil, err
-	}
-	maps.Copy(app.Arguments, argm)
-
-	in, err := agent.GetUserInput(ctx, app, argm["message"].(string))
-	if err != nil {
-		return nil, err
-	}
-	app.Message = in.Message
 
 	level := api.ToLogLevel(app.LogLevel)
 	log.GetLogger(ctx).SetLogLevel(level)
 	log.GetLogger(ctx).Debugf("Config: %+v\n", app)
 
-	maps.Copy(app.Arguments, argm)
-	maps.Copy(app.Arguments, app.ToMap())
+	return nil
+}
 
-	return app, nil
+func parseAppConfig(ctx context.Context, app *api.AppConfig, argv []string) error {
+	argv = ParseSpecialChars(app, argv)
+	argm, err := conf.ParseActionArgs(argv)
+	if err != nil {
+		return err
+	}
+	maps.Copy(app.Arguments, argm)
+
+	in, err := agent.GetUserInput(ctx, app, argm["message"].(string))
+	if err != nil {
+		return err
+	}
+	app.Message = in.Message
+
+	maps.Copy(app.Arguments, app.ToMap())
+	return nil
 }
 
 func Run(ctx context.Context, argv []string) error {
-	cfg, err := setupAppConfig(ctx, argv)
+	var app = &api.AppConfig{}
+	app.Arguments = make(map[string]any)
+	err := setupAppConfig(ctx, app)
 	if err != nil {
 		return err
 	}
 
-	// call local system command as tool:
-	// sh:bash command arguments
-	if !conf.IsAction(argv[0]) {
-		cfg.Arguments["kit"] = "sh"
-		cfg.Arguments["name"] = "bash"
-		cfg.Arguments["command"] = argv[0]
+	if conf.IsAction(argv[0]) {
+		err := parseAppConfig(ctx, app, argv)
+		if err != nil {
+			return err
+		}
+	} else if conf.IsSlash(argv[0]) {
+		// call local system command as tool:
+		// sh:bash command arguments
+		app.Arguments["kit"] = "sh"
+		app.Arguments["name"] = "bash"
+		app.Arguments["command"] = argv[0]
 		if len(argv) > 1 {
-			cfg.Arguments["arguments"] = argv[1:]
+			app.Arguments["arguments"] = argv[1:]
 		}
 	} else {
-		// sh:bash and other bash command that require arguments
-		cfg.Arguments["arguments"] = cfg.Arguments["message"]
+		app.Arguments["message"] = strings.Join(argv, " ")
 	}
 
-	if err := agent.RunSwarm(ctx, cfg); err != nil {
+	if err := agent.RunSwarm(ctx, app); err != nil {
 		log.GetLogger(ctx).Errorf("%v\n", err)
 		return nil
 	}

@@ -120,7 +120,9 @@ func getHelpData(cmd *cobra.Command) *HelpData {
 }
 
 func Help(ctx context.Context, args []string) error {
-	cfg, err := setupAppConfig(ctx, args)
+	var cfg = &api.AppConfig{}
+	cfg.Arguments = make(map[string]any)
+	err := setupAppConfig(ctx, cfg)
 	if err != nil {
 		return err
 	}

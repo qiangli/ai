@@ -269,13 +269,9 @@ func IsAction(s string) bool {
 	case '@':
 		return true
 	case '/':
-		// assuming NO unix binary directly under root /.
 		s = strings.TrimPrefix(s, "/")
 		sa := strings.SplitN(s, "/", 2)
-		if len(sa) == 1 {
-			return true
-		}
-		return strings.Contains(s, ":")
+		return strings.Contains(sa[0], ":")
 	default:
 		if strings.HasPrefix(s, "agent:") {
 			return true
@@ -292,6 +288,21 @@ func IsAction(s string) bool {
 	return false
 }
 
+// Return true if s starts with slash "/" and  is of the following format:
+// /kit:name[/sub]
+func IsSlashTool(s string) bool {
+	if after, ok := strings.CutPrefix(s, "/"); ok {
+		kn := strings.SplitN(after, "/", 2)
+		return strings.Contains(kn[0], ":")
+	}
+	return false
+}
+
+// Return true if s starts with slash "/"
+func IsSlash(s string) bool {
+	return strings.HasPrefix(s, "/")
+}
+
 func ParseActionCommand(s string) (api.ArgMap, error) {
 	if len(s) == 0 {
 		return nil, fmt.Errorf("missing action command")
@@ -306,77 +317,3 @@ func ParseActionCommand(s string) (api.ArgMap, error) {
 	}
 	return argm, nil
 }
-
-// Parse arguments in various forms.
-// + json object
-// + array list of name=value pairs or command line style options
-// + string of name=value pairs or command line style options
-// func ParseArguments(args string) (map[string]any, error) {
-// 	if len(args) == 0 {
-// 		return nil, nil
-// 	}
-// 	// if any of the args starts with "-", an invalid name,
-// 	// assume command line style options
-// 	// otherise, treat as name=value pairs
-// 	isCmdline := func(a []string) bool {
-// 		for _, v := range a {
-// 			if strings.HasPrefix(v, "-") {
-// 				return true
-// 			}
-// 		}
-// 		return false
-// 	}
-// 	parse := func(a []string) (map[string]any, error) {
-// 		if isCmdline(a) {
-// 			return ParseActionArgs(a)
-// 		}
-// 		var m = make(map[string]any)
-// 		for _, v := range a {
-// 			s2 := strings.SplitN(v, "=", 2)
-// 			if len(s2) == 2 {
-// 				m[s2[0]] = s2[1]
-// 			}
-// 		}
-// 		return m, nil
-// 	}
-
-// 	// Parse arguments
-// 	var argm map[string]any
-// 	switch {
-// 	case strings.HasPrefix(args, "{"):
-// 		if err := json.Unmarshal([]byte(args), &argm); err != nil {
-// 			return nil, fmt.Errorf("invalid json object arguments: %q error: %w", args, err)
-// 		}
-// 	case strings.HasPrefix(args, "["):
-// 		var argv []string
-// 		if err := json.Unmarshal([]byte(args), &argv); err != nil {
-// 			return nil, fmt.Errorf("invalid json array arguments: %q error: %w", args, err)
-// 		}
-// 		if v, err := parse(argv); err != nil {
-// 			return nil, err
-// 		} else {
-// 			argm = v
-// 		}
-// 	default:
-// 		// string name=value pairs
-// 		argv := shlex.Argv(args)
-// 		if v, err := parse(argv); err != nil {
-// 			return nil, err
-// 		} else {
-// 			argm = v
-// 		}
-// 	}
-
-// 	return argm, nil
-// }
-
-// // remove empty items
-// func dropEmpty(argv []string) []string {
-// 	var mod []string
-// 	for _, v := range argv {
-// 		if len(v) > 0 {
-// 			mod = append(mod, v)
-// 		}
-// 	}
-// 	return mod
-// }
