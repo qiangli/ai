@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"strings"
 	"text/template"
 )
@@ -47,6 +48,8 @@ func (r Packname) Equal(s string) bool {
 	return x == x2 && y == y2
 }
 
+type Creator func(context.Context, string) (*Agent, error)
+
 type Agent struct {
 	Parent *Agent
 
@@ -85,6 +88,8 @@ type Agent struct {
 	//
 	Runner ActionRunner
 	Shell  ActionRunner
+
+	Creator Creator
 
 	Template *template.Template
 }

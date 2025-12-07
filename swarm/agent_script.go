@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"path"
 	"slices"
 	"strings"
 
@@ -26,23 +27,58 @@ func NewAgentScriptRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
 	}
 }
 
+func (r *AgentScriptRunner) CreatorFrom(pack string, data []byte) (api.Creator, error) {
+	// data, err := r.sw.Workspace.ReadFile(api.ToString(file), nil)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// extract pack name
+
+	return r.sw.agentMaker.Creator(r.sw.agentMaker.Create, r.sw.User.Email, pack, data)
+}
+
 // Run command or script. if script is empty, read command or script from args.
 func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[string]any) (any, error) {
+	var file, ext string
 	if script == "" && args != nil {
 		if c, ok := args["command"]; ok {
 			script = api.ToString(c)
-		} else if file, ok := args["script"]; ok {
-			data, err := r.sw.Workspace.ReadFile(api.ToString(file), nil)
-			if err != nil {
-				return "", err
+		} else {
+			file, ok := args["script"]
+			filename := api.ToString(file)
+			ext = path.Ext(filename)
+			if ok {
+				data, err := r.sw.Workspace.ReadFile(filename, nil)
+				if err != nil {
+					return "", err
+				}
+				script = string(data)
 			}
-			script = string(data)
 		}
 	}
+
 	if script == "" {
 		return "", fmt.Errorf("missing bash command/script")
 	}
 
+	// agent
+	if ext == "yaml" {
+		var name string
+		if v, ok := args["name"]; ok {
+			name = api.ToString(v)
+		}
+		if name == "" {
+			name = packnameFromFile(file).String()
+		}
+		pack, _ := api.Packname(name).Decode()
+		creator, err := r.sw.agentMaker.Creator(r.sw.agentMaker.Create, r.sw.User.Email, pack, []byte(script))
+		if err != nil {
+			return nil, err
+		}
+		return r.sw.runc(ctx, creator, r.parent, name, args)
+	}
+
+	// bash script
 	var b bytes.Buffer
 	ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
 	vs := sh.NewVirtualSystem(r.sw.Root, r.sw.OS, r.sw.Workspace, ioe)
@@ -116,12 +152,13 @@ func (r *AgentScriptRunner) execv(ctx context.Context, vs *sh.VirtualSystem, arg
 	return result, nil
 }
 
-func (r *AgentScriptRunner) runm(ctx context.Context, vs *sh.VirtualSystem, args []string) (*api.Result, error) {
+func (r *AgentScriptRunner) runc(ctx context.Context, creator api.Creator, vs *sh.VirtualSystem, name string, args map[string]any) (*api.Result, error) {
 	for k, v := range r.parent.Environment.GetAllEnvs() {
 		vs.System.Setenv(k, v)
 	}
 
-	result, err := r.sw.Execv(ctx, args)
+	result, err := r.sw.runc(ctx, creator, r.parent, name, args)
+
 	if err != nil {
 		fmt.Fprintln(vs.IOE.Stderr, err.Error())
 		return nil, err
@@ -129,4 +166,16 @@ func (r *AgentScriptRunner) runm(ctx context.Context, vs *sh.VirtualSystem, args
 	fmt.Fprintln(vs.IOE.Stdout, result.Value)
 
 	return result, nil
+}
+
+func packnameFromFile(file string) api.Packname {
+	// agents/pack/agent.yaml
+	// agents/pack/pack.yaml
+	// agents/pack/name.yaml
+	pack := path.Base(path.Dir(file))
+	name := strings.TrimSuffix(path.Base(file), path.Ext(file))
+	if name == "" || name == pack || name == "agent" {
+		return api.Packname(pack)
+	}
+	return api.Packname(pack + "/" + name)
 }

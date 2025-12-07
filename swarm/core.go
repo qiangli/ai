@@ -81,7 +81,7 @@ func (sw *Swarm) Init() error {
 	// TODO move to Vars?
 	sw.agentMaker = maker
 
-	root, err := maker.CreateFrom(context.TODO(), "root", sw.User.Email, resource.RootAgentData)
+	root, err := maker.CreateFrom(context.TODO(), "root", resource.RootAgentData)
 	if err != nil {
 		return err
 	}
@@ -145,28 +145,35 @@ func (sw *Swarm) CreateAgent(ctx context.Context, name string) (*api.Agent, erro
 // If the resulting AI Message contains tool_calls, the orchestrator will then call the tools.
 // The tools node executes the tools and adds the responses to the messages list as ToolMessage objects. The agent node then calls the language model again. The process repeats until no more tool_calls are present in the response. The agent then returns the full list of messages.
 func (sw *Swarm) Serve(req *api.Request, resp *api.Response) error {
-	if sw.User == nil || sw.Vars == nil {
-		return api.NewInternalServerError("invalid config. user or vars not initialized")
-	}
-	if v, _ := sw.Vars.Global.Get("workspace"); v == "" {
-		return api.NewInternalServerError("invalid config. user or vars not initialized")
-	}
-	if req.Agent != nil && req.Agent.Name == req.Name {
-		return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself not supported.", req.Name))
-	}
+	// if sw.User == nil || sw.Vars == nil {
+	// 	return api.NewInternalServerError("invalid config. user or vars not initialized")
+	// }
+	// if v, _ := sw.Vars.Global.Get("workspace"); v == "" {
+	// 	return api.NewInternalServerError("invalid config. user or vars not initialized")
+	// }
+	// if req.Agent != nil && req.Agent.Name == req.Name {
+	// 	return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself not supported.", req.Name))
+	// }
+	// if req.Agent == nil {
+	// 	req.Agent = sw.Vars.RootAgent
+	// }
+
+	return sw.serve(sw.CreateAgent, req, resp)
+}
+
+func (sw *Swarm) serve(creator api.Creator, req *api.Request, resp *api.Response) error {
 	if req.Agent == nil {
 		req.Agent = sw.Vars.RootAgent
 	}
 
 	var ctx = req.Context()
 	logger := log.GetLogger(ctx)
-
 	for {
 		start := time.Now()
 		logger.Debugf("creating agent: %s %s\n", req.Name, start)
 
 		// creator
-		agent, err := sw.CreateAgent(ctx, req.Name)
+		agent, err := creator(ctx, req.Name)
 		if err != nil {
 			return err
 		}
@@ -366,11 +373,15 @@ func (sw *Swarm) Execm(ctx context.Context, argm map[string]any) (*api.Result, e
 
 // Run agent action
 func (sw *Swarm) runm(ctx context.Context, parent *api.Agent, name string, args map[string]any) (*api.Result, error) {
+	return sw.runc(ctx, sw.CreateAgent, parent, name, args)
+}
+
+func (sw *Swarm) runc(ctx context.Context, creator api.Creator, parent *api.Agent, name string, args map[string]any) (*api.Result, error) {
 	req := api.NewRequest(ctx, name, args)
 	req.Agent = parent
 
 	resp := &api.Response{}
-	err := sw.Serve(req, resp)
+	err := sw.serve(creator, req, resp)
 	if err != nil {
 		return nil, err
 	}

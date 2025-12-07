@@ -366,33 +366,50 @@ func (ap *AgentMaker) Create(ctx context.Context, name string) (*api.Agent, erro
 	}
 }
 
-func (ap *AgentMaker) CreateFrom(ctx context.Context, name string, owner string, content []byte) (*api.Agent, error) {
+func (ap *AgentMaker) CreateFrom(ctx context.Context, name string, content []byte) (*api.Agent, error) {
 	pack, sub := api.Packname(name).Decode()
 
-	ac, err := ap.loadAgent(pack, content)
+	c, err := ap.Creator(ap.sw.agentMaker.Create, ap.sw.User.Email, pack, content)
+	if err != nil {
+		return nil, err
+	}
+	return c(ctx, sub)
+}
+
+func (ap *AgentMaker) Creator(parent api.Creator, owner string, pack string, data []byte) (api.Creator, error) {
+	ac, err := ap.loadAgent(pack, data)
 	if err != nil {
 		return nil, err
 	}
 
-	c, err := ap.getAgentConfig(ac, pack, sub)
-	if err != nil {
-		return nil, err
-	}
-
-	agent, err := ap.newAgent(ac, c, owner)
-	if err != nil {
-		return nil, err
-	}
-
-	// embedded
-	for _, v := range c.Embed {
-		if a, err := ap.Create(ctx, v); err != nil {
+	var creator api.Creator
+	creator = func(ctx context.Context, name string) (*api.Agent, error) {
+		pack, sub := api.Packname(name).Decode()
+		c, err := ap.getAgentConfig(ac, pack, sub)
+		if err != nil {
 			return nil, err
-		} else {
-			agent.Embed = append(agent.Embed, a)
 		}
+
+		agent, err := ap.newAgent(ac, c, owner)
+		if err != nil {
+			if parent == nil {
+				return nil, err
+			}
+			return parent(ctx, name)
+		}
+
+		// embedded
+		for _, v := range c.Embed {
+			if a, err := creator(ctx, v); err != nil {
+				return nil, err
+			} else {
+				agent.Embed = append(agent.Embed, a)
+			}
+		}
+		return agent, nil
 	}
-	return agent, nil
+
+	return creator, nil
 }
 
 func (ap *AgentMaker) resolveModelLevel(model string) (string, string) {
