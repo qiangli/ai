@@ -47,21 +47,21 @@ func NewAgentMaker(sw *Swarm) *AgentMaker {
 		sw: sw,
 	}
 }
-func (ap *AgentMaker) findAgentConfig(ac *api.AgentsConfig, pack, sub string) (*api.AgentConfig, error) {
-	n := pack
+func findAgentConfig(ac *api.AgentsConfig, pack, sub string) (*api.AgentConfig, error) {
+	pn := pack
 	if sub != "" {
-		n = pack + "/" + sub
+		pn = pack + "/" + sub
 	}
 	for _, a := range ac.Agents {
-		if a.Name == n {
+		if a.Name == pn {
 			return a, nil
 		}
 	}
-	return nil, fmt.Errorf("no such agent: %s", n)
+	return nil, fmt.Errorf("no such agent: %s", pn)
 }
 
-func (ap *AgentMaker) getAgentConfig(ac *api.AgentsConfig, pack, sub string) (*api.AgentConfig, error) {
-	a, err := ap.findAgentConfig(ac, pack, sub)
+func getAgentConfig(ac *api.AgentsConfig, pack, sub string) (*api.AgentConfig, error) {
+	a, err := findAgentConfig(ac, pack, sub)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func (ap *AgentMaker) newAgent(
 				Model: model,
 			}
 		} else {
-			set, level := ap.resolveModelLevel(model)
+			set, level := resolveModelLevel(model)
 			// local
 			if set == ac.Set {
 				for k, v := range ac.Models {
@@ -282,7 +282,21 @@ func (ap *AgentMaker) loadAgent(pack string, content []byte) (*api.AgentsConfig,
 		return nil, fmt.Errorf("invalid config. no agent defined: %s", pack)
 	}
 
-	//
+	// normalize agent name
+	packslash := pack + "/"
+	for _, a := range ac.Agents {
+		n := a.Name
+		// the primary agent
+		if n == pack {
+			continue
+		}
+		if strings.HasPrefix(n, packslash) {
+			continue
+		}
+		a.Name = packslash + n
+	}
+
+	// correct pack name
 	ac.Name = pack
 
 	return ac, nil
@@ -337,7 +351,7 @@ func (ap *AgentMaker) Create(ctx context.Context, name string) (*api.Agent, erro
 	// access to models/tools is implicitly granted if user has permission to run the agent
 	// agent config
 	creator := func() (*api.Agent, error) {
-		c, err := ap.getAgentConfig(ac, pack, sub)
+		c, err := getAgentConfig(ac, pack, sub)
 		if err != nil {
 			return nil, err
 		}
@@ -391,7 +405,7 @@ func (ap *AgentMaker) Creator(parent api.Creator, owner string, pack string, dat
 	var creator api.Creator
 	creator = func(ctx context.Context, name string) (*api.Agent, error) {
 		pack, sub := api.Packname(name).Decode()
-		c, err := ap.getAgentConfig(ac, pack, sub)
+		c, err := getAgentConfig(ac, pack, sub)
 		if err != nil {
 			return nil, err
 		}
@@ -418,7 +432,7 @@ func (ap *AgentMaker) Creator(parent api.Creator, owner string, pack string, dat
 	return creator, nil
 }
 
-func (ap *AgentMaker) resolveModelLevel(model string) (string, string) {
+func resolveModelLevel(model string) (string, string) {
 	alias, level := split2(model, "/", "any")
 	return alias, level
 }
