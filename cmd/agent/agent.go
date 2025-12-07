@@ -83,12 +83,11 @@ func setupAppConfig(ctx context.Context, argv []string) (*api.AppConfig, error) 
 	argv = ParseSpecialChars(app, argv)
 	argm, err := conf.ParseActionArgs(argv)
 	if err != nil {
-		// log.GetLogger(ctx).Errorf("%v\n", err)
 		return nil, err
 	}
 	maps.Copy(app.Arguments, argm)
 
-	in, err := agent.GetUserInput(ctx, app)
+	in, err := agent.GetUserInput(ctx, app, argm["message"].(string))
 	if err != nil {
 		return nil, err
 	}
@@ -98,6 +97,7 @@ func setupAppConfig(ctx context.Context, argv []string) (*api.AppConfig, error) 
 	log.GetLogger(ctx).SetLogLevel(level)
 	log.GetLogger(ctx).Debugf("Config: %+v\n", app)
 
+	maps.Copy(app.Arguments, argm)
 	maps.Copy(app.Arguments, app.ToMap())
 
 	return app, nil
@@ -109,30 +109,19 @@ func Run(ctx context.Context, argv []string) error {
 		return err
 	}
 
-	// // call local system command as tool:
-	// // sh:bash command arguments
-	// if !conf.IsAction(argv[0]) {
-	// 	// argm := make(map[string]any)
-	// 	// argm["kit"] = "sh"
-	// 	// argm["name"] = "bash"
-	// 	// argm["command"] = argv[0]
-	// 	// if len(argv) > 1 {
-	// 	// 	argm["arguments"] = argv[1:]
-	// 	// }
-	// 	// maps.Copy(cfg.Arguments, argm)
-
-	// 	if err := agent.RunSwarm(ctx, cfg); err != nil {
-	// 		log.GetLogger(ctx).Errorf("%v\n", err)
-	// 	}
-	// 	return nil
-	// }
-
-	// argm, err := conf.ParseActionArgs(argv)
-	// if err != nil {
-	// 	log.GetLogger(ctx).Errorf("%v\n", err)
-	// 	return nil
-	// }
-	// maps.Copy(cfg.Arguments, argm)
+	// call local system command as tool:
+	// sh:bash command arguments
+	if !conf.IsAction(argv[0]) {
+		cfg.Arguments["kit"] = "sh"
+		cfg.Arguments["name"] = "bash"
+		cfg.Arguments["command"] = argv[0]
+		if len(argv) > 1 {
+			cfg.Arguments["arguments"] = argv[1:]
+		}
+	} else {
+		// sh:bash and other bash command that require arguments
+		cfg.Arguments["arguments"] = cfg.Arguments["message"]
+	}
 
 	if err := agent.RunSwarm(ctx, cfg); err != nil {
 		log.GetLogger(ctx).Errorf("%v\n", err)

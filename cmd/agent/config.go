@@ -40,9 +40,9 @@ func ParseSpecialChars(app *api.AppConfig, args []string) []string {
 	var isStdin, isClipin, isClipWait, isClipout, isClipAppend bool
 
 	if len(args) > 0 {
+	loop:
 		for i := len(args) - 1; i >= 0; i-- {
 			lastArg := args[i]
-
 			switch lastArg {
 			case StdinRedirect:
 				isStdin = true
@@ -57,8 +57,10 @@ func ParseSpecialChars(app *api.AppConfig, args []string) []string {
 				isClipout = true
 				isClipAppend = true
 			default:
-				args = args[:i+1]
+				// continue until a non special char
+				break loop
 			}
+			args = args[:i+1]
 		}
 	}
 

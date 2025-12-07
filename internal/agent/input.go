@@ -34,19 +34,19 @@ func (e *Editor) Launch(content string) (string, error) {
 // otherwise, it determines the input source (stdin, clipboard, editor)
 // and collects input accordingly. It also
 // attaches any provided files or template file if provided.
-func GetUserInput(ctx context.Context, cfg *api.AppConfig) (*api.UserInput, error) {
-	return getUserInput(ctx, cfg, nil, nil, nil)
+func GetUserInput(ctx context.Context, cfg *api.AppConfig, msg string) (*api.UserInput, error) {
+	return getUserInput(ctx, cfg, msg, nil, nil, nil)
 }
 
 // user query: message and content
 // cfg.Message is prepended to message collected from command line --message flag or the non flag/option args.
-func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clipper api.ClipboardProvider, editor api.EditorProvider) (*api.UserInput, error) {
+func getUserInput(ctx context.Context, cfg *api.AppConfig, message string, stdin io.Reader, clipper api.ClipboardProvider, editor api.EditorProvider) (*api.UserInput, error) {
 	// collecting message content from various sources
 	if clipper == nil {
 		clipper = util.NewClipboard()
 	}
 
-	input, err := userInput(ctx, cfg, stdin, clipper)
+	input, err := userInput(ctx, cfg, message, stdin, clipper)
 	if err != nil {
 		return nil, err
 	}
@@ -56,6 +56,7 @@ func getUserInput(ctx context.Context, cfg *api.AppConfig, stdin io.Reader, clip
 func userInput(
 	ctx context.Context,
 	cfg *api.AppConfig,
+	message string,
 	stdin io.Reader,
 	clipboard api.ClipboardProvider,
 ) (*api.UserInput, error) {
@@ -135,7 +136,7 @@ func userInput(
 
 	// update query
 	var content = cat(stdinData, clipinData, "\n")
-	msg := cat(cfg.Message, content, "\n###\n")
+	msg := cat(message, content, "\n###\n")
 	return &api.UserInput{
 		Message: msg,
 	}, nil
