@@ -65,8 +65,6 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 }
 
 func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem) sh.ExecHandler {
-	// var runner = r.runner(vs, r.parent)
-
 	return func(ctx context.Context, args []string) (bool, error) {
 		if r.parent == nil {
 			return true, fmt.Errorf("missing parent agent")
@@ -109,37 +107,26 @@ func (r *AgentScriptRunner) execv(ctx context.Context, vs *sh.VirtualSystem, arg
 	}
 
 	result, err := r.sw.Execv(ctx, args)
-
 	if err != nil {
-		// vs.System.Setenv(globalError, err.Error())
 		fmt.Fprintln(vs.IOE.Stderr, err.Error())
 		return nil, err
 	}
-
 	fmt.Fprintln(vs.IOE.Stdout, result.Value)
-	// vs.System.Setenv(globalResult, result.Value)
 
 	return result, nil
 }
 
-// func (r *AgentScriptRunner) runner(vs *sh.VirtualSystem, agent *api.Agent) func(context.Context, []string) (*api.Result, error) {
-// 	return func(ctx context.Context, args []string) (*api.Result, error) {
+func (r *AgentScriptRunner) runm(ctx context.Context, vs *sh.VirtualSystem, args []string) (*api.Result, error) {
+	for k, v := range r.parent.Environment.GetAllEnvs() {
+		vs.System.Setenv(k, v)
+	}
 
-// 		for k, v := range agent.Environment.GetAllEnvs() {
-// 			vs.System.Setenv(k, v)
-// 		}
+	result, err := r.sw.Execv(ctx, args)
+	if err != nil {
+		fmt.Fprintln(vs.IOE.Stderr, err.Error())
+		return nil, err
+	}
+	fmt.Fprintln(vs.IOE.Stdout, result.Value)
 
-// 		result, err := r.sw.Execv(ctx, args)
-
-// 		if err != nil {
-// 			// vs.System.Setenv(globalError, err.Error())
-// 			fmt.Fprintln(vs.IOE.Stderr, err.Error())
-// 			return nil, err
-// 		}
-
-// 		fmt.Fprintln(vs.IOE.Stdout, result.Value)
-// 		// vs.System.Setenv(globalResult, result.Value)
-
-// 		return result, nil
-// 	}
-// }
+	return result, nil
+}
