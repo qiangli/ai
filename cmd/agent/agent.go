@@ -84,7 +84,13 @@ func setupAppConfig(ctx context.Context, argv []string) (*api.AppConfig, error) 
 	}
 
 	// stdin//pasteboard
-	internal.ParseSpecialChars(app, argv)
+	argv = internal.ParseSpecialChars(app, argv)
+	argm, err := conf.ParseActionArgs(argv)
+	if err != nil {
+		// log.GetLogger(ctx).Errorf("%v\n", err)
+		return nil, err
+	}
+	maps.Copy(app.Arguments, argm)
 
 	in, err := agent.GetUserInput(ctx, app)
 	if err != nil {
@@ -125,12 +131,12 @@ func Run(ctx context.Context, argv []string) error {
 		return nil
 	}
 
-	argm, err := conf.ParseActionArgs(argv)
-	if err != nil {
-		log.GetLogger(ctx).Errorf("%v\n", err)
-		return nil
-	}
-	maps.Copy(cfg.Arguments, argm)
+	// argm, err := conf.ParseActionArgs(argv)
+	// if err != nil {
+	// 	log.GetLogger(ctx).Errorf("%v\n", err)
+	// 	return nil
+	// }
+	// maps.Copy(cfg.Arguments, argm)
 
 	if err := agent.RunSwarm(ctx, cfg); err != nil {
 		log.GetLogger(ctx).Errorf("%v\n", err)

@@ -364,10 +364,6 @@ type AppConfig struct {
 	// app level global vars
 	Environment map[string]any `yaml:"environment"`
 
-	// //
-	// // unique identifier
-	// ID string `yaml:"-"`
-
 	// app root. default: $HOME/.ai/
 	Base string `yaml:"-"`
 
@@ -378,12 +374,6 @@ type AppConfig struct {
 	Workspace string `yaml:"-"`
 
 	Session string `yaml:"-"`
-
-	// // name of custom creator agent for this agent configuration
-	// Creator string `yaml:"creator"`
-
-	// // middleware chain
-	// Chain *ChainConfig `yaml:"chain"`
 
 	//
 	Pack string `yaml:"pack"`
@@ -462,11 +452,6 @@ func (ac *AppConfig) ToMap() map[string]any {
 
 	return result
 }
-
-// func (cfg *AppConfig) IsNew() bool {
-// 	// return cfg.New != nil && *cfg.New
-// 	return cfg.MaxHistory == 0
-// }
 
 func (cfg *AppConfig) IsQuiet() bool {
 	return ToLogLevel(cfg.LogLevel) == Quiet
