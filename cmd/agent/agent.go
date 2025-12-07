@@ -80,7 +80,7 @@ func parseAppConfig(ctx context.Context, app *api.AppConfig, argv []string) erro
 	}
 	maps.Copy(app.Arguments, argm)
 
-	in, err := agent.GetUserInput(ctx, app, argm["message"].(string))
+	in, err := agent.GetUserInput(ctx, app, api.ToString(argm["message"]))
 	if err != nil {
 		return err
 	}

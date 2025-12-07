@@ -22,13 +22,25 @@
 			"envFile": "${workspaceFolder}/.env",
 			"args": [
 				// "/help",
-				"/sh:bash",
-				"/bin/ls",
-				"-al",
+				//
+				// slash command
 				// "/bin/ls",
 				// "-al",
-				// "ls",
-				// "-al",
+				// "test"
+				//
+				// slash tool
+				// "/sh:bash",
+				// "--command",
+				// "/bin/ls -al test",
+				//
+				// agent tool
+				// "/agent:ed",
+				// "correct mine englise"
+				//
+				// bash script
+				"/sh:bash",
+				"--script",
+				"test/script.sh"
 				//
 				// "/agent:joker",
 				// "@agent/agent",
