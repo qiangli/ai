@@ -6,11 +6,9 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
-	// "strings"
 
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
-	// "github.com/spf13/pflag"
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/agent"
@@ -19,8 +17,6 @@ import (
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
 )
-
-// var viper = internal.V
 
 var AgentCmd = &cobra.Command{
 	Use:                   "ai [OPTIONS] [@AGENT] MESSAGE...",
@@ -77,14 +73,14 @@ func setupAppConfig(ctx context.Context, argv []string) (*api.AppConfig, error) 
 	app.Base = filepath.Join(home, ".ai")
 
 	ws := filepath.Join(app.Base, "workspace")
-	if v, err := internal.EnsureWorkspace(ws); err != nil {
+	if v, err := EnsureWorkspace(ws); err != nil {
 		return nil, fmt.Errorf("failed to resolve workspace: %w", err)
 	} else {
 		app.Workspace = v
 	}
 
 	// stdin//pasteboard
-	argv = internal.ParseSpecialChars(app, argv)
+	argv = ParseSpecialChars(app, argv)
 	argm, err := conf.ParseActionArgs(argv)
 	if err != nil {
 		// log.GetLogger(ctx).Errorf("%v\n", err)
@@ -113,23 +109,23 @@ func Run(ctx context.Context, argv []string) error {
 		return err
 	}
 
-	// call local system command as tool:
-	// sh:bash command arguments
-	if !conf.IsAction(argv[0]) {
-		argm := make(map[string]any)
-		argm["kit"] = "sh"
-		argm["name"] = "bash"
-		argm["command"] = argv[0]
-		if len(argv) > 1 {
-			argm["arguments"] = argv[1:]
-		}
-		maps.Copy(cfg.Arguments, argm)
+	// // call local system command as tool:
+	// // sh:bash command arguments
+	// if !conf.IsAction(argv[0]) {
+	// 	// argm := make(map[string]any)
+	// 	// argm["kit"] = "sh"
+	// 	// argm["name"] = "bash"
+	// 	// argm["command"] = argv[0]
+	// 	// if len(argv) > 1 {
+	// 	// 	argm["arguments"] = argv[1:]
+	// 	// }
+	// 	// maps.Copy(cfg.Arguments, argm)
 
-		if err := agent.RunSwarm(ctx, cfg); err != nil {
-			log.GetLogger(ctx).Errorf("%v\n", err)
-		}
-		return nil
-	}
+	// 	if err := agent.RunSwarm(ctx, cfg); err != nil {
+	// 		log.GetLogger(ctx).Errorf("%v\n", err)
+	// 	}
+	// 	return nil
+	// }
 
 	// argm, err := conf.ParseActionArgs(argv)
 	// if err != nil {

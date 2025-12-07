@@ -113,12 +113,12 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	}
 
 	var common = map[string]any{
-		"max-history": *maxHistory,
-		"max-span":    *maxSpan,
-		"max-turns":   *maxTurns,
-		"max-time":    *maxTime,
+		"max_history": *maxHistory,
+		"max_span":    *maxSpan,
+		"max_turns":   *maxTurns,
+		"max_time":    *maxTime,
 		"format":      *format,
-		"log-level":   *logLevel,
+		"log_level":   *logLevel,
 	}
 
 	// prepend messsage to non flag/option args
@@ -202,13 +202,13 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 
 	//
 	if *isVerbose {
-		argm["log-level"] = "verbose"
+		argm["log_level"] = "verbose"
 	}
 	if *isInfo {
-		argm["log-level"] = "info"
+		argm["log_level"] = "info"
 	}
 	if *isQuiet {
-		argm["log-level"] = "quiet"
+		argm["log_level"] = "quiet"
 	}
 
 	// update the map
