@@ -39,15 +39,14 @@ func (r *AgentScriptRunner) CreatorFrom(pack string, data []byte) (api.Creator, 
 
 // Run command or script. if script is empty, read command or script from args.
 func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[string]any) (any, error) {
-	var file, ext string
+	var filename, ext string
 	if script == "" && args != nil {
 		if c, ok := args["command"]; ok {
 			script = api.ToString(c)
 		} else {
-			file, ok := args["script"]
-			filename := api.ToString(file)
-			ext = path.Ext(filename)
-			if ok {
+			if file, ok := args["script"]; ok {
+				filename = api.ToString(file)
+				ext = path.Ext(filename)
 				data, err := r.sw.Workspace.ReadFile(filename, nil)
 				if err != nil {
 					return "", err
@@ -63,13 +62,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 
 	// agent
 	if ext == ".yaml" {
-		var name string
-		if v, ok := args["name"]; ok {
-			name = api.ToString(v)
-		}
-		if name == "" {
-			name = packnameFromFile(file).String()
-		}
+		var name = packnameFromFile(filename).String()
 		pack, _ := api.Packname(name).Decode()
 		creator, err := r.sw.agentMaker.Creator(r.sw.agentMaker.Create, r.sw.User.Email, pack, []byte(script))
 		if err != nil {
