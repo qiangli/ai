@@ -121,6 +121,8 @@ func (sw *Swarm) InitChain() {
 	}
 }
 
+// Create agent by name.
+// Search assets and load the agent if found.
 func (sw *Swarm) CreateAgent(ctx context.Context, name string) (*api.Agent, error) {
 	if name == "" {
 		// anonymous

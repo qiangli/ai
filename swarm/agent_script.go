@@ -65,21 +65,18 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 }
 
 func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem) sh.ExecHandler {
-	var runner = r.runner(vs, r.parent)
+	// var runner = r.runner(vs, r.parent)
 
 	return func(ctx context.Context, args []string) (bool, error) {
 		if r.parent == nil {
 			return true, fmt.Errorf("missing parent agent")
 		}
 		log.GetLogger(ctx).Debugf("parent: %s args: %+v\n", r.parent.Name, args)
-		// isAI := conf.IsAgentTool
-		// isAI := func(s string) bool {
-		// 	return s == "ai" || strings.HasPrefix(s, "@") || strings.HasPrefix(s, "/")
-		// }
+
 		if conf.IsAction(strings.ToLower(args[0])) {
 			log.GetLogger(ctx).Debugf("running ai agent/tool: %+v\n", args)
 
-			_, err := runner(ctx, args)
+			_, err := r.execv(ctx, vs, args)
 			if err != nil {
 				return true, err
 			}
@@ -106,35 +103,43 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem) sh.ExecHandler 
 	}
 }
 
-func (r *AgentScriptRunner) runner(vs *sh.VirtualSystem, agent *api.Agent) func(context.Context, []string) (*api.Result, error) {
-	return func(ctx context.Context, args []string) (*api.Result, error) {
-
-		for k, v := range agent.Environment.GetAllEnvs() {
-			vs.System.Setenv(k, v)
-		}
-
-		// at, err := conf.ParseActionArgs(args)
-		// if err != nil {
-		// 	return nil, err
-		// }
-		// id := at.Kitname().ID()
-		// // TODO batch set
-		// data, err := agent.Runner.Run(ctx, id, at)
-
-		result, err := r.sw.Execv(ctx, args)
-
-		if err != nil {
-			// vs.System.Setenv(globalError, err.Error())
-			fmt.Fprintln(vs.IOE.Stderr, err.Error())
-			return nil, err
-		}
-		// result := api.ToResult(data)
-		// if result == nil {
-		// 	result = &api.Result{}
-		// }
-		fmt.Fprintln(vs.IOE.Stdout, result.Value)
-		// vs.System.Setenv(globalResult, result.Value)
-
-		return result, nil
+func (r *AgentScriptRunner) execv(ctx context.Context, vs *sh.VirtualSystem, args []string) (*api.Result, error) {
+	for k, v := range r.parent.Environment.GetAllEnvs() {
+		vs.System.Setenv(k, v)
 	}
+
+	result, err := r.sw.Execv(ctx, args)
+
+	if err != nil {
+		// vs.System.Setenv(globalError, err.Error())
+		fmt.Fprintln(vs.IOE.Stderr, err.Error())
+		return nil, err
+	}
+
+	fmt.Fprintln(vs.IOE.Stdout, result.Value)
+	// vs.System.Setenv(globalResult, result.Value)
+
+	return result, nil
 }
+
+// func (r *AgentScriptRunner) runner(vs *sh.VirtualSystem, agent *api.Agent) func(context.Context, []string) (*api.Result, error) {
+// 	return func(ctx context.Context, args []string) (*api.Result, error) {
+
+// 		for k, v := range agent.Environment.GetAllEnvs() {
+// 			vs.System.Setenv(k, v)
+// 		}
+
+// 		result, err := r.sw.Execv(ctx, args)
+
+// 		if err != nil {
+// 			// vs.System.Setenv(globalError, err.Error())
+// 			fmt.Fprintln(vs.IOE.Stderr, err.Error())
+// 			return nil, err
+// 		}
+
+// 		fmt.Fprintln(vs.IOE.Stdout, result.Value)
+// 		// vs.System.Setenv(globalResult, result.Value)
+
+// 		return result, nil
+// 	}
+// }
