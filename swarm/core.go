@@ -351,21 +351,8 @@ func (sw *Swarm) Execm(ctx context.Context, argm map[string]any) (*api.Result, e
 	switch kit {
 	case "agent":
 		v, err = sw.runm(ctx, sw.Vars.RootAgent, name, argm)
-	// case "sh":
-	// 	// sh:bash
-	// 	if c, ok := argm["command"]; ok {
-	// 		v, err = sw.Vars.RootAgent.Shell.Run(ctx, api.ToString(c), argm)
-	// 	} else if path, ok := argm["script"]; ok {
-	// 		c, err := sw.loadScript(api.ToString(path))
-	// 		if err != nil {
-	// 			return nil, err
-	// 		}
-	// 		v, err = sw.Vars.RootAgent.Shell.Run(ctx, c, argm)
-	// 	} else {
-	// 		return nil, fmt.Errorf("")
-	// 	}
 	default:
-		// tools
+		// all tools including sh:bash
 		v, err = sw.Vars.RootAgent.Runner.Run(ctx, id, argm)
 	}
 	if err != nil {

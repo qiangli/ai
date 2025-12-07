@@ -26,21 +26,21 @@ func NewAgentScriptRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
 	}
 }
 
+// Run command or script. if script is empty, read command or script from args.
 func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[string]any) (any, error) {
 	if script == "" && args != nil {
-		file := args["script"]
-		if file == "" {
-			return "", fmt.Errorf("bash script required")
+		if c, ok := args["command"]; ok {
+			script = api.ToString(c)
+		} else if file, ok := args["script"]; ok {
+			data, err := r.sw.Workspace.ReadFile(api.ToString(file), nil)
+			if err != nil {
+				return "", err
+			}
+			script = string(data)
 		}
-
-		data, err := r.sw.Workspace.ReadFile(api.ToString(file), nil)
-		if err != nil {
-			return "", err
-		}
-		script = string(data)
 	}
 	if script == "" {
-		return "", fmt.Errorf("missing bash script")
+		return "", fmt.Errorf("missing bash command/script")
 	}
 
 	var b bytes.Buffer

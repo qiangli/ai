@@ -25,7 +25,11 @@
 				"/sh:bash",
 				"/bin/ls",
 				"-al",
-				// "agents",
+				// "/bin/ls",
+				// "-al",
+				// "ls",
+				// "-al",
+				//
 				// "/agent:joker",
 				// "@agent/agent",
 				// "@ask",

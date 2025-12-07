@@ -54,13 +54,8 @@ func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, _ string, args map
 }
 
 func (r *SystemKit) Bash(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	command, err := api.GetStrProp("command", args)
-	if err != nil {
-		return "", err
-	}
-
-	// shell handles "script" arg if command is missing
-	result, err := vars.RootAgent.Shell.Run(ctx, command, args)
+	// shell handles command/script if empty
+	result, err := vars.RootAgent.Shell.Run(ctx, "", args)
 	if err != nil {
 		return "", err
 	}
