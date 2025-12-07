@@ -38,10 +38,13 @@
 				// "correct mine englise"
 				//
 				// bash script
+				// "/sh:bash",
+				// "--script",
+				// "test/script.sh"
+				//
 				"/sh:bash",
 				"--script",
-				"test/script.sh"
-				//
+				"atm/agents/web/web_crawler.yaml",
 				// "/agent:joker",
 				// "@agent/agent",
 				// "@ask",

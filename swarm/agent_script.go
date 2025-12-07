@@ -62,7 +62,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	}
 
 	// agent
-	if ext == "yaml" {
+	if ext == ".yaml" {
 		var name string
 		if v, ok := args["name"]; ok {
 			name = api.ToString(v)

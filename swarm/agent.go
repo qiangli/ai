@@ -373,7 +373,13 @@ func (ap *AgentMaker) CreateFrom(ctx context.Context, name string, content []byt
 	if err != nil {
 		return nil, err
 	}
-	return c(ctx, sub)
+
+	var pn = pack
+	if sub != "" {
+		pn = pack + "/" + sub
+	}
+
+	return c(ctx, pn)
 }
 
 func (ap *AgentMaker) Creator(parent api.Creator, owner string, pack string, data []byte) (api.Creator, error) {
