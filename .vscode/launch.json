@@ -42,10 +42,16 @@
 				// "--script",
 				// "test/script.sh"
 				//
-				"/sh:bash",
-				"--script",
-				"atm/agents/joker/agent.yaml",
-				"what is the latest news for today",
+				// "/sh:bash",
+				// "--script",
+				// "atm/agents/joker/agent.yaml",
+				// "what is the latest news for today",
+				//
+				"/hello_kit:hello_user",
+				"--config",
+				"atm/tools/hello_kit/hello_user.yaml",
+				//
+				//
 				// "/agent:joker",
 				// "@agent/agent",
 				// "@ask",

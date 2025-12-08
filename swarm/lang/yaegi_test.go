@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestGo(t *testing.T) {
+func TestGolang(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
@@ -31,7 +31,7 @@ func main() {
 
 	for _, tt := range tests {
 		t.Run(tt.script, func(t *testing.T) {
-			got, err := Go(ctx, nil, nil, tt.script, nil)
+			got, err := Golang(ctx, nil, nil, tt.script, nil)
 			if (err != nil) != tt.expectErr {
 				t.Errorf("Go() error = %v, expectErr %v", err, tt.expectErr)
 				return
@@ -44,7 +44,7 @@ func main() {
 	}
 }
 
-func TestGoFetch(t *testing.T) {
+func TestGolangFetch(t *testing.T) {
 	ctx := context.Background()
 	var script = `
 package main
@@ -83,7 +83,7 @@ func main() {
 	fetchWebPage(url)
 }
 `
-	got, err := Go(ctx, nil, nil, script, nil)
+	got, err := Golang(ctx, nil, nil, script, nil)
 	if err != nil {
 		t.FailNow()
 	}

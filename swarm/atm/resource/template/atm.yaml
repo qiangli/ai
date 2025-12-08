@@ -16,7 +16,7 @@ agents:
 
 ###
 # kit: "toolkit"
-# type: "func | web | mcp | agent | faas"
+# type: "web | mcp | agent | func"
 # tools:
 #   - name: ""
 #     description: ""

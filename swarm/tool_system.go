@@ -42,7 +42,7 @@ func NewToolSystem() api.ToolSystem {
 	ts.AddKit(api.ToolTypeWeb, atm.NewWebKit())
 	ts.AddKit(api.ToolTypeSystem, atm.NewSystemKit())
 	ts.AddKit(api.ToolTypeMcp, atm.NewMcpKit())
-	ts.AddKit(api.ToolTypeFaas, atm.NewFaasKit())
+	// ts.AddKit(api.ToolTypeFaas, atm.NewFaasKit())
 
 	return ts
 }

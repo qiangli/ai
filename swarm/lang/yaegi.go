@@ -9,7 +9,8 @@ import (
 	"github.com/traefik/yaegi/stdlib"
 )
 
-func Go(ctx context.Context, f fs.FS, env []string, script string, args []string) (any, error) {
+// Golang interepter
+func Golang(ctx context.Context, f fs.FS, env []string, script string, args []string) (any, error) {
 	var b bytes.Buffer
 	i := interp.New(interp.Options{
 		Stdout:               &b,

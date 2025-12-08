@@ -17,8 +17,8 @@ const (
 	ToolTypeSystem ToolType = "system"
 	ToolTypeWeb    ToolType = "web"
 	ToolTypeMcp    ToolType = "mcp"
-	ToolTypeFaas   ToolType = "faas"
-	ToolTypeAgent  ToolType = "agent"
+	// ToolTypeFaas   ToolType = "faas"
+	ToolTypeAgent ToolType = "agent"
 )
 
 type ToolFunc struct {
