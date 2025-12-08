@@ -26,28 +26,24 @@ func NewAgentScriptRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
 	}
 }
 
-func (r *AgentScriptRunner) CreatorFrom(pack string, data []byte) (api.Creator, error) {
-	// data, err := r.sw.Workspace.ReadFile(api.ToString(file), nil)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// extract pack name
+// func (r *AgentScriptRunner) CreatorFrom(pack string, data []byte) (api.Creator, error) {
+// 	// data, err := r.sw.Workspace.ReadFile(api.ToString(file), nil)
+// 	// if err != nil {
+// 	// 	return nil, err
+// 	// }
+// 	// extract pack name
 
-	return r.sw.agentMaker.Creator(r.sw.agentMaker.Create, r.sw.User.Email, pack, data)
-}
+// 	return r.sw.agentMaker.Creator(r.sw.agentMaker.Create, r.sw.User.Email, pack, data)
+// }
 
 // Run command or script. if script is empty, read command or script from args.
 func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[string]any) (any, error) {
-	var name string
 	if script == "" && args != nil {
 		if c, ok := args["command"]; ok {
 			script = api.ToString(c)
 		} else {
 			if v, err := r.sw.LoadScript(args); err == nil {
 				script = v
-			} else if n, v, err := r.sw.LoadActionConfig(args); err == nil {
-				name = n
-				script = string(v)
 			}
 		}
 	}
@@ -56,25 +52,25 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 		return "", fmt.Errorf("missing bash command/script")
 	}
 
-	// action
-	if name != "" {
-		if strings.Contains(name, ":") {
-			// run tool
-			kit, name := api.Kitname(name).Decode()
-			args["config"] = "data:" + script
-			args["kit"] = kit
-			args["name"] = name
-			return r.sw.Execm(ctx, args)
-		} else {
-			pack, _ := api.Packname(name).Decode()
-			creator, err := r.sw.agentMaker.Creator(r.sw.agentMaker.Create, r.sw.User.Email, pack, []byte(script))
-			if err != nil {
-				return nil, err
-			}
-			return r.sw.runc(ctx, creator, r.parent, name, args)
-		}
-		// return nil, fmt.Errorf("invalid action: %s", name)
-	}
+	// // action
+	// if name != "" {
+	// 	if strings.Contains(name, ":") {
+	// 		// run tool
+	// 		kit, name := api.Kitname(name).Decode()
+	// 		args["config"] = "data:" + script
+	// 		args["kit"] = kit
+	// 		args["name"] = name
+	// 		return r.sw.Execm(ctx, args)
+	// 	} else {
+	// 		pack, _ := api.Packname(name).Decode()
+	// 		creator, err := r.sw.agentMaker.Creator(r.sw.agentMaker.Create, r.sw.User.Email, pack, []byte(script))
+	// 		if err != nil {
+	// 			return nil, err
+	// 		}
+	// 		return r.sw.runc(ctx, creator, r.parent, name, args)
+	// 	}
+	// 	// return nil, fmt.Errorf("invalid action: %s", name)
+	// }
 
 	// bash script
 	var b bytes.Buffer

@@ -44,12 +44,17 @@
 				//
 				// "/sh:bash",
 				// "--script",
-				// "atm/agents/joker/agent.yaml",
+				// "atm/agents/joke/agent.yaml",
 				// "what is the latest news for today",
 				//
-				"/hello_kit:hello_user",
+				"/agent:joke",
 				"--config",
-				"atm/tools/hello_kit/hello_user.yaml",
+				"atm/agents/joke/agent.yaml",
+				"tell me a joke",
+				//
+				// "/hello_kit:hello_user",
+				// "--config",
+				// "atm/tools/hello_kit/hello_user.yaml",
 				//
 				//
 				// "/agent:joker",

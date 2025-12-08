@@ -371,9 +371,16 @@ func (sw *Swarm) Execm(ctx context.Context, argm map[string]any) (*api.Result, e
 	return result, nil
 }
 
-// Run agent action
+// Run agent action. if custom config is detected. try load the agent from it.
 func (sw *Swarm) runm(ctx context.Context, parent *api.Agent, name string, args map[string]any) (*api.Result, error) {
-	return sw.runc(ctx, sw.CreateAgent, parent, name, args)
+	var creator = sw.CreateAgent
+	if data, err := sw.LoadActionConfig(args); err == nil {
+		pack, _ := api.Packname(name).Decode()
+		if v, err := sw.agentMaker.Creator(sw.agentMaker.Create, sw.User.Email, pack, []byte(data)); err == nil {
+			creator = v
+		}
+	}
+	return sw.runc(ctx, creator, parent, name, args)
 }
 
 func (sw *Swarm) runc(ctx context.Context, creator api.Creator, parent *api.Agent, name string, args map[string]any) (*api.Result, error) {
@@ -474,34 +481,26 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 }
 
 // Return action name and data
-func (sw *Swarm) LoadActionConfig(args map[string]any) (string, []byte, error) {
+func (sw *Swarm) LoadActionConfig(args map[string]any) (string, error) {
 	s, ok := args["config"]
 	if !ok {
-		return "", nil, fmt.Errorf("no config found")
+		return "", fmt.Errorf("no config found")
 	}
 
-	var file string
 	var script string
 	if s != "" {
 		v := api.ToString(s)
 		if strings.HasPrefix(v, "data:") {
 			script = v[5:]
 		} else {
-			file = v
-			data, err := sw.Workspace.ReadFile(file, nil)
+			data, err := sw.Workspace.ReadFile(v, nil)
 			if err != nil {
-				return "", nil, err
+				return "", err
 			}
 			script = string(data)
 		}
 	}
-
-	var name = api.ToString(args["action"])
-	if name == "" && file != "" {
-		name = ActionNameFromFile(file)
-	}
-
-	return name, []byte(script), nil
+	return script, nil
 }
 
 func (sw *Swarm) LoadScript(args map[string]any) (string, error) {

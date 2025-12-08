@@ -52,9 +52,9 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 	}
 
 	// load from content
-	_, cfg, err := r.sw.LoadActionConfig(args)
+	cfg, err := r.sw.LoadActionConfig(args)
 	if err == nil {
-		tc, err := conf.LoadToolData([][]byte{cfg})
+		tc, err := conf.LoadToolData([][]byte{[]byte(cfg)})
 		if err == nil {
 			tools, err := conf.LoadTools(tc, r.user, r.sw.Secrets)
 			if err == nil {
