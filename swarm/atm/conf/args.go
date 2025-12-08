@@ -97,7 +97,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 
 	workspace := fs.String("workspace", "", "Workspace root path")
 
-	logLevel := fs.String("log-level", "", "Log level: quiet, info, verbose, trace")
+	logLevel := fs.String("log-level", "info", "Log level: quiet, info, verbose, trace")
 	isQuiet := fs.Bool("quiet", false, "Operate quietly, only show final response. log-level=quiet")
 	isInfo := fs.Bool("info", false, "Show progress")
 	isVerbose := fs.Bool("verbose", false, "Show progress and debugging information")
@@ -105,6 +105,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	// tool
 	command := fs.String("command", "", "Shell command(s) to be executed.")
 	script := fs.String("script", "", "Path to the shell script file to be executed.")
+	action := fs.String("action", "", "Default action (agent or tool) to be executed.")
 
 	//
 	err := fs.Parse(argv)
@@ -235,6 +236,9 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	}
 	if *script != "" {
 		argm["script"] = *script
+	}
+	if *action != "" {
+		argm["action"] = *action
 	}
 
 	return argm, nil

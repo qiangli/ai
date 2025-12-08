@@ -317,6 +317,12 @@ func (ac *ActionConfig) ToMap() map[string]any {
 }
 
 type AppConfig struct {
+	// entry action
+	// kit:name
+	// pack/sub
+	// default: pack[/pack]
+	Action string `yaml:"action"`
+
 	// ActionConfig
 	//
 	// kit specifies a namespace for the action
@@ -409,7 +415,9 @@ type AppConfig struct {
 // and only for non zero values.
 func (ac *AppConfig) ToMap() map[string]any {
 	result := make(map[string]any)
-
+	if ac.Action != "" {
+		result["action"] = ac.Action
+	}
 	if ac.Kit != "" {
 		result["kit"] = ac.Kit
 	}

@@ -60,15 +60,26 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 		return "", fmt.Errorf("missing bash command/script")
 	}
 
-	// agent
+	// action
 	if ext == ".yaml" {
-		var name = packnameFromFile(filename).String()
-		pack, _ := api.Packname(name).Decode()
-		creator, err := r.sw.agentMaker.Creator(r.sw.agentMaker.Create, r.sw.User.Email, pack, []byte(script))
-		if err != nil {
-			return nil, err
+		var name = api.ToString(args["action"])
+		if name == "" {
+			name = ActionNameFromFile(filename)
 		}
-		return r.sw.runc(ctx, creator, r.parent, name, args)
+		if name == "" {
+			return "", fmt.Errorf("missing action to be executed")
+		}
+		if strings.Contains(name, ":") {
+			// run tool
+		} else {
+			pack, _ := api.Packname(name).Decode()
+			creator, err := r.sw.agentMaker.Creator(r.sw.agentMaker.Create, r.sw.User.Email, pack, []byte(script))
+			if err != nil {
+				return nil, err
+			}
+			return r.sw.runc(ctx, creator, r.parent, name, args)
+		}
+		return nil, fmt.Errorf("invalid action: %s", name)
 	}
 
 	// bash script
@@ -159,16 +170,4 @@ func (r *AgentScriptRunner) runc(ctx context.Context, creator api.Creator, vs *s
 	fmt.Fprintln(vs.IOE.Stdout, result.Value)
 
 	return result, nil
-}
-
-func packnameFromFile(file string) api.Packname {
-	// agents/pack/agent.yaml
-	// agents/pack/pack.yaml
-	// agents/pack/name.yaml
-	pack := path.Base(path.Dir(file))
-	name := strings.TrimSuffix(path.Base(file), path.Ext(file))
-	if name == "" || name == pack || name == "agent" {
-		return api.Packname(pack)
-	}
-	return api.Packname(pack + "/" + name)
 }

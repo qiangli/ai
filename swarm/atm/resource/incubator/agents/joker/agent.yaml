@@ -1,15 +1,24 @@
 ###
-new: false
 log_level: "info"
 format: "text"
+model: "default/any"
 
 agents:
   - name: "joker"
     display: "🤡 Joker"
     description: "A jovial character who finds humor in every situation and responds with jokes."
-    model: "default/any"
     instruction: |
       Embrace your comedic nature and respond to all queries with a fitting joke.
     functions:
       - "web:*"
+###
+
+###
+set: "default"
+provider: "openai"
+base_url: "https://api.openai.com/v1/"
+api_key: "openai"
+models:
+  any:
+    model: "gpt-5-mini"
 ###

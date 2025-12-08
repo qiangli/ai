@@ -407,15 +407,15 @@ func (ap *AgentMaker) Creator(parent api.Creator, owner string, pack string, dat
 		pack, sub := api.Packname(name).Decode()
 		c, err := getAgentConfig(ac, pack, sub)
 		if err != nil {
-			return nil, err
-		}
-
-		agent, err := ap.newAgent(ac, c, owner)
-		if err != nil {
 			if parent == nil {
 				return nil, err
 			}
 			return parent(ctx, name)
+		}
+
+		agent, err := ap.newAgent(ac, c, owner)
+		if err != nil {
+			return nil, err
 		}
 
 		// embedded

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"strings"
 	// "github.com/u-root/u-root/pkg/shlex"
 	// "github.com/qiangli/ai/swarm/api"
@@ -213,4 +214,33 @@ func NilSafe[T any](ptr *T) T {
 		return *ptr
 	}
 	return zeroValue
+}
+
+// Return agent/kit name:
+//   - agent: pack[/sub]
+//   - tool: kit:name
+//
+// if the path matches the following pattern:
+// agents/pack/agent.yaml
+// agents/pack/pack.yaml
+// agents/pack/sub.yaml
+//
+// tools/kit/name.yaml
+func ActionNameFromFile(file string) string {
+	parent := path.Dir(file)
+	top := path.Base(path.Dir(parent))
+	group := path.Base(parent)
+	name := strings.TrimSuffix(path.Base(file), path.Ext(file))
+
+	switch top {
+	case "tools":
+		return strings.ToLower(group + ":" + name)
+	case "agents":
+		if name == group || name == "agent" {
+			return strings.ToLower(group)
+		}
+		return strings.ToLower(group + "/" + name)
+	}
+	// invalid
+	return ""
 }

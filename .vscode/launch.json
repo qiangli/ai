@@ -44,7 +44,8 @@
 				//
 				"/sh:bash",
 				"--script",
-				"atm/agents/web/web_crawler.yaml",
+				"atm/agents/joker/agent.yaml",
+				"what is the latest news for today",
 				// "/agent:joker",
 				// "@agent/agent",
 				// "@ask",
