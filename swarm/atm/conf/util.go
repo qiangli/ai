@@ -120,3 +120,21 @@ func Kitname(s string) string {
 func modelName(s string) string {
 	return normalizedName(trimExt(s))
 }
+
+// Return the full pack/sub name
+// for the primary agent, returns the pack name
+func NormalizePackname(pack, name string) string {
+	name = normalizedName(name)
+	// main entry agent
+	if name == "" || name == "agent" || name == pack {
+		return pack
+	}
+	parts := strings.SplitN(name, "/", 2)
+	// add missing pack name
+	if len(parts) == 1 {
+		return pack + "/" + parts[0]
+	}
+	// name of pack must match the provided pack
+	// this is to ensure externally accessible when searched by pack name
+	return pack + "/" + parts[1]
+}

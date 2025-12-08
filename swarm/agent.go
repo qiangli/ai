@@ -282,22 +282,13 @@ func (ap *AgentMaker) loadAgent(pack string, content []byte) (*api.AgentsConfig,
 		return nil, fmt.Errorf("invalid config. no agent defined: %s", pack)
 	}
 
-	// normalize agent name
-	packslash := pack + "/"
-	for _, a := range ac.Agents {
-		n := a.Name
-		// the primary agent
-		if n == pack {
-			continue
-		}
-		if strings.HasPrefix(n, packslash) {
-			continue
-		}
-		a.Name = packslash + n
-	}
-
 	// correct pack name
 	ac.Name = pack
+
+	// normalize agent name
+	for _, v := range ac.Agents {
+		v.Name = conf.NormalizePackname(pack, v.Name)
+	}
 
 	return ac, nil
 }
