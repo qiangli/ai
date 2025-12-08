@@ -63,7 +63,7 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 	}
 
 	if tc != nil {
-		v, err := loadTools(tc, owner, secrets)
+		v, err := LoadTools(tc, owner, secrets)
 		if err != nil {
 			return nil, err
 		}
@@ -120,7 +120,7 @@ func LoadLocalToolFunc(local *api.AgentsConfig, owner, s string, secrets api.Sec
 	}
 
 	if tc != nil {
-		v, err := loadTools(tc, owner, secrets)
+		v, err := LoadTools(tc, owner, secrets)
 		if err != nil {
 			return nil, err
 		}
@@ -131,7 +131,7 @@ func LoadLocalToolFunc(local *api.AgentsConfig, owner, s string, secrets api.Sec
 	return nil, nil
 }
 
-func loadToolData(data [][]byte) (*api.ToolsConfig, error) {
+func LoadToolData(data [][]byte) (*api.ToolsConfig, error) {
 	merged := &api.ToolsConfig{}
 
 	for _, v := range data {
@@ -177,7 +177,7 @@ func loadToolData(data [][]byte) (*api.ToolsConfig, error) {
 	return merged, nil
 }
 
-func loadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*api.ToolFunc, error) {
+func LoadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*api.ToolFunc, error) {
 	var toolMap = make(map[string]*api.ToolFunc)
 
 	// conditionMet := func(name string, c *api.ToolCondition) bool {
@@ -335,7 +335,7 @@ func listToolkitATM(owner string, as api.ATMSupport, kits map[string]*api.ToolsC
 	}
 
 	for _, v := range recs {
-		tc, err := loadToolData([][]byte{[]byte(v.Content)})
+		tc, err := LoadToolData([][]byte{[]byte(v.Content)})
 		if err != nil {
 			return err
 		}
@@ -381,7 +381,7 @@ func listToolkitAsset(as api.AssetFS, base string, kits map[string]*api.ToolsCon
 			continue
 		}
 
-		tc, err := loadToolData([][]byte{content})
+		tc, err := LoadToolData([][]byte{content})
 		if err != nil {
 			return fmt.Errorf("error loading tool data: %s\n", v.Name())
 		}

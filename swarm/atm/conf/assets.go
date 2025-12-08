@@ -172,7 +172,7 @@ func (r *assetManager) FindToolkit(owner string, kit string) (*api.ToolsConfig, 
 		return nil, nil
 	}
 
-	tc, err := loadToolData([][]byte{content})
+	tc, err := LoadToolData([][]byte{content})
 	if err != nil {
 		return nil, err
 	}

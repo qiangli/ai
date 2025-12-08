@@ -21,7 +21,7 @@ func TestLoadToolData(t *testing.T) {
 		t.Fatalf("failed to read file: %v", err)
 	}
 
-	ac, err := loadToolData([][]byte{d})
+	ac, err := LoadToolData([][]byte{d})
 	if err != nil {
 		t.Fatalf("failed to load file: %v", err)
 	}

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"path"
 	"slices"
 	"strings"
 
@@ -39,19 +38,16 @@ func (r *AgentScriptRunner) CreatorFrom(pack string, data []byte) (api.Creator, 
 
 // Run command or script. if script is empty, read command or script from args.
 func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[string]any) (any, error) {
-	var filename, ext string
+	var name string
 	if script == "" && args != nil {
 		if c, ok := args["command"]; ok {
 			script = api.ToString(c)
 		} else {
-			if file, ok := args["script"]; ok {
-				filename = api.ToString(file)
-				ext = path.Ext(filename)
-				data, err := r.sw.Workspace.ReadFile(filename, nil)
-				if err != nil {
-					return "", err
-				}
-				script = string(data)
+			if v, err := r.sw.LoadScript(args); err == nil {
+				script = v
+			} else if n, v, err := r.sw.LoadActionConfig(args); err == nil {
+				name = n
+				script = string(v)
 			}
 		}
 	}
@@ -61,16 +57,14 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	}
 
 	// action
-	if ext == ".yaml" {
-		var name = api.ToString(args["action"])
-		if name == "" {
-			name = ActionNameFromFile(filename)
-		}
-		if name == "" {
-			return "", fmt.Errorf("missing action to be executed")
-		}
+	if name != "" {
 		if strings.Contains(name, ":") {
 			// run tool
+			kit, name := api.Kitname(name).Decode()
+			args["config"] = "data:" + script
+			args["kit"] = kit
+			args["name"] = name
+			return r.sw.Execm(ctx, args)
 		} else {
 			pack, _ := api.Packname(name).Decode()
 			creator, err := r.sw.agentMaker.Creator(r.sw.agentMaker.Create, r.sw.User.Email, pack, []byte(script))
@@ -79,7 +73,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 			}
 			return r.sw.runc(ctx, creator, r.parent, name, args)
 		}
-		return nil, fmt.Errorf("invalid action: %s", name)
+		// return nil, fmt.Errorf("invalid action: %s", name)
 	}
 
 	// bash script

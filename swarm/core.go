@@ -472,3 +472,58 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 	}
 	return api.ToResult(out), nil
 }
+
+// Return action name and data
+func (sw *Swarm) LoadActionConfig(args map[string]any) (string, []byte, error) {
+	s, ok := args["config"]
+	if !ok {
+		return "", nil, fmt.Errorf("no config found")
+	}
+
+	var file string
+	var script string
+	if s != "" {
+		v := api.ToString(s)
+		if strings.HasPrefix(v, "data:") {
+			script = v[5:]
+		} else {
+			file = v
+			data, err := sw.Workspace.ReadFile(file, nil)
+			if err != nil {
+				return "", nil, err
+			}
+			script = string(data)
+		}
+	}
+
+	var name = api.ToString(args["action"])
+	if name == "" && file != "" {
+		name = ActionNameFromFile(file)
+	}
+
+	return name, []byte(script), nil
+}
+
+func (sw *Swarm) LoadScript(args map[string]any) (string, error) {
+	s, ok := args["script"]
+	if !ok {
+		return "", fmt.Errorf("script not found")
+	}
+
+	var script string
+	if s != "" {
+		var v = api.ToString(s)
+		if strings.HasPrefix(v, "data:") {
+			script = v[5:]
+		} else {
+			file := v
+			data, err := sw.Workspace.ReadFile(file, nil)
+			if err != nil {
+				return "", err
+			}
+			script = string(data)
+		}
+	}
+
+	return script, nil
+}

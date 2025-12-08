@@ -106,6 +106,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	command := fs.String("command", "", "Shell command(s) to be executed.")
 	script := fs.String("script", "", "Path to the shell script file to be executed.")
 	action := fs.String("action", "", "Default action (agent or tool) to be executed.")
+	config := fs.String("config", "", "Path to the yaml config file.")
 
 	//
 	err := fs.Parse(argv)
@@ -239,6 +240,9 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	}
 	if *action != "" {
 		argm["action"] = *action
+	}
+	if *config != "" {
+		argm["config"] = *config
 	}
 
 	return argm, nil

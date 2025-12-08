@@ -44,10 +44,27 @@ func NewAgentToolRunner(sw *Swarm, user string, agent *api.Agent) api.ActionRunn
 	}
 }
 
-func (r *AgentToolRunner) loadTool(tid string) (*api.ToolFunc, error) {
+func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFunc, error) {
+	// inline
 	v, ok := r.toolMap[tid]
 	if ok {
 		return v, nil
+	}
+
+	// load from content
+	_, cfg, err := r.sw.LoadActionConfig(args)
+	if err == nil {
+		tc, err := conf.LoadToolData([][]byte{cfg})
+		if err == nil {
+			tools, err := conf.LoadTools(tc, r.user, r.sw.Secrets)
+			if err == nil {
+				for _, v := range tools {
+					if v.ID() == tid {
+						return v, nil
+					}
+				}
+			}
+		}
 	}
 
 	// load external
@@ -65,7 +82,6 @@ func (r *AgentToolRunner) loadTool(tid string) (*api.ToolFunc, error) {
 }
 
 func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]any) (any, error) {
-
 	kit, _ := api.Kitname(tid).Decode()
 	// local system command
 	// sh:*
@@ -81,7 +97,7 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	}
 
 	// agent/tool action
-	v, err := r.loadTool(tid)
+	v, err := r.loadTool(tid, args)
 	if err != nil {
 		return nil, err
 	}

@@ -24,14 +24,6 @@ func split2(s string, sep string, val string) (string, string) {
 	return p1, p2
 }
 
-// // split @agent[:owner]
-// // return owner, agent
-// func splitOwnerAgent(s string) (string, string) {
-// 	s = strings.TrimPrefix(s, "@")
-// 	agent, owner := split2(s, ":", "")
-// 	return owner, agent
-// }
-
 func filterTool(tools []*api.ToolFunc, kit, name string) []*api.ToolFunc {
 	// return true if a is blank, star, or a/b are equal
 	eq := func(s, n string) bool {
