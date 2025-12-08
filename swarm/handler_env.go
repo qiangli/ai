@@ -3,8 +3,11 @@ package swarm
 import (
 	"fmt"
 	"maps"
+	"strings"
+	"text/template"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/log"
 )
 
@@ -81,4 +84,71 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 			return next.Serve(req, resp)
 		})
 	}
+}
+
+// Apply template and update agent enviroment
+func ApplyEnv(global map[string]any, agent *api.Agent, args map[string]any) error {
+	// envs
+	var envs = make(map[string]any)
+	maps.Copy(envs, global)
+
+	//
+	// inherit envs of embeded agents
+	// merge into args if not already set in args
+	add := func(e *api.Environment) error {
+		return mapAssign(agent.Template, envs, e.GetAllEnvs())
+	}
+
+	var addAll func(*api.Agent) error
+	addAll = func(a *api.Agent) error {
+		for _, v := range a.Embed {
+			if err := addAll(v); err != nil {
+				return err
+			}
+		}
+		if a.Environment != nil {
+			if err := add(a.Environment); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	addAll(agent)
+	agent.Environment.AddEnvs(envs)
+
+	// args
+	//
+	// global
+	// agent envs
+	// agent args
+	var nargs = make(map[string]any)
+	maps.Copy(nargs, envs)
+	if agent.Arguments != nil {
+		// aargs := agent.Arguments.GetAllArgs()
+		if err := mapAssign(agent.Template, nargs, agent.Arguments.GetAllArgs()); err != nil {
+			return err
+		}
+	}
+
+	if err := mapAssign(agent.Template, nargs, args); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func mapAssign(tpl *template.Template, dst, src map[string]any) error {
+	for key, val := range src {
+		// go template value support
+		if v, ok := val.(string); ok && strings.Contains(v, "{{") {
+			if resolved, err := atm.ApplyTemplate(tpl, v, dst); err != nil {
+				return err
+			} else {
+				val = resolved
+			}
+		}
+		dst[key] = val
+	}
+	return nil
 }

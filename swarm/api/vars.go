@@ -184,35 +184,6 @@ func (v *Vars) ToolCalllog() (string, error) {
 	return string(b), nil
 }
 
-// Clear messages from history
-// func (v *Vars) ClearHistory() {
-// 	v.mu.Lock()
-// 	defer v.mu.Unlock()
-// 	v.history = []*Message{}
-// }
-
-// func (v *Vars) SetHistory(messages []*Message) {
-// 	v.mu.Lock()
-// 	defer v.mu.Unlock()
-// 	v.history = messages
-// }
-
-// Append messages to history
-// func (v *Vars) AddHistory(messages []*Message) {
-// 	v.mu.Lock()
-// 	defer v.mu.Unlock()
-// 	v.history = append(v.history, messages...)
-// }
-
-// // Return a copy of all current messages in history
-// func (v *Vars) ListHistory() []*Message {
-// 	v.mu.RLock()
-// 	defer v.mu.RUnlock()
-// 	hist := make([]*Message, len(v.history))
-// 	copy(hist, v.history)
-// 	return hist
-// }
-
 func NewVars() *Vars {
 	return &Vars{
 		Global: NewEnvironment(),
