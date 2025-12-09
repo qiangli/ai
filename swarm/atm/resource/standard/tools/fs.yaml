@@ -2,6 +2,13 @@
 type: "system"
 
 tools:
+  - name: "list_roots"
+    description: "Returns the list of directories that this server is allowed to access."
+    parameters:
+      type: "object"
+      properties: {}
+      required: []
+
   - name: "list_directory"
     description: "Get a detailed listing of all files and directories in a specified path."
     parameters:
@@ -22,18 +29,23 @@ tools:
           description: "Path of the directory to create"
       required: ["path"]
 
-  - name: "rename_file"
-    description: "Rename files and directories."
+  - name: "tree"
+    description: "Returns a hierarchical JSON representation of a directory structure."
     parameters:
       type: "object"
       properties:
-        source:
+        path:
           type: "string"
-          description: "Source path of the file or directory"
-        destination:
-          type: "string"
-          description: "Destination path"
-      required: ["source", "destination"]
+          description: "Path of the directory to traverse"
+        depth:
+          type: "integer"
+          description: "Maximum depth to traverse (default: 3)"
+          default: 3
+        follow_symlinks:
+          type: "boolean"
+          description: "Whether to follow symbolic links (default: false)"
+          default: false
+      required: ["path"]
 
   - name: "get_file_info"
     description: "Retrieve detailed metadata about a file or directory."
@@ -65,6 +77,18 @@ tools:
           description: "The maximum number of lines to read from the file. If set to zero or a negative value, the whole file will be returned."
       required: ["path"]
 
+  - name: "read_multiple_files"
+    description: "Read the contents of multiple files in a single operation."
+    parameters:
+      type: "object"
+      properties:
+        paths:
+          type: "array"
+          items:
+            type: "string"
+          description: "List of file paths to read"
+      required: ["paths"]
+
   - name: "write_file"
     description: "Create a new file or overwrite an existing file with new content."
     parameters:
@@ -77,7 +101,47 @@ tools:
           type: "string"
           description: "Content to write to the file"
       required: ["path", "content"]
-  
+
+  - name: "copy_file"
+    description: "Copy files and directories."
+    parameters:
+      type: "object"
+      properties:
+        source:
+          type: "string"
+          description: "Source path of the file or directory"
+        destination:
+          type: "string"
+          description: "Destination path"
+      required: ["source", "destination"]
+
+  - name: "move_file"
+    description: "Rename files and directories."
+    parameters:
+      type: "object"
+      properties:
+        source:
+          type: "string"
+          description: "Source path of the file or directory"
+        destination:
+          type: "string"
+          description: "Destination path"
+      required: ["source", "destination"]
+
+  - name: "delete_file"
+    description: "Delete a file or directory from the file system."
+    parameters:
+      type: "object"
+      properties:
+        path:
+          type: "string"
+          description: "Path to the file or directory to delete"
+        recursive:
+          type: "boolean"
+          description: "Whether to recursively delete directories (default: false)"
+          default: false
+      required: ["path"]
+
   - name: "edit_file"
     description: "Modify a file by replacing specified text or patterns. Supports string and regex matching."
     parameters:

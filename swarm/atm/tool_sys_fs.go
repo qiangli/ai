@@ -10,6 +10,21 @@ import (
 	"github.com/qiangli/shell/tool/sh/vfs"
 )
 
+func (r *SystemKit) ListRoots(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	roots, err := vars.RTE.Workspace.ListRoots()
+	if err != nil {
+		return "", err
+	}
+
+	var result strings.Builder
+	result.WriteString("Allowed directories:\n\n")
+
+	for _, dir := range roots {
+		result.WriteString(fmt.Sprintf("%s\n", dir))
+	}
+	return result.String(), nil
+}
+
 func (r *SystemKit) ListDirectory(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	path, err := api.GetStrProp("path", args)
 	if err != nil {
@@ -30,19 +45,28 @@ func (r *SystemKit) CreateDirectory(ctx context.Context, vars *api.Vars, name st
 	return "", vars.RTE.Workspace.CreateDirectory(path)
 }
 
-func (r *SystemKit) RenameFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	source, err := api.GetStrProp("source", args)
+func (r *SystemKit) Tree(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	path, err := api.GetStrProp("path", args)
 	if err != nil {
 		return "", err
 	}
-	dest, err := api.GetStrProp("destination", args)
+
+	depth := 3 // Default value
+	if v, err := api.GetIntProp("depth", args); err == nil {
+		depth = int(v)
+	}
+
+	// Extract follow_symlinks parameter (optional, default: false)
+	followSymlinks := false // Default value
+	if v, err := api.GetBoolProp("follow_symlinks", args); err == nil {
+		followSymlinks = v
+	}
+
+	result, err := vars.RTE.Workspace.Tree(path, depth, followSymlinks)
 	if err != nil {
 		return "", err
 	}
-	if err := vars.RTE.Workspace.MoveFile(source, dest); err != nil {
-		return "", err
-	}
-	return "File renamed successfully", nil
+	return result, nil
 }
 
 func (r *SystemKit) GetFileInfo(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -90,6 +114,19 @@ func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, a
 	return &c, nil
 }
 
+func (r *SystemKit) ReadMultipleFiles(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	paths, err := api.GetArrayProp("paths", args)
+	if err != nil {
+		return "", err
+	}
+
+	results, err := vars.RTE.Workspace.ReadMultipleFiles(paths)
+	if err != nil {
+		return "", err
+	}
+	return strings.Join(results, "\n"), nil
+}
+
 func (r *SystemKit) WriteFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	path, err := api.GetStrProp("path", args)
 	if err != nil {
@@ -103,6 +140,54 @@ func (r *SystemKit) WriteFile(ctx context.Context, vars *api.Vars, name string, 
 		return "", err
 	}
 	return "File written successfully", nil
+}
+
+func (r *SystemKit) CopyFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	source, err := api.GetStrProp("source", args)
+	if err != nil {
+		return "", err
+	}
+	dest, err := api.GetStrProp("destination", args)
+	if err != nil {
+		return "", err
+	}
+	if err := vars.RTE.Workspace.CopyFile(source, dest); err != nil {
+		return "", err
+	}
+	return "File renamed successfully", nil
+}
+
+func (r *SystemKit) MoveFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	source, err := api.GetStrProp("source", args)
+	if err != nil {
+		return "", err
+	}
+	dest, err := api.GetStrProp("destination", args)
+	if err != nil {
+		return "", err
+	}
+	if err := vars.RTE.Workspace.MoveFile(source, dest); err != nil {
+		return "", err
+	}
+	return "File renamed successfully", nil
+}
+
+func (r *SystemKit) DeleteFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	path, err := api.GetStrProp("path", args)
+	if err != nil {
+		return "", err
+	}
+
+	recursive, err := api.GetBoolProp("recursive", args)
+	if err != nil {
+		recursive = false
+	}
+
+	if err := vars.RTE.Workspace.DeleteFile(path, recursive); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("Successfully deleted %q", path), nil
 }
 
 func (r *SystemKit) EditFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
