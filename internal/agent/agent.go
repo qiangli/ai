@@ -108,9 +108,14 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 	var secrets = conf.LocalSecrets
 
 	tmpdir := os.TempDir()
-	workdir, _ := os.Getwd()
-	roots := []string{ws, workdir, tmpdir}
-	lfs, _ := vfs.NewLocalFS(roots)
+	project, _ := os.Getwd()
+	dirs := []string{ws, project, tmpdir}
+	roots := api.Roots{
+		{Name: "Workspace", URI: "file:" + ws},
+		{Name: "Project folder", URI: "file:" + project},
+		{Name: "Temp folder", URI: "file:" + tmpdir},
+	}
+	lfs, _ := vfs.NewLocalFS(dirs)
 	los, _ := vos.NewLocalSystem(lfs)
 
 	assets, err := conf.Assets(cfg)
@@ -121,7 +126,17 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 	if err != nil {
 		return err
 	}
-	var tools = swarm.NewToolSystem()
+
+	var rte = &api.ActionRTEnv{
+		Base:      cfg.Base,
+		Roots:     roots,
+		User:      user,
+		Secrets:   secrets,
+		Workspace: lfs,
+		OS:        los,
+	}
+
+	var tools = swarm.NewToolSystem(rte)
 
 	sw := &swarm.Swarm{
 		ID:       uuid.NewString(),
@@ -132,13 +147,12 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 		Adapters: adapters,
 		Blobs:    blobs,
 		//
-		// Root:      root,
 		OS:        los,
 		Workspace: lfs,
 		History:   mem,
 	}
 
-	sw.Init()
+	sw.Init(rte)
 	sw.Vars.Global.Set("workspace", cfg.Workspace)
 	sw.Vars.Global.Set("query", msg)
 

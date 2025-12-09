@@ -35,12 +35,12 @@ func (r *FuncKit) CreateEntities(ctx context.Context, vars *api.Vars, name strin
 		return "", fmt.Errorf("missing arguments: entities")
 	}
 
-	var entities []*memory.Entity
+	var entities []memory.Entity
 	if err := anyToStruct(data, &entities); err != nil {
 		return "", err
 	}
 
-	r.kb.CreateEntities(ctx, entities)
+	r.kb.CreateEntities(entities)
 
 	return "success", nil
 }
@@ -51,7 +51,7 @@ func (r *FuncKit) CreateRelations(ctx context.Context, vars *api.Vars, name stri
 		return "", fmt.Errorf("missing arguments: relations")
 	}
 
-	var relations []*memory.Relation
+	var relations []memory.Relation
 	if err := anyToStruct(data, &relations); err != nil {
 		return "", err
 	}
@@ -67,7 +67,7 @@ func (r *FuncKit) AddObservations(ctx context.Context, vars *api.Vars, name stri
 		return "", fmt.Errorf("missing arguments: observations")
 	}
 
-	var observations []*memory.Observation
+	var observations []memory.Observation
 	if err := anyToStruct(data, &observations); err != nil {
 		return "", err
 	}
@@ -96,7 +96,7 @@ func (r *FuncKit) DeleteObservations(ctx context.Context, vars *api.Vars, name s
 		return "", fmt.Errorf("missing arguments: deletions")
 	}
 
-	var deletions []*memory.Deletion
+	var deletions []memory.Observation
 	if err := anyToStruct(data, &deletions); err != nil {
 		return "", err
 	}
@@ -112,7 +112,7 @@ func (r *FuncKit) DeleteRelations(ctx context.Context, vars *api.Vars, name stri
 		return "", fmt.Errorf("missing arguments: relations")
 	}
 
-	var relations []*memory.Relation
+	var relations []memory.Relation
 	if err := anyToStruct(data, &relations); err != nil {
 		return "", err
 	}
@@ -123,8 +123,11 @@ func (r *FuncKit) DeleteRelations(ctx context.Context, vars *api.Vars, name stri
 }
 
 func (r *FuncKit) ReadGraph(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	gd := r.kb.ReadGraph()
-	return toJsonString(gd)
+	kg, err := r.kb.ReadGraph()
+	if err != nil {
+		return "", err
+	}
+	return toJsonString(kg)
 }
 
 func (r *FuncKit) SearchNodes(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -133,7 +136,10 @@ func (r *FuncKit) SearchNodes(ctx context.Context, vars *api.Vars, name string, 
 		return "", fmt.Errorf("missing argument: query")
 	}
 
-	results := r.kb.SearchNodes(query.(string))
+	results, err := r.kb.SearchNodes(query.(string))
+	if err != nil {
+		return "", err
+	}
 	return toJsonString(results)
 }
 
@@ -144,7 +150,10 @@ func (r *FuncKit) OpenNodes(ctx context.Context, vars *api.Vars, name string, ar
 	}
 
 	if v, ok := names.([]string); ok {
-		d := r.kb.OpenNodes(v)
+		d, err := r.kb.OpenNodes(v)
+		if err != nil {
+			return "", err
+		}
 		return toJsonString(d)
 	}
 	return "", fmt.Errorf("invalide arguments: %v. expected array of strings.", names)

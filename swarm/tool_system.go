@@ -9,6 +9,8 @@ import (
 
 type toolSystem struct {
 	kits map[any]api.ToolKit
+
+	rte *api.ActionRTEnv
 }
 
 type KitKey struct {
@@ -23,8 +25,9 @@ func NewKitKey(fnType api.ToolType, kit string) KitKey {
 	}
 }
 
-func NewToolSystem() api.ToolSystem {
+func NewToolSystem(rte *api.ActionRTEnv) api.ToolSystem {
 	ts := &toolSystem{
+		rte:  rte,
 		kits: make(map[any]api.ToolKit),
 	}
 
@@ -38,7 +41,7 @@ func NewToolSystem() api.ToolSystem {
 	// ts.AddKit(NewKitKey(api.ToolTypeFunc, "web"), web)
 
 	// default by type
-	ts.AddKit(api.ToolTypeFunc, atm.NewFuncKit())
+	ts.AddKit(api.ToolTypeFunc, atm.NewFuncKit(rte))
 	ts.AddKit(api.ToolTypeWeb, atm.NewWebKit())
 	ts.AddKit(api.ToolTypeSystem, atm.NewSystemKit())
 	ts.AddKit(api.ToolTypeMcp, atm.NewMcpKit())

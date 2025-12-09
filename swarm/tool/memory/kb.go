@@ -162,6 +162,14 @@ func (k KnowledgeBase) saveGraph(graph KnowledgeGraph) error {
 	return nil
 }
 
+func (kb KnowledgeBase) ReadGraph() (*KnowledgeGraph, error) {
+	graph, err := kb.loadGraph()
+	if err != nil {
+		return nil, err
+	}
+	return &graph, nil
+}
+
 // CreateEntities adds new entities to the graph, skipping duplicates by name.
 // It returns the new entities that were actually added.
 func (k KnowledgeBase) CreateEntities(entities []Entity) ([]Entity, error) {

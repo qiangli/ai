@@ -17,12 +17,12 @@ tools:
   #     properties: {}
   #     required: []
 
-  - name: "workspace_dir"
-    description: "Return the workspace directory"
-    parameters:
-      type: "object"
-      properties: {}
-      required: []
+  # - name: "workspace_dir"
+  #   description: "Return the workspace directory"
+  #   parameters:
+  #     type: "object"
+  #     properties: {}
+  #     required: []
 
   # - name: "repo_dir"
   #   description: "Return the current repository directory"

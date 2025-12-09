@@ -6,6 +6,14 @@ import (
 	"time"
 )
 
+// https://modelcontextprotocol.io/specification/2025-06-18/client/roots
+type Roots []Root
+
+type Root struct {
+	Name string `json:"name"`
+	URI  string `json:"uri"`
+}
+
 // Object store
 type BlobStore interface {
 	Put(ID string, blob *Blob) error

@@ -19,7 +19,7 @@ import (
 func defaultSwarm(cfg *api.AppConfig) (*Swarm, error) {
 	var vars = api.NewVars()
 
-	var root = cfg.Workspace
+	var ws = cfg.Workspace
 
 	var user = &api.User{
 		Email: cfg.User,
@@ -27,7 +27,7 @@ func defaultSwarm(cfg *api.AppConfig) (*Swarm, error) {
 	var adapters = adapter.GetAdapters()
 
 	var secrets = conf.LocalSecrets
-	lfs, _ := vfs.NewLocalFS([]string{root})
+	lfs, _ := vfs.NewLocalFS([]string{ws})
 	los, _ := vos.NewLocalSystem(lfs)
 
 	assets, err := conf.Assets(cfg)
@@ -38,7 +38,15 @@ func defaultSwarm(cfg *api.AppConfig) (*Swarm, error) {
 	if err != nil {
 		return nil, err
 	}
-	var tools = NewToolSystem()
+
+	var rte = &api.ActionRTEnv{
+		// Root: root,
+		User:      user,
+		Workspace: lfs,
+		OS:        los,
+		Secrets:   secrets,
+	}
+	var tools = NewToolSystem(rte)
 
 	mem, err := db.OpenMemoryStore(cfg)
 	if err != nil {

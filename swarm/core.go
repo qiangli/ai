@@ -47,35 +47,41 @@ type Swarm struct {
 	Vars *api.Vars
 }
 
-func (sw *Swarm) Init() error {
+func (sw *Swarm) Init(rte *api.ActionRTEnv) error {
+	if rte == nil {
+		return fmt.Errorf("Action RT env required")
+	}
+	if rte.Base == "" {
+		return fmt.Errorf("app base required")
+	}
+	// rte.Roots optional
 	// required
-	if sw.Workspace == nil {
+	if rte.Workspace == nil {
 		return fmt.Errorf("app workspace not initialized")
 	}
-	if sw.User == nil {
+	if rte.User == nil {
 		return fmt.Errorf("user not authenticated")
 	}
-	if sw.Secrets == nil {
+	if rte.Secrets == nil {
 		return fmt.Errorf("secret store not initialized")
 	}
-	if sw.Workspace == nil {
-		return fmt.Errorf("workspace not assigned")
-	}
-	if sw.OS == nil {
+	if rte.OS == nil {
 		return fmt.Errorf("execution env not avalable")
 	}
 
 	sw.InitChain()
 	sw.Vars = api.NewVars()
 
-	// required by toolkit
-	sw.Vars.RTE = &api.ActionRTEnv{
-		// Root:      sw.Root,
-		User:      sw.User,
-		Secrets:   sw.Secrets,
-		Workspace: sw.Workspace,
-		OS:        sw.OS,
-	}
+	// // required by toolkit
+	// sw.Vars.RTE = &api.ActionRTEnv{
+	// 	// Root:      sw.Root,
+	// 	User:      sw.User,
+	// 	Secrets:   sw.Secrets,
+	// 	Workspace: sw.Workspace,
+	// 	OS:        sw.OS,
+	// }
+
+	sw.Vars.RTE = rte
 
 	maker := NewAgentMaker(sw)
 	// TODO move to Vars?

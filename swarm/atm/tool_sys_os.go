@@ -2,7 +2,10 @@ package atm
 
 import (
 	"context"
-	// "maps"
+	// "fmt"
+	// "net/url"
+
+	// // "maps"
 	// "strings"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -60,8 +63,4 @@ func (r *SystemKit) Bash(ctx context.Context, vars *api.Vars, name string, args 
 		return "", err
 	}
 	return api.ToString(result), nil
-}
-
-func (r *SystemKit) WorkspaceRoot(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	return vars.RTE.Root, nil
 }
