@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
+	// "net/url"
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -15,14 +15,19 @@ func (r *SystemKit) ListRoots(ctx context.Context, vars *api.Vars, name string, 
 	var result strings.Builder
 	result.WriteString("Allowed directories:\n\n")
 
-	for _, v := range vars.RTE.Roots {
-		u, err := url.Parse(v.URI)
-		if err != nil {
-			continue
-		}
-		// file: only
-		result.WriteString(fmt.Sprintf("Name: %s Path: %s", v.Name, u.Path))
+	// for _, v := range vars.RTE.Roots {
+	// 	u, err := url.Parse(v.URI)
+	// 	if err != nil {
+	// 		continue
+	// 	}
+	// 	// file: only
+	// 	result.WriteString(fmt.Sprintf("Name: %q Path: %s\n", v.Name, u.Path))
+	// }
+	v, err := PrettyJSON(vars.RTE.Roots)
+	if err != nil {
+		return "", err
 	}
+	result.WriteString(v)
 	return result.String(), nil
 }
 

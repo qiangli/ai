@@ -11,7 +11,7 @@ type Roots []Root
 
 type Root struct {
 	Name string `json:"name"`
-	URI  string `json:"uri"`
+	Path string `json:"path"`
 }
 
 // Object store

@@ -2,6 +2,7 @@ package atm
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -70,4 +71,12 @@ func nvl(sa ...string) string {
 		}
 	}
 	return ""
+}
+
+func PrettyJSON(obj any) (string, error) {
+	v, err := json.MarshalIndent(obj, "", "    ")
+	if err != nil {
+		return "", fmt.Errorf("Error marshaling JSON: %v", err)
+	}
+	return string(v), nil
 }

@@ -3,7 +3,7 @@ type: "system"
 
 tools:
   - name: "list_roots"
-    description: "Returns the list of directories that this server is allowed to access."
+    description: "Returns the list of top directories that is allowed to access."
     parameters:
       type: "object"
       properties: {}

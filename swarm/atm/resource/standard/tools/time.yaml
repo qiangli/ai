@@ -2,6 +2,10 @@ kit: "time"
 type: "func"
 
 tools:
+  - name: "get_local_timezone"
+    description: "return the system's local time zone"
+    parameters: {}
+
   - name: "get_current_time"
     description: "Get current time in a specific timezones"
     parameters:

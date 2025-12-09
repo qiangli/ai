@@ -111,9 +111,9 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 	project, _ := os.Getwd()
 	dirs := []string{ws, project, tmpdir}
 	roots := api.Roots{
-		{Name: "Workspace", URI: "file:" + ws},
-		{Name: "Project folder", URI: "file:" + project},
-		{Name: "Temp folder", URI: "file:" + tmpdir},
+		{Name: "Workspace", Path: ws},
+		{Name: "Project Base", Path: project},
+		{Name: "Temp Folder", Path: tmpdir},
 	}
 	lfs, _ := vfs.NewLocalFS(dirs)
 	los, _ := vos.NewLocalSystem(lfs)
