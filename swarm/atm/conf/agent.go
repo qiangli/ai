@@ -1,7 +1,7 @@
 package conf
 
 import (
-	"fmt"
+	// "fmt"
 	"os"
 	"path"
 	"strings"
@@ -42,10 +42,13 @@ func listAgentsATM(owner string, as api.ATMSupport, packs map[string]*api.Agents
 	for _, v := range recs {
 		ac, err := LoadAgentsData([][]byte{[]byte(v.Content)})
 		if err != nil {
-			return fmt.Errorf("error loading agent data: %s", v.Name)
+			// TODO show errors for list_agents tool call
+			//return fmt.Errorf("error loading agent data: %s", v.Name)
+			continue
 		}
 		if ac == nil || len(ac.Agents) == 0 {
-			return fmt.Errorf("invalid config. no agent defined: %s", v.Name)
+			// return fmt.Errorf("invalid config. no agent defined: %s", v.Name)
+			continue
 		}
 
 		// correct name and add to list
@@ -85,7 +88,8 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AgentsCo
 			if os.IsNotExist(err) {
 				continue
 			}
-			return fmt.Errorf("failed to read agent asset %s: %w", v.Name(), err)
+			// return fmt.Errorf("failed to read agent asset %s: %w", v.Name(), err)
+			continue
 		}
 		if len(content) == 0 {
 			continue
@@ -93,7 +97,8 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AgentsCo
 
 		ac, err := LoadAgentsData([][]byte{content})
 		if err != nil {
-			return fmt.Errorf("error loading agent data: %s", v.Name())
+			//return fmt.Errorf("error loading agent data: %s", v.Name())
+			continue
 		}
 		if ac == nil || len(ac.Agents) == 0 {
 			continue
