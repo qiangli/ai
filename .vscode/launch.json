@@ -21,7 +21,7 @@
 			},
 			"envFile": "${workspaceFolder}/.env",
 			"args": [
-				// "/help",
+				"/help:help",
 				//
 				// slash command
 				// "/bin/ls",
@@ -47,10 +47,10 @@
 				// "atm/agents/joke/agent.yaml",
 				// "what is the latest news for today",
 				//
-				"/agent:joke",
-				"--config",
-				"atm/agents/joke/agent.yaml",
-				"tell me a joke",
+				// "/agent:joke",
+				// "--config",
+				// "atm/agents/joke/agent.yaml",
+				// "tell me a joke",
 				//
 				// "/hello_kit:hello_user",
 				// "--config",

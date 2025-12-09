@@ -46,6 +46,11 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 		return "localhost"
 	}
 
+	//
+	fm["fence"] = func() string {
+		return "```"
+	}
+
 	// custom
 	// ai
 	fm["ai"] = func(args ...string) string {

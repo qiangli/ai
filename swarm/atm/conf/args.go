@@ -25,7 +25,7 @@ func (s *stringSlice) Set(value string) error {
 	return nil
 }
 
-// ParseActionArgs parses and converts arguments list to map
+// Parse and convert arguments list to map
 // skipping trigger word "ai"
 func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	// argv = dropEmpty(argv)
@@ -87,20 +87,20 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	//
 	model := fs.String("model", "", "LLM model alias defined in the model set")
 
-	// common args
+	// common args with defaut value
 	// TODO revisit
 	maxHistory := fs.Int("max-history", 0, "Max historic messages to retrieve")
 	maxSpan := fs.Int("max-span", 0, "Historic message retrieval span (minutes)")
 	maxTurns := fs.Int("max-turns", 3, "Max conversation turns")
 	maxTime := fs.Int("max-time", 30, "Max timeout (seconds)")
 	format := fs.String("format", "json", "Output as text or json")
-
-	workspace := fs.String("workspace", "", "Workspace root path")
-
-	logLevel := fs.String("log-level", "info", "Log level: quiet, info, verbose, trace")
+	logLevel := fs.String("log-level", "quiet", "Log level: quiet, info, verbose, trace")
 	isQuiet := fs.Bool("quiet", false, "Operate quietly, only show final response. log-level=quiet")
 	isInfo := fs.Bool("info", false, "Show progress")
 	isVerbose := fs.Bool("verbose", false, "Show progress and debugging information")
+
+	//
+	workspace := fs.String("workspace", "", "Workspace root path")
 
 	// tool
 	command := fs.String("command", "", "Shell command(s) to be executed.")
@@ -149,11 +149,6 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	// var argm map[string]any
 	var argm = make(map[string]any)
 	if *arguments != "" {
-		// if v, err := ParseArguments(*arguments); err != nil {
-		// 	return nil, err
-		// } else {
-		// 	argm = v
-		// }
 		args := *arguments
 		switch {
 		case strings.HasPrefix(args, "{"):
@@ -166,25 +161,11 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 				return nil, fmt.Errorf("invalid json array arguments: %q error: %w", args, err)
 			}
 			argm["arguments"] = argv
-			// if v, err := parse(argv); err != nil {
-			// 	return nil, err
-			// } else {
-			// 	argm = v
-			// }
 		default:
-			// string name=value pairs
 			argv := shlex.Argv(args)
-			// if v, err := parse(argv); err != nil {
-			// 	return nil, err
-			// } else {
-			// 	argm = v
-			// }
 			argm["arguments"] = argv
 		}
 	}
-	// if argm == nil {
-	// 	argm = make(map[string]any)
-	// }
 
 	// Parse individual arg in the slice
 	for _, v := range arg {
@@ -248,7 +229,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	return argm, nil
 }
 
-// IsAction returns true if string s is an action command.
+// Return true if string s is an action command.
 // action (agent and tool) name convention:
 // "ai" or prefix "agent:", "@" or "/" or suffix ","
 //
@@ -311,6 +292,7 @@ func IsSlash(s string) bool {
 	return strings.HasPrefix(s, "/")
 }
 
+// Split s into array of words and return the arguments map
 func ParseActionCommand(s string) (api.ArgMap, error) {
 	if len(s) == 0 {
 		return nil, fmt.Errorf("missing action command")

@@ -4,7 +4,7 @@ log_level: "quiet"
 context: "@context"
 agents:
   - name: "help"
-    display: "🤖 AI Help Desk"
+    display: "🤖 AI Help"
     description: |
       Guide users in selecting the correct AI agent or tool for their needs.
       This agent summarizes how to use identified agents/tools without executing

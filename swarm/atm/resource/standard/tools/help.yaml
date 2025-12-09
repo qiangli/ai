@@ -1,0 +1,65 @@
+kit: "help"
+type: "func"
+log_level: "quiet"
+format: "markdown"
+
+tools:
+  - name: "help"
+    description: |
+      Guide users in selecting the correct AI agent or tool for running
+      the "ai" command line tool.
+    parameters: {}
+    body:
+      language: "golang"
+      code: |
+        import "fmt"
+        const help_action =`
+
+        Action:
+
+            /kit:name
+            /agent:name or @name
+        `
+        const help_options = `
+
+        Options:
+
+            --message "..."
+            --arg name="value"
+            --arguments "{json object map}"
+        `
+        const ai_usage = `
+        Usage:
+        ai [ACTION] [OPTIONS] MESSAGE...
+        
+        %s
+
+        %s        
+
+        There are multiple ways to enter the message.
+
+        + Command line input:
+
+            >
+            ai @ask tell me a joke
+          
+        + Read from standard input:
+
+            >
+            git diff origin main |ai @git/short -
+          
+        + Read from system clipboard:
+
+            >
+            ai @ed {
+            ai @ed {{"{{"}}
+          
+        
+        Use '/ai' tool for more information.
+        `
+        func help() {
+          fmt.Printf(ai_usage, help_action, help_options)
+        }
+        func main() {
+          help()
+        }

@@ -10,22 +10,7 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
-	// "github.com/qiangli/shell/tool/sh/vfs"
 )
-
-// // TODO rename and move to api?
-// type ToolFS struct {
-// 	ws vfs.Workspace
-// }
-
-// func NewToolFS(ws vfs.Workspace) *ToolFS {
-// 	return &ToolFS{
-// 		ws: ws,
-// 	}
-// }
-// func (r *ToolFS) Open(s string) (fs.File, error) {
-// 	return r.ws.OpenFile(s, os.O_RDWR, 0o755)
-// }
 
 type AgentToolRunner struct {
 	user    string
@@ -82,9 +67,14 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 }
 
 func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]any) (any, error) {
-	kit, _ := api.Kitname(tid).Decode()
+	kit, name := api.Kitname(tid).Decode()
 	// local system command
 	// sh:*
+
+	// default tool
+	if name == "" {
+		name = kit
+	}
 	if kit == "" || kit == "sh" {
 		// system command
 		if kit == "" {

@@ -49,7 +49,7 @@ func init() {
 
 func setupAppConfig(ctx context.Context, app *api.AppConfig) error {
 	app.Format = "markdown"
-	app.LogLevel = "info"
+	app.LogLevel = "quiet"
 	app.Session = uuid.NewString()
 
 	home, err := os.UserHomeDir()

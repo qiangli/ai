@@ -48,7 +48,8 @@ func main() {
 
 	args := os.Args
 
-	shebang := strings.HasSuffix(args[0], "yaml") || strings.HasSuffix(args[0], ".sh")
+	// support execution of ai script file (.sh or .yaml)
+	shebang := strings.HasSuffix(args[0], ".yaml") || strings.HasSuffix(args[0], ".sh")
 
 	// if no args and no input (piped), show help - short form
 	// $ ai
@@ -68,18 +69,18 @@ func main() {
 	// intercept builtin commands
 	// $ ai /help [agents|commands|tools|info]
 	//
-	if strings.HasPrefix(args[1], "/") {
-		switch args[1] {
-		case "/help":
-			err := agent.Help(ctx, args)
-			if err != nil {
-				internal.Exit(ctx, err)
-			}
-			return
-		default:
+	// if strings.HasPrefix(args[1], "/") {
+	// 	switch args[1] {
+	// 	case "/help":
+	// 		err := agent.Help(ctx, args)
+	// 		if err != nil {
+	// 			internal.Exit(ctx, err)
+	// 		}
+	// 		return
+	// 	default:
 
-		}
-	}
+	// 	}
+	// }
 
 	if err := agent.Run(ctx, args[1:]); err != nil {
 		internal.Exit(ctx, err)
