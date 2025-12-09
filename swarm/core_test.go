@@ -27,8 +27,8 @@ func defaultSwarm(cfg *api.AppConfig) (*Swarm, error) {
 	var adapters = adapter.GetAdapters()
 
 	var secrets = conf.LocalSecrets
-	var lfs = vfs.NewLocalFS(root)
-	var los = vos.NewLocalSystem(root)
+	lfs, _ := vfs.NewLocalFS([]string{root})
+	los, _ := vos.NewLocalSystem(lfs)
 
 	assets, err := conf.Assets(cfg)
 	if err != nil {
@@ -45,8 +45,8 @@ func defaultSwarm(cfg *api.AppConfig) (*Swarm, error) {
 		return nil, err
 	}
 	sw := &Swarm{
-		ID:        uuid.NewString(),
-		Root:      root,
+		ID: uuid.NewString(),
+		// Root:      root,
 		Vars:      vars,
 		User:      user,
 		Secrets:   secrets,

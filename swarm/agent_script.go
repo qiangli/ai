@@ -75,7 +75,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	// bash script
 	var b bytes.Buffer
 	ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
-	vs := sh.NewVirtualSystem(r.sw.Root, r.sw.OS, r.sw.Workspace, ioe)
+	vs := sh.NewVirtualSystem(r.sw.OS, r.sw.Workspace, ioe)
 
 	// set global env for bash script
 	env := r.sw.globalEnv()

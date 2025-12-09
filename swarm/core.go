@@ -33,7 +33,7 @@ type Swarm struct {
 	Blobs api.BlobStore
 
 	// virtual system
-	Root      string
+	// Root      string
 	OS        vos.System
 	Workspace vfs.Workspace
 	History   api.MemStore
@@ -49,8 +49,8 @@ type Swarm struct {
 
 func (sw *Swarm) Init() error {
 	// required
-	if sw.Root == "" {
-		return fmt.Errorf("app root not set")
+	if sw.Workspace == nil {
+		return fmt.Errorf("app workspace not initialized")
 	}
 	if sw.User == nil {
 		return fmt.Errorf("user not authenticated")
@@ -70,7 +70,7 @@ func (sw *Swarm) Init() error {
 
 	// required by toolkit
 	sw.Vars.RTE = &api.ActionRTEnv{
-		Root:      sw.Root,
+		// Root:      sw.Root,
 		User:      sw.User,
 		Secrets:   sw.Secrets,
 		Workspace: sw.Workspace,

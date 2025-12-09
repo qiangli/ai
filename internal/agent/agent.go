@@ -78,7 +78,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 	}
 	defer mem.Close()
 
-	var root = cfg.Workspace
+	var ws = cfg.Workspace
 
 	//
 	var user *api.User
@@ -106,8 +106,12 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 	var adapters = adapter.GetAdapters()
 
 	var secrets = conf.LocalSecrets
-	var lfs = vfs.NewLocalFS(root)
-	var los = vos.NewLocalSystem(root)
+
+	tmpdir := os.TempDir()
+	workdir, _ := os.Getwd()
+	roots := []string{ws, workdir, tmpdir}
+	lfs, _ := vfs.NewLocalFS(roots)
+	los, _ := vos.NewLocalSystem(lfs)
 
 	assets, err := conf.Assets(cfg)
 	if err != nil {
@@ -128,7 +132,7 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 		Adapters: adapters,
 		Blobs:    blobs,
 		//
-		Root:      root,
+		// Root:      root,
 		OS:        los,
 		Workspace: lfs,
 		History:   mem,

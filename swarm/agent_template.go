@@ -110,7 +110,7 @@ func RunCoreUtil(sw *Swarm, cmd string, a []string) string {
 
 	var b bytes.Buffer
 	ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
-	vs := sh.NewVirtualSystem(sw.Root, sw.OS, sw.Workspace, ioe)
+	vs := sh.NewVirtualSystem(sw.OS, sw.Workspace, ioe)
 	done, err := sh.RunCoreUtils(context.Background(), vs, args)
 	if err != nil {
 		return err.Error()

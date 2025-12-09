@@ -39,7 +39,7 @@ func (r *SystemKit) RenameFile(ctx context.Context, vars *api.Vars, name string,
 	if err != nil {
 		return "", err
 	}
-	if err := vars.RTE.Workspace.RenameFile(source, dest); err != nil {
+	if err := vars.RTE.Workspace.MoveFile(source, dest); err != nil {
 		return "", err
 	}
 	return "File renamed successfully", nil
@@ -50,7 +50,7 @@ func (r *SystemKit) GetFileInfo(ctx context.Context, vars *api.Vars, name string
 	if err != nil {
 		return "", err
 	}
-	info, err := vars.RTE.Workspace.FileInfo(path)
+	info, err := vars.RTE.Workspace.GetFileInfo(path)
 	if err != nil {
 		return "", err
 	}
