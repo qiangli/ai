@@ -115,7 +115,11 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 		{Name: "Project Base", Path: project},
 		{Name: "Temp Folder", Path: tmpdir},
 	}
-	lfs, _ := vfs.NewLocalFS(dirs)
+	allowedDirs, err := ResolvePaths(dirs)
+	if err != nil {
+		return err
+	}
+	lfs, _ := vfs.NewLocalFS(allowedDirs)
 	los, _ := vos.NewLocalSystem(lfs)
 
 	assets, err := conf.Assets(cfg)
