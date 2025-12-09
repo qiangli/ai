@@ -5,41 +5,16 @@
 package memory
 
 import (
-	"context"
+	// "context"
 	"encoding/json"
 	"fmt"
-	"os"
+	// "os"
 	"slices"
 	"strings"
+	// "github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"github.com/qiangli/shell/tool/sh/vfs"
 )
-
-// Entity represents a knowledge graph node with observations.
-type Entity struct {
-	Name         string   `json:"name"`
-	EntityType   string   `json:"entityType"`
-	Observations []string `json:"observations"`
-}
-
-// Relation represents a directed edge between two entities.
-type Relation struct {
-	From         string `json:"from"`
-	To           string `json:"to"`
-	RelationType string `json:"relationType"`
-}
-
-// Observation contains facts about an entity.
-type Observation struct {
-	EntityName string   `json:"entityName"`
-	Contents   []string `json:"contents"`
-
-	Observations []string `json:"observations,omitempty"` // Used for deletion operations
-}
-
-// KnowledgeGraph represents the complete graph structure.
-type KnowledgeGraph struct {
-	Entities  []Entity   `json:"entities"`
-	Relations []Relation `json:"relations"`
-}
 
 // store provides persistence interface for knowledge base data.
 type store interface {
@@ -66,15 +41,17 @@ func (ms *memoryStore) Write(data []byte) error {
 // fileStore implements file-based storage for persistent knowledge base.
 type fileStore struct {
 	path string
+
+	store vfs.FileStore
 }
 
 // Read loads data from file, returning empty slice if file doesn't exist.
 func (fs *fileStore) Read() ([]byte, error) {
-	data, err := os.ReadFile(fs.path)
+	data, err := fs.store.ReadFile(fs.path, nil)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, nil
-		}
+		// if os.IsNotExist(err) {
+		// 	return nil, nil
+		// }
 		return nil, fmt.Errorf("failed to read file %s: %w", fs.path, err)
 	}
 	return data, nil
@@ -82,15 +59,21 @@ func (fs *fileStore) Read() ([]byte, error) {
 
 // Write saves data to file with 0600 permissions.
 func (fs *fileStore) Write(data []byte) error {
-	if err := os.WriteFile(fs.path, data, 0o600); err != nil {
+	if err := fs.store.WriteFile(fs.path, data); err != nil {
 		return fmt.Errorf("failed to write file %s: %w", fs.path, err)
 	}
 	return nil
 }
 
-// knowledgeBase manages entities and relations with persistent storage.
-type knowledgeBase struct {
+// KnowledgeBase manages entities and relations with persistent storage.
+type KnowledgeBase struct {
 	s store
+}
+
+func NewKnowlegeBase(path string) *KnowledgeBase {
+	kbStore := &fileStore{path: path}
+	kb := KnowledgeBase{s: kbStore}
+	return &kb
 }
 
 // kbItem represents a single item in persistent storage (entity or relation).
@@ -109,7 +92,7 @@ type kbItem struct {
 }
 
 // loadGraph deserializes the knowledge graph from storage.
-func (k knowledgeBase) loadGraph() (KnowledgeGraph, error) {
+func (k KnowledgeBase) loadGraph() (KnowledgeGraph, error) {
 	data, err := k.s.Read()
 	if err != nil {
 		return KnowledgeGraph{}, fmt.Errorf("failed to read from store: %w", err)
@@ -147,7 +130,7 @@ func (k knowledgeBase) loadGraph() (KnowledgeGraph, error) {
 }
 
 // saveGraph serializes and persists the knowledge graph to storage.
-func (k knowledgeBase) saveGraph(graph KnowledgeGraph) error {
+func (k KnowledgeBase) saveGraph(graph KnowledgeGraph) error {
 	items := make([]kbItem, 0, len(graph.Entities)+len(graph.Relations))
 
 	for _, entity := range graph.Entities {
@@ -179,9 +162,9 @@ func (k knowledgeBase) saveGraph(graph KnowledgeGraph) error {
 	return nil
 }
 
-// createEntities adds new entities to the graph, skipping duplicates by name.
+// CreateEntities adds new entities to the graph, skipping duplicates by name.
 // It returns the new entities that were actually added.
-func (k knowledgeBase) createEntities(entities []Entity) ([]Entity, error) {
+func (k KnowledgeBase) CreateEntities(entities []Entity) ([]Entity, error) {
 	graph, err := k.loadGraph()
 	if err != nil {
 		return nil, err
@@ -202,9 +185,9 @@ func (k knowledgeBase) createEntities(entities []Entity) ([]Entity, error) {
 	return newEntities, nil
 }
 
-// createRelations adds new relations to the graph, skipping exact duplicates.
+// CreateRelations adds new relations to the graph, skipping exact duplicates.
 // It returns the new relations that were actually added.
-func (k knowledgeBase) createRelations(relations []Relation) ([]Relation, error) {
+func (k KnowledgeBase) CreateRelations(relations []Relation) ([]Relation, error) {
 	graph, err := k.loadGraph()
 	if err != nil {
 		return nil, err
@@ -230,9 +213,9 @@ func (k knowledgeBase) createRelations(relations []Relation) ([]Relation, error)
 	return newRelations, nil
 }
 
-// addObservations appends new observations to existing entities.
+// AddObservations appends new observations to existing entities.
 // It returns the new observations that were actually added.
-func (k knowledgeBase) addObservations(observations []Observation) ([]Observation, error) {
+func (k KnowledgeBase) AddObservations(observations []Observation) ([]Observation, error) {
 	graph, err := k.loadGraph()
 	if err != nil {
 		return nil, err
@@ -267,8 +250,8 @@ func (k knowledgeBase) addObservations(observations []Observation) ([]Observatio
 	return results, nil
 }
 
-// deleteEntities removes entities and their associated relations.
-func (k knowledgeBase) deleteEntities(entityNames []string) error {
+// DeleteEntities removes entities and their associated relations.
+func (k KnowledgeBase) DeleteEntities(entityNames []string) error {
 	graph, err := k.loadGraph()
 	if err != nil {
 		return err
@@ -293,8 +276,8 @@ func (k knowledgeBase) deleteEntities(entityNames []string) error {
 	return k.saveGraph(graph)
 }
 
-// deleteObservations removes specific observations from entities.
-func (k knowledgeBase) deleteObservations(deletions []Observation) error {
+// DeleteObservations removes specific observations from entities.
+func (k KnowledgeBase) DeleteObservations(deletions []Observation) error {
 	graph, err := k.loadGraph()
 	if err != nil {
 		return err
@@ -323,8 +306,8 @@ func (k knowledgeBase) deleteObservations(deletions []Observation) error {
 	return k.saveGraph(graph)
 }
 
-// deleteRelations removes specific relations from the graph.
-func (k knowledgeBase) deleteRelations(relations []Relation) error {
+// DeleteRelations removes specific relations from the graph.
+func (k KnowledgeBase) DeleteRelations(relations []Relation) error {
 	graph, err := k.loadGraph()
 	if err != nil {
 		return err
@@ -341,8 +324,8 @@ func (k knowledgeBase) deleteRelations(relations []Relation) error {
 	return k.saveGraph(graph)
 }
 
-// searchNodes filters entities and relations matching the query string.
-func (k knowledgeBase) searchNodes(query string) (KnowledgeGraph, error) {
+// SearchNodes filters entities and relations matching the query string.
+func (k KnowledgeBase) SearchNodes(query string) (KnowledgeGraph, error) {
 	graph, err := k.loadGraph()
 	if err != nil {
 		return KnowledgeGraph{}, err
@@ -388,8 +371,8 @@ func (k knowledgeBase) searchNodes(query string) (KnowledgeGraph, error) {
 	}, nil
 }
 
-// openNodes returns entities with specified names and their interconnecting relations.
-func (k knowledgeBase) openNodes(names []string) (KnowledgeGraph, error) {
+// OpenNodes returns entities with specified names and their interconnecting relations.
+func (k KnowledgeBase) OpenNodes(names []string) (KnowledgeGraph, error) {
 	graph, err := k.loadGraph()
 	if err != nil {
 		return KnowledgeGraph{}, err
@@ -429,137 +412,87 @@ func (k knowledgeBase) openNodes(names []string) (KnowledgeGraph, error) {
 	}, nil
 }
 
-func (k knowledgeBase) CreateEntities(ctx context.Context, req *mcp.CallToolRequest, args CreateEntitiesArgs) (*mcp.CallToolResult, CreateEntitiesResult, error) {
-	var res mcp.CallToolResult
+// func (k KnowledgeBase) CreateEntities(ctx context.Context, args CreateEntitiesArgs) (CreateEntitiesResult, error) {
+// 	entities, err := k.createEntities(args)
+// 	if err != nil {
+// 		return CreateEntitiesResult{}, err
+// 	}
+// 	return CreateEntitiesResult{Entities: entities}, nil
+// }
 
-	entities, err := k.createEntities(args.Entities)
-	if err != nil {
-		return nil, CreateEntitiesResult{}, err
-	}
+// func (k KnowledgeBase) CreateRelations(ctx context.Context, args CreateRelationsArgs) (CreateRelationsResult, error) {
 
-	res.Content = []mcp.Content{
-		&mcp.TextContent{Text: "Entities created successfully"},
-	}
-	return &res, CreateEntitiesResult{Entities: entities}, nil
-}
+// 	relations, err := k.createRelations(args.Relations)
+// 	if err != nil {
+// 		return CreateRelationsResult{}, err
+// 	}
 
-func (k knowledgeBase) CreateRelations(ctx context.Context, req *mcp.CallToolRequest, args CreateRelationsArgs) (*mcp.CallToolResult, CreateRelationsResult, error) {
-	var res mcp.CallToolResult
+// 	return CreateRelationsResult{Relations: relations}, nil
+// }
 
-	relations, err := k.createRelations(args.Relations)
-	if err != nil {
-		return nil, CreateRelationsResult{}, err
-	}
+// func (k KnowledgeBase) AddObservations(ctx context.Context, args AddObservationsArgs) (AddObservationsResult, error) {
 
-	res.Content = []mcp.Content{
-		&mcp.TextContent{Text: "Relations created successfully"},
-	}
+// 	observations, err := k.addObservations(args.Observations)
+// 	if err != nil {
+// 		return AddObservationsResult{}, err
+// 	}
 
-	return &res, CreateRelationsResult{Relations: relations}, nil
-}
+// 	return AddObservationsResult{
+// 		Observations: observations,
+// 	}, nil
+// }
 
-func (k knowledgeBase) AddObservations(ctx context.Context, req *mcp.CallToolRequest, args AddObservationsArgs) (*mcp.CallToolResult, AddObservationsResult, error) {
-	var res mcp.CallToolResult
+// func (k KnowledgeBase) DeleteEntities(ctx context.Context, args DeleteEntitiesArgs) (any, error) {
 
-	observations, err := k.addObservations(args.Observations)
-	if err != nil {
-		return nil, AddObservationsResult{}, err
-	}
+// 	err := k.deleteEntities(args.EntityNames)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	res.Content = []mcp.Content{
-		&mcp.TextContent{Text: "Observations added successfully"},
-	}
+// 	return nil, nil
+// }
 
-	return &res, AddObservationsResult{
-		Observations: observations,
-	}, nil
-}
+// func (k KnowledgeBase) DeleteObservations(ctx context.Context, args DeleteObservationsArgs) (any, error) {
 
-func (k knowledgeBase) DeleteEntities(ctx context.Context, req *mcp.CallToolRequest, args DeleteEntitiesArgs) (*mcp.CallToolResult, any, error) {
-	var res mcp.CallToolResult
+// 	err := k.deleteObservations(args.Deletions)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return nil, nil
+// }
 
-	err := k.deleteEntities(args.EntityNames)
-	if err != nil {
-		return nil, nil, err
-	}
+// func (k KnowledgeBase) DeleteRelations(ctx context.Context, args DeleteRelationsArgs) (struct{}, error) {
+// 	err := k.deleteRelations(args.Relations)
+// 	if err != nil {
+// 		return struct{}{}, err
+// 	}
+// 	return struct{}{}, nil
+// }
 
-	res.Content = []mcp.Content{
-		&mcp.TextContent{Text: "Entities deleted successfully"},
-	}
+// func (k KnowledgeBase) ReadGraph(ctx context.Context, args any) (KnowledgeGraph, error) {
 
-	return &res, nil, nil
-}
+// 	graph, err := k.loadGraph()
+// 	if err != nil {
+// 		return KnowledgeGraph{}, err
+// 	}
 
-func (k knowledgeBase) DeleteObservations(ctx context.Context, req *mcp.CallToolRequest, args DeleteObservationsArgs) (*mcp.CallToolResult, any, error) {
-	var res mcp.CallToolResult
+// 	return graph, nil
+// }
 
-	err := k.deleteObservations(args.Deletions)
-	if err != nil {
-		return nil, nil, err
-	}
+// func (k KnowledgeBase) SearchNodes(ctx context.Context, args SearchNodesArgs) (KnowledgeGraph, error) {
 
-	res.Content = []mcp.Content{
-		&mcp.TextContent{Text: "Observations deleted successfully"},
-	}
+// 	graph, err := k.searchNodes(args.Query)
+// 	if err != nil {
+// 		return KnowledgeGraph{}, err
+// 	}
+// 	return graph, nil
+// }
 
-	return &res, nil, nil
-}
+// func (k KnowledgeBase) OpenNodes(ctx context.Context, args OpenNodesArgs) (KnowledgeGraph, error) {
+// 	graph, err := k.openNodes(args.Names)
+// 	if err != nil {
+// 		return KnowledgeGraph{}, err
+// 	}
 
-func (k knowledgeBase) DeleteRelations(ctx context.Context, req *mcp.CallToolRequest, args DeleteRelationsArgs) (*mcp.CallToolResult, struct{}, error) {
-	var res mcp.CallToolResult
-
-	err := k.deleteRelations(args.Relations)
-	if err != nil {
-		return nil, struct{}{}, err
-	}
-
-	res.Content = []mcp.Content{
-		&mcp.TextContent{Text: "Relations deleted successfully"},
-	}
-
-	return &res, struct{}{}, nil
-}
-
-func (k knowledgeBase) ReadGraph(ctx context.Context, req *mcp.CallToolRequest, args any) (*mcp.CallToolResult, KnowledgeGraph, error) {
-	var res mcp.CallToolResult
-
-	graph, err := k.loadGraph()
-	if err != nil {
-		return nil, KnowledgeGraph{}, err
-	}
-
-	res.Content = []mcp.Content{
-		&mcp.TextContent{Text: "Graph read successfully"},
-	}
-
-	return &res, graph, nil
-}
-
-func (k knowledgeBase) SearchNodes(ctx context.Context, req *mcp.CallToolRequest, args SearchNodesArgs) (*mcp.CallToolResult, KnowledgeGraph, error) {
-	var res mcp.CallToolResult
-
-	graph, err := k.searchNodes(args.Query)
-	if err != nil {
-		return nil, KnowledgeGraph{}, err
-	}
-
-	res.Content = []mcp.Content{
-		&mcp.TextContent{Text: "Nodes searched successfully"},
-	}
-
-	return &res, graph, nil
-}
-
-func (k knowledgeBase) OpenNodes(ctx context.Context, req *mcp.CallToolRequest, args OpenNodesArgs) (*mcp.CallToolResult, KnowledgeGraph, error) {
-	var res mcp.CallToolResult
-
-	graph, err := k.openNodes(args.Names)
-	if err != nil {
-		return nil, KnowledgeGraph{}, err
-	}
-
-	res.Content = []mcp.Content{
-		&mcp.TextContent{Text: "Nodes opened successfully"},
-	}
-	return &res, graph, nil
-}
+// 	return graph, nil
+// }

@@ -10,12 +10,12 @@ import (
 )
 
 type FuncKit struct {
-	kgm *memory.KGManager
+	kb *memory.KnowledgeBase
 }
 
-func NewFuncKit() *FuncKit {
+func NewFuncKit(kbPath string) *FuncKit {
 	return &FuncKit{
-		kgm: memory.NewKGManager(),
+		kb: memory.NewKnowlegeBase(kbPath),
 	}
 }
 

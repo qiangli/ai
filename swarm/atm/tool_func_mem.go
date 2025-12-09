@@ -40,7 +40,7 @@ func (r *FuncKit) CreateEntities(ctx context.Context, vars *api.Vars, name strin
 		return "", err
 	}
 
-	r.kgm.CreateEntities(entities)
+	r.kb.CreateEntities(ctx, entities)
 
 	return "success", nil
 }
@@ -56,7 +56,7 @@ func (r *FuncKit) CreateRelations(ctx context.Context, vars *api.Vars, name stri
 		return "", err
 	}
 
-	r.kgm.CreateRelations(relations)
+	r.kb.CreateRelations(relations)
 
 	return "success", nil
 }
@@ -72,7 +72,7 @@ func (r *FuncKit) AddObservations(ctx context.Context, vars *api.Vars, name stri
 		return "", err
 	}
 
-	r.kgm.AddObservations(observations)
+	r.kb.AddObservations(observations)
 
 	return "success", nil
 }
@@ -84,7 +84,7 @@ func (r *FuncKit) DeleteEntities(ctx context.Context, vars *api.Vars, name strin
 	}
 
 	if v, ok := entityNames.([]string); ok {
-		r.kgm.DeleteEntities(v)
+		r.kb.DeleteEntities(v)
 		return "success", nil
 	}
 	return "", fmt.Errorf("invalid arguments: %v. expectded array of strings.", entityNames)
@@ -101,7 +101,7 @@ func (r *FuncKit) DeleteObservations(ctx context.Context, vars *api.Vars, name s
 		return "", err
 	}
 
-	r.kgm.DeleteObservations(deletions)
+	r.kb.DeleteObservations(deletions)
 
 	return "success", nil
 }
@@ -117,13 +117,13 @@ func (r *FuncKit) DeleteRelations(ctx context.Context, vars *api.Vars, name stri
 		return "", err
 	}
 
-	r.kgm.DeleteRelations(relations)
+	r.kb.DeleteRelations(relations)
 
 	return "success", nil
 }
 
 func (r *FuncKit) ReadGraph(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	gd := r.kgm.ReadGraph()
+	gd := r.kb.ReadGraph()
 	return toJsonString(gd)
 }
 
@@ -133,7 +133,7 @@ func (r *FuncKit) SearchNodes(ctx context.Context, vars *api.Vars, name string, 
 		return "", fmt.Errorf("missing argument: query")
 	}
 
-	results := r.kgm.SearchNodes(query.(string))
+	results := r.kb.SearchNodes(query.(string))
 	return toJsonString(results)
 }
 
@@ -144,7 +144,7 @@ func (r *FuncKit) OpenNodes(ctx context.Context, vars *api.Vars, name string, ar
 	}
 
 	if v, ok := names.([]string); ok {
-		d := r.kgm.OpenNodes(v)
+		d := r.kb.OpenNodes(v)
 		return toJsonString(d)
 	}
 	return "", fmt.Errorf("invalide arguments: %v. expected array of strings.", names)
