@@ -19,6 +19,22 @@ tools:
       required:
         - command
 
+  - name: "exec"
+    description: |
+      Execute a specified command within the user's environment.
+      Note: Ensure the command is specified as an array. Security restrictions may apply.
+    parameters:
+      type: "object"
+      properties:
+        command:
+          type: "array"
+          items:
+            type: "string"
+            description: "Each element represents a part of the command or its options."
+          description: "The command to execute as an array. The first element is the command, followed by options and arguments."
+      required:
+        - command
+
   # - name: "cd"
   #   description: "Change the current working directory on user's system."
   #   parameters:

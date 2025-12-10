@@ -1,59 +1,82 @@
+#
+# A complete "Hello World" example of agents, tools, and models
+#
+
 ###
-# agent with local tools and models
-pack: "package"
+pack: "atm"
+log_level: "info"
 agents:
-  - name: "name"
-    display: "🌐 Display Name"
-    description: "Short description for agent discovery"
+  - name: "hi"
+    display: "🌐 World Greeter"
+    description: "An amiable greeter capable of providing kind words to any global citizen it encounters."
     model: "default/any"
-    message: |
-      optional preset user message prepended to user input
+    message: "I'm a humble bot"
     instruction: |
-        system role prompt goes here
+      You are an amiable greeter who always finds charming words for anyone you meet.
+      Randomly choose names and offer kind words to them.
+      You must use the tool `atm:hi` for greeting.
     functions:
-      - "kit:*"
-      - "agent:<agent>"
+      - "atm:hi"
 
 ###
-# kit: "toolkit"
-# type: "web | mcp | agent | func"
-# tools:
-#   - name: ""
-#     description: ""
-#     parameters: {}
-#     body:
-
-## Example tool kit written in Golang.
-# One kit can hold multiple tools.
-# File layout:
-# <base>/<kit>/*.yaml
-# Files are sorted alphabetically in the subfolders.
-kit: "<kit_name>"
+kit: "atm"
 type: "func"
-
 tools:
-  - name: "<tool_name>"
-    description: "<tool_description>"
+  - name: "hi"
+    description: "A tool designed to articulate kind sentiments towards people."
     parameters:
       type: "object"
       properties:
-        <param_name>:
-          type: "string|integer|boolean|..."
-          description: "<param_description>"
-        # Add more parameters as needed
+        greeting:
+          type: "string"
+          description: "The kind sentiment or message to convey."
+        names:
+          type: "string"
+          description: "A list of individuals' names in JSON array format."
       required:
-        - <param_name>  # List required parameter names here
+        - greeting
+        - names
     body:
       language: "golang"
       code: |
-        // Golang code goes here
+        #! mime-type=text/x-go-template
+        import "encoding/json"
+        import "fmt"
+        import "strings"
+
+        var names = `{{.names}}`
+        var greeting = "{{.greeting}}"
+
+        func nameList() (string, error) {
+          if names == "" {
+            return "whom do you want me to greet?", nil
+          }
+          var list []string
+          if err := json.Unmarshal([]byte(names), &list); err != nil {
+            return "", fmt.Errorf("Oops, I'm not feeling well.")
+          }
+          return strings.Join(list, ","), nil
+        }
+
+        func hello() {
+          people, err := nameList()
+          if err != nil {
+            fmt.Println(err.Error())
+            return
+          }
+          fmt.Printf("Hello %s:\n%s\n", people, greeting)
+        }
+
+        func main() {
+          hello()
+        }
 
 ###
-set: "model_set"
+set: "default"
 models:
-  <level>:
-    model: "<model name>"
-    provider: ""
-    api_key: ""
-    base_url: ""
+  any:
+    model: "gpt-5-nano"
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
 ###

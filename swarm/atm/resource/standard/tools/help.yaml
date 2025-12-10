@@ -18,22 +18,26 @@ tools:
         const help_action =`
 
         Action:
+          * Tool: /kit:name
+          * Agent: /agent:name
+          * System: /bin:name
 
-            /kit:name
-            /agent:name or @name
+        "agent" and "bin" are builtin tool kits for running agents and system commands as tools.
         `
         const help_options = `
 
         Options:
 
             --message "..."
+            --script  "file:///path"
+                      "data:content"
             --arg name="value"
             --arguments "{json object map}"
         `
         const ai_usage = `
         Usage:
         ai [ACTION] [OPTIONS] MESSAGE...
-        
+
         %s
 
         %s        
@@ -53,10 +57,8 @@ tools:
         + Read from system clipboard:
 
             >
-            ai @ed {
-            ai @ed {{"{{"}}
-          
-        
+            ai @ed {          
+
         Use '/ai' tool for more information.
         `
         func help() {

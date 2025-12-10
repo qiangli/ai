@@ -3,7 +3,7 @@ package agent
 import (
 	"context"
 	"encoding/json"
-	// "maps"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -167,7 +167,10 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 
 	var out *api.Output
 	if v, err := sw.Execm(ctx, cfg.Arguments); err != nil {
-		return err
+		// return err
+		out = &api.Output{
+			Content: fmt.Sprintf("❌ %+v", err),
+		}
 	} else {
 		out = &api.Output{
 			Display:     cfg.Name,
