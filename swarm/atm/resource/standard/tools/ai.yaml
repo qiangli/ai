@@ -287,3 +287,30 @@ tools:
   #         items:
   #           type: "string"
   #     required: ["ids"]
+
+  - name: "ai"
+    display: "AI Help"
+    description: |
+      A set of tools for managing agents and tools
+    parameters: {}
+    type: "func"
+    body:
+      language: "golang"
+      code: |
+        import "fmt"
+        const desc = `
+        A set of tools for managing agents and tools.
+
+        ## Agents
+          + list_agents
+          + get_agent_info
+          + spawn_agent
+
+        ## Tools
+          + list_tools
+          + get_tool_info
+          + execute_tool
+        `
+        func main() {
+          fmt.Printf(desc)
+        }

@@ -40,8 +40,13 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 		if err == nil {
 			tools, err := conf.LoadTools(tc, r.user, r.sw.Secrets)
 			if err == nil {
+				kit, name := api.Kitname(tid).Decode()
 				for _, v := range tools {
-					if v.ID() == tid {
+					if v.Kit == kit && v.Name == name {
+						return v, nil
+					}
+					// default
+					if v.Kit == kit && name == "" && v.Name == kit {
 						return v, nil
 					}
 				}

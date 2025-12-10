@@ -225,7 +225,8 @@ func (r Kitname) Decode() (string, string) {
 		kit, name = split2(s, "__", "")
 	} else {
 		// load time
-		kit, name = split2(s, ":", "*")
+		// kit, name = split2(s, ":", "*")
+		kit, name = split2(s, ":", "")
 	}
 	return kit, name
 }
