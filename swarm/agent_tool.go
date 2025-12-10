@@ -74,6 +74,7 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	// default tool
 	if name == "" {
 		name = kit
+		tid = api.Kitname(kit + ":" + name).ID()
 	}
 	if kit == "" || kit == "sh" {
 		// system command
