@@ -21,20 +21,22 @@
 			},
 			"envFile": "${workspaceFolder}/.env",
 			"args": [
-				"/help",
+				// "/help",
 				// "/help:help",
 				//
 				// slash command
 				// "/bin/ls",
 				// "-al",
 				// "test"
+				"/usr/local/go/bin/go",
+				"-help",
 				//
 				// slash tool
 				// "/sh:bash",
 				// "--command",
 				// "/bin/ls -al test",
 				//
-				// agent tool
+				// slash agent
 				// "/agent:ed",
 				// "correct mine englise"
 				//

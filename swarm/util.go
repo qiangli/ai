@@ -129,16 +129,6 @@ func nzl(a ...int) int {
 	return 0
 }
 
-// // trim name if it ends in .yaml/.yml
-// func trimYaml(name string) string {
-// 	if strings.HasSuffix(name, ".yaml") {
-// 		name = strings.TrimSuffix(name, ".yaml")
-// 	} else if strings.HasSuffix(name, ".yml") {
-// 		name = strings.TrimSuffix(name, ".yml")
-// 	}
-// 	return name
-// }
-
 // head trims the string to the maxLen and replaces newlines with /.
 func head(s string, maxLen int) string {
 	s = strings.ReplaceAll(s, "\n", "•")
@@ -156,20 +146,6 @@ func head(s string, maxLen int) string {
 // 	encoded := base64.StdEncoding.EncodeToString(raw)
 // 	d := fmt.Sprintf("data:%s;base64,%s", mime, encoded)
 // 	return d
-// }
-
-// parse s and look for agent. return app config and true if found.
-// by convention, s starts with agent:name, @name, /name
-// func parseAgentCommand(s string) (*api.ActionConfig, error) {
-// 	argv := shlex.Argv(s)
-// 	at, err := conf.ParseActionArgs(argv)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if at == nil {
-// 		return nil, fmt.Errorf("invalid command: %v", s)
-// 	}
-// 	return at, nil
 // }
 
 func formatArgs(args map[string]any) string {

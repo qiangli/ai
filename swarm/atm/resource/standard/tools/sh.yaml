@@ -4,18 +4,18 @@ type: "system"
 
 tools:
   - name: "exec"
-    description: "Execute a specified command within the user's environment, allowing optional flags and arguments to be passed via 'args'. Note: some security restrictions may apply."
+    description: |
+      Execute a specified command within the user's environment.
+      Note: Ensure the command is specified as an array. Security restrictions may apply.
     parameters:
       type: "object"
       properties:
         command:
-          type: "string"
-          description: "The command to execute."
-        arguments:
           type: "array"
           items:
             type: "string"
-          description: "The arguments to pass to the command. May be empty."
+            description: "Each element represents a part of the command or its options."
+          description: "The command to execute as an array. The first element is the command, followed by options and arguments."
       required:
         - command
 
@@ -36,16 +36,16 @@ tools:
 
   - name: "bash"
     description: |
-      Executes a shell script within the user's environment. Users can provide optional flags and arguments via 'args'.
-      Either 'command' or 'script' must be specified; application logic will ensure this requirement.
-      Note: Some security restrictions may apply.
+      Executes a shell script within the user's environment.
+      The script can be a file path or inline with the "data:" prefix.
+      Note: security restrictions may apply.
     parameters:
       type: "object"
       properties:
-        command:
-          type: "string"
-          description: "Shell command(s) to be executed."
         script:
           type: "string"
-          description: "Path to the shell script file to be executed."
-      required: []
+          description: |
+            Path to the shell script file or inline script prefixed
+            with 'data:'.
+      required:
+        - script

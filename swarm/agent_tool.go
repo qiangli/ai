@@ -90,8 +90,8 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 		// system command
 		if kit == "" {
 			cmd, _ := api.GetStrProp("command", args)
-			argv, _ := api.GetArrayProp("arguments", args)
-			return atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, cmd, argv)
+			// argv, _ := api.GetArrayProp("arguments", args)
+			return atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, cmd, nil)
 		}
 		// shell
 		return r.agent.Shell.Run(ctx, "", args)

@@ -469,9 +469,11 @@ func (h *agentHandler) flowShell(req *api.Request, resp *api.Response) error {
 func doBashCustom(vs *sh.VirtualSystem, args []string) (string, error) {
 	switch args[0] {
 	case "env", "printenv":
+		var envs []string
 		for k, v := range vs.System.Environ() {
-			fmt.Fprintf(vs.IOE.Stdout, "%s=%v\n", k, v)
+			envs = append(envs, fmt.Sprintf("%s=%v", k, v))
 		}
+		return strings.Join(envs, "\n"), nil
 	default:
 	}
 	return "", nil
@@ -480,12 +482,6 @@ func doBashCustom(vs *sh.VirtualSystem, args []string) (string, error) {
 // Unmarshal the value into a list.
 // If the value isn't a list, return the value as a single-item list.
 func unmarshalList(value any) []string {
-	// var s string
-	// if v, ok := value.(string); ok {
-	// 	s = v
-	// } else {
-	// 	s = fmt.Sprintf("%v", v)
-	// }
 	s := api.ToString(value)
 	var list []string
 	err := json.Unmarshal([]byte(s), &list)

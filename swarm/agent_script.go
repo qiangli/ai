@@ -49,7 +49,9 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	// bash script
 	var b bytes.Buffer
 	ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
+
 	vs := sh.NewVirtualSystem(r.sw.OS, r.sw.Workspace, ioe)
+	vs.ExecHandler = r.newExecHandler(vs)
 
 	// set global env for bash script
 	env := r.sw.globalEnv()
@@ -59,8 +61,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 		vs.System.Setenv(k, v)
 	}
 
-	vs.ExecHandler = r.newExecHandler(vs)
-
+	// run bash interpreter
 	if err := vs.RunScript(ctx, script); err != nil {
 		return "", err
 	}
@@ -78,6 +79,8 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem) sh.ExecHandler 
 		if conf.IsAction(strings.ToLower(args[0])) {
 			log.GetLogger(ctx).Debugf("running ai agent/tool: %+v\n", args)
 
+			// ignore result.
+			// script should print to stdout/stderr
 			_, err := r.execv(ctx, vs, args)
 			if err != nil {
 				return true, err
@@ -88,8 +91,9 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem) sh.ExecHandler 
 		// internal list
 		allowed := []string{"env", "printenv"}
 		if slices.Contains(allowed, args[0]) {
-			doBashCustom(vs, args)
-			return true, nil
+			out, err := doBashCustom(vs, args)
+			fmt.Fprintf(vs.IOE.Stdout, "%v", out)
+			return true, err
 		}
 
 		// bash core utils
@@ -100,8 +104,9 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem) sh.ExecHandler 
 		// TODO restricted
 		// block other commands
 		// fmt.Fprintf(vs.IOE.Stderr, "command not supported: %s %+v\n", args[0], args[1:])
-		atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, args[0], args[1:])
-		return true, nil
+		out, err := atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, args[0], args[1:])
+		fmt.Fprintf(vs.IOE.Stdout, "%v", out)
+		return true, err
 	}
 }
 
@@ -119,19 +124,3 @@ func (r *AgentScriptRunner) execv(ctx context.Context, vs *sh.VirtualSystem, arg
 
 	return result, nil
 }
-
-// func (r *AgentScriptRunner) runc(ctx context.Context, creator api.Creator, vs *sh.VirtualSystem, name string, args map[string]any) (*api.Result, error) {
-// 	for k, v := range r.parent.Environment.GetAllEnvs() {
-// 		vs.System.Setenv(k, v)
-// 	}
-
-// 	result, err := r.sw.runc(ctx, creator, r.parent, name, args)
-
-// 	if err != nil {
-// 		fmt.Fprintln(vs.IOE.Stderr, err.Error())
-// 		return nil, err
-// 	}
-// 	fmt.Fprintln(vs.IOE.Stdout, result.Value)
-
-// 	return result, nil
-// }

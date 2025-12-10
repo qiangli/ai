@@ -194,20 +194,17 @@ func Run(ctx context.Context, argv []string) error {
 		}
 	} else if conf.IsSlash(argv[0]) {
 		// call local system command as tool:
-		// sh:bash command arguments
+		// sh:bash command
 		app.Arguments["kit"] = "sh"
 		app.Arguments["name"] = "bash"
-		app.Arguments["command"] = argv[0]
-		if len(argv) > 1 {
-			app.Arguments["arguments"] = argv[1:]
-		}
+		app.Arguments["command"] = strings.Join(argv, " ")
 	} else {
 		app.Arguments["message"] = strings.Join(argv, " ")
 	}
 
 	if err := RunSwarm(ctx, app); err != nil {
-		log.GetLogger(ctx).Errorf("%v\n", err)
-		return nil
+		// log.GetLogger(ctx).Errorf("%v\n", err)
+		return err
 	}
 	return nil
 }
