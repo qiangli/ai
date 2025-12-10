@@ -21,7 +21,13 @@ func main() {
 		args = append([]string{"/sh:bash", "--script", args[0]}, args[1:]...)
 	} else {
 		if len(args) <= 1 {
+			// $ai 
+			// show help 
 			args = []string{"/help:help"}
+		} else {
+			//  $ai args...
+			// discard the command itself
+			args = args[1:]
 		}
 	}
 
