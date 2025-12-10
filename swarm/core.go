@@ -479,10 +479,7 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 	}
 
 	env := &api.ToolEnv{
-		// User: sw.User.Email,
 		Agent: agent,
-		// FS:    NewToolFS(sw.Workspace),
-		// Secrets: sw.Secrets,
 	}
 	out, err := kit.Call(ctx, sw.Vars, env, v, args)
 
@@ -494,8 +491,7 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 
 func (sw *Swarm) LoadScript(v string) (string, error) {
 	var script string
-	// if s != nil {
-	// var v = api.ToString(s)
+
 	if strings.HasPrefix(v, "data:") {
 		// FIXME remove mime
 		script = v[5:]
@@ -507,7 +503,6 @@ func (sw *Swarm) LoadScript(v string) (string, error) {
 		}
 		script = string(data)
 	}
-	// }
 
 	return script, nil
 }
