@@ -21,7 +21,8 @@
 			},
 			"envFile": "${workspaceFolder}/.env",
 			"args": [
-				"/help:help",
+				"/help",
+				// "/help:help",
 				//
 				// slash command
 				// "/bin/ls",

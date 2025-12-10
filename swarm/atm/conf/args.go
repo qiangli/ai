@@ -258,9 +258,10 @@ func IsAction(s string) bool {
 	case '@':
 		return true
 	case '/':
-		s = strings.TrimPrefix(s, "/")
-		sa := strings.SplitN(s, "/", 2)
-		return strings.Contains(sa[0], ":")
+		// s = strings.TrimPrefix(s, "/")
+		// sa := strings.SplitN(s, "/", 2)
+		// return strings.Contains(sa[0], ":") || len(sa) == 1
+		return IsSlashTool(s)
 	default:
 		if strings.HasPrefix(s, "agent:") {
 			return true
@@ -278,16 +279,17 @@ func IsAction(s string) bool {
 }
 
 // Return true if s starts with slash "/" and  is of the following format:
+// /kit
 // /kit:name[/sub]
 func IsSlashTool(s string) bool {
 	if after, ok := strings.CutPrefix(s, "/"); ok {
-		kn := strings.SplitN(after, "/", 2)
-		return strings.Contains(kn[0], ":")
+		sa := strings.SplitN(after, "/", 2)
+		return strings.Contains(sa[0], ":") || len(sa) == 1
 	}
 	return false
 }
 
-// Return true if s starts with slash "/"
+// Return true if s starts with slash "/" - a slash command
 func IsSlash(s string) bool {
 	return strings.HasPrefix(s, "/")
 }
