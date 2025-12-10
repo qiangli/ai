@@ -5,43 +5,41 @@ import (
 	"os"
 	"strings"
 
-	"github.com/spf13/cobra"
-
-	"github.com/qiangli/ai/cmd/agent"
 	"github.com/qiangli/ai/internal"
+	"github.com/qiangli/ai/internal/agent"
 )
 
-const rootUsageTemplate = `AI Command Line Tool
+// const rootUsageTemplate = `AI Command Line Tool
 
-Usage:
-  ai [OPTIONS] [@AGENT] MESSAGE...{{if .HasExample}}
+// Usage:
+//   ai [OPTIONS] [@AGENT] MESSAGE...{{if .HasExample}}
 
-Examples:
-{{.Example}}{{end}}
+// Examples:
+// {{.Example}}{{end}}
 
-Use "{{.CommandPath}} /help [agents|tools|models]" for more information.
-`
+// Use "{{.CommandPath}} /help [agents|tools|models]" for more information.
+// `
 
-const usageExample = `
-ai what is fish
-ai @ask what is fish
-`
+// const usageExample = `
+// ai what is fish
+// ai @ask what is fish
+// `
 
-var rootCmd = &cobra.Command{
-	Use:                   "ai [OPTIONS] [@AGENT] MESSAGE...",
-	Short:                 "AI Command Line Tool",
-	Example:               usageExample,
-	DisableFlagsInUseLine: true,
-	DisableSuggestions:    true,
-	Args:                  cobra.ArbitraryArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return cmd.Help()
-	},
-}
+// var rootCmd = &cobra.Command{
+// 	Use:                   "ai [OPTIONS] [@AGENT] MESSAGE...",
+// 	Short:                 "AI Command Line Tool",
+// 	Example:               usageExample,
+// 	DisableFlagsInUseLine: true,
+// 	DisableSuggestions:    true,
+// 	Args:                  cobra.ArbitraryArgs,
+// 	RunE: func(cmd *cobra.Command, args []string) error {
+// 		return cmd.Help()
+// 	},
+// }
 
-func init() {
-	rootCmd.SetHelpTemplate(rootUsageTemplate)
-}
+// func init() {
+// 	rootCmd.SetHelpTemplate(rootUsageTemplate)
+// }
 
 func main() {
 	ctx := context.TODO()
@@ -51,18 +49,22 @@ func main() {
 	// support execution of ai script file (.sh or .yaml)
 	shebang := strings.HasSuffix(args[0], ".yaml") || strings.HasSuffix(args[0], ".sh")
 
-	// if no args and no input (piped), show help - short form
-	// $ ai
-	if len(args) <= 1 && !shebang {
-		if err := rootCmd.Execute(); err != nil {
-			internal.Exit(ctx, err)
-		}
-		return
-	}
+	// // if no args and no input (piped), show help - short form
+	// // $ ai
+	// if len(args) <= 1 && !shebang {
+	// 	if err := rootCmd.Execute(); err != nil {
+	// 		internal.Exit(ctx, err)
+	// 	}
+	// 	return
+	// }
 
 	// shebang support
 	if shebang {
 		args = append([]string{"/sh:bash", "--script", args[0]}, args[1:]...)
+	} else {
+		if len(args) <= 1 {
+			args = []string{"/help:help"}
+		}
 	}
 
 	// slash commands
@@ -82,7 +84,7 @@ func main() {
 	// 	}
 	// }
 
-	if err := agent.Run(ctx, args[1:]); err != nil {
+	if err := agent.Run(ctx, args); err != nil {
 		internal.Exit(ctx, err)
 	}
 }

@@ -5,6 +5,7 @@ format: "markdown"
 
 tools:
   - name: "help"
+    display: "AI Tool"
     description: |
       Guide users in selecting the correct AI agent or tool for running
       the "ai" command line tool.
