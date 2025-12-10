@@ -380,7 +380,13 @@ func (sw *Swarm) Execm(ctx context.Context, argm map[string]any) (*api.Result, e
 // Run agent action. if custom config is detected. try load the agent from it.
 func (sw *Swarm) runm(ctx context.Context, parent *api.Agent, name string, args map[string]any) (*api.Result, error) {
 	var creator = sw.CreateAgent
-	if data, err := sw.LoadActionConfig(args); err == nil {
+
+	// load agent from content
+	if s, ok := args["script"]; ok {
+		data, err := sw.LoadScript(api.ToString(s))
+		if err != nil {
+			return nil, err
+		}
 		pack, _ := api.Packname(name).Decode()
 		if v, err := sw.agentMaker.Creator(sw.agentMaker.Create, sw.User.Email, pack, []byte(data)); err == nil {
 			creator = v
@@ -486,49 +492,22 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 	return api.ToResult(out), nil
 }
 
-// Return action name and data
-func (sw *Swarm) LoadActionConfig(args map[string]any) (string, error) {
-	s, ok := args["config"]
-	if !ok {
-		return "", fmt.Errorf("no config found")
-	}
-
+func (sw *Swarm) LoadScript(v string) (string, error) {
 	var script string
-	if s != "" {
-		v := api.ToString(s)
-		if strings.HasPrefix(v, "data:") {
-			script = v[5:]
-		} else {
-			data, err := sw.Workspace.ReadFile(v, nil)
-			if err != nil {
-				return "", err
-			}
-			script = string(data)
+	// if s != nil {
+	// var v = api.ToString(s)
+	if strings.HasPrefix(v, "data:") {
+		// FIXME remove mime
+		script = v[5:]
+	} else {
+		file := v
+		data, err := sw.Workspace.ReadFile(file, nil)
+		if err != nil {
+			return "", err
 		}
+		script = string(data)
 	}
-	return script, nil
-}
-
-func (sw *Swarm) LoadScript(args map[string]any) (string, error) {
-	s, ok := args["script"]
-	if !ok {
-		return "", fmt.Errorf("script not found")
-	}
-
-	var script string
-	if s != "" {
-		var v = api.ToString(s)
-		if strings.HasPrefix(v, "data:") {
-			script = v[5:]
-		} else {
-			file := v
-			data, err := sw.Workspace.ReadFile(file, nil)
-			if err != nil {
-				return "", err
-			}
-			script = string(data)
-		}
-	}
+	// }
 
 	return script, nil
 }

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env ai
 set -x
 
 echo "Hello world!"

@@ -30,15 +30,12 @@ func NewAgentToolRunner(sw *Swarm, user string, agent *api.Agent) api.ActionRunn
 }
 
 func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFunc, error) {
-	// inline
-	v, ok := r.toolMap[tid]
-	if ok {
-		return v, nil
-	}
-
-	// load from content
-	cfg, err := r.sw.LoadActionConfig(args)
-	if err == nil {
+	// load tool from content
+	if s, ok := args["script"]; ok {
+		cfg, err := r.sw.LoadScript(api.ToString(s))
+		if err != nil {
+			return nil, err
+		}
 		tc, err := conf.LoadToolData([][]byte{[]byte(cfg)})
 		if err == nil {
 			tools, err := conf.LoadTools(tc, r.user, r.sw.Secrets)
@@ -50,6 +47,12 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 				}
 			}
 		}
+	}
+
+	// inline
+	v, ok := r.toolMap[tid]
+	if ok {
+		return v, nil
 	}
 
 	// load external

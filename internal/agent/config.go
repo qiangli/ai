@@ -179,6 +179,7 @@ func parseAppConfig(ctx context.Context, app *api.AppConfig, argv []string) erro
 }
 
 func Run(ctx context.Context, argv []string) error {
+	fmt.Printf("argv: %v\n", argv)
 	var app = &api.AppConfig{}
 	app.Arguments = make(map[string]any)
 	err := setupAppConfig(ctx, app)

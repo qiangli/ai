@@ -1,3 +1,4 @@
+#!/usr/bin/env ai
 kit: "help"
 type: "func"
 log_level: "quiet"

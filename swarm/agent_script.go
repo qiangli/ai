@@ -26,23 +26,17 @@ func NewAgentScriptRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
 	}
 }
 
-// func (r *AgentScriptRunner) CreatorFrom(pack string, data []byte) (api.Creator, error) {
-// 	// data, err := r.sw.Workspace.ReadFile(api.ToString(file), nil)
-// 	// if err != nil {
-// 	// 	return nil, err
-// 	// }
-// 	// extract pack name
-
-// 	return r.sw.agentMaker.Creator(r.sw.agentMaker.Create, r.sw.User.Email, pack, data)
-// }
-
 // Run command or script. if script is empty, read command or script from args.
 func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[string]any) (any, error) {
 	if script == "" && args != nil {
 		if c, ok := args["command"]; ok {
 			script = api.ToString(c)
 		} else {
-			if v, err := r.sw.LoadScript(args); err == nil {
+			s, ok := args["script"]
+			if !ok {
+				return "", fmt.Errorf("script not found")
+			}
+			if v, err := r.sw.LoadScript(api.ToString(s)); err == nil {
 				script = v
 			}
 		}
@@ -51,26 +45,6 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	if script == "" {
 		return "", fmt.Errorf("missing bash command/script")
 	}
-
-	// // action
-	// if name != "" {
-	// 	if strings.Contains(name, ":") {
-	// 		// run tool
-	// 		kit, name := api.Kitname(name).Decode()
-	// 		args["config"] = "data:" + script
-	// 		args["kit"] = kit
-	// 		args["name"] = name
-	// 		return r.sw.Execm(ctx, args)
-	// 	} else {
-	// 		pack, _ := api.Packname(name).Decode()
-	// 		creator, err := r.sw.agentMaker.Creator(r.sw.agentMaker.Create, r.sw.User.Email, pack, []byte(script))
-	// 		if err != nil {
-	// 			return nil, err
-	// 		}
-	// 		return r.sw.runc(ctx, creator, r.parent, name, args)
-	// 	}
-	// 	// return nil, fmt.Errorf("invalid action: %s", name)
-	// }
 
 	// bash script
 	var b bytes.Buffer
@@ -146,18 +120,18 @@ func (r *AgentScriptRunner) execv(ctx context.Context, vs *sh.VirtualSystem, arg
 	return result, nil
 }
 
-func (r *AgentScriptRunner) runc(ctx context.Context, creator api.Creator, vs *sh.VirtualSystem, name string, args map[string]any) (*api.Result, error) {
-	for k, v := range r.parent.Environment.GetAllEnvs() {
-		vs.System.Setenv(k, v)
-	}
+// func (r *AgentScriptRunner) runc(ctx context.Context, creator api.Creator, vs *sh.VirtualSystem, name string, args map[string]any) (*api.Result, error) {
+// 	for k, v := range r.parent.Environment.GetAllEnvs() {
+// 		vs.System.Setenv(k, v)
+// 	}
 
-	result, err := r.sw.runc(ctx, creator, r.parent, name, args)
+// 	result, err := r.sw.runc(ctx, creator, r.parent, name, args)
 
-	if err != nil {
-		fmt.Fprintln(vs.IOE.Stderr, err.Error())
-		return nil, err
-	}
-	fmt.Fprintln(vs.IOE.Stdout, result.Value)
+// 	if err != nil {
+// 		fmt.Fprintln(vs.IOE.Stderr, err.Error())
+// 		return nil, err
+// 	}
+// 	fmt.Fprintln(vs.IOE.Stdout, result.Value)
 
-	return result, nil
-}
+// 	return result, nil
+// }

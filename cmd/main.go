@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 
@@ -12,22 +13,19 @@ import (
 func main() {
 	ctx := context.TODO()
 
-	args := os.Args
+	// discard ai command
+	args := os.Args[1:]
 
-	// support execution of ai script file (.sh or .yaml)
-	shebang := strings.HasSuffix(args[0], ".yaml") || strings.HasSuffix(args[0], ".sh")
+	fmt.Printf("main args[1:]: %v\n", args)
 
-	if shebang {
-		args = append([]string{"/sh:bash", "--script", args[0]}, args[1:]...)
+	if len(args) == 0 {
+		// no args, show help
+		args = []string{"/help:help"}
 	} else {
-		if len(args) <= 1 {
-			// $ai 
-			// show help 
-			args = []string{"/help:help"}
-		} else {
-			//  $ai args...
-			// discard the command itself
-			args = args[1:]
+		// support execution of ai script file (.sh or .yaml)
+		shebang := (strings.HasSuffix(args[0], ".yaml") || strings.HasSuffix(args[0], ".sh"))
+		if shebang {
+			args = append([]string{"/sh:bash", "--script", args[0]}, args[1:]...)
 		}
 	}
 
