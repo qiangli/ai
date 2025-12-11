@@ -314,3 +314,4 @@ tools:
         func main() {
           fmt.Printf(desc)
         }
+    log_level: "quiet"

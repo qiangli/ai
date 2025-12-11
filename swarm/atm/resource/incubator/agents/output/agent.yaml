@@ -3,7 +3,7 @@ pack: "output"
 log_level: debug
 agents:
   - name: "output"
-    display: "Output Formatter"
+    display: "⭕ Output Formatter"
     description: "Converts input text to the requested format."
     model: "default/any"
     message: |
