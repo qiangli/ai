@@ -316,6 +316,30 @@ func (ac *ActionConfig) ToMap() map[string]any {
 	return result
 }
 
+type App struct {
+	// app root. default: $HOME/.ai/
+	Base string
+
+	// auth email
+	User string
+
+	// workspace root. default: <base>/workspace
+	Workspace string
+
+	Session string
+}
+
+type InputConfig struct {
+	Message string
+	Args    []string
+
+	Clipin     bool
+	ClipWait   bool
+	Clipout    bool
+	ClipAppend bool
+	Stdin      bool
+}
+
 type AppConfig struct {
 	// entry action
 	// kit:name
@@ -370,17 +394,6 @@ type AppConfig struct {
 	// app level global vars
 	Environment map[string]any `yaml:"environment"`
 
-	// app root. default: $HOME/.ai/
-	Base string `yaml:"-"`
-
-	// auth email
-	User string `yaml:"-"`
-
-	// workspace root. default: <base>/workspace
-	Workspace string `yaml:"-"`
-
-	Session string `yaml:"-"`
-
 	//
 	Pack string `yaml:"pack"`
 
@@ -402,12 +415,12 @@ type AppConfig struct {
 	Set    string                  `yaml:"set"`
 	Models map[string]*ModelConfig `yaml:"models"`
 
-	// TODO use arguments
-	Clipin     bool
-	ClipWait   bool
-	Clipout    bool
-	ClipAppend bool
-	Stdin      bool
+	// // TODO use arguments
+	// Clipin     bool
+	// ClipWait   bool
+	// Clipout    bool
+	// ClipAppend bool
+	// Stdin      bool
 }
 
 // ToMap converts AppConfig to a map[string]any
@@ -477,17 +490,17 @@ func (cfg *AppConfig) IsTracing() bool {
 	return ToLogLevel(cfg.LogLevel) == Tracing
 }
 
-func (cfg *AppConfig) IsStdin() bool {
-	return cfg.Stdin
-}
+// func (cfg *AppConfig) IsStdin() bool {
+// 	return cfg.Stdin
+// }
 
-func (cfg *AppConfig) IsClipin() bool {
-	return cfg.Clipin
-}
+// func (cfg *AppConfig) IsClipin() bool {
+// 	return cfg.Clipin
+// }
 
-func (cfg *AppConfig) IsSpecial() bool {
-	return cfg.IsStdin() || cfg.IsClipin()
-}
+// func (cfg *AppConfig) IsSpecial() bool {
+// 	return cfg.IsStdin() || cfg.IsClipin()
+// }
 
 func (cfg *AppConfig) HasInput() bool {
 	return cfg.Message != ""

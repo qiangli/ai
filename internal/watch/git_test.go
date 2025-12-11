@@ -14,7 +14,7 @@ func TestWatchRepo(t *testing.T) {
 
 	ctx := context.TODO()
 
-	err := WatchRepo(ctx, &api.AppConfig{
+	err := WatchRepo(ctx, &api.App{
 		Workspace: "../../../ai",
 	})
 

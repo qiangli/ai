@@ -14,7 +14,7 @@ type MemoryStore struct {
 	ds *DataStore
 }
 
-func OpenMemoryStore(cfg *api.AppConfig) (*MemoryStore, error) {
+func OpenMemoryStore(base string) (*MemoryStore, error) {
 	const ddl = `CREATE TABLE IF NOT EXISTS chats (
 			"id" TEXT NOT NULL,		
 			"session" TEXT,
@@ -25,7 +25,7 @@ func OpenMemoryStore(cfg *api.AppConfig) (*MemoryStore, error) {
 			"sender" TEXT		
 		  );`
 
-	dbPath := filepath.Join(cfg.Base, "memory.db")
+	dbPath := filepath.Join(base, "memory.db")
 
 	ds, err := NewDB(dbPath)
 	if err != nil {

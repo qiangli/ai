@@ -8,7 +8,7 @@ import (
 
 	git "github.com/go-git/go-git/v5"
 
-	"github.com/qiangli/ai/internal/agent"
+	// "github.com/qiangli/ai/internal/agent"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
 )
@@ -23,7 +23,7 @@ var prefixMap = map[string]string{
 	".md":  ">",
 }
 
-func WatchRepo(ctx context.Context, cfg *api.AppConfig) error {
+func WatchRepo(ctx context.Context, cfg *api.App) error {
 	repoPath := filepath.Clean(cfg.Workspace)
 
 	log.GetLogger(ctx).Debugf("Watching git repository: %s\n", repoPath)
@@ -78,10 +78,10 @@ func WatchRepo(ctx context.Context, cfg *api.AppConfig) error {
 
 		// cfg.Format = "text"
 		// cfg.Message = in.Message
-		if err := agent.RunSwarm(ctx, cfg); err != nil {
-			log.GetLogger(ctx).Errorf("Error running agent: %s\n", err)
-			return
-		}
+		// if err := agent.RunSwarm(cfg); err != nil {
+		// 	log.GetLogger(ctx).Errorf("Error running agent: %s\n", err)
+		// 	return
+		// }
 
 		//success
 		log.GetLogger(ctx).Infof("ai executed successfully: %s\n", line)

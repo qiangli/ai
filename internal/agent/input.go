@@ -34,19 +34,19 @@ func (e *Editor) Launch(content string) (string, error) {
 // otherwise, it determines the input source (stdin, clipboard, editor)
 // and collects input accordingly. It also
 // attaches any provided files or template file if provided.
-func GetUserInput(ctx context.Context, cfg *api.AppConfig, msg string) (*api.UserInput, error) {
-	return getUserInput(ctx, cfg, msg, nil, nil, nil)
+func GetUserInput(cfg *api.InputConfig, msg string) (*api.UserInput, error) {
+	return getUserInput(cfg, msg, nil, nil, nil)
 }
 
 // user query: message and content
 // cfg.Message is prepended to message collected from command line --message flag or the non flag/option args.
-func getUserInput(ctx context.Context, cfg *api.AppConfig, message string, stdin io.Reader, clipper api.ClipboardProvider, editor api.EditorProvider) (*api.UserInput, error) {
+func getUserInput(cfg *api.InputConfig, message string, stdin io.Reader, clipper api.ClipboardProvider, editor api.EditorProvider) (*api.UserInput, error) {
 	// collecting message content from various sources
 	if clipper == nil {
 		clipper = util.NewClipboard()
 	}
 
-	input, err := userInput(ctx, cfg, message, stdin, clipper)
+	input, err := userInput(cfg, message, stdin, clipper)
 	if err != nil {
 		return nil, err
 	}
@@ -54,13 +54,12 @@ func getUserInput(ctx context.Context, cfg *api.AppConfig, message string, stdin
 }
 
 func userInput(
-	ctx context.Context,
-	cfg *api.AppConfig,
+	cfg *api.InputConfig,
 	message string,
 	stdin io.Reader,
 	clipboard api.ClipboardProvider,
 ) (*api.UserInput, error) {
-
+	ctx := context.TODO()
 	cat := func(a, b, sep string) string {
 		if a != "" && b == "" {
 			return a
@@ -74,7 +73,7 @@ func userInput(
 
 	// stdin
 	var stdinData string
-	if cfg.IsStdin() {
+	if cfg.Stdin {
 		if stdin == nil {
 			stdin = os.Stdin
 		}
@@ -89,7 +88,7 @@ func userInput(
 
 	// clipboard
 	var clipinData string
-	if cfg.IsClipin() {
+	if cfg.Clipin {
 		var data string
 		if cfg.ClipWait {
 			// paste-append from clipboard
@@ -219,4 +218,26 @@ func pasteConfirm(ctx context.Context) (bool, error) {
 func renderInputContent(ctx context.Context, content string) {
 	md := util.Render(content)
 	log.GetLogger(ctx).Infof("\n%s\n", md)
+}
+
+func ReadStdin() (string, error) {
+	stdin := os.Stdin
+
+	data, err := io.ReadAll(stdin)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(data)), nil
+}
+
+func Cat(a, b, sep string) string {
+	if a != "" && b == "" {
+		return a
+	} else if a == "" && b != "" {
+		return b
+	} else if a != "" && b != "" {
+		return a + sep + b
+	}
+	return ""
 }

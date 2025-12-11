@@ -10,10 +10,10 @@ import (
 )
 
 // default assets with resource.json and standard
-func Assets(app *api.AppConfig) (api.AssetManager, error) {
+func Assets(base string) (api.AssetManager, error) {
 	var assets = conf.NewAssetManager()
 
-	cfg, err := api.LoadDHNTConfig(filepath.Join(app.Base, "dhnt.json"))
+	cfg, err := api.LoadDHNTConfig(filepath.Join(base, "dhnt.json"))
 	if err != nil {
 		return nil, err
 	}

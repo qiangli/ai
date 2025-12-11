@@ -9,7 +9,6 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/db"
@@ -22,8 +21,8 @@ import (
 
 var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
 
-func loadUser(cfg *api.AppConfig) (*api.User, error) {
-	p := filepath.Join(cfg.Base, "user.json")
+func loadUser(base string) (*api.User, error) {
+	p := filepath.Join(base, "user.json")
 	file, err := os.Open(p)
 	if err != nil {
 		return nil, err
@@ -39,8 +38,8 @@ func loadUser(cfg *api.AppConfig) (*api.User, error) {
 	return &user, nil
 }
 
-func storeUser(cfg *api.AppConfig, user *api.User) error {
-	p := filepath.Join(cfg.Base, "user.json")
+func storeUser(base string, user *api.User) error {
+	p := filepath.Join(base, "user.json")
 	file, err := os.Create(p)
 	if err != nil {
 		return err
@@ -56,13 +55,19 @@ func storeUser(cfg *api.AppConfig, user *api.User) error {
 	return nil
 }
 
-func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
-	logger := log.GetLogger(ctx)
+func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
+	ctx := context.Background()
+
+	// level := api.ToLogLevel(cfg.Arguments["log_level"])
+	// log.GetLogger(ctx).SetLogLevel(level)
+	// log.GetLogger(ctx).Debugf("Config: %+v\n", cfg)
+	// logger := log.GetLogger(ctx)
+
 	swarm.ClearAllEnv(essentialEnv)
 
-	var msg = cfg.Message
+	// var msg = cfg.Message
 
-	mem, err := db.OpenMemoryStore(cfg)
+	mem, err := db.OpenMemoryStore(cfg.Base)
 	if err != nil {
 		return err
 	}
@@ -70,28 +75,15 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 
 	var ws = cfg.Workspace
 
-	//
-	var user *api.User
-	who, _ := util.WhoAmI()
-	if v, err := loadUser(cfg); err != nil {
-		user = &api.User{
-			Display:  who,
-			Settings: make(map[string]any),
-		}
-	} else {
-		user = v
-		user.Display = who
-	}
-
-	// agent
-	if cfg.Kit == "agent" {
-		if cfg.Name != "" {
-			user.SetAgent(cfg.Name)
-			storeUser(cfg, user)
-		} else {
-			cfg.Name = user.Agent()
-		}
-	}
+	// // agent
+	// if cfg.Kit == "agent" {
+	// 	if cfg.Name != "" {
+	// 		user.SetAgent(cfg.Name)
+	// 		storeUser(cfg, user)
+	// 	} else {
+	// 		cfg.Name = user.Agent()
+	// 	}
+	// }
 
 	var adapters = adapter.GetAdapters()
 
@@ -112,11 +104,11 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 	lfs, _ := vfs.NewLocalFS(allowedDirs)
 	los, _ := vos.NewLocalSystem(lfs)
 
-	assets, err := conf.Assets(cfg)
+	assets, err := conf.Assets(cfg.Base)
 	if err != nil {
 		return err
 	}
-	blobs, err := conf.NewBlobs(cfg, "")
+	blobs, err := conf.NewBlobs(cfg.Base, "")
 	if err != nil {
 		return err
 	}
@@ -147,32 +139,33 @@ func RunSwarm(ctx context.Context, cfg *api.AppConfig) error {
 	}
 
 	sw.Init(rte)
+
 	sw.Vars.Global.Set("workspace", cfg.Workspace)
-	sw.Vars.Global.Set("query", msg)
+	// sw.Vars.Global.Set("query", msg)
 
 	//
-	if cfg.HasInput() {
-		showInput(ctx, cfg)
-	}
+	// if cfg.HasInput() {
+	// 	showInput(ctx, cfg)
+	// }
 
 	var out *api.Output
-	if v, err := sw.Execm(ctx, cfg.Arguments); err != nil {
+	if v, err := sw.Execv(ctx, argv); err != nil {
 		// return err
 		out = &api.Output{
 			Content: fmt.Sprintf("❌ %+v", err),
 		}
 	} else {
 		out = &api.Output{
-			Display:     cfg.Name,
+			// Display:     v.Agent,
 			ContentType: v.MimeType,
 			Content:     v.Value,
 		}
 	}
 
 	//
-	processOutput(ctx, cfg, out)
+	processOutput(ctx, "markdown", out)
 
-	logger.Debugf("Agent task completed\n")
+	// logger.Debugf("Agent task completed\n")
 
 	return nil
 }
@@ -185,7 +178,7 @@ func showInput(ctx context.Context, cfg *api.AppConfig) {
 	PrintInput(ctx, cfg)
 }
 
-func processOutput(ctx context.Context, cfg *api.AppConfig, message *api.Output) {
+func processOutput(ctx context.Context, format string, message *api.Output) {
 	if log.GetLogger(ctx).IsTrace() {
 		log.GetLogger(ctx).Debugf("output: %+v\n", message)
 	}
@@ -195,6 +188,6 @@ func processOutput(ctx context.Context, cfg *api.AppConfig, message *api.Output)
 		var imageFile = filepath.Join(os.TempDir(), "image.png")
 		processImageContent(ctx, imageFile, message)
 	default:
-		processTextContent(ctx, cfg, message)
+		processTextContent(ctx, format, message)
 	}
 }

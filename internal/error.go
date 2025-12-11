@@ -1,11 +1,8 @@
 package internal
 
 import (
-	"context"
 	"fmt"
 	"os"
-
-	"github.com/qiangli/ai/swarm/log"
 )
 
 // UserInputError represents user input error.
@@ -33,18 +30,18 @@ func NewUserInputErrorf(format string, a ...interface{}) error {
 // 0 -- no error
 // 1 -- general failure
 // 2 -- user error
-func Exit(ctx context.Context, err error) {
+func Exit(err error) {
 	if err == nil {
 		os.Exit(0)
 	}
 
-	const max = 500
+	// const max = 500
 	errMsg := err.Error()
-	if !log.GetLogger(ctx).IsVerbose() && len(errMsg) > max {
-		errMsg = errMsg[:max] + "..."
-	}
+	// if !log.GetLogger(ctx).IsVerbose() && len(errMsg) > max {
+	// 	errMsg = errMsg[:max] + "..."
+	// }
 
-	log.GetLogger(ctx).Errorf(errMsg + "\n")
+	fmt.Println(errMsg)
 
 	switch err.(type) {
 	case *UserInputError:

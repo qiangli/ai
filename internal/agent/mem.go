@@ -16,14 +16,14 @@ import (
 
 type FileMemStore struct {
 	base string
-	app  *api.AppConfig
+	// app  *api.AppConfig
 }
 
-func NewFileMemStore(app *api.AppConfig) api.MemStore {
-	base := filepath.Join(app.Workspace, "history")
+func NewFileMemStore(workspace string) api.MemStore {
+	base := filepath.Join("history")
 	return &FileMemStore{
 		base: base,
-		app:  app,
+		// app:  app,
 	}
 }
 
@@ -37,7 +37,10 @@ func (r *FileMemStore) Load(opt *api.MemOption) ([]*api.Message, error) {
 
 func (r *FileMemStore) Get(id string) (*api.Message, error) {
 	// TODO
-	list, err := LoadHistory(r.base, r.app.MaxHistory, r.app.MaxSpan)
+	max := 100
+	span := 14400
+
+	list, err := LoadHistory(r.base, max, span)
 	if err != nil {
 		return nil, err
 	}

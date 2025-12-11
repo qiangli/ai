@@ -3,18 +3,16 @@ package agent
 import (
 	"slices"
 
-	"context"
 	"fmt"
-	"maps"
 	"os"
 	"path/filepath"
-	"strings"
+	// "strings"
 
 	"github.com/google/uuid"
 
+	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/atm/conf"
-	"github.com/qiangli/ai/swarm/log"
+	// "github.com/qiangli/ai/swarm/atm/conf"
 )
 
 const DefaultEditor = "vi"
@@ -44,7 +42,7 @@ var Version = "0.0.1" // version of the ai binary
 // + be at the end of the args
 // + be in any order
 // + be multiple instances
-func ParseSpecialChars(app *api.AppConfig, args []string) []string {
+func ParseSpecialChars(args []string) *api.InputConfig {
 	var isStdin, isClipin, isClipWait, isClipout, isClipAppend bool
 
 	if len(args) > 0 {
@@ -72,13 +70,17 @@ func ParseSpecialChars(app *api.AppConfig, args []string) []string {
 		}
 	}
 
-	app.Stdin = isStdin
-	app.Clipin = isClipin
-	app.ClipWait = isClipWait
-	app.Clipout = isClipout
-	app.ClipAppend = isClipAppend
+	var cfg api.InputConfig
 
-	return args
+	cfg.Stdin = isStdin
+	cfg.Clipin = isClipin
+	cfg.ClipWait = isClipWait
+	cfg.Clipout = isClipout
+	cfg.ClipAppend = isClipAppend
+
+	cfg.Args = args
+
+	return &cfg
 }
 
 var validFormats = []string{"raw", "text", "json", "markdown", "tts"}
@@ -134,9 +136,9 @@ func validatePath(path string) (string, error) {
 	return path, nil
 }
 
-func SetupAppConfig(app *api.AppConfig) error {
-	app.Format = "markdown"
-	app.LogLevel = "quiet"
+func SetupAppConfig(app *api.App) error {
+	// app.Format = "markdown"
+	// app.LogLevel = "quiet"
 	app.Session = uuid.NewString()
 
 	home, err := os.UserHomeDir()
@@ -155,43 +157,75 @@ func SetupAppConfig(app *api.AppConfig) error {
 	return nil
 }
 
-func parseAppConfig(ctx context.Context, app *api.AppConfig, argv []string) error {
-	argv = ParseSpecialChars(app, argv)
-	argm, err := conf.ParseActionArgs(argv)
-	if err != nil {
-		return err
-	}
-	maps.Copy(app.Arguments, argm)
+func getSpecialInput(argv []string) (*api.InputConfig, error) {
+	cfg := ParseSpecialChars(argv)
+	// argm, err := conf.ParseActionArgs(argv)
+	// if err != nil {
+	// 	return err
+	// }
+	// maps.Copy(app.Arguments, argm)
 
-	in, err := GetUserInput(ctx, app, api.ToString(argm["message"]))
-	if err != nil {
-		return err
+	// in, err := GetUserInput(cfg, api.ToString(argm["message"]))
+	// if err != nil {
+	// 	return err
+	// }
+	// app.Message = in.Message
+
+	if cfg.Stdin {
+		content, err := ReadStdin()
+		if err != nil {
+			return nil, err
+		}
+		cfg.Message = content
 	}
-	app.Message = in.Message
-	return nil
+	return cfg, nil
 }
 
-func Run(ctx context.Context, app *api.AppConfig, argv []string) error {
-	if conf.IsAction(argv[0]) {
-		err := parseAppConfig(ctx, app, argv)
-		if err != nil {
-			return err
+func Run(argv []string) error {
+	// shebang
+	// TODO load args from first line of
+	var app = &api.App{}
+	// app.Arguments = make(map[string]any)
+	err := SetupAppConfig(app)
+	if err != nil {
+		return err
+	}
+	// read args[0] file and parse first line for args
+
+	// if conf.IsAction(argv[0]) {
+	// 	cfg, err := getSpecialInput(argv)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	if cfg.Message != "" {
+	// 		app.Arguments["message"] = cfg.Message
+	// 		argv = cfg.Args
+	// 	}
+	// } else if conf.IsSlash(argv[0]) {
+	// 	// call local system command as tool:
+	// 	// sh:bash command
+	// 	app.Arguments["kit"] = "sh"
+	// 	app.Arguments["name"] = "bash"
+	// 	app.Arguments["command"] = strings.Join(argv, " ")
+	// } else {
+	// 	app.Arguments["message"] = strings.Join(argv, " ")
+	// }
+
+	//
+	var user *api.User
+	who, _ := util.WhoAmI()
+	app.User = who
+	if v, err := loadUser(app.Base); err != nil {
+		user = &api.User{
+			Display:  who,
+			Settings: make(map[string]any),
 		}
-	} else if conf.IsSlash(argv[0]) {
-		// call local system command as tool:
-		// sh:bash command
-		app.Arguments["kit"] = "sh"
-		app.Arguments["name"] = "bash"
-		app.Arguments["command"] = strings.Join(argv, " ")
 	} else {
-		app.Arguments["message"] = strings.Join(argv, " ")
+		user = v
+		user.Display = who
 	}
 
-	level := api.ToLogLevel(app.Arguments["log_level"])
-	log.GetLogger(ctx).SetLogLevel(level)
-	log.GetLogger(ctx).Debugf("Config: %+v\n", app)
-
-	if err := RunSwarm(ctx, app); err != nil {
+	if err := RunSwarm(app, user, argv); err != nil {
 		return err
 	}
 	return nil

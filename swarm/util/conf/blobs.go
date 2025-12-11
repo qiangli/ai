@@ -7,8 +7,8 @@ import (
 	"github.com/qiangli/ai/swarm/db"
 )
 
-func NewBlobs(app *api.AppConfig, bucket string) (*db.BlobStorage, error) {
-	cfg, err := api.LoadDHNTConfig(filepath.Join(app.Base, "dhnt.json"))
+func NewBlobs(base string, bucket string) (*db.BlobStorage, error) {
+	cfg, err := api.LoadDHNTConfig(filepath.Join(base, "dhnt.json"))
 	if err != nil {
 		return nil, err
 	}

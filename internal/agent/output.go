@@ -42,44 +42,44 @@ func SaveOutput(filename string, message *api.Output) error {
 	return os.WriteFile(filename, []byte(message.Content), os.ModePerm)
 }
 
-func processTextContent(ctx context.Context, cfg *api.AppConfig, output *api.Output) {
-	content := output.Content
+func processTextContent(ctx context.Context, format string, output *api.Output) {
+	// content := output.Content
 
-	// clipboard
-	if cfg.Clipout {
-		clip := util.NewClipboard()
-		if cfg.ClipAppend {
-			if err := clip.Append(content); err != nil {
-				log.GetLogger(ctx).Debugf("failed to append content to clipboard: %v\n", err)
-			}
-		} else {
-			if err := clip.Write(content); err != nil {
-				log.GetLogger(ctx).Debugf("failed to copy content to clipboard: %v\n", err)
-			}
-		}
-	}
+	// // clipboard
+	// if cfg.Clipout {
+	// 	clip := util.NewClipboard()
+	// 	if cfg.ClipAppend {
+	// 		if err := clip.Append(content); err != nil {
+	// 			log.GetLogger(ctx).Debugf("failed to append content to clipboard: %v\n", err)
+	// 		}
+	// 	} else {
+	// 		if err := clip.Write(content); err != nil {
+	// 			log.GetLogger(ctx).Debugf("failed to copy content to clipboard: %v\n", err)
+	// 		}
+	// 	}
+	// }
 
 	// if cfg.Output != "" {
 	// 	SaveOutput(cfg.Output, output)
 	// }
 
-	if cfg.Format == "tts" {
-		SpeakOutput(ctx, cfg, output)
-		return
-	}
-	PrintOutput(ctx, cfg.Format, output)
+	// if cfg.Format == "tts" {
+	// 	SpeakOutput(ctx, cfg, output)
+	// 	return
+	// }
+	PrintOutput(ctx, format, output)
 }
 
-func SpeakOutput(ctx context.Context, cfg *api.AppConfig, output *api.Output) {
-	var s = output.Content
-	log.GetLogger(ctx).Printf("%s\n", s)
-	// TOSO move to tools
-	//
-	// err := speak(cfg, s)
-	// if err != nil {
-	// 	log.Println(err.Error())
-	// }
-}
+// func SpeakOutput(ctx context.Context, cfg *api.AppConfig, output *api.Output) {
+// 	var s = output.Content
+// 	log.GetLogger(ctx).Printf("%s\n", s)
+// 	// TOSO move to tools
+// 	//
+// 	// err := speak(cfg, s)
+// 	// if err != nil {
+// 	// 	log.Println(err.Error())
+// 	// }
+// }
 
 func processImageContent(ctx context.Context, imageFile string, message *api.Output) {
 	// var imageFile = filepath.Join(os.TempDir(), "image.png")

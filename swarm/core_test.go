@@ -16,7 +16,7 @@ import (
 	"github.com/qiangli/shell/tool/sh/vos"
 )
 
-func defaultSwarm(cfg *api.AppConfig) (*Swarm, error) {
+func defaultSwarm(cfg *api.App) (*Swarm, error) {
 	var vars = api.NewVars()
 
 	var ws = cfg.Workspace
@@ -30,11 +30,11 @@ func defaultSwarm(cfg *api.AppConfig) (*Swarm, error) {
 	lfs, _ := vfs.NewLocalFS([]string{ws})
 	los, _ := vos.NewLocalSystem(lfs)
 
-	assets, err := conf.Assets(cfg)
+	assets, err := conf.Assets(cfg.Base)
 	if err != nil {
 		return nil, err
 	}
-	blobs, err := conf.NewBlobs(cfg, "")
+	blobs, err := conf.NewBlobs(cfg.Base, "")
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func defaultSwarm(cfg *api.AppConfig) (*Swarm, error) {
 	}
 	var tools = NewToolSystem(rte)
 
-	mem, err := db.OpenMemoryStore(cfg)
+	mem, err := db.OpenMemoryStore(cfg.Base)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func TestTemplate(t *testing.T) {
 	}
 	home, _ := os.UserHomeDir()
 	base := filepath.Join(home, ".ai")
-	cfg := &api.AppConfig{
+	cfg := &api.App{
 		Base:      base,
 		Workspace: "/tmp",
 	}

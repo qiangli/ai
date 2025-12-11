@@ -335,7 +335,19 @@ func (sw *Swarm) Runm(ctx context.Context, parent *api.Agent, argm map[string]an
 	return sw.runm(ctx, parent, name, am)
 }
 
-func (sw *Swarm) Exec(ctx context.Context, args string) (*api.Result, error) {
+func (sw *Swarm) Exec(ctx context.Context, input any) (*api.Result, error) {
+	switch input.(type) {
+	case string:
+		return sw.Execs(ctx, input.(string))
+	case []string:
+		return sw.Execv(ctx, input.([]string))
+	case map[string]any:
+		return sw.Execm(ctx, input.(map[string]any))
+	}
+	return nil, fmt.Errorf("not supported %t", input)
+}
+
+func (sw *Swarm) Execs(ctx context.Context, args string) (*api.Result, error) {
 	am, err := conf.ParseActionCommand(args)
 	if err != nil {
 		return nil, err
