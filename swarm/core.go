@@ -178,6 +178,9 @@ func (sw *Swarm) serve(creator api.Creator, req *api.Request, resp *api.Response
 		// creator
 		// TODO inherit runner
 		agent, err := creator(ctx, req.Name)
+		if err != nil {
+			return err
+		}
 		//
 		agent.Runner = NewAgentToolRunner(sw, sw.User.Email, agent)
 		agent.Shell = NewAgentScriptRunner(sw, agent)

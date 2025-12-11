@@ -61,7 +61,7 @@ tools:
           if err := json.Unmarshal([]byte(names), &list); err != nil {
             return "", fmt.Errorf("Oops, I'm not feeling well. %v", err)
           }
-          return strings.Join(list, ","), nil
+          return strings.Join(list, ", "), nil
         }
 
         func hello() {
