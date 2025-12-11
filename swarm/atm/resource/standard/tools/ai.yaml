@@ -1,6 +1,6 @@
 ###
 kit: "ai"
-type: "agent"
+type: "ai"
 
 tools:
   - name: "call_llm"

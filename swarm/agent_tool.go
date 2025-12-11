@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/atm"
+	// "github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
 )
 
@@ -88,16 +88,24 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	// this ensures kit:name is in internal kit__name format
 	tid = api.Kitname(kit + ":" + name).ID()
 
-	if kit == "" || kit == "sh" {
-		// system command
-		if kit == "" {
-			cmd, _ := api.GetStrProp("command", args)
-			// argv, _ := api.GetArrayProp("arguments", args)
-			return atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, cmd, nil)
-		}
-		// shell
-		return r.agent.Shell.Run(ctx, "", args)
-	}
+	// if kit == "" || kit == "sh" {
+	// 	// system command
+	// 	if kit == "" {
+	// 		cmd, _ := api.GetStrProp("command", args)
+	// 		// argv, _ := api.GetArrayProp("arguments", args)
+	// 		return atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, cmd, nil)
+	// 	}
+	// 	// shell
+	// 	return r.agent.Shell.Run(ctx, "", args)
+	// }
+
+	// system command
+	// /bin/*
+	// if kit == "" {
+	// 	cmd, _ := api.GetStrProp("command", args)
+	// 	// argv, _ := api.GetArrayProp("arguments", args)
+	// 	return atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, cmd, nil)
+	// }
 
 	// agent/tool action
 	v, err := r.loadTool(tid, args)

@@ -336,13 +336,13 @@ func (sw *Swarm) Runm(ctx context.Context, parent *api.Agent, argm map[string]an
 }
 
 func (sw *Swarm) Exec(ctx context.Context, input any) (*api.Result, error) {
-	switch input.(type) {
+	switch input := input.(type) {
 	case string:
-		return sw.Execs(ctx, input.(string))
+		return sw.Execs(ctx, input)
 	case []string:
-		return sw.Execv(ctx, input.([]string))
+		return sw.Execv(ctx, input)
 	case map[string]any:
-		return sw.Execm(ctx, input.(map[string]any))
+		return sw.Execm(ctx, input)
 	}
 	return nil, fmt.Errorf("not supported %t", input)
 }
@@ -377,18 +377,19 @@ func (sw *Swarm) Execm(ctx context.Context, argm map[string]any) (*api.Result, e
 	if id == "" {
 		return nil, fmt.Errorf("missing action id: %+v", argm)
 	}
-	kit := a.Kit()
-	name := a.Name()
+	// kit := a.Kit()
+	// name := a.Name()
 
-	var v any
-	var err error
-	switch kit {
-	case "agent":
-		v, err = sw.runm(ctx, sw.Vars.RootAgent, name, argm)
-	default:
-		// all tools including sh:bash
-		v, err = sw.Vars.RootAgent.Runner.Run(ctx, id, argm)
-	}
+	// var v any
+	// var err error
+	// switch kit {
+	// case "agent":
+	// 	v, err = sw.runm(ctx, sw.Vars.RootAgent, name, argm)
+	// default:
+	// 	// all tools including sh:bash
+	// 	v, err = sw.Vars.RootAgent.Runner.Run(ctx, id, argm)
+	// }
+	v, err := sw.Vars.RootAgent.Runner.Run(ctx, id, argm)
 	if err != nil {
 		return nil, err
 	}
@@ -469,19 +470,28 @@ func (sw *Swarm) callAgentType(ctx context.Context, agent *api.Agent, tf *api.To
 		return sw.runm(ctx, agent, tf.Agent, args)
 	}
 
-	// ai tool
-	if tf.Kit == "ai" {
-		return sw.callAIAgentTool(ctx, agent, tf, args)
-	}
+	// // ai tool
+	// if tf.Kit == "ai" {
+	// 	return sw.callAITool(ctx, agent, tf, args)
+	// }
 	return nil, api.NewUnsupportedError("agent kit: " + tf.Kit)
 }
 
-func (sw *Swarm) callAIAgentTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
+func (sw *Swarm) callAIType(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	aiKit := NewAIKit(sw, agent)
 	return aiKit.Call(ctx, sw.Vars, tf, args)
 }
 
 func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc, args map[string]any) (*api.Result, error) {
+	// ai
+	if v.Type == api.ToolTypeAI {
+		out, err := sw.callAIType(ctx, agent, v, args)
+		if err != nil {
+			return nil, err
+		}
+		return api.ToResult(out), nil
+	}
+
 	// agent tool
 	if v.Type == api.ToolTypeAgent {
 		out, err := sw.callAgentType(ctx, agent, v, args)

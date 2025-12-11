@@ -25,7 +25,7 @@ func (r *SystemKit) Pwd(ctx context.Context, vars *api.Vars, name string, args m
 }
 
 func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
-	command, err := api.GetStrProp("command", args)
+	argv, err := api.GetArrayProp("command", args)
 	if err != nil {
 		return "", err
 	}
@@ -42,14 +42,20 @@ func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, _ string, args map
 	// 	}
 	// 	return api.ToString(result), nil
 	// }
-	// return ExecCommand(ctx, r.os, vars, command, argv)
+	// result, err := ExecCommand(ctx, r.os, vars, command, argv)
 
 	// argm, err := conf.ParseArguments(strings.Join(argv, " "))
 	// if err != nil {
 	// 	return "", err
 	// }
 	// maps.Copy(args, argm)
-	result, err := vars.RootAgent.Runner.Run(ctx, command, args)
+	// result, err := vars.RootAgent.Runner.Run(ctx, command, args)
+
+	command := argv[0]
+	rest := argv[1:]
+	vs := vars.RTE.OS
+	result, err := ExecCommand(ctx, vs, vars, command, rest)
+
 	if err != nil {
 		return "", err
 	}

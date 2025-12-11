@@ -149,7 +149,7 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	// }
 
 	var out *api.Output
-	if v, err := sw.Execv(ctx, argv); err != nil {
+	if v, err := sw.Exec(ctx, argv); err != nil {
 		// return err
 		out = &api.Output{
 			Content: fmt.Sprintf("❌ %+v", err),
