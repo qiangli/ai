@@ -417,6 +417,9 @@ func (ap *AgentMaker) Creator(parent api.Creator, owner string, pack string, dat
 				agent.Embed = append(agent.Embed, a)
 			}
 		}
+
+		//
+
 		return agent, nil
 	}
 

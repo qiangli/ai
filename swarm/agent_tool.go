@@ -76,8 +76,10 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 
 func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]any) (any, error) {
 	kit, name := api.Kitname(tid).Decode()
-	// local system command
+	// /bin/command (local system)
 	// sh:*
+	// agent:*
+	// kit:*
 
 	// default tool
 	if name == "" {

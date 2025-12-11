@@ -153,10 +153,6 @@ func setupAppConfig(ctx context.Context, app *api.AppConfig) error {
 		app.Workspace = v
 	}
 
-	level := api.ToLogLevel(app.LogLevel)
-	log.GetLogger(ctx).SetLogLevel(level)
-	log.GetLogger(ctx).Debugf("Config: %+v\n", app)
-
 	return nil
 }
 
@@ -173,13 +169,10 @@ func parseAppConfig(ctx context.Context, app *api.AppConfig, argv []string) erro
 		return err
 	}
 	app.Message = in.Message
-
-	maps.Copy(app.Arguments, app.ToMap())
 	return nil
 }
 
 func Run(ctx context.Context, argv []string) error {
-	fmt.Printf("argv: %v\n", argv)
 	var app = &api.AppConfig{}
 	app.Arguments = make(map[string]any)
 	err := setupAppConfig(ctx, app)
@@ -202,8 +195,11 @@ func Run(ctx context.Context, argv []string) error {
 		app.Arguments["message"] = strings.Join(argv, " ")
 	}
 
+	level := api.ToLogLevel(app.Arguments["log_level"])
+	log.GetLogger(ctx).SetLogLevel(level)
+	log.GetLogger(ctx).Debugf("Config: %+v\n", app)
+
 	if err := RunSwarm(ctx, app); err != nil {
-		// log.GetLogger(ctx).Errorf("%v\n", err)
 		return err
 	}
 	return nil

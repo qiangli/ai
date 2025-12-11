@@ -141,9 +141,10 @@ func (sw *Swarm) CreateAgent(ctx context.Context, name string) (*api.Agent, erro
 
 	agent.Parent = sw.Vars.RootAgent
 
-	// for sub agent/action or tool call
-	agent.Runner = NewAgentToolRunner(sw, sw.User.Email, agent)
-	agent.Template = NewTemplate(sw, agent)
+	// // for sub agent/action or tool call
+	// agent.Runner = NewAgentToolRunner(sw, sw.User.Email, agent)
+	// agent.Shell = NewAgentScriptRunner(sw, agent)
+	// agent.Template = NewTemplate(sw, agent)
 	return agent, nil
 }
 
@@ -179,7 +180,13 @@ func (sw *Swarm) serve(creator api.Creator, req *api.Request, resp *api.Response
 		logger.Debugf("creating agent: %s %s\n", req.Name, start)
 
 		// creator
+		// TODO inherit runner
 		agent, err := creator(ctx, req.Name)
+		//
+		agent.Runner = NewAgentToolRunner(sw, sw.User.Email, agent)
+		agent.Shell = NewAgentScriptRunner(sw, agent)
+		agent.Template = NewTemplate(sw, agent)
+		//
 		if err != nil {
 			return err
 		}

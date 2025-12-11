@@ -32,9 +32,9 @@ func LogLevelToString(level LogLevel) string {
 	}
 }
 
-func ToLogLevel(level string) LogLevel {
+func ToLogLevel(level any) LogLevel {
 
-	switch strings.ToLower(level) {
+	switch strings.ToLower(ToString(level)) {
 	case "quiet":
 		return Quiet
 	case "info", "informative":
