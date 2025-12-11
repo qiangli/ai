@@ -242,3 +242,41 @@ func TestIsAction(t *testing.T) {
 		})
 	}
 }
+
+func TestParseArgsLoggingFlags(t *testing.T) {
+	tests := []struct {
+		args     []string
+		expected string
+	}{
+		{
+			args:     []string{"--quiet"},
+			expected: "quiet",
+		},
+		{
+			args:     []string{"--info"},
+			expected: "info",
+		},
+		{
+			args:     []string{"--verbose"},
+			expected: "verbose",
+		},
+		{
+			args:     []string{"--log-level", "trace"},
+			expected: "trace",
+		},
+	}
+
+	for _, tt := range tests {
+		var argm map[string]any
+		var err error
+		argm, err = ParseActionArgs(tt.args)
+		if err != nil {
+			t.FailNow()
+		}
+
+		got := argm["log_level"].(string)
+		if got != tt.expected {
+			t.Errorf("For args %v; expected %v got %v", tt.args, tt.expected, got)
+		}
+	}
+}

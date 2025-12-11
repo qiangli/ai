@@ -20,6 +20,7 @@
 				"AI_DEBUG": "true",
 			},
 			"envFile": "${workspaceFolder}/.env",
+			"cwd": "${workspaceFolder}/swarm",
 			"args": [
 				// "/help",
 				// "/help:help",
@@ -27,9 +28,7 @@
 				// slash command
 				// "/bin/ls",
 				// "-al",
-				// "test"
-				"/usr/local/go/bin/go",
-				"-help",
+				// "/tmp"
 				//
 				// slash tool
 				// "/sh:bash",
@@ -51,14 +50,19 @@
 				// "what is the latest news for today",
 				//
 				// "/agent:joke",
-				// "--config",
+				// "--script",
 				// "atm/agents/joke/agent.yaml",
 				// "tell me a joke",
 				//
 				// "/hello_kit:hello_user",
-				// "--config",
+				// "--script",
 				// "atm/tools/hello_kit/hello_user.yaml",
 				//
+				"/agent:atm/hi",
+				"--script",
+				"atm/resource/template/atm.yaml",
+				"--verbose",
+				"pick some famous politicians names",
 				//
 				// "/agent:joker",
 				// "@agent/agent",
@@ -109,7 +113,6 @@
 				// "generate a random password",
 				// "what is the weather in dublin ca today",
 				// "use sora from openai to make a video of a german shepard puppy running in bamboo forest. save the video in /tmp as gsd-puppy.mp4",
-				// "--verbose",
 				// "--max-time",
 				// "900",
 				// "--max-history",

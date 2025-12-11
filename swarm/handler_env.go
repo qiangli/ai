@@ -72,9 +72,6 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 
 			req.Arguments.SetArgs(args)
 
-			ll := req.Arguments.GetString("log_level")
-			logger.SetLogLevel(api.ToLogLevel(ll))
-
 			var parent string
 			if agent.Parent != nil {
 				parent = fmt.Sprintf("%s → ", agent.Parent.Name)

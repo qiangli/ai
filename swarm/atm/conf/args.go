@@ -94,6 +94,8 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	maxTurns := fs.Int("max-turns", 3, "Max conversation turns")
 	maxTime := fs.Int("max-time", 30, "Max timeout (seconds)")
 	format := fs.String("format", "json", "Output as text or json")
+
+	// logging
 	logLevel := fs.String("log-level", "quiet", "Log level: quiet, info, verbose, trace")
 	isQuiet := fs.Bool("quiet", false, "Operate quietly, only show final response. log-level=quiet")
 	isInfo := fs.Bool("info", false, "Show progress")
@@ -134,6 +136,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	//
 	isSet := func(fl string) bool {
 		fl = strings.ToLower(fl)
+		fl = strings.ReplaceAll(fl, "_", "-")
 		for _, v := range argv {
 			if v == "--"+fl || v == "-"+fl || strings.HasPrefix(v, "--"+fl+"=") || strings.HasPrefix(v, "-"+fl+"=") {
 				return true

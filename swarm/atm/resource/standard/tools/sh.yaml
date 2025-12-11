@@ -14,23 +14,7 @@ tools:
           type: "array"
           items:
             type: "string"
-            description: "Each element represents a part of the command or its options."
-          description: "The command to execute as an array. The first element is the command, followed by options and arguments."
-      required:
-        - command
-
-  - name: "exec"
-    description: |
-      Execute a specified command within the user's environment.
-      Note: Ensure the command is specified as an array. Security restrictions may apply.
-    parameters:
-      type: "object"
-      properties:
-        command:
-          type: "array"
-          items:
-            type: "string"
-            description: "Each element represents a part of the command or its options."
+            description: "Each element represents a part of the command or its options and arguments."
           description: "The command to execute as an array. The first element is the command, followed by options and arguments."
       required:
         - command
@@ -61,7 +45,6 @@ tools:
         script:
           type: "string"
           description: |
-            Path to the shell script file or inline script prefixed
-            with 'data:'.
+            Path to the shell script file or inline script prefixed with 'data:'.
       required:
         - script
