@@ -1,0 +1,12 @@
+pack: "cu"
+log_level: "info"
+agents:
+  - name: "head"
+    display: "Head"
+    description: "Display first lines of a file."
+    model: "default/any"
+    message: "I'm a humble bot"
+    instruction: |
+      <prompt here>
+    functions:
+      - "fs:read_file"

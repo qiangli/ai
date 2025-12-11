@@ -2,7 +2,6 @@ package conf
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
@@ -10,13 +9,13 @@ import (
 )
 
 // default assets with resource.json and standard
-func Assets(base string) (api.AssetManager, error) {
+func Assets(cfg *api.DHNTConfig) (api.AssetManager, error) {
 	var assets = conf.NewAssetManager()
 
-	cfg, err := api.LoadDHNTConfig(filepath.Join(base, "dhnt.json"))
-	if err != nil {
-		return nil, err
-	}
+	// cfg, err := api.LoadDHNTConfig(filepath.Join(base, "dhnt.json"))
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	for _, res := range cfg.Assets {
 		switch res.Type {

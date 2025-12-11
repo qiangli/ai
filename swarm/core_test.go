@@ -30,11 +30,16 @@ func defaultSwarm(cfg *api.App) (*Swarm, error) {
 	lfs, _ := vfs.NewLocalFS([]string{ws})
 	los, _ := vos.NewLocalSystem(lfs)
 
-	assets, err := conf.Assets(cfg.Base)
+	dc, err := conf.Load(cfg.Base)
 	if err != nil {
 		return nil, err
 	}
-	blobs, err := conf.NewBlobs(cfg.Base, "")
+
+	assets, err := conf.Assets(dc)
+	if err != nil {
+		return nil, err
+	}
+	blobs, err := conf.NewBlobs(dc, "")
 	if err != nil {
 		return nil, err
 	}

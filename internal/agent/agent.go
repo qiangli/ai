@@ -68,30 +68,28 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	}
 	defer mem.Close()
 
-	var ws = cfg.Workspace
-
-	// // agent
-	// if cfg.Kit == "agent" {
-	// 	if cfg.Name != "" {
-	// 		user.SetAgent(cfg.Name)
-	// 		storeUser(cfg, user)
-	// 	} else {
-	// 		cfg.Name = user.Agent()
-	// 	}
-	// }
+	// var ws = cfg.Workspace
 
 	var adapters = adapter.GetAdapters()
-
 	var secrets = conf.LocalSecrets
 
+	dc, err := conf.Load(cfg.Base)
+	if err != nil {
+		return err
+	}
+	var roots = dc.Roots
+	var dirs = roots.Dirs()
+
+	// add temp and current dir
+	// expand to include their symlinks for file resolution.
 	tmpdir := os.TempDir()
 	project, _ := os.Getwd()
-	dirs := []string{ws, project, tmpdir}
-	roots := api.Roots{
-		{Name: "Workspace", Path: ws},
+	dirs = append(dirs, []string{project, tmpdir}...)
+	roots = append(roots, api.Roots{
+		// {Name: "Workspace", Path: ws},
 		{Name: "Project Base", Path: project},
 		{Name: "Temp Folder", Path: tmpdir},
-	}
+	}...)
 	allowedDirs, err := ResolvePaths(dirs)
 	if err != nil {
 		return err
@@ -99,11 +97,11 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	lfs, _ := vfs.NewLocalFS(allowedDirs)
 	los, _ := vos.NewLocalSystem(lfs)
 
-	assets, err := conf.Assets(cfg.Base)
+	assets, err := conf.Assets(dc)
 	if err != nil {
 		return err
 	}
-	blobs, err := conf.NewBlobs(cfg.Base, "")
+	blobs, err := conf.NewBlobs(dc, "")
 	if err != nil {
 		return err
 	}
@@ -144,6 +142,16 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	log.GetLogger(ctx).SetLogLevel(level)
 	log.GetLogger(ctx).Debugf("Config: %+v\n", cfg)
 	// logger := log.GetLogger(ctx)
+
+	// remember agent
+	// TODO use memory to record previous agent or super agent
+	kit, name := argm.Kitname().Decode()
+	if kit == "agent" {
+		if name != "" {
+			user.SetAgent(name)
+			storeUser(dc.Base, user)
+		}
+	}
 
 	msg := argm.GetString("message")
 	sw.Vars.Global.Set("workspace", cfg.Workspace)

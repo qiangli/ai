@@ -18,7 +18,9 @@ func TestNewBlobs(t *testing.T) {
 		t.FailNow()
 	}
 	var base = filepath.Join(home, ".ai")
-	nb, err := NewBlobs(base, "")
+
+	cfg, _ := Load(base)
+	nb, err := NewBlobs(cfg, "")
 	if err != nil {
 		t.FailNow()
 	}

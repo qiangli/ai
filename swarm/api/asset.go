@@ -3,12 +3,16 @@ package api
 import (
 	"encoding/json"
 	"os"
-	// "strings"
+	"path/filepath"
 
 	"github.com/google/uuid"
 )
 
 type DHNTConfig struct {
+	Base string `json:"-"`
+
+	Roots Roots `json:"roots"`
+
 	Blob   *ResourceConfig   `json:"blob"`
 	Assets []*ResourceConfig `json:"assets"`
 }
@@ -19,19 +23,6 @@ type ResourceConfig struct {
 	Token string `json:"token"`
 }
 
-// func LoadResourceConfig(conf string) (*ResourceConfig, error) {
-// 	var v ResourceConfig
-// 	d, err := os.ReadFile(conf)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if err = json.Unmarshal(d, &v); err != nil {
-// 		return nil, err
-// 	}
-// 	v.Base = strings.TrimSuffix(v.Base, "/")
-// 	return &v, nil
-// }
-
 func LoadDHNTConfig(conf string) (*DHNTConfig, error) {
 	var v DHNTConfig
 	d, err := os.ReadFile(conf)
@@ -41,7 +32,7 @@ func LoadDHNTConfig(conf string) (*DHNTConfig, error) {
 	if err = json.Unmarshal(d, &v); err != nil {
 		return nil, err
 	}
-	// v.Base = strings.TrimSuffix(v.Base, "/")
+	v.Base = filepath.Dir(conf)
 	return &v, nil
 }
 
