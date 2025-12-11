@@ -141,10 +141,6 @@ func (sw *Swarm) CreateAgent(ctx context.Context, name string) (*api.Agent, erro
 
 	agent.Parent = sw.Vars.RootAgent
 
-	// // for sub agent/action or tool call
-	// agent.Runner = NewAgentToolRunner(sw, sw.User.Email, agent)
-	// agent.Shell = NewAgentScriptRunner(sw, agent)
-	// agent.Template = NewTemplate(sw, agent)
 	return agent, nil
 }
 
@@ -335,38 +331,108 @@ func (sw *Swarm) Runm(ctx context.Context, parent *api.Agent, argm map[string]an
 	return sw.runm(ctx, parent, name, am)
 }
 
-func (sw *Swarm) Exec(ctx context.Context, input any) (*api.Result, error) {
+func (sw *Swarm) Parse(ctx context.Context, input any) (api.ArgMap, error) {
 	switch input := input.(type) {
 	case string:
-		return sw.Execs(ctx, input)
+		return sw.Parses(ctx, input)
 	case []string:
-		return sw.Execv(ctx, input)
+		return sw.Parsev(ctx, input)
 	case map[string]any:
-		return sw.Execm(ctx, input)
+		return sw.Parsem(ctx, input)
 	}
 	return nil, fmt.Errorf("not supported %t", input)
 }
 
-func (sw *Swarm) Execs(ctx context.Context, args string) (*api.Result, error) {
-	am, err := conf.ParseActionCommand(args)
-	if err != nil {
-		return nil, err
+func (sw *Swarm) Parses(ctx context.Context, args string) (api.ArgMap, error) {
+	// am, err := conf.ParseActionCommand(args)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if len(am) == 0 {
+	// 	return nil, fmt.Errorf("invalid action command: %s", args)
+	// }
+	argv := conf.Argv(args)
+	return sw.Parsev(ctx, argv)
+}
+
+func (sw *Swarm) Parsev(ctx context.Context, argv []string) (api.ArgMap, error) {
+	var argm map[string]any
+
+	if conf.IsAction(argv[0]) {
+		cfg, err := GetInput(ctx, argv)
+		if err != nil {
+			return nil, err
+		}
+
+		// remove special trailing chars
+		argv = cfg.Args
+		v, err := conf.ParseActionArgs(argv)
+		if err != nil {
+			return nil, err
+		}
+		argm = v
+
+		msg := argm["message"]
+		if cfg.Message != "" {
+			argm["message"] = Cat(msg.(string), cfg.Message, "\n###\n")
+		}
+	} else if conf.IsSlash(argv[0]) {
+		// call local system command as tool:
+		// sh:exec command
+		argm = make(map[string]any)
+		argm["kit"] = "sh"
+		argm["name"] = "exec"
+		argm["command"] = strings.Join(argv, " ")
+	} else {
+		argm = make(map[string]any)
+		argm["message"] = strings.Join(argv, " ")
 	}
-	if len(am) == 0 {
-		return nil, fmt.Errorf("invalid action command: %s", args)
+
+	// am, err := conf.ParseActionArgs(argv)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	if len(argm) == 0 {
+		return nil, fmt.Errorf("invalid action command: %+v", argv)
 	}
-	return sw.Execm(ctx, am)
+	return sw.Parsem(ctx, argm)
+}
+
+func (sw *Swarm) Parsem(ctx context.Context, argm map[string]any) (api.ArgMap, error) {
+	log.GetLogger(ctx).Debugf("Execm %+v\n", argm)
+
+	a := api.ArgMap(argm)
+	id := a.Kitname().ID()
+	if id == "" {
+		return nil, fmt.Errorf("missing action id: %+v", argm)
+	}
+	return a, nil
+	// kit := a.Kit()
+	// name := a.Name()
+
+	// var v any
+	// var err error
+	// switch kit {
+	// case "agent":
+	// 	v, err = sw.runm(ctx, sw.Vars.RootAgent, name, argm)
+	// default:
+	// 	// all tools including sh:bash
+	// 	v, err = sw.Vars.RootAgent.Runner.Run(ctx, id, argm)
+	// }
+	// v, err := sw.Vars.RootAgent.Runner.Run(ctx, id, argm)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// result := api.ToResult(v)
+	// return result, nil
 }
 
 func (sw *Swarm) Execv(ctx context.Context, argv []string) (*api.Result, error) {
-	am, err := conf.ParseActionArgs(argv)
+	argm, err := sw.Parsev(ctx, argv)
 	if err != nil {
 		return nil, err
 	}
-	if len(am) == 0 {
-		return nil, fmt.Errorf("invalid action command: %+v", argv)
-	}
-	return sw.Execm(ctx, am)
+	return sw.Execm(ctx, argm)
 }
 
 func (sw *Swarm) Execm(ctx context.Context, argm map[string]any) (*api.Result, error) {

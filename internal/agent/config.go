@@ -35,7 +35,7 @@ const (
 	ClipoutRedirect2 = "}}"
 )
 
-var Version = "0.0.1" // version of the ai binary
+// var Version = "0.0.1" // version of the ai binary
 
 // parse special char sequence for stdin/clipboard
 // they can:
@@ -157,29 +157,29 @@ func SetupAppConfig(app *api.App) error {
 	return nil
 }
 
-func getSpecialInput(argv []string) (*api.InputConfig, error) {
-	cfg := ParseSpecialChars(argv)
-	// argm, err := conf.ParseActionArgs(argv)
-	// if err != nil {
-	// 	return err
-	// }
-	// maps.Copy(app.Arguments, argm)
+// func getSpecialInput(argv []string) (*api.InputConfig, error) {
+// 	cfg := ParseSpecialChars(argv)
+// 	// argm, err := conf.ParseActionArgs(argv)
+// 	// if err != nil {
+// 	// 	return err
+// 	// }
+// 	// maps.Copy(app.Arguments, argm)
 
-	// in, err := GetUserInput(cfg, api.ToString(argm["message"]))
-	// if err != nil {
-	// 	return err
-	// }
-	// app.Message = in.Message
+// 	// in, err := GetUserInput(cfg, api.ToString(argm["message"]))
+// 	// if err != nil {
+// 	// 	return err
+// 	// }
+// 	// app.Message = in.Message
 
-	if cfg.Stdin {
-		content, err := ReadStdin()
-		if err != nil {
-			return nil, err
-		}
-		cfg.Message = content
-	}
-	return cfg, nil
-}
+// 	if cfg.Stdin {
+// 		content, err := ReadStdin()
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		cfg.Message = content
+// 	}
+// 	return cfg, nil
+// }
 
 func Run(argv []string) error {
 	// shebang
@@ -193,7 +193,7 @@ func Run(argv []string) error {
 	// read args[0] file and parse first line for args
 
 	// if conf.IsAction(argv[0]) {
-	// 	cfg, err := getSpecialInput(argv)
+	// cfg, err := getSpecialInput(argv)
 	// 	if err != nil {
 	// 		return err
 	// 	}

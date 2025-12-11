@@ -140,16 +140,21 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 
 	sw.Init(rte)
 
-	sw.Vars.Global.Set("workspace", cfg.Workspace)
-	// sw.Vars.Global.Set("query", msg)
+	argm, err := sw.Parse(ctx, argv)
+	if err != nil {
+		return err
+	}
 
-	//
-	// if cfg.HasInput() {
-	// 	showInput(ctx, cfg)
-	// }
+	msg := argm.GetString("message")
+	sw.Vars.Global.Set("workspace", cfg.Workspace)
+	sw.Vars.Global.Set("query", msg)
+
+	if msg != "" {
+		showInput(ctx, msg)
+	}
 
 	var out *api.Output
-	if v, err := sw.Exec(ctx, argv); err != nil {
+	if v, err := sw.Execm(ctx, argm); err != nil {
 		// return err
 		out = &api.Output{
 			Content: fmt.Sprintf("❌ %+v", err),
@@ -170,12 +175,12 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	return nil
 }
 
-func showInput(ctx context.Context, cfg *api.AppConfig) {
+func showInput(ctx context.Context, message string) {
 	if log.GetLogger(ctx).IsTrace() {
-		log.GetLogger(ctx).Debugf("input: %+v\n", cfg.Message)
+		log.GetLogger(ctx).Debugf("input: %+v\n", message)
 	}
 
-	PrintInput(ctx, cfg)
+	PrintInput(ctx, message)
 }
 
 func processOutput(ctx context.Context, format string, message *api.Output) {

@@ -308,3 +308,9 @@ func ParseActionCommand(s string) (api.ArgMap, error) {
 	}
 	return argm, nil
 }
+
+// Splits command line
+func Argv(s string) []string {
+	argv := shlex.Argv(s)
+	return argv
+}

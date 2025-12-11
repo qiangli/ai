@@ -187,11 +187,11 @@ func LaunchEditor(editor string, content string) (string, error) {
 }
 
 // PrintInput prints the user input
-func PrintInput(ctx context.Context, cfg *api.AppConfig) {
-	log.GetLogger(ctx).Debugf("UserInput:\n%+v\n", cfg)
+func PrintInput(ctx context.Context, input string) {
+	log.GetLogger(ctx).Debugf("UserInput:\n%+v\n", input)
 
 	// query and files for info only
-	var msg = clipText(cfg.Message, clipMaxLen)
+	var msg = clipText(input, clipMaxLen)
 	renderInputContent(ctx, msg)
 }
 
