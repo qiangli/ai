@@ -443,19 +443,19 @@ func (sw *Swarm) Execm(ctx context.Context, argm map[string]any) (*api.Result, e
 	if id == "" {
 		return nil, fmt.Errorf("missing action id: %+v", argm)
 	}
-	// kit := a.Kit()
-	// name := a.Name()
+	kit := a.Kit()
+	name := a.Name()
 
-	// var v any
-	// var err error
-	// switch kit {
-	// case "agent":
-	// 	v, err = sw.runm(ctx, sw.Vars.RootAgent, name, argm)
-	// default:
-	// 	// all tools including sh:bash
-	// 	v, err = sw.Vars.RootAgent.Runner.Run(ctx, id, argm)
-	// }
-	v, err := sw.Vars.RootAgent.Runner.Run(ctx, id, argm)
+	var v any
+	var err error
+	switch kit {
+	case "agent":
+		//
+		v, err = sw.runm(ctx, sw.Vars.RootAgent, name, argm)
+	default:
+		// all tools including sh:bash
+		v, err = sw.Vars.RootAgent.Runner.Run(ctx, id, argm)
+	}
 	if err != nil {
 		return nil, err
 	}

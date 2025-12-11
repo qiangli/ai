@@ -58,11 +58,6 @@ func storeUser(base string, user *api.User) error {
 func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	ctx := context.Background()
 
-	// level := api.ToLogLevel(cfg.Arguments["log_level"])
-	// log.GetLogger(ctx).SetLogLevel(level)
-	// log.GetLogger(ctx).Debugf("Config: %+v\n", cfg)
-	// logger := log.GetLogger(ctx)
-
 	swarm.ClearAllEnv(essentialEnv)
 
 	// var msg = cfg.Message
@@ -144,6 +139,11 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	if err != nil {
 		return err
 	}
+
+	level := api.ToLogLevel(argm["log_level"])
+	log.GetLogger(ctx).SetLogLevel(level)
+	log.GetLogger(ctx).Debugf("Config: %+v\n", cfg)
+	// logger := log.GetLogger(ctx)
 
 	msg := argm.GetString("message")
 	sw.Vars.Global.Set("workspace", cfg.Workspace)
