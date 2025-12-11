@@ -2,6 +2,7 @@ package atm
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -17,7 +18,7 @@ func (r *FuncKit) ExecScript(ctx context.Context, vars *api.Vars, env *api.ToolE
 	language := strings.ToLower(tf.Body.Language)
 	code := tf.Body.Code
 	if IsTemplate(code) {
-		v, err := ApplyTemplate(env.Agent.Template, code, args)
+		v, err := ApplyTemplate(env.Agent.Template, code, EncodeArgs(args))
 		if err != nil {
 			return nil, err
 		}
@@ -33,4 +34,23 @@ func (r *FuncKit) ExecScript(ctx context.Context, vars *api.Vars, env *api.ToolE
 		return code, nil
 	}
 	return nil, fmt.Errorf("language not supported: %s", language)
+}
+
+// return a copy of the origin map but encoded in json string for array and object
+func EncodeArgs(v map[string]any) map[string]any {
+	var args = make(map[string]any)
+	for k, v := range v {
+		switch v.(type) {
+		case bool, int, int8, int16, int32, int64, float32, float64, string:
+			args[k] = v
+		default:
+			jsonValue, err := json.Marshal(v)
+			if err != nil {
+				args[k] = v
+				continue
+			}
+			args[k] = string(jsonValue)
+		}
+	}
+	return args
 }

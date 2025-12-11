@@ -20,16 +20,6 @@ import (
 	"github.com/qiangli/shell/tool/sh/vos"
 )
 
-// func RunAgent(ctx context.Context, app *api.AppConfig) error {
-// 	in, err := GetUserInput(ctx, app)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	app.Message = in.Message
-
-// 	return RunSwarm(ctx, app)
-// }
-
 var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
 
 func loadUser(cfg *api.AppConfig) (*api.User, error) {

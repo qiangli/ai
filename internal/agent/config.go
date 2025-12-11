@@ -12,7 +12,6 @@ import (
 
 	"github.com/google/uuid"
 
-	// "github.com/qiangli/ai/internal/agent"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
@@ -135,7 +134,7 @@ func validatePath(path string) (string, error) {
 	return path, nil
 }
 
-func setupAppConfig(ctx context.Context, app *api.AppConfig) error {
+func SetupAppConfig(app *api.AppConfig) error {
 	app.Format = "markdown"
 	app.LogLevel = "quiet"
 	app.Session = uuid.NewString()
@@ -172,14 +171,7 @@ func parseAppConfig(ctx context.Context, app *api.AppConfig, argv []string) erro
 	return nil
 }
 
-func Run(ctx context.Context, argv []string) error {
-	var app = &api.AppConfig{}
-	app.Arguments = make(map[string]any)
-	err := setupAppConfig(ctx, app)
-	if err != nil {
-		return err
-	}
-
+func Run(ctx context.Context, app *api.AppConfig, argv []string) error {
 	if conf.IsAction(argv[0]) {
 		err := parseAppConfig(ctx, app, argv)
 		if err != nil {

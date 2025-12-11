@@ -1,4 +1,4 @@
-#!/usr/bin/env ai /agent:atm/hi --arg greeting="hi" --arg names='["Don", "Joe"]'
+#!/usr/bin/env ai /atm:hi --arg greeting="hi" --arg names='["Don", "Joe"]'
 
 #
 # A complete "Hello World" example of agents, tools, and models
@@ -17,6 +17,8 @@ agents:
       You are an amiable greeter who always finds charming words for anyone you meet.
       Randomly choose names and offer kind words to them.
       You must use the tool `atm:hi` for greeting.
+      Upon successful execution of the tool, report back the exact greetings it provided.
+      If the tool execution fails, seek further instructions to resolve the issue.
     functions:
       - "atm:hi"
 
@@ -33,8 +35,10 @@ tools:
           type: "string"
           description: "The kind sentiment or message to convey."
         names:
-          type: "string"
-          description: "A list of individuals' names in JSON array format."
+          type: "array"
+          items:
+            type: "string"
+          description: "A list of individuals' names."
       required:
         - greeting
         - names
@@ -55,7 +59,7 @@ tools:
           }
           var list []string
           if err := json.Unmarshal([]byte(names), &list); err != nil {
-            return "", fmt.Errorf("Oops, I'm not feeling well.")
+            return "", fmt.Errorf("Oops, I'm not feeling well. %v", err)
           }
           return strings.Join(list, ","), nil
         }
@@ -66,7 +70,7 @@ tools:
             fmt.Println(err.Error())
             return
           }
-          fmt.Printf("Hello %s:\n%s\n", people, greeting)
+          fmt.Printf("Hello %s:\n%s\n\nGreeting from the Happy Bot.", people, greeting)
         }
 
         func main() {
