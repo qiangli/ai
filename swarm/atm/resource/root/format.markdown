@@ -1,6 +1,9 @@
 #
+{{if .error}}
+<span style="color:red">✖ {{.error}}</span>
+{{else if .result}}
 {{.display}}
-
 {{.result}}
-
-{{.error}}
+{{else}}
+No result
+{{end}}

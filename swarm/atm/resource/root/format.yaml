@@ -1,5 +1,4 @@
 ###
-
 pack: "{{.pack}}"
 agents:
   - name: "{{.name}}"
@@ -20,6 +19,7 @@ agents:
       {{.prompt}}
     functions:
 
+###
 kit: "{{.kit}}"
 tools:
   - name: "{{.name}}"
