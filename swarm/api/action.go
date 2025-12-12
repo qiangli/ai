@@ -415,12 +415,8 @@ type AppConfig struct {
 	Set    string                  `yaml:"set"`
 	Models map[string]*ModelConfig `yaml:"models"`
 
-	// // TODO use arguments
-	// Clipin     bool
-	// ClipWait   bool
-	// Clipout    bool
-	// ClipAppend bool
-	// Stdin      bool
+	// The raw data for this config
+	RawContent []byte `yaml:"-"`
 }
 
 // ToMap converts AppConfig to a map[string]any

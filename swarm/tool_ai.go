@@ -192,6 +192,32 @@ Instruction: %s
 	return "", fmt.Errorf("unknown agent: %s", agent)
 }
 
+func (r *AIKit) GetAgentConfig(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
+	agent, err := api.GetStrProp("agent", args)
+	if err != nil {
+		return "", err
+	}
+	if agent == "self" {
+		if r.agent == nil {
+			return "", fmt.Errorf("Sorry, something went terribaly wrong")
+		}
+		agent = r.agent.Name
+	}
+	ac, err := r.sw.Assets.FindAgent(r.sw.User.Email, agent)
+	if err != nil {
+		return "", err
+	}
+
+	if ac != nil {
+		for _, v := range ac.Agents {
+			if v.Name == agent {
+				return string(ac.RawContent), nil
+			}
+		}
+	}
+	return "", fmt.Errorf("unknown agent: %s", agent)
+}
+
 func (r *AIKit) TransferAgent(_ context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
 	agent, err := api.GetStrProp("agent", args)
 	if err != nil {

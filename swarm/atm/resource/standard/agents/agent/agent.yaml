@@ -53,5 +53,6 @@ agents:
     functions:
       - "ai:list_agents"
       - "ai:get_agent_info"
+      - "ai:get_agent_config"
       - "ai:spawn_agent"
 ###

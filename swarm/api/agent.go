@@ -92,6 +92,9 @@ type Agent struct {
 	Creator Creator
 
 	Template *template.Template
+
+	//
+	Config *AgentsConfig
 }
 
 // ai operations

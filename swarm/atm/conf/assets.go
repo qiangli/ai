@@ -118,6 +118,7 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AgentsConfig, 
 	}
 
 	ac.Name = pack
+	ac.RawContent = content
 
 	// sub agents
 	for _, v := range ac.Agents {

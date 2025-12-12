@@ -284,6 +284,7 @@ func (ap *AgentMaker) loadAgent(pack string, content []byte) (*api.AgentsConfig,
 
 	// correct pack name
 	ac.Name = pack
+	ac.RawContent = content
 
 	// normalize agent name
 	for _, v := range ac.Agents {
@@ -360,6 +361,9 @@ func (ap *AgentMaker) Create(ctx context.Context, name string) (*api.Agent, erro
 				agent.Embed = append(agent.Embed, a)
 			}
 		}
+
+		//
+		agent.Config = ac
 		return agent, nil
 	}
 
@@ -418,8 +422,8 @@ func (ap *AgentMaker) Creator(parent api.Creator, owner string, pack string, dat
 			}
 		}
 
-		//
-
+		// save for ai:get_agent_config
+		agent.Config = ac
 		return agent, nil
 	}
 

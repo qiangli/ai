@@ -37,13 +37,24 @@ tools:
       properties: {}
 
   - name: "get_agent_info"
-    description: "Get information about a specific agent"
+    description: "Retrieve detailed information about a specified agent, including display name, description, and instructions"
     parameters:
       type: "object"
       properties:
         agent:
           type: "string"
           description: "The name of the agent"
+      required:
+        - "agent"
+
+  - name: "get_agent_config"
+    description: "Retrieve the configuration file utilized to create a specified agent instance."
+    parameters:
+      type: "object"
+      properties:
+        agent:
+          type: "string"
+          description: "The name of the agent for which the configuration is requested. Use 'self' for the current agent invoking the tool."
       required:
         - "agent"
 

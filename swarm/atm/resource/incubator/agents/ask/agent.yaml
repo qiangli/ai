@@ -8,7 +8,7 @@ agents:
       Provides concise and reliable answers across diverse topics, 
       ranging from local system intricacies to comprehensive web-based information,
       ensuring clarity and accuracy.
-    model: "llm/L1"
+    model: "default/any"
     context: "agent:context"
     embed:
       - "agent:memory"
@@ -31,12 +31,12 @@ agents:
       - "web:*"
       - "ai:*"
 
-## models
-set: "llm"
-provider: "openai"
-base_url: "https://api.openai.com/v1/"
-api_key: "openai"
-
+###
+set: "default"
 models:
-  L1:
+  any:
     model: "gpt-5-nano"
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
+###
