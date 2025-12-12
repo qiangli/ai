@@ -26,7 +26,8 @@ func IsTemplate(s string) bool {
 	return strings.HasPrefix(s, "#!") || strings.Contains(s, "{{")
 }
 
-func ApplyTemplate(tpl *template.Template, s string, data map[string]any) (string, error) {
+// Check s for prefix "#!" or "{{" to apply template if found. otherise skip
+func CheckApplyTemplate(tpl *template.Template, s string, data map[string]any) (string, error) {
 	if strings.HasPrefix(s, "#!") {
 		// TODO parse the command line args?
 		parts := strings.SplitN(s, "\n", 2)

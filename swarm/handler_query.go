@@ -36,7 +36,7 @@ func QueryMiddleware(sw *Swarm) api.Middleware {
 			if query == "" {
 				msg := req.Message()
 				if msg != "" {
-					content, err := atm.ApplyTemplate(agent.Template, msg, allArgs)
+					content, err := atm.CheckApplyTemplate(agent.Template, msg, allArgs)
 					if err != nil {
 						return err
 					}

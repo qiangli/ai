@@ -114,7 +114,7 @@ func TestTemplate(t *testing.T) {
 
 	text := `this is from ai: {{ai "@ask-me" "--log-level=verbose"  "tell me a joke"}}`
 	data := map[string]any{}
-	content, err := atm.ApplyTemplate(tpl, text, data)
+	content, err := atm.CheckApplyTemplate(tpl, text, data)
 	t.Logf("content: %v\n", content)
 	if err != nil {
 		t.Fatalf("%v", err)

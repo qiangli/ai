@@ -18,7 +18,7 @@ func (r *FuncKit) ExecScript(ctx context.Context, vars *api.Vars, env *api.ToolE
 	language := strings.ToLower(tf.Body.Language)
 	code := tf.Body.Code
 	if IsTemplate(code) {
-		v, err := ApplyTemplate(env.Agent.Template, code, EncodeArgs(args))
+		v, err := CheckApplyTemplate(env.Agent.Template, code, EncodeArgs(args))
 		if err != nil {
 			return nil, err
 		}

@@ -22,3 +22,30 @@ var ShellSecurityUserRole string
 
 //go:embed root/agent.yaml
 var RootAgentData []byte
+
+//go:embed root/format.json.txt
+var formatJson string
+
+//go:embed root/format.markdown.txt
+var formatMarkdown string
+
+//go:embed root/format.text.txt
+var formatText string
+
+//go:embed root/format.yaml.txt
+var formatYaml string
+
+func FormatFile(format string) string {
+	switch format {
+	case "json":
+		return formatJson
+	case "markdown", "md":
+		return formatMarkdown
+	case "text", "txt":
+		return formatText
+	case "yaml", "yml":
+		return formatYaml
+	default:
+		return ""
+	}
+}

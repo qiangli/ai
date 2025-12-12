@@ -1,4 +1,5 @@
 ###
+{{- if .kit == "agent" }}
 pack: "{{.pack}}"
 agents:
   - name: "{{.name}}"
@@ -18,7 +19,7 @@ agents:
     instruction: |
       {{.prompt}}
     functions: []
-
+{{else}}
 ###
 kit: "{{.kit}}"
 tools:
@@ -28,7 +29,8 @@ tools:
     parameters: {}
     arguments: {}
     body: {}
-
+{{-end}}
+{{-if .kit == "agent"}}
 ###
 set: "{{.set}}"
 models:
@@ -37,4 +39,5 @@ models:
     provider: "{{.provider}}"
     base_url: "{{.base_url}}"
     api_key: "{{.api_key}}"
+{{-end}}
 ###

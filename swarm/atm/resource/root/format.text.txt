@@ -2,8 +2,10 @@
 ❌ {{.error}}
 {{- else }}
 {{- if .result }}
-{{.result}}
+{{.}}
 {{- else }}
 No result
 {{- end }}
 {{- end }}
+
+{{.}}

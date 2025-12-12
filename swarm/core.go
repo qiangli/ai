@@ -242,18 +242,9 @@ func (sw *Swarm) mapAssign(ctx context.Context, agent *api.Agent, dst, src map[s
 			continue
 		}
 
-		// // @agent value support
-		// if v, ok := val.(string); ok {
-		// 	if resolved, err := sw.resolveArgument(ctx, agent, v); err != nil {
-		// 		return err
-		// 	} else {
-		// 		val = resolved
-		// 	}
-		// }
-
 		// go template value support
 		if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-			if resolved, err := atm.ApplyTemplate(agent.Template, v, dst); err != nil {
+			if resolved, err := atm.CheckApplyTemplate(agent.Template, v, dst); err != nil {
 				return err
 			} else {
 				val = resolved
@@ -270,31 +261,6 @@ func (sw *Swarm) globalEnv() map[string]any {
 	sw.Vars.Global.Copy(env)
 	return env
 }
-
-// // call agent if found. otherwise return s as is
-// func (sw *Swarm) resolveArgument(ctx context.Context, agent *api.Agent, s string) (any, error) {
-// 	if !conf.IsAgentTool(s) {
-// 		return s, nil
-// 	}
-// 	out, err := sw.expand(ctx, agent, s)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	type ArgResult struct {
-// 		Result string
-// 		Error  string
-// 	}
-
-// 	var arg ArgResult
-// 	if err := json.Unmarshal([]byte(out), &arg); err != nil {
-// 		return nil, err
-// 	}
-// 	if arg.Error != "" {
-// 		return nil, fmt.Errorf("failed resolve argument: %s", arg.Error)
-// 	}
-// 	return arg.Result, nil
-// }
 
 // expand s for agent/tool similar to $(cmdline...)
 func (sw *Swarm) expandx(ctx context.Context, parent *api.Agent, s string) (string, error) {
@@ -347,13 +313,6 @@ func (sw *Swarm) Parse(ctx context.Context, input any) (api.ArgMap, error) {
 }
 
 func (sw *Swarm) Parses(ctx context.Context, args string) (api.ArgMap, error) {
-	// am, err := conf.ParseActionCommand(args)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// if len(am) == 0 {
-	// 	return nil, fmt.Errorf("invalid action command: %s", args)
-	// }
 	argv := conf.Argv(args)
 	return sw.Parsev(ctx, argv)
 }
@@ -391,10 +350,6 @@ func (sw *Swarm) Parsev(ctx context.Context, argv []string) (api.ArgMap, error) 
 		argm["message"] = strings.Join(argv, " ")
 	}
 
-	// am, err := conf.ParseActionArgs(argv)
-	// if err != nil {
-	// 	return nil, err
-	// }
 	if len(argm) == 0 {
 		return nil, fmt.Errorf("invalid action command: %+v", argv)
 	}
@@ -402,7 +357,7 @@ func (sw *Swarm) Parsev(ctx context.Context, argv []string) (api.ArgMap, error) 
 }
 
 func (sw *Swarm) Parsem(ctx context.Context, argm map[string]any) (api.ArgMap, error) {
-	log.GetLogger(ctx).Debugf("Execm %+v\n", argm)
+	log.GetLogger(ctx).Debugf("Parsem %+v\n", argm)
 
 	a := api.ArgMap(argm)
 	id := a.Kitname().ID()
@@ -410,24 +365,19 @@ func (sw *Swarm) Parsem(ctx context.Context, argm map[string]any) (api.ArgMap, e
 		return nil, fmt.Errorf("missing action id: %+v", argm)
 	}
 	return a, nil
-	// kit := a.Kit()
-	// name := a.Name()
+}
 
-	// var v any
-	// var err error
-	// switch kit {
-	// case "agent":
-	// 	v, err = sw.runm(ctx, sw.Vars.RootAgent, name, argm)
-	// default:
-	// 	// all tools including sh:bash
-	// 	v, err = sw.Vars.RootAgent.Runner.Run(ctx, id, argm)
-	// }
-	// v, err := sw.Vars.RootAgent.Runner.Run(ctx, id, argm)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// result := api.ToResult(v)
-	// return result, nil
+func (sw *Swarm) Format(ctx context.Context, argm map[string]any) (*api.Result, error) {
+	format, _ := api.GetStrProp("format", argm)
+	if format == "" {
+		format = "markdown"
+	}
+	var v string
+	// var tpl = resource.FormatFile(format)
+	// atm.CheckApplyTemplate(tpl, argm)
+	return &api.Result{
+		Value: v,
+	}, nil
 }
 
 func (sw *Swarm) Execv(ctx context.Context, argv []string) (*api.Result, error) {

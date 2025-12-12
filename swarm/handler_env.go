@@ -139,7 +139,7 @@ func mapAssign(tpl *template.Template, dst, src map[string]any) error {
 	for key, val := range src {
 		// go template value support
 		if v, ok := val.(string); ok && strings.Contains(v, "{{") {
-			if resolved, err := atm.ApplyTemplate(tpl, v, dst); err != nil {
+			if resolved, err := atm.CheckApplyTemplate(tpl, v, dst); err != nil {
 				return err
 			} else {
 				val = resolved

@@ -30,7 +30,7 @@ func InstructionMiddleware(sw *Swarm) api.Middleware {
 			var instructions []string
 
 			add := func(in string) error {
-				content, err := atm.ApplyTemplate(agent.Template, in, env)
+				content, err := atm.CheckApplyTemplate(agent.Template, in, env)
 				if err != nil {
 					return err
 				}
