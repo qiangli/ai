@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 	"time"
@@ -58,20 +59,30 @@ func (m *MemoryStore) Save(messages []*Message) error {
 }
 
 func (m *MemoryStore) Load(opt *MemOption) ([]*Message, error) {
-	const query = `
-		SELECT id, session, created, content_type, content, role, sender
-		FROM chats
-		WHERE created >= ?
-		AND role IN (?)
-		ORDER BY created ASC
-		LIMIT ? OFFSET ?`
-
 	var messages []*Message
 	maxSpan := time.Now().Add(-time.Duration(opt.MaxSpan) * time.Minute).Unix()
 
-	rolePlaceholder := strings.Join(opt.Roles, ",")
+	rolePlaceholders := strings.Repeat("?,", len(opt.Roles))
+	rolePlaceholders = rolePlaceholders[:len(rolePlaceholders)-1]
 
-	rows, err := m.ds.Query(query, maxSpan, rolePlaceholder, opt.MaxHistory, opt.Offset)
+	var query = fmt.Sprintf(`
+		SELECT id, session, created, content_type, content, role, sender
+		FROM chats
+		WHERE created >= ?
+		AND role IN (%s)
+		ORDER BY created ASC
+		LIMIT ? OFFSET ?
+		`, rolePlaceholders)
+
+	// Build the args slice
+	var args []any
+	args = append(args, maxSpan)
+	for _, role := range opt.Roles {
+		args = append(args, role)
+	}
+	args = append(args, opt.MaxHistory, opt.Offset)
+
+	rows, err := m.ds.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

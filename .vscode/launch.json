@@ -65,9 +65,12 @@
 				// "pick some famous politicians names",
 				// "/ai:list_messages"
 				//
-				"/agent:joker",
-				"--message",
-				"what is the weather for the bay area in the next few days",
+				"/ai:get_message_info",
+				//
+				// "/agent:joker",
+				// "--message",
+				// "what is the weather for the bay area in the next few days",
+				//
 				// "@agent/agent",
 				// "@ask",
 				// "@eval",

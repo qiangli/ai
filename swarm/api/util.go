@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -19,12 +20,7 @@ func IsRequired(key string, props map[string]any) bool {
 	if !ok {
 		return false
 	}
-	for _, v := range items {
-		if v == key {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(items, key)
 }
 
 func GetStrProp(key string, props map[string]any) (string, error) {
