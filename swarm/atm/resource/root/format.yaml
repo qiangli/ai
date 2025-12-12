@@ -4,11 +4,11 @@ agents:
   - name: "{{.name}}"
     display: "{{.display}}"
     description: "{{.description}}"
-    environment:
-    parameters:
-    arguments:
+    environment: {}
+    parameters: {}
+    arguments: {}
     #
-    adapter:
+    adapter: {}
     #
     model: "{{.set_level}}"
     context: |
@@ -17,7 +17,7 @@ agents:
       {{.query}}
     instruction: |
       {{.prompt}}
-    functions:
+    functions: []
 
 ###
 kit: "{{.kit}}"
@@ -25,9 +25,9 @@ tools:
   - name: "{{.name}}"
     description: "{{.description}}"
     type: "{{.type}}"
-    parameters:
-    arguments:
-    body:
+    parameters: {}
+    arguments: {}
+    body: {}
 
 ###
 set: "{{.set}}"
@@ -38,4 +38,3 @@ models:
     base_url: "{{.base_url}}"
     api_key: "{{.api_key}}"
 ###
-

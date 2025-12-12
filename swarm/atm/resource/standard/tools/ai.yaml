@@ -133,7 +133,7 @@ tools:
         max_history:
           type: "integer"
           description: "The maximum number of past messages to retrieve"
-          default: 3
+          default: 7
           minimum: 0
         max_span:
           type: "integer"

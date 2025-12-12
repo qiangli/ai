@@ -366,7 +366,7 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, arg
 
 	maxHistory, err := api.GetIntProp("max_history", args)
 	if err != nil || maxHistory <= 0 {
-		maxHistory = 3
+		maxHistory = 7
 	}
 	maxSpan, err := api.GetIntProp("max_span", args)
 	if err != nil || maxSpan <= 0 {
