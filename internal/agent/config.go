@@ -6,13 +6,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	// "strings"
 
 	"github.com/google/uuid"
 
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm/api"
-	// "github.com/qiangli/ai/swarm/atm/conf"
 )
 
 const DefaultEditor = "vi"
@@ -83,7 +81,7 @@ func ParseSpecialChars(args []string) *api.InputConfig {
 	return &cfg
 }
 
-var validFormats = []string{"raw", "text", "json", "markdown", "tts"}
+var validFormats = []string{"txt", "json", "markdown", "yaml"}
 
 func isValidFormat(format string) bool {
 	return slices.Contains(validFormats, format)
@@ -96,45 +94,45 @@ func Validate(app *api.AppConfig) error {
 	return nil
 }
 
-func EnsureWorkspace(ws string) (string, error) {
-	workspace, err := validatePath(ws)
-	if err != nil {
-		return "", err
-	}
+// func EnsureWorkspace(ws string) (string, error) {
+// 	workspace, err := validatePath(ws)
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	// ensure the workspace directory exists
-	if err := os.MkdirAll(workspace, os.ModePerm); err != nil {
-		return "", fmt.Errorf("failed to create directory: %w", err)
-	}
+// 	// ensure the workspace directory exists
+// 	if err := os.MkdirAll(workspace, os.ModePerm); err != nil {
+// 		return "", fmt.Errorf("failed to create directory: %w", err)
+// 	}
 
-	return workspace, nil
-}
+// 	return workspace, nil
+// }
 
-// ValidatePath returns the absolute path of the given path.
-// If the path is empty, it returns an error.
-// If the path is not an absolute path, it converts it to an absolute path.
-// If the path does not exist, it returns its absolute path.
-func validatePath(path string) (string, error) {
-	if path == "" {
-		return "", fmt.Errorf("path is empty")
-	}
+// // ValidatePath returns the absolute path of the given path.
+// // If the path is empty, it returns an error.
+// // If the path is not an absolute path, it converts it to an absolute path.
+// // If the path does not exist, it returns its absolute path.
+// func validatePath(path string) (string, error) {
+// 	if path == "" {
+// 		return "", fmt.Errorf("path is empty")
+// 	}
 
-	if !filepath.IsAbs(path) {
-		absPath, err := filepath.Abs(path)
-		if err != nil {
-			return "", fmt.Errorf("failed to get absolute path: %w", err)
-		}
-		path = absPath
-	}
-	if _, err := os.Stat(path); err != nil {
-		if os.IsNotExist(err) {
-			return path, nil
-		}
-		return "", fmt.Errorf("failed to stat path: %w", err)
-	}
+// 	if !filepath.IsAbs(path) {
+// 		absPath, err := filepath.Abs(path)
+// 		if err != nil {
+// 			return "", fmt.Errorf("failed to get absolute path: %w", err)
+// 		}
+// 		path = absPath
+// 	}
+// 	if _, err := os.Stat(path); err != nil {
+// 		if os.IsNotExist(err) {
+// 			return path, nil
+// 		}
+// 		return "", fmt.Errorf("failed to stat path: %w", err)
+// 	}
 
-	return path, nil
-}
+// 	return path, nil
+// }
 
 func SetupAppConfig(app *api.App) error {
 	// app.Format = "markdown"
