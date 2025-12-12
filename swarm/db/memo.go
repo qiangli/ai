@@ -15,7 +15,7 @@ type MemoryStore struct {
 	ds *DataStore
 }
 
-func OpenMemoryStore(base string) (*MemoryStore, error) {
+func OpenMemoryStore(base string, file string) (*MemoryStore, error) {
 	const ddl = `CREATE TABLE IF NOT EXISTS chats (
 			"id" TEXT NOT NULL,		
 			"session" TEXT,
@@ -26,7 +26,7 @@ func OpenMemoryStore(base string) (*MemoryStore, error) {
 			"sender" TEXT		
 		  );`
 
-	dbPath := filepath.Join(base, "memory.db")
+	dbPath := filepath.Join(base, file)
 
 	ds, err := NewDB(dbPath)
 	if err != nil {
@@ -56,6 +56,7 @@ func (m *MemoryStore) Save(messages []*Message) error {
 
 	return nil
 }
+
 func (m *MemoryStore) Load(opt *MemOption) ([]*Message, error) {
 	const query = `
 		SELECT id, session, created, content_type, content, role, sender
@@ -85,6 +86,7 @@ func (m *MemoryStore) Load(opt *MemOption) ([]*Message, error) {
 	}
 	return messages, nil
 }
+
 func (m *MemoryStore) Get(id string) (*Message, error) {
 	const query = `
 		SELECT id, session, created, content_type, content, role, sender

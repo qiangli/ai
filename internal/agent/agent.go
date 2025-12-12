@@ -62,7 +62,7 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 
 	// var msg = cfg.Message
 
-	mem, err := db.OpenMemoryStore(cfg.Base)
+	mem, err := db.OpenMemoryStore(cfg.Base, "memory.db")
 	if err != nil {
 		return err
 	}
