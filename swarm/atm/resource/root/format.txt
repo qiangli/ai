@@ -1,2 +1,9 @@
+{{- if .error }}
+❌ {{.error}}
+{{- else }}
+{{- if .result }}
 {{.result}}
-{{.error}}
+{{- else }}
+No result
+{{- end }}
+{{- end }}
