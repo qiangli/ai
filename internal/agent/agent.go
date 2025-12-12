@@ -126,24 +126,20 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	if err != nil {
 		return err
 	}
+	// update if not set
+	for k, v := range user.Settings {
+		if _, ok := argm[k]; !ok {
+			argm[k] = v
+		}
+	}
 
 	level := api.ToLogLevel(argm["log_level"])
 	log.GetLogger(ctx).SetLogLevel(level)
 	log.GetLogger(ctx).Debugf("Config: %+v\n", cfg)
 	// logger := log.GetLogger(ctx)
 
-	// remember agent
-	// TODO use memory to record previous agent or super agent
-	kit, name := argm.Kitname().Decode()
-	if kit == "agent" {
-		if name != "" {
-			user.SetAgent(name)
-			storeUser(dc.Base, user)
-		}
-	}
-
 	msg := argm.GetString("message")
-	sw.Vars.Global.Set("workspace", cfg.Workspace)
+	sw.Vars.Global.Set("workspace", roots.Workspace)
 	sw.Vars.Global.Set("query", msg)
 
 	if msg != "" {
@@ -167,6 +163,16 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	//
 	processOutput(ctx, "markdown", out)
 
+	//
+	// remember agent
+	// TODO use memory to record previous agent or super agent
+	// kit, name := argm.Kitname().Decode()
+	// if kit == "agent" {
+	// 	if name != "" {
+	// 		user.SetAgent(name)
+	// 		storeUser(dc.Base, user)
+	// 	}
+	// }
 	// logger.Debugf("Agent task completed\n")
 
 	return nil

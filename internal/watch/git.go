@@ -24,7 +24,7 @@ var prefixMap = map[string]string{
 }
 
 func WatchRepo(ctx context.Context, cfg *api.App) error {
-	repoPath := filepath.Clean(cfg.Workspace)
+	repoPath := filepath.Clean(cfg.Base + "/workdir")
 
 	log.GetLogger(ctx).Debugf("Watching git repository: %s\n", repoPath)
 

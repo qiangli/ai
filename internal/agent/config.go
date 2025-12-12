@@ -147,12 +147,12 @@ func SetupAppConfig(app *api.App) error {
 	}
 	app.Base = filepath.Join(home, ".ai")
 
-	ws := filepath.Join(app.Base, "workspace")
-	if v, err := EnsureWorkspace(ws); err != nil {
-		return fmt.Errorf("failed to resolve workspace: %w", err)
-	} else {
-		app.Workspace = v
-	}
+	// ws := filepath.Join(app.Base, "workspace")
+	// if v, err := EnsureWorkspace(ws); err != nil {
+	// 	return fmt.Errorf("failed to resolve workspace: %w", err)
+	// } else {
+	// 	app.Workspace = v
+	// }
 
 	return nil
 }

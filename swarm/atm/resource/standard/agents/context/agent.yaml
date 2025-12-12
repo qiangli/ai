@@ -7,7 +7,7 @@ agents:
       Efficiently extracts and summarizes relevant historical conversation messages
       to optimize understanding and support prompt responses to new user queries.
       Prioritizes message selection purely based on the new input provided by the user.
-    model: default/any
+    model: "default/any"
     instruction: |
       You are a history context summarizer, responsible for selecting and
       concisely summarizing relevant messages from previous conversations
@@ -60,4 +60,13 @@ agents:
     functions:
       - "ai:list_messages"
       - "ai:get_message_info"
+
+###
+set: "default"
+models:
+  any:
+    model: "gpt-5-nano"
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
 ###

@@ -19,7 +19,7 @@ import (
 func defaultSwarm(cfg *api.App) (*Swarm, error) {
 	var vars = api.NewVars()
 
-	var ws = cfg.Workspace
+	var ws = cfg.Base + "/workdir"
 
 	var user = &api.User{
 		Email: cfg.User,
@@ -82,8 +82,8 @@ func TestTemplate(t *testing.T) {
 	home, _ := os.UserHomeDir()
 	base := filepath.Join(home, ".ai")
 	cfg := &api.App{
-		Base:      base,
-		Workspace: "/tmp",
+		Base: base,
+		// Workspace: "/tmp",
 	}
 	sw, err := defaultSwarm(cfg)
 	if err != nil {

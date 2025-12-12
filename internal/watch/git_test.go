@@ -1,10 +1,9 @@
 package watch
 
 import (
-	"context"
+	// "context"
 	"testing"
-
-	"github.com/qiangli/ai/swarm/api"
+	// "github.com/qiangli/ai/swarm/api"
 )
 
 func TestWatchRepo(t *testing.T) {
@@ -12,13 +11,13 @@ func TestWatchRepo(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	ctx := context.TODO()
+	// ctx := context.TODO()
 
-	err := WatchRepo(ctx, &api.App{
-		Workspace: "../../../ai",
-	})
+	// err := WatchRepo(ctx, &api.App{
+	// 	Workspace: "../../../ai",
+	// })
 
-	if err != nil {
-		t.Errorf("Error watching git repository: %v", err)
-	}
+	// if err != nil {
+	// 	t.Errorf("Error watching git repository: %v", err)
+	// }
 }

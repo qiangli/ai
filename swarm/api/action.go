@@ -324,7 +324,7 @@ type App struct {
 	User string
 
 	// workspace root. default: <base>/workspace
-	Workspace string
+	// Workspace string
 
 	Session string
 }
