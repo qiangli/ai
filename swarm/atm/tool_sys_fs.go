@@ -13,17 +13,15 @@ import (
 
 func (r *SystemKit) ListRoots(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	var result strings.Builder
-	result.WriteString("Allowed directories:\n\n")
-
-	// for _, v := range vars.RTE.Roots {
-	// 	u, err := url.Parse(v.URI)
-	// 	if err != nil {
-	// 		continue
-	// 	}
-	// 	// file: only
-	// 	result.WriteString(fmt.Sprintf("Name: %q Path: %s\n", v.Name, u.Path))
-	// }
-	v, err := PrettyJSON(vars.RTE.Roots)
+	result.WriteString("Allowed Root Directories:\n\n")
+	roots, err := vars.RTE.Roots.ResolveRoots()
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve root directories: %v", roots)
+	}
+	if len(roots) == 0 {
+		return "", fmt.Errorf("no accessible root directories")
+	}
+	v, err := PrettyJSON(roots)
 	if err != nil {
 		return "", err
 	}

@@ -8,7 +8,7 @@ agents:
   - name: "chat"
     display: "💬 Chat"
     description: |
-      Assists with simple queries and uses tool calls to get answers if beyond scope.    model: "default/any"
+      Assists with simple queries and uses tool calls to get answers if beyond scope.
     model: "default/any"
     embed:
       - agent:memory

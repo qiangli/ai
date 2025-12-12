@@ -2,7 +2,6 @@ package agent
 
 import (
 	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 
@@ -48,25 +47,25 @@ var isOutputTTY = OnceValue(func() bool {
 	return isatty.IsTerminal(os.Stdout.Fd())
 })
 
-func ResolvePaths(dirs []string) ([]string, error) {
-	uniquePaths := make(map[string]struct{})
+// func ResolvePaths(dirs []string) ([]string, error) {
+// 	uniquePaths := make(map[string]struct{})
 
-	for _, dir := range dirs {
-		realPath, err := filepath.EvalSymlinks(dir)
-		if err != nil {
-			// Handle error, for example by logging
-			// log.Printf("Failed to evaluate symlink for %s: %v\n", dir, err)
-			// continue
-			return nil, err
-		}
-		uniquePaths[dir] = struct{}{}
-		uniquePaths[realPath] = struct{}{}
-	}
+// 	for _, dir := range dirs {
+// 		realPath, err := filepath.EvalSymlinks(dir)
+// 		if err != nil {
+// 			// Handle error, for example by logging
+// 			// log.Printf("Failed to evaluate symlink for %s: %v\n", dir, err)
+// 			// continue
+// 			return nil, err
+// 		}
+// 		uniquePaths[dir] = struct{}{}
+// 		uniquePaths[realPath] = struct{}{}
+// 	}
 
-	var result []string
-	for path := range uniquePaths {
-		result = append(result, path)
-	}
+// 	var result []string
+// 	for path := range uniquePaths {
+// 		result = append(result, path)
+// 	}
 
-	return result, nil
-}
+// 	return result, nil
+// }

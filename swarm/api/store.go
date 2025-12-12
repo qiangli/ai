@@ -8,22 +8,6 @@ import (
 	"time"
 )
 
-// https://modelcontextprotocol.io/specification/2025-06-18/client/roots
-type Roots []*Root
-
-type Root struct {
-	Name string `json:"name"`
-	Path string `json:"path"`
-}
-
-func (r *Roots) Dirs() []string {
-	var ps []string
-	for _, v := range *r {
-		ps = append(ps, v.Path)
-	}
-	return ps
-}
-
 // Object store
 type BlobStore interface {
 	Put(ID string, blob *Blob) error

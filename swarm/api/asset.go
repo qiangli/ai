@@ -9,12 +9,102 @@ import (
 )
 
 type DHNTConfig struct {
+	// base where this config loaded from. default $HOME/.ai/
+	// filename: dhnt.json
 	Base string `json:"-"`
 
-	Roots Roots `json:"roots"`
+	// additional work spaces
+	Roots *Roots `json:"roots"`
 
 	Blob   *ResourceConfig   `json:"blob"`
 	Assets []*ResourceConfig `json:"assets"`
+}
+
+// Return root paths
+func (r *DHNTConfig) GetRoots() ([]*Root, error) {
+	if r.Roots == nil {
+		return nil, nil
+	}
+	return r.Roots.ResolveRoots()
+}
+
+// https://modelcontextprotocol.io/specification/2025-06-18/client/roots
+type Root struct {
+	Name string `json:"name"`
+	Path string `json:"path"`
+}
+
+type Roots struct {
+	// primary working directory for the agents
+	Workspace string `json:"workspace"`
+
+	// Add user home to the root list
+	Home bool `json:"home"`
+	// Add the current working directory to the root list
+	// where ai is started
+	Cwd bool `json:"cwd"`
+	// Add system temporary directory to the root list
+	Temp bool `json:"temp"`
+
+	// Additional paths
+	Dirs []*Root `json:"dirs"`
+}
+
+func (r *Roots) ResolveRoots() ([]*Root, error) {
+	var ps []*Root
+	for _, v := range r.Dirs {
+		ps = append(ps, v)
+	}
+
+	if r.Workspace != "" {
+		ps = append(ps, &Root{
+			Name: "Workspace",
+			Path: r.Workspace,
+		})
+	}
+	if r.Home {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return nil, err
+		}
+		ps = append(ps, &Root{
+			Name: "Home Directory",
+			Path: home,
+		})
+	}
+	if r.Cwd {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+		ps = append(ps, &Root{
+			Name: "Working Directory",
+			Path: cwd,
+		})
+	}
+	if r.Temp {
+		tempdir := os.TempDir()
+		ps = append(ps, &Root{
+			Name: "Temp Directory",
+			Path: tempdir,
+		})
+	}
+	return ps, nil
+}
+
+// convenience helper for collecting all accessible paths
+// including symlink of the original path
+func (r *Roots) AllowedDirs() ([]string, error) {
+	roots, err := r.ResolveRoots()
+	if err != nil {
+		return nil, err
+	}
+	var ps []string
+	for _, v := range roots {
+		ps = append(ps, v.Path)
+	}
+
+	return resolvePaths(ps)
 }
 
 type ResourceConfig struct {

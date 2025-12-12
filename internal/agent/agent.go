@@ -68,8 +68,6 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	}
 	defer mem.Close()
 
-	// var ws = cfg.Workspace
-
 	var adapters = adapter.GetAdapters()
 	var secrets = conf.LocalSecrets
 
@@ -78,23 +76,14 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 		return err
 	}
 	var roots = dc.Roots
-	var dirs = roots.Dirs()
-
-	// add temp and current dir
-	// expand to include their symlinks for file resolution.
-	tmpdir := os.TempDir()
-	project, _ := os.Getwd()
-	dirs = append(dirs, []string{project, tmpdir}...)
-	roots = append(roots, api.Roots{
-		// {Name: "Workspace", Path: ws},
-		{Name: "Project Base", Path: project},
-		{Name: "Temp Folder", Path: tmpdir},
-	}...)
-	allowedDirs, err := ResolvePaths(dirs)
+	dirs, err := roots.AllowedDirs()
 	if err != nil {
 		return err
 	}
-	lfs, _ := vfs.NewLocalFS(allowedDirs)
+	if len(dirs) == 0 {
+		return fmt.Errorf("root directories not configed")
+	}
+	lfs, _ := vfs.NewLocalFS(dirs)
 	los, _ := vos.NewLocalSystem(lfs)
 
 	assets, err := conf.Assets(dc)

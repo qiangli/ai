@@ -134,7 +134,7 @@ func (g *Environment) Clone() *Environment {
 type ActionRTEnv struct {
 	Base      string
 	User      *User
-	Roots     Roots
+	Roots     *Roots
 	Workspace Workspace
 	OS        System
 	Secrets   SecretStore

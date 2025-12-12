@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -220,4 +221,27 @@ func ToInt(data any) int {
 		}
 	}
 	return 0
+}
+
+func resolvePaths(dirs []string) ([]string, error) {
+	uniquePaths := make(map[string]struct{})
+
+	for _, dir := range dirs {
+		realPath, err := filepath.EvalSymlinks(dir)
+		if err != nil {
+			// Handle error, for example by logging
+			// log.Printf("Failed to evaluate symlink for %s: %v\n", dir, err)
+			// continue
+			return nil, err
+		}
+		uniquePaths[dir] = struct{}{}
+		uniquePaths[realPath] = struct{}{}
+	}
+
+	var result []string
+	for path := range uniquePaths {
+		result = append(result, path)
+	}
+
+	return result, nil
 }
