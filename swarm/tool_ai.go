@@ -339,26 +339,37 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, arg
 	log.GetLogger(ctx).Debugf("List messages: %s %+v\n", tf, args)
 
 	maxHistory, err := api.GetIntProp("max_history", args)
-	if err != nil {
-		return "", err
+	if err != nil || maxHistory <= 0 {
+		maxHistory = 3
 	}
 	maxSpan, err := api.GetIntProp("max_span", args)
-	if err != nil {
-		return "", err
+	if err != nil || maxSpan <= 0 {
+		maxSpan = 1440
+	}
+	offset, err := api.GetIntProp("offset", args)
+	if err != nil || offset <= 0 {
+		offset = 0
+	}
+	roles, err := api.GetArrayProp("roles", args)
+	if err != nil || len(roles) == 0 {
+		roles = []string{"assistant", "user"}
 	}
 
-	list, count, err := conf.ListHistory(r.sw.History, &api.MemOption{
+	var option = &api.MemOption{
 		MaxHistory: maxHistory,
 		MaxSpan:    maxSpan,
-	})
+		Offset:     offset,
+		Roles:      roles,
+	}
+	list, count, err := conf.ListHistory(r.sw.History, option)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Failed to recall messages (%s): %v", option, err)
 	}
 	if count > 0 {
 		log.GetLogger(ctx).Debugf("Recalled %v messages in memory less than %v minutes old\n", count, maxSpan)
 	}
 
-	var v = fmt.Sprintf("Available messages: %v\n\n%s\n", count, list)
+	var v = fmt.Sprintf("Available messages (%s): %v\n\n%s\n", option, count, list)
 	return v, nil
 }
 

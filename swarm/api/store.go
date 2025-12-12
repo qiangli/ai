@@ -2,7 +2,9 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/fs"
+	"strings"
 	"time"
 )
 
@@ -44,6 +46,16 @@ type Blob struct {
 type MemOption struct {
 	MaxHistory int
 	MaxSpan    int
+	Offset     int
+	Roles      []string
+}
+
+func (r *MemOption) String() string {
+	var roles string
+	if len(r.Roles) > 0 {
+		roles = strings.Join(r.Roles, ",")
+	}
+	return fmt.Sprintf("MaxHistory: %v Offset: %v MaxSpan: %v Roles: [%v]", r.MaxHistory, r.Offset, r.MaxSpan, roles)
 }
 
 type MemStore interface {

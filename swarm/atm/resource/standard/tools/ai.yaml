@@ -129,6 +129,16 @@ tools:
           description: "The time frame, in minutes, to look back for past messages"
           default: 1440
           minimum: 0
+        offset:
+          type: "integer"
+          description: "The number of most recent messages to skip before retrieving the specified past messages"
+          default: 0
+          minimum: 0
+        roles:
+          type: "array"
+          description: "Specify roles to include, such as system, assistant, and user. By default, [assistant, user] are included, while system is excluded."
+          items:
+            type: "string"
 
   - name: "get_message_info"
     description: "Retrieve detailed information for a specific message from past conversations by id."

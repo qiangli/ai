@@ -58,13 +58,16 @@
 				// "--script",
 				// "atm/tools/hello_kit/hello_user.yaml",
 				//
-				"/agent:atm/hi",
-				"--script",
-				"atm/resource/template/atm.yaml",
-				"--verbose",
-				"pick some famous politicians names",
+				// "/agent:atm/hi",
+				// "--script",
+				// "atm/resource/template/atm.yaml",
+				// "--verbose",
+				// "pick some famous politicians names",
+				// "/ai:list_messages"
 				//
-				// "/agent:joker",
+				"/agent:joker",
+				"--message",
+				"what is the weather for the bay area in the next few days",
 				// "@agent/agent",
 				// "@ask",
 				// "@eval",

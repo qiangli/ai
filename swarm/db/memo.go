@@ -2,6 +2,7 @@ package db
 
 import (
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -55,16 +56,21 @@ func (m *MemoryStore) Save(messages []*Message) error {
 
 	return nil
 }
-
 func (m *MemoryStore) Load(opt *MemOption) ([]*Message, error) {
 	const query = `
 		SELECT id, session, created, content_type, content, role, sender
 		FROM chats
-		WHERE created >= ? ORDER BY created ASC LIMIT ?`
+		WHERE created >= ?
+		AND role IN (?)
+		ORDER BY created ASC
+		LIMIT ? OFFSET ?`
 
 	var messages []*Message
 	maxSpan := time.Now().Add(-time.Duration(opt.MaxSpan) * time.Minute).Unix()
-	rows, err := m.ds.Query(query, maxSpan, opt.MaxHistory)
+
+	rolePlaceholder := strings.Join(opt.Roles, ",")
+
+	rows, err := m.ds.Query(query, maxSpan, rolePlaceholder, opt.MaxHistory, opt.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +85,6 @@ func (m *MemoryStore) Load(opt *MemOption) ([]*Message, error) {
 	}
 	return messages, nil
 }
-
 func (m *MemoryStore) Get(id string) (*Message, error) {
 	const query = `
 		SELECT id, session, created, content_type, content, role, sender
