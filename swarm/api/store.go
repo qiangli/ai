@@ -39,7 +39,7 @@ func (r *MemOption) String() string {
 	if len(r.Roles) > 0 {
 		roles = strings.Join(r.Roles, ",")
 	}
-	return fmt.Sprintf("MaxHistory: %v Offset: %v MaxSpan: %v Roles: [%v]", r.MaxHistory, r.Offset, r.MaxSpan, roles)
+	return fmt.Sprintf("max_history: %v offset: %v max_span: %v roles: [%v]", r.MaxHistory, r.Offset, r.MaxSpan, roles)
 }
 
 type MemStore interface {
@@ -75,7 +75,7 @@ func NewDirEntry(
 func (r DirEntryInfo) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Name  string    `json:"name"`
-		IsDir bool      `json:"isDir"`
+		IsDir bool      `json:"is_dir"`
 		Mode  uint32    `json:"type"`
 		Info  *FileInfo `json:"info"`
 	}{
@@ -89,7 +89,7 @@ func (r DirEntryInfo) MarshalJSON() ([]byte, error) {
 func (r *DirEntryInfo) UnmarshalJSON(data []byte) error {
 	aux := &struct {
 		Name  string    `json:"name"`
-		IsDir bool      `json:"isDir"`
+		IsDir bool      `json:"is_dir"`
 		Mode  uint32    `json:"type"`
 		Info  *FileInfo `json:"info"`
 	}{}
@@ -161,8 +161,8 @@ func (fi FileInfo) MarshalJSON() ([]byte, error) {
 		Name    string    `json:"name"`
 		Size    int64     `json:"size"`
 		Mode    uint32    `json:"mode"`
-		ModTime time.Time `json:"modTime"`
-		IsDir   bool      `json:"isDir"`
+		ModTime time.Time `json:"mod_time"`
+		IsDir   bool      `json:"is_dir"`
 	}{
 		Name:    fi.name,
 		Size:    fi.size,
@@ -177,8 +177,8 @@ func (fi *FileInfo) UnmarshalJSON(data []byte) error {
 		Name    string    `json:"name"`
 		Size    int64     `json:"size"`
 		Mode    uint32    `json:"mode"`
-		ModTime time.Time `json:"modTime"`
-		IsDir   bool      `json:"isDir"`
+		ModTime time.Time `json:"mod_time"`
+		IsDir   bool      `json:"is_dir"`
 	}
 
 	if err := json.Unmarshal(data, &aux); err != nil {
