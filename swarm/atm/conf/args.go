@@ -342,8 +342,10 @@ func Parse(input any) (api.ArgMap, error) {
 		argm, err = parsev(input)
 	case map[string]any:
 		argm = input
+	case api.ArgMap:
+		argm = input
 	default:
-		return nil, fmt.Errorf("not supported %t", input)
+		return nil, fmt.Errorf("not supported %v", input)
 	}
 
 	if err != nil {
@@ -352,13 +354,6 @@ func Parse(input any) (api.ArgMap, error) {
 	if len(argm) == 0 {
 		return nil, fmt.Errorf("empty input map")
 	}
-
-	stdin := api.ToString(argm["stdin"])
-	if stdin != "" {
-		msg := argm["message"]
-		argm["message"] = cat(msg.(string), stdin, "\n###\n")
-	}
-	// clipboard
 
 	a := api.ArgMap(argm)
 	id := a.Kitname().ID()
@@ -378,6 +373,9 @@ func parsev(argv []string) (api.ArgMap, error) {
 		// 	return nil, err
 		// }
 
+		stdin := api.ToString(argm["stdin"])
+		// clipboard
+
 		// remove special trailing chars
 		// argv = cfg.Args
 		v, err := ParseActionArgs(argv)
@@ -386,6 +384,10 @@ func parsev(argv []string) (api.ArgMap, error) {
 		}
 		argm = v
 
+		if stdin != "" {
+			msg := argm["message"]
+			argm["message"] = cat(msg.(string), stdin, "\n###\n")
+		}
 		// msg := argm["message"]
 		// if cfg.Message != "" {
 		// 	argm["message"] = Cat(msg.(string), cfg.Message, "\n###\n")

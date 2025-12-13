@@ -325,7 +325,9 @@ func (sw *Swarm) Parse(ctx context.Context, input any) (api.ArgMap, error) {
 				return nil, err
 			}
 			// remove special trailing chars
-			argv = append(cfg.Args, "--stdin", cfg.Message)
+			if cfg.Message != "" {
+				argv = append(cfg.Args, "--stdin", cfg.Message)
+			}
 		}
 		return conf.Parse(argv)
 	}
