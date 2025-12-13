@@ -2,14 +2,12 @@ package atm
 
 import (
 	"context"
-	// "fmt"
-	// "net/url"
-
-	// // "maps"
-	// "strings"
+	"fmt"
+	"maps"
 
 	"github.com/qiangli/ai/swarm/api"
-	// "github.com/qiangli/ai/swarm/atm/conf"
+	"github.com/qiangli/ai/swarm/atm/conf"
+	"github.com/qiangli/ai/swarm/atm/resource"
 )
 
 func (r *SystemKit) Cd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -72,22 +70,48 @@ func (r *SystemKit) Bash(ctx context.Context, vars *api.Vars, name string, args 
 	return api.ToString(result), nil
 }
 
-func (r *SystemKit) Apply(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	// // shell handles command/script if empty
-	// result, err :=
-	// if err != nil {
-	// 	return "", err
-	// }
-	// return api.ToString(result), nil
-	return "Not supported", nil
+func (r *SystemKit) Apply(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
+	v, ok := args["script"]
+	if !ok {
+		return "", fmt.Errorf("missing script file")
+	}
+	s := api.ToString(v)
+
+	if v, err := LoadScript(vars.RTE.Workspace, s); err != nil {
+		return "", err
+	} else {
+		s = string(v)
+	}
+
+	var data = make(map[string]any)
+	maps.Copy(data, vars.Global.GetAllEnvs())
+	if vars.RootAgent.Environment != nil {
+		maps.Copy(data, vars.RootAgent.Environment.GetAllEnvs())
+	}
+	maps.Copy(data, args)
+
+	result, err := CheckApplyTemplate(vars.RootAgent.Template, s, data)
+	if err != nil {
+		return "", err
+	}
+	return api.ToString(result), nil
 }
 
 func (r *SystemKit) Parse(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	// args/argv
-	return "Not supported", nil
+	result, err := conf.Parse(args["script"])
+	if err != nil {
+		return "", err
+	}
+	return api.ToString(result), nil
 }
 
 func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	// args/argv
-	return "Not supported", nil
+	format, _ := api.GetStrProp("format", args)
+	if format == "" {
+		format = "markdown"
+	}
+
+	var tpl = resource.FormatFile(format)
+
+	return CheckApplyTemplate(vars.RootAgent.Template, tpl, args)
 }

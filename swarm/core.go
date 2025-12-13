@@ -317,71 +317,83 @@ func (sw *Swarm) expandx(ctx context.Context, parent *api.Agent, s string) (stri
 // }
 
 func (sw *Swarm) Parse(ctx context.Context, input any) (api.ArgMap, error) {
+	// parse special chars: - }}
+	parsev := func(argv []string) (api.ArgMap, error) {
+		if conf.IsAction(argv[0]) {
+			cfg, err := GetInput(ctx, argv)
+			if err != nil {
+				return nil, err
+			}
+			// remove special trailing chars
+			argv = append(cfg.Args, "--stdin", cfg.Message)
+		}
+		return conf.Parse(argv)
+	}
+
 	switch input := input.(type) {
 	case string:
-		return sw.parses(ctx, input)
+		argv := conf.Argv(input)
+		return parsev(argv)
 	case []string:
-		return sw.parsev(ctx, input)
-	case map[string]any:
-		return sw.parsem(ctx, input)
+		return parsev(input)
 	}
-	return nil, fmt.Errorf("not supported %t", input)
+	return conf.Parse(input)
 }
 
-func (sw *Swarm) parses(ctx context.Context, args string) (api.ArgMap, error) {
-	argv := conf.Argv(args)
-	return sw.parsev(ctx, argv)
-}
+// func (sw *Swarm) parses(ctx context.Context, args string) (api.ArgMap, error) {
+// 	argv := conf.Argv(args)
+// 	return sw.parsev(ctx, argv)
+// }
 
-func (sw *Swarm) parsev(ctx context.Context, argv []string) (api.ArgMap, error) {
-	var argm map[string]any
+// func (sw *Swarm) parsev(ctx context.Context, argv []string) (api.ArgMap, error) {
+// 	var argm map[string]any
 
-	if conf.IsAction(argv[0]) {
-		cfg, err := GetInput(ctx, argv)
-		if err != nil {
-			return nil, err
-		}
+// 	if conf.IsAction(argv[0]) {
+// 		cfg, err := GetInput(ctx, argv)
+// 		if err != nil {
+// 			return nil, err
+// 		}
 
-		// remove special trailing chars
-		argv = cfg.Args
-		v, err := conf.ParseActionArgs(argv)
-		if err != nil {
-			return nil, err
-		}
-		argm = v
+// 		// remove special trailing chars
+// 		argv = cfg.Args
+// 		v, err := conf.ParseActionArgs(argv)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		argm = v
 
-		msg := argm["message"]
-		if cfg.Message != "" {
-			argm["message"] = Cat(msg.(string), cfg.Message, "\n###\n")
-		}
-	} else if conf.IsSlash(argv[0]) {
-		// call local system command as tool:
-		// sh:exec command
-		argm = make(map[string]any)
-		argm["kit"] = "sh"
-		argm["name"] = "exec"
-		argm["command"] = strings.Join(argv, " ")
-	} else {
-		argm = make(map[string]any)
-		argm["message"] = strings.Join(argv, " ")
-	}
+// 		msg := argm["message"]
+// 		if cfg.Message != "" {
+// 			argm["message"] = Cat(msg.(string), cfg.Message, "\n###\n")
+// 		}
+// 	} else if conf.IsSlash(argv[0]) {
+// 		// call local system command as tool:
+// 		// sh:exec command
+// 		argm = make(map[string]any)
+// 		argm["kit"] = "sh"
+// 		argm["name"] = "exec"
+// 		argm["command"] = strings.Join(argv, " ")
+// 	} else {
+// 		argm = make(map[string]any)
+// 		argm["message"] = strings.Join(argv, " ")
+// 	}
 
-	if len(argm) == 0 {
-		return nil, fmt.Errorf("invalid action command: %+v", argv)
-	}
-	return sw.parsem(ctx, argm)
-}
+// 	return sw.parsem(ctx, argm)
+// }
 
-func (sw *Swarm) parsem(ctx context.Context, argm map[string]any) (api.ArgMap, error) {
-	log.GetLogger(ctx).Debugf("Parsem %+v\n", argm)
+// func (sw *Swarm) parsem(ctx context.Context, argm map[string]any) (api.ArgMap, error) {
+// 	if len(argm) == 0 {
+// 		return nil, fmt.Errorf("empty map")
+// 	}
+// 	log.GetLogger(ctx).Debugf("Parsem %+v\n", argm)
 
-	a := api.ArgMap(argm)
-	id := a.Kitname().ID()
-	if id == "" {
-		return nil, fmt.Errorf("missing action id: %+v", argm)
-	}
-	return a, nil
-}
+// 	a := api.ArgMap(argm)
+// 	id := a.Kitname().ID()
+// 	if id == "" {
+// 		return nil, fmt.Errorf("missing action id: %+v", argm)
+// 	}
+// 	return a, nil
+// }
 
 func (sw *Swarm) Format(ctx context.Context, argm map[string]any) (*api.Result, error) {
 	format, _ := api.GetStrProp("format", argm)
@@ -401,32 +413,37 @@ func (sw *Swarm) Exec(ctx context.Context, input any) (*api.Result, error) {
 }
 
 func (sw *Swarm) exec(ctx context.Context, parent *api.Agent, input any) (*api.Result, error) {
-	switch input := input.(type) {
-	case string:
-		return sw.execs(ctx, parent, input)
-	case []string:
-		return sw.execv(ctx, parent, input)
-	case map[string]any:
-		return sw.execm(ctx, parent, input)
-	}
-	return nil, fmt.Errorf("not supported %t", input)
-}
-
-func (sw *Swarm) execs(ctx context.Context, parent *api.Agent, args string) (*api.Result, error) {
-	argm, err := sw.parses(ctx, args)
+	// switch input := input.(type) {
+	// case string:
+	// 	return sw.execs(ctx, parent, input)
+	// case []string:
+	// 	return sw.execv(ctx, parent, input)
+	// case map[string]any:
+	// 	return sw.execm(ctx, parent, input)
+	// }
+	// return nil, fmt.Errorf("not supported %t", input)
+	argm, err := conf.Parse(input)
 	if err != nil {
 		return nil, err
 	}
 	return sw.execm(ctx, parent, argm)
 }
 
-func (sw *Swarm) execv(ctx context.Context, parent *api.Agent, argv []string) (*api.Result, error) {
-	argm, err := sw.parsev(ctx, argv)
-	if err != nil {
-		return nil, err
-	}
-	return sw.execm(ctx, parent, argm)
-}
+// func (sw *Swarm) execs(ctx context.Context, parent *api.Agent, args string) (*api.Result, error) {
+// 	argm, err := sw.parses(ctx, args)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return sw.execm(ctx, parent, argm)
+// }
+
+// func (sw *Swarm) execv(ctx context.Context, parent *api.Agent, argv []string) (*api.Result, error) {
+// 	argm, err := sw.parsev(ctx, argv)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return sw.execm(ctx, parent, argm)
+// }
 
 func (sw *Swarm) execm(ctx context.Context, parent *api.Agent, argm map[string]any) (*api.Result, error) {
 	log.GetLogger(ctx).Debugf("Execm parent: %+v args:%+v\n", parent, argm)
@@ -582,19 +599,23 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 }
 
 func (sw *Swarm) LoadScript(v string) (string, error) {
-	var script string
-
-	if strings.HasPrefix(v, "data:") {
-		// FIXME remove mime
-		script = v[5:]
-	} else {
-		file := v
-		data, err := sw.Workspace.ReadFile(file, nil)
-		if err != nil {
-			return "", err
-		}
-		script = string(data)
-	}
-
-	return script, nil
+	return atm.LoadScript(sw.Workspace, v)
 }
+
+// func LoadScript(ws api.Workspace, v string) (string, error) {
+// 	var script string
+
+// 	if strings.HasPrefix(v, "data:") {
+// 		// FIXME remove mime
+// 		script = v[5:]
+// 	} else {
+// 		file := v
+// 		data, err := ws.ReadFile(file, nil)
+// 		if err != nil {
+// 			return "", err
+// 		}
+// 		script = string(data)
+// 	}
+
+// 	return script, nil
+// }

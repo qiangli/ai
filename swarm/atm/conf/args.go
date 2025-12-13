@@ -109,6 +109,10 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	script := fs.String("script", "", "Path to the shell script file to be executed.")
 	action := fs.String("action", "", "Default action (agent or tool) to be executed.")
 
+	// special input
+	// value provided as option
+	stdin := fs.String("stdin", "", "Read input from stdin")
+
 	//
 	err := fs.Parse(argv)
 	if err != nil {
@@ -196,6 +200,10 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 		argm["log_level"] = "quiet"
 	}
 
+	if *isQuiet {
+		argm["log_level"] = "quiet"
+	}
+
 	// update the map
 	if kit != "" {
 		argm["kit"] = kit
@@ -223,6 +231,11 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	}
 	if *action != "" {
 		argm["action"] = *action
+	}
+
+	//
+	if *stdin != "" {
+		argm["stdin"] = *stdin
 	}
 
 	return argm, nil
@@ -313,4 +326,80 @@ func ParseActionCommand(s string) (api.ArgMap, error) {
 func Argv(s string) []string {
 	argv := shlex.Argv(s)
 	return argv
+}
+
+// Return a map[string]any after parsing string, argument list
+// and validating kit:name
+func Parse(input any) (api.ArgMap, error) {
+	var argm map[string]any
+	var err error
+
+	switch input := input.(type) {
+	case string:
+		argv := Argv(input)
+		argm, err = parsev(argv)
+	case []string:
+		argm, err = parsev(input)
+	case map[string]any:
+		argm = input
+	default:
+		return nil, fmt.Errorf("not supported %t", input)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	if len(argm) == 0 {
+		return nil, fmt.Errorf("empty input map")
+	}
+
+	stdin := api.ToString(argm["stdin"])
+	if stdin != "" {
+		msg := argm["message"]
+		argm["message"] = cat(msg.(string), stdin, "\n###\n")
+	}
+	// clipboard
+
+	a := api.ArgMap(argm)
+	id := a.Kitname().ID()
+	if id == "" {
+		return nil, fmt.Errorf("missing action id: %+v", argm)
+	}
+
+	return a, nil
+}
+
+func parsev(argv []string) (api.ArgMap, error) {
+	var argm map[string]any
+	if IsAction(argv[0]) {
+
+		// cfg, err := GetInput(ctx, argv)
+		// if err != nil {
+		// 	return nil, err
+		// }
+
+		// remove special trailing chars
+		// argv = cfg.Args
+		v, err := ParseActionArgs(argv)
+		if err != nil {
+			return nil, err
+		}
+		argm = v
+
+		// msg := argm["message"]
+		// if cfg.Message != "" {
+		// 	argm["message"] = Cat(msg.(string), cfg.Message, "\n###\n")
+		// }
+	} else if IsSlash(argv[0]) {
+		// call local system command as tool:
+		// sh:exec command
+		argm = make(map[string]any)
+		argm["kit"] = "sh"
+		argm["name"] = "exec"
+		argm["command"] = strings.Join(argv, " ")
+	} else {
+		argm = make(map[string]any)
+		argm["message"] = strings.Join(argv, " ")
+	}
+	return argm, nil
 }

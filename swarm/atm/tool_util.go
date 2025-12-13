@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"strings"
 	"text/template"
+
+	"github.com/qiangli/ai/swarm/api"
 )
 
 func applyTemplate(tpl *template.Template, text string, data any) (string, error) {
@@ -43,4 +45,22 @@ func CheckApplyTemplate(tpl *template.Template, s string, data map[string]any) (
 		return applyTemplate(tpl, s, data)
 	}
 	return s, nil
+}
+
+func LoadScript(ws api.Workspace, v string) (string, error) {
+	var script string
+
+	if strings.HasPrefix(v, "data:") {
+		// FIXME remove mime
+		script = v[5:]
+	} else {
+		file := v
+		data, err := ws.ReadFile(file, nil)
+		if err != nil {
+			return "", err
+		}
+		script = string(data)
+	}
+
+	return script, nil
 }
