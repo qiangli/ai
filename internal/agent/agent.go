@@ -140,14 +140,14 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 
 	msg := argm.GetString("message")
 	sw.Vars.Global.Set("workspace", roots.Workspace)
-	sw.Vars.Global.Set("query", msg)
+	// sw.Vars.Global.Set("query", msg)
 
 	if msg != "" {
 		showInput(ctx, msg)
 	}
 
 	var out *api.Output
-	if v, err := sw.Execm(ctx, argm); err != nil {
+	if v, err := sw.Exec(ctx, argm); err != nil {
 		// return err
 		out = &api.Output{
 			Content: fmt.Sprintf("❌ %+v", err),

@@ -56,9 +56,10 @@ func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, _ string, args map
 	vs := vars.RTE.OS
 	result, err := ExecCommand(ctx, vs, vars, command, rest)
 
-	if err != nil {
-		return "", err
-	}
+	// result, err := vars.RootAgent.Runner.Run(ctx, "", args)
+	// if err != nil {
+	// 	return "", err
+	// }
 	return api.ToString(result), nil
 }
 
@@ -69,4 +70,24 @@ func (r *SystemKit) Bash(ctx context.Context, vars *api.Vars, name string, args 
 		return "", err
 	}
 	return api.ToString(result), nil
+}
+
+func (r *SystemKit) Apply(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	// // shell handles command/script if empty
+	// result, err :=
+	// if err != nil {
+	// 	return "", err
+	// }
+	// return api.ToString(result), nil
+	return "Not supported", nil
+}
+
+func (r *SystemKit) Parse(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	// args/argv
+	return "Not supported", nil
+}
+
+func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	// args/argv
+	return "Not supported", nil
 }

@@ -264,60 +264,76 @@ func (sw *Swarm) globalEnv() map[string]any {
 
 // expand s for agent/tool similar to $(cmdline...)
 func (sw *Swarm) expandx(ctx context.Context, parent *api.Agent, s string) (string, error) {
-	data, err := sw.Run(ctx, parent, s)
+	data, err := sw.exec(ctx, parent, s)
 	if err != nil {
 		return "", nil
 	}
 	return api.ToString(data), nil
 }
 
-// Convert arg string and run agent action
-func (sw *Swarm) Run(ctx context.Context, parent *api.Agent, args string) (*api.Result, error) {
-	argm, err := conf.ParseActionCommand(args)
-	if err != nil {
-		return nil, err
-	}
-	return sw.Runm(ctx, parent, argm)
-}
+// // Convert arg string and run agent action
+// func (sw *Swarm) Run(ctx context.Context, parent *api.Agent, args string) (*api.Result, error) {
+// 	argm, err := sw.Parse(ctx, args)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return sw.Exec(ctx, argm)
+// }
 
-// Convert arg array and run agent action
-func (sw *Swarm) Runv(ctx context.Context, parent *api.Agent, argv []string) (*api.Result, error) {
-	argm, err := conf.ParseActionArgs(argv)
-	if err != nil {
-		return nil, err
-	}
-	return sw.Runm(ctx, parent, argm)
-}
+// // Convert arg string and run agent action
+// func (sw *Swarm) Run(ctx context.Context, parent *api.Agent, args string) (*api.Result, error) {
+// 	// argm, err := sw.Parse(ctx, args)
+// 	// if err != nil {
+// 	// 	return nil, err
+// 	// }
+// 	// am := api.ArgMap(argm)
+// 	// kit := am.Kit()
+// 	// name := am.Name()
+// 	// if kit != string(api.ToolTypeAgent) {
+// 	// 	return nil, fmt.Errorf("invalid agent: %v", name)
+// 	// }
+// 	// return sw.runm(ctx, parent, name, am)
+// 	return sw.exec(ctx, parent, args)
+// }
 
-// Run agent action
-func (sw *Swarm) Runm(ctx context.Context, parent *api.Agent, argm map[string]any) (*api.Result, error) {
-	am := api.ArgMap(argm)
-	kit := am.Kit()
-	name := am.Name()
-	if kit != string(api.ToolTypeAgent) {
-		return nil, fmt.Errorf("invalid agent: %v", name)
-	}
-	return sw.runm(ctx, parent, name, am)
-}
+// // Convert arg array and run agent action
+// func (sw *Swarm) Runv(ctx context.Context, parent *api.Agent, argv []string) (*api.Result, error) {
+// 	argm, err := conf.ParseActionArgs(argv)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return sw.Runm(ctx, parent, argm)
+// }
+
+// // Run agent action
+// func (sw *Swarm) Runm(ctx context.Context, parent *api.Agent, argm map[string]any) (*api.Result, error) {
+// 	am := api.ArgMap(argm)
+// 	kit := am.Kit()
+// 	name := am.Name()
+// 	if kit != string(api.ToolTypeAgent) {
+// 		return nil, fmt.Errorf("invalid agent: %v", name)
+// 	}
+// 	return sw.runm(ctx, parent, name, am)
+// }
 
 func (sw *Swarm) Parse(ctx context.Context, input any) (api.ArgMap, error) {
 	switch input := input.(type) {
 	case string:
-		return sw.Parses(ctx, input)
+		return sw.parses(ctx, input)
 	case []string:
-		return sw.Parsev(ctx, input)
+		return sw.parsev(ctx, input)
 	case map[string]any:
-		return sw.Parsem(ctx, input)
+		return sw.parsem(ctx, input)
 	}
 	return nil, fmt.Errorf("not supported %t", input)
 }
 
-func (sw *Swarm) Parses(ctx context.Context, args string) (api.ArgMap, error) {
+func (sw *Swarm) parses(ctx context.Context, args string) (api.ArgMap, error) {
 	argv := conf.Argv(args)
-	return sw.Parsev(ctx, argv)
+	return sw.parsev(ctx, argv)
 }
 
-func (sw *Swarm) Parsev(ctx context.Context, argv []string) (api.ArgMap, error) {
+func (sw *Swarm) parsev(ctx context.Context, argv []string) (api.ArgMap, error) {
 	var argm map[string]any
 
 	if conf.IsAction(argv[0]) {
@@ -353,10 +369,10 @@ func (sw *Swarm) Parsev(ctx context.Context, argv []string) (api.ArgMap, error) 
 	if len(argm) == 0 {
 		return nil, fmt.Errorf("invalid action command: %+v", argv)
 	}
-	return sw.Parsem(ctx, argm)
+	return sw.parsem(ctx, argm)
 }
 
-func (sw *Swarm) Parsem(ctx context.Context, argm map[string]any) (api.ArgMap, error) {
+func (sw *Swarm) parsem(ctx context.Context, argm map[string]any) (api.ArgMap, error) {
 	log.GetLogger(ctx).Debugf("Parsem %+v\n", argm)
 
 	a := api.ArgMap(argm)
@@ -373,41 +389,69 @@ func (sw *Swarm) Format(ctx context.Context, argm map[string]any) (*api.Result, 
 		format = "markdown"
 	}
 	var v string
-	// var tpl = resource.FormatFile(format)
-	// atm.CheckApplyTemplate(tpl, argm)
+	var tpl = resource.FormatFile(format)
+	atm.CheckApplyTemplate(sw.Vars.RootAgent.Template, tpl, argm)
 	return &api.Result{
 		Value: v,
 	}, nil
 }
 
-func (sw *Swarm) Execv(ctx context.Context, argv []string) (*api.Result, error) {
-	argm, err := sw.Parsev(ctx, argv)
+func (sw *Swarm) Exec(ctx context.Context, input any) (*api.Result, error) {
+	return sw.exec(ctx, sw.Vars.RootAgent, input)
+}
+
+func (sw *Swarm) exec(ctx context.Context, parent *api.Agent, input any) (*api.Result, error) {
+	switch input := input.(type) {
+	case string:
+		return sw.execs(ctx, parent, input)
+	case []string:
+		return sw.execv(ctx, parent, input)
+	case map[string]any:
+		return sw.execm(ctx, parent, input)
+	}
+	return nil, fmt.Errorf("not supported %t", input)
+}
+
+func (sw *Swarm) execs(ctx context.Context, parent *api.Agent, args string) (*api.Result, error) {
+	argm, err := sw.parses(ctx, args)
 	if err != nil {
 		return nil, err
 	}
-	return sw.Execm(ctx, argm)
+	return sw.execm(ctx, parent, argm)
 }
 
-func (sw *Swarm) Execm(ctx context.Context, argm map[string]any) (*api.Result, error) {
-	log.GetLogger(ctx).Debugf("Execm %+v\n", argm)
+func (sw *Swarm) execv(ctx context.Context, parent *api.Agent, argv []string) (*api.Result, error) {
+	argm, err := sw.parsev(ctx, argv)
+	if err != nil {
+		return nil, err
+	}
+	return sw.execm(ctx, parent, argm)
+}
 
-	a := api.ArgMap(argm)
-	id := a.Kitname().ID()
+func (sw *Swarm) execm(ctx context.Context, parent *api.Agent, argm map[string]any) (*api.Result, error) {
+	log.GetLogger(ctx).Debugf("Execm parent: %+v args:%+v\n", parent, argm)
+
+	if parent == nil {
+		parent = sw.Vars.RootAgent
+	}
+
+	am := api.ArgMap(argm)
+	id := am.Kitname().ID()
 	if id == "" {
 		return nil, fmt.Errorf("missing action id: %+v", argm)
 	}
-	kit := a.Kit()
-	name := a.Name()
+	kit := am.Kit()
+	name := am.Name()
 
 	var v any
 	var err error
 	switch kit {
 	case "agent":
 		//
-		v, err = sw.runm(ctx, sw.Vars.RootAgent, name, argm)
+		v, err = sw.runm(ctx, parent, name, argm)
 	default:
 		// all tools including sh:bash
-		v, err = sw.Vars.RootAgent.Runner.Run(ctx, id, argm)
+		v, err = parent.Runner.Run(ctx, id, argm)
 	}
 	if err != nil {
 		return nil, err

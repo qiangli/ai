@@ -1,3 +1,4 @@
+#! mime-type=text/x-go-template
 {{- if .error }}
 ❌ {{.error}}
 {{- else }}

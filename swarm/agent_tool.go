@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/qiangli/ai/swarm/api"
-	// "github.com/qiangli/ai/swarm/atm"
+	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
 )
 
@@ -75,7 +75,14 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 }
 
 func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]any) (any, error) {
-	kit, name := api.Kitname(tid).Decode()
+	var kit, name string
+	if tid == "" {
+		kit = api.ToString(args["kit"])
+		name = api.ToString(args["name"])
+		tid = api.Kitname(kit + ":" + name).ID()
+	} else {
+		kit, name = api.Kitname(tid).Decode()
+	}
 	// /bin/command (local system)
 	// sh:*
 	// agent:*
@@ -88,24 +95,28 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	// this ensures kit:name is in internal kit__name format
 	tid = api.Kitname(kit + ":" + name).ID()
 
-	// if kit == "" || kit == "sh" {
-	// 	// system command
-	// 	if kit == "" {
-	// 		cmd, _ := api.GetStrProp("command", args)
-	// 		// argv, _ := api.GetArrayProp("arguments", args)
-	// 		return atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, cmd, nil)
-	// 	}
-	// 	// shell
-	// 	return r.agent.Shell.Run(ctx, "", args)
-	// }
+	if kit == "sh" {
+		// system command
+		// if kit == "" {
+		// 	cmd, _ := api.GetStrProp("command", args)
+		// 	// argv, _ := api.GetArrayProp("arguments", args)
+		// 	return atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, cmd, nil)
+		// }
+		// shell
+		return r.agent.Shell.Run(ctx, "", args)
+	}
+
+	if kit == "agent" {
+		return r.sw.runm(ctx, r.agent, name, args)
+	}
 
 	// system command
 	// /bin/*
-	// if kit == "" {
-	// 	cmd, _ := api.GetStrProp("command", args)
-	// 	// argv, _ := api.GetArrayProp("arguments", args)
-	// 	return atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, cmd, nil)
-	// }
+	if kit == "" || kit == "bin" {
+		cmd, _ := api.GetStrProp("command", args)
+		// argv, _ := api.GetArrayProp("arguments", args)
+		return atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, cmd, nil)
+	}
 
 	// agent/tool action
 	v, err := r.loadTool(tid, args)

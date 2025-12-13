@@ -115,7 +115,7 @@ func (r *AgentScriptRunner) execv(ctx context.Context, vs *sh.VirtualSystem, arg
 		vs.System.Setenv(k, v)
 	}
 
-	result, err := r.sw.Execv(ctx, args)
+	result, err := r.sw.exec(ctx, r.parent, args)
 	if err != nil {
 		fmt.Fprintln(vs.IOE.Stderr, err.Error())
 		return nil, err

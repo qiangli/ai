@@ -1,4 +1,4 @@
-#
+#! mime-type=text/x-go-template
 {{if .error}}
 <span style="color:red">✖ {{.error}}</span>
 {{else if .result}}
