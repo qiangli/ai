@@ -26,7 +26,7 @@ func NewAgentScriptRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
 	}
 }
 
-// Run command or script. 
+// Run command or script.
 // If script is empty, read command or script from args.
 func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[string]any) (any, error) {
 	if script == "" && args != nil {

@@ -54,7 +54,6 @@ func (sw *Swarm) Init(rte *api.ActionRTEnv) error {
 	if rte.Base == "" {
 		return fmt.Errorf("app base required")
 	}
-	// rte.Roots optional
 	// required
 	if rte.Workspace == nil {
 		return fmt.Errorf("app workspace not initialized")
@@ -71,15 +70,6 @@ func (sw *Swarm) Init(rte *api.ActionRTEnv) error {
 
 	sw.InitChain()
 	sw.Vars = api.NewVars()
-
-	// // required by toolkit
-	// sw.Vars.RTE = &api.ActionRTEnv{
-	// 	// Root:      sw.Root,
-	// 	User:      sw.User,
-	// 	Secrets:   sw.Secrets,
-	// 	Workspace: sw.Workspace,
-	// 	OS:        sw.OS,
-	// }
 
 	sw.Vars.RTE = rte
 
@@ -148,18 +138,6 @@ func (sw *Swarm) CreateAgent(ctx context.Context, name string) (*api.Agent, erro
 // If the resulting AI Message contains tool_calls, the orchestrator will then call the tools.
 // The tools node executes the tools and adds the responses to the messages list as ToolMessage objects. The agent node then calls the language model again. The process repeats until no more tool_calls are present in the response. The agent then returns the full list of messages.
 func (sw *Swarm) Serve(req *api.Request, resp *api.Response) error {
-	// if sw.User == nil || sw.Vars == nil {
-	// 	return api.NewInternalServerError("invalid config. user or vars not initialized")
-	// }
-	// if v, _ := sw.Vars.Global.Get("workspace"); v == "" {
-	// 	return api.NewInternalServerError("invalid config. user or vars not initialized")
-	// }
-	// if req.Agent != nil && req.Agent.Name == req.Name {
-	// 	return api.NewUnsupportedError(fmt.Sprintf("agent: %q calling itself not supported.", req.Name))
-	// }
-	// if req.Agent == nil {
-	// 	req.Agent = sw.Vars.RootAgent
-	// }
 
 	return sw.serve(sw.CreateAgent, req, resp)
 }
@@ -282,51 +260,6 @@ func (sw *Swarm) expandx(ctx context.Context, parent *api.Agent, s string) (stri
 	return api.ToString(data), nil
 }
 
-// // Convert arg string and run agent action
-// func (sw *Swarm) Run(ctx context.Context, parent *api.Agent, args string) (*api.Result, error) {
-// 	argm, err := sw.Parse(ctx, args)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return sw.Exec(ctx, argm)
-// }
-
-// // Convert arg string and run agent action
-// func (sw *Swarm) Run(ctx context.Context, parent *api.Agent, args string) (*api.Result, error) {
-// 	// argm, err := sw.Parse(ctx, args)
-// 	// if err != nil {
-// 	// 	return nil, err
-// 	// }
-// 	// am := api.ArgMap(argm)
-// 	// kit := am.Kit()
-// 	// name := am.Name()
-// 	// if kit != string(api.ToolTypeAgent) {
-// 	// 	return nil, fmt.Errorf("invalid agent: %v", name)
-// 	// }
-// 	// return sw.runm(ctx, parent, name, am)
-// 	return sw.exec(ctx, parent, args)
-// }
-
-// // Convert arg array and run agent action
-// func (sw *Swarm) Runv(ctx context.Context, parent *api.Agent, argv []string) (*api.Result, error) {
-// 	argm, err := conf.ParseActionArgs(argv)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return sw.Runm(ctx, parent, argm)
-// }
-
-// // Run agent action
-// func (sw *Swarm) Runm(ctx context.Context, parent *api.Agent, argm map[string]any) (*api.Result, error) {
-// 	am := api.ArgMap(argm)
-// 	kit := am.Kit()
-// 	name := am.Name()
-// 	if kit != string(api.ToolTypeAgent) {
-// 		return nil, fmt.Errorf("invalid agent: %v", name)
-// 	}
-// 	return sw.runm(ctx, parent, name, am)
-// }
-
 func (sw *Swarm) Parse(ctx context.Context, input any) (api.ArgMap, error) {
 	// parse special chars: - }}
 	parsev := func(argv []string) (api.ArgMap, error) {
@@ -353,61 +286,6 @@ func (sw *Swarm) Parse(ctx context.Context, input any) (api.ArgMap, error) {
 	return conf.Parse(input)
 }
 
-// func (sw *Swarm) parses(ctx context.Context, args string) (api.ArgMap, error) {
-// 	argv := conf.Argv(args)
-// 	return sw.parsev(ctx, argv)
-// }
-
-// func (sw *Swarm) parsev(ctx context.Context, argv []string) (api.ArgMap, error) {
-// 	var argm map[string]any
-
-// 	if conf.IsAction(argv[0]) {
-// 		cfg, err := GetInput(ctx, argv)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-
-// 		// remove special trailing chars
-// 		argv = cfg.Args
-// 		v, err := conf.ParseActionArgs(argv)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		argm = v
-
-// 		msg := argm["message"]
-// 		if cfg.Message != "" {
-// 			argm["message"] = Cat(msg.(string), cfg.Message, "\n###\n")
-// 		}
-// 	} else if conf.IsSlash(argv[0]) {
-// 		// call local system command as tool:
-// 		// sh:exec command
-// 		argm = make(map[string]any)
-// 		argm["kit"] = "sh"
-// 		argm["name"] = "exec"
-// 		argm["command"] = strings.Join(argv, " ")
-// 	} else {
-// 		argm = make(map[string]any)
-// 		argm["message"] = strings.Join(argv, " ")
-// 	}
-
-// 	return sw.parsem(ctx, argm)
-// }
-
-// func (sw *Swarm) parsem(ctx context.Context, argm map[string]any) (api.ArgMap, error) {
-// 	if len(argm) == 0 {
-// 		return nil, fmt.Errorf("empty map")
-// 	}
-// 	log.GetLogger(ctx).Debugf("Parsem %+v\n", argm)
-
-// 	a := api.ArgMap(argm)
-// 	id := a.Kitname().ID()
-// 	if id == "" {
-// 		return nil, fmt.Errorf("missing action id: %+v", argm)
-// 	}
-// 	return a, nil
-// }
-
 func (sw *Swarm) Format(ctx context.Context, argm map[string]any) (*api.Result, error) {
 	format, _ := api.GetStrProp("format", argm)
 	if format == "" {
@@ -426,15 +304,6 @@ func (sw *Swarm) Exec(ctx context.Context, input any) (*api.Result, error) {
 }
 
 func (sw *Swarm) exec(ctx context.Context, parent *api.Agent, input any) (*api.Result, error) {
-	// switch input := input.(type) {
-	// case string:
-	// 	return sw.execs(ctx, parent, input)
-	// case []string:
-	// 	return sw.execv(ctx, parent, input)
-	// case map[string]any:
-	// 	return sw.execm(ctx, parent, input)
-	// }
-	// return nil, fmt.Errorf("not supported %t", input)
 	argm, err := conf.Parse(input)
 	if err != nil {
 		return nil, err
@@ -442,47 +311,35 @@ func (sw *Swarm) exec(ctx context.Context, parent *api.Agent, input any) (*api.R
 	return sw.execm(ctx, parent, argm)
 }
 
-// func (sw *Swarm) execs(ctx context.Context, parent *api.Agent, args string) (*api.Result, error) {
-// 	argm, err := sw.parses(ctx, args)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return sw.execm(ctx, parent, argm)
-// }
-
-// func (sw *Swarm) execv(ctx context.Context, parent *api.Agent, argv []string) (*api.Result, error) {
-// 	argm, err := sw.parsev(ctx, argv)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return sw.execm(ctx, parent, argm)
-// }
-
 func (sw *Swarm) execm(ctx context.Context, parent *api.Agent, argm map[string]any) (*api.Result, error) {
-	log.GetLogger(ctx).Debugf("Execm parent: %+v args:%+v\n", parent, argm)
+	// log.GetLogger(ctx).Debugf("Execm parent: %+v args:%+v\n", parent, argm)
 
-	if parent == nil {
-		parent = sw.Vars.RootAgent
-	}
+	// if parent == nil {
+	// 	parent = sw.Vars.RootAgent
+	// }
 
 	am := api.ArgMap(argm)
 	id := am.Kitname().ID()
 	if id == "" {
 		return nil, fmt.Errorf("missing action id: %+v", argm)
 	}
-	kit := am.Kit()
-	name := am.Name()
+	// kit := am.Kit()
+	// name := am.Name()
 
-	var v any
-	var err error
-	switch kit {
-	case "agent":
-		//
-		v, err = sw.runm(ctx, parent, name, argm)
-	default:
-		// all tools including sh:bash
-		v, err = parent.Runner.Run(ctx, id, argm)
-	}
+	// var v any
+	// var err error
+	// switch kit {
+	// case "agent":
+	// 	//
+	// 	v, err = sw.runm(ctx, parent, name, argm)
+	// default:
+	// 	// all tools including sh:bash
+	// 	v, err = parent.Runner.Run(ctx, id, argm)
+	// }
+	// if err != nil {
+	// 	return nil, err
+	// }
+	v, err := parent.Runner.Run(ctx, id, argm)
 	if err != nil {
 		return nil, err
 	}
@@ -496,17 +353,6 @@ func (sw *Swarm) runm(ctx context.Context, parent *api.Agent, name string, args 
 
 	// load agent from content
 	if s, ok := args["script"]; ok {
-		// data, err := sw.LoadScript(api.ToString(s))
-		// if err != nil {
-		// 	return nil, err
-		// }
-		// if name == "" {
-		// 	return nil, fmt.Errorf("agent name required")
-		// }
-		// pack, _ := api.Packname(name).Decode()
-		// if v, err := sw.agentMaker.Creator(sw.agentMaker.Create, sw.User.Email, pack, []byte(data)); err == nil {
-		// 	creator = v
-		// }
 		v, err := sw.creatorFromScript(name, api.ToString(s))
 		if err != nil {
 			return nil, err
@@ -586,11 +432,6 @@ func (sw *Swarm) callAgentType(ctx context.Context, agent *api.Agent, tf *api.To
 	if tf.Kit == string(api.ToolTypeAgent) {
 		return sw.runm(ctx, agent, tf.Agent, args)
 	}
-
-	// // ai tool
-	// if tf.Kit == "ai" {
-	// 	return sw.callAITool(ctx, agent, tf, args)
-	// }
 	return nil, api.NewUnsupportedError("agent kit: " + tf.Kit)
 }
 
@@ -638,21 +479,3 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 func (sw *Swarm) LoadScript(v string) (string, error) {
 	return atm.LoadScript(sw.Workspace, v)
 }
-
-// func LoadScript(ws api.Workspace, v string) (string, error) {
-// 	var script string
-
-// 	if strings.HasPrefix(v, "data:") {
-// 		// FIXME remove mime
-// 		script = v[5:]
-// 	} else {
-// 		file := v
-// 		data, err := ws.ReadFile(file, nil)
-// 		if err != nil {
-// 			return "", err
-// 		}
-// 		script = string(data)
-// 	}
-
-// 	return script, nil
-// }

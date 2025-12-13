@@ -2,8 +2,7 @@ package atm
 
 import (
 	"context"
-	// "fmt"
-	// "maps"
+	"fmt"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
@@ -23,13 +22,22 @@ func (r *SystemKit) Pwd(ctx context.Context, vars *api.Vars, name string, args m
 }
 
 func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
-	argv, err := api.GetArrayProp("command", args)
+	cmd, err := api.GetStrProp("command", args)
 	if err != nil {
 		return "", err
 	}
+	if len(cmd) == 0 {
+		return "", fmt.Errorf("command is empty")
+	}
+	// command := argv[0]
+	// rest := argv[1:]
+	vs := vars.RTE.OS
+	result, err := ExecCommand(ctx, vs, vars, cmd, nil)
 
-	result, err := vars.RTE.OS.Command(argv[0], argv[1:]...).CombinedOutput()
-	return string(result), nil
+	if err != nil {
+		return "", err
+	}
+	return api.ToString(result), nil
 }
 
 func (r *SystemKit) Bash(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
