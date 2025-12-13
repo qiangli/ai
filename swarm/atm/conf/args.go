@@ -356,11 +356,13 @@ func Parse(input any) (api.ArgMap, error) {
 	}
 
 	a := api.ArgMap(argm)
-	id := a.Kitname().ID()
-	if id == "" {
+	kit, name := a.Kitname().Decode()
+	if kit == "" {
 		return nil, fmt.Errorf("missing action id: %+v", argm)
 	}
-
+	// ensure name is set even it is empty
+	a["kit"] = kit
+	a["name"] = name
 	return a, nil
 }
 
