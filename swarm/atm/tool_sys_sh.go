@@ -2,8 +2,8 @@ package atm
 
 import (
 	"context"
-	"fmt"
-	"maps"
+	// "fmt"
+	// "maps"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
@@ -70,35 +70,35 @@ func (r *SystemKit) Bash(ctx context.Context, vars *api.Vars, name string, args 
 	return api.ToString(result), nil
 }
 
-func (r *SystemKit) Apply(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
-	v, ok := args["script"]
-	if !ok {
-		return "", fmt.Errorf("missing script file")
-	}
-	s := api.ToString(v)
+// func (r *SystemKit) Apply(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
+// 	v, ok := args["script"]
+// 	if !ok {
+// 		return "", fmt.Errorf("missing script file")
+// 	}
+// 	s := api.ToString(v)
 
-	if v, err := LoadScript(vars.RTE.Workspace, s); err != nil {
-		return "", err
-	} else {
-		s = string(v)
-	}
+// 	if v, err := LoadScript(vars.RTE.Workspace, s); err != nil {
+// 		return "", err
+// 	} else {
+// 		s = string(v)
+// 	}
 
-	var data = make(map[string]any)
-	maps.Copy(data, vars.Global.GetAllEnvs())
-	if vars.RootAgent.Environment != nil {
-		maps.Copy(data, vars.RootAgent.Environment.GetAllEnvs())
-	}
-	maps.Copy(data, args)
+// 	var data = make(map[string]any)
+// 	maps.Copy(data, vars.Global.GetAllEnvs())
+// 	if vars.RootAgent.Environment != nil {
+// 		maps.Copy(data, vars.RootAgent.Environment.GetAllEnvs())
+// 	}
+// 	maps.Copy(data, args)
 
-	result, err := CheckApplyTemplate(vars.RootAgent.Template, s, data)
-	if err != nil {
-		return "", err
-	}
-	return api.ToString(result), nil
-}
+// 	result, err := CheckApplyTemplate(vars.RootAgent.Template, s, data)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return api.ToString(result), nil
+// }
 
 func (r *SystemKit) Parse(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	result, err := conf.Parse(args["script"])
+	result, err := conf.Parse(args["command"])
 	if err != nil {
 		return "", err
 	}

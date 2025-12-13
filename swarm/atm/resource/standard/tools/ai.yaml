@@ -68,6 +68,22 @@ tools:
           description: "The name of the agent"
       required:
         - "agent"
+  
+  - name: "reload_agent"
+    description: |
+      Reload the current agent with a new configuration.
+      The script can be a file path or inline with the "data:" prefix.
+      Ensure the script is a properly formatted YAML file.
+    parameters:
+      type: "object"
+      properties:
+        script:
+          type: "string"
+          description: |
+            Path to the script file or inline script prefixed with 'data:'.
+            The script is used to reconfigure the agent.
+      required:
+        - "script"
 
   - name: "spawn_agent"
     description: "Delegate the current task to a specific agent"

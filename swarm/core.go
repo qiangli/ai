@@ -223,7 +223,18 @@ func (sw *Swarm) serve(creator api.Creator, req *api.Request, resp *api.Response
 		}
 
 		if resp.Result.State == api.StateTransfer {
-			logger.Debugf("Agent transfer: %s => %s\n", req.Name, resp.Result.NextAgent)
+			if resp.Result.NextAgent == "self" {
+				name := agent.Name
+				v, err := sw.creatorFromScript(name, resp.Result.Value)
+				if err != nil {
+					return err
+				}
+				creator = v
+				logger.Infof("Agent reload: %s => %s\n", req.Name, resp.Result.NextAgent)
+			} else {
+				logger.Infof("Agent transfer: %s => %s\n", req.Name, resp.Result.NextAgent)
+			}
+
 			req.Name = resp.Result.NextAgent
 			req.Agent = agent
 			continue
@@ -485,16 +496,40 @@ func (sw *Swarm) runm(ctx context.Context, parent *api.Agent, name string, args 
 
 	// load agent from content
 	if s, ok := args["script"]; ok {
-		data, err := sw.LoadScript(api.ToString(s))
+		// data, err := sw.LoadScript(api.ToString(s))
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// if name == "" {
+		// 	return nil, fmt.Errorf("agent name required")
+		// }
+		// pack, _ := api.Packname(name).Decode()
+		// if v, err := sw.agentMaker.Creator(sw.agentMaker.Create, sw.User.Email, pack, []byte(data)); err == nil {
+		// 	creator = v
+		// }
+		v, err := sw.creatorFromScript(name, api.ToString(s))
 		if err != nil {
 			return nil, err
 		}
-		pack, _ := api.Packname(name).Decode()
-		if v, err := sw.agentMaker.Creator(sw.agentMaker.Create, sw.User.Email, pack, []byte(data)); err == nil {
-			creator = v
-		}
+		creator = v
 	}
 	return sw.runc(ctx, creator, parent, name, args)
+}
+
+func (sw *Swarm) creatorFromScript(name, script string) (api.Creator, error) {
+	data, err := sw.LoadScript(script)
+	if err != nil {
+		return nil, err
+	}
+	if name == "" {
+		return nil, fmt.Errorf("agent name required")
+	}
+	pack, _ := api.Packname(name).Decode()
+	v, err := sw.agentMaker.Creator(sw.agentMaker.Create, sw.User.Email, pack, []byte(data))
+	if err != nil {
+		return nil, err
+	}
+	return v, nil
 }
 
 func (sw *Swarm) runc(ctx context.Context, creator api.Creator, parent *api.Agent, name string, args map[string]any) (*api.Result, error) {

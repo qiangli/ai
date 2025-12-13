@@ -242,6 +242,22 @@ func (r *AIKit) SpawnAgent(ctx context.Context, _ *api.Vars, _ string, args map[
 	return r.sw.runm(ctx, r.agent, name, args)
 }
 
+func (r *AIKit) ReloadAgent(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	script, err := api.GetStrProp("script", args)
+	if err != nil {
+		return nil, err
+	}
+	if script == "" {
+		return nil, fmt.Errorf("missing agent configuraiton script file")
+	}
+
+	return &api.Result{
+		NextAgent: "self",
+		Value:     script,
+		State:     api.StateTransfer,
+	}, nil
+}
+
 func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
 	log.GetLogger(ctx).Debugf("List tools: %s %+v\n", tf, args)
 

@@ -49,20 +49,20 @@ tools:
       required:
         - script
   
-  - name: "apply"
-    description: |
-      Applies a template to a script. The script can be specified as a file path 
-      or as an inline script prefixed with "data:".
-    parameters:
-      type: "object"
-      properties:
-        script:
-          type: "string"
-          description: |
-            Specifies the script to apply the template to. Provide either a path 
-            to a script file or an inline script prefixed with 'data:'.
-      required:
-        - script
+  # - name: "apply"
+  #   description: |
+  #     Applies a template to a script. The script can be specified as a file path 
+  #     or as an inline script prefixed with "data:".
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       script:
+  #         type: "string"
+  #         description: |
+  #           Specifies the script to apply the template to. Provide either a path 
+  #           to a script file or an inline script prefixed with 'data:'.
+  #     required:
+  #       - script
   
   - name: "format"
     description: |
@@ -77,14 +77,13 @@ tools:
 
   - name: "parse"
     description: |
-      Parses an input script file into a `map[string]any` format.
-      The script can be provided as a file path or inline using the "data:" prefix.
+      Parses an input command into a `map[string]any` format and validate.
     parameters:
       type: "object"
       properties:
-        script:
+        command:
           type: "string"
           description: |
-            Specifies the script either as a file path or as an inline script prefixed with 'data:'.
+            Specifies the command to be parsed.
       required:
-        - script
+        - command
