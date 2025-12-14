@@ -78,13 +78,12 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	var arg stringSlice
 	fs.Var(&arg, "arg", "argument name=value (can be used multiple times)")
 	// for LLM: json object format
-	// for human: also support string of name=value delimited by space and array list of name=value in json format
+	// for human: support string of name=value delimited by space and array list of name=value in json format
 	arguments := fs.String("arguments", "", "arguments in json object format")
 
-	//
+	// LLM prompt/query/model
 	instruction := fs.String("instruction", "", "System role prompt message")
 	message := fs.String("message", "", "User input message")
-	//
 	model := fs.String("model", "", "LLM model alias defined in the model set")
 
 	// common args with defaut value
@@ -93,7 +92,8 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	maxSpan := fs.Int("max-span", 0, "Historic message retrieval span (minutes)")
 	maxTurns := fs.Int("max-turns", 3, "Max conversation turns")
 	maxTime := fs.Int("max-time", 30, "Max timeout (seconds)")
-	format := fs.String("format", "json", "Output as text or json")
+
+	format := fs.String("format", "json", "Output as text, json, or markdown")
 
 	// logging
 	logLevel := fs.String("log-level", "quiet", "Log level: quiet, info, verbose, trace")
@@ -102,18 +102,23 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	isVerbose := fs.Bool("verbose", false, "Show progress and debugging information")
 
 	//
-	workspace := fs.String("workspace", "", "Workspace root path")
+	// workspace := fs.String("workspace", "", "Workspace root path")
 
 	// tool
 	agent := fs.String("agent", "", "agent to be executed.")
 	tool := fs.String("tool", "", "tool to be executed.")
 	command := fs.String("command", "", "Shell command(s) to be executed.")
 	script := fs.String("script", "", "Path to the shell script file to be executed.")
+	template := fs.String("template", "", "Path to the stemplate file to be applied.")
+
 	// action := fs.String("action", "", "Default action (agent or tool) to be executed.")
 
 	// special input
 	// value provided as option
 	stdin := fs.String("stdin", "", "Read input from stdin")
+	//
+	input := fs.String("input", "", "Custom input action")
+	output := fs.String("output", "", "Custom output action")
 
 	//
 	err := fs.Parse(argv)
@@ -151,7 +156,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 		return false
 	}
 
-	// agent/tool default arguments
+	// action agent/tool/command default arguments
 	// precedence: <common>, arg slice, arguments
 	// Parse string arguments
 	// var argm map[string]any
@@ -222,15 +227,19 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	if *model != "" {
 		argm["model"] = *model
 	}
-	if *workspace != "" {
-		argm["workspace"] = *workspace
-	}
+	// if *workspace != "" {
+	// 	argm["workspace"] = *workspace
+	// }
 	if *command != "" {
 		argm["command"] = *command
 	}
 	if *script != "" {
 		argm["script"] = *script
 	}
+	if *template != "" {
+		argm["template"] = *template
+	}
+
 	// if *action != "" {
 	// 	argm["action"] = *action
 	// }
@@ -244,6 +253,12 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	//
 	if *stdin != "" {
 		argm["stdin"] = *stdin
+	}
+	if *input != "" {
+		argm["input"] = *input
+	}
+	if *output != "" {
+		argm["output"] = *output
 	}
 
 	return argm, nil

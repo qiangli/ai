@@ -32,6 +32,7 @@ func NewEnvironment() *Environment {
 	}
 }
 
+// Return value for key
 func (g *Environment) Get(key string) (any, bool) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
@@ -41,6 +42,7 @@ func (g *Environment) Get(key string) (any, bool) {
 	return nil, false
 }
 
+// Return string value for key, empty if key it not set or value can not be converted to string
 func (g *Environment) GetString(key string) string {
 	if v, ok := g.Get(key); ok {
 		return ToString(v)
@@ -48,6 +50,7 @@ func (g *Environment) GetString(key string) string {
 	return ""
 }
 
+// Return int value for key, 0 if key is not set or value can not be converted to int
 func (g *Environment) GetInt(key string) int {
 	if v, ok := g.Get(key); ok {
 		return ToInt(v)
@@ -55,6 +58,7 @@ func (g *Environment) GetInt(key string) int {
 	return 0
 }
 
+// Return all envs
 func (g *Environment) GetAllEnvs() map[string]any {
 	return g.GetEnvs(nil)
 }

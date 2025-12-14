@@ -2,7 +2,7 @@
 set -xue
 
 echo "# Hello world!"
-DRY=""
+DRY="echo"
 
 echo "## system command..."
 ID="ID:$$"

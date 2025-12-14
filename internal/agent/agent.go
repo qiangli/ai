@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -58,41 +59,151 @@ func storeUser(base string, user *api.User) error {
 func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	ctx := context.Background()
 
-	swarm.ClearAllEnv(essentialEnv)
-
-	// var msg = cfg.Message
-
-	mem, err := db.OpenMemoryStore(cfg.Base, "memory.db")
+	// init
+	sw, err := initSwarm(ctx, cfg, user)
 	if err != nil {
 		return err
 	}
-	defer mem.Close()
+
+	// ***
+	// parse input
+	// initial pass
+	argm, err := sw.Parse(ctx, argv)
+	if err != nil {
+		return err
+	}
+	// second pass
+	// custom parser
+	parse := argm.GetString("parse")
+	if parse != "" {
+		kit, name := api.Kitname(parse).Decode()
+		argm["kit"] = kit
+		argm["name"] = name
+		argm["command"] = strings.Join(argv, " ")
+		v, err := sw.Exec(ctx, argm)
+		if err != nil {
+			return err
+		}
+		if v == nil {
+			return fmt.Errorf("failed to parse input")
+		}
+		if err := json.Unmarshal([]byte(v.Value), &argm); err != nil {
+			return err
+		}
+	}
+
+	// default from user preference. update only if not set
+	for k, v := range user.Settings {
+		if _, ok := argm[k]; !ok {
+			argm[k] = v
+		}
+	}
+	//
+	argm["workspace"] = sw.Vars.RTE.Roots.Workspace
+	sw.Vars.Global.AddEnvs(argm)
+
+	// show input
+	level := api.ToLogLevel(argm["log_level"])
+	logger := log.GetLogger(ctx)
+	logger.SetLogLevel(level)
+	logger.Debugf("Config: %+v\n", cfg)
+
+	msg := argm.GetString("message")
+	if msg != "" {
+		showInput(ctx, msg)
+	}
+
+	// ***
+	// perform action
+	var out = api.Output{
+		Display: "",
+	}
+	adapter := argm.GetString("adapter")
+	// skip if none
+	switch adapter {
+	case "none":
+		// skip
+	case "", "default":
+		if v, err := sw.Exec(ctx, argm); err != nil {
+			// return err
+			out.Content = fmt.Sprintf("❌ %+v", err)
+		} else {
+			out.ContentType = v.MimeType
+			out.Content = v.Value
+		}
+	default:
+		kit, name := api.Kitname(adapter).Decode()
+		argm["kit"] = kit
+		argm["name"] = name
+		v, err := sw.Exec(ctx, argm)
+		if err != nil {
+			return err
+		}
+		if v == nil {
+			return fmt.Errorf("failed to format output")
+		}
+		out.ContentType = v.MimeType
+		out.Content = v.Value
+	}
+
+	// ***
+	// format output
+	format := argm.GetString("format")
+	if format != "" {
+		// kit, name := api.Kitname(format).Decode()
+		argm["kit"] = "sh"
+		argm["name"] = "format"
+		v, err := sw.Exec(ctx, argm)
+		if err != nil {
+			return err
+		}
+		if v == nil {
+			return fmt.Errorf("failed to format output")
+		}
+		out.ContentType = v.MimeType
+		out.Content = v.Value
+	}
+
+	// console outpu
+	processOutput(ctx, "markdown", &out)
+
+	return nil
+}
+
+func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm, error) {
+	swarm.ClearAllEnv(essentialEnv)
+
+	mem, err := db.OpenMemoryStore(cfg.Base, "memory.db")
+	if err != nil {
+		return nil, err
+	}
+	// defer mem.Close()
 
 	var adapters = adapter.GetAdapters()
 	var secrets = conf.LocalSecrets
 
 	dc, err := conf.Load(cfg.Base)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	var roots = dc.Roots
 	dirs, err := roots.AllowedDirs()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if len(dirs) == 0 {
-		return fmt.Errorf("root directories not configed")
+		return nil, fmt.Errorf("root directories not configed")
 	}
 	lfs, _ := vfs.NewLocalFS(dirs)
 	los, _ := vos.NewLocalSystem(lfs)
 
 	assets, err := conf.Assets(dc)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	blobs, err := conf.NewBlobs(dc, "")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var rte = &api.ActionRTEnv{
@@ -122,60 +233,7 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 
 	sw.Init(rte)
 
-	argm, err := sw.Parse(ctx, argv)
-	if err != nil {
-		return err
-	}
-	// update if not set
-	for k, v := range user.Settings {
-		if _, ok := argm[k]; !ok {
-			argm[k] = v
-		}
-	}
-
-	level := api.ToLogLevel(argm["log_level"])
-	log.GetLogger(ctx).SetLogLevel(level)
-	log.GetLogger(ctx).Debugf("Config: %+v\n", cfg)
-	// logger := log.GetLogger(ctx)
-
-	msg := argm.GetString("message")
-	sw.Vars.Global.Set("workspace", roots.Workspace)
-	// sw.Vars.Global.Set("query", msg)
-
-	if msg != "" {
-		showInput(ctx, msg)
-	}
-
-	var out *api.Output
-	if v, err := sw.Exec(ctx, argm); err != nil {
-		// return err
-		out = &api.Output{
-			Content: fmt.Sprintf("❌ %+v", err),
-		}
-	} else {
-		out = &api.Output{
-			// Display:     v.Agent,
-			ContentType: v.MimeType,
-			Content:     v.Value,
-		}
-	}
-
-	//
-	processOutput(ctx, "markdown", out)
-
-	//
-	// remember agent
-	// TODO use memory to record previous agent or super agent
-	// kit, name := argm.Kitname().Decode()
-	// if kit == "agent" {
-	// 	if name != "" {
-	// 		user.SetAgent(name)
-	// 		storeUser(dc.Base, user)
-	// 	}
-	// }
-	// logger.Debugf("Agent task completed\n")
-
-	return nil
+	return sw, nil
 }
 
 func showInput(ctx context.Context, message string) {

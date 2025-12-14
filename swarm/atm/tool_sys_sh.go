@@ -51,46 +51,52 @@ func (r *SystemKit) Bash(ctx context.Context, vars *api.Vars, name string, args 
 }
 
 func (r *SystemKit) Apply(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
-	tt, err := api.GetStrProp("template", args)
+	tpl, err := api.GetStrProp("template", args)
 	if err != nil {
 		return "", err
 	}
-
-	if v, err := LoadURIContent(vars.RTE.Workspace, tt); err != nil {
+	if v, err := LoadURIContent(vars.RTE.Workspace, tpl); err != nil {
 		return "", err
 	} else {
-		tt = string(v)
+		tpl = string(v)
 	}
 
 	var data = make(map[string]any)
 	maps.Copy(data, vars.Global.GetAllEnvs())
-	if vars.RootAgent.Environment != nil {
-		maps.Copy(data, vars.RootAgent.Environment.GetAllEnvs())
-	}
 	maps.Copy(data, args)
 
-	result, err := CheckApplyTemplate(vars.RootAgent.Template, tt, data)
-	if err != nil {
-		return "", err
-	}
-	return api.ToString(result), nil
+	return CheckApplyTemplate(vars.RootAgent.Template, tpl, data)
 }
 
-func (r *SystemKit) Parse(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) Parse(ctx context.Context, vars *api.Vars, name string, args map[string]any) (api.ArgMap, error) {
 	result, err := conf.Parse(args["command"])
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return api.ToString(result), nil
+	return result, nil
 }
 
 func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	format, _ := api.GetStrProp("format", args)
-	if format == "" {
-		format = "markdown"
+	var tpl string
+	tpl, _ = api.GetStrProp("template", args)
+	if tpl != "" {
+		if v, err := LoadURIContent(vars.RTE.Workspace, tpl); err != nil {
+			return "", err
+		} else {
+			tpl = string(v)
+		}
+	}
+	if tpl == "" {
+		format, _ := api.GetStrProp("format", args)
+		if format == "" {
+			format = "markdown"
+		}
+		tpl = resource.FormatFile(format)
 	}
 
-	var tpl = resource.FormatFile(format)
+	var data = make(map[string]any)
+	maps.Copy(data, vars.Global.GetAllEnvs())
+	maps.Copy(data, args)
 
-	return CheckApplyTemplate(vars.RootAgent.Template, tpl, args)
+	return CheckApplyTemplate(vars.RootAgent.Template, tpl, data)
 }

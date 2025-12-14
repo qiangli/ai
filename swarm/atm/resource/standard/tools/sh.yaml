@@ -57,9 +57,9 @@ tools:
   #     required:
   #       - dir
 
-  # - name: "pwd"
-  #   description: "Print the current working directory on user's system."
-  #   parameters: {}
+  - name: "pwd"
+    description: "Print the current working directory on user's system."
+    parameters: {}
 
   - name: "bash"
     description: |
@@ -91,27 +91,34 @@ tools:
         template:
           type: "string"
           description: |
-            Specifies the template to be applied to the data. It can be a path to a script file or an inline
-            script prefixed with 'data:'. Provide any additional arguments required by the template.
+            Specifies the template to be applied to the data.
+            It can be specified either as a file path or as an inline string prefixed with "data:".
+            Provide any additional arguments required by the template.
       required:
         - template
 
   - name: "format"
     description: |
-      Specifies the output format for the results.
+      Specifies the format or a custom template for the output.
     parameters:
       type: "object"
       properties:
         result:
           type: "string"
-          description: "The result of the response."
+          description: "Output. default to the result of the last response"
         error:
           type: "string"
-          description: "Any error encountered during processing."
+          description: "Error message. default to the last error encountered during previous processing."
         format:
           type: "string"
           description: |
-            The desired output format. Options are "text", "json", "markdown". The default is "markdown".
+            The desired output format. Options are "text", "json", "markdown".
+            The default is "markdown".
+        template:
+          type: "string"
+          description: |
+            Specifies custom template to be applied to the data. If not provided, default templates will be used.
+            It can be specified either as a file path or as an inline string prefixed with "data:".
 
   - name: "parse"
     description: |
@@ -122,6 +129,6 @@ tools:
         command:
           type: "string"
           description: |
-            Specifies the command to be parsed.
+            Specifies the command line to be parsed.
       required:
         - command
