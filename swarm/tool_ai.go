@@ -348,11 +348,11 @@ func (r *AIKit) ExecuteTool(ctx context.Context, _ *api.Vars, tf string, args ma
 	return out, nil
 }
 
-func (r *AIKit) GetToolCalllog(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
-	log.GetLogger(ctx).Debugf("Tool call log: %s %+v\n", tf, args)
-	v, err := vars.ToolCalllog()
-	return v, err
-}
+// func (r *AIKit) GetToolCalllog(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
+// 	log.GetLogger(ctx).Debugf("Tool call log: %s %+v\n", tf, args)
+// 	v, err := vars.ToolCalllog()
+// 	return v, err
+// }
 
 func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
 	log.GetLogger(ctx).Debugf("List models: %s %+v\n", tf, args)

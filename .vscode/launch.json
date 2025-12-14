@@ -40,9 +40,9 @@
 				// "correct mine englise"
 				//
 				// bash script
-				// "/sh:bash",
-				// "--script",
-				// "test/script.sh"
+				"/sh:bash",
+				"--script",
+				"test/script.sh"
 				//
 				// "/sh:bash",
 				// "--script",
@@ -58,11 +58,11 @@
 				// "--script",
 				// "atm/tools/hello_kit/hello_user.yaml",
 				//
-				"/agent:atm/hi",
-				"--script",
-				"atm/resource/template/atm.yaml",
-				"--verbose",
-				"pick some famous politicians names",
+				// "/agent:atm/hi",
+				// "--script",
+				// "atm/resource/template/atm.yaml",
+				// "--verbose",
+				// "pick some famous politicians names",
 				//
 				// "/atm:hi",
 				// "--script",

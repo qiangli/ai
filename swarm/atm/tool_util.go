@@ -2,6 +2,7 @@ package atm
 
 import (
 	"bytes"
+	"net/url"
 	"strings"
 	"text/template"
 
@@ -55,7 +56,14 @@ func LoadURIContent(ws api.Workspace, uri string) (string, error) {
 		// FIXME remove mime
 		v = uri[5:]
 	} else {
-		f := v
+		var f = uri
+		if strings.HasPrefix(f, "file:") {
+			v, err := url.Parse(f)
+			if err != nil {
+				return "", err
+			}
+			f = v.Path
+		}
 		data, err := ws.ReadFile(f, nil)
 		if err != nil {
 			return "", err

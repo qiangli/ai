@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -25,6 +26,7 @@ func main() {
 		}
 	}
 
+	fmt.Printf("%v\n", args)
 	if err := agent.Run(args); err != nil {
 		internal.Exit(err)
 	}

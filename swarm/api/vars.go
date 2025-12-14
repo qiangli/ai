@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"io/fs"
 	"maps"
 	"os"
@@ -151,7 +150,8 @@ type Vars struct {
 	// conversation history
 	// history []*Message `json:"-"`
 
-	toolcallHistory []*ToolCallEntry `json:"-"`
+	// TODO persist to file
+	// toolcallHistory []*ToolCallEntry `json:"-"`
 
 	//
 	// Middlewares []Middleware
@@ -173,21 +173,21 @@ func (v *Vars) Token(key string) (string, error) {
 	return v.RTE.Secrets.Get(v.RTE.User.Email, key)
 }
 
-func (v *Vars) AddToolCall(item *ToolCallEntry) {
-	v.mu.Lock()
-	defer v.mu.Unlock()
-	v.toolcallHistory = append(v.toolcallHistory, item)
-}
+// func (v *Vars) AddToolCall(item *ToolCallEntry) {
+// 	v.mu.Lock()
+// 	defer v.mu.Unlock()
+// 	v.toolcallHistory = append(v.toolcallHistory, item)
+// }
 
-func (v *Vars) ToolCalllog() (string, error) {
-	v.mu.RLock()
-	defer v.mu.RUnlock()
-	b, err := json.Marshal(v.toolcallHistory)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}
+// func (v *Vars) ToolCalllog() (string, error) {
+// 	v.mu.RLock()
+// 	defer v.mu.RUnlock()
+// 	b, err := json.Marshal(v.toolcallHistory)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return string(b), nil
+// }
 
 func NewVars() *Vars {
 	return &Vars{

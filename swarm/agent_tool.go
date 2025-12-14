@@ -3,9 +3,7 @@ package swarm
 import (
 	"context"
 	"fmt"
-	// "io/fs"
-	// "os"
-	"time"
+	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
@@ -32,39 +30,42 @@ func NewAgentToolRunner(sw *Swarm, user string, agent *api.Agent) api.ActionRunn
 func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFunc, error) {
 	// load tool from content
 	if s, ok := args["script"]; ok {
-		cfg, err := r.sw.LoadScript(api.ToString(s))
-		if err != nil {
-			return nil, err
-		}
-		tc, err := conf.LoadToolData([][]byte{[]byte(cfg)})
-		if err == nil {
-			tools, err := conf.LoadTools(tc, r.user, r.sw.Secrets)
+		s := api.ToString(s)
+		if strings.HasSuffix(s, ".yaml") {
+			cfg, err := r.sw.LoadScript(s)
+			if err != nil {
+				return nil, err
+			}
+			tc, err := conf.LoadToolData([][]byte{[]byte(cfg)})
 			if err == nil {
-				kit, name := api.Kitname(tid).Decode()
-				// /agent:
-				if kit == string(api.ToolTypeAgent) {
-					//
-					// TODO load app config including both agents/tools
-					// to replace this hack
-					_, sub := api.Packname(name).Decode()
-					for _, v := range tc.Agents {
-						if sub == v.Name {
-							v, err := conf.LoadAgentTool(tc, sub)
-							if err == nil {
-								v.Name = name
-								return v, nil
+				tools, err := conf.LoadTools(tc, r.user, r.sw.Secrets)
+				if err == nil {
+					kit, name := api.Kitname(tid).Decode()
+					// /agent:
+					if kit == string(api.ToolTypeAgent) {
+						//
+						// TODO load app config including both agents/tools
+						// to replace this hack
+						_, sub := api.Packname(name).Decode()
+						for _, v := range tc.Agents {
+							if sub == v.Name {
+								v, err := conf.LoadAgentTool(tc, sub)
+								if err == nil {
+									v.Name = name
+									return v, nil
+								}
 							}
 						}
-					}
-				} else {
-					// /kit:tool
-					for _, v := range tools {
-						if v.Kit == kit && v.Name == name {
-							return v, nil
-						}
-						// default
-						if v.Kit == kit && name == "" && v.Name == kit {
-							return v, nil
+					} else {
+						// /kit:tool
+						for _, v := range tools {
+							if v.Kit == kit && v.Name == name {
+								return v, nil
+							}
+							// default
+							if v.Kit == kit && name == "" && v.Name == kit {
+								return v, nil
+							}
 						}
 					}
 				}
@@ -140,15 +141,15 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 
 	result, err := r.sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, r.user), r.agent, v, args)
 
-	// log calls
-	r.sw.Vars.AddToolCall(&api.ToolCallEntry{
-		ID:        tid,
-		Kit:       v.Kit,
-		Name:      v.Name,
-		Arguments: v.Arguments,
-		Result:    result,
-		Error:     err,
-		Timestamp: time.Now(),
-	})
+	// // log calls
+	// r.sw.Vars.AddToolCall(&api.ToolCallEntry{
+	// 	ID:        tid,
+	// 	Kit:       v.Kit,
+	// 	Name:      v.Name,
+	// 	Arguments: v.Arguments,
+	// 	Result:    result,
+	// 	Error:     err,
+	// 	Timestamp: time.Now(),
+	// })
 	return result, err
 }
