@@ -1,4 +1,4 @@
-#!/usr/bin/env ai /atm:hi --arg greeting="hi" --arg names='["Don", "Joe"]'
+#!/usr/bin/env ai /agent:atm/hi --script
 
 #
 # A complete "Hello World" example of agents, tools, and models

@@ -3,30 +3,38 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
+	"path/filepath"
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/agent"
 )
 
 func main() {
-	args := os.Args
+	// discard bin /ai
+	args := os.Args[1:]
 
-	if len(args) == 1 {
+	//
+	if len(args) == 0 {
 		// no args, show help
 		args = []string{"/help:help"}
 	} else {
 		// support execution of ai script file (.sh or .yaml)
-		shebang := (strings.HasSuffix(args[0], ".yaml") || strings.HasSuffix(args[0], ".sh"))
-		if shebang {
+		// shebang
+		// #!/usr/bin/env ai ACTION --script
+		// if the first arg is a file (after the ai bin), action has not been specified in the script file.
+		ext := filepath.Ext(args[0])
+		switch ext {
+		case ".sh", ".bash":
 			args = append([]string{"/sh:bash", "--script", args[0]}, args[1:]...)
-		} else {
-			// discard ai command bin <...>/ai
-			args = args[1:]
+		case ".yaml", ".yml":
+			// TODO supprot main entry detection
+			// for now. it is required to specify the action.
+			internal.Exit(fmt.Errorf("Failed to run. action required. ex. #!/usr/bin/env ai ACTION --script"))
+		default:
+			// ok
 		}
 	}
 
-	fmt.Printf("%v\n", args)
 	if err := agent.Run(args); err != nil {
 		internal.Exit(err)
 	}
