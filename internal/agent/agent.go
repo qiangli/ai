@@ -74,9 +74,9 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	}
 	// second pass
 	// custom parser
-	parse := argm.GetString("parse")
-	if parse != "" {
-		kit, name := api.Kitname(parse).Decode()
+	input := argm.GetString("input")
+	if input != "" {
+		kit, name := api.Kitname(input).Decode()
 		argm["kit"] = kit
 		argm["name"] = name
 		argm["command"] = strings.Join(argv, " ")
@@ -148,11 +148,11 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 
 	// ***
 	// format output
-	format := argm.GetString("format")
-	if format != "" {
-		// kit, name := api.Kitname(format).Decode()
-		argm["kit"] = "sh"
-		argm["name"] = "format"
+	output := argm.GetString("ouput")
+	if output != "" {
+		kit, name := api.Kitname(output).Decode()
+		argm["kit"] = kit
+		argm["name"] = name
 		v, err := sw.Exec(ctx, argm)
 		if err != nil {
 			return err

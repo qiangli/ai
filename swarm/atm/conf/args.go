@@ -117,6 +117,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	// value provided as option
 	stdin := fs.String("stdin", "", "Read input from stdin")
 	//
+	adapter := fs.String("adapter", "", "Custom action handler")
 	input := fs.String("input", "", "Custom input action")
 	output := fs.String("output", "", "Custom output action")
 
@@ -253,6 +254,9 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	//
 	if *stdin != "" {
 		argm["stdin"] = *stdin
+	}
+	if *adapter != "" {
+		argm["adapter"] = *adapter
 	}
 	if *input != "" {
 		argm["input"] = *input
