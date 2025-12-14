@@ -28,7 +28,7 @@ var (
 	agentCache = expirable.NewLRU[AgentCacheKey, *api.Agent](10000, nil, time.Second*900)
 )
 
-func listAgentsATM(owner string, as api.ATMSupport, packs map[string]*api.AgentsConfig) error {
+func listAgentsATM(owner string, as api.ATMSupport, packs map[string]*api.AppConfig) error {
 	recs, err := as.ListAgents(owner)
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func listAgentsATM(owner string, as api.ATMSupport, packs map[string]*api.Agents
 	return nil
 }
 
-func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AgentsConfig) error {
+func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AppConfig) error {
 	dirs, err := as.ReadDir(root)
 	if err != nil {
 		return err
@@ -123,11 +123,11 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AgentsCo
 }
 
 // LoadAgentsData loads the agent configuration from the provided YAML data.
-func LoadAgentsData(data [][]byte) (*api.AgentsConfig, error) {
-	merged := &api.AgentsConfig{}
+func LoadAgentsData(data [][]byte) (*api.AppConfig, error) {
+	merged := &api.AppConfig{}
 
 	for _, v := range data {
-		cfg := &api.AgentsConfig{}
+		cfg := &api.AppConfig{}
 		if err := yaml.Unmarshal(v, cfg); err != nil {
 			return nil, err
 		}

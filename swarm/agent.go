@@ -47,7 +47,7 @@ func NewAgentMaker(sw *Swarm) *AgentMaker {
 		sw: sw,
 	}
 }
-func findAgentConfig(ac *api.AgentsConfig, pack, sub string) (*api.AgentConfig, error) {
+func findAgentConfig(ac *api.AppConfig, pack, sub string) (*api.AgentConfig, error) {
 	pn := pack
 	if sub != "" {
 		pn = pack + "/" + sub
@@ -60,7 +60,7 @@ func findAgentConfig(ac *api.AgentsConfig, pack, sub string) (*api.AgentConfig, 
 	return nil, fmt.Errorf("no such agent: %s", pn)
 }
 
-func getAgentConfig(ac *api.AgentsConfig, pack, sub string) (*api.AgentConfig, error) {
+func getAgentConfig(ac *api.AppConfig, pack, sub string) (*api.AgentConfig, error) {
 	a, err := findAgentConfig(ac, pack, sub)
 	if err != nil {
 		return nil, err
@@ -104,7 +104,7 @@ func getAgentConfig(ac *api.AgentsConfig, pack, sub string) (*api.AgentConfig, e
 }
 
 func (ap *AgentMaker) newAgent(
-	ac *api.AgentsConfig,
+	ac *api.AppConfig,
 	c *api.AgentConfig,
 	owner string,
 ) (*api.Agent, error) {
@@ -193,7 +193,7 @@ func (ap *AgentMaker) newAgent(
 	// kit:*
 	for _, v := range c.Functions {
 		var tools []*api.ToolFunc
-		// local
+		// local scope
 		if v, err := conf.LoadLocalToolFunc(ac, owner, v, ap.sw.Secrets, ap.sw.Assets); err != nil {
 			return nil, err
 		} else {
@@ -249,7 +249,7 @@ func (ap *AgentMaker) newAgent(
 	return &agent, nil
 }
 
-func (ap *AgentMaker) getAgent(owner string, pack string, asset api.AssetStore) (*api.AgentsConfig, error) {
+func (ap *AgentMaker) getAgent(owner string, pack string, asset api.AssetStore) (*api.AppConfig, error) {
 	var content []byte
 	if as, ok := asset.(api.ATMSupport); ok {
 		if v, err := as.RetrieveAgent(owner, pack); err != nil {
@@ -273,7 +273,7 @@ func (ap *AgentMaker) getAgent(owner string, pack string, asset api.AssetStore) 
 	return ap.loadAgent(pack, content)
 }
 
-func (ap *AgentMaker) loadAgent(pack string, content []byte) (*api.AgentsConfig, error) {
+func (ap *AgentMaker) loadAgent(pack string, content []byte) (*api.AppConfig, error) {
 	ac, err := conf.LoadAgentsData([][]byte{content})
 	if err != nil {
 		return nil, err

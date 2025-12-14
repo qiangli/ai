@@ -459,7 +459,7 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 		return api.ToResult(out), nil
 	}
 
-	// custom kits
+	// misc kits
 	kit, err := sw.Tools.GetKit(v)
 	if err != nil {
 		return nil, err

@@ -53,7 +53,11 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 		if err != nil {
 			return nil, err
 		}
-		return loadAgentTool(ac, name)
+		v, err := LoadAgentTool(ac, name)
+		if err != nil {
+			return nil, err
+		}
+		return []*api.ToolFunc{v}, nil
 	}
 
 	//
@@ -74,8 +78,8 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 	return nil, fmt.Errorf("tool func not found: %s", s)
 }
 
-// try load local
-func LoadLocalToolFunc(local *api.AgentsConfig, owner, s string, secrets api.SecretStore, assets api.AssetManager) ([]*api.ToolFunc, error) {
+// try load local scope (inline) in the same config as the referenced agent
+func LoadLocalToolFunc(local *api.AppConfig, owner, s string, secrets api.SecretStore, assets api.AssetManager) ([]*api.ToolFunc, error) {
 	kit, name := api.Kitname(s).Decode()
 	if name == "" {
 		return nil, fmt.Errorf("invalid tool call id: %s", s)
@@ -99,16 +103,20 @@ func LoadLocalToolFunc(local *api.AgentsConfig, owner, s string, secrets api.Sec
 		}
 		for _, v := range local.Agents {
 			if name == v.Name {
-				return loadAgentTool(local, name)
+				v, err := LoadAgentTool(local, name)
+				if err != nil {
+					return nil, err
+				}
+				return []*api.ToolFunc{v}, nil
 			}
 		}
 	}
 
 	// if kit refers to a kit in the same local config as the agents.
 	// local takes precedence.
-	var tc *api.ToolsConfig
+	var tc *api.AppConfig
 	if kit == local.Kit {
-		tc = &api.ToolsConfig{
+		tc = &api.AppConfig{
 			Kit:   kit,
 			Type:  local.Type,
 			Tools: local.Tools,
@@ -131,11 +139,11 @@ func LoadLocalToolFunc(local *api.AgentsConfig, owner, s string, secrets api.Sec
 	return nil, nil
 }
 
-func LoadToolData(data [][]byte) (*api.ToolsConfig, error) {
-	merged := &api.ToolsConfig{}
+func LoadToolData(data [][]byte) (*api.AppConfig, error) {
+	merged := &api.AppConfig{}
 
 	for _, v := range data {
-		tc := &api.ToolsConfig{}
+		tc := &api.AppConfig{}
 		if err := yaml.Unmarshal(v, tc); err != nil {
 			return nil, err
 		}
@@ -177,7 +185,7 @@ func LoadToolData(data [][]byte) (*api.ToolsConfig, error) {
 	return merged, nil
 }
 
-func LoadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*api.ToolFunc, error) {
+func LoadTools(tc *api.AppConfig, owner string, secrets api.SecretStore) ([]*api.ToolFunc, error) {
 	var toolMap = make(map[string]*api.ToolFunc)
 
 	// conditionMet := func(name string, c *api.ToolCondition) bool {
@@ -196,6 +204,7 @@ func LoadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 		if toolType == "" {
 			return nil, fmt.Errorf("Missing tool type. kit: %s tool: %s", tc.Kit, v.Name)
 		}
+
 		// load separately
 		if toolType == string(api.ToolTypeMcp) {
 			continue
@@ -289,7 +298,7 @@ func LoadTools(tc *api.ToolsConfig, owner string, secrets api.SecretStore) ([]*a
 	return tools, nil
 }
 
-func loadAgentTool(ac *api.AgentsConfig, name string) ([]*api.ToolFunc, error) {
+func LoadAgentTool(ac *api.AppConfig, name string) (*api.ToolFunc, error) {
 	if ac == nil {
 		return nil, fmt.Errorf("nil config: %s", name)
 	}
@@ -314,16 +323,18 @@ func loadAgentTool(ac *api.AgentsConfig, name string) ([]*api.ToolFunc, error) {
 				Parameters:  params,
 				Body:        nil,
 				//
+				// TODO conform name fulle pack/sub?
+				// should be NormalizePackname
 				Agent: c.Name,
 			}
-			return []*api.ToolFunc{tool}, nil
+			return tool, nil
 		}
 	}
 
 	return nil, nil
 }
 
-func listToolkitATM(owner string, as api.ATMSupport, kits map[string]*api.ToolsConfig) error {
+func listToolkitATM(owner string, as api.ATMSupport, kits map[string]*api.AppConfig) error {
 	recs, err := as.ListTools(owner)
 	if err != nil {
 		return err
@@ -355,7 +366,7 @@ func listToolkitATM(owner string, as api.ATMSupport, kits map[string]*api.ToolsC
 	return nil
 }
 
-func listToolkitAsset(as api.AssetFS, base string, kits map[string]*api.ToolsConfig) error {
+func listToolkitAsset(as api.AssetFS, base string, kits map[string]*api.AppConfig) error {
 	dirs, err := as.ReadDir(base)
 	if err != nil {
 		return err

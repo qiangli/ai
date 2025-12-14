@@ -64,6 +64,15 @@
 				"--verbose",
 				"pick some famous politicians names",
 				//
+				// "/atm:hi",
+				// "--script",
+				// "atm/resource/template/atm.yaml",
+				// "--arg",
+				// "names=[\"Charles\"]",
+				// "--arg",
+				// "greeting=omg",
+				// "--verbose",
+				//
 				// "/ai:list_messages"
 				//
 				// "/ai:get_message_info",

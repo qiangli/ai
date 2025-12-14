@@ -41,13 +41,31 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 			tools, err := conf.LoadTools(tc, r.user, r.sw.Secrets)
 			if err == nil {
 				kit, name := api.Kitname(tid).Decode()
-				for _, v := range tools {
-					if v.Kit == kit && v.Name == name {
-						return v, nil
+				// /agent:
+				if kit == string(api.ToolTypeAgent) {
+					//
+					// TODO load app config including both agents/tools
+					// to replace this hack
+					_, sub := api.Packname(name).Decode()
+					for _, v := range tc.Agents {
+						if sub == v.Name {
+							v, err := conf.LoadAgentTool(tc, sub)
+							if err == nil {
+								v.Name = name
+								return v, nil
+							}
+						}
 					}
-					// default
-					if v.Kit == kit && name == "" && v.Name == kit {
-						return v, nil
+				} else {
+					// /kit:tool
+					for _, v := range tools {
+						if v.Kit == kit && v.Name == name {
+							return v, nil
+						}
+						// default
+						if v.Kit == kit && name == "" && v.Name == kit {
+							return v, nil
+						}
 					}
 				}
 			}
@@ -107,12 +125,17 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	// 	return r.agent.Shell.Run(ctx, "", args)
 	// }
 
-	if kit == "agent" {
-		return r.sw.runm(ctx, r.agent, name, args)
-	}
+	// if kit == string(api.ToolTypeAgent) {
+	// 	return r.sw.runm(ctx, r.agent, name, args)
+	// }
 
 	// system command
 	// /bin/*
+	// /bin: pseudo kit name "bin"
+	// support direct execution of system command using the standad syntax
+	// e.g. /bin/ls without the trigger word "ai"
+	// and slash command toolkit "/kit:name" syntax
+	// i.e. equivalent to: /sh:exec --arg command="ls -al /tmp"
 	if kit == "" || kit == "bin" {
 		cmd, _ := api.GetStrProp("command", args)
 		return atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, cmd, nil)

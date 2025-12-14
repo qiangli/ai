@@ -164,10 +164,10 @@ type AssetManager interface {
 	AddStore(store AssetStore)
 
 	SearchAgent(owner, pack string) (*Record, error)
-	ListAgent(owner string) (map[string]*AgentsConfig, error)
-	FindAgent(owner, pack string) (*AgentsConfig, error)
-	ListToolkit(owner string) (map[string]*ToolsConfig, error)
-	FindToolkit(owner string, kit string) (*ToolsConfig, error)
+	ListAgent(owner string) (map[string]*AppConfig, error)
+	FindAgent(owner, pack string) (*AppConfig, error)
+	ListToolkit(owner string) (map[string]*AppConfig, error)
+	FindToolkit(owner string, kit string) (*AppConfig, error)
 	ListModels(owner string) (map[string]*ModelsConfig, error)
 	FindModels(owner string, alias string) (*ModelsConfig, error)
 }

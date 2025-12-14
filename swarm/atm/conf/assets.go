@@ -47,8 +47,8 @@ func (r *assetManager) SearchAgent(owner string, pack string) (*api.Record, erro
 	return nil, nil
 }
 
-func (r *assetManager) ListAgent(owner string) (map[string]*api.AgentsConfig, error) {
-	var packs = make(map[string]*api.AgentsConfig)
+func (r *assetManager) ListAgent(owner string) (map[string]*api.AppConfig, error) {
+	var packs = make(map[string]*api.AppConfig)
 	for _, v := range r.assets {
 		if as, ok := v.(api.ATMSupport); ok {
 			if err := listAgentsATM(owner, as, packs); err != nil {
@@ -61,7 +61,7 @@ func (r *assetManager) ListAgent(owner string) (map[string]*api.AgentsConfig, er
 		}
 	}
 
-	var agents = make(map[string]*api.AgentsConfig)
+	var agents = make(map[string]*api.AppConfig)
 	// add sub agent to the map as well
 	for _, v := range packs {
 		if len(v.Agents) == 0 {
@@ -82,7 +82,7 @@ func (r *assetManager) ListAgent(owner string) (map[string]*api.AgentsConfig, er
 	return agents, nil
 }
 
-func (r *assetManager) FindAgent(owner string, pack string) (*api.AgentsConfig, error) {
+func (r *assetManager) FindAgent(owner string, pack string) (*api.AppConfig, error) {
 	var content []byte
 	var asset api.AssetStore
 	for _, v := range r.assets {
@@ -129,8 +129,8 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AgentsConfig, 
 	return ac, nil
 }
 
-func (r *assetManager) ListToolkit(owner string) (map[string]*api.ToolsConfig, error) {
-	var kits = make(map[string]*api.ToolsConfig)
+func (r *assetManager) ListToolkit(owner string) (map[string]*api.AppConfig, error) {
+	var kits = make(map[string]*api.AppConfig)
 	for _, v := range r.assets {
 		if as, ok := v.(api.ATMSupport); ok {
 			if err := listToolkitATM(owner, as, kits); err != nil {
@@ -149,7 +149,7 @@ func (r *assetManager) ListToolkit(owner string) (map[string]*api.ToolsConfig, e
 	return kits, nil
 }
 
-func (r *assetManager) FindToolkit(owner string, kit string) (*api.ToolsConfig, error) {
+func (r *assetManager) FindToolkit(owner string, kit string) (*api.AppConfig, error) {
 	var content []byte
 	for _, v := range r.assets {
 		if as, ok := v.(api.ATMSupport); ok {
