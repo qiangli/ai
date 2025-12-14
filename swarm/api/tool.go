@@ -241,10 +241,14 @@ func (r Kitname) ID() string {
 // TODO all special chars?
 // ^[a-zA-Z0-9_-]+$
 func tr(s string) string {
-	return strings.ReplaceAll(s, "/", "-")
+	return strings.ReplaceAll(s, "/", "_")
 }
 
 func toolID(kit, name string) string {
+	// TODO update agent lookup to use ID "agent__pack_sub"
+	if kit == "agent" {
+		return fmt.Sprintf("%s__%s", kit, name)
+	}
 	return fmt.Sprintf("%s__%s", kit, tr(name))
 }
 

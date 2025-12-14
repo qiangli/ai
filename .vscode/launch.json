@@ -22,7 +22,7 @@
 			"envFile": "${workspaceFolder}/.env",
 			"cwd": "${workspaceFolder}/swarm",
 			"args": [
-				"/help",
+				// "/help",
 				// "/help:help",
 				//
 				// slash command
@@ -58,11 +58,12 @@
 				// "--script",
 				// "atm/tools/hello_kit/hello_user.yaml",
 				//
-				// "/agent:atm/hi",
-				// "--script",
-				// "atm/resource/template/atm.yaml",
-				// "--verbose",
-				// "pick some famous politicians names",
+				"/agent:atm/hi",
+				"--script",
+				"atm/resource/template/atm.yaml",
+				"--verbose",
+				"pick some famous politicians names",
+				//
 				// "/ai:list_messages"
 				//
 				// "/ai:get_message_info",
