@@ -19,6 +19,7 @@ agents:
       You must use the tool `atm:hi` for greeting.
       Upon successful execution of the tool, report back the exact greetings it provided.
       If the tool execution fails, seek further instructions to resolve the issue.
+      Only run the tool once and exit regardlesss of success or failure.
     functions:
       - "atm:hi"
 

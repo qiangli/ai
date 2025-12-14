@@ -114,17 +114,8 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	// this ensures kit:name is in internal kit__name format
 	tid = api.Kitname(kit + ":" + name).ID()
 
-	// if kit == "sh" {
-	// 	// system command
-	// 	// if kit == "" {
-	// 	// 	cmd, _ := api.GetStrProp("command", args)
-	// 	// 	// argv, _ := api.GetArrayProp("arguments", args)
-	// 	// 	return atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, cmd, nil)
-	// 	// }
-	// 	// shell
-	// 	return r.agent.Shell.Run(ctx, "", args)
-	// }
-
+	// TODO this shortcut save time for a few function calls.
+	// reinstate if performance is hit
 	// if kit == string(api.ToolTypeAgent) {
 	// 	return r.sw.runm(ctx, r.agent, name, args)
 	// }
