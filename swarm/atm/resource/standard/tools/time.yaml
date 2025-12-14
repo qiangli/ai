@@ -2,6 +2,28 @@ kit: "time"
 type: "func"
 
 tools:
+  - name: "help"
+    display: "Time Tool Help"
+    description: |
+      A set of tools for time
+    parameters: {}
+    type: "func"
+    body:
+      language: "golang"
+      code: |
+        import "fmt"
+        const desc = `
+        A set of tools for time.
+
+          + convert_time
+          + get_current_time
+          + get_local_timezone
+        `
+        func main() {
+          fmt.Printf(desc)
+        }
+    log_level: "quiet"
+
   - name: "get_local_timezone"
     description: "return the system's local time zone"
     parameters: {}

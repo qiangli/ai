@@ -3,6 +3,35 @@ kit: "sh"
 type: "system"
 
 tools:
+  - name: "help"
+    display: "Shell Tool Help"
+    description: |
+      A set of tools for executing agent, tool, system command actions
+      and applying templates.
+    parameters: {}
+    type: "func"
+    body:
+      language: "golang"
+      code: |
+        import "fmt"
+        const desc = `
+        A set of tools for executing agent, tool, system command actions
+        and applying templates.
+
+        ## Actions
+          + bash
+          + exec
+          + format
+          + parse
+
+        ## Templates
+          + apply
+        `
+        func main() {
+          fmt.Printf(desc)
+        }
+    log_level: "quiet"
+
   - name: "exec"
     description: |
       Execute a specified command within the user's environment.

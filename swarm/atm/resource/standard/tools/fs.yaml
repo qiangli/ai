@@ -1,7 +1,50 @@
 ###
+pack: "fs"
 type: "system"
 
 tools:
+  - name: "help"
+    display: "File System Tool Help"
+    description: |
+      A set of tools for filesystem operations.
+      +  Read/write files
+      +  Create/list/delete directories
+      +  Move files/directories
+      +  Search files
+      +  Get file metadata
+    parameters: {}
+    type: "func"
+    body:
+      language: "golang"
+      code: |
+        import "fmt"
+        const desc = `
+        A set of tools for filesystem operations.
+
+        ## File Operations
+          + "copy_file"
+          + "delete_file"
+          + "edit_file"
+          + "move_file"
+          + "read_file"
+          + "read_multiple_files"
+          + "write_file"
+
+        ## Directory Operations
+          + "create_directory"
+          + "list_directory"
+          + "tree"
+
+        ## Search and Info
+          + "get_file_info"
+          + "list_roots"
+          + "search_files"
+        `
+        func main() {
+          fmt.Printf(desc)
+        }
+    log_level: "quiet"
+
   - name: "list_roots"
     description: "Returns the list of top directories that is allowed to access."
     parameters:

@@ -2,6 +2,34 @@ kit: "web"
 type: "web"
 
 tools:
+  - name: "help"
+    display: "Web Tool Help"
+    description: |
+      Search the web and fetch the content from a URL.
+    parameters: {}
+    type: "func"
+    body:
+      language: "golang"
+      code: |
+        import "fmt"
+        const desc = `
+        Search the web and fetch the content from a URL.
+
+        ## Search
+          + bing_search
+          + brave_search
+          + ddg_search
+          + google_search
+
+        ## Web content
+          + download_content
+          + fetch_content
+        `
+        func main() {
+          fmt.Printf(desc)
+        }
+    log_level: "quiet"
+
   - name: "fetch_content"
     description: "Fetch a URL from the internet and extracts its content as text"
     parameters:

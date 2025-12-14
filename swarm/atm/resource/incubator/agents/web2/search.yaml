@@ -1,7 +1,7 @@
 ###
 agents:
   - name: "web"
-    display: "🌐 Web"
+    display: "🌐 Web Search"
     description: "Search the web and fetch the content from a URL."
     model: "default/any"
     instruction: |

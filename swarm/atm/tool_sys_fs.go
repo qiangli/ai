@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	// "net/url"
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
