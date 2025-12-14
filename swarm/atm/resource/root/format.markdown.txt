@@ -2,7 +2,6 @@
 {{if .error}}
 <span style="color:red">✖ {{.error}}</span>
 {{else if .result}}
-{{.display}}
 {{.result}}
 {{else}}
 No result

@@ -47,20 +47,21 @@ func CheckApplyTemplate(tpl *template.Template, s string, data map[string]any) (
 	return s, nil
 }
 
-func LoadScript(ws api.Workspace, v string) (string, error) {
-	var script string
-
-	if strings.HasPrefix(v, "data:") {
+// Load data from uri.
+// Support file:// and data: protocols
+func LoadURIContent(ws api.Workspace, uri string) (string, error) {
+	var v string
+	if strings.HasPrefix(uri, "data:") {
 		// FIXME remove mime
-		script = v[5:]
+		v = uri[5:]
 	} else {
-		file := v
-		data, err := ws.ReadFile(file, nil)
+		f := v
+		data, err := ws.ReadFile(f, nil)
 		if err != nil {
 			return "", err
 		}
-		script = string(data)
+		v = string(data)
 	}
 
-	return script, nil
+	return v, nil
 }
