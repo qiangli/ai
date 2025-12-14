@@ -9,10 +9,9 @@ import (
 )
 
 func main() {
-	// discard ai command bin .../ai
-	args := os.Args[1:]
+	args := os.Args
 
-	if len(args) == 0 {
+	if len(args) == 1 {
 		// no args, show help
 		args = []string{"/help:help"}
 	} else {
@@ -20,6 +19,9 @@ func main() {
 		shebang := (strings.HasSuffix(args[0], ".yaml") || strings.HasSuffix(args[0], ".sh"))
 		if shebang {
 			args = append([]string{"/sh:bash", "--script", args[0]}, args[1:]...)
+		} else {
+			// discard ai command bin <...>/ai
+			args = args[1:]
 		}
 	}
 
