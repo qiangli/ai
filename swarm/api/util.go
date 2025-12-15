@@ -163,6 +163,36 @@ func dataURL(mime string, raw []byte) string {
 	return d
 }
 
+// DecodeDataURL decodes a data URL and extracts the data as a string.
+// It supports optional media types and base64 encoding, ensuring the "data:" prefix is present.
+func DecodeDataURL(dataURL string) (string, error) {
+	if !strings.HasPrefix(dataURL, "data:") {
+		return dataURL, nil
+	}
+
+	dataURL = dataURL[5:]
+
+	commaIndex := strings.Index(dataURL, ",")
+	if commaIndex == -1 {
+		return dataURL, nil
+	}
+
+	metadata := dataURL[:commaIndex]
+	content := dataURL[commaIndex+1:]
+
+	isBase64 := strings.HasSuffix(metadata, ";base64")
+
+	// If the data is base64-encoded, decode it
+	if isBase64 {
+		decoded, err := base64.StdEncoding.DecodeString(content)
+		if err != nil {
+			return "", fmt.Errorf("failed to decode base64 data: %v", err)
+		}
+		return string(decoded), nil
+	}
+	return content, nil
+}
+
 func ToString(data any) string {
 	if data == nil {
 		return ""

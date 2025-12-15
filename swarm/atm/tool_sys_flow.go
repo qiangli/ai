@@ -12,9 +12,13 @@ import (
 
 // run agent first if there is instruction followed by the flow.
 // otherwise, run the flow only
-func (r *SystemKit) Flow(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	flowType := api.ToString(args["flow_type"])
-	switch api.FlowType(flowType) {
+func (r *SystemKit) Flow(ctx context.Context, vars *api.Vars, name string, args map[string]any) (any, error) {
+	flowType := api.FlowType(api.ToString(args["flow_type"]))
+	// default
+	if flowType == "" {
+		flowType = api.FlowTypeSequence
+	}
+	switch flowType {
 	case api.FlowTypeSequence:
 		if err := r.FlowSequence(ctx, vars, args); err != nil {
 			return "", err
@@ -35,7 +39,7 @@ func (r *SystemKit) Flow(ctx context.Context, vars *api.Vars, name string, args 
 		return "", fmt.Errorf("not supported yet %s", flowType)
 	}
 
-	return "Flow completed successfully", nil
+	return args["result"], nil
 }
 
 // FlowTypeSequence executes actions one after another, where each
@@ -49,10 +53,6 @@ func (r *SystemKit) FlowSequence(ctx context.Context, vars *api.Vars, argm api.A
 }
 
 func (r *SystemKit) sequence(ctx context.Context, vars *api.Vars, query string, actions []string, argm api.ArgMap) (*api.Result, error) {
-	if len(query) == 0 {
-		return nil, fmt.Errorf("missing query")
-	}
-	//
 	argm["query"] = query
 
 	var result *api.Result

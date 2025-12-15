@@ -110,6 +110,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	command := fs.String("command", "", "Shell command(s) to be executed.")
 	script := fs.String("script", "", "Path to the shell script file to be executed.")
 	template := fs.String("template", "", "Path to the stemplate file to be applied.")
+	actions := fs.String("actions", "", "list of actions (agent or tool) to be executed.")
 
 	// action := fs.String("action", "", "Default action (agent or tool) to be executed.")
 
@@ -233,6 +234,9 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	// }
 	if *command != "" {
 		argm["command"] = *command
+	}
+	if *actions != "" {
+		argm["actions"] = *actions
 	}
 	if *script != "" {
 		argm["script"] = *script

@@ -13,8 +13,6 @@ import (
 type System = vos.System
 type Workspace = vfs.Workspace
 
-// type FileSystem = vfs.FileSystem
-
 const (
 	VarsEnvContainer = "container"
 	VarsEnvHost      = "host"

@@ -53,8 +53,7 @@ func CheckApplyTemplate(tpl *template.Template, s string, data map[string]any) (
 func LoadURIContent(ws api.Workspace, uri string) (string, error) {
 	var v string
 	if strings.HasPrefix(uri, "data:") {
-		// FIXME remove mime
-		v = uri[5:]
+		return api.DecodeDataURL(v)
 	} else {
 		var f = uri
 		if strings.HasPrefix(f, "file:") {
