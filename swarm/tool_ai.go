@@ -68,11 +68,15 @@ func (r *AIKit) CallLlm(ctx context.Context, _ *api.Vars, _ string, args map[str
 	owner := r.sw.User.Email
 
 	var req = &llm.Request{}
-	var messages []*api.Message
+	// var messages []*api.Message
 
-	id := uuid.NewString()
+	var id = uuid.NewString()
+	var history []*api.Message
+
+	// 1. New System Message
+	// instruction/system role prompt as first message
 	if prompt != "" {
-		messages = append(messages, &api.Message{
+		history = append(history, &api.Message{
 			ID:      uuid.NewString(),
 			Session: id,
 			Created: time.Now(),
@@ -82,7 +86,19 @@ func (r *AIKit) CallLlm(ctx context.Context, _ *api.Vars, _ string, args map[str
 			Sender:  "",
 		})
 	}
-	messages = append(messages, &api.Message{
+
+	// 2. Context Messages
+	// context/history, skip system role
+	var messages = api.ToMessages(args["history"])
+	for _, msg := range messages {
+		if msg.Role != api.RoleSystem {
+			history = append(history, msg)
+		}
+	}
+
+	// 3. New User Message
+	// Additional user message/query
+	history = append(history, &api.Message{
 		ID:      uuid.NewString(),
 		Session: id,
 		Created: time.Now(),
@@ -91,7 +107,7 @@ func (r *AIKit) CallLlm(ctx context.Context, _ *api.Vars, _ string, args map[str
 		Content: query,
 		Sender:  owner,
 	})
-	req.Messages = messages
+	req.Messages = history
 
 	// model set: provider
 	// model, err := conf.LoadModel(owner, provider, "any", r.sw.Assets)
@@ -129,6 +145,9 @@ func (r *AIKit) CallLlm(ctx context.Context, _ *api.Vars, _ string, args map[str
 	if err != nil {
 		return nil, err
 	}
+
+	// update history is successful
+	args["history"] = history
 
 	if resp.Result == nil {
 		resp.Result = &api.Result{

@@ -245,3 +245,31 @@ func resolvePaths(dirs []string) ([]string, error) {
 
 	return result, nil
 }
+
+func ToMessages(data any) []*Message {
+	if data == nil || data == "" {
+		return nil
+	}
+	if v, ok := data.([]*Message); ok {
+		return v
+	}
+	if v, ok := data.(*Message); ok {
+		return []*Message{v}
+	}
+	if v, ok := data.(string); ok {
+		var ms []*Message
+		if err := json.Unmarshal([]byte(v), &ms); err == nil {
+			return ms
+		}
+		return []*Message{
+			{
+				Content: v,
+			},
+		}
+	}
+	return []*Message{
+		{
+			Content: fmt.Sprintf("%+v", data),
+		},
+	}
+}

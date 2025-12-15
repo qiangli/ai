@@ -7,13 +7,13 @@ import (
 	"math/rand"
 	// "strconv"
 	"sync"
-	"time"
+	// "time"
 
-	"github.com/google/uuid"
+	// "github.com/google/uuid"
 
 	"github.com/qiangli/ai/swarm/api"
 	// "github.com/qiangli/ai/swarm/atm"
-	"github.com/qiangli/ai/swarm/log"
+	// "github.com/qiangli/ai/swarm/log"
 )
 
 type FlowKit struct {
@@ -51,72 +51,72 @@ func (h *FlowKit) Flow(ctx context.Context, vars *api.Vars, argm api.ArgMap) err
 	return nil
 }
 
-func (h *FlowKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, argm map[string]any) error {
-	am := api.ArgMap(argm)
-	maxHistory := am.GetInt("max_history")
-	maxSpan := am.GetInt("max_span")
+// func (h *FlowKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent,  argm api.ArgMap) error {
+// 	am := api.ArgMap(argm)
+// 	// maxHistory := am.GetInt("max_history")
+// 	// maxSpan := am.GetInt("max_span")
 
-	logger := log.GetLogger(ctx)
-	logger.Debugf("🔗 (context): %s max_history: %v max_span: %v\n", agent.Name, maxHistory, maxSpan)
+// 	logger := log.GetLogger(ctx)
+// 	// logger.Debugf("🔗 (context): %s max_history: %v max_span: %v\n", agent.Name, maxHistory, maxSpan)
 
-	var id string
-	var history []*api.Message
+// 	var id string
+// 	var history []*api.Message
 
-	// 1. New System Message
-	// system role prompt as first message
-	// prompt := h.agent.Prompt()
-	var prompt = am.GetString("prompt")
-	if prompt != "" {
-		v := &api.Message{
-			ID:      uuid.NewString(),
-			Session: id,
-			Created: time.Now(),
-			//
-			Role:    api.RoleSystem,
-			Content: prompt,
-			Sender:  agent.Name,
-		}
-		history = append(history, v)
-	}
+// 	// 1. New System Message
+// 	// system role prompt as first message
+// 	// prompt := h.agent.Prompt()
+// 	var prompt = am.GetString("prompt")
+// 	if prompt != "" {
+// 		v := &api.Message{
+// 			ID:      uuid.NewString(),
+// 			Session: id,
+// 			Created: time.Now(),
+// 			//
+// 			Role:    api.RoleSystem,
+// 			Content: prompt,
+// 			Sender:  agent.Name,
+// 		}
+// 		history = append(history, v)
+// 	}
 
-	// 2. Context Messages
-	// skip system role
-	var messages []*api.Message
-	for i, msg := range messages {
-		if msg.Role != api.RoleSystem {
-			logger.Debugf("adding [%v]: %s %s (%v)\n", i, msg.Role, abbreviate(msg.Content, 100), len(msg.Content))
-			history = append(history, msg)
-		}
-	}
+// 	// 2. Context Messages
+// 	// skip system role
+// 	var messages []*api.Message
+// 	for i, msg := range messages {
+// 		if msg.Role != api.RoleSystem {
+// 			logger.Debugf("adding [%v]: %s %s (%v)\n", i, msg.Role, abbreviate(msg.Content, 100), len(msg.Content))
+// 			history = append(history, msg)
+// 		}
+// 	}
 
-	// 3. New User Message
-	// Additional user message
-	// var query = h.agent.Query()
-	var query = am.GetString("query")
-	if query != "" {
-		v := &api.Message{
-			ID:      uuid.NewString(),
-			Session: id,
-			Created: time.Now(),
-			//
-			Role:    api.RoleUser,
-			Content: query,
-			Sender:  vars.RTE.User.Email,
-		}
-		history = append(history, v)
-	}
+// 	// 3. New User Message
+// 	// Additional user message
+// 	// var query = h.agent.Query()
+// 	var query = am.GetString("query")
+// 	if query != "" {
+// 		v := &api.Message{
+// 			ID:      uuid.NewString(),
+// 			Session: id,
+// 			Created: time.Now(),
+// 			//
+// 			Role:    api.RoleUser,
+// 			Content: query,
+// 			Sender:  vars.RTE.User.Email,
+// 		}
+// 		history = append(history, v)
+// 	}
 
-	logger.Infof("• context messages: %v\n", len(history))
-	if logger.IsTrace() {
-		for i, v := range history {
-			logger.Debugf("[%v] %+v\n", i, v)
-		}
-	}
+// 	logger.Infof("• context messages: %v\n", len(history))
+// 	if logger.IsTrace() {
+// 		for i, v := range history {
+// 			logger.Debugf("[%v] %+v\n", i, v)
+// 		}
+// 	}
 
-	am["history"] = history
+// 	am["history"] = history
 
-	return nil
-}
+// 	return nil
+// }
 
 // FlowTypeSequence executes actions one after another, where each
 // subsequent action uses the previous action's response as input.
