@@ -206,20 +206,33 @@ func NewArgMap() ArgMap {
 }
 
 func (a ArgMap) Kitname() Kitname {
-	kn := fmt.Sprintf("%s:%s", ToString(a["kit"]), ToString(a["name"]))
+	kn := fmt.Sprintf("%s:%s", a.Kit(), a.Name())
 	return Kitname(kn)
 }
 
 func (a ArgMap) Kit() string {
-	return ToString(a["kit"])
+	return a.GetString("kit")
 }
 
 func (a ArgMap) Name() string {
-	return ToString(a["name"])
+	return a.GetString("name")
 }
 
 func (a ArgMap) Type() string {
-	return ToString(a["type"])
+	return a.GetString("type")
+}
+
+func (a ArgMap) Query() string {
+	return a.GetString("query")
+}
+
+func (a ArgMap) SetQuery(query any) ArgMap {
+	a["query"] = query
+	return a
+}
+
+func (a ArgMap) Actions() []string {
+	return a.GetStringSlice("actions")
 }
 
 type ActionConfig struct {

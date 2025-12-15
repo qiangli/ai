@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
-	"strconv"
+	// "strconv"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/atm"
+	// "github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/log"
 )
 
@@ -21,43 +21,33 @@ type FlowKit struct {
 
 // run agent first if there is instruction followed by the flow.
 // otherwise, run the flow only
-func (h *FlowKit) Flow(ctx context.Context, vars *api.Vars, agent *api.Agent, argm map[string]any) error {
-
-	var flow = agent.Flow
-	if flow == nil {
-		// default
-		// input/call_llm/output
+func (h *FlowKit) Flow(ctx context.Context, vars *api.Vars, argm api.ArgMap) error {
+	flowType := argm.GetString("flow_type")
+	switch api.FlowType(flowType) {
+	case api.FlowTypeSequence:
+		if err := h.FlowSequence(ctx, vars, argm); err != nil {
+			return err
+		}
+	case api.FlowTypeParallel:
+		if err := h.FlowParallel(ctx, vars, argm); err != nil {
+			return err
+		}
+	case api.FlowTypeChoice:
+		if err := h.FlowChoice(ctx, vars, argm); err != nil {
+			return err
+		}
+	case api.FlowTypeMap:
+		if err := h.FlowMap(ctx, vars, argm); err != nil {
+			return err
+		}
+	// case api.FlowTypeShell:
+	// 	if err := h.FlowShell(ctx, vars, argm); err != nil {
+	// 		return err
+	// 	}
+	default:
+		return fmt.Errorf("not supported yet %s", flowType)
 	}
 
-	if agent.Flow != nil {
-		if len(agent.Flow.Actions) == 0 && len(agent.Flow.Script) == 0 {
-			return fmt.Errorf("missing actions or script in flow")
-		}
-		switch agent.Flow.Type {
-		case api.FlowTypeSequence:
-			if err := h.FlowSequence(ctx, vars, agent, argm); err != nil {
-				return err
-			}
-		case api.FlowTypeParallel:
-			if err := h.FlowParallel(ctx, vars, agent, argm); err != nil {
-				return err
-			}
-		case api.FlowTypeChoice:
-			if err := h.FlowChoice(ctx, vars, agent, argm); err != nil {
-				return err
-			}
-		case api.FlowTypeMap:
-			if err := h.FlowMap(ctx, vars, agent, argm); err != nil {
-				return err
-			}
-		case api.FlowTypeShell:
-			if err := h.FlowShell(ctx, vars, agent, argm); err != nil {
-				return err
-			}
-		default:
-			return fmt.Errorf("not supported yet %v", agent.Flow)
-		}
-	}
 	return nil
 }
 
@@ -130,38 +120,28 @@ func (h *FlowKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent,
 
 // FlowTypeSequence executes actions one after another, where each
 // subsequent action uses the previous action's response as input.
-func (h *FlowKit) FlowSequence(ctx context.Context, vars *api.Vars, agent *api.Agent, argm api.ArgMap) error {
-	// var result *api.Result
-	// for _, v := range agent.Flow.Actions {
-	// 	if result != nil {
-	// 		argm["query"] = result.Value
-	// 	}
-	// 	data, err := agent.Runner.Run(ctx, v.ID, argm)
-	// 	if err != nil {
-	// 		argm["error"] = err.Error()
-	// 		return err
-	// 	}
-	// 	result = api.ToResult(data)
-	// 	argm["result"] = result.Value
-	// }
-	// return nil
-	var query = argm.GetString("query")
-	_, err := h.sequence(ctx, vars, agent, agent.Flow.Actions, query, argm)
+func (h *FlowKit) FlowSequence(ctx context.Context, vars *api.Vars, argm api.ArgMap) error {
+	var query = argm.Query()
+	var actions = argm.Actions()
+
+	_, err := h.sequence(ctx, vars, query, actions, argm)
 	return err
 }
 
-func (h *FlowKit) sequence(ctx context.Context, vars *api.Vars, agent *api.Agent, actions []*api.Action, query string, argm api.ArgMap) (*api.Result, error) {
+func (h *FlowKit) sequence(ctx context.Context, vars *api.Vars, query string, actions []string, argm api.ArgMap) (*api.Result, error) {
 	if len(query) == 0 {
 		return nil, fmt.Errorf("missing query")
 	}
+	//
 	argm["query"] = query
 
 	var result *api.Result
 	for _, v := range actions {
+		// subsequent action uses the previous action's response as input.
 		if result != nil {
 			argm["query"] = result.Value
 		}
-		data, err := agent.Runner.Run(ctx, v.ID, argm)
+		data, err := vars.RootAgent.Runner.Run(ctx, v, argm)
 		if err != nil {
 			argm["error"] = err.Error()
 			return nil, err
@@ -174,21 +154,18 @@ func (h *FlowKit) sequence(ctx context.Context, vars *api.Vars, agent *api.Agent
 
 // FlowTypeParallel executes actions simultaneously, returning the combined results as a list.
 // This allows for concurrent processing of independent actions.
-func (h *FlowKit) FlowParallel(ctx context.Context, vars *api.Vars, agent *api.Agent, argm api.ArgMap) error {
-	var query = argm.GetString("query")
-	var resps = make([]string, len(agent.Flow.Actions))
+func (h *FlowKit) FlowParallel(ctx context.Context, vars *api.Vars, argm api.ArgMap) error {
+	var query = argm.Query()
+	var actions = argm.Actions()
+
+	var resps = make([]string, len(actions))
 
 	var wg sync.WaitGroup
-	for i, v := range agent.Flow.Actions {
+	for i, v := range actions {
 		wg.Add(1)
-		go func(i int, v *api.Action) {
+		go func(i int, v string) {
 			defer wg.Done()
-
-			// var req = make(map[string]any)
-			// req["query"] = query
-
-			// data, err := agent.Runner.Run(ctx, v.ID, req)
-			data, err := h.sequence(ctx, vars, agent, []*api.Action{v}, query, argm)
+			data, err := h.sequence(ctx, vars, query, actions, argm)
 			if err != nil {
 				resps[i] = err.Error()
 			} else {
@@ -210,49 +187,56 @@ func (h *FlowKit) FlowParallel(ctx context.Context, vars *api.Vars, agent *api.A
 // FlowTypeChoice selects and executes a single action based on an evaluated expression.
 // If no expression is provided, an action is chosen randomly. The expression must evaluate
 // to a string (tool ID), false/true, or an integer that selects the action index, starting from zero.
-func (h *FlowKit) FlowChoice(ctx context.Context, vars *api.Vars, agent *api.Agent, argm api.ArgMap) error {
-
+func (h *FlowKit) FlowChoice(ctx context.Context, vars *api.Vars, argm api.ArgMap) error {
+	// var query = argm.Query()
+	var actions = argm.Actions()
+	// var expression = argm.GetString("expression")
 	var which int = -1
 	// evaluate express or random
-	if agent.Flow.Expression != "" {
-		v, err := atm.CheckApplyTemplate(agent.Template, agent.Flow.Expression, argm)
-		if err != nil {
-			return err
-		}
-		// match the action id
-		id := api.Kitname(v).ID()
-		for i, action := range agent.Flow.Actions {
-			if id == action.ID {
-				which = i
-			}
-		}
-		//
-		if b, err := strconv.ParseBool(v); err == nil {
-			if b {
-				which = 1
-			} else {
-				which = 0
-			}
-		}
-		if which < 0 {
-			if v, err := strconv.ParseInt(v, 0, 64); err != nil {
-				return err
-			} else {
-				which = int(v)
-			}
-		}
-	} else {
-		// random
-		which = rand.Intn(len(agent.Flow.Actions))
-	}
+	// if expression != "" {
+	// 	v, err := atm.CheckApplyTemplate(vars.RootAgent.Template, expression, argm)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	// match the action id
+	// 	// switch case
+	// 	id := api.Kitname(v).ID()
+	// 	for i, action := range actions {
+	// 		if id == action {
+	// 			which = i
+	// 		}
+	// 	}
+	// 	// if/else
+	// 	if b, err := strconv.ParseBool(v); err == nil {
+	// 		if b {
+	// 			which = 1
+	// 		} else {
+	// 			which = 0
+	// 		}
+	// 	}
+	// 	//  case
+	// 	if which < 0 {
+	// 		if v, err := strconv.ParseInt(v, 0, 64); err != nil {
+	// 			return err
+	// 		} else {
+	// 			which = int(v)
+	// 		}
+	// 	}
+	// } else {
+	// 	// random
+	// 	which = rand.Intn(len(actions))
+	// }
 
-	if which < 0 && which >= len(agent.Flow.Actions) {
-		return fmt.Errorf("index out of bound; %v", which)
-	}
+	which = rand.Intn(len(actions))
 
-	v := agent.Flow.Actions[which]
+	// which = which % len(actions)
+	// if which < 0 && which >= len(actions) {
+	// 	return fmt.Errorf("index out of bound; %v", which)
+	// }
+
+	v := actions[which]
 	var result *api.Result
-	data, err := agent.Runner.Run(ctx, v.ID, argm)
+	data, err := vars.RootAgent.Runner.Run(ctx, v, argm)
 	if err != nil {
 		argm["error"] = err.Error()
 		return err
@@ -264,26 +248,23 @@ func (h *FlowKit) FlowChoice(ctx context.Context, vars *api.Vars, agent *api.Age
 
 // FlowTypeMap applies specified action(s) to each element in the input array, creating a new
 // array populated with the results.
-func (h *FlowKit) FlowMap(ctx context.Context, vars *api.Vars, agent *api.Agent, argm api.ArgMap) error {
-	var query = argm.GetString("query")
+// similar to xargs utility
+func (h *FlowKit) FlowMap(ctx context.Context, vars *api.Vars, argm api.ArgMap) error {
+	var query = argm.Query()
 	if query == "" {
 		return fmt.Errorf("missing query.")
 	}
-	var ids = argm.GetStringSlice("actions")
-	if len(ids) == 0 {
+	var actions = argm.Actions()
+	if len(actions) == 0 {
 		return fmt.Errorf("missing actions")
-	}
-	var actions = make([]*api.Action, len(ids))
-	for i, v := range ids {
-		actions[i] = &api.Action{
-			ID: v,
-		}
 	}
 
 	var tasks []string
 	err := json.Unmarshal([]byte(query), &tasks)
 	if err != nil {
-		return err
+		// make is single task?
+		// return err
+		tasks = []string{query}
 	}
 	var resps = make([]string, len(tasks))
 
@@ -296,8 +277,7 @@ func (h *FlowKit) FlowMap(ctx context.Context, vars *api.Vars, agent *api.Agent,
 			var req = make(map[string]any)
 			req["query"] = query
 
-			// data, err := agent.Runner.Run(ctx, v.ID, req)
-			data, err := h.sequence(ctx, vars, agent, actions, query, argm)
+			data, err := h.sequence(ctx, vars, query, actions, argm)
 			if err != nil {
 				resps[i] = err.Error()
 			} else {
@@ -316,16 +296,16 @@ func (h *FlowKit) FlowMap(ctx context.Context, vars *api.Vars, agent *api.Agent,
 	return nil
 }
 
-// FlowTypeShell delegates control to a shell script using bash script syntax, enabling
-// complex flow control scenarios driven by external scripting logic.
-func (h *FlowKit) FlowShell(ctx context.Context, vars *api.Vars, agent *api.Agent, argm api.ArgMap) error {
-	data, err := agent.Shell.Run(ctx, agent.Flow.Script, argm)
-	if err != nil {
-		argm["error"] = err.Error()
-		return err
-	}
-
-	result := api.ToResult(data)
-	argm["result"] = result.Value
-	return nil
-}
+// // FlowTypeShell delegates control to a shell script using bash script syntax, enabling
+// // complex flow control scenarios driven by external scripting logic.
+// func (h *FlowKit) FlowShell(ctx context.Context, vars *api.Vars, argm api.ArgMap) error {
+// 	var script = argm.GetString("script")
+// 	data, err := vars.RootAgent.Shell.Run(ctx, script, argm)
+// 	if err != nil {
+// 		argm["error"] = err.Error()
+// 		return err
+// 	}
+// 	result := api.ToResult(data)
+// 	argm["result"] = result.Value
+// 	return nil
+// }

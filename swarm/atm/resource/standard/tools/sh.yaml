@@ -57,10 +57,50 @@ tools:
   #     required:
   #       - dir
 
-  - name: "pwd"
-    description: "Print the current working directory on user's system."
-    parameters: {}
+  # - name: "pwd"
+  #   description: "Print the current working directory on user's system."
+  #   parameters: {}
 
+  - name: "flow"
+    description: |
+      Execute a specified list of actions within the user's environment.
+      Ensure that the actions are provided as an array, keeping in mind any security restrictions.
+    parameters:
+      type: "object"
+      properties:
+        flow_type:
+          type: "string"
+          description: |
+            Defines how the actions in the flow are executed. Supported types include:
+            + sequence: Execute actions consecutively, using the result of each action as the input for the next one.
+            + choice: Randomly select and execute a single action from the list.
+            + parallel: Execute all actions simultaneously and return their results as a combined list.
+            + map: Apply the specified actions to each item in the input array, producing a new array. Actions are executed in sequence for each array element.
+        query:
+          type: "string"
+          description: "The input query string"
+        actions:
+          type: "array"
+          items:
+            type: "string"
+          description: |
+            A list of valid actions. Use `ai:list_tools` or `ai:list_agents` to acquire available actions.
+            Specify actions in the following formats:
+            - Tool action: `tool:kit:name`
+            - Agent action: `agent:pack/name`
+            
+            Example for tool: `fs:read_file`
+            Examples for agent: `agent:ask`, `agent:memory/lastn`
+            Note: `fs:read_file` should be from the list obtained using list_tools, 
+            while `agent:ask` and `agent:memory/lastn` should be from list_agents.
+
+            Additional arguments may be required for each action.
+            To explore the required arguments and further specifics of an action,
+            use "ai:get_agent_info" for agents or "ai:get_tool_info" for tools.
+            This will provide detailed information about the parameters and usage guidelines.
+      required:
+        - actions
+  
   - name: "bash"
     description: |
       Executes a shell script within the user's environment.
