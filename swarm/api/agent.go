@@ -166,8 +166,8 @@ func (a *Agent) Clone() *Agent {
 }
 
 type Flow struct {
-	Type FlowType
-	// Expression string
+	Type       FlowType
+	Expression string
 	// Concurrency int
 	// Retry       int
 	Actions []*Action
@@ -357,10 +357,10 @@ const (
 	// subsequent action uses the previous action's response as input.
 	FlowTypeSequence FlowType = "sequence"
 
-	// // FlowTypeChoice selects and executes a single action based on an evaluated expression.
-	// // If no expression is provided, an action is chosen randomly. The expression must evaluate
-	// // to an integer that selects the action index, starting from zero.
-	// FlowTypeChoice FlowType = "choice"
+	// FlowTypeChoice selects and executes a single action based on an evaluated expression.
+	// If no expression is provided, an action is chosen randomly. The expression must evaluate
+	// to an integer that selects the action index, starting from zero.
+	FlowTypeChoice FlowType = "choice"
 
 	// FlowTypeParallel executes actions simultaneously, returning the combined results as a list.
 	// This allows for concurrent processing of independent actions.

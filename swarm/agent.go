@@ -56,6 +56,10 @@ func findAgentConfig(ac *api.AppConfig, pack, sub string) (*api.AgentConfig, err
 		if a.Name == pn {
 			return a, nil
 		}
+		// primary entry
+		if a.Name == pack && sub == "" {
+			return a, nil
+		}
 	}
 	return nil, fmt.Errorf("no such agent: %s", pn)
 }

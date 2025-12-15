@@ -471,6 +471,10 @@ func (r *AIKit) UnsetEnvs(_ context.Context, vars *api.Vars, _ string, args map[
 	}, nil
 }
 
+func (r *AIKit) FlowSequence(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	return nil, nil
+}
+
 // return tools by tool kit:name or ids
 func (r *AIKit) getTools(ids []string) ([]*api.ToolFunc, error) {
 	var memo = make(map[string]struct{})

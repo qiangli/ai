@@ -317,22 +317,8 @@ func (sw *Swarm) execm(ctx context.Context, parent *api.Agent, argm map[string]a
 	if id == "" {
 		return nil, fmt.Errorf("missing action id: %+v", argm)
 	}
-	// kit := am.Kit()
-	// name := am.Name()
-
-	// var v any
-	// var err error
-	// switch kit {
-	// case "agent":
-	// 	//
 	// 	v, err = sw.runm(ctx, parent, name, argm)
-	// default:
-	// 	// all tools including sh:bash
 	// 	v, err = parent.Runner.Run(ctx, id, argm)
-	// }
-	// if err != nil {
-	// 	return nil, err
-	// }
 	v, err := parent.Runner.Run(ctx, id, argm)
 	if err != nil {
 		return nil, err

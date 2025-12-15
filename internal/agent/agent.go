@@ -167,6 +167,7 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	// console outpu
 	processOutput(ctx, "markdown", &out)
 
+	/*  */
 	return nil
 }
 

@@ -64,10 +64,12 @@
 				// "--verbose",
 				// "pick some famous politicians names",
 				//
-				"/agent:eval",
-				"--script",
-				"dev/skills/agents/eval/agent.yaml",
+				// "/agent:eval",
+				// "--script",
+				// "dev/skills/agents/eval/agent.yaml",
 				//
+				"@ask",
+				"how to update system env in a golang template",
 				// "--verbose",
 				// "--max-time",
 				// "900",
