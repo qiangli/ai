@@ -312,12 +312,6 @@ func (sw *Swarm) exec(ctx context.Context, parent *api.Agent, input any) (*api.R
 }
 
 func (sw *Swarm) execm(ctx context.Context, parent *api.Agent, argm map[string]any) (*api.Result, error) {
-	// log.GetLogger(ctx).Debugf("Execm parent: %+v args:%+v\n", parent, argm)
-
-	// if parent == nil {
-	// 	parent = sw.Vars.RootAgent
-	// }
-
 	am := api.ArgMap(argm)
 	id := am.Kitname().ID()
 	if id == "" {
