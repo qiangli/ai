@@ -175,6 +175,7 @@ type ToolSystem interface {
 }
 
 // Took Kit and Name
+// ^[a-zA-Z0-9_-]+$
 type Kitname string
 
 func (r Kitname) String() string {

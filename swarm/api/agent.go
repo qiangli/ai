@@ -16,6 +16,7 @@ const (
 // @pack[/sub]
 // agent:pack[/sub]
 // @*
+// ^[a-zA-Z0-9_-]+$
 type Packname string
 
 func (r Packname) String() string {
