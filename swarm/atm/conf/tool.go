@@ -49,7 +49,8 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 	// @name
 	// agent:name
 	if kit == string(api.ToolTypeAgent) {
-		ac, err := assets.FindAgent(owner, name)
+		pack, _ := api.Packname(name).Decode()
+		ac, err := assets.FindAgent(owner, pack)
 		if err != nil {
 			return nil, err
 		}

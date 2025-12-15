@@ -1,7 +1,8 @@
 ###
+pack: "memory"
 max_history: 0
 agents:
-  - name: "memory"
+  - name: "kg"
     display: "🤖 Memory"
     description: |
       Persistent memory using a knowledge graph

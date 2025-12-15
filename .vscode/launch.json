@@ -20,7 +20,7 @@
 				"AI_DEBUG": "true",
 			},
 			"envFile": "${workspaceFolder}/.env",
-			"cwd": "${workspaceFolder}/swarm",
+			"cwd": "${workspaceFolder}/",
 			"args": [
 				// "/help",
 				// "/help:help",
@@ -40,9 +40,9 @@
 				// "correct mine englise"
 				//
 				// bash script
-				"/sh:bash",
-				"--script",
-				"test/script.sh"
+				// "/sh:bash",
+				// "--script",
+				// "test/script.sh"
 				//
 				// "/sh:bash",
 				// "--script",
@@ -64,80 +64,17 @@
 				// "--verbose",
 				// "pick some famous politicians names",
 				//
-				// "/atm:hi",
-				// "--script",
-				// "atm/resource/template/atm.yaml",
-				// "--arg",
-				// "names=[\"Charles\"]",
-				// "--arg",
-				// "greeting=omg",
+				"/agent:eval",
+				"--script",
+				"dev/skills/agents/eval/agent.yaml",
+				//
 				// "--verbose",
-				//
-				// "/ai:list_messages"
-				//
-				// "/ai:get_message_info",
-				//
-				// "/agent:joker",
-				// "--message",
-				// "what is the weather for the bay area in the next few days",
-				//
-				// "@agent/agent",
-				// "@ask",
-				// "@eval",
-				// "@git",
-				// "--verbose",
-				// "message",
-				// "call git/short to generate a git commit message",
-				// "-",
-				// "@iconvert",
-				// "@news",
-				// "@video",
-				// "@think",
-				// "@timer",
-				// "--message", "set a timer for 10 minutes",
-				// "@chat",
-				// "@gptr",
-				// "@gpte",
-				// "@aider",
-				// "@research",
-				// "@tool",
-				// "--arg", "kit=agent",
-				// "--arg", "name=memory",
-				// "--workspace",
-				// "/tmp/test/aider",
-				// "--message",
-				// "what are the tools you are provided with",
-				// "write a tool tha runs a simple python hello world and save it in the workspace",
-				// "--message", 
-				// "read jokes.md from the memory",
-				// "tell me a joke",
-				// "tell me a joke. show me the query and prompt used for the llm request by calling call_llm and other tools",
-				// "@gptr/crawl",
-				// "@agent",
-				// "--message",
-				// "what is the weather today in dublin ca",
-				// "yes",
-				// "the weather in dublin ca",
-				// "@cron",
-				// "--message", "schedule a chat on climate change at 3:00 pm tomorrow pdt",
-				// "--no-stdin=true",
-				// "-",
-				// "--message",
-				// "write short git message",
-				// "how to design a multi agent system",
-				// "give me a summary report of the state of the arts on vibe coding using LLM",
-				// "generate a random password",
-				// "what is the weather in dublin ca today",
-				// "use sora from openai to make a video of a german shepard puppy running in bamboo forest. save the video in /tmp as gsd-puppy.mp4",
 				// "--max-time",
 				// "900",
 				// "--max-history",
 				// "100",
 				// "--max-span",
 				// "14400"
-				// "about",
-				// "space technology"
-				// "tell", "a", "joke"
 			],
 			"showLog": false,
 			"stopOnEntry": false

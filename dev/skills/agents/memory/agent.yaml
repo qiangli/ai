@@ -1,0 +1,19 @@
+###
+pack: "memory"
+log_level: "info"
+agents:
+  - name: "lastn"
+    display: "Last N Turns Messages"
+    description: |
+      Retrieves the most recent N messages from the conversation history to provide contextual awareness.
+    model: "default/any"
+    arguments:
+      max_history: 3
+    message: ""
+    instruction: |
+      #!
+      {{ai "/ai:list_messages" "--max_history" .max_history}}
+    functions:
+      - "ai:list_messages"
+      - "ai:get_message_info"
+###

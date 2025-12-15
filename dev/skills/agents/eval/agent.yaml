@@ -7,14 +7,15 @@ agents:
     display: "⚙️ Eval Tool"
     description: "Evaluation tool"
     model: "llm/any"
-    context: "agent:context"
+    context: ""
+    embed:
+      - "agent:memory/lastn"
     instruction: |
       You are an evaluation agent.
-    message: |
-      Tell me a joke.
+    message:
     functions:
-      - "agent:context"
-      - "ai:*"
+      - "agent:memory/lastn"
+      - "fs:*"
 
 ###
 set: "llm"
