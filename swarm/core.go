@@ -315,6 +315,8 @@ func (sw *Swarm) execm(ctx context.Context, parent *api.Agent, argm map[string]a
 	am := api.ArgMap(argm)
 	id := am.Kitname().ID()
 	if id == "" {
+		// required
+		// kit is optional for system command
 		return nil, fmt.Errorf("missing action id: %+v", argm)
 	}
 	// 	v, err = sw.runm(ctx, parent, name, argm)

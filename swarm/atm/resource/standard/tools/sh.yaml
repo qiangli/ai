@@ -32,6 +32,13 @@ tools:
         }
     log_level: "quiet"
 
+  - name: "pass"
+    description: |
+      A no-operation (no-op) tool that performs no actions. 
+      Ideal for scenarios requiring a placeholder or testing phase 
+      where subsequent processes are needed without executing any specific tasks.
+    parameters: {}
+
   - name: "exec"
     description: |
       Execute a specified command within the user's environment.

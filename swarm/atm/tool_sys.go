@@ -18,7 +18,7 @@ func (r *SystemKit) Call(ctx context.Context, vars *api.Vars, _ *api.ToolEnv, tf
 	callArgs := []any{ctx, vars, tf.Name, args}
 	v, err := CallKit(r, tf.Kit, tf.Name, callArgs...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to call tool %s %s: %w", tf.Kit, tf.Name, err)
+		return nil, fmt.Errorf("failed to call tool %s:%s error: %w", tf.Kit, tf.Name, err)
 	}
 	return v, err
 }

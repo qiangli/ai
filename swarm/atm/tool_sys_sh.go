@@ -10,17 +10,22 @@ import (
 	"github.com/qiangli/ai/swarm/atm/resource"
 )
 
-func (r *SystemKit) Cd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	dir, err := api.GetStrProp("dir", args)
-	if err != nil {
-		return "", err
-	}
-	return "", vars.RTE.OS.Chdir(dir)
+// no-op tool that does nothing
+func (r *SystemKit) Pass(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	return "", nil
 }
 
-func (r *SystemKit) Pwd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	return vars.RTE.OS.Getwd()
-}
+// func (r *SystemKit) Cd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+// 	dir, err := api.GetStrProp("dir", args)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return "", vars.RTE.OS.Chdir(dir)
+// }
+
+// func (r *SystemKit) Pwd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+// 	return vars.RTE.OS.Getwd()
+// }
 
 func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
 	cmd, err := api.GetStrProp("command", args)
