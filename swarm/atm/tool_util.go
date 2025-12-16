@@ -51,9 +51,8 @@ func CheckApplyTemplate(tpl *template.Template, s string, data map[string]any) (
 // Load data from uri.
 // Support file:// and data: protocols
 func LoadURIContent(ws api.Workspace, uri string) (string, error) {
-	var v string
 	if strings.HasPrefix(uri, "data:") {
-		return api.DecodeDataURL(v)
+		return api.DecodeDataURL(uri)
 	} else {
 		var f = uri
 		if strings.HasPrefix(f, "file:") {
@@ -67,8 +66,6 @@ func LoadURIContent(ws api.Workspace, uri string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		v = string(data)
+		return string(data), nil
 	}
-
-	return v, nil
 }

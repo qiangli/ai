@@ -72,15 +72,23 @@
 				// "--agent",
 				// "ask/ask"
 				//
-				"/sh:flow",
-				"--actions",
-				"[\"sh:parse\",\"ai:get_agent_config\",\"sh:format\"]".
-				"--arg",
-				"agent=ed",
-				"--arg",
-				"template='data:,\n***\n{{.result}}\n***\n'",
-				"--message",
-				"test"
+				// "/sh:flow",
+				// "--actions",
+				// "[\"sh:parse\",\"ai:get_agent_config\",\"sh:format\"]".
+				// "--arg",
+				// "agent=ed",
+				// "--arg",
+				// "template='data:,\n***\n{{.result}}\n***\n'",
+				// "--message",
+				// "test"
+				//
+				// "/sh:apply",
+				// "--template",
+				// "data:,#!\ntest\n{{.}}"
+				//
+				"/sh:bash",
+				"--script",
+				"data:,#!\nset -x\nprintenv\necho this is a test\n"
 				//
 				// "@ask",
 				// "how to update system env in a golang template",
