@@ -473,6 +473,9 @@ func (r *AIKit) GetEnvs(_ context.Context, vars *api.Vars, _ string, args map[st
 
 func (r *AIKit) SetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
 	vars.Global.SetEnvs(args)
+	for k, v := range args {
+		vars.RTE.OS.Setenv(k, v)
+	}
 	return &api.Result{
 		Value: "success",
 	}, nil
