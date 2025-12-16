@@ -196,6 +196,12 @@ Instruction: %s
 	if err != nil {
 		return "", err
 	}
+	if agent == "self" {
+		if r.agent == nil {
+			return "", fmt.Errorf("Sorry, something went terribaly wrong")
+		}
+		agent = r.agent.Name
+	}
 	pack, _ := api.Packname(agent).Decode()
 	ac, err := r.sw.Assets.FindAgent(r.sw.User.Email, pack)
 	if err != nil {
@@ -239,6 +245,8 @@ func (r *AIKit) GetAgentConfig(ctx context.Context, vars *api.Vars, _ string, ar
 	}
 	for _, v := range ac.Agents {
 		if api.Packname(v.Name).Equal(agent) {
+			// set config
+			args["config"] = ac
 			return string(ac.RawContent), nil
 		}
 	}
@@ -321,7 +329,8 @@ func (r *AIKit) CreateAgent(ctx context.Context, _ *api.Vars, _ string, args map
 			args[k] = v
 		}
 	}
-
+	// update the property with the created agent object
+	args["agent"] = agent
 	return r.sw.runm(ctx, r.agent, name, args)
 }
 
@@ -395,6 +404,39 @@ Parameters: %s
 				// TODO params may need better handling
 				log.GetLogger(ctx).Debugf("Tool info: %s %+v\n", tid, string(params))
 				return fmt.Sprintf(tpl, kit, v.Name, v.Description, string(params)), nil
+			}
+		}
+	}
+	return "", fmt.Errorf("unknown tool: %s", tid)
+}
+
+func (r *AIKit) GetToolConfig(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
+	log.GetLogger(ctx).Debugf("Tool info: %s %+v\n", tf, args)
+
+	tid, err := api.GetStrProp("tool", args)
+	if err != nil {
+		return "", err
+	}
+
+	kit, name := api.Kitname(tid).Decode()
+
+	tc, err := r.sw.Assets.FindToolkit(r.sw.User.Email, kit)
+	if err != nil {
+		return "", err
+	}
+
+	if tc != nil {
+		for _, v := range tc.Tools {
+			if v.Name == name {
+				params, err := json.Marshal(v.Parameters)
+				if err != nil {
+					return "", err
+				}
+				// TODO params may need better handling
+				log.GetLogger(ctx).Debugf("Tool info: %s %+v\n", tid, string(params))
+				// return fmt.Sprintf(tpl, kit, v.Name, v.Description, string(params)), nil
+				args["config"] = tc
+				return string(tc.RawContent), nil
 			}
 		}
 	}

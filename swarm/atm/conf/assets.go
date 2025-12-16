@@ -185,6 +185,7 @@ func (r *assetManager) FindToolkit(owner string, kit string) (*api.AppConfig, er
 
 	//
 	tc.Kit = kit
+	tc.RawContent = content
 
 	return tc, nil
 }
@@ -206,6 +207,7 @@ func (r *assetManager) ListModels(owner string) (map[string]*api.ModelsConfig, e
 	if len(models) == 0 {
 		return nil, fmt.Errorf("no model configurations found")
 	}
+
 	return models, nil
 }
 
@@ -245,6 +247,7 @@ func (r *assetManager) FindModels(owner string, set string) (*api.ModelsConfig, 
 
 	//
 	mc.Set = set
+	mc.RawContent = content
 
 	return mc, nil
 }

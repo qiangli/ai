@@ -11,10 +11,9 @@ tools:
     parameters: {}
     type: "func"
     body:
-      language: "golang"
+      language: "template"
       code: |
-        import "fmt"
-        const desc = `
+        #!
         A set of tools for executing agent, tool, system command actions
         and applying templates.
 
@@ -26,10 +25,25 @@ tools:
 
         ## Templates
           + apply
-        `
-        func main() {
-          fmt.Printf(desc)
-        }
+      # language: "golang"
+      # code: |
+      #   import "fmt"
+      #   const desc = `
+      #   A set of tools for executing agent, tool, system command actions
+      #   and applying templates.
+
+      #   ## Actions
+      #     + bash
+      #     + exec
+      #     + format
+      #     + parse
+
+      #   ## Templates
+      #     + apply
+      #   `
+      #   func main() {
+      #     fmt.Printf(desc)
+      #   }
     log_level: "quiet"
 
   - name: "pass"
