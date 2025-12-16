@@ -315,13 +315,12 @@ type InputConfig struct {
 	ClipAppend bool
 	Stdin      bool
 }
-
 type AppConfig struct {
 	// entry action
 	// kit:name
 	// pack/sub
 	// default: pack[/pack]
-	Action string `yaml:"action"`
+	Action string `yaml:"action" json:"action"`
 
 	// ActionConfig
 	//
@@ -333,66 +332,66 @@ type AppConfig struct {
 	// container name
 	// virtual machine name
 	// tool/function (Gemini)
-	Kit string `yaml:"kit"`
+	Kit string `yaml:"kit" json:"kit"`
 
 	// action type:
 	// func, system, agent...
-	Type string `yaml:"type"`
+	Type string `yaml:"type" json:"type"`
 
 	// action name and arguments
-	Name      string         `yaml:"name"`
-	Arguments map[string]any `yaml:"arguments"`
+	Name      string         `yaml:"name" json:"name"`
+	Arguments map[string]any `yaml:"arguments" json:"arguments"`
 
 	// user message
-	Message string `yaml:"message"`
+	Message string `yaml:"message" json:"message"`
 
 	// system prompt
-	Instruction string `yaml:"instruction"`
+	Instruction string `yaml:"instruction" json:"instruction"`
 
 	// set/level key - not the LLM model
-	Model string `yaml:"model"`
+	Model string `yaml:"model" json:"model"`
 
 	//
-	MaxTurns int `yaml:"max_turns"`
-	MaxTime  int `yaml:"max_time"`
+	MaxTurns int `yaml:"max_turns" json:"max_turns"`
+	MaxTime  int `yaml:"max_time" json:"max_time"`
 
 	// output format: json | text
-	Format string `yaml:"format"`
+	Format string `yaml:"format" json:"format"`
 
 	// memory context
-	MaxHistory int    `yaml:"max_history"`
-	MaxSpan    int    `yaml:"max_span"`
-	Context    string `yaml:"context"`
+	MaxHistory int    `yaml:"max_history" json:"max_history"`
+	MaxSpan    int    `yaml:"max_span" json:"max_span"`
+	Context    string `yaml:"context" json:"context"`
 
 	// logging: quiet | informative | verbose
-	LogLevel string `yaml:"log_level"`
+	LogLevel string `yaml:"log_level" json:"log_level"`
 
 	// app level global vars
-	Environment map[string]any `yaml:"environment"`
+	Environment map[string]any `yaml:"environment" json:"environment"`
 
 	//
-	Pack string `yaml:"pack"`
+	Pack string `yaml:"pack" json:"pack"`
 
-	Agents []*AgentConfig `yaml:"agents"`
+	Agents []*AgentConfig `yaml:"agents" json:"agents"`
 
 	// tool / model provider
-	Provider string `yaml:"provider"`
-	BaseUrl  string `yaml:"base_url"`
+	Provider string `yaml:"provider" json:"provider"`
+	BaseUrl  string `yaml:"base_url" json:"base_url"`
 
 	// api token lookup key
-	ApiKey string `yaml:"api_key"`
+	ApiKey string `yaml:"api_key" json:"api_key"`
 
 	// action type:
 	// func, system, agent...
 	// Type  string        `yaml:"type"`
-	Tools []*ToolConfig `yaml:"tools"`
+	Tools []*ToolConfig `yaml:"tools" json:"tools"`
 
 	// modelset name
-	Set    string                  `yaml:"set"`
-	Models map[string]*ModelConfig `yaml:"models"`
+	Set    string                  `yaml:"set" json:"set"`
+	Models map[string]*ModelConfig `yaml:"models" json:"models"`
 
 	// The raw data for this config
-	RawContent []byte `yaml:"-"`
+	RawContent []byte `yaml:"-" json:"-"`
 }
 
 // ToMap converts AppConfig to a map[string]any
@@ -461,18 +460,6 @@ func (cfg *AppConfig) IsVerbose() bool {
 func (cfg *AppConfig) IsTracing() bool {
 	return ToLogLevel(cfg.LogLevel) == Tracing
 }
-
-// func (cfg *AppConfig) IsStdin() bool {
-// 	return cfg.Stdin
-// }
-
-// func (cfg *AppConfig) IsClipin() bool {
-// 	return cfg.Clipin
-// }
-
-// func (cfg *AppConfig) IsSpecial() bool {
-// 	return cfg.IsStdin() || cfg.IsClipin()
-// }
 
 func (cfg *AppConfig) HasInput() bool {
 	return cfg.Message != ""

@@ -92,10 +92,9 @@ type Agent struct {
 
 	Creator Creator
 
-	Template *template.Template
-
 	//
-	Config *AppConfig
+	Template *template.Template
+	Config   *AppConfig
 }
 
 // ai operations
@@ -234,63 +233,62 @@ func (a *Agent) cloneEnvironment() *Environment {
 // 		result["log_level"] = ac.LogLevel
 // 	}
 
-// 	return result
-// }
-
+//		return result
+//	}
 type AgentConfig struct {
-	Display     string `yaml:"display"`
-	Description string `yaml:"description"`
+	Display     string `yaml:"display" json:"display"`
+	Description string `yaml:"description" json:"description"`
 
 	// tools defined in tools config
 	// kit:name
-	Functions []string `yaml:"functions"`
+	Functions []string `yaml:"functions" json:"functions"`
 
-	Flow *FlowConfig `yaml:"flow"`
+	Flow *FlowConfig `yaml:"flow" json:"flow"`
 
 	// chat|image|docker/aider oh gptr
-	Adapter string `yaml:"adapter"`
+	Adapter string `yaml:"adapter" json:"adapter"`
 
 	// name of custom creator agent for this agent configuration
-	Creator string `yaml:"creator"`
+	Creator string `yaml:"creator" json:"creator"`
 
-	// middleware chain
-	Chain *ChainConfig `yaml:"chain"`
+	// // middleware chain
+	// Chain *ChainConfig `yaml:"chain"`
 
 	// default agents config
-	Name      string         `yaml:"name"`
-	Arguments map[string]any `yaml:"arguments"`
+	Name      string         `yaml:"name" json:"name"`
+	Arguments map[string]any `yaml:"arguments" json:"arguments"`
 
-	Instruction string `yaml:"instruction"`
-	Context     string `yaml:"context"`
-	Message     string `yaml:"message"`
+	Instruction string `yaml:"instruction" json:"instruction"`
+	Context     string `yaml:"context" json:"context"`
+	Message     string `yaml:"message" json:"message"`
 
-	Model string `yaml:"model"`
+	Model string `yaml:"model" json:"model"`
 
 	//
-	MaxTurns int `yaml:"max_turns"`
-	MaxTime  int `yaml:"max_time"`
+	MaxTurns int `yaml:"max_turns" json:"max_turns"`
+	MaxTime  int `yaml:"max_time" json:"max_time"`
 
 	// output format: json | text
-	Format string `yaml:"format"`
+	Format string `yaml:"format" json:"format"`
 
 	// memory
 	// max history: 0 max span: 0
 	// New        *bool  `yaml:"new,omitempty"`
-	MaxHistory int `yaml:"max_history"`
-	MaxSpan    int `yaml:"max_span"`
+	MaxHistory int `yaml:"max_history" json:"max_history"`
+	MaxSpan    int `yaml:"max_span" json:"max_span"`
 
 	// logging: quiet | info[rmative] | verbose | trace
-	LogLevel string `yaml:"log_level"`
+	LogLevel string `yaml:"log_level" json:"log_level"`
 
 	// agent as tool
-	Parameters map[string]any `yaml:"parameters"`
+	Parameters map[string]any `yaml:"parameters" json:"parameters"`
 
 	// agent global vars
-	Environment map[string]any `yaml:"environment"`
+	Environment map[string]any `yaml:"environment" json:"environment"`
 
-	// security
-	Filters []*IOFilter  `yaml:"filters"`
-	Guards  []*ToolGuard `yaml:"guards"`
+	// // security
+	// Filters []*IOFilter  `yaml:"filters"`
+	// Guards  []*ToolGuard `yaml:"guards"`
 
 	// inherit from embedded parent:
 	// + environment
@@ -302,12 +300,12 @@ type AgentConfig struct {
 	// - message
 	// - model
 	// - flow/actions
-	Embed []string `yaml:"embed"`
+	Embed []string `yaml:"embed" json:"embed"`
 
 	//
-	Store AssetStore `yaml:"-"`
+	Store AssetStore `yaml:"-" json:"-"`
 	// relative to root
-	BaseDir string `yaml:"-"`
+	BaseDir string `yaml:"-" json:"-"`
 }
 
 func (ac *AgentConfig) ToMap() map[string]any {
