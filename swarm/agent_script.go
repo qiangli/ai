@@ -81,7 +81,7 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem) sh.ExecHandler 
 			log.GetLogger(ctx).Debugf("running ai agent/tool: %+v\n", args)
 
 			// ignore result.
-			// script should print to stdout/stderr
+			// execv prints to stdout/stderr
 			_, err := r.execv(ctx, vs, args)
 			if err != nil {
 				return true, err
@@ -94,18 +94,22 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem) sh.ExecHandler 
 		if slices.Contains(allowed, args[0]) {
 			out, err := doBashCustom(vs, args)
 			fmt.Fprintf(vs.IOE.Stdout, "%v", out)
+			if err != nil {
+				fmt.Fprintln(vs.IOE.Stderr, err.Error())
+			}
 			return true, err
 		}
 
 		// bash core utils
 		if did, err := sh.RunCoreUtils(ctx, vs, args); did {
+			// TDDO core util output?
 			return did, err
 		}
 
 		// TODO restricted
 		// block other commands
-		// fmt.Fprintf(vs.IOE.Stderr, "command not supported: %s %+v\n", args[0], args[1:])
 		out, err := atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, args[0], args[1:])
+		// out already has stdout/stder combined
 		fmt.Fprintf(vs.IOE.Stdout, "%v", out)
 		return true, err
 	}
@@ -117,11 +121,12 @@ func (r *AgentScriptRunner) execv(ctx context.Context, vs *sh.VirtualSystem, arg
 	}
 
 	result, err := r.sw.exec(ctx, r.parent, args)
+	if result != nil {
+		fmt.Fprintln(vs.IOE.Stdout, result.Value)
+	}
 	if err != nil {
 		fmt.Fprintln(vs.IOE.Stderr, err.Error())
 		return nil, err
 	}
-	fmt.Fprintln(vs.IOE.Stdout, result.Value)
-
 	return result, nil
 }

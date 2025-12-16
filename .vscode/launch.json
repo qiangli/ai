@@ -86,11 +86,11 @@
 				// "--template",
 				// "data:,#!\ntest\n{{.}}"
 				//
-				"/sh:bash",
-				"--script",
-				"data:,#!\nset -x\nprintenv\necho this is a test\n"
-				//
-				// "@ask",
+				// "/sh:bash",
+				// "--script",
+				// "data:,#!\nset -x\n/fs:list_roots\nprintenv\necho this is a test\nls -al\ngo version\n"
+				// //
+				// // "@ask",
 				// "how to update system env in a golang template",
 				// "--verbose",
 				// "--max-time",
