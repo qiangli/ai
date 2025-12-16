@@ -52,91 +52,45 @@ func (r Packname) Equal(s string) bool {
 type Creator func(context.Context, string) (*Agent, error)
 
 type Agent struct {
-	Parent *Agent
-
-	// Owner string
+	Parent *Agent `json:"parent"`
 
 	// The name of the agent.
-	Name        string
-	Display     string
-	Description string
+	Name        string `json:"name"`
+	Display     string `json:"display"`
+	Description string `json:"description"`
 
 	//
-	Instruction string
-	Context     string
-	Message     string
+	Instruction string `json:"instruction"`
+	Context     string `json:"context"`
+	Message     string `json:"message"`
 
 	// The model to be used by the agent
-	Model *Model
+	Model *Model `json:"model"`
 	// Functions that the agent can call
-	Tools []*ToolFunc
+	Tools []*ToolFunc `json:"tools"`
 
 	// // default values
-	Arguments *Arguments
+	Arguments *Arguments `json:"arguments"`
 
 	// LLM adapter
-	Adapter string
+	Adapter string `json:"adapter"`
 
 	//
-	Flow *Flow
+	Flow *Flow `json:"flow"`
 
-	Embed []*Agent
+	Embed []*Agent `json:"embed"`
 
 	// global values
 	// Environment map[string]any
-	Environment *Environment
+	Environment *Environment `json:"environment"`
 
 	//
-	Runner ActionRunner
-	Shell  ActionRunner
-
-	Creator Creator
-
-	//
-	Template *template.Template
-	Config   *AppConfig
+	Runner   ActionRunner       `json:"-"`
+	Shell    ActionRunner       `json:"-"`
+	Creator  Creator            `json:"-"`
+	Template *template.Template `json:"-"`
+	Config   *AppConfig         `json:"-"`
 }
-
-// ai operations
-// func (a *Agent) Query() string {
-// 	return a.Environment.GetString("query")
-// }
-
-// func (a *Agent) SetQuery(s string) *Agent {
-// 	a.Environment.Set("query", s)
-// 	return a
-// }
-
-// func (a *Agent) Prompt() string {
-// 	return a.Environment.GetString("prompt")
-// }
-
-// func (a *Agent) SetPrompt(s string) *Agent {
-// 	a.Environment.Set("prompt", s)
-// 	return a
-// }
-
-// func (a *Agent) Result() string {
-// 	return a.Environment.GetString("result")
-// }
-
-// func (a *Agent) SetResult(v string) *Agent {
-// 	a.Environment.Set("result", v)
-// 	return a
-// }
-
-// func (a *Agent) SetHistory(messages []*Message) *Agent {
-// 	a.Environment.Set("messages", messages)
-// 	return a
-// }
-
-// func (a *Agent) History() []*Message {
-// 	list, _ := a.Environment.Get("messages")
-// 	if v, ok := list.([]*Message); ok {
-// 		return v
-// 	}
-// 	return nil
-// }
 
 // for reusing cached agent
 func (a *Agent) Clone() *Agent {
@@ -165,12 +119,10 @@ func (a *Agent) Clone() *Agent {
 }
 
 type Flow struct {
-	Type       FlowType
-	Expression string
-	// Concurrency int
-	// Retry       int
-	Actions []*Action
-	Script  string
+	Type       FlowType  `json:"type"`
+	Expression string    `json:"expression"`
+	Actions    []*Action `json:"actions"`
+	Script     string    `json:"script"`
 }
 
 func (a *Agent) cloneArguments() *Arguments {

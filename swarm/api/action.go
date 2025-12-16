@@ -55,13 +55,13 @@ type TemplateFuncMap = template.FuncMap
 
 type Action struct {
 	// unique identifier
-	ID string
+	ID string `json:"id"`
 
 	// agent/tool name
-	Name string
+	Name string `json:"name"`
 
 	// arguments including name
-	Arguments *Arguments
+	Arguments *Arguments `json:"arguments"`
 }
 
 func NewAction(id string, name string, args map[string]any) *Action {
@@ -69,19 +69,19 @@ func NewAction(id string, name string, args map[string]any) *Action {
 		ID:   id,
 		Name: name,
 		Arguments: &Arguments{
-			args: args,
+			Args: args,
 		},
 	}
 }
 
 type Arguments struct {
-	args map[string]any
-	mu   sync.RWMutex
+	Args map[string]any `json:"args"`
+	mu   sync.RWMutex   `json:"-"`
 }
 
 func NewArguments() *Arguments {
 	return &Arguments{
-		args: make(map[string]any),
+		Args: make(map[string]any),
 	}
 }
 
@@ -97,7 +97,7 @@ func (r *Arguments) SetMessage(s any) *Arguments {
 func (r *Arguments) Get(key string) (any, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	v, ok := r.args[key]
+	v, ok := r.Args[key]
 	return v, ok
 }
 
@@ -118,14 +118,14 @@ func (r *Arguments) GetInt(key string) int {
 func (r *Arguments) Set(key string, val any) *Arguments {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.args[key] = val
+	r.Args[key] = val
 	return r
 }
 
 func (r *Arguments) AddArgs(args map[string]any) *Arguments {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	maps.Copy(r.args, args)
+	maps.Copy(r.Args, args)
 	return r
 }
 
@@ -134,10 +134,10 @@ func (r *Arguments) AddArgs(args map[string]any) *Arguments {
 func (r *Arguments) SetArgs(args map[string]any) *Arguments {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	for k := range r.args {
-		delete(r.args, k)
+	for k := range r.Args {
+		delete(r.Args, k)
 	}
-	maps.Copy(r.args, args)
+	maps.Copy(r.Args, args)
 	return r
 }
 
@@ -151,11 +151,11 @@ func (r *Arguments) GetArgs(keys []string) map[string]any {
 	defer r.mu.RUnlock()
 	args := make(map[string]any)
 	if len(keys) == 0 {
-		maps.Copy(args, r.args)
+		maps.Copy(args, r.Args)
 		return args
 	}
 	for _, k := range keys {
-		args[k] = r.args[k]
+		args[k] = r.Args[k]
 	}
 	return args
 }
@@ -163,7 +163,7 @@ func (r *Arguments) GetArgs(keys []string) map[string]any {
 func (r *Arguments) Copy(dst map[string]any) *Arguments {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	maps.Copy(dst, r.args)
+	maps.Copy(dst, r.Args)
 	return r
 }
 
@@ -172,9 +172,9 @@ func (r *Arguments) Clone() *Arguments {
 	defer r.mu.Unlock()
 
 	args := make(map[string]any)
-	maps.Copy(args, r.args)
+	maps.Copy(args, r.Args)
 	return &Arguments{
-		args: args,
+		Args: args,
 	}
 }
 
@@ -188,7 +188,7 @@ func NewToolCall(id string, name string, args map[string]any) *ToolCall {
 		ID:   id,
 		Name: name,
 		Arguments: &Arguments{
-			args: args,
+			Args: args,
 		},
 	}
 	return tc

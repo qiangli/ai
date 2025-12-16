@@ -21,13 +21,13 @@ const (
 )
 
 type Environment struct {
-	env map[string]any
-	mu  sync.RWMutex
+	Env map[string]any `json:"env"`
+	mu  sync.RWMutex   `json:"-"`
 }
 
 func NewEnvironment() *Environment {
 	return &Environment{
-		env: make(map[string]any),
+		Env: make(map[string]any),
 	}
 }
 
@@ -35,7 +35,7 @@ func NewEnvironment() *Environment {
 func (g *Environment) Get(key string) (any, bool) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
-	if v, ok := g.env[key]; ok {
+	if v, ok := g.Env[key]; ok {
 		return v, ok
 	}
 	return nil, false
@@ -68,11 +68,11 @@ func (g *Environment) GetEnvs(keys []string) map[string]any {
 	defer g.mu.RUnlock()
 	envs := make(map[string]any)
 	if len(keys) == 0 {
-		maps.Copy(envs, g.env)
+		maps.Copy(envs, g.Env)
 		return envs
 	}
 	for _, k := range keys {
-		envs[k] = g.env[k]
+		envs[k] = g.Env[k]
 	}
 	return envs
 }
@@ -80,7 +80,7 @@ func (g *Environment) GetEnvs(keys []string) map[string]any {
 func (g *Environment) Set(key string, val any) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	g.env[key] = val
+	g.Env[key] = val
 }
 
 // Clear all entries from the map and copy the new values
@@ -88,17 +88,17 @@ func (g *Environment) Set(key string, val any) {
 func (g *Environment) SetEnvs(envs map[string]any) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	for k := range g.env {
-		delete(g.env, k)
+	for k := range g.Env {
+		delete(g.Env, k)
 	}
-	maps.Copy(g.env, envs)
+	maps.Copy(g.Env, envs)
 }
 
 func (g *Environment) UnsetEnvs(keys []string) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	for _, k := range keys {
-		delete(g.env, k)
+		delete(g.Env, k)
 	}
 }
 
@@ -106,21 +106,21 @@ func (g *Environment) UnsetEnvs(keys []string) {
 func (g *Environment) AddEnvs(src map[string]any) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	maps.Copy(g.env, src)
+	maps.Copy(g.Env, src)
 }
 
 // thread safe access to the env
 func (g *Environment) Apply(fn func(map[string]any) error) error {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	return fn(g.env)
+	return fn(g.Env)
 }
 
 // copy all environment env to dst
 func (g *Environment) Copy(dst map[string]any) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
-	maps.Copy(dst, g.env)
+	maps.Copy(dst, g.Env)
 }
 
 func (g *Environment) Clone() *Environment {
@@ -128,9 +128,9 @@ func (g *Environment) Clone() *Environment {
 	defer g.mu.Unlock()
 
 	env := make(map[string]any)
-	maps.Copy(env, g.env)
+	maps.Copy(env, g.Env)
 	return &Environment{
-		env: env,
+		Env: env,
 	}
 }
 
@@ -145,22 +145,12 @@ type ActionRTEnv struct {
 
 // global context
 type Vars struct {
-	Global *Environment `json:"-"`
+	Global *Environment `json:"global"`
 
-	// conversation history
-	// history []*Message `json:"-"`
+	RootAgent *Agent `json:"root_agent"`
 
-	// TODO persist to file
-	// toolcallHistory []*ToolCallEntry `json:"-"`
-
-	//
-	// Middlewares []Middleware
-
-	RootAgent *Agent
-
-	RTE *ActionRTEnv
-
-	mu sync.RWMutex
+	RTE *ActionRTEnv `json:"-"`
+	mu  sync.RWMutex `json:"-"`
 }
 
 // fs.FS interface
@@ -172,22 +162,6 @@ func (v *Vars) Open(s string) (fs.File, error) {
 func (v *Vars) Token(key string) (string, error) {
 	return v.RTE.Secrets.Get(v.RTE.User.Email, key)
 }
-
-// func (v *Vars) AddToolCall(item *ToolCallEntry) {
-// 	v.mu.Lock()
-// 	defer v.mu.Unlock()
-// 	v.toolcallHistory = append(v.toolcallHistory, item)
-// }
-
-// func (v *Vars) ToolCalllog() (string, error) {
-// 	v.mu.RLock()
-// 	defer v.mu.RUnlock()
-// 	b, err := json.Marshal(v.toolcallHistory)
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	return string(b), nil
-// }
 
 func NewVars() *Vars {
 	return &Vars{
