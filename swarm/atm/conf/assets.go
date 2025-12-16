@@ -3,8 +3,6 @@ package conf
 import (
 	"fmt"
 	"path"
-	"sort"
-	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
 )
@@ -247,66 +245,66 @@ func (r *assetManager) FindModels(owner string, set string) (*api.ModelsConfig, 
 	return mc, nil
 }
 
-func ListAgents(assets api.AssetManager, user string) (string, int, error) {
-	agents, err := assets.ListAgent(user)
-	if err != nil {
-		return "", 0, err
-	}
+// func ListAgents(assets api.AssetManager, user string) (string, int, error) {
+// 	agents, err := assets.ListAgent(user)
+// 	if err != nil {
+// 		return "", 0, err
+// 	}
 
-	dict := make(map[string]*api.AgentConfig)
-	for _, v := range agents {
-		for _, sub := range v.Agents {
-			dict[sub.Name] = sub
-		}
-	}
+// 	dict := make(map[string]*api.AgentConfig)
+// 	for _, v := range agents {
+// 		for _, sub := range v.Agents {
+// 			dict[sub.Name] = sub
+// 		}
+// 	}
 
-	keys := make([]string, 0)
-	for k := range dict {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
+// 	keys := make([]string, 0)
+// 	for k := range dict {
+// 		keys = append(keys, k)
+// 	}
+// 	sort.Strings(keys)
 
-	var buf strings.Builder
-	for _, k := range keys {
-		buf.WriteString(fmt.Sprintf("%s:\n    %s\n\n", k, dict[k].Description))
-	}
-	return buf.String(), len(keys), nil
-}
+// 	var buf strings.Builder
+// 	for _, k := range keys {
+// 		buf.WriteString(fmt.Sprintf("%s:\n    %s\n\n", k, dict[k].Description))
+// 	}
+// 	return buf.String(), len(keys), nil
+// }
 
-func ListTools(assets api.AssetManager, user string) (string, int, error) {
-	tools, err := assets.ListToolkit(user)
-	if err != nil {
-		return "", 0, err
-	}
+// func ListTools(assets api.AssetManager, user string) (string, int, error) {
+// 	tools, err := assets.ListToolkit(user)
+// 	if err != nil {
+// 		return "", 0, err
+// 	}
 
-	list := []string{}
-	for kit, tc := range tools {
-		for _, v := range tc.Tools {
-			// NOTE: Type in the output seems to confuse LLM (openai)
-			list = append(list, fmt.Sprintf("%s:%s: %s\n", kit, v.Name, v.Description))
-		}
-	}
+// 	list := []string{}
+// 	for kit, tc := range tools {
+// 		for _, v := range tc.Tools {
+// 			// NOTE: Type in the output seems to confuse LLM (openai)
+// 			list = append(list, fmt.Sprintf("%s:%s: %s\n", kit, v.Name, v.Description))
+// 		}
+// 	}
 
-	sort.Strings(list)
-	return strings.Join(list, "\n"), len(list), nil
-}
+// 	sort.Strings(list)
+// 	return strings.Join(list, "\n"), len(list), nil
+// }
 
-func ListModels(assets api.AssetManager, user string) (string, int, error) {
-	models, _ := assets.ListModels(user)
+// func ListModels(assets api.AssetManager, user string) (string, int, error) {
+// 	models, _ := assets.ListModels(user)
 
-	list := []string{}
-	for set, tc := range models {
-		var keys []string
-		for k := range tc.Models {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		for _, level := range keys {
-			v := tc.Models[level]
-			list = append(list, fmt.Sprintf("%s/%s:\n    %s\n    %s\n    %s\n    %s\n", set, level, v.Provider, v.Model, v.BaseUrl, v.ApiKey))
-		}
-	}
+// 	list := []string{}
+// 	for set, tc := range models {
+// 		var keys []string
+// 		for k := range tc.Models {
+// 			keys = append(keys, k)
+// 		}
+// 		sort.Strings(keys)
+// 		for _, level := range keys {
+// 			v := tc.Models[level]
+// 			list = append(list, fmt.Sprintf("%s/%s:\n    %s\n    %s\n    %s\n    %s\n", set, level, v.Provider, v.Model, v.BaseUrl, v.ApiKey))
+// 		}
+// 	}
 
-	sort.Strings(list)
-	return strings.Join(list, "\n"), len(list), nil
-}
+// 	sort.Strings(list)
+// 	return strings.Join(list, "\n"), len(list), nil
+// }
