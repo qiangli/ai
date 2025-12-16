@@ -315,6 +315,7 @@ type InputConfig struct {
 	ClipAppend bool
 	Stdin      bool
 }
+
 type AppConfig struct {
 	// entry action
 	// kit:name

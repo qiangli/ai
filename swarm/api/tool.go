@@ -85,54 +85,51 @@ func (r *ToolFunc) ID() string {
 	return toolID(r.Kit, r.Name)
 }
 
-// Toolkit config
-// type ToolsConfig AppConfig
-
 type ToolConfig struct {
-	Type string `yaml:"type"`
+	Type string `yaml:"type" json:"type"`
 
-	Name        string `yaml:"name"`
-	Description string `yaml:"description"`
+	Name        string `yaml:"name" json:"name"`
+	Description string `yaml:"description" json:"description"`
 
-	Parameters map[string]any `yaml:"parameters"`
+	Parameters map[string]any `yaml:"parameters" json:"parameters"`
 
-	Body *FuncBody `yaml:"body"`
+	Body *FuncBody `yaml:"body" json:"body"`
 
-	Condition *ToolCondition `yaml:"condition"`
+	// Condition *ToolCondition `yaml:"condition" json:"condition"`
 
 	// agent name for agent tool type
 	// description/parameters defined here take precedence
-	Agent string `yaml:"agent"`
+	Agent string `yaml:"agent" json:"agent"`
 
 	//
-	Provider string `yaml:"provider"`
-	BaseUrl  string `yaml:"base_url"`
+	Provider string `yaml:"provider" json:"provider"`
+	BaseUrl  string `yaml:"base_url" json:"base_url"`
 	// name of api key
-	ApiKey string `yaml:"api_key"`
+	ApiKey string `yaml:"api_key" json:"api_key"`
 
 	// filter by match key=values (comma, separated)
 	// include all tools that match
-	Filter map[string]string `yaml:"filter"`
+	Filter map[string]string `yaml:"filter" json:"filter"`
 }
 
 type FuncBody struct {
-	Language string `yaml:"language"`
-	Code     string `yaml:"code"`
-	Url      string `yaml:"url"`
+	Language string `yaml:"language" json:"language"`
+	Code     string `yaml:"code" json:"code"`
+	Url      string `yaml:"url" json:"url"`
 }
 
-// TODO
-// condidtion needs to be met for tools to be enabled
-type ToolCondition struct {
-	// required env list
-	Env []string `yaml:"env"`
+// // TODO
+// // condidtion needs to be met for tools to be enabled
+// type ToolCondition struct {
+// 	// required env list
+// 	Env []string `yaml:"env"`
 
-	// found on PATH
-	Lookup *string `yaml:"lookup"`
+// 	// found on PATH
+// 	Lookup *string `yaml:"lookup"`
 
-	// shell required
-	Shell map[string]any `yaml:"shell"`
-}
+// 	// shell required
+// 	Shell map[string]any `yaml:"shell"`
+// }
 
 type ConnectorConfig struct {
 	// mcp | ssh ...
