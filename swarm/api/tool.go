@@ -23,33 +23,32 @@ const (
 )
 
 type ToolFunc struct {
-	Type ToolType
+	Type        ToolType       `json:"type"`
+	Kit         string         `json:"kit"`         // kit
+	Name        string         `json:"name"`        // name
+	Description string         `json:"description"` // description
+	Parameters  map[string]any `json:"parameters"`  // parameters
 
-	Kit         string
-	Name        string
-	Description string
-	Parameters  map[string]any
-
-	Body *FuncBody
+	Body *FuncBody `json:"body"` // body
 
 	// agent name if this tool references an agent
-	Agent string
+	Agent string `json:"agent"`
 
 	//
-	State State
+	State State `json:"state"`
 
 	//
-	Provider string
-	BaseUrl  string
+	Provider string `json:"provider"`
+	BaseUrl  string `json:"base_url"` // base url
 	// name of api key - used to resolve api key/token before tool call
-	ApiKey string
+	ApiKey string `json:"api_key"`
 
 	// extra features.
 	// e.g labels for mcp for filtering tools
-	Extra map[string]any
+	Extra map[string]any `json:"extra"`
 
 	// default arguments
-	Arguments map[string]any
+	Arguments map[string]any `json:"arguments"`
 }
 
 func (r *ToolFunc) Clone() *ToolFunc {
