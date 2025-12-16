@@ -83,13 +83,18 @@ tools:
         - "agent"
 
   - name: "get_agent_config"
-    description: "Retrieve the configuration file utilized to create a specified agent instance."
+    description: |
+      Retrieve the configuration used to create a specified agent instance.
+      The content may also include configurations for other agents in the same
+      package as well as tools utilized by the agents.
     parameters:
       type: "object"
       properties:
         agent:
           type: "string"
-          description: "The name of the agent for which the configuration is requested. Use 'self' for the current agent invoking the tool."
+          description: |
+            The name of the agent for which the configuration is requested.
+            Use 'self' to refer to the current agent invoking the tool.
       required:
         - "agent"
 
@@ -139,6 +144,19 @@ tools:
 
   - name: "get_tool_info"
     description: "Get information about a specific tool"
+    parameters:
+      type: "object"
+      properties:
+        tool:
+          type: "string"
+          description: "The name of the tool"
+      required:
+        - "tool"
+
+  - name: "get_tool_config"
+    description: |
+      Retrieve the configuration used to create a tool call function.
+      The content may also include configurations for other tools within the same toolkit.
     parameters:
       type: "object"
       properties:
