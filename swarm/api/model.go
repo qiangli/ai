@@ -42,7 +42,7 @@ func (r *Model) String() string {
 }
 
 // modelset config
-type ModelsConfig AppConfig
+// type ModelsConfig AppConfig
 
 type ModelConfig struct {
 	// LLM model

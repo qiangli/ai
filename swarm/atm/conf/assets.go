@@ -190,8 +190,8 @@ func (r *assetManager) FindToolkit(owner string, kit string) (*api.AppConfig, er
 	return tc, nil
 }
 
-func (r *assetManager) ListModels(owner string) (map[string]*api.ModelsConfig, error) {
-	var models = make(map[string]*api.ModelsConfig)
+func (r *assetManager) ListModels(owner string) (map[string]*api.AppConfig, error) {
+	var models = make(map[string]*api.AppConfig)
 	for _, v := range r.assets {
 		if as, ok := v.(api.ATMSupport); ok {
 			if err := listModelsATM(owner, as, models); err != nil {
@@ -211,7 +211,7 @@ func (r *assetManager) ListModels(owner string) (map[string]*api.ModelsConfig, e
 	return models, nil
 }
 
-func (r *assetManager) FindModels(owner string, set string) (*api.ModelsConfig, error) {
+func (r *assetManager) FindModels(owner string, set string) (*api.AppConfig, error) {
 	var content []byte
 	for _, v := range r.assets {
 		if as, ok := v.(api.ATMSupport); ok {

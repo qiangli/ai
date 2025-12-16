@@ -24,7 +24,7 @@ type ModelCacheKey struct {
 // )
 
 func LoadModel(owner, set, level string, assets api.AssetManager) (*api.Model, error) {
-	provide := func(mc *api.ModelsConfig, level string) (*api.Model, error) {
+	provide := func(mc *api.AppConfig, level string) (*api.Model, error) {
 		c, ok := mc.Models[level]
 		if !ok {
 			if level == api.Any {
@@ -63,11 +63,11 @@ func LoadModel(owner, set, level string, assets api.AssetManager) (*api.Model, e
 	return nil, fmt.Errorf("model not found: %s %s", set, level)
 }
 
-func loadModelsData(data [][]byte) (*api.ModelsConfig, error) {
-	merged := &api.ModelsConfig{}
+func loadModelsData(data [][]byte) (*api.AppConfig, error) {
+	merged := &api.AppConfig{}
 
 	for _, v := range data {
-		cfg := &api.ModelsConfig{}
+		cfg := &api.AppConfig{}
 		if err := yaml.Unmarshal(v, cfg); err != nil {
 			return nil, err
 		}
@@ -102,7 +102,7 @@ func loadModelsData(data [][]byte) (*api.ModelsConfig, error) {
 	return merged, nil
 }
 
-func listModelsATM(owner string, as api.ATMSupport, models map[string]*api.ModelsConfig) error {
+func listModelsATM(owner string, as api.ATMSupport, models map[string]*api.AppConfig) error {
 	recs, err := as.ListModels(owner)
 	if err != nil {
 		return err
@@ -134,7 +134,7 @@ func listModelsATM(owner string, as api.ATMSupport, models map[string]*api.Model
 	return nil
 }
 
-func listModelsAsset(as api.AssetFS, base string, models map[string]*api.ModelsConfig) error {
+func listModelsAsset(as api.AssetFS, base string, models map[string]*api.AppConfig) error {
 	dirs, err := as.ReadDir(base)
 	if err != nil {
 		return err

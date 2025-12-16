@@ -168,6 +168,6 @@ type AssetManager interface {
 	FindAgent(owner, pack string) (*AppConfig, error)
 	ListToolkit(owner string) (map[string]*AppConfig, error)
 	FindToolkit(owner string, kit string) (*AppConfig, error)
-	ListModels(owner string) (map[string]*ModelsConfig, error)
-	FindModels(owner string, alias string) (*ModelsConfig, error)
+	ListModels(owner string) (map[string]*AppConfig, error)
+	FindModels(owner string, alias string) (*AppConfig, error)
 }
