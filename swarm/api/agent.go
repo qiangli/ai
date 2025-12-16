@@ -187,54 +187,6 @@ func (a *Agent) cloneEnvironment() *Environment {
 	return a.Environment.Clone()
 }
 
-// // pack config
-// type AgentsConfig AppConfig
-
-// func (ac *AgentsConfig) ToMap() map[string]any {
-// 	result := make(map[string]any)
-
-// 	if ac.Kit != "" {
-// 		result["kit"] = ac.Kit
-// 	}
-// 	if ac.Type != "" {
-// 		result["type"] = ac.Type
-// 	}
-// 	if ac.Name != "" {
-// 		result["name"] = ac.Name
-// 	}
-// 	if ac.Message != "" {
-// 		result["message"] = ac.Message
-// 	}
-// 	if ac.Instruction != "" {
-// 		result["instruction"] = ac.Instruction
-// 	}
-// 	if ac.Model != "" {
-// 		result["model"] = ac.Model
-// 	}
-// 	if ac.MaxTurns > 0 {
-// 		result["max_turns"] = ac.MaxTurns
-// 	}
-// 	if ac.MaxTime > 0 {
-// 		result["max_time"] = ac.MaxTime
-// 	}
-// 	if ac.Format != "" {
-// 		result["format"] = ac.Format
-// 	}
-// 	if ac.MaxHistory > 0 {
-// 		result["max_history"] = ac.MaxHistory
-// 	}
-// 	if ac.MaxSpan > 0 {
-// 		result["max_span"] = ac.MaxSpan
-// 	}
-// 	if ac.Context != "" {
-// 		result["context"] = ac.Context
-// 	}
-// 	if ac.LogLevel != "" {
-// 		result["log_level"] = ac.LogLevel
-// 	}
-
-//		return result
-//	}
 type AgentConfig struct {
 	Display     string `yaml:"display" json:"display"`
 	Description string `yaml:"description" json:"description"`
@@ -250,9 +202,6 @@ type AgentConfig struct {
 
 	// name of custom creator agent for this agent configuration
 	Creator string `yaml:"creator" json:"creator"`
-
-	// // middleware chain
-	// Chain *ChainConfig `yaml:"chain"`
 
 	// default agents config
 	Name      string         `yaml:"name" json:"name"`
@@ -384,13 +333,13 @@ const (
 )
 
 type FlowConfig struct {
-	Type FlowType `yaml:"type"`
+	Type FlowType `yaml:"type" json:"type"`
 
 	// agent/tool list for non script flow
-	Actions []string `yaml:"actions"`
+	Actions []string `yaml:"actions" json:"actions"`
 
 	// content of the script for flow type: script
-	Script string `yaml:"script"`
+	Script string `yaml:"script" json:"script"`
 }
 
 type Resource struct {
@@ -401,9 +350,4 @@ type Resource struct {
 
 	// access token
 	Token string `json:"token"`
-}
-
-type ChainConfig struct {
-	// action list
-	Middleware []string `yaml:"middelware"`
 }
