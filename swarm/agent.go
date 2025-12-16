@@ -48,18 +48,22 @@ func NewAgentMaker(sw *Swarm) *AgentMaker {
 	}
 }
 func findAgentConfig(ac *api.AppConfig, pack, sub string) (*api.AgentConfig, error) {
-	pn := pack
-	if sub != "" {
-		pn = pack + "/" + sub
-	}
+	// pn := pack
+	// if sub != "" {
+	// 	pn = pack + "/" + sub
+	// }
+	pn := api.Packname(pack + "/" + sub)
 	for _, a := range ac.Agents {
-		if a.Name == pn {
+		if pn.Equal(a.Name) {
 			return a, nil
 		}
+		// if a.Name == pn {
+		// 	return a, nil
+		// }
 		// primary entry
-		if a.Name == pack && sub == "" {
-			return a, nil
-		}
+		// if a.Name == pack && sub == "" {
+		// 	return a, nil
+		// }
 	}
 	return nil, fmt.Errorf("no such agent: %s", pn)
 }

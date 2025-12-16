@@ -68,8 +68,22 @@
 				// "--script",
 				// "dev/skills/agents/eval/agent.yaml",
 				//
-				"@ask",
-				"how to update system env in a golang template",
+				// "/ai:get_agent_config",
+				// "--agent",
+				// "ask/ask"
+				//
+				"/sh:flow",
+				"--actions",
+				"[\"sh:parse\",\"ai:get_agent_config\",\"sh:format\"]".
+				"--arg",
+				"agent=ed",
+				"--arg",
+				"template='data:,\n***\n{{.result}}\n***\n'",
+				"--message",
+				"test"
+				//
+				// "@ask",
+				// "how to update system env in a golang template",
 				// "--verbose",
 				// "--max-time",
 				// "900",

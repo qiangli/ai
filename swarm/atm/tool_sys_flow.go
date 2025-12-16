@@ -36,7 +36,7 @@ func (r *SystemKit) Flow(ctx context.Context, vars *api.Vars, name string, args 
 			return "", err
 		}
 	default:
-		return "", fmt.Errorf("not supported yet %s", flowType)
+		return "", fmt.Errorf("flow type not supported: %s", flowType)
 	}
 
 	return args["result"], nil

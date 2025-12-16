@@ -127,7 +127,7 @@ func (h *agentHandler) doAgentFlow(req *api.Request, resp *api.Response) error {
 				return err
 			}
 		default:
-			return fmt.Errorf("not supported yet %v", h.agent.Flow)
+			return fmt.Errorf("flow type not supported %v", h.agent.Flow)
 		}
 	}
 

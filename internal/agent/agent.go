@@ -109,9 +109,10 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	logger.Debugf("Config: %+v\n", cfg)
 
 	msg := argm.GetString("message")
-	if msg != "" {
-		showInput(ctx, msg)
-	}
+	logger.Debugf("Message: %s\n", msg)
+	// if msg != "" {
+	// 	showInput(ctx, msg)
+	// }
 
 	// ***
 	// perform action
@@ -165,7 +166,11 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	}
 
 	// console outpu
-	processOutput(ctx, "markdown", &out)
+	format := argm.GetString("format")
+	if format == "" {
+		format = "markdown"
+	}
+	processOutput(ctx, format, &out)
 
 	/*  */
 	return nil

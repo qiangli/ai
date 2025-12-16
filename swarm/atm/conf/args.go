@@ -362,6 +362,9 @@ func Argv(s string) []string {
 // Return a map[string]any after parsing string, argument list
 // and validating kit:name
 func Parse(input any) (api.ArgMap, error) {
+	if input == nil {
+		return nil, fmt.Errorf("input is nil")
+	}
 	var argm map[string]any
 	var err error
 
@@ -376,7 +379,7 @@ func Parse(input any) (api.ArgMap, error) {
 	case api.ArgMap:
 		argm = input
 	default:
-		return nil, fmt.Errorf("not supported %v", input)
+		return nil, fmt.Errorf("input data type not supported: %v. supported data type: string, []string, map[string]any", input)
 	}
 
 	if err != nil {

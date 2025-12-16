@@ -38,7 +38,7 @@ func FormatFile(format string) string {
 		return formatJson
 	case "markdown", "md":
 		return formatMarkdown
-	case "text", "txt":
+	case "text", "txt", "raw":
 		return formatText
 	default:
 		return ""

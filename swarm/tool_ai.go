@@ -195,20 +195,22 @@ Instruction: %s
 	if err != nil {
 		return "", err
 	}
-	ac, err := r.sw.Assets.FindAgent(r.sw.User.Email, agent)
+	pack, _ := api.Packname(agent).Decode()
+	ac, err := r.sw.Assets.FindAgent(r.sw.User.Email, pack)
 	if err != nil {
 		return "", err
 	}
 
-	if ac != nil {
-		for _, v := range ac.Agents {
-			if v.Name == agent {
-				var prompt = ""
-				if v.Instruction != "" {
-					prompt = clip(v.Instruction, 1000)
-				}
-				return fmt.Sprintf(tpl, v.Name, v.Display, v.Description, prompt), nil
+	if ac == nil {
+		return "", fmt.Errorf("no config found for %s", agent)
+	}
+	for _, v := range ac.Agents {
+		if api.Packname(v.Name).Equal(agent) {
+			var prompt = ""
+			if v.Instruction != "" {
+				prompt = clip(v.Instruction, 1000)
 			}
+			return fmt.Sprintf(tpl, v.Name, v.Display, v.Description, prompt), nil
 		}
 	}
 	return "", fmt.Errorf("unknown agent: %s", agent)
@@ -225,16 +227,18 @@ func (r *AIKit) GetAgentConfig(ctx context.Context, vars *api.Vars, _ string, ar
 		}
 		agent = r.agent.Name
 	}
-	ac, err := r.sw.Assets.FindAgent(r.sw.User.Email, agent)
+	pack, _ := api.Packname(agent).Decode()
+	ac, err := r.sw.Assets.FindAgent(r.sw.User.Email, pack)
 	if err != nil {
 		return "", err
 	}
 
-	if ac != nil {
-		for _, v := range ac.Agents {
-			if v.Name == agent {
-				return string(ac.RawContent), nil
-			}
+	if ac == nil {
+		return "", fmt.Errorf("no config found for %s", agent)
+	}
+	for _, v := range ac.Agents {
+		if api.Packname(v.Name).Equal(agent) {
+			return string(ac.RawContent), nil
 		}
 	}
 	return "", fmt.Errorf("unknown agent: %s", agent)

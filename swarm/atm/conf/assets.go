@@ -50,11 +50,13 @@ func (r *assetManager) ListAgent(owner string) (map[string]*api.AppConfig, error
 	for _, v := range r.assets {
 		if as, ok := v.(api.ATMSupport); ok {
 			if err := listAgentsATM(owner, as, packs); err != nil {
-				return nil, err
+				// return nil, err
+				continue
 			}
 		} else if as, ok := v.(api.AssetFS); ok {
 			if err := listAgentsAsset(as, "agents", packs); err != nil {
-				return nil, err
+				// return nil, err
+				continue
 			}
 		}
 	}
@@ -132,11 +134,13 @@ func (r *assetManager) ListToolkit(owner string) (map[string]*api.AppConfig, err
 	for _, v := range r.assets {
 		if as, ok := v.(api.ATMSupport); ok {
 			if err := listToolkitATM(owner, as, kits); err != nil {
-				return nil, err
+				// return nil, err
+				continue
 			}
 		} else if as, ok := v.(api.AssetFS); ok {
 			if err := listToolkitAsset(as, "tools", kits); err != nil {
-				return nil, err
+				// return nil, err
+				continue
 			}
 		}
 	}
