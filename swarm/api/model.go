@@ -41,16 +41,14 @@ func (r *Model) String() string {
 	return fmt.Sprintf("%s/%s", r.Provider, r.Model)
 }
 
-// modelset config
-// type ModelsConfig AppConfig
-
 type ModelConfig struct {
 	// LLM model
-	Model string `yaml:"model"`
+	Model string `yaml:"model" json:"model"`
 
 	// LLM service provider: openai | gemini | anthropic
-	Provider string `yaml:"provider"`
-	BaseUrl  string `yaml:"base_url"`
-	// name of api key
-	ApiKey string `yaml:"api_key"`
+	Provider string `yaml:"provider" json:"provider"`
+	BaseUrl  string `yaml:"base_url" json:"base_url"`
+
+	// name of api key for looking up api access token
+	ApiKey string `yaml:"api_key" json:"api_key"`
 }
