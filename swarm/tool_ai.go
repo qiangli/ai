@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"sort"
 	"strings"
 	"time"
@@ -263,6 +264,62 @@ func (r *AIKit) SpawnAgent(ctx context.Context, _ *api.Vars, _ string, args map[
 	}
 	if name == "" {
 		return nil, fmt.Errorf("missing agent name")
+	}
+
+	return r.sw.runm(ctx, r.agent, name, args)
+}
+
+func (r *AIKit) CreateAgent(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	name, err := api.GetStrProp("agent", args)
+	if err != nil {
+		return nil, err
+	}
+	if name == "" {
+		return nil, fmt.Errorf("missing agent name")
+	}
+
+	var creator = r.sw.CreateAgent
+	// load agent from content
+	if s, ok := args["script"]; ok {
+		v, err := r.sw.creatorFromScript(name, api.ToString(s))
+		if err != nil {
+			return nil, err
+		}
+		creator = v
+	}
+	//
+	agent, err := creator(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	//
+	agent.Runner = NewAgentToolRunner(r.sw, r.sw.User.Email, agent)
+	agent.Shell = NewAgentScriptRunner(r.sw, agent)
+	agent.Template = NewTemplate(r.sw, agent)
+	agent.Parent = r.sw.Vars.RootAgent
+
+	// envs
+	// export envs
+	var envs = make(map[string]any)
+	maps.Copy(envs, r.sw.globalEnv())
+	if agent.Environment != nil {
+		r.sw.mapAssign(ctx, agent, envs, agent.Environment.GetAllEnvs(), true)
+		r.sw.globalAddEnvs(envs)
+	}
+
+	// args
+	// global/agent envs
+	// agent args
+	if agent.Arguments != nil {
+		if err := r.sw.mapAssign(ctx, agent, args, agent.Arguments.GetAllArgs(), false); err != nil {
+			return nil, err
+		}
+	}
+	// copy only if not set
+	for k, v := range envs {
+		if _, ok := args[k]; !ok {
+			args[k] = v
+		}
 	}
 
 	return r.sw.runm(ctx, r.agent, name, args)

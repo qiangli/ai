@@ -163,10 +163,7 @@ func (sw *Swarm) serve(creator api.Creator, req *api.Request, resp *api.Response
 		agent.Runner = NewAgentToolRunner(sw, sw.User.Email, agent)
 		agent.Shell = NewAgentScriptRunner(sw, agent)
 		agent.Template = NewTemplate(sw, agent)
-		//
-		if err != nil {
-			return err
-		}
+
 		// inherit args
 		var addAll func(*api.Agent)
 		addAll = func(a *api.Agent) {
@@ -249,6 +246,10 @@ func (sw *Swarm) globalEnv() map[string]any {
 	var env = make(map[string]any)
 	sw.Vars.Global.Copy(env)
 	return env
+}
+
+func (sw *Swarm) globalAddEnvs(envs map[string]any) {
+	sw.Vars.Global.AddEnvs(envs)
 }
 
 // expand s for agent/tool similar to $(cmdline...)
