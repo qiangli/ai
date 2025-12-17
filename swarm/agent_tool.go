@@ -141,6 +141,12 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 
 	result, err := r.sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, r.user), r.agent, v, args)
 
+	if err != nil {
+		args["error"] = err.Error()
+	}
+	if result != nil {
+		args["result"] = result.Value
+	}
 	// // log calls
 	// r.sw.Vars.AddToolCall(&api.ToolCallEntry{
 	// 	ID:        tid,

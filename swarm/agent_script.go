@@ -63,11 +63,14 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	}
 
 	// run bash interpreter
-	if err := vs.RunScript(ctx, script); err != nil {
+	err := vs.RunScript(ctx, script)
+	if err != nil {
+		args["error"] = err.Error()
 		return "", err
 	}
-
-	return b.String(), nil
+	result := b.String()
+	args["result"] = result
+	return result, nil
 }
 
 func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem) sh.ExecHandler {

@@ -89,9 +89,14 @@
 				// "/sh:bash",
 				// "--script",
 				// "data:,#!\nset -x\n/fs:list_roots\nprintenv\necho this is a test\nls -al\ngo version\n"
-				// //
+				//
+				"/web:google_search",
+				"--message",
+				"todays news headlines"
+				//
 				// // "@ask",
 				// "how to update system env in a golang template",
+				//
 				// "--verbose",
 				// "--max-time",
 				// "900",
