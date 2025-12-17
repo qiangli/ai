@@ -11,7 +11,6 @@ import (
 	"github.com/openai/openai-go/v3/packages/param"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
 	// "github.com/qiangli/ai/swarm/middleware"
 )
@@ -31,11 +30,11 @@ func defineTool(name, description string, parameters map[string]any) openai.Chat
 	}
 }
 
-func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func Send(ctx context.Context, req *api.Request) (*api.Response, error) {
 	log.GetLogger(ctx).Debugf(">OPENAI:\n req: %+v\n", req)
 
 	var err error
-	var resp *llm.Response
+	var resp *api.Response
 
 	resp, err = call(ctx, req)
 
@@ -43,7 +42,7 @@ func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	return resp, err
 }
 
-func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	client, err := NewClient(req.Model, req.Token())
 	if err != nil {
 		return nil, err
@@ -102,7 +101,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		maxTurns = 1
 	}
 
-	var resp = &llm.Response{}
+	var resp = &api.Response{}
 
 	log.GetLogger(ctx).Debugf("[OpenAI] params messages: %v tools: %v\n", len(params.Messages), len(params.Tools))
 

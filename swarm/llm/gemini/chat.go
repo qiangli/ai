@@ -8,7 +8,6 @@ import (
 	"google.golang.org/genai"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
 )
 
@@ -69,7 +68,7 @@ func NewClient(ctx context.Context, apiKey, _ string) (*genai.Client, error) {
 	return client, err
 }
 
-func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func Send(ctx context.Context, req *api.Request) (*api.Response, error) {
 	log.GetLogger(ctx).Debugf(">GEMINI:\n req: %+v\n", req)
 
 	resp, err := call(ctx, req)
@@ -78,7 +77,7 @@ func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	return resp, err
 }
 
-func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	client, err := NewClient(
 		ctx,
 		req.Token(),
@@ -105,11 +104,11 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	var config *genai.GenerateContentConfig
 
 	if len(req.Tools) > 0 {
-		// kits := make(map[string][]*llm.ToolFunc)
+		// kits := make(map[string][]*api.ToolFunc)
 		// for _, f := range req.Tools {
 		// 	fa, ok := kits[f.Kit]
 		// 	if !ok {
-		// 		fa = []*llm.ToolFunc{}
+		// 		fa = []*api.ToolFunc{}
 		// 	}
 		// 	fa = append(fa, f)
 		// 	kits[f.Kit] = fa
@@ -161,7 +160,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	if maxTurns == 0 {
 		maxTurns = 1
 	}
-	resp := &llm.Response{}
+	resp := &api.Response{}
 
 	model := req.Model.Model
 

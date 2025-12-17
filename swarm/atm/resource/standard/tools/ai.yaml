@@ -82,7 +82,7 @@ tools:
       required:
         - "agent"
 
-  - name: "get_agent_config"
+  - name: "read_agent_config"
     description: |
       Retrieve the configuration used to create a specified agent instance.
       The content may also include configurations for other agents in the same
@@ -153,7 +153,7 @@ tools:
       required:
         - "tool"
 
-  - name: "get_tool_config"
+  - name: "read_tool_config"
     description: |
       Retrieve the configuration used to create a tool call function.
       The content may also include configurations for other tools within the same toolkit.

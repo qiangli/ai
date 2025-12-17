@@ -8,15 +8,14 @@ import (
 	"github.com/openai/openai-go/v3"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func Audio(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func Audio(ctx context.Context, req *api.Request) (*api.Response, error) {
 	log.GetLogger(ctx).Debugf(">OPENAI:\n audio req: %+v\n", req)
 
 	var err error
-	var resp *llm.Response
+	var resp *api.Response
 
 	resp, err = transcribe(ctx, req)
 
@@ -24,7 +23,7 @@ func Audio(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	return resp, err
 }
 
-func transcribe(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func transcribe(ctx context.Context, req *api.Request) (*api.Response, error) {
 	client, err := NewClient(req.Model, req.Token())
 	if err != nil {
 		return nil, err
@@ -59,7 +58,7 @@ func transcribe(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		return nil, err
 	}
 
-	return &llm.Response{
+	return &api.Response{
 		Result: &api.Result{
 			Value: transcription.Text,
 		},

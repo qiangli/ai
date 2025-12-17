@@ -11,7 +11,6 @@ import (
 	"github.com/anthropics/anthropic-sdk-go/option"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
 	// "github.com/qiangli/ai/swarm/middleware"
 )
@@ -53,7 +52,7 @@ func NewClient(model *api.Model, apiKey string) anthropic.Client {
 	return client
 }
 
-func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func Send(ctx context.Context, req *api.Request) (*api.Response, error) {
 	log.GetLogger(ctx).Debugf(">ANTHROPIC:\n req: %+v\n", req)
 
 	resp, err := call(ctx, req)
@@ -62,7 +61,7 @@ func Send(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	return resp, err
 }
 
-func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	client := NewClient(req.Model, req.Token())
 	model := anthropic.Model(req.Model.Model)
 
@@ -100,7 +99,7 @@ func call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	if maxTurns == 0 {
 		maxTurns = 1
 	}
-	resp := &llm.Response{}
+	resp := &api.Response{}
 
 	// TOOD
 	var temperature = anthropic.Float(0.0)

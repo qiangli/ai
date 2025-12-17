@@ -2,7 +2,6 @@ package swarm
 
 import (
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
 )
@@ -15,7 +14,7 @@ func InferenceMiddleware(sw *Swarm) api.Middleware {
 			logger := log.GetLogger(ctx)
 			logger.Debugf("🔗 (llm): %s adapter: %s\n", agent.Name, agent.Adapter)
 
-			var adapter llm.LLMAdapter = &adapter.ChatAdapter{}
+			var adapter api.LLMAdapter = &adapter.ChatAdapter{}
 			if agent.Adapter != "" {
 				if v, err := sw.Adapters.Get(agent.Adapter); err == nil {
 					adapter = v

@@ -8,15 +8,14 @@ import (
 	"github.com/openai/openai-go/v3"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func Video(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func Video(ctx context.Context, req *api.Request) (*api.Response, error) {
 	log.GetLogger(ctx).Debugf(">OPENAI:\n video req: %+v\n", req)
 
 	var err error
-	var resp *llm.Response
+	var resp *api.Response
 
 	resp, err = genVideo(ctx, req)
 
@@ -24,7 +23,7 @@ func Video(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	return resp, err
 }
 
-func genVideo(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func genVideo(ctx context.Context, req *api.Request) (*api.Response, error) {
 	client, err := NewClient(req.Model, req.Token())
 	if err != nil {
 		return nil, err
@@ -93,7 +92,7 @@ func genVideo(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		result = fmt.Sprintf("Video creation failed. Status: %s", video.Status)
 	}
 
-	return &llm.Response{
+	return &api.Response{
 		Result: &api.Result{
 			Value: result,
 		},

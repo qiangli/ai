@@ -10,7 +10,6 @@ import (
 	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/atm/resource"
-	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/shell/tool/sh/vfs"
 	"github.com/qiangli/shell/tool/sh/vos"
@@ -28,7 +27,7 @@ type Swarm struct {
 
 	Tools api.ToolSystem
 
-	Adapters llm.AdapterRegistry
+	Adapters api.AdapterRegistry
 
 	Blobs api.BlobStore
 

@@ -11,15 +11,14 @@ import (
 	"github.com/openai/openai-go/v3/shared/constant"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func SendV3(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func SendV3(ctx context.Context, req *api.Request) (*api.Response, error) {
 	log.GetLogger(ctx).Debugf(">OPENAI v3:\n req: %+v\n", req)
 
 	var err error
-	var resp *llm.Response
+	var resp *api.Response
 
 	resp, err = respond(ctx, req)
 
@@ -27,7 +26,7 @@ func SendV3(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	return resp, err
 }
 
-func respond(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func respond(ctx context.Context, req *api.Request) (*api.Response, error) {
 	client, err := NewClientV3(req.Model, req.Token())
 	if err != nil {
 		return nil, err
@@ -83,7 +82,7 @@ func respond(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		maxTurns = 1
 	}
 
-	var resp = &llm.Response{}
+	var resp = &api.Response{}
 
 	log.GetLogger(ctx).Debugf("[OpenAI] params messages: %v tools: %v\n", len(params.Input.OfInputItemList), len(params.Tools))
 

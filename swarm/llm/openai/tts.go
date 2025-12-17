@@ -7,15 +7,14 @@ import (
 	"github.com/openai/openai-go/v3"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/llm"
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func TTS(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func TTS(ctx context.Context, req *api.Request) (*api.Response, error) {
 	log.GetLogger(ctx).Debugf(">OPENAI:\n tts req: %+v\n", req)
 
 	var err error
-	var resp *llm.Response
+	var resp *api.Response
 
 	resp, err = tts(ctx, req)
 
@@ -23,7 +22,7 @@ func TTS(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 	return resp, err
 }
 
-func tts(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func tts(ctx context.Context, req *api.Request) (*api.Response, error) {
 	client, err := NewClient(req.Model, req.Token())
 	if err != nil {
 		return nil, err
@@ -48,7 +47,7 @@ func tts(ctx context.Context, req *llm.Request) (*llm.Response, error) {
 		return nil, err
 	}
 
-	return &llm.Response{
+	return &api.Response{
 		Result: &api.Result{
 			Value: string(b),
 		},

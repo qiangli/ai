@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/qiangli/ai/swarm/llm"
+	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm/anthropic"
 	"github.com/qiangli/ai/swarm/llm/gemini"
 	"github.com/qiangli/ai/swarm/llm/openai"
@@ -13,7 +13,7 @@ import (
 type adapters struct {
 }
 
-func (r *adapters) Get(key string) (llm.LLMAdapter, error) {
+func (r *adapters) Get(key string) (api.LLMAdapter, error) {
 	if v, ok := adapterRegistry[key]; ok {
 		return v, nil
 	}
@@ -22,10 +22,10 @@ func (r *adapters) Get(key string) (llm.LLMAdapter, error) {
 
 var defaultAdapters = &adapters{}
 
-var adapterRegistry map[string]llm.LLMAdapter
+var adapterRegistry map[string]api.LLMAdapter
 
 func init() {
-	adapterRegistry = make(map[string]llm.LLMAdapter)
+	adapterRegistry = make(map[string]api.LLMAdapter)
 	adapterRegistry["chat"] = &ChatAdapter{}
 	adapterRegistry["text"] = &ResponseAdapter{}
 	adapterRegistry["response"] = &ResponseAdapter{}
@@ -35,15 +35,15 @@ func init() {
 	adapterRegistry["video"] = &VideoAdapter{}
 }
 
-func GetAdapters() llm.AdapterRegistry {
+func GetAdapters() api.AdapterRegistry {
 	return defaultAdapters
 }
 
 type ChatAdapter struct{}
 
-func (r *ChatAdapter) Call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func (r *ChatAdapter) Call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	var err error
-	var resp *llm.Response
+	var resp *api.Response
 
 	if req.Model == nil {
 		return nil, fmt.Errorf("No LLM model provided")
@@ -78,9 +78,9 @@ func (r *ChatAdapter) Call(ctx context.Context, req *llm.Request) (*llm.Response
 
 type ImageAdapter struct{}
 
-func (r *ImageAdapter) Call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func (r *ImageAdapter) Call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	var err error
-	var resp *llm.Response
+	var resp *api.Response
 
 	if req.Model == nil {
 		return nil, fmt.Errorf("No LLM model provided")
@@ -110,9 +110,9 @@ func (r *ImageAdapter) Call(ctx context.Context, req *llm.Request) (*llm.Respons
 
 type ResponseAdapter struct{}
 
-func (r *ResponseAdapter) Call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func (r *ResponseAdapter) Call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	var err error
-	var resp *llm.Response
+	var resp *api.Response
 
 	if req.Model == nil {
 		return nil, fmt.Errorf("No LLM model provided")
@@ -142,9 +142,9 @@ func (r *ResponseAdapter) Call(ctx context.Context, req *llm.Request) (*llm.Resp
 
 type TtsAdapter struct{}
 
-func (r *TtsAdapter) Call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func (r *TtsAdapter) Call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	var err error
-	var resp *llm.Response
+	var resp *api.Response
 
 	if req.Model == nil {
 		return nil, fmt.Errorf("No LLM model provided")
@@ -174,9 +174,9 @@ func (r *TtsAdapter) Call(ctx context.Context, req *llm.Request) (*llm.Response,
 
 type AudioAdapter struct{}
 
-func (r *AudioAdapter) Call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func (r *AudioAdapter) Call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	var err error
-	var resp *llm.Response
+	var resp *api.Response
 
 	if req.Model == nil {
 		return nil, fmt.Errorf("No LLM model provided")
@@ -206,9 +206,9 @@ func (r *AudioAdapter) Call(ctx context.Context, req *llm.Request) (*llm.Respons
 
 type VideoAdapter struct{}
 
-func (r *VideoAdapter) Call(ctx context.Context, req *llm.Request) (*llm.Response, error) {
+func (r *VideoAdapter) Call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	var err error
-	var resp *llm.Response
+	var resp *api.Response
 
 	if req.Model == nil {
 		return nil, fmt.Errorf("No LLM model provided")
