@@ -62,6 +62,10 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 		vs.System.Setenv(k, v)
 	}
 
+	// clear
+	delete(args, "result")
+	delete(args, "error")
+
 	// run bash interpreter
 	err := vs.RunScript(ctx, script)
 	if err != nil {

@@ -103,7 +103,7 @@ type ToolConfig struct {
 	//
 	Provider string `yaml:"provider" json:"provider"`
 	BaseUrl  string `yaml:"base_url" json:"base_url"`
-	// name of api key
+	// api lookup key
 	ApiKey string `yaml:"api_key" json:"api_key"`
 
 	// filter by match key=values (comma, separated)

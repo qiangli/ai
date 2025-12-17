@@ -105,6 +105,7 @@ tools:
 
   - name: "brave_search"
     description: "Search the web using Brave and return formatted results"
+    api_key: "brave"
     parameters:
       type: "object"
       properties:
@@ -122,6 +123,7 @@ tools:
 
   - name: "google_search"
     description: "Search the web using Google and return formatted results"
+    api_key: "google"
     parameters:
       type: "object"
       properties:
