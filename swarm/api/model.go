@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"strings"
 )
 
 // Level represents the "intelligence" level of the model.
@@ -20,6 +21,30 @@ const (
 	Image Level = "image"
 	TTS   Level = "tts"
 )
+
+// Model set and level
+// ^[a-zA-Z0-9_-]+$
+type Setlevel string
+
+func (r Setlevel) String() string {
+	return string(r)
+}
+
+// return default/any for empty string
+func (r Setlevel) Decode() (string, string) {
+	s := string(r)
+	parts := strings.SplitN(s, "/", 2)
+
+	var set = parts[0]
+	var level string
+	if len(parts) > 1 {
+		level = parts[1]
+	}
+	if level == "" {
+		level = "any"
+	}
+	return set, level
+}
 
 var Levels = []Level{L1, L2, L3, Image, TTS}
 

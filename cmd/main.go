@@ -25,13 +25,13 @@ func main() {
 		ext := filepath.Ext(args[0])
 		switch ext {
 		case ".sh", ".bash":
-			args = append([]string{"/sh:bash", "--script", args[0]}, args[1:]...)
+			args = append([]string{"/sh:bash", "--script", "file:///" + args[0]}, args[1:]...)
 		case ".yaml", ".yml":
 			// TODO supprot main entry detection
 			// for now. it is required to specify the action.
 			internal.Exit(fmt.Errorf("Failed to run. action required. ex. #!/usr/bin/env ai ACTION --script"))
 		case ".txt", ".md", ".markdown", "json", "jsonc":
-			args = append([]string{"/ai:call_llm", "--content", args[0]}, args[1:]...)
+			args = append([]string{"/ai:call_llm", "--content", "file:///" + args[0]}, args[1:]...)
 		default:
 			// ok
 		}

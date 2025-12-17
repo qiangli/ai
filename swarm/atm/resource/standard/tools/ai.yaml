@@ -45,23 +45,22 @@ tools:
       properties:
         prompt:
           type: "string"
-          description: "System role message for the LLM"
+          description: "System prompt for guiding the LLM's response. Acts as context or instructions for the LLM."
         query:
           type: "string"
-          description: "User role message for the LLM"
-        provider:
+          description: "The main content or question from the user that requires a response from the LLM."
+        model:
           type: "string"
-          description: "Name of LLM provider. One of 'anthropic', 'gemini', or 'openai'. Defaults to 'openai' if not specified."
-          default: "openai"
-        arguments:
-          type: "object"
-          description: "Optional arguments for the LLM request"
-          properties: {}
+          description: |
+            Specifies the LLM model to use. Defaults to 'default/any' if not provided.
+            Ensure the model name is valid. Use the 'ai:list_models' function to view available models.
         tools:
           type: "array"
           items:
             type: "string"
-            description: "Names of tools to call, if any"
+          description: |
+            List of tool names to utilize during the LLM call, specified in the format 'kit:name'.
+            Ensure each tool name is valid using the 'ai:list_tools' function to find available tools.
       required:
         - query
 

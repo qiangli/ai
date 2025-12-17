@@ -130,14 +130,3 @@ func NormalizePackname(pack, name string) string {
 	// this is to ensure externally accessible when searched by pack name
 	return pack + "/" + parts[1]
 }
-
-// func Cat(a, b, sep string) string {
-// 	if a != "" && b == "" {
-// 		return a
-// 	} else if a == "" && b != "" {
-// 		return b
-// 	} else if a != "" && b != "" {
-// 		return a + sep + b
-// 	}
-// 	return ""
-// }

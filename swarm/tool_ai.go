@@ -51,27 +51,107 @@ func (r *AIKit) Call(ctx context.Context, vars *api.Vars, tf *api.ToolFunc, args
 	return atm.CallKit(r, tf.Kit, tf.Name, callArgs...)
 }
 
-func (r *AIKit) CallLlm(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	var owner = r.sw.User.Email
+
 	query, err := api.GetStrProp("query", args)
 	if err != nil {
 		return nil, err
 	}
 	if query == "" {
-		return nil, fmt.Errorf("missing query")
+		// try default using message/content
+		v, err := vars.RTE.DefaultQuery(args)
+		if err != nil {
+			return nil, err
+		}
+		if v == "" {
+			return nil, fmt.Errorf("missing query")
+		}
+		query = v
 	}
+
 	prompt, _ := api.GetStrProp("prompt", args)
-
-	provider, _ := api.GetStrProp("provider", args)
-	if provider == "" {
-		provider = "openai"
+	if prompt == "" {
+		// try default using the instruction
+		prompt, _ = vars.RTE.DefaultPrompt(args)
 	}
-	arguments, _ := structToMap(args["arguments"])
-	tools, _ := api.GetArrayProp("tools", args)
 
-	owner := r.sw.User.Email
+	// model
+	var model *api.Model
+	if v, found := args["model"]; found {
+		switch vt := v.(type) {
+		case *api.Model:
+			model = vt
+		case string:
+			// set/level
+			set, level := api.Setlevel(vt).Decode()
+			v, err := conf.LoadModel(owner, set, level, r.sw.Assets)
+			if err != nil {
+				return nil, err
+			}
+			model = v
+		}
+	}
+	// else {
+	// // default
+	// provider, _ := api.GetStrProp("provider", args)
+	// if provider == "" {
+	// 	provider = "openai"
+	// }
+	// v, err := r.getModel(provider)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// model = r.agent.Model
+	// }
+	if model == nil {
+		model = r.agent.Model
+		// return nil, fmt.Errorf("model is required")
+	}
+	var apiKey = model.ApiKey
+	if apiKey == "" {
+		// default key
+		apiKey = model.Provider
+	}
 
-	var req = &api.Request{}
-	// var messages []*api.Message
+	ak, err := r.sw.Secrets.Get(owner, apiKey)
+	if err != nil {
+		return nil, err
+	}
+	token := func() string {
+		return ak
+	}
+
+	// tools
+	var tools []*api.ToolFunc
+	if v, found := args["tools"]; found {
+		if tf, ok := v.([]*api.ToolFunc); ok {
+			tools = tf
+		} else {
+			var sa []string
+			switch vt := v.(type) {
+			case []string:
+				sa = vt
+			case string:
+				if err := json.Unmarshal([]byte(vt), &sa); err != nil {
+					return nil, err
+				}
+			}
+			if len(sa) > 0 {
+				if v, err := r.getTools(sa); err != nil {
+					return nil, err
+				} else {
+					tools = v
+				}
+			}
+		}
+	} else {
+		tools = r.agent.Tools
+	}
+
+	var req = &api.Request{
+		Agent: r.agent,
+	}
 
 	var id = uuid.NewString()
 	var history []*api.Message
@@ -110,53 +190,50 @@ func (r *AIKit) CallLlm(ctx context.Context, _ *api.Vars, _ string, args map[str
 		Content: query,
 		Sender:  owner,
 	})
-	req.Messages = history
 
-	// model set: provider
-	// model, err := conf.LoadModel(owner, provider, "any", r.sw.Assets)
-	model, err := r.getModel(provider)
-	if err != nil {
-		return nil, err
-	}
-	ak, err := r.sw.Secrets.Get(owner, provider)
-	if err != nil {
-		return nil, err
-	}
-	token := func() string {
-		return ak
-	}
+	req.Messages = history
 	req.Model = model
 	req.Token = token
+	req.Tools = tools
+	req.Runner = r.agent.Runner
 
-	// tools
-	if len(tools) > 0 {
-		if v, err := r.getTools(tools); err != nil {
-			return nil, err
-		} else {
-			req.Tools = v
+	var llmAdapter api.LLMAdapter
+	if v, found := args["adapter"]; found {
+		switch vt := v.(type) {
+		case api.LLMAdapter:
+			llmAdapter = vt
+		case string:
+			if v, err := r.sw.Adapters.Get(vt); err != nil {
+				return nil, err
+			} else {
+				llmAdapter = v
+			}
+		default:
+			return nil, fmt.Errorf("adapter not valid: %v", v)
+		}
+	} else {
+		if r.agent.Adapter != "" {
+			if v, err := r.sw.Adapters.Get(r.agent.Adapter); err == nil {
+				llmAdapter = v
+			} else {
+				llmAdapter = &adapter.ChatAdapter{}
+			}
 		}
 	}
 
-	// LLM parameters
-	if arguments != nil {
-		req.Arguments = api.NewArguments().AddArgs(arguments)
-	}
-
-	// var adapter = &adapter.ResponseAdapter{}
-	var adapter = &adapter.ChatAdapter{}
-	resp, err := adapter.Call(ctx, req)
+	resp, err := llmAdapter.Call(ctx, req)
 	if err != nil {
+		args["error"] = err
 		return nil, err
 	}
-
-	// update history is successful
+	// update history if successful
 	args["history"] = history
-
 	if resp.Result == nil {
 		resp.Result = &api.Result{
 			Value: "Empty response",
 		}
 	}
+	args["result"] = resp.Result
 	return resp.Result, nil
 }
 
