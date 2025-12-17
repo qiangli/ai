@@ -213,10 +213,13 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 	}
 
 	var rte = &api.ActionRTEnv{
+		ID:        uuid.NewString(),
 		Base:      cfg.Base,
 		Roots:     roots,
 		User:      user,
 		Secrets:   secrets,
+		Assets:    assets,
+		Blobs:     blobs,
 		Workspace: lfs,
 		OS:        los,
 	}

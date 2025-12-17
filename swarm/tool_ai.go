@@ -410,38 +410,38 @@ Parameters: %s
 	return "", fmt.Errorf("unknown tool: %s", tid)
 }
 
-func (r *AIKit) GetToolConfig(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
-	log.GetLogger(ctx).Debugf("Tool info: %s %+v\n", tf, args)
+// func (r *AIKit) GetToolConfig(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
+// 	log.GetLogger(ctx).Debugf("Tool info: %s %+v\n", tf, args)
 
-	tid, err := api.GetStrProp("tool", args)
-	if err != nil {
-		return "", err
-	}
+// 	tid, err := api.GetStrProp("tool", args)
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	kit, name := api.Kitname(tid).Decode()
+// 	kit, name := api.Kitname(tid).Decode()
 
-	tc, err := r.sw.Assets.FindToolkit(r.sw.User.Email, kit)
-	if err != nil {
-		return "", err
-	}
+// 	tc, err := r.sw.Assets.FindToolkit(r.sw.User.Email, kit)
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	if tc != nil {
-		for _, v := range tc.Tools {
-			if v.Name == name {
-				params, err := json.Marshal(v.Parameters)
-				if err != nil {
-					return "", err
-				}
-				// TODO params may need better handling
-				log.GetLogger(ctx).Debugf("Tool info: %s %+v\n", tid, string(params))
-				// return fmt.Sprintf(tpl, kit, v.Name, v.Description, string(params)), nil
-				args["config"] = tc
-				return string(tc.RawContent), nil
-			}
-		}
-	}
-	return "", fmt.Errorf("unknown tool: %s", tid)
-}
+// 	if tc != nil {
+// 		for _, v := range tc.Tools {
+// 			if v.Name == name {
+// 				params, err := json.Marshal(v.Parameters)
+// 				if err != nil {
+// 					return "", err
+// 				}
+// 				// TODO params may need better handling
+// 				log.GetLogger(ctx).Debugf("Tool info: %s %+v\n", tid, string(params))
+// 				// return fmt.Sprintf(tpl, kit, v.Name, v.Description, string(params)), nil
+// 				args["config"] = tc
+// 				return string(tc.RawContent), nil
+// 			}
+// 		}
+// 	}
+// 	return "", fmt.Errorf("unknown tool: %s", tid)
+// }
 
 func (r *AIKit) ExecuteTool(ctx context.Context, _ *api.Vars, tf string, args map[string]any) (any, error) {
 	log.GetLogger(ctx).Debugf("Tool execute: %s %+v\n", tf, args)
