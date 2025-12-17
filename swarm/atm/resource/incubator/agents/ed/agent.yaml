@@ -1,4 +1,6 @@
 ###
+pack: "ed"
+
 new: false
 log_level: "quiet"
 format: "text"

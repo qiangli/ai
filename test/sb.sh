@@ -1,6 +1,6 @@
 #!/usr/bin/env ai
 # set -x
-echo "### sub.sh"
+echo "### sb.sh"
 echo "$$ I'm called $@..."
 echo "Test inline data url"
 echo "tool action, custom bash command, bash builtin, bash command, local command"
