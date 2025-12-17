@@ -2,11 +2,8 @@ package atm
 
 import (
 	"bytes"
-	"net/url"
 	"strings"
 	"text/template"
-
-	"github.com/qiangli/ai/swarm/api"
 )
 
 func applyTemplate(tpl *template.Template, text string, data any) (string, error) {
@@ -23,11 +20,11 @@ func applyTemplate(tpl *template.Template, text string, data any) (string, error
 	return buf.String(), nil
 }
 
-func IsTemplate(s string) bool {
-	// #! for large block of text
-	// {{ for oneliner
-	return strings.HasPrefix(s, "#!") || strings.Contains(s, "{{")
-}
+// func IsTemplate(s string) bool {
+// 	// #! for large block of text
+// 	// {{ for oneliner
+// 	return strings.HasPrefix(s, "#!") || strings.Contains(s, "{{")
+// }
 
 // Check s for prefix "#!" or "{{" to apply template if found. otherise skip
 func CheckApplyTemplate(tpl *template.Template, s string, data map[string]any) (string, error) {
@@ -48,24 +45,24 @@ func CheckApplyTemplate(tpl *template.Template, s string, data map[string]any) (
 	return s, nil
 }
 
-// Load data from uri.
-// Support file:// and data: protocols
-func LoadURIContent(ws api.Workspace, uri string) (string, error) {
-	if strings.HasPrefix(uri, "data:") {
-		return api.DecodeDataURL(uri)
-	} else {
-		var f = uri
-		if strings.HasPrefix(f, "file:") {
-			v, err := url.Parse(f)
-			if err != nil {
-				return "", err
-			}
-			f = v.Path
-		}
-		data, err := ws.ReadFile(f, nil)
-		if err != nil {
-			return "", err
-		}
-		return string(data), nil
-	}
-}
+// // Load data from uri.
+// // Support file:// and data: protocols
+// func LoadURIContent(ws api.Workspace, uri string) (string, error) {
+// 	if strings.HasPrefix(uri, "data:") {
+// 		return api.DecodeDataURL(uri)
+// 	} else {
+// 		var f = uri
+// 		if strings.HasPrefix(f, "file:") {
+// 			v, err := url.Parse(f)
+// 			if err != nil {
+// 				return "", err
+// 			}
+// 			f = v.Path
+// 		}
+// 		data, err := ws.ReadFile(f, nil)
+// 		if err != nil {
+// 			return "", err
+// 		}
+// 		return string(data), nil
+// 	}
+// }

@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -136,13 +137,13 @@ func ToResult(data any) *Result {
 		}
 		return &Result{
 			MimeType: v.MimeType,
-			Value:    mimeToString(v.MimeType, v.Content),
+			Value:    MimeToString(v.MimeType, v.Content),
 		}
 	}
 	if v, ok := data.(*Blob); ok {
 		return &Result{
 			MimeType: v.MimeType,
-			Value:    mimeToString(v.MimeType, v.Content),
+			Value:    MimeToString(v.MimeType, v.Content),
 		}
 	}
 	if v, err := json.Marshal(data); err == nil {
@@ -157,7 +158,7 @@ func ToResult(data any) *Result {
 
 // https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
 // data:[<media-type>][;base64],<data>
-func dataURL(mime string, raw []byte) string {
+func DataURL(mime string, raw []byte) string {
 	encoded := base64.StdEncoding.EncodeToString(raw)
 	d := fmt.Sprintf("data:%s;base64,%s", mime, encoded)
 	return d
@@ -204,10 +205,10 @@ func ToString(data any) string {
 		if len(v.Content) == 0 {
 			return v.Value
 		}
-		return mimeToString(v.MimeType, v.Content)
+		return MimeToString(v.MimeType, v.Content)
 	}
 	if v, ok := data.(*Blob); ok {
-		return mimeToString(v.MimeType, v.Content)
+		return MimeToString(v.MimeType, v.Content)
 	}
 	if v, err := json.Marshal(data); err == nil {
 		return string(v)
@@ -215,14 +216,14 @@ func ToString(data any) string {
 	return fmt.Sprintf("%+v", data)
 }
 
-func mimeToString(mime string, content []byte) string {
+func MimeToString(mime string, content []byte) string {
 	if mime == ContentTypeImageB64 {
 		return string(content)
 	}
 	if strings.HasPrefix(mime, "text/") {
 		return string(content)
 	}
-	return dataURL(mime, content)
+	return DataURL(mime, content)
 }
 
 func ToInt(data any) int {
@@ -302,4 +303,62 @@ func ToMessages(data any) []*Message {
 			Content: fmt.Sprintf("%+v", data),
 		},
 	}
+}
+
+// Load data from uri.
+// Support file:// and data: protocols
+// TODO enforce protocol requiremnt?
+// If no protocol is specified, assumse local file path.
+func LoadURIContent(ws Workspace, uri string) (string, error) {
+	if strings.HasPrefix(uri, "data:") {
+		return DecodeDataURL(uri)
+	} else {
+		var f = uri
+		if strings.HasPrefix(f, "file:") {
+			v, err := url.Parse(f)
+			if err != nil {
+				return "", err
+			}
+			f = v.Path
+		}
+		data, err := ws.ReadFile(f, nil)
+		if err != nil {
+			return "", err
+		}
+		return string(data), nil
+	}
+}
+
+func Cat(a, b, sep string) string {
+	if a != "" && b == "" {
+		return a
+	} else if a == "" && b != "" {
+		return b
+	} else if a != "" && b != "" {
+		return a + sep + b
+	}
+	return ""
+}
+
+// Check if strings starts with '#!' or length <= 120 and contains '{{'
+// #! for multi-line large block of text
+// {{ for oneliner
+func IsTemplate(s string) bool {
+	if strings.HasPrefix(s, "#!") {
+		return true
+	}
+	if len(s) > 120 {
+		return false
+	}
+	return strings.Contains(s, "{{")
+}
+
+// Check if ':' exists within the first 8 characters
+// e.g:
+// data:,
+// file:///
+// https://
+func IsURI(s string) bool {
+	endIndex := min(len(s), 8)
+	return strings.Contains(s[:endIndex], ":")
 }

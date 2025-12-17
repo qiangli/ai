@@ -1,7 +1,6 @@
 package atm
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -9,14 +8,6 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
-
-// https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
-// data:[<media-type>][;base64],<data>
-func DataURL(mime string, raw []byte) string {
-	encoded := base64.StdEncoding.EncodeToString(raw)
-	d := fmt.Sprintf("data:%s;base64,%s", mime, encoded)
-	return d
-}
 
 func clip(s string, max int) string {
 	if max > 0 && len(s) > max {

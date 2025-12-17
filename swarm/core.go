@@ -459,5 +459,5 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 }
 
 func (sw *Swarm) LoadScript(v string) (string, error) {
-	return atm.LoadURIContent(sw.Workspace, v)
+	return api.LoadURIContent(sw.Workspace, v)
 }

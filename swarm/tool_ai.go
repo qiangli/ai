@@ -60,6 +60,7 @@ func (r *AIKit) CallLlm(ctx context.Context, _ *api.Vars, _ string, args map[str
 		return nil, fmt.Errorf("missing query")
 	}
 	prompt, _ := api.GetStrProp("prompt", args)
+
 	provider, _ := api.GetStrProp("provider", args)
 	if provider == "" {
 		provider = "openai"

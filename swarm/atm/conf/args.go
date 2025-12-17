@@ -423,7 +423,7 @@ func parsev(argv []string) (api.ArgMap, error) {
 
 		if stdin != "" {
 			msg := argm["message"]
-			argm["message"] = cat(msg.(string), stdin, "\n###\n")
+			argm["message"] = api.Cat(msg.(string), stdin, "\n###\n")
 		}
 		// msg := argm["message"]
 		// if cfg.Message != "" {

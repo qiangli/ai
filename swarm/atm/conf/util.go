@@ -131,13 +131,13 @@ func NormalizePackname(pack, name string) string {
 	return pack + "/" + parts[1]
 }
 
-func cat(a, b, sep string) string {
-	if a != "" && b == "" {
-		return a
-	} else if a == "" && b != "" {
-		return b
-	} else if a != "" && b != "" {
-		return a + sep + b
-	}
-	return ""
-}
+// func Cat(a, b, sep string) string {
+// 	if a != "" && b == "" {
+// 		return a
+// 	} else if a == "" && b != "" {
+// 		return b
+// 	} else if a != "" && b != "" {
+// 		return a + sep + b
+// 	}
+// 	return ""
+// }

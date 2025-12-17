@@ -151,6 +151,58 @@ type ActionRTEnv struct {
 	// Adapters AdapterRegistry
 }
 
+// Return default query from message and content.
+// Return error if either message or content is a template
+func (r *ActionRTEnv) DefaultQuery(argm ArgMap) (string, error) {
+	message := argm.GetString("message")
+	if IsTemplate(message) {
+		return "", fmt.Errorf("message is a template")
+	}
+	content := argm.GetString("content")
+	if IsTemplate(content) {
+		return "", fmt.Errorf("content is a template")
+	}
+	if content != "" {
+		v, err := r.loadContent(content)
+		if err != nil {
+			return "", err
+		}
+		content = v
+	}
+	query := Cat(message, content, "\n###\n")
+	return query, nil
+}
+
+// Return default prompt read from the instruction.
+// Return error if instruction is a template
+// Return empty string if no instruction if found
+func (r *ActionRTEnv) DefaultPrompt(argm ArgMap) (string, error) {
+	instruction := argm.GetString("instruction")
+	if instruction == "" {
+		return "", nil
+	}
+	if IsTemplate(instruction) {
+		return "", fmt.Errorf("instruction is a template")
+	}
+	prompt, err := r.loadContent(instruction)
+	if err != nil {
+		return "", err
+	}
+	return prompt, nil
+}
+
+func (r *ActionRTEnv) LoadScript(v string) (string, error) {
+	return LoadURIContent(r.Workspace, v)
+}
+
+// return as is for non URI
+func (r *ActionRTEnv) loadContent(v string) (string, error) {
+	if !IsURI(v) {
+		return v, nil
+	}
+	return LoadURIContent(r.Workspace, v)
+}
+
 // global context
 type Vars struct {
 	Global *Environment `json:"global"`

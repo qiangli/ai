@@ -60,7 +60,7 @@ func (r *SystemKit) Apply(ctx context.Context, vars *api.Vars, _ string, args ma
 	if err != nil {
 		return "", err
 	}
-	if v, err := LoadURIContent(vars.RTE.Workspace, tpl); err != nil {
+	if v, err := api.LoadURIContent(vars.RTE.Workspace, tpl); err != nil {
 		return "", err
 	} else {
 		tpl = string(v)
@@ -85,7 +85,7 @@ func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, arg
 	var tpl string
 	tpl, _ = api.GetStrProp("template", args)
 	if tpl != "" {
-		if v, err := LoadURIContent(vars.RTE.Workspace, tpl); err != nil {
+		if v, err := api.LoadURIContent(vars.RTE.Workspace, tpl); err != nil {
 			return "", err
 		} else {
 			tpl = string(v)
