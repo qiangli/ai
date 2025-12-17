@@ -198,109 +198,12 @@ type ActionRunner interface {
 	Run(context.Context, string, map[string]any) (any, error)
 }
 
-type ActionConfig struct {
-	// kit specifies a namespace for the action
-	// examples:
-	// class name
-	// MCP server name
-	// file system
-	// container name
-	// virtual machine name
-	// tool/function (Gemini)
-	Kit string `yaml:"kit"`
-
-	// action type:
-	// func, system, agent...
-	Type string `yaml:"type"`
-
-	// action name and arguments
-	Name      string         `yaml:"name"`
-	Arguments map[string]any `yaml:"arguments"`
-
-	// user message
-	Message string `yaml:"message"`
-
-	// system prompt
-	Instruction string `yaml:"instruction"`
-
-	// set/level key - not the LLM model
-	Model string `yaml:"model"`
-
-	//
-	MaxTurns int `yaml:"max_turns"`
-	MaxTime  int `yaml:"max_time"`
-
-	// output format: json | text
-	Format string `yaml:"format"`
-
-	// memory context
-	MaxHistory int    `yaml:"max_history"`
-	MaxSpan    int    `yaml:"max_span"`
-	Context    string `yaml:"context"`
-
-	// logging: quiet | informative | verbose
-	LogLevel string `yaml:"log_level"`
-
-	// app level global vars
-	// Environment map[string]any `yaml:"environment"`
-}
-
-func (ac *ActionConfig) ToMap() map[string]any {
-	result := make(map[string]any)
-
-	if ac.Kit != "" {
-		result["kit"] = ac.Kit
-	}
-	if ac.Type != "" {
-		result["type"] = ac.Type
-	}
-	if ac.Name != "" {
-		result["name"] = ac.Name
-	}
-
-	if ac.Message != "" {
-		result["message"] = ac.Message
-	}
-	if ac.Instruction != "" {
-		result["instruction"] = ac.Instruction
-	}
-	if ac.Model != "" {
-		result["model"] = ac.Model
-	}
-	if ac.MaxTurns > 0 {
-		result["max_turns"] = ac.MaxTurns
-	}
-	if ac.MaxTime > 0 {
-		result["max_time"] = ac.MaxTime
-	}
-	if ac.Format != "" {
-		result["format"] = ac.Format
-	}
-	if ac.MaxHistory > 0 {
-		result["max_history"] = ac.MaxHistory
-	}
-	if ac.MaxSpan > 0 {
-		result["max_span"] = ac.MaxSpan
-	}
-	if ac.Context != "" {
-		result["context"] = ac.Context
-	}
-	if ac.LogLevel != "" {
-		result["log_level"] = ac.LogLevel
-	}
-
-	return result
-}
-
 type App struct {
 	// app root. default: $HOME/.ai/
 	Base string
 
 	// auth email
 	User string
-
-	// workspace root. default: <base>/workspace
-	// Workspace string
 
 	Session string
 }
