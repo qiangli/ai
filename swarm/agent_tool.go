@@ -2,7 +2,9 @@ package swarm
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"path"
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -27,49 +29,86 @@ func NewAgentToolRunner(sw *Swarm, user string, agent *api.Agent) api.ActionRunn
 	}
 }
 
+func (r *AgentToolRunner) loadYaml(tid string, script string) (*api.ToolFunc, error) {
+	tc, err := conf.LoadToolData([][]byte{[]byte(script)})
+	if err != nil {
+		return nil, err
+	}
+	tools, err := conf.LoadTools(tc, r.user, r.sw.Secrets)
+	if err == nil {
+		return nil, err
+	}
+	kit, name := api.Kitname(tid).Decode()
+	// /agent:
+	if kit == string(api.ToolTypeAgent) {
+		//
+		// TODO load app config including both agents/tools
+		// to replace this hack
+		_, sub := api.Packname(name).Decode()
+		for _, v := range tc.Agents {
+			if sub == v.Name {
+				v, err := conf.LoadAgentTool(tc, sub)
+				if err == nil {
+					v.Name = name
+					return v, nil
+				}
+			}
+		}
+	} else {
+		// /kit:tool
+		for _, v := range tools {
+			if v.Kit == kit && v.Name == name {
+				return v, nil
+			}
+			// default
+			if v.Kit == kit && name == "" && v.Name == kit {
+				return v, nil
+			}
+		}
+	}
+	return nil, nil
+}
+
 func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFunc, error) {
 	// load tool from content
 	if s, ok := args["script"]; ok {
 		s := api.ToString(s)
-		if strings.HasSuffix(s, ".yaml") {
+		ext := path.Ext(s)
+		switch ext {
+		case ".sh", ".bash":
+			// continue
+		case ".yaml", ".yml":
 			cfg, err := r.sw.LoadScript(s)
 			if err != nil {
 				return nil, err
 			}
-			tc, err := conf.LoadToolData([][]byte{[]byte(cfg)})
-			if err == nil {
-				tools, err := conf.LoadTools(tc, r.user, r.sw.Secrets)
-				if err == nil {
-					kit, name := api.Kitname(tid).Decode()
-					// /agent:
-					if kit == string(api.ToolTypeAgent) {
-						//
-						// TODO load app config including both agents/tools
-						// to replace this hack
-						_, sub := api.Packname(name).Decode()
-						for _, v := range tc.Agents {
-							if sub == v.Name {
-								v, err := conf.LoadAgentTool(tc, sub)
-								if err == nil {
-									v.Name = name
-									return v, nil
-								}
-							}
-						}
-					} else {
-						// /kit:tool
-						for _, v := range tools {
-							if v.Kit == kit && v.Name == name {
-								return v, nil
-							}
-							// default
-							if v.Kit == kit && name == "" && v.Name == kit {
-								return v, nil
-							}
-						}
-					}
-				}
+			tf, _ := r.loadYaml(tid, cfg)
+			if tf != nil {
+				return tf, nil
 			}
+		case ".txt", ".md", ".markdown":
+			// feed text file as query content
+			cfg, err := r.sw.LoadScript(s)
+			if err != nil {
+				return nil, err
+			}
+			old := args["content"]
+			args["content"] = api.Cat(api.ToString(old), tail(cfg, 1), "\n###\n")
+			// continue to load tid
+		case ".json", ".jsonc":
+			// decode json into additional arguments
+			cfg, err := r.sw.LoadScript(s)
+			if err != nil {
+				return nil, err
+			}
+			obj := tail(cfg, 1)
+			obj = strings.TrimSpace(obj)
+			if err := json.Unmarshal([]byte(obj), &args); err != nil {
+				return nil, err
+			}
+			// continue to load tid
+		default:
+			// ignore script property
 		}
 	}
 

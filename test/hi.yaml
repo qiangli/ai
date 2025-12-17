@@ -1,0 +1,89 @@
+#!/usr/bin/env ai /agent:hi --script
+
+#
+# A complete "Hello World" example of agents, tools, and models
+#
+
+###
+pack: "hi"
+log_level: "info"
+agents:
+  - name: "hi"
+    display: "🌐 World Greeter"
+    description: "An amiable greeter capable of providing kind words to any global citizen it encounters."
+    model: "default/any"
+    message: "I'm a humble bot"
+    instruction: |
+      You are an amiable greeter who always finds charming words for anyone you meet.
+      Randomly choose names and offer kind words to them.
+      You must use the tool `atm:hi` for greeting.
+      Upon successful execution of the tool, report back the exact greetings it provided.
+      If the tool execution fails, seek further instructions to resolve the issue.
+      Only run the tool once and exit regardlesss of success or failure.
+    functions:
+      - "atm:hi"
+
+###
+kit: "atm"
+type: "func"
+tools:
+  - name: "hi"
+    description: "A tool designed to articulate kind sentiments towards people."
+    parameters:
+      type: "object"
+      properties:
+        greeting:
+          type: "string"
+          description: "The kind sentiment or message to convey."
+        names:
+          type: "array"
+          items:
+            type: "string"
+          description: "A list of individuals' names."
+      required:
+        - greeting
+        - names
+    body:
+      language: "golang"
+      code: |
+        #! mime-type=text/x-go-template
+        import "encoding/json"
+        import "fmt"
+        import "strings"
+
+        var names = `{{.names}}`
+        var greeting = "{{.greeting}}"
+
+        func nameList() (string, error) {
+          if names == "" {
+            return "whom do you want me to greet?", nil
+          }
+          var list []string
+          if err := json.Unmarshal([]byte(names), &list); err != nil {
+            return "", fmt.Errorf("Oops, I'm not feeling well. %v", err)
+          }
+          return strings.Join(list, ", "), nil
+        }
+
+        func hello() {
+          people, err := nameList()
+          if err != nil {
+            fmt.Println(err.Error())
+            return
+          }
+          fmt.Printf("Hello %s:\n%s\n\nGreeting from the Happy Bot.", people, greeting)
+        }
+
+        func main() {
+          hello()
+        }
+
+###
+set: "default"
+models:
+  any:
+    model: "gpt-5-nano"
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
+###

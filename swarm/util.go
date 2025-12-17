@@ -220,3 +220,12 @@ func ActionNameFromFile(file string) string {
 	// invalid
 	return ""
 }
+
+func tail(data string, n int) string {
+	lines := strings.Split(data, "\n")
+	if n < len(lines) {
+		// Return the lines after the nth line
+		return strings.Join(lines[n:], "\n")
+	}
+	return ""
+}
