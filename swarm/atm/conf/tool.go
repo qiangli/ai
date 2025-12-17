@@ -299,12 +299,12 @@ func LoadTools(tc *api.AppConfig, owner string, secrets api.SecretStore) ([]*api
 	return tools, nil
 }
 
-func LoadAgentTool(ac *api.AppConfig, name string) (*api.ToolFunc, error) {
+func LoadAgentTool(ac *api.AppConfig, sub string) (*api.ToolFunc, error) {
 	if ac == nil {
-		return nil, fmt.Errorf("nil config: %s", name)
+		return nil, fmt.Errorf("nil config: %s", sub)
 	}
 	for _, c := range ac.Agents {
-		if c.Name == name {
+		if c.Name == sub {
 			var params = map[string]any{
 				"type": "object",
 				"properties": map[string]any{
@@ -316,6 +316,8 @@ func LoadAgentTool(ac *api.AppConfig, name string) (*api.ToolFunc, error) {
 			}
 			maps.Copy(params, c.Parameters)
 
+			pn := api.Packname(ac.Pack + "/" + sub).Encode()
+
 			tool := &api.ToolFunc{
 				Kit:         string(api.ToolTypeAgent),
 				Type:        api.ToolTypeAgent,
@@ -324,9 +326,7 @@ func LoadAgentTool(ac *api.AppConfig, name string) (*api.ToolFunc, error) {
 				Parameters:  params,
 				Body:        nil,
 				//
-				// TODO conform name fulle pack/sub?
-				// should be NormalizePackname
-				Agent: c.Name,
+				Agent: pn,
 			}
 			return tool, nil
 		}

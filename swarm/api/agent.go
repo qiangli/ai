@@ -43,6 +43,14 @@ func (r Packname) Decode() (string, string) {
 	return pack, sub
 }
 
+func (r Packname) Encode() string {
+	pack, sub := r.Decode()
+	if sub == "" {
+		return pack
+	}
+	return pack + "/" + sub
+}
+
 func (r Packname) Equal(s string) bool {
 	x, y := r.Decode()
 	x2, y2 := Packname(s).Decode()

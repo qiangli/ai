@@ -30,32 +30,35 @@ func NewAgentToolRunner(sw *Swarm, user string, agent *api.Agent) api.ActionRunn
 }
 
 func (r *AgentToolRunner) loadYaml(tid string, script string) (*api.ToolFunc, error) {
-	tc, err := conf.LoadToolData([][]byte{[]byte(script)})
-	if err != nil {
-		return nil, err
-	}
-	tools, err := conf.LoadTools(tc, r.user, r.sw.Secrets)
-	if err == nil {
-		return nil, err
-	}
 	kit, name := api.Kitname(tid).Decode()
 	// /agent:
 	if kit == string(api.ToolTypeAgent) {
-		//
-		// TODO load app config including both agents/tools
-		// to replace this hack
-		_, sub := api.Packname(name).Decode()
-		for _, v := range tc.Agents {
-			if sub == v.Name {
-				v, err := conf.LoadAgentTool(tc, sub)
+		ac, err := conf.LoadAgentsData([][]byte{[]byte(script)})
+		if err != nil {
+			return nil, err
+		}
+		pack, sub := api.Packname(name).Decode()
+		if ac.Pack != pack {
+			return nil, fmt.Errorf("Invalid pack name: %s. config: %s", pack, ac.Pack)
+		}
+		for _, v := range ac.Agents {
+			if (sub == "" && v.Name == pack) || sub == v.Name {
+				v, err := conf.LoadAgentTool(ac, v.Name)
 				if err == nil {
-					v.Name = name
 					return v, nil
 				}
 			}
 		}
 	} else {
 		// /kit:tool
+		tc, err := conf.LoadToolData([][]byte{[]byte(script)})
+		if err != nil {
+			return nil, err
+		}
+		tools, err := conf.LoadTools(tc, r.user, r.sw.Secrets)
+		if err != nil {
+			return nil, err
+		}
 		for _, v := range tools {
 			if v.Kit == kit && v.Name == name {
 				return v, nil
@@ -82,10 +85,14 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 			if err != nil {
 				return nil, err
 			}
-			tf, _ := r.loadYaml(tid, cfg)
+			tf, err := r.loadYaml(tid, cfg)
+			if err != nil {
+				return nil, err
+			}
 			if tf != nil {
 				return tf, nil
 			}
+			return nil, fmt.Errorf("%q not found in script: %s", tid, s)
 		case ".txt", ".md", ".markdown":
 			// feed text file as query content
 			cfg, err := r.sw.LoadScript(s)

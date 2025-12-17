@@ -58,11 +58,19 @@
 				// "--script",
 				// "atm/tools/hello_kit/hello_user.yaml",
 				//
+				// agent
 				// "/agent:atm/hi",
 				// "--script",
-				// "atm/resource/template/atm.yaml",
+				// "swarm/atm/resource/template/atm.yaml",
 				// "--verbose",
 				// "pick some famous politicians names",
+				//
+				// tool
+				"/atm:hi",
+				"--script",
+				"swarm/atm/resource/template/atm.yaml",
+				"--verbose",
+				"pick some famous politicians names",
 				//
 				// "/agent:eval",
 				// "--script",
@@ -98,12 +106,12 @@
 				// "--arg",
 				// "url=https://en.wikipedia.org/wiki/Unix"
 				//
-				"/ai:call_llm",
-				"--message",
-				"what is the new headlines today",
-				"--instruction",
-				"you are a top news anchor. if need to access the web and other source, use the ai:list_tools to find the right tools to use",
-				"--arg", "tools=[\"ai:list_tools\",\"ai:execute_tool\",\"web:get_web_content\",\"web:ddg_search\"]"
+				// "/ai:call_llm",
+				// "--message",
+				// "what is the new headlines today",
+				// "--instruction",
+				// "you are a top news anchor. if need to access the web and other source, use the ai:list_tools to find the right tools to use",
+				// "--arg", "tools=[\"ai:list_tools\",\"ai:execute_tool\",\"web:get_web_content\",\"web:ddg_search\"]"
 				//
 				// // "@ask",
 				// "how to update system env in a golang template",
