@@ -3,7 +3,6 @@ package atm
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
@@ -50,15 +49,9 @@ func (r *webAuthKit) FetchContent(ctx context.Context, vars *api.Vars, name stri
 		return "", err
 	}
 
-	var content string
-	for range 3 {
-		if v, err := cli.Fetch(ctx, link); err != nil || len(v) == 0 {
-			time.Sleep(1 * time.Second)
-			continue
-		} else {
-			content = v
-			break
-		}
+	content, err := cli.Fetch(ctx, link)
+	if err != nil {
+		return "", err
 	}
 
 	size := len(content)
