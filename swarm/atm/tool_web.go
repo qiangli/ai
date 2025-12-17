@@ -29,13 +29,13 @@ func (r *webAuthKit) FetchContent(ctx context.Context, vars *api.Vars, name stri
 	if err != nil {
 		return "", err
 	}
-	start, err := api.GetIntProp("start_index", args)
-	if err != nil {
-		return "", err
+	start, _ := api.GetIntProp("start_index", args)
+	if start < 0 {
+		start = 0
 	}
-	max, err := api.GetIntProp("max_length", args)
-	if err != nil {
-		return "", err
+	max, _ := api.GetIntProp("max_length", args)
+	if max <= 0 {
+		max = 8000
 	}
 	// raw, err := GetBoolProp("raw", args)
 	// if err != nil {
