@@ -43,6 +43,8 @@ func (r Packname) Decode() (string, string) {
 	return pack, sub
 }
 
+// return the normalized name.
+// pack or pack/sub after removing any prefix: @ agent: or /
 func (r Packname) Encode() string {
 	pack, sub := r.Decode()
 	if sub == "" {
@@ -215,6 +217,8 @@ type AgentConfig struct {
 	Store AssetStore `yaml:"-" json:"-"`
 	// relative to root
 	BaseDir string `yaml:"-" json:"-"`
+
+	Config *AppConfig `json:"-"`
 }
 
 func (ac *AgentConfig) ToMap() map[string]any {

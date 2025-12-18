@@ -1,5 +1,5 @@
 ###
-pack: "fs"
+kit: "fs"
 type: "system"
 
 tools:

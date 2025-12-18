@@ -296,6 +296,9 @@ type AppConfig struct {
 
 	// The raw data for this config
 	RawContent []byte `yaml:"-" json:"-"`
+
+	// TODO for debugging
+	// Source     string `yaml:"-" json:"-"`
 }
 
 // ToMap converts AppConfig to a map[string]any

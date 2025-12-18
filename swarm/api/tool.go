@@ -109,6 +109,9 @@ type ToolConfig struct {
 	// filter by match key=values (comma, separated)
 	// include all tools that match
 	Filter map[string]string `yaml:"filter" json:"filter"`
+
+	//
+	Config *AppConfig `json:"-"`
 }
 
 type FuncBody struct {
