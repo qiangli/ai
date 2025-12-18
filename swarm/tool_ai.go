@@ -218,19 +218,23 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 		if agent.Adapter != "" {
 			if v, err := r.sw.Adapters.Get(agent.Adapter); err == nil {
 				llmAdapter = v
-			} else {
-				llmAdapter = &adapter.ChatAdapter{}
 			}
 		}
 	}
+	if llmAdapter == nil {
+		llmAdapter = &adapter.ChatAdapter{}
+	}
 
 	resp, err := llmAdapter.Call(ctx, req)
+
+	// update ouput
+	args["query"] = query
+	args["prompt"] = prompt
+	args["history"] = history
 	if err != nil {
 		args["error"] = err
 		return nil, err
 	}
-	// update history if successful
-	args["history"] = history
 	if resp.Result == nil {
 		resp.Result = &api.Result{
 			Value: "Empty response",
@@ -304,12 +308,6 @@ Instruction: %s
 }
 
 func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (*api.AppConfig, error) {
-	// kit, _ := api.GetStrProp("kit", args)
-	// if kit != "" && kit != "agent" {
-	// 	// report err or rectify?
-	// 	args["kit"] = "agent"
-	// }
-
 	// agent:name -> agent
 	// --agent agent
 	name, err := api.GetStrProp("agent", args)
@@ -416,6 +414,7 @@ func (r *AIKit) CreateAgent(ctx context.Context, vars *api.Vars, tf string, args
 		return nil, err
 	}
 
+	agent.Parent = r.sw.Vars.RootAgent
 	agent.Runner = NewAgentToolRunner(r.sw, r.sw.User.Email, agent)
 	agent.Shell = NewAgentScriptRunner(r.sw, agent)
 	agent.Template = NewTemplate(r.sw, agent)
