@@ -2,7 +2,7 @@
 set -xue
 
 echo "# Hello world!"
-DRY=""
+DRY="echo"
 
 echo "## system command..."
 ID="ID:$$"
@@ -16,10 +16,10 @@ printenv
 echo "## tool/bash..."
 
 /sh:exec --command "ls -al /opt"
-/sh:bash --command "ls -al /opt"
+/sh:bash --script "data:,ls -al /opt"
 
 # TODO support subshell or print file content
-# /sh:bash --script "data:$(cat $BASE/test/sb.sh)"
+# /sh:bash --script "data:,$(cat $BASE/test/sb.sh)"
 /sh:bash --script "$BASE/test/sb.sh"
 /ai:execute_tool --tool "sh:exec" --command "ls -al /opt"
 /ai:execute_tool --tool "sh:bash" --command "ls -al /opt"

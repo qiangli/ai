@@ -97,6 +97,17 @@ tools:
       required:
         - "agent"
 
+  - name: "create_agent"
+    description: "Create an instance of a new agent"
+    parameters:
+      type: "object"
+      properties:
+        agent:
+          type: "string"
+          description: "The name of the agent"
+      required:
+        - "agent"
+  
   - name: "transfer_agent"
     description: "Trasnfer the current task to a specific agent"
     parameters:

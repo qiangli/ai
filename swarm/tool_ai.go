@@ -51,7 +51,7 @@ func (r *AIKit) Call(ctx context.Context, vars *api.Vars, tf *api.ToolFunc, args
 	return atm.CallKit(r, tf.Kit, tf.Name, callArgs...)
 }
 
-func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Result, error) {
 	var owner = r.sw.User.Email
 
 	query, err := api.GetStrProp("query", args)
@@ -92,20 +92,23 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, _ string, args map[
 			model = v
 		}
 	}
-	// else {
-	// // default
-	// provider, _ := api.GetStrProp("provider", args)
-	// if provider == "" {
-	// 	provider = "openai"
-	// }
-	// v, err := r.getModel(provider)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// model = r.agent.Model
-	// }
+
+	var agent = r.agent
+	if v, found := args["agent"]; found {
+		if _, ok := v.(string); ok {
+			a, err := r.CreateAgent(ctx, vars, tf, args)
+			if err != nil {
+				return nil, err
+			}
+			agent = a
+		}
+		if a, ok := v.(*api.Agent); ok {
+			agent = a
+		}
+	}
+
 	if model == nil {
-		model = r.agent.Model
+		model = agent.Model
 		// return nil, fmt.Errorf("model is required")
 	}
 	var apiKey = model.ApiKey
@@ -146,11 +149,11 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, _ string, args map[
 			}
 		}
 	} else {
-		tools = r.agent.Tools
+		tools = agent.Tools
 	}
 
 	var req = &api.Request{
-		Agent: r.agent,
+		Agent: agent,
 	}
 
 	var id = uuid.NewString()
@@ -195,7 +198,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, _ string, args map[
 	req.Model = model
 	req.Token = token
 	req.Tools = tools
-	req.Runner = r.agent.Runner
+	req.Runner = agent.Runner
 
 	var llmAdapter api.LLMAdapter
 	if v, found := args["adapter"]; found {
@@ -212,8 +215,8 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, _ string, args map[
 			return nil, fmt.Errorf("adapter not valid: %v", v)
 		}
 	} else {
-		if r.agent.Adapter != "" {
-			if v, err := r.sw.Adapters.Get(r.agent.Adapter); err == nil {
+		if agent.Adapter != "" {
+			if v, err := r.sw.Adapters.Get(agent.Adapter); err == nil {
 				llmAdapter = v
 			} else {
 				llmAdapter = &adapter.ChatAdapter{}
@@ -300,17 +303,27 @@ Instruction: %s
 	return "", fmt.Errorf("unknown agent: %s", agent)
 }
 
-func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (any, error) {
-	agent, err := api.GetStrProp("agent", args)
+func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (*api.AppConfig, error) {
+	// kit, _ := api.GetStrProp("kit", args)
+	// if kit != "" && kit != "agent" {
+	// 	// report err or rectify?
+	// 	args["kit"] = "agent"
+	// }
+
+	// agent:name -> agent
+	// --agent agent
+	name, err := api.GetStrProp("agent", args)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	if agent == "self" {
+	if name == "self" {
 		if r.agent == nil {
-			return "", fmt.Errorf("Sorry, something went terribaly wrong")
+			return nil, fmt.Errorf("Sorry, something went terribaly wrong")
 		}
-		agent = r.agent.Name
+		name = r.agent.Name
 	}
+	args["kit"] = "agent"
+	args["name"] = name
 
 	cfg, found := args["config"]
 	if found {
@@ -325,7 +338,7 @@ func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, a
 		loader.LoadContent(data)
 	}
 
-	config, err := loader.LoadAgentConfig(api.Packname(agent))
+	config, err := loader.LoadAgentConfig(api.Packname(name))
 	if err != nil {
 		return nil, err
 	}
@@ -357,30 +370,52 @@ func (r *AIKit) SpawnAgent(ctx context.Context, _ *api.Vars, _ string, args map[
 	return r.sw.runm(ctx, r.agent, name, args)
 }
 
-func (r *AIKit) CreateAgent(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (any, error) {
-	name, err := api.GetStrProp("agent", args)
-	if err != nil {
-		return nil, err
+func (r *AIKit) kitname(args map[string]any) api.Kitname {
+	am := api.ArgMap(args)
+	kit := am.GetString("kit")
+	name := am.GetString("name")
+	kn := api.Kitname(kit + "/" + name)
+	return kn
+}
+
+func (r *AIKit) CreateAgent(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Agent, error) {
+	var name string
+	if v, found := args["agent"].(*api.Agent); found {
+		return v, nil
 	}
-	if name == "" {
-		return nil, fmt.Errorf("missing agent name")
+	if v, found := args["agent"].(string); found {
+		name = v
 	}
 
-	var creator = r.sw.CreateAgent
-	// load agent from content
-	if s, ok := args["script"]; ok {
-		v, err := r.sw.creatorFromScript(name, api.ToString(s))
+	// fall back to kit:name
+	if name == "" {
+		kn := r.kitname(args)
+		kit, v := kn.Decode()
+		if kit != "agent" {
+			return nil, fmt.Errorf("missing agent name")
+		}
+		name = v
+	}
+
+	var ac *api.AppConfig
+	cfg := args["config"]
+	if v, ok := cfg.(*api.AppConfig); ok {
+		ac = v
+	} else {
+		v, err := r.ReadAgentConfig(ctx, vars, tf, args)
 		if err != nil {
 			return nil, err
 		}
-		creator = v
+		ac = v
 	}
-	//
-	agent, err := creator(ctx, name)
+
+	var loader = NewConfigLoader(r.sw.Vars.RTE)
+
+	agent, err := loader.Create(ctx, ac, api.Packname(name))
 	if err != nil {
 		return nil, err
 	}
-	//
+
 	agent.Runner = NewAgentToolRunner(r.sw, r.sw.User.Email, agent)
 	agent.Shell = NewAgentScriptRunner(r.sw, agent)
 	agent.Template = NewTemplate(r.sw, agent)
@@ -410,6 +445,8 @@ func (r *AIKit) CreateAgent(ctx context.Context, _ *api.Vars, _ string, args map
 		}
 	}
 	// update the property with the created agent object
+	args["kit"] = "agent"
+	args["name"] = agent.Name
 	args["agent"] = agent
 	// return r.sw.runm(ctx, r.agent, name, args)
 	// return r.sw.runc(ctx, creator, r.agent, name, args)

@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"context"
 	"fmt"
 	"maps"
 	"strings"
@@ -150,28 +151,33 @@ func (r *ConfigLoader) CreateTool(tid string) (*api.ToolFunc, error) {
 	return nil, nil
 }
 
-func (r *ConfigLoader) CreateAgent(name string) (*api.Agent, error) {
-	ac, err := r.LoadConfig(name)
-	if err != nil {
-		return nil, err
-	}
-	pn := api.Packname(name)
-	pack, _ := pn.Decode()
-	if ac.Pack != pack {
-		return nil, fmt.Errorf("wrong pack: %s config: %s.", pack, ac.Pack)
-	}
+func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent, error) {
+	// ac, err := r.LoadConfig(name)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// pn := api.Packname(name)
 
-	var c *api.AgentConfig
-	for _, v := range ac.Agents {
-		if pn.Equal(v.Name) {
-			c = v
-			break
-		}
-	}
-	if c == nil {
-		return nil, fmt.Errorf("agent %q not in config: %s", pn.Encode(), ac.Pack)
-	}
+	// pack, _ := pn.Decode()
+	// if ac.Pack != pack {
+	// 	return nil, fmt.Errorf("wrong pack: %s config: %s.", pack, ac.Pack)
+	// }
 
+	// // // find agent config
+	// // var c *api.AgentConfig
+	// // for _, v := range ac.Agents {
+	// // 	if pn.Equal(v.Name) {
+	// // 		c = v
+	// // 		break
+	// // 	}
+	// // }
+	// if c == nil {
+	// 	return nil, fmt.Errorf("agent %q not in config: %s", pn.Encode(), ac.Pack)
+	// }
+
+	ac := c.Config
+
+	// new agent
 	var agent = api.Agent{
 		Adapter: c.Adapter,
 		//
@@ -312,4 +318,105 @@ func (r *ConfigLoader) CreateAgent(name string) (*api.Agent, error) {
 	}
 
 	return &agent, nil
+}
+
+// create agent (class) from config
+func (r *ConfigLoader) Create(ctx context.Context, ac *api.AppConfig, packname api.Packname) (*api.Agent, error) {
+
+	findConfig := func(ac *api.AppConfig, pn api.Packname) (*api.AgentConfig, error) {
+		for _, a := range ac.Agents {
+			if pn.Equal(a.Name) {
+				return a, nil
+			}
+		}
+		return nil, fmt.Errorf("no such agent: %s", pn)
+	}
+
+	// create the agent
+	// agent: pack/sub
+	// var user = ap.sw.User.Email
+	pack, sub := packname.Decode()
+	// todo have decode return pack
+	if sub == "" {
+		sub = pack
+	}
+
+	//
+	if pack == "" {
+		return nil, fmt.Errorf("missing agent pack")
+	}
+
+	// cached agent
+	key := AgentCacheKey{
+		User: r.rte.User.Email,
+		Pack: pack,
+		Sub:  sub,
+	}
+	// return a cloned copy if found
+	if v, ok := agentCache.Get(key); ok {
+		// log.GetLogger(ctx).Debugf("Using cached agent: %+v", key)
+		return v.Clone(), nil
+	}
+
+	// var ent *api.Record
+	// if v, err := r.sw.Assets.SearchAgent(ap.sw.User.Email, pack); err != nil {
+	// 	return nil, err
+	// } else {
+	// 	ent = v
+	// }
+	// // invalid agent
+	// if ent == nil && pack != "" {
+	// 	return nil, fmt.Errorf("agent not found: %s", pack)
+	// }
+
+	// // access to models/tools is implicitly granted if user has permission to run the agent
+	// // agent config
+	// ac, err := ap.getAgent(ent.Owner, ent.Name, ent.Store)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// if ac == nil {
+	// 	return nil, fmt.Errorf("no such agent: %s", name)
+	// }
+
+	// access to models/tools is implicitly granted if user has permission to run the agent
+	// agent config
+
+	creator := func() (*api.Agent, error) {
+		pn := api.Packname(pack + "/" + sub)
+
+		c, err := findConfig(ac, pn)
+		if err != nil {
+			return nil, err
+		}
+
+		//
+		c.Config = ac
+
+		agent, err := r.NewAgent(c, pn)
+		if err != nil {
+			return nil, err
+		}
+
+		// embedded
+		for _, v := range c.Embed {
+			if a, err := r.Create(ctx, ac, api.Packname(v)); err != nil {
+				return nil, err
+			} else {
+				agent.Embed = append(agent.Embed, a)
+			}
+		}
+
+		//
+		agent.Config = ac
+		return agent, nil
+	}
+
+	if v, err := creator(); err == nil {
+		agentCache.Add(key, v)
+		return v, nil
+	} else {
+		return nil, err
+	}
 }
