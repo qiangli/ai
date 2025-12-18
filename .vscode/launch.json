@@ -79,15 +79,17 @@
 				//
 				"/sh:flow",
 				"--actions",
-				"[\"ai:read_agent_config\", \"ai:create_agent\", \"sh:format\"]",
+				"[\"ai:read_agent_config\", \"ai:create_agent\", \"ai:call_llm\", \"sh:format\"]",
 				"--template",
-				"data:,{{toPrettyJson .agent}} \n kit: {{.kit}} \n name: {{.name}}",
+				"data:,result: {{toPrettyJson .result}} \n kit: {{.kit}} \n name: {{.name}}",
 				"--agent",
 				"ed",
 				"--adapter",
 				"echo",
 				"--format",
-				"raw"
+				"raw",
+				"--message",
+				"Correcto mine englise"
 				// "/ai:get_agent_config",
 				// "--agent",
 				// "ask/ask"

@@ -54,6 +54,20 @@ func (r *AIKit) Call(ctx context.Context, vars *api.Vars, tf *api.ToolFunc, args
 func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Result, error) {
 	var owner = r.sw.User.Email
 
+	var agent = r.agent
+	if v, found := args["agent"]; found {
+		if _, ok := v.(string); ok {
+			a, err := r.CreateAgent(ctx, vars, tf, args)
+			if err != nil {
+				return nil, err
+			}
+			agent = a
+		}
+		if a, ok := v.(*api.Agent); ok {
+			agent = a
+		}
+	}
+
 	query, err := api.GetStrProp("query", args)
 	if err != nil {
 		return nil, err
@@ -90,20 +104,6 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 				return nil, err
 			}
 			model = v
-		}
-	}
-
-	var agent = r.agent
-	if v, found := args["agent"]; found {
-		if _, ok := v.(string); ok {
-			a, err := r.CreateAgent(ctx, vars, tf, args)
-			if err != nil {
-				return nil, err
-			}
-			agent = a
-		}
-		if a, ok := v.(*api.Agent); ok {
-			agent = a
 		}
 	}
 
@@ -234,7 +234,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	args["prompt"] = prompt
 	args["history"] = history
 	if err != nil {
-		args["error"] = err
+		args["error"] = err.Error()
 		return nil, err
 	}
 	if resp.Result == nil {
