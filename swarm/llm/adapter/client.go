@@ -2,7 +2,9 @@ package adapter
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm/anthropic"
@@ -26,6 +28,7 @@ var adapterRegistry map[string]api.LLMAdapter
 
 func init() {
 	adapterRegistry = make(map[string]api.LLMAdapter)
+	adapterRegistry["echo"] = &EchoAdapter{}
 	adapterRegistry["chat"] = &ChatAdapter{}
 	adapterRegistry["text"] = &ResponseAdapter{}
 	adapterRegistry["response"] = &ResponseAdapter{}
@@ -37,6 +40,31 @@ func init() {
 
 func GetAdapters() api.AdapterRegistry {
 	return defaultAdapters
+}
+
+type EchoAdapter struct{}
+
+// Echo request with a timestamp as reqsponse in JSON format
+type EchoResponse struct {
+	Request   *api.Request `json:"request"`
+	Timestamp time.Time    `json:"timestamp"`
+}
+
+func (r *EchoAdapter) Call(ctx context.Context, req *api.Request) (*api.Response, error) {
+	var data = EchoResponse{
+		Request:   req,
+		Timestamp: time.Now(),
+	}
+	v, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	resp := &api.Response{
+		Result: &api.Result{
+			Value: string(v),
+		},
+	}
+	return resp, nil
 }
 
 type ChatAdapter struct{}

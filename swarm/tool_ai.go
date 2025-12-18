@@ -194,6 +194,8 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 		Sender:  owner,
 	})
 
+	req.Query = query
+	req.Prompt = prompt
 	req.Messages = history
 	req.Model = model
 	req.Token = token

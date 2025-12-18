@@ -36,36 +36,35 @@ type Message struct {
 	// user/agent
 	Sender string `json:"sender"`
 }
-
 type Request struct {
 	// parent agent
-	Agent *Agent
+	Agent *Agent `json:"agent"`
 
 	// active action name
-	Name      string
-	Arguments *Arguments
+	Name      string     `json:"name"`
+	Arguments *Arguments `json:"arguments"`
 
 	// LLM
-	Model *Model
+	Model *Model `json:"model"`
 
-	Messages []*Message
+	Messages []*Message `json:"messages"`
 
-	Runner ActionRunner
+	Runner ActionRunner `json:"-"`
 
-	Tools []*ToolFunc
+	Tools []*ToolFunc `json:"tools"`
 
 	// get api token for LLM model
-	Token func() string
+	Token func() string `json:"-"`
 
 	// ctx should only be modified via copying the whole request WithContext.
 	// It is unexported to prevent people from using Context wrong
 	// and mutating the contexts held by callers of the same request.
-	ctx context.Context
+	ctx context.Context `json:"-"`
 
 	//
-	Prompt  string
-	Query   string
-	History []*Message
+	Prompt  string     `json:"prompt"`
+	Query   string     `json:"query"`
+	History []*Message `json:"history"`
 }
 
 func (r *Request) Message() string {
