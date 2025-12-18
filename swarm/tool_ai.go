@@ -57,7 +57,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	var agent = r.agent
 	if v, found := args["agent"]; found {
 		if _, ok := v.(string); ok {
-			a, err := r.CreateAgent(ctx, vars, tf, args)
+			a, err := r.BuildAgent(ctx, vars, tf, args)
 			if err != nil {
 				return nil, err
 			}
@@ -378,7 +378,11 @@ func (r *AIKit) kitname(args map[string]any) api.Kitname {
 	return kn
 }
 
-func (r *AIKit) CreateAgent(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Agent, error) {
+func (r *AIKit) BuildAgent(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Agent, error) {
+	return r.NewAgent(ctx, vars, tf, args)
+}
+
+func (r *AIKit) NewAgent(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Agent, error) {
 	var name string
 	if v, found := args["agent"].(*api.Agent); found {
 		return v, nil

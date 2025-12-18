@@ -97,7 +97,7 @@ tools:
       required:
         - "agent"
 
-  - name: "create_agent"
+  - name: "new_agent"
     description: "Create an instance of a new agent"
     parameters:
       type: "object"
