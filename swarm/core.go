@@ -221,6 +221,7 @@ func (sw *Swarm) serve(creator api.Creator, req *api.Request, resp *api.Response
 }
 
 // copy values from src to dst after calling @agent and applying template if required
+// skip unless override is true
 func (sw *Swarm) mapAssign(ctx context.Context, agent *api.Agent, dst, src map[string]any, override bool) error {
 	for key, val := range src {
 		if _, ok := dst[key]; ok && !override {

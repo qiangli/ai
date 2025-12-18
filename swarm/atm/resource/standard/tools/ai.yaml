@@ -108,6 +108,29 @@ tools:
       required:
         - "agent"
   
+  - name: "build_agent"
+    description: |
+      Construct user query based on user's message input. Retrieve the prompt 
+      from instructions specified in the agent configuration and context from 
+      the historical conversation messages. Applies templates formatted 
+      using Golang template syntax.
+    parameters:
+      type: "object"
+      properties:
+        agent:
+          type: "string"
+          description: "Specifies the name of the agent to construct."
+      required:
+        - "agent"
+    type: "func"
+    body:
+      mime_type: "application/x-sh"
+      script: |
+        #!/bin/bash
+        /ai:build_query
+        /ai:build_prompt
+        /ai:build_context
+
   - name: "transfer_agent"
     description: "Trasnfer the current task to a specific agent"
     parameters:

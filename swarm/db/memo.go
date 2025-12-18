@@ -59,11 +59,19 @@ func (m *MemoryStore) Save(messages []*Message) error {
 }
 
 func (m *MemoryStore) Load(opt *MemOption) ([]*Message, error) {
+	var defaultRoles = []string{"assistant", "user"}
+	if opt == nil {
+		opt = &api.MemOption{
+			MaxHistory: 3,
+			MaxSpan:    1440,
+			Offset:     0,
+		}
+	}
 	var messages []*Message
 	maxSpan := time.Now().Add(-time.Duration(opt.MaxSpan) * time.Minute).Unix()
 
 	if len(opt.Roles) == 0 {
-		opt.Roles = []string{"assistant", "user"}
+		opt.Roles = defaultRoles
 	}
 	rolePlaceholders := strings.Repeat("?,", len(opt.Roles))
 	rolePlaceholders = rolePlaceholders[:len(rolePlaceholders)-1]

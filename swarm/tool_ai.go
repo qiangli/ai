@@ -25,7 +25,6 @@ type AIKit struct {
 }
 
 func (r *AIKit) run(ctx context.Context, id string, args map[string]any) (any, error) {
-	//return NewAgentToolRunner(r.sw, r.sw.User.Email, r.agent).Run(ctx, id, args)
 	return r.agent.Runner.Run(ctx, id, args)
 }
 
@@ -57,7 +56,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	var agent = r.agent
 	if v, found := args["agent"]; found {
 		if _, ok := v.(string); ok {
-			a, err := r.BuildAgent(ctx, vars, tf, args)
+			a, err := r.NewAgent(ctx, vars, tf, args)
 			if err != nil {
 				return nil, err
 			}
@@ -378,9 +377,10 @@ func (r *AIKit) kitname(args map[string]any) api.Kitname {
 	return kn
 }
 
-func (r *AIKit) BuildAgent(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Agent, error) {
-	return r.NewAgent(ctx, vars, tf, args)
-}
+// externalized tool
+// func (r *AIKit) BuildAgent(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Agent, error) {
+// 	return r.NewAgent(ctx, vars, tf, args)
+// }
 
 func (r *AIKit) NewAgent(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Agent, error) {
 	var name string
@@ -420,14 +420,14 @@ func (r *AIKit) NewAgent(ctx context.Context, vars *api.Vars, tf string, args ma
 		return nil, err
 	}
 
+	// init setup
 	agent.Parent = r.sw.Vars.RootAgent
 	agent.Runner = NewAgentToolRunner(r.sw, r.sw.User.Email, agent)
 	agent.Shell = NewAgentScriptRunner(r.sw, agent)
 	agent.Template = NewTemplate(r.sw, agent)
-	agent.Parent = r.sw.Vars.RootAgent
 
 	// envs
-	// export envs
+	// export envs to global
 	var envs = make(map[string]any)
 	maps.Copy(envs, r.sw.globalEnv())
 	if agent.Environment != nil {
@@ -438,12 +438,13 @@ func (r *AIKit) NewAgent(ctx context.Context, vars *api.Vars, tf string, args ma
 	// args
 	// global/agent envs
 	// agent args
+	// skip if already exists
 	if agent.Arguments != nil {
 		if err := r.sw.mapAssign(ctx, agent, args, agent.Arguments.GetAllArgs(), false); err != nil {
 			return nil, err
 		}
 	}
-	// copy only if not set
+	// copy env only if not set
 	for k, v := range envs {
 		if _, ok := args[k]; !ok {
 			args[k] = v

@@ -252,12 +252,35 @@ func (a ArgMap) Type() string {
 	return a.GetString("type")
 }
 
+func (a ArgMap) Message() string {
+	return a.GetString("message")
+}
+
+func (a ArgMap) HasQuery() bool {
+	_, ok := a["query"]
+	return ok
+}
+
 func (a ArgMap) Query() string {
 	return a.GetString("query")
 }
 
 func (a ArgMap) SetQuery(query any) ArgMap {
 	a["query"] = query
+	return a
+}
+
+func (a ArgMap) HasPrompt() bool {
+	_, ok := a["prompt"]
+	return ok
+}
+
+func (a ArgMap) Prompt() string {
+	return a.GetString("prompt")
+}
+
+func (a ArgMap) SetPrompt(prompt any) ArgMap {
+	a["prompt"] = prompt
 	return a
 }
 
@@ -274,4 +297,37 @@ func (a ArgMap) Actions() []string {
 		return []string{v}
 	}
 	return []string{}
+}
+
+// check and return an instance of agent.
+func (a ArgMap) Agent() *Agent {
+	v, found := a["agent"]
+	if !found {
+		return nil
+	}
+	if agent, ok := v.(*Agent); ok {
+		return agent
+	}
+	return nil
+}
+
+func (a ArgMap) HasHistory() bool {
+	_, ok := a["history"]
+	return ok
+}
+
+func (a ArgMap) History() []*Message {
+	v, found := a["history"]
+	if !found {
+		return nil
+	}
+	if history, ok := v.([]*Message); ok {
+		return history
+	}
+	return nil
+}
+
+func (a ArgMap) SetHistory(messages []*Message) ArgMap {
+	a["history"] = messages
+	return a
 }
