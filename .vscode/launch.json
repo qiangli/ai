@@ -84,6 +84,8 @@
 				"data:,{{toPrettyJson .agent}} \n kit: {{.kit}} \n name: {{.name}}",
 				"--agent",
 				"ed",
+				"--adapter",
+				"echo",
 				"--format",
 				"raw"
 				// "/ai:get_agent_config",

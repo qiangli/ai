@@ -311,6 +311,7 @@ func (sw *Swarm) exec(ctx context.Context, parent *api.Agent, input any) (*api.R
 	return sw.execm(ctx, parent, argm)
 }
 
+// default action runner
 func (sw *Swarm) execm(ctx context.Context, parent *api.Agent, argm map[string]any) (*api.Result, error) {
 	am := api.ArgMap(argm)
 	id := am.Kitname().ID()

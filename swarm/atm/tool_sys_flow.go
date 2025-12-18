@@ -43,7 +43,7 @@ func (r *SystemKit) Flow(ctx context.Context, vars *api.Vars, name string, args 
 }
 
 // FlowTypeSequence executes actions one after another, where each
-// subsequent action uses the previous action's response as input.
+// subsequent action uses the previous action's output as input.
 func (r *SystemKit) FlowSequence(ctx context.Context, vars *api.Vars, argm api.ArgMap) error {
 	var query = argm.Query()
 	var actions = argm.Actions()
@@ -53,21 +53,24 @@ func (r *SystemKit) FlowSequence(ctx context.Context, vars *api.Vars, argm api.A
 }
 
 func (r *SystemKit) sequence(ctx context.Context, vars *api.Vars, query string, actions []string, argm api.ArgMap) (*api.Result, error) {
-	argm["query"] = query
+	// argm["query"] = query
 
 	var result *api.Result
 	for _, v := range actions {
 		// subsequent action uses the previous action's response as input.
-		if result != nil {
-			argm["query"] = result.Value
-		}
+		// if result != nil {
+		// 	argm["query"] = result.Value
+		// }
 		data, err := vars.RootAgent.Runner.Run(ctx, v, argm)
 		if err != nil {
-			argm["error"] = err.Error()
 			return nil, err
 		}
+		// if err != nil {
+		// 	argm["error"] = err.Error()
+		// 	return nil, err
+		// }
 		result = api.ToResult(data)
-		argm["result"] = result.Value
+		// argm["result"] = result.Value
 	}
 	return result, nil
 }

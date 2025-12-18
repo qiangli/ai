@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
+	// "strings"
 
 	"github.com/google/uuid"
 
@@ -72,25 +72,25 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	if err != nil {
 		return err
 	}
-	// second pass
-	// custom parser
-	input := argm.GetString("input")
-	if input != "" {
-		kit, name := api.Kitname(input).Decode()
-		argm["kit"] = kit
-		argm["name"] = name
-		argm["command"] = strings.Join(argv, " ")
-		v, err := sw.Exec(ctx, argm)
-		if err != nil {
-			return err
-		}
-		if v == nil {
-			return fmt.Errorf("failed to parse input")
-		}
-		if err := json.Unmarshal([]byte(v.Value), &argm); err != nil {
-			return err
-		}
-	}
+	// // second pass
+	// // custom parser
+	// input := argm.GetString("input")
+	// if input != "" {
+	// 	kit, name := api.Kitname(input).Decode()
+	// 	argm["kit"] = kit
+	// 	argm["name"] = name
+	// 	argm["command"] = strings.Join(argv, " ")
+	// 	v, err := sw.Exec(ctx, argm)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	if v == nil {
+	// 		return fmt.Errorf("failed to parse input")
+	// 	}
+	// 	if err := json.Unmarshal([]byte(v.Value), &argm); err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	// default from user preference. update only if not set
 	for k, v := range user.Settings {
@@ -108,8 +108,8 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	logger.SetLogLevel(level)
 	logger.Debugf("Config: %+v\n", cfg)
 
-	msg := argm.GetString("message")
-	logger.Debugf("Message: %s\n", msg)
+	// msg := argm.GetString("message")
+	// logger.Debugf("Message: %s\n", msg)
 	// if msg != "" {
 	// 	showInput(ctx, msg)
 	// }
@@ -119,12 +119,9 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	var out = api.Output{
 		Display: "",
 	}
-	adapter := argm.GetString("adapter")
-	// skip if none
-	switch adapter {
-	case "none":
-		// skip
-	case "", "default":
+
+	id := argm.Kitname().ID()
+	if id != "" {
 		if v, err := sw.Exec(ctx, argm); err != nil {
 			// return err
 			out.Content = fmt.Sprintf("❌ %+v", err)
@@ -132,38 +129,53 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 			out.ContentType = v.MimeType
 			out.Content = v.Value
 		}
-	default:
-		kit, name := api.Kitname(adapter).Decode()
-		argm["kit"] = kit
-		argm["name"] = name
-		v, err := sw.Exec(ctx, argm)
-		if err != nil {
-			return err
-		}
-		if v == nil {
-			return fmt.Errorf("failed to format output")
-		}
-		out.ContentType = v.MimeType
-		out.Content = v.Value
 	}
+
+	// runner := argm.GetString("runnder")
+	// // skip if none
+	// switch runner {
+	// case "none":
+	// 	// skip
+	// case "", "default":
+	// 	if v, err := sw.Exec(ctx, argm); err != nil {
+	// 		// return err
+	// 		out.Content = fmt.Sprintf("❌ %+v", err)
+	// 	} else {
+	// 		out.ContentType = v.MimeType
+	// 		out.Content = v.Value
+	// 	}
+	// default:
+	// 	kit, name := api.Kitname(runner).Decode()
+	// 	argm["kit"] = kit
+	// 	argm["name"] = name
+	// 	v, err := sw.Exec(ctx, argm)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	if v == nil {
+	// 		return fmt.Errorf("failed to format output")
+	// 	}
+	// 	out.ContentType = v.MimeType
+	// 	out.Content = v.Value
+	// }
 
 	// ***
 	// format output
-	output := argm.GetString("ouput")
-	if output != "" {
-		kit, name := api.Kitname(output).Decode()
-		argm["kit"] = kit
-		argm["name"] = name
-		v, err := sw.Exec(ctx, argm)
-		if err != nil {
-			return err
-		}
-		if v == nil {
-			return fmt.Errorf("failed to format output")
-		}
-		out.ContentType = v.MimeType
-		out.Content = v.Value
-	}
+	// output := argm.GetString("ouput")
+	// if output != "" {
+	// 	kit, name := api.Kitname(output).Decode()
+	// 	argm["kit"] = kit
+	// 	argm["name"] = name
+	// 	v, err := sw.Exec(ctx, argm)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	if v == nil {
+	// 		return fmt.Errorf("failed to format output")
+	// 	}
+	// 	out.ContentType = v.MimeType
+	// 	out.Content = v.Value
+	// }
 
 	// console outpu
 	format := argm.GetString("format")
