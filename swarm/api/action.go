@@ -321,12 +321,15 @@ func (ac *AppConfig) ToMap() map[string]any {
 	if ac.Name != "" {
 		result["name"] = ac.Name
 	}
-	if ac.Message != "" {
-		result["message"] = ac.Message
-	}
-	if ac.Instruction != "" {
-		result["instruction"] = ac.Instruction
-	}
+	// if ac.Message != "" {
+	// 	result["message"] = ac.Message
+	// }
+	// if ac.Instruction != "" {
+	// 	result["instruction"] = ac.Instruction
+	// }
+	// if ac.Context != "" {
+	// 	result["context"] = ac.Context
+	// }
 	if ac.Model != "" {
 		result["model"] = ac.Model
 	}
@@ -344,9 +347,6 @@ func (ac *AppConfig) ToMap() map[string]any {
 	}
 	if ac.MaxSpan > 0 {
 		result["max_span"] = ac.MaxSpan
-	}
-	if ac.Context != "" {
-		result["context"] = ac.Context
 	}
 	if ac.LogLevel != "" {
 		result["log_level"] = ac.LogLevel

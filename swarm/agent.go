@@ -73,40 +73,40 @@ func getAgentConfig(ac *api.AppConfig, pack, sub string) (*api.AgentConfig, erro
 		return nil, err
 	}
 
-	// read the instruction
-	if a.Instruction != "" {
-		ps := a.Instruction
+	// // read the instruction
+	// if a.Instruction != "" {
+	// 	ps := a.Instruction
 
-		if store, ok := a.Store.(api.AssetFS); ok {
-			switch {
-			case strings.HasPrefix(ps, "file:"):
-				parts := strings.SplitN(a.Instruction, ":", 2)
-				resource := strings.TrimSpace(parts[1])
-				if resource == "" {
-					return nil, fmt.Errorf("empty file in instruction for agent: %s", a.Name)
-				}
-				relPath := store.Resolve(a.BaseDir, resource)
-				content, err := store.ReadFile(relPath)
-				if err != nil {
-					return nil, fmt.Errorf("failed to read instruction from file %q for agent %q: %w", resource, a.Name, err)
-				}
-				a.Instruction = string(content)
-				// log.Debugf("Loaded instruction from file %q for agent %q\n", resource, a.Name)
-			case strings.HasPrefix(ps, "resource:"):
-				parts := strings.SplitN(a.Instruction, ":", 2)
-				resource := strings.TrimSpace(parts[1])
-				if resource == "" {
-					return nil, fmt.Errorf("empty resource name in instruction for agent %q", a.Name)
-				}
-				relPath := store.Resolve(a.BaseDir, resource)
-				content, err := store.ReadFile(relPath)
-				if err != nil {
-					return nil, fmt.Errorf("failed to read instruction from resource %q for agent %q: %w", resource, a.Name, err)
-				}
-				a.Instruction = string(content)
-			}
-		}
-	}
+	// 	if store, ok := a.Store.(api.AssetFS); ok {
+	// 		switch {
+	// 		case strings.HasPrefix(ps, "file:"):
+	// 			parts := strings.SplitN(a.Instruction, ":", 2)
+	// 			resource := strings.TrimSpace(parts[1])
+	// 			if resource == "" {
+	// 				return nil, fmt.Errorf("empty file in instruction for agent: %s", a.Name)
+	// 			}
+	// 			relPath := store.Resolve(a.BaseDir, resource)
+	// 			content, err := store.ReadFile(relPath)
+	// 			if err != nil {
+	// 				return nil, fmt.Errorf("failed to read instruction from file %q for agent %q: %w", resource, a.Name, err)
+	// 			}
+	// 			a.Instruction = string(content)
+	// 			// log.Debugf("Loaded instruction from file %q for agent %q\n", resource, a.Name)
+	// 		case strings.HasPrefix(ps, "resource:"):
+	// 			parts := strings.SplitN(a.Instruction, ":", 2)
+	// 			resource := strings.TrimSpace(parts[1])
+	// 			if resource == "" {
+	// 				return nil, fmt.Errorf("empty resource name in instruction for agent %q", a.Name)
+	// 			}
+	// 			relPath := store.Resolve(a.BaseDir, resource)
+	// 			content, err := store.ReadFile(relPath)
+	// 			if err != nil {
+	// 				return nil, fmt.Errorf("failed to read instruction from resource %q for agent %q: %w", resource, a.Name, err)
+	// 			}
+	// 			a.Instruction = string(content)
+	// 		}
+	// 	}
+	// }
 	return a, nil
 }
 
@@ -122,6 +122,7 @@ func (ap *AgentMaker) newAgent(
 		Name:        c.Name,
 		Display:     c.Display,
 		Description: c.Description,
+
 		//
 		Instruction: c.Instruction,
 		Context:     c.Context,

@@ -72,11 +72,13 @@ type Agent struct {
 	Display     string `json:"display"`
 	Description string `json:"description"`
 
-	//
+	// templated value
+	// these should not be in the args map
 	Instruction string `json:"instruction"`
 	Context     string `json:"context"`
 	Message     string `json:"message"`
 
+	//
 	// The model to be used by the agent
 	Model *Model `json:"model"`
 	// Functions that the agent can call
@@ -229,12 +231,15 @@ func (ac *AgentConfig) ToMap() map[string]any {
 	if ac.Name != "" {
 		result["name"] = ac.Name
 	}
-	if ac.Message != "" {
-		result["message"] = ac.Message
-	}
-	if ac.Instruction != "" {
-		result["instruction"] = ac.Instruction
-	}
+	// if ac.Message != "" {
+	// 	result["message"] = ac.Message
+	// }
+	// if ac.Instruction != "" {
+	// 	result["instruction"] = ac.Instruction
+	// }
+	// if ac.Context != "" {
+	// 	result["context"] = ac.Context
+	// }
 	if ac.Model != "" {
 		result["model"] = ac.Model
 	}
@@ -252,9 +257,6 @@ func (ac *AgentConfig) ToMap() map[string]any {
 	}
 	if ac.MaxSpan > 0 {
 		result["max_span"] = ac.MaxSpan
-	}
-	if ac.Context != "" {
-		result["context"] = ac.Context
 	}
 	if ac.LogLevel != "" {
 		result["log_level"] = ac.LogLevel

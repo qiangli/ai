@@ -17,9 +17,9 @@ adapter="echo"
 # /sh:flow --actions "$actions" --template "data:,###\n****************{{toPrettyJson .result}}\n*************" --agent "ed" --message "correcto mine englise" --adapter "$adapter" --format raw
 
 # actions='["ai:read_agent_config", "ai:new_agent",  "sh:format"]'
-actions='["ai:read_agent_config", "ai:new_agent", "ai:build_query", "sh:format"]'
+# actions='["ai:read_agent_config", "ai:new_agent", "ai:build_query", "sh:format"]'
 # actions='["ai:read_agent_config", "ai:new_agent", "ai:build_query", "ai:build_prompt", "sh:format"]'
-# actions='["ai:read_agent_config", "ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "sh:format"]'
+actions='["ai:read_agent_config", "ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "sh:format"]'
 
 template='data:,
 >>> env:
@@ -35,6 +35,7 @@ template='data:,
 {{toPrettyJson .history}}
 '
 
-/sh:flow --actions "$actions" --template "$template" --agent "test" --adapter "$adapter"
+/sh:flow --actions "$actions" --template "$template" --agent "test" --adapter "$adapter" 
+# /sh:flow --actions "$actions" --template "$template" --agent "test" --adapter "$adapter" --output file:///tmp/eval.out
 
 ###
