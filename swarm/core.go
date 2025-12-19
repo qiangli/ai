@@ -405,6 +405,10 @@ func (sw *Swarm) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFun
 	if err != nil {
 		log.GetLogger(ctx).Errorf("✗ error: %v\n", err)
 	} else {
+		// in case nil is returned by the tools
+		if result == nil {
+			result = &api.Result{}
+		}
 		log.GetLogger(ctx).Infof("✔ %s \n", head(result.String(), 180))
 	}
 

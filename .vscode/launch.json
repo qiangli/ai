@@ -77,19 +77,24 @@
 				// "dev/skills/agents/eval/agent.yaml",
 				//
 				//
-				"/sh:flow",
-				"--actions",
-				"[\"ai:read_agent_config\", \"ai:create_agent\", \"ai:call_llm\", \"sh:format\"]",
-				"--template",
-				"data:,result: {{toPrettyJson .result}} \n kit: {{.kit}} \n name: {{.name}}",
-				"--agent",
-				"ed",
-				"--adapter",
-				"echo",
-				"--format",
-				"raw",
-				"--message",
-				"Correcto mine englise"
+				// "/sh:flow",
+				// "--actions",
+				// "[\"ai:read_agent_config\", \"ai:new_agent\", \"ai:call_llm\", \"sh:format\"]",
+				// "--template",
+				// "data:,result: {{toPrettyJson .result}} \n kit: {{.kit}} \n name: {{.name}}",
+				// "--agent",
+				// "ed",
+				// "--adapter",
+				// "echo",
+				// "--format",
+				// "raw",
+				// "--message",
+				// "Correcto mine englise"
+				//
+				// actions='["ai:read_agent_config"]' #, "ai:new_agent"]' #, "ai:build_query"]' #, "sh:format"]'
+				"/sh:flow", "--actions", "[\"ai:read_agent_config\"]", "--template",  "data:,###\nhello","--agent", "ed", "--message", "correcto mine englise" 
+
+				//
 				// "/ai:get_agent_config",
 				// "--agent",
 				// "ask/ask"

@@ -8,7 +8,7 @@ import (
 	"github.com/qiangli/ai/swarm/atm"
 )
 
-func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
+func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (string, error) {
 	// agent := args.Agent()
 	// if agent == nil {
 	// 	// return nil, fmt.Errorf("an instance of agent is required for buiding the query")
@@ -23,14 +23,22 @@ func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, tf string, args 
 	if !args.HasQuery() {
 		msg := agent.Message
 		if msg != "" {
-			content, err := atm.CheckApplyTemplate(agent.Template, msg, args)
+			v, err := atm.CheckApplyTemplate(agent.Template, msg, args)
 			if err != nil {
-				return nil, err
+				return "", err
 			}
-			query = content
+			msg = v
 		}
+		userMsg := args.Message()
+		if userMsg != "" {
+			v, err := atm.CheckApplyTemplate(agent.Template, userMsg, args)
+			if err != nil {
+				return "", err
+			}
+			userMsg = v
+		}
+
 		//
-		var userMsg = args.Message()
 		query = api.Cat(query, userMsg, "\n")
 		args.SetQuery(query)
 	}
@@ -38,7 +46,7 @@ func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, tf string, args 
 	return query, nil
 }
 
-func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
+func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (string, error) {
 	// agent := args.Agent()
 	// if agent == nil {
 	// 	return nil, fmt.Errorf("an instance of agent is required for building the prompt")
@@ -84,7 +92,7 @@ func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args
 	var prompt = args.Prompt()
 	if !args.HasPrompt() {
 		if err := addAll(agent); err != nil {
-			return nil, err
+			return "", err
 		}
 
 		prompt = strings.Join(instructions, "\n")
@@ -128,6 +136,9 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 		}
 	}
 
+	if history == nil {
+		history = []*api.Message{}
+	}
 	if len(history) > 0 {
 		args.SetHistory(history)
 	} else {
