@@ -12,7 +12,7 @@ import (
 
 // run agent first if there is instruction followed by the flow.
 // otherwise, run the flow only
-func (r *SystemKit) Flow(ctx context.Context, vars *api.Vars, name string, args map[string]any) (any, error) {
+func (r *SystemKit) Flow(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
 	flowType := api.FlowType(api.ToString(args["flow_type"]))
 	// default
 	if flowType == "" {
@@ -20,61 +20,47 @@ func (r *SystemKit) Flow(ctx context.Context, vars *api.Vars, name string, args 
 	}
 	switch flowType {
 	case api.FlowTypeSequence:
-		if err := r.FlowSequence(ctx, vars, args); err != nil {
-			return "", err
-		}
+		return r.FlowSequence(ctx, vars, args)
 	case api.FlowTypeParallel:
-		if err := r.FlowParallel(ctx, vars, args); err != nil {
-			return "", err
-		}
+		return r.FlowParallel(ctx, vars, args)
 	case api.FlowTypeChoice:
-		if err := r.FlowChoice(ctx, vars, args); err != nil {
-			return "", err
-		}
+		return r.FlowChoice(ctx, vars, args)
 	case api.FlowTypeMap:
-		if err := r.FlowMap(ctx, vars, args); err != nil {
-			return "", err
-		}
+		return r.FlowMap(ctx, vars, args)
 	default:
-		return "", fmt.Errorf("flow type not supported: %s", flowType)
+		return nil, fmt.Errorf("flow type not supported: %s", flowType)
 	}
-
-	return args["result"], nil
 }
 
 // FlowTypeSequence executes actions one after another, where each
 // subsequent action uses the previous action's output as input.
-func (r *SystemKit) FlowSequence(ctx context.Context, vars *api.Vars, argm api.ArgMap) error {
+func (r *SystemKit) FlowSequence(ctx context.Context, vars *api.Vars, argm api.ArgMap) (*api.Result, error) {
 	var query = argm.Query()
 	var actions = argm.Actions()
 
 	result, err := r.sequence(ctx, vars, query, actions, argm)
 	if err != nil {
-		argm["error"] = err.Error()
-		return err
+		return nil, err
 	}
-	if result != nil {
-		// TODO may need to combine content
-		argm["result"] = result.Value
-	}
-	return nil
+
+	return result, nil
 }
 
 func (r *SystemKit) sequence(ctx context.Context, vars *api.Vars, query string, actions []string, argm api.ArgMap) (*api.Result, error) {
-	var result *api.Result
+	var result any
 	for _, v := range actions {
 		data, err := vars.RootAgent.Runner.Run(ctx, v, argm)
 		if err != nil {
 			return nil, err
 		}
-		result = api.ToResult(data)
+		result = data
 	}
-	return result, nil
+	return api.ToResult(result), nil
 }
 
 // FlowTypeParallel executes actions simultaneously, returning the combined results as a list.
 // This allows for concurrent processing of independent actions.
-func (r *SystemKit) FlowParallel(ctx context.Context, vars *api.Vars, argm api.ArgMap) error {
+func (r *SystemKit) FlowParallel(ctx context.Context, vars *api.Vars, argm api.ArgMap) (*api.Result, error) {
 	var query = argm.Query()
 	var actions = argm.Actions()
 
@@ -98,45 +84,40 @@ func (r *SystemKit) FlowParallel(ctx context.Context, vars *api.Vars, argm api.A
 
 	data, err := json.Marshal(resps)
 	if err != nil {
-		argm["error"] = err.Error()
-		return err
+		return nil, err
 	}
-	argm["result"] = string(data)
-	return nil
+	return api.ToResult(data), nil
 }
 
 // FlowTypeChoice selects and executes a single action based on an evaluated expression.
 // If no expression is provided, an action is chosen randomly. The expression must evaluate
 // to a string (tool ID), false/true, or an integer that selects the action index, starting from zero.
-func (r *SystemKit) FlowChoice(ctx context.Context, vars *api.Vars, argm api.ArgMap) error {
+func (r *SystemKit) FlowChoice(ctx context.Context, vars *api.Vars, argm api.ArgMap) (*api.Result, error) {
 	var actions = argm.Actions()
 	var which int = -1
 
 	which = rand.Intn(len(actions))
 
 	v := actions[which]
-	var result *api.Result
 	data, err := vars.RootAgent.Runner.Run(ctx, v, argm)
 	if err != nil {
-		argm["error"] = err.Error()
-		return err
+		return nil, err
 	}
-	result = api.ToResult(data)
-	argm["result"] = result.Value
-	return nil
+	result := api.ToResult(data)
+	return result, nil
 }
 
 // FlowTypeMap applies specified action(s) to each element in the input array, creating a new
 // array populated with the results.
 // similar to xargs utility
-func (r *SystemKit) FlowMap(ctx context.Context, vars *api.Vars, argm api.ArgMap) error {
+func (r *SystemKit) FlowMap(ctx context.Context, vars *api.Vars, argm api.ArgMap) (*api.Result, error) {
 	var query = argm.Query()
 	if query == "" {
-		return fmt.Errorf("missing query.")
+		return nil, fmt.Errorf("missing query.")
 	}
 	var actions = argm.Actions()
 	if len(actions) == 0 {
-		return fmt.Errorf("missing actions")
+		return nil, fmt.Errorf("missing actions")
 	}
 
 	var tasks []string
@@ -170,23 +151,19 @@ func (r *SystemKit) FlowMap(ctx context.Context, vars *api.Vars, argm api.ArgMap
 
 	data, err := json.Marshal(resps)
 	if err != nil {
-		argm["error"] = err.Error()
-		return err
+		return nil, err
 	}
-	argm["result"] = string(data)
-	return nil
+	return api.ToResult(data), nil
 }
 
 // // FlowTypeShell delegates control to a shell script using bash script syntax, enabling
 // // complex flow control scenarios driven by external scripting logic.
-// func (r *SystemKit) FlowShell(ctx context.Context, vars *api.Vars, argm api.ArgMap) error {
+// func (r *SystemKit) FlowShell(ctx context.Context, vars *api.Vars, argm api.ArgMap) (*api.Result, error)  {
 // 	var script = argm.GetString("script")
 // 	data, err := vars.RootAgent.Shell.Run(ctx, script, argm)
 // 	if err != nil {
-// 		argm["error"] = err.Error()
 // 		return err
 // 	}
 // 	result := api.ToResult(data)
-// 	argm["result"] = result.Value
 // 	return nil
 // }

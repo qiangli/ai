@@ -65,11 +65,9 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	// run bash interpreter
 	err := vs.RunScript(ctx, script)
 	if err != nil {
-		args["error"] = err.Error()
 		return "", err
 	}
 	result := b.String()
-	args["result"] = result
 	return result, nil
 }
 

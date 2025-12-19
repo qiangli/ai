@@ -251,7 +251,6 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	args["prompt"] = prompt
 	args["history"] = history
 	if err != nil {
-		args["error"] = err.Error()
 		return nil, err
 	}
 	if resp.Result == nil {
@@ -259,7 +258,6 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 			Value: "Empty response",
 		}
 	}
-	args["result"] = resp.Result
 	return resp.Result, nil
 }
 
