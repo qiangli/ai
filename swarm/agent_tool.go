@@ -187,10 +187,12 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 
 	result, err := r.sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, r.user), r.agent, v, args)
 	if err != nil {
+		args["error"] = err.Error()
 		return "", err
 	}
 	if result == nil {
 		result = &api.Result{}
 	}
+	args["result"] = result
 	return result, err
 }

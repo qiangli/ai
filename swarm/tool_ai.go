@@ -245,7 +245,6 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 			Value: "Empty response",
 		}
 	}
-	args["result"] = resp.Result
 	return resp.Result, nil
 }
 
