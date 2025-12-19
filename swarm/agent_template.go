@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"text/template"
 
@@ -25,26 +24,26 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 		return sw.User
 	}
 	// OS
-	getenv := func(key string) string {
-		if key == "" {
-			var envs []string
+	getenv := func(keys ...string) string {
+		var envs []string
+		if len(keys) == 0 {
 			for k, v := range sw.Vars.Global.GetAllEnvs() {
 				envs = append(envs, fmt.Sprintf("%s=%v", k, v))
 			}
 			return strings.Join(envs, "\n")
 		}
-		v, ok := sw.Vars.Global.Get(key)
-		if !ok {
-			return ""
+		for _, k := range keys {
+			v, ok := sw.Vars.Global.Get(k)
+			if !ok {
+				envs = append(envs, "")
+			}
+			envs = append(envs, api.ToString(v))
 		}
-		if s, ok := v.(string); ok {
-			return s
-		}
-		return fmt.Sprintf("%v", v)
+		return fmt.Sprintf("%s", strings.Join(envs, "\n"))
 	}
 	fm["env"] = getenv
 	fm["printenv"] = getenv
-	setenv := func(key, val string) string {
+	setenv := func(key string, val any) string {
 		if key == "" {
 			return ""
 		}
@@ -56,7 +55,8 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 	fm["expandenv"] = func(s string) string {
 		// bash name is leaked with os.Expand but ok.
 		// bash is replaced with own that supports executing agent/tool
-		return os.Expand(s, getenv)
+		// return os.Expand(s, getenv)
+		return fmt.Sprintf("not supported. use golang template: {{.%s}}", s)
 	}
 	// Network:
 	fm["getHostByName"] = func() string {
