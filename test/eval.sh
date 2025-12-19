@@ -40,6 +40,7 @@ adapter="echo"
 
 adapter=""
 actions='["ai:call_llm", "sh:format"]'
+actions='["ai:call_llm"]'
 
 template='data:,
 >>> LLM Reqest:

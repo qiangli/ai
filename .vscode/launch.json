@@ -76,6 +76,12 @@
 				// "--script",
 				// "dev/skills/agents/eval/agent.yaml",
 				//
+				"/sh:flow",
+				"--actions",
+				"[\"ai:call_llm\"]",
+				"--adapter",
+				"echo",
+				"--verbose"
 				//
 				// "/sh:flow",
 				// "--actions",
@@ -91,17 +97,17 @@
 				// "--message",
 				// "Correcto mine englise"
 				//
-				"/sh:flow",
-				"--actions",
-				"[\"ai:read_agent_config\", \"ai:new_agent\",  \"sh:format\"]",
-				"--template",
-				"data:,result: {{toPrettyJson .}} \n pack: {{.pack}} \n name: {{.name}}",
-				"--agent",
-				"test",
-				"--format",
-				"raw",
-				"--message",
-				"Correcto mine englise"
+				// "/sh:flow",
+				// "--actions",
+				// "[\"ai:read_agent_config\", \"ai:new_agent\",  \"sh:format\"]",
+				// "--template",
+				// "data:,result: {{toPrettyJson .}} \n pack: {{.pack}} \n name: {{.name}}",
+				// "--agent",
+				// "test",
+				// "--format",
+				// "raw",
+				// "--message",
+				// "Correcto mine englise"
 				//
 				// "/sh:flow",
 				// "--actions",
