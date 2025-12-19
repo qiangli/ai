@@ -106,6 +106,10 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	if err != nil {
 		return nil, fmt.Errorf("query is required: %s", err)
 	}
+	// enforce if required is not enforced in args.
+	if query == "" {
+		return nil, fmt.Errorf("query is required:")
+	}
 
 	prompt, _ := api.GetStrProp("prompt", args)
 
@@ -241,8 +245,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 			Value: "Empty response",
 		}
 	}
-	args["request"] = req
-	args["response"] = resp
+	args["result"] = resp.Result
 	return resp.Result, nil
 }
 
