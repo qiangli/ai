@@ -9,7 +9,7 @@ import (
 	"github.com/qiangli/ai/swarm/atm"
 )
 
-func (r *AIKit) BuildQery(ctx context.Context, _ *api.Vars, _ string, args api.ArgMap) (any, error) {
+func (r *AIKit) BuildQuery(ctx context.Context, _ *api.Vars, _ string, args api.ArgMap) (any, error) {
 	agent := args.Agent()
 	if agent == nil {
 		return nil, fmt.Errorf("an instance of agent is required for buiding the query")

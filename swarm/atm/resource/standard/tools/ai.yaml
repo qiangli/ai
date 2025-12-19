@@ -131,6 +131,46 @@ tools:
         /ai:build_prompt
         /ai:build_context
 
+  - name: "build_query"
+    description: |
+      Constructs a user role prompt for the agent based on the user message input.
+      Applies templates if the input text is a Golang template.
+    parameters:
+      type: "object"
+      properties:
+        agent:
+          type: "string"
+          description: "The name of the agent"
+      required:
+        - "agent"
+
+  - name: "build_prompt"
+    description: |
+      Constructs a system role prompt for the agent based on instructions
+      specified in the configuration.
+      Applies templating if Golang templates are detected in the text.
+    parameters:
+      type: "object"
+      properties:
+        agent:
+          type: "string"
+          description: "The identifier or name of the agent for which the prompt is built"
+      required:
+        - "agent"
+  
+  - name: "build_context"
+    description: |
+      Constructs the system context for the agent based on historical chat messages or other data sources.
+      Applies templating if Golang templates are detected in the text.
+    parameters:
+      type: "object"
+      properties:
+        agent:
+          type: "string"
+          description: "Specifies the name of the agent for which the context is being built."
+      required:
+        - "agent"
+
   - name: "transfer_agent"
     description: "Trasnfer the current task to a specific agent"
     parameters:
