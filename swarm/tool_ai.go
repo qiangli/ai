@@ -65,6 +65,34 @@ func (r *AIKit) checkAndCreate(ctx context.Context, vars *api.Vars, tf string, a
 	return nil, fmt.Errorf("missing agent")
 }
 
+func (r *AIKit) llmAdapter(agent *api.Agent, args api.ArgMap) (api.LLMAdapter, error) {
+	var llmAdapter api.LLMAdapter
+	if v, found := args["adapter"]; found {
+		switch vt := v.(type) {
+		case api.LLMAdapter:
+			llmAdapter = vt
+		case string:
+			if v, err := r.sw.Adapters.Get(vt); err != nil {
+				return nil, err
+			} else {
+				llmAdapter = v
+			}
+		default:
+			return nil, fmt.Errorf("adapter not valid: %v", v)
+		}
+	} else {
+		if agent.Adapter != "" {
+			if v, err := r.sw.Adapters.Get(agent.Adapter); err == nil {
+				llmAdapter = v
+			}
+		}
+	}
+	if llmAdapter == nil {
+		llmAdapter = &adapter.ChatAdapter{}
+	}
+	return llmAdapter, nil
+}
+
 func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Result, error) {
 	var owner = r.sw.User.Email
 
@@ -72,40 +100,29 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
 		agent = v
 	}
-	// if v, found := args["agent"]; found {
-	// 	if _, ok := v.(string); ok {
-	// 		a, err := r.newAgent(ctx, vars, tf, args)
-	// 		if err != nil {
-	// 			return nil, err
-	// 		}
-	// 		agent = a
-	// 	}
-	// 	if a, ok := v.(*api.Agent); ok {
-	// 		agent = a
-	// 	}
-	// }
 
+	// query is required
 	query, err := api.GetStrProp("query", args)
 	if err != nil {
 		return nil, err
 	}
-	if query == "" {
-		// try default using message/content
-		v, err := vars.RTE.DefaultQuery(args)
-		if err != nil {
-			return nil, err
-		}
-		if v == "" {
-			return nil, fmt.Errorf("missing query")
-		}
-		query = v
-	}
+	// if query == "" {
+	// 	// try default using message/content
+	// 	v, err := vars.RTE.DefaultQuery(args)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	if v == "" {
+	// 		return nil, fmt.Errorf("missing query")
+	// 	}
+	// 	query = v
+	// }
 
 	prompt, _ := api.GetStrProp("prompt", args)
-	if prompt == "" {
-		// try default using the instruction
-		prompt, _ = vars.RTE.DefaultPrompt(args)
-	}
+	// if prompt == "" {
+	// 	// try default using the instruction
+	// 	prompt, _ = vars.RTE.DefaultPrompt(args)
+	// }
 
 	// model
 	var model *api.Model
@@ -211,6 +228,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 		Sender:  owner,
 	})
 
+	// request
 	req.Query = query
 	req.Prompt = prompt
 	req.Messages = history
@@ -219,29 +237,34 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	req.Tools = tools
 	req.Runner = agent.Runner
 
-	var llmAdapter api.LLMAdapter
-	if v, found := args["adapter"]; found {
-		switch vt := v.(type) {
-		case api.LLMAdapter:
-			llmAdapter = vt
-		case string:
-			if v, err := r.sw.Adapters.Get(vt); err != nil {
-				return nil, err
-			} else {
-				llmAdapter = v
-			}
-		default:
-			return nil, fmt.Errorf("adapter not valid: %v", v)
-		}
-	} else {
-		if agent.Adapter != "" {
-			if v, err := r.sw.Adapters.Get(agent.Adapter); err == nil {
-				llmAdapter = v
-			}
-		}
-	}
-	if llmAdapter == nil {
-		llmAdapter = &adapter.ChatAdapter{}
+	// var llmAdapter api.LLMAdapter
+	// if v, found := args["adapter"]; found {
+	// 	switch vt := v.(type) {
+	// 	case api.LLMAdapter:
+	// 		llmAdapter = vt
+	// 	case string:
+	// 		if v, err := r.sw.Adapters.Get(vt); err != nil {
+	// 			return nil, err
+	// 		} else {
+	// 			llmAdapter = v
+	// 		}
+	// 	default:
+	// 		return nil, fmt.Errorf("adapter not valid: %v", v)
+	// 	}
+	// } else {
+	// 	if agent.Adapter != "" {
+	// 		if v, err := r.sw.Adapters.Get(agent.Adapter); err == nil {
+	// 			llmAdapter = v
+	// 		}
+	// 	}
+	// }
+	// if llmAdapter == nil {
+	// 	llmAdapter = &adapter.ChatAdapter{}
+	// }
+
+	llmAdapter, err := r.llmAdapter(agent, args)
+	if err != nil {
+		return nil, err
 	}
 
 	resp, err := llmAdapter.Call(ctx, req)
