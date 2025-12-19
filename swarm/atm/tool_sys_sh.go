@@ -81,7 +81,7 @@ func (r *SystemKit) Parse(ctx context.Context, vars *api.Vars, name string, args
 	return result, nil
 }
 
-func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, args api.ArgMap) (string, error) {
 	var tpl string
 	tpl, _ = api.GetStrProp("template", args)
 	if tpl != "" {
@@ -102,6 +102,11 @@ func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, arg
 	var data = make(map[string]any)
 	maps.Copy(data, vars.Global.GetAllEnvs())
 	maps.Copy(data, args)
+
+	agent := args.Agent()
+	if agent != nil {
+		maps.Copy(data, agent.Arguments.GetAllArgs())
+	}
 
 	return CheckApplyTemplate(vars.RootAgent.Template, tpl, data)
 }

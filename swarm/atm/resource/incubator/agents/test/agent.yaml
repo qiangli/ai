@@ -1,6 +1,5 @@
 ## agent pack
 pack: test
-# model: llm/fast
 model: default/any
 log_level: debug
 max_history: 0
@@ -22,9 +21,6 @@ agents:
       #!
       >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       User input: {{.query}}
-      context:
-        name: {{.name}}
-        phone: {{.phone}}
       Original query:
         {{.original_query}}
       Today is: {{date}}

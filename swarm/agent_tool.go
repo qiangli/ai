@@ -185,27 +185,16 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 		return nil, err
 	}
 
-	// // clear
-	// delete(args, "result")
-	// delete(args, "error")
-
 	result, err := r.sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, r.user), r.agent, v, args)
-
-	// if err != nil {
-	// 	args["error"] = err.Error()
-	// }
-	// if result != nil {
-	// 	args["result"] = result.Value
-	// }
-	// // log calls
-	// r.sw.Vars.AddToolCall(&api.ToolCallEntry{
-	// 	ID:        tid,
-	// 	Kit:       v.Kit,
-	// 	Name:      v.Name,
-	// 	Arguments: v.Arguments,
-	// 	Result:    result,
-	// 	Error:     err,
-	// 	Timestamp: time.Now(),
-	// })
+	delete(args, "result")
+	delete(args, "error")
+	if err != nil {
+		args["error"] = err.Error()
+		return "", err
+	}
+	if result != nil {
+		result = &api.Result{}
+	}
+	args["result"] = result.Value
 	return result, err
 }
