@@ -91,9 +91,17 @@
 				// "--message",
 				// "Correcto mine englise"
 				//
-				// actions='["ai:read_agent_config"]' #, "ai:new_agent"]' #, "ai:build_query"]' #, "sh:format"]'
-				"/sh:flow", "--actions", "[\"ai:read_agent_config\", \"ai:new_agent\"]", "--template",  "data:,###\nhello","--agent", "test", "--message", "correcto mine englise" 
-
+				"/sh:flow",
+				"--actions",
+				"[\"ai:read_agent_config\", \"ai:new_agent\", \"ai:build_query\"], \"ai:build_prompt\", \"sh:format\"",
+				"--template",
+				"data:,###\nhello {{date}}\n---\n {{.prompt}}\n---\n{{.query}}",
+				"--agent",
+				"test",
+				"--message",
+				"correcto mine englise",
+				"--adapter",
+				"echo"
 				//
 				// "/ai:get_agent_config",
 				// "--agent",

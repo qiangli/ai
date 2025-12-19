@@ -15,8 +15,11 @@ agents:
       original_query: "original message: {{.message}}"
       city: "SFO"
     arguments:
-      name: "Charles"
-      phone: 1234567
+      user_name: "Charles"
+      phone: "1234567"
+    context: |
+      #!
+      context: {{date}}
     instruction: |
       #!
       >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -24,14 +27,19 @@ agents:
       Original query:
         {{.original_query}}
       Today is: {{date}}
+
       environment:
         printenv:
         {{printenv}}
-
+        ---
+        original query:
         {{.original_query}}
+        city:
         {{.city}}
       arguments:
-        {{.name}}
+        name:
+        {{.user_name}}
+        phone:
         {{.phone}}
       <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     message: |
