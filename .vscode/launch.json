@@ -92,7 +92,7 @@
 				// "Correcto mine englise"
 				//
 				// actions='["ai:read_agent_config"]' #, "ai:new_agent"]' #, "ai:build_query"]' #, "sh:format"]'
-				"/sh:flow", "--actions", "[\"ai:read_agent_config\"]", "--template",  "data:,###\nhello","--agent", "ed", "--message", "correcto mine englise" 
+				"/sh:flow", "--actions", "[\"ai:read_agent_config\", \"ai:new_agent\"]", "--template",  "data:,###\nhello","--agent", "test", "--message", "correcto mine englise" 
 
 				//
 				// "/ai:get_agent_config",

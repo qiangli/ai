@@ -3,7 +3,7 @@ package swarm
 import (
 	"fmt"
 	"maps"
-	"strings"
+	// "strings"
 	"text/template"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -138,8 +138,8 @@ func ApplyEnv(global map[string]any, agent *api.Agent, args map[string]any) erro
 func mapAssign(tpl *template.Template, dst, src map[string]any) error {
 	for key, val := range src {
 		// go template value support
-		if v, ok := val.(string); ok && strings.Contains(v, "{{") {
-			if resolved, err := atm.CheckApplyTemplate(tpl, v, dst); err != nil {
+		if atm.IsTemplate(val) {
+			if resolved, err := atm.CheckApplyTemplate(tpl, val.(string), dst); err != nil {
 				return err
 			} else {
 				val = resolved

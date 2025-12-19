@@ -425,10 +425,6 @@ func parsev(argv []string) (api.ArgMap, error) {
 			msg := argm["message"]
 			argm["message"] = api.Cat(msg.(string), stdin, "\n###\n")
 		}
-		// msg := argm["message"]
-		// if cfg.Message != "" {
-		// 	argm["message"] = Cat(msg.(string), cfg.Message, "\n###\n")
-		// }
 	} else if IsSlash(argv[0]) {
 		// call local system command as tool:
 		// sh:exec command

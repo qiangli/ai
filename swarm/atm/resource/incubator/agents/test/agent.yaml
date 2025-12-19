@@ -12,10 +12,10 @@ agents:
     description: |
       Script test
     environment:
-      original_query: "{{.query}}"
+      original_query: "original message: {{.message}}"
       city: "SFO"
     arguments:
-      name: Charles
+      name: "Charles"
       phone: 1234567
     instruction: |
       #!
@@ -25,7 +25,11 @@ agents:
         {{.original_query}}
       Today is: {{date}}
       environment:
+        printenv:
         {{printenv}}
+
+        {{.original_query}}
+        {{.city}}
       arguments:
         {{.name}}
         {{.phone}}
@@ -33,7 +37,8 @@ agents:
     message: |
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       What is the weather today in {{.city}}
-      pack: {{.pack}} kit: {{.kit}}
+      pack: {{.pack}}
+      kit: {{.kit}}
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 kit: "test"

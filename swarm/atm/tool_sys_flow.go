@@ -111,51 +111,10 @@ func (r *SystemKit) FlowParallel(ctx context.Context, vars *api.Vars, argm api.A
 // If no expression is provided, an action is chosen randomly. The expression must evaluate
 // to a string (tool ID), false/true, or an integer that selects the action index, starting from zero.
 func (r *SystemKit) FlowChoice(ctx context.Context, vars *api.Vars, argm api.ArgMap) error {
-	// var query = argm.Query()
 	var actions = argm.Actions()
-	// var expression = argm.GetString("expression")
 	var which int = -1
-	// evaluate express or random
-	// if expression != "" {
-	// 	v, err := atm.CheckApplyTemplate(vars.RootAgent.Template, expression, argm)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	// match the action id
-	// 	// switch case
-	// 	id := api.Kitname(v).ID()
-	// 	for i, action := range actions {
-	// 		if id == action {
-	// 			which = i
-	// 		}
-	// 	}
-	// 	// if/else
-	// 	if b, err := strconv.ParseBool(v); err == nil {
-	// 		if b {
-	// 			which = 1
-	// 		} else {
-	// 			which = 0
-	// 		}
-	// 	}
-	// 	//  case
-	// 	if which < 0 {
-	// 		if v, err := strconv.ParseInt(v, 0, 64); err != nil {
-	// 			return err
-	// 		} else {
-	// 			which = int(v)
-	// 		}
-	// 	}
-	// } else {
-	// 	// random
-	// 	which = rand.Intn(len(actions))
-	// }
 
 	which = rand.Intn(len(actions))
-
-	// which = which % len(actions)
-	// if which < 0 && which >= len(actions) {
-	// 	return fmt.Errorf("index out of bound; %v", which)
-	// }
 
 	v := actions[which]
 	var result *api.Result

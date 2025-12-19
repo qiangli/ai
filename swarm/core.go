@@ -3,7 +3,7 @@ package swarm
 import (
 	"context"
 	"fmt"
-	"strings"
+	// "strings"
 	"time"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -229,8 +229,8 @@ func (sw *Swarm) mapAssign(ctx context.Context, agent *api.Agent, dst, src map[s
 		}
 
 		// go template value support
-		if v, ok := val.(string); ok && strings.HasPrefix(v, "{{") {
-			if resolved, err := atm.CheckApplyTemplate(agent.Template, v, dst); err != nil {
+		if atm.IsTemplate(val) {
+			if resolved, err := atm.CheckApplyTemplate(agent.Template, val.(string), dst); err != nil {
 				return err
 			} else {
 				val = resolved

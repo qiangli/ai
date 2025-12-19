@@ -20,11 +20,15 @@ func applyTemplate(tpl *template.Template, text string, data any) (string, error
 	return buf.String(), nil
 }
 
-// func IsTemplate(s string) bool {
-// 	// #! for large block of text
-// 	// {{ for oneliner
-// 	return strings.HasPrefix(s, "#!") || strings.Contains(s, "{{")
-// }
+func IsTemplate(v any) bool {
+	// #! for large block of text
+	// {{ for oneliner
+	s, ok := v.(string)
+	if !ok {
+		return false
+	}
+	return strings.HasPrefix(s, "#!") || strings.Contains(s, "{{")
+}
 
 // Check s for prefix "#!" or "{{" to apply template if found. otherise skip
 func CheckApplyTemplate(tpl *template.Template, s string, data map[string]any) (string, error) {
