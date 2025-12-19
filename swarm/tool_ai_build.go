@@ -2,17 +2,20 @@ package swarm
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
 )
 
-func (r *AIKit) BuildQuery(ctx context.Context, _ *api.Vars, _ string, args api.ArgMap) (any, error) {
-	agent := args.Agent()
-	if agent == nil {
-		return nil, fmt.Errorf("an instance of agent is required for buiding the query")
+func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
+	// agent := args.Agent()
+	// if agent == nil {
+	// 	// return nil, fmt.Errorf("an instance of agent is required for buiding the query")
+	// }
+	var agent = r.agent
+	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
+		agent = v
 	}
 
 	// convert user message into query if not set
@@ -35,10 +38,14 @@ func (r *AIKit) BuildQuery(ctx context.Context, _ *api.Vars, _ string, args api.
 	return query, nil
 }
 
-func (r *AIKit) BuildPrompt(ctx context.Context, _ *api.Vars, _ string, args api.ArgMap) (any, error) {
-	agent := args.Agent()
-	if agent == nil {
-		return nil, fmt.Errorf("an instance of agent is required for building the prompt")
+func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
+	// agent := args.Agent()
+	// if agent == nil {
+	// 	return nil, fmt.Errorf("an instance of agent is required for building the prompt")
+	// }
+	var agent = r.agent
+	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
+		agent = v
 	}
 
 	var instructions []string
@@ -87,10 +94,14 @@ func (r *AIKit) BuildPrompt(ctx context.Context, _ *api.Vars, _ string, args api
 	return prompt, nil
 }
 
-func (r *AIKit) BuildContext(ctx context.Context, _ *api.Vars, _ string, args api.ArgMap) (any, error) {
-	agent := args.Agent()
-	if agent == nil {
-		return nil, fmt.Errorf("an instance of agent is required for building the context")
+func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
+	// agent := args.Agent()
+	// if agent == nil {
+	// 	return nil, fmt.Errorf("an instance of agent is required for building the context")
+	// }
+	var agent = r.agent
+	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
+		agent = v
 	}
 
 	var history = args.History()

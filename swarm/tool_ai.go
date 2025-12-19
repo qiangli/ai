@@ -50,22 +50,41 @@ func (r *AIKit) Call(ctx context.Context, vars *api.Vars, tf *api.ToolFunc, args
 	return atm.CallKit(r, tf.Kit, tf.Name, callArgs...)
 }
 
+func (r *AIKit) checkAndCreate(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (*api.Agent, error) {
+	if v, found := args["agent"]; found {
+		if a, ok := v.(*api.Agent); ok {
+			return a, nil
+		}
+		if _, ok := v.(string); ok {
+			a, err := r.newAgent(ctx, vars, tf, args)
+			if err != nil {
+				return nil, err
+			}
+			return a, nil
+		}
+	}
+	return nil, fmt.Errorf("missing agent")
+}
+
 func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Result, error) {
 	var owner = r.sw.User.Email
 
 	var agent = r.agent
-	if v, found := args["agent"]; found {
-		if _, ok := v.(string); ok {
-			a, err := r.NewAgent(ctx, vars, tf, args)
-			if err != nil {
-				return nil, err
-			}
-			agent = a
-		}
-		if a, ok := v.(*api.Agent); ok {
-			agent = a
-		}
+	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
+		agent = v
 	}
+	// if v, found := args["agent"]; found {
+	// 	if _, ok := v.(string); ok {
+	// 		a, err := r.newAgent(ctx, vars, tf, args)
+	// 		if err != nil {
+	// 			return nil, err
+	// 		}
+	// 		agent = a
+	// 	}
+	// 	if a, ok := v.(*api.Agent); ok {
+	// 		agent = a
+	// 	}
+	// }
 
 	query, err := api.GetStrProp("query", args)
 	if err != nil {
@@ -382,7 +401,17 @@ func (r *AIKit) kitname(args map[string]any) api.Kitname {
 // 	return r.NewAgent(ctx, vars, tf, args)
 // }
 
-func (r *AIKit) NewAgent(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Agent, error) {
+func (r *AIKit) NewAgent(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Result, error) {
+	v, err := r.newAgent(ctx, vars, tf, args)
+	if err != nil {
+		return nil, err
+	}
+	return &api.Result{
+		Value: fmt.Sprintf("agent %s created", v.Name),
+	}, nil
+}
+
+func (r *AIKit) newAgent(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Agent, error) {
 	var name string
 	if v, found := args["agent"].(*api.Agent); found {
 		return v, nil
