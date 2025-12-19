@@ -62,44 +62,46 @@ func (r Packname) Equal(s string) bool {
 type Creator func(context.Context, string) (*Agent, error)
 
 type Agent struct {
-	Parent *Agent `json:"parent"`
-
-	// Package
+	// Package name
 	Pack string `json:"pack"`
 
-	// The name of the agent.
-	Name        string `json:"name"`
+	// Agent name
+	Name string `json:"name"`
+
 	Display     string `json:"display"`
 	Description string `json:"description"`
 
-	// templated value
+	// templated values
 	// these should not be in the args map
 	Instruction string `json:"instruction"`
 	Context     string `json:"context"`
 	Message     string `json:"message"`
 
-	//
 	// The model to be used by the agent
+	// TODO map or list for supporting multi features
 	Model *Model `json:"model"`
+
 	// Functions that the agent can call
 	Tools []*ToolFunc `json:"tools"`
-
-	// // default values
-	Arguments *Arguments `json:"arguments"`
 
 	// LLM adapter
 	Adapter string `json:"adapter"`
 
-	//
+	// TODO deprecate in favor of plain templates
 	Flow *Flow `json:"flow"`
 
+	// inheritance
 	Embed []*Agent `json:"embed"`
 
-	// global values
+	// exported global values
 	// Environment map[string]any
 	Environment *Environment `json:"environment"`
 
-	//
+	// default values
+	Arguments *Arguments `json:"arguments"`
+
+	// assigned at buildtime/runtime
+	Parent   *Agent             `json:"-"`
 	Runner   ActionRunner       `json:"-"`
 	Shell    ActionRunner       `json:"-"`
 	Creator  Creator            `json:"-"`
