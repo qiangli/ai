@@ -26,6 +26,13 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 	}
 	// OS
 	getenv := func(key string) string {
+		if key == "" {
+			var envs []string
+			for k, v := range sw.Vars.Global.GetAllEnvs() {
+				envs = append(envs, fmt.Sprintf("%s=%v", k, v))
+			}
+			return strings.Join(envs, "\n")
+		}
 		v, ok := sw.Vars.Global.Get(key)
 		if !ok {
 			return ""
@@ -36,6 +43,16 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 		return fmt.Sprintf("%v", v)
 	}
 	fm["env"] = getenv
+	fm["printenv"] = getenv
+	setenv := func(key, val string) string {
+		if key == "" {
+			return ""
+		}
+		sw.Vars.Global.Set(key, val)
+		return ""
+	}
+	fm["env"] = setenv
+	//
 	fm["expandenv"] = func(s string) string {
 		// bash name is leaked with os.Expand but ok.
 		// bash is replaced with own that supports executing agent/tool
