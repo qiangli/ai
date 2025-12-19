@@ -177,6 +177,16 @@ func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args
 	return prompt, nil
 }
 
+func (r *AIKit) contextMemOption(argm api.ArgMap) *api.MemOption {
+	return &api.MemOption{
+		MaxHistory: argm.GetInt("max_history"),
+		MaxSpan:    argm.GetInt("max_span"),
+		Offset:     argm.GetInt("offset"),
+		Roles:      argm.GetStringSlice("roles"),
+	}
+
+}
+
 func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
 	var agent = r.agent
 	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
@@ -201,7 +211,7 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 
 		} else {
 			// load defaults
-			if v, err := r.sw.History.Load(nil); err != nil {
+			if v, err := r.sw.History.Load(r.contextMemOption(args)); err != nil {
 				return nil, err
 			} else {
 				history = v

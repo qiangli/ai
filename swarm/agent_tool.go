@@ -185,6 +185,14 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 		return nil, err
 	}
 
+	// NOTE: should this be done?
+	envs := r.sw.globalEnv()
+	for k, v := range envs {
+		if _, ok := args[k]; !ok {
+			args[k] = v
+		}
+	}
+
 	result, err := r.sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, r.user), r.agent, v, args)
 	if err != nil {
 		args["error"] = err.Error()
