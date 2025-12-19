@@ -26,9 +26,7 @@ func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, _ string, args map
 	}
 	// command := argv[0]
 	// rest := argv[1:]
-	vs := vars.RTE.OS
-	result, err := ExecCommand(ctx, vs, vars, cmd, nil)
-
+	result, err := ExecCommand(ctx, vars.RTE.OS, vars, cmd, nil)
 	if err != nil {
 		return "", err
 	}
@@ -44,6 +42,7 @@ func (r *SystemKit) Bash(ctx context.Context, vars *api.Vars, name string, args 
 	return api.ToString(result), nil
 }
 
+// template is required
 func (r *SystemKit) Apply(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
 	tpl, err := api.GetStrProp("template", args)
 	if err != nil {
@@ -70,6 +69,8 @@ func (r *SystemKit) Parse(ctx context.Context, vars *api.Vars, name string, args
 	return result, nil
 }
 
+// get default template based on format if template is not prvoided.
+// tee content to destination specified by output param.
 func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, args api.ArgMap) (string, error) {
 	var tpl string
 	tpl, _ = api.GetStrProp("template", args)
@@ -87,11 +88,13 @@ func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, arg
 		}
 		tpl = resource.FormatFile(format)
 	}
+	//
 	output, _ := api.GetStrProp("output", args)
 
 	var data = make(map[string]any)
 	maps.Copy(data, vars.Global.GetAllEnvs())
 	maps.Copy(data, args)
+
 	txt, err := CheckApplyTemplate(vars.RootAgent.Template, tpl, data)
 	if err != nil {
 		return "", err

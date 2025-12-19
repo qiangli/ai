@@ -48,29 +48,26 @@ func (r *SystemKit) FlowSequence(ctx context.Context, vars *api.Vars, argm api.A
 	var query = argm.Query()
 	var actions = argm.Actions()
 
-	_, err := r.sequence(ctx, vars, query, actions, argm)
-	return err
+	result, err := r.sequence(ctx, vars, query, actions, argm)
+	if err != nil {
+		argm["error"] = err.Error()
+		return err
+	}
+	if result != nil {
+		// TODO may need to combine content
+		argm["result"] = result.Value
+	}
+	return nil
 }
 
 func (r *SystemKit) sequence(ctx context.Context, vars *api.Vars, query string, actions []string, argm api.ArgMap) (*api.Result, error) {
-	// argm["query"] = query
-
 	var result *api.Result
 	for _, v := range actions {
-		// subsequent action uses the previous action's response as input.
-		// if result != nil {
-		// 	argm["query"] = result.Value
-		// }
 		data, err := vars.RootAgent.Runner.Run(ctx, v, argm)
 		if err != nil {
 			return nil, err
 		}
-		// if err != nil {
-		// 	argm["error"] = err.Error()
-		// 	return nil, err
-		// }
 		result = api.ToResult(data)
-		// argm["result"] = result.Value
 	}
 	return result, nil
 }
@@ -101,6 +98,7 @@ func (r *SystemKit) FlowParallel(ctx context.Context, vars *api.Vars, argm api.A
 
 	data, err := json.Marshal(resps)
 	if err != nil {
+		argm["error"] = err.Error()
 		return err
 	}
 	argm["result"] = string(data)
@@ -172,6 +170,7 @@ func (r *SystemKit) FlowMap(ctx context.Context, vars *api.Vars, argm api.ArgMap
 
 	data, err := json.Marshal(resps)
 	if err != nil {
+		argm["error"] = err.Error()
 		return err
 	}
 	argm["result"] = string(data)
