@@ -2,17 +2,99 @@ package swarm
 
 import (
 	"context"
+	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
 )
 
+// copy global env only if not set
+func (r *AIKit) applyGlobal(args api.ArgMap) {
+	envs := r.sw.globalEnv()
+	for k, v := range envs {
+		if _, ok := args[k]; !ok {
+			args[k] = v
+		}
+	}
+}
+
+func (r *AIKit) newAgent(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Agent, error) {
+	var name string
+	if v, found := args["agent"].(*api.Agent); found {
+		return v, nil
+	}
+	if v, found := args["agent"].(string); found {
+		name = v
+	}
+
+	// fall back to kit:name
+	if name == "" {
+		kn := r.kitname(args)
+		kit, v := kn.Decode()
+		if kit != "agent" {
+			return nil, fmt.Errorf("missing agent name")
+		}
+		name = v
+	}
+
+	var ac *api.AppConfig
+	cfg := args["config"]
+	if v, ok := cfg.(*api.AppConfig); ok {
+		ac = v
+	} else {
+		v, err := r.ReadAgentConfig(ctx, vars, tf, args)
+		if err != nil {
+			return nil, err
+		}
+		ac = v
+	}
+
+	var loader = NewConfigLoader(r.sw.Vars.RTE)
+
+	agent, err := loader.Create(ctx, ac, api.Packname(name))
+	if err != nil {
+		return nil, err
+	}
+
+	// init setup
+	agent.Parent = r.sw.Vars.RootAgent
+	agent.Runner = NewAgentToolRunner(r.sw, r.sw.User.Email, agent)
+	agent.Shell = NewAgentScriptRunner(r.sw, agent)
+	agent.Template = NewTemplate(r.sw, agent)
+
+	// envs
+	// export envs to global
+	// new vars can only reference existing global vars
+	var envs = make(map[string]any)
+	maps.Copy(envs, r.sw.globalEnv())
+	if agent.Environment != nil {
+		r.sw.mapAssign(ctx, agent, envs, agent.Environment.GetAllEnvs(), true)
+		r.sw.globalAddEnvs(envs)
+	}
+
+	// args
+	// global/agent envs
+	// agent args
+	// local arg takes precedence, skip if it already exists
+	if agent.Arguments != nil {
+		if err := r.sw.mapAssign(ctx, agent, args, agent.Arguments.GetAllArgs(), false); err != nil {
+			return nil, err
+		}
+	}
+
+	r.applyGlobal(args)
+
+	// update the property with the created agent object
+	args["kit"] = "agent"
+	args["name"] = agent.Name
+	args["agent"] = agent
+
+	return agent, nil
+}
+
 func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (string, error) {
-	// agent := args.Agent()
-	// if agent == nil {
-	// 	// return nil, fmt.Errorf("an instance of agent is required for buiding the query")
-	// }
 	var agent = r.agent
 	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
 		agent = v
@@ -21,6 +103,8 @@ func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, tf string, args 
 	// convert user message into query if not set
 	var query = args.Query()
 	if !args.HasQuery() {
+		r.applyGlobal(args)
+
 		msg := agent.Message
 		if msg != "" {
 			v, err := atm.CheckApplyTemplate(agent.Template, msg, args)
@@ -30,16 +114,9 @@ func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, tf string, args 
 			msg = v
 		}
 		userMsg := args.Message()
-		if userMsg != "" {
-			v, err := atm.CheckApplyTemplate(agent.Template, userMsg, args)
-			if err != nil {
-				return "", err
-			}
-			userMsg = v
-		}
 
 		//
-		query = api.Cat(query, userMsg, "\n")
+		query = api.Cat(msg, userMsg, "\n")
 		args.SetQuery(query)
 	}
 
@@ -47,10 +124,6 @@ func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, tf string, args 
 }
 
 func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (string, error) {
-	// agent := args.Agent()
-	// if agent == nil {
-	// 	return nil, fmt.Errorf("an instance of agent is required for building the prompt")
-	// }
 	var agent = r.agent
 	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
 		agent = v
@@ -91,6 +164,8 @@ func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args
 	// system role instructions
 	var prompt = args.Prompt()
 	if !args.HasPrompt() {
+		r.applyGlobal(args)
+
 		if err := addAll(agent); err != nil {
 			return "", err
 		}
@@ -103,10 +178,6 @@ func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args
 }
 
 func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
-	// agent := args.Agent()
-	// if agent == nil {
-	// 	return nil, fmt.Errorf("an instance of agent is required for building the context")
-	// }
 	var agent = r.agent
 	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
 		agent = v
@@ -114,15 +185,17 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 
 	var history = args.History()
 
+	// add context as system role message
 	if !args.HasHistory() {
+		r.applyGlobal(args)
 		var c = agent.Context
 		if c != "" {
-			content, err := atm.CheckApplyTemplate(agent.Template, c, args)
+			v, err := atm.CheckApplyTemplate(agent.Template, c, args)
 			if err != nil {
 				return nil, err
 			}
 			history = append(history, &api.Message{
-				Content: content,
+				Content: v,
 				Role:    api.RoleSystem,
 			})
 

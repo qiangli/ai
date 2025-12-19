@@ -306,6 +306,9 @@ type AppConfig struct {
 // and only for non zero values.
 func (ac *AppConfig) ToMap() map[string]any {
 	result := make(map[string]any)
+	if ac.Pack != "" {
+		result["pack"] = ac.Pack
+	}
 	if ac.Action != "" {
 		result["action"] = ac.Action
 	}

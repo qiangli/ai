@@ -156,7 +156,7 @@ func formatArgs(args map[string]any) string {
 			sb.WriteString(fmt.Sprintf("%s: %s [%v],", k, abbreviate(s, maxInfoTextLen), len(s)))
 			continue
 		}
-		sb.WriteString(fmt.Sprintf("%s: %v,", k, v))
+		// sb.WriteString(fmt.Sprintf("%s: %t (type),", k, v))
 	}
 	sb.WriteString("]")
 	return sb.String()

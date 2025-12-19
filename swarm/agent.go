@@ -116,6 +116,7 @@ func (ap *AgentMaker) newAgent(
 	owner string,
 ) (*api.Agent, error) {
 	var agent = api.Agent{
+		Pack:    ac.Pack,
 		Adapter: c.Adapter,
 		//
 		Name:        c.Name,

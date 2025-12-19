@@ -409,7 +409,7 @@ func (sw *Swarm) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFun
 		if result == nil {
 			result = &api.Result{}
 		}
-		log.GetLogger(ctx).Infof("✔ %s\n", head(result.String(), 180))
+		log.GetLogger(ctx).Infof("✔ %s (%s)\n", tf.ID(), head(result.String(), 180))
 		log.GetLogger(ctx).Debugf("details:\n%s\n", result.String())
 	}
 

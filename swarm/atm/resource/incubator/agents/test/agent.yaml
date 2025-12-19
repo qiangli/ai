@@ -1,85 +1,101 @@
 ## agent pack
 pack: test
 model: default/any
-log_level: debug
-max_history: 0
-max_time: 900
+# max_history: 0
+# max_time: 900
 
 agents:
   - name: "test"
-    new: true
     display: "🚀 Script Test"
     description: |
       Script test
+    # env can reference global vars
     environment:
-      original_query: "original message: {{.message}}"
-      city: "SFO"
-    arguments:
+      original_query: "User asked: {{.message}}"
       user_name: "Charles"
-      phone: "1234567"
-    context: |
+      city: "SFO"
+      zip: 1234567
+    # args are defaults and can reference envs
+    arguments:
+      home_addr: "Addr: {{.city}} {{.zip}}"
+    # message/instruction/context can refernece envs
+    message: |
       #!
-      context: {{date}}
+      ##
+      Agent {{.pack}}/{{.name}} says: 
+      
+      My name is: {{.user_name}}
+
+      What is the weather today in {{.city}} {{.zip}}
+
+      Original query: {{.original_query}}
+
+      {{date}}
+      ---
+    # 
     instruction: |
       #!
-      >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      User input: {{.query}}
-      Original query:
-        {{.original_query}}
+      ## instruction
+      User query (agent message + user message):
+      *** message after applying template ***
+      {{.query}}
+
       Today is: {{date}}
 
       environment:
-        printenv:
+      ---
         {{printenv}}
-        ---
-        original query:
-        {{.original_query}}
-        city:
-        {{.city}}
-      arguments:
-        name:
-        {{.user_name}}
-        phone:
-        {{.phone}}
-      <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    message: |
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      What is the weather today in {{.city}}
-      pack: {{.pack}}
-      kit: {{.kit}}
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      ---
 
-kit: "test"
-type: "func"
-tools:
-  - name: "test"
-    description: |
-      Search the web using available search tools and return formatted results
-    parameters:
-      type: "object"
-      properties:
-        query:
-          type: "string"
-          description: "The search query string"
-        max_results:
-          type: "integer"
-          description: "Maximum number of results to return"
-          default: 5
-          minimum: 1
-          maximum: 10
-      required:
-        - query
+    context: |
+      #!
+      ## Context
+      
+      Query (agent + user message):
+      {{.query}}
 
-## models
-set: "llm"
-provider: "openai"
-base_url: "https://api.openai.com/v1/"
-api_key: "openai"
-models:
-  fast:
-    model: "gpt-4o-mini"
-  smart:
-    model: "gpt-4.1"
-  strategic:
-    model: "o4-mini"
+      Prompt (instruction):
+      {{.prompt}}
+
+      Query and prompt are messages and instruction after applying templates.
+
+      Date: {{date}}
+      environment:
+      ---
+        {{printenv}}
+      ---
+
+# kit: "test"
+# type: "func"
+# tools:
+#   - name: "test"
+#     description: |
+#       Search the web using available search tools and return formatted results
+#     parameters:
+#       type: "object"
+#       properties:
+#         query:
+#           type: "string"
+#           description: "The search query string"
+#         max_results:
+#           type: "integer"
+#           description: "Maximum number of results to return"
+#           default: 5
+#           minimum: 1
+#           maximum: 10
+#       required:
+#         - query
+
+# ## models
+# set: "llm"
+# provider: "openai"
+# base_url: "https://api.openai.com/v1/"
+# api_key: "openai"
+# models:
+#   fast:
+#     model: "gpt-4o-mini"
+#   smart:
+#     model: "gpt-4.1"
+#   strategic:
+#     model: "o4-mini"
 ###

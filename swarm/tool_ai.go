@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"maps"
 	"sort"
 	"strings"
 	"time"
@@ -409,83 +408,6 @@ func (r *AIKit) NewAgent(ctx context.Context, vars *api.Vars, tf string, args ma
 	return &api.Result{
 		Value: fmt.Sprintf("agent %s created", v.Name),
 	}, nil
-}
-
-func (r *AIKit) newAgent(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Agent, error) {
-	var name string
-	if v, found := args["agent"].(*api.Agent); found {
-		return v, nil
-	}
-	if v, found := args["agent"].(string); found {
-		name = v
-	}
-
-	// fall back to kit:name
-	if name == "" {
-		kn := r.kitname(args)
-		kit, v := kn.Decode()
-		if kit != "agent" {
-			return nil, fmt.Errorf("missing agent name")
-		}
-		name = v
-	}
-
-	var ac *api.AppConfig
-	cfg := args["config"]
-	if v, ok := cfg.(*api.AppConfig); ok {
-		ac = v
-	} else {
-		v, err := r.ReadAgentConfig(ctx, vars, tf, args)
-		if err != nil {
-			return nil, err
-		}
-		ac = v
-	}
-
-	var loader = NewConfigLoader(r.sw.Vars.RTE)
-
-	agent, err := loader.Create(ctx, ac, api.Packname(name))
-	if err != nil {
-		return nil, err
-	}
-
-	// init setup
-	agent.Parent = r.sw.Vars.RootAgent
-	agent.Runner = NewAgentToolRunner(r.sw, r.sw.User.Email, agent)
-	agent.Shell = NewAgentScriptRunner(r.sw, agent)
-	agent.Template = NewTemplate(r.sw, agent)
-
-	// envs
-	// export envs to global
-	var envs = make(map[string]any)
-	maps.Copy(envs, r.sw.globalEnv())
-	if agent.Environment != nil {
-		r.sw.mapAssign(ctx, agent, envs, agent.Environment.GetAllEnvs(), true)
-		r.sw.globalAddEnvs(envs)
-	}
-
-	// args
-	// global/agent envs
-	// agent args
-	// skip if already exists
-	if agent.Arguments != nil {
-		if err := r.sw.mapAssign(ctx, agent, args, agent.Arguments.GetAllArgs(), false); err != nil {
-			return nil, err
-		}
-	}
-	// copy env only if not set
-	for k, v := range envs {
-		if _, ok := args[k]; !ok {
-			args[k] = v
-		}
-	}
-	// update the property with the created agent object
-	args["kit"] = "agent"
-	args["name"] = agent.Name
-	args["agent"] = agent
-	// return r.sw.runm(ctx, r.agent, name, args)
-	// return r.sw.runc(ctx, creator, r.agent, name, args)
-	return agent, nil
 }
 
 func (r *AIKit) ReloadAgent(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {

@@ -109,7 +109,7 @@ tools:
             Specify actions in the following formats:
             - Tool action: `tool:kit:name`
             - Agent action: `agent:pack/name`
-            
+
             Example for tool: `fs:read_file`
             Examples for agent: `agent:ask`, `agent:memory/lastn`
             Note: `fs:read_file` should be from the list obtained using list_tools, 
@@ -121,7 +121,7 @@ tools:
             This will provide detailed information about the parameters and usage guidelines.
       required:
         - actions
-  
+
   - name: "bash"
     description: |
       Executes a shell script within the user's environment.
@@ -164,22 +164,17 @@ tools:
     parameters:
       type: "object"
       properties:
-        result:
-          type: "string"
-          description: "Output. default to the result of the last response"
-        error:
-          type: "string"
-          description: "Error message. default to the last error encountered during previous processing."
-        format:
+        output:
           type: "string"
           description: |
-            The desired output format. Options are "text", "json", "markdown".
-            The default is "markdown".
+            The destination for the formatted output. Defaults to the console.
+            Accepts a URI. Currently supported scheme: file:
         template:
           type: "string"
           description: |
-            Specifies custom template to be applied to the data. If not provided, default templates will be used.
-            It can be specified either as a file path or as an inline string prefixed with "data:".
+            A custom template to apply to the data. If not provided, default templates
+            are used based on the format: json, markdown, or raw.
+            It can be a file path or an inline string prefixed with "data:".
 
   - name: "parse"
     description: |

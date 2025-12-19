@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/url"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
@@ -14,18 +15,6 @@ import (
 func (r *SystemKit) Pass(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	return "", nil
 }
-
-// func (r *SystemKit) Cd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-// 	dir, err := api.GetStrProp("dir", args)
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	return "", vars.RTE.OS.Chdir(dir)
-// }
-
-// func (r *SystemKit) Pwd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-// 	return vars.RTE.OS.Getwd()
-// }
 
 func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
 	cmd, err := api.GetStrProp("command", args)
@@ -98,15 +87,36 @@ func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, arg
 		}
 		tpl = resource.FormatFile(format)
 	}
+	output, _ := api.GetStrProp("output", args)
 
 	var data = make(map[string]any)
 	maps.Copy(data, vars.Global.GetAllEnvs())
 	maps.Copy(data, args)
-
-	agent := args.Agent()
-	if agent != nil {
-		maps.Copy(data, agent.Arguments.GetAllArgs())
+	txt, err := CheckApplyTemplate(vars.RootAgent.Template, tpl, data)
+	if err != nil {
+		return "", err
 	}
 
-	return CheckApplyTemplate(vars.RootAgent.Template, tpl, data)
+	// tee output
+	switch output {
+	case "none", "":
+		return txt, nil
+	case "console":
+		fmt.Printf("%s", txt)
+		return txt, nil
+	default:
+		// uri
+		uri, err := url.Parse(output)
+		if err != nil {
+			return "", err
+		}
+		if uri.Scheme != "file" {
+			return "", fmt.Errorf("output scheme not supported: %s. write to file: or print on console", uri.Scheme)
+		}
+		err = vars.RTE.Workspace.WriteFile(uri.Path, []byte(txt))
+		if err != nil {
+			return "", err
+		}
+		return txt, nil
+	}
 }

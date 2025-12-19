@@ -64,6 +64,9 @@ type Creator func(context.Context, string) (*Agent, error)
 type Agent struct {
 	Parent *Agent `json:"parent"`
 
+	// Package
+	Pack string `json:"pack"`
+
 	// The name of the agent.
 	Name        string `json:"name"`
 	Display     string `json:"display"`
@@ -223,7 +226,6 @@ type AgentConfig struct {
 
 func (ac *AgentConfig) ToMap() map[string]any {
 	result := make(map[string]any)
-
 	if ac.Name != "" {
 		result["name"] = ac.Name
 	}

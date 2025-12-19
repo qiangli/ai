@@ -93,15 +93,27 @@
 				//
 				"/sh:flow",
 				"--actions",
-				"[\"ai:read_agent_config\", \"ai:new_agent\", \"ai:build_query\"], \"ai:build_prompt\", \"sh:format\"",
+				"[\"ai:read_agent_config\", \"ai:new_agent\",  \"sh:format\"]",
 				"--template",
-				"data:,###\nhello {{date}}\n---\n {{.prompt}}\n---\n{{.query}}",
+				"data:,result: {{toPrettyJson .}} \n pack: {{.pack}} \n name: {{.name}}",
 				"--agent",
 				"test",
+				"--format",
+				"raw",
 				"--message",
-				"correcto mine englise",
-				"--adapter",
-				"echo"
+				"Correcto mine englise"
+				//
+				// "/sh:flow",
+				// "--actions",
+				// "[\"ai:read_agent_config\", \"ai:new_agent\", \"ai:build_query\", \"ai:build_prompt\", \"sh:format\"]",
+				// "--template",
+				// "data:,###\nhello {{date}}\n---\n {{.prompt}}\n---\n{{.query}}",
+				// "--agent",
+				// "test",
+				// "--message",
+				// "correcto mine englise",
+				// "--adapter",
+				// "echo",
 				//
 				// "/ai:get_agent_config",
 				// "--agent",
@@ -143,7 +155,7 @@
 				// // "@ask",
 				// "how to update system env in a golang template",
 				//
-				// "--verbose",
+				"--verbose"
 				// "--max-time",
 				// "900",
 				// "--max-history",

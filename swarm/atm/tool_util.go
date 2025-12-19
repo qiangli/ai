@@ -20,9 +20,10 @@ func applyTemplate(tpl *template.Template, text string, data any) (string, error
 	return buf.String(), nil
 }
 
+// crude check
+// #! magic for large block of text
+// {{ contained within for oneliner
 func IsTemplate(v any) bool {
-	// #! for large block of text
-	// {{ for oneliner
 	s, ok := v.(string)
 	if !ok {
 		return false
@@ -30,7 +31,7 @@ func IsTemplate(v any) bool {
 	return strings.HasPrefix(s, "#!") || strings.Contains(s, "{{")
 }
 
-// Check s for prefix "#!" or "{{" to apply template if found. otherise skip
+// Check s for prefix "#!" or infix "{{" to apply template if found. otherise skip
 func CheckApplyTemplate(tpl *template.Template, s string, data map[string]any) (string, error) {
 	if strings.HasPrefix(s, "#!") {
 		// TODO parse the command line args?
@@ -48,25 +49,3 @@ func CheckApplyTemplate(tpl *template.Template, s string, data map[string]any) (
 	}
 	return s, nil
 }
-
-// // Load data from uri.
-// // Support file:// and data: protocols
-// func LoadURIContent(ws api.Workspace, uri string) (string, error) {
-// 	if strings.HasPrefix(uri, "data:") {
-// 		return api.DecodeDataURL(uri)
-// 	} else {
-// 		var f = uri
-// 		if strings.HasPrefix(f, "file:") {
-// 			v, err := url.Parse(f)
-// 			if err != nil {
-// 				return "", err
-// 			}
-// 			f = v.Path
-// 		}
-// 		data, err := ws.ReadFile(f, nil)
-// 		if err != nil {
-// 			return "", err
-// 		}
-// 		return string(data), nil
-// 	}
-// }
