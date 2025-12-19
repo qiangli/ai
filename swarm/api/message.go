@@ -152,34 +152,34 @@ func (r *Request) Clone() *Request {
 type Response struct {
 	// A list of message objects generated during the conversation
 	// with a sender field indicating which Agent the message originated from.
-	Messages []*Message
+	Messages []*Message `json:"messages"`
 
 	// The last agent to handle a message
-	Agent *Agent
+	Agent *Agent `json:"agent"`
 
-	Result *Result
+	Result *Result `json:"result"`
 }
 
 // Result encapsulates the possible return values for agent/function.
 type Result struct {
 	// author of the reponse: assistant
-	Role string
+	Role string `json:"role"`
 	// The result value as a string
-	Value string
+	Value string `json:"value"`
 
 	// media content
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types
-	MimeType string
-	Content  []byte
+	MimeType string `json:"mime_type"`
+	Content  []byte `json:"content"`
 
 	// transition
 	// The agent state
-	State State
+	State State `json:"state"`
 	// The agent name to transfer to for StateTransfer
-	NextAgent string
+	NextAgent string `json:"next_agent"`
 
 	//
-	Actions []*ToolCall
+	Actions []*ToolCall `json:"actions"`
 }
 
 func (r *Result) String() string {

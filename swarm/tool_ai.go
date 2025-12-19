@@ -81,7 +81,7 @@ func (r *AIKit) llmAdapter(agent *api.Agent, args api.ArgMap) (api.LLMAdapter, e
 			return nil, fmt.Errorf("adapter not valid: %v", v)
 		}
 	} else {
-		if agent.Adapter != "" {
+		if agent != nil && agent.Adapter != "" {
 			if v, err := r.sw.Adapters.Get(agent.Adapter); err == nil {
 				llmAdapter = v
 			}
@@ -281,6 +281,8 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 			Value: "Empty response",
 		}
 	}
+	args["request"] = req
+	args["response"] = resp
 	return resp.Result, nil
 }
 

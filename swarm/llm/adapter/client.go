@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm/anthropic"
@@ -44,18 +43,8 @@ func GetAdapters() api.AdapterRegistry {
 
 type EchoAdapter struct{}
 
-// Echo request with a timestamp as reqsponse in JSON format
-type EchoResponse struct {
-	Request   *api.Request `json:"request"`
-	Timestamp time.Time    `json:"timestamp"`
-}
-
 func (r *EchoAdapter) Call(ctx context.Context, req *api.Request) (*api.Response, error) {
-	var data = EchoResponse{
-		Request:   req,
-		Timestamp: time.Now(),
-	}
-	v, err := json.Marshal(data)
+	v, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
 	}
