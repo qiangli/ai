@@ -93,30 +93,34 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 	}
 
 	// core utils
-	var core = []string{
-		"base64",
-		"basename",
-		"cat",
-		// "chmod",
-		// "cp",
-		"date",
-		"dirname",
-		"find",
-		// "gzip",
-		"head",
-		"ls",
-		// "mkdir",
-		// "mktemp",
-		// "mv",
-		// "rm",
-		"shasum",
-		// "tac",
-		"tail",
-		// "tar",
-		// "touch",
-		"wget",
-		"xargs",
-	}
+	// var core = []string{
+	// 	"base64",
+	// 	"basename",
+	// 	"cat",
+	// 	// "chmod",
+	// 	// "cp",
+	// 	"date",
+	// 	"dirname",
+	// 	"find",
+	// 	// "gzip",
+	// 	"head",
+	// 	"ls",
+	// 	// "mkdir",
+	// 	// "mktemp",
+	// 	// "mv",
+	// 	// "rm",
+	// 	"shasum",
+	// 	"sleep",
+	// 	// "tac",
+	// 	"tail",
+	// 	// "tar",
+	// 	"time",
+	// 	// "touch",
+	// 	"wget",
+	// 	"xargs",
+	// }
+	core := sh.CoreUtilsCommands
+
 	for _, cmd := range core {
 		fm[cmd] = func(args ...string) string {
 			return RunCoreUtil(sw, cmd, args)

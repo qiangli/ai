@@ -126,7 +126,15 @@ func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, arg
 }
 
 func (r *SystemKit) Timeout(ctx context.Context, vars *api.Vars, name string, args api.ArgMap) (any, error) {
-	action := args.Action()
+	cmdline := args.GetString("command")
+	if len(cmdline) == 0 {
+		return "", fmt.Errorf("command is empty")
+	}
+	cmdArgs, err := conf.Parse(cmdline)
+	if err != nil {
+		return nil, err
+	}
+	kn := cmdArgs.Kitname()
 
 	duration := args.GetDuration("duration")
 	ctx, cancelCtx := context.WithTimeout(ctx, duration)
@@ -145,7 +153,7 @@ func (r *SystemKit) Timeout(ctx context.Context, vars *api.Vars, name string, ar
 		}()
 
 		// Run the action and handle potential errors.
-		result, err := vars.RootAgent.Runner.Run(ctx, action.Name, args)
+		result, err := vars.RootAgent.Runner.Run(ctx, kn.ID(), cmdArgs)
 		if err != nil {
 			panicChan <- err
 			return
@@ -160,7 +168,6 @@ func (r *SystemKit) Timeout(ctx context.Context, vars *api.Vars, name string, ar
 	case result := <-done:
 		return result, nil
 	case <-ctx.Done():
-		return nil, ctx.Err()
+		return nil, fmt.Errorf("%q timed out after %v: %v", kn, duration, ctx.Err())
 	}
-	// return nil, fmt.Errorf("action timedout")
 }

@@ -1,6 +1,5 @@
 #!/usr/bin/env ai /sh:bash --format raw --script
-# set -xue
-set -ue
+set -xue
 
 # echo "### sb.sh"
 # echo "$$ I'm called $@..."
@@ -9,7 +8,16 @@ set -ue
 # /sh:bash --script 'data:,#!\nset -x\n/fs:list_roots\nprintenv\necho this is a test\nls -al\ngo version'
 # /fs:list_roots --arg query="hello"
 
-echo "sleeping 10 sec..."
-/sh:bash --script 'data:,#!\nset -x\n/sleep 10'
+echo "testing..."
+# time /bin/ls -al
 
-# /sh:timeout --action "/sh:bash" --arg duration="3s" --script 'data:,#!\nset -x\n/sleep 10'
+# time tests
+# time /sh:exec --command "sleep 5"
+# time /sh:bash --script "data:,sleep 3"
+time /agent:joker --message "explain timeout in a unix system" --adapter "echo"
+
+# timeout tests
+# /sh:timeout --command "/sh:exec --command 'sleep 10'"  --arg duration="3s"
+# /sh:timeout --command "/sh:bash --script 'data:,sleep 10'"  --arg duration="3s"
+# /sh:timeout --command "/agent:joker --message 'explain timeout in a unix system'" --arg duration="3s"
+

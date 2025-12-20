@@ -196,10 +196,18 @@ tools:
     parameters:
       type: "object"
       properties:
-        action:
+        command:
           type: "string"
           description: |
-            Start the action, and cancel it if still running after the specified duration.
+            The action with arguements to run.
+            Format:
+              ACTION [OPTIONS] ... 
+            Example:
+              timeout /bin/ls
+              timeout /sh:bash --script "data:,#!\n/bin/ls /tmp"
+              timeout /agent:joker --message "tell me a joke"
+            
+            Start the action with options, and cancel it if still running after the specified duration.
         duration:
           type: "string"
           description: |
@@ -208,4 +216,4 @@ tools:
             for days.  
             A duration of 0 disables the associated timeout.
       required:
-        - action
+        - command
