@@ -163,7 +163,8 @@ func (ap *AgentMaker) newAgent(
 	// @model support
 	// flow does not require a model
 	model := strings.TrimSpace(nvl(c.Model, ac.Model))
-	if model != "" && agent.Flow == nil {
+	// if model != "" && agent.Flow == nil {
+	if model != "" {
 		if strings.HasPrefix(model, "@") {
 			// defer model provider resolution
 			agent.Model = &api.Model{
@@ -231,29 +232,29 @@ func (ap *AgentMaker) newAgent(
 	agent.Tools = funcs
 
 	// flow
-	if c.Flow != nil {
-		var actionMap = make(map[string]*api.Action)
-		for _, v := range agent.Tools {
-			actionMap[v.Kit+":"+v.Name] = api.NewAction(
-				v.ID(),
-				v.Name,
-				v.Arguments,
-			)
-		}
-		flow := &api.Flow{
-			Type:   c.Flow.Type,
-			Script: c.Flow.Script,
-		}
+	// if c.Flow != nil {
+	// 	var actionMap = make(map[string]*api.Action)
+	// 	for _, v := range agent.Tools {
+	// 		actionMap[v.Kit+":"+v.Name] = api.NewAction(
+	// 			v.ID(),
+	// 			v.Name,
+	// 			v.Arguments,
+	// 		)
+	// 	}
+	// 	flow := &api.Flow{
+	// 		Type:   c.Flow.Type,
+	// 		Script: c.Flow.Script,
+	// 	}
 
-		for _, v := range c.Flow.Actions {
-			a, ok := actionMap[v]
-			if !ok {
-				return nil, fmt.Errorf("action missing: %s %s", agent.Name, v)
-			}
-			flow.Actions = append(flow.Actions, a)
-		}
-		agent.Flow = flow
-	}
+	// 	for _, v := range c.Flow.Actions {
+	// 		a, ok := actionMap[v]
+	// 		if !ok {
+	// 			return nil, fmt.Errorf("action missing: %s %s", agent.Name, v)
+	// 		}
+	// 		flow.Actions = append(flow.Actions, a)
+	// 	}
+	// 	agent.Flow = flow
+	// }
 
 	return &agent, nil
 }

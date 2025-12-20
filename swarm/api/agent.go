@@ -87,8 +87,8 @@ type Agent struct {
 	// LLM adapter
 	Adapter string `json:"adapter"`
 
-	// TODO deprecate in favor of plain templates
-	Flow *Flow `json:"flow"`
+	// // TODO deprecate in favor of plain templates
+	// Flow *Flow `json:"flow"`
 
 	// inheritance
 	Embed []*Agent `json:"embed"`
@@ -124,7 +124,7 @@ func (a *Agent) Clone() *Agent {
 		Adapter:   a.Adapter,
 
 		//
-		Flow: a.Flow,
+		// Flow: a.Flow,
 		//
 		Embed:       a.Embed,
 		Environment: a.cloneEnvironment(),
@@ -135,12 +135,12 @@ func (a *Agent) Clone() *Agent {
 	return clone
 }
 
-type Flow struct {
-	Type       FlowType  `json:"type"`
-	Expression string    `json:"expression"`
-	Actions    []*Action `json:"actions"`
-	Script     string    `json:"script"`
-}
+// type Flow struct {
+// 	Type       FlowType  `json:"type"`
+// 	Expression string    `json:"expression"`
+// 	// Actions    []*Action `json:"actions"`
+// 	Script     string    `json:"script"`
+// }
 
 func (a *Agent) cloneArguments() Arguments {
 	if a.Arguments == nil {

@@ -311,6 +311,20 @@ func (a ArgMap) Agent() *Agent {
 	return nil
 }
 
+func (a ArgMap) Action() *Action {
+	v, found := a["action"]
+	if !found {
+		return nil
+	}
+	if action, ok := v.(*Action); ok {
+		return action
+	}
+	// if s, ok := v.(string); ok {
+
+	// }
+	return nil
+}
+
 func (a ArgMap) HasHistory() bool {
 	_, ok := a["history"]
 	return ok

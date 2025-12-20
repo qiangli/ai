@@ -57,23 +57,26 @@ type Action struct {
 	// unique identifier
 	ID string `json:"id"`
 
-	// agent/tool name
+	// agent/tool/command name
+	// agent:pack/sub
+	// kit:name
+	// bin:/command
 	Name string `json:"name"`
 
 	// arguments including name
 	Arguments Arguments `json:"arguments"`
 }
 
-func NewAction(id string, name string, args map[string]any) *Action {
-	return &Action{
-		ID:   id,
-		Name: name,
-		// Arguments: &Arguments{
-		// 	Args: args,
-		// },
-		Arguments: args,
-	}
-}
+// func NewAction(id string, name string, args map[string]any) *Action {
+// 	return &Action{
+// 		ID:   id,
+// 		Name: name,
+// 		// Arguments: &Arguments{
+// 		// 	Args: args,
+// 		// },
+// 		Arguments: args,
+// 	}
+// }
 
 // type Arguments struct {
 // 	Args ArgMap `json:"args"`

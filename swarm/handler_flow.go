@@ -1,11 +1,11 @@
 package swarm
 
 import (
-	"context"
+	// "context"
 	"encoding/json"
 	"fmt"
 	"strings"
-	"sync"
+	// "sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -24,7 +24,7 @@ func AgentFlowMiddleware(sw *Swarm) api.Middleware {
 		}
 
 		return HandlerFunc(func(req *api.Request, resp *api.Response) error {
-			log.GetLogger(req.Context()).Infof("🔗 (agent): %s flow: %+v\n", agent.Name, agent.Flow)
+			// log.GetLogger(req.Context()).Infof("🔗 (agent): %s flow: %+v\n", agent.Name, agent.Flow)
 
 			return ah.Serve(req, resp)
 		})
@@ -76,60 +76,60 @@ func (h *agentHandler) Serve(req *api.Request, resp *api.Response) error {
 // run agent first if there is instruction followed by the flow.
 // otherwise, run the flow only
 func (h *agentHandler) doAgentFlow(req *api.Request, resp *api.Response) error {
-	instruction := h.agent.Instruction
-	if instruction == "" && h.agent.Flow == nil {
-		// no op?
-		return api.NewBadRequestError("missing instruction and flow")
-	}
+	// instruction := h.agent.Instruction
+	// if instruction == "" && h.agent.Flow == nil {
+	// 	// no op?
+	// 	return api.NewBadRequestError("missing instruction and flow")
+	// }
 
-	// run llm inference
-	if instruction != "" {
-		// if err := h.next.Serve(req, resp); err != nil {
-		// 	return err
-		// }
-		if err := h.handleAgent(req, resp); err != nil {
-			return err
-		}
-	}
+	// // run llm inference
+	// if instruction != "" {
+	// 	// if err := h.next.Serve(req, resp); err != nil {
+	// 	// 	return err
+	// 	// }
+	// 	if err := h.handleAgent(req, resp); err != nil {
+	// 		return err
+	// 	}
+	// }
 
-	// flow control agent
-	if h.agent.Flow != nil {
-		if len(h.agent.Flow.Actions) == 0 && len(h.agent.Flow.Script) == 0 {
-			return fmt.Errorf("missing actions or script in flow")
-		}
-		switch h.agent.Flow.Type {
-		case api.FlowTypeSequence:
-			if err := h.flowSequence(req, resp); err != nil {
-				return err
-			}
-		case api.FlowTypeParallel:
-			if err := h.flowParallel(req, resp); err != nil {
-				return err
-			}
-		// case api.FlowTypeChoice:
-		// 	if err := h.flowChoice(req, resp); err != nil {
-		// 		return err
-		// 	}
-		case api.FlowTypeMap:
-			if err := h.flowMap(req, resp); err != nil {
-				return err
-			}
-		// case api.FlowTypeLoop:
-		// 	if err := h.flowLoop(req, resp); err != nil {
-		// 		return err
-		// 	}
-		// case api.FlowTypeReduce:
-		// 	if err := h.flowReduce(req, resp); err != nil {
-		// 		return err
-		// 	}
-		case api.FlowTypeShell:
-			if err := h.flowShell(req, resp); err != nil {
-				return err
-			}
-		default:
-			return fmt.Errorf("flow type not supported %v", h.agent.Flow)
-		}
-	}
+	// // flow control agent
+	// if h.agent.Flow != nil {
+	// 	if len(h.agent.Flow.Actions) == 0 && len(h.agent.Flow.Script) == 0 {
+	// 		return fmt.Errorf("missing actions or script in flow")
+	// 	}
+	// 	switch h.agent.Flow.Type {
+	// 	case api.FlowTypeSequence:
+	// 		if err := h.flowSequence(req, resp); err != nil {
+	// 			return err
+	// 		}
+	// 	case api.FlowTypeParallel:
+	// 		if err := h.flowParallel(req, resp); err != nil {
+	// 			return err
+	// 		}
+	// 	// case api.FlowTypeChoice:
+	// 	// 	if err := h.flowChoice(req, resp); err != nil {
+	// 	// 		return err
+	// 	// 	}
+	// 	case api.FlowTypeMap:
+	// 		if err := h.flowMap(req, resp); err != nil {
+	// 			return err
+	// 		}
+	// 	// case api.FlowTypeLoop:
+	// 	// 	if err := h.flowLoop(req, resp); err != nil {
+	// 	// 		return err
+	// 	// 	}
+	// 	// case api.FlowTypeReduce:
+	// 	// 	if err := h.flowReduce(req, resp); err != nil {
+	// 	// 		return err
+	// 	// 	}
+	// 	case api.FlowTypeShell:
+	// 		if err := h.flowShell(req, resp); err != nil {
+	// 			return err
+	// 		}
+	// 	default:
+	// 		return fmt.Errorf("flow type not supported %v", h.agent.Flow)
+	// 	}
+	// }
 
 	return nil
 }
@@ -247,36 +247,36 @@ func (h *agentHandler) handleAgent(req *api.Request, resp *api.Response) error {
 	return nil
 }
 
-func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, action *api.Action) error {
-	var args = make(map[string]any)
-	if req.Arguments != nil {
-		req.Arguments.Copy(args)
-	}
-	result, err := h.agent.Runner.Run(ctx, action.ID, args)
-	resp.Agent = h.agent
-	resp.Result = api.ToResult(result)
-	return err
-}
+// func (h *agentHandler) doAction(ctx context.Context, req *api.Request, resp *api.Response, action *api.Action) error {
+// 	var args = make(map[string]any)
+// 	if req.Arguments != nil {
+// 		req.Arguments.Copy(args)
+// 	}
+// 	result, err := h.agent.Runner.Run(ctx, action.ID, args)
+// 	resp.Agent = h.agent
+// 	resp.Result = api.ToResult(result)
+// 	return err
+// }
 
-// FlowTypeSequence executes actions one after another, where each
-// subsequent action uses the previous action's response as input.
-func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error {
-	ctx := req.Context()
-	nreq := req.Clone()
-	nresp := &api.Response{}
-	for _, v := range h.agent.Flow.Actions {
-		if err := h.doAction(ctx, nreq, nresp, v); err != nil {
-			return err
-		}
-		nreq.Query = nresp.Result.Value
-		// h.agent.SetQuery(nresp.Result.Value)
-		// h.sw.Vars.Global.Set(globalQuery, nresp.Result.Value)
-	}
+// // FlowTypeSequence executes actions one after another, where each
+// // subsequent action uses the previous action's response as input.
+// func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error {
+// 	ctx := req.Context()
+// 	nreq := req.Clone()
+// 	nresp := &api.Response{}
+// 	for _, v := range h.agent.Flow.Actions {
+// 		// if err := h.doAction(ctx, nreq, nresp, v); err != nil {
+// 		// 	return err
+// 		// }
+// 		// nreq.Query = nresp.Result.Value
+// 		// h.agent.SetQuery(nresp.Result.Value)
+// 		// h.sw.Vars.Global.Set(globalQuery, nresp.Result.Value)
+// 	}
 
-	// final result
-	resp.Result = nresp.Result
-	return nil
-}
+// 	// final result
+// 	resp.Result = nresp.Result
+// 	return nil
+// }
 
 // // FlowTypeLoop executes actions repetitively in a loop. The loop can use a counter or
 // // evaluate an expression for each iteration, allowing for repeated execution with varying
@@ -310,38 +310,38 @@ func (h *agentHandler) flowSequence(req *api.Request, resp *api.Response) error 
 // 	}
 // }
 
-// FlowTypeParallel executes actions simultaneously, returning the combined results as a list.
-// This allows for concurrent processing of independent actions.
-func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error {
-	var ctx = req.Context()
-	var resps = make([]*api.Response, len(h.agent.Flow.Actions))
+// // FlowTypeParallel executes actions simultaneously, returning the combined results as a list.
+// // This allows for concurrent processing of independent actions.
+// func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error {
+// 	var ctx = req.Context()
+// 	var resps = make([]*api.Response, len(h.agent.Flow.Actions))
 
-	var wg sync.WaitGroup
-	for i, v := range h.agent.Flow.Actions {
-		wg.Add(1)
-		go func(i int, v *api.Action) {
-			defer wg.Done()
+// 	var wg sync.WaitGroup
+// 	for i, v := range h.agent.Flow.Actions {
+// 		wg.Add(1)
+// 		go func(i int, v *api.Action) {
+// 			defer wg.Done()
 
-			// use the same request
-			nreq := req.Clone()
-			nreq.Agent = req.Agent.Clone()
-			nresp := new(api.Response)
-			//
-			if err := h.doAction(ctx, nreq, nresp, v); err != nil {
-				nresp.Result = &api.Result{
-					Value: err.Error(),
-				}
-			}
-			resps[i] = nresp
-		}(i, v)
-	}
-	wg.Wait()
+// 			// use the same request
+// 			nreq := req.Clone()
+// 			nreq.Agent = req.Agent.Clone()
+// 			nresp := new(api.Response)
+// 			//
+// 			if err := h.doAction(ctx, nreq, nresp, v); err != nil {
+// 				nresp.Result = &api.Result{
+// 					Value: err.Error(),
+// 				}
+// 			}
+// 			resps[i] = nresp
+// 		}(i, v)
+// 	}
+// 	wg.Wait()
 
-	resp.Result = &api.Result{
-		Value: marshalResponseList(resps),
-	}
-	return nil
-}
+// 	resp.Result = &api.Result{
+// 		Value: marshalResponseList(resps),
+// 	}
+// 	return nil
+// }
 
 // // FlowTypeChoice selects and executes a single action based on an evaluated expression.
 // // If no expression is provided, an action is chosen randomly. The expression must evaluate
@@ -396,74 +396,74 @@ func (h *agentHandler) flowParallel(req *api.Request, resp *api.Response) error 
 // 	return nil
 // }
 
-// FlowTypeMap applies specified action(s) to each element in the input array, creating a new
-// array populated with the results.
-func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
-	// if the map flow is the first in the pipeline
-	// use query
-	// result, ok := h.sw.Vars.Global.Get(globalResult)
-	// result := h.agent.Result()
-	// if result == "" {
-	// 	// result, _ = h.sw.Vars.Global.Get(globalQuery)
-	// 	result = req.Query
-	// 	// result = h.agent.Query()
-	// }
-	var query = req.Query
+// // FlowTypeMap applies specified action(s) to each element in the input array, creating a new
+// // array populated with the results.
+// func (h *agentHandler) flowMap(req *api.Request, resp *api.Response) error {
+// 	// if the map flow is the first in the pipeline
+// 	// use query
+// 	// result, ok := h.sw.Vars.Global.Get(globalResult)
+// 	// result := h.agent.Result()
+// 	// if result == "" {
+// 	// 	// result, _ = h.sw.Vars.Global.Get(globalQuery)
+// 	// 	result = req.Query
+// 	// 	// result = h.agent.Query()
+// 	// }
+// 	var query = req.Query
 
-	tasks := unmarshalList(query)
+// 	tasks := unmarshalList(query)
 
-	var resps = make([]*api.Response, len(tasks))
+// 	var resps = make([]*api.Response, len(tasks))
 
-	var wg sync.WaitGroup
-	for i, v := range tasks {
-		wg.Add(1)
-		go func(i int, v string) {
-			defer wg.Done()
+// 	var wg sync.WaitGroup
+// 	for i, v := range tasks {
+// 		wg.Add(1)
+// 		go func(i int, v string) {
+// 			defer wg.Done()
 
-			nreq := req.Clone()
-			// nreq.Agent = req.Agent.Clone()
-			// nreq.Agent.SetQuery(v)
-			nreq.Query = v
-			nresp := new(api.Response)
-			if err := h.flowSequence(nreq, nresp); err != nil {
-				nresp.Result = &api.Result{
-					Value: err.Error(),
-				}
-			}
-			resps[i] = nresp
-		}(i, v)
-	}
-	wg.Wait()
+// 			nreq := req.Clone()
+// 			// nreq.Agent = req.Agent.Clone()
+// 			// nreq.Agent.SetQuery(v)
+// 			nreq.Query = v
+// 			nresp := new(api.Response)
+// 			if err := h.flowSequence(nreq, nresp); err != nil {
+// 				nresp.Result = &api.Result{
+// 					Value: err.Error(),
+// 				}
+// 			}
+// 			resps[i] = nresp
+// 		}(i, v)
+// 	}
+// 	wg.Wait()
 
-	resp.Result = &api.Result{
-		Value: marshalResponseList(resps),
-	}
-	return nil
-}
+// 	resp.Result = &api.Result{
+// 		Value: marshalResponseList(resps),
+// 	}
+// 	return nil
+// }
 
-// FlowTypeShell delegates control to a shell script using bash script syntax, enabling
-// complex flow control scenarios driven by external scripting logic.
-func (h *agentHandler) flowShell(req *api.Request, resp *api.Response) error {
-	ctx := req.Context()
+// // FlowTypeShell delegates control to a shell script using bash script syntax, enabling
+// // complex flow control scenarios driven by external scripting logic.
+// func (h *agentHandler) flowShell(req *api.Request, resp *api.Response) error {
+// 	ctx := req.Context()
 
-	// make a copy of the args which already include args from the agent
-	var args = make(map[string]any)
-	if req.Arguments != nil {
-		req.Arguments.Copy(args)
-	}
+// 	// make a copy of the args which already include args from the agent
+// 	var args = make(map[string]any)
+// 	if req.Arguments != nil {
+// 		req.Arguments.Copy(args)
+// 	}
 
-	data, err := h.sw.Vars.RootAgent.Shell.Run(ctx, h.agent.Flow.Script, args)
-	if err != nil {
-		return err
-	}
+// 	data, err := h.sw.Vars.RootAgent.Shell.Run(ctx, h.agent.Flow.Script, args)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	result := api.ToResult(data)
+// 	result := api.ToResult(data)
 
-	resp.Result = &api.Result{
-		Value: result.Value,
-	}
-	return nil
-}
+// 	resp.Result = &api.Result{
+// 		Value: result.Value,
+// 	}
+// 	return nil
+// }
 
 func doBashCustom(vs *sh.VirtualSystem, args []string) (string, error) {
 	switch args[0] {

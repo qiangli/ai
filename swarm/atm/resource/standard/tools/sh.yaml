@@ -188,3 +188,24 @@ tools:
             Specifies the command line to be parsed.
       required:
         - command
+  
+  - name: "timeout"
+    description: |
+      Run action with a time limit.
+      An action could be a system command, a tool, or an agent.
+    parameters:
+      type: "object"
+      properties:
+        action:
+          type: "string"
+          description: |
+            Start the action, and cancel it if still running after the specified duration.
+        duration:
+          type: "string"
+          description: |
+            Duration is a number with an optional suffix: 's'
+            for seconds (the default), 'm' for minutes, 'h' for hours, or 'd'
+            for days.  
+            A duration of 0 disables the associated timeout.
+      required:
+        - action
