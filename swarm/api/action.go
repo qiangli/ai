@@ -53,12 +53,40 @@ func ParseState(state string) State {
 
 type TemplateFuncMap = template.FuncMap
 
+// type CommandLine string
+
+// type Options []Option
+
+// type Option struct {
+// 	Name  string
+// 	Value string
+// }
+
+// func (r Option) String() string {
+// 	return fmt.Sprintf("%s=%s", r.Name, r.Value)
+// }
+
+// func ToOption(s string) *Option {
+// 	var opt Option
+// 	parts := strings.SplitN(s, "=", 2)
+// 	switch len(parts) {
+// 	case 1:
+// 		opt.Name = parts[0]
+// 	case 2:
+// 		opt.Name = parts[0]
+// 		opt.Value = parts[1]
+// 	default:
+// 	}
+// 	return &opt
+// }
+
 // TODO split name into kit, name|pack/sub|command
+// command line: [ACTION] [OPTIONS] MESSAGE...
 type Action struct {
 	// unique tool call identifier
 	ID string `json:"id"`
 
-	// action (agent/tool/command) name
+	// command name: (agent/tool/command)
 	// agent:pack/sub
 	// kit:name
 	// bin:/command
@@ -68,44 +96,11 @@ type Action struct {
 	Arguments Arguments `json:"arguments"`
 }
 
-// func NewAction(id string, name string, args map[string]any) *Action {
-// 	return &Action{
-// 		ID:   id,
-// 		Name: name,
-// 		// Arguments: &Arguments{
-// 		// 	Args: args,
-// 		// },
-// 		Arguments: args,
-// 	}
-// }
-
-// type Arguments struct {
-// 	Args ArgMap `json:"args"`
-
-// 	// TODO redesign - comment out for now
-// 	// mu   sync.RWMutex   `json:"-"`
-// }
-
 type Arguments = ArgMap
-
-// func NewArguments() *Arguments {
-// 	return &Arguments{
-// 		Args:  make(map[string]any),
-// 	}
-// }
 
 func NewArguments() Arguments {
 	return make(map[string]any)
 }
-
-// func (r Arguments) Message() string {
-// 	return r.GetString("message")
-// }
-
-// func (r Arguments) SetMessage(s any) Arguments {
-// 	r.Set("message", s)
-// 	return r
-// }
 
 // TODO get rid of this
 func (r Arguments) Get2(key string) (any, bool) {
@@ -114,31 +109,6 @@ func (r Arguments) Get2(key string) (any, bool) {
 	v, ok := r[key]
 	return v, ok
 }
-
-// func (r Arguments) GetString(key string) string {
-// 	if v, ok := r.Get(key); ok {
-// 		return ToString(v)
-// 	}
-// 	return ""
-// }
-
-// func (r Arguments) GetInt(key string) int {
-// 	if v, ok := r.Get(key); ok {
-// 		return ToInt(v)
-// 	}
-// 	return 0
-// }
-
-// func (r Arguments) GetStringSlice(key string) []string {
-// 	return r.GetStringSlice(key)
-// }
-
-// func (r Arguments) Set(key string, val any) Arguments {
-// 	// r.mu.Lock()
-// 	// defer r.mu.Unlock()
-// 	r[key] = val
-// 	return r
-// }
 
 func (r Arguments) AddArgs(args map[string]any) Arguments {
 	// r.mu.Lock()
@@ -158,10 +128,6 @@ func (r Arguments) SetArgs(args map[string]any) Arguments {
 	maps.Copy(r, args)
 	return r
 }
-
-// func (r Arguments) GetAllArgs() map[string]any {
-// 	return r.GetArgs(nil)
-// }
 
 // Return args specified by keys
 func (r Arguments) GetArgs(keys []string) map[string]any {

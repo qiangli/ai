@@ -119,7 +119,7 @@ func TestParseActionCommand(t *testing.T) {
 		},
 		// arg slice
 		{
-			input: `/tool:example --arg format=json --arg message=hello`,
+			input: `/tool:example --option format=json --option message=hello`,
 			expected: map[string]any{
 				"name":    "example",
 				"kit":     "tool",

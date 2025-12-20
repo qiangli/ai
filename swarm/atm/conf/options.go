@@ -75,8 +75,8 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 
 	fs := flag.NewFlagSet("ai", flag.ContinueOnError)
 
-	var arg stringSlice
-	fs.Var(&arg, "arg", "argument name=value (can be used multiple times)")
+	var option stringSlice
+	fs.Var(&option, "option", "argument name=value pair (can be used multiple times)")
 	// for LLM: json object format
 	// for human: support string of name=value delimited by space and array list of name=value in json format
 	arguments := fs.String("arguments", "", "arguments in json object format")
@@ -183,7 +183,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	}
 
 	// Parse individual arg in the slice
-	for _, v := range arg {
+	for _, v := range option {
 		parts := strings.SplitN(v, "=", 2)
 		if len(parts) == 2 {
 			argm[parts[0]] = parts[1]
@@ -272,7 +272,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	return argm, nil
 }
 
-// Return true if string s is an action command.
+// Return true if command line "s" is an action command.
 // action (agent and tool) name convention:
 // "ai" or prefix "agent:", "@" or "/" or suffix ","
 //
