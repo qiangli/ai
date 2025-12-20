@@ -159,6 +159,10 @@ func ToResult(data any) *Result {
 // https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
 // data:[<media-type>][;base64],<data>
 func DataURL(mime string, raw []byte) string {
+	if mime == "" {
+		// assume text
+		return fmt.Sprintf("data:,%s", string(raw))
+	}
 	encoded := base64.StdEncoding.EncodeToString(raw)
 	d := fmt.Sprintf("data:%s;base64,%s", mime, encoded)
 	return d
@@ -172,6 +176,11 @@ func DecodeDataURL(dataURL string) (string, error) {
 	}
 
 	dataURL = dataURL[5:]
+
+	// data:,<content>
+	if dataURL[0] == ',' {
+		return dataURL[1:], nil
+	}
 
 	commaIndex := strings.Index(dataURL, ",")
 	if commaIndex == -1 {

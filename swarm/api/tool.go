@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	// "io/fs"
 	"strings"
 	"time"
@@ -115,9 +116,25 @@ type ToolConfig struct {
 }
 
 type FuncBody struct {
-	Language string `yaml:"language" json:"language"`
-	Code     string `yaml:"code" json:"code"`
-	Url      string `yaml:"url" json:"url"`
+	// A MIME type (now properly called "media type", but also sometimes "content type")
+	// is a string sent along with a file indicating the type of the file
+	// (describing the content format, for example, a sound file might be labeled audio/ogg,
+	// or an image file image/png).
+	// https://developer.mozilla.org/en-US/docs/Glossary/MIME_type
+	// tpl   text/x-go-template
+	// uri   text/uri-list
+	// md    text/markdown
+	// txt   text/plain
+	// go    application/x-go
+	// yaml  application/yaml
+	// sh    application/x-sh
+	// json  application/json
+	// js    text/javascript
+	MimeType string `yaml:"mime_type" json:"mime_type"`
+	Script   string `yaml:"script" json:"script"`
+	// Language string `yaml:"language" json:"language"`
+	// Code     string `yaml:"code" json:"code"`
+	// Url      string `yaml:"url" json:"url"`
 }
 
 // // TODO

@@ -26,6 +26,6 @@ func TestLoadToolData(t *testing.T) {
 		t.Fatalf("failed to load file: %v", err)
 	}
 	for _, v := range ac.Tools {
-		t.Logf("%s", v.Body.Code)
+		t.Logf("%s", v.Body.Script)
 	}
 }

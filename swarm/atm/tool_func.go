@@ -31,15 +31,29 @@ func (r *FuncKit) Call(ctx context.Context, vars *api.Vars, env *api.ToolEnv, tf
 		return r.builtin(ctx, vars, env, tf, args)
 	}
 
-	language := strings.ToLower(tf.Body.Language)
-	switch language {
-	case "go", "golang", "js", "javascript", "ecmascript", "template", "text/x-go-template":
+	// template is applied before running application code scripts
+	// script is retured as is for text/*
+	mime := strings.ToLower(tf.Body.MimeType)
+	switch mime {
+	case "application/x-sh", "bash", "sh", "application/yaml", "yaml", "yml":
+		return r.ExecScript(ctx, vars, env, tf, args)
+	case "application/x-go", "go", "golang":
+		return r.ExecScript(ctx, vars, env, tf, args)
+	case "text/x-go-template", "template", "tpl":
+		return r.ExecScript(ctx, vars, env, tf, args)
+	case "text/uri-list", "uri":
+		// TODO
+		return nil, fmt.Errorf("mime type not supported: %s", mime)
+	case "text/javascript", "js", "javascript", "ecmascript":
 		return r.ExecScript(ctx, vars, env, tf, args)
 	case "py", "python":
 		return r.DO(ctx, vars, env, tf, args)
+	default:
+		if strings.HasPrefix(mime, "text/") {
+			return tf.Body.Script, nil
+		}
 	}
-
-	return nil, fmt.Errorf("language not supported: %s", language)
+	return nil, fmt.Errorf("mime type not supported: %s", mime)
 }
 
 func (r *FuncKit) builtin(ctx context.Context, vars *api.Vars, _ *api.ToolEnv, tf *api.ToolFunc, args map[string]any) (any, error) {

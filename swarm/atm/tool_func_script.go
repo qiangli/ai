@@ -15,8 +15,8 @@ func (r *FuncKit) ExecScript(ctx context.Context, vars *api.Vars, env *api.ToolE
 	if tf.Body == nil {
 		return nil, fmt.Errorf("missing function body: %s", tf.ID())
 	}
-	language := strings.ToLower(tf.Body.Language)
-	code := tf.Body.Code
+	mime := strings.ToLower(tf.Body.MimeType)
+	code := tf.Body.Script
 	if api.IsTemplate(code) {
 		v, err := CheckApplyTemplate(env.Agent.Template, code, EncodeArgs(args))
 		if err != nil {
@@ -25,15 +25,19 @@ func (r *FuncKit) ExecScript(ctx context.Context, vars *api.Vars, env *api.ToolE
 		code = v
 	}
 
-	switch language {
-	case "go", "golang":
+	switch mime {
+	case "application/x-sh", "bash", "sh":
+		return vars.RootAgent.Shell.Run(ctx, code, args)
+	case "application/yaml", "yaml", "yml":
+		return nil, fmt.Errorf("mime type not supported: %s", mime)
+	case "application/x-go", "go", "golang":
 		return lang.Golang(ctx, vars, nil, code, nil)
-	case "js", "javascript", "ecmascript":
+	case "text/javascript", "js", "javascript", "ecmascript":
 		return lang.Javascript(ctx, code)
-	case "template", "text/x-go-template":
+	case "text/x-go-template", "template", "tpl":
 		return code, nil
 	}
-	return nil, fmt.Errorf("language not supported: %s", language)
+	return nil, fmt.Errorf("mime type not supported: %s", mime)
 }
 
 // return a copy of the origin map but encoded in json string for array and object

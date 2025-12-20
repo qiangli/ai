@@ -30,12 +30,12 @@ func NewDoClient(baseUrl, token string) *DoClient {
 }
 
 func (r *DoClient) Call(ctx context.Context, vars *api.Vars, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
-	if tf.Body == nil || (tf.Body.Url == "" && tf.Body.Code == "") {
+	if tf.Body == nil || tf.Body.Script == "" {
 		return nil, fmt.Errorf("no function body: %s", tf.ID())
 	}
 	requestBody := map[string]any{
-		"url":  tf.Body.Url,
-		"code": tf.Body.Code,
+		// "url":  tf.Body.Url,
+		"code": tf.Body.Script,
 		"args": args,
 	}
 

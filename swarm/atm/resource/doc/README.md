@@ -2,20 +2,22 @@
 
 mime-type = 
 
-text/x-go-template
-application/x-go
+tpl   text/x-go-template
+uri   text/uri-list
 
+
+go   application/x-go
 
 
 yaml application/yaml
-json application/json
 sh   application/x-sh
 
 md    text/markdown
 txt   text/plain
-js    text/javascript
 
-uri   text/uri-list
+json application/json
+
+js    text/javascript
 
 
 
