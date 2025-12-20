@@ -50,7 +50,8 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 		sw.Vars.Global.Set(key, val)
 		return ""
 	}
-	fm["env"] = setenv
+	fm["setenv"] = setenv
+	fm["count"] = count
 	//
 	fm["expandenv"] = func(s string) string {
 		// bash name is leaked with os.Expand but ok.

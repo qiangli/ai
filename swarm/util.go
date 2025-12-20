@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"reflect"
 	"strings"
 	// "github.com/u-root/u-root/pkg/shlex"
 	// "github.com/qiangli/ai/swarm/api"
@@ -228,4 +229,31 @@ func tail(data string, n int) string {
 		return strings.Join(lines[n:], "\n")
 	}
 	return ""
+}
+
+func count(obj any) int {
+	switch v := obj.(type) {
+	case []byte: // uint8
+		return len(v)
+	case string:
+		return len(splitLines(v))
+	case []int, []int8, []int16, []int32, []int64,
+		[]uint, []uint16, []uint32, []uint64,
+		[]string, []float64, []float32, []struct{}:
+		return reflect.ValueOf(obj).Len()
+	case int, int8, int16, int32, int64,
+		uint, uint8, uint16, uint32, uint64,
+		float32, float64,
+		complex64, complex128:
+		// Return 1 for single value
+		return 1
+	case struct{}:
+		return reflect.TypeOf(obj).NumField()
+	default:
+		return 0
+	}
+}
+
+func splitLines(text string) []string {
+	return strings.Split(text, "\n")
 }
