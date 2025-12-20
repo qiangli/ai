@@ -1,13 +1,5 @@
 ###
 set: <model set name>
-provider: "anthropic | gemini | openai"
-# for openai-compatible services, you need to change to the appropriate base url.
-base_url: "https://api.openai.com/v1/"
-# specify the name of the api key entry you added at:
-# https://ai.dhnt.io/settings/api-key
-# DONOT set your actual API key/token here.
-api_key: "<any-string>"
-
 models:
   # you may use any string as the level key.
   # if you use L1, L2, L3. "any" can be specifed in your agent configuration to refer to any of them and in that search order.
@@ -15,7 +7,14 @@ models:
     # valid model name from your service provider
     model: "<model name>"
     # the following can be omitted if provided at the top level of this configuration.
-    provider: ""
-    api_key: ""
-    base_url: ""
+    provider: "anthropic | gemini | openai"
+    # for openai-compatible services, you need to change to the appropriate base url.
+    base_url: "https://api.openai.com/v1/"
+    # specify the name of the api key entry you added at:
+    # https://ai.dhnt.io/settings/api-key
+    # DONOT set your actual API key/token here.
+    # By default api_key defaults to the provider name, namely, andhropic. gemini, openai 
+    # if not specified
+    api_key: "<any-string>"
+
 ###
