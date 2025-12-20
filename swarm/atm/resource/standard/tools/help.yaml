@@ -12,8 +12,8 @@ tools:
       the "ai" command line tool.
     parameters: {}
     body:
-      language: "golang"
-      code: |
+      mime_type: "application/x-go"
+      script: |
         import "fmt"
         const help_action =`
 

@@ -15,7 +15,7 @@ agents:
       Act as an expert architect engineer and provide direction to your editor engineer.
     model: "llm/L1"
     environment:
-      language: "python"
+      mime_type: "python"
       original_query: "{{.query}}"
     instruction: |
       Detect the user's programming language from their request

@@ -61,8 +61,8 @@ agents:
             required:
               - <param_name>  # List required parameter names here
           body:
-            language: "golang"
-            code: |
+            mime_type: "application/x-go"
+            script: |
               // Golang code goes here
       ```
 

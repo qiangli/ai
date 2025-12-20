@@ -271,8 +271,8 @@ tools:
           description: "Your detailed reflection on research progress, findings, gaps, and next steps"
       required: ["reflection"]
     body:
-      language: "template"
-      code: |
+      mime_type: "text/x-go-template"
+      script: |
         #!
         Reflection recorded: {{.reflection}}
 

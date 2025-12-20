@@ -9,8 +9,8 @@ tools:
     parameters: {}
     type: "func"
     body:
-      language: "golang"
-      code: |
+      mime_type: "application/x-go"
+      script: |
         import "fmt"
         const desc = `
         Search the web and fetch the content from a URL.

@@ -11,8 +11,8 @@ tools:
     parameters: {}
     type: "func"
     body:
-      language: "template"
-      code: |
+      mime_type: "text/x-go-template"
+      script: |
         #!
         A set of tools for executing agent, tool, system command actions
         and applying templates.
@@ -25,8 +25,8 @@ tools:
 
         ## Templates
           + apply
-      # language: "golang"
-      # code: |
+      # mime_type: "application/x-go"
+      # script: |
       #   import "fmt"
       #   const desc = `
       #   A set of tools for executing agent, tool, system command actions

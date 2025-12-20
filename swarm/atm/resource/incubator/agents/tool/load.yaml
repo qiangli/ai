@@ -16,8 +16,8 @@ tools:
               - base
               - subdir
       body:
-          language: "golang"
-          code: |
+          mime_type: "application/x-go"
+          script: |
               package main
 
               import (

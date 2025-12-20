@@ -44,8 +44,8 @@ tools:
         - greeting
         - names
     body:
-      language: "golang"
-      code: |
+      mime_type: "application/x-go"
+      script: |
         #! mime-type=text/x-go-template
         import "encoding/json"
         import "fmt"

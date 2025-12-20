@@ -42,7 +42,7 @@ tools:
         - query
     body:
       language: python
-      code: |
+      script: |
         import http.client
         import urllib.parse
         import ssl

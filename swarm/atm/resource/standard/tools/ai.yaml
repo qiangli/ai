@@ -17,8 +17,8 @@ tools:
     parameters: {}
     type: "func"
     body:
-      language: "golang"
-      code: |
+      mime_type: "application/x-go"
+      script: |
         import "fmt"
         const desc = `
         A set of tools for managing agents and tools.
