@@ -2,10 +2,11 @@ package atm
 
 import (
 	"context"
-	// "errors"
 	"fmt"
 	"maps"
 	"net/url"
+
+	"github.com/cenkalti/backoff/v4"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
@@ -125,6 +126,28 @@ func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, arg
 	}
 }
 
+// Run a command and kill it if it runs more than a specified duration
+//
+// Synopsis:
+//
+//	timeout [-t duration-string] command [args...]
+//
+// Description:
+//
+//	timeout will run the command until it succeeds or too much time has passed.
+//	The default timeout is 30s.
+//	If no args are given, it will print a usage error.
+//
+// Example:
+//
+//	$ timeout echo hi
+//	hi
+//	$
+//	$./timeout -t 5s bash -c 'sleep 40'
+//	$ 2022/03/31 14:47:32 signal: killed
+//	$./timeout  -t 5s bash -c 'sleep 40'
+//	$ 2022/03/31 14:47:40 signal: killed
+//	$./timeout  -t 5s bash -c 'sleep 1'
 func (r *SystemKit) Timeout(ctx context.Context, vars *api.Vars, name string, args api.ArgMap) (any, error) {
 	cmdline := args.GetString("command")
 	if len(cmdline) == 0 {
@@ -170,4 +193,59 @@ func (r *SystemKit) Timeout(ctx context.Context, vars *api.Vars, name string, ar
 	case <-ctx.Done():
 		return nil, fmt.Errorf("%q timed out after %v: %v", kn, duration, ctx.Err())
 	}
+}
+
+// Run a command, repeatedly, until it succeeds or we are out of time
+//
+// Synopsis:
+//
+//	backoff -v [-t duration-string] command [args...]
+//
+// Description:
+//
+//	backoff will run the command until it succeeds or a timeout has passed.
+//	The default timeout is 30s.
+//	If -v is set, it will show what it is running, each time it is tried.
+//	If no args are given, it will print command help.
+//
+// Example:
+//
+//	$ backoff echo hi
+//	hi
+//	$
+//	$ backoff -v -t=2s false
+//	  2022/03/31 14:29:37 Run ["false"]
+//	  2022/03/31 14:29:37 Set timeout to 2s
+//	  2022/03/31 14:29:37 "false" []:exit status 1
+//	  2022/03/31 14:29:38 "false" []:exit status 1
+//	  2022/03/31 14:29:39 "false" []:exit status 1
+//	  2022/03/31 14:29:39 Error: exit status 1
+func (r *SystemKit) Backoff(ctx context.Context, vars *api.Vars, name string, args api.ArgMap) (any, error) {
+	cmdline := args.GetString("command")
+	if len(cmdline) == 0 {
+		return "", fmt.Errorf("command is empty")
+	}
+	cmdArgs, err := conf.Parse(cmdline)
+	if err != nil {
+		return nil, err
+	}
+	kn := cmdArgs.Kitname()
+
+	duration := args.GetDuration("duration")
+
+	var result any
+
+	b := backoff.NewExponentialBackOff()
+	b.MaxElapsedTime = duration
+	f := func() error {
+		v, err := vars.RootAgent.Runner.Run(ctx, kn.ID(), cmdArgs)
+		result = v
+		return err
+	}
+
+	err = backoff.Retry(f, b)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }

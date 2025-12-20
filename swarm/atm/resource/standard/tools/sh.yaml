@@ -188,7 +188,7 @@ tools:
             Specifies the command line to be parsed.
       required:
         - command
-  
+
   - name: "timeout"
     description: |
       Run action with a time limit.
@@ -206,7 +206,7 @@ tools:
               timeout /bin/ls
               timeout /sh:bash --script "data:,#!\n/bin/ls /tmp"
               timeout /agent:joker --message "tell me a joke"
-            
+
             Start the action with options, and cancel it if still running after the specified duration.
         duration:
           type: "string"
@@ -215,5 +215,24 @@ tools:
             for seconds (the default), 'm' for minutes, 'h' for hours, or 'd'
             for days.  
             A duration of 0 disables the associated timeout.
+      required:
+        - command
+
+  - name: "backoff"
+    description: |
+      Run a command, repeatedly, until it succeeds or we are out of time.
+    parameters:
+      type: "object"
+      properties:
+        command:
+          type: "string"
+          description: |
+            The action with arguements to run.
+        duration:
+          type: "string"
+          description: |
+            Duration is a number with an optional suffix: 's'
+            for seconds (the default), 'm' for minutes, 'h' for hours, or 'd'
+            for days.
       required:
         - command
