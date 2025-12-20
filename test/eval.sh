@@ -53,7 +53,7 @@ template='data:,
 {{.query}}
 
 >>> Result:
-{{.result.Value}}
+{{.result |fromJson |toPrettyJson}}
 
 >>> Error:
 {{.error}}

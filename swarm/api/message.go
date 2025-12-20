@@ -45,13 +45,12 @@ type Request struct {
 	Arguments *Arguments `json:"arguments"`
 
 	// LLM
-	Model *Model `json:"model"`
+	Model *Model      `json:"model"`
+	Tools []*ToolFunc `json:"tools"`
 
 	Messages []*Message `json:"messages"`
 
 	Runner ActionRunner `json:"-"`
-
-	Tools []*ToolFunc `json:"tools"`
 
 	// get api token for LLM model
 	Token func() string `json:"-"`
@@ -88,6 +87,9 @@ func (r *Request) MemOption() *MemOption {
 	}
 	o.MaxHistory = r.Arguments.GetInt("max_history")
 	o.MaxSpan = r.Arguments.GetInt("max_span")
+	o.Offset = r.Arguments.GetInt("offset")
+	o.Roles = r.Arguments.GetStringSlice("roles")
+
 	return &o
 }
 

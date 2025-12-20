@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"maps"
 	"strings"
-	"sync"
+	// "sync"
 )
 
 type State int
@@ -75,8 +75,10 @@ func NewAction(id string, name string, args map[string]any) *Action {
 }
 
 type Arguments struct {
-	Args map[string]any `json:"args"`
-	mu   sync.RWMutex   `json:"-"`
+	Args ArgMap `json:"args"`
+
+	// TODO redesign - comment out for now
+	// mu   sync.RWMutex   `json:"-"`
 }
 
 func NewArguments() *Arguments {
@@ -95,8 +97,8 @@ func (r *Arguments) SetMessage(s any) *Arguments {
 }
 
 func (r *Arguments) Get(key string) (any, bool) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+	// r.mu.RLock()
+	// defer r.mu.RUnlock()
 	v, ok := r.Args[key]
 	return v, ok
 }
@@ -115,16 +117,20 @@ func (r *Arguments) GetInt(key string) int {
 	return 0
 }
 
+func (r *Arguments) GetStringSlice(key string) []string {
+	return r.Args.GetStringSlice(key)
+}
+
 func (r *Arguments) Set(key string, val any) *Arguments {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	// r.mu.Lock()
+	// defer r.mu.Unlock()
 	r.Args[key] = val
 	return r
 }
 
 func (r *Arguments) AddArgs(args map[string]any) *Arguments {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	// r.mu.Lock()
+	// defer r.mu.Unlock()
 	maps.Copy(r.Args, args)
 	return r
 }
@@ -132,8 +138,8 @@ func (r *Arguments) AddArgs(args map[string]any) *Arguments {
 // clear all entries and copy args
 // while maintaining the same old reference
 func (r *Arguments) SetArgs(args map[string]any) *Arguments {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	// r.mu.Lock()
+	// defer r.mu.Unlock()
 	for k := range r.Args {
 		delete(r.Args, k)
 	}
@@ -147,8 +153,8 @@ func (r *Arguments) GetAllArgs() map[string]any {
 
 // Return args specified by keys
 func (r *Arguments) GetArgs(keys []string) map[string]any {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+	// r.mu.RLock()
+	// defer r.mu.RUnlock()
 	args := make(map[string]any)
 	if len(keys) == 0 {
 		maps.Copy(args, r.Args)
@@ -161,15 +167,15 @@ func (r *Arguments) GetArgs(keys []string) map[string]any {
 }
 
 func (r *Arguments) Copy(dst map[string]any) *Arguments {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+	// r.mu.RLock()
+	// defer r.mu.RUnlock()
 	maps.Copy(dst, r.Args)
 	return r
 }
 
 func (r *Arguments) Clone() *Arguments {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	// r.mu.Lock()
+	// defer r.mu.Unlock()
 
 	args := make(map[string]any)
 	maps.Copy(args, r.Args)
