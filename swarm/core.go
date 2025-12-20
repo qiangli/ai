@@ -173,12 +173,12 @@ func (sw *Swarm) serve(creator api.Creator, req *api.Request, resp *api.Response
 				addAll(a.Parent)
 			}
 			if a.Arguments != nil {
-				agent.Arguments.AddArgs(a.Arguments.GetAllArgs())
+				agent.Arguments.AddArgs(a.Arguments)
 			}
 		}
 		addAll(req.Agent)
 		if req.Arguments != nil {
-			agent.Arguments.AddArgs(req.Arguments.GetAllArgs())
+			agent.Arguments.AddArgs(req.Arguments)
 		}
 
 		// init

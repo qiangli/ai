@@ -58,13 +58,13 @@ func InitEnvMiddleware(sw *Swarm) api.Middleware {
 			var args = make(map[string]any)
 			maps.Copy(args, envs)
 			if agent.Arguments != nil {
-				aargs := agent.Arguments.GetAllArgs()
+				aargs := agent.Arguments
 				if err := sw.mapAssign(ctx, agent, args, aargs, true); err != nil {
 					return err
 				}
 			}
 			if req.Arguments != nil {
-				rargs := req.Arguments.GetAllArgs()
+				rargs := req.Arguments
 				if err := sw.mapAssign(ctx, agent, args, rargs, true); err != nil {
 					return err
 				}
@@ -123,7 +123,7 @@ func ApplyEnv(global map[string]any, agent *api.Agent, args map[string]any) erro
 	maps.Copy(nargs, envs)
 	if agent.Arguments != nil {
 		// aargs := agent.Arguments.GetAllArgs()
-		if err := mapAssign(agent.Template, nargs, agent.Arguments.GetAllArgs()); err != nil {
+		if err := mapAssign(agent.Template, nargs, agent.Arguments); err != nil {
 			return err
 		}
 	}

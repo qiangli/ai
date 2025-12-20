@@ -28,7 +28,7 @@ func QueryMiddleware(sw *Swarm) api.Middleware {
 			logger := log.GetLogger(req.Context())
 			logger.Debugf("🔗 (query): %s\n", agent.Name)
 
-			var allArgs = req.Arguments.GetAllArgs()
+			var allArgs = req.Arguments
 
 			// convert user message into query if not set
 			// var query = agent.Query()

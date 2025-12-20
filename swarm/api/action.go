@@ -82,7 +82,7 @@ func NewAction(id string, name string, args map[string]any) *Action {
 // 	// mu   sync.RWMutex   `json:"-"`
 // }
 
-type Arguments ArgMap
+type Arguments = ArgMap
 
 // func NewArguments() *Arguments {
 // 	return &Arguments{
@@ -94,46 +94,47 @@ func NewArguments() Arguments {
 	return make(map[string]any)
 }
 
-func (r Arguments) Message() string {
-	return r.GetString("message")
-}
+// func (r Arguments) Message() string {
+// 	return r.GetString("message")
+// }
 
-func (r Arguments) SetMessage(s any) Arguments {
-	r.Set("message", s)
-	return r
-}
+// func (r Arguments) SetMessage(s any) Arguments {
+// 	r.Set("message", s)
+// 	return r
+// }
 
-func (r Arguments) Get(key string) (any, bool) {
+// TODO get rid of this
+func (r Arguments) Get2(key string) (any, bool) {
 	// r.mu.RLock()
 	// defer r.mu.RUnlock()
 	v, ok := r[key]
 	return v, ok
 }
 
-func (r Arguments) GetString(key string) string {
-	if v, ok := r.Get(key); ok {
-		return ToString(v)
-	}
-	return ""
-}
+// func (r Arguments) GetString(key string) string {
+// 	if v, ok := r.Get(key); ok {
+// 		return ToString(v)
+// 	}
+// 	return ""
+// }
 
-func (r Arguments) GetInt(key string) int {
-	if v, ok := r.Get(key); ok {
-		return ToInt(v)
-	}
-	return 0
-}
+// func (r Arguments) GetInt(key string) int {
+// 	if v, ok := r.Get(key); ok {
+// 		return ToInt(v)
+// 	}
+// 	return 0
+// }
 
-func (r Arguments) GetStringSlice(key string) []string {
-	return r.GetStringSlice(key)
-}
+// func (r Arguments) GetStringSlice(key string) []string {
+// 	return r.GetStringSlice(key)
+// }
 
-func (r Arguments) Set(key string, val any) Arguments {
-	// r.mu.Lock()
-	// defer r.mu.Unlock()
-	r[key] = val
-	return r
-}
+// func (r Arguments) Set(key string, val any) Arguments {
+// 	// r.mu.Lock()
+// 	// defer r.mu.Unlock()
+// 	r[key] = val
+// 	return r
+// }
 
 func (r Arguments) AddArgs(args map[string]any) Arguments {
 	// r.mu.Lock()
@@ -154,9 +155,9 @@ func (r Arguments) SetArgs(args map[string]any) Arguments {
 	return r
 }
 
-func (r Arguments) GetAllArgs() map[string]any {
-	return r.GetArgs(nil)
-}
+// func (r Arguments) GetAllArgs() map[string]any {
+// 	return r.GetArgs(nil)
+// }
 
 // Return args specified by keys
 func (r Arguments) GetArgs(keys []string) map[string]any {

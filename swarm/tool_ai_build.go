@@ -79,7 +79,7 @@ func (r *AIKit) newAgent(ctx context.Context, vars *api.Vars, tf string, args ma
 	// agent args
 	// local arg takes precedence, skip if it already exists
 	if agent.Arguments != nil {
-		if err := r.sw.mapAssign(ctx, agent, args, agent.Arguments.GetAllArgs(), false); err != nil {
+		if err := r.sw.mapAssign(ctx, agent, args, agent.Arguments, false); err != nil {
 			return nil, err
 		}
 	}

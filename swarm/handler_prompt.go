@@ -26,7 +26,7 @@ func InstructionMiddleware(sw *Swarm) api.Middleware {
 			logger := log.GetLogger(req.Context())
 			logger.Debugf("🔗 (instruction): %s\n", agent.Name)
 
-			var env = req.Arguments.GetAllArgs()
+			var env = req.Arguments
 			var instructions []string
 
 			add := func(in string) error {

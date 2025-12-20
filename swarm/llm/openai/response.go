@@ -211,14 +211,14 @@ func defineToolV3(name, description string, parameters map[string]any) responses
 func setResponseNewParams(params *responses.ResponseNewParams, args api.Arguments) {
 	// Whether to run the model response in the background.
 	// [Learn more](https://platform.openai.com/docs/guides/background).
-	if v, ok := args.Get("background"); ok {
+	if v, ok := args.Get2("background"); ok {
 		params.Background = openai.Bool(toBool(v, false))
 	}
 
 	// An upper bound for the number of tokens that can be generated for a response,
 	// including visible output tokens and
 	// [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
-	if v, ok := args.Get("max_output_tokens"); ok {
+	if v, ok := args.Get2("max_output_tokens"); ok {
 		params.MaxOutputTokens = openai.Int(toInt64(v, 512))
 	}
 
@@ -226,17 +226,17 @@ func setResponseNewParams(params *responses.ResponseNewParams, args api.Argument
 	// response. This maximum number applies across all built-in tool calls, not per
 	// individual tool. Any further attempts to call a tool by the model will be
 	// ignored.
-	if v, ok := args.Get("max_tool_calls"); ok {
+	if v, ok := args.Get2("max_tool_calls"); ok {
 		params.MaxToolCalls = openai.Int(toInt64(v, 0))
 	}
 
 	// Whether to allow the model to run tool calls in parallel.
-	if v, ok := args.Get("parallel_tool_calls"); ok {
+	if v, ok := args.Get2("parallel_tool_calls"); ok {
 		params.ParallelToolCalls = openai.Bool(toBool(v, false))
 	}
 
 	// Whether to store the generated model response for later retrieval via API.
-	if v, ok := args.Get("store"); ok {
+	if v, ok := args.Get2("store"); ok {
 		params.Store = openai.Bool(toBool(v, false))
 	}
 
@@ -244,13 +244,13 @@ func setResponseNewParams(params *responses.ResponseNewParams, args api.Argument
 	// make the output more random, while lower values like 0.2 will make it more
 	// focused and deterministic. We generally recommend altering this or `top_p` but
 	// not both.
-	if v, ok := args.Get("temperature"); ok {
+	if v, ok := args.Get2("temperature"); ok {
 		params.Temperature = openai.Float(toFloat64(v, 0.2))
 	}
 
 	// An integer between 0 and 20 specifying the number of most likely tokens to
 	// return at each token position, each with an associated log probability.
-	if v, ok := args.Get("top_logprobs"); ok {
+	if v, ok := args.Get2("top_logprobs"); ok {
 		params.TopLogprobs = openai.Int(toInt64(v, 0))
 	}
 
@@ -259,7 +259,7 @@ func setResponseNewParams(params *responses.ResponseNewParams, args api.Argument
 	// means only the tokens comprising the top 10% probability mass are considered.
 	//
 	// We generally recommend altering this or `temperature` but not both.
-	if v, ok := args.Get("top_p"); ok {
+	if v, ok := args.Get2("top_p"); ok {
 		params.TopP = openai.Float(toFloat64(v, 0.1))
 	}
 }
