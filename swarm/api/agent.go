@@ -98,7 +98,7 @@ type Agent struct {
 	Environment *Environment `json:"environment"`
 
 	// default values
-	Arguments *Arguments `json:"arguments"`
+	Arguments Arguments `json:"arguments"`
 
 	// assigned at buildtime/runtime
 	Parent   *Agent             `json:"-"`
@@ -142,7 +142,7 @@ type Flow struct {
 	Script     string    `json:"script"`
 }
 
-func (a *Agent) cloneArguments() *Arguments {
+func (a *Agent) cloneArguments() Arguments {
 	if a.Arguments == nil {
 		return nil
 	}

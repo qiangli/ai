@@ -208,7 +208,7 @@ func defineToolV3(name, description string, parameters map[string]any) responses
 	}
 }
 
-func setResponseNewParams(params *responses.ResponseNewParams, args *api.Arguments) {
+func setResponseNewParams(params *responses.ResponseNewParams, args api.Arguments) {
 	// Whether to run the model response in the background.
 	// [Learn more](https://platform.openai.com/docs/guides/background).
 	if v, ok := args.Get("background"); ok {

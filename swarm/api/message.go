@@ -41,8 +41,8 @@ type Request struct {
 	Agent *Agent `json:"agent"`
 
 	// active action name
-	Name      string     `json:"name"`
-	Arguments *Arguments `json:"arguments"`
+	Name      string    `json:"name"`
+	Arguments Arguments `json:"arguments"`
 
 	// LLM
 	Model *Model      `json:"model"`

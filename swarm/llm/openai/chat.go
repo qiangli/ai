@@ -124,6 +124,8 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 				MimeType: "text/plain",
 				Value:    completion.Choices[0].Message.Content,
 			}
+
+			// request completed
 			return resp, nil
 		}
 
@@ -160,6 +162,8 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 			params.Messages = append(params.Messages, openai.ToolMessage(out.Value, calls[i].ID))
 		}
 	}
+
+	// not finished due the max turns reached
 	if resp.Result == nil {
 		return nil, fmt.Errorf("Empty response. Max turns reached: %v", maxTurns)
 	}
@@ -201,7 +205,7 @@ func toContentPart(mimeType string, raw []byte) []openai.ChatCompletionContentPa
 		}
 	}
 }
-func setChatCompletionNewParams(params *openai.ChatCompletionNewParams, args *api.Arguments) {
+func setChatCompletionNewParams(params *openai.ChatCompletionNewParams, args api.Arguments) {
 	// Number between -2.0 and 2.0. Positive values penalize new tokens based on their
 	// existing frequency in the text so far, decreasing the model's likelihood to
 	// repeat the same line verbatim.

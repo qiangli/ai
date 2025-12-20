@@ -42,14 +42,14 @@ func genVideo(ctx context.Context, req *api.Request) (*api.Response, error) {
 		Size:    openai.VideoSize720x1280,
 	}
 
-	getStrArg := func(key string, args *api.Arguments, val string) string {
+	getStrArg := func(key string, args api.Arguments, val string) string {
 		v := args.GetString(key)
 		if v != "" {
 			return v
 		}
 		return val
 	}
-	getIntArg := func(key string, args *api.Arguments, val int) int {
+	getIntArg := func(key string, args api.Arguments, val int) int {
 		v := args.GetInt(key)
 		if v != 0 {
 			return v

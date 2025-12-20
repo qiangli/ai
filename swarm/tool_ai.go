@@ -221,6 +221,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	req.Query = query
 	req.Prompt = prompt
 	req.Messages = history
+	req.Arguments = args
 	req.Model = model
 	req.Token = token
 	req.Tools = tools

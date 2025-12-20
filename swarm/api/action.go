@@ -61,127 +61,135 @@ type Action struct {
 	Name string `json:"name"`
 
 	// arguments including name
-	Arguments *Arguments `json:"arguments"`
+	Arguments Arguments `json:"arguments"`
 }
 
 func NewAction(id string, name string, args map[string]any) *Action {
 	return &Action{
 		ID:   id,
 		Name: name,
-		Arguments: &Arguments{
-			Args: args,
-		},
+		// Arguments: &Arguments{
+		// 	Args: args,
+		// },
+		Arguments: args,
 	}
 }
 
-type Arguments struct {
-	Args ArgMap `json:"args"`
+// type Arguments struct {
+// 	Args ArgMap `json:"args"`
 
-	// TODO redesign - comment out for now
-	// mu   sync.RWMutex   `json:"-"`
+// 	// TODO redesign - comment out for now
+// 	// mu   sync.RWMutex   `json:"-"`
+// }
+
+type Arguments ArgMap
+
+// func NewArguments() *Arguments {
+// 	return &Arguments{
+// 		Args:  make(map[string]any),
+// 	}
+// }
+
+func NewArguments() Arguments {
+	return make(map[string]any)
 }
 
-func NewArguments() *Arguments {
-	return &Arguments{
-		Args: make(map[string]any),
-	}
-}
-
-func (r *Arguments) Message() string {
+func (r Arguments) Message() string {
 	return r.GetString("message")
 }
 
-func (r *Arguments) SetMessage(s any) *Arguments {
+func (r Arguments) SetMessage(s any) Arguments {
 	r.Set("message", s)
 	return r
 }
 
-func (r *Arguments) Get(key string) (any, bool) {
+func (r Arguments) Get(key string) (any, bool) {
 	// r.mu.RLock()
 	// defer r.mu.RUnlock()
-	v, ok := r.Args[key]
+	v, ok := r[key]
 	return v, ok
 }
 
-func (r *Arguments) GetString(key string) string {
+func (r Arguments) GetString(key string) string {
 	if v, ok := r.Get(key); ok {
 		return ToString(v)
 	}
 	return ""
 }
 
-func (r *Arguments) GetInt(key string) int {
+func (r Arguments) GetInt(key string) int {
 	if v, ok := r.Get(key); ok {
 		return ToInt(v)
 	}
 	return 0
 }
 
-func (r *Arguments) GetStringSlice(key string) []string {
-	return r.Args.GetStringSlice(key)
+func (r Arguments) GetStringSlice(key string) []string {
+	return r.GetStringSlice(key)
 }
 
-func (r *Arguments) Set(key string, val any) *Arguments {
+func (r Arguments) Set(key string, val any) Arguments {
 	// r.mu.Lock()
 	// defer r.mu.Unlock()
-	r.Args[key] = val
+	r[key] = val
 	return r
 }
 
-func (r *Arguments) AddArgs(args map[string]any) *Arguments {
+func (r Arguments) AddArgs(args map[string]any) Arguments {
 	// r.mu.Lock()
 	// defer r.mu.Unlock()
-	maps.Copy(r.Args, args)
+	maps.Copy(r, args)
 	return r
 }
 
 // clear all entries and copy args
 // while maintaining the same old reference
-func (r *Arguments) SetArgs(args map[string]any) *Arguments {
+func (r Arguments) SetArgs(args map[string]any) Arguments {
 	// r.mu.Lock()
 	// defer r.mu.Unlock()
-	for k := range r.Args {
-		delete(r.Args, k)
+	for k := range r {
+		delete(r, k)
 	}
-	maps.Copy(r.Args, args)
+	maps.Copy(r, args)
 	return r
 }
 
-func (r *Arguments) GetAllArgs() map[string]any {
+func (r Arguments) GetAllArgs() map[string]any {
 	return r.GetArgs(nil)
 }
 
 // Return args specified by keys
-func (r *Arguments) GetArgs(keys []string) map[string]any {
+func (r Arguments) GetArgs(keys []string) map[string]any {
 	// r.mu.RLock()
 	// defer r.mu.RUnlock()
 	args := make(map[string]any)
 	if len(keys) == 0 {
-		maps.Copy(args, r.Args)
+		maps.Copy(args, r)
 		return args
 	}
 	for _, k := range keys {
-		args[k] = r.Args[k]
+		args[k] = r[k]
 	}
 	return args
 }
 
-func (r *Arguments) Copy(dst map[string]any) *Arguments {
+func (r Arguments) Copy(dst map[string]any) Arguments {
 	// r.mu.RLock()
 	// defer r.mu.RUnlock()
-	maps.Copy(dst, r.Args)
+	maps.Copy(dst, r)
 	return r
 }
 
-func (r *Arguments) Clone() *Arguments {
+func (r Arguments) Clone() Arguments {
 	// r.mu.Lock()
 	// defer r.mu.Unlock()
 
 	args := make(map[string]any)
-	maps.Copy(args, r.Args)
-	return &Arguments{
-		Args: args,
-	}
+	maps.Copy(args, r)
+	// return &Arguments{
+	// 	Args: args,
+	// }
+	return args
 }
 
 // openai: ChatCompletionMessageToolCallUnion
@@ -193,9 +201,10 @@ func NewToolCall(id string, name string, args map[string]any) *ToolCall {
 	tc := &ToolCall{
 		ID:   id,
 		Name: name,
-		Arguments: &Arguments{
-			Args: args,
-		},
+		// Arguments: &Arguments{
+		// 	Args: args,
+		// },
+		Arguments: args,
 	}
 	return tc
 }
