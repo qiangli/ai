@@ -332,7 +332,7 @@ func (sw *Swarm) execm(ctx context.Context, parent *api.Agent, argm map[string]a
 }
 
 // Run agent action. if custom config is detected. try load the agent from it.
-func (sw *Swarm) runm(ctx context.Context, parent *api.Agent, name string, args map[string]any) (*api.Result, error) {
+func (sw *Swarm) runmx(ctx context.Context, parent *api.Agent, name string, args map[string]any) (*api.Result, error) {
 	var creator = sw.CreateAgent
 
 	// load agent from content
@@ -416,20 +416,20 @@ func (sw *Swarm) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFun
 	return result, err
 }
 
-func (sw *Swarm) callAgentType(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
-	// agent tool
-	if tf.Kit == string(api.ToolTypeAgent) {
-		return sw.runm(ctx, agent, tf.Agent, args)
-	}
-	return nil, api.NewUnsupportedError("agent kit: " + tf.Kit)
-}
+// func (sw *Swarm) callAgentType(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
+// 	// agent tool
+// 	if tf.Kit == string(api.ToolTypeAgent) {
+// 		return sw.runm(ctx, agent, tf.Agent, args)
+// 	}
+// 	return nil, api.NewUnsupportedError("agent kit: " + tf.Kit)
+// }
 
 func (sw *Swarm) callAIType(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	aiKit := NewAIKit(sw, agent)
 	return aiKit.Call(ctx, sw.Vars, tf, args)
 }
 
-func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc, args map[string]any) (*api.Result, error) {
+func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
 	// ai
 	if v.Type == api.ToolTypeAI {
 		out, err := sw.callAIType(ctx, agent, v, args)
@@ -441,11 +441,14 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 
 	// agent tool
 	if v.Type == api.ToolTypeAgent {
-		out, err := sw.callAgentType(ctx, agent, v, args)
-		if err != nil {
-			return nil, err
-		}
-		return api.ToResult(out), nil
+		// out, err := sw.callAgentType(ctx, agent, v, args)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// return api.ToResult(out), nil
+		aiKit := NewAIKit(sw, agent)
+		args["agent"] = v.Name
+		return aiKit.SpawnAgent(ctx, sw.Vars, api.Kitname("agent:"+v.Name).ID(), args)
 	}
 
 	// misc kits

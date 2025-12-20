@@ -361,16 +361,35 @@ func (r *AIKit) TransferAgent(_ context.Context, _ *api.Vars, _ string, args map
 	}, nil
 }
 
-func (r *AIKit) SpawnAgent(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	name, err := api.GetStrProp("agent", args)
+func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, id string, args map[string]any) (*api.Result, error) {
+	var name string
+	if id != "" {
+		kit, v := api.Kitname(id).Decode()
+		if kit != string(api.ToolTypeAgent) {
+			return nil, fmt.Errorf("invalid agent tool id: %s", id)
+		}
+		name = v
+		args["agent"] = name
+	} else {
+		v, err := api.GetStrProp("agent", args)
+		if err != nil {
+			return nil, err
+		}
+		if v == "" {
+			return nil, fmt.Errorf("missing agent name")
+		}
+		name = v
+	}
+
+	// return r.sw.runm(ctx, r.agent, name, args)
+	kit := atm.NewSystemKit()
+	args["flow_type"] = api.FlowTypeSequence
+	args["actions"] = []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
+	result, err := kit.FlowSequence(ctx, vars, args)
 	if err != nil {
 		return nil, err
 	}
-	if name == "" {
-		return nil, fmt.Errorf("missing agent name")
-	}
-
-	return r.sw.runm(ctx, r.agent, name, args)
+	return result, nil
 }
 
 func (r *AIKit) kitname(args map[string]any) api.Kitname {
