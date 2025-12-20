@@ -67,20 +67,16 @@ tools:
       required:
         - command
 
-  # - name: "cd"
-  #   description: "Change the current working directory on user's system."
-  #   parameters:
-  #     type: "object"
-  #     properties:
-  #       dir:
-  #         type: "string"
-  #         description: "The directory to change to."
-  #     required:
-  #       - dir
+  - name: "cd"
+    description: |
+      *Unsupported Command*: Changing the current working directory isn't supported on the user's system. 
+      Please use absolute paths for accessing directories and files. 
+      You may use the fs:list_roots command to identify permissible top-level directories.
+    parameters: {}
 
-  # - name: "pwd"
-  #   description: "Print the current working directory on user's system."
-  #   parameters: {}
+  - name: "pwd"
+    description: "Print the current working directory on user's system."
+    parameters: {}
 
   - name: "flow"
     description: |

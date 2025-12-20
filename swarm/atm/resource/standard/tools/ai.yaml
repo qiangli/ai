@@ -32,6 +32,7 @@ tools:
           + list_tools
           + get_tool_info
           + execute_tool
+
         `
         func main() {
           fmt.Printf(desc)
@@ -107,7 +108,7 @@ tools:
           description: "The name of the agent"
       required:
         - "agent"
-  
+
   - name: "build_agent"
     description: |
       Construct user query based on user's message input. Retrieve the prompt 
@@ -157,7 +158,7 @@ tools:
           description: "The identifier or name of the agent for which the prompt is built"
       required:
         - "agent"
-  
+
   - name: "build_context"
     description: |
       Constructs the system context for the agent based on historical chat messages or other data sources.

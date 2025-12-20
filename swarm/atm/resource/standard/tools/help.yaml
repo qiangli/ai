@@ -12,35 +12,25 @@ tools:
       the "ai" command line tool.
     parameters: {}
     body:
-      mime_type: "application/x-go"
+      mime_type: "text/markdown"
       script: |
-        import "fmt"
-        const help_action =`
+        # Usage:
+        ai [ACTION] [OPTIONS] MESSAGE
 
-        Action:
+        ## Action:
           * Tool: /kit:name
           * Agent: /agent:name
           * System: /bin:name
 
         "agent" and "bin" are builtin tool kits for running agents and system commands as tools.
-        `
-        const help_options = `
 
-        Options:
+        ## Options:
 
-            --message "..."
             --script  "file:///path"
-                      "data:content"
-            --arg name="value"
+                      "data:,content"
+            --option name="value"
             --arguments "{json object map}"
-        `
-        const ai_usage = `
-        Usage:
-        ai [ACTION] [OPTIONS] MESSAGE...
-
-        %s
-
-        %s        
+            --message "..."   
 
         There are multiple ways to enter the message.
 
@@ -59,11 +49,4 @@ tools:
             >
             ai @ed {          
 
-        Use '/ai' tool for more information.
-        `
-        func help() {
-          fmt.Printf(ai_usage, help_action, help_options)
-        }
-        func main() {
-          help()
-        }
+        Use '/ai:help' tool for more information.

@@ -2,6 +2,7 @@ package atm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"net/url"
@@ -13,9 +14,23 @@ import (
 	"github.com/qiangli/ai/swarm/atm/resource"
 )
 
+var cdNotSupportedError = errors.New(`
+*Unsupported Command*: Changing the current working directory isn't supported on the user's system. 
+Please use absolute paths for accessing directories and files. 
+You may use the fs:list_roots command to identify permissible top-level directories.
+`)
+
 // no-op tool that does nothing
 func (r *SystemKit) Pass(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	return "", nil
+}
+
+func (r *SystemKit) Cd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	return "", cdNotSupportedError
+}
+
+func (r *SystemKit) Pwd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	return vars.RTE.OS.Getwd()
 }
 
 func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
