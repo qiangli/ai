@@ -53,7 +53,7 @@ template='data:,
 {{.query}}
 
 >>> Result:
-{{.result |fromJson |toPrettyJson}}
+{{.result |toPrettyJson}}
 
 >>> Error:
 {{.error}}
@@ -74,5 +74,7 @@ template='data:,
 
 # /sh:flow --actions "$actions" --template "$template" --agent "test" --adapter "$adapter" 
 
+# command line in a terminal:
+# test/eval.sh  --agent joker  --message "what is the weather in dublin ca in the next few days" --arg tools='["web:fetch_content", "web:ddg_search"]'  --max-history 1 --max-turns 10
 
 ###
