@@ -35,7 +35,7 @@ echo "## tool/agent from custom content..."
 atm_script="$(pwd)/swarm/atm/resource/template/atm.yaml"
 echo $atm_script
 
-$DRY /atm:hi --script $atm_script --arg greeting="how are you today?" --arg names='["dragon", "horse"]'
+$DRY /atm:hi --script $atm_script --option greeting="how are you today?" --option names='["dragon", "horse"]'
 $DRY /agent:atm/hi --script $atm_script
 
 #

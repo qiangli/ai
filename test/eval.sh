@@ -38,7 +38,7 @@ adapter="echo"
 # /sh:flow --actions "$actions" --template "$template" --agent "test" --adapter "$adapter" --output file:///tmp/eval.out
 
 
-adapter=""
+adapter="echo"
 # actions='["ai:call_llm", "sh:format"]'
 actions='["ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm", "sh:format"]'
 # actions='["ai:new_agent", "ai:build_query", "sh:format"]'
@@ -61,7 +61,7 @@ template='data:,
 ---
 {{printenv}}
 '
-/sh:flow --actions "$actions" --template "$template" --adapter "$adapter" 
+/sh:flow --agent "joker" --message "what is new today" --actions "$actions" --template "$template" --adapter "$adapter" 
 
 #  full flow:
 
@@ -75,6 +75,6 @@ template='data:,
 # /sh:flow --actions "$actions" --template "$template" --agent "test" --adapter "$adapter" 
 
 # command line in a terminal:
-# test/eval.sh  --agent joker  --message "what is the weather in dublin ca in the next few days" --arg tools='["web:fetch_content", "web:ddg_search"]'  --max-history 1 --max-turns 10
+# test/eval.sh  --agent joker  --message "what is the weather in dublin ca in the next few days" --option tools='["web:fetch_content", "web:ddg_search"]'  --max-history 1 --max-turns 10
 
 ###

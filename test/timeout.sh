@@ -6,7 +6,7 @@ set -xue
 # echo "Test inline data url"
 # echo "tool action, custom bash command, bash builtin, bash command, local command"
 # /sh:bash --script 'data:,#!\nset -x\n/fs:list_roots\nprintenv\necho this is a test\nls -al\ngo version'
-# /fs:list_roots --arg query="hello"
+# /fs:list_roots --option query="hello"
 
 echo "testing..."
 # time /bin/ls -al
@@ -17,7 +17,7 @@ echo "testing..."
 time /agent:joker --message "explain timeout in a unix system" --adapter "echo"
 
 # timeout tests
-# /sh:timeout --command "/sh:exec --command 'sleep 10'"  --arg duration="3s"
-# /sh:timeout --command "/sh:bash --script 'data:,sleep 10'"  --arg duration="3s"
-# /sh:timeout --command "/agent:joker --message 'explain timeout in a unix system'" --arg duration="3s"
+# /sh:timeout --command "/sh:exec --command 'sleep 10'"  --option duration="3s"
+# /sh:timeout --command "/sh:bash --script 'data:,sleep 10'"  --option duration="3s"
+# /sh:timeout --command "/agent:joker --message 'explain timeout in a unix system'" --option duration="3s"
 
