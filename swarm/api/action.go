@@ -53,11 +53,12 @@ func ParseState(state string) State {
 
 type TemplateFuncMap = template.FuncMap
 
+// TODO split name into kit, name|pack/sub|command
 type Action struct {
-	// unique identifier
+	// unique tool call identifier
 	ID string `json:"id"`
 
-	// agent/tool/command name
+	// action (agent/tool/command) name
 	// agent:pack/sub
 	// kit:name
 	// bin:/command
@@ -177,6 +178,7 @@ func (r Arguments) GetArgs(keys []string) map[string]any {
 	return args
 }
 
+// Copye all key/value pairs to dst
 func (r Arguments) Copy(dst map[string]any) Arguments {
 	// r.mu.RLock()
 	// defer r.mu.RUnlock()

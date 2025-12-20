@@ -125,16 +125,14 @@ func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, arg
 	}
 }
 
-// var ErrTimeout = errors.New("Action timeout")
-
 func (r *SystemKit) Timeout(ctx context.Context, vars *api.Vars, name string, args api.ArgMap) (any, error) {
-	// action := args.Actions()
+	action := args.Action()
 
 	duration := args.GetDuration("duration")
 	ctx, cancelCtx := context.WithTimeout(ctx, duration)
 	defer cancelCtx()
 
-	done := make(chan struct{})
+	done := make(chan any)
 	panicChan := make(chan any, 1)
 
 	go func() {
@@ -142,24 +140,27 @@ func (r *SystemKit) Timeout(ctx context.Context, vars *api.Vars, name string, ar
 			if p := recover(); p != nil {
 				panicChan <- p
 			}
+			close(panicChan)
+			close(done)
 		}()
 
-		// if err := h.next.Serve(nreq, resp); err != nil {
-		// 	panicChan <- err
-		// }
+		// Run the action and handle potential errors.
+		result, err := vars.RootAgent.Runner.Run(ctx, action.Name, args)
+		if err != nil {
+			panicChan <- err
+			return
+		}
 
-		close(done)
+		done <- result
 	}()
 
 	select {
 	case p := <-panicChan:
 		return nil, p.(error)
-	case <-done:
-		return nil, nil
+	case result := <-done:
+		return result, nil
 	case <-ctx.Done():
-		// resp.Messages = []*api.Message{{Content: h.content}}
-		// resp.Agent = nil
+		return nil, ctx.Err()
 	}
-
-	return nil, fmt.Errorf("action timedout")
+	// return nil, fmt.Errorf("action timedout")
 }

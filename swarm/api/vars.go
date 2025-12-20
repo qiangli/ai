@@ -319,9 +319,11 @@ func (a ArgMap) Action() *Action {
 	if action, ok := v.(*Action); ok {
 		return action
 	}
-	// if s, ok := v.(string); ok {
-
-	// }
+	if s, ok := v.(string); ok {
+		return &Action{
+			Name: s,
+		}
+	}
 	return nil
 }
 
