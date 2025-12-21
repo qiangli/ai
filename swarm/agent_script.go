@@ -35,7 +35,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 		} else {
 			s, ok := args["script"]
 			if !ok {
-				return "", fmt.Errorf("script not found")
+				return nil, fmt.Errorf("script not found")
 			}
 			if v, err := r.sw.LoadScript(api.ToString(s)); err == nil {
 				script = v
@@ -44,7 +44,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	}
 
 	if script == "" {
-		return "", fmt.Errorf("missing bash command/script")
+		return nil, fmt.Errorf("missing bash command/script")
 	}
 
 	// bash script
@@ -62,12 +62,23 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 		vs.System.Setenv(k, v)
 	}
 
+	// copy args to env
+	for k, v := range args {
+		vs.System.Setenv(k, v)
+	}
+
 	// run bash interpreter
 	err := vs.RunScript(ctx, script)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	result := b.String()
+	// copy back env to args
+	for k, v := range vs.System.Environ() {
+		args[k] = v
+	}
+	result := &api.Result{
+		Value: b.String(),
+	}
 	return result, nil
 }
 
