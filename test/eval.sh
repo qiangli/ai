@@ -38,10 +38,19 @@ adapter="echo"
 # /sh:flow --actions "$actions" --template "$template" --agent "test" --adapter "$adapter" --output file:///tmp/eval.out
 
 
-adapter="echo"
+adapter=""
 # actions='["ai:call_llm", "sh:format"]'
-actions='["ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm", "sh:format"]'
+# actions='["ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm", "sh:format"]'
 # actions='["ai:new_agent", "ai:build_query", "sh:format"]'
+# actions='["ai:new_agent", "ai:build_agent", "ai:call_llm", "sh:format"]'
+# actions='["ai:new_agent", "ai:build_agent", "sh:format"]'
+# actions='["ai:new_agent", "sh:format"]'
+
+# build_agent => build_query, build_prompt, build_context
+# actions='["ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "sh:format"]'
+# actions='["ai:new_agent", "ai:build_agent", "sh:format"]'
+
+actions='["ai:new_agent", "ai:build_agent", "ai:call_llm", "sh:format"]'
 
 # actions='["sh:format"]'
 # actions='["ai:call_llm"]'
@@ -59,9 +68,12 @@ template='data:,
 {{.error}}
 
 ---
+{{.agent}}
+---
 {{printenv}}
 '
 /sh:flow --agent "joker" --message "what is new today" --actions "$actions" --template "$template" --adapter "$adapter" 
+
 
 #  full flow:
 

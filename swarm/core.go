@@ -314,6 +314,8 @@ func (sw *Swarm) exec(ctx context.Context, parent *api.Agent, input any) (*api.R
 
 // default action runner
 func (sw *Swarm) execm(ctx context.Context, parent *api.Agent, argm map[string]any) (*api.Result, error) {
+	log.GetLogger(ctx).Debugf("argm: %+v\n", argm)
+
 	am := api.ArgMap(argm)
 	id := am.Kitname().ID()
 	if id == "" {
@@ -331,20 +333,20 @@ func (sw *Swarm) execm(ctx context.Context, parent *api.Agent, argm map[string]a
 	return result, nil
 }
 
-// Run agent action. if custom config is detected. try load the agent from it.
-func (sw *Swarm) runmx(ctx context.Context, parent *api.Agent, name string, args map[string]any) (*api.Result, error) {
-	var creator = sw.CreateAgent
+// // Run agent action. if custom config is detected. try load the agent from it.
+// func (sw *Swarm) runmx(ctx context.Context, parent *api.Agent, name string, args map[string]any) (*api.Result, error) {
+// 	var creator = sw.CreateAgent
 
-	// load agent from content
-	if s, ok := args["script"]; ok {
-		v, err := sw.creatorFromScript(name, api.ToString(s))
-		if err != nil {
-			return nil, err
-		}
-		creator = v
-	}
-	return sw.runc(ctx, creator, parent, name, args)
-}
+// 	// load agent from content
+// 	if s, ok := args["script"]; ok {
+// 		v, err := sw.creatorFromScript(name, api.ToString(s))
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		creator = v
+// 	}
+// 	return sw.runc(ctx, creator, parent, name, args)
+// }
 
 func (sw *Swarm) creatorFromScript(name, script string) (api.Creator, error) {
 	data, err := sw.LoadScript(script)
@@ -362,20 +364,20 @@ func (sw *Swarm) creatorFromScript(name, script string) (api.Creator, error) {
 	return v, nil
 }
 
-func (sw *Swarm) runc(ctx context.Context, creator api.Creator, parent *api.Agent, name string, args map[string]any) (*api.Result, error) {
-	req := api.NewRequest(ctx, name, args)
-	req.Agent = parent
+// func (sw *Swarm) runc(ctx context.Context, creator api.Creator, parent *api.Agent, name string, args map[string]any) (*api.Result, error) {
+// 	req := api.NewRequest(ctx, name, args)
+// 	req.Agent = parent
 
-	resp := &api.Response{}
-	err := sw.serve(creator, req, resp)
-	if err != nil {
-		return nil, err
-	}
-	if resp.Result == nil {
-		return nil, fmt.Errorf("no output")
-	}
-	return resp.Result, nil
-}
+// 	resp := &api.Response{}
+// 	err := sw.serve(creator, req, resp)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	if resp.Result == nil {
+// 		return nil, fmt.Errorf("no output")
+// 	}
+// 	return resp.Result, nil
+// }
 
 // inherit parent tools including embedded agents
 // TODO cache

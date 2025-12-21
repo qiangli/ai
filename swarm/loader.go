@@ -43,6 +43,9 @@ func (r *ConfigLoader) LoadConfig(s string) (*api.AppConfig, error) {
 
 func (r *ConfigLoader) LoadAgentConfig(pn api.Packname) (*api.AppConfig, error) {
 	pack, sub := pn.Decode()
+	if pack == "" {
+		return nil, fmt.Errorf("pack is missiing")
+	}
 
 	// equqal or the primary agent sub == ""/sub == pack
 	equal := func(s string) bool {
@@ -71,6 +74,10 @@ func (r *ConfigLoader) LoadAgentConfig(pn api.Packname) (*api.AppConfig, error) 
 	if err != nil {
 		return nil, err
 	}
+	if ac == nil {
+		return nil, fmt.Errorf("could not find the confi for pack: %s", pack)
+	}
+
 	for _, v := range ac.Agents {
 		if equal(v.Name) {
 			return ac, nil
