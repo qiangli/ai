@@ -128,9 +128,9 @@ tools:
       mime_type: "application/x-sh"
       script: |
         #!/bin/bash
-        /ai:build_query
-        /ai:build_prompt
-        /ai:build_context
+        actions='["ai:build_query", "ai:build_prompt", "ai:build_context"]'
+        /sh:flow --agent "${agent}" --actions "$actions"
+        exit 0
 
   - name: "build_query"
     description: |

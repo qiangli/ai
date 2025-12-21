@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"maps"
 	"bytes"
 	"context"
 	"fmt"
@@ -73,9 +74,8 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 		return nil, err
 	}
 	// copy back env to args
-	for k, v := range vs.System.Environ() {
-		args[k] = v
-	}
+	// TODO use an intermediate scop such a env for agent?
+	maps.Copy(args, vs.System.Environ())
 	result := &api.Result{
 		Value: b.String(),
 	}
