@@ -129,7 +129,7 @@ tools:
       script: |
         #!/bin/bash
         actions='["ai:build_query", "ai:build_prompt", "ai:build_context"]'
-        /sh:flow --agent "${agent}" --actions "$actions"
+        /flow:sequence --agent "${agent}" --actions "$actions"
         exit 0
 
   - name: "build_query"

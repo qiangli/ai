@@ -5,16 +5,16 @@ set -ue
 adapter="echo"
 
 # actions='["ai:read_tool_config","sh:format"]'
-# /sh:flow --actions "$actions" --template "data:,{{toPrettyJson .config}}" --tool "fs:read_file" --format raw
+# /flow:sequence --actions "$actions" --template "data:,{{toPrettyJson .config}}" --tool "fs:read_file" --format raw
 
 # actions='["ai:read_agent_config","sh:format"]'
-# /sh:flow --actions "$actions" --template "data:,{{toPrettyJson .config}}\n\n agent: {{.agent}}\n kit: {{.kit}}\ nname: {{.name}}\n" --agent "ed" --format raw
+# /flow:sequence --actions "$actions" --template "data:,{{toPrettyJson .config}}\n\n agent: {{.agent}}\n kit: {{.kit}}\ nname: {{.name}}\n" --agent "ed" --format raw
 
 # actions='["ai:read_agent_config", "ai:new_agent", "sh:format"]'
-# /sh:flow --actions "$actions" --template "data:,{{toPrettyJson .agent}} \n kit: {{.kit}} \n name: {{.name}}" --agent "ed" --format raw
+# /flow:sequence --actions "$actions" --template "data:,{{toPrettyJson .agent}} \n kit: {{.kit}} \n name: {{.name}}" --agent "ed" --format raw
 
 # actions='["ai:read_agent_config", "ai:new_agent", "ai:call_llm", "sh:format"]'
-# /sh:flow --actions "$actions" --template "data:,###\n****************{{toPrettyJson .result}}\n*************" --agent "ed" --message "correcto mine englise" --adapter "$adapter" --format raw
+# /flow:sequence --actions "$actions" --template "data:,###\n****************{{toPrettyJson .result}}\n*************" --agent "ed" --message "correcto mine englise" --adapter "$adapter" --format raw
 
 # actions='["ai:read_agent_config", "ai:new_agent",  "sh:format"]'
 # actions='["ai:read_agent_config", "ai:new_agent", "ai:build_query", "sh:format"]'
@@ -35,7 +35,7 @@ adapter="echo"
 # {{toPrettyJson .history}}
 # '
 
-# /sh:flow --actions "$actions" --template "$template" --agent "test" --adapter "$adapter" --output file:///tmp/eval.out
+# /flow:sequence --actions "$actions" --template "$template" --agent "test" --adapter "$adapter" --output file:///tmp/eval.out
 
 
 adapter=""
@@ -72,7 +72,7 @@ template='data:,
 ---
 {{printenv}}
 '
-/sh:flow --agent "joker" --message "what is new today" --actions "$actions" --template "$template" --adapter "$adapter" 
+/flow:sequence --agent "joker" --message "what is new today" --actions "$actions" --template "$template" --adapter "$adapter" 
 
 
 #  full flow:
@@ -84,7 +84,7 @@ template='data:,
 # {{toPrettyJson .}}
 # '
 
-# /sh:flow --actions "$actions" --template "$template" --agent "test" --adapter "$adapter" 
+# /flow:sequence --actions "$actions" --template "$template" --agent "test" --adapter "$adapter" 
 
 # command line in a terminal:
 # test/eval.sh  --agent joker  --message "what is the weather in dublin ca in the next few days" --option tools='["web:fetch_content", "web:ddg_search"]'  --max-history 1 --max-turns 10

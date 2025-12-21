@@ -21,15 +21,15 @@ tools:
         A set of tools for executing actions in a controlled fashion:
 
         + sequence: Execute actions consecutively, using the result of each action as the input for the next one.
-        + choice: Randomly select and execute a single action from the list.
+        + choice: Randomly select and execute a single action from the list of actions.
         + parallel: Execute all actions simultaneously and return their results as a combined list.
         + map: Apply the specified actions to each item in the input array, producing a new array. Actions are executed in sequence for each array element.
         
         ## Actions
           A list of valid actions. Use `ai:list_tools` or `ai:list_agents` to acquire available actions.
           Specify actions in the following formats:
-          - Tool action: `tool:kit:name`
-          - Agent action: `agent:pack/name`
+          - Tool action: `kit:name`
+          - Agent action: `agent:pack/name`  All agents belong to the "agent" kit.
 
         ## Examples
           Example for tool: `fs:read_file`
@@ -46,7 +46,7 @@ tools:
           Tools and agents can be mixed in the actions.
           Additional arguments may be required for each action.
           To explore the required arguments and further specifics of an action,
-          use "ai:get_agent_info" for agents or "ai:get_tool_info" for tools.
+          use "ai:get_agent_info" for agents and "ai:get_tool_info" for tools.
           They will provide detailed information about the parameters and usage guidelines.
     log_level: "quiet"
 
