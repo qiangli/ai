@@ -5,7 +5,7 @@ import (
 	"github.com/qiangli/ai/swarm/log"
 )
 
-func ToolMiddleware(sw *Swarm) api.Middleware {
+func ToolsMiddleware(sw *Swarm) api.Middleware {
 	return func(agent *api.Agent, next Handler) Handler {
 		return HandlerFunc(func(req *api.Request, resp *api.Response) error {
 			logger := log.GetLogger(req.Context())

@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"maps"
 	"strings"
-	// "sync"
 )
 
 type State int
@@ -308,6 +307,7 @@ func (ac *AppConfig) ToMap() map[string]any {
 	if ac.Name != "" {
 		result["name"] = ac.Name
 	}
+	// TODO revisit
 	// if ac.Message != "" {
 	// 	result["message"] = ac.Message
 	// }

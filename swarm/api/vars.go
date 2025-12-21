@@ -284,6 +284,32 @@ func (a ArgMap) SetPrompt(prompt any) ArgMap {
 	return a
 }
 
+func (a ArgMap) Result() *Result {
+	v, ok := a["result"]
+	if !ok {
+		return nil
+	}
+	return ToResult(v)
+}
+
+func (a ArgMap) SetResult(result any) ArgMap {
+	a["result"] = result
+	return a
+}
+
+func (a ArgMap) Error() error {
+	v, ok := a["error"]
+	if !ok {
+		return nil
+	}
+	return ToError(v)
+}
+
+func (a ArgMap) SetError(err error) ArgMap {
+	a["error"] = err
+	return a
+}
+
 func (a ArgMap) Actions() []string {
 	obj := a["actions"]
 	if v, ok := obj.([]string); ok {

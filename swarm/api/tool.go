@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	// "io/fs"
 	"strings"
 	"time"
 )
@@ -94,8 +93,6 @@ type ToolConfig struct {
 	Parameters map[string]any `yaml:"parameters" json:"parameters"`
 
 	Body *FuncBody `yaml:"body" json:"body"`
-
-	// Condition *ToolCondition `yaml:"condition" json:"condition"`
 
 	// agent name for agent tool type
 	// description/parameters defined here take precedence

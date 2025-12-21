@@ -12,21 +12,23 @@ import (
 
 // run agent first if there is instruction followed by the flow.
 // otherwise, run the flow only
-func (r *SystemKit) Flow(ctx context.Context, vars *api.Vars, name string, args map[string]any) (*api.Result, error) {
-	flowType := api.FlowType(api.ToString(args["flow_type"]))
+func (r *SystemKit) Flow(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
+	flowType := api.FlowType(api.ToString(argm["flow_type"]))
 	// default
 	if flowType == "" {
 		flowType = api.FlowTypeSequence
 	}
 	switch flowType {
 	case api.FlowTypeSequence:
-		return r.FlowSequence(ctx, vars, args)
+		return r.Sequence(ctx, vars, "", argm)
 	case api.FlowTypeParallel:
-		return r.FlowParallel(ctx, vars, args)
+		return r.Parallel(ctx, vars, "", argm)
 	case api.FlowTypeChoice:
-		return r.FlowChoice(ctx, vars, args)
+		return r.Choice(ctx, vars, "", argm)
 	case api.FlowTypeMap:
-		return r.FlowMap(ctx, vars, args)
+		return r.Map(ctx, vars, "", argm)
+	case api.FlowTypeChain:
+		return r.Chain(ctx, vars, "", argm)
 	default:
 		return nil, fmt.Errorf("flow type not supported: %s", flowType)
 	}
@@ -34,11 +36,11 @@ func (r *SystemKit) Flow(ctx context.Context, vars *api.Vars, name string, args 
 
 // FlowTypeSequence executes actions one after another, where each
 // subsequent action uses the previous action's output as input.
-func (r *SystemKit) FlowSequence(ctx context.Context, vars *api.Vars, argm api.ArgMap) (*api.Result, error) {
-	var query = argm.Query()
+func (r *SystemKit) Sequence(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
+	// var query = argm.Query()
 	var actions = argm.Actions()
 
-	result, err := r.sequence(ctx, vars, query, actions, argm)
+	result, err := r.sequence(ctx, vars, "", actions, argm)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +48,7 @@ func (r *SystemKit) FlowSequence(ctx context.Context, vars *api.Vars, argm api.A
 	return result, nil
 }
 
-func (r *SystemKit) sequence(ctx context.Context, vars *api.Vars, query string, actions []string, argm api.ArgMap) (*api.Result, error) {
+func (r *SystemKit) sequence(ctx context.Context, vars *api.Vars, _ string, actions []string, argm api.ArgMap) (*api.Result, error) {
 	var result any
 	for _, v := range actions {
 		data, err := vars.RootAgent.Runner.Run(ctx, v, argm)
@@ -60,7 +62,7 @@ func (r *SystemKit) sequence(ctx context.Context, vars *api.Vars, query string, 
 
 // FlowTypeParallel executes actions simultaneously, returning the combined results as a list.
 // This allows for concurrent processing of independent actions.
-func (r *SystemKit) FlowParallel(ctx context.Context, vars *api.Vars, argm api.ArgMap) (*api.Result, error) {
+func (r *SystemKit) Parallel(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
 	var query = argm.Query()
 	var actions = argm.Actions()
 
@@ -92,7 +94,7 @@ func (r *SystemKit) FlowParallel(ctx context.Context, vars *api.Vars, argm api.A
 // FlowTypeChoice selects and executes a single action based on an evaluated expression.
 // If no expression is provided, an action is chosen randomly. The expression must evaluate
 // to a string (tool ID), false/true, or an integer that selects the action index, starting from zero.
-func (r *SystemKit) FlowChoice(ctx context.Context, vars *api.Vars, argm api.ArgMap) (*api.Result, error) {
+func (r *SystemKit) Choice(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
 	var actions = argm.Actions()
 	var which int = -1
 
@@ -110,7 +112,7 @@ func (r *SystemKit) FlowChoice(ctx context.Context, vars *api.Vars, argm api.Arg
 // FlowTypeMap applies specified action(s) to each element in the input array, creating a new
 // array populated with the results.
 // similar to xargs utility
-func (r *SystemKit) FlowMap(ctx context.Context, vars *api.Vars, argm api.ArgMap) (*api.Result, error) {
+func (r *SystemKit) Map(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
 	var query = argm.Query()
 	if query == "" {
 		return nil, fmt.Errorf("missing query.")
@@ -167,3 +169,20 @@ func (r *SystemKit) FlowMap(ctx context.Context, vars *api.Vars, argm api.ArgMap
 // 	result := api.ToResult(data)
 // 	return nil
 // }
+
+func (r *SystemKit) Chain(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
+	sa := argm.Actions()
+
+	var actions []*api.ToolFunc
+	for _, v := range sa {
+		// only tool id (kit:name) is required
+		// for running the chain.
+		kit, name := api.Kitname(v).Decode()
+		tool := &api.ToolFunc{
+			Kit:  kit,
+			Name: name,
+		}
+		actions = append(actions, tool)
+	}
+	return RunChainActions(ctx, vars, actions, argm)
+}

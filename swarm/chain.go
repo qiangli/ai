@@ -11,12 +11,6 @@ func (h *emptyHandler) Serve(r *api.Request, w *api.Response) error {
 	return nil
 }
 
-// var emptyMiddleware = func(Handler) Handler {
-// 	return HandlerFunc(func(*api.Request, *api.Response) error {
-// 		return nil
-// 	})
-// }
-
 // A Handler responds to a request.
 //
 // [Handler.Serve] should write reply headers and data to the [ResponseWriter]

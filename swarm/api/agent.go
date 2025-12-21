@@ -176,6 +176,7 @@ type AgentConfig struct {
 	Name      string         `yaml:"name" json:"name"`
 	Arguments map[string]any `yaml:"arguments" json:"arguments"`
 
+	//
 	Instruction string `yaml:"instruction" json:"instruction"`
 	Context     string `yaml:"context" json:"context"`
 	Message     string `yaml:"message" json:"message"`
@@ -233,6 +234,11 @@ func (ac *AgentConfig) ToMap() map[string]any {
 	if ac.Name != "" {
 		result["name"] = ac.Name
 	}
+	// TODO revisit naming
+	// user vs internal
+	// message ~ query
+	// instruction ~ prompt
+	// context ~ histry
 	// if ac.Message != "" {
 	// 	result["message"] = ac.Message
 	// }
@@ -273,6 +279,8 @@ const (
 	// FlowTypeSequence executes actions one after another, where each
 	// subsequent action uses the previous action's response as input.
 	FlowTypeSequence FlowType = "sequence"
+
+	FlowTypeChain FlowType = "chain"
 
 	// FlowTypeChoice selects and executes a single action based on an evaluated expression.
 	// If no expression is provided, an action is chosen randomly. The expression must evaluate

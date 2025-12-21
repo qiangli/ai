@@ -102,7 +102,7 @@ func (sw *Swarm) InitChain() {
 
 		//
 		ModelMiddleware(sw),
-		ToolMiddleware(sw),
+		ToolsMiddleware(sw),
 		//
 		InstructionMiddleware(sw),
 		ContextMiddleware(sw),

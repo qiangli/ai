@@ -156,6 +156,13 @@ func ToResult(data any) *Result {
 	}
 }
 
+func ToError(v any) error {
+	if err, ok := v.(error); ok {
+		return err
+	}
+	return fmt.Errorf("Error: %v", v)
+}
+
 // https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
 // data:[<media-type>][;base64],<data>
 func DataURL(mime string, raw []byte) string {
