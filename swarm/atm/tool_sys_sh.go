@@ -2,6 +2,7 @@ package atm
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"maps"
@@ -263,4 +264,47 @@ func (r *SystemKit) Backoff(ctx context.Context, vars *api.Vars, name string, ar
 		return nil, err
 	}
 	return result, nil
+}
+
+func (r *SystemKit) GetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	keys, err := api.GetArrayProp("keys", args)
+	if err != nil {
+		return nil, err
+	}
+
+	envs := vars.Global.GetEnvs(keys)
+	b, err := json.Marshal(envs)
+	if err != nil {
+		return nil, err
+	}
+	return &api.Result{
+		Value: string(b),
+	}, nil
+}
+
+func (r *SystemKit) SetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	// TODO merge to make a single source of truth
+	vars.Global.SetEnvs(args)
+	for k, v := range args {
+		vars.RTE.OS.Setenv(k, v)
+	}
+	return &api.Result{
+		Value: "success",
+	}, nil
+}
+
+func (r *SystemKit) UnsetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	keys, err := api.GetArrayProp("keys", args)
+	if err != nil {
+		return nil, err
+	}
+
+	vars.Global.UnsetEnvs(keys)
+	// TODO delete env from OS
+	for _, k := range keys {
+		vars.RTE.OS.Setenv(k, "")
+	}
+	return &api.Result{
+		Value: "success",
+	}, nil
 }

@@ -635,52 +635,52 @@ func (r *AIKit) GetMessageInfo(_ context.Context, _ *api.Vars, _ string, args ma
 	}, nil
 }
 
-func (r *AIKit) GetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	keys, err := api.GetArrayProp("keys", args)
-	if err != nil {
-		return nil, err
-	}
+// func (r *AIKit) GetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+// 	keys, err := api.GetArrayProp("keys", args)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	envs := vars.Global.GetEnvs(keys)
-	b, err := json.Marshal(envs)
-	if err != nil {
-		return nil, err
-	}
-	return &api.Result{
-		Value: string(b),
-	}, nil
-}
+// 	envs := vars.Global.GetEnvs(keys)
+// 	b, err := json.Marshal(envs)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &api.Result{
+// 		Value: string(b),
+// 	}, nil
+// }
 
-func (r *AIKit) SetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	// TODO merge to make a single source of truth
-	vars.Global.SetEnvs(args)
-	for k, v := range args {
-		vars.RTE.OS.Setenv(k, v)
-	}
-	return &api.Result{
-		Value: "success",
-	}, nil
-}
+// func (r *AIKit) SetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+// 	// TODO merge to make a single source of truth
+// 	vars.Global.SetEnvs(args)
+// 	for k, v := range args {
+// 		vars.RTE.OS.Setenv(k, v)
+// 	}
+// 	return &api.Result{
+// 		Value: "success",
+// 	}, nil
+// }
 
-func (r *AIKit) UnsetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	keys, err := api.GetArrayProp("keys", args)
-	if err != nil {
-		return nil, err
-	}
+// func (r *AIKit) UnsetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+// 	keys, err := api.GetArrayProp("keys", args)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	vars.Global.UnsetEnvs(keys)
-	// TODO delete env from OS
-	for _, k := range keys {
-		vars.RTE.OS.Setenv(k, "")
-	}
-	return &api.Result{
-		Value: "success",
-	}, nil
-}
+// 	vars.Global.UnsetEnvs(keys)
+// 	// TODO delete env from OS
+// 	for _, k := range keys {
+// 		vars.RTE.OS.Setenv(k, "")
+// 	}
+// 	return &api.Result{
+// 		Value: "success",
+// 	}, nil
+// }
 
-func (r *AIKit) FlowSequence(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	return nil, nil
-}
+// func (r *AIKit) FlowSequence(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+// 	return nil, nil
+// }
 
 // return tools by tool kit:name or ids
 func (r *AIKit) getTools(ids []string) ([]*api.ToolFunc, error) {
@@ -725,14 +725,14 @@ func (r *AIKit) getTools(ids []string) ([]*api.ToolFunc, error) {
 	return tools, nil
 }
 
-// return built-in model
-func (r *AIKit) getModel(provider string) (*api.Model, error) {
-	m, ok := conf.DefaultModels[provider]
-	if !ok {
-		return nil, fmt.Errorf("model not found for provider: %s", provider)
-	}
-	return m, nil
-}
+// // return built-in model
+// func (r *AIKit) getModel(provider string) (*api.Model, error) {
+// 	m, ok := conf.DefaultModels[provider]
+// 	if !ok {
+// 		return nil, fmt.Errorf("model not found for provider: %s", provider)
+// 	}
+// 	return m, nil
+// }
 
 func listAgents(assets api.AssetManager, user string) (string, int, error) {
 	agents, err := assets.ListAgent(user)
