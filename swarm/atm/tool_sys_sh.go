@@ -79,6 +79,7 @@ func (r *SystemKit) Apply(ctx context.Context, vars *api.Vars, _ string, args ma
 	return CheckApplyTemplate(vars.RootAgent.Template, tpl, data)
 }
 
+// parse command and copy all vale into args
 func (r *SystemKit) Parse(ctx context.Context, vars *api.Vars, name string, args map[string]any) (api.ArgMap, error) {
 	result, err := conf.Parse(args["command"])
 	if err != nil {
@@ -285,6 +286,7 @@ func (r *SystemKit) GetEnvs(_ context.Context, vars *api.Vars, _ string, args ma
 	}, nil
 }
 
+// Export all args to env?
 func (r *SystemKit) SetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
 	// TODO merge to make a single source of truth
 	vars.Global.SetEnvs(args)
