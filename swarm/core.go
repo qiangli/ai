@@ -435,21 +435,8 @@ func (sw *Swarm) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFun
 
 func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
 	// command
-	// /bin:alias --option alias="command"
-	// alias default: command
 	if v.Type == api.ToolTypeBin {
-		name := v.Name
-		if name == "" {
-			name = "command"
-		}
-		cmd, err := api.GetStrProp(name, args)
-		if err != nil {
-			return nil, err
-		}
-		if cmd == "" {
-			return nil, fmt.Errorf("Command alias %q not defined. Usage: /bin:alias --option alias=\"command to run\".\nExample: /bin:%s --option %s=\"your system command\"", name, name, name)
-		}
-		out, err := atm.ExecCommand(ctx, sw.OS, sw.Vars, cmd, nil)
+		out, err := atm.ExecCommand(ctx, sw.OS, sw.Vars, v.Name, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -457,6 +444,23 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 			Value: out,
 		}, nil
 	}
+
+	// if v.Type == api.ToolTypeAlias {
+	// 	cmd, err := api.GetStrProp(v.Name, args)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	if cmd == "" {
+	// 		return nil, fmt.Errorf("Alias %q not defined. Usage: /alias:name --option name='command to run'", v.Name)
+	// 	}
+	// 	// out, err := atm.ExecCommand(ctx, sw.OS, sw.Vars, cmd, nil)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	return &api.Result{
+	// 		Value: out,
+	// 	}, nil
+	// }
 
 	// ai
 	if v.Type == api.ToolTypeAI {

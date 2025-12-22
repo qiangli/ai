@@ -162,6 +162,15 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	// 	name = kit
 	// }
 
+	// /alias:name --option name="command line"
+	// name to lookup the command in args
+	if kit == string(api.ToolTypeAlias) {
+		if name == "" {
+			return nil, fmt.Errorf("Invalid alias action. missing name. /alias:<name>")
+		}
+		tid = api.Kitname(name).ID()
+	}
+
 	// this ensures kit:name is in internal kit__name format
 	tid = api.Kitname(kit + ":" + name).ID()
 
@@ -180,16 +189,17 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	// e.g. /bin/ls without the trigger word "ai"
 	// and slash command toolkit "/kit:name" syntax
 	// i.e. equivalent to: /sh:exec --arg command="ls -al /tmp"
-	if kit == "" || kit == "bin" {
-		// cmd, _ := api.GetStrProp("command", args)
+	// TODO kit required?
+	if kit == "" || kit == string(api.ToolTypeBin) {
+		cmd, _ := api.GetStrProp("command", args)
+		if cmd == "" {
+			return nil, fmt.Errorf("missing system command")
+		}
 		// return atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, cmd, nil)
-		//
-		// bin:alias --option alias="command line"
-		// name to lookup the command in args, default to 'command'
 		tf = &api.ToolFunc{
 			Type: api.ToolTypeBin,
 			Kit:  string(api.ToolTypeBin),
-			Name: name,
+			Name: cmd,
 		}
 	} else {
 		// agent/tool action

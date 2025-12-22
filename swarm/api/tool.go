@@ -27,8 +27,10 @@ const (
 
 	ToolTypeAI ToolType = "ai"
 
-	// exec system command
+	//
 	ToolTypeBin ToolType = "bin"
+
+	ToolTypeAlias ToolType = "alias"
 )
 
 type ToolFunc struct {

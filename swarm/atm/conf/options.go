@@ -105,14 +105,14 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	// workspace := fs.String("workspace", "", "Workspace root path")
 
 	// tool
+	// action := fs.String("action", "", "action (agent, tool, or command) to be executed.")
 	agent := fs.String("agent", "", "agent to be executed.")
 	tool := fs.String("tool", "", "tool to be executed.")
 	command := fs.String("command", "", "Shell command(s) to be executed.")
+
 	script := fs.String("script", "", "Path to the shell script file to be executed.")
 	template := fs.String("template", "", "Path to the stemplate file to be applied.")
 	actions := fs.String("actions", "", "list of actions (agent or tool) to be executed.")
-
-	// action := fs.String("action", "", "Default action (agent or tool) to be executed.")
 
 	// special input
 	// value provided as option
