@@ -88,7 +88,7 @@ func (r *SystemKit) Parallel(ctx context.Context, vars *api.Vars, _ string, argm
 	if err != nil {
 		return nil, err
 	}
-	return api.ToResult(data), nil
+	return api.ToResult(string(data)), nil
 }
 
 // FlowTypeChoice selects and executes a single action based on an evaluated expression.
@@ -155,7 +155,7 @@ func (r *SystemKit) Map(ctx context.Context, vars *api.Vars, _ string, argm api.
 	if err != nil {
 		return nil, err
 	}
-	return api.ToResult(data), nil
+	return api.ToResult(string(data)), nil
 }
 
 // // FlowTypeShell delegates control to a shell script using bash script syntax, enabling
