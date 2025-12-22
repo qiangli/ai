@@ -84,6 +84,9 @@ func (r *SystemKit) Parse(ctx context.Context, vars *api.Vars, name string, args
 	if err != nil {
 		return nil, err
 	}
+	// make available in the args???
+	maps.Copy(args, result)
+
 	return result, nil
 }
 
