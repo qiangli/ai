@@ -132,6 +132,9 @@ func ToResult(data any) *Result {
 		}
 	}
 	if v, ok := data.(*Result); ok {
+		if v == nil {
+			return nil
+		}
 		if len(v.Content) == 0 {
 			return v
 		}
@@ -141,6 +144,9 @@ func ToResult(data any) *Result {
 		}
 	}
 	if v, ok := data.(*Blob); ok {
+		if v == nil {
+			return nil
+		}
 		return &Result{
 			MimeType: v.MimeType,
 			Value:    MimeToString(v.MimeType, v.Content),
@@ -152,7 +158,7 @@ func ToResult(data any) *Result {
 		}
 	}
 	return &Result{
-		Value: fmt.Sprintf("%+v", data),
+		Value: fmt.Sprintf("%v", data),
 	}
 }
 

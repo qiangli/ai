@@ -21,7 +21,7 @@ template='data:,
 {{.query}}
 
 *** Result:
-{{.result.Value |fromJson|toPrettyJson}}
+{{.result}}
 
 *** Error:
 {{.error}}
@@ -36,11 +36,16 @@ template='data:,
 
 # flow types
 # $DRY /flow:sequence --actions '["/sh:pwd", "fs:list_roots", "agent:ed"]' --option command="ls -al" --option adapter="echo" --option query="what is unix" --option template=$template
+
 # $DRY /flow:choice --actions '["/sh:pwd", "fs:list_roots", "agent:ed"]' --option command="ls -al" --option adapter="echo" --option query="what is unix" --option template=$template
 
 # $DRY /flow:parallel --actions '["/sh:pwd", "fs:list_roots", "agent:ed"]' --option command="ls -al" --option adapter="echo" --option query="what is unix" --option template=$template --option adapter="echo"
-$DRY /flow:map --actions '["/sh:format"]' --option query='["a", "b", "c"]' --template 'data:, *** {{.kit}}:{{.name}} input: {{.query}}' 
-# $DRY /flow:chain --actions '["/sh:pwd", "fs:list_roots", "agent:ed"]' --option command="ls -al" --option adapter="echo" --option query="what is unix" --option template=$template
+# $DRY /flow:parallel --actions '["/sh:format", "/sh:format", "/sh:format"]' --option query='query x' --template 'data:, *** {{.kit}}:{{.name}} query: {{.query}}' 
+
+# $DRY /flow:map --actions '["sh:format"]' --option query='["a", "b", "c"]' --template 'data:, *** {{.kit}}:{{.name}} input: {{.query}}' 
+
+# $DRY /flow:chain --actions '["sh:pwd", "fs:list_roots", "agent:ed", "sh:format"]'  --option adapter="echo" --option query="what is unix" --option template=$template
+$DRY /flow:chain --actions '["sh:pwd", "fs:list_roots", "agent:ed", "sh:format"]'  --option adapter="echo" --option query="what is unix" --option template='data:,{{.query}}'
 
 # $DRY /flow:sequence --actions '["sh:parse", "ai:call_llm", "sh:format"]' --option command="/ai:get_envs --option query='tell me a joke' --option template='data:this\nis a test {{.result}} error: {{.error}}'" --verbose
 

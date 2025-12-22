@@ -147,6 +147,9 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 		tid = api.Kitname(kit + ":" + name).ID()
 	} else {
 		kit, name = api.Kitname(tid).Decode()
+		// update args ???
+		// args["kit"] = kit
+		// args["name"] = name
 	}
 
 	// /bin/command (local system)
