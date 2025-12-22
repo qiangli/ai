@@ -11,10 +11,6 @@ BASE=$(pwd)
 echo $BASE
 printenv
 
-echo ""
-echo ">>> Sequence Test <<<"
-echo ""
-
 # {{.result.Value |fromJson |toPrettyJson}}
 template='data:,
 *** Query:
@@ -44,10 +40,13 @@ template='data:,
 
 # $DRY /flow:map --actions '["sh:format"]' --option query='["a", "b", "c"]' --template 'data:, *** {{.kit}}:{{.name}} input: {{.query}}' 
 
-# $DRY /flow:chain --actions '["sh:pwd", "fs:list_roots", "agent:ed", "sh:format"]'  --option adapter="echo" --option query="what is unix" --option template=$template
-$DRY /flow:chain --actions '["sh:pwd", "fs:list_roots", "agent:ed", "sh:format"]'  --option adapter="echo" --option query="what is unix" --option template='data:,{{.query}}'
 
-# $DRY /flow:sequence --actions '["sh:parse", "ai:call_llm", "sh:format"]' --option command="/ai:get_envs --option query='tell me a joke' --option template='data:this\nis a test {{.result}} error: {{.error}}'" --verbose
+# $DRY /flow:chain --actions '["sh:pwd", "fs:list_roots", "agent:ed", "sh:format"]'  --option adapter="echo" --option query="what is unix" --option template=$template
+# $DRY /flow:chain --actions '["sh:pwd", "fs:list_roots", "agent:ed", "sh:format"]'  --option adapter="echo" --option query="what is unix" --option template='data:,{{.query}}'
+# $DRY /flow:chain --actions '["sh:parse", "ai:call_llm", "sh:format"]' --option command="/ai:pass --option query='tell me a joke' --option template='data:,>>>this is a test\n {{.result}} error: {{.error}}'" --output console
+
+$DRY /sh:timeout 
+# $DRY /flow:chain --actions '["sh:parse", "ai:call_llm", "sh:format"]' --option command="/ai:pass --option query='tell me a joke' --option template='data:,>>>this is a test\n {{.result}} error: {{.error}}'" --output console
 
 #
 # printenv
