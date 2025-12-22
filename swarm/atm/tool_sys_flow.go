@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"math/rand"
 	"sync"
 
@@ -91,7 +92,7 @@ func (r *SystemKit) Parallel(ctx context.Context, vars *api.Vars, _ string, argm
 	return api.ToResult(string(data)), nil
 }
 
-// FlowTypeChoice selects and executes a single action based on an evaluated expression.
+// FlowType Choice selects and executes a single action based on an evaluated expression.
 // If no expression is provided, an action is chosen randomly. The expression must evaluate
 // to a string (tool ID), false/true, or an integer that selects the action index, starting from zero.
 func (r *SystemKit) Choice(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
@@ -109,9 +110,9 @@ func (r *SystemKit) Choice(ctx context.Context, vars *api.Vars, _ string, argm a
 	return result, nil
 }
 
-// FlowTypeMap applies specified action(s) to each element in the input array, creating a new
+// FlowType Map applies specified action(s) to each element in the input array as a seperate query, creating a new
 // array populated with the results.
-// similar to xargs utility
+// similar to xargs utility apply action for each line
 func (r *SystemKit) Map(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
 	var query = argm.Query()
 	if query == "" {
@@ -138,9 +139,10 @@ func (r *SystemKit) Map(ctx context.Context, vars *api.Vars, _ string, argm api.
 			defer wg.Done()
 
 			var req = make(map[string]any)
-			req["query"] = query
+			maps.Copy(req, argm)
+			req["query"] = v
 
-			data, err := r.sequence(ctx, vars, query, actions, argm)
+			data, err := r.sequence(ctx, vars, "", actions, req)
 			if err != nil {
 				resps[i] = err.Error()
 			} else {
