@@ -373,3 +373,7 @@ func (a ArgMap) SetHistory(messages []*Message) ArgMap {
 	a["history"] = messages
 	return a
 }
+
+func (a ArgMap) FlowType() FlowType {
+	return ToFlowType(a["flow_type"])
+}

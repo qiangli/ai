@@ -13,11 +13,8 @@ import (
 // run agent first if there is instruction followed by the flow.
 // otherwise, run the flow only
 func (r *SystemKit) Flow(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
-	flowType := api.FlowType(api.ToString(argm["flow_type"]))
-	// default
-	if flowType == "" {
-		flowType = api.FlowTypeSequence
-	}
+	flowType := argm.FlowType()
+
 	switch flowType {
 	case api.FlowTypeSequence:
 		return r.Sequence(ctx, vars, "", argm)

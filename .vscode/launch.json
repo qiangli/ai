@@ -36,8 +36,8 @@
 				// "/bin/ls -al test",
 				//
 				// slash agent
-				// "/agent:ed",
-				// "correct mine englise"
+				"/agent:ed",
+				"correct mine englise"
 				//
 				// bash script
 				// "/sh:bash",
@@ -76,12 +76,12 @@
 				// "--script",
 				// "dev/skills/agents/eval/agent.yaml",
 				//
-				"/sh:flow",
-				"--actions",
-				"[\"ai:call_llm\"]",
-				"--adapter",
-				"echo",
-				"--verbose"
+				// "/flow:sequencr",
+				// "--actions",
+				// "[\"ai:call_llm\"]",
+				// "--adapter",
+				// "echo",
+				// "--verbose"
 				//
 				// "/sh:flow",
 				// "--actions",

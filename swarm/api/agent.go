@@ -275,6 +275,37 @@ func (ac *AgentConfig) ToMap() map[string]any {
 
 type FlowType string
 
+func ToFlowType(v any) FlowType {
+	if t, ok := v.(FlowType); ok {
+		return t
+	}
+	s, ok := v.(string)
+	if !ok {
+		return "invalid"
+	}
+	switch s {
+	case "sequence":
+		return FlowTypeSequence
+	case "chain":
+		return FlowTypeChain
+	case "choice":
+		return FlowTypeChoice
+	case "parallel":
+		return FlowTypeParallel
+	case "map":
+		return FlowTypeMap
+		// Uncomment if needed in the future
+	// case "loop":
+	// 	return FlowTypeLoop
+	// case "reduce":
+	// 	return FlowTypeReduce
+	// case "shell":
+	// 	return FlowTypeShell
+	default:
+		return "unknown"
+	}
+}
+
 const (
 	// FlowTypeSequence executes actions one after another, where each
 	// subsequent action uses the previous action's response as input.
