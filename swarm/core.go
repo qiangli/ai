@@ -445,23 +445,6 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 		}, nil
 	}
 
-	// if v.Type == api.ToolTypeAlias {
-	// 	cmd, err := api.GetStrProp(v.Name, args)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	if cmd == "" {
-	// 		return nil, fmt.Errorf("Alias %q not defined. Usage: /alias:name --option name='command to run'", v.Name)
-	// 	}
-	// 	// out, err := atm.ExecCommand(ctx, sw.OS, sw.Vars, cmd, nil)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	return &api.Result{
-	// 		Value: out,
-	// 	}, nil
-	// }
-
 	// ai
 	if v.Type == api.ToolTypeAI {
 

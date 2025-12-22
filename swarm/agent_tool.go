@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"path"
 	"strings"
 
@@ -164,11 +165,34 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 
 	// /alias:name --option name="command line"
 	// name to lookup the command in args
+	// TODO alias referencing alias
 	if kit == string(api.ToolTypeAlias) {
 		if name == "" {
-			return nil, fmt.Errorf("Invalid alias action. missing name. /alias:<name>")
+			return nil, fmt.Errorf("Invalid alias action. missing name. /alias:NAME --option NAME='action to run'")
 		}
-		tid = api.Kitname(name).ID()
+		alias, err := api.GetStrProp(name, args)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to resolve alias: %s, error: %v", name, err)
+		}
+		if alias == "" {
+			return nil, fmt.Errorf("Alias not found: %s", name)
+		}
+		argv := conf.Argv(alias)
+		if len(argv) == 0 {
+			return nil, fmt.Errorf("Invalid alias %q: %s", name, alias)
+		}
+		if conf.IsAction(argv[0]) {
+			v, err := conf.Parse(argv)
+			if err != nil {
+				return nil, err
+			}
+			maps.Copy(args, v)
+			kit, name = api.Kitname(argv[0]).Decode()
+		} else {
+			kit = string(api.ToolTypeBin)
+			//
+			args["command"] = alias
+		}
 	}
 
 	// this ensures kit:name is in internal kit__name format

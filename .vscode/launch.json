@@ -25,8 +25,14 @@
 				// "/help",
 				// "/help:help",
 				//
+				// alias
+				"/alias:x",
+				"--option",
+				"x=ls -al /tmp",
+				// "/alias:x",
+				// "--option",
+				// "x=\"/sh:exec --command 'ls -al /tmp'\"",
 				// slash command
-				// not supported
 				// "/bin/ls",
 				// "-al",
 				// "/tmp"
