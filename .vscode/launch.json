@@ -26,6 +26,7 @@
 				// "/help:help",
 				//
 				// slash command
+				// not supported
 				// "/bin/ls",
 				// "-al",
 				// "/tmp"
@@ -121,15 +122,15 @@
 				// "--adapter",
 				// "echo",
 				//
-				"/flow:chain",
-				"--actions",
-				"[\"sh:pwd\", \"fs:list_roots\", \"agent:ed\", \"sh:format\"]",
-				"--option",
-				"adapter=echo",
-				"--option",
-				"query=what is unix",
-				"--option",
-				"template=data:,{{.query}}",
+				// "/flow:chain",
+				// "--actions",
+				// "[\"sh:pwd\", \"fs:list_roots\", \"agent:ed\", \"sh:format\"]",
+				// "--option",
+				// "adapter=echo",
+				// "--option",
+				// "query=what is unix",
+				// "--option",
+				// "template=data:,{{.query}}",
 				//
 				// "/ai:get_agent_config",
 				// "--agent",

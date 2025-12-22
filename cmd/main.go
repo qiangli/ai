@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/agent"
@@ -34,7 +35,9 @@ func main() {
 			args = append([]string{"/sh:bash", "--script", args[0]}, args[1:]...)
 		default:
 			if !conf.IsAction(args[0]) {
-				internal.Exit(fmt.Errorf("Failed to run. action required. ex. #!/usr/bin/env ai ACTION --script"))
+				// system command
+				args = []string{"/sh:exec", "--command", strings.Join(args, " ")}
+				// internal.Exit(fmt.Errorf("Failed to run. action required. ex. #!/usr/bin/env ai ACTION --script"))
 			}
 		}
 	}
