@@ -3,6 +3,7 @@ package atm
 import (
 	"context"
 	"fmt"
+	// "maps"
 
 	"github.com/qiangli/ai/swarm/api"
 )
@@ -18,8 +19,9 @@ type ActionHandler interface {
 }
 
 type ToolFuncActionHandler struct {
-	tool *api.ToolFunc
-	next ActionHandler
+	// tool *api.ToolFunc
+	action string
+	next   ActionHandler
 }
 
 // Return error if action failed; otherwise call the next handler if set
@@ -28,7 +30,14 @@ func (r *ToolFuncActionHandler) Serve(ctx context.Context, vars *api.Vars, args 
 		return nil, fmt.Errorf("action runner not set")
 	}
 
-	v, err := vars.RootAgent.Runner.Run(ctx, r.tool.ID(), args)
+	// var nargs = api.NewArgMap()
+	// maps.Copy(nargs, args)
+	// id := r.actions[0]
+	// actions := r.actions[1:]
+	// nargs["actions"] = actions
+	id := api.Kitname(r.action).ID()
+
+	v, err := vars.RootAgent.Runner.Run(ctx, id, args)
 	if err != nil {
 		args.SetError(err)
 		return nil, err
@@ -45,11 +54,11 @@ func (r *ToolFuncActionHandler) Serve(ctx context.Context, vars *api.Vars, args 
 	return result, nil
 }
 
-func NewToolFuncActionMiddleware(tf *api.ToolFunc) func(ActionHandler) ActionHandler {
+func NewToolFuncActionMiddleware(action string) func(ActionHandler) ActionHandler {
 	return func(ah ActionHandler) ActionHandler {
 		return &ToolFuncActionHandler{
-			next: ah,
-			tool: tf,
+			next:   ah,
+			action: action,
 		}
 	}
 }
@@ -66,7 +75,7 @@ var defaultActionHandler = ActionHandlerFunc(func(ctx context.Context, vars *api
 	return nil, nil
 })
 
-func RunChainActions(ctx context.Context, vars *api.Vars, actions []*api.ToolFunc, args api.ArgMap) (*api.Result, error) {
+func RunChainActions(ctx context.Context, vars *api.Vars, actions []string, args api.ArgMap) (*api.Result, error) {
 	final := ActionHandlerFunc(func(ctx context.Context, vars *api.Vars, args api.ArgMap) (*api.Result, error) {
 		return nil, nil
 	})

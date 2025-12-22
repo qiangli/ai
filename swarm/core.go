@@ -3,6 +3,7 @@ package swarm
 import (
 	"context"
 	"fmt"
+
 	// "strings"
 	"time"
 
@@ -400,6 +401,7 @@ func (sw *Swarm) buildAgentToolMap(agent *api.Agent) map[string]*api.ToolFunc {
 }
 
 func (sw *Swarm) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
+
 	log.GetLogger(ctx).Infof("⣿ %s:%s %+v\n", tf.Kit, tf.Name, formatArgs(args))
 
 	result, err := sw.dispatch(ctx, agent, tf, args)
@@ -426,15 +428,42 @@ func (sw *Swarm) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFun
 // 	return nil, api.NewUnsupportedError("agent kit: " + tf.Kit)
 // }
 
-func (sw *Swarm) callAIType(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
-	aiKit := NewAIKit(sw, agent)
-	return aiKit.Call(ctx, sw.Vars, tf, args)
-}
+// func (sw *Swarm) callAIType(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
+// 	aiKit := NewAIKit(sw, agent)
+// 	return aiKit.Call(ctx, sw.Vars, tf, args)
+// }
 
 func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
+	// command
+	// /bin:alias --option alias="command"
+	// alias default: command
+	if v.Type == api.ToolTypeBin {
+		name := v.Name
+		if name == "" {
+			name = "command"
+		}
+		cmd, err := api.GetStrProp(name, args)
+		if err != nil {
+			return nil, err
+		}
+		if cmd == "" {
+			return nil, fmt.Errorf("Command alias %q not defined. Usage: /bin:alias --option alias=\"command to run\".\nExample: /bin:%s --option %s=\"your system command\"", name, name, name)
+		}
+		out, err := atm.ExecCommand(ctx, sw.OS, sw.Vars, cmd, nil)
+		if err != nil {
+			return nil, err
+		}
+		return &api.Result{
+			Value: out,
+		}, nil
+	}
+
 	// ai
 	if v.Type == api.ToolTypeAI {
-		out, err := sw.callAIType(ctx, agent, v, args)
+
+		// out, err := sw.callAIType(ctx, agent, v, args)
+		aiKit := NewAIKit(sw, agent)
+		out, err := aiKit.Call(ctx, sw.Vars, v, args)
 		if err != nil {
 			return nil, err
 		}

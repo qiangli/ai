@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
 )
 
@@ -139,6 +138,7 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 	return nil, fmt.Errorf("invalid tool: %s", tid)
 }
 
+// Lookup aciton for tid or kit:name in the args if tid is not provided
 func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]any) (any, error) {
 	var kit, name string
 	if tid == "" {
@@ -158,11 +158,14 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	// kit:*
 
 	// default tool
-	if name == "" {
-		name = kit
-	}
+	// if name == "" {
+	// 	name = kit
+	// }
+
 	// this ensures kit:name is in internal kit__name format
 	tid = api.Kitname(kit + ":" + name).ID()
+
+	var tf *api.ToolFunc
 
 	// TODO this shortcut save time for a few function calls.
 	// reinstate if performance is hit
@@ -178,18 +181,28 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	// and slash command toolkit "/kit:name" syntax
 	// i.e. equivalent to: /sh:exec --arg command="ls -al /tmp"
 	if kit == "" || kit == "bin" {
-		cmd, _ := api.GetStrProp("command", args)
-		return atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, cmd, nil)
-	}
-
-	// agent/tool action
-	v, err := r.loadTool(tid, args)
-	if err != nil {
-		return nil, err
+		// cmd, _ := api.GetStrProp("command", args)
+		// return atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, cmd, nil)
+		//
+		// bin:alias --option alias="command line"
+		// name to lookup the command in args, default to 'command'
+		tf = &api.ToolFunc{
+			Type: api.ToolTypeBin,
+			Kit:  string(api.ToolTypeBin),
+			Name: name,
+		}
+	} else {
+		// agent/tool action
+		v, err := r.loadTool(tid, args)
+		if err != nil {
+			return nil, err
+		}
+		tf = v
 	}
 
 	// NOTE: should this be done?
-	envs := r.sw.globalEnv()
+	// set if only not existing
+	envs := r.sw.Vars.Global.GetAllEnvs()
 	for k, v := range envs {
 		if _, ok := args[k]; !ok {
 			args[k] = v
@@ -198,7 +211,9 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 
 	// run the action
 	// and make the error/result available in args
-	result, err := r.sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, r.user), r.agent, v, args)
+	uctx := context.WithValue(ctx, api.SwarmUserContextKey, r.user)
+	result, err := r.sw.callTool(uctx, r.agent, tf, args)
+
 	if err != nil {
 		args["error"] = err.Error()
 		return "", err

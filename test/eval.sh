@@ -38,7 +38,7 @@ adapter="echo"
 # /flow:sequence --actions "$actions" --template "$template" --agent "test" --adapter "$adapter" --output file:///tmp/eval.out
 
 
-adapter=""
+adapter="echo"
 # actions='["ai:call_llm", "sh:format"]'
 # actions='["ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm", "sh:format"]'
 # actions='["ai:new_agent", "ai:build_query", "sh:format"]'

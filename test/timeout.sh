@@ -17,7 +17,10 @@ echo "testing..."
 # time /agent:joker --message "explain timeout in a unix system" --adapter "echo"
 
 # timeout tests
-/sh:timeout --command "/sh:exec --command 'sleep 10'"  --option duration="3s"
+# /sh:timeout --command "/sh:exec --command 'sleep 10'"  --option duration="3s"
+/sh:timeout --command "/sh:exec --command 'sleep 3'"  --option duration="10s"
+
+#
 # /sh:timeout --command "/sh:bash --script 'data:,sleep 10'"  --option duration="3s"
 # /sh:timeout --command "/agent:joker --message 'explain timeout in a unix system'" --option duration="3s"
 

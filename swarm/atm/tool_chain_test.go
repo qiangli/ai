@@ -36,12 +36,12 @@ func TestServeChainActions(t *testing.T) {
 	// Infra: retries, fallbacks, timeout, early termination.
 	// Policy: rate limits, guardrails, pii detection.
 	// Query: prompts, tool selection, and output formatting.
-	actions := []*api.ToolFunc{
-		{Kit: "k0", Name: "analytics"},
-		{Kit: "k1", Name: "timeout"},
-		{Kit: "k2", Name: "retry"},
-		{Kit: "k3", Name: "ratelimit"},
-		{Kit: "k4", Name: "query"},
+	actions := []string{
+		"kit0:analytics",
+		"kit1:timeout",
+		"kit2:backoff",
+		"kit3:ratelimit",
+		"kit4:run_query",
 	}
 
 	result, err := RunChainActions(ctx, vars, actions, args)

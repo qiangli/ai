@@ -9,17 +9,26 @@ import (
 	"time"
 )
 
-// TODO real type of string
+// TODO revisit real type
+// func/web/system/*, mcp, agent, bin, ai???
 type ToolType string
 
 const (
-	ToolTypeFunc   ToolType = "func"
+	// script/template
+	ToolTypeFunc ToolType = "func"
+
 	ToolTypeSystem ToolType = "system"
-	ToolTypeWeb    ToolType = "web"
-	ToolTypeMcp    ToolType = "mcp"
+
+	ToolTypeWeb ToolType = "web"
+
+	ToolTypeMcp ToolType = "mcp"
 
 	ToolTypeAgent ToolType = "agent"
-	ToolTypeAI    ToolType = "ai"
+
+	ToolTypeAI ToolType = "ai"
+
+	// exec system command
+	ToolTypeBin ToolType = "bin"
 )
 
 type ToolFunc struct {

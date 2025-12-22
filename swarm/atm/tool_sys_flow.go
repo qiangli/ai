@@ -173,18 +173,16 @@ func (r *SystemKit) Map(ctx context.Context, vars *api.Vars, _ string, argm api.
 // }
 
 func (r *SystemKit) Chain(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
-	actions := argm.Actions()
-
-	var tools []*api.ToolFunc
-	for _, v := range actions {
-		// only tool id (kit:name) is required
-		// for running the chain.
-		kit, name := api.Kitname(v).Decode()
-		tool := &api.ToolFunc{
-			Kit:  kit,
-			Name: name,
-		}
-		tools = append(tools, tool)
-	}
-	return RunChainActions(ctx, vars, tools, argm)
+	// actions := argm.Actions()
+	links := argm.GetStringSlice("chain")
+	// var tools []*api.ToolFunc
+	// for _, v := range links {
+	// 	kit, name := api.Kitname(v).Decode()
+	// 	tool := &api.ToolFunc{
+	// 		Kit:  kit,
+	// 		Name: name,
+	// 	}
+	// 	tools = append(tools, tool)
+	// }
+	return RunChainActions(ctx, vars, links, argm)
 }
