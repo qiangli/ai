@@ -193,6 +193,8 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 		}
 	}
 
+	// run the action
+	// and make the error/result available in args
 	result, err := r.sw.callTool(context.WithValue(ctx, api.SwarmUserContextKey, r.user), r.agent, v, args)
 	if err != nil {
 		args["error"] = err.Error()

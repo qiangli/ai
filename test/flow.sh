@@ -36,7 +36,8 @@ template='data:,
 # flow types
 # $DRY /flow:sequence --actions '["/sh:pwd", "fs:list_roots", "agent:ed"]' --option command="ls -al" --option adapter="echo" --option query="what is unix" --option template=$template
 # $DRY /flow:choice --actions '["/sh:pwd", "fs:list_roots", "agent:ed"]' --option command="ls -al" --option adapter="echo" --option query="what is unix" --option template=$template
-$DRY /flow:parallel --actions '["/sh:pwd", "fs:list_roots", "agent:ed"]' --option command="ls -al" --option adapter="echo" --option query="what is unix" --option template=$template
+
+$DRY /flow:parallel --actions '["/sh:pwd", "fs:list_roots", "agent:ed"]' --option command="ls -al" --option adapter="echo" --option query="what is unix" --option template=$template --option adapter="echo"
 # $DRY /flow:map --actions '["/sh:pwd", "fs:list_roots", "agent:ed"]' --option command="ls -al" --option adapter="echo" --option query="what is unix" --option template=$template
 # $DRY /flow:chain --actions '["/sh:pwd", "fs:list_roots", "agent:ed"]' --option command="ls -al" --option adapter="echo" --option query="what is unix" --option template=$template
 

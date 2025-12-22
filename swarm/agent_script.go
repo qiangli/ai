@@ -61,9 +61,11 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	vs.ExecHandler = r.newExecHandler(vs, args)
 
 	// run bash interpreter
+	// and make the error/reslt available in args
 	err := vs.RunScript(ctx, script)
 
 	if err != nil {
+		args["error"] = err.Error()
 		return nil, err
 	}
 	// copy back env
@@ -72,7 +74,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	result := &api.Result{
 		Value: b.String(),
 	}
-
+	args["result"] = result
 	return result, nil
 }
 
