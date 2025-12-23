@@ -219,6 +219,8 @@ func (r Kitname) IsAgent() bool {
 // agent:name
 // @name
 // @:name
+// Decode removes slash command prefix and decodes the string into kit and name.
+// For agents, the kit is literal "agent"
 func (r Kitname) Decode() (string, string) {
 	split2 := func(s string, sep string, val string) (string, string) {
 		var p1, p2 string
@@ -235,6 +237,8 @@ func (r Kitname) Decode() (string, string) {
 
 	var kit, name string
 	s := string(r)
+	// remove slash /
+	s = strings.TrimPrefix(s, "/")
 	if strings.HasPrefix(s, "@") {
 		// <agent:name>
 		// @name
@@ -246,6 +250,7 @@ func (r Kitname) Decode() (string, string) {
 		}
 		return "agent", name
 	}
+
 	if strings.Index(s, "__") > 0 {
 		// call time - the name should never be empty
 		kit, name = split2(s, "__", "")

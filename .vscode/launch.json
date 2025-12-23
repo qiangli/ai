@@ -26,12 +26,26 @@
 				// "/help:help",
 				//
 				// alias
-				"/alias:x",
-				"--option",
-				"x=ls -al /tmp",
+				// "/alias:x",
+				// "--option",
+				// "x=ls -al /tmp",
+				//
+				// "/alias:ist_roots",
+				// "--option",
+				// "list_roots=ls -al /",
+				//
 				// "/alias:x",
 				// "--option",
 				// "x=\"/sh:exec --command 'ls -al /tmp'\"",
+				//
+				//
+				"/sh:timeout",
+				"--option",
+				"action=/alias:list_roots",
+				"--option",
+				"list_roots=/fs:list_roots",
+				"--option",
+				"duration=3s",
 				// slash command
 				// "/bin/ls",
 				// "-al",

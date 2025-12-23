@@ -1,29 +1,30 @@
 #!/usr/bin/env ai /sh:bash --format raw --script
 set -xue
 
-# echo "### sb.sh"
-# echo "$$ I'm called $@..."
-# echo "Test inline data url"
-# echo "tool action, custom bash command, bash builtin, bash command, local command"
-# /sh:bash --script 'data:,#!\nset -x\n/fs:list_roots\nprintenv\necho this is a test\nls -al\ngo version'
-# /fs:list_roots --option query="hello"
+echo "testing timer..."
 
-echo "testing..."
-# time /bin/ls -al
-
-# time tests
-# time /sh:exec --command "sleep 5"
-# time /sh:bash --script "data:,sleep 3"
+# time /sh:exec --command "sleep 2"
+# time /sh:bash --script "data:,sleep 2"
 # time /agent:joker --message "explain timeout in a unix system" --adapter "echo"
 
-# timeout tests
+echo "testing timeout..."
+
 # /sh:timeout --command "/sh:exec --command 'sleep 10'" --option duration="3s"
-# /sh:timeout --command "/sh:exec --command 'sleep 3'" --option duration="10s"
-# /sh:timeout --command "/bin:sub --option sub='ls -al /tmp'" --option duration="10s"
-/sh:timeout --action "bin:sub"  --option sub="ls -al /tmp" --option duration="10s"
-/sh:timeout --action "alias:x" --option x="agent:ed"
+# /sh:timeout --command "/sh:exec --command 'sleep 2'" --option duration="10s"
 
 #
 # /sh:timeout --command "/sh:bash --script 'data:,sleep 10'"  --option duration="3s"
-# /sh:timeout --command "/agent:joker --message 'explain timeout in a unix system'" --option duration="3s"
+# /sh:timeout --command "/sh:bash --script 'data:,sleep 2'"  --option duration="10s"
+
+#
+# /sh:timeout --command "/agent:joker --message 'explain timeout in a unix system'" --option duration="1s"
+# /sh:timeout --command "/agent:joker --message 'explain timeout in a unix system'" --option duration="30s"
+
+# /sh:timeout --command "/alias:x --option x='sleep 10'" --option duration="3s"
+# /sh:timeout --command "/alias:x --option x='sleep 3'" --option duration="10s"
+
+/sh:timeout --command "/sh:exec --command 'pwd'" --option duration="10s"
+/sh:timeout --option action="/alias:list_roots" --option list_roots="/sh:exec --command 'ls /'" --option duration="3s"
+
+
 

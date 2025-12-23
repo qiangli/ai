@@ -16,7 +16,7 @@ test/script.sh
 # test/sb.sh
 # test/sb.txt
 # test/sb.yaml
-# test/timout.sh
+test/timout.sh
 # test/yaml-wrap.sh
 
 echo "Test completed"
