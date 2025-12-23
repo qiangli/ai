@@ -255,14 +255,35 @@ func (r *SystemKit) Timeout(ctx context.Context, vars *api.Vars, name string, ar
 //	  2022/03/31 14:29:39 "false" []:exit status 1
 //	  2022/03/31 14:29:39 Error: exit status 1
 func (r *SystemKit) Backoff(ctx context.Context, vars *api.Vars, name string, args api.ArgMap) (any, error) {
-	cmdline := args.GetString("command")
-	if len(cmdline) == 0 {
-		return "", fmt.Errorf("command is empty")
+	// cmdline := args.GetString("command")
+	// if len(cmdline) == 0 {
+	// 	return "", fmt.Errorf("command is empty")
+	// }
+	// cmdArgs, err := conf.Parse(cmdline)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	var cmdArgs api.ArgMap
+
+	action := args.Action()
+	if action == nil {
+		cmdline := args.GetString("command")
+		if len(cmdline) == 0 {
+			return "", fmt.Errorf("command action is missing")
+		}
+		v, err := conf.Parse(cmdline)
+		if err != nil {
+			return nil, err
+		}
+		cmdArgs = v
+	} else {
+		kit, name := api.Kitname(action.Name).Decode()
+		args["kit"] = kit
+		args["name"] = name
+		cmdArgs = args
 	}
-	cmdArgs, err := conf.Parse(cmdline)
-	if err != nil {
-		return nil, err
-	}
+
 	kn := cmdArgs.Kitname()
 
 	duration := args.GetDuration("duration")
@@ -277,8 +298,7 @@ func (r *SystemKit) Backoff(ctx context.Context, vars *api.Vars, name string, ar
 		return err
 	}
 
-	err = backoff.Retry(f, b)
-	if err != nil {
+	if err := backoff.Retry(f, b); err != nil {
 		return nil, err
 	}
 	return result, nil

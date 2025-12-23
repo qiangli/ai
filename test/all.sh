@@ -3,8 +3,6 @@ set -xue
 
 # this script can be run as system bash
 
-# test/backoff.sh
-# test/chain.sh
 test/eval.sh
 test/script.sh
 
@@ -16,7 +14,12 @@ test/script.sh
 # test/sb.sh
 # test/sb.txt
 # test/sb.yaml
-test/timout.sh
 # test/yaml-wrap.sh
 
-echo "Test completed"
+test/timeout.sh
+
+test/backoff.sh
+
+# test/chain.sh
+echo ""
+echo "*** Test completed ***"

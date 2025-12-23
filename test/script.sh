@@ -1,4 +1,4 @@
-#!/usr/bin/env ai /sh:bash --verbose --script
+#!/usr/bin/env ai /sh:bash --format raw --script
 set -xue
 
 echo "# Hello world!"
