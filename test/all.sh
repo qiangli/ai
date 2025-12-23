@@ -1,26 +1,32 @@
 #!/bin/bash
-set -xue
+# this script runs as regular system bash
 
-# this script can be run as system bash
+set -ue
 
-test/eval.sh
-test/script.sh
+BASE=$(pwd)
+echo $BASE
 
-# TODO fix concurrent writes for parallel
-# test/flow.sh
+$BASE/test/eval.sh
 
-# test/sb.json.sh
-# test/sb.md
-# test/sb.sh
-# test/sb.txt
-# test/sb.yaml
-# test/yaml-wrap.sh
+$BASE/test/script.sh
 
-test/timeout.sh
+#
+$BASE/test/flow.sh
 
-test/backoff.sh
+#$BASE/sb.json.sh
+#$BASE/sb.md
+#$BASE/sb.sh
+#$BASE/sb.txt
+#$BASE/sb.yaml
+#$BASE/yaml-wrap.sh
 
-# test/chain.sh
+$BASE/test/timeout.sh
 
-echo ""
-echo "*** Test completed ***"
+$BASE/test/backoff.sh
+
+#$BASE/chain.sh
+
+echo "$?"
+echo "*** All tests completed successfully ***"
+###
+

@@ -1,6 +1,17 @@
 #!/usr/bin/env ai /sh:bash --format raw --script
-# set -xue
-set -ue
+set -xue
+
+# built-in
+BASE=$(pwd)
+echo $BASE
+# printenv
+
+# core utils - must be full path
+/bin/pwd
+pwd
+
+/bin/ls -al /tmp
+ls -al /tmp
 
 adapter="echo"
 
@@ -89,4 +100,6 @@ template='data:,
 # command line in a terminal:
 # test/eval.sh  --agent joker  --message "what is the weather in dublin ca in the next few days" --option tools='["web:fetch_content", "web:ddg_search"]'  --max-history 1 --max-turns 10
 
+echo "$?"
+echo "*** eval tests completed ***"
 ###

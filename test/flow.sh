@@ -50,5 +50,8 @@ $DRY /flow:map --actions '["sh:format"]' --option query='["a", "b", "c"]' --temp
 #
 # printenv
 # echo $?
+
+echo "$?"
+echo "*** flow tests completed ***"
 exit 0
 #

@@ -73,8 +73,10 @@ func (r *SystemKit) Parallel(ctx context.Context, vars *api.Vars, _ string, argm
 		wg.Add(1)
 		go func(i int, v string) {
 			defer wg.Done()
-			// data, err := r.sequence(ctx, vars, "", []string{actions[i]}, argm)
-			data, err := vars.RootAgent.Runner.Run(ctx, v, argm)
+			// needed to prevent data race issues
+			var nargs = make(map[string]any)
+			maps.Copy(nargs, argm)
+			data, err := vars.RootAgent.Runner.Run(ctx, v, nargs)
 			if err != nil {
 				resps[i] = err.Error()
 			} else {
@@ -138,11 +140,11 @@ func (r *SystemKit) Map(ctx context.Context, vars *api.Vars, _ string, argm api.
 		go func(i int, v string) {
 			defer wg.Done()
 
-			var req = make(map[string]any)
-			maps.Copy(req, argm)
-			req["query"] = v
+			var nargs = make(map[string]any)
+			maps.Copy(nargs, argm)
+			nargs["query"] = v
 
-			data, err := r.sequence(ctx, vars, "", actions, req)
+			data, err := r.sequence(ctx, vars, "", actions, nargs)
 			if err != nil {
 				resps[i] = err.Error()
 			} else {

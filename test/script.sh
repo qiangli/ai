@@ -39,6 +39,7 @@ $DRY /atm:hi --script $atm_script --option greeting="how are you today?" --optio
 $DRY /agent:atm/hi --script $atm_script
 
 #
-echo $?
+echo "$?"
+echo  "*** script tests completed ***"
 exit 0
 #

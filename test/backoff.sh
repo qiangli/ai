@@ -13,5 +13,6 @@ echo ">>> Testing backoff..."
 /sh:backoff --command '/flow:choice --actions "[\"sh:pass\",\"invalid_action\",\"kit:invalid_tool\"]"'  --option duration="15s"
 /sh:backoff --option action="/alias:choose" --option choose='/flow:choice --actions "[\"sh:pass\",\"no_such_cmd\",\"sh:pwd\",\"kit:invalid_tool\"]"' --option duration="15s"
 
-echo "*** backoff test completed ***"
+echo "$?"
+echo "*** backoff tests completed ***"
 ###
