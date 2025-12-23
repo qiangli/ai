@@ -330,13 +330,14 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 }
 
 // create agent (class) from config
-func (r *ConfigLoader) Create(ctx context.Context, ac *api.AppConfig, packname api.Packname) (*api.Agent, error) {
+func (r *ConfigLoader) Create(ctx context.Context, packname api.Packname) (*api.Agent, error) {
 	findConfig := func(ac *api.AppConfig, pack, sub string) (*api.AgentConfig, error) {
 		for _, a := range ac.Agents {
 			if ac.Pack == pack && sub == a.Name {
 				return a, nil
 			}
 		}
+
 		return nil, fmt.Errorf("agent not found: %s/%s", pack, sub)
 	}
 
@@ -388,8 +389,10 @@ func (r *ConfigLoader) Create(ctx context.Context, ac *api.AppConfig, packname a
 	// 	return nil, fmt.Errorf("no such agent: %s", name)
 	// }
 
-	// access to models/tools is implicitly granted if user has permission to run the agent
-	// agent config
+	ac, err := r.LoadAgentConfig(packname)
+	if err != nil {
+		return nil, err
+	}
 
 	creator := func() (*api.Agent, error) {
 		c, err := findConfig(ac, pack, sub)
@@ -407,7 +410,7 @@ func (r *ConfigLoader) Create(ctx context.Context, ac *api.AppConfig, packname a
 
 		// embedded
 		for _, v := range c.Embed {
-			if a, err := r.Create(ctx, ac, api.Packname(v)); err != nil {
+			if a, err := r.Create(ctx, api.Packname(v)); err != nil {
 				return nil, err
 			} else {
 				agent.Embed = append(agent.Embed, a)

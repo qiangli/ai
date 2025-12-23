@@ -53,14 +53,14 @@ func (r *AIKit) newAgent(ctx context.Context, vars *api.Vars, tf string, args ma
 	// 	}
 	// 	ac = v
 	// }
-	ac, err := r.ReadAgentConfig(ctx, vars, tf, args)
-	if err != nil {
-		return nil, err
-	}
+	// ac, err := r.ReadAgentConfig(ctx, vars, tf, args)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	var loader = NewConfigLoader(r.sw.Vars.RTE)
 
-	agent, err := loader.Create(ctx, ac, api.Packname(name))
+	agent, err := loader.Create(ctx, api.Packname(name))
 	if err != nil {
 		return nil, err
 	}
