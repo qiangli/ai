@@ -329,22 +329,27 @@ func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, a
 	args["kit"] = "agent"
 	args["name"] = name
 
-	cfg, found := args["config"]
-	if found {
-		if v, ok := cfg.(*api.AppConfig); ok {
-			return v, nil
-		}
-	}
+	// cfg, found := args["config"]
+	// if found {
+	// 	if v, ok := cfg.(*api.AppConfig); ok {
+	// 		return v, nil
+	// 	}
+	// }
 
 	var loader = NewConfigLoader(r.sw.Vars.RTE)
-	data := api.ToString(cfg)
-	if data != "" {
-		// load content from config into the data buffer
-		if err := loader.LoadContent(data); err != nil {
-			return nil, err
-		}
-	}
-	// load from script ?
+
+	// cfg, found := args["config"]
+	// if found {
+	// 	data := api.ToString(cfg)
+	// 	if data != "" {
+	// 		// load content from config into the data buffer
+	// 		if err := loader.LoadContent(data); err != nil {
+	// 			return nil, err
+	// 		}
+	// 	}
+	// }
+
+	// load from script
 	// TODO only load mime-type yaml
 	if v := args.GetString("script"); v != "" {
 		if strings.HasSuffix(v, ".yaml") || strings.HasSuffix(v, ".yml") {
@@ -358,7 +363,7 @@ func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, a
 	if err != nil {
 		return nil, err
 	}
-	args["config"] = config
+	// args["config"] = config
 	return config, nil
 }
 

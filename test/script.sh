@@ -27,7 +27,7 @@ echo "## tool/bash..."
 adapter="--adapter echo"
 echo "## agent..."
 /agent:ed ${adapter} "Agent \"ed-${ID}\": correcto mine englise please."
-/ai:spawn_agent ${adapter} --agent "joker" --message "what is on the news today"
+/ai:spawn_agent ${adapter} --agent joker --message "what is on the news today"
 
 #
 echo "## tool/agent from custom content..."

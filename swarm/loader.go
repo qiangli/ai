@@ -337,7 +337,7 @@ func (r *ConfigLoader) Create(ctx context.Context, ac *api.AppConfig, packname a
 				return a, nil
 			}
 		}
-		return nil, fmt.Errorf("no such agent: %s/%s", pack, sub)
+		return nil, fmt.Errorf("agent not found: %s/%s", pack, sub)
 	}
 
 	// create the agent

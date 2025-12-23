@@ -39,16 +39,23 @@ func (r *AIKit) newAgent(ctx context.Context, vars *api.Vars, tf string, args ma
 		name = v
 	}
 
-	var ac *api.AppConfig
-	cfg := args["config"]
-	if v, ok := cfg.(*api.AppConfig); ok {
-		ac = v
-	} else {
-		v, err := r.ReadAgentConfig(ctx, vars, tf, args)
-		if err != nil {
-			return nil, err
-		}
-		ac = v
+	// TODO investigate.
+	// config file is stale in the bash script. Need to re-read for new config files
+	//
+	// var ac *api.AppConfig
+	// cfg := args["config"]
+	// if v, ok := cfg.(*api.AppConfig); ok {
+	// 	ac = v
+	// } else {
+	// 	v, err := r.ReadAgentConfig(ctx, vars, tf, args)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	ac = v
+	// }
+	ac, err := r.ReadAgentConfig(ctx, vars, tf, args)
+	if err != nil {
+		return nil, err
 	}
 
 	var loader = NewConfigLoader(r.sw.Vars.RTE)
