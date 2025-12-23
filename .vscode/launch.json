@@ -39,13 +39,14 @@
 				// "x=\"/sh:exec --command 'ls -al /tmp'\"",
 				//
 				//
-				"/sh:timeout",
-				"--option",
-				"action=/alias:list_roots",
-				"--option",
-				"list_roots=/fs:list_roots",
-				"--option",
-				"duration=3s",
+				// "/sh:timeout",
+				// "--option",
+				// "action=/alias:list_roots",
+				// "--option",
+				// "list_roots=/fs:list_roots",
+				// "--option",
+				// "duration=3s",
+				//
 				// slash command
 				// "/bin/ls",
 				// "-al",
@@ -80,11 +81,11 @@
 				// "atm/tools/hello_kit/hello_user.yaml",
 				//
 				// agent
-				// "/agent:atm/hi",
-				// "--script",
-				// "swarm/atm/resource/template/atm.yaml",
-				// "--verbose",
-				// "pick some famous politicians names",
+				"/agent:atm/hi",
+				"--script",
+				"swarm/atm/resource/template/atm.yaml",
+				"--verbose",
+				"pick some famous politicians names",
 				//
 				// tool
 				// "/atm:hi",

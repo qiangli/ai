@@ -319,9 +319,11 @@ func LoadAgentTool(ac *api.AppConfig, sub string) (*api.ToolFunc, error) {
 			pn := api.Packname(ac.Pack + "/" + sub).Encode()
 
 			tool := &api.ToolFunc{
-				Kit:         string(api.ToolTypeAgent),
-				Type:        api.ToolTypeAgent,
-				Name:        c.Name,
+				Kit:  string(api.ToolTypeAgent),
+				Type: api.ToolTypeAgent,
+				// func name: pack/sub?
+				// Name:        c.Name,
+				Name:        pn,
 				Description: c.Description,
 				Parameters:  params,
 				Body:        nil,

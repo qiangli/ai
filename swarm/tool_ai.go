@@ -313,7 +313,7 @@ Instruction: %s
 	return "", fmt.Errorf("unknown agent: %s", agent)
 }
 
-func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (*api.AppConfig, error) {
+func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, args api.ArgMap) (*api.AppConfig, error) {
 	// agent:name -> agent
 	// --agent agent
 	name, err := api.GetStrProp("agent", args)
@@ -339,7 +339,16 @@ func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, a
 	var loader = NewConfigLoader(r.sw.Vars.RTE)
 	data := api.ToString(cfg)
 	if data != "" {
-		loader.LoadContent(data)
+		// load content from config into the data buffer
+		if err := loader.LoadContent(data); err != nil {
+			return nil, err
+		}
+	}
+	// load from script ?
+	if v := args.GetString("script"); v != "" {
+		if err := loader.LoadContent(v); err != nil {
+			return nil, err
+		}
 	}
 
 	config, err := loader.LoadAgentConfig(api.Packname(name))

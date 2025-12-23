@@ -4,6 +4,7 @@ pack: "ed"
 new: false
 log_level: "quiet"
 format: "text"
+max_history: 0
 
 agents:
   - name: "ed"

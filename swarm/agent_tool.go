@@ -72,6 +72,8 @@ func (r *AgentToolRunner) loadYaml(tid string, script string) (*api.ToolFunc, er
 	return nil, nil
 }
 
+// try load from provided script file first,
+// if not found, continue to load from other sources
 func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFunc, error) {
 	// load tool from content
 	if s, ok := args["script"]; ok {
@@ -92,7 +94,8 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 			if tf != nil {
 				return tf, nil
 			}
-			return nil, fmt.Errorf("%q not found in script: %s", tid, s)
+			// return nil, fmt.Errorf("%q not found in script: %s", tid, s)
+			// continue to load tid
 		case ".txt", ".md", ".markdown":
 			// feed text file as query content
 			cfg, err := r.sw.LoadScript(s)
@@ -103,7 +106,7 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 			args["content"] = api.Cat(api.ToString(old), tail(cfg, 1), "\n###\n")
 			// continue to load tid
 		case ".json", ".jsonc":
-			// decode json into additional arguments
+			// decode json as additional arguments
 			cfg, err := r.sw.LoadScript(s)
 			if err != nil {
 				return nil, err

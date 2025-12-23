@@ -22,6 +22,7 @@ agents:
       Only run the tool once and exit regardlesss of success or failure.
     functions:
       - "atm:hi"
+      - "ai:*"
 
 ###
 kit: "atm"
@@ -44,8 +45,8 @@ tools:
         - greeting
         - names
     body:
-      language: "golang"
-      code: |
+      mime_type: "application/x-go"
+      script: |
         #! mime-type=text/x-go-template
         import "encoding/json"
         import "fmt"

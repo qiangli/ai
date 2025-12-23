@@ -21,13 +21,13 @@ func NewConfigLoader(rte *api.ActionRTEnv) *ConfigLoader {
 	}
 }
 
-func (r *ConfigLoader) LoadContent(s string) ([]byte, error) {
+func (r *ConfigLoader) LoadContent(s string) error {
 	v, err := api.LoadURIContent(r.rte.Workspace, s)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	r.data = []byte(v)
-	return r.data, nil
+	return nil
 }
 
 // load config for agent/tool
@@ -75,7 +75,7 @@ func (r *ConfigLoader) LoadAgentConfig(pn api.Packname) (*api.AppConfig, error) 
 		return nil, err
 	}
 	if ac == nil {
-		return nil, fmt.Errorf("could not find the confi for pack: %s", pack)
+		return nil, fmt.Errorf("could not find the config for pack: %s", pack)
 	}
 
 	for _, v := range ac.Agents {
@@ -331,14 +331,13 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 
 // create agent (class) from config
 func (r *ConfigLoader) Create(ctx context.Context, ac *api.AppConfig, packname api.Packname) (*api.Agent, error) {
-
-	findConfig := func(ac *api.AppConfig, pn api.Packname) (*api.AgentConfig, error) {
+	findConfig := func(ac *api.AppConfig, pack, sub string) (*api.AgentConfig, error) {
 		for _, a := range ac.Agents {
-			if pn.Equal(a.Name) {
+			if ac.Pack == pack && sub == a.Name {
 				return a, nil
 			}
 		}
-		return nil, fmt.Errorf("no such agent: %s", pn)
+		return nil, fmt.Errorf("no such agent: %s/%s", pack, sub)
 	}
 
 	// create the agent
@@ -393,16 +392,14 @@ func (r *ConfigLoader) Create(ctx context.Context, ac *api.AppConfig, packname a
 	// agent config
 
 	creator := func() (*api.Agent, error) {
-		pn := api.Packname(pack + "/" + sub)
-
-		c, err := findConfig(ac, pn)
+		c, err := findConfig(ac, pack, sub)
 		if err != nil {
 			return nil, err
 		}
 
 		//
 		c.Config = ac
-
+		pn := api.Packname(pack + "/" + sub)
 		agent, err := r.NewAgent(c, pn)
 		if err != nil {
 			return nil, err
