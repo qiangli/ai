@@ -58,6 +58,9 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 		if err != nil {
 			return nil, err
 		}
+		if v == nil {
+			return nil, fmt.Errorf("agent not found: %s", name)
+		}
 		return []*api.ToolFunc{v}, nil
 	}
 
