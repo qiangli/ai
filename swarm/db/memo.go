@@ -60,12 +60,15 @@ func (m *MemoryStore) Save(messages []*Message) error {
 
 func (m *MemoryStore) Load(opt *MemOption) ([]*Message, error) {
 	var defaultRoles = []string{"assistant", "user"}
-	if opt == nil {
-		opt = &api.MemOption{
-			MaxHistory: 3,
-			MaxSpan:    1440,
-			Offset:     0,
-		}
+	// if opt == nil {
+	// 	opt = &api.MemOption{
+	// 		MaxHistory: 3,
+	// 		MaxSpan:    1440,
+	// 		Offset:     0,
+	// 	}
+	// }
+	if opt == nil || opt.MaxHistory == 0 || opt.MaxSpan == 0 {
+		return []*Message{}, nil
 	}
 	var messages []*Message
 	maxSpan := time.Now().Add(-time.Duration(opt.MaxSpan) * time.Minute).Unix()

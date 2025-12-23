@@ -345,9 +345,12 @@ func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, a
 		}
 	}
 	// load from script ?
+	// TODO only load mime-type yaml
 	if v := args.GetString("script"); v != "" {
-		if err := loader.LoadContent(v); err != nil {
-			return nil, err
+		if strings.HasSuffix(v, ".yaml") || strings.HasSuffix(v, ".yml") {
+			if err := loader.LoadContent(v); err != nil {
+				// return nil, err
+			}
 		}
 	}
 
@@ -371,25 +374,25 @@ func (r *AIKit) TransferAgent(_ context.Context, _ *api.Vars, _ string, args map
 	}, nil
 }
 
-func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, id string, args map[string]any) (*api.Result, error) {
-	var name string
-	if id != "" {
-		kit, v := api.Kitname(id).Decode()
-		if kit != string(api.ToolTypeAgent) {
-			return nil, fmt.Errorf("invalid agent tool id: %s", id)
-		}
-		name = v
-		args["agent"] = name
-	} else {
-		v, err := api.GetStrProp("agent", args)
-		if err != nil {
-			return nil, err
-		}
-		if v == "" {
-			return nil, fmt.Errorf("missing agent name")
-		}
-		name = v
+func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	// var name string
+	// if id != "" {
+	// 	kit, v := api.Kitname(id).Decode()
+	// 	if kit != string(api.ToolTypeAgent) {
+	// 		return nil, fmt.Errorf("invalid agent tool id: %s", id)
+	// 	}
+	// 	name = v
+	// 	args["agent"] = name
+	// } else {
+	v, err := api.GetStrProp("agent", args)
+	if err != nil {
+		return nil, err
 	}
+	if v == "" {
+		return nil, fmt.Errorf("missing agent name")
+	}
+	// name = v
+	// }
 
 	// return r.sw.runm(ctx, r.agent, name, args)
 	kit := atm.NewSystemKit()

@@ -414,7 +414,7 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 	if v.Type == api.ToolTypeAgent {
 		aiKit := NewAIKit(sw, agent)
 		args["agent"] = v.Name
-		return aiKit.SpawnAgent(ctx, sw.Vars, api.Kitname("agent:"+v.Name).ID(), args)
+		return aiKit.SpawnAgent(ctx, sw.Vars, "", args)
 	}
 
 	// misc kits

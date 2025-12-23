@@ -1,2 +1,2 @@
 #!/bin/bash
-./swarm/atm/resource/template/atm.yaml
+./swarm/atm/resource/template/atm.yaml $@

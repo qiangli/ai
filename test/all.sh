@@ -6,24 +6,23 @@ set -ue
 BASE=$(pwd)
 echo $BASE
 
-$BASE/test/eval.sh
-
+##
+# $BASE/test/eval.sh
 $BASE/test/script.sh
-
-#
 $BASE/test/flow.sh
 
+##
+adapter=echo
 #$BASE/sb.json.sh
-#$BASE/sb.md
-#$BASE/sb.sh
-#$BASE/sb.txt
-#$BASE/sb.yaml
-#$BASE/yaml-wrap.sh
+$BASE/test/sb.md --adapter $adapter
+$BASE/test/sb.sh --adapter $adapter
+$BASE/test/sb.txt --adapter $adapter
+$BASE/test/sb.yaml --adapter $adapter
+$BASE/test/yaml-wrap.sh --adapter $adapter
 
+##
 $BASE/test/timeout.sh
-
 $BASE/test/backoff.sh
-
 #$BASE/chain.sh
 
 echo "$?"

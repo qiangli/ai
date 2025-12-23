@@ -2,7 +2,6 @@
 set -xue
 
 echo "# Hello world!"
-DRY="echo"
 
 echo "## system command..."
 ID="ID:$$"
@@ -25,9 +24,10 @@ echo "## tool/bash..."
 /ai:execute_tool --tool "sh:bash" --command "ls -al /opt"
 
 #
+adapter="--adapter echo"
 echo "## agent..."
-$DRY /agent:ed "Agent \"ed-${ID}\": correcto mine englise please."
-$DRY /ai:spawn_agent --agent "joker"  --message "what is on the news today"
+/agent:ed ${adapter} "Agent \"ed-${ID}\": correcto mine englise please."
+/ai:spawn_agent ${adapter} --agent "joker"  --message "what is on the news today"
 
 #
 echo "## tool/agent from custom content..."
@@ -35,8 +35,8 @@ echo "## tool/agent from custom content..."
 atm_script="$(pwd)/swarm/atm/resource/template/atm.yaml"
 echo $atm_script
 
-$DRY /atm:hi --script $atm_script --option greeting="how are you today?" --option names='["dragon", "horse"]'
-$DRY /agent:atm/hi --script $atm_script
+/atm:hi --script $atm_script --option greeting="how are you today?" --option names='["dragon", "horse"]'
+/agent:atm/hi ${adapter} --script $atm_script
 
 #
 echo "$?"

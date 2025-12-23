@@ -81,11 +81,11 @@
 				// "atm/tools/hello_kit/hello_user.yaml",
 				//
 				// agent
-				"/agent:atm/hi",
-				"--script",
-				"swarm/atm/resource/template/atm.yaml",
-				"--verbose",
-				"pick some famous politicians names",
+				// "/agent:atm/hi",
+				// "--script",
+				// "swarm/atm/resource/template/atm.yaml",
+				// "--verbose",
+				// "pick some famous politicians names",
 				//
 				// tool
 				// "/atm:hi",
@@ -105,7 +105,7 @@
 				// "echo",
 				// "--verbose"
 				//
-				// "/sh:flow",
+				// "/flow:sequence",
 				// "--actions",
 				// "[\"ai:read_agent_config\", \"ai:new_agent\", \"ai:call_llm\", \"sh:format\"]",
 				// "--template",
@@ -119,7 +119,7 @@
 				// "--message",
 				// "Correcto mine englise"
 				//
-				// "/sh:flow",
+				// "/flow:sequence",
 				// "--actions",
 				// "[\"ai:read_agent_config\", \"ai:new_agent\",  \"sh:format\"]",
 				// "--template",
@@ -131,7 +131,7 @@
 				// "--message",
 				// "Correcto mine englise"
 				//
-				// "/sh:flow",
+				// "/flow:sequence",
 				// "--actions",
 				// "[\"ai:read_agent_config\", \"ai:new_agent\", \"ai:build_query\", \"ai:build_prompt\", \"sh:format\"]",
 				// "--template",
@@ -157,15 +157,15 @@
 				// "--agent",
 				// "ask/ask"
 				//
-				// "/sh:flow",
+				// "/flow:sequence",
 				// "--actions",
-				// "[\"sh:parse\",\"ai:get_agent_config\",\"sh:format\"]".
-				// "--arg",
+				// "[\"sh:parse\",\"ai:get_agent_config\",\"sh:format\"]",
+				// "--option",
 				// "agent=ed",
-				// "--arg",
+				// "--option",
 				// "template='data:,\n***\n{{.result}}\n***\n'",
 				// "--message",
-				// "test"
+				// "test",
 				//
 				// "/sh:apply",
 				// "--template",
@@ -180,7 +180,7 @@
 				// "todays news headlines"
 				//
 				// "/web:fetch_content",
-				// "--arg",
+				// "--option",
 				// "url=https://en.wikipedia.org/wiki/Unix"
 				//
 				// "/ai:call_llm",
@@ -188,7 +188,7 @@
 				// "what is the new headlines today",
 				// "--instruction",
 				// "you are a top news anchor. if need to access the web and other source, use the ai:list_tools to find the right tools to use",
-				// "--arg", "tools=[\"ai:list_tools\",\"ai:execute_tool\",\"web:get_web_content\",\"web:ddg_search\"]"
+				// "--option", "tools=[\"ai:list_tools\",\"ai:execute_tool\",\"web:get_web_content\",\"web:ddg_search\"]"
 				//
 				// // "@ask",
 				// "how to update system env in a golang template",
