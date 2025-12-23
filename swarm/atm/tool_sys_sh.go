@@ -175,15 +175,16 @@ func (r *SystemKit) Timeout(ctx context.Context, vars *api.Vars, name string, ar
 
 	action := args.Action()
 	if action == nil {
+		// $(command)
 		cmdline := args.GetString("command")
 		if len(cmdline) == 0 {
 			return "", fmt.Errorf("command action is missing")
 		}
-		v, err := conf.Parse(cmdline)
+		nargs, err := conf.Parse(cmdline)
 		if err != nil {
 			return nil, err
 		}
-		cmdArgs = v
+		cmdArgs = nargs
 	} else {
 		kit, name := api.Kitname(action.Name).Decode()
 		args["kit"] = kit
@@ -255,28 +256,20 @@ func (r *SystemKit) Timeout(ctx context.Context, vars *api.Vars, name string, ar
 //	  2022/03/31 14:29:39 "false" []:exit status 1
 //	  2022/03/31 14:29:39 Error: exit status 1
 func (r *SystemKit) Backoff(ctx context.Context, vars *api.Vars, name string, args api.ArgMap) (any, error) {
-	// cmdline := args.GetString("command")
-	// if len(cmdline) == 0 {
-	// 	return "", fmt.Errorf("command is empty")
-	// }
-	// cmdArgs, err := conf.Parse(cmdline)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	var cmdArgs api.ArgMap
 
 	action := args.Action()
 	if action == nil {
+		// $(command)
 		cmdline := args.GetString("command")
 		if len(cmdline) == 0 {
 			return "", fmt.Errorf("command action is missing")
 		}
-		v, err := conf.Parse(cmdline)
+		nargs, err := conf.Parse(cmdline)
 		if err != nil {
 			return nil, err
 		}
-		cmdArgs = v
+		cmdArgs = nargs
 	} else {
 		kit, name := api.Kitname(action.Name).Decode()
 		args["kit"] = kit

@@ -41,12 +41,19 @@ template='data:,
 # printenv
 # echo $?
 
-/sh:backoff --command '/flow:choice --actions "[\"sh:pass\",\"invalid_action\", \"sh:pwd\", \"kit:invalid_kit\"]"'  --option duration="15s"
-/sh:backoff --option action="/alias:choose" --option choose='/flow:choice --actions "[\"sh:pass\",\"no_such_cmd\", \"sh:pwd\", \"kit:invalid_kit\"]"' --option duration="15s"
+# /sh:backoff --command '/flow:choice --actions "[\"sh:pass\",\"invalid_action\", \"sh:pwd\", \"kit:invalid_kit\"]"'  --option duration="15s"
+# /sh:backoff --option action="/alias:choose" --option choose='/flow:choice --actions "[\"sh:pass\",\"no_such_cmd\", \"sh:pwd\", \"kit:invalid_kit\"]"' --option duration="15s"
 
+# /sh:timeout --command "/sh:exec --command 'pwd'" --option duration="10s"
+# /sh:timeout --option action="/alias:list_roots" --option list_roots="/sh:exec --command 'ls /'" --option duration="3s"
 
-/sh:timeout --command "/sh:exec --command 'pwd'" --option duration="10s"
-/sh:timeout --option action="/alias:list_roots" --option list_roots="/sh:exec --command 'ls /'" --option duration="3s"
+set -x
+
+# actions="[\"sh:pass\",\"invalid_action\",\"sh:pwd\",\"kit:invalid_kit\",\"sh:pass\"]"
+# choose="/flow:choice --actions "$actions""
+# $choose
+
+/flow:chain --actions '[\"sh:timeout\",\"sh:backoff\",\"alias:flow\"]' --option duration="10s" --option flow="/sh:pass"
 
 exit 0
 ###

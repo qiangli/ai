@@ -166,6 +166,7 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	// /alias:name --option name="command line"
 	// name to lookup the command in args
 	// TODO alias referencing alias
+	// alias use the same args in the same scope
 	if kit == string(api.ToolTypeAlias) {
 		if name == "" {
 			return nil, fmt.Errorf("Invalid alias action. missing name. /alias:NAME --option NAME='action to run'")
@@ -181,16 +182,17 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 		if len(argv) == 0 {
 			return nil, fmt.Errorf("Invalid alias %q: %s", name, alias)
 		}
+		//
 		if conf.IsAction(argv[0]) {
-			v, err := conf.Parse(argv)
+			nargs, err := conf.Parse(argv)
 			if err != nil {
 				return nil, err
 			}
-			maps.Copy(args, v)
+			maps.Copy(args, nargs)
 			kit, name = api.Kitname(argv[0]).Decode()
 		} else {
+			// exec alias as system command line
 			kit = string(api.ToolTypeBin)
-			//
 			args["command"] = alias
 		}
 	}

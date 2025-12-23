@@ -10,10 +10,8 @@ echo ">>> Testing backoff..."
 # /sh:exec --command "no_such_cmd"
 # /sh:backoff --command "/sh:exec --command 'no_such_cmd'"  --option duration="10s"
 
-# /sh:backoff --command '/flow:choice --actions "[\"sh:pass\",\"no_such_cmd\",\"invalid_action\", \"kit:invalid_kit\"]"'  --option duration="15s"
-# /sh:backoff --option action="/alias:choose" --option choose='/flow:choice --actions "[\"sh:pass\",\"no_such_cmd\",\"invalid_action\", \"kit:invalid_kit\"]"' --option duration="15s"
+/sh:backoff --command '/flow:choice --actions "[\"sh:pass\",\"invalid_action\",\"kit:invalid_tool\"]"'  --option duration="15s"
+/sh:backoff --option action="/alias:choose" --option choose='/flow:choice --actions "[\"sh:pass\",\"no_such_cmd\",\"sh:pwd\",\"kit:invalid_tool\"]"' --option duration="15s"
 
-/sh:backoff --command '/flow:choice --actions "[\"sh:pass\",\"invalid_action\", \"sh:pwd\", \"kit:invalid_kit\"]"'  --option duration="15s"
-/sh:backoff --option action="/alias:choose" --option choose='/flow:choice --actions "[\"sh:pass\",\"no_such_cmd\", \"sh:pwd\", \"kit:invalid_kit\"]"' --option duration="15s"
-
+echo "*** backoff test completed ***"
 ###
