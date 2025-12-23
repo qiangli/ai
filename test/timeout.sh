@@ -26,5 +26,4 @@ echo ">>> Testing timeout..."
 /sh:timeout --command "/sh:exec --command 'pwd'" --option duration="10s"
 /sh:timeout --option action="/alias:list_roots" --option list_roots="/sh:exec --command 'ls /'" --option duration="3s"
 
-
-
+###

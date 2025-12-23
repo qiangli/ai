@@ -19,7 +19,6 @@ type ActionHandler interface {
 }
 
 type ToolFuncActionHandler struct {
-	// tool *api.ToolFunc
 	action string
 	next   ActionHandler
 }
