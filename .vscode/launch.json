@@ -153,13 +153,13 @@
 				// "--option",
 				// "template=data:,{{.query}}",
 				//
-				// "/ai:get_agent_config",
+				// "/ai:read_agent_config",
 				// "--agent",
 				// "ask/ask"
 				//
 				// "/flow:sequence",
 				// "--actions",
-				// "[\"sh:parse\",\"ai:get_agent_config\",\"sh:format\"]",
+				// "[\"sh:parse\",\"ai:read_agent_config\",\"sh:format\"]",
 				// "--option",
 				// "agent=ed",
 				// "--option",
@@ -190,6 +190,11 @@
 				// "you are a top news anchor. if need to access the web and other source, use the ai:list_tools to find the right tools to use",
 				// "--option", "tools=[\"ai:list_tools\",\"ai:execute_tool\",\"web:get_web_content\",\"web:ddg_search\"]"
 				//
+				"/ai:spawn_agent",
+				"--agent",
+				"joker",
+				"--message",
+				"what is on the news today",
 				// // "@ask",
 				// "how to update system env in a golang template",
 				//

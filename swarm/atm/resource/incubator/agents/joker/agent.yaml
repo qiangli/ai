@@ -1,4 +1,5 @@
 ###
+pack: "joker"
 log_level: "info"
 format: "text"
 model: "default/any"
