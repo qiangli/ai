@@ -153,6 +153,7 @@ type ActionRTEnv struct {
 
 // Return default query from message and content.
 // Return error if either message or content is a template
+// Preprocessing is required for templates.
 func (r *ActionRTEnv) DefaultQuery(argm ArgMap) (string, error) {
 	message := argm.GetString("message")
 	if IsTemplate(message) {
@@ -176,6 +177,7 @@ func (r *ActionRTEnv) DefaultQuery(argm ArgMap) (string, error) {
 // Return default prompt read from the instruction.
 // Return error if instruction is a template
 // Return empty string if no instruction if found
+// Preprocessing is required for templates.
 func (r *ActionRTEnv) DefaultPrompt(argm ArgMap) (string, error) {
 	instruction := argm.GetString("instruction")
 	if instruction == "" {

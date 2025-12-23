@@ -15,7 +15,7 @@ sh   application/x-sh
 md    text/markdown
 txt   text/plain
 
-json application/json
+json  application/json
 
 js    text/javascript
 
