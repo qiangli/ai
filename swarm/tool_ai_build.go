@@ -8,6 +8,7 @@ import (
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
+	"github.com/qiangli/ai/swarm/atm/conf"
 )
 
 // copy global env only if not set
@@ -235,4 +236,61 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 		delete(args, "history")
 	}
 	return history, nil
+}
+
+func (r *AIKit) BuildModel(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
+	var agent = r.agent
+	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
+		agent = v
+	}
+
+	var model = agent.Model
+
+	if model == nil {
+		provider := args.GetString("provider")
+		if provider == "" {
+			return nil, fmt.Errorf("model missing. provider is required")
+		}
+		model = conf.DefaultModels[provider]
+	}
+
+	args["model"] = model
+	return model, nil
+}
+
+func (r *AIKit) BuildTools(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
+	var agent = r.agent
+	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
+		agent = v
+	}
+
+	var list []*api.ToolFunc
+	// inherit tools of embeeded agents
+	// deduplicate/merge all tools including the current agent
+	// child tools take precedence.
+	if agent.Embed != nil {
+		var tools = make(map[string]*api.ToolFunc)
+
+		var addAll func(*api.Agent) error
+		addAll = func(a *api.Agent) error {
+			for _, v := range a.Embed {
+				if err := addAll(v); err != nil {
+					return err
+				}
+			}
+			for _, v := range a.Tools {
+				tools[v.ID()] = v
+			}
+			return nil
+		}
+
+		addAll(agent)
+
+		for _, v := range tools {
+			list = append(list, v)
+		}
+		args["tools"] = list
+	}
+
+	return list, nil
 }
