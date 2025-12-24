@@ -186,10 +186,10 @@ tools:
   
   - name: "chain"
     description: |
-      Execute chain actions consecutively similar to the `sequence` flow.
-      The chain returns the final result or error from the first action in the chain.
-      Chain actions ["a1", "a2", "a3", ...] is equivalent to the nested function calls: a1(a2(a3(...))).
-      The actions in the chain should themselves take a sub-action with the "action" parameter.
+      Execute a series of actions consecutively, similar to the `sequence` flow.
+      The chain returns the result or error from the final action executed.
+      Chain actions ["a1", "a2", "a3", ...] translate to nested function calls: a1(a2(a3(...))).
+      Each action in the chain should accept a sub-action through the "action" parameter.
     parameters:
       type: "object"
       properties:
@@ -198,14 +198,14 @@ tools:
           items:
             type: "string"
           description: |
-            A list of valid actions. Use `ai:list_tools` or `ai:list_agents` to acquire available actions.
-            Specify actions in the following formats:
-            - Tool action: `kit:name` - example: fs:read_file is the "read_file" tool from the "fs" (file system) kit.
-            - Agent action: `agent:pack/sub` - pack/sub is the agent name. All agents are in the "agent" kit.
+            A list of valid actions. Use `ai:list_tools` or `ai:list_agents` to view available actions.
+            Specify actions in these formats:
+            - Tool action: `kit:name`, e.g., fs:read_file for the "read_file" tool in the "fs" (file system) kit.
+            - Agent action: `agent:pack/sub`, e.g., pack/sub represents the agent's name, where all agents belong to the "agent" kit.
             
-            Tools and agents can be mixed in the actions chain.
-            Additional arguments may be required for each action.
-            Use `/flow:help` for more details.
+            You can mix tools and agents in the action chain.
+            Additional arguments might be necessary for each action.
+            Use `flow:help`, `ai:get_tool_info`, and `ai:get_agent_info` for more information.
       required:
         - chain
   
