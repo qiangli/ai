@@ -186,25 +186,26 @@ tools:
   
   - name: "chain"
     description: |
-      Execute actions consecutively similar to `sequence` flow.
-      However it returns the result or error from the next action in the chain.
-      Essencially the chain ["a1", "a2", "a3", ...] is equivalent to the function call: a1(a2(a3(...)))
+      Execute chain actions consecutively similar to the `sequence` flow.
+      The chain returns the final result or error from the first action in the chain.
+      Chain actions ["a1", "a2", "a3", ...] is equivalent to the nested function calls: a1(a2(a3(...))).
+      The actions in the chain should themselves take a sub-action with the "action" parameter.
     parameters:
       type: "object"
       properties:
-        actions:
+        chain:
           type: "array"
           items:
             type: "string"
           description: |
             A list of valid actions. Use `ai:list_tools` or `ai:list_agents` to acquire available actions.
             Specify actions in the following formats:
-            - Tool action: `tool:kit:name`
-            - Agent action: `agent:pack/name`
+            - Tool action: `kit:name` - example: fs:read_file is the "read_file" tool from the "fs" (file system) kit.
+            - Agent action: `agent:pack/sub` - pack/sub is the agent name. All agents are in the "agent" kit.
             
-            Tools and agents can be mixed in the actions.
+            Tools and agents can be mixed in the actions chain.
             Additional arguments may be required for each action.
-            Use `/flow:help` for more details
+            Use `/flow:help` for more details.
       required:
-        - actions
+        - chain
   

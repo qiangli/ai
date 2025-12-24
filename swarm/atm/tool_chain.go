@@ -3,10 +3,13 @@ package atm
 import (
 	"context"
 	"fmt"
-	// "maps"
 
 	"github.com/qiangli/ai/swarm/api"
 )
+
+// type ActionRunner interface {
+// 	Run(context.Context, string, map[string]any) (any, error)
+// }
 
 // TODO
 // logging, analytics, and debugging.
@@ -15,73 +18,74 @@ import (
 // rate limits, guardrails, pii detection.
 
 type ActionHandler interface {
-	Serve(context.Context, *api.Vars, api.ArgMap) (*api.Result, error)
+	Serve(context.Context, *api.Vars, api.ArgMap) (any, error)
 }
 
 type ToolFuncActionHandler struct {
+	next ActionHandler
+
 	action string
-	next   ActionHandler
+	vars   *api.Vars
 }
 
-// Return error if action failed; otherwise call the next handler if set
-func (r *ToolFuncActionHandler) Serve(ctx context.Context, vars *api.Vars, args api.ArgMap) (*api.Result, error) {
-	if vars == nil || vars.RootAgent == nil || vars.RootAgent.Runner == nil {
-		return nil, fmt.Errorf("action runner not set")
-	}
-
-	// var nargs = api.NewArgMap()
-	// maps.Copy(nargs, args)
-	// id := r.actions[0]
-	// actions := r.actions[1:]
-	// nargs["actions"] = actions
+// Serve implements ActionHandler interface.
+// Creates an alias linking back to this handler for calling the next handler.
+func (r *ToolFuncActionHandler) Serve(ctx context.Context, vars *api.Vars, args api.ArgMap) (any, error) {
+	// arbitrary alias name, prepending a prefix to avoid name conflicts
 	id := api.Kitname(r.action).ID()
+	alias := fmt.Sprintf("chain_link_%s", id)
 
-	v, err := vars.RootAgent.Runner.Run(ctx, id, args)
+	// an alias action must be: alias:<name>
+	// install the callback to the Run method
+	args["action"] = fmt.Sprintf("alias:%s", alias)
+	args[alias] = r
+
+	// run action
+	// the action in the chain must be one that takes
+	// a sub-action, in this case, the alias action.
+	result, err := vars.RootAgent.Runner.Run(ctx, r.action, args)
 	if err != nil {
-		args.SetError(err)
 		return nil, err
-	}
-
-	result := api.ToResult(v)
-	args.SetResult(result)
-
-	// next handler
-	if r.next != nil {
-		return r.next.Serve(ctx, vars, args)
 	}
 
 	return result, nil
 }
 
-func NewToolFuncActionMiddleware(action string) func(ActionHandler) ActionHandler {
+// Run implements ActionRunner interface
+func (r *ToolFuncActionHandler) Run(ctx context.Context, _ string, args map[string]any) (any, error) {
+	return r.next.Serve(ctx, r.vars, args)
+}
+
+func NewToolFuncActionMiddleware(vars *api.Vars, action string) func(ActionHandler) ActionHandler {
 	return func(ah ActionHandler) ActionHandler {
 		return &ToolFuncActionHandler{
 			next:   ah,
 			action: action,
+			vars:   vars,
 		}
 	}
 }
 
 // The ActionHandlerFunc type is an adapter to allow the use of
 // ordinary functions as action handlers.
-type ActionHandlerFunc func(ctx context.Context, vars *api.Vars, argm api.ArgMap) (*api.Result, error)
+type ActionHandlerFunc func(ctx context.Context, vars *api.Vars, argm api.ArgMap) (any, error)
 
-func (f ActionHandlerFunc) Serve(ctx context.Context, vars *api.Vars, argm api.ArgMap) (*api.Result, error) {
+func (f ActionHandlerFunc) Serve(ctx context.Context, vars *api.Vars, argm api.ArgMap) (any, error) {
 	return f(ctx, vars, argm)
 }
 
-var defaultActionHandler = ActionHandlerFunc(func(ctx context.Context, vars *api.Vars, argm api.ArgMap) (*api.Result, error) {
+var defaultActionHandler = ActionHandlerFunc(func(ctx context.Context, vars *api.Vars, argm api.ArgMap) (any, error) {
 	return nil, nil
 })
 
-func RunChainActions(ctx context.Context, vars *api.Vars, actions []string, args api.ArgMap) (*api.Result, error) {
-	final := ActionHandlerFunc(func(ctx context.Context, vars *api.Vars, args api.ArgMap) (*api.Result, error) {
+func StartChainActions(ctx context.Context, vars *api.Vars, actions []string, args api.ArgMap) (any, error) {
+	final := ActionHandlerFunc(func(ctx context.Context, vars *api.Vars, args api.ArgMap) (any, error) {
 		return nil, nil
 	})
 
 	var middlewares []ActionMiddleware
 	for _, v := range actions {
-		mw := NewToolFuncActionMiddleware(v)
+		mw := NewToolFuncActionMiddleware(vars, v)
 		middlewares = append(middlewares, mw)
 	}
 

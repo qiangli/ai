@@ -251,14 +251,26 @@ func (r Kitname) Decode() (string, string) {
 		return "agent", name
 	}
 
-	if strings.Index(s, "__") > 0 {
-		// call time - the name should never be empty
+	// if strings.Index(s, "__") > 0 {
+	// 	// call time - the name should never be empty
+	// 	kit, name = split2(s, "__", "")
+	// } else {
+	// 	// load time
+	// 	// kit, name = split2(s, ":", "*")
+	// 	kit, name = split2(s, ":", "")
+	// }
+
+	indexUnderscore := strings.Index(s, "__")
+	indexColon := strings.Index(s, ":")
+
+	if indexUnderscore >= 0 && (indexColon == -1 || indexUnderscore < indexColon) {
 		kit, name = split2(s, "__", "")
-	} else {
-		// load time
-		// kit, name = split2(s, ":", "*")
+	} else if indexColon >= 0 {
 		kit, name = split2(s, ":", "")
+	} else {
+		kit, name = s, ""
 	}
+
 	return kit, name
 }
 
