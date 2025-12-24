@@ -44,13 +44,17 @@ func (r *ConfigLoader) LoadConfig(s string) (*api.AppConfig, error) {
 func (r *ConfigLoader) LoadAgentConfig(packname api.Packname) (*api.AppConfig, error) {
 	pack, sub := packname.Decode()
 	if pack == "" {
-		return nil, fmt.Errorf("pack is missiing")
+		return nil, fmt.Errorf("pack is required")
+	}
+	// default
+	if sub == "" {
+		sub = pack
 	}
 
-	// equqal or the primary agent sub == ""/sub == pack
-	equal := func(s string) bool {
-		return s == sub || sub == "" && s == pack
-	}
+	// // equqal or the primary agent sub == ""/sub == pack
+	// equal := func(s string) bool {
+	// 	return s == sub || sub == "" && s == pack
+	// }
 
 	if r.data != nil {
 		ac, err := conf.LoadAgentsData([][]byte{r.data})
@@ -58,14 +62,13 @@ func (r *ConfigLoader) LoadAgentConfig(packname api.Packname) (*api.AppConfig, e
 			return nil, err
 		}
 
-		if ac.Pack != pack {
-			return nil, fmt.Errorf("wrong pack: %s config: %s", pack, ac.Pack)
-		}
+		// if ac.Pack != pack {
+		// 	return nil, fmt.Errorf("wrong pack: %s config: %s", pack, ac.Pack)
+		// }
 
 		for _, v := range ac.Agents {
-			_, sub := api.Packname(v.Name).Decode()
-			v.Name = sub
-			if equal(v.Name) {
+			if v.Name == sub {
+				ac.Pack = pack
 				return ac, nil
 			}
 		}
@@ -81,9 +84,8 @@ func (r *ConfigLoader) LoadAgentConfig(packname api.Packname) (*api.AppConfig, e
 	}
 
 	for _, v := range ac.Agents {
-		_, sub := api.Packname(v.Name).Decode()
-		v.Name = sub
-		if equal(v.Name) {
+		if v.Name == sub {
+			ac.Pack = pack
 			return ac, nil
 		}
 	}
@@ -93,8 +95,14 @@ func (r *ConfigLoader) LoadAgentConfig(packname api.Packname) (*api.AppConfig, e
 func (r *ConfigLoader) LoadToolConfig(kn api.Kitname) (*api.AppConfig, error) {
 	kit, name := kn.Decode()
 	// equal or default if name == ""
-	equal := func(n string) bool {
-		return n == name || name == "" && n == kit
+	// equal := func(n string) bool {
+	// 	return n == name || name == "" && n == kit
+	// }
+	if kit == "" {
+		return nil, fmt.Errorf("kit is required")
+	}
+	if name == "" {
+		name = kit
 	}
 
 	if r.data != nil {
@@ -102,11 +110,13 @@ func (r *ConfigLoader) LoadToolConfig(kn api.Kitname) (*api.AppConfig, error) {
 		if err != nil {
 			return nil, err
 		}
-		if tc.Kit != kit {
-			return nil, fmt.Errorf("wrong kit: %s config: %s", kit, tc.Kit)
-		}
+		// if tc.Kit != kit {
+		// 	return nil, fmt.Errorf("wrong kit: %s config: %s", kit, tc.Kit)
+		// }
+
 		for _, v := range tc.Tools {
-			if equal(v.Name) {
+			if v.Name == name {
+				tc.Kit = kit
 				return tc, nil
 			}
 		}
@@ -118,19 +128,25 @@ func (r *ConfigLoader) LoadToolConfig(kn api.Kitname) (*api.AppConfig, error) {
 		return nil, err
 	}
 	for _, v := range tc.Tools {
-		if equal(v.Name) {
+		if v.Name == name {
+			tc.Kit = kit
 			return tc, nil
 		}
 	}
+
 	return nil, fmt.Errorf("could not find config for: %s", name)
 }
 
 func (r *ConfigLoader) CreateTool(tid string) (*api.ToolFunc, error) {
 	kn := api.Kitname(tid)
 	kit, name := kn.Decode()
+	if kit == "" {
+		return nil, fmt.Errorf("invalid tool name: %v. missing kit", tid)
+	}
+
 	// /agent:
 	if kit == string(api.ToolTypeAgent) {
-		pn := api.Packname(name)
+		pn := api.Packname(name).Clean()
 		ac, err := r.LoadAgentConfig(pn)
 		if err != nil {
 			return nil, err
@@ -149,11 +165,14 @@ func (r *ConfigLoader) CreateTool(tid string) (*api.ToolFunc, error) {
 		if err != nil {
 			return nil, err
 		}
-		equal := func(n string) bool {
-			return n == name || name == "" && n == kit
+		// equal := func(n string) bool {
+		// 	return n == name || name == "" && n == kit
+		// }
+		if name == "" {
+			name = kit
 		}
 		for _, v := range tools {
-			if equal(v.Name) {
+			if v.Name == name {
 				return v, nil
 			}
 		}

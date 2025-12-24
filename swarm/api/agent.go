@@ -38,8 +38,11 @@ func (r Packname) Decode() (string, string) {
 		sub = parts[1]
 	}
 	// entry
-	if sub == pack {
-		sub = ""
+	// if sub == pack {
+	// 	sub = ""
+	// }
+	if sub == "" {
+		sub = pack
 	}
 	return pack, sub
 }
@@ -52,6 +55,19 @@ func (r Packname) Encode() string {
 		return pack
 	}
 	return pack + "/" + sub
+}
+
+// Return a normalized version: pack/sub
+func (r Packname) Clean() Packname {
+	pack, sub := r.Decode()
+	if sub == "" {
+		sub = pack
+	}
+	return Packname(pack + "/" + sub)
+}
+
+func NewPackname(pack, sub string) Packname {
+	return Packname(pack + "/" + sub).Clean()
 }
 
 func (r Packname) Equal(s string) bool {
