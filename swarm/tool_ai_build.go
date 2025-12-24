@@ -72,8 +72,19 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, tf string, args
 	// agent.Shell = NewAgentScriptRunner(r.sw, agent)
 	// agent.Template = NewTemplate(r.sw, agent)
 
-	//
-	agent, err := r.sw.CreateAgent(ctx, r.sw.Vars.RootAgent, api.Packname(name), nil)
+	// config
+	var cfg []byte
+	if v, found := args["script"]; found {
+		if uri, ok := v.(string); ok {
+			data, err := r.sw.LoadScript(uri)
+			if err != nil {
+				return nil, err
+			}
+			cfg = []byte(data)
+		}
+	}
+
+	agent, err := r.sw.CreateAgent(ctx, r.sw.Vars.RootAgent, api.Packname(name), cfg)
 	if err != nil {
 		return nil, err
 	}
