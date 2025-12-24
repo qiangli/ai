@@ -16,7 +16,8 @@ const (
 // @pack[/sub]
 // agent:pack[/sub]
 // @*
-// ^[a-zA-Z0-9_-]+$
+// ^[a-z0-9_-/]+$
+// id: ^[a-z0-9_]+$
 type Packname string
 
 func NewPackname(pack, sub string) Packname {

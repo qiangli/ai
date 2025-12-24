@@ -55,7 +55,7 @@ func (r *AIKit) checkAndCreate(ctx context.Context, vars *api.Vars, tf string, a
 			return a, nil
 		}
 		if _, ok := v.(string); ok {
-			a, err := r.newAgent(ctx, vars, tf, args)
+			a, err := r.createAgent(ctx, vars, tf, args)
 			if err != nil {
 				return nil, err
 			}
@@ -419,7 +419,7 @@ func (r *AIKit) kitname(args map[string]any) api.Kitname {
 }
 
 func (r *AIKit) NewAgent(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Result, error) {
-	v, err := r.newAgent(ctx, vars, tf, args)
+	v, err := r.createAgent(ctx, vars, tf, args)
 	if err != nil {
 		return nil, err
 	}

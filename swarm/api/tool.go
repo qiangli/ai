@@ -243,15 +243,19 @@ func (r Kitname) Decode() (string, string) {
 	s := string(r)
 	// remove leading slash / (slash command)
 	s = strings.TrimPrefix(s, "/")
-	if strings.HasPrefix(s, "@") {
+	if strings.HasPrefix(s, "@") || strings.HasPrefix(s, "agent:") {
 		// <agent:name>
 		// @name
 		// @name:*
 		// @:name
-		kit, name = split2(s, ":", "")
-		if v := strings.TrimPrefix(kit, "@"); v != "" {
-			name = v
-		}
+		// kit, name = split2(s, ":", "")
+		// if v := strings.TrimPrefix(kit, "@"); v != "" {
+		// 	name = v
+		// }
+
+		s = strings.TrimPrefix(s, "@")
+		s = strings.TrimPrefix(s, "agent:")
+		name = strings.ReplaceAll(s, "__", "/")
 		return "agent", name
 	}
 
@@ -275,6 +279,8 @@ func (r Kitname) Decode() (string, string) {
 		kit, name = s, ""
 	}
 
+	// for agent tool id
+	name = strings.ReplaceAll(name, "__", "/")
 	return kit, name
 }
 

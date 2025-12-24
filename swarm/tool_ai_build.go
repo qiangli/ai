@@ -21,7 +21,7 @@ func (r *AIKit) applyGlobal(args api.ArgMap) {
 	}
 }
 
-func (r *AIKit) newAgent(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Agent, error) {
+func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Agent, error) {
 	var name string
 	if v, found := args["agent"].(*api.Agent); found {
 		return v, nil
@@ -59,18 +59,24 @@ func (r *AIKit) newAgent(ctx context.Context, vars *api.Vars, tf string, args ma
 	// 	return nil, err
 	// }
 
-	var loader = NewConfigLoader(r.sw.Vars.RTE)
+	// var loader = NewConfigLoader(r.sw.Vars.RTE)
 
-	agent, err := loader.Create(ctx, api.Packname(name))
+	// agent, err := loader.Create(ctx, api.Packname(name))
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// // init setup
+	// agent.Parent = r.sw.Vars.RootAgent
+	// agent.Runner = NewAgentToolRunner(r.sw, r.sw.User.Email, agent)
+	// agent.Shell = NewAgentScriptRunner(r.sw, agent)
+	// agent.Template = NewTemplate(r.sw, agent)
+
+	//
+	agent, err := r.sw.CreateAgent(ctx, r.sw.Vars.RootAgent, api.Packname(name), nil)
 	if err != nil {
 		return nil, err
 	}
-
-	// init setup
-	agent.Parent = r.sw.Vars.RootAgent
-	agent.Runner = NewAgentToolRunner(r.sw, r.sw.User.Email, agent)
-	agent.Shell = NewAgentScriptRunner(r.sw, agent)
-	agent.Template = NewTemplate(r.sw, agent)
 
 	// envs
 	// export envs to global

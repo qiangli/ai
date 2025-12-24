@@ -68,25 +68,52 @@ func (sw *Swarm) Init(rte *api.ActionRTEnv) error {
 		return fmt.Errorf("execution env not avalable")
 	}
 
-	sw.InitChain()
+	// sw.InitChain()
 	sw.Vars = api.NewVars()
-
 	sw.Vars.RTE = rte
 
-	maker := NewAgentMaker(sw)
-	// TODO move to Vars?
-	sw.agentMaker = maker
+	// maker := NewAgentMaker(sw)
+	// // // TODO move to Vars?
+	// // sw.agentMaker = maker
 
-	root, err := maker.CreateFrom(context.TODO(), "root", resource.RootAgentData)
+	// root, err := maker.CreateFrom(context.TODO(), "root", resource.RootAgentData)
+	// if err != nil {
+	// 	return err
+	// }
+	// root.Runner = NewAgentToolRunner(sw, sw.User.Email, root)
+	// root.Shell = NewAgentScriptRunner(sw, root)
+	// root.Template = NewTemplate(sw, root)
+	rootData := []byte("data:," + string(resource.RootAgentData))
+	root, err := sw.CreateAgent(context.TODO(), nil, api.Packname("root"), rootData)
 	if err != nil {
 		return err
 	}
-	root.Runner = NewAgentToolRunner(sw, sw.User.Email, root)
-	root.Shell = NewAgentScriptRunner(sw, root)
-	root.Template = NewTemplate(sw, root)
 	sw.Vars.RootAgent = root
 
 	return nil
+}
+
+func (sw *Swarm) CreateAgent(ctx context.Context, parent *api.Agent, packname api.Packname, config []byte) (*api.Agent, error) {
+	var loader = NewConfigLoader(sw.Vars.RTE)
+
+	if config != nil {
+		if err := loader.LoadContent(string(config)); err != nil {
+			return nil, err
+		}
+	}
+
+	agent, err := loader.Create(ctx, packname)
+	if err != nil {
+		return nil, err
+	}
+
+	// init setup
+	agent.Parent = parent
+	agent.Runner = NewAgentToolRunner(sw, sw.User.Email, agent)
+	agent.Shell = NewAgentScriptRunner(sw, agent)
+	agent.Template = NewTemplate(sw, agent)
+
+	return agent, nil
 }
 
 func (sw *Swarm) InitChain() {
@@ -94,52 +121,53 @@ func (sw *Swarm) InitChain() {
 	// prompts, tool selection, and output formatting.
 	// retries, fallbacks, early termination.
 	// rate limits, guardrails, pii detection.
-	sw.middlewares = []api.Middleware{
-		InitEnvMiddleware(sw),
+	// sw.middlewares = []api.Middleware{
+	// 	InitEnvMiddleware(sw),
 
-		// cross cutting
-		TimeoutMiddleware(sw),
-		LogMiddleware(sw),
+	// 	// cross cutting
+	// 	TimeoutMiddleware(sw),
+	// 	LogMiddleware(sw),
 
-		//
-		ModelMiddleware(sw),
-		ToolsMiddleware(sw),
-		//
-		InstructionMiddleware(sw),
-		ContextMiddleware(sw),
-		QueryMiddleware(sw),
-		//
-		AgentFlowMiddleware(sw),
+	// 	//
+	// 	ModelMiddleware(sw),
+	// 	ToolsMiddleware(sw),
+	// 	//
+	// 	InstructionMiddleware(sw),
+	// 	ContextMiddleware(sw),
+	// 	QueryMiddleware(sw),
+	// 	//
+	// 	AgentFlowMiddleware(sw),
 
-		//
-		InferenceMiddleware(sw),
-		// output
-	}
+	// 	//
+	// 	InferenceMiddleware(sw),
+	// 	// output
+	// }
 }
 
-// Create agent by name.
-// Search assets and load the agent if found.
-func (sw *Swarm) CreateAgent(ctx context.Context, name string) (*api.Agent, error) {
-	if name == "" {
-		// anonymous
-		log.GetLogger(ctx).Debugf("agent not specified.\n")
-	}
-	agent, err := sw.agentMaker.Create(ctx, name)
-	if err != nil {
-		return nil, err
-	}
+// // Create agent by name.
+// // Search assets and load the agent if found.
+// func (sw *Swarm) CreateAgent(ctx context.Context, name string) (*api.Agent, error) {
+// 	if name == "" {
+// 		// anonymous
+// 		log.GetLogger(ctx).Debugf("agent not specified.\n")
+// 	}
+// 	agent, err := sw.agentMaker.Create(ctx, name)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	agent.Parent = sw.Vars.RootAgent
+// 	agent.Parent = sw.Vars.RootAgent
 
-	return agent, nil
-}
+// 	return agent, nil
+// }
 
 // Serve calls the language model with the messages list (after applying the system prompt).
 // If the resulting AI Message contains tool_calls, the orchestrator will then call the tools.
 // The tools node executes the tools and adds the responses to the messages list as ToolMessage objects. The agent node then calls the language model again. The process repeats until no more tool_calls are present in the response. The agent then returns the full list of messages.
 func (sw *Swarm) Serve(req *api.Request, resp *api.Response) error {
 
-	return sw.serve(sw.CreateAgent, req, resp)
+	// return sw.serve(sw.CreateAgent, req, resp)
+	return nil
 }
 
 func (sw *Swarm) serve(creator api.Creator, req *api.Request, resp *api.Response) error {

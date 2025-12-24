@@ -99,7 +99,7 @@ tools:
         - "agent"
 
   - name: "new_agent"
-    description: "Create an instance of a new agent"
+    description: "Create an instance of a new agent by name"
     parameters:
       type: "object"
       properties:

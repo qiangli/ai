@@ -180,7 +180,9 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 		History:   mem,
 	}
 
-	sw.Init(rte)
+	if err := sw.Init(rte); err != nil {
+		return nil, err
+	}
 
 	return sw, nil
 }

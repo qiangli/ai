@@ -1,12 +1,11 @@
 ###
+pack: "root"
 agents:
   - name: "root"
     display: "🚀 root"
     description: "Ancestor of all agents"
     model: "default/any"
     adapter: "text"
-    flow: 
-      type: "shell"
     functions:
       - "ai:*"
       - "fs:*"
