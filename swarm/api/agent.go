@@ -19,6 +19,10 @@ const (
 // ^[a-zA-Z0-9_-]+$
 type Packname string
 
+func NewPackname(pack, sub string) Packname {
+	return Packname(pack + "/" + sub).Clean()
+}
+
 func (r Packname) String() string {
 	return string(r)
 }
@@ -64,10 +68,6 @@ func (r Packname) Clean() Packname {
 		sub = pack
 	}
 	return Packname(pack + "/" + sub)
-}
-
-func NewPackname(pack, sub string) Packname {
-	return Packname(pack + "/" + sub).Clean()
 }
 
 func (r Packname) Equal(s string) bool {

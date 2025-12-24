@@ -148,12 +148,9 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	if tid == "" {
 		kit = api.ToString(args["kit"])
 		name = api.ToString(args["name"])
-		tid = api.Kitname(kit + ":" + name).ID()
+		tid = api.NewKitname(kit, name).ID()
 	} else {
 		kit, name = api.Kitname(tid).Decode()
-		// update args ???
-		// args["kit"] = kit
-		// args["name"] = name
 	}
 
 	// /bin/command (local system)
@@ -174,6 +171,16 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 		if name == "" {
 			return nil, fmt.Errorf("Invalid alias action. missing name. /alias:NAME --option NAME='action to run'")
 		}
+
+		// TODO expand to general action not just for alias
+		// execute if action runner is provided
+		if v, found := args[name]; found {
+			if runner, ok := v.(api.ActionRunner); ok {
+				return runner.Run(ctx, tid, args)
+			}
+		}
+
+		//
 		alias, err := api.GetStrProp(name, args)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to resolve alias: %s, error: %v", name, err)
@@ -181,6 +188,7 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 		if alias == "" {
 			return nil, fmt.Errorf("Alias not found: %s", name)
 		}
+
 		argv := conf.Argv(alias)
 		if len(argv) == 0 {
 			return nil, fmt.Errorf("Invalid alias %q: %s", name, alias)
@@ -201,7 +209,7 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	}
 
 	// this ensures kit:name is in internal kit__name format
-	tid = api.Kitname(kit + ":" + name).ID()
+	tid = api.NewKitname(kit, name).ID()
 
 	var tf *api.ToolFunc
 

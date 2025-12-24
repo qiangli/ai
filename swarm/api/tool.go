@@ -202,6 +202,10 @@ type ToolSystem interface {
 // ^[a-zA-Z0-9_-]+$
 type Kitname string
 
+func NewKitname(kit, name string) Kitname {
+	return Kitname(kit + ":" + name).Clean()
+}
+
 func (r Kitname) String() string {
 	return string(r)
 }
@@ -278,6 +282,11 @@ func (r Kitname) Decode() (string, string) {
 func (r Kitname) ID() string {
 	kit, name := r.Decode()
 	return toolID(kit, name)
+}
+
+func (r Kitname) Clean() Kitname {
+	kit, name := r.Decode()
+	return Kitname(kit + ":" + name)
 }
 
 // TODO all special chars?
