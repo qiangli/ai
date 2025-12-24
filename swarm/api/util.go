@@ -384,3 +384,21 @@ func IsURI(s string) bool {
 	endIndex := min(len(s), 8)
 	return strings.Contains(s[:endIndex], ":")
 }
+
+// return an array of strings.
+// try unmarshal obj if it is encoded in json format.
+// return an empty array if obj is neither an array nor json array.
+func ToStringArray(obj any) []string {
+	if v, ok := obj.([]string); ok {
+		return v
+	}
+	// json array
+	if v, ok := obj.(string); ok {
+		var sa []string
+		if err := json.Unmarshal([]byte(v), &sa); err == nil {
+			return sa
+		}
+		return []string{v}
+	}
+	return []string{}
+}

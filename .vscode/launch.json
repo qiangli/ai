@@ -152,6 +152,13 @@
 				// "query=what is unix",
 				// "--option",
 				// "template=data:,{{.query}}",
+				"/flow:chain",
+				"--option",
+				"chain=[\"sh:timeout\",\"sh:backoff\",\"alias:cmd\"]",
+				"--option",
+				"cmd=/ai:spawn_agent --agent ed --adapter echo -- correct me",
+				"--option",
+				"duration=10s",
 				//
 				// "/ai:read_agent_config",
 				// "--agent",

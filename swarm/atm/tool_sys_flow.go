@@ -175,8 +175,15 @@ func (r *SystemKit) Map(ctx context.Context, vars *api.Vars, _ string, argm api.
 // }
 
 func (r *SystemKit) Chain(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
-	links := argm.GetStringSlice("chain")
-	out, err := StartChainActions(ctx, vars, links, argm)
+	obj, ok := argm["chain"]
+	if !ok {
+		return nil, fmt.Errorf("chain actions is required")
+	}
+	actions := api.ToStringArray(obj)
+	if len(actions) == 0 {
+		return nil, fmt.Errorf("no actions specified")
+	}
+	out, err := StartChainActions(ctx, vars, actions, argm)
 	if err != nil {
 		return nil, err
 	}

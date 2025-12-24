@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/fs"
 	"maps"
@@ -314,17 +313,7 @@ func (a ArgMap) SetError(err error) ArgMap {
 
 func (a ArgMap) Actions() []string {
 	obj := a["actions"]
-	if v, ok := obj.([]string); ok {
-		return v
-	}
-	if v, ok := obj.(string); ok {
-		var sa []string
-		if err := json.Unmarshal([]byte(v), &sa); err == nil {
-			return sa
-		}
-		return []string{v}
-	}
-	return []string{}
+	return ToStringArray(obj)
 }
 
 // check and return an instance of agent.
