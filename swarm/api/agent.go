@@ -27,6 +27,7 @@ func (r Packname) String() string {
 // agent:pack[/sub]
 func (r Packname) Decode() (string, string) {
 	s := strings.ToLower(string(r))
+	s = strings.TrimPrefix(s, "/")
 	s = strings.TrimPrefix(s, "@")
 	s = strings.TrimPrefix(s, "agent:")
 	parts := strings.SplitN(s, "/", 2)

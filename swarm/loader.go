@@ -41,8 +41,8 @@ func (r *ConfigLoader) LoadConfig(s string) (*api.AppConfig, error) {
 	}
 }
 
-func (r *ConfigLoader) LoadAgentConfig(pn api.Packname) (*api.AppConfig, error) {
-	pack, sub := pn.Decode()
+func (r *ConfigLoader) LoadAgentConfig(packname api.Packname) (*api.AppConfig, error) {
+	pack, sub := packname.Decode()
 	if pack == "" {
 		return nil, fmt.Errorf("pack is missiing")
 	}
@@ -63,6 +63,8 @@ func (r *ConfigLoader) LoadAgentConfig(pn api.Packname) (*api.AppConfig, error) 
 		}
 
 		for _, v := range ac.Agents {
+			_, sub := api.Packname(v.Name).Decode()
+			v.Name = sub
 			if equal(v.Name) {
 				return ac, nil
 			}
@@ -79,12 +81,13 @@ func (r *ConfigLoader) LoadAgentConfig(pn api.Packname) (*api.AppConfig, error) 
 	}
 
 	for _, v := range ac.Agents {
+		_, sub := api.Packname(v.Name).Decode()
+		v.Name = sub
 		if equal(v.Name) {
 			return ac, nil
 		}
 	}
-	return nil, fmt.Errorf("config not found for: %s", pn)
-
+	return nil, fmt.Errorf("config not found for: %s", packname)
 }
 
 func (r *ConfigLoader) LoadToolConfig(kn api.Kitname) (*api.AppConfig, error) {

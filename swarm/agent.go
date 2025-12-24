@@ -329,11 +329,11 @@ func (ap *AgentMaker) Create(ctx context.Context, name string) (*api.Agent, erro
 	}
 
 	var ent *api.Record
-	if v, err := ap.sw.Assets.SearchAgent(ap.sw.User.Email, pack); err != nil {
-		return nil, err
-	} else {
-		ent = v
-	}
+	// if v, err := ap.sw.Assets.SearchAgent(ap.sw.User.Email, pack); err != nil {
+	// 	return nil, err
+	// } else {
+	// 	ent = v
+	// }
 	// invalid agent
 	if ent == nil && pack != "" {
 		return nil, fmt.Errorf("agent not found: %s", pack)

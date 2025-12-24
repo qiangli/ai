@@ -22,28 +22,28 @@ func (r *assetManager) AddStore(store api.AssetStore) {
 	r.assets = append(r.assets, store)
 }
 
-func (r *assetManager) SearchAgent(owner string, pack string) (*api.Record, error) {
-	for _, v := range r.assets {
-		// try search first
-		if as, ok := v.(api.ATMSupport); ok {
-			if a, err := as.SearchAgent(owner, pack); err == nil && a != nil {
-				a.Store = as
-				return a, nil
-			}
-		} else if as, ok := v.(api.AssetFS); ok {
-			if _, err := as.ReadFile(path.Join("agents", pack, "agent.yaml")); err == nil {
-				return &api.Record{
-					Owner: owner,
-					Name:  pack,
-					Store: as,
-				}, nil
-			}
-		}
-	}
+// func (r *assetManager) SearchAgent(owner string, pack string) (*api.Record, error) {
+// 	for _, v := range r.assets {
+// 		// try search first
+// 		if as, ok := v.(api.ATMSupport); ok {
+// 			if a, err := as.SearchAgent(owner, pack); err == nil && a != nil {
+// 				a.Store = as
+// 				return a, nil
+// 			}
+// 		} else if as, ok := v.(api.AssetFS); ok {
+// 			if _, err := as.ReadFile(path.Join("agents", pack, "agent.yaml")); err == nil {
+// 				return &api.Record{
+// 					Owner: owner,
+// 					Name:  pack,
+// 					Store: as,
+// 				}, nil
+// 			}
+// 		}
+// 	}
 
-	// TODO  support searching for sub agent?
-	return nil, nil
-}
+// 	// TODO  support searching for sub agent?
+// 	return nil, nil
+// }
 
 func (r *assetManager) ListAgent(owner string) (map[string]*api.AppConfig, error) {
 	var packs = make(map[string]*api.AppConfig)
