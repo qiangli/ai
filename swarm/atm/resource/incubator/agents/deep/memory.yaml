@@ -26,7 +26,7 @@ agents:
     functions:
       - "fs:*"
 
-  - name: "memory/long_term"
+  - name: "long_term"
     display: "Long Term Memory"
     description: "Agent-specific long-term memory for the system"
     model: "llm/L1"
@@ -88,7 +88,7 @@ agents:
       - "fs:*"
 
   # https://github.com/langchain-ai/langchain/blob/master/libs/langchain_v1/langchain/agents/middleware/todo.py
-  - name: "memory/todo_list"
+  - name: "todo_list"
     display: "Todo Planner"
     description: "Planning and task management for agents using filesystem tools"
     model: "llm/L1"

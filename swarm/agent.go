@@ -297,9 +297,9 @@ func (ap *AgentMaker) loadAgent(pack string, content []byte) (*api.AppConfig, er
 	ac.RawContent = content
 
 	// normalize agent name
-	for _, v := range ac.Agents {
-		v.Name = conf.NormalizePackname(pack, v.Name)
-	}
+	// for _, v := range ac.Agents {
+	// 	v.Name = conf.NormalizePackname(pack, v.Name)
+	// }
 
 	return ac, nil
 }

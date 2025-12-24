@@ -58,7 +58,7 @@ func listAgentsATM(owner string, as api.ATMSupport, packs map[string]*api.AppCon
 			continue
 		}
 		for _, v := range ac.Agents {
-			v.Name = NormalizePackname(ac.Name, v.Name)
+			// v.Name = NormalizePackname(ac.Name, v.Name)
 			v.Store = as
 		}
 		packs[ac.Name] = ac
@@ -113,7 +113,7 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AppConfi
 			continue
 		}
 		for _, v := range ac.Agents {
-			v.Name = NormalizePackname(ac.Name, v.Name)
+			// v.Name = NormalizePackname(ac.Name, v.Name)
 			v.Store = as
 			v.BaseDir = base
 		}

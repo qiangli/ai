@@ -366,11 +366,11 @@ func (r *ConfigLoader) Create(ctx context.Context, packname api.Packname) (*api.
 	// create the agent
 	// agent: pack/sub
 	// var user = ap.sw.User.Email
-	pack, sub := packname.Decode()
-	// todo have decode return pack
-	if sub == "" {
-		sub = pack
-	}
+	pack, sub := packname.Clean().Decode()
+	// // todo have decode return pack
+	// if sub == "" {
+	// 	sub = pack
+	// }
 
 	//
 	if pack == "" {

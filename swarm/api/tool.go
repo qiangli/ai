@@ -277,7 +277,11 @@ func tr(s string) string {
 func toolID(kit, name string) string {
 	// TODO update agent lookup to use ID "agent__pack_sub"
 	if kit == "agent" {
-		return fmt.Sprintf("%s__%s", kit, name)
+		pack, sub := Packname(name).Decode()
+		if pack == sub || sub == "" {
+			return fmt.Sprintf("agent__%s", pack)
+		}
+		return fmt.Sprintf("agent__%s_%s", pack, sub)
 	}
 	return fmt.Sprintf("%s__%s", kit, tr(name))
 }
