@@ -32,8 +32,14 @@ type ToolFuncActionHandler struct {
 // Creates an alias linking back to this handler for calling the next handler.
 func (r *ToolFuncActionHandler) Serve(ctx context.Context, vars *api.Vars, args api.ArgMap) (any, error) {
 	// arbitrary alias name, prepending a prefix to avoid name conflicts
-	id := api.Kitname(r.action).ID()
-	alias := fmt.Sprintf("chain_link_%s", id)
+	var alias string
+	kit, name := api.Kitname(r.action).Clean().Decode()
+	if kit == "agent" {
+		pack, sub := api.Packname(name).Clean().Decode()
+		alias = fmt.Sprintf("chainlink_agent_%s_%s", pack, sub)
+	} else {
+		alias = fmt.Sprintf("chainlink_tool_%s_%s", kit, name)
+	}
 
 	// an alias action must be: alias:<name>
 	// install the callback to the Run method
