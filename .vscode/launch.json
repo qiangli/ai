@@ -81,11 +81,13 @@
 				// "atm/tools/hello_kit/hello_user.yaml",
 				//
 				// agent
-				// "/agent:atm/hi",
-				// "--script",
-				// "swarm/atm/resource/template/atm.yaml",
-				// "--verbose",
-				// "pick some famous politicians names",
+				"/agent:atm/hi",
+				"--script",
+				"swarm/atm/resource/template/atm.yaml",
+				"--adapter",
+				"echo",
+				"--verbose",
+				"pick some famous politicians names",
 				//
 				// tool
 				// "/atm:hi",
@@ -152,13 +154,13 @@
 				// "query=what is unix",
 				// "--option",
 				// "template=data:,{{.query}}",
-				"/flow:chain",
-				"--option",
-				"chain=[\"sh:timeout\",\"sh:backoff\",\"alias:cmd\"]",
-				"--option",
-				"cmd=/ai:spawn_agent --agent ed --adapter echo -- correct me",
-				"--option",
-				"duration=10s",
+				// "/flow:chain",
+				// "--option",
+				// "chain=[\"sh:timeout\",\"sh:backoff\",\"alias:cmd\"]",
+				// "--option",
+				// "cmd=/ai:spawn_agent --agent ed --adapter echo -- correct me",
+				// "--option",
+				// "duration=10s",
 				//
 				// "/ai:read_agent_config",
 				// "--agent",
@@ -202,10 +204,10 @@
 				// "joker",
 				// "--message",
 				// "what is on the news today",
-				"@ask",
-				"how to update system env in a golang template",
+				// "@ask",
+				// "how to update system env in a golang template",
 				//
-				"--verbose"
+				// "--verbose"
 				// "--max-time",
 				// "900",
 				// "--max-history",

@@ -241,7 +241,7 @@ func (r Kitname) Decode() (string, string) {
 
 	var kit, name string
 	s := string(r)
-	// remove slash /
+	// remove leading slash / (slash command)
 	s = strings.TrimPrefix(s, "/")
 	if strings.HasPrefix(s, "@") {
 		// <agent:name>
@@ -291,19 +291,24 @@ func (r Kitname) Clean() Kitname {
 
 // TODO all special chars?
 // ^[a-zA-Z0-9_-]+$
+// name: ^[a-zA-Z0-9_-/:]+$
+// id: ^[a-zA-Z0-9_]+$
+// / is converted into __ (double underscore)
+// like the first namespace separator ':'
 func tr(s string) string {
-	return strings.ReplaceAll(s, "/", "_")
+	s = strings.ReplaceAll(s, "/", "__")
+	return s
 }
 
 func toolID(kit, name string) string {
 	// TODO update agent lookup to use ID "agent__pack_sub"
-	if kit == "agent" {
-		pack, sub := Packname(name).Decode()
-		if pack == sub || sub == "" {
-			return fmt.Sprintf("agent__%s", pack)
-		}
-		return fmt.Sprintf("agent__%s_%s", pack, sub)
-	}
+	// if kit == "agent" {
+	// 	pack, sub := Packname(name).Decode()
+	// 	if pack == sub || sub == "" {
+	// 		return fmt.Sprintf("agent__%s", pack)
+	// 	}
+	// 	return fmt.Sprintf("agent__%s__%s", pack, sub)
+	// }
 	return fmt.Sprintf("%s__%s", kit, tr(name))
 }
 
