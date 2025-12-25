@@ -12,6 +12,10 @@ build-all: tidy
 test:
     go test -short ./...
 
+# Unit tests and bash integration tests
+test-all: test
+    time ./test/all.sh
+
 # # Start hub services with 'ask' agent in debug mode (verbose)
 # hub flag_args='':
 #     ai /hub start --address ":58080" --pg-address ":25432" --mysql-address ":3306" --redis-address ":6379" --llm-proxy-address ":8000" {{flag_args}}

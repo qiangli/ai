@@ -5,10 +5,34 @@ import (
 	"fmt"
 	"maps"
 	"strings"
+	"time"
+
+	"github.com/hashicorp/golang-lru/v2/expirable"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
 )
+
+type AgentCacheKey struct {
+	// user email
+	User string
+	// agent
+	Pack string
+	Sub  string
+}
+
+var (
+	agentCache = expirable.NewLRU[AgentCacheKey, *api.Agent](10000, nil, time.Second*900)
+)
+
+const maxTurnsLimit = 100
+const maxTimeLimit = 900 // 15 min
+
+const defaultMaxTurns = 50
+const defaultMaxTime = 600 // 10 min
+
+const defaultMaxSpan = 1440 // 24 hours
+const defaultMaxHistory = 1
 
 type ConfigLoader struct {
 	data []byte
@@ -450,4 +474,9 @@ func (r *ConfigLoader) Create(ctx context.Context, packname api.Packname) (*api.
 	} else {
 		return nil, err
 	}
+}
+
+func resolveModelLevel(model string) (string, string) {
+	alias, level := split2(model, "/", "any")
+	return alias, level
 }
