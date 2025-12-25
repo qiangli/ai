@@ -11,7 +11,7 @@ agents:
       - "agent:memory/todo_list"
     environment:
       memories: "{{.workspace}}/memory/"
-      agent_memory: '{{cat "/memory/agent.md"}}'
+      agent_memory: '{{cat (printf "%s/memory/agent.md" .workspace)}}'
     instruction: |
       #! mime-type=text/x-go-template
 
