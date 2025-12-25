@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+type SecretStore interface {
+	Get(owner, key string) (string, error)
+}
+
 // Object store
 type BlobStore interface {
 	Put(ID string, blob *Blob) error

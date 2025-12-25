@@ -31,13 +31,13 @@ type Output struct {
 	ContentType string `json:"content_type"`
 }
 
-type IOFilter struct {
-	Agent string
-}
+// type IOFilter struct {
+// 	Agent string
+// }
 
-// https://modelcontextprotocol.io/specification/2025-06-18/client/elicitation
-type Elicitation struct {
-	Method string
-	Params map[string]any
-	Result map[string]any
-}
+// // https://modelcontextprotocol.io/specification/2025-06-18/client/elicitation
+// type Elicitation struct {
+// 	Method string
+// 	Params map[string]any
+// 	Result map[string]any
+// }

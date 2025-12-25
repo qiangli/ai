@@ -52,33 +52,6 @@ func ParseState(state string) State {
 
 type TemplateFuncMap = template.FuncMap
 
-// type CommandLine string
-
-// type Options []Option
-
-// type Option struct {
-// 	Name  string
-// 	Value string
-// }
-
-// func (r Option) String() string {
-// 	return fmt.Sprintf("%s=%s", r.Name, r.Value)
-// }
-
-// func ToOption(s string) *Option {
-// 	var opt Option
-// 	parts := strings.SplitN(s, "=", 2)
-// 	switch len(parts) {
-// 	case 1:
-// 		opt.Name = parts[0]
-// 	case 2:
-// 		opt.Name = parts[0]
-// 		opt.Value = parts[1]
-// 	default:
-// 	}
-// 	return &opt
-// }
-
 // TODO split name into kit, name|pack/sub|command
 // command line: [ACTION] [OPTIONS] MESSAGE...
 type Action struct {
@@ -103,15 +76,11 @@ func NewArguments() Arguments {
 
 // TODO get rid of this
 func (r Arguments) Get2(key string) (any, bool) {
-	// r.mu.RLock()
-	// defer r.mu.RUnlock()
 	v, ok := r[key]
 	return v, ok
 }
 
 func (r Arguments) AddArgs(args map[string]any) Arguments {
-	// r.mu.Lock()
-	// defer r.mu.Unlock()
 	maps.Copy(r, args)
 	return r
 }
@@ -119,8 +88,6 @@ func (r Arguments) AddArgs(args map[string]any) Arguments {
 // clear all entries and copy args
 // while maintaining the same old reference
 func (r Arguments) SetArgs(args map[string]any) Arguments {
-	// r.mu.Lock()
-	// defer r.mu.Unlock()
 	for k := range r {
 		delete(r, k)
 	}
@@ -130,8 +97,6 @@ func (r Arguments) SetArgs(args map[string]any) Arguments {
 
 // Return args specified by keys
 func (r Arguments) GetArgs(keys []string) map[string]any {
-	// r.mu.RLock()
-	// defer r.mu.RUnlock()
 	args := make(map[string]any)
 	if len(keys) == 0 {
 		maps.Copy(args, r)
@@ -145,21 +110,14 @@ func (r Arguments) GetArgs(keys []string) map[string]any {
 
 // Copye all key/value pairs to dst
 func (r Arguments) Copy(dst map[string]any) Arguments {
-	// r.mu.RLock()
-	// defer r.mu.RUnlock()
 	maps.Copy(dst, r)
 	return r
 }
 
 func (r Arguments) Clone() Arguments {
-	// r.mu.Lock()
-	// defer r.mu.Unlock()
-
 	args := make(map[string]any)
 	maps.Copy(args, r)
-	// return &Arguments{
-	// 	Args: args,
-	// }
+
 	return args
 }
 
@@ -172,9 +130,7 @@ func NewToolCall(id string, name string, args map[string]any) *ToolCall {
 	tc := &ToolCall{
 		ID:   id,
 		Name: name,
-		// Arguments: &Arguments{
-		// 	Args: args,
-		// },
+
 		Arguments: args,
 	}
 	return tc

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"text/template"
@@ -39,40 +38,11 @@ func (r Packname) ID() string {
 
 // return normalized pack/sub after cleaning. sub is the same as pack if empty
 func (r Packname) Decode() (string, string) {
-	// s := strings.ToLower(string(r))
-	// s = strings.TrimPrefix(s, "/")
-	// s = strings.TrimPrefix(s, "@")
-	// s = strings.TrimPrefix(s, "agent:")
-	// parts := strings.SplitN(s, "/", 2)
-
-	// var pack = parts[0]
-	// var sub string
-	// if len(parts) > 1 {
-	// 	sub = parts[1]
-	// }
-	// // entry
-	// // if sub == pack {
-	// // 	sub = ""
-	// // }
-	// if sub == "" {
-	// 	sub = pack
-	// }
-	// return pack, sub
 
 	s := r.Clean()
 	parts := strings.SplitN(string(s), "/", 2)
 	return parts[0], parts[1]
 }
-
-// // return the normalized string after cleaning
-// func (r Packname) Encode() string {
-// 	// pack, sub := r.Decode()
-// 	// if sub == "" {
-// 	// 	return pack
-// 	// }
-// 	// return pack + "/" + sub
-// 	return string(r.Clean())
-// }
 
 // Return a normalized version: pack/sub
 // after removing slash command char '/', prefix and suffix
@@ -107,7 +77,7 @@ func (r Packname) Equal(s string) bool {
 	return x1 == x2
 }
 
-type Creator func(context.Context, string) (*Agent, error)
+// type Creator func(context.Context, string) (*Agent, error)
 
 type Agent struct {
 	// Package name
@@ -149,10 +119,10 @@ type Agent struct {
 	Arguments Arguments `json:"arguments"`
 
 	// assigned at buildtime/runtime
-	Parent   *Agent             `json:"-"`
-	Runner   ActionRunner       `json:"-"`
-	Shell    ActionRunner       `json:"-"`
-	Creator  Creator            `json:"-"`
+	Parent *Agent       `json:"-"`
+	Runner ActionRunner `json:"-"`
+	Shell  ActionRunner `json:"-"`
+	// Creator  Creator            `json:"-"`
 	Template *template.Template `json:"-"`
 	Config   *AppConfig         `json:"-"`
 }
@@ -182,13 +152,6 @@ func (a *Agent) Clone() *Agent {
 
 	return clone
 }
-
-// type Flow struct {
-// 	Type       FlowType  `json:"type"`
-// 	Expression string    `json:"expression"`
-// 	// Actions    []*Action `json:"actions"`
-// 	Script     string    `json:"script"`
-// }
 
 func (a *Agent) cloneArguments() Arguments {
 	if a.Arguments == nil {
@@ -253,10 +216,6 @@ type AgentConfig struct {
 	// agent global vars
 	Environment map[string]any `yaml:"environment" json:"environment"`
 
-	// // security
-	// Filters []*IOFilter  `yaml:"filters"`
-	// Guards  []*ToolGuard `yaml:"guards"`
-
 	// inherit from embedded parent:
 	// + environment
 	// + instruction
@@ -266,7 +225,6 @@ type AgentConfig struct {
 	// - context
 	// - message
 	// - model
-	// - flow/actions
 	Embed []string `yaml:"embed" json:"embed"`
 
 	//
@@ -287,6 +245,7 @@ func (ac *AgentConfig) ToMap() map[string]any {
 	// message ~ query
 	// instruction ~ prompt
 	// context ~ histry
+	//
 	// if ac.Message != "" {
 	// 	result["message"] = ac.Message
 	// }
@@ -342,7 +301,7 @@ func ToFlowType(v any) FlowType {
 		return FlowTypeParallel
 	case "map":
 		return FlowTypeMap
-		// Uncomment if needed in the future
+	// Uncomment if needed in the future
 	// case "loop":
 	// 	return FlowTypeLoop
 	// case "reduce":
@@ -359,11 +318,13 @@ const (
 	// subsequent action uses the previous action's response as input.
 	FlowTypeSequence FlowType = "sequence"
 
+	// FlowTypeChain Executes a series of actions consecutively, similar to the `sequence` flow.
+	// The chain returns the result or error from the final action executed.
+	// Chain actions ["a1", "a2", "a3", ...] translate to nested function calls: a1(a2(a3(...))).
+	// Each action in the chain should accept a sub-action through the "action" parameter.
 	FlowTypeChain FlowType = "chain"
 
-	// FlowTypeChoice selects and executes a single action based on an evaluated expression.
-	// If no expression is provided, an action is chosen randomly. The expression must evaluate
-	// to an integer that selects the action index, starting from zero.
+	// FlowTypeChoice randomly selects and executes a single action.
 	FlowTypeChoice FlowType = "choice"
 
 	// FlowTypeParallel executes actions simultaneously, returning the combined results as a list.
@@ -386,18 +347,18 @@ const (
 
 	// FlowTypeShell delegates control to a shell script using bash script syntax, enabling
 	// complex flow control scenarios driven by external scripting logic.
-	FlowTypeShell FlowType = "shell"
+	// FlowTypeShell FlowType = "shell"
 )
 
-type FlowConfig struct {
-	Type FlowType `yaml:"type" json:"type"`
+// type FlowConfig struct {
+// 	Type FlowType `yaml:"type" json:"type"`
 
-	// agent/tool list for non script flow
-	Actions []string `yaml:"actions" json:"actions"`
+// 	// agent/tool list for non script flow
+// 	Actions []string `yaml:"actions" json:"actions"`
 
-	// content of the script for flow type: script
-	Script string `yaml:"script" json:"script"`
-}
+// 	// content of the script for flow type: script
+// 	Script string `yaml:"script" json:"script"`
+// }
 
 type Resource struct {
 	// web resource base url

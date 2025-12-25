@@ -36,6 +36,7 @@ type Message struct {
 	// user/agent
 	Sender string `json:"sender"`
 }
+
 type Request struct {
 	// parent agent
 	Agent *Agent `json:"agent"`
@@ -187,21 +188,3 @@ type Result struct {
 func (r *Result) String() string {
 	return r.Value
 }
-
-// // abbreviate trims the string, keeping the beginning and end if exceeding maxLen.
-// // after replacing newlines with .
-// func abbreviate(s string, maxLen int) string {
-// 	s = strings.ReplaceAll(s, "\n", "•")
-// 	s = strings.Join(strings.Fields(s), " ")
-// 	s = strings.TrimSpace(s)
-
-// 	if len(s) > maxLen {
-// 		// Calculate the length for each part
-// 		keepLen := (maxLen - 3) / 2
-// 		start := s[:keepLen]
-// 		end := s[len(s)-keepLen:]
-// 		return start + "..." + end
-// 	}
-
-// 	return s
-// }

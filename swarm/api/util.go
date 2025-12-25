@@ -432,3 +432,21 @@ func ParseStringArray(s string) []string {
 	}
 	return sa
 }
+
+// Abbreviate trims the string, keeping the beginning and end if exceeding maxLen.
+// after replacing newlines with '.'
+func Abbreviate(s string, maxLen int) string {
+	s = strings.ReplaceAll(s, "\n", "•")
+	s = strings.Join(strings.Fields(s), " ")
+	s = strings.TrimSpace(s)
+
+	if len(s) > maxLen {
+		// Calculate the length for each part
+		keepLen := (maxLen - 3) / 2
+		start := s[:keepLen]
+		end := s[len(s)-keepLen:]
+		return start + "..." + end
+	}
+
+	return s
+}
