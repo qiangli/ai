@@ -1,16 +1,12 @@
 package swarm
 
 import (
-	// "encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path"
 	"reflect"
 	"strings"
-	// "github.com/u-root/u-root/pkg/shlex"
-	// "github.com/qiangli/ai/swarm/api"
-	// "github.com/qiangli/ai/swarm/atm/conf"
 )
 
 var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
@@ -77,14 +73,6 @@ func structToMap(input any) (map[string]any, error) {
 // 	return strings.Join(words, "")
 // }
 
-// // baseCommand returns the last part of the string separated by /.
-// func baseCommand(s string) string {
-// 	s = strings.TrimSpace(s)
-// 	s = strings.Trim(s, "/")
-// 	sa := strings.Split(s, "/")
-// 	return sa[len(sa)-1]
-// }
-
 // split2 splits string s by sep into two parts. if there is only one part,
 // use val as the second part
 func split2(s string, sep string, val string) (string, string) {
@@ -110,16 +98,6 @@ func nvl(a ...string) string {
 	return ""
 }
 
-// // return first true value
-// func nbl(a ...bool) bool {
-// 	for _, v := range a {
-// 		if v {
-// 			return v
-// 		}
-// 	}
-// 	return false
-// }
-
 // return the first non zero value
 func nzl(a ...int) int {
 	for _, v := range a {
@@ -140,14 +118,6 @@ func head(s string, maxLen int) string {
 	}
 	return s
 }
-
-// // https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
-// // data:[<media-type>][;base64],<data>
-// func dataURL(mime string, raw []byte) string {
-// 	encoded := base64.StdEncoding.EncodeToString(raw)
-// 	d := fmt.Sprintf("data:%s;base64,%s", mime, encoded)
-// 	return d
-// }
 
 func formatArgs(args map[string]any) string {
 	var sb strings.Builder
@@ -178,11 +148,6 @@ func abbreviate(s string, maxLen int) string {
 		return start + "..." + end
 	}
 	return s
-}
-
-// concat joins the s by sep.
-func concat(sep byte, s ...string) string {
-	return strings.Join(s, string(sep))
 }
 
 func NilSafe[T any](ptr *T) T {

@@ -4,9 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	// "strings"
-	// "time"
-
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
@@ -32,16 +29,9 @@ type Swarm struct {
 
 	Blobs api.BlobStore
 
-	// virtual system
-	// Root      string
 	OS        vos.System
 	Workspace vfs.Workspace
 	History   api.MemStore
-
-	// runtime fields
-	// internal
-	// middlewares []api.Middleware
-	// agentMaker  *AgentMaker
 
 	//
 	Vars *api.Vars
@@ -103,111 +93,6 @@ func (sw *Swarm) CreateAgent(ctx context.Context, parent *api.Agent, packname ap
 
 	return agent, nil
 }
-
-// // // Create agent by name.
-// // // Search assets and load the agent if found.
-// // func (sw *Swarm) CreateAgent(ctx context.Context, name string) (*api.Agent, error) {
-// // 	if name == "" {
-// // 		// anonymous
-// // 		log.GetLogger(ctx).Debugf("agent not specified.\n")
-// // 	}
-// // 	agent, err := sw.agentMaker.Create(ctx, name)
-// // 	if err != nil {
-// // 		return nil, err
-// // 	}
-
-// // 	agent.Parent = sw.Vars.RootAgent
-
-// // 	return agent, nil
-// // }
-
-// // Serve calls the language model with the messages list (after applying the system prompt).
-// // If the resulting AI Message contains tool_calls, the orchestrator will then call the tools.
-// // The tools node executes the tools and adds the responses to the messages list as ToolMessage objects. The agent node then calls the language model again. The process repeats until no more tool_calls are present in the response. The agent then returns the full list of messages.
-// func (sw *Swarm) Serve(req *api.Request, resp *api.Response) error {
-
-// 	// return sw.serve(sw.CreateAgent, req, resp)
-// 	return nil
-// }
-
-// func (sw *Swarm) serve(creator api.Creator, req *api.Request, resp *api.Response) error {
-// 	if req.Agent == nil {
-// 		req.Agent = sw.Vars.RootAgent
-// 	}
-
-// 	var ctx = req.Context()
-// 	logger := log.GetLogger(ctx)
-// 	for {
-// 		start := time.Now()
-// 		logger.Debugf("creating agent: %s %s\n", req.Name, start)
-
-// 		// creator
-// 		// TODO inherit runner
-// 		agent, err := creator(ctx, req.Name)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		//
-// 		agent.Runner = NewAgentToolRunner(sw, sw.User.Email, agent)
-// 		agent.Shell = NewAgentScriptRunner(sw, agent)
-// 		agent.Template = NewTemplate(sw, agent)
-
-// 		// inherit args
-// 		var addAll func(*api.Agent)
-// 		addAll = func(a *api.Agent) {
-// 			if a == nil {
-// 				return
-// 			}
-// 			if a.Parent != nil {
-// 				addAll(a.Parent)
-// 			}
-// 			if a.Arguments != nil {
-// 				agent.Arguments.AddArgs(a.Arguments)
-// 			}
-// 		}
-// 		addAll(req.Agent)
-// 		if req.Arguments != nil {
-// 			agent.Arguments.AddArgs(req.Arguments)
-// 		}
-
-// 		// init
-// 		final := HandlerFunc(func(req *api.Request, res *api.Response) error {
-// 			log.GetLogger(req.Context()).Infof("🔗 (final): %s\n", req.Name)
-// 			return nil
-// 		})
-// 		chain := NewChain(sw.middlewares...).Then(agent, final)
-// 		if err := chain.Serve(req, resp); err != nil {
-// 			return err
-// 		}
-
-// 		if resp.Result == nil {
-// 			// some thing went wrong
-// 			return fmt.Errorf("Empty result running %q", agent.Name)
-// 		}
-
-// 		if resp.Result.State == api.StateTransfer {
-// 			if resp.Result.NextAgent == "self" {
-// 				name := agent.Name
-// 				v, err := sw.creatorFromScript(name, resp.Result.Value)
-// 				if err != nil {
-// 					return err
-// 				}
-// 				creator = v
-// 				logger.Infof("Agent reload: %s => %s\n", req.Name, resp.Result.NextAgent)
-// 			} else {
-// 				logger.Infof("Agent transfer: %s => %s\n", req.Name, resp.Result.NextAgent)
-// 			}
-
-// 			req.Name = resp.Result.NextAgent
-// 			req.Agent = agent
-// 			continue
-// 		}
-
-// 		end := time.Now()
-// 		logger.Debugf("Agent complete: %s %s elapsed: %s\n", req.Name, end, end.Sub(start))
-// 		return nil
-// 	}
-// }
 
 // copy values from src to dst after calling @agent and applying template if required
 // skip unless override is true
@@ -319,22 +204,6 @@ func (sw *Swarm) execm(ctx context.Context, parent *api.Agent, argm map[string]a
 	result := api.ToResult(v)
 	return result, nil
 }
-
-// func (sw *Swarm) creatorFromScript(name, script string) (api.Creator, error) {
-// 	data, err := sw.LoadScript(script)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if name == "" {
-// 		return nil, fmt.Errorf("agent name required")
-// 	}
-// 	pack, _ := api.Packname(name).Decode()
-// 	v, err := sw.agentMaker.Creator(sw.agentMaker.Create, sw.User.Email, pack, []byte(data))
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return v, nil
-// }
 
 // inherit parent tools including embedded agents
 // TODO cache

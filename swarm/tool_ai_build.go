@@ -59,19 +59,6 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, tf string, args
 	// 	return nil, err
 	// }
 
-	// var loader = NewConfigLoader(r.sw.Vars.RTE)
-
-	// agent, err := loader.Create(ctx, api.Packname(name))
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// // init setup
-	// agent.Parent = r.sw.Vars.RootAgent
-	// agent.Runner = NewAgentToolRunner(r.sw, r.sw.User.Email, agent)
-	// agent.Shell = NewAgentScriptRunner(r.sw, agent)
-	// agent.Template = NewTemplate(r.sw, agent)
-
 	// config
 	var cfg []byte
 	if v, found := args["script"]; found {

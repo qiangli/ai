@@ -31,22 +31,6 @@ const (
 	ClipoutRedirect2 = "}}"
 )
 
-// const clipMaxLen = 500
-
-// type Editor struct {
-// 	editor string
-// }
-
-// func NewEditor(editor string) *Editor {
-// 	return &Editor{
-// 		editor: editor,
-// 	}
-// }
-
-// func (e *Editor) Launch(content string) (string, error) {
-// 	return LaunchEditor(e.editor, content)
-// }
-
 func GetInput(ctx context.Context, argv []string) (*api.InputConfig, error) {
 	cfg := ParseSpecialChars(argv)
 
@@ -135,16 +119,6 @@ func userInput(
 	stdin io.Reader,
 	clipboard api.ClipboardProvider,
 ) (*api.UserInput, error) {
-	// cat := func(a, b, sep string) string {
-	// 	if a != "" && b == "" {
-	// 		return a
-	// 	} else if a == "" && b != "" {
-	// 		return b
-	// 	} else if a != "" && b != "" {
-	// 		return a + sep + b
-	// 	}
-	// 	return ""
-	// }
 
 	// stdin
 	var stdinData string
@@ -216,60 +190,6 @@ func userInput(
 	}, nil
 }
 
-// func LaunchEditor(editor string, content string) (string, error) {
-// 	tmpfile, err := os.CreateTemp("", "ai_*.txt")
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	defer os.Remove(tmpfile.Name())
-
-// 	//
-// 	if len(content) > 0 {
-// 		if _, err := tmpfile.WriteString(content); err != nil {
-// 			tmpfile.Close()
-// 			return "", err
-// 		}
-// 		if err := tmpfile.Close(); err != nil {
-// 			return "", err
-// 		}
-// 	}
-
-// 	// open editor
-// 	// support simple args for editor command line
-// 	cmdArgs := strings.Fields(editor)
-// 	var bin string
-// 	var args []string
-// 	bin = cmdArgs[0]
-// 	if len(cmdArgs) > 1 {
-// 		args = cmdArgs[1:]
-// 	}
-// 	args = append(args, tmpfile.Name())
-
-// 	cmd := exec.Command(bin, args...)
-// 	cmd.Stdin = os.Stdin
-// 	cmd.Stdout = os.Stdout
-// 	cmd.Stderr = os.Stderr
-
-// 	if err := cmd.Run(); err != nil {
-// 		return "", err
-// 	}
-
-// 	edited, err := os.ReadFile(tmpfile.Name())
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	return string(edited), nil
-// }
-
-// // PrintInput prints the user input
-// func PrintInput(ctx context.Context, cfg *api.AppConfig) {
-// 	log.GetLogger(ctx).Debugf("UserInput:\n%+v\n", cfg)
-
-// 	// query and files for info only
-// 	var msg = clip(cfg.Message, clipMaxLen)
-// 	renderInputContent(ctx, msg)
-// }
-
 // pasteConfirm prompts the user to append, send, or cancel the input
 // and returns true if the user chooses to send the input
 func pasteConfirm(ctx context.Context) (bool, error) {
@@ -289,22 +209,6 @@ func pasteConfirm(ctx context.Context) (bool, error) {
 	}
 	return false, fmt.Errorf("canceled")
 }
-
-// func renderInputContent(ctx context.Context, content string) {
-// 	md := util.Render(content)
-// 	log.GetLogger(ctx).Infof("\n%s\n", md)
-// }
-
-// func ReadStdin() (string, error) {
-// 	stdin := os.Stdin
-
-// 	data, err := io.ReadAll(stdin)
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	return strings.TrimSpace(string(data)), nil
-// }
 
 func Cat(a, b, sep string) string {
 	if a != "" && b == "" {

@@ -70,25 +70,12 @@ func (r *ConfigLoader) LoadAgentConfig(packname api.Packname) (*api.AppConfig, e
 	if pack == "" {
 		return nil, fmt.Errorf("pack is required")
 	}
-	// // default
-	// if sub == "" {
-	// 	sub = pack
-	// }
-
-	// // equqal or the primary agent sub == ""/sub == pack
-	// equal := func(s string) bool {
-	// 	return s == sub || sub == "" && s == pack
-	// }
 
 	if r.data != nil {
 		ac, err := conf.LoadAgentsData([][]byte{r.data})
 		if err != nil {
 			return nil, err
 		}
-
-		// if ac.Pack != pack {
-		// 	return nil, fmt.Errorf("wrong pack: %s config: %s", pack, ac.Pack)
-		// }
 
 		for _, v := range ac.Agents {
 			if v.Name == sub {
@@ -118,10 +105,7 @@ func (r *ConfigLoader) LoadAgentConfig(packname api.Packname) (*api.AppConfig, e
 
 func (r *ConfigLoader) LoadToolConfig(kn api.Kitname) (*api.AppConfig, error) {
 	kit, name := kn.Decode()
-	// equal or default if name == ""
-	// equal := func(n string) bool {
-	// 	return n == name || name == "" && n == kit
-	// }
+
 	if kit == "" {
 		return nil, fmt.Errorf("kit is required")
 	}
@@ -134,9 +118,6 @@ func (r *ConfigLoader) LoadToolConfig(kn api.Kitname) (*api.AppConfig, error) {
 		if err != nil {
 			return nil, err
 		}
-		// if tc.Kit != kit {
-		// 	return nil, fmt.Errorf("wrong kit: %s config: %s", kit, tc.Kit)
-		// }
 
 		for _, v := range tc.Tools {
 			if v.Name == name {
@@ -189,9 +170,7 @@ func (r *ConfigLoader) CreateTool(tid string) (*api.ToolFunc, error) {
 		if err != nil {
 			return nil, err
 		}
-		// equal := func(n string) bool {
-		// 	return n == name || name == "" && n == kit
-		// }
+
 		if name == "" {
 			name = kit
 		}
@@ -205,28 +184,6 @@ func (r *ConfigLoader) CreateTool(tid string) (*api.ToolFunc, error) {
 }
 
 func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent, error) {
-	// ac, err := r.LoadConfig(name)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// pn := api.Packname(name)
-
-	// pack, _ := pn.Decode()
-	// if ac.Pack != pack {
-	// 	return nil, fmt.Errorf("wrong pack: %s config: %s.", pack, ac.Pack)
-	// }
-
-	// // // find agent config
-	// // var c *api.AgentConfig
-	// // for _, v := range ac.Agents {
-	// // 	if pn.Equal(v.Name) {
-	// // 		c = v
-	// // 		break
-	// // 	}
-	// // }
-	// if c == nil {
-	// 	return nil, fmt.Errorf("agent %q not in config: %s", pn.Encode(), ac.Pack)
-	// }
 
 	ac := c.Config
 
@@ -347,31 +304,6 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 	}
 	agent.Tools = funcs
 
-	// // flow
-	// if c.Flow != nil {
-	// 	var actionMap = make(map[string]*api.Action)
-	// 	for _, v := range agent.Tools {
-	// 		actionMap[v.Kit+":"+v.Name] = api.NewAction(
-	// 			v.ID(),
-	// 			v.Name,
-	// 			v.Arguments,
-	// 		)
-	// 	}
-	// 	flow := &api.Flow{
-	// 		Type:   c.Flow.Type,
-	// 		Script: c.Flow.Script,
-	// 	}
-
-	// 	for _, v := range c.Flow.Actions {
-	// 		a, ok := actionMap[v]
-	// 		if !ok {
-	// 			return nil, fmt.Errorf("action missing: %s %s", agent.Name, v)
-	// 		}
-	// 		flow.Actions = append(flow.Actions, a)
-	// 	}
-	// 	agent.Flow = flow
-	// }
-
 	return &agent, nil
 }
 
@@ -391,10 +323,6 @@ func (r *ConfigLoader) Create(ctx context.Context, packname api.Packname) (*api.
 	// agent: pack/sub
 	// var user = ap.sw.User.Email
 	pack, sub := packname.Clean().Decode()
-	// // todo have decode return pack
-	// if sub == "" {
-	// 	sub = pack
-	// }
 
 	//
 	if pack == "" {
@@ -412,28 +340,6 @@ func (r *ConfigLoader) Create(ctx context.Context, packname api.Packname) (*api.
 		// log.GetLogger(ctx).Debugf("Using cached agent: %+v", key)
 		return v.Clone(), nil
 	}
-
-	// var ent *api.Record
-	// if v, err := r.sw.Assets.SearchAgent(ap.sw.User.Email, pack); err != nil {
-	// 	return nil, err
-	// } else {
-	// 	ent = v
-	// }
-	// // invalid agent
-	// if ent == nil && pack != "" {
-	// 	return nil, fmt.Errorf("agent not found: %s", pack)
-	// }
-
-	// // access to models/tools is implicitly granted if user has permission to run the agent
-	// // agent config
-	// ac, err := ap.getAgent(ent.Owner, ent.Name, ent.Store)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// if ac == nil {
-	// 	return nil, fmt.Errorf("no such agent: %s", name)
-	// }
 
 	ac, err := r.LoadAgentConfig(packname)
 	if err != nil {
