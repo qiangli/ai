@@ -58,6 +58,10 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	for k, v := range r.sw.globalEnv() {
 		vs.System.Setenv(k, v)
 	}
+	for k, v := range r.parent.Environment.GetAllEnvs() {
+		vs.System.Setenv(k, v)
+	}
+
 	vs.ExecHandler = r.newExecHandler(vs, args)
 
 	// run bash interpreter
@@ -69,7 +73,10 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 		return nil, err
 	}
 	// copy back env
-	r.sw.globalAddEnvs(vs.System.Environ())
+	// r.sw.globalAddEnvs(vs.System.Environ())
+	if r.parent.Environment != nil {
+		r.parent.Environment.AddEnvs(vs.System.Environ())
+	}
 
 	result := &api.Result{
 		Value: b.String(),

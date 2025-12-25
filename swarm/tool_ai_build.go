@@ -76,11 +76,13 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, tf string, args
 	var cfg []byte
 	if v, found := args["script"]; found {
 		if uri, ok := v.(string); ok {
-			data, err := r.sw.LoadScript(uri)
-			if err != nil {
-				return nil, err
+			if strings.HasSuffix(uri, ".yaml") || strings.HasSuffix(uri, ".yml") {
+				data, err := r.sw.LoadScript(uri)
+				if err != nil {
+					return nil, err
+				}
+				cfg = []byte(data)
 			}
-			cfg = []byte(data)
 		}
 	}
 
