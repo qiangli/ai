@@ -37,6 +37,9 @@ tidy:
 # git-amend: git-message
 #     git commit --amend -m "$(pbpaste)"
 
+push:
+    git push origin main --tag
+
 install: build test
     time CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o "$(go env GOPATH)/bin/ai" -ldflags="-w -extldflags '-static' ${CLI_FLAGS:-}" ./cmd
 
