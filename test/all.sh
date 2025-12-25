@@ -12,13 +12,13 @@ $BASE/test/script.sh
 $BASE/test/flow.sh
 
 ##
-adapter=echo
+adapter="--adapter echo"
 #$BASE/sb.json.sh
-$BASE/test/sb.md --adapter $adapter
-$BASE/test/sb.sh --adapter $adapter
-$BASE/test/sb.txt --adapter $adapter
-$BASE/test/sb.yaml --adapter $adapter
-$BASE/test/yaml-wrap.sh --adapter $adapter
+$BASE/test/sb.md $adapter
+$BASE/test/sb.sh $adapter
+$BASE/test/sb.txt $adapter
+$BASE/test/sb.yaml $adapter
+$BASE/test/yaml-wrap.sh $adapter
 
 ##
 $BASE/test/timeout.sh

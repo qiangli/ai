@@ -57,7 +57,7 @@ choose="/flow:choice --option actions=[sh:pass,no_such_cmd,sh:pwd,kit:invalid_to
 # $cmd
 /flow:chain --option chain=[sh:timeout,sh:backoff,alias:cmd] \
     --option cmd="${choose}" \
-    --option duration="10s"
+    --option duration="60s"
 
 exit 0
 ###
