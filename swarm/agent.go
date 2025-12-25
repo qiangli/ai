@@ -334,10 +334,10 @@ func (ap *AgentMaker) Create(ctx context.Context, name string) (*api.Agent, erro
 	// } else {
 	// 	ent = v
 	// }
-	// invalid agent
-	if ent == nil && pack != "" {
-		return nil, fmt.Errorf("agent not found: %s", pack)
-	}
+	// // invalid agent
+	// if ent == nil && pack != "" {
+	// 	return nil, fmt.Errorf("agent not found: %s", pack)
+	// }
 
 	// access to models/tools is implicitly granted if user has permission to run the agent
 	// agent config

@@ -46,10 +46,10 @@ func (r *ConfigLoader) LoadAgentConfig(packname api.Packname) (*api.AppConfig, e
 	if pack == "" {
 		return nil, fmt.Errorf("pack is required")
 	}
-	// default
-	if sub == "" {
-		sub = pack
-	}
+	// // default
+	// if sub == "" {
+	// 	sub = pack
+	// }
 
 	// // equqal or the primary agent sub == ""/sub == pack
 	// equal := func(s string) bool {

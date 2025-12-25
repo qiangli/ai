@@ -49,17 +49,17 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 	// @name
 	// agent:name
 	if kit == string(api.ToolTypeAgent) {
-		pack, _ := api.Packname(name).Decode()
+		pack, sub := api.Packname(name).Decode()
 		ac, err := assets.FindAgent(owner, pack)
 		if err != nil {
 			return nil, err
 		}
-		v, err := LoadAgentTool(ac, name)
+		v, err := LoadAgentTool(ac, sub)
 		if err != nil {
 			return nil, err
 		}
 		if v == nil {
-			return nil, fmt.Errorf("agent not found: %s", name)
+			return nil, fmt.Errorf("agent tool not found: %s", name)
 		}
 		return []*api.ToolFunc{v}, nil
 	}
@@ -319,19 +319,19 @@ func LoadAgentTool(ac *api.AppConfig, sub string) (*api.ToolFunc, error) {
 			}
 			maps.Copy(params, c.Parameters)
 
-			pn := api.Packname(ac.Pack + "/" + sub).Encode()
+			pn := api.NewPackname(ac.Pack, sub)
 
 			tool := &api.ToolFunc{
 				Kit:  string(api.ToolTypeAgent),
 				Type: api.ToolTypeAgent,
 				// func name: pack/sub?
 				// Name:        c.Name,
-				Name:        pn,
+				Name:        pn.String(),
 				Description: c.Description,
 				Parameters:  params,
 				Body:        nil,
 				//
-				Agent: pn,
+				Agent: pn.String(),
 			}
 			return tool, nil
 		}

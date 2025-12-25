@@ -58,8 +58,8 @@
 				// "/bin/ls -al test",
 				//
 				// slash agent
-				// "/agent:ed",
-				// "correct mine englise"
+				"/agent:ed",
+				"correct mine englise"
 				//
 				// bash script
 				// "/sh:bash",
@@ -81,13 +81,13 @@
 				// "atm/tools/hello_kit/hello_user.yaml",
 				//
 				// agent
-				"/agent:atm/hi",
-				"--script",
-				"swarm/atm/resource/template/atm.yaml",
-				"--adapter",
-				"echo",
-				"--verbose",
-				"pick some famous politicians names",
+				// "/agent:atm/hi",
+				// "--script",
+				// "swarm/atm/resource/template/atm.yaml",
+				// "--adapter",
+				// "echo",
+				// "--verbose",
+				// "pick some famous politicians names",
 				//
 				// tool
 				// "/atm:hi",

@@ -210,12 +210,18 @@ func (r Kitname) String() string {
 	return string(r)
 }
 
-// agent:
-// agent__
-func (r Kitname) IsAgent() bool {
-	kit, _ := r.Decode()
-	return kit == string(ToolTypeAgent)
+// ^[a-zA-Z0-9_-]+$
+func (r Kitname) ID() string {
+	kit, name := r.Decode()
+	return toolID(kit, name)
 }
+
+// // agent:
+// // agent__
+// func (r Kitname) IsAgent() bool {
+// 	kit, _ := r.Decode()
+// 	return kit == string(ToolTypeAgent)
+// }
 
 // kit__name
 // kit:*
@@ -226,6 +232,74 @@ func (r Kitname) IsAgent() bool {
 // Decode removes slash command prefix and decodes the string into kit and name.
 // For agents, the kit is literal "agent"
 func (r Kitname) Decode() (string, string) {
+	// split2 := func(s string, sep string, val string) (string, string) {
+	// 	var p1, p2 string
+	// 	parts := strings.SplitN(s, sep, 2)
+	// 	if len(parts) == 1 {
+	// 		p1 = parts[0]
+	// 		p2 = val
+	// 	} else {
+	// 		p1 = parts[0]
+	// 		p2 = parts[1]
+	// 	}
+	// 	return p1, p2
+	// }
+
+	// var kit, name string
+	// s := strings.ToLower(string(r))
+
+	// // remove leading slash / (slash command)
+	// s = strings.TrimPrefix(s, "/")
+	// if strings.HasPrefix(s, "@") || strings.HasPrefix(s, "agent:") {
+	// 	// <agent:name>
+	// 	// @name
+	// 	// @name:*
+	// 	// @:name
+	// 	// kit, name = split2(s, ":", "")
+	// 	// if v := strings.TrimPrefix(kit, "@"); v != "" {
+	// 	// 	name = v
+	// 	// }
+
+	// 	s = strings.TrimPrefix(s, "@")
+	// 	s = strings.TrimPrefix(s, "agent:")
+	// 	pack, sub := split2(s, "/", "")
+	// 	if sub == "" {
+	// 		sub = pack
+	// 	}
+
+	// 	sub = strings.ReplaceAll(sub, "__", "/")
+	// 	return "agent", pack + "__" + sub
+	// }
+
+	// // if strings.Index(s, "__") > 0 {
+	// // 	// call time - the name should never be empty
+	// // 	kit, name = split2(s, "__", "")
+	// // } else {
+	// // 	// load time
+	// // 	// kit, name = split2(s, ":", "*")
+	// // 	kit, name = split2(s, ":", "")
+	// // }
+
+	// indexUnderscore := strings.Index(s, "__")
+	// indexColon := strings.Index(s, ":")
+
+	// if indexUnderscore >= 0 && (indexColon == -1 || indexUnderscore < indexColon) {
+	// 	kit, name = split2(s, "__", "")
+	// } else if indexColon >= 0 {
+	// 	kit, name = split2(s, ":", "")
+	// } else {
+	// 	kit, name = s, ""
+	// }
+
+	// // for agent tool id
+	s := r.Clean()
+	parts := strings.SplitN(string(s), ":", 2)
+	kit := parts[0]
+	name := strings.ReplaceAll(parts[1], "__", "/")
+	return kit, name
+}
+
+func (r Kitname) Clean() Kitname {
 	split2 := func(s string, sep string, val string) (string, string) {
 		var p1, p2 string
 		parts := strings.SplitN(s, sep, 2)
@@ -240,10 +314,14 @@ func (r Kitname) Decode() (string, string) {
 	}
 
 	var kit, name string
-	s := string(r)
+	s := strings.ToLower(string(r))
+
 	// remove leading slash / (slash command)
 	s = strings.TrimPrefix(s, "/")
+
 	if strings.HasPrefix(s, "@") || strings.HasPrefix(s, "agent:") {
+		pack, sub := Packname(s).Decode()
+		return Kitname("agent" + ":" + pack + "__" + sub)
 		// <agent:name>
 		// @name
 		// @name:*
@@ -253,10 +331,15 @@ func (r Kitname) Decode() (string, string) {
 		// 	name = v
 		// }
 
-		s = strings.TrimPrefix(s, "@")
-		s = strings.TrimPrefix(s, "agent:")
-		name = strings.ReplaceAll(s, "__", "/")
-		return "agent", name
+		// s = strings.TrimPrefix(s, "@")
+		// s = strings.TrimPrefix(s, "agent:")
+		// pack, sub := split2(s, "/", "")
+		// if sub == "" {
+		// 	sub = pack
+		// }
+
+		// sub = strings.ReplaceAll(sub, "__", "/")
+		// return "agent", pack + "__" + sub
 	}
 
 	// if strings.Index(s, "__") > 0 {
@@ -281,17 +364,6 @@ func (r Kitname) Decode() (string, string) {
 
 	// for agent tool id
 	name = strings.ReplaceAll(name, "__", "/")
-	return kit, name
-}
-
-// ^[a-zA-Z0-9_-]+$
-func (r Kitname) ID() string {
-	kit, name := r.Decode()
-	return toolID(kit, name)
-}
-
-func (r Kitname) Clean() Kitname {
-	kit, name := r.Decode()
 	return Kitname(kit + ":" + name)
 }
 

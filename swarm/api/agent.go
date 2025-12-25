@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"text/template"
 )
@@ -16,7 +17,7 @@ const (
 // @pack[/sub]
 // agent:pack[/sub]
 // @*
-// ^[a-z0-9_-/]+$
+// name: ^[a-z0-9_:/]+$
 // id: ^[a-z0-9_]+$
 type Packname string
 
@@ -28,53 +29,82 @@ func (r Packname) String() string {
 	return string(r)
 }
 
-// @pack[/sub]
-// agent:pack[/sub]
+// Return valid id for the agent suitable for use with external systems, e.g. LLM providers.
+// agent:pack/sub is converted to agent__pack__sub
+// ^[a-z0-9_]+$
+func (r Packname) ID() string {
+	pack, sub := r.Decode()
+	return fmt.Sprintf("agent__%s__%s", pack, sub)
+}
+
+// return normalized pack/sub after cleaning. sub is the same as pack if empty
 func (r Packname) Decode() (string, string) {
+	// s := strings.ToLower(string(r))
+	// s = strings.TrimPrefix(s, "/")
+	// s = strings.TrimPrefix(s, "@")
+	// s = strings.TrimPrefix(s, "agent:")
+	// parts := strings.SplitN(s, "/", 2)
+
+	// var pack = parts[0]
+	// var sub string
+	// if len(parts) > 1 {
+	// 	sub = parts[1]
+	// }
+	// // entry
+	// // if sub == pack {
+	// // 	sub = ""
+	// // }
+	// if sub == "" {
+	// 	sub = pack
+	// }
+	// return pack, sub
+
+	s := r.Clean()
+	parts := strings.SplitN(string(s), "/", 2)
+	return parts[0], parts[1]
+}
+
+// // return the normalized string after cleaning
+// func (r Packname) Encode() string {
+// 	// pack, sub := r.Decode()
+// 	// if sub == "" {
+// 	// 	return pack
+// 	// }
+// 	// return pack + "/" + sub
+// 	return string(r.Clean())
+// }
+
+// Return a normalized version: pack/sub
+// after removing slash command char '/', prefix and suffix
+// [/]@pack[/sub]
+// [/]agent:pack[/sub]
+// ^[a-z0-9_/]+$
+func (r Packname) Clean() Packname {
 	s := strings.ToLower(string(r))
 	s = strings.TrimPrefix(s, "/")
 	s = strings.TrimPrefix(s, "@")
 	s = strings.TrimPrefix(s, "agent:")
-	parts := strings.SplitN(s, "/", 2)
 
+	// convert back __ to / if any
+	s = strings.ReplaceAll(s, "__", "/")
+
+	parts := strings.SplitN(s, "/", 2)
 	var pack = parts[0]
 	var sub string
 	if len(parts) > 1 {
 		sub = parts[1]
 	}
-	// entry
-	// if sub == pack {
-	// 	sub = ""
-	// }
 	if sub == "" {
 		sub = pack
 	}
-	return pack, sub
-}
 
-// return the normalized name.
-// pack or pack/sub after removing any prefix: @ agent: or /
-func (r Packname) Encode() string {
-	pack, sub := r.Decode()
-	if sub == "" {
-		return pack
-	}
-	return pack + "/" + sub
-}
-
-// Return a normalized version: pack/sub
-func (r Packname) Clean() Packname {
-	pack, sub := r.Decode()
-	if sub == "" {
-		sub = pack
-	}
 	return Packname(pack + "/" + sub)
 }
 
 func (r Packname) Equal(s string) bool {
-	x, y := r.Decode()
-	x2, y2 := Packname(s).Decode()
-	return x == x2 && y == y2
+	x1 := r.Clean()
+	x2 := Packname(s).Clean()
+	return x1 == x2
 }
 
 type Creator func(context.Context, string) (*Agent, error)
