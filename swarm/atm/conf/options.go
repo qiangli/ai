@@ -173,7 +173,11 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 		case strings.HasPrefix(args, "["):
 			var argv []string
 			if err := json.Unmarshal([]byte(args), &argv); err != nil {
-				return nil, fmt.Errorf("invalid json array arguments: %q error: %w", args, err)
+				// try parsing as comma separated list
+				argv = api.ParseStringArray(args)
+				if len(argv) == 0 {
+					return nil, fmt.Errorf("invalid json array arguments: %q error: %w", args, err)
+				}
 			}
 			argm["arguments"] = argv
 		default:

@@ -50,12 +50,13 @@ template='data:,
 # /sh:bash --option script="data:,$cmd"
 # #TODO expandenv for scripts: /sh:bash --option script='data:,$cmd'
 
-choose='/flow:choice --option actions=["sh:pass","no_such_cmd","sh:pwd","kit:invalid_tool"]'
+# choose='/flow:choice --option actions=["sh:pass","no_such_cmd","sh:pwd","kit:invalid_tool"]'
+choose="/flow:choice --option actions=[sh:pass,no_such_cmd,sh:pwd,kit:invalid_tool]"
 # $choose
-cmd="/sh:backoff --option action=/alias:choose --option choose=${choose} --option duration=15s"
+# cmd="/sh:backoff --option action=/alias:choose --option choose=${choose} --option duration=15s"
 # $cmd
-/flow:chain --option chain='["sh:timeout","sh:backoff","alias:cmd"]' \
-    --option cmd="$cmd" \
+/flow:chain --option chain=[sh:timeout,sh:backoff,alias:cmd] \
+    --option cmd="${choose}" \
     --option duration="10s"
 
 exit 0

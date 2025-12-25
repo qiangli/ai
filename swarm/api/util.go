@@ -398,7 +398,37 @@ func ToStringArray(obj any) []string {
 		if err := json.Unmarshal([]byte(v), &sa); err == nil {
 			return sa
 		}
+		sa = ParseStringArray(v)
+		if len(sa) > 0 {
+			return sa
+		}
 		return []string{v}
 	}
 	return []string{}
+}
+
+// try parse string into an array of string in the following formats:
+// a,b,c...
+// [a,b,c,]
+// intended for parsing commandline actins list
+func ParseStringArray(s string) []string {
+	unquote := func(x string) string {
+		if x[0] == '\'' {
+			return strings.Trim(x, "'")
+		}
+		if x[0] == '"' {
+			return strings.Trim(x, "\"")
+		}
+		return x
+	}
+	s = strings.TrimLeft(s, "[")
+	s = strings.TrimRight(s, "]")
+	pa := strings.Split(s, ",")
+	var sa []string
+	for _, v := range pa {
+		if len(v) > 0 {
+			sa = append(sa, unquote(v))
+		}
+	}
+	return sa
 }

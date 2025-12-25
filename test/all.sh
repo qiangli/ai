@@ -23,7 +23,7 @@ $BASE/test/yaml-wrap.sh --adapter $adapter
 ##
 $BASE/test/timeout.sh
 $BASE/test/backoff.sh
-#$BASE/chain.sh
+$BASE/test/chain.sh
 
 echo "$?"
 echo "*** All tests completed successfully ***"
