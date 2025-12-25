@@ -150,3 +150,16 @@ func (r *AgentScriptRunner) execv(ctx context.Context, vs *sh.VirtualSystem, arg
 	}
 	return result, nil
 }
+
+func doBashCustom(vs *sh.VirtualSystem, args []string) (string, error) {
+	switch args[0] {
+	case "env", "printenv":
+		var envs []string
+		for k, v := range vs.System.Environ() {
+			envs = append(envs, fmt.Sprintf("%s=%v", k, v))
+		}
+		return strings.Join(envs, "\n"), nil
+	default:
+	}
+	return "", nil
+}

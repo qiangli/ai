@@ -212,7 +212,7 @@ func (r Kitname) ID() string {
 // Decode removes slash command prefix and decodes the string into kit and name.
 // For agents, the kit is literal "agent"
 func (r Kitname) Decode() (string, string) {
-		s := r.Clean()
+	s := r.Clean()
 	parts := strings.SplitN(string(s), ":", 2)
 	kit := parts[0]
 	name := strings.ReplaceAll(parts[1], "__", "/")
@@ -272,7 +272,7 @@ func tr(s string) string {
 }
 
 func toolID(kit, name string) string {
-	
+
 	return fmt.Sprintf("%s__%s", kit, tr(name))
 }
 

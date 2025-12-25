@@ -77,8 +77,6 @@ func (r Packname) Equal(s string) bool {
 	return x1 == x2
 }
 
-// type Creator func(context.Context, string) (*Agent, error)
-
 type Agent struct {
 	// Package name
 	Pack string `json:"pack"`
@@ -119,10 +117,9 @@ type Agent struct {
 	Arguments Arguments `json:"arguments"`
 
 	// assigned at buildtime/runtime
-	Parent *Agent       `json:"-"`
-	Runner ActionRunner `json:"-"`
-	Shell  ActionRunner `json:"-"`
-	// Creator  Creator            `json:"-"`
+	Parent   *Agent             `json:"-"`
+	Runner   ActionRunner       `json:"-"`
+	Shell    ActionRunner       `json:"-"`
 	Template *template.Template `json:"-"`
 	Config   *AppConfig         `json:"-"`
 }
@@ -175,7 +172,7 @@ type AgentConfig struct {
 	// kit:name
 	Functions []string `yaml:"functions" json:"functions"`
 
-	Flow *FlowConfig `yaml:"flow" json:"flow"`
+	// Flow *FlowConfig `yaml:"flow" json:"flow"`
 
 	// chat|image|docker/aider oh gptr
 	Adapter string `yaml:"adapter" json:"adapter"`
