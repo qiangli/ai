@@ -189,6 +189,7 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 
 	// new agent
 	var agent = api.Agent{
+		Pack:    ac.Pack,
 		Adapter: c.Adapter,
 		//
 		Name:        c.Name,

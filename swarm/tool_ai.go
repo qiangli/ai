@@ -380,15 +380,6 @@ func (r *AIKit) TransferAgent(_ context.Context, _ *api.Vars, _ string, args map
 }
 
 func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	// var name string
-	// if id != "" {
-	// 	kit, v := api.Kitname(id).Decode()
-	// 	if kit != string(api.ToolTypeAgent) {
-	// 		return nil, fmt.Errorf("invalid agent tool id: %s", id)
-	// 	}
-	// 	name = v
-	// 	args["agent"] = name
-	// } else {
 	v, err := api.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
@@ -396,13 +387,10 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, _ string, args m
 	if v == "" {
 		return nil, fmt.Errorf("missing agent name")
 	}
-	// name = v
-	// }
 
-	// return r.sw.runm(ctx, r.agent, name, args)
 	kit := atm.NewSystemKit()
 	args["flow_type"] = api.FlowTypeSequence
-	args["actions"] = []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
+	args["actions"] = []string{"ai:new_agent", "ai:build_model", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
 	result, err := kit.Flow(ctx, vars, "", args)
 	if err != nil {
 		return nil, err
@@ -684,15 +672,6 @@ func (r *AIKit) getTools(ids []string) ([]*api.ToolFunc, error) {
 	}
 	return tools, nil
 }
-
-// // return built-in model
-// func (r *AIKit) getModel(provider string) (*api.Model, error) {
-// 	m, ok := conf.DefaultModels[provider]
-// 	if !ok {
-// 		return nil, fmt.Errorf("model not found for provider: %s", provider)
-// 	}
-// 	return m, nil
-// }
 
 func listAgents(assets api.AssetManager, user string) (string, int, error) {
 	agents, err := assets.ListAgent(user)

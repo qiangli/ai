@@ -33,7 +33,7 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 	filter := func(tools []*api.ToolFunc) ([]*api.ToolFunc, error) {
 		var filtered = filterTool(tools, kit, name)
 		if len(filtered) == 0 {
-			return nil, fmt.Errorf("no such tool: %s", s)
+			return nil, fmt.Errorf("no such tool: %q", s)
 		}
 		return filtered, nil
 	}
@@ -93,7 +93,7 @@ func LoadLocalToolFunc(local *api.AppConfig, owner, s string, secrets api.Secret
 	filter := func(tools []*api.ToolFunc) ([]*api.ToolFunc, error) {
 		var filtered = filterTool(tools, kit, name)
 		if len(filtered) == 0 {
-			return nil, fmt.Errorf("no such tool: %s", s)
+			return nil, fmt.Errorf("no such tool: %q", s)
 		}
 		return filtered, nil
 	}

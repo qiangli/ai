@@ -60,7 +60,7 @@ func LoadModel(owner, set, level string, assets api.AssetManager) (*api.Model, e
 		return provide(mc, level)
 	}
 
-	return nil, fmt.Errorf("model not found: %s %s", set, level)
+	return nil, fmt.Errorf("model not found: %s/%s", set, level)
 }
 
 func loadModelsData(data [][]byte) (*api.AppConfig, error) {

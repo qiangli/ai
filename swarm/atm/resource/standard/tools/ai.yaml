@@ -172,6 +172,18 @@ tools:
       required:
         - "agent"
 
+  - name: "build_model"
+    description: |
+      Constructs the model for the agent. Resolve LLM providers, base URL, and API key.
+    parameters:
+      type: "object"
+      properties:
+        agent:
+          type: "string"
+          description: "Specifies the name of the agent for which the model is being built."
+      required:
+        - "agent"
+
   - name: "transfer_agent"
     description: "Trasnfer the current task to a specific agent"
     parameters:

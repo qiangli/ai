@@ -419,13 +419,15 @@ func ParseStringArray(s string) []string {
 		if x[0] == '"' {
 			return strings.Trim(x, "\"")
 		}
-		return x
+		return strings.TrimSpace(x)
 	}
+	s = strings.TrimSpace(s)
 	s = strings.TrimLeft(s, "[")
 	s = strings.TrimRight(s, "]")
 	pa := strings.Split(s, ",")
 	var sa []string
 	for _, v := range pa {
+		v = strings.TrimSpace(v)
 		if len(v) > 0 {
 			sa = append(sa, unquote(v))
 		}
