@@ -83,7 +83,7 @@ template='data:,
 ---
 {{printenv}}
 '
-/flow:sequence --agent "joker" --message "what is new today" --actions "$actions" --template "$template" --adapter "$adapter" 
+# /flow:sequence --agent "joker" --message "what is new today" --actions "$actions" --template "$template" --adapter "$adapter" 
 
 
 #  full flow:
@@ -99,6 +99,10 @@ template='data:,
 
 # command line in a terminal:
 # test/eval.sh  --agent joker  --message "what is the weather in dublin ca in the next few days" --option tools='["web:fetch_content", "web:ddg_search"]'  --max-history 1 --max-turns 10
+
+
+/agent:atm/hi --script "./swarm/atm/resource/template/atm.yaml" \
+    --adapter echo --info
 
 echo "$?"
 echo "*** eval tests completed ***"

@@ -1,6 +1,6 @@
 #!/usr/bin/env ai /sh:bash --format raw --script
 
-echo "bash support compatibility tests"
+echo "Bash support compatibility tests"
 
 set -xueo pipefail
 

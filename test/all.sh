@@ -7,8 +7,10 @@ BASE=$(pwd)
 echo $BASE
 
 ##
-# $BASE/test/eval.sh
-$BASE/test/script.sh
+# $BASE/test/script.sh
+$BASE/test/bash-basic.sh
+$BASE/test/bash-ext.sh
+
 $BASE/test/flow.sh
 
 ##
@@ -24,6 +26,8 @@ $BASE/test/yaml-wrap.sh $adapter
 $BASE/test/timeout.sh
 $BASE/test/backoff.sh
 $BASE/test/chain.sh
+
+$BASE/test/agent.sh
 
 echo "$?"
 echo "*** All tests completed successfully ***"
