@@ -26,6 +26,10 @@ const (
 // ^[a-zA-Z0-9_-]+$
 type Setlevel string
 
+func NewSetlevel(set, level string) Setlevel {
+	return Setlevel(set + "/" + level)
+}
+
 func (r Setlevel) String() string {
 	return string(r)
 }
@@ -46,9 +50,24 @@ func (r Setlevel) Decode() (string, string) {
 	return set, level
 }
 
+func (r Setlevel) Equal(s string) bool {
+	s1, l1 := r.Decode()
+	s2, l2 := Setlevel(s).Decode()
+	if s1 == s2 && l1 == l2 {
+		return true
+	}
+	if s1 == s2 && (l1 == "any" || l2 == "any") {
+		return true
+	}
+	return false
+}
+
 var Levels = []Level{L1, L2, L3, Image, TTS}
 
 type Model struct {
+	Set   string `json:"set"`
+	Level Level  `json:"level"`
+
 	// model @agent or resolved provider model name
 	// example:
 	//   @model

@@ -244,12 +244,15 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 				Model: model,
 			}
 		} else {
-			set, level := resolveModelLevel(model)
+			set, level := api.Setlevel(model).Decode()
 			// local
 			if set == ac.Set {
 				for k, v := range ac.Models {
 					if k == level {
 						agent.Model = &api.Model{
+							Set:   set,
+							Level: level,
+							//
 							Model: v.Model,
 							//
 							Provider: nvl(v.Provider, ac.Provider),
@@ -383,7 +386,7 @@ func (r *ConfigLoader) Create(ctx context.Context, packname api.Packname) (*api.
 	}
 }
 
-func resolveModelLevel(model string) (string, string) {
-	alias, level := split2(model, "/", "any")
-	return alias, level
-}
+// func resolveModelLevel(model string) (string, string) {
+// 	alias, level := split2(model, "/", "any")
+// 	return alias, level
+// }

@@ -123,6 +123,12 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 		case string:
 			// set/level
 			set, level := api.Setlevel(vt).Decode()
+			if agent.Model != nil {
+				if agent.Model.Set == set && agent.Model.Level == level {
+					model = agent.Model
+					break
+				}
+			}
 			v, err := conf.LoadModel(owner, set, level, r.sw.Assets)
 			if err != nil {
 				return nil, err
@@ -135,6 +141,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 		model = agent.Model
 		// return nil, fmt.Errorf("model is required")
 	}
+
 	var apiKey = model.ApiKey
 	if apiKey == "" {
 		// default key

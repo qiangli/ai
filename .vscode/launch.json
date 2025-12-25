@@ -30,7 +30,7 @@
 				// "--option",
 				// "x=ls -al /tmp",
 				//
-				// "/alias:ist_roots",
+				// "/alias:list_roots",
 				// "--option",
 				// "list_roots=ls -al /",
 				//
@@ -58,8 +58,8 @@
 				// "/bin/ls -al test",
 				//
 				// slash agent
-				"/agent:ed",
-				"correct mine englise"
+				// "/agent:ed",
+				// "correct mine englise"
 				//
 				// bash script
 				// "/sh:bash",
@@ -100,12 +100,16 @@
 				// "--script",
 				// "dev/skills/agents/eval/agent.yaml",
 				//
-				// "/flow:sequencr",
-				// "--actions",
-				// "[\"ai:call_llm\"]",
-				// "--adapter",
-				// "echo",
-				// "--verbose"
+				"/flow:sequence",
+				"--actions",
+				"[ai:call_llm]",
+				"--agent",
+				"memory/memory",
+				"--adapter",
+				"echo",
+				"--verbose",
+				"--message",
+				"tell me a joke",
 				//
 				// "/flow:sequence",
 				// "--actions",

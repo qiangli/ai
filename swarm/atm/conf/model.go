@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+
 	// "time"
 
 	"dario.cat/mergo"
@@ -42,6 +43,9 @@ func LoadModel(owner, set, level string, assets api.AssetManager) (*api.Model, e
 		}
 
 		m := &api.Model{
+			Set:   set,
+			Level: level,
+			//
 			Provider: c.Provider,
 			Model:    c.Model,
 			BaseUrl:  c.BaseUrl,
