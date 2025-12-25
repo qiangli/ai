@@ -36,9 +36,9 @@ func (r *ToolFuncActionHandler) Serve(ctx context.Context, vars *api.Vars, args 
 	kit, name := api.Kitname(r.action).Clean().Decode()
 	if kit == "agent" {
 		pack, sub := api.Packname(name).Clean().Decode()
-		alias = fmt.Sprintf("chainlink_agent_%s_%s", pack, sub)
+		alias = fmt.Sprintf("chain_agent_%s_%s", pack, sub)
 	} else {
-		alias = fmt.Sprintf("chainlink_tool_%s_%s", kit, name)
+		alias = fmt.Sprintf("chain_%s_%s", kit, name)
 	}
 
 	// an alias action must be: alias:<name>
