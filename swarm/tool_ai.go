@@ -241,19 +241,39 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	}
 
 	resp, err := llmAdapter.Call(ctx, req)
-
-	// update ouput
-	args["query"] = query
-	args["prompt"] = prompt
-	args["history"] = history
 	if err != nil {
 		return nil, err
 	}
+
 	if resp.Result == nil {
 		resp.Result = &api.Result{
 			Value: "Empty response",
 		}
 	}
+
+	if resp.Result.State != api.StateTransfer {
+		message := api.Message{
+			ID:      uuid.NewString(),
+			Session: id,
+			Created: time.Now(),
+			//
+			ContentType: resp.Result.MimeType,
+			Content:     resp.Result.Value,
+			//
+			Role:   nvl(resp.Result.Role, api.RoleAssistant),
+			Sender: "",
+		}
+		history = append(history, &message)
+	}
+
+	// update ouput
+	args["query"] = query
+	args["prompt"] = prompt
+	args["history"] = history
+
+	// save the context
+	r.sw.History.Save(history)
+
 	return resp.Result, nil
 }
 
