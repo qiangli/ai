@@ -125,17 +125,18 @@
 				// "--message",
 				// "Correcto mine englise"
 				//
-				// "/flow:sequence",
-				// "--actions",
-				// "[\"ai:read_agent_config\", \"ai:new_agent\",  \"sh:format\"]",
-				// "--template",
-				// "data:,result: {{toPrettyJson .}} \n pack: {{.pack}} \n name: {{.name}}",
-				// "--agent",
-				// "test",
-				// "--format",
-				// "raw",
-				// "--message",
-				// "Correcto mine englise"
+				"/flow:sequence",
+				"--actions",
+				"[ai:read_agent_config,ai:new_agent,ai:build_context,sh:format]",
+				"--template",
+				"data:,result: {{toPrettyJson .}} \n pack: {{.pack}} \n name: {{.name}}",
+				"--agent",
+				// "context/history",
+				"context/summary",
+				"--format",
+				"raw",
+				"--message",
+				"Correcto mine englise"
 				//
 				// "/flow:sequence",
 				// "--actions",
@@ -211,8 +212,8 @@
 				// "@ask",
 				// "how to update system env in a golang template",
 				//
-				"/agent:ask",
-				"what is the top 10 world news for this year",
+				// "/agent:ask",
+				// "what is the top 10 world news for this year",
 				// "--verbose"
 				// "--max-time",
 				// "900",

@@ -635,6 +635,7 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, arg
 		Offset:     offset,
 		Roles:      roles,
 	}
+	format, err := api.GetStrProp("format", args)
 
 	list, count, err := loadHistory(r.sw.History, option)
 
@@ -645,6 +646,10 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, arg
 		log.GetLogger(ctx).Debugf("Recalled %v messages in memory less than %v minutes old\n", count, maxSpan)
 	}
 
+	if format == "raw" {
+		return list, nil
+	}
+	//
 	var v = fmt.Sprintf("Available messages (%s): %v\n\n%s\n", option, count, list)
 	return v, nil
 }

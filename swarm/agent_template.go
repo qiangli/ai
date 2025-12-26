@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"maps"
 	"strings"
 	"text/template"
 
@@ -80,7 +81,13 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 		}
 		id := at.Kitname().ID()
 
-		data, err := agent.Runner.Run(ctx, id, at)
+		//
+		var in = make(map[string]any)
+		maps.Copy(in, agent.Environment.GetAllEnvs())
+		maps.Copy(in, agent.Arguments)
+		maps.Copy(in, at)
+
+		data, err := agent.Runner.Run(ctx, id, in)
 
 		if err != nil {
 			return err.Error()

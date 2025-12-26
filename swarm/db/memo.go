@@ -16,6 +16,8 @@ type MemoryStore struct {
 	ds *DataStore
 }
 
+const layout = "2006-01-02 15:04:05.999999 -0700 MST"
+
 func OpenMemoryStore(base string, file string) (*MemoryStore, error) {
 	const ddl = `CREATE TABLE IF NOT EXISTS chats (
 			"id" TEXT NOT NULL,		
@@ -80,11 +82,25 @@ func (m *MemoryStore) Load(opt *MemOption) ([]*Message, error) {
 	rolePlaceholders := strings.Repeat("?,", len(opt.Roles))
 	rolePlaceholders = rolePlaceholders[:len(rolePlaceholders)-1]
 
+	// var query = fmt.Sprintf(`
+	// 	SELECT id, session, created, content_type, content, role, sender
+	// 	FROM chats
+	// 	WHERE created >= ?
+	// 	AND role IN (%s)
+	// 	ORDER BY created ASC
+	// 	LIMIT ? OFFSET ?
+	// 	`, rolePlaceholders)
+
 	var query = fmt.Sprintf(`
-		SELECT id, session, created, content_type, content, role, sender
-		FROM chats
-		WHERE created >= ?
-		AND role IN (%s)
+		SELECT id, session, MAX(created) as created, content_type, content, role, sender
+		FROM (
+			SELECT * 
+			FROM chats
+			WHERE created >= ?
+			AND role IN (%s)
+			ORDER BY created DESC
+		)
+		GROUP BY id
 		ORDER BY created ASC
 		LIMIT ? OFFSET ?
 		`, rolePlaceholders)
@@ -105,9 +121,18 @@ func (m *MemoryStore) Load(opt *MemOption) ([]*Message, error) {
 
 	for rows.Next() {
 		var msg Message
-		if err := rows.Scan(&msg.ID, &msg.Session, &msg.Created, &msg.ContentType, &msg.Content, &msg.Role, &msg.Sender); err != nil {
+		var created string
+		if err := rows.Scan(&msg.ID, &msg.Session, &created, &msg.ContentType, &msg.Content, &msg.Role, &msg.Sender); err != nil {
 			return nil, err
 		}
+		if idx := strings.LastIndex(created, " m="); idx != -1 {
+			created = created[:idx]
+		}
+		msg.Created, err = time.Parse(layout, created)
+		if err != nil {
+			return nil, err
+		}
+
 		messages = append(messages, &msg)
 	}
 	return messages, nil
@@ -118,17 +143,27 @@ func (m *MemoryStore) Get(id string) (*Message, error) {
 		SELECT id, session, created, content_type, content, role, sender
 		FROM chats
 		WHERE id = ?`
-	var msg Message
+
 	row, err := m.ds.Query(query, id)
 	if err != nil {
 		return nil, err
 	}
 	defer row.Close()
 
+	var msg Message
 	if row.Next() {
-		if err := row.Scan(&msg.ID, &msg.Session, &msg.Created, &msg.ContentType, &msg.Content, &msg.Role, &msg.Sender); err != nil {
+		var created string
+		if err := row.Scan(&msg.ID, &msg.Session, &created, &msg.ContentType, &msg.Content, &msg.Role, &msg.Sender); err != nil {
 			return nil, err
 		}
+		if idx := strings.LastIndex(created, " m="); idx != -1 {
+			created = created[:idx]
+		}
+		msg.Created, err = time.Parse(layout, created)
+		if err != nil {
+			return nil, err
+		}
+
 	}
 	return &msg, nil
 }

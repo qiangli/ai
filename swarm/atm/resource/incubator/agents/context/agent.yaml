@@ -1,19 +1,19 @@
 ###
 pack: "context"
+model: "default/any"
 max_history: 0
 agents:
   - name: "history"
     display: "🤖 Context History"
     description: |
       Creating a context with historical conversations.
-    model: "default/any"
     arguments:
       max_history: 3
       max_span: 1440
       offset: 0
     context: |
       #! mime-type=text/x-go-template
-      {{ai /ai:list_messages}}
+      {{ai "/ai:list_messages" "--option" "format=raw" }}
     functions:
       - "ai:list_messages"
 
@@ -21,7 +21,6 @@ agents:
     display: "🤖 Context Summary"
     description: |
       Creating a summary of conversation history based on user query.
-    model: "default/any"
     arguments:
       max_history: 7
       max_span: 1440
@@ -29,7 +28,7 @@ agents:
       query: "{{.message}}"
     context: |
       #! mime-type=text/x-go-template
-      {{ai /agent:context/summarizer}}
+      {{ai "/agent:context/summarizer"}}
     functions:
       - "agent:context/summarizer"
   
@@ -39,7 +38,6 @@ agents:
       Efficiently extracts and summarizes relevant historical conversation messages
       to optimize understanding and support prompt responses to new user queries.
       Prioritizes message selection purely based on the new input provided by the user.
-    model: "default/any"
     instruction: |
       You are a history context summarizer, responsible for selecting and
       concisely summarizing relevant messages from previous conversations

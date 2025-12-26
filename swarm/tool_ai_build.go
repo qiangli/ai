@@ -12,17 +12,24 @@ import (
 	"github.com/qiangli/ai/swarm/atm/conf"
 )
 
-// copy global env only if not set
-func (r *AIKit) applyGlobal(args api.ArgMap) {
-	envs := r.sw.globalEnv()
-	for k, v := range envs {
-		if _, ok := args[k]; !ok {
-			args[k] = v
-		}
-	}
-}
+// // copy global env only if not set
+// func (r *AIKit) applyGlobal(args api.ArgMap) {
+// 	envs := r.sw.globalEnv()
+// 	for k, v := range envs {
+// 		if _, ok := args[k]; !ok {
+// 			args[k] = v
+// 		}
+// 	}
+// }
 
-func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (*api.Agent, error) {
+// merge properties from agent and app config
+// apply templates on env, inherit from embedded agents, export env
+// apply templates on args
+// resolve model
+// resolve tools, inherit from embedded agents
+//
+// context/instruction/message are not resolved - each is done separately as needed
+func (r *AIKit) createAgent(ctx context.Context, _ *api.Vars, _ string, args api.ArgMap) (*api.Agent, error) {
 	var name string
 	if v, found := args["agent"].(*api.Agent); found {
 		return v, nil
@@ -113,6 +120,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, tf string, args
 
 	addAll(agent)
 	r.sw.globalAddEnvs(envs)
+	agent.Environment.SetEnvs(envs)
 
 	// args
 	// global/agent envs
@@ -123,8 +131,8 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, tf string, args
 			return nil, err
 		}
 	}
-
-	r.applyGlobal(args)
+	// r.applyGlobal(args)
+	agent.Arguments = args
 
 	// *** model ***
 	var model = agent.Model
@@ -186,7 +194,7 @@ func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, tf string, args 
 	// convert user message into query if not set
 	var query = args.Query()
 	if !args.HasQuery() {
-		r.applyGlobal(args)
+		// r.applyGlobal(args)
 
 		msg := agent.Message
 		if msg != "" {
@@ -248,7 +256,7 @@ func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args
 	// system role instructions
 	var prompt = args.Prompt()
 	if !args.HasPrompt() {
-		r.applyGlobal(args)
+		// r.applyGlobal(args)
 
 		if err := addAll(agent); err != nil {
 			return "", err
@@ -280,7 +288,13 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 	var contexts []string
 	add := func(a *api.Agent, in string) error {
 		// content, err := atm.CheckApplyTemplate(agent.Template, in, args)
-		content, err := atm.CheckApplyTemplate(a.Template, in, args)
+		var data = args
+		if len(a.Arguments) > 0 {
+			data = make(map[string]any)
+			maps.Copy(data, args)
+			maps.Copy(data, a.Arguments)
+		}
+		content, err := atm.CheckApplyTemplate(a.Template, in, data)
 		if err != nil {
 			return err
 		}
@@ -313,15 +327,15 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 	// add context as system role message
 	if !args.HasHistory() {
 		// inherit
-		r.applyGlobal(args)
+		// r.applyGlobal(args)
 
 		if err := addAll(agent); err != nil {
 			return "", err
 		}
 
 		for _, v := range contexts {
+			v = strings.TrimSpace(v)
 			var list []*api.Message
-			//
 			if err := json.Unmarshal([]byte(v), &list); err != nil {
 				return nil, fmt.Errorf("failed to resolve context: %v", err)
 			}
@@ -357,7 +371,7 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 	if len(history) > 0 {
 		args.SetHistory(history)
 	} else {
-		delete(args, "history")
+		args.DeleteHitory()
 	}
 	return history, nil
 }

@@ -224,11 +224,14 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 	// log
 	args["log_level"] = nvl(c.LogLevel, ac.LogLevel)
 
+	//
+	// ac.Arguments
+	maps.Copy(args, c.Arguments)
 	agent.Arguments.SetArgs(args)
 
 	// merge global vars
 	agent.Environment = api.NewEnvironment()
-	agent.Environment.AddEnvs(ac.Environment)
+	// agent.Environment.AddEnvs(ac.Environment)
 	agent.Environment.AddEnvs(c.Environment)
 
 	// llm model set[/level]
