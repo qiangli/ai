@@ -33,7 +33,7 @@ func NewToolSystem(rte *api.ActionRTEnv) (api.ToolSystem, error) {
 		kits: make(map[any]api.ToolKit),
 	}
 
-	kbPath := filepath.Join(rte.Base, "kb")
+	kbPath := filepath.Join(rte.Base, "kb.json")
 	if err := os.MkdirAll(kbPath, 0770); err != nil {
 		return nil, err
 	}

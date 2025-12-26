@@ -9,9 +9,10 @@ import (
 	"encoding/json"
 	// "fmt"
 	"os"
-	// "path/filepath"
+	"path/filepath"
 	"reflect"
 	"slices"
+
 	// "strings"
 	"testing"
 )
@@ -19,17 +20,17 @@ import (
 // stores provides test factories for both storage implementations.
 func stores() map[string]func(t *testing.T) store {
 	return map[string]func(t *testing.T) store{
-		// "file": func(t *testing.T) store {
-		// 	tempDir, err := os.MkdirTemp("", "kb-test-file-*")
-		// 	if err != nil {
-		// 		t.Fatalf("failed to create temp dir: %v", err)
-		// 	}
-		// 	t.Cleanup(func() { os.RemoveAll(tempDir) })
-		// 	return &fileStore{path: filepath.Join(tempDir, "test-memory.json")}
-		// },
-		"memory": func(t *testing.T) store {
-			return &memoryStore{}
+		"file": func(t *testing.T) store {
+			tempDir, err := os.MkdirTemp("", "kb-test-file-*")
+			if err != nil {
+				t.Fatalf("failed to create temp dir: %v", err)
+			}
+			t.Cleanup(func() { os.RemoveAll(tempDir) })
+			return &fileStore{path: filepath.Join(tempDir, "test-memory.json")}
 		},
+		// "memory": func(t *testing.T) store {
+		// 	return &memoryStore{}
+		// },
 	}
 }
 

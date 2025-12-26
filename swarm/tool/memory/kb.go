@@ -8,12 +8,13 @@ import (
 	// "context"
 	"encoding/json"
 	"fmt"
+	"os"
+
 	// "os"
 	"slices"
 	"strings"
 	// "github.com/modelcontextprotocol/go-sdk/mcp"
-
-	"github.com/qiangli/shell/tool/sh/vfs"
+	// "github.com/qiangli/shell/tool/sh/vfs"
 )
 
 // store provides persistence interface for knowledge base data.
@@ -42,16 +43,17 @@ func (ms *memoryStore) Write(data []byte) error {
 type fileStore struct {
 	path string
 
-	store vfs.FileStore
+	// store vfs.FileStore
 }
 
 // Read loads data from file, returning empty slice if file doesn't exist.
 func (fs *fileStore) Read() ([]byte, error) {
-	data, err := fs.store.ReadFile(fs.path, nil)
+	// data, err := fs.store.ReadFile(fs.path, nil)
+	data, err := os.ReadFile(fs.path)
 	if err != nil {
-		// if os.IsNotExist(err) {
-		// 	return nil, nil
-		// }
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("failed to read file %s: %w", fs.path, err)
 	}
 	return data, nil
@@ -59,7 +61,10 @@ func (fs *fileStore) Read() ([]byte, error) {
 
 // Write saves data to file with 0600 permissions.
 func (fs *fileStore) Write(data []byte) error {
-	if err := fs.store.WriteFile(fs.path, data); err != nil {
+	// if err := fs.store.WriteFile(fs.path, data); err != nil {
+	// 	return fmt.Errorf("failed to write file %s: %w", fs.path, err)
+	// }
+	if err := os.WriteFile(fs.path, data, 0660); err != nil {
 		return fmt.Errorf("failed to write file %s: %w", fs.path, err)
 	}
 	return nil
