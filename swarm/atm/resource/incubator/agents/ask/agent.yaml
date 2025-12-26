@@ -10,9 +10,8 @@ agents:
       ranging from local system intricacies to comprehensive web-based information,
       ensuring clarity and accuracy.
     model: "default/any"
-    # context: "agent:context"
     embed:
-      - "agent:context"
+      - "agent:context/summary"
       - "agent:kbase"
       - "agent:memory"
       - "agent:think"

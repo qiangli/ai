@@ -115,6 +115,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	prompt, _ := api.GetStrProp("prompt", args)
 
 	// model
+
 	var model *api.Model
 	if v, found := args["model"]; found {
 		switch vt := v.(type) {
@@ -123,11 +124,15 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 		case string:
 			// set/level
 			set, level := api.Setlevel(vt).Decode()
-			if agent.Model != nil {
-				if agent.Model.Set == set && agent.Model.Level == level {
-					model = agent.Model
-					break
-				}
+			// if agent.Model != nil {
+			// 	if agent.Model.Set == set && agent.Model.Level == level {
+			// 		model = agent.Model
+			// 		break
+			// 	}
+			// }
+			if v := findModel(agent, set, level); v != nil {
+				model = v
+				break
 			}
 			v, err := conf.LoadModel(owner, set, level, r.sw.Assets)
 			if err != nil {
@@ -811,4 +816,33 @@ func loadHistory(store api.MemStore, opt *api.MemOption) (string, int, error) {
 		return "", 0, err
 	}
 	return string(b), count, nil
+}
+
+// lookup model from embedded agents first and then from parents
+func findModel(a *api.Agent, set, level string) *api.Model {
+	if a.Model != nil {
+		if set == a.Model.Set && level == a.Model.Level {
+			return a.Model
+		}
+	}
+	for _, v := range a.Embed {
+		m := findModel(v, set, level)
+		if m != nil {
+			return m
+		}
+	}
+
+	// parent
+	parent := a.Parent
+	for {
+		if parent == nil {
+			break
+		}
+		m := findModel(parent, set, level)
+		if m != nil {
+			return m
+		}
+		parent = parent.Parent
+	}
+	return nil
 }

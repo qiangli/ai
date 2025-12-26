@@ -1,7 +1,39 @@
 ###
+pack: "context"
 max_history: 0
 agents:
-  - name: "context"
+  - name: "history"
+    display: "🤖 Context History"
+    description: |
+      Creating a context with historical conversations.
+    model: "default/any"
+    arguments:
+      max_history: 3
+      max_span: 1440
+      offset: 0
+    context: |
+      #! mime-type=text/x-go-template
+      {{ai /ai:list_messages}}
+    functions:
+      - "ai:list_messages"
+
+  - name: "summary"
+    display: "🤖 Context Summary"
+    description: |
+      Creating a summary of conversation history based on user query.
+    model: "default/any"
+    arguments:
+      max_history: 7
+      max_span: 1440
+      offset: 0
+      query: "{{.message}}"
+    context: |
+      #! mime-type=text/x-go-template
+      {{ai /agent:context/summarizer}}
+    functions:
+      - "agent:context/summarizer"
+  
+  - name: "summarizer"
     display: "🤖 Context Summarizer"
     description: |
       Efficiently extracts and summarizes relevant historical conversation messages
@@ -35,7 +67,7 @@ agents:
       }
       ```
 
-      Output format suitable for system role message:
+      Output format suitable for context messages:
       - Provide a list of pertinent user/assistant messages.
       - The fields id, chat_id, created, and content_type should be incorporated
         into the content field if beneficial and relevant to address the current query.
@@ -57,10 +89,10 @@ agents:
       - Maintain a concise, neutral, and precise tone.
       - If history is in another language, translate and summarize it in the same
         language as the current query.
+      - Only provide the content in JSON array format, nothing else in the response.
     functions:
       - "ai:list_messages"
       - "ai:get_message_info"
-      - "ai:save_messages"
 
 ###
 set: "default"

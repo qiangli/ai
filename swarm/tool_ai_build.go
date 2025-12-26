@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"maps"
 	"strings"
@@ -213,8 +214,9 @@ func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args
 
 	var instructions []string
 
-	add := func(in string) error {
-		content, err := atm.CheckApplyTemplate(agent.Template, in, args)
+	add := func(a *api.Agent, in string) error {
+		// content, err := atm.CheckApplyTemplate(agent.Template, in, args)
+		content, err := atm.CheckApplyTemplate(a.Template, in, args)
 		if err != nil {
 			return err
 		}
@@ -236,7 +238,7 @@ func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args
 		}
 		in := a.Instruction
 		if in != "" {
-			if err := add(in); err != nil {
+			if err := add(a, in); err != nil {
 				return err
 			}
 		}
@@ -275,30 +277,78 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 		agent = v
 	}
 
+	var contexts []string
+	add := func(a *api.Agent, in string) error {
+		// content, err := atm.CheckApplyTemplate(agent.Template, in, args)
+		content, err := atm.CheckApplyTemplate(a.Template, in, args)
+		if err != nil {
+			return err
+		}
+
+		contexts = append(contexts, content)
+		return nil
+	}
+
+	var addAll func(*api.Agent) error
+
+	// inherit embedded agent contexts
+	// merge all including the current agent
+	addAll = func(a *api.Agent) error {
+		for _, v := range a.Embed {
+			if err := addAll(v); err != nil {
+				return err
+			}
+		}
+		in := a.Context
+		if in != "" {
+			if err := add(a, in); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
 	var history = args.History()
 
 	// add context as system role message
 	if !args.HasHistory() {
+		// inherit
 		r.applyGlobal(args)
-		var c = agent.Context
-		if c != "" {
-			v, err := atm.CheckApplyTemplate(agent.Template, c, args)
-			if err != nil {
-				return nil, err
-			}
-			history = append(history, &api.Message{
-				Content: v,
-				Role:    api.RoleSystem,
-			})
 
-		} else {
-			// load defaults
-			if v, err := r.sw.History.Load(r.contextMemOption(args)); err != nil {
-				return nil, err
-			} else {
-				history = v
-			}
+		if err := addAll(agent); err != nil {
+			return "", err
 		}
+
+		for _, v := range contexts {
+			var list []*api.Message
+			//
+			if err := json.Unmarshal([]byte(v), &list); err != nil {
+				return nil, fmt.Errorf("failed to resolve context: %v", err)
+			}
+			history = append(history, list...)
+		}
+
+		// var c = agent.Context
+
+		// if c != "" {
+		// 	v, err := atm.CheckApplyTemplate(agent.Template, c, args)
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
+
+		// 	history = append(history, &api.Message{
+		// 		Content: v,
+		// 		Role:    api.RoleSystem,
+		// 	})
+
+		// 	// } else {
+		// 	// 	// load defaults
+		// 	// 	if v, err := r.sw.History.Load(r.contextMemOption(args)); err != nil {
+		// 	// 		return nil, err
+		// 	// 	} else {
+		// 	// 		history = v
+		// 	// 	}
+		// }
 	}
 
 	if history == nil {
