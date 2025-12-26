@@ -187,13 +187,13 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 	return sw, nil
 }
 
-func showInput(ctx context.Context, message string) {
-	if log.GetLogger(ctx).IsTrace() {
-		log.GetLogger(ctx).Debugf("input: %+v\n", message)
-	}
+// func showInput(ctx context.Context, message string) {
+// 	if log.GetLogger(ctx).IsTrace() {
+// 		log.GetLogger(ctx).Debugf("input: %+v\n", message)
+// 	}
 
-	PrintInput(ctx, message)
-}
+// 	PrintInput(ctx, message)
+// }
 
 func processOutput(ctx context.Context, format string, message *api.Output) {
 	if log.GetLogger(ctx).IsTrace() {

@@ -60,6 +60,7 @@ agents:
     functions:
       - "ai:list_messages"
       - "ai:get_message_info"
+      - "ai:save_messages"
 
 ###
 set: "default"

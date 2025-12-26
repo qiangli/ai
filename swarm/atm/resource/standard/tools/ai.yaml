@@ -323,6 +323,32 @@ tools:
       required:
         - "id"
 
+  - name: "save_messages"
+    description: |
+      Save a list of messages in JSON format. This tool enables you to store messages, which is useful for maintaining and providing context for future conversations.
+    parameters:
+      type: "object"
+      properties:
+        messages:
+          type: "array"
+          description: |
+            Provide a list of messages to be saved in JSON format. Ongoing conversations are automatically saved, but you can add additional messages for enhanced future context by using this tool. Stored messages can later be retrieved with the list_messages tool.
+            Example message format:
+            ```json
+            {
+              "id": "12345",
+              "chat_id": "67890",
+              "created": "2023-10-11T14:48:00Z",
+              "content_type": "text/plain",
+              "content": "Hello, this is a message.",
+              "role": "user"
+            }
+            ```
+          items:
+            type: "string"
+        required: 
+          - messages
+      
   # - name: "get_envs"
   #   description: "Get specific or all environment variables"
   #   parameters:

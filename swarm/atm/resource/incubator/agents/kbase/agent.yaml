@@ -1,12 +1,12 @@
 ###
-pack: "memory"
+pack: "kbase"
 max_history: 0
 agents:
-  - name: "kg"
-    display: "🤖 Memory"
+  - name: "kbase"
+    display: "🤖 Knowledge Graph"
     description: |
       Persistent memory using a knowledge graph
-    model: "memory/basic"
+    model: "default/any"
     instruction: |
       #! --mime-type=text/x-go-template
       Follow these steps for each interaction:
@@ -33,22 +33,22 @@ agents:
           b) Connect them to the current entities using relations
           c) Store facts about them as observations
     functions:
-      - "memory:*"
+      - "kb:*"
 
-set: "memory"
-models:
-  basic:
-    model: "gpt-5-nano"
-    provider: "openai"
-    base_url: "https://api.openai.com/v1/"
-    api_key: "openai"
+# set: "memory"
+# models:
+#   basic:
+#     model: "gpt-5-nano"
+#     provider: "openai"
+#     base_url: "https://api.openai.com/v1/"
+#     api_key: "openai"
 
-kit: "memory"
-tools:
-  - type: mcp
-    provider: "dhnt"
-    base_url: "https://ai.dhnt.io/mcp"
-    api_key: "dhnt"
-    filter:
-      "dhnt.io/mcp/kit": "memory"
+# kit: "memory"
+# tools:
+#   - type: mcp
+#     provider: "dhnt"
+#     base_url: "https://ai.dhnt.io/mcp"
+#     api_key: "dhnt"
+#     filter:
+#       "dhnt.io/mcp/kit": "memory"
 ###

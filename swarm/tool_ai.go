@@ -628,7 +628,9 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, arg
 		Offset:     offset,
 		Roles:      roles,
 	}
-	list, count, err := conf.ListHistory(r.sw.History, option)
+
+	list, count, err := loadHistory(r.sw.History, option)
+
 	if err != nil {
 		return "", fmt.Errorf("Failed to recall messages (%s): %v", option, err)
 	}
@@ -657,6 +659,29 @@ func (r *AIKit) GetMessageInfo(_ context.Context, _ *api.Vars, _ string, args ma
 	}
 	return &api.Result{
 		Value: string(b),
+	}, nil
+}
+
+func (r *AIKit) SaveMessages(_ context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	data, err := api.GetStrProp("messages", args)
+	if err != nil {
+		return nil, err
+	}
+
+	var messages []*api.Message
+	if err := json.Unmarshal([]byte(data), &messages); err != nil {
+		return nil, err
+	}
+	if len(messages) == 0 {
+		return nil, fmt.Errorf("no messages provided for storing.")
+	}
+
+	if err := r.sw.History.Save(messages); err != nil {
+		return nil, err
+	}
+
+	return &api.Result{
+		Value: fmt.Sprintf("%v messages saved successfully.", len(messages)),
 	}, nil
 }
 
@@ -765,4 +790,22 @@ func listModels(assets api.AssetManager, user string) (string, int, error) {
 
 	sort.Strings(list)
 	return strings.Join(list, "\n"), len(list), nil
+}
+
+func loadHistory(store api.MemStore, opt *api.MemOption) (string, int, error) {
+	history, err := store.Load(opt)
+	if err != nil {
+		return "", 0, err
+	}
+
+	count := len(history)
+	if count == 0 {
+		return "", 0, api.NewNotFoundError("no messages")
+	}
+
+	b, err := json.MarshalIndent(history, "", "    ")
+	if err != nil {
+		return "", 0, err
+	}
+	return string(b), count, nil
 }
