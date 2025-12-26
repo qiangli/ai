@@ -252,21 +252,21 @@ tools:
       required:
         - "tool"
 
-  - name: "execute_tool"
-    description: "Call the tool function"
-    parameters:
-      type: "object"
-      properties:
-        tool:
-          type: "string"
-          description: "The name of the tool"
-        parameters:
-          type: "object"
-          description: "The arguments for the tool call"
-          properties: {}
-      required:
-        - "tool"
-        - "parameters"
+  # - name: "execute_tool"
+  #   description: "Call the tool function"
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       tool:
+  #         type: "string"
+  #         description: "The name of the tool"
+  #       parameters:
+  #         type: "object"
+  #         description: "The arguments for the tool call"
+  #         properties: {}
+  #     required:
+  #       - "tool"
+  #       - "parameters"
 
   - name: "list_models"
     description: "List all AI language model aliases created by the current user"

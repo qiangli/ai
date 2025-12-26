@@ -31,9 +31,9 @@ echo ">>> Testing bash extnesions..."
 # /sh:bash --script "data:,$(cat $BASE/test/sb.sh)"
 
 # 
-/ai:execute_tool --tool "sh:exec" --command "ls -al /opt"
-/ai:execute_tool --tool "/alias:agent_ed" \
-    --option agent_ed='/agent:ed --adapter echo --message "correcto mine englise."'
+# /ai:execute_tool --tool "sh:exec" --command "ls -al /opt"
+# /ai:execute_tool --tool "/alias:agent_ed" \
+#     --option agent_ed='/agent:ed --adapter echo --message "correcto mine englise."'
 
 /ai:spawn_agent --adapter echo --agent ed --message "correcto yours esperanto"
 
