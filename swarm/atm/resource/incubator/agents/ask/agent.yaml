@@ -30,6 +30,7 @@ agents:
     functions:
       - "web:*"
       - "ai:*"
+      - "fs:*"
       - "agent:memory"
 
 ###
