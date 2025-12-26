@@ -385,8 +385,3 @@ func (r *ConfigLoader) Create(ctx context.Context, packname api.Packname) (*api.
 		return nil, err
 	}
 }
-
-// func resolveModelLevel(model string) (string, string) {
-// 	alias, level := split2(model, "/", "any")
-// 	return alias, level
-// }

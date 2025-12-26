@@ -1,6 +1,7 @@
 ###
 pack: "ask"
 log_level: info
+max_turns: 50
 agents:
   - name: "ask"
     display: "💬 Q&A"
@@ -30,7 +31,7 @@ agents:
     functions:
       - "web:*"
       - "ai:*"
-      - "fs:*"
+      # - "fs:*"
       - "agent:memory"
 
 ###

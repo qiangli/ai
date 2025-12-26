@@ -1,17 +1,6 @@
 #!/usr/bin/env ai /sh:bash --format raw --script
-set -xue
+set -ue
 
-# built-in
-BASE=$(pwd)
-echo $BASE
-# printenv
-
-# core utils - must be full path
-/bin/pwd
-pwd
-
-/bin/ls -al /tmp
-ls -al /tmp
 
 adapter="echo"
 
@@ -61,48 +50,48 @@ adapter="echo"
 # actions='["ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "sh:format"]'
 # actions='["ai:new_agent", "ai:build_agent", "sh:format"]'
 
-actions='["ai:new_agent", "ai:build_agent", "ai:call_llm", "sh:format"]'
+# actions='["ai:new_agent","sh:format"]'
+# template='data:,
+# {{printenv}}
+# '
+# agent="ask"
+
+# /flow:sequence --actions "$actions" --template "$template" --agent "$agent" --adapter "$adapter" 
+
+# actions='["ai:new_agent", "ai:build_agent", "ai:call_llm", "sh:format"]'
 
 # actions='["sh:format"]'
 # actions='["ai:call_llm"]'
 
 # {{.result.Value |fromJson |toPrettyJson}}
 
-template='data:,
->>> Query:
-{{.query}}
-
->>> Result:
-{{.result |toPrettyJson}}
-
->>> Error:
-{{.error}}
-
----
-{{.agent}}
----
-{{printenv}}
-'
-# /flow:sequence --agent "joker" --message "what is new today" --actions "$actions" --template "$template" --adapter "$adapter" 
-
-
-#  full flow:
-
-
-# actions='["ai:read_agent_config", "ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm", "sh:format"]'
-
 # template='data:,
-# {{toPrettyJson .}}
+# >>> Query:
+# {{.query}}
+
+# >>> Result:
+# {{.result |toPrettyJson}}
+
+# >>> Error:
+# {{.error}}
+
+# ---
+# {{.agent}}
+# ---
+# {{printenv}}
 # '
 
-# /flow:sequence --actions "$actions" --template "$template" --agent "test" --adapter "$adapter" 
+actions='["ai:new_agent", "sh:format"]'
 
-# command line in a terminal:
-# test/eval.sh  --agent joker  --message "what is the weather in dublin ca in the next few days" --option tools='["web:fetch_content", "web:ddg_search"]'  --max-history 1 --max-turns 10
+template='data:,
+{{.agent.Tools |toPrettyJson}}
+'
+agent="ask"
 
+/flow:sequence --actions "$actions" --template "$template" --agent "$agent" --adapter "$adapter" 
 
-/agent:atm/hi --script "./swarm/atm/resource/template/atm.yaml" \
-    --adapter echo --info
+# /agent:atm/hi --script "./swarm/atm/resource/template/atm.yaml" \
+#     --adapter echo --info
 
 echo "$?"
 echo "*** eval tests completed ***"

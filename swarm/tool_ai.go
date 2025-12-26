@@ -400,7 +400,7 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, _ string, args m
 
 	kit := atm.NewSystemKit()
 	args["flow_type"] = api.FlowTypeSequence
-	args["actions"] = []string{"ai:new_agent", "ai:build_model", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
+	args["actions"] = []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
 	result, err := kit.Flow(ctx, vars, "", args)
 	if err != nil {
 		return nil, err

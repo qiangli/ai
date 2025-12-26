@@ -21,7 +21,7 @@ template='data:,
 
 
 # actions="[ai:call_llm,sh:format]"
-actions="[ai:read_agent_config,ai:new_agent,ai:build_model,ai:build_query,ai:build_prompt,ai:build_context,ai:call_llm,sh:format]"
+actions="[ai:read_agent_config,ai:new_agent,ai:build_query,ai:build_prompt,ai:build_context,ai:call_llm,sh:format]"
 
 for agent in "${agents[@]}"
 do

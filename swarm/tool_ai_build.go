@@ -21,7 +21,7 @@ func (r *AIKit) applyGlobal(args api.ArgMap) {
 	}
 }
 
-func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Agent, error) {
+func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (*api.Agent, error) {
 	var name string
 	if v, found := args["agent"].(*api.Agent); found {
 		return v, nil
@@ -78,15 +78,40 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, tf string, args
 		return nil, err
 	}
 
-	// envs
+	// *** envs ***
 	// export envs to global
 	// new vars can only reference existing global vars
 	var envs = make(map[string]any)
 	maps.Copy(envs, r.sw.globalEnv())
-	if agent.Environment != nil {
-		r.sw.mapAssign(ctx, agent, envs, agent.Environment.GetAllEnvs(), true)
-		r.sw.globalAddEnvs(envs)
+
+	// //
+	// if agent.Environment != nil {
+	// 	r.sw.mapAssign(ctx, agent, envs, agent.Environment.GetAllEnvs(), true)
+	// 	r.sw.globalAddEnvs(envs)
+	// }
+
+	// inherit envs of embeded agents
+	add := func(e *api.Environment) error {
+		return r.sw.mapAssign(ctx, agent, envs, e.GetAllEnvs(), true)
 	}
+
+	var addAll func(*api.Agent) error
+	addAll = func(a *api.Agent) error {
+		for _, v := range a.Embed {
+			if err := addAll(v); err != nil {
+				return err
+			}
+		}
+		if a.Environment != nil {
+			if err := add(a.Environment); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	addAll(agent)
+	r.sw.globalAddEnvs(envs)
 
 	// args
 	// global/agent envs
@@ -99,6 +124,49 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, tf string, args
 	}
 
 	r.applyGlobal(args)
+
+	// *** model ***
+	var model = agent.Model
+
+	if model == nil {
+		provider := args.GetString("provider")
+		if provider == "" {
+			return nil, fmt.Errorf("model missing. provider is required")
+		}
+		model = conf.DefaultModels[provider]
+	}
+	args["model"] = model
+
+	// *** tools ***
+	// inherit tools of embeded agents
+	// deduplicate/merge all tools including the current agent
+	// child tools take precedence.
+	var list = agent.Tools
+
+	if len(agent.Embed) > 0 {
+		var tools = make(map[string]*api.ToolFunc)
+
+		var addAll func(*api.Agent) error
+		addAll = func(a *api.Agent) error {
+			for _, v := range a.Embed {
+				if err := addAll(v); err != nil {
+					return err
+				}
+			}
+			for _, v := range a.Tools {
+				tools[v.ID()] = v
+			}
+			return nil
+		}
+
+		addAll(agent)
+
+		for _, v := range tools {
+			list = append(list, v)
+		}
+		agent.Tools = list
+	}
+	args["tools"] = list
 
 	// update the property with the created agent object
 	args["kit"] = "agent"
@@ -244,59 +312,59 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 	return history, nil
 }
 
-func (r *AIKit) BuildModel(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
-	var agent = r.agent
-	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
-		agent = v
-	}
+// func (r *AIKit) BuildModel(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
+// 	var agent = r.agent
+// 	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
+// 		agent = v
+// 	}
 
-	var model = agent.Model
+// 	var model = agent.Model
 
-	if model == nil {
-		provider := args.GetString("provider")
-		if provider == "" {
-			return nil, fmt.Errorf("model missing. provider is required")
-		}
-		model = conf.DefaultModels[provider]
-	}
+// 	if model == nil {
+// 		provider := args.GetString("provider")
+// 		if provider == "" {
+// 			return nil, fmt.Errorf("model missing. provider is required")
+// 		}
+// 		model = conf.DefaultModels[provider]
+// 	}
 
-	args["model"] = model
-	return model, nil
-}
+// 	args["model"] = model
+// 	return model, nil
+// }
 
-func (r *AIKit) BuildTools(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
-	var agent = r.agent
-	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
-		agent = v
-	}
+// func (r *AIKit) BuildTools(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
+// 	var agent = r.agent
+// 	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
+// 		agent = v
+// 	}
 
-	var list []*api.ToolFunc
-	// inherit tools of embeeded agents
-	// deduplicate/merge all tools including the current agent
-	// child tools take precedence.
-	if agent.Embed != nil {
-		var tools = make(map[string]*api.ToolFunc)
+// 	var list []*api.ToolFunc
+// 	// inherit tools of embeded agents
+// 	// deduplicate/merge all tools including the current agent
+// 	// child tools take precedence.
+// 	if agent.Embed != nil {
+// 		var tools = make(map[string]*api.ToolFunc)
 
-		var addAll func(*api.Agent) error
-		addAll = func(a *api.Agent) error {
-			for _, v := range a.Embed {
-				if err := addAll(v); err != nil {
-					return err
-				}
-			}
-			for _, v := range a.Tools {
-				tools[v.ID()] = v
-			}
-			return nil
-		}
+// 		var addAll func(*api.Agent) error
+// 		addAll = func(a *api.Agent) error {
+// 			for _, v := range a.Embed {
+// 				if err := addAll(v); err != nil {
+// 					return err
+// 				}
+// 			}
+// 			for _, v := range a.Tools {
+// 				tools[v.ID()] = v
+// 			}
+// 			return nil
+// 		}
 
-		addAll(agent)
+// 		addAll(agent)
 
-		for _, v := range tools {
-			list = append(list, v)
-		}
-		args["tools"] = list
-	}
+// 		for _, v := range tools {
+// 			list = append(list, v)
+// 		}
+// 		args["tools"] = list
+// 	}
 
-	return list, nil
-}
+// 	return list, nil
+// }
