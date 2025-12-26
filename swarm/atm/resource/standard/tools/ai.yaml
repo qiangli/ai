@@ -353,8 +353,8 @@ tools:
               ...
             ]
             ```
-        required: 
-          - messages
+      required: 
+        - messages
       
   # - name: "get_envs"
   #   description: "Get specific or all environment variables"

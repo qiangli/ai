@@ -81,13 +81,13 @@
 				// "atm/tools/hello_kit/hello_user.yaml",
 				//
 				// agent
-				"/agent:atm/hi",
-				"--script",
-				"swarm/atm/resource/template/atm.yaml",
-				"--adapter",
-				"echo",
-				"--verbose",
-				"pick some famous politicians names",
+				// "/agent:atm/hi",
+				// "--script",
+				// "swarm/atm/resource/template/atm.yaml",
+				// "--adapter",
+				// "echo",
+				// "--verbose",
+				// "pick some famous politicians names",
 				//
 				// tool
 				// "/atm:hi",
@@ -100,16 +100,16 @@
 				// "--script",
 				// "dev/skills/agents/eval/agent.yaml",
 				//
-				"/flow:sequence",
-				"--actions",
-				"[ai:call_llm]",
-				"--agent",
-				"memory/memory",
-				"--adapter",
-				"echo",
-				"--verbose",
-				"--message",
-				"tell me a joke",
+				// "/flow:sequence",
+				// "--actions",
+				// "[ai:call_llm]",
+				// "--agent",
+				// "memory/memory",
+				// "--adapter",
+				// "echo",
+				// "--verbose",
+				// "--message",
+				// "tell me a joke",
 				//
 				// "/flow:sequence",
 				// "--actions",
@@ -211,6 +211,8 @@
 				// "@ask",
 				// "how to update system env in a golang template",
 				//
+				"/agent:ask",
+				"what is the top 10 world news for this year",
 				// "--verbose"
 				// "--max-time",
 				// "900",

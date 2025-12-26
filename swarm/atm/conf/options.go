@@ -190,7 +190,9 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	for _, v := range option {
 		parts := strings.SplitN(v, "=", 2)
 		if len(parts) == 2 {
-			argm[parts[0]] = parts[1]
+			key := parts[0]
+			key = strings.ReplaceAll(key, "-", "_")
+			argm[key] = parts[1]
 		} else {
 			return nil, fmt.Errorf("invalid argument format: %s", v)
 		}
