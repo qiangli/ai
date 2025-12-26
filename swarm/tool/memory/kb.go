@@ -93,21 +93,24 @@ type kbItem struct {
 
 // loadGraph deserializes the knowledge graph from storage.
 func (k KnowledgeBase) loadGraph() (KnowledgeGraph, error) {
+	graph := KnowledgeGraph{}
+
+	if k.s == nil {
+		return graph, fmt.Errorf("knowlege store has not been initialized")
+	}
 	data, err := k.s.Read()
 	if err != nil {
-		return KnowledgeGraph{}, fmt.Errorf("failed to read from store: %w", err)
+		return graph, fmt.Errorf("failed to read from store: %w", err)
 	}
 
 	if len(data) == 0 {
-		return KnowledgeGraph{}, nil
+		return graph, nil
 	}
 
 	var items []kbItem
 	if err := json.Unmarshal(data, &items); err != nil {
-		return KnowledgeGraph{}, fmt.Errorf("failed to unmarshal from store: %w", err)
+		return graph, fmt.Errorf("failed to unmarshal from store: %w", err)
 	}
-
-	graph := KnowledgeGraph{}
 
 	for _, item := range items {
 		switch item.Type {

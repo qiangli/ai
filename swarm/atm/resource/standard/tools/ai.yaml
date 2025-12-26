@@ -115,6 +115,7 @@ tools:
       from instructions specified in the agent configuration and context from 
       the historical conversation messages. Applies templates formatted 
       using Golang template syntax.
+      This is equivalent to running flow:sequence ["ai:build_query","ai:build_prompt","ai:build_context"]
     parameters:
       type: "object"
       properties:
@@ -128,8 +129,8 @@ tools:
       mime_type: "application/x-sh"
       script: |
         #!/bin/bash
-        actions='["ai:build_query", "ai:build_prompt", "ai:build_context"]'
-        /flow:sequence --agent "${agent}" --actions "$actions"
+        actions='["ai:build_query","ai:build_prompt","ai:build_context"]'
+        /flow:sequence --agent "${agent}" --actions "${actions}"
         exit 0
 
   - name: "build_query"
@@ -355,35 +356,3 @@ tools:
             ```
       required: 
         - messages
-      
-  # - name: "get_envs"
-  #   description: "Get specific or all environment variables"
-  #   parameters:
-  #     type: "object"
-  #     properties:
-  #       keys:
-  #         type: "array"
-  #         description: "An array of environment variable names to retrieve. If not provided, all environment variables will be returned"
-  #         items:
-  #           type: "string"
-
-  # - name: "set_envs"
-  #   description: "Set environment variables"
-  #   parameters:
-  #     type: "object"
-  #     properties: {}
-  #     description: |
-  #       An JSON object map of environment variables, represented as key-value pairs.
-  #       Each key is a string, and the value can be any data type, including objects and primitive types.
-
-  # - name: "unset_envs"
-  #   description: "Clear environment variables"
-  #   parameters:
-  #     type: "object"
-  #     properties:
-  #       keys:
-  #         type: "array"
-  #         description: "An array of environment variable names to unset."
-  #         items:
-  #           type: "string"
-  #     required: ["keys"]

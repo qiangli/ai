@@ -51,7 +51,7 @@ func defaultSwarm(cfg *api.App) (*Swarm, error) {
 		OS:        los,
 		Secrets:   secrets,
 	}
-	var tools = NewToolSystem(rte)
+	var tools, _ = NewToolSystem(rte)
 
 	mem, err := db.OpenMemoryStore(cfg.Base, "test.db")
 	if err != nil {

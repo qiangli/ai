@@ -2,6 +2,8 @@ package swarm
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
@@ -25,20 +27,25 @@ func NewKitKey(fnType api.ToolType, kit string) KitKey {
 	}
 }
 
-func NewToolSystem(rte *api.ActionRTEnv) api.ToolSystem {
+func NewToolSystem(rte *api.ActionRTEnv) (api.ToolSystem, error) {
 	ts := &toolSystem{
 		rte:  rte,
 		kits: make(map[any]api.ToolKit),
 	}
 
+	kbPath := filepath.Join(rte.Base, "kb")
+	if err := os.MkdirAll(kbPath, 0770); err != nil {
+		return nil, err
+	}
+
 	// default by type
-	ts.AddKit(api.ToolTypeFunc, atm.NewFuncKit(rte))
+	ts.AddKit(api.ToolTypeFunc, atm.NewFuncKit(kbPath))
 	ts.AddKit(api.ToolTypeWeb, atm.NewWebKit())
 	ts.AddKit(api.ToolTypeSystem, atm.NewSystemKit())
 	ts.AddKit(api.ToolTypeMcp, atm.NewMcpKit())
 	// ts.AddKit(api.ToolTypeFaas, atm.NewFaasKit())
 
-	return ts
+	return ts, nil
 }
 
 func (r *toolSystem) GetKit(key any) (api.ToolKit, error) {

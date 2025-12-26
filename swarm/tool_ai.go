@@ -272,7 +272,9 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	args["history"] = history
 
 	// save the context
-	r.sw.History.Save(history)
+	if err := r.sw.History.Save(history); err != nil {
+		return nil, err
+	}
 
 	return resp.Result, nil
 }

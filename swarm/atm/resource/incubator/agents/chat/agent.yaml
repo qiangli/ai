@@ -2,7 +2,7 @@
 pack: "chat"
 # max_history: 7
 # max_span: 60
-context: "@context"
+# context: "@context"
 log_level: info
 agents:
   - name: "chat"
@@ -10,8 +10,8 @@ agents:
     description: |
       Assists with simple queries and uses tool calls to get answers if beyond scope.
     model: "default/any"
-    embed:
-      - agent:memory
+    # embed:
+    #   - agent:memory
     instruction: |
       Your primary role is to provide direct answers for simple queries and to utilize the `agent:help` tool for more complex inquiries.
 
@@ -29,15 +29,15 @@ agents:
       - Execute the help tool promptly for complex issues to maintain efficiency.
       - Maintain a supportive and friendly tone throughout all interactions to bolster user satisfaction.
     functions:
-      - "agent:help"
+      - "agent:memory"
 
-kit: "agent"
-type: "agent"
-tools:
-  - name: "help"
-    description: "Dispatch to the most appropriate agent for help based on the user's input"
-    agent: "agent"
-    parameters:
-      type: "object"
-      properties: {}
+# kit: "agent"
+# type: "agent"
+# tools:
+#   - name: "help"
+#     description: "Dispatch to the most appropriate agent for help based on the user's input"
+#     agent: "agent"
+#     parameters:
+#       type: "object"
+#       properties: {}
 ###

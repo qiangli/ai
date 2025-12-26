@@ -70,12 +70,13 @@ func (m *MemoryStore) Load(opt *MemOption) ([]*Message, error) {
 	if opt == nil || opt.MaxHistory == 0 || opt.MaxSpan == 0 {
 		return []*Message{}, nil
 	}
-	var messages []*Message
-	maxSpan := time.Now().Add(-time.Duration(opt.MaxSpan) * time.Minute).Unix()
-
 	if len(opt.Roles) == 0 {
 		opt.Roles = defaultRoles
 	}
+
+	var messages []*Message
+	maxSpan := time.Now().Add(-time.Duration(opt.MaxSpan) * time.Minute).Unix()
+
 	rolePlaceholders := strings.Repeat("?,", len(opt.Roles))
 	rolePlaceholders = rolePlaceholders[:len(rolePlaceholders)-1]
 

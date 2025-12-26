@@ -1,6 +1,8 @@
 package db
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	_ "modernc.org/sqlite"
@@ -12,7 +14,8 @@ func TestDBLoad(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
-	mem, _ := OpenMemoryStore("/Users/liqiang/.ai", "test.db")
+	home, _ := os.UserHomeDir()
+	mem, _ := OpenMemoryStore(filepath.Join(home, "/.ai"), "test.db")
 	opt := &api.MemOption{
 		MaxSpan:    14400,
 		Roles:      []string{"user", "assistant"},

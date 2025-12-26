@@ -3,7 +3,7 @@ package atm
 import (
 	"context"
 	"fmt"
-	"path"
+	// "path"
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -11,13 +11,14 @@ import (
 )
 
 type FuncKit struct {
-	rte *api.ActionRTEnv
-	kb  *memory.KnowledgeBase
+	// rte *api.ActionRTEnv
+	kb *memory.KnowledgeBase
 }
 
-func NewFuncKit(rte *api.ActionRTEnv) *FuncKit {
-	kbPath := path.Join(rte.Base, "kb")
+func NewFuncKit(kbPath string) *FuncKit {
+	// kbPath := path.Join(rte.Base, "kb")
 	return &FuncKit{
+		// rte: rte,
 		kb: memory.NewKnowlegeBase(kbPath),
 	}
 }

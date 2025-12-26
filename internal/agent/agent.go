@@ -164,7 +164,10 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 		OS:        los,
 	}
 
-	var tools = swarm.NewToolSystem(rte)
+	tools, err := swarm.NewToolSystem(rte)
+	if err != nil {
+		return nil, err
+	}
 
 	sw := &swarm.Swarm{
 		ID:       uuid.NewString(),
