@@ -13,7 +13,9 @@ agents:
     # context: "agent:context"
     embed:
       - "agent:context"
+      - "agent:kbase"
       - "agent:memory"
+      - "agent:think"
     instruction: |
       You are a helpful assistant. Use all available tools to ensure the
       user's query is satisfied without further questions. If a particular
@@ -33,8 +35,10 @@ agents:
       - "web:*"
       - "ai:*"
       - "fs:*"
-      - "agent:memory"
       - "agent:context"
+      - "agent:memory"
+      - "agent:kbase"
+      - "agent:think"
 
 ###
 set: "default"

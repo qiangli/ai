@@ -1,7 +1,6 @@
 ###
 # https://www.anthropic.com/engineering/claude-think-tool
 pack: "think"
-new: true
 agents:
   - name: "think"
     display: "🤖 Sequential Thinking"

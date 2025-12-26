@@ -662,8 +662,9 @@ func (r *AIKit) GetMessageInfo(_ context.Context, _ *api.Vars, _ string, args ma
 	}, nil
 }
 
-func (r *AIKit) SaveMessages(_ context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+func (r *AIKit) SaveMessages(_ context.Context, _ *api.Vars, _ string, args api.ArgMap) (*api.Result, error) {
 	data, err := api.GetStrProp("messages", args)
+	args.History()
 	if err != nil {
 		return nil, err
 	}

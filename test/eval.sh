@@ -81,12 +81,19 @@ adapter="echo"
 # {{printenv}}
 # '
 
-actions='["ai:new_agent", "sh:format"]'
+actions='["ai:new_agent","ai:build_prompt","sh:format"]'
 
+# template='data:,
+# {{.prompt |toPrettyJson}}
+# '
 template='data:,
-{{.agent.Tools |toPrettyJson}}
+{{.tools |toPrettyJson}}
 '
-agent="ask"
+# agent="ask"
+# agent="context"
+# agent="memory"
+# agent="kbase"
+agent="think"
 
 /flow:sequence --actions "$actions" --template "$template" --agent "$agent" --adapter "$adapter" 
 
