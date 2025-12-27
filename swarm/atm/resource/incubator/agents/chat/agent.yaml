@@ -12,7 +12,10 @@ agents:
       max_history: 3
     embed:
       # - agent:context/summary
-      - agent:context/lastn
+      - "agent:context/lastn"
+      - "agent:kbase"
+      # - "agent:memory"
+      # - "agent:think"
     instruction: |
       Your primary role is to provide direct answers for simple queries and to utilize the `agent:help` tool for more complex inquiries.
 
@@ -31,5 +34,4 @@ agents:
       - Maintain a supportive and friendly tone throughout all interactions to bolster user satisfaction.
     functions:
       - "web:*"
-
 ###

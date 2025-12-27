@@ -1,7 +1,9 @@
 ###
 pack: "ask"
-log_level: info
+
+log_level: "info"
 max_turns: 50
+
 agents:
   - name: "ask"
     display: "💬 Q&A"
@@ -11,9 +13,9 @@ agents:
       ensuring clarity and accuracy.
     model: "default/any"
     environment:
-      max_history: 20
+      max_history: 5
     embed:
-      - "agent:context/summary"
+      - "agent:context/lastn"
       - "agent:kbase"
       - "agent:memory"
       - "agent:think"
@@ -33,12 +35,10 @@ agents:
       currentness of information, verify with an online source before
       responding to ensure the answer is accurate and up-to-date.
     functions:
-      - "web:*"
       - "ai:*"
+      - "web:*"
       - "fs:*"
-      # - "agent:memory"
-      # - "agent:kbase"
-      # - "agent:think"
+      - "sh:*"
 
 ###
 set: "default"
