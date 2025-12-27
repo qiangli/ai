@@ -2,6 +2,23 @@
 pack: "context"
 model: "default/any"
 agents:
+  - name: "context"
+    display: "🤖 Context Instruction"
+    description: |
+      Provides guidance for retrieving and summarizing historical conversation messages relevant to a user's current query.
+    instruction: |
+      Guidance for retrieving and summarizing historical conversation messages relevant to a user's current query.
+      - Use the `ai:list_messages` and `ai:get_message_info` functions to collect past messages based on the current user query.
+      - Identify and summarize only the essential messages that directly pertain to the user's inquiry, maintaining their original intent.
+      - Group messages by topic if multiple subjects are present, ensuring summaries are clear and relevant.
+      - Keep the summaries concise and neutral, translating them into the language of the current query if necessary.
+      - You may use the `agent:context/lastn` and `agent:context/summary` to generate context, which build upon `list_messages` with additional instructions.
+    functions:
+      - "ai:list_messages"
+      - "ai:get_message_info"
+      - "agent:context/lastn"
+      - "agent:context/summary"
+
   - name: "lastn"
     display: "🤖 Context History"
     description: |

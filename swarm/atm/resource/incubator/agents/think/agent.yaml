@@ -9,6 +9,8 @@ agents:
       enabling dynamic and reflective problem-solving through organized thought processes.
     model: "think/reasoning"
     instruction: |
+      Decompose intricate problems into manageable, sequential steps that allow for revision and branching.
+      
       Plan strategically in subsequent conversations. Divide and conquer.
 
       * Core Concepts

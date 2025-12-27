@@ -40,6 +40,11 @@ agents:
     description: |
       Identifies the programming language from the user's request or by examining local file systems.
     model: "llm/L1"
+    embed:
+      - "agent:context"
+      - "agent:kbase"
+      # - "agent:memory"
+      # - "agent:think"
     environment:
       language: "go"
     instruction: |
@@ -85,7 +90,8 @@ agents:
     environment:
       language: "go"
     embed:
-      - agent:aider/detect_lang
+      - "agent:aider/detect_lang"
+      - "agent:think"
     instruction: |
       Act as an expert architect engineer and provide direction to your editor engineer.
       Study the change request and the current code.

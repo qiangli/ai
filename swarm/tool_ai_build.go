@@ -150,8 +150,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	// inherit tools of embeded agents
 	// deduplicate/merge all tools including the current agent
 	// child tools take precedence.
-	var list = agent.Tools
-
+	var list []*api.ToolFunc
 	if len(agent.Embed) > 0 {
 		var tools = make(map[string]*api.ToolFunc)
 
@@ -173,8 +172,11 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 		for _, v := range tools {
 			list = append(list, v)
 		}
-		agent.Tools = list
+	} else {
+		list = agent.Tools
 	}
+
+	agent.Tools = list
 	args["tools"] = list
 
 	// update the property with the created agent object

@@ -81,6 +81,8 @@ adapter="echo"
 # '
 
 ##
+adapter="echo"
+
 actions='[ai:spawn_agent,sh:format]'
 template='data:,
 
@@ -88,13 +90,13 @@ template='data:,
 {{.prompt}}
 
 >>>>>>>>> Context/History
-{{.history}}
+{{.history | toPrettyJson}}
 
 >>>>>>>>> Message/Query
 {{.query}}
 
 >>>>>>>>> Tools
-{{.tools }}
+{{.tools | toPrettyJson}}
 
 >>>>>>>>> Model
 {{.model }}
@@ -103,9 +105,9 @@ template='data:,
 {{printenv}}
 
 '
-adapter="chat"
 
-agent="aider/detect_lang"
+agent="aider/architect"
+
 extra="--message write a simple hello world"
 ##
 /flow:sequence --actions "$actions" --template "$template" --agent "$agent" --adapter "$adapter" $extra
