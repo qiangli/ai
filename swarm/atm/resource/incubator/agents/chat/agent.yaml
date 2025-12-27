@@ -8,7 +8,7 @@ agents:
     description: |
       Assists with simple queries and uses tool calls to get answers if beyond scope.
     model: "default/any"
-    arguments:
+    environment:
       max_history: 3
     embed:
       # - agent:context/summary
