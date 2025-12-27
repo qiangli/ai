@@ -73,6 +73,7 @@ func (r *SystemKit) Apply(ctx context.Context, vars *api.Vars, _ string, args ma
 	}
 
 	var data = make(map[string]any)
+
 	maps.Copy(data, vars.Global.GetAllEnvs())
 	maps.Copy(data, args)
 

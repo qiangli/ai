@@ -23,24 +23,26 @@ adapter="echo"
 # '
 
 # actions='["ai:read_agent_config","ai:new_agent","ai:build_context","ai:call_llm","sh:format"]'
-actions='["ai:read_agent_config","ai:new_agent","ai:build_context","sh:format"]'
-
-# actions='["ai:spawn_agent","sh:format"]'
+# actions='["ai:read_agent_config","ai:new_agent","ai:build_context","sh:format"]'
+# actions='["ai:read_agent_config","ai:new_agent","ai:build_prompt","sh:format"]'
+actions='[ai:spawn_agent,sh:format]'
 
 template='data:,
-
-{{.history |toPrettyJson}}
-
+>>
+{{.prompt}}
 '
 
 # agent="ask"
 # agent="context/lastn"
 # agent="context/summary"
-# agent="memory"
+agent="memory/memory"
+# agent="memory/long_term"
+# agent="memory/todo_list"
+
 # agent="kbase"
 # agent="think"
 # agent="eval"
-agent="chat"
+# agent="chat"
 
 /flow:sequence --actions "$actions" --template "$template" --agent "$agent" --adapter "$adapter" --message "what is new"
 

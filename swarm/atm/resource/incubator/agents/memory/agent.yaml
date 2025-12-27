@@ -10,19 +10,20 @@ agents:
       - "agent:memory/long_term"
       - "agent:memory/todo_list"
     environment:
-      memories: "{{.workspace}}/memory/"
-      agent_memory: '{{cat (printf "%s/memory/agent.md" .workspace)}}'
+      memory_path: "{{.workspace}}/memory/"
+      memory_file: "{{.workspace}}/memory/agent.md"
+      agent_memory: '{{list .workspace "memory/agent.md" | join "/" | cat}}'
     instruction: |
       #! mime-type=text/x-go-template
 
       Adapt your behavior based on user feedback and instructions. 
-      After answering user questions, do not forget to update the memory file `{{.memories}}/agent.md` to record any important information for future reference.
+      After answering user questions, do not forget to update the memory file `{{.memory_file}}` to record any important information for future reference.
       If creating todos would help achieve better management of tasks, write them as needed.
       Check if all the todos for the current session have been completed, otherwise prompt the user to continue working on the todos.
 
-      <agent_memory>
+      Agent Memory:
       {{.agent_memory}}
-      </agent_memory>
+ 
     functions:
       - "fs:*"
 
@@ -32,6 +33,7 @@ agents:
     model: "llm/L1"
     environment:
       memory_path: "{{.workspace}}/memory/"
+      memory_file: "{{.workspace}}/memory/agent.md"
     instruction: |
       #! mime-type=text/x-go-template
 
@@ -40,7 +42,7 @@ agents:
       You have access to a long-term memory system using the {{.memory_path}} path prefix.
       Files stored in {{.memory_path}} persist across sessions and conversations.
 
-      Your system prompt is loaded from {{.memory_path}}agent.md at startup.
+      Your system prompt is loaded from {{.memory_file}} at startup.
       You can update your own instructions by updating this file.
       If the directory or files do not exsit, you may create them by using the available file system tools.
 
@@ -72,16 +74,16 @@ agents:
       - If it's something you "should have remembered", identify where that instruction should live permanently
 
       **What to store where:**
-      - **{{.memory_path}}agent.md**: Update this to modify your core instructions and behavioral patterns
+      - **{{.memory_file}}**: Update this to modify your core instructions and behavioral patterns
       - **Other {{.memory_path}} files**: Use for project-specific context, reference information, or structured notes
-        - If you create additional memory files, add references to them in {{.memory_path}}agent.md so you remember to consult them
+        - If you create additional memory files, add references to them in {{.memory_file}} so you remember to consult them
 
-      The portion of your system prompt that comes from {{.memory_path}}agent.md is marked with `<agent_memory>` tags so you can identify what instructions come from your persistent memory.
+      The portion of your system prompt that comes from {{.memory_file}} is marked with `<agent_memory>` tags so you can identify what instructions come from your persistent memory.
 
       Example: `list_directory {{.memory_path}}` to see what memories you have
       Example: `read_file '{{.memory_path}}deep-agents-guide.md'` to recall saved knowledge
       Example: `write_file('{{.memory_path}}project_context.md', ...)` for project-specific notes, then reference it in agent.md
-      Example: `edit_file('{{.memory_path}}agent.md', ...)` to update your instructions
+      Example: `edit_file('{{.memory_file}}', ...)` to update your instructions
 
       Remember: To interact with the long term filesystem, you must prefix the filename with the {{.memory_path}} path.
     functions:
@@ -94,6 +96,7 @@ agents:
     model: "llm/L1"
     environment:
       todo_path: "{{.workspace}}/todo/"
+      todo_file: "{{.workspace}}/todo/todos.md"
     instruction: |
       #! mime-type=text/x-go-template
 
@@ -156,7 +159,7 @@ agents:
       Effective filesystem-based task management illustrates diligence and ensures task completion aligns with expectations.
 
       ### File Storage and Structure
-      - **{{.todo_path}}todos.md**: Use this for tracking todo items and managing progress directly.
+      - **{{.todo_file}}**: Use this for tracking todo items and managing progress directly.
       - **Other {{.todo_path}} files**: Maintain context-specific information, references, or notes within these, ensuring to link new files in `todos.md` for comprehensive tracking.
     functions:
       - "fs:*"
