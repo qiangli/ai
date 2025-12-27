@@ -88,7 +88,7 @@ tools:
 
   #           Example for tool: `fs:read_file`
   #           Examples for agent: `agent:ask`, `agent:memory/lastn`
-  #           Note: `fs:read_file` should be from the list obtained using list_tools, 
+  #           Note: `fs:read_file` should be from the list obtained using list_tools,
   #           while `agent:ask` and `agent:memory/lastn` should be from list_agents.
 
   #           Additional arguments may be required for each action.
@@ -212,7 +212,7 @@ tools:
             for days.
       required:
         - command
-  
+
   - name: "get_envs"
     description: "Get specific or all environment variables"
     parameters:
@@ -225,13 +225,15 @@ tools:
             type: "string"
 
   - name: "set_envs"
-    description: "Set environment variables"
+    description: "Set environment variables."
     parameters:
       type: "object"
       properties: {}
       description: |
-        An JSON object map of environment variables, represented as key-value pairs.
+        A JSON object map of environment variables, represented as key-value pairs.
         Each key is a string, and the value can be any data type, including objects and primitive types.
+        Ensure to provide at least one key-value pair to prevent empty calls. 
+        For example, to set environment variables foo and bar, pass: {"foo": "value1", "bar": "value2"}.
 
   - name: "unset_envs"
     description: "Clear environment variables"
@@ -244,4 +246,3 @@ tools:
           items:
             type: "string"
       required: ["keys"]
-

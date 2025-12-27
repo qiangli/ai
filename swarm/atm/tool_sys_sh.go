@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"maps"
 	"net/url"
+	"strings"
 
 	"github.com/cenkalti/backoff/v4"
 
@@ -23,7 +24,7 @@ You may use the fs:list_roots command to identify permissible top-level director
 
 // no-op tool that does nothing
 func (r *SystemKit) Pass(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	return "", nil
+	return "Success", nil
 }
 
 func (r *SystemKit) Cd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -317,12 +318,17 @@ func (r *SystemKit) GetEnvs(_ context.Context, vars *api.Vars, _ string, args ma
 // Export all args to env?
 func (r *SystemKit) SetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
 	// TODO merge to make a single source of truth
+	if len(args) == 0 {
+		return nil, fmt.Errorf("Error: Expected environment variables to set but received none. Please provide at least one environment variable.")
+	}
 	vars.Global.SetEnvs(args)
+	var keys []string
 	for k, v := range args {
 		vars.RTE.OS.Setenv(k, v)
+		keys = append(keys, k)
 	}
 	return &api.Result{
-		Value: "success",
+		Value: fmt.Sprintf("Environment variables %q successfully set.", strings.Join(keys, ",")),
 	}, nil
 }
 
@@ -338,6 +344,6 @@ func (r *SystemKit) UnsetEnvs(_ context.Context, vars *api.Vars, _ string, args 
 		vars.RTE.OS.Setenv(k, "")
 	}
 	return &api.Result{
-		Value: "success",
+		Value: fmt.Sprintf("Environment variables %q successfully cleared.", strings.Join(keys, ",")),
 	}, nil
 }

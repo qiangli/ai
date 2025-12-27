@@ -15,12 +15,11 @@ agents:
       Act as an expert architect engineer and provide direction to your editor engineer.
     model: "llm/L1"
     environment:
-      mime_type: "python"
-      original_query: "{{.query}}"
+      # language: "python"
+      language: "go"
+    embed:
+      - agent:aider/detect_lang
     instruction: |
-      Detect the user's programming language from their request
-      or by exploring the local file system using "ai:set_envs" tool to update the "language" environment variable.
-
       Always prioritize task delegation to the appropriate sub-agent based on the specific task context:
       - Use "agent:aider/ask" for discussing and answering questions about code without making changes.
       - Use "agent:aider/code" for implementing code changes based on user requests.
@@ -30,18 +29,41 @@ agents:
     functions:
       - "fs:*"
       - "sh:*"
-      - "ai:set_envs"
-      - "ai:get_agent_info"
+      - "ai:*"
+      - "web:*"
       - "agent:aider/ask"
       - "agent:aider/code"
       - "agent:aider/architect"
 
-  - name: "aider/ask"
+  - name: "detect_lang"
+    display: "Aider"
+    description: |
+      Identifies the programming language from the user's request or by examining local file systems.
+    model: "llm/L1"
+    environment:
+      language: "go"
+    instruction: |
+      Determine the user's programming language from their input or by scanning the local file system.
+      Use the "sh:set_envs" tool to update the "language" environment variable accordingly.
+
+      Set the detected language using the "set_envs" tool with `language` as the variable name.
+      
+      You may use "sh:get_envs" to verify.
+    functions:
+      - "fs:*"
+      - "sh:*"
+      - "ai:*"
+
+  - name: "ask"
     display: "Aider Ask"
     description: |
       Act as an expert code analyst and answer questions about the supplied code
       Aider will discuss your code and answer questions about it, but never make changes.
     model: "llm/L2"
+    environment:
+      language: "go"
+    embed:
+      - agent:aider/detect_lang
     instruction: |
       Act as an expert code analyst.
       Answer questions about the supplied code.
@@ -51,14 +73,19 @@ agents:
     functions:
       - "fs:*"
       - "sh:*"
+      - "ai:*"
 
-  - name: "aider/architect"
+  - name: "architect"
     display: "Aider Architect"
     description: |
       Act as an expert architect engineer and provide direction to your editor engineer.
       An architect model will propose changes and an editor model will translate that proposal into specific file edits.
       Aider will change your files.
     model: "llm/L3"
+    environment:
+      language: "go"
+    embed:
+      - agent:aider/detect_lang
     instruction: |
       Act as an expert architect engineer and provide direction to your editor engineer.
       Study the change request and the current code.
@@ -73,13 +100,18 @@ agents:
     functions:
       - "fs:*"
       - "sh:*"
+      - "ai:*"
 
-  - name: "aider/code"
+  - name: "code"
     display: "Aider Code"
     description: |
       Act as an expert code analyst. Understand the user's question or request, solely to determine ALL the existing sources files which will need to be modified.
       Aider will make changes to your code to satisfy your requests
     model: "llm/L2"
+    environment:
+      language: "go"
+    embed:
+      - agent:aider/detect_lang
     instruction: |
       Act as an expert code analyst.
       Understand the user's question or request, solely to determine ALL the existing sources files which will need to be modified.
@@ -120,6 +152,7 @@ agents:
     functions:
       - "fs:*"
       - "sh:*"
+      - "ai:*"
 
 ###
 set: "llm"

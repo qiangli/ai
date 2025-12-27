@@ -82,34 +82,33 @@ adapter="echo"
 
 ##
 actions='[ai:spawn_agent,sh:format]'
-agent="chat"
-
 template='data:,
 
->>>>>>>>> Instruction
+>>>>>>>>> Instruction/Prompt
 {{.prompt}}
 
->>>>>>>>> Context
+>>>>>>>>> Context/History
 {{.history}}
 
->>>>>>>>> Message
+>>>>>>>>> Message/Query
 {{.query}}
 
->>>>>>>>>
+>>>>>>>>> Tools
 {{.tools }}
 
->>>>>>>>>
+>>>>>>>>> Model
 {{.model }}
 
->>>>>>>>>
+>>>>>>>>> Environment
 {{printenv}}
 
 '
+adapter="chat"
 
-# agent="eval"
-
-
-/flow:sequence --actions "$actions" --template "$template" --agent "$agent" --adapter "$adapter" 
+agent="aider/detect_lang"
+extra="--message write a simple hello world"
+##
+/flow:sequence --actions "$actions" --template "$template" --agent "$agent" --adapter "$adapter" $extra
 
 # /agent:atm/hi --script "./swarm/atm/resource/template/atm.yaml" \
 #     --adapter echo --info
