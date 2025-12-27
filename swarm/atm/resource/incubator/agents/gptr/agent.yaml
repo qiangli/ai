@@ -4,68 +4,36 @@ pack: "gptr"
 # adapted from https://github.com/assafelovic/gpt-researcher
 #
 model: "llm/fast"
-log_level: "verbose"
+log_level: "info"
 agents:
   - name: "gptr"
-    new: true
     display: "🚀 GPT Researcher"
     description: |
       GPT Researcher is an agent designed for research on any given task.
       The agent produces detailed, factual, and unbiased research reports with citations.
-      • Create a task-specific agent based on a research query.                                       
-      • Generate questions that collectively form an objective opinion on the task.                   
-      • Use a crawler agent to gather information for each question.                                  
-      • Summarize and source-track each resource.                                                     
-      • Filter and aggregate the summaries into a final research report.  
+      • Create a task-specific agent based on a research query.
+      • Generate questions that collectively form an objective opinion on the task.
+      • Use a crawler agent to gather information for each question.
+      • Summarize and source-track each resource.
+      • Filter and aggregate the summaries into a final research report.
     embed:
+      - "agent:kbase"
       - "agent:memory"
-      - "agent:flow/parallel"
-    instruction: |                                                                                             
-      Please execute the following agents in parallel using tool calls.
-      Record intermediate results for subsequent steps:
-        - "agent:gptr/user_input"
-        - "agent:gptr/choose_agent"
-        - "agent:gptr/researcher"
+    instruction: |
+      You are a researcher agent designed for research on any given task.
+      Please execute the tool `gptr:research` to perform research.
 
-      Once completed successfully. You should use all the 3 responses to call the publisher tool `agent:gptr/publisher`
-      Save the final report in the workspace with an fitting name based on user query.
+      Once completed successfully. You should save the final report in the workspace with an fitting name based on user query.
     functions:
-      - "agent:gptr/user_input"
-      - "agent:gptr/choose_agent"
-      - "agent:gptr/researcher"
-      - "agent:gptr/publisher"
+      - "gptr:research"
       - "fs:*"
-  
-  - name: "gtpr/researcher"
-    display: "Researcher"
-    embed:
-      - "agent:flow/sequence"
-    instruction: |
-      Retry failed actions if appropriate. Execute the following in seqence:
-      - "agent:gptr/web_search"
-      - "agent:gptr/research_queries"
-      - "agent:gptr/scrape"
-    functions:
-      - "agent:gptr/web_search"
-      - "agent:gptr/research_queries"
-      - "agent:gptr/scrape"
 
-  - name: "gptr/publisher"
-    display: "Publsiher"
-    embed:
-      - "agent:flow/sequence"
-    instruction: |
-      Pleas execute the following agents in sequence using tool calls:
-        - "agent:gptr/curate"
-        - "agent:gptr/report"
-    functions:
-      - "agent:gptr/curate"
-      - "agent:gptr/report"
-
-  - name: "gptr/user_input"
+  - name: "user_input"
     new: true
     display: "🖥️  User Input"
     description: "Detect user preferences for the GPT Researcher tool."
+    arguments:
+      query: "{{.message}}"
     instruction: |
       You are an agent designed to analyze user input to identify preferences for generating research reports. Your role is not to gather or retrieve real-time information, but to extract the specified parameters from the user's query.
 
@@ -88,31 +56,31 @@ agents:
 
       + Language: The language to be used for the final research report. The default is `English`.
 
-      The final response must be structured as valid JSON, without seeking real-time information:
+      The final response as well as the user's original query must be saved using the `ai:set_envs` tool.
       {
         "tone": "detected tone from user input",
         "total_words": "derived total words from user input",
         "report_format": "desired report format from user",
-        "language": "preferred language by user"
+        "language": "preferred language by user",
+        "original_query": "users original query"
       }
-    # environment:
-    #   tone: "{{.tone}}"
-    #   total_words: "{{.total_words}}"
-    #   report_format: "{{.report_format}}"
-    #   language: "{{.language}}"
-    arguments:
+      You must verify that the values are saved correctly using the "ai:get_envs" tool call.
+    environment:
       tone: "objective"
       total_words: 500
       report_format: "markdown"
       language: "english"
+    functions:
+      - "sh:set_envs"
+      - "sh:get_envs"
 
-  - name: "gptr/choose_agent"
-    new: true
+  - name: "choose_agent"
     display: "🤖 Choose Agent"
     description: "Chooses the agent automatically"
-    model: llm/smart
+    model: "llm/smart"
     arguments:
       # temperature: 0.15
+      query: "{{.message}}"
     instruction: |
       This task involves researching a given topic, regardless of its complexity or the availability of a definitive answer.
       The research is conducted by a specific server, defined by its type and role, with each server requiring distinct instructions.
@@ -141,56 +109,61 @@ agents:
           "agent_role_prompt": "You are a world-travelled AI tour guide assistant. Your main purpose is to draft engaging, insightful, unbiased, and well-structured travel reports on given locations, including history, attractions, and cultural insights."
       }
 
-  - name: "gptr/web_search"
-    new: true
+      *** Important ***
+      You response must also be saved using the `ai:set_envs` tool using `server` and `agent_role_prompt` as the names.
+      and You must verify that the values are saved correctly using the "ai:get_envs" tool call.
+    functions:
+      - "sh:set_envs"
+      - "sh:get_envs"
+
+  - name: "save_response"
+    display: Save response as result in the environment
+    description: |
+      Use the `sh:set_envs` tool to store the response with the key `result`.
+    model: "llm/smart"
+    instruction: |
+      *** Important ***
+      You must save the response using the `ai:set_envs` tool with `resp_result` as the key.
+      Ensure the values are correctly stored by using the `ai:get_envs` tool to verify.
+    functions:
+      - "sh:set_envs"
+      - "sh:get_envs"
+
+  - name: "web_search"
     display: "🔍 Web Search"
     description: "Get web search results for a given query."
+    model: "llm/fast"
+    embed:
+      - "agent:gptr/save_response"
+    message: |
+      #! --mime-type=text/x-go-template
+      search the web for the following content:
+      {{.original_query}}
     instruction: |
       As a web search assistant, you are responsible for processing user queries and providing accurate
       search results from the web. When a user submits a query, analyze the main components of the query,
       perform a web search, and return the most relevant results.
     functions:
-      - "gptr:*"
-      - "ddg:*"
-      - "bing:*"
-      - "google:*"
-      - "brave:*"
+      - "web:*"
 
-  - name: "gptr/research_queries"
-    new: true
+  - name: "research_queries"
     display: "🤔 Planning the research strategy and subtasks"
     description: "Generate sub_queries using the specified LLM model."
-    model: llm/strategic
+    model: "llm/strategic"
+    embed:
+      - "agent:gptr/save_response"
     arguments:
       # max_completion_tokens: 8000
-      reasoning_effort: "medium"
+      reasoning_effort: medium
       #
       max_iterations: 3
-      now: "{{date}}"
-    parameters:
-      type: "object"
-      properties:
-        query:
-          type: "string"
-          description: "The query string from the user"
-        original_query:
-          type: "string"
-          description: "The user's original query"
-        max_iterations:
-          type: "integer"
-          description: "Maximum number of results to return"
-          default: 5
-          minimum: 3
-          maximum: 10
-      required:
-        - query
-    # instruction: |
-    #   #! --mime-type=x-go-template
-    #   You are a seasoned research assistant tasked with generating search queries to find relevant information for the following task:
-    #   "{{.original_query}}".
+    instruction: |
+      #! --mime-type=x-go-template
+      You are a seasoned research assistant tasked with generating search queries to find relevant information for the following task:
+      "{{.original_query}}".
     message: |
       #! --mime-type=x-go-template
-      Context: {{.query}}
+      Context: {{.resp_result}}
 
       Use this context to inform and refine your search queries. The context provides real-time web information
       that can help you generate more specific and relevant queries. Consider any current events, recent developments,
@@ -209,34 +182,30 @@ agents:
         ]
       The response should contain ONLY the list.
 
-  - name: "gptr/scrape"
+  - name: "scrape"
     display: "🌐 Scraper"
-    description: "Runs a query across multiple retrievers and scrapes the resulting URLs."
+    description: |
+      Executes a query across multiple retrievers to scrape content from specified URLs.
+    message: |
+      #! --mime-type=x-go-template
+      Run the `agent:gptr/crawl` for the following:
+      {{.resp_result}}
     embed:
-      - "agent:flow/map"
+      - "agent:gptr/save_response"
     instruction: |
-      Please crawl the content for each of the items in the input query.
-    # instruction: |
-    #   Please verify if the input query is a list of strings in JSON format.
-    #   If it is, simply return it. If not, format the input into a JSON list of strings.
-    #   Ensure there is no other content in the response, as the subsequent process will parse it strictly as JSON.
-    # flow:
-    #   type: map
-    #   concurrency: 5
-    #   actions:
-    #     - "agent:gptr/crawl"
+      Verify if the input query is a list of strings in JSON format. If it is, proceed with it; otherwise, convert the input to a JSON list of strings.
+
+      Ensure the query contains only the JSON list as the next tool will parse it strictly as such.
+
+      Execute the `agent:gptr/crawl` to gather the contents.
     functions:
       - "agent:gptr/crawl"
 
-  - name: "gptr/crawl"
-    new: true
+  - name: "crawl"
     display: "🌐 Web Crawler"
     description: "Runs a query across multiple retrievers and scrapes the resulting URLs."
     arguments:
       maximum_attempts: 5
-    # message: |
-    #   #! --mime-type=text/x-go-template
-    #   {{.result}}
     instruction: |
       #! --mime-type=text/x-go-template
       You are a specialized web crawler. The maximum attempts allowed are {{.maximum_attempts}}.
@@ -246,16 +215,13 @@ agents:
       relevant to the user query.
     functions:
       - "web:*"
-      - "ddg:*"
-      - "bing:*"
-      - "google:*"
-      - "brave:*"
 
-  - name: "gptr/curate"
-    new: true
+  - name: "curate"
     display: "⚖️ Evaluating and curating sources"
     description: "Ranks sources and curates data based on their relevance, credibility and reliability."
-    model: llm/smart
+    model: "llm/smart"
+    embed:
+      - "agent:gptr/save_response"
     arguments:
       # temperature: 0.2
       # max_completion_tokens: 10000
@@ -292,16 +258,17 @@ agents:
         - Keep marginally relevant or incomplete sources if they contain valuable data or insights.
 
       SOURCES LIST TO EVALUATE:
-      {{toPrettyJson .result}}
+      {{toPrettyJson .resp_result}}
 
       You MUST return your response in the EXACT sources JSON list format as the original sources.
       The response MUST not contain any markdown format or additional text (like ```json), just the JSON list!
 
-  - name: "gptr/report"
-    new: true
+  - name: "report"
     display: "📝 Report"
     description: "Generates the final report"
-    model: llm/smart
+    model: "llm/smart"
+    embed:
+      - "agent:gptr/save_response"
     arguments:
       # temperature: 0.35
       # max_completion_tokens: 10000
@@ -316,7 +283,12 @@ agents:
       {{.agent_role_prompt}}
     message: |
       #! --mime-type=text/x-go-template
-      Information: "{{toPrettyJson .result}}"
+      {{if not .resp_result}}
+        Result is missing. Report error to user and exit!
+      {{else}}
+      Information:
+        "{{toPrettyJson .resp_result}}"
+      {{end}}
       ---
       Using the above information, answer the following query or task: "{{.original_query}}" in a detailed report --
       The report should focus on the answer to the query, should be well structured, informative,
@@ -344,26 +316,32 @@ agents:
       The report SHOULD be approximately {{.total_words}} words long.
       Assume that the current date is {{.date}}.
 
-# ## tool kit
-# kit: "gptr"
-# type: "web"
-# tools:
-#   - name: "search"
-#     description: "Search the web using available search tools and return formatted results"
-#     parameters:
-#       type: "object"
-#       properties:
-#         query:
-#           type: "string"
-#           description: "The search query string"
-#         max_results:
-#           type: "integer"
-#           description: "Maximum number of results to return"
-#           default: 5
-#           minimum: 1
-#           maximum: 10
-#       required:
-#         - query
+## tool kit
+kit: "gptr"
+tools:
+  - name: "research"
+    display: "Research Tool"
+    description: |
+      This tool produces detailed, factual, and unbiased research reports with citations.
+      • Create a task-specific agent based on a research query.                                       
+      • Generate questions that collectively form an objective opinion on the task.                   
+      • Use a crawler agent to gather information for each question.                                  
+      • Summarize and source-track each resource.                                                     
+      • Filter and aggregate the summaries into a final research report.
+    parameters: {}
+    type: "func"
+    body:
+      mime_type: "application/x-sh"
+      script: |
+        #!/bin/bash
+        echo "Creating task specific agent and setting up default values..."
+        /flow:parallel --option actions="[agent:gptr/user_input,agent:gptr/choose_agent]"
+
+        echo "Researching..."
+        /flow:sequence --option actions="[agent:gptr/web_search,agent:gptr/research_queries,agent:gptr/scrape]"
+
+        echo "Publishing..."
+        /flow:sequence --option actions="[agent:gptr/curate,agent:gptr/report]"
 
 ## models
 set: llm

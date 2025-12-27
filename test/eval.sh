@@ -81,6 +81,7 @@ adapter="echo"
 # '
 
 ##
+# adapter="chat"
 adapter="echo"
 
 actions='[ai:spawn_agent,sh:format]'
@@ -90,13 +91,13 @@ template='data:,
 {{.prompt}}
 
 >>>>>>>>> Context/History
-{{.history | toPrettyJson}}
+{{.history }}
 
 >>>>>>>>> Message/Query
 {{.query}}
 
 >>>>>>>>> Tools
-{{.tools | toPrettyJson}}
+{{.tools }}
 
 >>>>>>>>> Model
 {{.model }}
@@ -106,11 +107,34 @@ template='data:,
 
 '
 
-agent="aider/architect"
+# agent="aider/architect"
+# extra="--message write a simple hello world"
 
-extra="--message write a simple hello world"
-##
-/flow:sequence --actions "$actions" --template "$template" --agent "$agent" --adapter "$adapter" $extra
+# agent="gptr/user_input"
+# agent="gptr/choose_agent"
+# agent="gptr/save_response"
+# agent="gptr/web_search"
+# agent="gptr/research_queries"
+# agent="gptr/crawl"
+# agent="gptr/scrape"
+# agent="gptr/curate"
+# agent="gptr/report"
+
+agent="gptr/gptr"
+
+# extra="--message write a report on the latest LLM updates"
+
+# /flow:sequence --actions "$actions" --template "$template" --agent "$agent" --adapter "$adapter" $extra
+
+# ##
+# actions='[ai:read_agent_config,gptr:research,sh:format]'
+# script="file:///$PWD/swarm/atm/resource/incubator/agents/gptr/agent.yaml"
+# template='data:,
+# >>>>>>>>> 
+# '
+# /flow:sequence --actions "$actions" --template "$template" --script "$script" --adapter "$adapter" $extra
+
+/agent:gptr/gptr --message "write a report on the major world events for the year of 2025"
 
 # /agent:atm/hi --script "./swarm/atm/resource/template/atm.yaml" \
 #     --adapter echo --info
