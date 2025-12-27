@@ -39,7 +39,7 @@ type Message struct {
 
 type Request struct {
 	// parent agent
-	Agent *Agent `json:"agent"`
+	Agent *Agent `json:"-"`
 
 	// active action name
 	Name      string    `json:"name"`

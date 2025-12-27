@@ -2,13 +2,7 @@
 # set -xue
 set -ue
 
-
 echo ">>> Testing chain actions..."
-
-#
-# BASE=$(pwd)
-# echo $BASE
-# printenv
 
 # {{.result.Value |fromJson |toPrettyJson}}
 template='data:,

@@ -3,12 +3,12 @@ pack: "context"
 model: "default/any"
 max_history: 0
 agents:
-  - name: "history"
+  - name: "lastn"
     display: "🤖 Context History"
     description: |
-      Creating a context with historical conversations.
+      Creating a context with last N messages from historical conversations.
     arguments:
-      max_history: 3
+      max_history: 5
       max_span: 1440
       offset: 0
     context: |

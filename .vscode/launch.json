@@ -127,14 +127,17 @@
 				//
 				"/flow:sequence",
 				"--actions",
-				"[ai:read_agent_config,ai:new_agent,ai:build_context,ai:call_llm,sh:format]",
+				"[ai:spawn_agent,sh:format]",
+				// "[ai:read_agent_config,ai:new_agent,ai:build_context,ai:call_llm,sh:format]",
 				"--template",
 				"data:,result: {{toPrettyJson .}} \n pack: {{.pack}} \n name: {{.name}}",
 				"--agent",
 				// "context/history",
-				"context/summary",
+				"chat",
 				"--format",
 				"raw",
+				"--adapter",
+				"echo",
 				"--message",
 				"Correcto mine englise"
 				//

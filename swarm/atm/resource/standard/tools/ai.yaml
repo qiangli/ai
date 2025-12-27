@@ -24,14 +24,13 @@ tools:
         A set of tools for managing agents and tools.
 
         ## Agents
-          + list_agents
-          + get_agent_info
-          + spawn_agent
+          + ai:list_agents
+          + ai:get_agent_info
+          + ai:spawn_agent
 
         ## Tools
-          + list_tools
-          + get_tool_info
-          + execute_tool
+          + ai:list_tools
+          + ai:get_tool_info
 
         `
         func main() {
@@ -354,5 +353,5 @@ tools:
               ...
             ]
             ```
-      required: 
+      required:
         - messages

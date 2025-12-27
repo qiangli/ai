@@ -44,16 +44,20 @@ func GetAdapters() api.AdapterRegistry {
 type EchoAdapter struct{}
 
 func (r *EchoAdapter) Call(ctx context.Context, req *api.Request) (*api.Response, error) {
+	var resp api.Response
+
+	// TODO resolve cycles
 	v, err := json.Marshal(req)
 	if err != nil {
-		return nil, err
-	}
-	resp := &api.Response{
-		Result: &api.Result{
+		resp.Result = &api.Result{
+			Value: err.Error(),
+		}
+	} else {
+		resp.Result = &api.Result{
 			Value: string(v),
-		},
+		}
 	}
-	return resp, nil
+	return &resp, nil
 }
 
 type ChatAdapter struct{}

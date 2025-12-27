@@ -290,8 +290,8 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 		// content, err := atm.CheckApplyTemplate(agent.Template, in, args)
 		// var data = args
 		// if len(a.Arguments) > 0 {
-		// 	data = make(map[string]any)
-		// 	maps.Copy(data, args)
+		// data := make(map[string]any)
+		// maps.Copy(data, args)
 		// 	maps.Copy(data, a.Arguments)
 		// }
 		content, err := atm.CheckApplyTemplate(a.Template, in, args)
