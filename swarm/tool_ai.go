@@ -109,7 +109,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	}
 	// enforce if required is not enforced in args.
 	if query == "" {
-		return nil, fmt.Errorf("query is required:")
+		return nil, fmt.Errorf("query is required for agent: %s/%s", agent.Pack, agent.Name)
 	}
 
 	prompt, _ := api.GetStrProp("prompt", args)

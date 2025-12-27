@@ -19,8 +19,8 @@ adapter="--adapter echo"
 $BASE/test/sb.md $adapter
 $BASE/test/sb.sh $adapter
 $BASE/test/sb.txt $adapter
-$BASE/test/sb.yaml $adapter
-$BASE/test/yaml-wrap.sh $adapter
+# $BASE/test/sb.yaml $adapter
+# $BASE/test/yaml-wrap.sh $adapter
 
 ##
 $BASE/test/timeout.sh

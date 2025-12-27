@@ -85,27 +85,28 @@ adapter="echo"
 adapter="echo"
 
 actions='[ai:spawn_agent,sh:format]'
-template='data:,
 
->>>>>>>>> Instruction/Prompt
-{{.prompt}}
+# template='data:,
 
->>>>>>>>> Context/History
-{{.history }}
+# >>>>>>>>> Instruction/Prompt
+# {{.prompt}}
 
->>>>>>>>> Message/Query
-{{.query}}
+# >>>>>>>>> Context/History
+# {{.history }}
 
->>>>>>>>> Tools
-{{.tools }}
+# >>>>>>>>> Message/Query
+# {{.query}}
 
->>>>>>>>> Model
-{{.model }}
+# >>>>>>>>> Tools
+# {{.tools }}
 
->>>>>>>>> Environment
-{{printenv}}
+# >>>>>>>>> Model
+# {{.model }}
 
-'
+# >>>>>>>>> Environment
+# {{printenv}}
+
+# '
 
 # agent="aider/architect"
 # extra="--message write a simple hello world"
@@ -134,7 +135,28 @@ agent="gptr/gptr"
 # '
 # /flow:sequence --actions "$actions" --template "$template" --script "$script" --adapter "$adapter" $extra
 
-/agent:gptr/gptr --message "write a report on the major world events for the year of 2025"
+export message="write a report on the major world events for the year of 2025"
+# /agent:${agent} -adapter "chat" --message "$message"
+
+# template='data:,
+# {{.original_query}}
+# '
+
+# /sh:set_envs --option original_query="$message"
+# /sh:get_envs --option keys="[original_query]" --template "$template"
+# # 
+# echo "Creating task specific agent and setting up default values..."
+/flow:parallel --option actions="[agent:gptr/user_input,agent:gptr/choose_agent]" --adapter "chat" --message "$message"
+echo ">>> environemtn"
+
+printenv
+
+# echo "Researching..."
+# /flow:sequence --option actions="[agent:gptr/web_search,agent:gptr/research_queries,agent:gptr/scrape]" --adapter "echo"
+
+# echo "Publishing..."
+# /flow:sequence --option actions="[agent:gptr/curate,agent:gptr/report]" --adapter "echo"
+
 
 # /agent:atm/hi --script "./swarm/atm/resource/template/atm.yaml" \
 #     --adapter echo --info

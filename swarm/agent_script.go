@@ -69,7 +69,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	err := vs.RunScript(ctx, script)
 
 	if err != nil {
-		args["error"] = err.Error()
+		// args["error"] = err.Error()
 		return nil, err
 	}
 	// copy back env
@@ -81,7 +81,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	result := &api.Result{
 		Value: b.String(),
 	}
-	args["result"] = result
+	// args["result"] = result
 	return result, nil
 }
 
