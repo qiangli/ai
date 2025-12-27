@@ -247,14 +247,14 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 		tf = v
 	}
 
-	// NOTE: should this be done?
-	// set if only not existing
-	envs := r.sw.Vars.Global.GetAllEnvs()
-	for k, v := range envs {
-		if _, ok := args[k]; !ok {
-			args[k] = v
-		}
-	}
+	// // NOTE: should this be done?
+	// // set if only not existing
+	// envs := r.sw.Vars.Global.GetAllEnvs()
+	// for k, v := range envs {
+	// 	if _, ok := args[k]; !ok {
+	// 		args[k] = v
+	// 	}
+	// }
 
 	// run the action
 	// and make the error/result available in args

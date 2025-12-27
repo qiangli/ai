@@ -9,7 +9,7 @@ agents:
       Assists with simple queries and uses tool calls to get answers if beyond scope.
     model: "default/any"
     environment:
-      max_history: 3
+      max_history: 1
     embed:
       # - agent:context/summary
       - agent:context/lastn

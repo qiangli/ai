@@ -23,9 +23,9 @@ adapter="echo"
 # '
 
 # actions='["ai:read_agent_config","ai:new_agent","ai:build_context","ai:call_llm","sh:format"]'
-# actions='["ai:read_agent_config","ai:new_agent","ai:build_context","sh:format"]'
+actions='["ai:read_agent_config","ai:new_agent","ai:build_context","sh:format"]'
 
-actions='["ai:spawn_agent","sh:format"]'
+# actions='["ai:spawn_agent","sh:format"]'
 
 template='data:,
 
@@ -34,7 +34,7 @@ template='data:,
 '
 
 # agent="ask"
-# agent="context/history"
+# agent="context/lastn"
 # agent="context/summary"
 # agent="memory"
 # agent="kbase"

@@ -83,10 +83,10 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 
 		// inherit
 		var in = make(map[string]any)
-		maps.Copy(in, sw.globalEnv())
-		maps.Copy(in, agent.Environment.GetAllEnvs())
-		//
+		// defaults
 		maps.Copy(in, agent.Arguments)
+		//
+		maps.Copy(in, sw.Vars.Global.GetAllEnvs())
 		maps.Copy(in, at)
 
 		data, err := agent.Runner.Run(ctx, id, in)

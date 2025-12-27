@@ -135,16 +135,16 @@ func (sw *Swarm) mapAssign(ctx context.Context, agent *api.Agent, dst, src map[s
 	return nil
 }
 
-// make a copy of golbal env
-func (sw *Swarm) globalEnv() map[string]any {
-	var env = make(map[string]any)
-	sw.Vars.Global.Copy(env)
-	return env
-}
+// // make a copy of golbal env
+// func (sw *Swarm) globalEnv() map[string]any {
+// 	var env = make(map[string]any)
+// 	sw.Vars.Global.Copy(env)
+// 	return env
+// }
 
-func (sw *Swarm) globalAddEnvs(envs map[string]any) {
-	sw.Vars.Global.AddEnvs(envs)
-}
+// func (sw *Swarm) globalAddEnvs(envs map[string]any) {
+// 	sw.Vars.Global.AddEnvs(envs)
+// }
 
 // // expand s for agent/tool similar to $(cmdline...)
 // func (sw *Swarm) expandx(ctx context.Context, parent *api.Agent, s string) (string, error) {

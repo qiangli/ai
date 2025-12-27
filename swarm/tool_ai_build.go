@@ -29,7 +29,7 @@ import (
 // resolve tools, inherit from embedded agents
 //
 // context/instruction/message are not resolved - each is done separately as needed
-func (r *AIKit) createAgent(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Agent, error) {
+func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Agent, error) {
 	var name string
 	if v, found := args["agent"].(*api.Agent); found {
 		return v, nil
@@ -90,7 +90,7 @@ func (r *AIKit) createAgent(ctx context.Context, _ *api.Vars, _ string, args map
 	// export envs to global
 	// new vars can only reference existing global vars
 	var envs = make(map[string]any)
-	maps.Copy(envs, r.sw.globalEnv())
+	maps.Copy(envs, vars.Global.GetAllEnvs())
 
 	// //
 	// if agent.Environment != nil {
@@ -119,7 +119,7 @@ func (r *AIKit) createAgent(ctx context.Context, _ *api.Vars, _ string, args map
 	}
 
 	addAll(agent)
-	r.sw.globalAddEnvs(envs)
+	vars.Global.AddEnvs(envs)
 	agent.Environment.SetEnvs(envs)
 
 	// args

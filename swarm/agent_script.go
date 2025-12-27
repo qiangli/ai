@@ -55,12 +55,12 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 
 	// set global env for bash script
 	// TODO batch set
-	for k, v := range r.sw.globalEnv() {
+	for k, v := range r.sw.Vars.Global.GetAllEnvs() {
 		vs.System.Setenv(k, v)
 	}
-	for k, v := range r.parent.Environment.GetAllEnvs() {
-		vs.System.Setenv(k, v)
-	}
+	// for k, v := range r.parent.Environment.GetAllEnvs() {
+	// 	vs.System.Setenv(k, v)
+	// }
 
 	vs.ExecHandler = r.newExecHandler(vs, args)
 
@@ -73,10 +73,10 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 		return nil, err
 	}
 	// copy back env
-	// r.sw.globalAddEnvs(vs.System.Environ())
-	if r.parent.Environment != nil {
-		r.parent.Environment.AddEnvs(vs.System.Environ())
-	}
+	r.sw.Vars.Global.AddEnvs(vs.System.Environ())
+	// if r.parent.Environment != nil {
+	// 	r.parent.Environment.AddEnvs(vs.System.Environ())
+	// }
 
 	result := &api.Result{
 		Value: b.String(),
@@ -97,15 +97,33 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, envs api.ArgMap
 
 			// ignore result.
 			// execv prints to stdout/stderr
-			argm, err := conf.Parse(args)
+			// argm, err := conf.Parse(args)
+			// if err != nil {
+			// 	return true, err
+			// }
+			// maps.Copy(envs, argm)
+			// _, err = r.execv(ctx, vs, envs)
+			// if err != nil {
+			// 	return true, err
+			// }
+
+			at, err := conf.Parse(args)
 			if err != nil {
 				return true, err
 			}
-			maps.Copy(envs, argm)
-			_, err = r.execv(ctx, vs, envs)
+			var in = make(map[string]any)
+
+			maps.Copy(in, r.parent.Arguments)
+			//
+			maps.Copy(in, r.sw.Vars.Global.GetAllEnvs())
+			maps.Copy(in, envs)
+			maps.Copy(in, at)
+
+			_, err = r.execv(ctx, vs, in)
 			if err != nil {
 				return true, err
 			}
+
 			return true, nil
 		}
 
