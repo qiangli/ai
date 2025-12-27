@@ -162,18 +162,27 @@ agents:
 
 ###
 set: "llm"
-provider: "anthropic"
-base_url: "https://api.anthropic.com/"
-api_key: "anthropic"
+provider: "openai"
+base_url: "https://api.openai.com/v1/"
+api_key: "openai"
+# provider: "anthropic"
+# base_url: "https://api.anthropic.com/"
+# api_key: "anthropic"
 
+# https://aider.chat/docs/llms.html
 models:
   L1:
     model: "gpt-5-nano"
     provider: "openai"
     base_url: "https://api.openai.com/v1/"
     api_key: "openai"
+  # L2:
+  #   model: "claude-sonnet-4-0"
   L2:
-    model: "claude-sonnet-4-0"
+    model: "gpt-5-mini"
+  # L3:
+  #   model: "claude-opus-4-0"
+  # o1-mini gpt-4o
   L3:
-    model: "claude-opus-4-0"
+    model: "o3-mini"
 ###

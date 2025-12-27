@@ -1,10 +1,9 @@
 ###
-## agent pack
 pack: "gptr"
 #
 # adapted from https://github.com/assafelovic/gpt-researcher
 #
-model: "smart_llm/fast"
+model: "llm/fast"
 log_level: "verbose"
 agents:
   - name: "gptr"
@@ -111,7 +110,7 @@ agents:
     new: true
     display: "🤖 Choose Agent"
     description: "Chooses the agent automatically"
-    model: smart_llm/smart
+    model: llm/smart
     arguments:
       # temperature: 0.15
     instruction: |
@@ -161,7 +160,7 @@ agents:
     new: true
     display: "🤔 Planning the research strategy and subtasks"
     description: "Generate sub_queries using the specified LLM model."
-    model: smart_llm/strategic
+    model: llm/strategic
     arguments:
       # max_completion_tokens: 8000
       reasoning_effort: "medium"
@@ -256,7 +255,7 @@ agents:
     new: true
     display: "⚖️ Evaluating and curating sources"
     description: "Ranks sources and curates data based on their relevance, credibility and reliability."
-    model: smart_llm/smart
+    model: llm/smart
     arguments:
       # temperature: 0.2
       # max_completion_tokens: 10000
@@ -302,7 +301,7 @@ agents:
     new: true
     display: "📝 Report"
     description: "Generates the final report"
-    model: smart_llm/smart
+    model: llm/smart
     arguments:
       # temperature: 0.35
       # max_completion_tokens: 10000
@@ -367,7 +366,7 @@ agents:
 #         - query
 
 ## models
-set: smart_llm
+set: llm
 provider: "openai"
 base_url: "https://api.openai.com/v1/"
 api_key: "openai"
