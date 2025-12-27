@@ -2,7 +2,6 @@ package swarm
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -34,9 +33,6 @@ func NewToolSystem(rte *api.ActionRTEnv) (api.ToolSystem, error) {
 	}
 
 	kbPath := filepath.Join(rte.Base, "kb.json")
-	if err := os.MkdirAll(kbPath, 0770); err != nil {
-		return nil, err
-	}
 
 	// default by type
 	ts.AddKit(api.ToolTypeFunc, atm.NewFuncKit(kbPath))

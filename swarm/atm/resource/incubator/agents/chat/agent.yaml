@@ -9,7 +9,7 @@ agents:
       Assists with simple queries and uses tool calls to get answers if beyond scope.
     model: "default/any"
     environment:
-      max_history: 1
+      max_history: 3
     embed:
       # - agent:context/summary
       - agent:context/lastn
@@ -30,17 +30,6 @@ agents:
       - Execute the help tool promptly for complex issues to maintain efficiency.
       - Maintain a supportive and friendly tone throughout all interactions to bolster user satisfaction.
     functions:
-      # - "agent:context/history"
-      - "ai:help"
-      # - "web:*"
+      - "web:*"
 
-# kit: "agent"
-# type: "agent"
-# tools:
-#   - name: "help"
-#     description: "Dispatch to the most appropriate agent for help based on the user's input"
-#     agent: "agent"
-#     parameters:
-#       type: "object"
-#       properties: {}
 ###

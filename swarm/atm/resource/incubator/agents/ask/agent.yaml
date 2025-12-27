@@ -10,6 +10,8 @@ agents:
       ranging from local system intricacies to comprehensive web-based information,
       ensuring clarity and accuracy.
     model: "default/any"
+    environment:
+      max_history: 20
     embed:
       - "agent:context/summary"
       - "agent:kbase"
@@ -34,10 +36,9 @@ agents:
       - "web:*"
       - "ai:*"
       - "fs:*"
-      - "agent:context"
-      - "agent:memory"
-      - "agent:kbase"
-      - "agent:think"
+      # - "agent:memory"
+      # - "agent:kbase"
+      # - "agent:think"
 
 ###
 set: "default"
