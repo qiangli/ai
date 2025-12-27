@@ -2,6 +2,7 @@
 set -ue
 
 
+# adapter="chat"
 adapter="echo"
 
 # actions='["ai:read_tool_config","sh:format"]'
@@ -37,8 +38,6 @@ adapter="echo"
 
 # /flow:sequence --actions "$actions" --template "$template" --agent "test" --adapter "$adapter" --output file:///tmp/eval.out
 
-
-adapter="echo"
 # actions='["ai:call_llm", "sh:format"]'
 # actions='["ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm", "sh:format"]'
 # actions='["ai:new_agent", "ai:build_query", "sh:format"]'
@@ -94,11 +93,12 @@ template='data:,
 '
 
 # agent="ask"
-agent="context/history"
-# agent="context/summary"
+# agent="context/history"
+agent="context/summary"
 # agent="memory"
 # agent="kbase"
 # agent="think"
+# agent="eval"
 
 /flow:sequence --actions "$actions" --template "$template" --agent "$agent" --adapter "$adapter" 
 

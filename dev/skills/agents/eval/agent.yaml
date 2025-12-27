@@ -9,12 +9,12 @@ agents:
     model: "llm/any"
     context: ""
     embed:
-      - "agent:memory/lastn"
+      - "agent:context/summary"
     instruction: |
       You are an evaluation agent.
     message:
     functions:
-      - "agent:memory/lastn"
+      # - "agent:memory/lastn"
       - "fs:*"
 
 ###

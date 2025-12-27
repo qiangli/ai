@@ -13,7 +13,7 @@ import (
 )
 
 // // copy global env only if not set
-// func (r *AIKit) applyGlobal(args api.ArgMap) {
+// func (r *AIKit) applyGlobal(args map[string]any) {
 // 	envs := r.sw.globalEnv()
 // 	for k, v := range envs {
 // 		if _, ok := args[k]; !ok {
@@ -29,7 +29,7 @@ import (
 // resolve tools, inherit from embedded agents
 //
 // context/instruction/message are not resolved - each is done separately as needed
-func (r *AIKit) createAgent(ctx context.Context, _ *api.Vars, _ string, args api.ArgMap) (*api.Agent, error) {
+func (r *AIKit) createAgent(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Agent, error) {
 	var name string
 	if v, found := args["agent"].(*api.Agent); found {
 		return v, nil
@@ -138,7 +138,7 @@ func (r *AIKit) createAgent(ctx context.Context, _ *api.Vars, _ string, args api
 	var model = agent.Model
 
 	if model == nil {
-		provider := args.GetString("provider")
+		provider, _ := api.GetStrProp("provider", args)
 		if provider == "" {
 			return nil, fmt.Errorf("model missing. provider is required")
 		}
@@ -269,15 +269,15 @@ func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args
 	return prompt, nil
 }
 
-func (r *AIKit) contextMemOption(argm api.ArgMap) *api.MemOption {
-	return &api.MemOption{
-		MaxHistory: argm.GetInt("max_history"),
-		MaxSpan:    argm.GetInt("max_span"),
-		Offset:     argm.GetInt("offset"),
-		Roles:      argm.GetStringSlice("roles"),
-	}
+// func (r *AIKit) contextMemOption(argm api.ArgMap) *api.MemOption {
+// 	return &api.MemOption{
+// 		MaxHistory: argm.GetInt("max_history"),
+// 		MaxSpan:    argm.GetInt("max_span"),
+// 		Offset:     argm.GetInt("offset"),
+// 		Roles:      argm.GetStringSlice("roles"),
+// 	}
 
-}
+// }
 
 func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
 	var agent = r.agent
@@ -288,13 +288,13 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 	var contexts []string
 	add := func(a *api.Agent, in string) error {
 		// content, err := atm.CheckApplyTemplate(agent.Template, in, args)
-		var data = args
-		if len(a.Arguments) > 0 {
-			data = make(map[string]any)
-			maps.Copy(data, args)
-			maps.Copy(data, a.Arguments)
-		}
-		content, err := atm.CheckApplyTemplate(a.Template, in, data)
+		// var data = args
+		// if len(a.Arguments) > 0 {
+		// 	data = make(map[string]any)
+		// 	maps.Copy(data, args)
+		// 	maps.Copy(data, a.Arguments)
+		// }
+		content, err := atm.CheckApplyTemplate(a.Template, in, args)
 		if err != nil {
 			return err
 		}
@@ -337,7 +337,9 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 			v = strings.TrimSpace(v)
 			var list []*api.Message
 			if err := json.Unmarshal([]byte(v), &list); err != nil {
-				return nil, fmt.Errorf("failed to resolve context: %v", err)
+				//return nil, fmt.Errorf("failed to resolve context: %v", err)
+				// best effort?
+				continue
 			}
 			history = append(history, list...)
 		}

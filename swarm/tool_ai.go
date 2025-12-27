@@ -23,9 +23,9 @@ type AIKit struct {
 	agent *api.Agent
 }
 
-func (r *AIKit) run(ctx context.Context, id string, args map[string]any) (any, error) {
-	return r.agent.Runner.Run(ctx, id, args)
-}
+// func (r *AIKit) run(ctx context.Context, id string, args map[string]any) (any, error) {
+// 	return r.agent.Runner.Run(ctx, id, args)
+// }
 
 func NewAIKit(sw *Swarm, agent *api.Agent) *AIKit {
 	return &AIKit{
@@ -65,7 +65,7 @@ func (r *AIKit) checkAndCreate(ctx context.Context, vars *api.Vars, tf string, a
 	return nil, fmt.Errorf("missing agent")
 }
 
-func (r *AIKit) llmAdapter(agent *api.Agent, args api.ArgMap) (api.LLMAdapter, error) {
+func (r *AIKit) llmAdapter(agent *api.Agent, args map[string]any) (api.LLMAdapter, error) {
 	var llmAdapter api.LLMAdapter
 	if v, found := args["adapter"]; found {
 		switch vt := v.(type) {

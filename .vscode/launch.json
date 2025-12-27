@@ -127,7 +127,7 @@
 				//
 				"/flow:sequence",
 				"--actions",
-				"[ai:read_agent_config,ai:new_agent,ai:build_context,sh:format]",
+				"[ai:read_agent_config,ai:new_agent,ai:build_context,ai:call_llm,sh:format]",
 				"--template",
 				"data:,result: {{toPrettyJson .}} \n pack: {{.pack}} \n name: {{.name}}",
 				"--agent",
