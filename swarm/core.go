@@ -86,10 +86,30 @@ func (sw *Swarm) CreateAgent(ctx context.Context, parent *api.Agent, packname ap
 	}
 
 	// init setup
-	agent.Parent = parent
-	agent.Runner = NewAgentToolRunner(sw, sw.User.Email, agent)
-	agent.Shell = NewAgentScriptRunner(sw, agent)
-	agent.Template = NewTemplate(sw, agent)
+
+	// agent.Parent = parent
+	// agent.Runner = NewAgentToolRunner(sw, sw.User.Email, agent)
+	// agent.Shell = NewAgentScriptRunner(sw, agent)
+	// agent.Template = NewTemplate(sw, agent)
+
+	// TODO optimize
+	// embeded
+	add := func(p, a *api.Agent) {
+		a.Parent = p
+		a.Runner = NewAgentToolRunner(sw, sw.User.Email, a)
+		a.Shell = NewAgentScriptRunner(sw, a)
+		a.Template = NewTemplate(sw, a)
+	}
+
+	var addAll func(*api.Agent, *api.Agent)
+	addAll = func(p, a *api.Agent) {
+		for _, v := range a.Embed {
+			addAll(p, v)
+		}
+		add(p, a)
+	}
+
+	addAll(parent, agent)
 
 	return agent, nil
 }
@@ -126,14 +146,14 @@ func (sw *Swarm) globalAddEnvs(envs map[string]any) {
 	sw.Vars.Global.AddEnvs(envs)
 }
 
-// expand s for agent/tool similar to $(cmdline...)
-func (sw *Swarm) expandx(ctx context.Context, parent *api.Agent, s string) (string, error) {
-	data, err := sw.exec(ctx, parent, s)
-	if err != nil {
-		return "", nil
-	}
-	return api.ToString(data), nil
-}
+// // expand s for agent/tool similar to $(cmdline...)
+// func (sw *Swarm) expandx(ctx context.Context, parent *api.Agent, s string) (string, error) {
+// 	data, err := sw.exec(ctx, parent, s)
+// 	if err != nil {
+// 		return "", nil
+// 	}
+// 	return api.ToString(data), nil
+// }
 
 func (sw *Swarm) Parse(ctx context.Context, input any) (api.ArgMap, error) {
 	// parse special chars: - }}

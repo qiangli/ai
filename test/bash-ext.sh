@@ -35,7 +35,7 @@ echo ">>> Testing bash extnesions..."
 # /ai:execute_tool --tool "/alias:agent_ed" \
 #     --option agent_ed='/agent:ed --adapter echo --message "correcto mine englise."'
 
-/ai:spawn_agent --adapter echo --agent ed --message "correcto yours esperanto"
+# /ai:spawn_agent --adapter echo --agent ed --message "correcto yours esperanto"
 
 # flow
 /flow:sequence --actions '["sh:pass","sh:pwd"]'

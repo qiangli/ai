@@ -97,12 +97,12 @@ base64 go.mod
 basename $PWD 
 cat go.mod
 chmod a+x test/*.sh
-cp test/script.sh /tmp/
+cp test/agent.sh /tmp/
 date
 dirname $PWD 
-find ./test -name script.sh
+find ./test -name agent.sh
 # # gzip
-head -n 3 test/script.sh
+head -n 3 test/agent.sh
 ls -ahdlQRFS ./test
 mkdir -p /tmp/test
 mktemp mk-temp-test
