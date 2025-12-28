@@ -150,7 +150,7 @@ script="swarm/atm/resource/incubator/agents/search/agent.yaml"
 # message="Top places in california for visitors"
 message="Plan an adventure to California for vacation"
 
-/search:ddg_search --script "$script" --option query="$message" --option max-results=5
+/agent:search/research --script "$script" --option query="$message" --option n-queries=8
 
 printenv
 
