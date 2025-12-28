@@ -76,7 +76,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 				if err != nil {
 					return nil, err
 				}
-				cfg = []byte(data)
+				cfg = []byte("data:," + data)
 			}
 		}
 	}

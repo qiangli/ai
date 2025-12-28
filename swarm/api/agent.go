@@ -78,6 +78,8 @@ func (r Packname) Equal(s string) bool {
 }
 
 type Agent struct {
+	// ID string `json:"id"`
+
 	// Package name
 	Pack string `json:"pack"`
 
@@ -107,7 +109,7 @@ type Agent struct {
 	// Flow *Flow `json:"flow"`
 
 	// inheritance
-	Embed []*Agent `json:"embed"`
+	Embed []*Agent `json:"-"`
 
 	// exported global values
 	// Environment map[string]any

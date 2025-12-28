@@ -75,6 +75,7 @@ func (sw *Swarm) CreateAgent(ctx context.Context, parent *api.Agent, packname ap
 	var loader = NewConfigLoader(sw.Vars.RTE)
 
 	if config != nil {
+		// load data
 		if err := loader.LoadContent(string(config)); err != nil {
 			return nil, err
 		}

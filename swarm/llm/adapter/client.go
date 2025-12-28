@@ -46,8 +46,24 @@ type EchoAdapter struct{}
 func (r *EchoAdapter) Call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	var resp api.Response
 
-	// TODO resolve cycles
+	// resolve cycles
+	var agent *api.Agent
+	if len(req.Arguments) > 0 {
+		v, found := req.Arguments["agent"]
+		if found {
+			if a, ok := v.(*api.Agent); ok {
+				agent = a
+				req.Arguments["agent"] = api.NewPackname(a.Pack, a.Name)
+			}
+		}
+	}
+
 	v, err := json.Marshal(req)
+
+	if agent != nil {
+		req.Arguments["agent"] = agent
+	}
+
 	if err != nil {
 		resp.Result = &api.Result{
 			Value: err.Error(),

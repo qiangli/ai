@@ -146,13 +146,13 @@ adapter="echo"
 # /flow:parallel --option actions="[agent:gptr/user_input,agent:gptr/choose_agent]" --adapter "chat" --message "$message"
 # echo ">>> environemtn"
 
-script="swarm/atm/resource/incubator/agents/search/agent.yaml"
+script="$PWD/swarm/atm/resource/incubator/agents/search/agent.yaml"
 # message="Top places in california for visitors"
 message="Plan an adventure to California for vacation"
 
-/agent:search/research --script "$script" --option query="$message" --option n-queries=8
+# /agent:search/research --script "$script" --option query="$message" --option n-queries=8
 
-printenv
+# printenv
 
 # echo "Researching..."
 # /flow:sequence --option actions="[agent:gptr/web_search,agent:gptr/research_queries,agent:gptr/scrape]" --adapter "echo"
@@ -161,8 +161,12 @@ printenv
 # /flow:sequence --option actions="[agent:gptr/curate,agent:gptr/report]" --adapter "echo"
 
 
-# /agent:atm/hi --script "./swarm/atm/resource/template/atm.yaml" \
-#     --adapter echo --info
+# /atm:hi --script "./swarm/atm/resource/template/atm.yaml" \
+#     --info
+
+/agent:atm/hi --script "./swarm/atm/resource/template/atm.yaml" \
+    --adapter echo --info
+
 echo ""
 echo "*** eval tests completed ***"
 ###
