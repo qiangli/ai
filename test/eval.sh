@@ -146,13 +146,19 @@ adapter="echo"
 # /flow:parallel --option actions="[agent:gptr/user_input,agent:gptr/choose_agent]" --adapter "chat" --message "$message"
 # echo ">>> environemtn"
 
-script="$PWD/swarm/atm/resource/incubator/agents/search/agent.yaml"
+# script="$PWD/swarm/atm/resource/incubator/agents/search/agent.yaml"
 # message="Top places in california for visitors"
 message="Plan an adventure to California for vacation"
 
-/agent:search/research --adapter "chat" --script "$script" --option query="$message" --option n-queries=18
+# /agent:search/research --adapter "chat" --script "$script" --option query="$message" --option n-queries=18
 
-# printenv
+script="$PWD/swarm/atm/resource/incubator/agents/meta/agent.yaml"
+# /agent:meta/prompt --adapter "chat" --script "$script" --option query="$message" --option n-queries=18
+# /agent:meta/dispatch --adapter "echo" --script "$script" --option query="$message" --option n-queries=18
+# /agent:meta/agent --adapter "chat" --script "$script" --option query="$message" --option n-queries=18
+
+printenv
+# /sh:get_envs --option keys="[prompt]" --format "data:,{{.prompt|toPrettyJson}}"
 
 # echo "Researching..."
 # /flow:sequence --option actions="[agent:gptr/web_search,agent:gptr/research_queries,agent:gptr/scrape]" --adapter "echo"

@@ -135,14 +135,29 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	agent.Arguments = args
 
 	// *** model ***
-	var model = agent.Model
+	var lookupModel func(*api.Agent) *api.Model
+	lookupModel = func(a *api.Agent) *api.Model {
+		if a == nil {
+			return nil
+		}
+		if model := a.Model; model != nil {
+			return model
+		}
+		return lookupModel(a.Parent)
+	}
 
+	// resolve model or inherit
+	var model = agent.Model
 	if model == nil {
 		provider, _ := api.GetStrProp("provider", args)
-		if provider == "" {
-			return nil, fmt.Errorf("model missing. provider is required")
+		if provider != "" {
+			model = conf.DefaultModels[provider]
+		} else {
+			model = lookupModel(agent)
 		}
-		model = conf.DefaultModels[provider]
+	}
+	if model == nil {
+		model = r.sw.Vars.RootAgent.Model
 	}
 	args["model"] = model
 

@@ -11,11 +11,15 @@ agents:
     environment:
       max_history: 3
     embed:
+      # context
       # - agent:context/summary
       - "agent:context/lastn"
-      - "agent:kbase"
+      # - "agent:kbase"
       # - "agent:memory"
       # - "agent:think"
+      # dynamic prompt
+      # - "agent:meta/agent"
+      # 
     instruction: |
       Your primary role is to provide direct answers for simple queries and to utilize the `agent:help` tool for more complex inquiries.
 

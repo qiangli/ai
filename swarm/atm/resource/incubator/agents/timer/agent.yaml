@@ -24,7 +24,7 @@ agents:
     functions:
       - "ai:transfer_agent"
 
-  - name: "timer/start"
+  - name: "start"
     display: "⏳ Start Timer"
     description: |
       Parses user input to extract duration and subject line, validates details, and initiates timers using tool calling for efficient timer management and notification readiness.
@@ -49,7 +49,7 @@ agents:
     functions:
       - "cron:*"
 
-  - name: "timer/stop"
+  - name: "stop"
     display: "⏹️ Stop Timer"
     description: |
       Utilizes tool calling to halt and clear specified timers efficiently,
@@ -70,7 +70,7 @@ agents:
     functions:
       - "cron:*"
 
-  - name: "timer/alert"
+  - name: "alert"
     display: "⏰ Alert"
     description: |
       Notifies users of timer expiration using preferred methods.

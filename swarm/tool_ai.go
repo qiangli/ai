@@ -348,8 +348,6 @@ Instruction: %s
 }
 
 func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, args api.ArgMap) (*api.AppConfig, error) {
-	// agent:name -> agent
-	// --agent agent
 	name, err := api.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
