@@ -23,10 +23,6 @@ type AIKit struct {
 	agent *api.Agent
 }
 
-// func (r *AIKit) run(ctx context.Context, id string, args map[string]any) (any, error) {
-// 	return r.agent.Runner.Run(ctx, id, args)
-// }
-
 func NewAIKit(sw *Swarm, agent *api.Agent) *AIKit {
 	return &AIKit{
 		sw:    sw,
@@ -90,6 +86,7 @@ func (r *AIKit) llmAdapter(agent *api.Agent, args map[string]any) (api.LLMAdapte
 	if llmAdapter == nil {
 		llmAdapter = &adapter.ChatAdapter{}
 	}
+
 	return llmAdapter, nil
 }
 
@@ -275,6 +272,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	args["query"] = query
 	args["prompt"] = prompt
 	args["history"] = history
+	args["result"] = resp.Result.Value
 
 	// save the context
 	if err := r.sw.History.Save(history); err != nil {

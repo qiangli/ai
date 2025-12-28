@@ -12,16 +12,6 @@ import (
 	"github.com/qiangli/ai/swarm/atm/conf"
 )
 
-// // copy global env only if not set
-// func (r *AIKit) applyGlobal(args map[string]any) {
-// 	envs := r.sw.globalEnv()
-// 	for k, v := range envs {
-// 		if _, ok := args[k]; !ok {
-// 			args[k] = v
-// 		}
-// 	}
-// }
-
 // merge properties from agent and app config
 // apply templates on env, inherit from embedded agents, export env
 // apply templates on args
@@ -48,25 +38,6 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 		name = v
 	}
 
-	// TODO investigate.
-	// config file is stale in the bash script. Need to re-read for new config files
-	//
-	// var ac *api.AppConfig
-	// cfg := args["config"]
-	// if v, ok := cfg.(*api.AppConfig); ok {
-	// 	ac = v
-	// } else {
-	// 	v, err := r.ReadAgentConfig(ctx, vars, tf, args)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	ac = v
-	// }
-	// ac, err := r.ReadAgentConfig(ctx, vars, tf, args)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	// config
 	var cfg []byte
 	if v, found := args["script"]; found {
@@ -91,12 +62,6 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	// new vars can only reference existing global vars
 	var envs = make(map[string]any)
 	maps.Copy(envs, vars.Global.GetAllEnvs())
-
-	// //
-	// if agent.Environment != nil {
-	// 	r.sw.mapAssign(ctx, agent, envs, agent.Environment.GetAllEnvs(), true)
-	// 	r.sw.globalAddEnvs(envs)
-	// }
 
 	// inherit envs of embeded agents
 	add := func(e *api.Environment) error {
@@ -131,7 +96,6 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 			return nil, err
 		}
 	}
-	// r.applyGlobal(args)
 	agent.Arguments = args
 
 	// *** model ***
@@ -190,7 +154,6 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	} else {
 		list = agent.Tools
 	}
-
 	agent.Tools = list
 	args["tools"] = list
 
@@ -294,16 +257,6 @@ func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args
 	return prompt, nil
 }
 
-// func (r *AIKit) contextMemOption(argm api.ArgMap) *api.MemOption {
-// 	return &api.MemOption{
-// 		MaxHistory: argm.GetInt("max_history"),
-// 		MaxSpan:    argm.GetInt("max_span"),
-// 		Offset:     argm.GetInt("offset"),
-// 		Roles:      argm.GetStringSlice("roles"),
-// 	}
-
-// }
-
 func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
 	var agent = r.agent
 	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
@@ -312,13 +265,6 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 
 	var contexts []string
 	add := func(a *api.Agent, in string) error {
-		// content, err := atm.CheckApplyTemplate(agent.Template, in, args)
-		// var data = args
-		// if len(a.Arguments) > 0 {
-		// data := make(map[string]any)
-		// maps.Copy(data, args)
-		// 	maps.Copy(data, a.Arguments)
-		// }
 		var data = make(map[string]any)
 		maps.Copy(data, a.Arguments)
 		maps.Copy(data, vars.Global.GetAllEnvs())
@@ -354,9 +300,6 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 
 	// add context as system role message
 	if !args.HasHistory() {
-		// inherit
-		// r.applyGlobal(args)
-
 		if err := addAll(agent); err != nil {
 			return "", err
 		}
@@ -365,34 +308,11 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 			v = strings.TrimSpace(v)
 			var list []*api.Message
 			if err := json.Unmarshal([]byte(v), &list); err != nil {
-				//return nil, fmt.Errorf("failed to resolve context: %v", err)
-				// best effort?
+				// best effort
 				continue
 			}
 			history = append(history, list...)
 		}
-
-		// var c = agent.Context
-
-		// if c != "" {
-		// 	v, err := atm.CheckApplyTemplate(agent.Template, c, args)
-		// 	if err != nil {
-		// 		return nil, err
-		// 	}
-
-		// 	history = append(history, &api.Message{
-		// 		Content: v,
-		// 		Role:    api.RoleSystem,
-		// 	})
-
-		// 	// } else {
-		// 	// 	// load defaults
-		// 	// 	if v, err := r.sw.History.Load(r.contextMemOption(args)); err != nil {
-		// 	// 		return nil, err
-		// 	// 	} else {
-		// 	// 		history = v
-		// 	// 	}
-		// }
 	}
 
 	if history == nil {
@@ -405,60 +325,3 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 	}
 	return history, nil
 }
-
-// func (r *AIKit) BuildModel(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
-// 	var agent = r.agent
-// 	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
-// 		agent = v
-// 	}
-
-// 	var model = agent.Model
-
-// 	if model == nil {
-// 		provider := args.GetString("provider")
-// 		if provider == "" {
-// 			return nil, fmt.Errorf("model missing. provider is required")
-// 		}
-// 		model = conf.DefaultModels[provider]
-// 	}
-
-// 	args["model"] = model
-// 	return model, nil
-// }
-
-// func (r *AIKit) BuildTools(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
-// 	var agent = r.agent
-// 	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
-// 		agent = v
-// 	}
-
-// 	var list []*api.ToolFunc
-// 	// inherit tools of embeded agents
-// 	// deduplicate/merge all tools including the current agent
-// 	// child tools take precedence.
-// 	if agent.Embed != nil {
-// 		var tools = make(map[string]*api.ToolFunc)
-
-// 		var addAll func(*api.Agent) error
-// 		addAll = func(a *api.Agent) error {
-// 			for _, v := range a.Embed {
-// 				if err := addAll(v); err != nil {
-// 					return err
-// 				}
-// 			}
-// 			for _, v := range a.Tools {
-// 				tools[v.ID()] = v
-// 			}
-// 			return nil
-// 		}
-
-// 		addAll(agent)
-
-// 		for _, v := range tools {
-// 			list = append(list, v)
-// 		}
-// 		args["tools"] = list
-// 	}
-
-// 	return list, nil
-// }

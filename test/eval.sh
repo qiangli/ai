@@ -151,7 +151,9 @@ set -ue
 # /agent:meta/agent --adapter "chat" --script "$script" --option query="$message" --option n-queries=18
 
 script="$PWD/swarm/atm/resource/incubator/agents/search/agent.yaml"
-message="Plan an adventure to California for vacation"
+# message="Plan an adventure to California for vacation"
+# message="Plan a trip to China for a one month's vacation. My family would like to see famouse scenic sites."
+message="Plan a cruise trip for my family"
 
 # /agent:search/scrape --adapter "echo" --script "$script" --option query="$message" --option n-queries=18
 
@@ -167,8 +169,10 @@ actions='[ai:spawn_agent,sh:format]'
 template='data:,
 >>> prompt
 {{.prompt|toPrettyJson}}
+
 >>> query
 {{.query|toPrettyJson}}
+
 >>> result
 {{.result}}
 
@@ -184,14 +188,8 @@ extra="--message $message"
 
 # /atm:hi --script "./swarm/atm/resource/template/atm.yaml" \
 #     --info
-<<<<<<< HEAD
-
-/agent:atm/hi --script "./swarm/atm/resource/template/atm.yaml" \
-    --adapter echo --info
-=======
 # /agent:atm/hi --script "./swarm/atm/resource/template/atm.yaml" \
 #     --adapter echo --info
->>>>>>> 5d07e12 (fix agent cfg loading)
 
 echo ""
 echo "*** eval tests completed ***"

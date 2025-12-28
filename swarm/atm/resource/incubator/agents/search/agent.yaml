@@ -26,17 +26,23 @@ agents:
     instruction: |
       #! --mime-type=x-go-template
       As a web search assistant, you are responsible for processing user queries and providing accurate
-      search results from the web. 
+      search results from the web.
 
       When a user submits a query, analyze the main components of the query,
 
       perform a web search using one or more available search tools, and return the most relevant results.
 
       After obtaining the URLs, follow at least {{.min_follow_links}} and at most {{.max_follow_links}} links
-      to fetch the contents and provide the user with a summary.
+      to fetch the contents and present the user with the original fetched content as closely as possible,
+      aggregating and removing duplicates with some cleanup.
+
+      Record the URLs and their corresponding contents in the following format:
+      URL: <url>
+      CONTENT: <content>
 
       You may receive results in various formats such as plain text, markdown, JSON, or HTML. Extract and convert
-      these results into a uniform format that is easily readable and presentable to the user.
+      these results into a uniform format that is readable and presentable to the user, with minimal summarization
+      to maintain original content fidelity.
 
       You do not need to use all tools. If a search tool fails due to reasons such as rate limiting or service
       downtime, try another one. If all tools fail, wait for a few seconds and attempt again.
@@ -101,11 +107,12 @@ agents:
       {{ai "agent:search/research"}}
     instruction: |
       #! --mime-type=text/x-go-template
-      You are a specialized web scraper. For each input query, which will be in a JSON array format,
-      execute a search using the provided search tool. In the event of a failed search or absence
-      of content, retry the operation, but limit retries to {{.max_retry}} attempts. Return the
-      results as an array, with each element corresponding to the comprehensive content retrieved
-      for the respective user query.
+      You are a specialized web scraper. For each input query, which will be provided as a JSON
+      array, execute a search using the designated search tool. Ensure that for each query, results
+      are fetched exactly as retrieved without any summarization. In case of a failed search or 
+      absence of content, retry the operation up to {{.max_retry}} times. Return the final results 
+      in a JSON array where each element corresponds directly to the comprehensive content retrieved 
+      for the respective input query, maintaining the order of the queries.
     functions:
       - "agent:search/search"
 
