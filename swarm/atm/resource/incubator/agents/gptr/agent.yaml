@@ -127,7 +127,7 @@ agents:
     model: "llm/smart"
     instruction: |
       *** Important ***
-      You must save the response using the `ai:set_envs` tool with `resp_result` as the key.
+      You must save the response using the `ai:set_envs` tool with `result` as the key.
       Ensure the values are correctly stored by using the `ai:get_envs` tool to verify.
     functions:
       - "sh:set_envs"
@@ -169,7 +169,7 @@ agents:
       "{{.original_query}}".
     message: |
       #! --mime-type=x-go-template
-      Context: {{.resp_result}}
+      Context: {{.result}}
 
       Use this context to inform and refine your search queries. The context provides real-time web information
       that can help you generate more specific and relevant queries. Consider any current events, recent developments,
@@ -195,7 +195,7 @@ agents:
     message: |
       #! --mime-type=x-go-template
       Run the `agent:gptr/crawl` for the following:
-      {{.resp_result}}
+      {{.result}}
     embed:
       - "agent:gptr/save_response"
     instruction: |
@@ -264,7 +264,7 @@ agents:
         - Keep marginally relevant or incomplete sources if they contain valuable data or insights.
 
       SOURCES LIST TO EVALUATE:
-      {{toPrettyJson .resp_result}}
+      {{toPrettyJson .result}}
 
       You MUST return your response in the EXACT sources JSON list format as the original sources.
       The response MUST not contain any markdown format or additional text (like ```json), just the JSON list!
@@ -289,11 +289,11 @@ agents:
       {{.agent_role_prompt}}
     message: |
       #! --mime-type=text/x-go-template
-      {{if not .resp_result}}
+      {{if not .result}}
         Result is missing. Report error to user and exit!
       {{else}}
       Information:
-        "{{toPrettyJson .resp_result}}"
+        "{{toPrettyJson .result}}"
       {{end}}
       ---
       Using the above information, answer the following query or task: "{{.original_query}}" in a detailed report --
