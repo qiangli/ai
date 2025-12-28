@@ -1,5 +1,6 @@
 ###
 pack: "search"
+
 #
 model: "llm/L1"
 max_history: 0
@@ -7,8 +8,23 @@ log_level: debug
 agents:
   - name: "search"
     display: "🔍 Web Search"
-    description: Get web search results for a given query.
+    escription: |
+      Processes user queries to perform web searches, returning the most relevant results. 
+      Follows a set number of links to fetch content and summarizes these in an easily readable format. 
+      Utilizes multiple search tools and handles various result formats.
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The search query string"
+      required:
+        - query
+    arguments:
+      min_follow_links: 1
+      max_follow_links: 5
     instruction: |
+      #! --mime-type=x-go-template
       As a web search assistant, you are responsible for processing user queries and providing accurate
       search results from the web. 
 
@@ -16,9 +32,10 @@ agents:
 
       perform a web search using one or more available search tools, and return the most relevant results.
 
-      After obtaining a URL, follow the link and fetch the content to provide the user with a summary.
+      After obtaining the URLs, follow at least {{.min_follow_links}} and at most {{.max_follow_links}} links
+      to fetch the contents and provide the user with a summary.
 
-      You may receive results in various formats such as plain text, markdown, json, or html. Extract and convert
+      You may receive results in various formats such as plain text, markdown, JSON, or HTML. Extract and convert
       these results into a uniform format that is easily readable and presentable to the user.
 
       You do not need to use all tools. If a search tool fails due to reasons such as rate limiting or service
@@ -33,11 +50,10 @@ agents:
       Start by dissecting the main elements of a user query and crafting refined search queries to expand 
       upon the initial input. Enhance search depth by leveraging different search engines, current events, 
       and recent developments for comprehensive results.
-    model: "llm/L1"
     arguments:
       reasoning_effort: medium
       max_research_queries: 5
-      min_iterations: 2
+      min_iterations: 3
       max_iterations: 5
       n_queries: 10
     instruction: |
@@ -61,11 +77,37 @@ agents:
           ...
         ]
 
-      Assume the current date is {{.now}} to ensure search results are timely. Under no circumstances should 
-      any other content be generated beyond the defined task, focusing strictly on query refinement using 
-      search results.
+      Assume the current date is {{.now}} to ensure search results are timely.
+
+      Under no circumstances should any other content be generated beyond the defined task; focus strictly
+      on query refinement using search results and ensure the response includes only the JSON array as specified.
     functions:
       - "web:*"
+
+  - name: "scrape"
+    display: "🌐 Scrape Agent"
+    description: |
+      The Scrape Agent is a powerful tool designed to execute web searches across multiple 
+      retrievers, effectively gathering relevant content based on queries. It excels in processing 
+      multiple queries simultaneously, expecting input in a JSON array format, making it ideal for 
+      comprehensive data collection. The agent reliably produces enriched results for each query, 
+      ensuring thorough and detailed information retrieval with optimized retry mechanisms for 
+      increased search reliability.
+    arguments:
+      max_retry: 3
+    message: |
+      #! --mime-type=x-go-template
+      Queries:
+      {{ai "agent:search/research"}}
+    instruction: |
+      #! --mime-type=text/x-go-template
+      You are a specialized web scraper. For each input query, which will be in a JSON array format,
+      execute a search using the provided search tool. In the event of a failed search or absence
+      of content, retry the operation, but limit retries to {{.max_retry}} attempts. Return the
+      results as an array, with each element corresponding to the comprehensive content retrieved
+      for the respective user query.
+    functions:
+      - "agent:search/search"
 
 ## tools
 
@@ -77,8 +119,8 @@ api_key: "openai"
 models:
   L1:
     model: "gpt-4o-mini"
-  L2:
-    model: "gpt-4.1"
-  L3:
-    model: "o4-mini"
+  # L2:
+  #   model: "gpt-4.1"
+  # L3:
+  #   model: "o4-mini"
 ###

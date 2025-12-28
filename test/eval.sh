@@ -2,7 +2,6 @@
 set -ue
 
 # adapter="chat"
-adapter="echo"
 
 # {{.result.Value |fromJson |toPrettyJson}}
 # actions='["ai:read_agent_config","ai:new_agent","ai:build_context","ai:call_llm","sh:format"]'
@@ -146,22 +145,38 @@ adapter="echo"
 # /flow:parallel --option actions="[agent:gptr/user_input,agent:gptr/choose_agent]" --adapter "chat" --message "$message"
 # echo ">>> environemtn"
 
-# script="$PWD/swarm/atm/resource/incubator/agents/search/agent.yaml"
-# message="Top places in california for visitors"
-message="Plan an adventure to California for vacation"
-
-# /agent:search/research --adapter "chat" --script "$script" --option query="$message" --option n-queries=18
-
-script="$PWD/swarm/atm/resource/incubator/agents/meta/agent.yaml"
+# script="$PWD/swarm/atm/resource/incubator/agents/meta/agent.yaml"
 # /agent:meta/prompt --adapter "chat" --script "$script" --option query="$message" --option n-queries=18
 # /agent:meta/dispatch --adapter "echo" --script "$script" --option query="$message" --option n-queries=18
 # /agent:meta/agent --adapter "chat" --script "$script" --option query="$message" --option n-queries=18
 
-printenv
+script="$PWD/swarm/atm/resource/incubator/agents/search/agent.yaml"
+message="Plan an adventure to California for vacation"
+
+# /agent:search/scrape --adapter "echo" --script "$script" --option query="$message" --option n-queries=18
+
+
+# printenv
 # /sh:get_envs --option keys="[prompt]" --format "data:,{{.prompt|toPrettyJson}}"
 
 # echo "Researching..."
-# /flow:sequence --option actions="[agent:gptr/web_search,agent:gptr/research_queries,agent:gptr/scrape]" --adapter "echo"
+adapter="chat"
+# actions='[ai:new_agent,ai:build_query,sh:format]'
+actions='[ai:spawn_agent,sh:format]'
+# script="file:///$PWD/swarm/atm/resource/incubator/agents/search/agent.yaml"
+template='data:,
+>>> prompt
+{{.prompt|toPrettyJson}}
+>>> query
+{{.query|toPrettyJson}}
+>>> result
+{{.result}}
+
+>>> env
+{{printenv}}
+'
+extra="--message $message"
+/flow:sequence --agent "search/scrape" --actions "$actions" --template "$template" --script "$script" --adapter "$adapter" $extra
 
 # echo "Publishing..."
 # /flow:sequence --option actions="[agent:gptr/curate,agent:gptr/report]" --adapter "echo"
