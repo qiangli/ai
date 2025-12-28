@@ -7,13 +7,6 @@ import (
 	docli "github.com/qiangli/ai/swarm/faas"
 )
 
-// type FaasKit struct {
-// }
-
-// func NewFaasKit() *FaasKit {
-// 	return &FaasKit{}
-// }
-
 func (r *FuncKit) DO(ctx context.Context, vars *api.Vars, env *api.ToolEnv, tf *api.ToolFunc, args map[string]any) (any, error) {
 	// python with digital ocean
 	tk, err := vars.Token(tf.ApiKey)

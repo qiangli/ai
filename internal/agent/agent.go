@@ -19,7 +19,7 @@ import (
 	"github.com/qiangli/shell/tool/sh/vos"
 )
 
-var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
+var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL", "GOPATH"}
 
 func loadUser(base string) (*api.User, error) {
 	p := filepath.Join(base, "user.json")

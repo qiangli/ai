@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
+// var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL", "GOPATH"}
 
 // informative logging max value length
 const maxInfoTextLen = 32

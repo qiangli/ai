@@ -27,6 +27,7 @@ func (r *SystemKit) Pass(ctx context.Context, vars *api.Vars, name string, args 
 	return "Success", nil
 }
 
+// Chdir is not supported
 func (r *SystemKit) Cd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	return "", cdNotSupportedError
 }

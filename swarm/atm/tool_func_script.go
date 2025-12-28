@@ -11,7 +11,13 @@ import (
 )
 
 // Execute script in go, js, and go-template
-func (r *FuncKit) ExecScript(ctx context.Context, vars *api.Vars, env *api.ToolEnv, tf *api.ToolFunc, args map[string]any) (any, error) {
+func (r *FuncKit) ExecScript(ctx context.Context, vars *api.Vars, env *api.ToolEnv, tf *api.ToolFunc, args map[string]any) (result any, err error) {
+	defer func() {
+		if v := recover(); v != nil {
+			err = fmt.Errorf("recovered from panic: %v", v)
+		}
+	}()
+
 	if tf.Body == nil {
 		return nil, fmt.Errorf("missing function body: %s", tf.ID())
 	}

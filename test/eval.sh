@@ -81,10 +81,8 @@ adapter="echo"
 # '
 
 ##
-# adapter="chat"
-adapter="echo"
 
-actions='[ai:spawn_agent,sh:format]'
+# actions='[ai:spawn_agent,sh:format]'
 
 # template='data:,
 
@@ -121,8 +119,6 @@ actions='[ai:spawn_agent,sh:format]'
 # agent="gptr/curate"
 # agent="gptr/report"
 
-agent="gptr/gptr"
-
 # extra="--message write a report on the latest LLM updates"
 
 # /flow:sequence --actions "$actions" --template "$template" --agent "$agent" --adapter "$adapter" $extra
@@ -135,8 +131,9 @@ agent="gptr/gptr"
 # '
 # /flow:sequence --actions "$actions" --template "$template" --script "$script" --adapter "$adapter" $extra
 
-export message="write a report on the major world events for the year of 2025"
-# /agent:${agent} -adapter "chat" --message "$message"
+# agent="gptr/gptr"
+# export message="write a report on the major world events for the year of 2025"
+# /agent:gptr/gptr -adapter "chat" --message "$message"
 
 # template='data:,
 # {{.original_query}}
@@ -146,8 +143,14 @@ export message="write a report on the major world events for the year of 2025"
 # /sh:get_envs --option keys="[original_query]" --template "$template"
 # # 
 # echo "Creating task specific agent and setting up default values..."
-/flow:parallel --option actions="[agent:gptr/user_input,agent:gptr/choose_agent]" --adapter "chat" --message "$message"
-echo ">>> environemtn"
+# /flow:parallel --option actions="[agent:gptr/user_input,agent:gptr/choose_agent]" --adapter "chat" --message "$message"
+# echo ">>> environemtn"
+
+script="swarm/atm/resource/incubator/agents/search/agent.yaml"
+# message="Top places in california for visitors"
+message="Plan an adventure to California for vacation"
+
+/search:ddg_search --script "$script" --option query="$message" --option max-results=5
 
 printenv
 
@@ -160,7 +163,6 @@ printenv
 
 # /agent:atm/hi --script "./swarm/atm/resource/template/atm.yaml" \
 #     --adapter echo --info
-
-echo "$?"
+echo ""
 echo "*** eval tests completed ***"
 ###
