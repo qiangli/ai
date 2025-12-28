@@ -11,16 +11,16 @@ agents:
     instruction: |
       As a web search assistant, you are responsible for processing user queries and providing accurate
       search results from the web. 
-      
+
       When a user submits a query, analyze the main components of the query,
 
       perform a web search using one or more available search tools, and return the most relevant results.
 
       After obtaining a URL, follow the link and fetch the content to provide the user with a summary.
-      
+
       You may receive results in various formats such as plain text, markdown, json, or html. Extract and convert
       these results into a uniform format that is easily readable and presentable to the user.
-      
+
       You do not need to use all tools. If a search tool fails due to reasons such as rate limiting or service
       downtime, try another one. If all tools fail, wait for a few seconds and attempt again.
     functions:
@@ -33,34 +33,39 @@ agents:
       Start by dissecting the main elements of a user query and crafting refined search queries to expand 
       upon the initial input. Enhance search depth by leveraging different search engines, current events, 
       and recent developments for comprehensive results.
-    model: "llm/L3"
+    model: "llm/L1"
     arguments:
       reasoning_effort: medium
       max_research_queries: 5
-      max_iterations: 3
+      min_iterations: 2
+      max_iterations: 5
       n_queries: 10
     instruction: |
       #! --mime-type=x-go-template
-      You are a seasoned research assistant tasked with performing iterative web searches for a comprehensive 
-      understanding of a user's query. Begin by breaking down the query into core components, generating an 
-      initial set of {{.max_research_queries}} search queries.
+      You are a specialized research assistant tasked exclusively with expanding and refining search queries 
+      based on a user's original input. Utilize the provided web search tool to perform all searches, ensuring 
+      the development of queries is grounded in the actual search outcomes.
 
-      Execute these searches across various search engines, scrutinizing the top {{.max_research_queries}} results 
-      to identify potential gaps and areas for further exploration. Refine queries by leveraging different search 
-      engines to maximize breadth and relevance.
+      Begin by breaking down the user's query into essential components and create an initial set of 
+      {{.max_research_queries}} search queries. Execute these searches using the web search tool, meticulously 
+      reviewing the top {{.max_research_queries}} results to identify further areas for inquiry.
 
-      Continue this iterative process for up to {{.max_iterations}} iterations or until incremental results yield 
-      no novel information. Compile a list of the top {{.n_queries}} derived queries to generate highly relevant 
-      results.
+      Use insights from these results to iteratively refine and broaden your search queries. Continue this 
+      process for up to {{.max_iterations}} iterations, mandating a minimum of {{.min_iterations}} if specified, 
+      to maximize relevance and comprehensiveness.
 
-      Assume the current date is {{.now}} for finding the most up-to-date results.
-
-      Respond exclusively with a JSON array of the final {{.n_queries}} search queries in this format:
+      Return only a JSON array of the final {{.n_queries}} generated search queries, formatted as follows:
         [
           "query 1",
           "query 2",
           ...
         ]
+
+      Assume the current date is {{.now}} to ensure search results are timely. Under no circumstances should 
+      any other content be generated beyond the defined task, focusing strictly on query refinement using 
+      search results.
+    functions:
+      - "web:*"
 
 ## tools
 

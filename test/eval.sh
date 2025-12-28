@@ -150,7 +150,7 @@ script="$PWD/swarm/atm/resource/incubator/agents/search/agent.yaml"
 # message="Top places in california for visitors"
 message="Plan an adventure to California for vacation"
 
-# /agent:search/research --script "$script" --option query="$message" --option n-queries=8
+/agent:search/research --adapter "chat" --script "$script" --option query="$message" --option n-queries=18
 
 # printenv
 
@@ -163,9 +163,14 @@ message="Plan an adventure to California for vacation"
 
 # /atm:hi --script "./swarm/atm/resource/template/atm.yaml" \
 #     --info
+<<<<<<< HEAD
 
 /agent:atm/hi --script "./swarm/atm/resource/template/atm.yaml" \
     --adapter echo --info
+=======
+# /agent:atm/hi --script "./swarm/atm/resource/template/atm.yaml" \
+#     --adapter echo --info
+>>>>>>> 5d07e12 (fix agent cfg loading)
 
 echo ""
 echo "*** eval tests completed ***"
