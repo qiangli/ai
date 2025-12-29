@@ -120,6 +120,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 			model = lookupModel(agent)
 		}
 	}
+	// default/any
 	if model == nil {
 		model = r.sw.Vars.RootAgent.Model
 	}

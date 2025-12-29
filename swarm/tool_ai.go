@@ -109,10 +109,15 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 		return nil, fmt.Errorf("query is required for agent: %s/%s", agent.Pack, agent.Name)
 	}
 
+	// prompt is optional
 	prompt, _ := api.GetStrProp("prompt", args)
+	if prompt == "" {
+		prompt, _ = vars.RTE.DefaultPrompt(args)
+	}
 
-	// model
-
+	// resolve model
+	// search parents
+	// load external
 	var model *api.Model
 	if v, found := args["model"]; found {
 		switch vt := v.(type) {
@@ -121,16 +126,12 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 		case string:
 			// set/level
 			set, level := api.Setlevel(vt).Decode()
-			// if agent.Model != nil {
-			// 	if agent.Model.Set == set && agent.Model.Level == level {
-			// 		model = agent.Model
-			// 		break
-			// 	}
-			// }
+			// embeded/inherited
 			if v := findModel(agent, set, level); v != nil {
 				model = v
 				break
 			}
+			// external
 			v, err := conf.LoadModel(owner, set, level, r.sw.Assets)
 			if err != nil {
 				return nil, err
@@ -138,10 +139,9 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 			model = v
 		}
 	}
-
+	// default/any
 	if model == nil {
-		model = agent.Model
-		// return nil, fmt.Errorf("model is required")
+		model = r.sw.Vars.RootAgent.Model
 	}
 
 	var apiKey = model.ApiKey
@@ -411,8 +411,8 @@ func (r *AIKit) TransferAgent(_ context.Context, _ *api.Vars, _ string, args map
 
 // agent can be invoked directly by name with kit name "agent:"
 // /agent:pack/sub and agent__pack__sub as tool id by LLM
-// this tool serves as an easier interface to make it easier for LLM tool calls.
-func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+// this tool serves as a simple interface for LLM tool calls.
+func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, _ string, args api.ArgMap) (*api.Result, error) {
 	v, err := api.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
@@ -422,8 +422,12 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, _ string, args m
 	}
 
 	kit := atm.NewSystemKit()
-	args["flow_type"] = api.FlowTypeSequence
-	args["actions"] = []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
+	if v := args["flow_type"]; v == "" {
+		args["flow_type"] = api.FlowTypeSequence
+	}
+	if v := args["actions"]; v == "" {
+		args["actions"] = []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
+	}
 	result, err := kit.Flow(ctx, vars, "", args)
 	if err != nil {
 		return nil, err

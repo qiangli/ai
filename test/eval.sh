@@ -150,22 +150,17 @@ set -ue
 # /agent:meta/dispatch --adapter "echo" --script "$script" --option query="$message" --option n-queries=18
 # /agent:meta/agent --adapter "chat" --script "$script" --option query="$message" --option n-queries=18
 
-script="$PWD/swarm/atm/resource/incubator/agents/search/agent.yaml"
+script="$PWD/swarm/atm/resource/incubator/agents/gptr/agent.yaml"
 # message="Plan an adventure to California for vacation"
 # message="Plan a trip to China for a one month's vacation. My family would like to see famouse scenic sites."
 # message="Plan a cruise trip for my family"
 message="suggestion for spending a day in Los Angels"
 
-# /agent:search/scrape --adapter "echo" --script "$script" --option query="$message" --option n-queries=18
-
-
-# printenv
-# /sh:get_envs --option keys="[prompt]" --format "data:,{{.prompt|toPrettyJson}}"
-
-# echo "Researching..."
-adapter="chat"
-# actions='[ai:new_agent,ai:build_query,sh:format]'
+adapter="echo"
+# actions='[ai:new_agent,sh:format]'
 actions='[ai:spawn_agent,sh:format]'
+actions='[sh:parse,sh:format]'
+
 # script="file:///$PWD/swarm/atm/resource/incubator/agents/search/agent.yaml"
 template='data:,
 >>> prompt
@@ -180,8 +175,35 @@ template='data:,
 >>> env
 {{printenv}}
 '
-extra="--message $message"
-/flow:sequence --agent "search/scrape" --actions "$actions" --template "$template" --script "$script" --adapter "$adapter" $extra
+
+preferences='
+{
+    "tone": "formal",
+    "total_words": "1000",
+    "report_format": "markdown",
+    "language": "english",
+    "original_query": "__original query__"
+    }
+'
+prompt='{"name":"cool_agent","display":"Cool Agent","instruction":"You are a smart agent!"}'
+result='["RESULT ONE","RESULT TWO"]'
+
+# agent="gptr/gptr"
+agent="gptr/plan_research"
+# agent="gptr/curate"
+# agent="gptr/report"
+
+# agent="search/scrape"
+/flow:sequence --agent "$agent" \
+    --actions "$actions"  \
+    --template "$template" \
+    --script "$script" \
+    --adapter "$adapter" \
+    --message "$message" \
+    --option preferences="$preferences" \
+    --option agent_role_prompt="$prompt" \
+    --option search_results="$result"
+
 
 # echo "Publishing..."
 # /flow:sequence --option actions="[agent:gptr/curate,agent:gptr/report]" --adapter "echo"

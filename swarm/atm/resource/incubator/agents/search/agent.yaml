@@ -59,8 +59,8 @@ agents:
     arguments:
       reasoning_effort: medium
       max_research_queries: 5
-      min_iterations: 3
-      max_iterations: 5
+      min_iterations: 1
+      max_iterations: 3
       n_queries: 10
     instruction: |
       #! --mime-type=x-go-template
