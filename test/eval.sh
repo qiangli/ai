@@ -153,7 +153,8 @@ set -ue
 script="$PWD/swarm/atm/resource/incubator/agents/search/agent.yaml"
 # message="Plan an adventure to California for vacation"
 # message="Plan a trip to China for a one month's vacation. My family would like to see famouse scenic sites."
-message="Plan a cruise trip for my family"
+# message="Plan a cruise trip for my family"
+message="suggestion for spending a day in Los Angels"
 
 # /agent:search/scrape --adapter "echo" --script "$script" --option query="$message" --option n-queries=18
 

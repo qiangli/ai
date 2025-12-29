@@ -136,3 +136,18 @@ agents:
       - "ai:get_agent_info"
       - "ai:read_agent_config"
       - "ai:spawn_agent"
+
+  - name: "result"
+    display: Save response result in the environment
+    description: |
+      Use the `sh:set_envs` tool to store the response with the key `result`.
+    arguments:
+      result_key: "result"
+    instruction: |
+      *** Important ***
+      You must save the response using the `ai:set_envs` tool with `{{.result_key}}` as the key.
+      Ensure the values are correctly stored by using the `ai:get_envs` tool to verify.
+      ###
+    functions:
+      - "sh:set_envs"
+      - "sh:get_envs"
