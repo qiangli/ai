@@ -427,11 +427,11 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, _ string, args a
 
 	kit := atm.NewSystemKit()
 
-	if v := args["flow_type"]; v == "" {
+	if v := args["flow_type"]; v == nil {
 		args["flow_type"] = api.FlowTypeSequence
 	}
 	actions := []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
-	if v := args["actions"]; v == "" {
+	if v := args["actions"]; v == nil {
 		args["actions"] = actions
 		args["flow_type"] = api.FlowTypeSequence
 	}

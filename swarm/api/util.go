@@ -392,6 +392,13 @@ func ToStringArray(obj any) []string {
 	if v, ok := obj.([]string); ok {
 		return v
 	}
+	if v, ok := obj.([]any); ok {
+		var sa []string
+		for _, s := range v {
+			sa = append(sa, ToString(s))
+		}
+		return sa
+	}
 	// json array
 	if v, ok := obj.(string); ok {
 		var sa []string

@@ -215,8 +215,8 @@
 				// "@ask",
 				// "how to update system env in a golang template",
 				//
-				// "/agent:ask",
-				"/agent:search",
+				"/agent:ask",
+				// "/agent:search",
 				"what are the top 10 world news for this year",
 				"--verbose"
 				// "--max-time",
