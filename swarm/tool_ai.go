@@ -359,25 +359,7 @@ func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, a
 	args["kit"] = "agent"
 	args["name"] = name
 
-	// cfg, found := args["config"]
-	// if found {
-	// 	if v, ok := cfg.(*api.AppConfig); ok {
-	// 		return v, nil
-	// 	}
-	// }
-
 	var loader = NewConfigLoader(r.sw.Vars.RTE)
-
-	// cfg, found := args["config"]
-	// if found {
-	// 	data := api.ToString(cfg)
-	// 	if data != "" {
-	// 		// load content from config into the data buffer
-	// 		if err := loader.LoadContent(data); err != nil {
-	// 			return nil, err
-	// 		}
-	// 	}
-	// }
 
 	// load from script
 	// TODO only load mime-type yaml
@@ -393,7 +375,6 @@ func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, a
 	if err != nil {
 		return nil, err
 	}
-	// args["config"] = config
 	return config, nil
 }
 

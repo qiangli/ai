@@ -16,8 +16,6 @@ agents:
       • Use a crawler agent to gather information for each question.
       • Summarize and source-track each resource.
       • Filter and aggregate the summaries into a final research report.
-    # embed:
-    #   - "agent:gptr/plan_research"
     instruction: |
       #!
       You are a researcher agent designed for research on any given task.
@@ -43,6 +41,7 @@ agents:
       Responses are set in the global environment and made available to other agents and tools.
     model: "llm/fast"
     environment:
+      adapter: "echo"
       preferences: |
         #!
         {{if not .preferences}}

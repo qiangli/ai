@@ -58,9 +58,6 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	for k, v := range r.sw.Vars.Global.GetAllEnvs() {
 		vs.System.Setenv(k, v)
 	}
-	// for k, v := range r.parent.Environment.GetAllEnvs() {
-	// 	vs.System.Setenv(k, v)
-	// }
 
 	vs.ExecHandler = r.newExecHandler(vs, args)
 

@@ -156,10 +156,10 @@ script="$PWD/swarm/atm/resource/incubator/agents/gptr/agent.yaml"
 # message="Plan a cruise trip for my family"
 message="suggestion for spending a day in Los Angels"
 
-adapter="echo"
+# adapter="echo"
 # actions='[ai:new_agent,sh:format]'
 actions='[ai:spawn_agent,sh:format]'
-actions='[sh:parse,sh:format]'
+# actions='[sh:parse,sh:format]'
 
 # script="file:///$PWD/swarm/atm/resource/incubator/agents/search/agent.yaml"
 template='data:,
@@ -198,7 +198,7 @@ agent="gptr/plan_research"
     --actions "$actions"  \
     --template "$template" \
     --script "$script" \
-    --adapter "$adapter" \
+    --adapter "echo" \
     --message "$message" \
     --option preferences="$preferences" \
     --option agent_role_prompt="$prompt" \

@@ -60,6 +60,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	// *** envs ***
 	// export envs to global
 	// new vars can only reference existing global vars
+	// export all agent/embedded env
 	var envs = make(map[string]any)
 	maps.Copy(envs, vars.Global.GetAllEnvs())
 
@@ -91,7 +92,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	// global/agent envs
 	// agent args
 	// local arg takes precedence, skip if it already exists
-	if agent.Arguments != nil {
+	if len(agent.Arguments) > 0 {
 		if err := r.sw.mapAssign(ctx, agent, args, agent.Arguments, false); err != nil {
 			return nil, err
 		}

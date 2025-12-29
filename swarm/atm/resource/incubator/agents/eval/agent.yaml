@@ -11,6 +11,13 @@ agents:
     embed:
       # - "agent:memory/lastn"
       - "agent:context/summary"
+    arguments:
+      entrypoint:
+        - ai:new_agent
+        - ai:build_query
+        - ai:build_prompt
+        - ai:build_context
+        - ai:call_llm
     instruction: |
       You are an evaluation agent.
     message:
