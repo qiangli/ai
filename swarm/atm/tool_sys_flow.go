@@ -23,8 +23,8 @@ func (r *SystemKit) Flow(ctx context.Context, vars *api.Vars, _ string, argm api
 		return r.Parallel(ctx, vars, "", argm)
 	case api.FlowTypeChoice:
 		return r.Choice(ctx, vars, "", argm)
-	case api.FlowTypeMap:
-		return r.Map(ctx, vars, "", argm)
+	// case api.FlowTypeMap:
+	// 	return r.Map(ctx, vars, "", argm)
 	case api.FlowTypeChain:
 		return r.Chain(ctx, vars, "", argm)
 	default:
@@ -112,55 +112,55 @@ func (r *SystemKit) Choice(ctx context.Context, vars *api.Vars, _ string, argm a
 	return result, nil
 }
 
-// FlowType Map applies specified action(s) to each element in the input array as a seperate query, creating a new
-// array populated with the results.
-// similar to xargs utility apply action for each line
-func (r *SystemKit) Map(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
-	var query = argm.Query()
-	if query == "" {
-		return nil, fmt.Errorf("missing query.")
-	}
-	var actions = argm.Actions()
-	if len(actions) == 0 {
-		return nil, fmt.Errorf("missing actions")
-	}
+// // FlowType Map applies specified action(s) to each element in the input array as a seperate query, creating a new
+// // array populated with the results.
+// // similar to xargs utility apply action for each line
+// func (r *SystemKit) Map(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
+// 	var query = argm.Query()
+// 	if query == "" {
+// 		return nil, fmt.Errorf("missing query.")
+// 	}
+// 	var actions = argm.Actions()
+// 	if len(actions) == 0 {
+// 		return nil, fmt.Errorf("missing actions")
+// 	}
 
-	// expected: items in json array
-	var tasks []string
-	err := json.Unmarshal([]byte(query), &tasks)
-	if err != nil {
-		// make it a single task
-		tasks = []string{query}
-	}
-	var resps = make([]string, len(tasks))
+// 	// expected: items in json array
+// 	var tasks []string
+// 	err := json.Unmarshal([]byte(query), &tasks)
+// 	if err != nil {
+// 		// make it a single task
+// 		tasks = []string{query}
+// 	}
+// 	var resps = make([]string, len(tasks))
 
-	var wg sync.WaitGroup
-	for i, v := range tasks {
-		wg.Add(1)
-		go func(i int, v string) {
-			defer wg.Done()
+// 	var wg sync.WaitGroup
+// 	for i, v := range tasks {
+// 		wg.Add(1)
+// 		go func(i int, v string) {
+// 			defer wg.Done()
 
-			var nargs = make(map[string]any)
-			maps.Copy(nargs, argm)
-			nargs["query"] = v
+// 			var nargs = make(map[string]any)
+// 			maps.Copy(nargs, argm)
+// 			nargs["query"] = v
 
-			data, err := r.sequence(ctx, vars, "", actions, nargs)
-			if err != nil {
-				resps[i] = err.Error()
-			} else {
-				result := api.ToResult(data)
-				resps[i] = result.Value
-			}
-		}(i, v)
-	}
-	wg.Wait()
+// 			data, err := r.sequence(ctx, vars, "", actions, nargs)
+// 			if err != nil {
+// 				resps[i] = err.Error()
+// 			} else {
+// 				result := api.ToResult(data)
+// 				resps[i] = result.Value
+// 			}
+// 		}(i, v)
+// 	}
+// 	wg.Wait()
 
-	data, err := json.Marshal(resps)
-	if err != nil {
-		return nil, err
-	}
-	return api.ToResult(string(data)), nil
-}
+// 	data, err := json.Marshal(resps)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return api.ToResult(string(data)), nil
+// }
 
 // // FlowTypeShell delegates control to a shell script using bash script syntax, enabling
 // // complex flow control scenarios driven by external scripting logic.

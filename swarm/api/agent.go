@@ -298,8 +298,8 @@ func ToFlowType(v any) FlowType {
 		return FlowTypeChoice
 	case "parallel":
 		return FlowTypeParallel
-	case "map":
-		return FlowTypeMap
+	// case "map":
+	// 	return FlowTypeMap
 	// Uncomment if needed in the future
 	// case "loop":
 	// 	return FlowTypeLoop
@@ -330,9 +330,9 @@ const (
 	// This allows for concurrent processing of independent actions.
 	FlowTypeParallel FlowType = "parallel"
 
-	// FlowTypeMap applies specified action(s) to each element in the input array, creating a new
-	// array populated with the results.
-	FlowTypeMap FlowType = "map"
+	// // FlowTypeMap applies specified action(s) to each element in the input array, creating a new
+	// // array populated with the results.
+	// FlowTypeMap FlowType = "map"
 
 	// // FlowTypeLoop executes actions repetitively in a loop. The loop can use a counter or
 	// // evaluate an expression for each iteration, allowing for repeated execution with varying

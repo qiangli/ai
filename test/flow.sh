@@ -35,7 +35,7 @@ adapter="echo"
 # /flow:parallel --actions '["/sh:pwd", "fs:list_roots", "agent:ed"]' --option command="ls -al" --option adapter="$adapter" --option query="what is unix" --option template=$template --option adapter="echo"
 /flow:parallel --actions '["/sh:format", "/sh:format", "/sh:format"]' --option query='query x' --template 'data:, *** {{.kit}}:{{.name}} query: {{.query}}' 
 
-/flow:map --actions '["sh:format"]' --option query='["a", "b", "c"]' --template 'data:, *** {{.kit}}:{{.name}} input: {{.query}}' 
+# /flow:map --actions '["sh:format"]' --option query='["a", "b", "c"]' --template 'data:, *** {{.kit}}:{{.name}} input: {{.query}}' 
 
 #
 echo "$?"

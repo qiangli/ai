@@ -412,6 +412,10 @@ func (r *AIKit) TransferAgent(_ context.Context, _ *api.Vars, _ string, args map
 // agent can be invoked directly by name with kit name "agent:"
 // /agent:pack/sub and agent__pack__sub as tool id by LLM
 // this tool serves as a simple interface for LLM tool calls.
+// agent is required.
+// flow_type/actions defatult to the following if not set:
+// flow_type: sequence
+// actions: "ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"
 func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, _ string, args api.ArgMap) (*api.Result, error) {
 	v, err := api.GetStrProp("agent", args)
 	if err != nil {
@@ -422,12 +426,16 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, _ string, args a
 	}
 
 	kit := atm.NewSystemKit()
+
 	if v := args["flow_type"]; v == "" {
 		args["flow_type"] = api.FlowTypeSequence
 	}
+	actions := []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
 	if v := args["actions"]; v == "" {
-		args["actions"] = []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
+		args["actions"] = actions
+		args["flow_type"] = api.FlowTypeSequence
 	}
+
 	result, err := kit.Flow(ctx, vars, "", args)
 	if err != nil {
 		return nil, err
@@ -555,35 +563,6 @@ func (r *AIKit) ReadToolConfig(ctx context.Context, vars *api.Vars, tf string, a
 	args["config"] = config
 	return config, nil
 }
-
-// func (r *AIKit) ExecuteTool(ctx context.Context, _ *api.Vars, tf string, args map[string]any) (any, error) {
-// 	log.GetLogger(ctx).Debugf("Tool execute: %s %+v\n", tf, args)
-
-// 	tid, err := api.GetStrProp("tool", args)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	v, ok := args["parameters"]
-// 	if ok {
-// 		params, err := structToMap(v)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		log.GetLogger(ctx).Debugf("Tool execute: tid: %s params: %+v\n", tid, params)
-// 		return r.run(ctx, tid, params)
-// 	}
-
-// 	// LLM (openai) sometimes does not provide parameters in the args as defined in the tool yaml.
-// 	// returning the error does force to correct this but with multiple calls.
-// 	// we try args instead. if successful, it means correct parameters are provided at the top level.
-// 	log.GetLogger(ctx).Debugf("Tool execute: try ***args*** instead. tid: %s params: %+v\n", tid, args)
-// 	out, err := r.run(ctx, tid, args)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("required parameters not found in: %+v. error: %v", args, err)
-// 	}
-// 	return out, nil
-// }
 
 func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
 	log.GetLogger(ctx).Debugf("List models: %s %+v\n", tf, args)

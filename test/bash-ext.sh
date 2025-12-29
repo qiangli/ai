@@ -41,7 +41,7 @@ echo ">>> Testing bash extnesions..."
 /flow:sequence --actions '["sh:pass","sh:pwd"]'
 /flow:choice --actions '[sh:pwd,sh:pass]'
 /flow:parallel --actions '[sh:pwd,sh:pass]'
-/flow:map --actions '["sh:format"]' --option query='["a", "b", "c"]' --template 'data:, *** {{.kit}}:{{.name}} input: {{.query}}' 
+# /flow:map --actions '["sh:format"]' --option query='["a", "b", "c"]' --template 'data:, *** {{.kit}}:{{.name}} input: {{.query}}' 
 /flow:chain --option chain=[sh:timeout,sh:backoff,alias:cmd] \
     --option cmd="ls -al /tmp" \
     --option duration="60s"
