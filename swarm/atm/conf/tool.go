@@ -332,7 +332,12 @@ func LoadAgentTool(ac *api.AppConfig, sub string) (*api.ToolFunc, error) {
 				Body:        nil,
 				//
 				Agent: pn.String(),
+				// TODO
+				// for flow_type/actions
+				// agent will be recreated with full args
+				Arguments: c.Arguments,
 			}
+
 			return tool, nil
 		}
 	}

@@ -3,6 +3,7 @@ package swarm
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
@@ -291,8 +292,16 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 	// agent tool
 	if v.Type == api.ToolTypeAgent {
 		aiKit := NewAIKit(sw, agent)
-		args["agent"] = v.Name
-		return aiKit.SpawnAgent(ctx, sw.Vars, "", args)
+		var in map[string]any
+		if len(v.Arguments) > 0 {
+			in = make(map[string]any)
+			maps.Copy(in, v.Arguments)
+			maps.Copy(in, args)
+		} else {
+			in = args
+		}
+		in["agent"] = v.Name
+		return aiKit.SpawnAgent(ctx, sw.Vars, "", in)
 	}
 
 	// misc kits

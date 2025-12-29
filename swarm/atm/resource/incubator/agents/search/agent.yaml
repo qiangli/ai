@@ -23,6 +23,13 @@ agents:
     arguments:
       min_follow_links: 1
       max_follow_links: 5
+      #
+      actions:
+        - ai:new_agent
+        # - ai:build_query
+        - ai:build_prompt
+        # - ai:build_context
+        - ai:call_llm
     instruction: |
       #! --mime-type=x-go-template
       As a web search assistant, you are responsible for processing user queries and providing accurate
@@ -62,6 +69,13 @@ agents:
       min_iterations: 1
       max_iterations: 3
       n_queries: 10
+      #
+      actions:
+        - ai:new_agent
+        # - ai:build_query
+        - ai:build_prompt
+        # - ai:build_context
+        - ai:call_llm
     instruction: |
       #! --mime-type=x-go-template
       You are a specialized research assistant tasked exclusively with expanding and refining search queries 
@@ -101,6 +115,13 @@ agents:
       increased search reliability.
     arguments:
       max_retry: 3
+      #
+      actions:
+        - ai:new_agent
+        - ai:build_query
+        - ai:build_prompt
+        # - ai:build_context
+        - ai:call_llm
     message: |
       #! --mime-type=x-go-template
       Queries:

@@ -170,9 +170,9 @@
 				// "--option",
 				// "duration=10s",
 				//
-				"/ai:read_agent_config",
-				"--agent",
-				"ask/ask"
+				// "/ai:read_agent_config",
+				// "--agent",
+				// "ask/ask"
 				//
 				// "/flow:sequence",
 				// "--actions",
@@ -216,8 +216,9 @@
 				// "how to update system env in a golang template",
 				//
 				// "/agent:ask",
-				// "what is the top 10 world news for this year",
-				// "--verbose"
+				"/agent:search",
+				"what are the top 10 world news for this year",
+				"--verbose"
 				// "--max-time",
 				// "900",
 				// "--max-history",
