@@ -215,10 +215,13 @@
 				// "@ask",
 				// "how to update system env in a golang template",
 				//
-				"/agent:ask",
+				// "/agent:ask",
 				// "/agent:search",
-				"what are the top 10 world news for this year",
-				"--verbose"
+				// "/agent:ed",
+				// "what are the top 10 world news for this year",
+				// "--adapter",
+				// "echo",
+				// "--verbose",
 				// "--max-time",
 				// "900",
 				// "--max-history",

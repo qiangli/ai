@@ -11,34 +11,33 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-// run agent first if there is instruction followed by the flow.
-// otherwise, run the flow only
-func (r *SystemKit) Flow(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
-	flowType := argm.FlowType()
+// // run agent first if there is instruction followed by the flow.
+// // otherwise, run the flow only
+// func (r *SystemKit) Flow(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
+// 	flowType := argm.FlowType()
 
-	switch flowType {
-	case api.FlowTypeSequence:
-		return r.Sequence(ctx, vars, "", argm)
-	case api.FlowTypeParallel:
-		return r.Parallel(ctx, vars, "", argm)
-	case api.FlowTypeChoice:
-		return r.Choice(ctx, vars, "", argm)
-	// case api.FlowTypeMap:
-	// 	return r.Map(ctx, vars, "", argm)
-	case api.FlowTypeChain:
-		return r.Chain(ctx, vars, "", argm)
-	default:
-		return nil, fmt.Errorf("flow type not supported: %s", flowType)
-	}
-}
+// 	switch flowType {
+// 	case api.FlowTypeSequence:
+// 		return r.Sequence(ctx, vars, "", argm)
+// 	case api.FlowTypeParallel:
+// 		return r.Parallel(ctx, vars, "", argm)
+// 	case api.FlowTypeChoice:
+// 		return r.Choice(ctx, vars, "", argm)
+// 	// case api.FlowTypeMap:
+// 	// 	return r.Map(ctx, vars, "", argm)
+// 	case api.FlowTypeChain:
+// 		return r.Chain(ctx, vars, "", argm)
+// 	default:
+// 		return nil, fmt.Errorf("flow type not supported: %s", flowType)
+// 	}
+// }
 
 // FlowType Sequence executes actions one after another, where each
 // subsequent action uses the previous action's output as input.
 func (r *SystemKit) Sequence(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
-	// var query = argm.Query()
 	var actions = argm.Actions()
 
-	result, err := r.sequence(ctx, vars, "", actions, argm)
+	result, err := r.InternalSequence(ctx, vars, "", actions, argm)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +45,8 @@ func (r *SystemKit) Sequence(ctx context.Context, vars *api.Vars, _ string, argm
 	return result, nil
 }
 
-func (r *SystemKit) sequence(ctx context.Context, vars *api.Vars, _ string, actions []string, argm api.ArgMap) (*api.Result, error) {
+// TODO merge with ai kit
+func (r *SystemKit) InternalSequence(ctx context.Context, vars *api.Vars, _ string, actions []string, argm api.ArgMap) (*api.Result, error) {
 	var result any
 	for _, v := range actions {
 		data, err := vars.RootAgent.Runner.Run(ctx, v, argm)

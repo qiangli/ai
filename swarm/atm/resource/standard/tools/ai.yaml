@@ -231,18 +231,7 @@ tools:
         agent:
           type: "string"
           description: "The name of the agent"
-        flow_type:
-          type: "string"
-          description: |
-            Flow type:
-              + sequence: Execute actions consecutively, using the result of each action as the input for the next one.
-              + choice: Randomly select and execute a single action from the list of actions.
-              + parallel: Execute all actions simultaneously and return their results as a combined list.
-              + chain: Executes a series of actions consecutively. Chain actions ["a1", "a2", "a3", ...] translate to nested function calls: a1(a2(a3(...)))
-              
-            default: sequence
-            Run tool "flow:help" for more details.
-        actions:
+        entrypoint:
           type: "array"
           items:
             type: "string"
