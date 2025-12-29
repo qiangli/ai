@@ -209,7 +209,7 @@ func (sw *Swarm) exec(ctx context.Context, parent *api.Agent, input any) (*api.R
 }
 
 // default action runner
-func (sw *Swarm) execm(ctx context.Context, parent *api.Agent, argm map[string]any) (*api.Result, error) {
+func (sw *Swarm) execm(ctx context.Context, agent *api.Agent, argm map[string]any) (*api.Result, error) {
 	log.GetLogger(ctx).Debugf("argm: %+v\n", argm)
 
 	am := api.ArgMap(argm)
@@ -219,7 +219,7 @@ func (sw *Swarm) execm(ctx context.Context, parent *api.Agent, argm map[string]a
 		// kit is optional for system command
 		return nil, fmt.Errorf("missing action id: %+v", argm)
 	}
-	v, err := parent.Runner.Run(ctx, id, argm)
+	v, err := agent.Runner.Run(ctx, id, argm)
 	if err != nil {
 		return nil, err
 	}

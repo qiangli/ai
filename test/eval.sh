@@ -194,16 +194,29 @@ agent="gptr/plan_research"
 # agent="gptr/report"
 
 # agent="search/scrape"
-/flow:sequence --agent "$agent" \
+# echo /flow:sequence --agent "$agent" \
     --actions "$actions"  \
     --template "$template" \
-    --script "$script" \
     --adapter "echo" \
-    --message "$message" \
-    --option preferences="$preferences" \
-    --option agent_role_prompt="$prompt" \
-    --option search_results="$result"
+    --message "$message" 
 
+    # --option preferences="$preferences" \
+    # --option agent_role_prompt="$prompt" \
+    # --option search_results="$result"
+
+# "/flow:sequence",
+# "--actions",
+# "[ai:spawn_agent,sh:format]",
+# "--agent",
+# "gptr/plan_research",
+# "--adapter",
+# "echo",
+# "--template",
+# "data:,env: {{printenv}}",
+# "--verbose",
+# "--message",
+# "tell me a joke"
+# echo /flow:sequence --actions "[ai:spawn_agent,sh:format]" --agent "gptr/plan_research" --adapter "echo" --template "data:,env: {{printenv}}" --verbose --message "tell me a joke"
 
 # echo "Publishing..."
 # /flow:sequence --option actions="[agent:gptr/curate,agent:gptr/report]" --adapter "echo"

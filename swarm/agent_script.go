@@ -16,14 +16,14 @@ import (
 )
 
 type AgentScriptRunner struct {
-	sw     *Swarm
-	parent *api.Agent
+	sw    *Swarm
+	agent *api.Agent
 }
 
 func NewAgentScriptRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
 	return &AgentScriptRunner{
-		sw:     sw,
-		parent: agent,
+		sw:    sw,
+		agent: agent,
 	}
 }
 
@@ -71,9 +71,6 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	}
 	// copy back env
 	r.sw.Vars.Global.AddEnvs(vs.System.Environ())
-	// if r.parent.Environment != nil {
-	// 	r.parent.Environment.AddEnvs(vs.System.Environ())
-	// }
 
 	result := &api.Result{
 		Value: b.String(),
@@ -84,39 +81,30 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 
 func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, envs api.ArgMap) sh.ExecHandler {
 	return func(ctx context.Context, args []string) (bool, error) {
-		if r.parent == nil {
-			return true, fmt.Errorf("missing parent agent")
+		if r.agent == nil {
+			return true, fmt.Errorf("script: missing agent")
 		}
-		log.GetLogger(ctx).Debugf("parent: %s args: %+v\n", r.parent.Name, args)
+		log.GetLogger(ctx).Debugf("script agent: %s args: %+v\n", r.agent.Name, args)
 
 		if conf.IsAction(strings.ToLower(args[0])) {
-			log.GetLogger(ctx).Debugf("running ai agent/tool: %+v\n", args)
+			// log.GetLogger(ctx).Debugf("script: ai agent/tool: %+v\n", args)
 
-			// ignore result.
-			// execv prints to stdout/stderr
-			// argm, err := conf.Parse(args)
-			// if err != nil {
-			// 	return true, err
-			// }
-			// maps.Copy(envs, argm)
-			// _, err = r.execv(ctx, vs, envs)
-			// if err != nil {
-			// 	return true, err
-			// }
-
-			at, err := conf.Parse(args)
+			at, err := conf.ParseActionArgs(args)
 			if err != nil {
 				return true, err
 			}
-			var in = make(map[string]any)
 
-			maps.Copy(in, r.parent.Arguments)
+			// consistant with template
+			var in = make(map[string]any)
+			// defaults
+			maps.Copy(in, r.agent.Arguments)
 			//
 			maps.Copy(in, r.sw.Vars.Global.GetAllEnvs())
-			maps.Copy(in, envs)
+			// share or not share?
+			// maps.Copy(in, envs)
 			maps.Copy(in, at)
 
-			_, err = r.execv(ctx, vs, in)
+			_, err = r.run(ctx, vs, in)
 			if err != nil {
 				return true, err
 			}
@@ -150,12 +138,8 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, envs api.ArgMap
 	}
 }
 
-func (r *AgentScriptRunner) execv(ctx context.Context, vs *sh.VirtualSystem, args api.ArgMap) (*api.Result, error) {
-	// for k, v := range r.parent.Environment.GetAllEnvs() {
-	// 	vs.System.Setenv(k, v)
-	// }
-
-	result, err := r.sw.execm(ctx, r.parent, args)
+func (r *AgentScriptRunner) run(ctx context.Context, vs *sh.VirtualSystem, args api.ArgMap) (*api.Result, error) {
+	result, err := r.sw.execm(ctx, r.agent, args)
 	if result != nil {
 		fmt.Fprintln(vs.IOE.Stdout, result.Value)
 	}

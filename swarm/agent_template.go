@@ -12,6 +12,7 @@ import (
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
+	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/shell/tool/sh"
 )
 
@@ -73,13 +74,18 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 	// custom
 	// ai
 	fm["ai"] = func(args ...string) string {
+		if agent == nil {
+			return "<template: missing agent>"
+		}
 		ctx := context.Background()
+
+		log.GetLogger(ctx).Debugf("template agent: %s args: %+v\n", agent.Name, args)
 
 		at, err := conf.ParseActionArgs(args)
 		if err != nil {
 			return err.Error()
 		}
-		id := at.Kitname().ID()
+		// id := at.Kitname().ID()
 
 		// inherit
 		var in = make(map[string]any)
@@ -89,12 +95,13 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 		maps.Copy(in, sw.Vars.Global.GetAllEnvs())
 		maps.Copy(in, at)
 
-		data, err := agent.Runner.Run(ctx, id, in)
+		// data, err := agent.Runner.Run(ctx, id, in)
+		result, err := sw.execm(ctx, agent, in)
 
 		if err != nil {
 			return err.Error()
 		}
-		result := api.ToResult(data)
+		// result := api.ToResult(data)
 		if result == nil {
 			return ""
 		}
