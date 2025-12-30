@@ -17,63 +17,27 @@ agents:
       • Summarize and source-track each resource.
       • Filter and aggregate the summaries into a final research report.
     instruction: |
-      #!
       You are a researcher agent designed for research on any given task.
-
-      User's original query:
-      "{{.query}}"
-
-      Please run the agent tool `agent:gptr/report` with the user's original query to perform research.
-
-      Once completed successfully. You should save the final report in the workspace with an fitting name based on user query.
-      and report to user where this report has been saved.
+    entrypoint:
+      - "agent:gptr/user_input"
+      - "agent:gptr/choose_agent"
+      - "agent:gptr/report"
     functions:
-      - "fs:*"
+      - "agent:gptr/user_input"
+      - "agent:gptr/choose_agent"
       - "agent:gptr/report"
 
-  - name: "plan_research"
-    display: "🌐 Common Planning and Research"
-    description: |
-      Detect user preferences for the GPT Researcher tool
-      Create a task-specific agent based on a research query.
-      Use a crawler agent to gather information for each question.
-
-      Responses are set in the global environment and made available to other agents and tools.
-    model: "llm/fast"
-    environment:
-      adapter: "echo"
-      preferences: |
-        #!
-        {{if not .preferences}}
-          {{ai "/agent:gptr/user_input"}}
-        {{else}}
-          {{.preferences}}
-        {{end}}
-      agent_role_prompt: |
-        #! --mimte-type=text/x-go-template
-        {{if not .agent_role_prompt}}
-          {{ai "/agent:meta/prompt"}}
-        {{else}}
-          {{.agent_role_prompt}}
-        {{end}}
-      search_results: |
-        #!
-        {{if not .search_results}}
-          {{ai "/agent:search/scrape"}}
-        {{else}}
-          {{.search_results}}
-        {{end}}
-    functions:
-      - "agent:meta/prompt"
-      - "agent:search/scrape"
-      - "agent:gptr/user_input"
-  
   - name: "user_input"
     new: true
     display: "🖥️  User Input"
     description: "Detect user preferences for the GPT Researcher tool."
+    embed:
+      - "agent:meta/save_result"
+    environment:
+      result_key: "preferences"
     instruction: |
-      You are an agent designed to analyze user input to identify preferences for generating research reports. Your role is not to gather or retrieve real-time information, but to extract the specified parameters from the user's query.
+      You are an agent designed to analyze user input to identify preferences for generating research reports.
+      Your role is not to gather or retrieve real-time information, but to extract the specified parameters from the user's query.
 
       Your objective is to identify the following elements from the user's input:
 
@@ -94,7 +58,8 @@ agents:
 
       + Language: The language to be used for the final research report. The default is `English`.
 
-      The final response as well as the user's original query must be saved using the `ai:set_envs` tool.
+      You must also save the original query from the user.
+
       {
         "tone": "detected tone from user input",
         "total_words": "derived total words from user input",
@@ -102,23 +67,37 @@ agents:
         "language": "preferred language by user",
         "original_query": "users original query"
       }
-    environment:
+    arguments:
       tone: "objective"
       total_words: 500
       report_format: "markdown"
       language: "english"
 
-  - name: "curate"
-    display: "⚖️ Evaluating and curating sources"
-    description: "Ranks sources and curates data based on their relevance, credibility and reliability."
+  - name: "choose_agent"
+    new: true
+    display: "🤖 Choose Agent"
+    description: "Chooses the agent automatically"
     model: "llm/smart"
     embed:
-      - "agent:gptr/plan_research"
+      - "agent:meta/prompt"
+    environment:
+      result_key: "agent_role_prompt"
+    functions:
+      - "agent:meta/prompt"
+
+  - name: "curate"
+    display: "⚖️ Evaluating and curating sources"
+    description: |
+      Ranks sources and curates data based on their relevance, credibility and reliability.
+    model: "llm/smart"
     arguments:
       # temperature: 0.2
       # max_completion_tokens: 10000
       #
-      max_results: 8
+      max_results: 5
+      # agent_role_prompt: 
+      #   display: ""
+      #   instruction: ""
     instruction: |
       #! --mimte-type=text/x-go-template
       {{.agent_role_prompt.display}}
@@ -152,17 +131,17 @@ agents:
 
       SOURCES LIST TO EVALUATE:
 
-      {{.search_results}}
+      {{ai "/agent:search/scrape" "--option" (printf "query=%s" .preferences.original_query)}}
 
       You MUST return your response in the EXACT sources JSON list format as the original sources.
       The response MUST not contain any markdown format or additional text (like ```json), just the JSON list!
+    functions:
+      - "agent:search/scrape"
 
   - name: "report"
     display: "📝 Report"
     description: "Generates the final report"
     model: "llm/smart"
-    embed:
-      - "agent:gptr/plan_research"
     parameters:
       type: "object"
       properties:
@@ -174,14 +153,21 @@ agents:
       # max_completion_tokens: 10000
       #
       date: "{{now}}"
+      # preferences:
+      #   tone: "objective"
+      #   total_words: 500
+      #   report_format: "markdown"
+      #   language: "english"
     instruction: |
       #! --mime-type=text/x-go-template
+
       {{.agent_role_prompt.display}}
       {{.agent_role_prompt.instruction}}
+
     message: |
       #! --mime-type=text/x-go-template
       Information:
-      
+
       {{ai "/agent:gptr/curate"}}
 
       ###
@@ -210,7 +196,11 @@ agents:
       You MUST write the report in the following language: {{.preferences.language}}.
       The report SHOULD be approximately {{.preferences.total_words}} words long.
       Assume that the current date is {{.date}}.
+
+      Once completed. You must save the final report in the workspace with an fitting name based on user query.
+      and report back to user where this report has been saved.
     functions:
+      - "fs:*"
       - "agent:gptr/curate"
 
 ## tool kit
@@ -220,10 +210,10 @@ agents:
 #     display: "Research Tool"
 #     description: |
 #       This tool produces detailed, factual, and unbiased research reports with citations.
-#       • Create a task-specific agent based on a research query.                                       
-#       • Generate questions that collectively form an objective opinion on the task.                   
-#       • Use a crawler agent to gather information for each question.                                  
-#       • Summarize and source-track each resource.                                                     
+#       • Create a task-specific agent based on a research query.
+#       • Generate questions that collectively form an objective opinion on the task.
+#       • Use a crawler agent to gather information for each question.
+#       • Summarize and source-track each resource.
 #       • Filter and aggregate the summaries into a final research report.
 #     parameters:
 #       type: "object"

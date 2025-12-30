@@ -237,16 +237,17 @@ func NewArgMap() ArgMap {
 }
 
 func (a ArgMap) Kitname() Kitname {
-	kn := fmt.Sprintf("%s:%s", a.Kit(), a.Name())
+	kit := a.GetString("kit")
+	name := a.GetString("name")
+	if kit == "agent" {
+		pack := a.GetString("pack")
+		if pack == "" {
+			pack = "missing"
+		}
+		name = pack + "/" + name
+	}
+	kn := fmt.Sprintf("%s:%s", kit, name)
 	return Kitname(kn)
-}
-
-func (a ArgMap) Kit() string {
-	return a.GetString("kit")
-}
-
-func (a ArgMap) Name() string {
-	return a.GetString("name")
 }
 
 func (a ArgMap) Type() string {

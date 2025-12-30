@@ -162,11 +162,11 @@ type InputConfig struct {
 }
 
 type AppConfig struct {
-	// entry action
-	// kit:name
-	// pack/sub
-	// default: pack[/pack]
-	Action string `yaml:"action" json:"action"`
+	// // entry action
+	// // kit:name
+	// // pack/sub
+	// // default: pack[/pack]
+	// Action string `yaml:"action" json:"action"`
 
 	// ActionConfig
 	//
@@ -251,9 +251,9 @@ func (ac *AppConfig) ToMap() map[string]any {
 	if ac.Pack != "" {
 		result["pack"] = ac.Pack
 	}
-	if ac.Action != "" {
-		result["action"] = ac.Action
-	}
+	// if ac.Action != "" {
+	// 	result["action"] = ac.Action
+	// }
 	if ac.Kit != "" {
 		result["kit"] = ac.Kit
 	}

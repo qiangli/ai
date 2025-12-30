@@ -14,9 +14,11 @@ func TestParseActionArgs(t *testing.T) {
 		expected map[string]any
 		wantErr  bool
 	}{
+		// trigger word 'ai' @ prefix
 		{
 			input: []string{"ai", "@example"},
 			expected: map[string]any{
+				"pack": "example",
 				"name": "example",
 				"kit":  "agent",
 			},
@@ -25,14 +27,17 @@ func TestParseActionArgs(t *testing.T) {
 		{
 			input: []string{"agent:example"},
 			expected: map[string]any{
+				"pack": "example",
 				"name": "example",
 				"kit":  "agent",
 			},
 			wantErr: false,
 		},
+		// comma suffix
 		{
 			input: []string{"example,", "hello"},
 			expected: map[string]any{
+				"pack":    "example",
 				"name":    "example",
 				"kit":     "agent",
 				"message": "hello",
@@ -80,6 +85,7 @@ func TestParseActionCommand(t *testing.T) {
 		{
 			input: "ai @example",
 			expected: map[string]any{
+				"pack": "example",
 				"name": "example",
 				"kit":  "agent",
 			},
@@ -88,14 +94,17 @@ func TestParseActionCommand(t *testing.T) {
 		{
 			input: "agent:example",
 			expected: map[string]any{
+				"pack": "example",
 				"name": "example",
 				"kit":  "agent",
 			},
 			wantErr: false,
 		},
+		// comma suffix
 		{
 			input: "example, hello",
 			expected: map[string]any{
+				"pack":    "example",
 				"name":    "example",
 				"kit":     "agent",
 				"message": "hello",
@@ -243,7 +252,7 @@ func TestIsAction(t *testing.T) {
 	}
 }
 
-func TestParseArgsLoggingFlags(t *testing.T) {
+func TestParseArgsLogFlags(t *testing.T) {
 	tests := []struct {
 		args     []string
 		expected string

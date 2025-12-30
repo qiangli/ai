@@ -84,7 +84,9 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 		return nil
 	}
 
-	addAll(agent)
+	if err := addAll(agent); err != nil {
+		return nil, err
+	}
 	vars.Global.AddEnvs(envs)
 	agent.Environment.SetEnvs(envs)
 
@@ -162,6 +164,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	// update the property with the created agent object
 	args["kit"] = "agent"
 	args["name"] = agent.Name
+	args["pack"] = agent.Pack
 	args["agent"] = agent
 
 	return agent, nil

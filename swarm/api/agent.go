@@ -129,8 +129,8 @@ type Agent struct {
 // for reusing cached agent
 func (a *Agent) Clone() *Agent {
 	clone := &Agent{
-		Parent: a.Parent,
-		// Owner:       a.Owner,
+		Parent:      a.Parent,
+		Pack:        a.Pack,
 		Name:        a.Name,
 		Display:     a.Display,
 		Description: a.Description,
@@ -139,9 +139,6 @@ func (a *Agent) Clone() *Agent {
 		Tools:     a.Tools,
 		Arguments: a.cloneArguments(),
 		Adapter:   a.Adapter,
-
-		//
-		// Flow: a.Flow,
 		//
 		Embed:       a.Embed,
 		Environment: a.cloneEnvironment(),
@@ -183,6 +180,7 @@ type AgentConfig struct {
 	Creator string `yaml:"creator" json:"creator"`
 
 	// default agents config
+	// sub name only
 	Name      string         `yaml:"name" json:"name"`
 	Arguments map[string]any `yaml:"arguments" json:"arguments"`
 
@@ -236,6 +234,7 @@ type AgentConfig struct {
 
 func (ac *AgentConfig) ToMap() map[string]any {
 	result := make(map[string]any)
+
 	if ac.Name != "" {
 		result["name"] = ac.Name
 	}

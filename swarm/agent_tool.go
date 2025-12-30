@@ -148,6 +148,13 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	if tid == "" {
 		kit = api.ToString(args["kit"])
 		name = api.ToString(args["name"])
+		if kit == "agent" {
+			pack := api.ToString(args["pack"])
+			if pack == "" {
+				return nil, fmt.Errorf("missing pack for agent tool: %s", name)
+			}
+			name = pack + "/" + name
+		}
 		tid = api.NewKitname(kit, name).ID()
 	} else {
 		kit, name = api.Kitname(tid).Decode()

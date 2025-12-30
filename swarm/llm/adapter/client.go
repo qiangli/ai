@@ -46,6 +46,17 @@ type EchoAdapter struct{}
 func (r *EchoAdapter) Call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	var resp api.Response
 
+	// custom response: echo__id
+	if len(req.Arguments) > 0 {
+		id := req.Arguments.Kitname().ID()
+		if v, found := req.Arguments["echo__"+id]; found {
+			resp.Result = &api.Result{
+				Value: api.ToString(v),
+			}
+			return &resp, nil
+		}
+	}
+
 	// resolve cycles
 	var agent *api.Agent
 	if len(req.Arguments) > 0 {

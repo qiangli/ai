@@ -215,6 +215,7 @@ func (r Kitname) Decode() (string, string) {
 	s := r.Clean()
 	parts := strings.SplitN(string(s), ":", 2)
 	kit := parts[0]
+	// restore agent name from __ to /
 	name := strings.ReplaceAll(parts[1], "__", "/")
 	return kit, name
 }
@@ -241,7 +242,8 @@ func (r Kitname) Clean() Kitname {
 
 	if strings.HasPrefix(s, "@") || strings.HasPrefix(s, "agent:") {
 		pack, sub := Packname(s).Decode()
-		return Kitname("agent" + ":" + pack + "__" + sub)
+		// return Kitname("agent" + ":" + pack + "__" + sub)
+		return Kitname("agent" + ":" + pack + "/" + sub)
 	}
 
 	indexUnderscore := strings.Index(s, "__")

@@ -18,6 +18,10 @@ agents:
       Specializes in crafting tailored system role instructions for agents to enhance LLM response 
       precision. Combines domain knowledge with user preferences to create effective AI guidance 
       prompts.
+    environment:
+      result_key: "meta_prompt"
+    embed:
+      - "agent:meta/save_result"
     instruction: |
       Your task is to craft precise system role instructions to steer LLMs in providing accurate, 
       context-sensitive responses. Each system requires distinct roles based on its domain and 
@@ -137,7 +141,7 @@ agents:
       - "ai:read_agent_config"
       - "ai:spawn_agent"
 
-  - name: "result"
+  - name: "save_result"
     display: Save response result in the environment
     description: |
       Use the `sh:set_envs` tool to store the response with the key `result`.

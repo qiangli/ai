@@ -226,6 +226,11 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	if name != "" {
 		argm["name"] = name
 	}
+	if kit == "agent" {
+		pack, sub := api.Packname(name).Decode()
+		argm["name"] = sub
+		argm["pack"] = pack
+	}
 	if msg != "" {
 		argm["message"] = msg
 	}
@@ -397,13 +402,14 @@ func Parse(input any) (api.ArgMap, error) {
 
 	a := api.ArgMap(argm)
 	kit, name := a.Kitname().Decode()
-	// loosen this requirement to let the consumers to decide
-	// if kit == "" {
-	// 	return nil, fmt.Errorf("missing action id: %+v", argm)
-	// }
-	// ensure name is set even it is empty
+	// ensure name is set even if it is empty
 	a["kit"] = kit
 	a["name"] = name
+	if kit == "agent" {
+		pack, sub := api.Packname(name).Decode()
+		a["pack"] = pack
+		a["name"] = sub
+	}
 	return a, nil
 }
 

@@ -346,17 +346,21 @@ Instruction: %s
 }
 
 func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, args api.ArgMap) (*api.AppConfig, error) {
-	name, err := api.GetStrProp("agent", args)
+	packsub, err := api.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
 	}
-	if name == "self" {
+	if packsub == "self" {
 		if r.agent == nil {
 			return nil, fmt.Errorf("Sorry, something went terribaly wrong")
 		}
-		name = r.agent.Name
+		packsub = r.agent.Pack + "/" + r.agent.Name
 	}
+
+	pn := api.Packname(packsub).Clean()
+	pack, name := pn.Decode()
 	args["kit"] = "agent"
+	args["pack"] = pack
 	args["name"] = name
 
 	var loader = NewConfigLoader(r.sw.Vars.RTE)
@@ -371,7 +375,7 @@ func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, a
 		}
 	}
 
-	config, err := loader.LoadAgentConfig(api.Packname(name))
+	config, err := loader.LoadAgentConfig(pn)
 	if err != nil {
 		return nil, err
 	}
