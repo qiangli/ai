@@ -20,11 +20,9 @@ agents:
       You are a researcher agent designed for research on any given task.
     entrypoint:
       - "agent:gptr/user_input"
-      - "agent:gptr/choose_agent"
       - "agent:gptr/report"
     functions:
       - "agent:gptr/user_input"
-      - "agent:gptr/choose_agent"
       - "agent:gptr/report"
 
   - name: "user_input"
@@ -33,7 +31,7 @@ agents:
     description: "Detect user preferences for the GPT Researcher tool."
     embed:
       - "agent:meta/save_result"
-    environment:
+    arguments:
       result_key: "preferences"
     instruction: |
       You are an agent designed to analyze user input to identify preferences for generating research reports.
@@ -67,21 +65,37 @@ agents:
         "language": "preferred language by user",
         "original_query": "users original query"
       }
-    arguments:
-      tone: "objective"
-      total_words: 500
-      report_format: "markdown"
-      language: "english"
+    functions:
+      - "agent:meta/save_result"
+  
+  - name: "user_preferences"
+    display: "Detect and Save User Preferences"
+    description: |
+      Detect and save user preferences based on user's input query.
+    instruction: |
+      #! --mime-type=text/x-go-template
+
+      *** User's Preferences ***
+      {{if not .preferences}}
+        {{ai "/agent:gptr/user_input" "--option" (printf "query=%s" .query)}}
+      {{else}}
+        {{.preferences}}
+      {{end}}
+
+      Ensure that the user's preferences appear above.
+      If missing, use the tool `agent:gptr/user_input` with the user's query to retrieve preferences.
+      ###
+    functions:
+      - "agent:gptr/user_input"
 
   - name: "choose_agent"
-    new: true
-    display: "🤖 Choose Agent"
-    description: "Chooses the agent automatically"
-    model: "llm/smart"
-    embed:
-      - "agent:meta/prompt"
-    environment:
-      result_key: "agent_role_prompt"
+    display: "🤖 Adaptive Agent"
+    description: |
+      A versatile agent that adapts to user queries.
+    instruction: |
+      #!
+      You are an adaptive agent:
+      {{ai "/agent:meta/prompt" "--option" (printf "query=%s" .query)}}
     functions:
       - "agent:meta/prompt"
 
@@ -90,27 +104,26 @@ agents:
     description: |
       Ranks sources and curates data based on their relevance, credibility and reliability.
     model: "llm/smart"
+    embed:
+      - "agent:gptr/choose_agent"
+      - "agent:gptr/user_preferences"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The original query from user"
     arguments:
       # temperature: 0.2
       # max_completion_tokens: 10000
       #
       max_results: 5
-      agent_role_prompt: 
-        display: "Curator"
-        instruction: "Ranks sources and curates data"
-      preferences:
-        tone: "formal"
-        total_words: "100"
-        report_format: "markdown"
-        language: "english"
-        original_query: "no query provided"
     instruction: |
       #! --mimte-type=text/x-go-template
-      {{.agent_role_prompt.display}}
-      {{.agent_role_prompt.instruction}}
+      Your goal is to evaluate and curate the provided scraped content for the research task: 
 
-      ###
-      Your goal is to evaluate and curate the provided scraped content for the research task: "{{.preferences.original_query}}"
+      "{{.preferences}}"
+
       while prioritizing the inclusion of relevant and high-quality information, especially sources containing statistics, numbers, or concrete data.
 
       The final curated list will be used as context for creating a research report, so prioritize:
@@ -137,7 +150,7 @@ agents:
 
       SOURCES LIST TO EVALUATE:
 
-      {{ai "/agent:search/scrape" "--option" (printf "query=%s" .preferences.original_query)}}
+      *** Run tool `agent:search/scrape` to obtain the source list with user's original query ***
 
       You MUST return your response in the EXACT sources JSON list format as the original sources.
       The response MUST not contain any markdown format or additional text (like ```json), just the JSON list!
@@ -148,6 +161,8 @@ agents:
     display: "📝 Report"
     description: "Generates the final report"
     model: "llm/smart"
+    embed:
+      - "agent:gptr/user_preferences"
     parameters:
       type: "object"
       properties:
@@ -159,30 +174,17 @@ agents:
       # max_completion_tokens: 10000
       #
       date: "{{now}}"
-      agent_role_prompt: 
-        display: "Curator"
-        instruction: "Ranks sources and curates data"
-      preferences:
-        tone: "formal"
-        total_words: "100"
-        report_format: "markdown"
-        language: "english"
-        original_query: "no query provided"
     instruction: |
       #! --mime-type=text/x-go-template
-
-      {{.agent_role_prompt.display}}
-      {{.agent_role_prompt.instruction}}
-    message: |
-      #! --mime-type=text/x-go-template
+      ###
       Information:
 
-      {{ai "/agent:gptr/curate"}}
+      *** You must run the tool `agent:gptr/curate` to obtain the content ***
 
       ###
-      Using the above information, answer the following query or task:
-      
-      "{{.preferences.original_query}}"
+      Using the above information, answer the following task:
+
+      "{{.preferences}}"
 
       in a detailed report
       --
@@ -213,9 +215,12 @@ agents:
 
       Once completed. You must save the final report in the workspace with an fitting name based on user query.
       and report back to user where this report has been saved.
+      Additionally, read the saved report and return its content to the console.
     functions:
       - "fs:*"
       - "agent:gptr/curate"
+
+## toolkit
 
 ## models
 set: llm

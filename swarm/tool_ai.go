@@ -62,6 +62,14 @@ func (r *AIKit) checkAndCreate(ctx context.Context, vars *api.Vars, tf string, a
 }
 
 func (r *AIKit) llmAdapter(agent *api.Agent, args map[string]any) (api.LLMAdapter, error) {
+	// mock if echo__<agent__pack__sub> is found in args.
+	if agent != nil && len(args) > 0 {
+		id := api.NewPackname(agent.Pack, agent.Name).ID()
+		if _, ok := args["echo__"+id]; ok {
+			return &adapter.EchoAdapter{}, nil
+		}
+	}
+	//
 	var llmAdapter api.LLMAdapter
 	if v, found := args["adapter"]; found {
 		switch vt := v.(type) {

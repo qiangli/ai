@@ -137,6 +137,12 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 			if err := json.Unmarshal([]byte(v.Function.Arguments), &props); err != nil {
 				return nil, err
 			}
+			// // copy request args if not found in props
+			// for k, v := range req.Arguments {
+			// 	if _, ok := props[k]; !ok {
+			// 		props[k] = v
+			// 	}
+			// }
 
 			calls[i] = api.NewToolCall(
 				v.ID,

@@ -6,14 +6,19 @@
 # // | fromJson | toPrettyJson
 template='data:,
 >>>>>>>>> Message
+
 {{.query}}
+
 >>>>>>>>> Instruction
+
 {{.prompt}}
 
 >>>>>>>>> Result
-{{.result}}
+
+{{.result }}
 
 >>>>>>>>> Env
+
 {{printenv}}
 '
 
@@ -21,36 +26,46 @@ template='data:,
 # script="file:///$PWD/swarm/atm/resource/incubator/agents/meta/agent.yaml"
 script="file:///$PWD/swarm/atm/resource/incubator/agents/gptr/agent.yaml"
 
-message="write a report on the major world events for the year of 2025"
+# message="write a report on the major world events for the year of 2025"
+# message="What is the latest technology and research  human like consciousness for  AI and LLM"
+message="Stock market trend for the next one month"
 
-# preferences='
-# {
-#     "tone": "formal",
-#     "total_words": "1000",
-#     "report_format": "markdown",
-#     "language": "english",
-#     "original_query": "write a report on the major world events for the year of 2025"
-# }
-# '
-# role_prompt='{"name":"cool_agent","display":"Cool Agent","instruction":"You are a smart agent!"}'
-# scrape_result='["RESULT ONE","RESULT TWO"]'
-# final_report="This is the report."
+preferences='
+{
+    "tone": "formal",
+    "total_words": "1000",
+    "report_format": "markdown",
+    "language": "english",
+    "original_query": "Stock market trend for the next 2 months"
+}
+'
+role_prompt='{"name":"cool_agent","display":"Cool Agent","instruction":"You are a smart agent!"}'
+scrape_result='["RESULT ONE","RESULT TWO"]'
+final_report="This is the report."
 
 /flow:sequence \
-    --agent "gptr/gptr" \
+    --agent "gptr" \
     --actions "[ai:spawn_agent,sh:format]" \
     --template "$template" \
     --script "$script" \
     --adapter "chat" \
+    # --option echo__agent__gptr__user_input="$preferences" \
+    # --option echo__agent__gptr__user_preferences="$preferences" \
+    # --option echo__agent__meta__prompt="$role_prompt" \
+    # --option echo__agent__gptr__choose_agent="$role_prompt" \
+    # --option echo__agent__search__scrape="$scrape_result" \
+    # --option echo__agent__gptr__curate="$scrape_result" \
     --message "$message"
 
+    # --option echo__agent__gptr__curate="$scrape_result" \
+    # --option echo__agent__gptr__choose_agent="$role_prompt" \
     # --option echo__agent__gptr__user_input="$preferences" \
     # --option echo__agent__gptr__choose_agent="$role_prompt" \
     # --option echo__agent__search__scrape="$scrape_result" \
     # --option echo__agent__gptr__curate="$scrape_result" \
     # --option echo__agent__gptr__report="$final_report"
 
-
+# {{ai "/agent:search/scrape" "--option" (printf "query=%s" .preferences.original_query)}}
 echo "---- script env ----"
 
 printenv
