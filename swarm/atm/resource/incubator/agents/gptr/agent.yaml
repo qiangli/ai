@@ -95,9 +95,15 @@ agents:
       # max_completion_tokens: 10000
       #
       max_results: 5
-      # agent_role_prompt: 
-      #   display: ""
-      #   instruction: ""
+      agent_role_prompt: 
+        display: "Curator"
+        instruction: "Ranks sources and curates data"
+      preferences:
+        tone: "formal"
+        total_words: "100"
+        report_format: "markdown"
+        language: "english"
+        original_query: "no query provided"
     instruction: |
       #! --mimte-type=text/x-go-template
       {{.agent_role_prompt.display}}
@@ -153,17 +159,20 @@ agents:
       # max_completion_tokens: 10000
       #
       date: "{{now}}"
-      # preferences:
-      #   tone: "objective"
-      #   total_words: 500
-      #   report_format: "markdown"
-      #   language: "english"
+      agent_role_prompt: 
+        display: "Curator"
+        instruction: "Ranks sources and curates data"
+      preferences:
+        tone: "formal"
+        total_words: "100"
+        report_format: "markdown"
+        language: "english"
+        original_query: "no query provided"
     instruction: |
       #! --mime-type=text/x-go-template
 
       {{.agent_role_prompt.display}}
       {{.agent_role_prompt.instruction}}
-
     message: |
       #! --mime-type=text/x-go-template
       Information:
@@ -171,7 +180,12 @@ agents:
       {{ai "/agent:gptr/curate"}}
 
       ###
-      Using the above information, answer the following query or task: "{{.preferences.original_query}}" in a detailed report --
+      Using the above information, answer the following query or task:
+      
+      "{{.preferences.original_query}}"
+
+      in a detailed report
+      --
       The report should focus on the answer to the query, should be well structured, informative,
       in-depth, and comprehensive, with facts and numbers if available and at least {{.preferences.total_words}} words.
       You should strive to write the report as long as you can using all relevant and necessary information provided.
@@ -202,31 +216,6 @@ agents:
     functions:
       - "fs:*"
       - "agent:gptr/curate"
-
-## tool kit
-# kit: "gptr"
-# tools:
-#   - name: "research"
-#     display: "Research Tool"
-#     description: |
-#       This tool produces detailed, factual, and unbiased research reports with citations.
-#       • Create a task-specific agent based on a research query.
-#       • Generate questions that collectively form an objective opinion on the task.
-#       • Use a crawler agent to gather information for each question.
-#       • Summarize and source-track each resource.
-#       • Filter and aggregate the summaries into a final research report.
-#     parameters:
-#       type: "object"
-#       properties:
-#         query:
-#           type: "string"
-#           description: "The original query from user"
-#     type: "func"
-#     body:
-#       mime_type: "application/x-sh"
-#       script: |
-#         #!
-#         {{ai "/agent:gptr/report"}}
 
 ## models
 set: llm

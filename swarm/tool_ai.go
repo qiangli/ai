@@ -398,24 +398,50 @@ func (r *AIKit) TransferAgent(_ context.Context, _ *api.Vars, _ string, args map
 // /agent:pack/sub and agent__pack__sub as tool id by LLM
 // this tool serves as a simple interface for LLM tool calls.
 // agent is required.
-// flow_type/actions defatult to the following if not set:
-// flow_type: sequence
-// actions: "ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"
-func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, _ string, args api.ArgMap) (*api.Result, error) {
-	v, err := api.GetStrProp("agent", args)
+// actions defatult to the following if not set:
+// entrypoint: "ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"
+func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, tid string, args api.ArgMap) (*api.Result, error) {
+	// v, err := api.GetStrProp("agent", args)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if v == "" {
+	// 	return nil, fmt.Errorf("missing agent name")
+	// }
+
+	packsub, err := api.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
 	}
-	if v == "" {
-		return nil, fmt.Errorf("missing agent name")
+	if packsub == "self" {
+		if r.agent == nil {
+			return nil, fmt.Errorf("Sorry, something went terribaly wrong")
+		}
+		packsub = r.agent.Pack + "/" + r.agent.Name
 	}
+	pn := api.Packname(packsub).Clean()
+	_, sub := pn.Decode()
 
+	//
 	kit := atm.NewSystemKit()
-	actions := []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
+	var entry []string
 	if v := args["entrypoint"]; v != nil {
-		actions = api.ToStringArray(v)
+		entry = api.ToStringArray(v)
 	}
-	result, err := kit.InternalSequence(ctx, vars, "", actions, args)
+	if len(entry) == 0 {
+		if ac, _ := r.ReadAgentConfig(ctx, vars, "", args); ac != nil {
+			for _, c := range ac.Agents {
+				if c.Name == sub {
+					entry = c.Entrypoint
+					break
+				}
+			}
+		}
+	}
+	if len(entry) == 0 {
+		entry = []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
+	}
+	result, err := kit.InternalSequence(ctx, vars, "", entry, args)
 	if err != nil {
 		return nil, err
 	}

@@ -317,8 +317,3 @@ func (cfg *AppConfig) IsTracing() bool {
 func (cfg *AppConfig) HasInput() bool {
 	return cfg.Message != ""
 }
-
-// func (cfg *AppConfig) Interactive() bool {
-// 	_, ok := cfg.Arguments["interactive"]
-// 	return ok
-// }

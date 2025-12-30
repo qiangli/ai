@@ -80,14 +80,14 @@
 				// "--script",
 				// "atm/tools/hello_kit/hello_user.yaml",
 				//
-				// agent
-				"/agent:atm/hi",
-				"--script",
-				"swarm/atm/resource/template/atm.yaml",
-				"--adapter",
-				"echo",
-				"--verbose",
-				"pick some famous politicians names",
+				// // agent
+				// "/agent:atm/hi",
+				// "--script",
+				// "swarm/atm/resource/template/atm.yaml",
+				// "--adapter",
+				// "echo",
+				// "--verbose",
+				// "pick some famous politicians names",
 				//
 				// tool
 				// "/atm:hi",
@@ -100,11 +100,13 @@
 				// "--script",
 				// "dev/skills/agents/eval/agent.yaml",
 				//
-				// "test/eval.sh",
+				// bash
+				"test/eval.sh",
 				// "test/yaml-wrap.sh",
 				// "swarm/atm/resource/template/atm.yaml",
 				// "--adapter",
 				// "echo"
+				// 
 				// "/flow:sequence",
 				// "--actions",
 				// "[ai:spawn_agent,sh:format]",

@@ -3,14 +3,17 @@
 
 ##
 
+# // | fromJson | toPrettyJson
 template='data:,
->>>>>>>>>
+>>>>>>>>> Message
+{{.query}}
+>>>>>>>>> Instruction
 {{.prompt}}
 
->>>>>>>>>
-{{.result | fromJson | toPrettyJson}}
+>>>>>>>>> Result
+{{.result}}
 
->>>>>>>>>
+>>>>>>>>> Env
 {{printenv}}
 '
 
@@ -20,28 +23,33 @@ script="file:///$PWD/swarm/atm/resource/incubator/agents/gptr/agent.yaml"
 
 message="write a report on the major world events for the year of 2025"
 
-preferences='
-{
-    "tone": "formal",
-    "total_words": "1000",
-    "report_format": "markdown",
-    "language": "english",
-    "original_query": "write a report on the major world events for the year of 2025"
-}
-'
-role_prompt='{"name":"cool_agent","display":"Cool Agent","instruction":"You are a smart agent!"}'
-scrape_result='["RESULT ONE","RESULT TWO"]'
+# preferences='
+# {
+#     "tone": "formal",
+#     "total_words": "1000",
+#     "report_format": "markdown",
+#     "language": "english",
+#     "original_query": "write a report on the major world events for the year of 2025"
+# }
+# '
+# role_prompt='{"name":"cool_agent","display":"Cool Agent","instruction":"You are a smart agent!"}'
+# scrape_result='["RESULT ONE","RESULT TWO"]'
+# final_report="This is the report."
 
 /flow:sequence \
-    --agent "gptr/user_input" \
+    --agent "gptr/gptr" \
     --actions "[ai:spawn_agent,sh:format]" \
     --template "$template" \
     --script "$script" \
-    --adapter "echo" \
-    --message "$message" \
-    --option echo__agent__gptr__user_input="$preferences" \
-    --option echo__agent__gptr__choose_agent="$role_prompt" \
-    --option echo__agent__search__scrape="$scrape_result"
+    --adapter "chat" \
+    --message "$message"
+
+    # --option echo__agent__gptr__user_input="$preferences" \
+    # --option echo__agent__gptr__choose_agent="$role_prompt" \
+    # --option echo__agent__search__scrape="$scrape_result" \
+    # --option echo__agent__gptr__curate="$scrape_result" \
+    # --option echo__agent__gptr__report="$final_report"
+
 
 echo "---- script env ----"
 

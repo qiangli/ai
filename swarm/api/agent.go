@@ -215,14 +215,17 @@ type AgentConfig struct {
 
 	// inherit from embedded parent:
 	// + environment
+	// + model
 	// + instruction
+	// + context
 	// + functions
 	// local scope:
 	// - arguments
-	// - context
 	// - message
-	// - model
 	Embed []string `yaml:"embed" json:"embed"`
+
+	//
+	Entrypoint []string `yaml:"entrypoint" json:"entrypoint"`
 
 	//
 	Store AssetStore `yaml:"-" json:"-"`
