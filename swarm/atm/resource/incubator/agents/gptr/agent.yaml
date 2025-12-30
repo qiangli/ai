@@ -67,7 +67,7 @@ agents:
       }
     functions:
       - "agent:meta/save_result"
-  
+
   - name: "user_preferences"
     display: "Detect and Save User Preferences"
     description: |
@@ -182,40 +182,42 @@ agents:
       *** You must run the tool `agent:gptr/curate` to obtain the content ***
 
       ###
-      Using the above information, answer the following task:
+      Using the above information, answer the following task in a detailed report:
 
       "{{.preferences}}"
 
-      in a detailed report
+      In the following instructions, there are placeholders in [[preferences.*]] format. You must reference the values in the above preferences.
       --
-      The report should focus on the answer to the query, should be well structured, informative,
-      in-depth, and comprehensive, with facts and numbers if available and at least {{.preferences.total_words}} words.
+      The report should focus on answering the query, should be well structured, informative,
+      in-depth, and comprehensive, with facts and numbers if available, and at least [[preferences.total_words]] words.
       You should strive to write the report as long as you can using all relevant and necessary information provided.
 
       Please follow all of the following guidelines in your report:
       - You MUST determine your own concrete and valid opinion based on the given information. Do NOT defer to general and meaningless conclusions.
-      - You MUST write the report with markdown syntax and {{.preferences.report_format}} format.
+      - You MUST write the report using markdown syntax and adhere to the [[preferences.report_format]] format.
       - Structure your report with clear markdown headers: use # for the main title, ## for major sections, and ### for subsections.
       - Use markdown tables when presenting structured data or comparisons to enhance readability.
       - You MUST prioritize the relevance, reliability, and significance of the sources you use. Choose trusted sources over less reliable ones.
       - You must also prioritize new articles over older articles if the source can be trusted.
       - You MUST NOT include a table of contents, but DO include proper markdown headers (# ## ###) to structure your report clearly.
-      - Use in-text citation references in {{.preferences.report_format}} format and make it with markdown hyperlink placed at the end of the sentence or paragraph that references them like this: ([in-text citation](url)).
-      - Don't forget to add a reference list at the end of the report in {{.preferences.report_format}} format and full url links without hyperlinks.
+      - Use in-text citation references in the [[preferences.report_format]] format. Insert these as markdown hyperlinks placed at the end of the sentence or paragraph that they reference, such as: ([in-text citation](url)).
+      - Don't forget to add a reference list at the end of the report in [[preferences.report_format]] format and full url links without hyperlinks.
       - You MUST write all used source urls at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each.
           Every url should be hyperlinked: [url website](url)
           Additionally, you MUST include hyperlinks to the relevant URLs wherever they are referenced in the report:
 
           eg: Author, A. A. (Year, Month Date). Title of web page. Website Name. [url website](url)
-      - Write the report in a {{.preferences.tone}} tone.
+      - Write the report in the [[preferences.tone]] tone.
 
-      You MUST write the report in the following language: {{.preferences.language}}.
-      The report SHOULD be approximately {{.preferences.total_words}} words long.
+      You MUST write the report in the [[preferences.language]] language.
+      The report SHOULD be approximately [[preferences.total_words]] words long.
       Assume that the current date is {{.date}}.
 
-      Once completed. You must save the final report in the workspace with an fitting name based on user query.
+      Once completed. You must save the final report in the `workspace` with an fitting name based on user query.
       and report back to user where this report has been saved.
       Additionally, read the saved report and return its content to the console.
+
+      Run `fs:list_roots` to find the file path for the workspace.
     functions:
       - "fs:*"
       - "agent:gptr/curate"
