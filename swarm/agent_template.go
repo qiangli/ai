@@ -89,6 +89,10 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 
 		// inherit
 		var in = make(map[string]any)
+		// predefined
+		in["workspace"] = sw.Vars.RTE.Roots.Workspace
+		in["user"] = sw.Vars.RTE.User
+
 		// defaults
 		maps.Copy(in, agent.Arguments)
 		//
