@@ -1,8 +1,6 @@
 #!/usr/bin/env ai /sh:bash --format raw --script
 # set -ue
 
-##
-
 # // | fromJson | toPrettyJson
 template='data:,
 >>>>>>>>> Message
@@ -15,7 +13,6 @@ template='data:,
 
 >>>>>>>>> Result
 
-{{.result }}
 
 >>>>>>>>> Env
 
@@ -24,129 +21,50 @@ template='data:,
 
 ##
 # script="file:///$PWD/swarm/atm/resource/incubator/agents/meta/agent.yaml"
-script="file:///$PWD/swarm/atm/resource/incubator/agents/gptr/agent.yaml"
+# script="file:///$PWD/swarm/atm/resource/incubator/agents/gptr/agent.yaml"
+# script="$PWD/swarm/atm/resource/incubator/agents/gptr/agent.yaml"
+# script="file:///$PWD/swarm/atm/resource/incubator/agents/search/agent.yaml"
+script="file:///$PWD/swarm/atm/resource/incubator/agents/research/agent.yaml"
 
 # message="write a report on the major world events for the year of 2025"
 # message="What is the latest technology and research  human like consciousness for  AI and LLM"
-message="Stock market trend for the next one month"
-
-preferences='
-{
-    "tone": "formal",
-    "total_words": "1000",
-    "report_format": "markdown",
-    "language": "english",
-    "original_query": "Stock market trend for the next 2 months"
-}
-'
-role_prompt='{"name":"cool_agent","display":"Cool Agent","instruction":"You are a smart agent!"}'
-scrape_result='["RESULT ONE","RESULT TWO"]'
-final_report="This is the report."
+# message="Stock market trend for the next one month"
+# message="Plan an adventure to California for vacation"
+# message="Plan a trip to China for a one month's vacation. My family would like to see famouse scenic sites."
+# message="Plan a cruise trip for my family"
+# message="suggestion for spending a day in Los Angels"
+# message="what is the state of the art for LLM vibe coding and future developments in the next 2 years"
+message="what is the state of the art for LLM memory management and the future research in the next 2 years"
 
 /flow:sequence \
-    --agent "gptr" \
+    --agent "deep/deep" \
     --actions "[ai:spawn_agent,sh:format]" \
+    --adapter "echo" \
     --template "$template" \
     --script "$script" \
-    --adapter "chat" \
-    # --option echo__agent__gptr__user_input="$preferences" \
-    # --option echo__agent__gptr__user_preferences="$preferences" \
-    # --option echo__agent__meta__prompt="$role_prompt" \
-    # --option echo__agent__gptr__choose_agent="$role_prompt" \
-    # --option echo__agent__search__scrape="$scrape_result" \
-    # --option echo__agent__gptr__curate="$scrape_result" \
     --message "$message"
 
-    # --option echo__agent__gptr__curate="$scrape_result" \
-    # --option echo__agent__gptr__choose_agent="$role_prompt" \
-    # --option echo__agent__gptr__user_input="$preferences" \
-    # --option echo__agent__gptr__choose_agent="$role_prompt" \
-    # --option echo__agent__search__scrape="$scrape_result" \
-    # --option echo__agent__gptr__curate="$scrape_result" \
-    # --option echo__agent__gptr__report="$final_report"
+# /agent:research \
+#     --script "$script" \
+#     --option  query="$message"
 
-# {{ai "/agent:search/scrape" "--option" (printf "query=%s" .preferences.original_query)}}
+# /agent:research/sub_agent \
+#     --script "$script" \
+#     --option  query="$message"
+
+# /agent:research/web_search \
+#     --script "$script" \
+#     --option  query="$message"
+
+# /research:think_tool \
+#     --script "$script" \
+#     --option  reflection="$message"
+
+###
 echo "---- script env ----"
 
 printenv
-# script="$PWD/swarm/atm/resource/incubator/agents/gptr/agent.yaml"
 
-# # message="Plan an adventure to California for vacation"
-# # message="Plan a trip to China for a one month's vacation. My family would like to see famouse scenic sites."
-# # message="Plan a cruise trip for my family"
-# message="suggestion for spending a day in Los Angels"
-
-# # adapter="echo"
-# # actions='[ai:new_agent,sh:format]'
-# actions='[ai:spawn_agent,sh:format]'
-# # actions='[sh:parse,sh:format]'
-
-# # script="file:///$PWD/swarm/atm/resource/incubator/agents/search/agent.yaml"
-# template='data:,
-# >>> prompt
-# {{.prompt|toPrettyJson}}
-
-# >>> query
-# {{.query|toPrettyJson}}
-
-# >>> result
-# {{.result}}
-
-# >>> env
-# {{printenv}}
-# '
-
-# preferences='
-# {
-#     "tone": "formal",
-#     "total_words": "1000",
-#     "report_format": "markdown",
-#     "language": "english",
-#     "original_query": "__original query__"
-#     }
-# '
-# prompt='{"name":"cool_agent","display":"Cool Agent","instruction":"You are a smart agent!"}'
-# result='["RESULT ONE","RESULT TWO"]'
-
-# # agent="gptr/gptr"
-# agent="gptr/plan_research"
-# # agent="gptr/curate"
-# # agent="gptr/report"
-
-# # agent="search/scrape"
-# /flow:sequence --agent "$agent" \
-#     --actions "$actions"  \
-#     --template "$template" \
-#     --adapter "echo" \
-#     --option query="$message" 
-
-# --option preferences="$preferences" \
-# --option agent_role_prompt="$prompt" \
-# --option search_results="$result"
-
-# "/flow:sequence",
-# "--actions",
-# "[ai:spawn_agent,sh:format]",
-# "--agent",
-# "gptr/plan_research",
-# "--adapter",
-# "echo",
-# "--template",
-# "data:,env: {{printenv}}",
-# "--verbose",
-# "--message",
-# "tell me a joke"
-# echo /flow:sequence --actions "[ai:spawn_agent,sh:format]" --agent "gptr/plan_research" --adapter "echo" --template "data:,env: {{printenv}}" --verbose --message "tell me a joke"
-
-# echo "Publishing..."
-# /flow:sequence --option actions="[agent:gptr/curate,agent:gptr/report]" --adapter "echo"
-
-
-# /atm:hi --script "./swarm/atm/resource/template/atm.yaml" \
-#     --info
-# /agent:atm/hi --script "./swarm/atm/resource/template/atm.yaml" \
-#     --adapter echo --info
-
-# echo ""
+echo ""
 echo "*** eval tests completed ***"
 ###

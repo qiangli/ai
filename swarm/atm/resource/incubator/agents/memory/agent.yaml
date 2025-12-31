@@ -12,21 +12,25 @@ agents:
     environment:
       memory_path: "{{.workspace}}/memory/"
       memory_file: "{{.workspace}}/memory/agent.md"
-      agent_memory: '{{list .workspace "memory/agent.md" | join "/" | cat}}'
+      # agent_memory: '{{list .workspace "memory/agent.md" | join "/" | cat}}'
     instruction: |
       #! mime-type=text/x-go-template
+      ###
+      Adapt your behavior based on user feedback and instructions.
 
-      Adapt your behavior based on user feedback and instructions. 
       After answering user questions, do not forget to update the memory file `{{.memory_file}}` to record any important information for future reference.
       If creating todos would help achieve better management of tasks, write them as needed.
       Check if all the todos for the current session have been completed, otherwise prompt the user to continue working on the todos.
 
       Agent Memory:
-      {{.agent_memory}}
- 
+      <agent_memory>
+      {{list .workspace "memory/agent.md" | join "/" | cat}}
+      </agent_memory>
+      ###
     functions:
       - "fs:*"
 
+  # https://github.com/langchain-ai/deepagents
   - name: "long_term"
     display: "Long Term Memory"
     description: "Agent-specific long-term memory for the system"

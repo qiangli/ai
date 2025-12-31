@@ -44,6 +44,4 @@ agents:
         - "sh:*"
         - "fs:*"
         - "web:*"
-        - "ddg:*"
-        - "google:*"
 ###

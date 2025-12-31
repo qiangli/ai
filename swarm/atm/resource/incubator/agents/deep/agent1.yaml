@@ -13,17 +13,17 @@ agents:
       to maintain a global perspective on the entire task and dynamically discover tools
       on an as-needed basis.
     model: "llm/reasoning"
-    log_level: debug
-    environment:
-      # save query for use by other agents
-      "question": "{{.query}}"
+    # log_level: debug
+    # environment:
+    #   # save query for use by other agents
+    #   "question": "{{.query}}"
     message: |
       Now, begin your reasoning for the following query:
     instruction: |
       You are a highly capable reasoning assistant, able to perform tool searches and tool calls
       to accurately answer questions. Your core abilities include:
 
-      - Searching for helpful tools: "agent:deep/tool_search" with your tool search query.
+      - Searching for helpful tools: `agent:deep/tool_search` with your tool search query.
         The tool will search and analyze available tools, then return a list of relevant tools.
 
       - Calling a tool and receiving its response: "ai:tool_execute" with the required arguments.
@@ -89,12 +89,12 @@ agents:
       - "agent:deep/fold_thought"
       - "agent:deep/response_analysis"
       - "agent:deep/report"
-      - "ai:tool_execute"
+      # - "ai:tool_execute"
       - "web:*"
-      - "ddg:*"
-      - "bing:*"
-      - "google:*"
-      - "brave:*"
+      # - "ddg:*"
+      # - "bing:*"
+      # - "google:*"
+      # - "brave:*"
 
   - name: "deep/episode_memory"
     display: "Episode Memory"
@@ -112,15 +112,11 @@ agents:
       Available tools:
         - "ai:list_messages"
         - "ai:get_message_info"
-        - "ai:context_get_messages"
-        - "ai:context_set_messages"
-        - "ai:agent_get_prompt"
-        - "ai:agent_set_prompt"
-        - "ai:agent_get_query"
-        - "ai:agent_set_query"
+        - "ai:save_messages"
 
       Full reasoning history:
-      {{ai "/ai:context_get_messages"}}
+      
+      *** Run ai:list_messages with max_history and other options***
 
       Instructions:
       1. Identify major milestones, subgoal completions, and strategic decisions
@@ -141,17 +137,12 @@ agents:
       }}
       ```
 
-      Now generate the episode memory for the task: {{.question}}
+      Now generate the episode memory for the task: {{.query}}
       Directly output the JSON format episode memory. Do not include any other text.
     functions:
       - "ai:list_messages"
       - "ai:get_message_info"
-      - "ai:context_get_messages"
-      - "ai:context_set_messages"
-      - "ai:agent_get_prompt"
-      - "ai:agent_set_prompt"
-      - "ai:agent_get_query"
-      - "ai:agent_set_query"
+      - "ai:write_messages"
 
   - name: "deep/working_memory"
     display: "Working Memory "
@@ -164,18 +155,13 @@ agents:
       Create a concise snapshot of the agent's CURRENT working state.
 
       Task:
-      {{.question}}
+      {{.query}}
 
       Available tools:
         - "ai:list_messages"
         - "ai:get_message_info"
-        - "ai:context_get_messages"
-        - "ai:context_set_messages"
-        - "ai:agent_get_prompt"
-        - "ai:agent_set_prompt"
-        - "ai:agent_get_query"
-        - "ai:agent_set_query"
-
+        - "ai:write_messages"
+      
       Full reasoning history:
       {{ai "/ai:context_get_messages"}}
 
@@ -202,12 +188,7 @@ agents:
     functions:
       - "ai:list_messages"
       - "ai:get_message_info"
-      - "ai:context_get_messages"
-      - "ai:context_set_messages"
-      - "ai:agent_get_prompt"
-      - "ai:agent_set_prompt"
-      - "ai:agent_get_query"
-      - "ai:agent_set_query"
+      - "ai:write_messages"
 
   - name: "deep/tool_memory"
     display: "Tool Memory"
@@ -224,12 +205,7 @@ agents:
       Available tools:
         - "ai:list_messages"
         - "ai:get_message_info"
-        - "ai:context_get_messages"
-        - "ai:context_set_messages"
-        - "ai:agent_get_prompt"
-        - "ai:agent_set_prompt"
-        - "ai:agent_get_query"
-        - "ai:agent_set_query"
+        - "ai:write_messages"
 
       Full reasoning history:
       {{ai "/ai:context_get_messages"}}
@@ -270,12 +246,9 @@ agents:
     functions:
       - "ai:list_messages"
       - "ai:get_message_info"
-      - "ai:context_get_messages"
-      - "ai:context_set_messages"
-      - "ai:agent_get_prompt"
-      - "ai:agent_set_prompt"
-      - "ai:agent_get_query"
-      - "ai:agent_set_query"
+      - "ai:write_messages"
+      - "fs:*"
+      - "sh:*"
 
   - name: "deep/tool_search"
     display: "Tool Selection Assistant"

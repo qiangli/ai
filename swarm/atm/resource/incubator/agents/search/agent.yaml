@@ -3,8 +3,6 @@ pack: "search"
 
 #
 model: "llm/L1"
-max_history: 0
-log_level: debug
 agents:
   - name: "search"
     display: "🔍 Web Search"
