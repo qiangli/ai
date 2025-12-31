@@ -7,6 +7,8 @@ import (
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+
+	"github.com/qiangli/ai/swarm/api"
 )
 
 func clip(s string, max int) string {
@@ -70,4 +72,21 @@ func PrettyJSON(obj any) (string, error) {
 		return "", fmt.Errorf("Error marshaling JSON: %v", err)
 	}
 	return string(v), nil
+}
+
+// for mock tests
+// respect --option adapter=echo
+func echoAdapter(args api.ArgMap) (any, error) {
+	if len(args) == 0 {
+		return "", nil
+	}
+
+	// custom response: echo__id
+	id := args.Kitname().ID()
+	if v, found := args["echo__"+id]; found {
+		return api.ToString(v), nil
+	}
+
+	v, err := json.Marshal(args)
+	return v, err
 }

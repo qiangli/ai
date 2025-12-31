@@ -198,7 +198,15 @@ func (r *WebKit) Call(ctx context.Context, vars *api.Vars, env *api.ToolEnv, tf 
 		key:  tf.ApiKey,
 	}
 
+	// mock if echo__<id> is found in args.
+	if len(args) > 0 {
+		if v, found := args["adapter"]; found && api.ToString(v) == "echo" {
+			return echoAdapter(args)
+		}
+	}
+
 	result, err := CallKit(ak, tf.Kit, tf.Name, callArgs...)
+
 	if err != nil {
 		return nil, fmt.Errorf("error: %v. please try again after few seconds.", err)
 	}
