@@ -13,7 +13,9 @@ agents:
     embed:
       # context
       # - agent:context/summary
-      - "agent:context/lastn"
+      # - "agent:context/lastn"
+      # - "agent:context/context"
+      - "agent:memory/fold"
       # - "agent:kbase"
       # - "agent:memory"
       # - "agent:think"

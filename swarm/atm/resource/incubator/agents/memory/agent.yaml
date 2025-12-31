@@ -1,6 +1,5 @@
 ###
 pack: "memory"
-log_level: info
 model: "llm/L1"
 agents:
   - name: "memory"
@@ -34,7 +33,6 @@ agents:
   - name: "long_term"
     display: "Long Term Memory"
     description: "Agent-specific long-term memory for the system"
-    model: "llm/L1"
     environment:
       memory_path: "{{.workspace}}/memory/"
       memory_file: "{{.workspace}}/memory/agent.md"
@@ -97,7 +95,6 @@ agents:
   - name: "todo_list"
     display: "Todo Planner"
     description: "Planning and task management for agents using filesystem tools"
-    model: "llm/L1"
     environment:
       todo_path: "{{.workspace}}/todo/"
       todo_file: "{{.workspace}}/todo/todos.md"
@@ -168,6 +165,43 @@ agents:
     functions:
       - "fs:*"
 
+  # https://github.com/RUC-NLPIR/DeepAgent/tree/main
+  - name: "fold"
+    display: "Fold Thought"
+    description: |
+      Based on the query and previous thoughts and interaction history,
+      summarize the detailed interaction history and task progress.
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The user query string"
+      required:
+        - query
+    instruction: |
+      You are a memory compression assistant.
+      Based on the query and previous thoughts and interaction history,
+      summarize the detailed interaction history and task progress.
+
+      Query:
+
+      {{.query}}
+
+      Previous thoughts and interaction history:
+      
+      *** Run tool `ai:list_messages` with max_history and other options to fetch the list ***
+
+      Remember:
+      - Make sure to include all potentially helpful information in the interaction history.
+      - Make sure to include all task progress and lessons learned from the interaction history.
+
+      Please directly output the detailed interaction history and task progress for the query "{{.query}}".
+    functions:
+      - "ai:list_messages"
+      - "ai:get_message_info"
+      - "ai:save_messages"
+
 ###
 set: "llm"
 provider: "openai"
@@ -176,8 +210,8 @@ api_key: "openai"
 models:
   L1:
     model: "gpt-4o-mini"
-  L2:
-    model: "gpt-4.1"
-  L3:
-    model: "o3-mini"
+  # L2:
+  #   model: "gpt-4.1"
+  # L3:
+  #   model: "o3-mini"
 ###

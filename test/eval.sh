@@ -24,7 +24,8 @@ template='data:,
 # script="file:///$PWD/swarm/atm/resource/incubator/agents/gptr/agent.yaml"
 # script="$PWD/swarm/atm/resource/incubator/agents/gptr/agent.yaml"
 # script="file:///$PWD/swarm/atm/resource/incubator/agents/search/agent.yaml"
-script="file:///$PWD/swarm/atm/resource/incubator/agents/research/agent.yaml"
+# script="file:///$PWD/swarm/atm/resource/incubator/agents/research/agent.yaml"
+script="file:///$PWD/swarm/atm/resource/incubator/agents/deep/agent.yaml"
 
 # message="write a report on the major world events for the year of 2025"
 # message="What is the latest technology and research  human like consciousness for  AI and LLM"
@@ -36,13 +37,17 @@ script="file:///$PWD/swarm/atm/resource/incubator/agents/research/agent.yaml"
 # message="what is the state of the art for LLM vibe coding and future developments in the next 2 years"
 message="what is the state of the art for LLM memory management and the future research in the next 2 years"
 
-/flow:sequence \
-    --agent "deep/deep" \
-    --actions "[ai:spawn_agent,sh:format]" \
-    --adapter "echo" \
-    --template "$template" \
+# /flow:sequence \
+#     --agent "deep/deep" \
+#     --actions "[ai:spawn_agent,sh:format]" \
+#     --adapter "echo" \
+#     --template "$template" \
+#     --script "$script" \
+#     --message "$message"
+
+/agent:deep \
     --script "$script" \
-    --message "$message"
+    --option  query="$message"
 
 # /agent:research \
 #     --script "$script" \
