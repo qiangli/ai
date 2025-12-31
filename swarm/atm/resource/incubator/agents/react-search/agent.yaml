@@ -39,7 +39,6 @@ agents:
       then add 7. Action: Calculator Action Input: 0.15 * 360 + 7 Observation: 61 Thought: Provide the
       numeric result and brief explanation. Action: FinalAnswer Action Input: 61 (because 15% of 360 =
       54, and 54 + 7 = 61).
-
     functions:
       - "web:*"
 

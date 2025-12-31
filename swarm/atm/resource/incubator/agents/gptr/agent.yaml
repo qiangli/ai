@@ -179,10 +179,12 @@ agents:
       ###
       Information:
 
-      *** You must run the tool `agent:gptr/curate` to obtain the content ***
+      *** You must run the tool `agent:gptr/curate` to obtain the information content ***
 
       ###
       Using the above information, answer the following task in a detailed report:
+
+      User's Preferences:
 
       "{{.preferences}}"
 

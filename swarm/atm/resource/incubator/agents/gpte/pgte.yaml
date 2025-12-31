@@ -4,6 +4,7 @@ pack: gpte
 # https://github.com/AntonOsika/gpt-engineer
 #
 model: gpte/L1
+max_history: 0
 log_level: verbose
 agents:
   - name: "gpte"
@@ -13,8 +14,8 @@ agents:
       This intelligent software engineer agent transforms natural language input into software development tasks.
       Users can specify software requirements, watch AI generate and execute code, and request project improvements.
       It interprets queries, categorizes intentions, extracts preferences, and guides AI actions, making software creation and enhancement seamless.
-    # environment:
-    #   original_query: "{{.query}}"
+    environment:
+      original_query: "{{.query}}"
     instruction: |
       You are an intelligent agent designed to analyze users' queries related to software generation and improvement.
       Your task is to interpret and categorize their inputs into a structured JSON object. 
@@ -65,8 +66,6 @@ agents:
       This agent is responsible for managing the lifecycle of code generation and improvement
       using an AI model. It orchestrates the generation of new code and the improvement of existing code
       based on given prompts.
-
-      
     flow:
       type: "shell"
       script: |

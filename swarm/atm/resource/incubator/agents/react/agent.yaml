@@ -11,8 +11,6 @@ agents:
       It utilizes a cyclic Think-Act-Observe approach, employing tools when necessary,
       to provide clear, formatted final answers.
     model: "react/reasoning"
-    # arguments:
-    #   format: "markdown"
     message: |
       Now, begin your reasoning for the following query. Start by THINKING about what you need to do:
     instruction: |

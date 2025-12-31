@@ -4,44 +4,92 @@ model: "default/any"
 agents:
   - name: "flow"
     display: "🚀 Flow Control Director"
+    description: |
+      Orchestrate actions using agents and tools based on user commands.
+      Determine optimal workflows through sequence, choice, parallel, map, reduce, loop, or scripting
+      to fulfill complex requests efficiently
+    model: "default/any"
     instruction: |
-      You are a flow control director.
-    environment:
-      name: value
-      work_dir: "/tmp"
-    # sequence | choice | parallel | map | shell
-    flow:
-      type: sequence
-      actions:
-        - agent:flow/sequence
-        - agent:flow/choice
-        - agent:flow/parellel
-        - agent:flow/map
-        - agent:flow/shell
-    functions:
-      - agent:flow/sequence
-      - agent:flow/choice
-      - agent:flow/parellel
-      - agent:flow/map
-      - agent:flow/shell
+      You are a flow control director. 
 
-  - name: "flow/sequence"
-    display: "Sequence Flow Control"
+      Conventions:
+        - Any word starting with "@" (e.g., "@agent") refers to an AI agent, all of which are assisted with an LLM.
+        - Any word starting with "/" (e.g., "/tool") refers to a tool. Tools may, but do not necessarily, use an LLM.
+        - Commands with "@" or "/" can be used in function calls. Use "ai:list_agents" and "ai:list_tools" to verify their existence.
+        - In the case of misspellings, proceed without user intervention if the intended agent or tool is clear.
+
+      Responsibilities:
+        - You orchestrate the execution of agents and tools based on user queries.
+        - Use the following flow types to manage action sequences:
+
+          - Sequence: Execute each action one after another in order.
+            Example:
+            - Query: "Search the web with @google and save the content using /fs:write_file"
+            - Flow: sequence; First, execute @google, then /fs:write_file
+
+          - Choice: Execute one action from a list based on conditions or randomly if unspecified.
+            Example:
+            - Query: "Search vibe coding on the internet with @google or @ddg"
+            - Flow: choice; Randomly choose between @google and @ddg for the search
+
+          - Parallel: Execute all actions concurrently. Compile results in the order actions appear.
+            Example:
+            - Query: "Search the web for vibe coding using both @google and @ddg"
+            - Flow: parallel; Present results separately from both searches
+
+          - Shell: Use a bash script for flexible flow controls when other methods are unsuitable.
+            Example:
+            - Query: "Use @news agent to find the latest news on moon landing"
+            - Flow: script; Construct and execute a bash script starting commands with "ai"
+
+      If uncertain about actions or flows, seek clarification from the user.
+    functions:
+      - "agent:flow/sequence"
+      - "agent:flow/choice"
+      - "agent:flow/parallel"
+      - "agent:flow/shell"
+      - "ai:list_agents"
+      - "ai:get_agent_info"
+      - "ai:read_agent_config"
+      - "ai:list_tools"
+      - "ai:get_tool_info"
+      - "ai:read_tool_config"
+      - "sh:*"
+      - "fs:*"
+
+  - name: "sequence"
+    display: "🚀 Sequence Flow Control"
     instruction: |
-      Execute a sequence of actions in a pipeline-like manner:
+      Execute a sequence of given actions in a pipeline-like manner:
       1. Start with an initial input query.
       2. For each action or tool call in the provided list, pass the result of the current action as the input query for the next one.
       3. If a failure occurs, check if the user has specified a retry policy.
         - If a retry policy is specified, attempt the action up to the allowed number of retries.
         - If no retries are specified, terminate the sequence immediately upon failure.
       This ensures each subsequent action benefits from the context or data derived from the preceding action, maintaining robustness by respecting user-defined failure handling.
-    flow:
-      type: sequence
+    parameters:
+      type: "object"
+      properties:
+        actions:
+          type: "array"
+          items:
+            type: "string"
+          description: |
+            A list of valid actions. Use `ai:list_tools` or `ai:list_agents` to acquire available actions.
+            Specify actions in the following formats:
+            - Tool action: `tool:kit:name`
+            - Agent action: `agent:pack/name`
+
+            Tools and agents can be mixed in the actions.
+            Additional arguments may be required for each action.
+            Use `/flow:help` for more details
+      required:
+        - actions
     functions:
       - "ai:spawn_agent"
 
-  - name: "flow/choice"
-    display: "Choice Flow Control"
+  - name: "choice"
+    display: "🚀 Choice Flow Control"
     instruction: |
       You are responsible for interpreting user input and dynamically selecting the
       most suitable subagent or action to execute from a specified list of actions.
@@ -53,13 +101,29 @@ agents:
       choice is made. Employ efficient decision-making logic to ensure optimal
       outcomes. If the user explicitly requests a retry, then attempt the operation
       again; otherwise, stop and report the failure immediately.
-    flow:
-      type: choice
+    parameters:
+      type: "object"
+      properties:
+        actions:
+          type: "array"
+          items:
+            type: "string"
+          description: |
+            A list of valid actions. Use `ai:list_tools` or `ai:list_agents` to acquire available actions.
+            Specify actions in the following formats:
+            - Tool action: `tool:kit:name`
+            - Agent action: `agent:pack/name`
+
+            Tools and agents can be mixed in the actions.
+            Additional arguments may be required for each action.
+            Use `/flow:help` for more details
+      required:
+        - actions
     functions:
       - "ai:spawn_agent"
 
-  - name: "flow/parallel"
-    display: "Parallel Flow Control"
+  - name: "parallel"
+    display: "🚀 Parallel Flow Control"
     instruction: |
       As the system agent for executing parallel actions, your role is to process
       a series of actions or sub-agents simultaneously, using a provided input
@@ -74,41 +138,36 @@ agents:
       Default to a maximum concurrency of 5 unless otherwise specified, and retry
       failed actions up to 3 times by default unless a specific retry count is provided by the user.
       If additional instructions are provided for processing results, summarize the final results accordingly.
-    flow:
-      type: parallel
+    parameters:
+      type: "object"
+      properties:
+        actions:
+          type: "array"
+          items:
+            type: "string"
+          description: |
+            A list of valid actions. Use `ai:list_tools` or `ai:list_agents` to acquire available actions.
+            Specify actions in the following formats:
+            - Tool action: `tool:kit:name`
+            - Agent action: `agent:pack/name`
+
+            Tools and agents can be mixed in the actions.
+            Additional arguments may be required for each action.
+            Use `/flow:help` for more details
+      required:
+        - actions
     functions:
       - "ai:spawn_agent"
 
-  - name: "flow/map"
-    display: "Map Flow Control"
-    instruction: |
-      #!
-      As the flow map agent tasked with Map Flow Control, you will process a list of input items
-      through specified subagents or actions. Your key responsibilities are:
-
-      - Receive a list of input items in various formats (e.g., JSON).
-      - For each item, invoke the appropriate subagent/action via tool call.
-      - Return results that match the format and order of the input items.
-      - Default to a maximum concurrency of 5, unless a user-specified concurrency limit is provided.
-      - Implement retry logic: attempt each item a maximum of 3 times by default for failed calls, 
-        unless a specific retry count is provided by the user.
-
-      Ensure to handle and maintain the execution flow efficiently, managing concurrent calls and retries
-      appropriately within the constraints outlined.
-    flow:
-      type: map
-    functions:
-      - "ai:spawn_agent"
-
-  - name: "flow/shell"
+  - name: "shell"
     display: "Shell Flow Control"
-    description: ""
+    description: "Contruct a shell script in bash syntax"
     instruction: |
-      content
-    flow:
-      type: "shell"
-      script: |
-        #!/bin/bash
-        echo hello world!
-
+      For complex control flow of actions: agents and tools, write a shell script in bash syntax.
+      Please note system commands are limited and restricted. However, you may run any agents and tools.
+      You may also compose your own agents and tools.
+    functions:
+      - "fs:*"
+      - "sh:*"
+      - "ai:*"
 ###
