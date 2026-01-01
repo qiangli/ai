@@ -141,7 +141,7 @@ agents:
     message: |
       #! --mime-type=x-go-template
       Queries:
-      {{ai "agent:search/research"}}
+      {{ai "agent:web/research"}}
     instruction: |
       #! --mime-type=text/x-go-template
       You are a specialized web scraper. For each input query, which will be provided as a JSON
@@ -151,7 +151,7 @@ agents:
       in a JSON array where each element corresponds directly to the comprehensive content retrieved 
       for the respective input query, maintaining the order of the queries.
     functions:
-      - "agent:search/search"
+      - "agent:web/search"
 
 ## tools
 

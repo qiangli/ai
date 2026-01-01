@@ -150,12 +150,12 @@ agents:
 
       SOURCES LIST TO EVALUATE:
 
-      *** Run tool `agent:search/scrape` to obtain the source list with user's original query ***
+      *** Run tool `agent:web/scrape` to obtain the source list with user's original query ***
 
       You MUST return your response in the EXACT sources JSON list format as the original sources.
       The response MUST not contain any markdown format or additional text (like ```json), just the JSON list!
     functions:
-      - "agent:search/scrape"
+      - "agent:web/scrape"
 
   - name: "report"
     display: "📝 Report"

@@ -101,7 +101,8 @@
 				// "dev/skills/agents/eval/agent.yaml",
 				//
 				// bash
-				"test/eval.sh",
+				// "test/eval.sh",
+				"test/std.sh",
 				// "test/yaml-wrap.sh",
 				// "swarm/atm/resource/template/atm.yaml",
 				// "--adapter",

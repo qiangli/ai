@@ -184,7 +184,7 @@ agents:
 
       ### Web search
       Search for documentation, error solutions, and code examples.
-      Run `agent:search/search` with your query.
+      Run `agent:web/search` with your query.
 
       ### http_request
       Make HTTP requests to APIs (GET, POST, etc.).
@@ -206,7 +206,7 @@ agents:
       - "sh:*"
       - "ai:*"
       - "web:*"
-      - "agent:search/search"
+      - "agent:web/search"
 
   - name: "workspace"
     display: "Workspace "
@@ -275,8 +275,8 @@ agents:
     functions:
       - "fs:*"
       - "web:*"
-      - "agent:search/search"
-      - "agent:search/scrape"
+      - "agent:web/search"
+      - "agent:web/scrape"
 
 ###
 set: "llm"

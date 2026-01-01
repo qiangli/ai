@@ -88,5 +88,5 @@ func echoAdapter(args api.ArgMap) (any, error) {
 	}
 
 	v, err := json.Marshal(args)
-	return v, err
+	return string(v), err
 }

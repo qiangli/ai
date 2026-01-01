@@ -212,7 +212,7 @@ agents:
     display: "Web Search"
     description: Get web search results for a given query.
     embed:
-      - "agent:search/search"
+      - "agent:web/search"
     parameters:
       type: "object"
       properties:
