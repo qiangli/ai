@@ -1,8 +1,7 @@
 ###
 # https://github.com/RUC-NLPIR/DeepAgent/tree/main/src/prompts
 pack: "react"
-new: true
-log_level: verbose
+# log_level: verbose
 agents:
   - name: "react"
     display: "🤖 ReAct"

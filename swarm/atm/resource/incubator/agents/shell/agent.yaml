@@ -28,6 +28,3 @@ agents:
       - "fs:*"
       - "io:*"
       - "web:*"
-      - "ddg:*"
-      - "google:*"
-      - "brave:*"

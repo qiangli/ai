@@ -1,10 +1,10 @@
 ###
-pack: gpte
+pack: "gpte"
 #
 # https://github.com/AntonOsika/gpt-engineer
 #
-model: gpte/L1
-log_level: verbose
+model: "gpte/L1"
+# log_level: verbose
 agents:
   - name: "gpte"
     new: true
@@ -44,7 +44,7 @@ agents:
       - "fs:*"
       - "sh:*"
 
-  - name: "gpte/generate"
+  - name: "generate"
     display: "Code Agent"
     description: |
       This agent is responsible for managing the lifecycle of code generation and improvement
@@ -68,7 +68,7 @@ agents:
       - "ai:spawn_agent"
       - "ai:list_agents"
 
-  - name: "gpte/gen_code"
+  - name: "gen_code"
     display: "Generate Code"
     model: gpte/L2
     description: |
@@ -130,7 +130,7 @@ agents:
     functions:
       - "fs:*"
 
-  - name: "gpte/gen_entrypoint"
+  - name: "gen_entrypoint"
     display: "Generate Entrypoint"
     description: |
       Generates an entrypoint for the codebase and returns the entrypoint files.
@@ -153,7 +153,7 @@ agents:
     functions:
       - "fs:*"
 
-  - name: "gpte/improve"
+  - name: "improve"
     display: "Improve Code"
     description: |
       Improves the code based on user input and returns the updated files.
@@ -233,7 +233,7 @@ agents:
       - pytest
       - dataclasses
 
-  - name: "gpte/self_heal"
+  - name: "self_heal"
     display: "Self Heal"
     description: |
       Attempts to execute the code from the entrypoint and if it fails, sends the error output back to the AI with instructions to fix.
@@ -271,7 +271,7 @@ agents:
       - "sh:*"
       - "fs:*"
 
-  - name: "gpte/clarify"
+  - name: "clarify"
     display: "Clarify"
     description: |
       Generate code based on clarifications obtained from the user and saves it to a specified workspace.
@@ -281,7 +281,7 @@ agents:
       You can make reasonable assumptions, but if you are unsure, ask a single clarification question.
       Otherwise state: "Nothing to clarify"
 
-  - name: "gpte/execute"
+  - name: "execute"
     display: "Execute Entrypoint"
     description: |
       Executes the entrypoint of the codebase.
@@ -325,7 +325,7 @@ agents:
       - "sh:*"
       - "fs:*"
 
-  - name: "gpte/to_file_dict"
+  - name: "to_file_dict"
     display: "File to Code Block Mapper"
     description: |
       Extracts file paths and code blocks from input strings,
@@ -339,7 +339,7 @@ agents:
       at organizing code snippets by file location, even when the input
       contains extraneous information.
 
-  - name: "gpte/parse_diff"
+  - name: "parse_diff"
     display: "Parse Diff"
     description: |
       Parses a diff string in the unified git diff format

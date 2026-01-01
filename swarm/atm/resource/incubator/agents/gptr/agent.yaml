@@ -4,7 +4,7 @@ pack: "gptr"
 # adapted from https://github.com/assafelovic/gpt-researcher
 #
 model: "llm/fast"
-log_level: "info"
+# log_level: "info"
 agents:
   - name: "gptr"
     display: "🚀 GPT Researcher"

@@ -16,11 +16,9 @@ agents:
         - query
     context: |
       #!
-      {{ai "agent:flow/choice" "--option" "actions=[agent:context/lastn,agent:context/summary]"}}
-    instruction: |
-      Return the response as is.
+      {{ai "/agent:context/summary" "--query" .query}}
+    # {{ai "agent:flow/choice" "--option" "actions=[agent:context/lastn,agent:context/summary]"}}
     functions:
-      - "agent:context/lastn"
       - "agent:context/summary"
 
   - name: "lastn"
@@ -34,7 +32,7 @@ agents:
     context: |
       #! mime-type=text/x-go-template
       {{ai "/ai:list_messages" "--option" "format=raw"}}
-    instruction:
+    instruction: |
       Please directly output the interaction history for the query as-is.
     functions:
       - "ai:list_messages"
@@ -104,7 +102,7 @@ agents:
       - If history is in another language, translate and summarize it in the same
         language as the current query.
       - Only provide the content in JSON array format, nothing else in the response.
-    
+
       Please directly output the detailed interaction history and task progress for the query "{{.query}}".
     functions:
       - "ai:list_messages"

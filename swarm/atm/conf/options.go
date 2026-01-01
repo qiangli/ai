@@ -86,6 +86,9 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	message := fs.String("message", "", "User input message")
 	model := fs.String("model", "", "LLM model alias defined in the model set")
 
+	// support simpler tempalte syntax {{ai --query .query}}
+	query := fs.String("query", "", "User input message")
+
 	// common args with defaut value
 	// TODO revisit
 	maxHistory := fs.Int("max-history", 0, "Max historic messages to retrieve")
@@ -119,8 +122,8 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	stdin := fs.String("stdin", "", "Read input from stdin")
 	//
 	adapter := fs.String("adapter", "", "Custom action handler")
-	input := fs.String("input", "", "Custom input action")
-	output := fs.String("output", "", "Custom output action")
+	// input := fs.String("input", "", "Custom input action")
+	// output := fs.String("output", "", "Custom output action")
 
 	//
 	err := fs.Parse(argv)
@@ -273,11 +276,14 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	if *adapter != "" {
 		argm["adapter"] = *adapter
 	}
-	if *input != "" {
-		argm["input"] = *input
-	}
-	if *output != "" {
-		argm["output"] = *output
+	// if *input != "" {
+	// 	argm["input"] = *input
+	// }
+	// if *output != "" {
+	// 	argm["output"] = *output
+	// }
+	if *query != "" {
+		argm["query"] = *query
 	}
 
 	return argm, nil
