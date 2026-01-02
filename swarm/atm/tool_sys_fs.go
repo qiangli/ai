@@ -117,10 +117,20 @@ func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, a
 	return &c, nil
 }
 
-func (r *SystemKit) ReadMultipleFiles(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	paths, err := api.GetArrayProp("paths", args)
-	if err != nil {
-		return "", err
+func (r *SystemKit) ReadMultipleFiles(ctx context.Context, vars *api.Vars, name string, args api.ArgMap) (string, error) {
+	var paths []string
+
+	if v, err := api.GetArrayProp("paths", args); err == nil && len(v) > 0 {
+		paths = v
+	} else {
+		// decode string representation of arrays
+		v := args.GetString("paths")
+		if !strings.HasPrefix(v, "[") {
+			paths = append(paths, v)
+		} else {
+			as := api.ToStringArray(v)
+			paths = append(paths, as...)
+		}
 	}
 
 	results, err := vars.RTE.Workspace.ReadMultipleFiles(paths)

@@ -102,7 +102,7 @@
 				//
 				// bash
 				// "test/eval.sh",
-				"test/std.sh",
+				// "test/std.sh",
 				// "test/yaml-wrap.sh",
 				// "swarm/atm/resource/template/atm.yaml",
 				// "--adapter",
@@ -231,6 +231,10 @@
 				// "what are the top 10 world news for this year",
 				// "--adapter",
 				// "echo",
+				//
+				"/fs:read_multiple_files",
+				"--option",
+				"paths=[/tmp/test/dir/x,/tmp/test/dir/z]",
 				// "--verbose",
 				// "--max-time",
 				// "900",

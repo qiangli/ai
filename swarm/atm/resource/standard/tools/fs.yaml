@@ -101,7 +101,8 @@ tools:
         path:
           type: "string"
           description: "Path to the file or directory"
-      required: ["path"]
+      required:
+        - "path"
 
   - name: "read_file"
     description: |
@@ -121,7 +122,8 @@ tools:
         limit:
           type: "integer"
           description: "The maximum number of lines to read from the file. If set to zero or a negative value, the whole file will be returned."
-      required: ["path"]
+      required:
+        - "path"
 
   - name: "read_multiple_files"
     description: "Read the contents of multiple files in a single operation."
@@ -133,7 +135,8 @@ tools:
           items:
             type: "string"
           description: "List of file paths to read"
-      required: ["paths"]
+      required:
+        - "paths"
 
   - name: "write_file"
     description: "Create a new file or overwrite an existing file with new content."
