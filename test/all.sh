@@ -29,6 +29,8 @@ $BASE/test/chain.sh
 
 $BASE/test/agent.sh
 
+$BASE/test/std.sh
+
 echo "$?"
 echo "*** All tests completed successfully ***"
 ###

@@ -2,15 +2,26 @@
 
 echo "Bash basic extension tests"
 
-set -xue
+# set -xue
 
 ##
 /bin/ls -al /tmp
 
 echo ">>> Testing bash extnesions..."
 
+#
+/sh:help
+/sh:pass
+
 # system command
 /sh:exec --command "ls -al /tmp"
+
+# /sh:cd
+/sh:pwd
+
+/sh:get_envs
+/sh:set_envs --option name=value
+/sh:unset_envs --option keys="[name]"
 
 # tool
 /atm:hi --script "$(pwd)/swarm/atm/resource/template/atm.yaml" \
