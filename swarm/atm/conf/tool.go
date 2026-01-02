@@ -308,16 +308,39 @@ func LoadAgentTool(ac *api.AppConfig, sub string) (*api.ToolFunc, error) {
 	}
 	for _, c := range ac.Agents {
 		if c.Name == sub {
-			var params = map[string]any{
-				"type": "object",
-				"properties": map[string]any{
+			var params = map[string]any{}
+			// "type": "object",
+			// "properties": map[string]any{
+			// 	"query": map[string]any{
+			// 		"type":        "string",
+			// 		"description": "The user input",
+			// 	},
+			// },
+			// }
+			maps.Copy(params, c.Parameters)
+			// required for agent tool.
+			if _, ok := params["type"]; !ok {
+				params["type"] = "object"
+			}
+			if v, ok := params["properties"]; !ok {
+				params["properties"] = map[string]any{
 					"query": map[string]any{
 						"type":        "string",
 						"description": "The user input",
 					},
-				},
+				}
+			} else {
+				m, ok := v.(map[string]any)
+				if !ok {
+					return nil, fmt.Errorf("invalid parameters %v", v)
+				}
+				if _, ok := m["query"]; !ok {
+					m["query"] = map[string]any{
+						"type":        "string",
+						"description": "The user input",
+					}
+				}
 			}
-			maps.Copy(params, c.Parameters)
 
 			pn := api.NewPackname(ac.Pack, sub)
 

@@ -32,7 +32,7 @@ const defaultMaxTurns = 50
 const defaultMaxTime = 600 // 10 min
 
 const defaultMaxSpan = 1440 // 24 hours
-const defaultMaxHistory = 1
+const defaultMaxHistory = 3
 
 type ConfigLoader struct {
 	data []byte
@@ -201,6 +201,8 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 		Message:     c.Message,
 		//
 		Arguments: api.NewArguments(),
+		//
+		Parameters: c.Parameters,
 	}
 	//
 	args := make(map[string]any)
