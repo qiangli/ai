@@ -13,6 +13,8 @@ import (
 // func/web/system/*, mcp, agent, bin, ai???
 type ToolType string
 
+type Parameters map[string]any
+
 const (
 	// script/template
 	ToolTypeFunc ToolType = "func"
@@ -34,11 +36,11 @@ const (
 )
 
 type ToolFunc struct {
-	Type        ToolType       `json:"type"`
-	Kit         string         `json:"kit"`         // kit
-	Name        string         `json:"name"`        // name
-	Description string         `json:"description"` // description
-	Parameters  map[string]any `json:"parameters"`  // parameters
+	Type        ToolType   `json:"type"`
+	Kit         string     `json:"kit"`         // kit
+	Name        string     `json:"name"`        // name
+	Description string     `json:"description"` // description
+	Parameters  Parameters `json:"parameters"`  // parameters
 
 	Body *FuncBody `json:"body"` // body
 
@@ -101,7 +103,7 @@ type ToolConfig struct {
 	Name        string `yaml:"name" json:"name"`
 	Description string `yaml:"description" json:"description"`
 
-	Parameters map[string]any `yaml:"parameters" json:"parameters"`
+	Parameters Parameters `yaml:"parameters" json:"parameters"`
 
 	Body *FuncBody `yaml:"body" json:"body"`
 

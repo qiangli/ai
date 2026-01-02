@@ -63,6 +63,10 @@ func BuildEffectiveArgs(vars *api.Vars, agent *api.Agent, args map[string]any) m
 	// wont check vars.global - this should never be nil
 	maps.Copy(data, vars.Global.GetAllEnvs())
 	if agent != nil {
+		// defaults from parameters
+		if len(agent.Parameters) > 0 {
+
+		}
 		maps.Copy(data, agent.Arguments)
 	}
 	maps.Copy(data, args)

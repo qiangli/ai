@@ -35,7 +35,7 @@ agents:
 
       perform a web search using one or more available search tools, and return the most relevant results.
 
-      After obtaining the URLs, based on user's query and user's intention, follow at least {{default 1 .min_follow_links}} and at most {{defautl 5 .max_follow_links}} links
+      After obtaining the URLs, based on user's query and user's intention, follow at least {{default 1 .min_follow_links}} and at most {{default 5 .max_follow_links}} links
       to fetch the contents and present the user with the original fetched content as closely as possible,
       aggregating and removing duplicates with some cleanup.
 

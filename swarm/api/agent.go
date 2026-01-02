@@ -118,6 +118,8 @@ type Agent struct {
 	// default values
 	Arguments Arguments `json:"arguments"`
 
+	Parameters Parameters `json:"parameters"`
+
 	// assigned at buildtime/runtime
 	Parent   *Agent             `json:"-"`
 	Runner   ActionRunner       `json:"-"`
@@ -208,7 +210,7 @@ type AgentConfig struct {
 	LogLevel string `yaml:"log_level" json:"log_level"`
 
 	// agent as tool
-	Parameters map[string]any `yaml:"parameters" json:"parameters"`
+	Parameters Parameters `yaml:"parameters" json:"parameters"`
 
 	// agent global vars
 	Environment map[string]any `yaml:"environment" json:"environment"`

@@ -25,9 +25,9 @@ agents:
     display: "🤖 Context History"
     description: |
       Creating a context with last N messages from historical conversations.
-    arguments:
-      max_history: 3
-      max_span: 1440
+    # arguments:
+    #   max_history: 3
+    #   max_span: 1440
     parameters:
       type: "object"
       properties:
