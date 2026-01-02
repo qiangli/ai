@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"maps"
+	// "maps"
 	"slices"
 	"strings"
 
@@ -94,15 +94,17 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, envs api.ArgMap
 				return true, err
 			}
 
-			// consistant with template
-			var in = make(map[string]any)
-			// defaults
-			maps.Copy(in, r.agent.Arguments)
-			//
-			maps.Copy(in, r.sw.Vars.Global.GetAllEnvs())
-			// share or not share?
-			// maps.Copy(in, envs)
-			maps.Copy(in, at)
+			// // consistant with template
+			// var in = make(map[string]any)
+			// // defaults
+			// maps.Copy(in, r.agent.Arguments)
+			// //
+			// maps.Copy(in, r.sw.Vars.Global.GetAllEnvs())
+			// // share or not share?
+			// // maps.Copy(in, envs)
+			// maps.Copy(in, at)
+
+			in := atm.BuildEffectiveArgs(r.sw.Vars, r.agent, at)
 
 			_, err = r.run(ctx, vs, in)
 			if err != nil {

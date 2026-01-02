@@ -48,20 +48,20 @@ require (
 	github.com/openai/openai-go/v3 v3.15.0
 	github.com/qiangli/shell v0.1.6
 	github.com/sahilm/fuzzy v0.1.1
-	github.com/shirou/gopsutil/v4 v4.25.11
+	github.com/shirou/gopsutil/v4 v4.25.12
 	github.com/spf13/cast v1.10.0
 	github.com/traefik/yaegi v0.16.1
 	github.com/u-root/u-root v0.15.0
 	github.com/weppos/publicsuffix-go v0.50.1
 	github.com/yuin/goldmark v1.7.13
-	github.com/zyedidia/micro/v2 v2.0.14
+	github.com/zyedidia/micro/v2 v2.0.15
 	golang.org/x/term v0.38.0
 	golang.org/x/text v0.32.0
 	google.golang.org/api v0.258.0
 	google.golang.org/genai v1.40.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v3 v3.0.1
-	modernc.org/sqlite v1.41.0
+	modernc.org/sqlite v1.42.2
 )
 
 require (
@@ -120,7 +120,7 @@ require (
 	github.com/go-openapi/swag/jsonname v0.25.4 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/godbus/dbus/v5 v5.2.1 // indirect
+	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
@@ -229,7 +229,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gotest.tools/v3 v3.5.1 // indirect
 	layeh.com/gopher-luar v1.0.11 // indirect
-	modernc.org/libc v1.67.2 // indirect
+	modernc.org/libc v1.67.4 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 	mvdan.cc/sh/v3 v3.12.0 // indirect

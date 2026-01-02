@@ -183,10 +183,11 @@ func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, tf string, args 
 
 		msg := agent.Message
 		if msg != "" {
-			var data = make(map[string]any)
-			maps.Copy(data, agent.Arguments)
-			maps.Copy(data, vars.Global.GetAllEnvs())
-			maps.Copy(data, args)
+			// var data = make(map[string]any)
+			// maps.Copy(data, agent.Arguments)
+			// maps.Copy(data, vars.Global.GetAllEnvs())
+			// maps.Copy(data, args)
+			data := atm.BuildEffectiveArgs(vars, agent, args)
 			v, err := atm.CheckApplyTemplate(agent.Template, msg, data)
 			if err != nil {
 				return "", err
@@ -213,10 +214,11 @@ func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args
 
 	add := func(a *api.Agent, in string) error {
 		// content, err := atm.CheckApplyTemplate(agent.Template, in, args)
-		var data = make(map[string]any)
-		maps.Copy(data, a.Arguments)
-		maps.Copy(data, vars.Global.GetAllEnvs())
-		maps.Copy(data, args)
+		// var data = make(map[string]any)
+		// maps.Copy(data, vars.Global.GetAllEnvs())
+		// maps.Copy(data, a.Arguments)
+		// maps.Copy(data, args)
+		data := atm.BuildEffectiveArgs(vars, a, args)
 		content, err := atm.CheckApplyTemplate(a.Template, in, data)
 		if err != nil {
 			return err
@@ -269,12 +271,13 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 	}
 
 	var contexts []string
-	add := func(a *api.Agent, in string) error {
-		var data = make(map[string]any)
-		maps.Copy(data, a.Arguments)
-		maps.Copy(data, vars.Global.GetAllEnvs())
-		maps.Copy(data, args)
-		content, err := atm.CheckApplyTemplate(a.Template, in, data)
+	add := func(a *api.Agent, input string) error {
+		// var data = make(map[string]any)
+		// maps.Copy(data, a.Arguments)
+		// maps.Copy(data, vars.Global.GetAllEnvs())
+		// maps.Copy(data, args)
+		data := atm.BuildEffectiveArgs(vars, a, args)
+		content, err := atm.CheckApplyTemplate(a.Template, input, data)
 		if err != nil {
 			return err
 		}

@@ -304,7 +304,7 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 		return aiKit.SpawnAgent(ctx, sw.Vars, "", in)
 	}
 
-	// misc kits
+	// tools
 	kit, err := sw.Tools.GetKit(v)
 	if err != nil {
 		return nil, err

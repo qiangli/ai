@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"maps"
+	// "maps"
 	"strings"
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/shell/tool/sh"
@@ -88,18 +89,18 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 		// id := at.Kitname().ID()
 
 		// inherit
-		var in = make(map[string]any)
+		// var in = make(map[string]any)
 		// predefined
-		in["workspace"] = sw.Vars.RTE.Roots.Workspace
-		in["user"] = sw.Vars.RTE.User
+		// in["workspace"] = sw.Vars.RTE.Roots.Workspace
+		// in["user"] = sw.Vars.RTE.User
 
-		// defaults
-		maps.Copy(in, agent.Arguments)
-		//
-		maps.Copy(in, sw.Vars.Global.GetAllEnvs())
-		maps.Copy(in, at)
+		// // defaults
+		// maps.Copy(in, agent.Arguments)
+		// //
+		// maps.Copy(in, sw.Vars.Global.GetAllEnvs())
+		// maps.Copy(in, at)
+		in := atm.BuildEffectiveArgs(sw.Vars, agent, at)
 
-		// data, err := agent.Runner.Run(ctx, id, in)
 		result, err := sw.execm(ctx, agent, in)
 
 		if err != nil {

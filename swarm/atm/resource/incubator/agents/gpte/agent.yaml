@@ -54,10 +54,10 @@ agents:
       - "agent:flow/sequence"
     instruction:
       You should run the following actions for managing the lifecycle of code generation and improvement.
-       + agent:gpte/gen_code
-       + agent:gpte/gen_entrypoint
-       + agent:gpte/to_file_dict
-       + agent:gpte/execute
+      + agent:gpte/gen_code
+      + agent:gpte/gen_entrypoint
+      + agent:gpte/to_file_dict
+      + agent:gpte/execute
     functions:
       - "agent:gpte/gen_code"
       - "agent:gpte/gen_entrypoint"
@@ -264,8 +264,18 @@ agents:
         - **agent:improve**: Enhance the code using `files_dict` and a generated prompt based on code execution issues.
 
       4. **Iteration**: Continue attempting to solve errors, adhering to a maximum of max_attempts: `{{.max_attempts}}`. Your aim is to ensure the code successfully meets the specified requirements.
-    arguments:
-      max_attempts: "3"
+    # arguments:
+    #   max_attempts: "3"
+    parameters:
+      type: "object"
+      properties:
+        max_attempts:
+          type: "integer"
+          description: "The maximum number of attemps"
+          default: 3
+          minimum: 0
+      required:
+        - "max_attempts"
     functions:
       - "agent:gpte/improve"
       - "sh:*"
@@ -352,8 +362,16 @@ agents:
 
       Returns:
       - dict: A dictionary consisting of Diff objects, organized by filename.
-    arguments:
-      diff_str: "{{.result}}"
+    # arguments:
+    #   diff_str: "{{.result}}"
+    parameters:
+      type: "object"
+      properties:
+        diff_str:
+          type: "string"
+          descript: "A diff string in the unified git diff format"
+      required:
+        - diff_str
 
 ## models
 set: gpte

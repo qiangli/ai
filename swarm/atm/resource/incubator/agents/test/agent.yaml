@@ -18,6 +18,7 @@ agents:
     # args are defaults and can reference envs
     arguments:
       home_addr: "Addr: {{.city}} {{.zip}}"
+    
     # message/instruction/context can refernece envs
     message: |
       #!

@@ -2,8 +2,11 @@ package atm
 
 import (
 	"bytes"
+	"maps"
 	"strings"
 	"text/template"
+
+	"github.com/qiangli/ai/swarm/api"
 )
 
 func applyTemplate(tpl *template.Template, text string, data any) (string, error) {
@@ -47,5 +50,25 @@ func CheckApplyTemplate(tpl *template.Template, s string, data map[string]any) (
 	if strings.Contains(s, "{{") {
 		return applyTemplate(tpl, s, data)
 	}
+	// original
 	return s, nil
+}
+
+// Merge and return the currently active args in the following order:
+// + global envs
+// + agent arguments if applicable
+// + runtime args
+func BuildEffectiveArgs(vars *api.Vars, agent *api.Agent, args map[string]any) map[string]any {
+	var data = make(map[string]any)
+	// wont check vars.global - this should never be nil
+	maps.Copy(data, vars.Global.GetAllEnvs())
+	if agent != nil {
+		maps.Copy(data, agent.Arguments)
+	}
+	maps.Copy(data, args)
+	// predefined
+	data["workspace"] = vars.RTE.Roots.Workspace
+	data["user"] = vars.RTE.User
+
+	return data
 }

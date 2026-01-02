@@ -305,7 +305,7 @@ tools:
       properties:
         max_history:
           type: "integer"
-          description: "The maximum number of past messages to retrieve"
+          description: "The maximum number of historic messages to retrieve"
           default: 7
           minimum: 0
         max_span:

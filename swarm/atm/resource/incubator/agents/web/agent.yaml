@@ -16,11 +16,16 @@ agents:
         query:
           type: "string"
           description: "The search query string"
+        min_follow_links:
+          type: "integer"
+          description: "Minimum number of URLs to fetch content from per query"
+          default: 5
+        max_follow_links:
+          type: "integer"
+          description: "Maximum number of URLs to fetch content from per query"
+          default: 5
       required:
         - query
-    arguments:
-      min_follow_links: 1
-      max_follow_links: 5
     instruction: |
       #! --mime-type=x-go-template
       As a web search assistant, you are responsible for processing user queries and providing accurate
@@ -30,7 +35,7 @@ agents:
 
       perform a web search using one or more available search tools, and return the most relevant results.
 
-      After obtaining the URLs, follow at least {{.min_follow_links}} and at most {{.max_follow_links}} links
+      After obtaining the URLs, based on user's query and user's intention, follow at least {{default 1 .min_follow_links}} and at most {{defautl 5 .max_follow_links}} links
       to fetch the contents and present the user with the original fetched content as closely as possible,
       aggregating and removing duplicates with some cleanup.
 
@@ -46,11 +51,11 @@ agents:
       downtime, try another one. If all tools fail, wait for a few seconds and attempt again.
     functions:
       - "web:*"
-    
+
   - name: "react"
     display: "🔍 ReAct Web Search"
     description: "Specializes in web searches using multiple search engines to provide timely and accurate information."
-    model: llm/L1
+    model: "llm/L1"
     embed:
       - "agent:react"
     instruction: |
@@ -93,12 +98,25 @@ agents:
       Start by dissecting the main elements of a user query and crafting refined search queries to expand 
       upon the initial input. Enhance search depth by leveraging different search engines, current events, 
       and recent developments for comprehensive results.
+    parameters:
+      type: "object"
+      properties:
+        max_research_queries:
+          type: "integer"
+          default: 5
+        min_iterations:
+          type: "integer"
+          default: 1
+        max_iterations:
+          type: "integer"
+          default: 3
+        n_queries:
+          type: "integer"
+          default: 10
+      required:
+        - query
     arguments:
       reasoning_effort: medium
-      max_research_queries: 5
-      min_iterations: 1
-      max_iterations: 3
-      n_queries: 10
     instruction: |
       #! --mime-type=x-go-template
       You are a specialized research assistant tasked exclusively with expanding and refining search queries 
@@ -106,14 +124,14 @@ agents:
       the development of queries is grounded in the actual search outcomes.
 
       Begin by breaking down the user's query into essential components and create an initial set of 
-      {{.max_research_queries}} search queries. Execute these searches using the web search tool, meticulously 
-      reviewing the top {{.max_research_queries}} results to identify further areas for inquiry.
+      {{default 5 .max_research_queries}} search queries. Execute these searches using the web search tool, meticulously 
+      reviewing the top {{default 5 .max_research_queries}} results to identify further areas for inquiry.
 
       Use insights from these results to iteratively refine and broaden your search queries. Continue this 
-      process for up to {{.max_iterations}} iterations, mandating a minimum of {{.min_iterations}} if specified, 
+      process for up to {{default .max_iterations}} iterations, mandating a minimum of {{default 1 .min_iterations}} if specified, 
       to maximize relevance and comprehensiveness.
 
-      Return only a JSON array of the final {{.n_queries}} generated search queries, formatted as follows:
+      Return only a JSON array of the final {{default 10 .n_queries}} generated search queries, formatted as follows:
         [
           "query 1",
           "query 2",
@@ -128,28 +146,34 @@ agents:
       - "web:*"
 
   - name: "scrape"
-    display: "🌐 Scrape Agent"
+    display: "🌐 Web Scrape Agent"
     description: |
-      The Scrape Agent is a powerful tool designed to execute web searches across multiple 
+      The Web Scrape Agent is a powerful tool designed to execute web searches across multiple 
       retrievers, effectively gathering relevant content based on queries. It excels in processing 
-      multiple queries simultaneously, expecting input in a JSON array format, making it ideal for 
-      comprehensive data collection. The agent reliably produces enriched results for each query, 
-      ensuring thorough and detailed information retrieval with optimized retry mechanisms for 
-      increased search reliability.
-    arguments:
-      max_retry: 3
-    message: |
-      #! --mime-type=x-go-template
-      Queries:
-      {{ai "agent:web/research"}}
+      multiple queries simultaneously, making it ideal for comprehensive data collection.
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The search query string"
+        max_retry:
+          type: "integer"
+          description: "Maximum number of retries per query for web search"
+          default: 3
+      required:
+        - query
     instruction: |
       #! --mime-type=text/x-go-template
-      You are a specialized web scraper. For each input query, which will be provided as a JSON
-      array, execute a search using the designated search tool. Ensure that for each query, results
-      are fetched exactly as retrieved without any summarization. In case of a failed search or 
-      absence of content, retry the operation up to {{.max_retry}} times. Return the final results 
-      in a JSON array where each element corresponds directly to the comprehensive content retrieved 
-      for the respective input query, maintaining the order of the queries.
+      You are a specialized web scraper.
+
+      Begin by running `agent:web/research` to refine the user's query.
+
+      For each refined query, use `agent:web/search` to gather results, ensuring accuracy and completeness without summarization.
+
+      If a query search fails or returns no results, retry up to {{default 3 .max_retry}} times.
+
+      Provide the final results as a JSON array. Each element must align with the content retrieved for its respective query, maintaining query order.
     functions:
       - "agent:web/search"
 

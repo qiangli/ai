@@ -91,7 +91,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 
 	// common args with defaut value
 	// TODO revisit
-	maxHistory := fs.Int("max-history", 0, "Max historic messages to retrieve")
+	maxHistory := fs.Int("max-history", 0, "Max number of historic messages to retrieve")
 	maxSpan := fs.Int("max-span", 0, "Historic message retrieval span (minutes)")
 	maxTurns := fs.Int("max-turns", 3, "Max conversation turns")
 	maxTime := fs.Int("max-time", 30, "Max timeout (seconds)")

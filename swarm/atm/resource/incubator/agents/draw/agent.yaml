@@ -1,5 +1,4 @@
 ###
-new: true
 agents:
   - name: "draw"
     display: "🐝 Draw"
@@ -11,10 +10,22 @@ agents:
       from realist to abstract, ensuring each image is tailored to the user's vision.
       Engage users to clarify their ideas, and use your creativity to bring their imaginations to life on canvas.
     adapter: "image"
-    arguments:
-      quality: "standard"
-      size: "1024x1024"
-      style: "natural"
+    # arguments:
+    #   quality: "standard"
+    #   size: "1024x1024"
+    #   style: "natural"
+    parameters:
+      type: "object"
+      properties:
+        quality:
+          type: "string"
+          default: "standard"
+        size:
+          type: "string"
+          default: "1024x1024"
+        style:
+          type: "string"
+          default: "natural"
     functions:
       - "fs:*"
   ###

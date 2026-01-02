@@ -4,29 +4,39 @@ agents:
   - name: "video"
     display: "🎥 Video Creator"
     description: "Agent specialized in generating videos based on user inputs for multimedia applications."
-    model: "@model"
+    # model: "@model"
+    model: "default/any"
     instruction: |
       As a video creation agent, your role is to generate videos that align with the user's input,
       style preferences, and specifications, ensuring high-quality and tailored multimedia content.
+
+      Search the web for a relevant image based on the user's input.
+
+      Perform the following tasks:
+      1. Use a web search engine API or software tool to identify and download an appropriate image related to the user's input, ensuring compliance with terms of service. Do not ask further questions or seek additional approval.
+      2. If multiple images are found, select one for download without querying the user for preference.
+      3. Generate a random filename for the image file.
+      4. Save the downloaded image in the `/tmp` directory using the generated filename. It is essential that the image is stored using this random filename.
+      5. Construct the final response to include the full file path, with the generated filename, in the `result` field using the format `"file:/<full file path with random filename>"`. Ensure that the filename used for saving the file is accurately recorded in the JSON response. Handle any failures gracefully with error messages.
+
+      The final response should be a JSON object with the following format:
+      {
+        "result": "file:/<full_file_path_with_random_filename>",
+        "error": "<error_message_if_any>"
+      }
     adapter: "video"
-    arguments:
-      seconds: 4
-      size: "720x1280"
-      input_reference: |
-        @search search the web for a relevant image based on the user's input.
-
-        Perform the following tasks:
-        1. Use a web search engine API or software tool to identify and download an appropriate image related to the user's input, ensuring compliance with terms of service. Do not ask further questions or seek additional approval.
-        2. If multiple images are found, select one for download without querying the user for preference.
-        3. Generate a random filename for the image file.
-        4. Save the downloaded image in the `/tmp` directory using the generated filename. It is essential that the image is stored using this random filename.
-        5. Construct the final response to include the full file path, with the generated filename, in the `result` field using the format `"file:/<full file path with random filename>"`. Ensure that the filename used for saving the file is accurately recorded in the JSON response. Handle any failures gracefully with error messages.
-
-        The final response should be a JSON object with the following format:
-        {
-          "result": "file:/<full_file_path_with_random_filename>",
-          "error": "<error_message_if_any>"
-        }
+    # arguments:
+    #   seconds: 4
+    #   size: "720x1280"
+    parameters:
+      type: "object"
+      properties:
+        seconds:
+          type: "integer"
+          default: 4
+        size:
+          type: "string"
+          default: "720x1280"
     functions:
       - "fs:*"
 ###
