@@ -237,7 +237,7 @@ func (r *SystemKit) EditFile(ctx context.Context, vars *api.Vars, name string, a
 	return fmt.Sprintf("File modified successfully. Made %d replacement(s).", replacementCount), nil
 }
 
-func (r *SystemKit) SearchFiles(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) SearchFiles(ctx context.Context, vars *api.Vars, name string, args api.ArgMap) (string, error) {
 	path, err := api.GetStrProp("path", args)
 	if err != nil {
 		return "", err
@@ -252,7 +252,21 @@ func (r *SystemKit) SearchFiles(ctx context.Context, vars *api.Vars, name string
 	if err != nil {
 		depth = 5
 	}
-	exclude, _ := api.GetArrayProp("exclude", args)
+
+	var exclude []string
+	// exclude, _ := api.GetArrayProp("exclude", args)
+	if v, err := api.GetArrayProp("exclude", args); err == nil && len(v) > 0 {
+		exclude = v
+	} else {
+		// decode string representation of arrays
+		v := args.GetString("exclude")
+		if !strings.HasPrefix(v, "[") {
+			exclude = append(exclude, v)
+		} else {
+			as := api.ToStringArray(v)
+			exclude = append(exclude, as...)
+		}
+	}
 
 	options := &vfs.SearchOptions{
 		Pattern:    pattern,
