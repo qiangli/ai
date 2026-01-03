@@ -135,18 +135,38 @@ func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, arg
 		return txt, nil
 	default:
 		// uri
+		// [scheme:][//[userinfo@]host][/]path[?query][#fragment]
 		uri, err := url.Parse(output)
 		if err != nil {
 			return "", err
 		}
-		if uri.Scheme != "file" {
-			return "", fmt.Errorf("output scheme not supported: %s. write to file: or print on console", uri.Scheme)
+		// env:key
+		// scheme:opaque[?query][#fragment]
+		if uri.Scheme == "env" {
+			key := uri.Opaque
+			key = strings.ReplaceAll(key, "/", "__")
+			key = strings.ReplaceAll(key, ":", "__")
+			key = strings.ReplaceAll(key, "-", "_")
+			vars.Global.Set(key, txt)
+			vars.RTE.OS.Setenv(key, txt)
+			return txt, nil
 		}
-		err = vars.RTE.Workspace.WriteFile(uri.Path, []byte(txt))
-		if err != nil {
-			return "", err
+		//
+		// file:///path
+		// file:path
+		if uri.Scheme == "file" {
+			file := uri.Path
+			if file == "" {
+				file = uri.Opaque
+			}
+			err = vars.RTE.Workspace.WriteFile(file, []byte(txt))
+			if err != nil {
+				return "", err
+			}
+			return txt, nil
 		}
-		return txt, nil
+		//
+		return "", fmt.Errorf("output scheme not supported: %q.", uri.Scheme)
 	}
 }
 

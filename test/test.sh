@@ -33,24 +33,32 @@ message="tell me a joke"
 # fix me
 # datetime=$(date)
 datetime="Jan  1 08:08:08"
-/sh:set_envs --option datetime="$datetime"
+envs="
+{
+\"datetime\":\"$datetime\",
+\"message\":\"$message\"
+}
+"
+
+/sh:set_envs --option envs="${envs}"
 
 # /agent:test/test \
 #     --script "$script" \
 #     --adapter "echo" \
 #     --message "$message"
 
-# /flow:sequence \
-#     --agent "test/test" \
-#     --actions "[ai:spawn_agent,sh:format]" \
-#     --adapter "echo" \
-#     --template "$template" \
-#     --script "$script" \
-#     --message "$message"
+/flow:sequence \
+    --agent "test/test" \
+    --actions "[ai:spawn_agent,sh:format]" \
+    --adapter "echo" \
+    --template "$template" \
+    --script "$script" \
+    --option output="env:resp_result"
 
 ###
 
-# printenv
+printenv
+echo ""
 date
 echo ""
 echo "*** test completed ***"
