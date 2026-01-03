@@ -74,24 +74,26 @@ func GetArrayProp(key string, props map[string]any) ([]string, error) {
 		return []string{}, nil
 	}
 
-	items, ok := val.([]any)
-	if ok {
-		strs := make([]string, len(items))
-		for i, v := range items {
-			str, ok := v.(string)
-			if !ok {
-				return nil, fmt.Errorf("%s must be an array of strings", key)
-			}
-			strs[i] = str
-		}
-		return strs, nil
-	}
+	// items, ok := val.([]any)
+	// if ok {
+	// 	strs := make([]string, len(items))
+	// 	for i, v := range items {
+	// 		str, ok := v.(string)
+	// 		if !ok {
+	// 			return nil, fmt.Errorf("item[%v] %v must be string: %q", i, v, key)
+	// 		}
+	// 		strs[i] = str
+	// 	}
+	// 	return strs, nil
+	// }
 
-	strs, ok := val.([]string)
-	if ok {
-		return strs, nil
-	}
-	return nil, fmt.Errorf("%q must be an array of strings", key)
+	// strs, ok := val.([]string)
+	// if ok {
+	// 	return strs, nil
+	// }
+
+	return ToStringArray(val), nil
+	// return nil, fmt.Errorf("%q must be an array of strings", key)
 	// strs, ok := val.([]string)
 	// if !ok {
 	// 	if IsRequired(key, props) {

@@ -64,8 +64,6 @@ agents:
         kit: {{.kit}}
         agent: {{.pack}}/{{.name}}
 
-      {{date}}
-
       Global:
       {{printenv}}
       --------
@@ -92,8 +90,6 @@ agents:
         user: {{.user.Display}}
         kit: {{.kit}}
         agent: {{.pack}}/{{.name}}
-      
-      {{date}}
 
       Global:
       {{printenv}}
@@ -121,8 +117,6 @@ agents:
         user: {{.user.Display}}
         kit: {{.kit}}
         agent: {{.pack}}/{{.name}}
-
-      {{date}}
 
       Global:
       {{printenv}}

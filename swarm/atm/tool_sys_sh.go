@@ -128,9 +128,9 @@ func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, arg
 
 	// tee output
 	switch output {
-	case "none", "":
-		return txt, nil
-	case "console":
+	case "none", "/dev/null":
+		return "", nil
+	case "console", "":
 		fmt.Printf("%s", txt)
 		return txt, nil
 	default:
@@ -149,7 +149,7 @@ func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, arg
 			key = strings.ReplaceAll(key, "-", "_")
 			vars.Global.Set(key, txt)
 			vars.RTE.OS.Setenv(key, txt)
-			return txt, nil
+			return "", nil
 		}
 		//
 		// file:///path
@@ -163,7 +163,7 @@ func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, arg
 			if err != nil {
 				return "", err
 			}
-			return txt, nil
+			return "", nil
 		}
 		//
 		return "", fmt.Errorf("output scheme not supported: %q.", uri.Scheme)

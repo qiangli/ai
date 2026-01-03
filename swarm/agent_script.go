@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+
 	// "maps"
 	"slices"
 	"strings"
@@ -117,7 +118,7 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, _ map[string]an
 		// internal list
 		allowed := []string{"env", "printenv"}
 		if slices.Contains(allowed, args[0]) {
-			out, err := doBashCustom(vs, args)
+			out, err := doBashCustom(r.sw.Vars, vs, args)
 			fmt.Fprintf(vs.IOE.Stdout, "%v", out)
 			if err != nil {
 				fmt.Fprintln(vs.IOE.Stderr, err.Error())
@@ -152,14 +153,45 @@ func (r *AgentScriptRunner) run(ctx context.Context, vs *sh.VirtualSystem, args 
 	return result, nil
 }
 
-func doBashCustom(vs *sh.VirtualSystem, args []string) (string, error) {
-	switch args[0] {
-	case "env", "printenv":
+func doBashCustom(vars *api.Vars, vs *sh.VirtualSystem, args []string) (string, error) {
+	printenv := func() string {
 		var envs []string
 		for k, v := range vs.System.Environ() {
 			envs = append(envs, fmt.Sprintf("%s=%v", k, v))
 		}
-		return strings.Join(envs, "\n"), nil
+		return strings.Join(envs, "\n") + "\n"
+	}
+	setenv := func(key, val string) {
+		vars.Global.Set(key, val)
+		vs.System.Setenv(key, val)
+	}
+	unsetenv := func(key string) {
+		vars.Global.Unset(key)
+		// TODO add unset
+		vs.System.Setenv(key, "")
+	}
+
+	switch args[0] {
+	case "printenv":
+		return printenv(), nil
+	case "env":
+		if len(args) == 1 {
+			return printenv(), nil
+		}
+		// setenv
+		for _, kv := range args[1:] {
+			k, v := split2(kv, "=", "")
+			setenv(k, v)
+		}
+	case "setenv":
+		for _, kv := range args[1:] {
+			k, v := split2(kv, "=", "")
+			setenv(k, v)
+		}
+	case "unsetenv":
+		for _, k := range args[1:] {
+			unsetenv(k)
+		}
 	default:
 	}
 	return "", nil

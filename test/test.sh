@@ -29,23 +29,13 @@ template='data:,
 script="file:///$PWD/swarm/atm/resource/incubator/agents/test/agent.yaml"
 message="tell me a joke"
 
-# /sh:set_envs --option query="$message"
-# fix me
-# datetime=$(date)
-datetime="Jan  1 08:08:08"
-envs="
-{
-\"datetime\":\"$datetime\",
-\"message\":\"$message\"
-}
-"
+env message="${message}"
+env datetime="<TODO>"
 
-/sh:set_envs --option envs="${envs}"
-
-# /agent:test/test \
-#     --script "$script" \
-#     --adapter "echo" \
-#     --message "$message"
+# # /agent:test/test \
+# #     --script "$script" \
+# #     --adapter "echo" \
+# #     --message "$message"
 
 /flow:sequence \
     --agent "test/test" \
@@ -53,13 +43,16 @@ envs="
     --adapter "echo" \
     --template "$template" \
     --script "$script" \
-    --option output="env:resp_result"
+    --option output="file:/tmp/test.txt"
 
 ###
 
 printenv
-echo ""
-date
-echo ""
+# /sh:get_envs --option keys='["result"]'
+
+# printf "result: %s\n" "$message"
+
+# date
+# echo ""
 echo "*** test completed ***"
 ###

@@ -93,6 +93,12 @@ func (g *Environment) SetEnvs(envs map[string]any) {
 	maps.Copy(g.Env, envs)
 }
 
+func (g *Environment) Unset(key string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	delete(g.Env, key)
+}
+
 func (g *Environment) UnsetEnvs(keys []string) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
