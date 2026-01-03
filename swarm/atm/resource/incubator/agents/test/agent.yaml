@@ -1,6 +1,6 @@
 ## agent pack
-pack: test
-model: default/any
+pack: "test"
+model: "default/any"
 # max_history: 0
 # max_time: 900
 
@@ -9,17 +9,36 @@ agents:
     display: "🚀 Script Test"
     description: |
       Script test
-    # env can reference global vars
+    # environment can reference global vars
+    # equivalent to "sh:set_envs" after applying go templates
     environment:
       original_query: "User asked: {{.message}}"
       user_name: "Charles"
       city: "SFO"
       zip: 1234567
-    # args are defaults and can reference envs
+    # arguments can reference global vars and agent envs
+    # equivalent to command line options.
     arguments:
       home_addr: "Addr: {{.city}} {{.zip}}"
-    
-    # message/instruction/context can refernece envs
+    # no templates are allowed for parameters
+    # defaults in parameters are passed as default values for the arguments/properties 
+    # if not set in arguments or envs
+    # equivalent to option/flags definitions
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The search query string"
+        max_results:
+          type: "integer"
+          description: "Maximum number of results to return"
+          default: 5
+          minimum: 1
+          maximum: 10
+      required:
+        - query
+    # message/instruction/context can refernece all envs and args
     message: |
       #!
       ##
@@ -51,6 +70,8 @@ agents:
     context: |
       #!
       ## Context
+
+      Parameter default: {{.max_results}}
       
       Query (agent + user message):
       {{.query}}
@@ -87,16 +108,14 @@ agents:
 #       required:
 #         - query
 
-# ## models
-# set: "llm"
-# provider: "openai"
-# base_url: "https://api.openai.com/v1/"
-# api_key: "openai"
-# models:
-#   fast:
-#     model: "gpt-4o-mini"
-#   smart:
-#     model: "gpt-4.1"
-#   strategic:
-#     model: "o4-mini"
+## models
+set: "default"
+models:
+  any:
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
+    model: "gpt-4o-mini"
+    # model: "gpt-4.1"
+    # model: "o4-mini"
 ###

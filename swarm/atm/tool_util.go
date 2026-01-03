@@ -55,18 +55,31 @@ func CheckApplyTemplate(tpl *template.Template, s string, data map[string]any) (
 }
 
 // Merge and return the currently active args in the following order:
+// + defaults from parameters
 // + global envs
-// + agent arguments if applicable
+// + agent arguments
 // + runtime args
 func BuildEffectiveArgs(vars *api.Vars, agent *api.Agent, args map[string]any) map[string]any {
 	var data = make(map[string]any)
+	// defaults from agent parameters
+	if agent != nil {
+		if len(agent.Parameters) > 0 {
+			obj := agent.Parameters["properties"]
+			if props, found := obj.(map[string]any); found {
+				for key, prop := range props {
+					if p, ok := prop.(map[string]any); ok {
+						if def, ok := p["default"]; ok {
+							data[key] = def
+						}
+					}
+				}
+			}
+		}
+	}
 	// wont check vars.global - this should never be nil
 	maps.Copy(data, vars.Global.GetAllEnvs())
+	// agent arguments
 	if agent != nil {
-		// defaults from parameters
-		if len(agent.Parameters) > 0 {
-
-		}
 		maps.Copy(data, agent.Arguments)
 	}
 	maps.Copy(data, args)

@@ -38,7 +38,6 @@
 				// "--option",
 				// "x=\"/sh:exec --command 'ls -al /tmp'\"",
 				//
-				//
 				// "/sh:timeout",
 				// "--option",
 				// "action=/alias:list_roots",
@@ -100,8 +99,10 @@
 				// "--script",
 				// "dev/skills/agents/eval/agent.yaml",
 				//
-				// bash
-				// "test/eval.sh",
+				// 
+				// bash script
+				// 
+				"test/eval.sh",
 				// "test/std.sh",
 				// "test/yaml-wrap.sh",
 				// "swarm/atm/resource/template/atm.yaml",
@@ -235,17 +236,17 @@
 				// "/fs:read_multiple_files",
 				// "--option",
 				// "paths=[/tmp/test/dir/x,/tmp/test/dir/z]",
-				"/fs:edit_file",
-				"--option",
-				"path=/tmp/test/dir/z",
-				"--option",
-				"find=^cool.*$",
-				"--option",
-				"replace=coolest",
-				"--option",
-				"all_occurrences=true",
-				"--option",
-				"regex=true"
+				// "/fs:edit_file",
+				// "--option",
+				// "path=/tmp/test/dir/z",
+				// "--option",
+				// "find=^cool.*$",
+				// "--option",
+				// "replace=coolest",
+				// "--option",
+				// "all_occurrences=true",
+				// "--option",
+				// "regex=true"
 				// "--verbose",
 				// "--max-time",
 				// "900",

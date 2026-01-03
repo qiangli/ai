@@ -15,6 +15,12 @@ type ToolType string
 
 type Parameters map[string]any
 
+// type Parameters struct {
+// 	Type       string         `json:"type"`
+// 	Properties map[string]any `json:"properties"`
+// 	Required   []string       `json:"required"`
+// }
+
 const (
 	// script/template
 	ToolTypeFunc ToolType = "func"

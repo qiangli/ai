@@ -25,7 +25,9 @@ template='data:,
 # script="$PWD/swarm/atm/resource/incubator/agents/gptr/agent.yaml"
 # script="file:///$PWD/swarm/atm/resource/incubator/agents/search/agent.yaml"
 # script="file:///$PWD/swarm/atm/resource/incubator/agents/research/agent.yaml"
-script="file:///$PWD/swarm/atm/resource/incubator/agents/deep/agent.yaml"
+# script="file:///$PWD/swarm/atm/resource/incubator/agents/deep/agent.yaml"
+
+script="file:///$PWD/swarm/atm/resource/incubator/agents/test/agent.yaml"
 
 # message="write a report on the major world events for the year of 2025"
 # message="What is the latest technology and research  human like consciousness for  AI and LLM"
@@ -45,9 +47,9 @@ message="what is the state of the art for LLM memory management and the future r
 #     --script "$script" \
 #     --message "$message"
 
-/agent:deep \
-    --script "$script" \
-    --option  query="$message"
+# /agent:deep \
+#     --script "$script" \
+#     --option  query="$message"
 
 # /agent:research \
 #     --script "$script" \
@@ -65,11 +67,15 @@ message="what is the state of the art for LLM memory management and the future r
 #     --script "$script" \
 #     --option  reflection="$message"
 
+/agent:test/test \
+    --script "$script" \
+    --option  query="$message"
+
 ###
-echo "---- script env ----"
+# echo "---- script env ----"
 
-printenv
+# printenv
 
-echo ""
-echo "*** eval tests completed ***"
+# echo ""
+# echo "*** eval tests completed ***"
 ###
