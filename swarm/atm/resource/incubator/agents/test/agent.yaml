@@ -14,7 +14,8 @@ agents:
     # env var is exported
     # equivalent to "sh:set_envs" after applying templates
     environment:
-      original_query: "User input: {{.query}}"
+      # sh:set_envs --option datetime=$(date)
+      datetime: "{{.datetime}}"
       nickname: "Charles"
       city: "SFO"
       zip: 1234567
@@ -47,7 +48,7 @@ agents:
         max_results: {{.max_results}}
 
       Environment:
-        original_query: {{.original_query}}
+        datetime: {{.datetime}}
         nickname: {{.nickname}}
         city: {{.city}}
         zip: {{.zip}}
@@ -59,17 +60,15 @@ agents:
 
       Preset:
         workspace: {{.workspace}}
-        user: {{.user.Email}}
+        user: {{.user.Display}}
         kit: {{.kit}}
         agent: {{.pack}}/{{.name}}
 
       {{date}}
 
       Global:
-      ---
       {{printenv}}
-      ---
-    #
+      --------
     instruction: |
       #!
       ## Instruction/Prompt
@@ -78,7 +77,7 @@ agents:
         max_results: {{.max_results}}
 
       Environment:
-        original_query: {{.original_query}}
+        datetime: {{.datetime}}
         nickname: {{.nickname}}
         city: {{.city}}
         zip: {{.zip}}
@@ -90,17 +89,15 @@ agents:
 
       Preset:
         workspace: {{.workspace}}
-        user: {{.user.Email}}
+        user: {{.user.Display}}
         kit: {{.kit}}
         agent: {{.pack}}/{{.name}}
       
       {{date}}
 
       Global:
-      ---
       {{printenv}}
-      ---
-
+      --------
     context: |
       #!
       ## Context/History
@@ -109,7 +106,7 @@ agents:
         max_results: {{.max_results}}
 
       Environment:
-        original_query: {{.original_query}}
+        datetime: {{.datetime}}
         nickname: {{.nickname}}
         city: {{.city}}
         zip: {{.zip}}
@@ -121,16 +118,15 @@ agents:
 
       Preset:
         workspace: {{.workspace}}
-        user: {{.user.Email}}
+        user: {{.user.Display}}
         kit: {{.kit}}
         agent: {{.pack}}/{{.name}}
 
       {{date}}
 
       Global:
-      ---
       {{printenv}}
-      ---
+      --------
 
 # kit: "test"
 # type: "func"

@@ -79,7 +79,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	return result, nil
 }
 
-func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, envs api.ArgMap) sh.ExecHandler {
+func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, _ map[string]any) sh.ExecHandler {
 	return func(ctx context.Context, args []string) (bool, error) {
 		if r.agent == nil {
 			return true, fmt.Errorf("script: missing agent")

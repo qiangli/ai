@@ -62,6 +62,10 @@ func (sw *Swarm) Init(rte *api.ActionRTEnv) error {
 	sw.Vars = api.NewVars()
 	sw.Vars.RTE = rte
 
+	// preset
+	sw.Vars.Global.Set("workspace", sw.Vars.RTE.Roots.Workspace)
+	sw.Vars.Global.Set("user", sw.Vars.RTE.User)
+
 	rootData := []byte("data:," + string(resource.RootAgentData))
 	root, err := sw.CreateAgent(context.TODO(), nil, api.Packname("root"), rootData)
 	if err != nil {
@@ -142,26 +146,6 @@ func (sw *Swarm) mapAssign(_ context.Context, agent *api.Agent, dst, src map[str
 	}
 	return nil
 }
-
-// // make a copy of golbal env
-// func (sw *Swarm) globalEnv() map[string]any {
-// 	var env = make(map[string]any)
-// 	sw.Vars.Global.Copy(env)
-// 	return env
-// }
-
-// func (sw *Swarm) globalAddEnvs(envs map[string]any) {
-// 	sw.Vars.Global.AddEnvs(envs)
-// }
-
-// // expand s for agent/tool similar to $(cmdline...)
-// func (sw *Swarm) expandx(ctx context.Context, parent *api.Agent, s string) (string, error) {
-// 	data, err := sw.exec(ctx, parent, s)
-// 	if err != nil {
-// 		return "", nil
-// 	}
-// 	return api.ToString(data), nil
-// }
 
 func (sw *Swarm) Parse(ctx context.Context, input any) (api.ArgMap, error) {
 	// parse special chars: - }}

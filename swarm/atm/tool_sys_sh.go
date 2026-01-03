@@ -327,15 +327,29 @@ func (r *SystemKit) GetEnvs(_ context.Context, vars *api.Vars, _ string, args ma
 	}, nil
 }
 
-// Export all args to env?
+// Export object set by key "envs" or all args if key is not found.
 func (r *SystemKit) SetEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
 	// TODO merge to make a single source of truth
 	if len(args) == 0 {
-		return nil, fmt.Errorf("Error: Expected environment variables to set but received none. Please provide at least one environment variable.")
+		return nil, fmt.Errorf("Error: Expected environment variables to set but received none.")
 	}
-	vars.Global.SetEnvs(args)
+	var obj map[string]any
+	if _, ok := args["envs"]; ok {
+		v, err := api.GetMapProp("envs", args)
+		if err != nil {
+			return nil, err
+		}
+		obj = v
+	} else {
+		// set all
+		obj = args
+	}
+	if len(obj) == 0 {
+		return nil, fmt.Errorf("No environment variables to set.")
+	}
+	vars.Global.SetEnvs(obj)
 	var keys []string
-	for k, v := range args {
+	for k, v := range obj {
 		vars.RTE.OS.Setenv(k, v)
 		keys = append(keys, k)
 	}

@@ -73,6 +73,7 @@ func GetArrayProp(key string, props map[string]any) ([]string, error) {
 		}
 		return []string{}, nil
 	}
+
 	items, ok := val.([]any)
 	if ok {
 		strs := make([]string, len(items))
@@ -87,13 +88,18 @@ func GetArrayProp(key string, props map[string]any) ([]string, error) {
 	}
 
 	strs, ok := val.([]string)
-	if !ok {
-		if IsRequired(key, props) {
-			return nil, fmt.Errorf("%s must be an array of strings", key)
-		}
-		return []string{}, nil
+	if ok {
+		return strs, nil
 	}
-	return strs, nil
+	return nil, fmt.Errorf("%q must be an array of strings", key)
+	// strs, ok := val.([]string)
+	// if !ok {
+	// 	if IsRequired(key, props) {
+	// 		return nil, fmt.Errorf("%s must be an array of strings", key)
+	// 	}
+	// 	return []string{}, nil
+	// }
+	// return strs, nil
 }
 
 func GetBoolProp(key string, props map[string]any) (bool, error) {
@@ -120,6 +126,34 @@ func GetBoolProp(key string, props map[string]any) (bool, error) {
 	default:
 		return false, fmt.Errorf("property '%s' is a string but not a valid boolean value", key)
 	}
+}
+
+func GetMapProp(key string, props map[string]any) (map[string]any, error) {
+	val, ok := props[key]
+	if !ok {
+		if IsRequired(key, props) {
+			return nil, fmt.Errorf("missing property: %s", key)
+		}
+		return map[string]any{}, nil
+	}
+	if v, ok := val.(map[string]any); ok {
+		return v, nil
+	}
+	if v, ok := val.(map[string]string); ok {
+		m := make(map[string]any)
+		for key, value := range v {
+			m[key] = value
+		}
+		return m, nil
+	}
+	if v, ok := val.(string); ok {
+		m := make(map[string]any)
+		if err := json.Unmarshal([]byte(v), &m); err != nil {
+			return nil, err
+		}
+		return m, nil
+	}
+	return nil, fmt.Errorf("%q must be a JSON object map of environment variables, represented as key-value pairs", key)
 }
 
 func ToResult(data any) *Result {

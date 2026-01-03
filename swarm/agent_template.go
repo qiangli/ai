@@ -78,6 +78,7 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 		if agent == nil {
 			return "<template: missing agent>"
 		}
+		//
 		ctx := context.Background()
 
 		log.GetLogger(ctx).Debugf("template agent: %s args: %+v\n", agent.Name, args)

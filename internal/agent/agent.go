@@ -78,11 +78,6 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 			argm[k] = v
 		}
 	}
-	//
-	argm["workspace"] = sw.Vars.RTE.Roots.Workspace
-	argm["user"] = sw.Vars.RTE.User
-	//
-	sw.Vars.Global.AddEnvs(argm)
 
 	// show input
 	level := api.ToLogLevel(argm["log_level"])
