@@ -3,16 +3,21 @@
 
 # // | fromJson | toPrettyJson
 template='data:,
->>>>>>>>> Message
-
-{{.query}}
-
->>>>>>>>> Instruction
+>>>>>>>>> Instruction/Prompt
 
 {{.prompt}}
 
+>>>>>>>>> Context/History
+
+{{.history}}
+
+>>>>>>>>> Message/Query
+
+{{.query}}
+
 >>>>>>>>> Result
 
+{{.}}
 
 >>>>>>>>> Env
 
@@ -67,14 +72,22 @@ message="what is the state of the art for LLM memory management and the future r
 #     --script "$script" \
 #     --option  reflection="$message"
 
-/agent:test/test \
+# /agent:test/test \
+#     --script "$script" \
+#     --option  query="$message"
+
+/flow:sequence \
+    --agent "test/test" \
+    --actions "[ai:spawn_agent,sh:format]" \
+    --adapter "echo" \
+    --template "$template" \
     --script "$script" \
-    --option  query="$message"
+    --message "$message"
 
 ###
 # echo "---- script env ----"
 
-# printenv
+printenv
 
 # echo ""
 # echo "*** eval tests completed ***"

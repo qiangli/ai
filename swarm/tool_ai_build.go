@@ -59,14 +59,13 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 
 	// *** envs ***
 	// export envs to global
-	// new vars can only reference existing global vars
+	// new env vars can only reference existing global vars
 	// export all agent/embedded env
 	var envs = make(map[string]any)
-	maps.Copy(envs, vars.Global.GetAllEnvs())
-
 	// inherit envs of embeded agents
 	add := func(e *api.Environment) error {
-		return r.sw.mapAssign(ctx, agent, envs, e.GetAllEnvs(), true)
+		src := e.GetAllEnvs()
+		return r.sw.mapAssign(ctx, agent, envs, src, true)
 	}
 
 	var addAll func(*api.Agent) error
@@ -87,19 +86,24 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	if err := addAll(agent); err != nil {
 		return nil, err
 	}
+	// export envs
 	vars.Global.AddEnvs(envs)
-	agent.Environment.SetEnvs(envs)
+	// update - not used but for info?
+	agent.Environment = vars.Global
+	// agent.Environment.SetEnvs(envs)
 
-	// args
+	// *** args ***
 	// global/agent envs
-	// agent args
-	// local arg takes precedence, skip if it already exists
+	// resolve agent args and override input args
+	var agentArgs = make(map[string]any)
 	if len(agent.Arguments) > 0 {
-		if err := r.sw.mapAssign(ctx, agent, args, agent.Arguments, false); err != nil {
+		if err := r.sw.mapAssign(ctx, agent, agentArgs, agent.Arguments, true); err != nil {
 			return nil, err
 		}
 	}
-	agent.Arguments = args
+	agent.Arguments = agentArgs
+	// override input args
+	maps.Copy(args, agentArgs)
 
 	// *** model ***
 	var lookupModel func(*api.Agent) *api.Model

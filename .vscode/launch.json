@@ -102,7 +102,7 @@
 				// 
 				// bash script
 				// 
-				"test/eval.sh",
+				"test/test.sh",
 				// "test/std.sh",
 				// "test/yaml-wrap.sh",
 				// "swarm/atm/resource/template/atm.yaml",

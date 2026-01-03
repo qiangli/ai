@@ -116,17 +116,23 @@ func (sw *Swarm) CreateAgent(ctx context.Context, parent *api.Agent, packname ap
 	return agent, nil
 }
 
-// copy values from src to dst after calling @agent and applying template if required
+// copy values from src to dst after applying templates if requested
 // skip unless override is true
-func (sw *Swarm) mapAssign(ctx context.Context, agent *api.Agent, dst, src map[string]any, override bool) error {
+// var in src template can reference global env
+func (sw *Swarm) mapAssign(_ context.Context, agent *api.Agent, dst, src map[string]any, override bool) error {
+	if len(src) == 0 {
+		return nil
+	}
+	var data = make(map[string]any)
+	maps.Copy(data, sw.Vars.Global.GetAllEnvs())
 	for key, val := range src {
 		if _, ok := dst[key]; ok && !override {
 			continue
 		}
-
 		// go template value support
 		if atm.IsTemplate(val) {
-			if resolved, err := atm.CheckApplyTemplate(agent.Template, val.(string), dst); err != nil {
+			maps.Copy(data, dst)
+			if resolved, err := atm.CheckApplyTemplate(agent.Template, val.(string), data); err != nil {
 				return err
 			} else {
 				val = resolved

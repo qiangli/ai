@@ -1,29 +1,31 @@
 ## agent pack
 pack: "test"
 model: "default/any"
-# max_history: 0
-# max_time: 900
+
+max_history: 1
+max_time: 900
 
 agents:
   - name: "test"
     display: "🚀 Script Test"
     description: |
-      Script test
-    # environment can reference global vars
-    # equivalent to "sh:set_envs" after applying go templates
+      Test global envs, agent envs, args, and params.
+    # environment var can reference global envs
+    # env var is exported
+    # equivalent to "sh:set_envs" after applying templates
     environment:
-      original_query: "User asked: {{.message}}"
-      user_name: "Charles"
+      original_query: "User input: {{.query}}"
+      nickname: "Charles"
       city: "SFO"
       zip: 1234567
-    # arguments can reference global vars and agent envs
+    # arguments can reference global env (and agent envs)
     # equivalent to command line options.
     arguments:
       home_addr: "Addr: {{.city}} {{.zip}}"
-    # no templates are allowed for parameters
-    # defaults in parameters are passed as default values for the arguments/properties 
+    # no template is allowed for parameters
+    # defaults in parameters are passed as default values for the arguments/properties
     # if not set in arguments or envs
-    # equivalent to option/flags definitions
+    # equivalent to options/flags definitions
     parameters:
       type: "object"
       properties:
@@ -33,58 +35,101 @@ agents:
         max_results:
           type: "integer"
           description: "Maximum number of results to return"
-          default: 5
-          minimum: 1
-          maximum: 10
+          default: 7
       required:
         - query
-    # message/instruction/context can refernece all envs and args
+    # message, instruction, context can refernece all envs and args
     message: |
       #!
-      ##
-      Agent {{.pack}}/{{.name}} says: 
-      
-      My name is: {{.user_name}}
+      ## Message/Query
 
-      What is the weather today in {{.city}} {{.zip}}
+      Parameters (default):
+        max_results: {{.max_results}}
 
-      Original query: {{.original_query}}
+      Environment:
+        original_query: {{.original_query}}
+        nickname: {{.nickname}}
+        city: {{.city}}
+        zip: {{.zip}}
+
+      Arguments:
+        home_addr: {{.home_addr}}
+        max_history: {{.max_history}}
+        max_time: {{.max_time}}
+
+      Preset:
+        workspace: {{.workspace}}
+        user: {{.user.Email}}
+        kit: {{.kit}}
+        agent: {{.pack}}/{{.name}}
 
       {{date}}
+
+      Global:
       ---
-    # 
+      {{printenv}}
+      ---
+    #
     instruction: |
       #!
-      ## instruction
-      User query (agent message + user message):
-      *** message after applying template ***
-      {{.query}}
+      ## Instruction/Prompt
 
-      Today is: {{date}}
+      Parameters (default):
+        max_results: {{.max_results}}
 
-      environment:
+      Environment:
+        original_query: {{.original_query}}
+        nickname: {{.nickname}}
+        city: {{.city}}
+        zip: {{.zip}}
+
+      Arguments:
+        home_addr: {{.home_addr}}
+        max_history: {{.max_history}}
+        max_time: {{.max_time}}
+
+      Preset:
+        workspace: {{.workspace}}
+        user: {{.user.Email}}
+        kit: {{.kit}}
+        agent: {{.pack}}/{{.name}}
+      
+      {{date}}
+
+      Global:
       ---
-        {{printenv}}
+      {{printenv}}
       ---
 
     context: |
       #!
-      ## Context
+      ## Context/History
 
-      Parameter default: {{.max_results}}
-      
-      Query (agent + user message):
-      {{.query}}
+      Parameters (default):
+        max_results: {{.max_results}}
 
-      Prompt (instruction):
-      {{.prompt}}
+      Environment:
+        original_query: {{.original_query}}
+        nickname: {{.nickname}}
+        city: {{.city}}
+        zip: {{.zip}}
 
-      Query and prompt are messages and instruction after applying templates.
+      Arguments:
+        home_addr: {{.home_addr}}
+        max_history: {{.max_history}}
+        max_time: {{.max_time}}
 
-      Date: {{date}}
-      environment:
+      Preset:
+        workspace: {{.workspace}}
+        user: {{.user.Email}}
+        kit: {{.kit}}
+        agent: {{.pack}}/{{.name}}
+
+      {{date}}
+
+      Global:
       ---
-        {{printenv}}
+      {{printenv}}
       ---
 
 # kit: "test"

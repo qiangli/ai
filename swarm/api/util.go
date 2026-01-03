@@ -459,3 +459,22 @@ func Abbreviate(s string, maxLen int) string {
 
 	return s
 }
+
+func ToMap(obj any) (map[string]any, error) {
+	if obj == nil {
+		return nil, nil
+	}
+	if v, ok := obj.(map[string]any); ok {
+		return v, nil
+	}
+
+	props := make(map[string]any)
+	data, err := json.Marshal(obj)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(data, &props); err != nil {
+		return nil, err
+	}
+	return props, nil
+}

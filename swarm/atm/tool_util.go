@@ -65,12 +65,11 @@ func BuildEffectiveArgs(vars *api.Vars, agent *api.Agent, args map[string]any) m
 	if agent != nil {
 		if len(agent.Parameters) > 0 {
 			obj := agent.Parameters["properties"]
-			if props, found := obj.(map[string]any); found {
-				for key, prop := range props {
-					if p, ok := prop.(map[string]any); ok {
-						if def, ok := p["default"]; ok {
-							data[key] = def
-						}
+			props, _ := api.ToMap(obj)
+			for key, prop := range props {
+				if p, ok := prop.(map[string]any); ok {
+					if def, ok := p["default"]; ok {
+						data[key] = def
 					}
 				}
 			}

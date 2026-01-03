@@ -330,14 +330,17 @@ func LoadAgentTool(ac *api.AppConfig, sub string) (*api.ToolFunc, error) {
 					},
 				}
 			} else {
-				if props, found := obj.(map[string]any); found {
-					if _, ok := props["query"]; !ok {
-						props["query"] = map[string]any{
-							"type":        "string",
-							"description": "The user input",
-						}
+				props, err := api.ToMap(obj)
+				if err != nil {
+					return nil, err
+				}
+				if _, found := props["query"]; !found {
+					props["query"] = map[string]any{
+						"type":        "string",
+						"description": "The user input",
 					}
 				}
+				params["properties"] = props
 			}
 
 			pn := api.NewPackname(ac.Pack, sub)
