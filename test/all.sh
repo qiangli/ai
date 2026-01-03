@@ -32,6 +32,12 @@ $BASE/test/agent.sh
 $BASE/test/std.sh
 $BASE/test/fs.sh
 
+$BASE/test/env.sh
+
+#
+$BASE/test/test.sh
+diff /tmp/test.txt ./test/data/test.txt || echo "test outputs diff"
+
 echo "$?"
 echo "*** All tests completed successfully ***"
 ###

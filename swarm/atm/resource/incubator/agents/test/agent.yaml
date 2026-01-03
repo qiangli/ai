@@ -59,13 +59,10 @@ agents:
         max_time: {{.max_time}}
 
       Preset:
-        workspace: {{.workspace}}
+        workspace: {{basename .workspace}}
         user: {{.user.Display}}
         kit: {{.kit}}
         agent: {{.pack}}/{{.name}}
-
-      Global:
-      {{printenv}}
       --------
     instruction: |
       #!
@@ -86,13 +83,10 @@ agents:
         max_time: {{.max_time}}
 
       Preset:
-        workspace: {{.workspace}}
+        workspace: {{basename .workspace}}
         user: {{.user.Display}}
         kit: {{.kit}}
         agent: {{.pack}}/{{.name}}
-
-      Global:
-      {{printenv}}
       --------
     context: |
       #!
@@ -113,13 +107,10 @@ agents:
         max_time: {{.max_time}}
 
       Preset:
-        workspace: {{.workspace}}
+        workspace: {{basename .workspace}}
         user: {{.user.Display}}
         kit: {{.kit}}
         agent: {{.pack}}/{{.name}}
-
-      Global:
-      {{printenv}}
       --------
 
 # kit: "test"

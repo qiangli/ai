@@ -1,0 +1,84 @@
+
+>>>>>>>>> Instruction/Prompt
+---
+## Instruction/Prompt
+
+Parameters (default):
+  max_results: 7
+
+Environment:
+  datetime: <TODO>
+  nickname: Charles
+  city: SFO
+  zip: 1234567
+
+Arguments:
+  home_addr: Addr: SFO 1234567
+  max_history: 1
+  max_time: 900
+
+Preset:
+  workspace: workspace
+
+  user: liqiang
+  kit: agent
+  agent: test/test
+--------
+
+---
+>>>>>>>>> Context/History
+---
+%%%%%%%%%%%%%%%%%%%%%%
+
+Content: empty? false
+Role: system
+
+Content: empty? false
+Role: user
+
+Content: empty? false
+Role: assistant
+
+%%%%%%%%%%%%%%%%%%%%%%
+---
+>>>>>>>>> Message/Query
+---
+## Message/Query
+
+Parameters (default):
+  max_results: 7
+
+Environment:
+  datetime: <TODO>
+  nickname: Charles
+  city: SFO
+  zip: 1234567
+
+Arguments:
+  home_addr: Addr: SFO 1234567
+  max_history: 1
+  max_time: 900
+
+Preset:
+  workspace: workspace
+
+  user: liqiang
+  kit: agent
+  agent: test/test
+--------
+
+tell me a joke
+---
+>>>>>>>>> Result
+---
+---
+>>>>>>>>> Env
+---
+nickname=Charles
+workspace=<redacted>
+user=&{ liqiang    map[kit:agent log_level:info name:ask]}
+message=tell me a joke
+datetime=<TODO>
+city=SFO
+zip=1234567
+---

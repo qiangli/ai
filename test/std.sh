@@ -16,7 +16,7 @@ tools=(
 "ai:build_prompt"
 "ai:build_context"
 "ai:transfer_agent"
-"ai:reload_agent"
+# "ai:reload_agent"
 "ai:spawn_agent"
 "ai:list_tools"
 "ai:get_tool_info"

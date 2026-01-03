@@ -9,7 +9,12 @@ template='data:,
 ---
 >>>>>>>>> Context/History
 ---
-{{.history}}
+%%%%%%%%%%%%%%%%%%%%%%
+{{ range .history }}
+Content: empty? {{ empty .Content }}
+Role: {{ .Role }}
+{{ end }}
+%%%%%%%%%%%%%%%%%%%%%%
 ---
 >>>>>>>>> Message/Query
 ---
@@ -36,6 +41,8 @@ env datetime="<TODO>"
 # #     --script "$script" \
 # #     --adapter "echo" \
 # #     --message "$message"
+
+env workspace="<redacted>"
 
 /flow:sequence \
     --agent "test/test" \
