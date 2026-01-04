@@ -6,8 +6,8 @@ model: "llm/L1"
 agents:
   - name: "search"
     display: "🔍 Web Search"
-    escription: |
-      Processes user queries to perform web searches, returning the most relevant results. 
+    description: |
+      Process user queries to perform web searches, returning the most relevant results. 
       Follows a set number of links to fetch content and summarizes these in an easily readable format. 
       Utilizes multiple search tools and handles various result formats.
     parameters:
@@ -19,7 +19,7 @@ agents:
         min_follow_links:
           type: "integer"
           description: "Minimum number of URLs to fetch content from per query"
-          default: 5
+          default: 1
         max_follow_links:
           type: "integer"
           description: "Maximum number of URLs to fetch content from per query"
