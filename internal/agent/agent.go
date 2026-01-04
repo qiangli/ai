@@ -92,6 +92,9 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 		Display: "",
 	}
 
+	msg := argm["message"]
+	sw.Vars.Global.Set("message", msg)
+
 	id := argm.Kitname().ID()
 	if id != "" {
 		if v, err := sw.Exec(ctx, argm); err != nil {

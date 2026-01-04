@@ -14,6 +14,8 @@ agents:
           description: "The user query string"
       required:
         - query
+    arguments:
+      query: "{{default .message .query}}"
     context: |
       #!
       {{ai "/agent:context/summarizer" "--query" .query}}

@@ -39,7 +39,7 @@ agents:
       Identifies the programming language from the user's request or by examining local file systems.
     model: "llm/L1"
     embed:
-      - "agent:context/summary"
+      # - "agent:context/summary"
       - "agent:kbase"
       - "agent:memory"
       # - "agent:think"
