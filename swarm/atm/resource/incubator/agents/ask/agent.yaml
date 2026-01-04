@@ -15,7 +15,7 @@ agents:
     environment:
       max_history: 5
     embed:
-      - "agent:context/lastn"
+      - "agent:context"
       - "agent:kbase"
       - "agent:memory"
       - "agent:think"

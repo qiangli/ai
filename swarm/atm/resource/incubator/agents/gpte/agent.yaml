@@ -25,10 +25,7 @@ agents:
         - `--generate`: The user wants code generated from the prompt.
         - `--improve`: The user seeks improvements on an existing project.
         - `--clarify`: The user desires a clarification discussion before implementation.
-        - `--verbose`: The user needs detailed logging for debugging.
-        - `--prompt_file`: Indicates a specified file contains the user's prompt.
-        - `--entrypoint_prompt`: Indicates that a specific entrypoint is defined.
-
+   
       2. **Preference Extraction**: Parse out any explicit or implicit preferences highlighted by the user. If the user specifies parts using or implying options markers (`--`), note these preferences.
 
       3. **Message Compilation**: After identifying user preferences, isolate and compile the main message intended to be used as the user role prompt.
@@ -158,6 +155,10 @@ agents:
     description: |
       Improves the code based on user input and returns the updated files.
     model: gpte/L2
+    embed:
+      - "agent:context"
+      - "agent:kbase"
+      - "agent:memory"
     instruction: |
       You will get instructions for code to write.
       You will write a very long answer.
@@ -232,6 +233,9 @@ agents:
       Python toolbelt preferences:
       - pytest
       - dataclasses
+    functions:
+      - "fs:*"
+      - "sh:*"
 
   - name: "self_heal"
     display: "Self Heal"

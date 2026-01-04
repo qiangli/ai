@@ -3,7 +3,6 @@
 # https://aider.chat/docs/usage/modes.html
 pack: "aider"
 log_level: "info"
-max_history: 0
 max_time: 900
 max_turns: 100
 agents:
@@ -15,7 +14,6 @@ agents:
       Act as an expert architect engineer and provide direction to your editor engineer.
     model: "llm/L1"
     environment:
-      # language: "python"
       language: "go"
     embed:
       - agent:aider/detect_lang
@@ -43,7 +41,7 @@ agents:
     embed:
       - "agent:context"
       - "agent:kbase"
-      # - "agent:memory"
+      - "agent:memory"
       # - "agent:think"
     environment:
       language: "go"
