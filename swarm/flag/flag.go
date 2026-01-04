@@ -402,6 +402,7 @@ type FlagSet struct {
 	errorHandling ErrorHandling
 	output        io.Writer         // nil means stderr; use Output() accessor
 	undef         map[string]string // flags which didn't exist at the time of Set
+	ExtraFlags    map[string]any    // captures undefined flags in --name value form
 }
 
 // A Flag represents the state of a flag.
@@ -460,7 +461,7 @@ func (f *FlagSet) VisitAll(fn func(*Flag)) {
 }
 
 // VisitAll visits the command-line flags in lexicographical order, calling
-// fn for each. It visits all flags, even those not set.
+// fn for each flag. It visits all flags, even those not set.
 func VisitAll(fn func(*Flag)) {
 	CommandLine.VisitAll(fn)
 }
@@ -983,7 +984,7 @@ func (f *FlagSet) Func(name, usage string, fn func(string) error) {
 // Func defines a flag with the specified name and usage string.
 // Each time the flag is seen, fn is called with the value of the flag.
 // If fn returns a non-nil error, it will be treated as a flag value parsing error.
-func Func(name, usage string, fn func(string) error) {
+func Func(name string, usage string, fn func(string) error) {
 	CommandLine.Func(name, usage, fn)
 }
 
@@ -1107,42 +1108,58 @@ func (f *FlagSet) parseOne() (bool, error) {
 	}
 
 	flag, ok := f.formal[name]
-	if !ok {
-		if name == "help" || name == "h" { // special case for nice help message.
-			f.usage()
-			return false, ErrHelp
-		}
-		return false, f.failf("flag provided but not defined: -%s", name)
-	}
-
-	if fv, ok := flag.Value.(boolFlag); ok && fv.IsBoolFlag() { // special case: doesn't need an arg
-		if hasValue {
-			if err := fv.Set(value); err != nil {
-				return false, f.failf("invalid boolean value %q for -%s: %v", value, name, err)
+	if ok {
+		if fv, ok := flag.Value.(boolFlag); ok && fv.IsBoolFlag() { // special case: doesn't need an arg
+			if hasValue {
+				if err := fv.Set(value); err != nil {
+					return false, f.failf("invalid boolean value %q for -%s: %v", value, name, err)
+				}
+			} else {
+				if err := fv.Set("true"); err != nil {
+					return false, f.failf("invalid boolean flag %s: %v", name, err)
+				}
 			}
 		} else {
-			if err := fv.Set("true"); err != nil {
-				return false, f.failf("invalid boolean flag %s: %v", name, err)
+			// It must have a value, which might be the next argument.
+			if !hasValue && len(f.args) > 0 {
+				// value is the next arg
+				value, f.args = f.args[0], f.args[1:]
+				hasValue = true
+			}
+			if !hasValue {
+				return false, f.failf("flag needs an argument: -%s", name)
+			}
+			if err := flag.Value.Set(value); err != nil {
+				return false, f.failf("invalid value %q for flag -%s: %v", value, name, err)
 			}
 		}
+		if f.actual == nil {
+			f.actual = make(map[string]*Flag)
+		}
+		f.actual[name] = flag
+		return true, nil
+	}
+
+	// Unknown flag. collect as extra flag data instead of error.
+	if name == "help" || name == "h" {
+		// Print usage and signal help
+		f.usage()
+		return false, ErrHelp
+	}
+	// If a value was provided inline, keep it; otherwise try to consume the next arg as value
+	if !hasValue && len(f.args) > 0 {
+		value = f.args[0]
+		f.args = f.args[1:]
+		hasValue = true
+	}
+	if f.ExtraFlags == nil {
+		f.ExtraFlags = make(map[string]any)
+	}
+	if hasValue {
+		f.ExtraFlags[name] = value
 	} else {
-		// It must have a value, which might be the next argument.
-		if !hasValue && len(f.args) > 0 {
-			// value is the next arg
-			hasValue = true
-			value, f.args = f.args[0], f.args[1:]
-		}
-		if !hasValue {
-			return false, f.failf("flag needs an argument: -%s", name)
-		}
-		if err := flag.Value.Set(value); err != nil {
-			return false, f.failf("invalid value %q for flag -%s: %v", value, name, err)
-		}
+		f.ExtraFlags[name] = true
 	}
-	if f.actual == nil {
-		f.actual = make(map[string]*Flag)
-	}
-	f.actual[name] = flag
 	return true, nil
 }
 
@@ -1150,9 +1167,11 @@ func (f *FlagSet) parseOne() (bool, error) {
 // include the command name. Must be called after all flags in the [FlagSet]
 // are defined and before flags are accessed by the program.
 // The return value will be [ErrHelp] if -help or -h were set but not defined.
-func (f *FlagSet) Parse(arguments []string) error {
+func (f *FlagSet) Parse(arguments []string) (map[string]any, error) {
 	f.parsed = true
 	f.args = arguments
+	// reset extras
+	f.ExtraFlags = make(map[string]any)
 	for {
 		seen, err := f.parseOne()
 		if seen {
@@ -1163,7 +1182,7 @@ func (f *FlagSet) Parse(arguments []string) error {
 		}
 		switch f.errorHandling {
 		case ContinueOnError:
-			return err
+			return f.ExtraFlags, err
 		case ExitOnError:
 			if err == ErrHelp {
 				os.Exit(0)
@@ -1173,7 +1192,7 @@ func (f *FlagSet) Parse(arguments []string) error {
 			panic(err)
 		}
 	}
-	return nil
+	return f.ExtraFlags, nil
 }
 
 // Parsed reports whether f.Parse has been called.
@@ -1185,7 +1204,7 @@ func (f *FlagSet) Parsed() bool {
 // after all flags are defined and before flags are accessed by the program.
 func Parse() {
 	// Ignore errors; CommandLine is set for ExitOnError.
-	CommandLine.Parse(os.Args[1:])
+	_, _ = CommandLine.Parse(os.Args[1:])
 }
 
 // Parsed reports whether the command-line flags have been parsed.
@@ -1223,7 +1242,12 @@ func commandLineUsage() {
 func NewFlagSet(name string, errorHandling ErrorHandling) *FlagSet {
 	f := &FlagSet{
 		name:          name,
+		parsed:        false,
+		actual:        make(map[string]*Flag),
+		formal:        make(map[string]*Flag),
+		args:          []string{},
 		errorHandling: errorHandling,
+		ExtraFlags:    make(map[string]any),
 	}
 	f.Usage = f.defaultUsage
 	return f

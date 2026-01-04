@@ -84,10 +84,10 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	// LLM prompt/query/model
 	instruction := fs.String("instruction", "", "System role prompt message")
 	message := fs.String("message", "", "User input message")
-	model := fs.String("model", "", "LLM model alias defined in the model set")
+	// model := fs.String("model", "", "LLM model alias defined in the model set")
 
 	// support simpler tempalte syntax {{ai --query .query}}
-	query := fs.String("query", "", "User input message")
+	// query := fs.String("query", "", "User input message")
 
 	// common args with defaut value
 	// TODO revisit
@@ -109,24 +109,24 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 
 	// tool
 	// action := fs.String("action", "", "action (agent, tool, or command) to be executed.")
-	agent := fs.String("agent", "", "agent to be executed.")
-	tool := fs.String("tool", "", "tool to be executed.")
-	command := fs.String("command", "", "Shell command(s) to be executed.")
+	// agent := fs.String("agent", "", "agent to be executed.")
+	// tool := fs.String("tool", "", "tool to be executed.")
+	// command := fs.String("command", "", "Shell command(s) to be executed.")
 
-	script := fs.String("script", "", "Path to the shell script file to be executed.")
-	template := fs.String("template", "", "Path to the stemplate file to be applied.")
-	actions := fs.String("actions", "", "list of actions (agent or tool) to be executed.")
+	// script := fs.String("script", "", "Path to the shell script file to be executed.")
+	// template := fs.String("template", "", "Path to the stemplate file to be applied.")
+	// actions := fs.String("actions", "", "list of actions (agent or tool) to be executed.")
 
 	// special input
 	// value provided as option
 	stdin := fs.String("stdin", "", "Read input from stdin")
 	//
-	adapter := fs.String("adapter", "", "Custom action handler")
+	// adapter := fs.String("adapter", "", "Custom action handler")
 	// input := fs.String("input", "", "Custom input action")
 	// output := fs.String("output", "", "Custom output action")
 
 	//
-	err := fs.Parse(argv)
+	argm, err := fs.Parse(argv)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +165,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	// precedence: <common>, arg slice, arguments
 	// Parse string arguments
 	// var argm map[string]any
-	var argm = make(map[string]any)
+	// var argm = make(map[string]any)
 	if *arguments != "" {
 		args := *arguments
 		switch {
@@ -240,51 +240,52 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	if prompt != "" {
 		argm["instruction"] = prompt
 	}
-	if *model != "" {
-		argm["model"] = *model
-	}
+	// if *model != "" {
+	// 	argm["model"] = *model
+	// }
 	// if *workspace != "" {
 	// 	argm["workspace"] = *workspace
 	// }
-	if *command != "" {
-		argm["command"] = *command
-	}
-	if *actions != "" {
-		argm["actions"] = *actions
-	}
-	if *script != "" {
-		argm["script"] = *script
-	}
-	if *template != "" {
-		argm["template"] = *template
-	}
+
+	// if *command != "" {
+	// 	argm["command"] = *command
+	// }
+	// if *actions != "" {
+	// 	argm["actions"] = *actions
+	// }
+	// if *script != "" {
+	// 	argm["script"] = *script
+	// }
+	// if *template != "" {
+	// 	argm["template"] = *template
+	// }
 
 	// if *action != "" {
 	// 	argm["action"] = *action
 	// }
-	if *agent != "" {
-		argm["agent"] = *agent
-	}
-	if *tool != "" {
-		argm["tool"] = *tool
-	}
+	// if *agent != "" {
+	// 	argm["agent"] = *agent
+	// }
+	// if *tool != "" {
+	// 	argm["tool"] = *tool
+	// }
 
 	//
 	if *stdin != "" {
 		argm["stdin"] = *stdin
 	}
-	if *adapter != "" {
-		argm["adapter"] = *adapter
-	}
+	// if *adapter != "" {
+	// 	argm["adapter"] = *adapter
+	// }
 	// if *input != "" {
 	// 	argm["input"] = *input
 	// }
 	// if *output != "" {
 	// 	argm["output"] = *output
 	// }
-	if *query != "" {
-		argm["query"] = *query
-	}
+	// if *query != "" {
+	// 	argm["query"] = *query
+	// }
 
 	return argm, nil
 }
