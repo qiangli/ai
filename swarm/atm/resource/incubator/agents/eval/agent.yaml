@@ -10,7 +10,7 @@ agents:
     # context:
     embed:
       # - "agent:memory/lastn"
-      - "agent:context/summary"
+      - "agent:context/summarizer"
     arguments:
       entrypoint:
         - ai:new_agent
@@ -23,7 +23,7 @@ agents:
     message:
     functions:
       # - "agent:memory/lastn"
-      - "agent:context/summary"
+      - "agent:context/summarizer"
       # - "fs:*"
 
 ###
