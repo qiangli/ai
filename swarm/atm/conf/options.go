@@ -2,13 +2,13 @@ package conf
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"strings"
 
 	"github.com/u-root/u-root/pkg/shlex"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/flag"
 )
 
 // Custom type for string array

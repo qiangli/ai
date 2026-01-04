@@ -37,16 +37,16 @@ script="file:///$PWD/swarm/atm/resource/incubator/agents/web/agent.yaml"
 # message="what is the state of the art for LLM memory management and the future research in the next 2 years"
 message="Top open source github repo for comamnd line parsing in golang"
 
-/agent:web/search \
-    --option message="$message"
+# /agent:web/search \
+#     --option message="$message"
 
-# /flow:sequence \
-#     --agent "web/search" \
-#     --actions "[ai:spawn_agent,sh:format]" \
-#     --adapter "echo" \
-#     --template "$template" \
-#     --script "$script" \
-#     --message "$message"
+/flow:sequence \
+    --agent "web/search" \
+    --actions "[ai:spawn_agent,sh:format]" \
+    --adapter "echo" \
+    --template "$template" \
+    --script "$script" \
+    --message "$message"
 
 ###
 
