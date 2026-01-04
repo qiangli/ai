@@ -99,10 +99,11 @@
 				// "--script",
 				// "dev/skills/agents/eval/agent.yaml",
 				//
+				"@happy/coder",
 				// 
 				// bash script
 				// 
-				"test/test.sh",
+				// "test/test.sh",
 				// "test/std.sh",
 				// "test/yaml-wrap.sh",
 				// "swarm/atm/resource/template/atm.yaml",

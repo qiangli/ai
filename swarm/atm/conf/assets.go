@@ -1,8 +1,10 @@
 package conf
 
 import (
+	"bytes"
 	"fmt"
 	"path"
+	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
 )
@@ -83,25 +85,44 @@ func (r *assetManager) ListAgent(owner string) (map[string]*api.AppConfig, error
 }
 
 func (r *assetManager) FindAgent(owner string, pack string) (*api.AppConfig, error) {
-	var content []byte
+	var content [][]byte
 	var asset api.AssetStore
 	for _, v := range r.assets {
 		if as, ok := v.(api.ATMSupport); ok {
 			if v, err := as.RetrieveAgent(owner, pack); err != nil {
 				continue
 			} else {
-				content = []byte(v.Content)
+				content = [][]byte{[]byte(v.Content)}
 				asset = as
 				break
 			}
 		} else if as, ok := v.(api.AssetFS); ok {
-			if v, err := as.ReadFile(path.Join("agents", pack, "agent.yaml")); err != nil {
+			dirs, err := as.ReadDir(path.Join("agents", pack))
+			if err != nil {
 				continue
-			} else {
-				content = v
-				asset = as
-				break
 			}
+			for _, file := range dirs {
+				if file.IsDir() {
+					continue
+				}
+				name := file.Name()
+				if strings.HasSuffix(name, ".yaml") || strings.HasSuffix(name, ".yml") {
+					if v, err := as.ReadFile(path.Join("agents", pack, name)); err != nil {
+						continue
+					} else {
+						content = append(content, v)
+						asset = as
+						break
+					}
+				}
+			}
+			// if v, err := as.ReadFile(path.Join("agents", pack, "agent.yaml")); err != nil {
+			// 	continue
+			// } else {
+			// 	content = v
+			// 	asset = as
+			// 	break
+			// }
 		}
 	}
 
@@ -109,7 +130,7 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AppConfig, err
 		return nil, nil
 	}
 
-	ac, err := LoadAgentsData([][]byte{[]byte(content)})
+	ac, err := LoadAgentsData(content)
 	if err != nil {
 		return nil, fmt.Errorf("error loading agent data: %s", pack)
 	}
@@ -118,7 +139,15 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AppConfig, err
 	}
 
 	ac.Name = pack
-	ac.RawContent = content
+	if len(content) == 1 {
+		ac.RawContent = content[0]
+	} else {
+		var buffer bytes.Buffer
+		for _, part := range content {
+			buffer.Write(part)
+		}
+		ac.RawContent = buffer.Bytes()
+	}
 
 	// sub agents
 	for _, v := range ac.Agents {

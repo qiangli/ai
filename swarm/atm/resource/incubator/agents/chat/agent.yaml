@@ -1,6 +1,5 @@
 ###
 pack: "chat"
-log_level: info
 
 agents:
   - name: "chat"
@@ -13,9 +12,8 @@ agents:
     embed:
       # context
       # - agent:context/summary
-      # - "agent:context/lastn"
-      # - "agent:context/context"
-      - "agent:memory/fold"
+      - "agent:context/lastn"
+      # - "agent:memory/fold"
       # - "agent:kbase"
       # - "agent:memory"
       # - "agent:think"
@@ -40,4 +38,18 @@ agents:
       - Maintain a supportive and friendly tone throughout all interactions to bolster user satisfaction.
     functions:
       - "web:*"
+
+###
+set: "default"
+provider: "openai"
+base_url: "https://api.openai.com/v1/"
+api_key: "openai"
+models:
+  any:
+    model: "gpt-4o-mini"
+  # L2:
+  #   model: "gpt-4.1"
+  # L3:
+  #   model: "o3-mini"
+  #   # model: "o4-mini"
 ###

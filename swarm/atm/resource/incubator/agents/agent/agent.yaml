@@ -41,31 +41,30 @@ agents:
           description: "Short agent description" # Brief description of the agent's functionality
           model: "default/any" # Specify the model to use; validate for correctness
           message: |
-            # Optional: preset message to be included when invoking the agent
+            Optional: preset message to be included when invoking the agent
           instruction: |
-              # Define the system role prompt here
+            Define the system role prompt here.
           environment:
             <name>: <value> # Persistent environment variables; values can be Golang templates `{{"..."}}`
           arguments:
             <name>: <value> # Arguments specific to the agent, its tools, or sub-agents; can use Golang templates `{{"..."}}`
-          flow: # Optional - flow actions are executed after the LLM request if instruction or message is provided.
-            type: sequence | parallel | map | shell
-              # sequence: Sequentially executes actions, passing each result to the next as input message
-              # parallel: Concurrently executes actions using the same input query; returns results as a list
-              # map: Applies actions to each element in an array, forming a new array
-              # shell: Uses bash scripts for complex external logic
-            script: |
-              # Define bash script logic for the shell flow type
-              # Only supports bash builtin commands and running agents with the "ai" command
-              # i.e.: ai "@agent" ...
-            actions:
-              # List the actions to execute; must be defined in the 'functions' section
-              # - kit:name # Example action; replace with valid tool/agent name
+          parameters:
+            # intented for LLM when this agent is run as a tool.
+          entrypoint:
+            # a list of actions (agent/tool) to run. Default `ai:spawn_agent` if entrypoint is not provided.
+            # `ai:spawn_agent` is equivalent to: `["ai:new_agent","ai:build_query","ai:build_prompt","ai:build_context","ai:call_llm"]`
           functions:
-            - "kit:<name>" # Validate and assign correct function/tool
-            - "kit:*"      # Use all tools available in the kit
-            - "agent:<name>" # Agents can also function as tools; prefix with 'agent' for clarity
+            # functions are tools made availale to LLM for tool calling.
+            # always add "fs:*" or specific tools in the kit if local filesystem access is required.
+            # always add "web:*" or specific tools in the kit if internect access is required.
+            # if you may need to add other tools if required. use `a:list_tools` for explore all existing tools
+            - "kit:<name>"   # Validate and assign correct function/tool
+            - "kit:*"        # Use all tools available in the kit
+            - "agent:<name>" # Agents can also function as tools; prefix with 'agent' as the kit.
       ```
+
+      Please note: tool and model configs can also be included in the same agent configuration file.
+      However, these tools/models are considered in the "local" scope and can only be accessed by the agents in the same file.
 
       ### Tool and Model Management:
 
@@ -81,6 +80,7 @@ agents:
 
       **Filesystem Agents for Operations:**
 
+      - `fs:list_roots`
       - `fs:create_directory`
       - `fs:get_file_info`
       - `fs:list_directory`
@@ -88,11 +88,110 @@ agents:
       - `fs:rename_file`
       - `fs:search_files`
       - `fs:write_file`
+      - `fs:tree`
 
       Follow these steps for efficient and structured management of agent configurations.
+
+      ###
+      For reference, the following is a complete self contained working example of agent with 
+      local scope tool and model:
+      ```yaml
+      #!/usr/bin/env ai /agent:atm/hi --script
+
+      #
+      # A complete "Hello World" example of agents, tools, and models
+      #
+
+      ###
+      pack: "atm"
+      log_level: "info"
+      agents:
+        - name: "hi"
+          display: "🌐 World Greeter"
+          description: "An amiable greeter capable of providing kind words to any global citizen it encounters."
+          model: "default/any"
+          message: "I'm a humble bot"
+          instruction: |
+            You are an amiable greeter who always finds charming words for anyone you meet.
+            Randomly choose names and offer kind words to them.
+            You must use the tool `atm:hi` for greeting.
+            Upon successful execution of the tool, report back the exact greetings it provided.
+            If the tool execution fails, seek further instructions to resolve the issue.
+            
+            Only run the tool once and greet once, then exit regardlesss of success or failure.
+          functions:
+            - "atm:hi"
+
+      ###
+      kit: "atm"
+      type: "func"
+      tools:
+        - name: "hi"
+          description: "A tool designed to articulate kind sentiments towards people."
+          parameters:
+            type: "object"
+            properties:
+              greeting:
+                type: "string"
+                description: "The kind sentiment or message to convey."
+              names:
+                type: "array"
+                items:
+                  type: "string"
+                description: "A list of individuals' names."
+            required:
+              - greeting
+              - names
+          body:
+            mime_type: "application/x-go"
+            script: |
+              #! mime-type=text/x-go-template
+              import "encoding/json"
+              import "fmt"
+              import "strings"
+
+              var names = `{{.names}}`
+              var greeting = "{{.greeting}}"
+
+              func nameList() (string, error) {
+                if names == "" {
+                  return "whom do you want me to greet?", nil
+                }
+                var list []string
+                if err := json.Unmarshal([]byte(names), &list); err != nil {
+                  return "", fmt.Errorf("Oops, I'm not feeling well. %v", err)
+                }
+                return strings.Join(list, ", "), nil
+              }
+
+              func hello() {
+                people, err := nameList()
+                if err != nil {
+                  fmt.Println(err.Error())
+                  return
+                }
+                fmt.Printf("Hello %s:\n%s\n\nGreeting from the Happy Bot.", people, greeting)
+              }
+
+              func main() {
+                hello()
+              }
+
+      ###
+      set: "default"
+      models:
+        any:
+          model: "gpt-5-nano"
+          provider: "openai"
+          base_url: "https://api.openai.com/v1/"
+          api_key: "openai"
+      ###
+      ```
     functions:
       - "fs:*"
+      - "sh:*"
       - "ai:*"
+      - "web:*"
       - "agent:agent/tool"
       - "agent:agent/model"
 
@@ -160,6 +259,7 @@ agents:
           body:
             mime_type: "application/x-go"
             script: |
+              #! mime-type=text/x-go-template
               // Golang code goes here
       ```
 
@@ -191,18 +291,23 @@ agents:
 
       Utilize the following predefined filesystem tools for operations:
 
-      - `fs:create_directory`: Ensure directories exist before storing.
+      - `fs:list_roots`
+      - `fs:create_directory`
       - `fs:get_file_info`
       - `fs:list_directory`
-      - `fs:read_file`: Load existing tool configurations.
+      - `fs:read_file`
       - `fs:rename_file`
       - `fs:search_files`
-      - `fs:write_file`: Save updated or new configurations.
+      - `fs:write_file`
+      - `fs:tree`
 
       By following these expanded steps, you create efficient, structured, 
       and functional tool configurations for software applications.
     functions:
       - "fs:*"
+      - "sh:*"
+      - "ai:*"
+      - "web:*"
 
   - name: "agent/model"
     display: "Model Manager"
@@ -225,6 +330,10 @@ agents:
       - OpenAI: https://platform.openai.com/docs/models
       - Gemini: https://ai.google.dev/gemini-api/docs/models
       - Anthropic: https://docs.claude.com/en/docs/about-claude/models
+
+      Most of the the time, you may just use "default/any" as the model.
+      If a special feature or capability is required, you need to create a custom model configurations.
+      Always use one of `openai`, `anthropic`, or `gemini` as the provider.
 
       ## Model Management Steps:
 
@@ -260,18 +369,22 @@ agents:
 
       Utilize these filesystem tools for operations:
 
-      - `fs:create_directory`: Ensure pre-existence of directories.
+      - `fs:list_roots`
+      - `fs:create_directory`
       - `fs:get_file_info`
       - `fs:list_directory`
-      - `fs:read_file`: Load configurations.
+      - `fs:read_file`
       - `fs:rename_file`
       - `fs:search_files`
-      - `fs:write_file`: Save or update configurations.
+      - `fs:write_file`
+      - `fs:tree`
 
       Implement these steps for structured and efficient model configuration 
       management.
     functions:
       - "fs:*"
+      - "sh:*"
+      - "ai:*"
       - "web:*"
 
 ###

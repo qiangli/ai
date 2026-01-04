@@ -2,8 +2,8 @@
 pack: "context"
 model: "default/any"
 agents:
-  - name: "context"
-    display: "🤖 Context Instruction"
+  - name: "summary"
+    display: "🤖 Context Summary"
     description: |
       Retrieve and summarize historical conversation messages relevant to a user's current query.
     parameters:
@@ -16,10 +16,9 @@ agents:
         - query
     context: |
       #!
-      {{ai "/agent:context/summary" "--query" .query}}
-    # {{ai "agent:flow/choice" "--option" "actions=[agent:context/lastn,agent:context/summary]"}}
+      {{ai "/agent:context/summarizer" "--query" .query}}
     functions:
-      - "agent:context/summary"
+      - "agent:context/summarizer"
 
   - name: "lastn"
     display: "🤖 Context History"
@@ -44,13 +43,13 @@ agents:
     context: |
       #! mime-type=text/x-go-template
       {{ai "/ai:list_messages" "--option" "format=raw"}}
-    instruction: |
-      Please directly output the interaction history for the query as-is.
+    # instruction: |
+    #   Please directly output the interaction history for the query as-is.
     functions:
       - "ai:list_messages"
 
-  - name: "summary"
-    display: "🤖 Context Summary"
+  - name: "summarizer"
+    display: "🤖 Context Summarizer"
     description: |
       Creating a summary of conversation history based on user query.
       Efficiently extracts and summarizes relevant historical conversation messages
@@ -69,7 +68,7 @@ agents:
       concisely summarizing relevant messages from previous conversations
       to enhance the user's current query.
       Core responsibilities:
-      - Use the `ai:list_messages` and `ai:get_message_info` functions to retrieve historical messages based
+      - Use the `ai:list_messages` tool to retrieve historical messages based
         on the user's current input to gather all potential context.
       - Select the minimal set of prior messages that are directly relevant to
         the user's new query based solely on the new input.
@@ -118,7 +117,6 @@ agents:
       Please directly output the detailed interaction history and task progress for the query "{{.query}}".
     functions:
       - "ai:list_messages"
-      - "ai:get_message_info"
 
 ###
 set: "default"

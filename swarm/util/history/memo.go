@@ -1,4 +1,4 @@
-package agent
+package history
 
 import (
 	"encoding/json"
@@ -9,21 +9,17 @@ import (
 	"strings"
 	"time"
 
-	// "github.com/google/uuid"
-
+	"github.com/charmbracelet/x/exp/slice"
 	"github.com/qiangli/ai/swarm/api"
 )
 
 type FileMemStore struct {
 	base string
-	// app  *api.AppConfig
 }
 
 func NewFileMemStore(workspace string) api.MemStore {
-	base := filepath.Join("history")
 	return &FileMemStore{
-		base: base,
-		// app:  app,
+		base: filepath.Join(workspace, "history"),
 	}
 }
 
@@ -32,15 +28,15 @@ func (r *FileMemStore) Save(messages []*api.Message) error {
 }
 
 func (r *FileMemStore) Load(opt *api.MemOption) ([]*api.Message, error) {
-	return LoadHistory(r.base, opt.MaxHistory, opt.MaxSpan)
+	return LoadHistory(r.base, opt.MaxHistory, opt.MaxSpan, opt.Roles)
 }
 
 func (r *FileMemStore) Get(id string) (*api.Message, error) {
-	// TODO
+	// TODO search
 	max := 100
 	span := 14400
 
-	list, err := LoadHistory(r.base, max, span)
+	list, err := LoadHistory(r.base, max, span, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -52,40 +48,7 @@ func (r *FileMemStore) Get(id string) (*api.Message, error) {
 	return nil, api.NewNotFoundError("message id: " + id)
 }
 
-// func findLastChatID(base string) (string, error) {
-// 	entries, err := os.ReadDir(base)
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	var latestTime time.Time
-// 	var latestDir string
-
-// 	for _, entry := range entries {
-// 		if entry.IsDir() {
-// 			// Validate if the directory name is a valid UUID
-// 			if _, err := uuid.Parse(entry.Name()); err != nil {
-// 				continue
-// 			}
-// 			info, err := os.Stat(filepath.Join(base, entry.Name()))
-// 			if err != nil {
-// 				continue
-// 			}
-// 			if info.ModTime().After(latestTime) {
-// 				latestTime = info.ModTime()
-// 				latestDir = entry.Name()
-// 			}
-// 		}
-// 	}
-
-// 	if latestDir == "" {
-// 		return "", fmt.Errorf("chat not found")
-// 	}
-
-// 	return latestDir, nil
-// }
-
-func LoadHistory(base string, maxHistory, maxSpan int) ([]*api.Message, error) {
+func LoadHistory(base string, maxHistory, maxSpan int, roles []string) ([]*api.Message, error) {
 	if maxHistory <= 0 || maxSpan <= 0 {
 		return nil, nil
 	}
@@ -136,9 +99,11 @@ func LoadHistory(base string, maxHistory, maxSpan int) ([]*api.Message, error) {
 			continue
 		}
 		for i := len(msgs) - 1; i >= 0; i-- {
-			// TODO multimedia?
 			// only use text message for now
 			for _, msg := range msgs {
+				if roles != nil && !slice.ContainsAny(roles, msg.Role) {
+					continue
+				}
 				if msg.ContentType == "" || strings.HasPrefix(msg.ContentType, "text/") {
 					history = append(history, msg)
 				}

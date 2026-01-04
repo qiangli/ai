@@ -261,20 +261,23 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 		}
 	}
 
-	if resp.Result.State != api.StateTransfer {
-		message := api.Message{
-			ID:      uuid.NewString(),
-			Session: id,
-			Created: time.Now(),
-			//
-			ContentType: resp.Result.MimeType,
-			Content:     resp.Result.Value,
-			//
-			Role:   nvl(resp.Result.Role, api.RoleAssistant),
-			Sender: "",
-		}
-		history = append(history, &message)
+	if resp.Result.State == api.StateTransfer {
+		args["agent"] = resp.Result.NextAgent
+		return r.SpawnAgent(ctx, vars, "", args)
 	}
+
+	message := api.Message{
+		ID:      uuid.NewString(),
+		Session: id,
+		Created: time.Now(),
+		//
+		ContentType: resp.Result.MimeType,
+		Content:     resp.Result.Value,
+		//
+		Role:   nvl(resp.Result.Role, api.RoleAssistant),
+		Sender: "",
+	}
+	history = append(history, &message)
 
 	// update ouput
 	args["query"] = query
@@ -408,15 +411,7 @@ func (r *AIKit) TransferAgent(_ context.Context, _ *api.Vars, _ string, args map
 // agent is required.
 // actions defatult to the following if not set:
 // entrypoint: "ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"
-func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, tid string, args api.ArgMap) (*api.Result, error) {
-	// v, err := api.GetStrProp("agent", args)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// if v == "" {
-	// 	return nil, fmt.Errorf("missing agent name")
-	// }
-
+func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, _ string, args api.ArgMap) (*api.Result, error) {
 	packsub, err := api.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
@@ -446,10 +441,22 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, tid string, args
 			}
 		}
 	}
+
+	// resolve to avoid infinite loop
+	var spawnAgent = []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
+	var resolved []string
 	if len(entry) == 0 {
-		entry = []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
+		resolved = spawnAgent
+	} else {
+		for _, v := range entry {
+			if v == "ai:spawn_agent" {
+				resolved = append(resolved, spawnAgent...)
+			} else {
+				resolved = append(resolved, v)
+			}
+		}
 	}
-	result, err := kit.InternalSequence(ctx, vars, "", entry, args)
+	result, err := kit.InternalSequence(ctx, vars, "", resolved, args)
 	if err != nil {
 		return nil, err
 	}

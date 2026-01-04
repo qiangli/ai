@@ -11,10 +11,11 @@ import (
 
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/db"
+	// "github.com/qiangli/ai/swarm/db"
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/ai/swarm/util/conf"
+	hist "github.com/qiangli/ai/swarm/util/history"
 	"github.com/qiangli/shell/tool/sh/vfs"
 	"github.com/qiangli/shell/tool/sh/vos"
 )
@@ -116,10 +117,10 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm, error) {
 	swarm.ClearAllEnv(essentialEnv)
 
-	mem, err := db.OpenMemoryStore(cfg.Base, "memory.db")
-	if err != nil {
-		return nil, err
-	}
+	// mem, err := db.OpenMemoryStore(cfg.Base, "memory.db")
+	// if err != nil {
+	// 	return nil, err
+	// }
 	// defer mem.Close()
 
 	var adapters = adapter.GetAdapters()
@@ -148,6 +149,7 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 	if err != nil {
 		return nil, err
 	}
+	mem := hist.NewFileMemStore(roots.Workspace)
 
 	var rte = &api.ActionRTEnv{
 		ID:        uuid.NewString(),
