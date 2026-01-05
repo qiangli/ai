@@ -16,7 +16,9 @@ agents:
     environment:
       language: "go"
     embed:
-      - agent:aider/detect_lang
+      - "agent:aider/detect_lang"
+      - "agent:kbase"
+      - "agent:memory"
     instruction: |
       Always prioritize task delegation to the appropriate sub-agent based on the specific task context:
       - Use "agent:aider/ask" for discussing and answering questions about code without making changes.
@@ -38,11 +40,6 @@ agents:
     description: |
       Identifies the programming language from the user's request or by examining local file systems.
     model: "llm/L1"
-    embed:
-      # - "agent:context/summary"
-      - "agent:kbase"
-      - "agent:memory"
-      # - "agent:think"
     environment:
       language: "go"
     instruction: |
@@ -66,7 +63,9 @@ agents:
     environment:
       language: "go"
     embed:
-      - agent:aider/detect_lang
+      - "agent:aider/detect_lang"
+      - "agent:kbase"
+      - "agent:memory"
     instruction: |
       Act as an expert code analyst.
       Answer questions about the supplied code.
@@ -89,6 +88,8 @@ agents:
       language: "go"
     embed:
       - "agent:aider/detect_lang"
+      - "agent:kbase"
+      - "agent:memory"
       - "agent:think"
     instruction: |
       Act as an expert architect engineer and provide direction to your editor engineer.
@@ -115,7 +116,9 @@ agents:
     environment:
       language: "go"
     embed:
-      - agent:aider/detect_lang
+      - "agent:aider/detect_lang"
+      - "agent:kbase"
+      - "agent:memory"
     instruction: |
       Act as an expert code analyst.
       Understand the user's question or request, solely to determine ALL the existing sources files which will need to be modified.
