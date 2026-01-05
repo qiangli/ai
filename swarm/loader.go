@@ -293,6 +293,14 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 			}
 			tools = all
 		}
+		// all default agent as tool - not including agent tools that are defined under tools.
+		if tools == nil && v == "agent:*" {
+			all, err := r.loadAllAgentTools()
+			if err != nil {
+				return nil, err
+			}
+			tools = all
+		}
 		// local scope
 		if tools == nil {
 			if v, err := conf.LoadLocalToolFunc(ac, r.rte.User.Email, v, r.rte.Secrets, r.rte.Assets); err != nil {
@@ -403,6 +411,7 @@ func (r *ConfigLoader) Create(ctx context.Context, packname api.Packname) (*api.
 	}
 }
 
+// load all kit:* tools defined under "tools" in a yaml including agent tools.
 func (r *ConfigLoader) loadAllTools() ([]*api.ToolFunc, error) {
 	owner := r.rte.User.Email
 	tools, err := r.rte.Assets.ListToolkit(owner)
@@ -416,6 +425,27 @@ func (r *ConfigLoader) loadAllTools() ([]*api.ToolFunc, error) {
 			return nil, err
 		}
 		funcs = append(funcs, v...)
+	}
+	return funcs, nil
+}
+
+// load all agent:* as tools defined under "agents" in a yaml
+func (r *ConfigLoader) loadAllAgentTools() ([]*api.ToolFunc, error) {
+	agents, err := r.rte.Assets.ListAgent(r.rte.User.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	var funcs []*api.ToolFunc
+	for _, ac := range agents {
+		for _, sub := range ac.Agents {
+			v, err := conf.LoadAgentTool(ac, sub.Name)
+			if err != nil {
+				// ignore error?
+				continue
+			}
+			funcs = append(funcs, v)
+		}
 	}
 	return funcs, nil
 }
