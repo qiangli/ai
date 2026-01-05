@@ -63,9 +63,9 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	// export all agent/embedded env
 	var envs = make(map[string]any)
 	addEnv := func(a *api.Agent) error {
-		if agent.Environment != nil {
-			src := agent.Environment.GetAllEnvs()
-			return r.sw.mapAssign(ctx, agent, envs, src, true)
+		if a.Environment != nil {
+			src := a.Environment.GetAllEnvs()
+			return r.sw.mapAssign(ctx, a, envs, src, true)
 		}
 		return nil
 	}
@@ -191,7 +191,7 @@ func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args
 	}
 
 	var instructions []string
-	add := func(a *api.Agent) error {
+	addInst := func(a *api.Agent) error {
 		in := a.Instruction
 		if in != "" {
 			data := atm.BuildEffectiveArgs(vars, a, args)
@@ -207,7 +207,7 @@ func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args
 	// system role instructions
 	var prompt = args.Prompt()
 	if !args.HasPrompt() {
-		if err := walkAgent(agent, add); err != nil {
+		if err := walkAgent(agent, addInst); err != nil {
 			return "", err
 		}
 		prompt = strings.Join(instructions, "\n")
@@ -224,7 +224,7 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 	}
 
 	var contexts []string
-	add := func(a *api.Agent) error {
+	addCtx := func(a *api.Agent) error {
 		in := a.Context
 		if in != "" {
 			data := atm.BuildEffectiveArgs(vars, a, args)
@@ -241,7 +241,7 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 
 	// add context as system role message
 	if !args.HasHistory() {
-		if err := walkAgent(agent, add); err != nil {
+		if err := walkAgent(agent, addCtx); err != nil {
 			return nil, err
 		}
 

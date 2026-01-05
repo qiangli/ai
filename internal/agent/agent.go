@@ -11,6 +11,7 @@ import (
 
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
+
 	// "github.com/qiangli/ai/swarm/db"
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
@@ -92,8 +93,9 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 		Display: "",
 	}
 
-	msg := argm["message"]
-	sw.Vars.Global.Set("message", msg)
+	if msg, ok := argm["message"]; ok {
+		sw.Vars.Global.Set("message", msg)
+	}
 
 	id := argm.Kitname().ID()
 	if id != "" {
