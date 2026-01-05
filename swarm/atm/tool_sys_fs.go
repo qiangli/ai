@@ -40,12 +40,16 @@ func (r *SystemKit) ListDirectory(ctx context.Context, vars *api.Vars, name stri
 	return strings.Join(list, "\n"), nil
 }
 
-func (r *SystemKit) CreateDirectory(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *SystemKit) CreateDirectory(ctx context.Context, vars *api.Vars, name string, args map[string]any) (any, error) {
 	path, err := api.GetStrProp("path", args)
 	if err != nil {
 		return "", err
 	}
-	return "", vars.RTE.Workspace.CreateDirectory(path)
+
+	if err := vars.RTE.Workspace.CreateDirectory(path); err != nil {
+		return nil, err
+	}
+	return fmt.Sprintf("Directory created successfully: %q", path), nil
 }
 
 func (r *SystemKit) Tree(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -152,7 +156,7 @@ func (r *SystemKit) WriteFile(ctx context.Context, vars *api.Vars, name string, 
 	if err := vars.RTE.Workspace.WriteFile(path, []byte(content)); err != nil {
 		return "", err
 	}
-	return "File written successfully", nil
+	return fmt.Sprintf("File written successfully: %q", path), nil
 }
 
 func (r *SystemKit) CopyFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -167,7 +171,7 @@ func (r *SystemKit) CopyFile(ctx context.Context, vars *api.Vars, name string, a
 	if err := vars.RTE.Workspace.CopyFile(source, dest); err != nil {
 		return "", err
 	}
-	return "File renamed successfully", nil
+	return fmt.Sprintf("File copied successfully. Source: %q Destination: %q", source, dest), nil
 }
 
 func (r *SystemKit) MoveFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -182,7 +186,7 @@ func (r *SystemKit) MoveFile(ctx context.Context, vars *api.Vars, name string, a
 	if err := vars.RTE.Workspace.MoveFile(source, dest); err != nil {
 		return "", err
 	}
-	return "File renamed successfully", nil
+	return fmt.Sprintf("File moved successfully. Source: %q Destination: %q", source, dest), nil
 }
 
 func (r *SystemKit) DeleteFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
@@ -190,17 +194,20 @@ func (r *SystemKit) DeleteFile(ctx context.Context, vars *api.Vars, name string,
 	if err != nil {
 		return "", err
 	}
+	if len(path) == 0 {
+		return "", fmt.Errorf("path is required")
+	}
 
 	recursive, err := api.GetBoolProp("recursive", args)
 	if err != nil {
-		recursive = false
+		return "", err
 	}
 
 	if err := vars.RTE.Workspace.DeleteFile(path, recursive); err != nil {
 		return "", err
 	}
 
-	return fmt.Sprintf("Successfully deleted %q", path), nil
+	return fmt.Sprintf("File deleted successfully: %q recursive: %v", path, recursive), nil
 }
 
 func (r *SystemKit) EditFile(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
