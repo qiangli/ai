@@ -62,30 +62,17 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	// new env vars can only reference existing global vars
 	// export all agent/embedded env
 	var envs = make(map[string]any)
-	// inherit envs of embeded agents
-	add := func(e *api.Environment) error {
-		src := e.GetAllEnvs()
-		return r.sw.mapAssign(ctx, agent, envs, src, true)
-	}
-
-	var addAll func(*api.Agent) error
-	addAll = func(a *api.Agent) error {
-		for _, v := range a.Embed {
-			if err := addAll(v); err != nil {
-				return err
-			}
-		}
-		if a.Environment != nil {
-			if err := add(a.Environment); err != nil {
-				return err
-			}
+	addEnv := func(a *api.Agent) error {
+		if agent.Environment != nil {
+			src := agent.Environment.GetAllEnvs()
+			return r.sw.mapAssign(ctx, agent, envs, src, true)
 		}
 		return nil
 	}
-
-	if err := addAll(agent); err != nil {
+	if err := walkAgent(agent, addEnv); err != nil {
 		return nil, err
 	}
+
 	// export envs
 	vars.Global.AddEnvs(envs)
 	// update - not used but for info?
@@ -140,21 +127,16 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	var list []*api.ToolFunc
 	if len(agent.Embed) > 0 {
 		var tools = make(map[string]*api.ToolFunc)
-
-		var addAll func(*api.Agent) error
-		addAll = func(a *api.Agent) error {
-			for _, v := range a.Embed {
-				if err := addAll(v); err != nil {
-					return err
-				}
-			}
+		addTool := func(a *api.Agent) error {
 			for _, v := range a.Tools {
 				tools[v.ID()] = v
 			}
 			return nil
 		}
 
-		addAll(agent)
+		if err := walkAgent(agent, addTool); err != nil {
+			return nil, err
+		}
 
 		for _, v := range tools {
 			list = append(list, v)
@@ -183,14 +165,8 @@ func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, tf string, args 
 	// convert user message into query if not set
 	var query = args.Query()
 	if !args.HasQuery() {
-		// r.applyGlobal(args)
-
 		msg := agent.Message
 		if msg != "" {
-			// var data = make(map[string]any)
-			// maps.Copy(data, agent.Arguments)
-			// maps.Copy(data, vars.Global.GetAllEnvs())
-			// maps.Copy(data, args)
 			data := atm.BuildEffectiveArgs(vars, agent, args)
 			v, err := atm.CheckApplyTemplate(agent.Template, msg, data)
 			if err != nil {
@@ -215,39 +191,15 @@ func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args
 	}
 
 	var instructions []string
-
-	add := func(a *api.Agent, in string) error {
-		// content, err := atm.CheckApplyTemplate(agent.Template, in, args)
-		// var data = make(map[string]any)
-		// maps.Copy(data, vars.Global.GetAllEnvs())
-		// maps.Copy(data, a.Arguments)
-		// maps.Copy(data, args)
-		data := atm.BuildEffectiveArgs(vars, a, args)
-		content, err := atm.CheckApplyTemplate(a.Template, in, data)
-		if err != nil {
-			return err
-		}
-
-		// update instruction
-		instructions = append(instructions, content)
-		return nil
-	}
-
-	var addAll func(*api.Agent) error
-
-	// inherit embedded agent instructions
-	// merge all including the current agent
-	addAll = func(a *api.Agent) error {
-		for _, v := range a.Embed {
-			if err := addAll(v); err != nil {
-				return err
-			}
-		}
+	add := func(a *api.Agent) error {
 		in := a.Instruction
 		if in != "" {
-			if err := add(a, in); err != nil {
+			data := atm.BuildEffectiveArgs(vars, a, args)
+			content, err := atm.CheckApplyTemplate(a.Template, in, data)
+			if err != nil {
 				return err
 			}
+			instructions = append(instructions, content)
 		}
 		return nil
 	}
@@ -255,12 +207,9 @@ func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args
 	// system role instructions
 	var prompt = args.Prompt()
 	if !args.HasPrompt() {
-		// r.applyGlobal(args)
-
-		if err := addAll(agent); err != nil {
+		if err := walkAgent(agent, add); err != nil {
 			return "", err
 		}
-
 		prompt = strings.Join(instructions, "\n")
 		args.SetPrompt(prompt)
 	}
@@ -275,35 +224,15 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 	}
 
 	var contexts []string
-	add := func(a *api.Agent, input string) error {
-		// var data = make(map[string]any)
-		// maps.Copy(data, a.Arguments)
-		// maps.Copy(data, vars.Global.GetAllEnvs())
-		// maps.Copy(data, args)
-		data := atm.BuildEffectiveArgs(vars, a, args)
-		content, err := atm.CheckApplyTemplate(a.Template, input, data)
-		if err != nil {
-			return err
-		}
-
-		contexts = append(contexts, content)
-		return nil
-	}
-	var addAll func(*api.Agent) error
-
-	// inherit embedded agent contexts
-	// merge all including the current agent
-	addAll = func(a *api.Agent) error {
-		for _, v := range a.Embed {
-			if err := addAll(v); err != nil {
-				return err
-			}
-		}
+	add := func(a *api.Agent) error {
 		in := a.Context
 		if in != "" {
-			if err := add(a, in); err != nil {
+			data := atm.BuildEffectiveArgs(vars, a, args)
+			content, err := atm.CheckApplyTemplate(a.Template, in, data)
+			if err != nil {
 				return err
 			}
+			contexts = append(contexts, content)
 		}
 		return nil
 	}
@@ -312,8 +241,8 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 
 	// add context as system role message
 	if !args.HasHistory() {
-		if err := addAll(agent); err != nil {
-			return "", err
+		if err := walkAgent(agent, add); err != nil {
+			return nil, err
 		}
 
 		for _, v := range contexts {
@@ -336,4 +265,29 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 		args.DeleteHitory()
 	}
 	return history, nil
+}
+
+func walkAgent(root *api.Agent, visit func(*api.Agent) error) error {
+	seen := make(map[api.Packname]bool)
+	var dfs func(*api.Agent) error
+	dfs = func(n *api.Agent) error {
+		id := api.NewPackname(n.Pack, n.Name)
+		if seen[id] {
+			return nil
+		}
+		seen[id] = true
+
+		for _, c := range n.Embed {
+			if err := dfs(c); err != nil {
+				return err
+			}
+		}
+
+		if err := visit(n); err != nil {
+			return err
+		}
+
+		return nil
+	}
+	return dfs(root)
 }

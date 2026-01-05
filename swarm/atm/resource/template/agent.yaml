@@ -5,18 +5,26 @@ agents:
     display: "🌐 Display Name"
     description: |
       Short description for agent discovery
-    message: |
-      optional preset user message prepended to user input
-    context: |
-      conversation history, memory, relevant docs...
+    model:
+      "default/any" # specify the model set/level
+    # adapter: "chat"
+    embed:
+      # embedded agents to inheret instruction/context/env
+      - "agent:<agent>"
+      - "agent:<agent>"
+    environment:
+      name: "value" # name value pair
+    arguments:
+      name: "value"
+    parameters:
+      type: "object"
+      propperties: {}
     instruction: |
       system role prompt goes here
-    model:
-      "default/any"
-      # specify the model set/level
-      # by convention, if L1, L2, L3, ... Ln are used. "any" can be used to
-      # refer to any of L1, L2, L3, ...Ln and in that search order.
-      # model: "set/level"
+    context: |
+      conversation history, memory, relevant docs...
+    message: |
+      optional preset user message prepended to user input
     functions:
       # specify the tool "kit:name"
       # use wildcard '*' to include all functions from the same tool kit.

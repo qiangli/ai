@@ -178,8 +178,8 @@ type AgentConfig struct {
 	// chat|image|docker/aider oh gptr
 	Adapter string `yaml:"adapter" json:"adapter"`
 
-	// name of custom creator agent for this agent configuration
-	Creator string `yaml:"creator" json:"creator"`
+	// // name of custom creator agent for this agent configuration
+	// Creator string `yaml:"creator" json:"creator"`
 
 	// default agents config
 	// sub name only
@@ -197,8 +197,8 @@ type AgentConfig struct {
 	MaxTurns int `yaml:"max_turns" json:"max_turns"`
 	MaxTime  int `yaml:"max_time" json:"max_time"`
 
-	// output format: json | text
-	Format string `yaml:"format" json:"format"`
+	// // output format: json | text
+	// Format string `yaml:"format" json:"format"`
 
 	// memory
 	// max history: 0 max span: 0
@@ -217,13 +217,15 @@ type AgentConfig struct {
 
 	// inherit from embedded parent:
 	// + environment
-	// + model
 	// + instruction
 	// + context
+	//
+	// + model
 	// + functions
 	// local scope:
 	// - arguments
 	// - message
+	// - parameters
 	Embed []string `yaml:"embed" json:"embed"`
 
 	//
@@ -267,9 +269,9 @@ func (ac *AgentConfig) ToMap() map[string]any {
 	if ac.MaxTime > 0 {
 		result["max_time"] = ac.MaxTime
 	}
-	if ac.Format != "" {
-		result["format"] = ac.Format
-	}
+	// if ac.Format != "" {
+	// 	result["format"] = ac.Format
+	// }
 	if ac.MaxHistory > 0 {
 		result["max_history"] = ac.MaxHistory
 	}
