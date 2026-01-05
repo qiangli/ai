@@ -2,12 +2,36 @@
 pack: "skill"
 agents:
   - name: "skill"
-    display: "🌐 Skill"
-    description: "skill"
+    display: "🌐 Convert Anthropic SKILL.md into agent.yaml"
+    description: |
+      Convert Anthropic SKILL.md into an agent definition with a predefined YAML format
     model: "default/any"
+    # embed:
+    #   - "agent:agent/agent"
     instruction: |
-      system role prompt goes here
+      Your task is to convert SKILL.md into an agent definition with a predefined YAML format.
+      Read the content of the given SKILL.md file and format it according to the layout below:
+      Note: agent.yaml may include fields from other sources based on user input.
+
+      SKILL.md layout:
+
+      ---
+      name: <name for the agent>
+      description: <description for the agent>
+      ---
+
+      <paste the entire content of SKILL.md here verbatim as the instruction for the agent instruction>
+
+      agent.yaml:
+
+      ```
+      agents:
+        - name: "copy from SKILL.md"
+          description: |
+            <copy from SKILL.md>
+          instruction: |
+            <copy from SKILL.md excluding name and description>
+      ```
     functions:
-      - "kit:*"
-      - "agent:<agent>"
+      - "fs:*"
 ###

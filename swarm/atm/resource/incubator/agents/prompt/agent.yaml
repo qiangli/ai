@@ -41,5 +41,9 @@ agents:
       and aligns closely with user expectations.
 
       Provide the final prompt only in your response.
+    functions:
+      - "fs:*"
+    entrypoint:
+      - "ai:call_llm"
 
 ###
