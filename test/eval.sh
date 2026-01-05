@@ -41,7 +41,7 @@ message="Top open source github repo for comamnd line parsing in golang"
 #     --option message="$message"
 
 /flow:sequence \
-    --agent "ask/ask" \
+    --agent "aider/aider" \
     --actions "[ai:spawn_agent,sh:format]" \
     --adapter "echo" \
     --template "$template" \

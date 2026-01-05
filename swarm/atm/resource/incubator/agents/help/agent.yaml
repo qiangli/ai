@@ -42,5 +42,4 @@ agents:
       - "ai:get_tool_info"
       - "ai:list_models"
       - "ai:list_messages"
-      - "ai:get_message_info"
 ###

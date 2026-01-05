@@ -180,6 +180,7 @@ agents:
       required:
         - query
     instruction: |
+      #!
       You are a memory compression assistant.
       Based on the query and previous thoughts and interaction history,
       summarize the detailed interaction history and task progress.
@@ -199,7 +200,6 @@ agents:
       Please directly output the detailed interaction history and task progress for the query "{{.query}}".
     functions:
       - "ai:list_messages"
-      - "ai:get_message_info"
       - "ai:save_messages"
 
 ###

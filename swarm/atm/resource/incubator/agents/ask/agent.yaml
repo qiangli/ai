@@ -34,6 +34,10 @@ agents:
       consult the internet for the latest updates. If unsure about the
       currentness of information, verify with an online source before
       responding to ensure the answer is accurate and up-to-date.
+    message: |
+      #!
+      Memory snapshot:
+      {{ai "/agent:memory/fold" "--query" .message}}
     functions:
       - "ai:*"
       - "web:*"
