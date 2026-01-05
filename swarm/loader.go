@@ -280,15 +280,26 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 	}
 
 	// tools
+	// dedup
 	funcMap := make(map[string]*api.ToolFunc)
 	// kit:*
 	for _, v := range c.Functions {
 		var tools []*api.ToolFunc
+		// all (standard) - not including local custom tools
+		if v == "kit:*" {
+			all, err := r.loadAllTools()
+			if err != nil {
+				return nil, err
+			}
+			tools = all
+		}
 		// local scope
-		if v, err := conf.LoadLocalToolFunc(ac, r.rte.User.Email, v, r.rte.Secrets, r.rte.Assets); err != nil {
-			return nil, err
-		} else {
-			tools = v
+		if tools == nil {
+			if v, err := conf.LoadLocalToolFunc(ac, r.rte.User.Email, v, r.rte.Secrets, r.rte.Assets); err != nil {
+				return nil, err
+			} else {
+				tools = v
+			}
 		}
 		// load external kit if not defined locally
 		if tools == nil {
@@ -311,6 +322,7 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 	for _, v := range funcMap {
 		funcs = append(funcs, v)
 	}
+
 	agent.Tools = funcs
 
 	return &agent, nil
@@ -389,4 +401,21 @@ func (r *ConfigLoader) Create(ctx context.Context, packname api.Packname) (*api.
 	} else {
 		return nil, err
 	}
+}
+
+func (r *ConfigLoader) loadAllTools() ([]*api.ToolFunc, error) {
+	owner := r.rte.User.Email
+	tools, err := r.rte.Assets.ListToolkit(owner)
+	if err != nil {
+		return nil, err
+	}
+	var funcs []*api.ToolFunc
+	for _, tc := range tools {
+		v, err := conf.LoadTools(tc, owner, r.rte.Secrets)
+		if err != nil {
+			return nil, err
+		}
+		funcs = append(funcs, v...)
+	}
+	return funcs, nil
 }
