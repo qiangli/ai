@@ -8,13 +8,13 @@ agents:
       Assists with simple queries and uses tool calls to get answers if beyond scope.
     model: "default/any"
     environment:
-      max_history: 3
+      max_history: 5
     embed:
       # context
       # - agent:context/summary
-      # - "agent:context/lastn"
+      - "agent:context/lastn"
       # - "agent:memory/fold"
-      - "agent:kbase"
+      # - "agent:kbase"
       # - "agent:memory"
       # - "agent:think"
       # dynamic prompt
@@ -45,15 +45,23 @@ agents:
 
 ###
 set: "default"
-provider: "openai"
-base_url: "https://api.openai.com/v1/"
-api_key: "openai"
 models:
   any:
-    model: "gpt-4o-mini"
-  # L2:
-  #   model: "gpt-4.1"
-  # L3:
-  #   model: "o3-mini"
-  #   # model: "o4-mini"
+    model: "gpt-5-nano"
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
+  
+# set: "default"
+# provider: "openai"
+# base_url: "https://api.openai.com/v1/"
+# api_key: "openai"
+# models:
+#   any:
+#     model: "gpt-4o-mini"
+#   # L2:
+#   #   model: "gpt-4.1"
+#   # L3:
+#   #   model: "o3-mini"
+#   #   # model: "o4-mini"
 ###

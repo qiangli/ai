@@ -26,9 +26,6 @@ agents:
     display: "🤖 Context History"
     description: |
       Creating a context with last N messages from historical conversations.
-    # arguments:
-    #   max_history: 3
-    #   max_span: 1440
     parameters:
       type: "object"
       properties:
@@ -44,9 +41,9 @@ agents:
           minimum: 0
     context: |
       #! mime-type=text/x-go-template
+      *** Context History ***
       {{ai "/ai:list_messages" "--option" "format=raw"}}
-    # instruction: |
-    #   Please directly output the interaction history for the query as-is.
+      ###
     functions:
       - "ai:list_messages"
 
@@ -62,7 +59,7 @@ agents:
       properties:
         query:
           type: "string"
-          description: "The search query string"
+          description: "The user query string"
       required:
         - query
     instruction: |

@@ -2,7 +2,6 @@ package swarm
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"maps"
 	"strings"
@@ -237,22 +236,30 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, arg
 		return nil
 	}
 
+	// add context as user role message
 	var history = args.History()
-
-	// add context as system role message
 	if !args.HasHistory() {
 		if err := walkAgent(agent, addCtx); err != nil {
 			return nil, err
 		}
 
 		for _, v := range contexts {
-			v = strings.TrimSpace(v)
-			var list []*api.Message
-			if err := json.Unmarshal([]byte(v), &list); err != nil {
-				// best effort
-				continue
+			// v = strings.TrimSpace(v)
+			// // var list []*api.Message
+			// if err := json.Unmarshal([]byte(v), &list); err != nil {
+			// 	// best effort
+			// 	list = []*api.Message{
+			// 		{
+			// 			Role:    api.RoleUser,
+			// 			Content: v,
+			// 		},
+			// 	}
+			// }
+			msg := &api.Message{
+				Role:    api.RoleUser,
+				Content: v,
 			}
-			history = append(history, list...)
+			history = append(history, msg)
 		}
 	}
 
