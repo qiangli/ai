@@ -18,7 +18,7 @@ agents:
       # - "agent:context/summary"
       - "agent:kbase"
       - "agent:memory"
-      - "agent:think"
+      # - "agent:think"
     instruction: |
       You are a helpful assistant. Use all available tools to ensure the
       user's query is satisfied without further questions. If a particular
@@ -34,15 +34,20 @@ agents:
       consult the internet for the latest updates. If unsure about the
       currentness of information, verify with an online source before
       responding to ensure the answer is accurate and up-to-date.
+
     message: |
-      #!
-      Memory snapshot:
-      {{ai "/agent:memory/fold" "--query" .message}}
+      For context, run tool `agent:memory/fold` for a summary of the detailed interaction history and task progress.
+
+    # message: |
+    #   #!
+    #   Memory snapshot:
+    #   {{ai "/agent:memory/fold" "--query" .message}}
     functions:
       - "ai:*"
       - "web:*"
       - "fs:*"
       - "sh:*"
+      - "agent:memory/fold"
 
 ###
 set: "default"

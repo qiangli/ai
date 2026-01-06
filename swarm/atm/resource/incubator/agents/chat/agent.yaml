@@ -14,7 +14,7 @@ agents:
       # - agent:context/summary
       # - "agent:context/lastn"
       # - "agent:memory/fold"
-      # - "agent:kbase"
+      - "agent:kbase"
       # - "agent:memory"
       # - "agent:think"
       # dynamic prompt
@@ -36,10 +36,10 @@ agents:
       - Be succinct and clear with responses to simple inquiries.
       - Execute the help tool promptly for complex issues to maintain efficiency.
       - Maintain a supportive and friendly tone throughout all interactions to bolster user satisfaction.
-    message: |
-      #!
-      Memory snapshot:
-      {{ai "/agent:memory/fold" "--query" .message}}
+    # message: |
+    #   #!
+    #   Memory snapshot:
+    #   {{ai "/agent:memory/fold" "--query" .message}}
     functions:
       - "web:*"
 

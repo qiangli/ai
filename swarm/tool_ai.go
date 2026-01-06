@@ -659,25 +659,25 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, arg
 	return v, nil
 }
 
-func (r *AIKit) GetMessageInfo(_ context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
-	id, err := api.GetStrProp("id", args)
-	if err != nil {
-		return nil, err
-	}
+// func (r *AIKit) GetMessageInfo(_ context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+// 	id, err := api.GetStrProp("id", args)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	v, err := r.sw.History.Get(id)
-	if err != nil {
-		return nil, err
-	}
+// 	v, err := r.sw.History.Get(id)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	b, err := json.MarshalIndent(v, "", "    ")
-	if err != nil {
-		return nil, err
-	}
-	return &api.Result{
-		Value: string(b),
-	}, nil
-}
+// 	b, err := json.MarshalIndent(v, "", "    ")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &api.Result{
+// 		Value: string(b),
+// 	}, nil
+// }
 
 func (r *AIKit) SaveMessages(_ context.Context, _ *api.Vars, _ string, args api.ArgMap) (*api.Result, error) {
 	data, err := api.GetStrProp("messages", args)
