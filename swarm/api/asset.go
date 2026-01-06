@@ -38,11 +38,13 @@ type Roots struct {
 	// primary working directory for the agents
 	Workspace string `json:"workspace"`
 
-	// Add user home to the root list
-	Home bool `json:"home"`
+	// // Add user home to the root list
+	// Home bool `json:"home"`
+
 	// Add the current working directory to the root list
 	// where ai is started
 	Cwd bool `json:"cwd"`
+
 	// Add system temporary directory to the root list
 	Temp bool `json:"temp"`
 
@@ -62,16 +64,16 @@ func (r *Roots) ResolveRoots() ([]*Root, error) {
 			Path: r.Workspace,
 		})
 	}
-	if r.Home {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return nil, err
-		}
-		ps = append(ps, &Root{
-			Name: "Home Directory",
-			Path: home,
-		})
-	}
+	// if r.Home {
+	// 	home, err := os.UserHomeDir()
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	ps = append(ps, &Root{
+	// 		Name: "Home Directory",
+	// 		Path: home,
+	// 	})
+	// }
 	if r.Cwd {
 		cwd, err := os.Getwd()
 		if err != nil {
