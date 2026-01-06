@@ -231,6 +231,9 @@ tools:
         agent:
           type: "string"
           description: "The name of the agent"
+        query:
+          type: "string"
+          description: "The user query string"
         entrypoint:
           type: "array"
           items:
@@ -245,6 +248,7 @@ tools:
               [ai:new_agent,ai:build_query,ai:build_prompt,ai:build_context,ai:call_llm]
       required:
         - "agent"
+        - "query"
 
   - name: "list_tools"
     description: "Enumerate AI tool functions available for selection"

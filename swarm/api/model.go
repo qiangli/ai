@@ -23,7 +23,7 @@ const (
 )
 
 // Model set and level
-// ^[a-zA-Z0-9_-]+$
+// ^[a-zA-Z0-9_]+$
 type Setlevel string
 
 func NewSetlevel(set, level string) Setlevel {

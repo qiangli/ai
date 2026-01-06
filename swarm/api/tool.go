@@ -194,7 +194,7 @@ type ToolSystem interface {
 }
 
 // Took Kit and Name
-// ^[a-zA-Z0-9_-]+$
+// ^[a-z0-9_]+$
 type Kitname string
 
 func NewKitname(kit, name string) Kitname {
@@ -205,7 +205,7 @@ func (r Kitname) String() string {
 	return string(r)
 }
 
-// ^[a-zA-Z0-9_-]+$
+// ^[a-z0-9_]+$
 func (r Kitname) ID() string {
 	kit, name := r.Decode()
 	return toolID(kit, name)
@@ -271,9 +271,9 @@ func (r Kitname) Clean() Kitname {
 }
 
 // TODO all special chars?
-// ^[a-zA-Z0-9_-]+$
-// name: ^[a-zA-Z0-9_-/:]+$
-// id: ^[a-zA-Z0-9_]+$
+// ^[a-z0-9_]+$
+// name: ^[a-z0-9_/:]+$
+// id: ^[a-z0-9_]+$
 // / is converted into __ (double underscore)
 // like the first namespace separator ':'
 func tr(s string) string {

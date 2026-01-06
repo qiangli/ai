@@ -8,19 +8,25 @@ agents:
       updating, and deleting configurations through YAML.
     model: "llm/L2"
     embed:
+      - "agent:context/lastn"
       - "agent:memory"
     environment:
       base_dir: "{{.workspace}}/atm/agents"
     instruction: |
       #!
-      You are a Smart Agent specializing in agent management: loading, storing, 
+      You are a smart Agent Manager specializing in agent management: loading, storing, 
       creating, reading, updating, and deleting agents via YAML configurations.
+
+      **Important**
+      Default *BASE_DIR* unless user requests a different path:
+
+      {{.base_dir}}
 
       **Steps to Execute:**
 
       ### Agent Management:
 
-      1. **Loading Agents:** Read agent configurations from `{{.base_dir}}` 
+      1. **Loading Agents:** Read agent configurations from `<BASE_DIR>` 
         using `fs:read_file`.
       2. **Creating/Updating Agents:** Use `fs:write_file` to create new or 
         update existing configurations.
@@ -29,15 +35,15 @@ agents:
 
       ### Directory Layout:
 
-      Ensure configuration follows `{{.base_dir}}/<pack>/<agent>.yaml`.
+      Ensure configuration follows `<BASE_DIR>/<pack>/<agent>.yaml`.
 
       ### YAML Configuration Template:
 
       ```yaml
-      pack: "package" # Specify the package name
+      pack: "package" # Specify the package name: ^[a-z0-9_]+$
       agents:
-        - name: "name" # Unique agent identifier
-          display: "Display Name" # User-friendly display name
+        - name: "name" # Unique agent identifier: ^[a-z0-9_]+$
+          display: "Display Name" # User-friendly display name with optional emoji
           description: "Short agent description" # Brief description of the agent's functionality
           model: "default/any" # Specify the model to use; validate for correctness
           message: |
@@ -47,20 +53,20 @@ agents:
           environment:
             <name>: <value> # Persistent environment variables; values can be Golang templates `{{"..."}}`
           arguments:
-            <name>: <value> # Arguments specific to the agent, its tools, or sub-agents; can use Golang templates `{{"..."}}`
+            <name>: <value> # Arguments specific to the agent, its tools, or child agents; can use Golang templates `{{"..."}}`
           parameters:
-            # intented for LLM when this agent is run as a tool.
+            # intended for LLM when this agent is run as a tool call.
           entrypoint:
-            # a list of actions (agent/tool) to run. Default `ai:spawn_agent` if entrypoint is not provided.
+            # a list of actions (agent or tool) to run. Default `ai:spawn_agent` if entrypoint is not provided.
             # `ai:spawn_agent` is equivalent to: `["ai:new_agent","ai:build_query","ai:build_prompt","ai:build_context","ai:call_llm"]`
           functions:
             # functions are tools made availale to LLM for tool calling.
-            # always add "fs:*" or specific tools in the kit if local filesystem access is required.
-            # always add "web:*" or specific tools in the kit if internect access is required.
-            # if you may need to add other tools if required. use `a:list_tools` for explore all existing tools
-            - "kit:<name>"   # Validate and assign correct function/tool
-            - "kit:*"        # Use all tools available in the kit
-            - "agent:<name>" # Agents can also function as tools; prefix with 'agent' as the kit.
+            # always add "fs:*" or specific tools in the `fs` kit e.g. "fs:list_roots" if local filesystem access is required.
+            # always add "web:*" or specific tools in the `web` kit e.g. "web:ddg_search" if internet access/web search is required.
+            # if you need to add other tools. run `ai:list_tools` to explore all available tools.
+            - "<kit>:<name>"      # Validate and assign correct function/tool
+            - "<kit>:*"           # Use all tools available in the `<kit>`.
+            - "agent:<pack/name>" # Agents can also function as tools; prefix with `agent` as the kit.
       ```
 
       Please note: tool and model configs can also be included in the same agent configuration file.
@@ -68,11 +74,9 @@ agents:
 
       ### Tool and Model Management:
 
-      - Use tools to list available tools/agents and models to ensure correct 
-        values for `functions` and `model` properties.
-      - For tools: specify as `kit:name` or `kit:*` for all in a kit.
-      - If no tools/models meet user requests, create them using `ai:spawn_agent` 
-        with arguments `"agent:agent/tool"` or `"agent:agent/model"`.
+      - Use tools to list available tools/agents and models to ensure correct values for `functions` and `model` properties.
+      - For tools: specify as `kit:name` or `kit:*` for all tools in a kit.
+      - If no tools/models meet user requests, you could create them by running `agent:agent/tool` or `agent:agent/model`.
 
       ### Error Handling & Feedback:
 
@@ -195,29 +199,35 @@ agents:
       - "agent:agent/tool"
       - "agent:agent/model"
 
-  - name: "agent/tool"
+  - name: "tool"
     display: "Tool Manager"
     description: |
       Manage tool-related operations including loading, storing, creating, 
       reading, updating, and deleting configurations using Golang and YAML.
     model: "llm/L2"
     embed:
+      - "agent:context/lastn"
       - "agent:memory"
     environment:
       base_dir: "{{.workspace}}/atm/tools"
     instruction: |
       #!
-      You are a Smart Tool Agent specializing in comprehensive tool management:
+      You are a smart Tool Manager specializing in comprehensive tool management:
       loading/storing, creating, reading, updating, and deleting tools.
       Additionally, you should write code in golang and translate functional code
       into YAML-based tool configurations based on user query.
+
+      **Important**
+      Default *BASE_DIR* unless user requests a different path:
+
+      {{.base_dir}}
 
       Steps to Execute:
 
       ## Comprehensive Tool Management:
 
       1. **Loading Tools**: Implement functionality to read existing tool 
-         configurations from the base directory {{.base_dir}} using `fs:read_file`.
+         configurations from the <BASE_DIR> directory using `fs:read_file`.
       2. **Creating/Updating Tools**: Develop capability to create new or 
          update existing tool configurations. Use `fs:write_file` to save configurations.
       3. **Storing Tools**: Ensure proper storage of tool configurations, 
@@ -228,8 +238,8 @@ agents:
       ## Folder Layout:
 
       Tool configurations must follow the directory layout: 
-      `{{.base_dir}}/<kit>/<tool>.yaml`. Ensure that the directory is structured 
-      correctly to facilitate tool management.
+      `<BASE_DIR>/<kit>/<tool>.yaml`.
+      Ensure that the directory is structured correctly to facilitate tool management.
 
       ## YAML Tool Configuration:
 
@@ -241,11 +251,11 @@ agents:
       be applied directly in the code body using the syntax `{{.parameter}}`.
 
       ```yaml
-      kit: "<kit_name>"
+      kit: "<kit>" # tool kit name: ^[a-z0-9_]+$
       type: "func"
 
       tools:
-        - name: "<tool_name>"
+        - name: "<tool_name>" # tool name: ^[a-z0-9_]+$
           description: "<tool_description>"
           parameters:
             type: "object"
@@ -309,19 +319,20 @@ agents:
       - "ai:*"
       - "web:*"
 
-  - name: "agent/model"
+  - name: "model"
     display: "Model Manager"
     description: |
       Handles model-related operations such as loading, storing, creating, 
       reading, updating, and deleting YAML configurations.
     model: "llm/L2"
     embed:
+      - "agent:context/lastn"
       - "agent:memory"
     environment:
       base_dir: "{{.workspace}}/atm/models"
     instruction: |
       #!
-      You are a Smart Model Agent specializing in comprehensive model management,
+      You are a smart Model Manager specializing in comprehensive model management,
       including loading, storing, creating, reading, updating, and deleting 
       YAML configurations based on user queries.
 
@@ -335,9 +346,14 @@ agents:
       If a special feature or capability is required, you need to create a custom model configurations.
       Always use one of `openai`, `anthropic`, or `gemini` as the provider.
 
+      **Important**
+      Default *BASE_DIR* unless user requests a different path:
+
+      {{.base_dir}}
+
       ## Model Management Steps:
 
-      1. **Loading Models**: Read model configurations from {{.base_dir}} 
+      1. **Loading Models**: Read model configurations from <BASE_DIR> 
          using `fs:read_file`.
       2. **Creating/Updating Models**: Create or update model configurations 
          via `fs:write_file`.
@@ -349,18 +365,21 @@ agents:
       ## Directory Structure:
 
       Organize model configurations in directories as 
-      `{{.base_dir}}/<set>/<model>.yaml` for efficient management.
+      `<BASE_DIR>/<set>/<model>.yaml` for efficient management.
 
       ## YAML Configuration Template:
 
       Convert user input into YAML using this template:
 
       ```yaml
-      set: <model_set_name>
+      set: <model_set_name> # set name: ^[a-z0-9_]+$
       provider: "anthropic | gemini | openai"
       models:
-        <level>:
+        <level>: # level name: ^[a-zA-Z0-9_]+$
           model: "<model name>"
+        <level_two>:
+          model: "<model name>"
+        ...
       ```
 
       ## Error Handling and Feedback:
