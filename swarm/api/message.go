@@ -33,8 +33,11 @@ type Message struct {
 	// system | assistant | user
 	Role string `json:"role"`
 
-	// user/agent
+	// user/provider
 	Sender string `json:"sender"`
+
+	// active/responsible agent
+	Agent Packname `json:"agent"`
 }
 
 type Request struct {

@@ -21,6 +21,9 @@ agents:
       *** important ***
       All relative file paths should be intepreted as in the workspace:
       {{.workspace}}
+    functions:
+      - "sh:*"
+      - "ai:*"
 
     # message: "I leverage explicit persistent planning via markdown files for complex tasks."
     # instruction: |

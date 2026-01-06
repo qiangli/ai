@@ -197,6 +197,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 		Agent: agent,
 	}
 
+	var packname = api.NewPackname(agent.Pack, agent.Name)
 	var id = uuid.NewString()
 	var history []*api.Message
 
@@ -211,6 +212,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 			Role:    api.RoleSystem,
 			Content: prompt,
 			Sender:  "",
+			Agent:   packname,
 		})
 	}
 
@@ -233,6 +235,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 		Role:    api.RoleUser,
 		Content: query,
 		Sender:  owner,
+		Agent:   packname,
 	})
 
 	// request
@@ -266,6 +269,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 		return r.SpawnAgent(ctx, vars, "", args)
 	}
 
+	// response message
 	message := api.Message{
 		ID:      uuid.NewString(),
 		Session: id,
@@ -274,8 +278,10 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 		ContentType: resp.Result.MimeType,
 		Content:     resp.Result.Value,
 		//
-		Role:   nvl(resp.Result.Role, api.RoleAssistant),
-		Sender: "",
+		Role: nvl(resp.Result.Role, api.RoleAssistant),
+		//
+		Sender: model.Provider,
+		Agent:  packname,
 	}
 	history = append(history, &message)
 
