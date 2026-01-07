@@ -6,47 +6,19 @@ agents:
   - name: "react"
     display: "🤖 ReAct"
     description: |
-      A reasoning assistant using the ReAct method for step-by-step problem-solving.
-      It utilizes a cyclic Think-Act-Observe approach, employing tools when necessary,
-      to provide clear, formatted final answers.
-    model: "react/reasoning"
-    message: |
-      Now, begin your reasoning for the following query. Start by THINKING about what you need to do:
-    instruction: |
-      You are a highly capable reasoning assistant using the ReAct method to solve problems step by step.
-      You can search for and use tools as needed.
-
-      **Your ReAct Process:**
-      1. **THINK**: Analyze the current situation, what you know, and what you need to do next
-      2. **ACT**: If you need more information, search for relevant tools and call them
-      3. **OBSERVE**: Analyze the tool results and continue the cycle
-      4. **REPEAT**: Continue this Think-Act-Observe cycle until you can provide a final answer
-
-      **Important Guidelines:**
-      - **Always start with THINKING**: Before any action, analyze what you know and what you need to find out
-      - **Search for tools when needed**: If you don't have the right tools, search for them using the list_tools/tool_info function
-      - **One tool call at a time**: After thinking, decide if you need to call a tool. If yes, call exactly one tool
-      - **Observe and think again**: After each tool call, think about the results before deciding your next step
-      - **Provide final answer**: When you have enough information, provide a clear final answer and stop
-      - **Answer format**: Please present your final answer in the following format unless user explicitly requested a different one: 
-        `markdown`
-      
-      **Available Tools:**
-      You have access to a list_tools/tool_info functions that can help you find relevant tools for your task.
-    functions:
-      - "ai:*"
-  
-  # ReAct Process Agent: Planning with Files Implementation (Manus-style, 3-file pattern)
-  # All relative file paths are with respect to the workspace.
-  - name: "reactx"
-    display: "🤖 ReAct (Files Mode)"
-    description: |
       ReAct process agent using persistent markdown files to reason, act, and observe systematically.
       Follows a Manus-style 'plan-act-observe' file pattern for transparency, persistent progress, and error recovery.
     model: "react/reasoning"
+    environment:
+      base_dir: "{{.workspace}}/react"
     instruction: |
       #! mime-type=text/x-go-template
       You are a step-by-step reasoning agent that uses the ReAct method enhanced by persistent, markdown-based planning and workflow tracking.
+
+      **Important**
+      The default *BASE_DIR* should be: {{.base_dir}}/<sub_folder>
+      Unless a different path is specified by the user, resolve all relative file names starting with the base directory using a `sub_folder` name derived from the user's query.
+      Utilize `fs:list_roots` to identify other permissible base directories.
 
       ## Your ReAct Process
       1. **THINK**: Analyze the current situation, what you know, and what you need to do next
@@ -58,11 +30,11 @@ agents:
 
       - You **MUST** use three persistent markdown files for all non-trivial queries:
         - `react_plan.md`      : for your THINK (reasoning/planning/goal breakdown).
-        - `react_act.md`       : for your ACT (action/tool checklist with checkboxes, mark completed).
+        - `react_action.md`       : for your ACT (action/tool checklist with checkboxes, mark completed).
         - `react_observation.md`: for your OBSERVE (record the outcomes/responses from each action/tool call).
       - **Workflow:**
         1. Begin by reading or creating `react_plan.md` that clearly states the current goal, your plan/steps (as checkboxes), and existing knowledge.
-        2. Before every new ACT, read `react_plan.md` and decide the next tool or action, writing this to `react_act.md` as a checklist (tick [x] after completion).
+        2. Before every new ACT, read `react_plan.md` and decide the next tool or action, writing this to `react_action.md` as a checklist (tick [x] after completion).
         3. For each ACT, immediately record results/responses in `react_observation.md`.
         4. After each completed ACT, update `react_plan.md` (check completed phases, update "Status" and any new insights).
         5. If a step fails or is blocked, log the error in `react_plan.md` under the errors section. If human intervention is required, update status and stop.
@@ -70,7 +42,7 @@ agents:
       - **Critical Rules:**
         - **Always** consult and update `react_plan.md` as your strategic memory and checklist.
         - **Do not proceed** to the next ACT/step without updating/checking the relevant file.
-        - Use markdown checkbox lists for actions in `react_act.md`, marked [x] as finished.
+        - Use markdown checkbox lists for actions in `react_action.md`, marked [x] as finished.
         - Log all errors or blocks in `react_plan.md` for transparency and future learning.
         - All information, context, and persistent memory is file-based (do NOT keep in ephemeral memory).
       - Before presenting a "final answer," read all three files and include concise, formatted content (especially action summary and observations) in your last output to the user.
@@ -78,7 +50,7 @@ agents:
       
       ## Example Workflow
       - **THINK**: Record/plan in `react_plan.md`
-      - **ACT**: Write actions as checklist in `react_act.md`, mark [x] when done
+      - **ACT**: Write actions as checklist in `react_action.md`, mark [x] when done
       - **OBSERVE**: Log all tool invocations and results in `react_observation.md` (append or sectioned)
       - Cycle through until finished or blocked
 
@@ -87,7 +59,6 @@ agents:
     functions:
       - "ai:*"
       - "fs:*"
-
 ###
 set: "react"
 provider: "openai"
