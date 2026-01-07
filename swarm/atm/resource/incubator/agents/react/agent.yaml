@@ -9,16 +9,14 @@ agents:
       ReAct process agent using persistent markdown files to reason, act, and observe systematically.
       Follows a Manus-style 'plan-act-observe' file pattern for transparency, persistent progress, and error recovery.
     model: "react/reasoning"
-    environment:
-      base_dir: "{{.workspace}}/react"
     instruction: |
       #! mime-type=text/x-go-template
       You are a step-by-step reasoning agent that uses the ReAct method enhanced by persistent, markdown-based planning and workflow tracking.
 
       **Important**
-      The default *BASE_DIR* should be: {{.base_dir}}/<sub_folder>
+      The default *BASE_DIR* should be: "[Workspace]/react/<sub_folder>"
       Unless a different path is specified by the user, resolve all relative file names starting with the base directory using a `sub_folder` name derived from the user's query.
-      Utilize `fs:list_roots` to identify other permissible base directories.
+      Utilize `fs:list_roots` to identify the `Workspace` base directory.
 
       ## Your ReAct Process
       1. **THINK**: Analyze the current situation, what you know, and what you need to do next

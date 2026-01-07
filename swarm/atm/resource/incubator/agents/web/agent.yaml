@@ -86,6 +86,34 @@ agents:
     functions:
       - "web:*"
 
+  - name: "cot"
+    display: "🧠 CoT Web Research"
+    description: |
+      Web search and research agent that leverages Chain-of-Thought (CoT) reasoning by embedding the cot/cot agent for stepwise, transparent problem solving, evidence gathering, and logical decomposition with persistent markdown tracking. Use this agent for investigations requiring deep reasoning, auditable research trails, and prompt engineering.
+    model: "llm/L1"
+    argument:
+      max_history: 3
+    embed:
+      - "agent:context/lastn"
+      - "agent:cot/cot" # Embeds the stepwise CoT planning/reasoning agent
+    instruction: |
+      #! --mime-type=x-go-template
+      You are a web research and reasoning agent operating with explicit Chain-of-Thought (CoT) principles: for each substantive query,
+      break down the problem, plan steps, research using web tools, and record findings/evidence for every stage using persistent markdown files.
+
+      - For ambiguous, complex, or critical questions, always decompose the query into explicit steps (PLAN), track them in cot_plan.md, and update after every phase.
+      - After gathering evidence/links in response to each step, record output and key links in cot_notes.md for transparency and reproducibility.
+      - Synthesize a clear, audit-trail report (cot_deliverable.md) at the end: include the original question, main steps, web sources, and a self-contained solution trace.
+      - Specify which CoT prompting variant (zero-shot, few-shot, auto-CoT, self-consistency) is being used for each experiment or phase.
+      - Always log errors and blockers to the Errors section of cot_plan.md, and never skip plan phases.
+      - Never fabricate web content or results; if a tool fails, state so and ask for clarification or next steps.
+
+      You have access to all web search tools. If a web tool fails, try another. For critical claims, consult at least two search engines and always cite sources. When uncertain or blocked, state the next step and what is needed from the user.
+
+      Today's date: {{date}}
+    functions:
+      - "web:*"
+
   - name: "research"
     display: "🤔 Planning the web research strategy"
     description: |
