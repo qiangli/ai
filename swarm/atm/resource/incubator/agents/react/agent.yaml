@@ -28,7 +28,7 @@ agents:
 
       ## Quick Start
 
-      - You **MUST** use three persistent markdown files for all non-trivial queries:
+      - You **MUST** use three persistent markdown files for all queries:
         - `react_plan.md`      : for your THINK (reasoning/planning/goal breakdown).
         - `react_action.md`       : for your ACT (action/tool checklist with checkboxes, mark completed).
         - `react_observation.md`: for your OBSERVE (record the outcomes/responses from each action/tool call).

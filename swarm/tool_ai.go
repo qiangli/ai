@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -625,10 +626,10 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, arg
 	if err != nil || maxSpan <= 0 {
 		maxSpan = 1440
 	}
-	offset, err := api.GetIntProp("offset", args)
-	if err != nil || offset <= 0 {
-		offset = 0
-	}
+	// offset, err := api.GetIntProp("offset", args)
+	// if err != nil || offset <= 0 {
+	// 	offset = 0
+	// }
 	roles, err := api.GetArrayProp("roles", args)
 	if err != nil || len(roles) == 0 {
 		roles = []string{"assistant", "user"}
@@ -637,25 +638,39 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, arg
 	var option = &api.MemOption{
 		MaxHistory: maxHistory,
 		MaxSpan:    maxSpan,
-		Offset:     offset,
+		Offset:     0,
 		Roles:      roles,
 	}
 	format, err := api.GetStrProp("format", args)
 
-	list, count, err := loadHistory(r.sw.History, option)
+	history, count, err := loadHistory(r.sw.History, option)
 
 	if err != nil {
 		return "", fmt.Errorf("Failed to recall messages (%s): %v", option, err)
+	}
+	if count == 0 {
+		return fmt.Sprintf("No messages (%s)", option), nil
 	}
 	if count > 0 {
 		log.GetLogger(ctx).Debugf("Recalled %v messages in memory less than %v minutes old\n", count, maxSpan)
 	}
 
-	if format == "raw" {
-		return list, nil
+	if format == "json" || format == "application/json" {
+		b, err := json.MarshalIndent(history, "", "    ")
+		if err != nil {
+			return "", err
+		}
+		return string(b), nil
 	}
-	//
-	var v = fmt.Sprintf("Available messages (%s): %v\n\n%s\n", option, count, list)
+	var b bytes.Buffer
+	for _, v := range history {
+		b.WriteString("\n* ROLE: ")
+		b.WriteString(v.Role)
+		b.WriteString("\n  CONTENT:\n")
+		b.WriteString(v.Content)
+		b.WriteString("\n\n")
+	}
+	var v = fmt.Sprintf("Messages (%s): %v\n\n%s\n", option, count, b.String())
 	return v, nil
 }
 
@@ -810,22 +825,24 @@ func listModels(assets api.AssetManager, user string) (string, int, error) {
 	return strings.Join(list, "\n"), len(list), nil
 }
 
-func loadHistory(store api.MemStore, opt *api.MemOption) (string, int, error) {
+func loadHistory(store api.MemStore, opt *api.MemOption) ([]*api.Message, int, error) {
 	history, err := store.Load(opt)
 	if err != nil {
-		return "", 0, err
+		return nil, 0, err
 	}
 
 	count := len(history)
-	if count == 0 {
-		return "", 0, api.NewNotFoundError("no messages")
-	}
+	// if count == 0 {
+	// 	return nil, 0, api.NewNotFoundError("no messages")
+	// }
 
-	b, err := json.MarshalIndent(history, "", "    ")
-	if err != nil {
-		return "", 0, err
-	}
-	return string(b), count, nil
+	return history, count, nil
+
+	// b, err := json.MarshalIndent(history, "", "    ")
+	// if err != nil {
+	// 	return "", 0, err
+	// }
+	// return string(b), count, nil
 }
 
 // lookup model from embedded agents first and then from parents

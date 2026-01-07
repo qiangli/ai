@@ -42,7 +42,7 @@ agents:
     context: |
       #! mime-type=text/x-go-template
       *** Context History ***
-      {{ai "/ai:list_messages" "--option" "format=raw"}}
+      {{ai "/ai:list_messages" "--format" "text"}}
       ###
     functions:
       - "ai:list_messages"
