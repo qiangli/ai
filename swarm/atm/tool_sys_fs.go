@@ -241,6 +241,10 @@ func (r *SystemKit) EditFile(ctx context.Context, vars *api.Vars, name string, a
 		UseRegex:       regex,
 	}
 	replacementCount, err := vars.RTE.Workspace.EditFile(path, options)
+	if replacementCount <= 0 {
+		return fmt.Sprintf("File not modified. You may adjust your find/replace strings and try again. find: %q replace: %q all: %v regex: %v", find, replace, all, regex), nil
+	}
+
 	return fmt.Sprintf("File modified successfully. Made %d replacement(s).", replacementCount), nil
 }
 
