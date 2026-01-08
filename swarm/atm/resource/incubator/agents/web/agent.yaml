@@ -41,6 +41,7 @@ agents:
       aggregating and removing duplicates with some cleanup.
 
       Record the URLs and their corresponding contents in the following format:
+
       URL: <url>
       CONTENT: <content>
 
@@ -63,7 +64,6 @@ agents:
     argument:
       max_history: 3
     embed:
-      - "agent:context/lastn"
       - "agent:react/react"
     instruction: |
       #! --mime-type=x-go-template
@@ -74,9 +74,11 @@ agents:
       Quote directly from sources whenever relevant, and call out differing perspectives when you find them.
       For probabilistic or controversial claims, always state your confidence and cite sources.
 
-      Your task is to perform comprehensive web searches across engines like Google, Bing, DuckDuckGo, and Brave; gather the most relevant and up-to-date information; and present findings clearly to the user.
+      Your task is to perform comprehensive web searches across multiple search engines;
+      gather the most relevant and up-to-date information; and present findings clearly to the user.
 
       Record the URLs and their corresponding contents in the following format:
+
       URL: <url>
       CONTENT: <content>
 
@@ -94,8 +96,7 @@ agents:
     argument:
       max_history: 3
     embed:
-      - "agent:context/lastn"
-      - "agent:cot/cot" # Embeds the stepwise CoT planning/reasoning agent
+      - "agent:cot/cot"
     instruction: |
       #! --mime-type=x-go-template
       You are a web research and reasoning agent operating with explicit Chain-of-Thought (CoT) principles: for each substantive query,
@@ -108,13 +109,20 @@ agents:
       - Always log errors and blockers to the Errors section of cot_plan.md, and never skip plan phases.
       - Never fabricate web content or results; if a tool fails, state so and ask for clarification or next steps.
 
-      You have access to all web search tools. If a web tool fails, try another. For critical claims, consult at least two search engines and always cite sources. When uncertain or blocked, state the next step and what is needed from the user.
+      Record the URLs and their corresponding contents in the following format:
 
-      Today's date: {{date}}
+      URL: <url>
+      CONTENT: <content>
+
+      You have access to all web search tools. If a web tool fails, try another.
+      For critical claims, consult at least two search engines and always cite sources.
+      When uncertain or blocked, state the next step and what is needed from the user.
+
+      For context, today's date is: {{date}}
     functions:
       - "web:*"
 
-  - name: "research"
+  - name: "refine_query"
     display: "🤔 Planning the web research strategy"
     description: |
       Generate optimal search queries using iterative refinement strategies with the specified LLM model. 
@@ -127,15 +135,19 @@ agents:
         max_research_queries:
           type: "integer"
           default: 5
+          description: "The maximum number of search queries to generate in the initial phase of research."
         min_iterations:
           type: "integer"
           default: 1
+          description: "The minimum number of iterative refinements required for the search strategy."
         max_iterations:
           type: "integer"
           default: 3
+          description: "The maximum number of iterative refinements allowed for expanding search queries."
         n_queries:
           type: "integer"
           default: 10
+          description: "The number of final refined search queries to return in the response."
       required:
         - query
     arguments:
@@ -190,7 +202,7 @@ agents:
       #! --mime-type=text/x-go-template
       You are a specialized web scraper.
 
-      Begin by running `agent:web/research` to refine the user's query.
+      Begin by running `agent:web/refine_query` to refine the user's query.
 
       For each refined query, use `agent:web/search` to gather results, ensuring accuracy and completeness without summarization.
 
@@ -198,8 +210,20 @@ agents:
 
       Provide the final results as a JSON array. Each element must align with the content retrieved for its respective query, maintaining query order.
     functions:
-      - "agent:web/research"
+      - "agent:web/refine_query"
       - "agent:web/search"
+
+  - name: "research"
+    display: "🌐 Web Researcher"
+    description: |
+      A specialized agent (alias to `agent:gptr/gptr``) for conducting detailed and unbiased research.
+      Produces reports with citations by:
+      • Generating questions to provide an objective view.
+      • Using a crawler agent for data gathering.
+      • Summarizing and tracking sources.
+      • Aggregating summaries into final reports.
+    embed:
+      - "agent:gptr/gptr"
 
 ## tools
 
