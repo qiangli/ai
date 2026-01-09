@@ -76,11 +76,11 @@ func (r *ConfigLoader) LoadAgentConfig(packname api.Packname) (*api.AppConfig, e
 		if err != nil {
 			return nil, err
 		}
-
-		for _, v := range ac.Agents {
-			if v.Name == sub {
-				ac.Pack = pack
-				return ac, nil
+		if ac.Pack == pack {
+			for _, v := range ac.Agents {
+				if v.Name == sub {
+					return ac, nil
+				}
 			}
 		}
 		// continue to find
