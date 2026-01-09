@@ -4,6 +4,7 @@
 # https://github.com/OthmanAdi/planning-with-files
 ###
 pack: "manus"
+model: "default/any"
 agents:
   - name: "manus"
     display: "🗂️ Manus Planner"
@@ -12,14 +13,13 @@ agents:
       Follows the 'Planning with Files' pattern to structure, update, and reason about complex multi-phase tasks.
       Reads plan before each major decision, updates phase/progress files, persists errors, and guarantees durable, transparent execution trails.
       Leverages context and error handling principles.
-    model: "default/any"
     embed:
       - "agent:manus/planning_with_files"
     instruction: |
       #! mime-type=text/x-go-template
       *** important ***
-      All relative file paths should be intepreted as in the workspace:
-      {{.workspace}}
+      All relative file paths should be interpreted as in the workspace subfolder:
+      {{.workspace}}/manus
     functions:
       - "ai:*"
       - "fs:*"
@@ -179,6 +179,7 @@ agents:
       - Building/creating something
       - Tasks spanning multiple tool calls
       - Anything requiring organization
+      - Always if requested or implied based on user query
 
       **Skip for:**
       - Simple questions
@@ -189,7 +190,6 @@ agents:
 
       | Don't                         | Do Instead                        |
       |-------------------------------|-----------------------------------|
-      | Use TodoWrite for persistence | Create `task_plan.md` file        |
       | State goals once and forget   | Re-read plan before each decision |
       | Hide errors and retry         | Log errors to plan file           |
       | Stuff everything in context   | Store large content in files      |
