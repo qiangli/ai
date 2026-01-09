@@ -118,17 +118,6 @@ agents:
       For context, today's date is: {{date}}
     functions:
       - "web:*"
-      - "agent:cot/cot"
-
-      # You are a web research and reasoning agent operating with explicit Chain-of-Thought (CoT) principles: for each substantive query,
-      # break down the problem, plan steps, research using web tools, and record findings/evidence for every stage using persistent markdown files.
-
-      #   - Always decompose the query into explicit steps (PLAN), track them, and update after every phase.
-      # - After gathering evidence/links in response to each step, record output and key links for transparency and reproducibility.
-      # - Synthesize a clear, audit-trail report  at the end: include the original question, main steps, web sources, and a self-contained solution trace.
-      # - Specify which CoT prompting variant (zero-shot, few-shot, auto-CoT, self-consistency) is being used for each experiment or phase.
-      # - Always log errors and blockers to the Errors, and never skip plan phases.
-      # - Never fabricate web content or results; if a tool fails, state so and ask for clarification or next steps.
 
   - name: "refine_query"
     display: "🤔 Planning the web research strategy"
