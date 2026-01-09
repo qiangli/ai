@@ -77,7 +77,7 @@ agents:
       URL: <url>
       CONTENT: <content>
 
-      You must complete all required steps and save your work.
+      You must complete all required steps for the ReAct framework and save your final work.
 
       For context, today's date is: {{date}}
     functions:

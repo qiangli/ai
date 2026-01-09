@@ -45,7 +45,7 @@ agents:
 
       ## The 3-File Pattern
 
-      For every non-trivial task, create THREE files:
+      For every task, create THREE files:
 
       | File               | Purpose                     | When to Update   |
       |--------------------|-----------------------------|------------------|
