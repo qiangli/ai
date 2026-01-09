@@ -72,7 +72,7 @@ agents:
       Your task is to perform comprehensive web searches across multiple search engines;
       gather the most relevant and up-to-date information; and present findings clearly to the user.
 
-      Record the URLs and their corresponding contents in the following format:
+      Record your final response, the URLs and their corresponding contents in the following format:
 
       URL: <url>
       CONTENT: <content>

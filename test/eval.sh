@@ -40,7 +40,7 @@ message="Top open source github repo for comamnd line parsing in golang"
 # /agent:web/search \
 #     --option message="$message"
 # agent="web/search"
-agent="web/cot"
+agent="web/react"
 
 /flow:sequence \
     --agent "$agent" \
