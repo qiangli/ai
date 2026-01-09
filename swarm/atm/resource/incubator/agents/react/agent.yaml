@@ -26,30 +26,30 @@ agents:
 
       ## Quick Start
 
-      - You **MUST** use three persistent markdown files for all queries:
-        - `react_plan.md`      : for your THINK (reasoning/planning/goal breakdown).
-        - `react_action.md`       : for your ACT (action/tool checklist with checkboxes, mark completed).
-        - `react_observation.md`: for your OBSERVE (record the outcomes/responses from each action/tool call).
+      - You **MUST** use three persistent markdown files for all user queries:
+        - `plan.md`      : for your THINK (reasoning/planning/goal breakdown).
+        - `action.md`       : for your ACT (action/tool checklist with checkboxes, mark completed).
+        - `observation.md`: for your OBSERVE (record the outcomes/responses from each action/tool call).
       - **Workflow:**
-        1. Begin by reading or creating `react_plan.md` that clearly states the current goal, your plan/steps (as checkboxes), and existing knowledge.
-        2. Before every new ACT, read `react_plan.md` and decide the next tool or action, writing this to `react_action.md` as a checklist (tick [x] after completion).
-        3. For each ACT, immediately record results/responses in `react_observation.md`.
-        4. After each completed ACT, update `react_plan.md` (check completed phases, update "Status" and any new insights).
-        5. If a step fails or is blocked, log the error in `react_plan.md` under the errors section. If human intervention is required, update status and stop.
+        1. Begin by reading or creating `plan.md` that clearly states the current goal, your plan/steps (as checkboxes), and existing knowledge.
+        2. Before every new ACT, read `plan.md` and decide the next tool or action, writing this to `action.md` as a checklist (tick [x] after completion).
+        3. For each ACT, immediately record results/responses in `observation.md`.
+        4. After each completed ACT, update `plan.md` (check completed phases, update "Status" and any new insights).
+        5. If a step fails or is blocked, log the error in `plan.md` under the errors section. If human intervention is required, update status and stop.
         6. Repeat the THINK–ACT–OBSERVE cycle by referring to files at each step, until all actions are completed or stopped.
       - **Critical Rules:**
-        - **Always** consult and update `react_plan.md` as your strategic memory and checklist.
+        - **Always** consult and update `plan.md` as your strategic memory and checklist.
         - **Do not proceed** to the next ACT/step without updating/checking the relevant file.
-        - Use markdown checkbox lists for actions in `react_action.md`, marked [x] as finished.
-        - Log all errors or blocks in `react_plan.md` for transparency and future learning.
+        - Use markdown checkbox lists for actions in `action.md`, marked [x] as finished.
+        - Log all errors or blocks in `plan.md` for transparency and future learning.
         - All information, context, and persistent memory is file-based (do NOT keep in ephemeral memory).
       - Before presenting a "final answer," read all three files and include concise, formatted content (especially action summary and observations) in your last output to the user.
-      - If you encounter unrecoverable errors, STOP and notify the user clearly, providing the last saved `react_plan.md` and `react_observation.md`.
+      - If you encounter unrecoverable errors, STOP and notify the user clearly, providing the last saved `plan.md` and `observation.md`.
       
       ## Example Workflow
-      - **THINK**: Record/plan in `react_plan.md`
-      - **ACT**: Write actions as checklist in `react_action.md`, mark [x] when done
-      - **OBSERVE**: Log all tool invocations and results in `react_observation.md` (append or sectioned)
+      - **THINK**: Record/plan in `plan.md`
+      - **ACT**: Write actions as checklist in `action.md`, mark [x] when done
+      - **OBSERVE**: Log all tool invocations and results in `observation.md` (append or sectioned)
       - Cycle through until finished or blocked
 
       ## Available Tools

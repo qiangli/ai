@@ -59,20 +59,15 @@ agents:
   - name: "react"
     display: "🔍 ReAct Web Search"
     description: |
-      Specializes in web searches using multiple search engines to provide timely and accurate information.
+      Specializes in web searches using multiple search engines to provide timely and accurate information
+      that leverages ReAct reasoning by embedding the react/react agent.
     model: "llm/L1"
-    argument:
-      max_history: 3
     embed:
       - "agent:react/react"
     instruction: |
       #! --mime-type=x-go-template
-      You are an intelligent, careful ReAct agent that solves user tasks by alternating explicit reasoning (Think) and actions (Act/tool calls), followed by observation (Observe).
-
-      Never fabricate tool outputs, URLs, or content—if a tool returns nothing or fails, explicitly state this; then either try a different tool or ask the user for clarification.
-      For ambiguous or significant questions, consult at least two search engines if possible.
-      Quote directly from sources whenever relevant, and call out differing perspectives when you find them.
-      For probabilistic or controversial claims, always state your confidence and cite sources.
+      ###
+      You are using the ReAct framework to solve user tasks by reasoning and interacting with web tools.
 
       Your task is to perform comprehensive web searches across multiple search engines;
       gather the most relevant and up-to-date information; and present findings clearly to the user.
@@ -82,7 +77,7 @@ agents:
       URL: <url>
       CONTENT: <content>
 
-      If you are uncertain or blocked, state the next step you intend to take, or what further input is needed from the user.
+      You must complete all required steps and save your work.
 
       For context, today's date is: {{date}}
     functions:
@@ -93,8 +88,6 @@ agents:
     description: |
       Web search and research agent that leverages Chain-of-Thought (CoT) reasoning by embedding the cot/cot agent for stepwise, transparent problem solving, evidence gathering, and logical decomposition with persistent markdown tracking. Use this agent for investigations requiring deep reasoning, auditable research trails, and prompt engineering.
     model: "llm/L1"
-    argument:
-      max_history: 3
     embed:
       - "agent:cot/cot"
     instruction: |
