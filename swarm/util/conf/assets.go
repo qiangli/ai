@@ -8,7 +8,7 @@ import (
 	"github.com/qiangli/ai/swarm/resource"
 )
 
-// default assets with resource.json and standard
+// default assets with resource.json and the core
 func Assets(cfg *api.DHNTConfig) (api.AssetManager, error) {
 	var assets = conf.NewAssetManager()
 
@@ -33,6 +33,7 @@ func Assets(cfg *api.DHNTConfig) (api.AssetManager, error) {
 		}
 	}
 
-	assets.AddStore(resource.NewStandardStore())
+	// defautl core
+	assets.AddStore(resource.NewCoreStore())
 	return assets, nil
 }

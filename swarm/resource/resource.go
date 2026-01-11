@@ -4,32 +4,32 @@ import (
 	"embed"
 )
 
-//go:embed standard/*
+//go:embed core/*
 var ResourceFS embed.FS
 
-func NewStandardStore() *ResourceStore {
+func NewCoreStore() *ResourceStore {
 	return &ResourceStore{
 		Base: "standard",
 		FS:   ResourceFS,
 	}
 }
 
-//go:embed shell_security_system.md
-var ShellSecuritySystemRole string
+// //go:embed shell_security_system.md
+// var ShellSecuritySystemRole string
 
-//go:embed shell_security_user.md
-var ShellSecurityUserRole string
+// //go:embed shell_security_user.md
+// var ShellSecurityUserRole string
 
-//go:embed root/agent.yaml
+//go:embed core/agents/root/agent.yaml
 var RootAgentData []byte
 
-//go:embed root/format.json.txt
+//go:embed core/agents/root/format.json.txt
 var formatJson string
 
-//go:embed root/format.markdown.txt
+//go:embed core/agents/root/format.markdown.txt
 var formatMarkdown string
 
-//go:embed root/format.text.txt
+//go:embed core/agents/root/format.text.txt
 var formatText string
 
 func FormatFile(format string) string {
