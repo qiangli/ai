@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"time"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
@@ -33,6 +34,7 @@ type Swarm struct {
 	OS        vos.System
 	Workspace vfs.Workspace
 	History   api.MemStore
+	Log       api.CallLogger
 
 	//
 	Vars *api.Vars
@@ -241,18 +243,34 @@ func (sw *Swarm) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFun
 
 	log.GetLogger(ctx).Infof("⣿ %s:%s %+v\n", tf.Kit, tf.Name, formatArgs(args))
 
+	var entry = api.CallLogEntry{
+		Kit:       tf.Kit,
+		Name:      tf.Name,
+		Arguments: args,
+		Started:   time.Now(),
+	}
+	if agent != nil {
+		entry.Agent = string(api.NewPackname(agent.Pack, agent.Name))
+	}
+
 	result, err := sw.dispatch(ctx, agent, tf, args)
 
+	entry.Ended = time.Now()
+
 	if err != nil {
+		entry.Error = err
 		log.GetLogger(ctx).Errorf("✗ error: %v\n", err)
 	} else {
 		// in case nil is returned by the tools
 		if result == nil {
 			result = &api.Result{}
 		}
+		entry.Result = result
 		log.GetLogger(ctx).Infof("✔ %s (%s)\n", tf.ID(), head(result.String(), 180))
 		log.GetLogger(ctx).Debugf("details:\n%s\n", result.String())
 	}
+
+	sw.Log.Save(&entry)
 
 	return result, err
 }

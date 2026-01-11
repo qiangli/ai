@@ -15,6 +15,7 @@ import (
 	// "github.com/qiangli/ai/swarm/db"
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
+	"github.com/qiangli/ai/swarm/util/calllog"
 	"github.com/qiangli/ai/swarm/util/conf"
 	hist "github.com/qiangli/ai/swarm/util/history"
 	"github.com/qiangli/shell/tool/sh/vfs"
@@ -154,7 +155,14 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 	if err != nil {
 		return nil, err
 	}
-	mem := hist.NewFileMemStore(roots.Workspace)
+	mem, err := hist.NewFileMemStore(roots.Workspace)
+	if err != nil {
+		return nil, err
+	}
+	callogs, err := calllog.NewFileCallLog(roots.Workspace)
+	if err != nil {
+		return nil, err
+	}
 
 	var rte = &api.ActionRTEnv{
 		ID:        uuid.NewString(),
@@ -185,6 +193,7 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 		OS:        los,
 		Workspace: lfs,
 		History:   mem,
+		Log:       callogs,
 	}
 
 	if err := sw.Init(rte); err != nil {

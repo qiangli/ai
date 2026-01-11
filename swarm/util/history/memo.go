@@ -17,10 +17,15 @@ type FileMemStore struct {
 	base string
 }
 
-func NewFileMemStore(workspace string) api.MemStore {
-	return &FileMemStore{
-		base: filepath.Join(workspace, "history"),
+func NewFileMemStore(workspace string) (api.MemStore, error) {
+	base := filepath.Join(workspace, "history")
+	if err := os.MkdirAll(base, 0755); err != nil {
+		return nil, err
 	}
+
+	return &FileMemStore{
+		base: base,
+	}, nil
 }
 
 func (r *FileMemStore) Save(messages []*api.Message) error {
@@ -128,10 +133,6 @@ func reverseMessages(msgs []*api.Message) {
 }
 
 func StoreHistory(base string, messages []*api.Message) error {
-	if err := os.MkdirAll(base, 0755); err != nil {
-		return err
-	}
-
 	// filename
 	now := time.Now()
 	filename := fmt.Sprintf("%s-%d.json", now.Format("2006-01-02"), now.UnixNano())

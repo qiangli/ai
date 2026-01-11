@@ -2,6 +2,7 @@ package api
 
 import (
 	"strings"
+	"time"
 )
 
 type LogLevel int
@@ -46,4 +47,28 @@ func ToLogLevel(level any) LogLevel {
 	default:
 		return 0
 	}
+}
+
+type CallLogEntry struct {
+	// tool call
+	Kit       string         `json:"kit"`
+	Name      string         `json:"name"`
+	Arguments map[string]any `json:"arguments"`
+
+	// active agent
+	Agent string `json:"agent"`
+
+	// failure
+	Error error `json:"error"`
+
+	// success
+	Result *Result `json:"result"`
+
+	Started time.Time `json:"started"`
+	Ended   time.Time `json:"ended"`
+}
+
+type CallLogger interface {
+	Base() string
+	Save(*CallLogEntry)
 }
