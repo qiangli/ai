@@ -36,49 +36,6 @@ agents:
     functions:
       - "fs:*"
 
-  - name: "preferences"
-    display: "🖥️  User Preferences"
-    description: "Detect user preferences for the research tool."
-    parameters:
-      type: "object"
-      properties:
-        query:
-          type: "string"
-          description: "The original query from user"
-      requrued:
-        - query
-    instruction: |
-      You are an agent designed to analyze user input to identify preferences for generating research reports.
-      Your role is not to gather or retrieve real-time information, but to extract the specified parameters from the user's query.
-
-      Your objective is to identify the following elements from the user's input:
-
-      + Tone of the report:
-        Example values:
-          "objective", "formal", "analytical", "persuasive", "informative", "explanatory", "descriptive", "critical", "comparative", "speculative",
-          "reflective", "narrative", "humorous", "optimistic", "pessimistic"
-        Multiple values are allowed, e.g., "formal, analytical, and objective". If a tone not listed above is detected in the user's input, it should also be considered valid.
-
-      + Total word count limit for document generation. The default is `500`.
-        Guidelines:
-          - Use 500 words for a short summary.
-          - Use 1000 words for a detailed and in-depth report.
-          - Do not exceed 2000 words for an extensive research report unless explicitly requested by the user for more.
-
-      + Report format: The preferred format for report generation. The default is `markdown`.
-        Formats such as `MLA`, `CMS`, `Harvard style`, `IEEE`, etc., should be used if specified by the user.
-
-      + Language: The language to be used for the final research report. The default is `English`.
-
-      You must also save the original query from the user.
-      {
-        "tone": "detected tone from user input",
-        "total_words": "derived total words from user input",
-        "report_format": "desired report format from user",
-        "language": "preferred language by user",
-        "original_query": "users original query"
-      }
-  
   - name: "curate"
     display: "⚖️ Evaluating and curating sources"
     description: |
@@ -164,29 +121,28 @@ agents:
           desription: "list of contents for the report in JSON array format"
       required:
         - "query"
-    arguments:
-      # temperature: 0.35
-      # max_completion_tokens: 10000
-      #
+    # arguments:
+    #   # temperature: 0.35
+    #   # max_completion_tokens: 10000
+    #   #
     instruction: |
       #! --mime-type=text/x-go-template
       ###
-      ** Original Query:
+      ** User Query:
       {{default "Query missing. report to user and stop" .query}}
 
       ** Information:
       {{default "Missing content for the report. stop processing." .information}}
-      ###
 
       Using the above information, answer the following task in a detailed report:
 
-      User's Preferences:
-      *** Run tool `agent:gtpr/preferences` to find user's preferences based on the user query.
-      ###
+      ** User's Preferences:
+
+      Run tool `agent:gtpr/preferences` to find user's preferences based on the user query.
 
       In the following instructions, there are placeholders in [[preferences.*]] format. You must reference the values in the above preferences.
 
-      --
+      ###
       The report should focus on answering the query, should be well structured, informative,
       in-depth, and comprehensive, with facts and numbers if available, and at least [[preferences.total_words]] words.
       You should strive to write the report as long as you can using all relevant and necessary information provided.
@@ -210,10 +166,53 @@ agents:
 
       You MUST write the report in the [[preferences.language]] language.
       The report SHOULD be approximately [[preferences.total_words]] words long.
-      
+
       For context, the current date is {{date}}.
     # functions:
     #   - "fs:*"
+
+  - name: "preferences"
+    display: "🖥️  User Preferences"
+    description: "Detect user preferences for the research tool."
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The original query from user"
+      requrued:
+        - query
+    instruction: |
+      You are an agent designed to analyze user input to identify preferences for generating research reports.
+      Your role is not to gather or retrieve real-time information, but to extract the specified parameters from the user's query.
+
+      Your objective is to identify the following elements from the user's input:
+
+      + Tone of the report:
+        Example values:
+          "objective", "formal", "analytical", "persuasive", "informative", "explanatory", "descriptive", "critical", "comparative", "speculative",
+          "reflective", "narrative", "humorous", "optimistic", "pessimistic"
+        Multiple values are allowed, e.g., "formal, analytical, and objective". If a tone not listed above is detected in the user's input, it should also be considered valid.
+
+      + Total word count limit for document generation. The default is `500`.
+        Guidelines:
+          - Use 500 words for a short summary.
+          - Use 1000 words for a detailed and in-depth report.
+          - Do not exceed 2000 words for an extensive research report unless explicitly requested by the user for more.
+
+      + Report format: The preferred format for report generation. The default is `markdown`.
+        Formats such as `MLA`, `CMS`, `Harvard style`, `IEEE`, etc., should be used if specified by the user.
+
+      + Language: The language to be used for the final research report. The default is `English`.
+
+      You must also save the original query from the user.
+      {
+        "tone": "detected tone from user input",
+        "total_words": "derived total words from user input",
+        "report_format": "desired report format from user",
+        "language": "preferred language by user",
+        "original_query": "users original query"
+      }
 
 ###
 # set: "default"

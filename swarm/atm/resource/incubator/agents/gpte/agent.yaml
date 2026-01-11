@@ -14,8 +14,8 @@ agents:
       It interprets queries, categorizes intentions, extracts preferences, and guides AI actions, making software creation and enhancement seamless.
     embed:
       - "agent:context/lastn"
-      - "agent:flow/choice"
       - "agent:manus/manus"
+      - "agent:flow/choice"
     instruction: |
       You are an intelligent agent designed to analyze users' queries related to software generation and enhancement.
       Your task is to interpret and categorize their inputs. 
