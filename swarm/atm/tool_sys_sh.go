@@ -13,7 +13,7 @@ import (
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
-	"github.com/qiangli/ai/swarm/atm/resource"
+	"github.com/qiangli/ai/swarm/resource"
 )
 
 var cdNotSupportedError = errors.New(`

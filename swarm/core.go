@@ -9,7 +9,7 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
-	"github.com/qiangli/ai/swarm/atm/resource"
+	"github.com/qiangli/ai/swarm/resource"
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/shell/tool/sh/vfs"
 	"github.com/qiangli/shell/tool/sh/vos"
