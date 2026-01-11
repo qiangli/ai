@@ -1,12 +1,42 @@
 ###
 agents:
   - name: "swe"
-    display: "🤖 SWE"
+    display: "🤖 Software Engineer"
     description: |
-      Act as an expert software developer
+      Act as an expert software developer, analyze the input and choose the optimal strategy from a list of coding agents based on context and user needs.
+    model: "llm/L2"
+    embed:
+      - "agent:context/lastn"
+      - "agent:flow/choice"
+    instruction: |
+      You are a smart software engineer.
+      Upon receiving a user query, analyze the input and choose the optimal strategy from the following actions based on context and user needs:
+      - "agent:swe/quick"
+      - "agent:aider/ask"
+      - "agent:aider/code"
+      - "agent:gpte/clarify"
+      - "agent:gpte/generate"
+      - "agent:gpte/improve"
+      - "agent:aider/architect"
+
+      In your final response, provide a concise reason why the specific action was selected as the most suitable for addressing the user query.
+    functions:
+      - "fs:*"
+      - "agent:swe/quick"
+      - "agent:aider/ask"
+      - "agent:aider/code"
+      - "agent:gpte/clarify"
+      - "agent:gpte/generate"
+      - "agent:gpte/improve"
+      - "agent:aider/architect"
+
+  - name: "quick"
+    display: "🤖 Quick Coder"
+    description: |
+      Act as an expert software developer solving simple coding challenges.
     model: "default/L2"
     instruction: |
-      Act as an expert software developer solving coding challenges.
+      Act as an expert software developer solving simple coding challenges.
       - Always use best practices and common code conventions.
       - Write clean, efficient, and readable code.
       - Use standard libraries appropriate to the problem.
@@ -24,4 +54,29 @@ agents:
       - "fs:*"
       - "sh:*"
       - "web:*"
+
 ###
+set: "llm"
+provider: "openai"
+base_url: "https://api.openai.com/v1/"
+api_key: "openai"
+# provider: "anthropic"
+# base_url: "https://api.anthropic.com/"
+# api_key: "anthropic"
+
+# https://aider.chat/docs/llms.html
+models:
+  L1:
+    model: "gpt-5-nano"
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
+  # L2:
+  #   model: "claude-sonnet-4-0"
+  L2:
+    model: "gpt-5-mini"
+  # L3:
+  #   model: "claude-opus-4-0"
+  # o1-mini gpt-4o
+  L3:
+    model: "o3-mini"
