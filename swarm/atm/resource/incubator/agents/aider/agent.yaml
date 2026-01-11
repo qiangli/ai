@@ -16,9 +16,12 @@ agents:
     environment:
       language: "go"
     embed:
+      - "agent:context/lastn"
       - "agent:aider/detect_lang"
-      - "agent:kbase"
-      - "agent:memory"
+      # - "agent:kbase"
+      # - "agent:memory"
+      - "agent:manus/manus"
+      - "agent:flow/choice"
     instruction: |
       Always prioritize task delegation to the appropriate sub-agent based on the specific task context:
       - Use "agent:aider/ask" for discussing and answering questions about code without making changes.
@@ -63,9 +66,10 @@ agents:
     environment:
       language: "go"
     embed:
+      - "agent:context/lastn"
       - "agent:aider/detect_lang"
-      - "agent:kbase"
-      - "agent:memory"
+      # - "agent:kbase"
+      # - "agent:memory"
     instruction: |
       Act as an expert code analyst.
       Answer questions about the supplied code.
@@ -87,10 +91,11 @@ agents:
     environment:
       language: "go"
     embed:
+      - "agent:context/lastn"
       - "agent:aider/detect_lang"
-      - "agent:kbase"
-      - "agent:memory"
-      - "agent:think"
+      # - "agent:kbase"
+      # - "agent:memory"
+      # - "agent:think"
     instruction: |
       Act as an expert architect engineer and provide direction to your editor engineer.
       Study the change request and the current code.
@@ -116,9 +121,10 @@ agents:
     environment:
       language: "go"
     embed:
+      - "agent:context/lastn"
       - "agent:aider/detect_lang"
-      - "agent:kbase"
-      - "agent:memory"
+      # - "agent:kbase"
+      # - "agent:memory"
     instruction: |
       Act as an expert code analyst.
       Understand the user's question or request, solely to determine ALL the existing sources files which will need to be modified.

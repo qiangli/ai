@@ -4,7 +4,6 @@ pack: "gpte"
 # https://github.com/AntonOsika/gpt-engineer
 #
 model: "gpte/L1"
-# log_level: verbose
 agents:
   - name: "gpte"
     new: true
@@ -14,53 +13,65 @@ agents:
       Users can specify software requirements, watch AI generate and execute code, and request project improvements.
       It interprets queries, categorizes intentions, extracts preferences, and guides AI actions, making software creation and enhancement seamless.
     embed:
+      - "agent:context/lastn"
       - "agent:flow/choice"
+      - "agent:manus/manus"
     instruction: |
-      You are an intelligent agent designed to analyze users' queries related to software generation and improvement.
-      Your task is to interpret and categorize their inputs into a structured JSON object. 
+      You are an intelligent agent designed to analyze users' queries related to software generation and enhancement.
+      Your task is to interpret and categorize their inputs. 
 
       Follow these steps:
 
       1. **Intent Detection**: Identify the user's intent with respect to the available options. These include:
-        - `--generate`: The user wants code generated from the prompt.
-        - `--improve`: The user seeks improvements on an existing project.
-        - `--clarify`: The user desires a clarification discussion before implementation.
+        - generate: The user wants code generated from the query.
+        - improve: The user seeks improvements on an existing project.
+        - clarify: The user desires a clarification discussion before implementation.
    
-      2. **Preference Extraction**: Parse out any explicit or implicit preferences highlighted by the user. If the user specifies parts using or implying options markers (`--`), note these preferences.
+      2. **Preference Extraction**: Parse out any explicit or implicit preferences highlighted by the user.
+        If the user specifies parts using markers (`--`) or implying options, note these preferences.
 
-      3. **Message Compilation**: After identifying user preferences, isolate and compile the main message intended to be used as the user role prompt.
+      3. **Message Compilation**: After identifying user preferences, isolate and compile the rest of the input as the message intended to be used as the user role prompt.
 
-      Actions:
+      Actions to run for the generate, improve, or clarify options respectively:
         - "agent:gpte/generate"
         - "agent:gpte/improve"
         - "agent:gpte/clarify"
     functions:
+      - "fs:*"
+      - "sh:*"
+      - "ai:*"
+      - "web:*"
       - "agent:gpte/generate"
       - "agent:gpte/improve"
       - "agent:gpte/clarify"
-      - "fs:*"
-      - "sh:*"
 
   - name: "generate"
     display: "Code Agent"
     description: |
-      This agent is responsible for managing the lifecycle of code generation and improvement
-      using an AI model. It orchestrates the generation of new code and the improvement of existing code
-      based on given prompts.
+      This agent is responsible for managing the lifecycle of code generation.
+      using an AI model. It orchestrates the generation of new code based on given prompts.
     embed:
+      - "agent:context/lastn"
       - "agent:flow/sequence"
     instruction:
-      You should run the following actions for managing the lifecycle of code generation and improvement.
+      You should run the following actions for managing the lifecycle of code generation.
       + agent:gpte/gen_code
       + agent:gpte/gen_entrypoint
-      + agent:gpte/to_file_dict
       + agent:gpte/execute
+
+      You may use the following tools as necessary.
+      + agent:gpte/self_heal
+      + agent:gpte/to_file_dict
+      + agent:gpte/parse_diff
     functions:
       - "agent:gpte/gen_code"
       - "agent:gpte/gen_entrypoint"
-      - "agent:gpte/to_file_dict"
       - "agent:gpte/execute"
+      - "agent:gpte/to_file_dict"
+      - "agent:gpte/self_heal"
+      - "agent:gpte/parse_diff"
       - "fs:*"
+      - "sh:*"
       - "ai:get_agent_info"
       - "ai:spawn_agent"
       - "ai:list_agents"
@@ -124,41 +135,25 @@ agents:
       Python toolbelt preferences:
       - pytest
       - dataclasses
-    functions:
-      - "fs:*"
-
-  - name: "gen_entrypoint"
-    display: "Generate Entrypoint"
-    description: |
-      Generates an entrypoint for the codebase and returns the entrypoint files.
-    model: gpte/L2
-    message: |
-      Make a unix script that
-      a) installs dependencies
-      b) runs all necessary parts of the codebase (in parallel if necessary)
-    instruction: |
-      You will get information about a codebase that is currently on disk in the current folder.
-      The user will ask you to write a script that runs the code in a specific way.
-      You will answer with code blocks that include all the necessary terminal commands.
-      Do not install globally. Do not use sudo.
-      Do not explain the code, just give the commands.
-      Do not use placeholders, use example values (like . for a folder argument) if necessary.
-
-      Response format:
-
-      {"ENTRYPOINT_FILE": "final generated enttrypoint script"}
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The user prompt to generate code from"
+      required:
+        - "query"
     functions:
       - "fs:*"
 
   - name: "improve"
     display: "Improve Code"
     description: |
-      Improves the code based on user input and returns the updated files.
+      This agent is responsible for managing the lifecycle of code improvement
+      using an AI model. It orchestrates the improvement of existing code based on given prompts.
     model: gpte/L2
     embed:
-      - "agent:context/summary"
-      - "agent:kbase"
-      - "agent:memory"
+      - "agent:context/lastn"
     instruction: |
       You will get instructions for code to write.
       You will write a very long answer.
@@ -233,9 +228,74 @@ agents:
       Python toolbelt preferences:
       - pytest
       - dataclasses
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The user prompt to improve the code"
+        files_dict:
+          type: "string"
+          description: "The dictionary of file names to their respective source code content"
+      required:
+        - "query"
+        - "files_dict"
     functions:
       - "fs:*"
       - "sh:*"
+
+  - name: "clarify"
+    display: "Clarify"
+    description: |
+      Generate code based on clarifications obtained from the user and saves it to a specified workspace.
+    model: gpte/L2
+    embed:
+      - "agent:context/lastn"
+    instruction: |
+      Given some instructions, determine if anything needs to be clarified, do not carry them out.
+      You can make reasonable assumptions, but if you are unsure, ask a single clarification question.
+      Otherwise state: "Nothing to clarify"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The user's clarification prompt"
+      required:
+        - "query"
+
+  - name: "gen_entrypoint"
+    display: "Generate Entrypoint"
+    description: |
+      Generates an entrypoint for the codebase and returns a dictionary containing the entrypoint file.
+    model: gpte/L2
+    message: |
+      Make a unix script that
+      a) installs dependencies
+      b) runs all necessary parts of the codebase (in parallel if necessary)
+    instruction: |
+      You are tasked with generating an entrypoint for the codebase and returning the entrypoint files,
+
+      You will get information about a codebase that is currently on disk in the current folder.
+      The user will ask you to write a script that runs the code in a specific way.
+      You will answer with code blocks that include all the necessary terminal commands.
+      Do not install globally. Do not use sudo.
+      Do not explain the code, just give the commands.
+      Do not use placeholders, use example values (like . for a folder argument) if necessary.
+
+      Response format:
+
+      {"ENTRYPOINT_FILE": "final generated enttrypoint script"}
+    parameters:
+      type: "object"
+      properties:
+        files_dict:
+          type: "string"
+          description: "The dictionary of file names to their respective source code content."
+      required:
+        - "files_dict"
+    functions:
+      - "fs:*"
 
   - name: "self_heal"
     display: "Self Heal"
@@ -248,14 +308,15 @@ agents:
       This makes the assuption that the previous step was `gen_entrypoint`,
       this code could work with `simple_gen`, or `gen_clarified_code` as well.
     model: gpte/L2
-    message: |
-      A program with this specification was requested:
-      {prompt}, but running it produced the following output:
-      {stdout_full}
-      and the following errors:
-      {stderr_full}.
-      Please change it so that it fulfills the requirements.
+    # message: |
+    #   A program with this specification was requested:
+    #   {prompt}, but running it produced the following output:
+    #   {stdout_full}
+    #   and the following errors:
+    #   {stderr_full}.
+    #   Please change it so that it fulfills the requirements.
     instruction: |
+      #! --mime-type=text/x-go-template
       You are an advanced AI agent with the ability to diagnose and self-heal code execution issues. 
       Your responsibilities include:
 
@@ -268,42 +329,27 @@ agents:
         - **agent:improve**: Enhance the code using `files_dict` and a generated prompt based on code execution issues.
 
       4. **Iteration**: Continue attempting to solve errors, adhering to a maximum of max_attempts: `{{.max_attempts}}`. Your aim is to ensure the code successfully meets the specified requirements.
-    # arguments:
-    #   max_attempts: "3"
     parameters:
       type: "object"
       properties:
+        files_dict:
+          type: "string"
+          description: "The dictionary of file names to their respective source code content"
         max_attempts:
           type: "integer"
           description: "The maximum number of attemps"
           default: 3
           minimum: 0
       required:
-        - "max_attempts"
+        - "files_dict"
     functions:
-      - "agent:gpte/improve"
       - "sh:*"
       - "fs:*"
-
-  - name: "clarify"
-    display: "Clarify"
-    description: |
-      Generate code based on clarifications obtained from the user and saves it to a specified workspace.
-    model: gpte/L2
-    instruction: |
-      Given some instructions, determine if anything needs to be clarified, do not carry them out.
-      You can make reasonable assumptions, but if you are unsure, ask a single clarification question.
-      Otherwise state: "Nothing to clarify"
 
   - name: "execute"
     display: "Execute Entrypoint"
     description: |
       Executes the entrypoint of the codebase.
-    message: |
-      #! --mime-type=text/x-go-template
-      files_dict:
-
-      {{.query}}
     instruction: |
       You are an execution agent tasked with managing an input file dictionary.
       Your key responsibilities include saving the files to the correct paths in the current workspace
@@ -335,6 +381,14 @@ agents:
 
       Notify the user upon successful execution and suggest alternative methods for running the code if necessary.
       Ensure to handle all operations reliably, providing the user with the ability to interrupt the process if needed.
+    parameters:
+      type: "object"
+      properties:
+        files_dict:
+          type: "string"
+          description: "The dictionary of file names to their respective source code content."
+      required:
+        - "files_dict"
     functions:
       - "sh:*"
       - "fs:*"
@@ -352,6 +406,14 @@ agents:
       as a key and its associated code block is the value. This role excels
       at organizing code snippets by file location, even when the input
       contains extraneous information.
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          descript: "The input strings containing file paths and code blocks."
+      required:
+        - query
 
   - name: "parse_diff"
     display: "Parse Diff"
@@ -366,8 +428,6 @@ agents:
 
       Returns:
       - dict: A dictionary consisting of Diff objects, organized by filename.
-    # arguments:
-    #   diff_str: "{{.result}}"
     parameters:
       type: "object"
       properties:
