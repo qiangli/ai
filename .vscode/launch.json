@@ -82,7 +82,7 @@
 				// // agent
 				// "/agent:atm/hi",
 				// "--script",
-				// "swarm/atm/resource/template/atm.yaml",
+				// "swarm/resource/template/atm.yaml",
 				// "--adapter",
 				// "echo",
 				// "--verbose",
@@ -91,7 +91,7 @@
 				// tool
 				// "/atm:hi",
 				// "--script",
-				// "swarm/atm/resource/template/atm.yaml",
+				// "swarm/resource/template/atm.yaml",
 				// "--verbose",
 				// "pick some famous politicians names",
 				//
@@ -106,7 +106,7 @@
 				"test/eval.sh",
 				// "test/std.sh",
 				// "test/yaml-wrap.sh",
-				// "swarm/atm/resource/template/atm.yaml",
+				// "swarm/resource/template/atm.yaml",
 				// "--adapter",
 				// "echo"
 				// 

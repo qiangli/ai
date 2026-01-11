@@ -23,8 +23,8 @@ template='data:,
 '
 
 ##
-# script="file:///$PWD/swarm/atm/resource/incubator/agents/meta/agent.yaml"
-script="file:///$PWD/swarm/atm/resource/incubator/agents/web/agent.yaml"
+# script="file:///$PWD/swarm/resource/incubator/agents/meta/agent.yaml"
+script="file:///$PWD/swarm/resource/incubator/agents/web/agent.yaml"
 
 # message="write a report on the major world events for the year of 2025"
 # message="What is the latest technology and research  human like consciousness for  AI and LLM"

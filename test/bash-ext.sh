@@ -24,12 +24,12 @@ echo ">>> Testing bash extnesions..."
 /sh:unset_envs --option keys="[name]"
 
 # tool
-/atm:hi --script "$(pwd)/swarm/atm/resource/template/atm.yaml" \
+/atm:hi --script "$(pwd)/swarm/resource/template/atm.yaml" \
      --option greeting="how are you today?" \
      --option names='["dragon", "horse"]'
 
 # agent
-# /agent:atm/hi --script "$(pwd)/swarm/atm/resource/template/atm.yaml" \
+# /agent:atm/hi --script "$(pwd)/swarm/resource/template/atm.yaml" \
 #     --adapter echo
 
 # alias
