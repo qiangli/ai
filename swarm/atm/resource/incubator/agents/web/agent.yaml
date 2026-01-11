@@ -4,6 +4,26 @@ pack: "web"
 #
 model: "llm/L1"
 agents:
+  - name: "web"
+    display: "🌐 Web Smart Agent"
+    description: |
+      A smart web assistant that analyzes your query and chooses the best strategy:
+      quick search (web/search), broad multi-query scraping (web/scrape), or in-depth research (web/research),
+      depending on your needs and the complexity of your request.
+    embed:
+      - "agent:context/lastn"
+    instruction: |
+      You are a flexible web assistant. When a user asks a question, analyze the input to determine intent and complexity.
+      - If the user query is straightforward or requests quick results, use `agent:web/search`.
+      - If the query asks for many examples, sources, comparisons, or broader data, use `agent:web/scrape`.
+      - If the user indicates a need for detailed analysis, original research, citations, or expresses research-focused intent, use `agent:web/research`.
+      Always choose the simplest agent that meets the user’s needs, but escalate to more comprehensive options for vague, complex, or research-heavy queries.
+      If unsure, ask a clarifying question before selecting.
+    functions:
+      - "agent:web/search"
+      - "agent:web/scrape"
+      - "agent:web/research"
+
   - name: "search"
     display: "🔍 Web Search"
     description: |
@@ -55,71 +75,6 @@ agents:
       For context, today's date is: {{date}}
     functions:
       - "web:*"
-
-  # - name: "react"
-  #   display: "🔍 ReAct Web Search"
-  #   description: |
-  #     Specializes in web searches using multiple search engines to provide timely and accurate information
-  #     that leverages ReAct reasoning by embedding the react/react agent.
-  #   model: "llm/L1"
-  #   embed:
-  #     - "agent:react/react"
-  #   # instruction: |
-  #   #   #! --mime-type=x-go-template
-  #   #   ###
-  #   #   You are using the ReAct framework to solve user tasks by reasoning and interacting with web tools.
-
-  #   #   Your task is to perform comprehensive web searches across multiple search engines;
-  #   #   gather the most relevant and up-to-date information; and present findings clearly to the user.
-
-  #   #   Record your final response, the URLs and their corresponding contents in the following format:
-
-  #   #   URL: <url>
-  #   #   CONTENT: <content>
-
-  #   #   You must complete all required steps for the ReAct framework and save your final work.
-
-  #   #   For context, today's date is: {{date}}
-  #   functions:
-  #     - "web:*"
-
-  # - name: "cot"
-  #   display: "🧠 CoT Web Research"
-  #   description: |
-  #     Web search and research agent that leverages Chain-of-Thought (CoT) reasoning by embedding the cot/cot agent for stepwise, transparent problem solving, evidence gathering, and logical decomposition with persistent markdown tracking. Use this agent for investigations requiring deep reasoning, auditable research trails, and prompt engineering.
-  #   model: "llm/L1"
-  #   embed:
-  #     - "agent:cot/cot"
-  #   # instruction: |
-  #   #   #! --mime-type=x-go-template
-  #   #   ###
-  #   #   You must follow these steps for web research:
-
-  #   #   + Break down the task using Chain-of-Thought (CoT) reasoning.
-  #   #   + Log each reasoning step in markdown files for planning, tracking, and knowledge storage.
-  #   #   + Complete all required steps and save your final work.
-
-  #   #   Record the URLs and their corresponding contents in the following format:
-
-  #   #   URL: <url>
-  #   #   CONTENT: <content>
-
-  #   #   You have access to all web search tools. If a web tool fails, try another.
-  #   #   For critical claims, consult at least two search engines and always cite sources.
-  #   #   When uncertain or blocked, state the next step and what is needed from the user.
-
-  #   #   For context, today's date is: {{date}}
-  #   functions:
-  #     - "web:*"
-
-  # - name: "manus"
-  #   display: "🔍 Manus Web Search"
-  #   description: |
-  #     Specializes in web searches using multiple search engines to provide timely and accurate information
-  #     that leverages Manus reasoning.
-  #   model: "llm/L1"
-  #   embed:
-  #     - "agent:manus/manus"
 
   - name: "refine_query"
     display: "🤔 Planning the web research strategy"
@@ -238,8 +193,4 @@ api_key: "openai"
 models:
   L1:
     model: "gpt-4o-mini"
-  # L2:
-  #   model: "gpt-4.1"
-  # L3:
-  #   model: "o4-mini"
 ###
