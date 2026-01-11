@@ -176,6 +176,8 @@ agents:
 
       Under no circumstances should any other content be generated beyond the defined task; focus strictly
       on query refinement using search results and ensure the response includes only the JSON array as specified.
+    
+      For context, the current date is {{date}}.
     functions:
       - "web:*"
 
@@ -208,6 +210,8 @@ agents:
       If a query search fails or returns no results, retry up to {{default 3 .max_retry}} times.
 
       Provide the final results as a JSON array. Each element must align with the content retrieved for its respective query, maintaining query order.
+    
+      For context, the current date is {{date}}.
     functions:
       - "agent:web/refine_query"
       - "agent:web/search"

@@ -35,6 +35,9 @@ agents:
       Run `fs:list_roots` to find the file path for the workspace.
     functions:
       - "fs:*"
+      - "agent:web/scrape"
+      - "agent:gptr/curate"
+      - "agent:gptr/report"
 
   - name: "curate"
     display: "⚖️ Evaluating and curating sources"
@@ -138,7 +141,7 @@ agents:
 
       ** User's Preferences:
 
-      Run tool `agent:gtpr/preferences` to find user's preferences based on the user query.
+      Run tool `agent:gptr/preferences` to find user's preferences based on the user query.
 
       In the following instructions, there are placeholders in [[preferences.*]] format. You must reference the values in the above preferences.
 
@@ -168,8 +171,8 @@ agents:
       The report SHOULD be approximately [[preferences.total_words]] words long.
 
       For context, the current date is {{date}}.
-    # functions:
-    #   - "fs:*"
+    functions:
+      - "agent:gptr/preferences"
 
   - name: "preferences"
     display: "🖥️  User Preferences"
