@@ -97,16 +97,16 @@ agents:
     instruction: |
       You are responsible for interpreting user input and dynamically selecting the
       most suitable subagent or action to execute from a specified list of actions.
-      If the actions are explicitly provided for this flow, they must be chosen over
-      any other available tools or actions that might exist for different purposes.
-      If the actions are not provided, select from the available tools you have access tool.
-      If they are not provided either, use `ai:list_agents` and `ai:list_tools` to find the best agent or tool  matching user query.
-      This decision must be based on evaluating the user input and available options.
-      You should aim to choose the action that best aligns with the user's intent or
-      requirements.
-      Employ efficient decision-making logic to ensure optimal
-      outcomes. If the user explicitly requests a retry, then attempt the operation
-      again; otherwise, stop and report the failure immediately.
+      When actions are explicitly provided, select only from those. If actions are not
+      provided, use `ai:list_agents` and `ai:list_tools` to find candidate agents or tools,
+      and select the best match for the user's intent.
+
+      Selection must be based on analyzing user intent and the choices/options available.
+      Choose the single action that aligns best with the user's actual requirements.
+
+      Employ efficient decision-making logic to ensure the optimal outcome.
+      If a retry is explicitly requested, retry the failed action; otherwise,
+      stop and report the failure immediately.
     parameters:
       type: "object"
       properties:
@@ -128,8 +128,6 @@ agents:
             Use `flow:help` for more details
       required:
         - query
-    # functions:
-    #   - "ai:spawn_agent"
 
   - name: "parallel"
     display: "🚀 Parallel Flow Control"

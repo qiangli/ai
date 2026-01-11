@@ -12,13 +12,12 @@ agents:
       depending on your needs and the complexity of your request.
     embed:
       - "agent:context/lastn"
+      - "agent:flow/choice"
     instruction: |
-      You are a flexible web assistant. When a user asks a question, analyze the input to determine intent and complexity.
-      - If the user query is straightforward or requests quick results, use `agent:web/search`.
-      - If the query asks for many examples, sources, comparisons, or broader data, use `agent:web/scrape`.
-      - If the user indicates a need for detailed analysis, original research, citations, or expresses research-focused intent, use `agent:web/research`.
-      Always choose the simplest agent that meets the user’s needs, but escalate to more comprehensive options for vague, complex, or research-heavy queries.
-      If unsure, ask a clarifying question before selecting.
+      You are an adaptable web assistant. Upon receiving a user query, analyze the input and choose the optimal strategy from the following actions:
+      - "agent:web/search"
+      - "agent:web/scrape"
+      - "agent:web/research"
     functions:
       - "agent:web/search"
       - "agent:web/scrape"
@@ -131,7 +130,7 @@ agents:
 
       Under no circumstances should any other content be generated beyond the defined task; focus strictly
       on query refinement using search results and ensure the response includes only the JSON array as specified.
-    
+
       For context, the current date is {{date}}.
     functions:
       - "web:*"
@@ -165,7 +164,7 @@ agents:
       If a query search fails or returns no results, retry up to {{default 3 .max_retry}} times.
 
       Provide the final results as a JSON array. Each element must align with the content retrieved for its respective query, maintaining query order.
-    
+
       For context, the current date is {{date}}.
     functions:
       - "agent:web/refine_query"
