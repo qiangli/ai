@@ -70,6 +70,9 @@ agents:
     parameters:
       type: "object"
       properties:
+        query:
+          type: "string"
+          description: "The user query string"
         actions:
           type: "array"
           items:
@@ -84,6 +87,7 @@ agents:
             Additional arguments may be required for each action.
             Use `/flow:help` for more details
       required:
+        - query
         - actions
     functions:
       - "ai:spawn_agent"
@@ -93,17 +97,22 @@ agents:
     instruction: |
       You are responsible for interpreting user input and dynamically selecting the
       most suitable subagent or action to execute from a specified list of actions.
-      These actions are explicitly provided for this flow and must be chosen over
+      If the actions are explicitly provided for this flow, they must be chosen over
       any other available tools or actions that might exist for different purposes.
-      This decision is based on evaluating the input context and available options.
+      If the actions are not provided, select from the available tools you have access tool.
+      If they are not provided either, use `ai:list_agents` and `ai:list_tools` to find the best agent or tool  matching user query.
+      This decision must be based on evaluating the user input and available options.
       You should aim to choose the action that best aligns with the user's intent or
-      requirements. If the specific criteria isn't met by a single option, a random
-      choice is made. Employ efficient decision-making logic to ensure optimal
+      requirements.
+      Employ efficient decision-making logic to ensure optimal
       outcomes. If the user explicitly requests a retry, then attempt the operation
       again; otherwise, stop and report the failure immediately.
     parameters:
       type: "object"
       properties:
+        query:
+          type: "string"
+          description: "The user query string"
         actions:
           type: "array"
           items:
@@ -111,16 +120,16 @@ agents:
           description: |
             A list of valid actions. Use `ai:list_tools` or `ai:list_agents` to acquire available actions.
             Specify actions in the following formats:
-            - Tool action: `tool:kit:name`
-            - Agent action: `agent:pack/name`
+            - Tool action: `kit:name`
+            - Agent action: `agent:pack/name` where *agent* is the kit name for agent tools.
 
             Tools and agents can be mixed in the actions.
             Additional arguments may be required for each action.
-            Use `/flow:help` for more details
+            Use `flow:help` for more details
       required:
-        - actions
-    functions:
-      - "ai:spawn_agent"
+        - query
+    # functions:
+    #   - "ai:spawn_agent"
 
   - name: "parallel"
     display: "🚀 Parallel Flow Control"
