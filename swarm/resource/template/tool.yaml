@@ -1,28 +1,33 @@
 ###
-kit: <toolkit>
 
+kit: "<kit>" # tool kit name: ^[a-z0-9_]+$
 # supported tool type:
-# mcp: model context protocol
 # agent:
 #   this is the agent you created, for simple case where only query parameter is required,
-#   agent can be executed as a tool without a tool definition here.
-# func: inline function body (golang)
-type: "agent | func | mcp"
-
-# # mcp
-# connector:
-#   base_url: "<service endpoint>"
-#   # Add an entry "<key-name>" with your service API Key at:
-#   # https://ai.dhnt.io/settings/api-key
-#   api_key: "<key-name>"
+#   the tool definition is not required, agent can be executed as a tool without a tool definition here.
+# func:
+#   inline function body. bash script, golang code, go template, and plain text are supported
+#
+# type: "agent | func"
 
 tools:
-  - name: ""
-    description: ""
-    parameters: {}
+  - name: "<tool_name>" # tool name: ^[a-z0-9_]+$
+    description: "<tool_description>"
     type: "func"
+    parameters:
+      type: "object"
+      properties:
+        <param_name>:
+          type: "string|integer|boolean|..."
+          description: "<param_description>"
+        # Add more parameters as needed
+      required:
+        - <param_name> # List required parameter names here
     body:
-      mime_type: "application/x-sh | application/x-go | application/x-go-template | text/*"
+      # Valid mime_type: "application/x-sh | application/x-go | application/x-go-template | text/*"
+      mime_type: "application/x-go"
+      # The script could be a go-template.
+      # code script will be executed after the template is applied.
       script: |
-        #!/bin/bash
-###
+        #! mime-type=text/x-go-template
+        // Golang code goes here

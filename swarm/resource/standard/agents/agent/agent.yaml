@@ -45,9 +45,9 @@ agents:
         - name: "name" # Unique agent identifier: ^[a-z0-9_]+$
           display: "Display Name" # User-friendly display name with optional emoji
           description: "Short agent description" # Brief description of the agent's functionality
-          model: "default/any" # Specify the model to use; validate for correctness
+          model: "default/any" # Specify the model `set/level` to use; validate for correctness
           message: |
-            Optional: preset message to be included when invoking the agent
+            Optional: preset message to be included when invoking the agent, prepended to user query.
           instruction: |
             Define the system role prompt here.
           environment:
@@ -55,18 +55,20 @@ agents:
           arguments:
             <name>: <value> # Arguments specific to the agent, its tools, or child agents; can use Golang templates `{{"..."}}`
           parameters:
-            # intended for LLM when this agent is run as a tool call.
+            # Intended for LLM when this agent is run as a tool call.
           entrypoint:
-            # a list of actions (agent or tool) to run. Default `ai:spawn_agent` if entrypoint is not provided.
+            # A list of actions (agent or tool) to run. Default `ai:spawn_agent` if entrypoint is not provided.
             # `ai:spawn_agent` is equivalent to: `["ai:new_agent","ai:build_query","ai:build_prompt","ai:build_context","ai:call_llm"]`
           functions:
             # functions are tools made availale to LLM for tool calling.
-            # always add "fs:*" or specific tools in the `fs` kit e.g. "fs:list_roots" if local filesystem access is required.
-            # always add "web:*" or specific tools in the `web` kit e.g. "web:ddg_search" if internet access/web search is required.
-            # if you need to add other tools. run `ai:list_tools` to explore all available tools.
+            # Always add "fs:*" or specific tools in the `fs` kit e.g. "fs:list_roots" if local filesystem access is required.
+            # Always add "sh:*" or specific tools in the `sh` kit e.g. "sh:exec" if local system access is required.
+            # Always add "web:*" or specific tools in the `web` kit e.g. "web:ddg_search" if internet access/web search is required.
+            # Always add "ai:*" or specific tools in the `ai` kit e.g. "ai:spawn_agent" if core ai functionality is required.
+            # If you need to add other tools. run `ai:list_tools` to explore all available tools.
             - "<kit>:<name>"      # Validate and assign correct function/tool
             - "<kit>:*"           # Use all tools available in the `<kit>`.
-            - "agent:<pack/name>" # Agents can also function as tools; prefix with `agent` as the kit.
+            - "agent:<pack/name>" # Agents can also function as tools; prefix with `agent` as the kit. run `ai:list_agents` for all available agents.
       ```
 
       Please note: tool and model configs can also be included in the same agent configuration file.
@@ -252,11 +254,10 @@ agents:
 
       ```yaml
       kit: "<kit>" # tool kit name: ^[a-z0-9_]+$
-      type: "func"
-
       tools:
         - name: "<tool_name>" # tool name: ^[a-z0-9_]+$
           description: "<tool_description>"
+          type: "func"
           parameters:
             type: "object"
             properties:
@@ -265,9 +266,12 @@ agents:
                 description: "<param_description>"
               # Add more parameters as needed
             required:
-              - <param_name>  # List required parameter names here
+              - <param_name> # List required parameter names here
           body:
+            # Valid mime_type: "application/x-sh | application/x-go | application/x-go-template | text/*"
             mime_type: "application/x-go"
+            # The script could be a go-template.
+            # code script will be executed after the template is applied.
             script: |
               #! mime-type=text/x-go-template
               // Golang code goes here
@@ -375,7 +379,7 @@ agents:
       set: <model_set_name> # set name: ^[a-z0-9_]+$
       provider: "anthropic | gemini | openai"
       models:
-        <level>: # level name: ^[a-zA-Z0-9_]+$
+        <level_one>: # level name: ^[a-zA-Z0-9_]+$
           model: "<model name>"
         <level_two>:
           model: "<model name>"

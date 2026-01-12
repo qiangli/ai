@@ -1,9 +1,8 @@
 ###
-set: <model set name>
+set: <model set name>  # ^[a-z0-9_]+$
 models:
   # you may use any string as the level key.
-  # if you use L1, L2, L3. "any" can be specifed in your agent configuration to refer to any of them and in that search order.
-  <level>:
+  <level>:  # ^[a-zA-Z0-9_]+$
     # valid model name from your service provider
     model: "<model name>"
     # the following can be omitted if provided at the top level of this configuration.
