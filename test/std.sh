@@ -1,5 +1,5 @@
 #!/usr/bin/env ai /sh:bash --format raw --script
-# set -ue
+set -ue
 
 # tools
 
@@ -50,9 +50,9 @@ done
 agents=(
 "help/help"
 # context
-"context/context"
 "context/summary"
 "context/lastn"
+"context/summarizer"
 #
 "ask/ask"
 "chat/chat"
@@ -65,7 +65,7 @@ agents=(
 # deep
 "deep/deep"
 "deep/memory"
-"deep/workspace"
+# "deep/workspace"
 # flow
 "flow/flow"
 "flow/sequence"
@@ -85,9 +85,7 @@ agents=(
 "gpte/parse_diff"
 # gptr
 "gptr/gptr"
-"gptr/user_input"
-"gptr/user_preferences"
-"gptr/choose_agent"
+"gptr/preferences"
 "gptr/curate"
 "gptr/report"
 # 
@@ -119,7 +117,6 @@ agents=(
 # web
 "web/search"
 "web/research"
-"web/react"
 "web/scrape"
 )
 
