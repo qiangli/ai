@@ -334,6 +334,7 @@ func TestParseAnyFlagCommand(t *testing.T) {
 			input: `/bin: --command "ls -al /tmp" --actions "[ai:spawn_agent,ai:format]" --script "data:,#!\nls -al" --template "data:,#!\n{{.query}}"`,
 			expected: map[string]any{
 				"kit":      "bin",
+				"name":     "bin",
 				"command":  "ls -al /tmp",
 				"actions":  "[ai:spawn_agent,ai:format]",
 				"script":   "data:,#!\\nls -al",

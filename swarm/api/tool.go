@@ -265,6 +265,11 @@ func (r Kitname) Clean() Kitname {
 		kit, name = s, ""
 	}
 
+	//
+	if name == "" {
+		name = kit
+	}
+
 	// for agent tool id
 	name = strings.ReplaceAll(name, "__", "/")
 	return Kitname(kit + ":" + name)

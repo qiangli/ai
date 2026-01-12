@@ -24,6 +24,8 @@
 			"args": [
 				// "/help",
 				// "/help:help",
+				"/agent:help",
+				// "/agent:help/help",
 				//
 				// alias
 				// "/alias:x",
@@ -103,7 +105,7 @@
 				// 
 				// bash script
 				// 
-				"test/eval.sh",
+				// "test/eval.sh",
 				// "test/std.sh",
 				// "test/yaml-wrap.sh",
 				// "swarm/resource/template/atm.yaml",

@@ -1,0 +1,12 @@
+###
+pack: "help"
+agents:
+  - name: "help"
+    display: "🚀 Help"
+    description: |
+      Guide users in selecting the correct AI agent or tool.
+    entrypoint:
+      - "help:help"
+    model: "default/any"
+    adapter: "text"
+    functions:

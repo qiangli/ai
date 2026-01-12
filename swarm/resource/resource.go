@@ -9,7 +9,7 @@ var ResourceFS embed.FS
 
 func NewCoreStore() *ResourceStore {
 	return &ResourceStore{
-		Base: "standard",
+		Base: "core",
 		FS:   ResourceFS,
 	}
 }

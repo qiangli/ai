@@ -8,10 +8,9 @@ tools:
   - name: "help"
     display: "AI Help"
     description: |
-      Guide users in selecting the correct AI agent or tool for running
-      the "ai" command line tool.
+      Guide users in selecting the correct AI agent or tool.
     parameters: {}
-    body:
+    body: 
       mime_type: "text/markdown"
       script: |
         # Usage:
