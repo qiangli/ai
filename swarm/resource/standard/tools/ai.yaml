@@ -3,12 +3,18 @@ kit: "ai"
 type: "ai"
 
 tools:
-  # - name: "ai"
-  #   display: "AI"
-  #   description: |
-  #     A framework for managing AI agents and tools.
-  #   parameters: {}
-  #   type: "agent"
+  - name: "ai"
+    display: "AI"
+    description: |
+      A framework for managing AI agents, tools, and models.
+    parameters: {}
+    type: "func"
+    body:
+      mime_type: "application/x-sh"
+      script: |
+        #!/bin/bash
+        /ai:help
+        exit 0
 
   - name: "help"
     display: "AI Tool Help"
@@ -21,7 +27,9 @@ tools:
       script: |
         import "fmt"
         const desc = `
-        A set of tools for managing agents and tools.
+        # DHNT.io AI
+
+        A set of tools for managing agents, tools, and models.
 
         ## Agents
           + ai:list_agents

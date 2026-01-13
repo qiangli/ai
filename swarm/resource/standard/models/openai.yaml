@@ -1,5 +1,6 @@
 ###
 # https://platform.openai.com/docs/models
+# https://platform.openai.com/docs/pricing
 provider: "openai"
 base_url: "https://api.openai.com/v1/"
 api_key: "openai"
@@ -7,7 +8,32 @@ api_key: "openai"
 models:
   L1:
     model: "gpt-5-nano"
+    # High-throughput tasks, especially simple instruction-following or classification
   L2:
     model: "gpt-5-mini"
+    # Cost-optimized reasoning and chat; balances speed, cost, and capability
   L3:
-    model: "gpt-5"
+    model: "gpt-5.2"
+    # Complex reasoning, broad world knowledge, and code-heavy or multi-step agentic tasks
+  L4:
+    model: "gpt-5.2-pro"
+    # Tough problems that may take longer to solve but require harder thinking
+  code:
+    model: "gpt-5.1-codex-max"
+    # Companies building interactive coding products; full spectrum of coding tasks
+
+# models:
+#   L1:
+#     model: "gpt-5-nano"
+#   L2:
+#     model: "gpt-5-mini"
+#   L3:
+#     model: "gpt-5"
+
+# models:
+#   L1:
+#     model: "gpt-4o-mini"
+#   L2:
+#     model: "gpt-4.1"
+#   L3:
+#     model: "o3-mini"
