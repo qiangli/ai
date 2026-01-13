@@ -1,4 +1,4 @@
-#!/usr/bin/env ai /agent:concil/concil --script
+#!/usr/bin/env ai /agent:council/council --script
 
 #
 # LLM Council (3-stage orchestration) as a self-contained YAML agent pack.
@@ -24,11 +24,11 @@
 #
 
 ---
-pack: "concil"
+pack: "council"
 log_level: "info"
 
 agents:
-  - name: "concil"
+  - name: "council"
     display: "🏛️ LLM Council"
     description: "3-stage multi-model council: parallel answers → anonymized peer ranking → chairman synthesis."
     model: "default/any"
@@ -67,12 +67,12 @@ agents:
       Robustness:
       - If some models fail in stage1, proceed with those that succeeded.
       - If no models succeed in stage1, return stage3.response with an error message.
-      - Use the provided tool `concil:run_council` ONCE per user request to do all stages.
+      - Use the provided tool `council:run_council` ONCE per user request to do all stages.
       - Do not reveal internal tool code.
 
     # The entire orchestration is implemented as a tool for determinism and reusability.
     functions:
-      - "concil:run_council"
+      - "council:run_council"
 
     entrypoint:
       - "ai:new_agent"
@@ -82,9 +82,9 @@ agents:
 
 
 ###
-# Local tools (kit: concil)
+# Local tools (kit: council)
 ###
-kit: "concil"
+kit: "council"
 type: "func"
 tools:
   - name: "run_council"
@@ -134,7 +134,7 @@ tools:
         // ---- Environment-driven configuration ----
 
         var (
-          inputQuery = {{ .query | json }}
+          inputQuery = "{{ .query }}"
 
           // Defaults chosen from ai:list_models available aliases.
           defaultCouncil = []string{"default/L2", "gemini/L2", "anthropic/L2", "xai/L2"}
@@ -479,7 +479,7 @@ tools:
 # Local model set (optional): define convenient aliases for council defaults.
 # Users can still select other installed aliases/providers at runtime.
 ###
-set: "concil"
+set: "council"
 models:
   chairman_default:
     model: "gpt-5"
