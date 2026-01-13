@@ -112,6 +112,8 @@ func (r *ChatAdapter) Call(ctx context.Context, req *api.Request) (*api.Response
 		resp, err = openai.Send(ctx, req)
 	case "anthropic":
 		resp, err = anthropic.Send(ctx, req)
+	case "xai":
+		resp, err = xai.Send(ctx, req)
 	default:
 		return nil, fmt.Errorf("Unknown provider: %s", provider)
 	}

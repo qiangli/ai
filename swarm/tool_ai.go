@@ -93,8 +93,9 @@ func (r *AIKit) llmAdapter(agent *api.Agent, args map[string]any) (api.LLMAdapte
 		}
 	}
 	if llmAdapter == nil {
-		// llmAdapter = &adapter.ChatAdapter{}
-		llmAdapter = &adapter.TextAdapter{}
+		llmAdapter = &adapter.ChatAdapter{}
+		// TODO openai response api tool call issue
+		// llmAdapter = &adapter.TextAdapter{}
 	}
 
 	return llmAdapter, nil
