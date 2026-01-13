@@ -18,6 +18,8 @@ https://docs.langchain.com/oss/python/langgraph/workflows-agents
 
 https://reference.langchain.com/python/langchain/middleware/#middleware-classes
 
+https://github.com/anthropics/claude-code/tree/main/plugins/ralph-wiggum#ralph-wiggum-plugin
+
 ## Deep Agents
 https://github.com/OthmanAdi/planning-with-files/tree/master
 
@@ -46,6 +48,8 @@ https://github.com/cayleygraph/cayley/blob/master/docs/configuration.md#Store
 ## Go
 
 https://github.com/weaviate/weaviate
+
+https://github.com/philippgille/chromem-go?tab=readme-ov-file
 
 https://github.com/tmc/langchaingo/blob/main/agents/agents.go
 

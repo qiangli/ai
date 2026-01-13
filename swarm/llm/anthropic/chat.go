@@ -12,7 +12,6 @@ import (
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
-	// "github.com/qiangli/ai/swarm/middleware"
 )
 
 // https://github.com/anthropics/anthropic-sdk-go

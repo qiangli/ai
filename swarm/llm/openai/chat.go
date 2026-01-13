@@ -12,7 +12,6 @@ import (
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
-	// "github.com/qiangli/ai/swarm/middleware"
 )
 
 // https://platform.openai.com/docs/models
@@ -57,14 +56,13 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	if len(req.Messages) > 0 {
 		var messages []openai.ChatCompletionMessageParamUnion
 		for _, v := range req.Messages {
-			// assistant message empty
-			// if len(v.Content) == 0 {
-			// 	// return nil, fmt.Errorf("empty message content")
-			// }
 			// https://platform.openai.com/docs/guides/text-generation#developer-messages
+			// https://model-spec.openai.com/2025-02-12.html
 			switch v.Role {
 			case "system":
 				messages = append(messages, openai.SystemMessage(v.Content))
+			case "developer":
+				messages = append(messages, openai.DeveloperMessage(v.Content))
 			case "assistant":
 				messages = append(messages, openai.AssistantMessage(v.Content))
 			case "user":
@@ -75,8 +73,6 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 				}
 			// case "tool":
 			// 	return openai.ToolMessage(content, id), nil
-			// case "developer":
-			// 	messages = append(messages, openai.DeveloperMessage(v.Content))
 			default:
 				// log.GetLogger(ctx).Errorf("Role not supported: %s", v.Role)
 			}
@@ -237,10 +233,12 @@ func setChatCompletionNewParams(params *openai.ChatCompletionNewParams, args api
 	// 	params.MaxTokens = openai.Int(toInt64(v, 512))
 	// }
 
-	// How many chat completion choices to generate for each input message.
-	if v, ok := args.Get2("n"); ok {
-		params.N = openai.Int(toInt64(v, 1))
-	}
+	// // How many chat completion choices to generate for each input message.
+	// if v, ok := args.Get2("n"); ok {
+	// 	params.N = openai.Int(toInt64(v, 1))
+	// }
+	// only 1
+	params.N = openai.Int(1)
 
 	// Number between -2.0 and 2.0. Positive values penalize new tokens based on
 	// whether they appear in the text so far, increasing the model's likelihood to

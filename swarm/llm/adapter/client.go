@@ -29,8 +29,8 @@ func init() {
 	adapterRegistry = make(map[string]api.LLMAdapter)
 	adapterRegistry["echo"] = &EchoAdapter{}
 	adapterRegistry["chat"] = &ChatAdapter{}
-	adapterRegistry["text"] = &ResponseAdapter{}
-	adapterRegistry["response"] = &ResponseAdapter{}
+	adapterRegistry["text"] = &TextAdapter{}
+	// adapterRegistry["response"] = &ResponseAdapter{}
 	adapterRegistry["image"] = &ImageAdapter{}
 	adapterRegistry["tts"] = &TtsAdapter{}
 	adapterRegistry["audio"] = &AudioAdapter{}
@@ -156,9 +156,9 @@ func (r *ImageAdapter) Call(ctx context.Context, req *api.Request) (*api.Respons
 	return resp, nil
 }
 
-type ResponseAdapter struct{}
+type TextAdapter struct{}
 
-func (r *ResponseAdapter) Call(ctx context.Context, req *api.Request) (*api.Response, error) {
+func (r *TextAdapter) Call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	var err error
 	var resp *api.Response
 
@@ -170,11 +170,18 @@ func (r *ResponseAdapter) Call(ctx context.Context, req *api.Request) (*api.Resp
 	//
 	switch provider {
 	case "gemini":
-		return nil, fmt.Errorf("Not supported: %s", provider)
+		// return nil, fmt.Errorf("Not supported: %s", provider)
+		// TODO not working
+		// https://developers.googleblog.com/en/gemini-is-now-accessible-from-the-openai-library/
+		// https://generativelanguage.googleapis.com/v1beta/openai/
+		// resp, err = openai.Send(ctx, req)
+		resp, err = gemini.Send(ctx, req)
 	case "openai":
+		// new response api
 		resp, err = openai.SendV3(ctx, req)
 	case "anthropic":
-		return nil, fmt.Errorf("Not supported: %s", provider)
+		// return nil, fmt.Errorf("Not supported: %s", provider)
+		resp, err = anthropic.Send(ctx, req)
 	default:
 		return nil, fmt.Errorf("Unknown provider: %s", provider)
 	}

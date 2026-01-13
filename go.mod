@@ -7,13 +7,13 @@ require (
 	github.com/BourgeoisBear/rasterm v1.1.2
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/PuerkitoBio/goquery v1.11.0
-	github.com/alecthomas/chroma/v2 v2.21.1
+	github.com/alecthomas/chroma/v2 v2.22.0
 	github.com/alecthomas/kong v1.13.0
 	github.com/alexflint/go-arg v1.6.1
 	github.com/anthropics/anthropic-sdk-go v1.19.0
 	github.com/antonmedv/clipboard v1.0.1
 	github.com/atotto/clipboard v0.1.4
-	github.com/bmatcuk/doublestar/v4 v4.9.1
+	github.com/bmatcuk/doublestar/v4 v4.9.2
 	github.com/c-bata/go-prompt v0.2.6
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/charmbracelet/bubbles v0.21.0
@@ -22,12 +22,12 @@ require (
 	github.com/charmbracelet/gum v0.17.0
 	github.com/charmbracelet/lipgloss v1.1.1-0.20250404203927-76690c660834
 	github.com/charmbracelet/x/ansi v0.11.3
-	github.com/charmbracelet/x/editor v0.1.0
-	github.com/charmbracelet/x/exp/slice v0.0.0-20251215102626-e0db08df7383
+	github.com/charmbracelet/x/editor v0.2.0
+	github.com/charmbracelet/x/exp/slice v0.0.0-20260112120226-d84da2a4022f
 	github.com/charmbracelet/x/term v0.2.2
 	github.com/creack/pty v1.1.24
 	github.com/docker/docker v28.5.2+incompatible
-	github.com/dop251/goja v0.0.0-20251201205617-2bb4c724c0f9
+	github.com/dop251/goja v0.0.0-20260106131823-651366fbe6e3
 	github.com/ebitengine/oto/v3 v3.4.0
 	github.com/expr-lang/expr v1.17.7
 	github.com/fsnotify/fsnotify v1.9.0
@@ -46,23 +46,23 @@ require (
 	github.com/muesli/termenv v0.16.0
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/openai/openai-go/v2 v2.7.1
-	github.com/openai/openai-go/v3 v3.15.0
+	github.com/openai/openai-go/v3 v3.16.0
 	github.com/qiangli/shell v0.1.6
 	github.com/sahilm/fuzzy v0.1.1
 	github.com/shirou/gopsutil/v4 v4.25.12
 	github.com/spf13/cast v1.10.0
 	github.com/traefik/yaegi v0.16.1
 	github.com/u-root/u-root v0.15.0
-	github.com/weppos/publicsuffix-go v0.50.1
-	github.com/yuin/goldmark v1.7.13
+	github.com/weppos/publicsuffix-go v0.50.2
+	github.com/yuin/goldmark v1.7.16
 	github.com/zyedidia/micro/v2 v2.0.15
-	golang.org/x/term v0.38.0
-	golang.org/x/text v0.32.0
-	google.golang.org/api v0.258.0
-	google.golang.org/genai v1.40.0
+	golang.org/x/term v0.39.0
+	golang.org/x/text v0.33.0
+	google.golang.org/api v0.259.0
+	google.golang.org/genai v1.41.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v3 v3.0.1
-	modernc.org/sqlite v1.42.2
+	modernc.org/sqlite v1.43.0
 )
 
 require (
@@ -88,7 +88,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.1 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.14 // indirect
-	github.com/clipperhouse/displaywidth v0.6.2 // indirect
+	github.com/clipperhouse/displaywidth v0.7.0 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
 	github.com/cloudflare/circl v1.6.2 // indirect
@@ -125,9 +125,9 @@ require (
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/jsonschema-go v0.4.2 // indirect
-	github.com/google/pprof v0.0.0-20251213031049-b05bdaca462f // indirect
+	github.com/google/pprof v0.0.0-20260111202518-71be6bfdd440 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
-	github.com/googleapis/enterprise-certificate-proxy v0.3.7 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.3.9 // indirect
 	github.com/googleapis/gax-go/v2 v2.16.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
@@ -215,13 +215,13 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.33.0 // indirect
 	go.opentelemetry.io/otel/metric v1.39.0 // indirect
 	go.opentelemetry.io/otel/trace v1.39.0 // indirect
-	golang.org/x/crypto v0.46.0 // indirect
-	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93 // indirect
-	golang.org/x/net v0.48.0 // indirect
+	golang.org/x/crypto v0.47.0 // indirect
+	golang.org/x/exp v0.0.0-20260112195511-716be5621a96 // indirect
+	golang.org/x/net v0.49.0 // indirect
 	golang.org/x/oauth2 v0.34.0 // indirect
-	golang.org/x/sys v0.39.0 // indirect
+	golang.org/x/sys v0.40.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251222181119-0a764e51fe1b // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260112192933-99fd39fd28a9 // indirect
 	google.golang.org/grpc v1.78.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/src-d/go-billy.v4 v4.3.2 // indirect

@@ -93,7 +93,8 @@ func (r *AIKit) llmAdapter(agent *api.Agent, args map[string]any) (api.LLMAdapte
 		}
 	}
 	if llmAdapter == nil {
-		llmAdapter = &adapter.ChatAdapter{}
+		// llmAdapter = &adapter.ChatAdapter{}
+		llmAdapter = &adapter.TextAdapter{}
 	}
 
 	return llmAdapter, nil
@@ -194,10 +195,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 		tools = agent.Tools
 	}
 
-	var req = &api.Request{
-		Agent: agent,
-	}
-
+	// request
 	var packname = api.NewPackname(agent.Pack, agent.Name)
 	var id = uuid.NewString()
 	var history []*api.Message
@@ -240,6 +238,10 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	})
 
 	// request
+	var req = &api.Request{
+		Agent: agent,
+	}
+
 	req.Query = query
 	req.Prompt = prompt
 	req.Messages = history

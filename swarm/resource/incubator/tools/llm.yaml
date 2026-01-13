@@ -1,0 +1,24 @@
+###
+# LLM Adapters
+kit: "llm"
+tools:
+  - name: "chat"
+    description: ""
+    type: "func"
+    parameters:
+      type: "object"
+      properties:
+        <param_name>:
+          type: "string|integer|boolean|..."
+          description: "<param_description>"
+        # Add more parameters as needed
+      required:
+        - <param_name> # List required parameter names here
+    # body:
+    #   # Valid mime_type: "application/x-sh | application/x-go | application/x-go-template | text/*"
+    #   mime_type: "application/x-go"
+    #   # The script could be a go-template.
+    #   # code script will be executed after the template is applied.
+    #   script: |
+    #     #! mime-type=text/x-go-template
+    #     // Golang code goes here
