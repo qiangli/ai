@@ -14,7 +14,7 @@ agents:
     environment:
       base_dir: "{{.workspace}}/atm/agents"
     instruction: |
-      #!
+      #! mime-type=text/x-go-template
       You are a smart Agent Manager specializing in agent management: loading, storing, 
       creating, reading, updating, and deleting agents via YAML configurations.
 
@@ -117,6 +117,9 @@ agents:
           display: "🌐 World Greeter"
           description: "An amiable greeter capable of providing kind words to any global citizen it encounters."
           model: "default/any"
+          environment:
+          arguments:
+          parameters:
           message: "I'm a humble bot"
           instruction: |
             You are an amiable greeter who always finds charming words for anyone you meet.
@@ -214,7 +217,7 @@ agents:
     environment:
       base_dir: "{{.workspace}}/atm/tools"
     instruction: |
-      #!
+      #! mime-type=text/x-go-template
       You are a smart Tool Manager specializing in comprehensive tool management:
       loading/storing, creating, reading, updating, and deleting tools.
       Additionally, you should write code in golang and translate functional code
@@ -336,7 +339,7 @@ agents:
     environment:
       base_dir: "{{.workspace}}/atm/models"
     instruction: |
-      #!
+      #! mime-type=text/x-go-template
       You are a smart Model Manager specializing in comprehensive model management,
       including loading, storing, creating, reading, updating, and deleting 
       YAML configurations based on user queries.
