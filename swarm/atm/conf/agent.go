@@ -2,7 +2,7 @@ package conf
 
 import (
 	// "fmt"
-	"os"
+	// "os"
 	"path"
 	"strings"
 	"time"
@@ -53,15 +53,15 @@ func listAgentsATM(owner string, as api.ATMSupport, packs map[string]*api.AppCon
 
 		// correct name and add to list
 		// keep store loader for loading extra resources later
-		ac.Name = strings.ToLower(v.Name)
-		if _, ok := packs[ac.Name]; ok {
+		ac.Pack = strings.ToLower(v.Name)
+		if _, ok := packs[ac.Pack]; ok {
 			continue
 		}
 		for _, v := range ac.Agents {
 			// v.Name = NormalizePackname(ac.Name, v.Name)
 			v.Store = as
 		}
-		packs[ac.Name] = ac
+		packs[ac.Pack] = ac
 	}
 	return nil
 }
@@ -81,21 +81,40 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AppConfi
 		if !v.IsDir() {
 			continue
 		}
-		base := path.Join(root, v.Name())
-		filename := path.Join(base, "agent.yaml")
-		content, err := as.ReadFile(filename)
+		pack := v.Name()
+		base := path.Join(root, pack)
+		// filename := path.Join(base, "agent.yaml")
+		// content, err := as.ReadFile(filename)
+		// if err != nil {
+		// 	if os.IsNotExist(err) {
+		// 		continue
+		// 	}
+		// 	// return fmt.Errorf("failed to read agent asset %s: %w", v.Name(), err)
+		// 	continue
+		// }
+		var content [][]byte
+		adirs, err := as.ReadDir(base)
 		if err != nil {
-			if os.IsNotExist(err) {
+			continue
+		}
+		for _, file := range adirs {
+			if file.IsDir() {
 				continue
 			}
-			// return fmt.Errorf("failed to read agent asset %s: %w", v.Name(), err)
-			continue
+			name := file.Name()
+			if strings.HasSuffix(name, ".yaml") || strings.HasSuffix(name, ".yml") {
+				if v, err := as.ReadFile(path.Join(base, name)); err != nil {
+					continue
+				} else {
+					content = append(content, v)
+				}
+			}
 		}
 		if len(content) == 0 {
 			continue
 		}
 
-		ac, err := LoadAgentsData([][]byte{content})
+		ac, err := LoadAgentsData(content)
 		if err != nil {
 			//return fmt.Errorf("error loading agent data: %s", v.Name())
 			continue
@@ -106,10 +125,10 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AppConfi
 
 		// correct name and add to list
 		// keep store loader for loading extra resources later
-		if ac.Name == "" {
-			ac.Name = Packname(v.Name())
+		if ac.Pack == "" {
+			ac.Pack = Packname(v.Name())
 		}
-		if _, ok := packs[ac.Name]; ok {
+		if _, ok := packs[ac.Pack]; ok {
 			continue
 		}
 		for _, v := range ac.Agents {
@@ -117,7 +136,7 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AppConfi
 			v.Store = as
 			v.BaseDir = base
 		}
-		packs[ac.Name] = ac
+		packs[ac.Pack] = ac
 	}
 	return nil
 }

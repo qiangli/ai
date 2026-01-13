@@ -185,7 +185,7 @@ type AppConfig struct {
 	Type string `yaml:"type" json:"type"`
 
 	// action name and arguments
-	Name string `yaml:"name" json:"name"`
+	// Name string `yaml:"name" json:"name"`
 	// Arguments map[string]any `yaml:"arguments" json:"arguments"`
 
 	// user message
@@ -260,8 +260,11 @@ func (ac *AppConfig) ToMap() map[string]any {
 	if ac.Type != "" {
 		result["type"] = ac.Type
 	}
-	if ac.Name != "" {
-		result["name"] = ac.Name
+	// if ac.Name != "" {
+	// 	result["name"] = ac.Name
+	// }
+	if ac.Set != "" {
+		result["set"] = ac.Set
 	}
 	// TODO revisit
 	// if ac.Message != "" {

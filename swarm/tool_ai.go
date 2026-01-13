@@ -771,9 +771,10 @@ func listAgents(assets api.AssetManager, user string) (string, int, error) {
 	}
 
 	dict := make(map[string]*api.AgentConfig)
-	for _, v := range agents {
+	for pack, v := range agents {
 		for _, sub := range v.Agents {
-			dict[sub.Name] = sub
+			key := pack + "/" + sub.Name
+			dict[key] = sub
 		}
 	}
 
@@ -785,7 +786,7 @@ func listAgents(assets api.AssetManager, user string) (string, int, error) {
 
 	var buf strings.Builder
 	for _, k := range keys {
-		buf.WriteString(fmt.Sprintf("%s:\n    %s\n\n", k, dict[k].Description))
+		buf.WriteString(fmt.Sprintf("%s - %s\n\n", k, dict[k].Description))
 	}
 	return buf.String(), len(keys), nil
 }
@@ -800,7 +801,7 @@ func listTools(assets api.AssetManager, user string) (string, int, error) {
 	for kit, tc := range tools {
 		for _, v := range tc.Tools {
 			// NOTE: Type in the output seems to confuse LLM (openai)
-			list = append(list, fmt.Sprintf("%s:%s: %s\n", kit, v.Name, v.Description))
+			list = append(list, fmt.Sprintf("%s:%s - %s\n\n", kit, v.Name, v.Description))
 		}
 	}
 
@@ -820,7 +821,7 @@ func listModels(assets api.AssetManager, user string) (string, int, error) {
 		sort.Strings(keys)
 		for _, level := range keys {
 			v := tc.Models[level]
-			list = append(list, fmt.Sprintf("%s/%s:\n    %s\n    %s\n    %s\n    %s\n", set, level, v.Provider, v.Model, v.BaseUrl, v.ApiKey))
+			list = append(list, fmt.Sprintf("%s/%s - %s\n    %s\n    %s\n    %s\n\n", set, level, v.Provider, v.Model, v.BaseUrl, v.ApiKey))
 		}
 	}
 

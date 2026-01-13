@@ -102,12 +102,14 @@ func LoadLocalToolFunc(local *api.AppConfig, owner, s string, secrets api.Secret
 	// any agent can be used as a tool
 	// agent:<agent name>
 	if kit == string(api.ToolTypeAgent) {
-		if name == local.Name {
-			return nil, fmt.Errorf("recursion not supported: %s", name)
-		}
+		_, sub := api.Packname(name).Decode()
+
+		// if pack == local.Pack {
+		// 	return nil, fmt.Errorf("recursion not supported: %s", name)
+		// }
 		for _, v := range local.Agents {
-			if name == v.Name {
-				v, err := LoadAgentTool(local, name)
+			if sub == v.Name {
+				v, err := LoadAgentTool(local, sub)
 				if err != nil {
 					return nil, err
 				}

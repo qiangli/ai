@@ -2,25 +2,15 @@
 
 #
 # LLM Council (3-stage orchestration) as a self-contained YAML agent pack.
-# Converted from: /llm-council/backend/council.py
+# Refactor goal: move orchestration out of Go tool code into sub-agents.
+# Source concept: /Users/liqiang/workspace/poc/llm-council/README.md (top section "LLM Council")
 #
-# Concept (from README "LLM Council"):
-# - Stage 1: multiple models answer independently.
-# - Stage 2: those same models review/rank anonymized answers.
-# - Stage 3: a Chairman model synthesizes a final response using stage1+stage2.
+# Stages:
+# 1) First opinions: council members answer independently
+# 2) Review: council members rank anonymized answers
+# 3) Chairman: synthesizes final response from stage1 + stage2
 #
-# NOTE: This YAML implements the council logic *within this agent framework*.
-# It does NOT install or run the original FastAPI app, nor does it depend on OpenRouter.
-#
-# Usage:
-# - Invoke agent with any user question.
-# - Optional environment/arguments to customize models:
-#     COUNCIL_MODELS (JSON array of model aliases or provider model IDs)
-#     CHAIRMAN_MODEL (string)
-#     TITLE_MODEL (string)
-#     COUNCIL_SIZE (int, optional: truncate council to N)
-#
-# Defaults are chosen from locally-available model aliases (see ai:list_models).
+# This pack avoids implementing logic in Go. The only "tool" used is ai:call_llm.
 #
 
 ---
@@ -28,51 +18,78 @@ pack: "council"
 log_level: "info"
 
 agents:
+  # ------------------------------------------------------------
+  # Orchestrator
+  # ------------------------------------------------------------
   - name: "council"
     display: "🏛️ LLM Council"
-    description: "3-stage multi-model council: parallel answers → anonymized peer ranking → chairman synthesis."
+    description: "3-stage multi-model council: parallel answers → anonymized peer ranking → chairman synthesis (agent-based)."
     model: "default/any"
     instruction: |
-      You are the orchestrator for an LLM Council.
+      You orchestrate an LLM Council process exactly as described below.
 
-      You MUST follow this 3-stage process for each user query:
+      Council definition (from README):
+      - Stage 1: multiple models answer independently; show each response.
+      - Stage 2: each model reviews and ranks anonymized responses.
+      - Stage 3: a Chairman model synthesizes a single final answer.
 
-      Stage 1 (First opinions):
-      - Send the user's question to each council member model independently.
-      - Collect each model's response as plain text.
+      Inputs:
+      - The user's message is the query.
 
-      Stage 2 (Review & ranking):
-      - Anonymize stage1 responses as Response A, Response B, ...
-      - For each council member model, ask it to:
-        (1) critique each anonymized response (pros/cons)
-        (2) provide a final ranking section formatted EXACTLY:
-            FINAL RANKING:
-            1. Response X
-            2. Response Y
-            ...
-      - Parse each model's FINAL RANKING to a list ["Response A", "Response B", ...].
-      - Compute aggregate rankings: average position per original model (lower is better).
+      Configuration (via environment variables):
+      - COUNCIL_MODELS: JSON array of model aliases/IDs (e.g. ["default/L2","gemini/L2"]) ; optional.
+      - CHAIRMAN_MODEL: model alias/ID for synthesis; optional.
+      - TITLE_MODEL: model alias/ID for title generation; optional.
+      - COUNCIL_SIZE: integer; if set, truncate council list.
 
-      Stage 3 (Chairman synthesis):
-      - Provide the chairman model with: the original question, stage1 responses (with model names), and stage2 reviews (with model names).
-      - Ask chairman to produce one final, accurate, comprehensive answer.
+      Defaults if env vars are missing:
+      - council models: ["default/L2","gemini/L2","anthropic/L2","xai/L2"]
+      - chairman: "default/L3"
+      - title model: "default/L1"
 
-      Output requirements:
+      You MUST follow these stages:
+
+      Stage 1 (First opinions)
+      - For each council model, call sub-agent council/member_answer with that model and the user query.
+      - Collect successful results into stage1 as: [{model, response}].
+      - If all members fail, return JSON with empty stage1/stage2 and stage3.response = error.
+
+      Stage 2 (Review & ranking)
+      - Create anonymized labels Response A, Response B, ... for each stage1 response.
+      - Build label_to_model mapping: {"Response A": "<model>", ...}.
+      - Build a single ranking prompt (verbatim format requirements below) and send it to each council model via council/member_rank.
+      - Each stage2 item: {model, ranking, parsed_ranking}.
+      - Parse parsed_ranking from ranking text using council/ranking_parser (extract ordered list of "Response X"; prefer FINAL RANKING section).
+      - Compute aggregate_rankings as average position per original model using council/aggregate_ranker.
+
+      Stage 3 (Chairman synthesis)
+      - Send chairman model a synthesis prompt containing original question, stage1 (with model names), stage2 (with model names).
+      - Get stage3 as {model, response}.
+
+      Title
+      - Use council/title_generator to create a 3–5 word title (best effort).
+
+      Output
       - Return a JSON object with keys: stage1, stage2, stage3, metadata.
-      - stage1: [{model, response}]
-      - stage2: [{model, ranking, parsed_ranking}]
-      - stage3: {model, response}
-      - metadata: {label_to_model, aggregate_rankings, title}
+      - metadata must include: label_to_model, aggregate_rankings, title, council_models, chairman_model, title_model.
 
-      Robustness:
-      - If some models fail in stage1, proceed with those that succeeded.
-      - If no models succeed in stage1, return stage3.response with an error message.
-      - Use the provided tool `council:run_council` ONCE per user request to do all stages.
-      - Do not reveal internal tool code.
+      Ranking prompt format requirements (must be enforced in stage2 prompt):
+      - The model MUST include a section starting with exactly: "FINAL RANKING:"
+      - Then a numbered list where each line is: "1. Response A" etc.
+      - No extra text in the ranking section.
 
-    # The entire orchestration is implemented as a tool for determinism and reusability.
+      Tool/agent usage rules:
+      - Use agent-based orchestration.
+      - You may call ai:call_llm directly only inside helper agents (member_answer/member_rank/chairman/title_generator) OR when strictly necessary.
+      - Keep the returned JSON strictly machine-readable.
+
     functions:
-      - "council:run_council"
+      - "agent:council/member_answer"
+      - "agent:council/member_rank"
+      - "agent:council/chairman"
+      - "agent:council/title_generator"
+      - "agent:council/ranking_parser"
+      - "agent:council/aggregate_ranker"
 
     entrypoint:
       - "ai:new_agent"
@@ -81,418 +98,150 @@ agents:
       - "ai:call_llm"
 
 
-###
-# Local tools (kit: council)
-###
-kit: "council"
-type: "func"
-tools:
-  - name: "run_council"
-    description: |
-      Run the 3-stage LLM Council process:
-      stage1 parallel answers, stage2 anonymized peer rankings, stage3 chairman synthesis.
-      Returns a JSON payload {stage1, stage2, stage3, metadata}.
+  # ------------------------------------------------------------
+  # Stage 1: council member answers
+  # ------------------------------------------------------------
+  - name: "member_answer"
+    display: "Council Member (Answer)"
+    description: "Ask a specific model to answer the user query."
+    model: "default/any"
+    instruction: |
+      You are a council member answering a user question.
 
-      Model selection:
-      - Council members come from env COUNCIL_MODELS (JSON array). If unset, defaults are used.
-      - Chairman comes from env CHAIRMAN_MODEL (string). If unset, defaults are used.
-      - Title model comes from env TITLE_MODEL (string). If unset, defaults are used.
-      - Optional env COUNCIL_SIZE (int) truncates the council list.
+      You MUST call ai:call_llm exactly once with:
+      - model: {{ .model }}
+      - query: {{ .query }}
 
-      All model identifiers can be either:
-      - existing local aliases like "default/L2", "anthropic/L2", "gemini/L2", "xai/L2"
-      - or provider/model IDs understood by your runtime (if supported)
-    parameters:
-      type: "object"
-      properties:
-        query:
-          type: "string"
-          description: "The user question to run through the council."
-      required: ["query"]
-    body:
-      mime_type: "application/x-go"
-      script: |
-        #! mime-type=text/x-go-template
-        package main
-
-        import (
-          "context"
-          "encoding/json"
-          "errors"
-          "fmt"
-          "os"
-          "regexp"
-          "sort"
-          "strconv"
-          "strings"
-          "time"
-
-          openai "github.com/openai/openai-go"
-          "github.com/openai/openai-go/option"
-        )
-
-        // ---- Environment-driven configuration ----
-
-        var (
-          inputQuery = "{{ .query }}"
-
-          // Defaults chosen from ai:list_models available aliases.
-          defaultCouncil = []string{"default/L2", "gemini/L2", "anthropic/L2", "xai/L2"}
-          defaultChairman = "default/L3"
-          defaultTitleModel = "default/L1"
-        )
-
-        type Msg struct {
-          Role    string `json:"role"`
-          Content string `json:"content"`
-        }
-
-        func getEnvString(key, def string) string {
-          v := strings.TrimSpace(os.Getenv(key))
-          if v == "" {
-            return def
-          }
-          return v
-        }
-
-        func getEnvInt(key string, def int) int {
-          v := strings.TrimSpace(os.Getenv(key))
-          if v == "" {
-            return def
-          }
-          n, err := strconv.Atoi(v)
-          if err != nil {
-            return def
-          }
-          return n
-        }
-
-        func getCouncilModels() []string {
-          raw := strings.TrimSpace(os.Getenv("COUNCIL_MODELS"))
-          if raw == "" {
-            return append([]string{}, defaultCouncil...)
-          }
-          var arr []string
-          if err := json.Unmarshal([]byte(raw), &arr); err != nil || len(arr) == 0 {
-            return append([]string{}, defaultCouncil...)
-          }
-          return arr
-        }
-
-        func truncateCouncil(models []string) []string {
-          n := getEnvInt("COUNCIL_SIZE", 0)
-          if n <= 0 || n >= len(models) {
-            return models
-          }
-          return models[:n]
-        }
-
-        // ---- OpenAI client wrapper for this runtime ----
-        // We rely on OPENAI-compatible env vars already configured by the runtime:
-        //   OPENAI_API_KEY, OPENAI_BASE_URL (optional)
-
-        func newClient() *openai.Client {
-          opts := []option.RequestOption{}
-          if base := strings.TrimSpace(os.Getenv("OPENAI_BASE_URL")); base != "" {
-            opts = append(opts, option.WithBaseURL(base))
-          }
-          // OPENAI_API_KEY is read by the SDK from env via option.WithAPIKey typically;
-          // but to be explicit, use it if present.
-          if key := strings.TrimSpace(os.Getenv("OPENAI_API_KEY")); key != "" {
-            opts = append(opts, option.WithAPIKey(key))
-          }
-          return openai.NewClient(opts...)
-        }
-
-        func chatOnce(ctx context.Context, client *openai.Client, model string, messages []Msg, timeout time.Duration) (string, error) {
-          ctx, cancel := context.WithTimeout(ctx, timeout)
-          defer cancel()
-
-          // Convert messages
-          in := make([]openai.ChatCompletionMessageParamUnion, 0, len(messages))
-          for _, m := range messages {
-            role := strings.ToLower(m.Role)
-            switch role {
-            case "user":
-              in = append(in, openai.UserMessage(m.Content))
-            case "system":
-              in = append(in, openai.SystemMessage(m.Content))
-            default:
-              in = append(in, openai.UserMessage(m.Content))
-            }
-          }
-
-          resp, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
-            Model: openai.F(model),
-            Messages: openai.F(in),
-          })
-          if err != nil {
-            return "", err
-          }
-          if len(resp.Choices) == 0 {
-            return "", errors.New("no choices")
-          }
-          return resp.Choices[0].Message.Content, nil
-        }
-
-        // ---- Council logic (ported from council.py) ----
-
-        type Stage1Item struct {
-          Model    string `json:"model"`
-          Response string `json:"response"`
-        }
-
-        type Stage2Item struct {
-          Model         string   `json:"model"`
-          Ranking       string   `json:"ranking"`
-          ParsedRanking []string `json:"parsed_ranking"`
-        }
-
-        type Stage3Item struct {
-          Model    string `json:"model"`
-          Response string `json:"response"`
-        }
-
-        type AggregateItem struct {
-          Model         string  `json:"model"`
-          AverageRank   float64 `json:"average_rank"`
-          RankingsCount int     `json:"rankings_count"`
-        }
-
-        func labels(n int) []string {
-          out := make([]string, 0, n)
-          for i := 0; i < n; i++ {
-            out = append(out, string(rune('A'+i)))
-          }
-          return out
-        }
-
-        func parseRankingFromText(txt string) []string {
-          // Mirrors council.py parse_ranking_from_text
-          if strings.Contains(txt, "FINAL RANKING:") {
-            parts := strings.Split(txt, "FINAL RANKING:")
-            if len(parts) >= 2 {
-              section := parts[1]
-              reNum := regexp.MustCompile(`\d+\.\s*Response [A-Z]`)
-              matches := reNum.FindAllString(section, -1)
-              if len(matches) > 0 {
-                out := make([]string, 0, len(matches))
-                reLab := regexp.MustCompile(`Response [A-Z]`)
-                for _, m := range matches {
-                  lab := reLab.FindString(m)
-                  if lab != "" {
-                    out = append(out, lab)
-                  }
-                }
-                return out
-              }
-              reAny := regexp.MustCompile(`Response [A-Z]`)
-              return reAny.FindAllString(section, -1)
-            }
-          }
-          reAny := regexp.MustCompile(`Response [A-Z]`)
-          return reAny.FindAllString(txt, -1)
-        }
-
-        func calculateAggregate(stage2 []Stage2Item, labelToModel map[string]string) []AggregateItem {
-          positions := map[string][]int{}
-          for _, r := range stage2 {
-            parsed := parseRankingFromText(r.Ranking)
-            for i, label := range parsed {
-              if m, ok := labelToModel[label]; ok {
-                positions[m] = append(positions[m], i+1)
-              }
-            }
-          }
-          out := make([]AggregateItem, 0, len(positions))
-          for model, ps := range positions {
-            if len(ps) == 0 {
-              continue
-            }
-            sum := 0
-            for _, p := range ps {
-              sum += p
-            }
-            avg := float64(sum) / float64(len(ps))
-            // round to 2 decimals
-            avg = float64(int(avg*100+0.5)) / 100
-            out = append(out, AggregateItem{Model: model, AverageRank: avg, RankingsCount: len(ps)})
-          }
-          sort.Slice(out, func(i, j int) bool { return out[i].AverageRank < out[j].AverageRank })
-          return out
-        }
-
-        func generateTitle(ctx context.Context, client *openai.Client, model, q string) string {
-          prompt := fmt.Sprintf("Generate a very short title (3-5 words maximum) that summarizes the following question.\nThe title should be concise and descriptive. Do not use quotes or punctuation in the title.\n\nQuestion: %s\n\nTitle:", q)
-          text, err := chatOnce(ctx, client, model, []Msg{{Role: "user", Content: prompt}}, 30*time.Second)
-          if err != nil {
-            return "New Conversation"
-          }
-          title := strings.TrimSpace(text)
-          title = strings.Trim(title, "\"'")
-          if len(title) > 50 {
-            title = title[:47] + "..."
-          }
-          if title == "" {
-            return "New Conversation"
-          }
-          return title
-        }
-
-        func stage1(ctx context.Context, client *openai.Client, models []string, q string) []Stage1Item {
-          // parallel
-          type res struct{ model, text string; err error }
-          ch := make(chan res, len(models))
-          for _, m := range models {
-            m := m
-            go func() {
-              txt, err := chatOnce(ctx, client, m, []Msg{{Role: "user", Content: q}}, 120*time.Second)
-              ch <- res{model: m, text: txt, err: err}
-            }()
-          }
-          out := []Stage1Item{}
-          for i := 0; i < len(models); i++ {
-            r := <-ch
-            if r.err == nil {
-              out = append(out, Stage1Item{Model: r.model, Response: r.text})
-            }
-          }
-          // stable order by original council order
-          order := map[string]int{}
-          for i, m := range models {
-            order[m] = i
-          }
-          sort.SliceStable(out, func(i, j int) bool { return order[out[i].Model] < order[out[j].Model] })
-          return out
-        }
-
-        func stage2(ctx context.Context, client *openai.Client, models []string, q string, s1 []Stage1Item) (out []Stage2Item, labelToModel map[string]string) {
-          labs := labels(len(s1))
-          labelToModel = map[string]string{}
-          for i, lab := range labs {
-            labelToModel["Response "+lab] = s1[i].Model
-          }
-          // build prompt
-          parts := make([]string, 0, len(s1))
-          for i, lab := range labs {
-            parts = append(parts, fmt.Sprintf("Response %s:\n%s", lab, s1[i].Response))
-          }
-          responsesText := strings.Join(parts, "\n\n")
-
-          rankingPrompt := fmt.Sprintf("You are evaluating different responses to the following question:\n\nQuestion: %s\n\nHere are the responses from different models (anonymized):\n\n%s\n\nYour task:\n1. First, evaluate each response individually. For each response, explain what it does well and what it does poorly.\n2. Then, at the very end of your response, provide a final ranking.\n\nIMPORTANT: Your final ranking MUST be formatted EXACTLY as follows:\n- Start with the line \"FINAL RANKING:\" (all caps, with colon)\n- Then list the responses from best to worst as a numbered list\n- Each line should be: number, period, space, then ONLY the response label (e.g., \"1. Response A\")\n- Do not add any other text or explanations in the ranking section\n\nNow provide your evaluation and ranking:", q, responsesText)
-
-          type res struct{ model, text string; err error }
-          ch := make(chan res, len(models))
-          for _, m := range models {
-            m := m
-            go func() {
-              txt, err := chatOnce(ctx, client, m, []Msg{{Role: "user", Content: rankingPrompt}}, 180*time.Second)
-              ch <- res{model: m, text: txt, err: err}
-            }()
-          }
-          out = []Stage2Item{}
-          for i := 0; i < len(models); i++ {
-            r := <-ch
-            if r.err == nil {
-              parsed := parseRankingFromText(r.text)
-              out = append(out, Stage2Item{Model: r.model, Ranking: r.text, ParsedRanking: parsed})
-            }
-          }
-          // stable order
-          order := map[string]int{}
-          for i, m := range models {
-            order[m] = i
-          }
-          sort.SliceStable(out, func(i, j int) bool { return order[out[i].Model] < order[out[j].Model] })
-          return out, labelToModel
-        }
-
-        func stage3(ctx context.Context, client *openai.Client, chairman string, q string, s1 []Stage1Item, s2 []Stage2Item) Stage3Item {
-          s1Parts := make([]string, 0, len(s1))
-          for _, it := range s1 {
-            s1Parts = append(s1Parts, fmt.Sprintf("Model: %s\nResponse: %s", it.Model, it.Response))
-          }
-          s2Parts := make([]string, 0, len(s2))
-          for _, it := range s2 {
-            s2Parts = append(s2Parts, fmt.Sprintf("Model: %s\nRanking: %s", it.Model, it.Ranking))
-          }
-          chairmanPrompt := fmt.Sprintf("You are the Chairman of an LLM Council. Multiple AI models have provided responses to a user's question, and then ranked each other's responses.\n\nOriginal Question: %s\n\nSTAGE 1 - Individual Responses:\n%s\n\nSTAGE 2 - Peer Rankings:\n%s\n\nYour task as Chairman is to synthesize all of this information into a single, comprehensive, accurate answer to the user's original question. Consider:\n- The individual responses and their insights\n- The peer rankings and what they reveal about response quality\n- Any patterns of agreement or disagreement\n\nProvide a clear, well-reasoned final answer that represents the council's collective wisdom:", q, strings.Join(s1Parts, "\n\n"), strings.Join(s2Parts, "\n\n"))
-
-          txt, err := chatOnce(ctx, client, chairman, []Msg{{Role: "user", Content: chairmanPrompt}}, 180*time.Second)
-          if err != nil {
-            return Stage3Item{Model: chairman, Response: "Error: Unable to generate final synthesis."}
-          }
-          return Stage3Item{Model: chairman, Response: txt}
-        }
-
-        func main() {
-          ctx := context.Background()
-          client := newClient()
-
-          council := truncateCouncil(getCouncilModels())
-          chairman := getEnvString("CHAIRMAN_MODEL", defaultChairman)
-          titleModel := getEnvString("TITLE_MODEL", defaultTitleModel)
-
-          // Stage 1
-          s1 := stage1(ctx, client, council, inputQuery)
-          if len(s1) == 0 {
-            out := map[string]any{
-              "stage1": []any{},
-              "stage2": []any{},
-              "stage3": map[string]any{"model": "error", "response": "All models failed to respond. Please try again."},
-              "metadata": map[string]any{},
-            }
-            b, _ := json.MarshalIndent(out, "", "  ")
-            fmt.Println(string(b))
-            return
-          }
-
-          // Stage 2
-          s2, labelToModel := stage2(ctx, client, council, inputQuery, s1)
-          agg := calculateAggregate(s2, labelToModel)
-
-          // Stage 3
-          s3 := stage3(ctx, client, chairman, inputQuery, s1, s2)
-
-          // Title (best-effort)
-          title := generateTitle(ctx, client, titleModel, inputQuery)
-
-          out := map[string]any{
-            "stage1": s1,
-            "stage2": s2,
-            "stage3": s3,
-            "metadata": map[string]any{
-              "label_to_model": labelToModel,
-              "aggregate_rankings": agg,
-              "title": title,
-              "council_models": council,
-              "chairman_model": chairman,
-              "title_model": titleModel,
-            },
-          }
-          b, _ := json.MarshalIndent(out, "", "  ")
-          fmt.Println(string(b))
-        }
+      Return ONLY a JSON object: {"model":"...","response":"..."}.
+      - model must echo the provided model.
+      - response must be the LLM answer text.
+      - If the LLM call fails, return {"model":"...","error":"..."}.
+    functions:
+      - "ai:call_llm"
 
 
-###
-# Local model set (optional): define convenient aliases for council defaults.
-# Users can still select other installed aliases/providers at runtime.
-###
-set: "council"
-models:
-  chairman_default:
-    model: "gpt-5"
-    provider: "openai"
-    base_url: "https://api.openai.com/v1/"
-    api_key: "openai"
-  member_default_fast:
-    model: "gpt-5-mini"
-    provider: "openai"
-    base_url: "https://api.openai.com/v1/"
-    api_key: "openai"
-  member_default_cheap:
-    model: "gpt-5-nano"
-    provider: "openai"
-    base_url: "https://api.openai.com/v1/"
-    api_key: "openai"
+  # ------------------------------------------------------------
+  # Stage 2: council member ranks anonymized responses
+  # ------------------------------------------------------------
+  - name: "member_rank"
+    display: "Council Member (Rank)"
+    description: "Ask a specific model to critique and rank anonymized responses."
+    model: "default/any"
+    instruction: |
+      You are a council member reviewing anonymized responses.
+
+      You MUST call ai:call_llm exactly once with:
+      - model: {{ .model }}
+      - query: a ranking prompt that includes:
+        Question: {{ .query }}
+        Anonymized responses block: {{ .responses_text }}
+        And the required ranking format instructions.
+
+      Ranking instructions MUST be included verbatim:
+      IMPORTANT: Your final ranking MUST be formatted EXACTLY as follows:
+      - Start with the line "FINAL RANKING:" (all caps, with colon)
+      - Then list the responses from best to worst as a numbered list
+      - Each line should be: number, period, space, then ONLY the response label (e.g., "1. Response A")
+      - Do not add any other text or explanations in the ranking section
+
+      Return ONLY JSON: {"model":"...","ranking":"..."}.
+      If the LLM call fails, return {"model":"...","error":"..."}.
+    functions:
+      - "ai:call_llm"
+
+
+  # ------------------------------------------------------------
+  # Stage 3: chairman synthesis
+  # ------------------------------------------------------------
+  - name: "chairman"
+    display: "Chairman"
+    description: "Synthesize final answer from stage1+stage2."
+    model: "default/any"
+    instruction: |
+      You are the Chairman of an LLM Council.
+
+      You MUST call ai:call_llm exactly once with:
+      - model: {{ .model }}
+      - query: a chairman prompt containing:
+        Original Question: {{ .query }}
+        STAGE 1 - Individual Responses: {{ .stage1_text }}
+        STAGE 2 - Peer Rankings: {{ .stage2_text }}
+
+      Return ONLY JSON: {"model":"...","response":"..."}.
+      If the LLM call fails, return {"model":"...","error":"..."}.
+    functions:
+      - "ai:call_llm"
+
+
+  # ------------------------------------------------------------
+  # Title generation (best effort)
+  # ------------------------------------------------------------
+  - name: "title_generator"
+    display: "Title Generator"
+    description: "Generate a short conversation title (3–5 words)."
+    model: "default/any"
+    instruction: |
+      Generate a very short title (3-5 words maximum) that summarizes the following question.
+      The title should be concise and descriptive. Do not use quotes or punctuation in the title.
+
+      Question: {{ .query }}
+
+      You MUST call ai:call_llm exactly once with:
+      - model: {{ .model }}
+      - query: the instructions above.
+
+      Return ONLY JSON: {"title":"..."}.
+      If the LLM call fails, return {"title":"New Conversation"}.
+    functions:
+      - "ai:call_llm"
+
+
+  # ------------------------------------------------------------
+  # Ranking parser (ported from council.py logic, but LLM-based)
+  # ------------------------------------------------------------
+  - name: "ranking_parser"
+    display: "Ranking Parser"
+    description: "Parse a ranking text to an ordered list of Response labels (deterministic)."
+    model: "default/any"
+    instruction: |
+      Parse the provided ranking text into an ordered list of labels like ["Response A","Response B"].
+
+      Deterministic algorithm (no external calls):
+      1) If the text contains the substring "FINAL RANKING:", take the substring after its first occurrence as the ranking section.
+      2) In that ranking section, extract all matches of the regex: \d+\.\s*Response [A-Z]
+         - From each match, extract just: Response <LETTER>
+         - If any were found, that is the parsed ranking.
+      3) Otherwise, extract all matches of the regex: Response [A-Z] from the ranking section.
+      4) If "FINAL RANKING:" is not present, fall back to extracting Response [A-Z] from the entire text.
+      5) Deduplicate while preserving order.
+
+      Input:
+      - ranking_text: {{ .ranking_text }}
+
+      Output: ONLY JSON {"parsed_ranking":[...]}.
+
+      You MAY call ai:call_llm zero times; do not call tools.
+    functions: []
+
+
+  - name: "aggregate_ranker"
+    display: "Aggregate Ranker"
+    description: "Compute aggregate rankings from parsed rankings and label_to_model mapping."
+    model: "default/any"
+    instruction: |
+      Compute aggregate rankings.
+
+      Inputs:
+      - stage2: JSON array of objects with keys {model, parsed_ranking} where parsed_ranking is ["Response A", ...]
+      - label_to_model: JSON object mapping response label to original model
+
+      Method:
+      - For each stage2 item, for each label at position i (1-based), map label->model via label_to_model and record the position.
+      - For each original model, compute average position across all recorded positions.
+      - Round to 2 decimals.
+      - Produce array sorted ascending by average_rank:
+        [{"model":"...","average_rank":1.75,"rankings_count":4}, ...]
+
+      Return ONLY JSON: {"aggregate_rankings":[...]}.
+    functions:
+      - "ai:call_llm"

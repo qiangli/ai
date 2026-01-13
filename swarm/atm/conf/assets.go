@@ -112,7 +112,6 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AppConfig, err
 					} else {
 						content = append(content, v)
 						asset = as
-						break
 					}
 				}
 			}
@@ -138,7 +137,7 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AppConfig, err
 		return nil, fmt.Errorf("invalid config. no agent defined: %s", pack)
 	}
 
-	ac.Name = pack
+	ac.Pack = pack
 	if len(content) == 1 {
 		ac.RawContent = content[0]
 	} else {
