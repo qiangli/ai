@@ -207,6 +207,8 @@ func toContentPart(mimeType string, raw []byte) []openai.ChatCompletionContentPa
 		}
 	}
 }
+
+// https://docs.x.ai/docs/api-reference#create-new-response
 func setChatCompletionNewParams(params *openai.ChatCompletionNewParams, args api.Arguments) {
 	// Number between -2.0 and 2.0. Positive values penalize new tokens based on their
 	// existing frequency in the text so far, decreasing the model's likelihood to
@@ -259,7 +261,7 @@ func setChatCompletionNewParams(params *openai.ChatCompletionNewParams, args api
 
 	// What sampling temperature to use, between 0 and 2.
 	if v, ok := args.Get2("temperature"); ok {
-		params.Temperature = openai.Float(toFloat64(v, 0.0))
+		params.Temperature = openai.Float(toFloat64(v, 1.0))
 	}
 
 	// An integer specifying the number of most likely tokens to return.
@@ -269,7 +271,7 @@ func setChatCompletionNewParams(params *openai.ChatCompletionNewParams, args api
 
 	// An alternative to sampling with temperature, called nucleus sampling.
 	if v, ok := args.Get2("top_p"); ok {
-		params.TopP = openai.Float(toFloat64(v, 0.0))
+		params.TopP = openai.Float(toFloat64(v, 1.0))
 	}
 
 	// Whether to enable parallel function calling during tool use.

@@ -18,7 +18,6 @@ import (
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
-	// "github.com/qiangli/ai/swarm/middleware"
 )
 
 const maxThreadLimit = 3

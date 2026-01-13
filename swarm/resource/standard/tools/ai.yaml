@@ -32,6 +32,8 @@ tools:
           + ai:list_tools
           + ai:get_tool_info
 
+        ## Models 
+          + ai:list_models
         `
         func main() {
           fmt.Printf(desc)
@@ -39,7 +41,8 @@ tools:
     log_level: "quiet"
 
   - name: "call_llm"
-    description: "Connects to the LLM, sends a request, and retrieves a response, with optional tool calls."
+    description: |
+      Connects to the LLM, sends a request, and retrieves a response, with optional tool calls.
     parameters:
       type: "object"
       properties:
@@ -63,6 +66,25 @@ tools:
             Ensure each tool name is valid using the 'ai:list_tools' tool to find available tools.
             Agents can be run as tools with `agent` as the kit, e.g.: 'agent:<agent_name>'.
             Ensure the agent name is valid using the 'ai:list_agents' tool to find available agents.
+        temperature:
+          type: "number"
+          description: |
+            What sampling temperature to use, between 0 and 2.
+            Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+            We generally recommend altering this or top_p but not both.
+          default: 1
+          minimum: 0
+          maximum: 2
+        top_p:
+          type: "number"
+          description: |
+            An alternative to sampling with temperature, called nucleus sampling,
+            where the model considers the results of the tokens with top_p probability mass. 
+            So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+            It is generally recommended to alter this or temperature but not both.
+          default: 1
+          minimum: 0
+          maximum: 1
       required:
         - query
 
@@ -87,7 +109,7 @@ tools:
     description: |
       Retrieve the configuration used to create a specified agent instance.
       The content may also include configurations for other agents in the same
-      package as well as tools utilized by the agents.
+      package as well as tools and models utilized by the agents.
     parameters:
       type: "object"
       properties:
@@ -110,34 +132,34 @@ tools:
       required:
         - "agent"
 
-  - name: "build_agent"
-    description: |
-      Construct user query based on user's message input. Retrieve the prompt 
-      from instructions specified in the agent configuration and context from 
-      the historical conversation messages. Applies templates formatted 
-      using Golang template syntax.
-      This is equivalent to running flow:sequence ["ai:build_query","ai:build_prompt","ai:build_context"]
-    parameters:
-      type: "object"
-      properties:
-        agent:
-          type: "string"
-          description: "Specifies the name of the agent to construct."
-      required:
-        - "agent"
-    type: "func"
-    body:
-      mime_type: "application/x-sh"
-      script: |
-        #!/bin/bash
-        actions='["ai:build_query","ai:build_prompt","ai:build_context"]'
-        /flow:sequence --agent "${agent}" --actions "${actions}"
-        exit 0
+  # - name: "build_agent"
+  #   description: |
+  #     Construct user query based on user's message input. Retrieve the prompt 
+  #     from instructions specified in the agent configuration and context from 
+  #     the historical conversation messages. Applies templates formatted 
+  #     using Golang template syntax.
+  #     This is equivalent to running flow:sequence ["ai:build_query","ai:build_prompt","ai:build_context"]
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       agent:
+  #         type: "string"
+  #         description: "Specifies the name of the agent to construct."
+  #     required:
+  #       - "agent"
+  #   type: "func"
+  #   body:
+  #     mime_type: "application/x-sh"
+  #     script: |
+  #       #!/bin/bash
+  #       actions='["ai:build_query","ai:build_prompt","ai:build_context"]'
+  #       /flow:sequence --agent "${agent}" --actions "${actions}"
+  #       exit 0
 
   - name: "build_query"
     description: |
-      Constructs a user role prompt for the agent based on the user message input.
-      Applies templates if the input text is a Golang template.
+      Constructs a user role prompt for the agent based on the user input message.
+      Applies templates if the input message is a Golang template.
     parameters:
       type: "object"
       properties:
@@ -149,21 +171,20 @@ tools:
 
   - name: "build_prompt"
     description: |
-      Constructs a system role prompt for the agent based on instructions
-      specified in the configuration.
-      Applies templating if Golang templates are detected in the text.
+      Constructs a system role prompt for the agent based on the instruction specified in the configuration.
+      Applies templates if the instruction is a Golang template.
     parameters:
       type: "object"
       properties:
         agent:
           type: "string"
-          description: "The identifier or name of the agent for which the prompt is built"
+          description: "The name of the agent"
       required:
         - "agent"
 
   - name: "build_context"
     description: |
-      Constructs the system context for the agent based on historical chat messages or other data sources.
+      Constructs the historical context for the agent based on past chat messages or other data sources.
       Applies templating if Golang templates are detected in the text.
     parameters:
       type: "object"
@@ -209,21 +230,21 @@ tools:
       required:
         - "agent"
 
-  - name: "reload_agent"
-    description: |
-      Reload the current agent with a new configuration.
-      The script can be a file path or inline with the "data:" prefix.
-      Ensure the script is a properly formatted YAML file.
-    parameters:
-      type: "object"
-      properties:
-        script:
-          type: "string"
-          description: |
-            Path to the script file or inline script prefixed with 'data:'.
-            The script is used to reconfigure the agent.
-      required:
-        - "script"
+  # - name: "reload_agent"
+  #   description: |
+  #     Reload the current agent with a new configuration.
+  #     The script can be a file path or inline with the "data:" prefix.
+  #     Ensure the script is a properly formatted YAML file.
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       script:
+  #         type: "string"
+  #         description: |
+  #           Path to the script file or inline script prefixed with 'data:'.
+  #           The script is used to reconfigure the agent.
+  #     required:
+  #       - "script"
 
   - name: "spawn_agent"
     description: "Delegate the current task to a specific agent"
@@ -241,13 +262,14 @@ tools:
           items:
             type: "string"
           description: |
-            List of action names, specified in the format 'kit:name'. For agents, use "agent" as the kit value.
-            Ensure each action name is valid using the 'ai:list_tools' or 'ai:list_agents' function
-            to find available tools and agents.
+            Optional. list of action names, specified in the format 'kit:name'.
+            For agents, use 'agent' as the kit value.
+            Ensure each action name is valid using the 'ai:list_tools' or 'ai:list_agents' tool
+            to find the available tools and agents.
             + Tools: <kit>:<name>
-            + Agents: agent:<agent pack/name>
-            default:
-              [ai:new_agent,ai:build_query,ai:build_prompt,ai:build_context,ai:call_llm]
+            + Agents: agent:<pack/name>
+            Default entrypoint if not specified:
+              "[ai:new_agent,ai:build_query,ai:build_prompt,ai:build_context,ai:call_llm]"
       required:
         - "agent"
         - "query"
@@ -299,7 +321,8 @@ tools:
   #       - "parameters"
 
   - name: "list_models"
-    description: "List all AI language model aliases created by the current user"
+    description: |
+      List all AI large language model aliases (set/level) available to the current user.
     parameters:
       type: object
       properties: {}
@@ -312,7 +335,7 @@ tools:
         max_history:
           type: "integer"
           description: "The maximum number of historic messages to retrieve"
-          default: 7
+          default: 5
           minimum: 0
         max_span:
           type: "integer"
@@ -344,8 +367,7 @@ tools:
   - name: "save_messages"
     description: |
       Save a list of messages in JSON array format.
-      This tool enables you to store messages, which is useful for maintaining
-      and providing context for future conversations.
+      This tool enables you to store messages, which is useful for maintaining and providing context for future conversations.
     parameters:
       type: "object"
       properties:
@@ -361,13 +383,15 @@ tools:
             ```json
             [
               {
-                "id": "12345",
-                "chat_id": "67890",
-                "created": "2023-10-11T14:48:00Z",
+                "id": "e90bb578-6654-4bd3-88f5-d09898ed9ef7",
+                "session": "eb104d8d-3929-4f77-bba7-1c0a0e1cbd1c",
+                "created": "2026-01-13T07:06:12.075809-08:00",
                 "content_type": "text/plain",
-                "content": "Hello, this is a message.",
-                "role": "user"
-              },
+                "content": "Hello, World!",
+                "role": "user",
+                "sender": "",
+                "agent": ""
+              }
               ...
             ]
             ```
