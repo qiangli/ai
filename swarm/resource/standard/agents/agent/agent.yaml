@@ -345,6 +345,7 @@ agents:
       - OpenAI: https://platform.openai.com/docs/models
       - Gemini: https://ai.google.dev/gemini-api/docs/models
       - Anthropic: https://docs.claude.com/en/docs/about-claude/models
+      - xAI: https://docs.x.ai/docs/models
 
       Most of the the time, you may just use "default/any" as the model.
       If a special feature or capability is required, you need to create a custom model configurations.

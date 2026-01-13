@@ -8,10 +8,12 @@ models:
     model: "gemini-2.0-flash-lite"
     base_url: "https://generativelanguage.googleapis.com/v1beta/"
     provider: "gemini"
+    api_key: "${GEMINI_API_KEY}"
   L2:
     model: "claude-3-5-haiku-latest"
     base_url: "https://api.anthropic.com/"
     provider: "claude"
+    api_key: "${ANTHROPIC_API_KEY}"
   L3:
     model: "gpt-5"
   Image:

@@ -13,7 +13,7 @@ tools:
   - name: "help"
     display: "AI Tool Help"
     description: |
-      A set of tools for managing agents and tools
+      A set of tools for managing agents, tools, and models.
     parameters: {}
     type: "func"
     body:
@@ -45,7 +45,7 @@ tools:
       properties:
         prompt:
           type: "string"
-          description: "System prompt for guiding the LLM's response. Acts as context or instructions for the LLM."
+          description: "System prompt for guiding the LLM's response. Acts as instructions for the LLM."
         query:
           type: "string"
           description: "The main content or question from the user that requires a response from the LLM."
@@ -60,7 +60,9 @@ tools:
             type: "string"
           description: |
             List of tool names to utilize during the LLM call, specified in the format 'kit:name'.
-            Ensure each tool name is valid using the 'ai:list_tools' function to find available tools.
+            Ensure each tool name is valid using the 'ai:list_tools' tool to find available tools.
+            Agents can be run as tools with `agent` as the kit, e.g.: 'agent:<agent_name>'.
+            Ensure the agent name is valid using the 'ai:list_agents' tool to find available agents.
       required:
         - query
 

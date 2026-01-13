@@ -9,6 +9,7 @@ import (
 	"github.com/qiangli/ai/swarm/llm/anthropic"
 	"github.com/qiangli/ai/swarm/llm/gemini"
 	"github.com/qiangli/ai/swarm/llm/openai"
+	"github.com/qiangli/ai/swarm/llm/xai"
 )
 
 type adapters struct {
@@ -180,8 +181,9 @@ func (r *TextAdapter) Call(ctx context.Context, req *api.Request) (*api.Response
 		// new response api
 		resp, err = openai.SendV3(ctx, req)
 	case "anthropic":
-		// return nil, fmt.Errorf("Not supported: %s", provider)
 		resp, err = anthropic.Send(ctx, req)
+	case "xai":
+		resp, err = xai.Send(ctx, req)
 	default:
 		return nil, fmt.Errorf("Unknown provider: %s", provider)
 	}

@@ -1,0 +1,14 @@
+##
+base_url: "https://api.x.ai/v1/"
+provider: "xai"
+api_key: "${XAI_API_KEY}"
+
+models:
+  L1:
+    model: "grok-4-1-fast-non-reasoning"
+  L2:
+    model: "grok-4-1-fast-reasoning"
+  L3:
+    model: "grok-4"
+  Image:
+    model: ""
