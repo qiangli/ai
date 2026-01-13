@@ -45,7 +45,6 @@ require (
 	github.com/modelcontextprotocol/go-sdk v1.2.0
 	github.com/muesli/termenv v0.16.0
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-	github.com/openai/openai-go/v2 v2.7.1
 	github.com/openai/openai-go/v3 v3.16.0
 	github.com/qiangli/shell v0.1.6
 	github.com/sahilm/fuzzy v0.1.1

@@ -53,7 +53,7 @@ tools:
           type: "string"
           description: |
             Specifies the LLM model to use. Defaults to 'default/any' if not provided.
-            Ensure the model name is valid. Use the 'ai:list_models' function to view available models.
+            Ensure the model name is valid. Use the 'ai:list_models' tool to view available models.
         tools:
           type: "array"
           items:
