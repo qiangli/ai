@@ -82,7 +82,8 @@ type Model struct {
 }
 
 func (r *Model) String() string {
-	return fmt.Sprintf("%s/%s", r.Provider, r.Model)
+	// return fmt.Sprintf("%s/%s", r.Provider, r.Model)
+	return fmt.Sprintf("%s/%s", r.Set, r.Level)
 }
 
 type ModelConfig struct {

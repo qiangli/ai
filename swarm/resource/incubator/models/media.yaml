@@ -1,5 +1,5 @@
 ##
-alias: "media"
+set: "media"
 provider: "openai"
 base_url: "https://api.openai.com/v1/"
 api_key: "openai"
