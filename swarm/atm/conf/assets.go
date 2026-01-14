@@ -47,6 +47,7 @@ func (r *assetManager) AddStore(store api.AssetStore) {
 // 	return nil, nil
 // }
 
+// Return list of agent configs keyed by pack.
 func (r *assetManager) ListAgent(owner string) (map[string]*api.AppConfig, error) {
 	var packs = make(map[string]*api.AppConfig)
 	for _, v := range r.assets {
@@ -63,25 +64,31 @@ func (r *assetManager) ListAgent(owner string) (map[string]*api.AppConfig, error
 		}
 	}
 
-	var agents = make(map[string]*api.AppConfig)
-	// add sub agent to the map as well
-	for _, v := range packs {
-		if len(v.Agents) == 0 {
-			continue
-		}
-		// Register the sub agent
-		for _, sub := range v.Agents {
-			if _, exists := agents[sub.Name]; exists {
-				continue
-			}
-			agents[sub.Name] = v
-		}
-	}
-
-	if len(agents) == 0 {
+	if len(packs) == 0 {
 		return nil, fmt.Errorf("no agent configurations found")
 	}
-	return agents, nil
+
+	return packs, nil
+	// var agents = make(map[string]*api.AppConfig)
+	// // add sub agent to the map as well
+	// for pack, v := range packs {
+	// 	if len(v.Agents) == 0 {
+	// 		continue
+	// 	}
+	// 	// Register the sub agent
+	// 	for _, sub := range v.Agents {
+	// 		key := pack + "/" + sub.Name
+	// 		if _, exists := agents[key]; exists {
+	// 			continue
+	// 		}
+	// 		agents[key] = v
+	// 	}
+	// }
+
+	// if len(agents) == 0 {
+	// 	return nil, fmt.Errorf("no agent configurations found")
+	// }
+	// return agents, nil
 }
 
 func (r *assetManager) FindAgent(owner string, pack string) (*api.AppConfig, error) {
@@ -279,67 +286,3 @@ func (r *assetManager) FindModels(owner string, set string) (*api.AppConfig, err
 
 	return mc, nil
 }
-
-// func ListAgents(assets api.AssetManager, user string) (string, int, error) {
-// 	agents, err := assets.ListAgent(user)
-// 	if err != nil {
-// 		return "", 0, err
-// 	}
-
-// 	dict := make(map[string]*api.AgentConfig)
-// 	for _, v := range agents {
-// 		for _, sub := range v.Agents {
-// 			dict[sub.Name] = sub
-// 		}
-// 	}
-
-// 	keys := make([]string, 0)
-// 	for k := range dict {
-// 		keys = append(keys, k)
-// 	}
-// 	sort.Strings(keys)
-
-// 	var buf strings.Builder
-// 	for _, k := range keys {
-// 		buf.WriteString(fmt.Sprintf("%s:\n    %s\n\n", k, dict[k].Description))
-// 	}
-// 	return buf.String(), len(keys), nil
-// }
-
-// func ListTools(assets api.AssetManager, user string) (string, int, error) {
-// 	tools, err := assets.ListToolkit(user)
-// 	if err != nil {
-// 		return "", 0, err
-// 	}
-
-// 	list := []string{}
-// 	for kit, tc := range tools {
-// 		for _, v := range tc.Tools {
-// 			// NOTE: Type in the output seems to confuse LLM (openai)
-// 			list = append(list, fmt.Sprintf("%s:%s: %s\n", kit, v.Name, v.Description))
-// 		}
-// 	}
-
-// 	sort.Strings(list)
-// 	return strings.Join(list, "\n"), len(list), nil
-// }
-
-// func ListModels(assets api.AssetManager, user string) (string, int, error) {
-// 	models, _ := assets.ListModels(user)
-
-// 	list := []string{}
-// 	for set, tc := range models {
-// 		var keys []string
-// 		for k := range tc.Models {
-// 			keys = append(keys, k)
-// 		}
-// 		sort.Strings(keys)
-// 		for _, level := range keys {
-// 			v := tc.Models[level]
-// 			list = append(list, fmt.Sprintf("%s/%s:\n    %s\n    %s\n    %s\n    %s\n", set, level, v.Provider, v.Model, v.BaseUrl, v.ApiKey))
-// 		}
-// 	}
-
-// 	sort.Strings(list)
-// 	return strings.Join(list, "\n"), len(list), nil
-// }

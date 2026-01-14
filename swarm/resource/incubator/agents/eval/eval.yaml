@@ -2,19 +2,18 @@
 # https://github.com/RUC-NLPIR/DeepAgent/tree/main
 pack: "eval"
 log_level: "verbose"
-new: true
 max_time: 900
 agents:
-  - name: "eval/tool"
+  - name: "tool"
     display: "⚙️ Eval Tool"
     description:
     model: "llm/any"
     instruction: |
       You are an evaluation agent. you are given 4 tools for evaluation based on user's input/assistant's answers and other information.
-      1) eval/check_answer: determine if the answer correctly addresses the query
-      2) eval/parse_answer: analyze the answer structure to determine if the task was solved
-      3) eval/check_solvable: determine if the given task is solvable with the available tools
-      4) eval/select_answer: compare multiple answers to the same query and select the better one.
+      1) agent:eval/check_answer - determine if the answer correctly addresses the query
+      2) agent:eval/parse_answer - analyze the answer structure to determine if the task was solved
+      3) agent:eval/check_solvable - determine if the given task is solvable with the available tools
+      4) agent:eval/select_answer - compare multiple answers to the same query and select the better one.
     functions:
       - "agent:eval/check_answer"
       - "agent:eval/parse_answer"
@@ -27,7 +26,7 @@ agents:
     description: "Provides concise and reliable answers across diverse topics, ranging from local system intricacies to comprehensive web-based information, ensuring clarity and accuracy."
     model: llm/any
     embeb:
-      - eval/tool
+      - agent:eval/tool
     instruction: |
       You are a helpful assistant. Use available tools only when needed,
       responding with just the required tool call format.
@@ -37,7 +36,7 @@ agents:
       - "web:*"
       - "ddg:*"
 
-  - name: "eval/check_answer"
+  - name: "check_answer"
     display: "Check Answer"
     description: |
       This evaluation assistant is tasked with assessing if an answer accurately addresses a given query.
@@ -64,7 +63,7 @@ agents:
       - "Unsolved": The answer is incorrect or does not address the query
       - "Unsure": The answer is unclear or partially addresses the query
 
-  - name: "eval/parse_answer"
+  - name: "parse_answer"
     display: "Parse Answer"
     description: |
       This evaluation assistant's role is to assess task completion by analyzing answer structure, tool usage, reasoning,
@@ -94,7 +93,7 @@ agents:
       - "Unsolved": The task was not completed due to errors, incorrect tool usage, or missing final answer
       - "Unsure": The completion status is unclear due to partial information or ambiguous results
 
-  - name: "eval/check_solvable"
+  - name: "check_solvable"
     display: "Check Solvable"
     description: |
       This is an evaluation assistant to determine the solvability of tasks.
@@ -124,7 +123,7 @@ agents:
       - "ai:list_tools"
       - "ai:get_tool_info"
 
-  - name: "eval/select_answer"
+  - name: "select_answer"
     display: "Select Better Answer"
     description: |
       This valuation assistant evaluates and selects the better of two answers to a query.

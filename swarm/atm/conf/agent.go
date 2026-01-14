@@ -93,11 +93,11 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AppConfi
 		// 	continue
 		// }
 		var content [][]byte
-		adirs, err := as.ReadDir(base)
+		pdirs, err := as.ReadDir(base)
 		if err != nil {
 			continue
 		}
-		for _, file := range adirs {
+		for _, file := range pdirs {
 			if file.IsDir() {
 				continue
 			}
@@ -126,7 +126,7 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AppConfi
 		// correct name and add to list
 		// keep store loader for loading extra resources later
 		if ac.Pack == "" {
-			ac.Pack = Packname(v.Name())
+			ac.Pack = Packname(pack)
 		}
 		if _, ok := packs[ac.Pack]; ok {
 			continue

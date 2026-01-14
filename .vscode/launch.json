@@ -24,8 +24,11 @@
 			"args": [
 				// "/help",
 				// "/help:help",
-				"/agent:help",
+				// "/agent:help",
 				// "/agent:help/help",
+				//
+				// ai
+				"/ai:list_agents"
 				//
 				// alias
 				// "/alias:x",

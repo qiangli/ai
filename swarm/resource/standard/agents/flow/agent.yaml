@@ -58,7 +58,10 @@ agents:
       - "fs:*"
 
   - name: "sequence"
-    display: "🚀 Sequence Flow Control"
+    display: "🚀 Sequence Flow Control Agent"
+    description: |
+      Execute actions consecutively, using the result of each action as the input for the next one.
+      Return the result from the last action or error from the first action that failed.
     instruction: |
       Execute a sequence of given actions in a pipeline-like manner:
       1. Start with an initial input query.
@@ -93,7 +96,9 @@ agents:
       - "ai:spawn_agent"
 
   - name: "choice"
-    display: "🚀 Choice Flow Control"
+    display: "🚀 Choice Flow Control Agent"
+    description: |
+      Select and execute one single action from the list of actions based on user input.
     instruction: |
       You are responsible for interpreting user input and dynamically selecting the
       most suitable subagent or action to execute from a specified list of actions.
@@ -130,7 +135,9 @@ agents:
         - query
 
   - name: "parallel"
-    display: "🚀 Parallel Flow Control"
+    display: "🚀 Parallel Flow Control Agent"
+    description: |
+      Execute all actions simultaneously and return their results as a combined list.
     instruction: |
       As the system agent for executing parallel actions, your role is to process
       a series of actions or sub-agents simultaneously, using a provided input
@@ -167,12 +174,15 @@ agents:
       - "ai:spawn_agent"
 
   - name: "shell"
-    display: "Shell Flow Control"
-    description: "Contruct a shell script in bash syntax"
+    display: "Shell Flow Control Agent"
+    description: |
+      Construct a shell script in bash syntax.
+      Run 'sh:bash_example' tool for a complete example with extended feature support for agent/tool.
     instruction: |
       For complex control flow of actions: agents and tools, write a shell script in bash syntax.
       Please note system commands are limited and restricted. However, you may run any agents and tools.
       You may also compose your own agents and tools.
+      Run 'sh:bash_example' tool for a complete example with extended feature support for agent/tool.
     functions:
       - "fs:*"
       - "sh:*"

@@ -1,5 +1,5 @@
 ###
-new: true
+pack: "diagram"
 agents:
   - name: "diagram"
     display: "🐝 Diagram Forge"
