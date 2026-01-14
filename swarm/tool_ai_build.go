@@ -3,7 +3,7 @@ package swarm
 import (
 	"context"
 	"fmt"
-	"maps"
+	// "maps"
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -71,6 +71,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	if err := walkAgent(agent, addEnv); err != nil {
 		return nil, err
 	}
+	// NOTE: args["environment"] ?
 
 	// export envs
 	vars.Global.AddEnvs(envs)
@@ -80,7 +81,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 
 	// *** args ***
 	// global/agent envs
-	// resolve agent args and override input args
+	// resolve agent args
 	var agentArgs = make(map[string]any)
 	if len(agent.Arguments) > 0 {
 		if err := r.sw.mapAssign(ctx, agent, agentArgs, agent.Arguments, true); err != nil {
@@ -88,8 +89,8 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 		}
 	}
 	agent.Arguments = agentArgs
-	// override input args
-	maps.Copy(args, agentArgs)
+	// copy into input args if not exsiting
+	// maps.Copy(args, agentArgs)
 
 	// *** model ***
 	var lookupModel func(*api.Agent) *api.Model
@@ -105,12 +106,33 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 
 	// resolve model or inherit
 	var model = agent.Model
-	if model == nil {
-		provider, _ := api.GetStrProp("provider", args)
-		if provider != "" {
-			model = conf.DefaultModels[provider]
-		} else {
-			model = lookupModel(agent)
+	// if model == nil {
+	// 	provider, _ := api.GetStrProp("provider", args)
+	// 	if provider != "" {
+	// 		model = conf.DefaultModels[provider]
+	// 	} else {
+	// 		model = lookupModel(agent)
+	// 	}
+	// }
+	var owner = r.sw.User.Email
+	if v, found := args["model"]; found {
+		switch vt := v.(type) {
+		case *api.Model:
+			model = vt
+		case string:
+			// set/level
+			set, level := api.Setlevel(vt).Decode()
+			// embeded/inherited
+			if v := findModel(agent, set, level); v != nil {
+				model = v
+				break
+			}
+			// external
+			v, err := conf.LoadModel(owner, set, level, r.sw.Assets)
+			if err != nil {
+				return nil, err
+			}
+			model = v
 		}
 	}
 	// default/any
@@ -143,6 +165,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	} else {
 		list = agent.Tools
 	}
+	// TODO merge: args["tools"]
 	agent.Tools = list
 	args["tools"] = list
 
@@ -151,6 +174,13 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	args["name"] = agent.Name
 	args["pack"] = agent.Pack
 	args["agent"] = agent
+
+	//
+	for k, v := range agentArgs {
+		if _, ok := args[k]; !ok {
+			args[k] = v
+		}
+	}
 
 	return agent, nil
 }

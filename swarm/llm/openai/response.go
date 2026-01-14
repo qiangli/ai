@@ -245,7 +245,7 @@ func setResponseNewParams(params *responses.ResponseNewParams, args api.Argument
 	// focused and deterministic. We generally recommend altering this or `top_p` but
 	// not both.
 	if v, ok := args.Get2("temperature"); ok {
-		params.Temperature = openai.Float(toFloat64(v, 0.2))
+		params.Temperature = openai.Float(toFloat64(v, 1.0))
 	}
 
 	// An integer between 0 and 20 specifying the number of most likely tokens to
@@ -260,6 +260,6 @@ func setResponseNewParams(params *responses.ResponseNewParams, args api.Argument
 	//
 	// We generally recommend altering this or `temperature` but not both.
 	if v, ok := args.Get2("top_p"); ok {
-		params.TopP = openai.Float(toFloat64(v, 0.1))
+		params.TopP = openai.Float(toFloat64(v, 1.0))
 	}
 }

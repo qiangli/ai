@@ -101,7 +101,8 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	resp := &api.Response{}
 
 	// TOOD
-	var temperature = anthropic.Float(0.0)
+	// https://platform.claude.com/docs/en/api/kotlin/completions/create
+	var temperature = anthropic.Float(1.0)
 
 	for tries := range maxTurns {
 		log.GetLogger(ctx).Infof("Ⓐ @%s [%v] %s/%s\n", req.Name, tries, req.Model.Provider, model)

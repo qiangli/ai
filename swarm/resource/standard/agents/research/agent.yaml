@@ -10,8 +10,8 @@ agents:
       for conducting web research with strategic thinking and context management.
     embed:
       - "agent:memory/memory"
-    environment:
-      temperature: 0.0
+    # environment:
+    #   temperature: 1.0
     arguments:
       # Limits
       max_concurrent_research_units: 3
