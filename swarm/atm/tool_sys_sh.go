@@ -36,6 +36,10 @@ func (r *SystemKit) Pwd(ctx context.Context, vars *api.Vars, name string, args m
 	return vars.RTE.OS.Getwd()
 }
 
+func (r *SystemKit) Workspace(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	return vars.RTE.Roots.Workspace.Path, nil
+}
+
 func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
 	cmd, err := api.GetStrProp("command", args)
 	if err != nil {

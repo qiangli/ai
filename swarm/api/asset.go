@@ -30,13 +30,14 @@ func (r *DHNTConfig) GetRoots() ([]*Root, error) {
 }
 
 // https://modelcontextprotocol.io/specification/2025-06-18/client/roots
+// https://www.rfc-editor.org/rfc/rfc3986
+// https://en.wikipedia.org/wiki/Uniform_Resource_Identifier
+// URI = scheme ":" ["//" authority] path ["?" query] ["#" fragment]
 type Root struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	Path        string `json:"path"`
-	// Cwd         bool   `json:"cwd"`
-	// Temp        bool   `json:"temp"`
-	// Root        bool   `json:"root"`
+	// Scheme      string `json:"scheme"`
+	Path string `json:"path"`
 }
 
 type Roots struct {

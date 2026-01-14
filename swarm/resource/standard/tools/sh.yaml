@@ -58,6 +58,10 @@ tools:
     description: "Print the current working directory on user's system."
     parameters: {}
 
+  - name: "workspace"
+    description: "Print the primary workspace directory for the user."
+    parameters: {}
+
   - name: "bash"
     description: |
       Executes a shell script within the user's environment.
