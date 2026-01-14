@@ -14,6 +14,7 @@ agents:
       Reads plan before each major decision, updates phase/progress files, persists errors, and guarantees durable, transparent execution trails.
       Leverages context and error handling principles.
     embed:
+      - "agent:context/lastn"
       - "agent:manus/planning_with_files"
     instruction: |
       #! mime-type=text/x-go-template

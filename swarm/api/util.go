@@ -225,6 +225,9 @@ func DecodeDataURL(dataURL string) (string, error) {
 	}
 
 	dataURL = dataURL[5:]
+	if len(dataURL) == 0 {
+		return "", nil
+	}
 
 	// data:,<content>
 	if dataURL[0] == ',' {

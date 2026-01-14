@@ -22,6 +22,9 @@ agents:
     display: "🏛️ LLM Council"
     description: "3-stage multi-model council: parallel answers → anonymized peer ranking → chairman synthesis (agent-based)."
     model: "default/any"
+    embed:
+      - "agent:context/lastn"
+      - "agent:memory/long_term"
     parameters:
       type: "object"
       properties:
@@ -94,7 +97,6 @@ agents:
       - Use agent-based orchestration.
       - You may call ai:call_llm directly only inside helper agents (member_answer/member_rank/chairman/title_generator) OR when strictly necessary.
       - Keep the returned JSON strictly machine-readable.
-
     functions:
       - "agent:council/member_answer"
       - "agent:council/member_rank"
@@ -102,7 +104,6 @@ agents:
       - "agent:council/title_generator"
       - "agent:council/ranking_parser"
       - "agent:council/aggregate_ranker"
-
     entrypoint:
       - "ai:new_agent"
       - "ai:build_query"

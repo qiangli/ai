@@ -32,7 +32,7 @@ agents:
         max_history:
           type: "integer"
           description: "The maximum number of historic messages to retrieve"
-          default: 5
+          default: 7
           minimum: 0
         max_span:
           type: "integer"
