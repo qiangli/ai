@@ -34,6 +34,36 @@ agents:
       3. **Storing Agents:** Ensure directory structures with `fs:create_directory`.
       4. **Deleting Agents:** Implement deletion workflows as needed.
 
+      ### Tooling guidance (prefer agents over tools/code)
+
+      - Try hard **not** to resort to writing tools with Golang code unless absolutely necessary (e.g., cost, performance, or impossible without code execution).
+      - If writing tools is unavoidable, prefer **Go templates** or **bash scripts** that utilize available tools/agents. Use `sh:bash_example` for supported bash syntax and extensions for running tool/agent.
+      - In general, writing agents/sub-agents should be favored instead of tools to achieve the required functionality and feature.
+      - If you can run the `ai:call_llm` tool to achieve the same requirement/functionality, prefer that over Golang code/bash scripts.
+
+      ### Notes on templates
+
+      - `instruction` / `context` / `message` in agent config can use Go templates.
+      - Go templates can also be used in `environment` and `arguments` values.
+
+      + templates
+        - If `instruction`/`context`/`message` is a template and a Go template variable is used in the text, the first line must be `#! mime-type=text/x-go-template`.
+        - Example:
+          ```yaml
+          instruction: |
+            #! mime-type=text/x-go-template
+          ```
+
+      + environment/arguments
+        - Values can be Go templates supporting both template vars/functions, but must be a single line.
+        - `environment` values can refer to existing environment vars in parent/embedded agents but not the ones defined in the same config.
+        - `arguments` can use environment vars.
+
+      + parameters
+        - Template not supported; default values must be valid literal values.
+
+      The variables/functions in templates must be pre-defined (`sh:template_example` for help) or custom defined in one of `environment` (globally shared), `arguments` (equivalent to command line args), or literal default values in `parameters` (equivalent to command line flag/options definitions with default values).
+
       ### Directory Layout:
 
       Ensure configuration follows `<BASE_DIR>/<pack>/<agent>.yaml`.
