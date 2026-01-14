@@ -65,7 +65,7 @@ func (sw *Swarm) Init(rte *api.ActionRTEnv) error {
 	sw.Vars.RTE = rte
 
 	// preset
-	sw.Vars.Global.Set("workspace", sw.Vars.RTE.Roots.Workspace)
+	sw.Vars.Global.Set("workspace", sw.Vars.RTE.Roots.Workspace.Path)
 	sw.Vars.Global.Set("user", sw.Vars.RTE.User)
 
 	rootData := []byte("data:," + string(resource.RootAgentData))

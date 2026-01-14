@@ -83,7 +83,7 @@ func BuildEffectiveArgs(vars *api.Vars, agent *api.Agent, args map[string]any) m
 	}
 	maps.Copy(data, args)
 	// predefined
-	data["workspace"] = vars.RTE.Roots.Workspace
+	data["workspace"] = vars.RTE.Roots.Workspace.Path
 	data["user"] = vars.RTE.User
 
 	return data

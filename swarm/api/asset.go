@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -30,27 +31,39 @@ func (r *DHNTConfig) GetRoots() ([]*Root, error) {
 
 // https://modelcontextprotocol.io/specification/2025-06-18/client/roots
 type Root struct {
-	Name string `json:"name"`
-	Path string `json:"path"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Path        string `json:"path"`
+	// Cwd         bool   `json:"cwd"`
+	// Temp        bool   `json:"temp"`
+	// Root        bool   `json:"root"`
 }
 
 type Roots struct {
 	// primary working directory for the agents
-	Workspace string `json:"workspace"`
+	Workspace *Root `json:"workspace"`
 
 	// // Add user home to the root list
 	// Home bool `json:"home"`
 
 	// Add the current working directory to the root list
 	// where ai is started
-	Cwd bool `json:"cwd"`
+	Cwd *Root `json:"cwd"`
 
 	// Add system temporary directory to the root list
-	Temp bool `json:"temp"`
+	Temp *Root `json:"temp"`
 
 	// Additional paths
 	Dirs []*Root `json:"dirs"`
 }
+
+// // Returns temp directory if not set
+// func (r *Roots) Workspace() string {
+// 	if r.root == nil || r.root.Path == "" {
+// 		return os.TempDir()
+// 	}
+// 	return r.root.Path
+// }
 
 func (r *Roots) ResolveRoots() ([]*Root, error) {
 	var ps []*Root
@@ -58,38 +71,30 @@ func (r *Roots) ResolveRoots() ([]*Root, error) {
 		ps = append(ps, v)
 	}
 
-	if r.Workspace != "" {
-		ps = append(ps, &Root{
-			Name: "Workspace",
-			Path: r.Workspace,
-		})
+	// update path
+	if r.Workspace == nil {
+		return nil, fmt.Errorf("workspace is required")
 	}
-	// if r.Home {
-	// 	home, err := os.UserHomeDir()
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	ps = append(ps, &Root{
-	// 		Name: "Home Directory",
-	// 		Path: home,
-	// 	})
-	// }
-	if r.Cwd {
-		cwd, err := os.Getwd()
-		if err != nil {
-			return nil, err
+	ps = append(ps, r.Workspace)
+	if r.Workspace.Path == "" {
+		r.Workspace.Path = os.TempDir()
+	}
+	if r.Cwd != nil {
+		ps = append(ps, r.Cwd)
+		if r.Cwd.Path == "" {
+			p, err := os.Getwd()
+			if err != nil {
+				return nil, err
+			}
+			r.Cwd.Path = p
 		}
-		ps = append(ps, &Root{
-			Name: "Working Directory",
-			Path: cwd,
-		})
 	}
-	if r.Temp {
-		tempdir := os.TempDir()
-		ps = append(ps, &Root{
-			Name: "Temp Directory",
-			Path: tempdir,
-		})
+	if r.Temp != nil {
+		ps = append(ps, r.Temp)
+		if r.Temp.Path == "" {
+			p := os.TempDir()
+			r.Temp.Path = p
+		}
 	}
 	return ps, nil
 }
@@ -105,7 +110,6 @@ func (r *Roots) AllowedDirs() ([]string, error) {
 	for _, v := range roots {
 		ps = append(ps, v.Path)
 	}
-
 	return resolvePaths(ps)
 }
 

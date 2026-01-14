@@ -155,11 +155,11 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 	if err != nil {
 		return nil, err
 	}
-	mem, err := hist.NewFileMemStore(roots.Workspace)
+	mem, err := hist.NewFileMemStore(roots.Workspace.Path)
 	if err != nil {
 		return nil, err
 	}
-	callogs, err := calllog.NewFileCallLog(roots.Workspace)
+	callogs, err := calllog.NewFileCallLog(roots.Workspace.Path)
 	if err != nil {
 		return nil, err
 	}
