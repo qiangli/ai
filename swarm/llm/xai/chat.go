@@ -93,8 +93,8 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	}
 
 	var maxTurns = req.MaxTurns()
-	if maxTurns == 0 {
-		maxTurns = 1
+	if maxTurns <= 0 {
+		maxTurns = 3
 	}
 
 	var resp = &api.Response{}
@@ -167,7 +167,7 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 
 	// not finished due the max turns reached
 	if resp.Result == nil {
-		return nil, fmt.Errorf("Empty response. Max turns reached: %v", maxTurns)
+		return nil, fmt.Errorf("Empty response. Max turns reached: %v. Try again with a higher value for the 'max_turns' parameter", maxTurns)
 	}
 	return resp, nil
 }
