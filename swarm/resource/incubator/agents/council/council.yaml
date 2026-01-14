@@ -22,14 +22,27 @@ agents:
     display: "🏛️ LLM Council"
     description: "3-stage multi-model council: parallel answers → anonymized peer ranking → chairman synthesis (agent-based)."
     model: "default/any"
-    environment:
-      # All of these can be overridden by runtime envs.
-      # Values are strings here; orchestrator will parse JSON/int as needed.
-      COUNCIL_MODELS: '["default/L2","gemini/L2","anthropic/L2","xai/L2"]'
-      CHAIRMAN_MODEL: "default/L3"
-      TITLE_MODEL: "default/L1"
-      COUNCIL_SIZE: ""
+    parameters:
+      type: "object"
+      properties:
+        council_models:
+          type: "string"
+          description: "JSON array of model aliases"
+          default: '["openai/L2","gemini/L2","anthropic/L2","xai/L2"]'
+        chairman_model:
+          type: "string"
+          description: "model alias for synthesis"
+          default: "openai/L3"
+        title_model:
+          type: "string"
+          description: "model alias for title generation"
+          default: "openai/L1"
+        council_size:
+          type: integer
+          description: ""
+          default: 4
     instruction: |
+      #! mime-type=text/x-go-template
       You orchestrate an LLM Council process exactly as described below.
 
       Council definition (from README):
@@ -40,16 +53,11 @@ agents:
       Inputs:
       - The user's message is the query.
 
-      Configuration (via environment variables):
-      - COUNCIL_MODELS: JSON array of model aliases/IDs (e.g. ["default/L2","gemini/L2"]) ; optional.
-      - CHAIRMAN_MODEL: model alias/ID for synthesis; optional.
-      - TITLE_MODEL: model alias/ID for title generation; optional.
-      - COUNCIL_SIZE: integer; if set, truncate council list.
-
-      Defaults if env vars are missing:
-      - council models: ["default/L2","gemini/L2","anthropic/L2","xai/L2"]
-      - chairman: "default/L3"
-      - title model: "default/L1"
+      Default configuration:
+      - council models: {{.council_models}}
+      - chairman model: {{.chairman_model}}
+      - title model: {{.title_model}}
+      - council size: {{.council_size}}
 
       You MUST follow these stages:
 
@@ -101,7 +109,6 @@ agents:
       - "ai:build_prompt"
       - "ai:call_llm"
 
-
   # ------------------------------------------------------------
   # Stage 1: council member answers
   # ------------------------------------------------------------
@@ -110,12 +117,17 @@ agents:
     description: "Ask a specific model to answer the user query."
     model: "default/any"
     parameters:
-      model:
-        type: "string"
-        description: "Target model alias/ID to use for this member."
-      query:
-        type: "string"
-        description: "User question to answer."
+      type: "object"
+      properties:
+        model:
+          type: "string"
+          description: "Target model alias/ID to use for this member."
+        query:
+          type: "string"
+          description: "User question to answer."
+      required:
+        - model
+        - query
     instruction: |
       #! mime-type=text/x-go-template
       You are a council member answering a user question.
@@ -131,7 +143,6 @@ agents:
     functions:
       - "ai:call_llm"
 
-
   # ------------------------------------------------------------
   # Stage 2: council member ranks anonymized responses
   # ------------------------------------------------------------
@@ -140,15 +151,21 @@ agents:
     description: "Ask a specific model to critique and rank anonymized responses."
     model: "default/any"
     parameters:
-      model:
-        type: "string"
-        description: "Target model alias/ID to use for this member."
-      query:
-        type: "string"
-        description: "Original user question."
-      responses_text:
-        type: "string"
-        description: "Anonymized responses block (Response A..., Response B...)."
+      type: "object"
+      properties:
+        model:
+          type: "string"
+          description: "Target model alias/ID to use for this member."
+        query:
+          type: "string"
+          description: "Original user question."
+        responses_text:
+          type: "string"
+          description: "Anonymized responses block (Response A..., Response B...)."
+      required:
+        - model
+        - query
+        - responses_text
     instruction: |
       #! mime-type=text/x-go-template
       You are a council member reviewing anonymized responses.
@@ -172,7 +189,6 @@ agents:
     functions:
       - "ai:call_llm"
 
-
   # ------------------------------------------------------------
   # Stage 3: chairman synthesis
   # ------------------------------------------------------------
@@ -181,18 +197,25 @@ agents:
     description: "Synthesize final answer from stage1+stage2."
     model: "default/any"
     parameters:
-      model:
-        type: "string"
-        description: "Chairman model alias/ID."
-      query:
-        type: "string"
-        description: "Original user question."
-      stage1_text:
-        type: "string"
-        description: "Stage 1 responses with model names (rendered text)."
-      stage2_text:
-        type: "string"
-        description: "Stage 2 rankings with model names (rendered text)."
+      type: "object"
+      properties:
+        model:
+          type: "string"
+          description: "Chairman model alias/ID."
+        query:
+          type: "string"
+          description: "Original user question."
+        stage1_text:
+          type: "string"
+          description: "Stage 1 responses with model names (rendered text)."
+        stage2_text:
+          type: "string"
+          description: "Stage 2 rankings with model names (rendered text)."
+      required:
+        - model
+        - query
+        - stage1_text
+        - stage2_text
     instruction: |
       #! mime-type=text/x-go-template
       You are the Chairman of an LLM Council.
@@ -209,7 +232,6 @@ agents:
     functions:
       - "ai:call_llm"
 
-
   # ------------------------------------------------------------
   # Title generation (best effort)
   # ------------------------------------------------------------
@@ -218,12 +240,17 @@ agents:
     description: "Generate a short conversation title (3–5 words)."
     model: "default/any"
     parameters:
-      model:
-        type: "string"
-        description: "Title model alias/ID."
-      query:
-        type: "string"
-        description: "Original user question."
+      type: "object"
+      properties:
+        model:
+          type: "string"
+          description: "Title model alias/ID."
+        query:
+          type: "string"
+          description: "Original user question."
+      required:
+        - model
+        - query
     instruction: |
       #! mime-type=text/x-go-template
       Generate a very short title (3-5 words maximum) that summarizes the following question.
@@ -240,7 +267,6 @@ agents:
     functions:
       - "ai:call_llm"
 
-
   # ------------------------------------------------------------
   # Ranking parser (ported from council.py logic, but deterministic)
   # ------------------------------------------------------------
@@ -249,9 +275,13 @@ agents:
     description: "Parse a ranking text to an ordered list of Response labels (deterministic)."
     model: "default/any"
     parameters:
-      ranking_text:
-        type: "string"
-        description: "Raw ranking text from a model."
+      type: "object"
+      properties:
+        ranking_text:
+          type: "string"
+          description: "Raw ranking text from a model."
+      required:
+        - ranking_text
     instruction: |
       #! mime-type=text/x-go-template
       Parse the provided ranking text into an ordered list of labels like ["Response A","Response B"].
@@ -273,18 +303,22 @@ agents:
       You MUST NOT call any tools.
     functions: []
 
-
   - name: "aggregate_ranker"
     display: "Aggregate Ranker"
     description: "Compute aggregate rankings from parsed rankings and label_to_model mapping."
     model: "default/any"
     parameters:
-      stage2:
-        type: "string"
-        description: "JSON array of objects {model, parsed_ranking}."
-      label_to_model:
-        type: "string"
-        description: "JSON object mapping response label to original model."
+      type: "object"
+      properties:
+        stage2:
+          type: "string"
+          description: "JSON array of objects {model, parsed_ranking}."
+        label_to_model:
+          type: "string"
+          description: "JSON object mapping response label to original model."
+      required:
+        - stage2
+        - label_to_model
     instruction: |
       #! mime-type=text/x-go-template
       Compute aggregate rankings.

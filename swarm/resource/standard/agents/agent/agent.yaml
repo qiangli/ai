@@ -118,8 +118,14 @@ agents:
           description: "An amiable greeter capable of providing kind words to any global citizen it encounters."
           model: "default/any"
           environment:
+            # name: value
           arguments:
+            # name: value
           parameters:
+            type: "object"
+            properties:
+              # name: value
+            required: []
           message: "I'm a humble bot"
           instruction: |
             You are an amiable greeter who always finds charming words for anyone you meet.
