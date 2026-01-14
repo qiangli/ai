@@ -88,9 +88,13 @@ tools:
       mime_type: "text/markdown"
       script: |
         # Bash Script Example
-        ```bash
-        # Bash Test
 
+        Refer to the [Bash manual](https://www.gnu.org/software/bash/manual/bash.txt) for guidance.
+        *** Note ***
+        Only a subset of Bash features is supported. Please restrict your scripts to the provided examples.
+
+        ```bash
+        #
         set -xueo pipefail
 
         ## Standard Syntax
@@ -128,10 +132,10 @@ tools:
         }
         loop 1 2 3 4
 
-        ### exec
+        ### execute external system commands
         $(exec "/bin/ls -al")
 
-        ### system commands (limited support)
+        ### list of supported built-in system commands
         # "base64", "basename", "cat", "date", "dirname", "head", "ls",
         # "shasum", "sleep", "tail", "time", "touch",
         #
@@ -148,24 +152,24 @@ tools:
         tail -n 3 $FILE
         time touch $FILE
 
-        ## Bash slash command action extension for running agents and tools
+        ## Slash command action extension for running agents and tools
 
-        ## tool - /KIT:NAME
+        ## tool action - /KIT:NAME
         /ai:help
 
-        ## agent - /agent:PACK/NAME
+        ## agent action - /agent:PACK/NAME
         # use "chat" or other adapters for real LLM  call.
         # default is "chat" if not specified
         # "echo" adapter is for testing only which echoes the request.
         /agent:root/root --adapter "echo" --query "Hello"
 
-        ## system command
+        ## system command action
         /sh:exec --command "ls -al /tmp"
 
-        ## alias - "cmd"
+        ## alias action - name: ^[a-z0-9_]+$, e.g. 'cmd'
         /alias:cmd --option cmd="ls -al /tmp"
 
-        # script - inline data: or file:
+        # bash sub-script - inline 'data:' or 'file:'
         /sh:bash --script "data:,ls -al /tmp"
         # /sh:bash --script "<path>"
 
@@ -181,6 +185,40 @@ tools:
         ```
     log_level: "quiet"
 
+  - name: "template_example"
+    display: "Go Template Example"
+    description: |
+      This is a detailed Go template example that demonstrates standard syntax and includes additional features supporting agents and tools.
+    parameters: {}
+    type: "func"
+    body:
+      mime_type: "text/markdown"
+      script: |
+        # Go Template Example
+
+        Refer to the [Go Template](https://pkg.go.dev/text/template) documentation for guidance.
+
+        In addition to standard functions, you can use [Sprig Functions](https://masterminds.github.io/sprig/),
+        with the exception of those under "Advanced Functions" for security reasons.
+
+        Extended features:
+
+        You can execute agents and tools using the 'ai' function with the bash command action syntax.
+        Use the `sh:bash_example` tool for more details.
+
+        Example:
+        ```
+        #! mime-type=text/x-go-template
+
+        *** Context History ***
+        {{ai "/ai:list_messages" "--format" "text"}}
+
+        User input: {{default "No input" .query}}
+
+        Today is: {{date}}
+        ###
+        ```
+  
   - name: "apply"
     description: |
       Applies a Golang template to provided data, as documented at: https://pkg.go.dev/text/template.
