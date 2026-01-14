@@ -2,15 +2,12 @@
 
 #
 # LLM Council (3-stage orchestration) as a self-contained YAML agent pack.
-# Refactor goal: move orchestration out of Go tool code into sub-agents.
-# Source concept: /Users/liqiang/workspace/poc/llm-council/README.md (top section "LLM Council")
+# Source concept: ./llm-council/README.md (top section "LLM Council")
 #
 # Stages:
 # 1) First opinions: council members answer independently
 # 2) Review: council members rank anonymized answers
 # 3) Chairman: synthesizes final response from stage1 + stage2
-#
-# This pack avoids implementing logic in Go. The only "tool" used is ai:call_llm.
 #
 
 ---
@@ -25,6 +22,13 @@ agents:
     display: "🏛️ LLM Council"
     description: "3-stage multi-model council: parallel answers → anonymized peer ranking → chairman synthesis (agent-based)."
     model: "default/any"
+    environment:
+      # All of these can be overridden by runtime envs.
+      # Values are strings here; orchestrator will parse JSON/int as needed.
+      COUNCIL_MODELS: '["default/L2","gemini/L2","anthropic/L2","xai/L2"]'
+      CHAIRMAN_MODEL: "default/L3"
+      TITLE_MODEL: "default/L1"
+      COUNCIL_SIZE: ""
     instruction: |
       You orchestrate an LLM Council process exactly as described below.
 
@@ -105,7 +109,15 @@ agents:
     display: "Council Member (Answer)"
     description: "Ask a specific model to answer the user query."
     model: "default/any"
+    parameters:
+      model:
+        type: "string"
+        description: "Target model alias/ID to use for this member."
+      query:
+        type: "string"
+        description: "User question to answer."
     instruction: |
+      #! mime-type=text/x-go-template
       You are a council member answering a user question.
 
       You MUST call ai:call_llm exactly once with:
@@ -127,7 +139,18 @@ agents:
     display: "Council Member (Rank)"
     description: "Ask a specific model to critique and rank anonymized responses."
     model: "default/any"
+    parameters:
+      model:
+        type: "string"
+        description: "Target model alias/ID to use for this member."
+      query:
+        type: "string"
+        description: "Original user question."
+      responses_text:
+        type: "string"
+        description: "Anonymized responses block (Response A..., Response B...)."
     instruction: |
+      #! mime-type=text/x-go-template
       You are a council member reviewing anonymized responses.
 
       You MUST call ai:call_llm exactly once with:
@@ -157,7 +180,21 @@ agents:
     display: "Chairman"
     description: "Synthesize final answer from stage1+stage2."
     model: "default/any"
+    parameters:
+      model:
+        type: "string"
+        description: "Chairman model alias/ID."
+      query:
+        type: "string"
+        description: "Original user question."
+      stage1_text:
+        type: "string"
+        description: "Stage 1 responses with model names (rendered text)."
+      stage2_text:
+        type: "string"
+        description: "Stage 2 rankings with model names (rendered text)."
     instruction: |
+      #! mime-type=text/x-go-template
       You are the Chairman of an LLM Council.
 
       You MUST call ai:call_llm exactly once with:
@@ -180,7 +217,15 @@ agents:
     display: "Title Generator"
     description: "Generate a short conversation title (3–5 words)."
     model: "default/any"
+    parameters:
+      model:
+        type: "string"
+        description: "Title model alias/ID."
+      query:
+        type: "string"
+        description: "Original user question."
     instruction: |
+      #! mime-type=text/x-go-template
       Generate a very short title (3-5 words maximum) that summarizes the following question.
       The title should be concise and descriptive. Do not use quotes or punctuation in the title.
 
@@ -197,13 +242,18 @@ agents:
 
 
   # ------------------------------------------------------------
-  # Ranking parser (ported from council.py logic, but LLM-based)
+  # Ranking parser (ported from council.py logic, but deterministic)
   # ------------------------------------------------------------
   - name: "ranking_parser"
     display: "Ranking Parser"
     description: "Parse a ranking text to an ordered list of Response labels (deterministic)."
     model: "default/any"
+    parameters:
+      ranking_text:
+        type: "string"
+        description: "Raw ranking text from a model."
     instruction: |
+      #! mime-type=text/x-go-template
       Parse the provided ranking text into an ordered list of labels like ["Response A","Response B"].
 
       Deterministic algorithm (no external calls):
@@ -220,7 +270,7 @@ agents:
 
       Output: ONLY JSON {"parsed_ranking":[...]}.
 
-      You MAY call ai:call_llm zero times; do not call tools.
+      You MUST NOT call any tools.
     functions: []
 
 
@@ -228,12 +278,20 @@ agents:
     display: "Aggregate Ranker"
     description: "Compute aggregate rankings from parsed rankings and label_to_model mapping."
     model: "default/any"
+    parameters:
+      stage2:
+        type: "string"
+        description: "JSON array of objects {model, parsed_ranking}."
+      label_to_model:
+        type: "string"
+        description: "JSON object mapping response label to original model."
     instruction: |
+      #! mime-type=text/x-go-template
       Compute aggregate rankings.
 
       Inputs:
-      - stage2: JSON array of objects with keys {model, parsed_ranking} where parsed_ranking is ["Response A", ...]
-      - label_to_model: JSON object mapping response label to original model
+      - stage2: {{ .stage2 }}
+      - label_to_model: {{ .label_to_model }}
 
       Method:
       - For each stage2 item, for each label at position i (1-based), map label->model via label_to_model and record the position.
@@ -243,5 +301,6 @@ agents:
         [{"model":"...","average_rank":1.75,"rankings_count":4}, ...]
 
       Return ONLY JSON: {"aggregate_rankings":[...]}.
-    functions:
-      - "ai:call_llm"
+
+      You MUST NOT call any tools.
+    functions: []
