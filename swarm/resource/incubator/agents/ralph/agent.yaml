@@ -9,7 +9,7 @@
 #   directory, matching the upstream spirit.
 # - References to the upstream name/CLI are kept only in comments for attribution.
 #
-# Implements core features from /Users/liqiang/workspace/poc/ralph-claude-code:
+# Implements core features from upstream Ralph-for-Claude-Code (see comments for source attribution):
 # - rate limiting with hourly reset
 # - session continuity + expiry + reset triggers
 # - circuit breaker (CLOSED/HALF_OPEN/OPEN)
@@ -31,8 +31,13 @@ agents:
   # ---------------------------------------------------------------------------
   - name: "ralph"
     display: "Ralph Orchestrator"
-    description: "Main entry: routes to import/loop/once/monitor/setup/status/reset commands. Generic iterative orchestrator."
+    description: "Main entry: routes to import/loop/once/monitor/setup/status/reset commands. Generic iterative orchestrator (portable templates)."
     model: "anthropic/L2"
+    environment:
+      # Portable template roots. Override these if you vendor/copy templates elsewhere.
+      # These defaults keep repo-local behavior but avoid hardcoding in instructions.
+      RALPH_UPSTREAM_ROOT: "/Users/liqiang/workspace/poc/ralph-claude-code"
+      RALPH_TEMPLATES_DIR: "{{ .RALPH_UPSTREAM_ROOT }}/templates"
     instruction: |
       You are Ralph, an orchestrator for an autonomous iterative improvement loop.
 
@@ -157,8 +162,12 @@ agents:
   # ---------------------------------------------------------------------------
   - name: "ralph_import"
     display: "Ralph Import"
-    description: "Imports a PRD/spec into a new project folder (PROMPT.md, @fix_plan.md, specs/requirements.md, @AGENT.md)."
+    description: "Imports a PRD/spec into a new project folder (PROMPT.md, @fix_plan.md, specs/requirements.md, @AGENT.md). Uses portable template roots."
     model: "anthropic/L2"
+    environment:
+      # By default, inherit same upstream location as ralph/ralph. Override as needed.
+      RALPH_UPSTREAM_ROOT: "/Users/liqiang/workspace/poc/ralph-claude-code"
+      RALPH_TEMPLATES_DIR: "{{ .RALPH_UPSTREAM_ROOT }}/templates"
     instruction: |
       You implement the PRD import feature.
 
@@ -167,10 +176,14 @@ agents:
       - Optional project name
 
       Actions:
-      1) Read templates from:
-         - /Users/liqiang/workspace/poc/ralph-claude-code/templates/PROMPT.md
-         - /Users/liqiang/workspace/poc/ralph-claude-code/templates/AGENT.md
-         - /Users/liqiang/workspace/poc/ralph-claude-code/templates/fix_plan.md
+      1) Read templates using the portable template root (prefer the first that exists):
+         - ${RALPH_TEMPLATES_DIR}/PROMPT.md
+         - ${RALPH_TEMPLATES_DIR}/AGENT.md
+         - ${RALPH_TEMPLATES_DIR}/fix_plan.md
+
+         Notes:
+         - The actual on-disk default for RALPH_TEMPLATES_DIR is set in agent environment.
+         - If you vendor/copy the upstream templates into your current repo, set RALPH_TEMPLATES_DIR accordingly.
       2) Create a new project folder with the standard structure:
          <project>/{PROMPT.md,@fix_plan.md,@AGENT.md,specs/requirements.md,specs/stdlib,src,examples,logs,docs/generated,.agent}
       3) Call an LLM once to convert the PRD into:
@@ -203,8 +216,11 @@ agents:
   # ---------------------------------------------------------------------------
   - name: "ralph_setup"
     display: "Ralph Setup"
-    description: "Creates a new blank project using upstream templates (no PRD conversion)."
+    description: "Creates a new blank project using templates (no PRD conversion). Uses portable template roots."
     model: "anthropic/L2"
+    environment:
+      RALPH_UPSTREAM_ROOT: "/Users/liqiang/workspace/poc/ralph-claude-code"
+      RALPH_TEMPLATES_DIR: "{{ .RALPH_UPSTREAM_ROOT }}/templates"
     instruction: |
       You implement project setup.
 
@@ -213,7 +229,7 @@ agents:
       Actions:
       - Create the standard project structure:
         <project>/{PROMPT.md,@fix_plan.md,@AGENT.md,specs/requirements.md,specs/stdlib,src,examples,logs,docs/generated,.agent}
-      - Copy templates from /Users/liqiang/workspace/poc/ralph-claude-code/templates:
+      - Copy templates from ${RALPH_TEMPLATES_DIR} (portable):
         - PROMPT.md   -> <project>/PROMPT.md
         - fix_plan.md -> <project>/@fix_plan.md
         - AGENT.md    -> <project>/@AGENT.md
