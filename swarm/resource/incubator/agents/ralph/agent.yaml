@@ -1,0 +1,481 @@
+#!/usr/bin/env ai /agent:ralph/ralph --script
+
+###
+# Ralph Orchestrator (pure YAML agents)
+#
+# NOTE
+# - ralph/ralph performs ONE iteration per invocation.
+# - ralph/loop (below) is a loop runner that calls ralph/ralph repeatedly as an agent-tool
+#   until stop conditions are met.
+# - No shell scripts; everything is agents + fs tools.
+
+###
+pack: "ralph"
+log_level: "info"
+
+###
+agents:
+  # ---------------------------------------------------------------------------
+  # Orchestrator (one iteration)
+  # ---------------------------------------------------------------------------
+  - name: "ralph"
+    display: "Ralph Orchestrator"
+    description: |
+      One-iteration Ralph orchestrator.
+
+      It:
+      - Loads base prompt from prompt_text or prompt_file (default PROMPT.md)
+      - Ensures .agent/ workspace exists
+      - Builds an iteration header (safety rules, scratchpad policy)
+      - Spawns the selected worker agent for exactly ONE iteration
+      - Appends to .agent/history.jsonl and updates .agent/state.json
+      - Uses sub-agents to decide stop/continue and to detect output loops
+
+      To run continuously, use ralph/loop or re-run ralph/ralph until it stops.
+    model: "default/any"
+    functions:
+      - "fs:*"
+      - "ai:spawn_agent"
+    parameters:
+      type: "object"
+      properties:
+        prompt_file:
+          type: "string"
+          description: "Prompt file path (relative or absolute). Default: PROMPT.md"
+          default: "PROMPT.md"
+        prompt_text:
+          type: "string"
+          description: "Inline prompt text; if set, overrides prompt_file contents."
+        agent:
+          type: "string"
+          description: "Agent to use. One of: auto, claude, gemini, openai, worker. Default: auto"
+          default: "auto"
+        agent_priority:
+          type: "array"
+          items: { type: "string" }
+          description: "Priority order used when agent=auto (first wins)."
+          default: ["claude", "openai", "gemini", "worker"]
+        # Safety limits
+        max_iterations:
+          type: "integer"
+          description: "Max iterations before stopping. Default: 100"
+          default: 100
+        max_runtime_seconds:
+          type: "integer"
+          description: "Max total runtime seconds. Default: 14400"
+          default: 14400
+        max_consecutive_failures:
+          type: "integer"
+          description: "Stop after N consecutive failures. Default: 5"
+          default: 5
+        # Completion
+        completion_promise:
+          type: "string"
+          description: "Exact string to stop on in worker output. Default: LOOP_COMPLETE"
+          default: "LOOP_COMPLETE"
+        # Loop detection (LLM-based)
+        loop_similarity_threshold:
+          type: "number"
+          description: "0..1 similarity threshold for loop detection. Default: 0.9"
+          default: 0.9
+        loop_window:
+          type: "integer"
+          description: "Number of recent outputs to compare against. Default: 5"
+          default: 5
+        # Observability
+        archive_prompts:
+          type: "boolean"
+          description: "If true, archive prompt snapshots under .agent/prompts/. Default: true"
+          default: true
+        enable_metrics:
+          type: "boolean"
+          description: "If true, write .agent/metrics snapshots. Default: true"
+          default: true
+        output_preview_length:
+          type: "integer"
+          description: "Max chars stored per iteration in history.jsonl. Default: 800"
+          default: 800
+        # Security
+        allow_unsafe_paths:
+          type: "boolean"
+          description: "If true, allow prompt_file outside current directory. Default: false"
+          default: false
+    instruction: |
+      #! mime-type=text/x-go-template
+      You are Ralph Orchestrator.
+
+      You must perform EXACTLY ONE orchestrator iteration and then stop.
+
+      MUST create and use these workspace paths (create if missing):
+      - .agent/scratchpad.md
+      - .agent/state.json
+      - .agent/history.jsonl
+      - .agent/prompts/
+      - .agent/metrics/
+
+      Inputs:
+      - If prompt_text is provided, use it as the base prompt.
+      - Else read prompt_file (default PROMPT.md).
+
+      Stop rules:
+      - Stop if iteration >= max_iterations
+      - Stop if consecutive_failures >= max_consecutive_failures
+      - Stop if prompt contains "- [x] TASK_COMPLETE" or "[x] TASK_COMPLETE"
+      - Stop if worker output contains completion_promise exactly (default: LOOP_COMPLETE)
+      - Stop if loop detected (current output highly similar to prior outputs)
+
+      Process (use sub-agents; no shell):
+      1) agent:ralph/init_workspace
+      2) agent:ralph/read_prompt
+      3) agent:ralph/pick_agent
+      4) agent:ralph/build_iteration_prompt
+      5) Spawn the worker agent ONCE with ai:spawn_agent
+      6) agent:ralph/record_iteration
+      7) agent:ralph/decide_continue
+
+      Begin now.
+    entrypoint:
+      - "agent:ralph/init_workspace"
+      - "agent:ralph/read_prompt"
+      - "agent:ralph/pick_agent"
+      - "agent:ralph/build_iteration_prompt"
+      - "ai:spawn_agent"
+      - "agent:ralph/record_iteration"
+      - "agent:ralph/decide_continue"
+
+  # ---------------------------------------------------------------------------
+  # Loop runner (calls ralph/ralph repeatedly)
+  # ---------------------------------------------------------------------------
+  - name: "loop"
+    display: "Ralph Loop Runner"
+    description: |
+      Pure-agent loop runner that repeatedly invokes ralph/ralph (one-iteration controller)
+      until it stops (TASK_COMPLETE/LOOP_COMPLETE/limits/loop detected).
+
+      This agent calls ralph/ralph as an agent-tool in a loop within the LLM.
+      It relies on ralph/ralph writing stop state into .agent/state.json.
+    model: "default/any"
+    functions:
+      - "fs:*"
+      - "agent:ralph/ralph"
+    parameters:
+      type: "object"
+      properties:
+        # pass-through parameters to ralph/ralph
+        prompt_file:
+          type: "string"
+          default: "PROMPT.md"
+        prompt_text:
+          type: "string"
+        agent:
+          type: "string"
+          default: "auto"
+        agent_priority:
+          type: "array"
+          items: { type: "string" }
+          default: ["claude", "openai", "gemini", "worker"]
+        max_iterations:
+          type: "integer"
+          default: 100
+        max_runtime_seconds:
+          type: "integer"
+          default: 14400
+        max_consecutive_failures:
+          type: "integer"
+          default: 5
+        completion_promise:
+          type: "string"
+          default: "LOOP_COMPLETE"
+        loop_similarity_threshold:
+          type: "number"
+          default: 0.9
+        loop_window:
+          type: "integer"
+          default: 5
+        archive_prompts:
+          type: "boolean"
+          default: true
+        enable_metrics:
+          type: "boolean"
+          default: true
+        output_preview_length:
+          type: "integer"
+          default: 800
+        allow_unsafe_paths:
+          type: "boolean"
+          default: false
+        # loop-runner controls
+        max_turns:
+          type: "integer"
+          description: "Maximum number of times to invoke ralph/ralph in this run (hard cap)."
+          default: 50
+    instruction: |
+      #! mime-type=text/x-go-template
+      You are a loop runner.
+
+      You must repeatedly call the agent tool agent:ralph/ralph until the task is completed
+      or a stop condition is reached.
+
+      You MUST NOT use any shell scripts.
+
+      Loop contract:
+      - ralph/ralph performs exactly ONE iteration and persists state in .agent/state.json
+      - Your job is to re-invoke it until it stops.
+
+      Algorithm:
+      - For turn in 1..max_turns:
+        1) Call agent:ralph/ralph with the same parameters you received.
+        2) Read .agent/state.json.
+        3) If .agent/state.json:last_stop_reason is a non-empty string, STOP.
+      - If max_turns reached without stop, STOP with stop_reason = loop_runner_max_turns.
+
+      Final response must include:
+      - total turns executed
+      - final iteration from .agent/state.json
+      - last_stop_reason
+      - pointers: .agent/state.json, .agent/history.jsonl, .agent/scratchpad.md
+
+      Begin now.
+
+  # ---------------------------------------------------------------------------
+  # Worker agents
+  # ---------------------------------------------------------------------------
+  - name: "worker"
+    display: "Ralph Worker (Generic)"
+    description: "Generic worker invoked by Ralph. Performs one focused step and updates scratchpad."
+    model: "default/any"
+    functions:
+      - "fs:*"
+    instruction: |
+      You are Ralph's worker. You are called for ONE iteration.
+
+      Rules:
+      - Read .agent/scratchpad.md first.
+      - Do ONE small, focused task that advances the user prompt.
+      - Update .agent/scratchpad.md with:
+        - What you did
+        - What remains
+        - Blockers
+      - If the overall task is complete, print the exact token: LOOP_COMPLETE
+
+      You may read/write project files using fs tools.
+
+  - name: "claude"
+    display: "Ralph Worker (Claude-style)"
+    description: "Worker variant (Claude-style). Same contract as ralph/worker."
+    model: "default/any"
+    functions:
+      - "fs:*"
+    instruction: |
+      Follow the same rules as ralph/worker.
+
+  - name: "openai"
+    display: "Ralph Worker (OpenAI-style)"
+    description: "Worker variant (OpenAI-style). Same contract as ralph/worker."
+    model: "default/any"
+    functions:
+      - "fs:*"
+    instruction: |
+      Follow the same rules as ralph/worker.
+
+  - name: "gemini"
+    display: "Ralph Worker (Gemini-style)"
+    description: "Worker variant (Gemini-style). Same contract as ralph/worker."
+    model: "default/any"
+    functions:
+      - "fs:*"
+    instruction: |
+      Follow the same rules as ralph/worker.
+
+  # ---------------------------------------------------------------------------
+  # Sub-agents (no scripts)
+  # ---------------------------------------------------------------------------
+  - name: "init_workspace"
+    display: "Ralph: init workspace"
+    description: "Creates .agent/ dirs and initializes state files if missing."
+    model: "default/any"
+    functions:
+      - "fs:*"
+    instruction: |
+      Ensure the following directories exist:
+      - .agent
+      - .agent/prompts
+      - .agent/metrics
+
+      Ensure the following files exist (create if missing):
+      - .agent/scratchpad.md (empty ok)
+      - .agent/history.jsonl (empty ok)
+      - .agent/state.json
+
+      If .agent/state.json does not exist, create it with JSON object fields:
+      {
+        "start_time_iso": "<now ISO>",
+        "start_time_epoch": <now epoch>,
+        "iteration": 0,
+        "consecutive_failures": 0,
+        "last_agent": "",
+        "last_stop_reason": "",
+        "last_output_preview": ""
+      }
+
+      If it exists, do not remove fields; keep as-is.
+
+      Use only fs tools.
+
+  - name: "read_prompt"
+    display: "Ralph: read prompt"
+    description: "Loads base prompt from prompt_text or prompt_file, checks TASK_COMPLETE marker, optionally archives."
+    model: "default/any"
+    functions:
+      - "fs:*"
+    instruction: |
+      Load base prompt:
+      - If the caller provided inline prompt_text, use it.
+      - Else read prompt_file (default PROMPT.md).
+
+      Write the loaded prompt to: .agent/current_prompt.md
+
+      Determine if prompt contains TASK_COMPLETE marker:
+      - a line exactly "- [x] TASK_COMPLETE" OR "[x] TASK_COMPLETE".
+      If found, write .agent/stop_candidate.json with:
+      {"stop": true, "reason": "prompt_TASK_COMPLETE"}
+      else:
+      {"stop": false}
+
+      If archive_prompts is true, write a copy to .agent/prompts/ with a safe unique name:
+      - prompt_iter<iteration+1>.md
+
+      Use only fs tools.
+
+  - name: "pick_agent"
+    display: "Ralph: pick agent"
+    description: "Selects worker agent name and writes it to .agent/selected_agent.txt."
+    model: "default/any"
+    functions:
+      - "fs:*"
+    instruction: |
+      Read .agent/state.json to get current iteration.
+
+      Decide selected agent:
+      - If agent != "auto": map directly:
+        claude -> ralph/claude
+        openai -> ralph/openai
+        gemini -> ralph/gemini
+        worker -> ralph/worker
+        otherwise default to ralph/worker
+      - If agent == "auto": use agent_priority order and pick the first known option
+        from [claude, openai, gemini, worker]. Map as above.
+
+      Write selected agent full name (e.g. ralph/worker) to .agent/selected_agent.txt.
+
+      Use only fs tools.
+
+  - name: "build_iteration_prompt"
+    display: "Ralph: build iteration prompt"
+    description: "Builds the per-iteration prompt for worker and writes .agent/iteration_prompt.md."
+    model: "default/any"
+    functions:
+      - "fs:*"
+    instruction: |
+      Read .agent/state.json and .agent/current_prompt.md and .agent/selected_agent.txt.
+
+      Compose an iteration header that includes:
+      - Iteration number (next iteration)
+      - Safety reminder: ONE focused task per iteration
+      - Scratchpad contract: read then update .agent/scratchpad.md
+      - Completion token requirement: completion_promise
+
+      Write final combined prompt to .agent/iteration_prompt.md.
+
+      Also write .agent/spawn_request.json with:
+      {"agent": "<selected agent>", "query_file": ".agent/iteration_prompt.md"}
+
+      Use only fs tools.
+
+  - name: "record_iteration"
+    display: "Ralph: record iteration"
+    description: "Updates .agent/state.json and appends .agent/history.jsonl with preview; stores current output."
+    model: "default/any"
+    functions:
+      - "fs:*"
+    instruction: |
+      You are called after the worker agent ran.
+
+      Inputs are in filesystem:
+      - .agent/state.json (current)
+      - .agent/selected_agent.txt
+      - The worker's raw output is the last assistant message in this chain.
+
+      Tasks:
+      1) Increment iteration by 1.
+      2) If worker appears to have failed, increment consecutive_failures; else set to 0.
+      3) Compute an output preview: first output_preview_length characters.
+      4) Append one JSON line to .agent/history.jsonl with keys:
+         ts_iso, iteration, agent, preview
+      5) Update .agent/state.json fields:
+         iteration, consecutive_failures, last_agent, last_output_preview
+
+      Additionally, write .agent/current_output.txt containing the full worker output.
+
+      Use only fs tools.
+
+  - name: "decide_continue"
+    display: "Ralph: decide continue"
+    description: "Evaluates stop/continue conditions and reports next action."
+    model: "default/any"
+    functions:
+      - "fs:*"
+      - "agent:ralph/loop_detector"
+    instruction: |
+      Decide whether to stop after this iteration.
+
+      Read:
+      - .agent/state.json
+      - .agent/stop_candidate.json (if exists)
+      - .agent/current_output.txt
+
+      Stop conditions:
+      - stop_candidate.json says stop
+      - iteration >= max_iterations
+      - consecutive_failures >= max_consecutive_failures
+      - current_output contains completion_promise exactly
+      - loop_detector says loop detected
+
+      If stopping, update .agent/state.json:last_stop_reason with a non-empty reason.
+      If continuing, ensure last_stop_reason is empty.
+
+      Output a concise summary for the user:
+      - iteration
+      - stop_reason (or "continue")
+      - last_agent
+      - where to look: .agent/state.json, .agent/history.jsonl, .agent/scratchpad.md
+
+  - name: "loop_detector"
+    display: "Ralph: loop detector (LLM-based)"
+    description: |
+      Detects repetitive outputs without scripts.
+      Uses LLM judgment to approximate similarity across the last N outputs.
+    model: "default/any"
+    functions:
+      - "fs:*"
+    instruction: |
+      Read .agent/history.jsonl and .agent/current_output.txt.
+
+      Consider the last loop_window previews plus the current output preview.
+      Decide if current output is effectively a loop.
+
+      Write .agent/loop_detected.json:
+      {"loop": true, "reason": "similar_to_iteration_<n>", "confidence": <0..1>}
+      or
+      {"loop": false}
+
+      Be conservative (avoid false positives). Only mark loop when confident.
+
+###
+set: "ralph"
+models:
+  any:
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
+    model: "gpt-5-mini"
