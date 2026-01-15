@@ -1,5 +1,10 @@
 ###
-# https://docs.x.ai/docs/models
+# xAI models & pricing: https://docs.x.ai/docs/models
+# Billing/availability: https://docs.x.ai/docs/billing  (see xAI Console for exact access)
+# Notes:
+# - Prefer stable aliases (e.g., grok-4 / grok-4-latest) unless you need strict pinning.
+# - xAI requests that use server-side tools are billed for BOTH token usage and tool invocations.
+# - Knowledge cutoff (per docs): Nov 2024.
 provider: "xai"
 base_url: "https://api.x.ai/v1/"
 api_key: "xai"
@@ -7,7 +12,55 @@ api_key: "xai"
 models:
   L1:
     model: "grok-4-1-fast-non-reasoning"
+    description: |
+      Cost: low. Fastest / highest throughput (non-reasoning).
+      Best for: simple chat, short summaries, rewriting, classification/extraction, routing,
+      and other high-volume agent steps where latency and cost matter.
+      Tradeoffs: weaker on deep multi-step reasoning; may miss subtle constraints.
+
   L2:
     model: "grok-4-1-fast-reasoning"
+    description: |
+      Cost: low–mid. Fast with explicit reasoning.
+      Best for: planning, multi-step analysis, harder instructions, and tool-using agents when L1 is
+      inconsistent but you still want good latency.
+      Tradeoffs: not the highest-end quality; use L3 for hardest problems.
+
   L3:
     model: "grok-4"
+    description: |
+      Cost: mid–high. Flagship quality.
+      Best for: complex reasoning, high-stakes answers, difficult debugging/design, and long-form
+      synthesis where correctness matters more than cost.
+
+  latest:
+    model: "grok-4-latest"
+    description: |
+      Cost: mid–high. Moving alias to the newest Grok 4 generation.
+      Best for: production routing when you want automatic upgrades to the latest features.
+      Tradeoffs: may change behavior over time; pin to a specific version if stability is required.
+
+  vision:
+    model: "grok-4-vision"
+    description: |
+      Cost: mid–high (plus image token costs). Multimodal (text+image) understanding.
+      Best for: interpreting screenshots, charts, UI issues, documents, and image-grounded Q&A.
+      Notes: image/video tools are billed by image tokens; tool invocation itself may be $0, but token
+      usage still applies (per docs).
+
+  image:
+    model: "grok-2-image"
+    description: |
+      Cost: mid. Image generation.
+      Best for: creating images from prompts or iterating on visual concepts.
+      Notes: use when the user explicitly requests image output.
+
+# pricing_notes:
+#   token_costs: |
+#     Token costs vary by model and by token type.
+#     Verify current rates on: https://docs.x.ai/docs/models
+#   tool_costs: |
+#     Server-side tools may add per-invocation charges on top of token costs.
+#     Examples from docs:
+#     - Live Search: $25 per 1,000 sources requested (each source used counts).
+#     - Usage guidelines violation fee: $0.05 per violating request (rare).

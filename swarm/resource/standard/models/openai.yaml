@@ -1,6 +1,10 @@
 ###
-# https://platform.openai.com/docs/models
-# https://platform.openai.com/docs/pricing
+# OpenAI models: https://platform.openai.com/docs/models
+# Pricing:       https://platform.openai.com/docs/pricing  (may require login)
+#               https://openai.com/api/pricing/
+# Notes:
+# - Prefer these descriptions for routing decisions; verify exact pricing at the links above.
+# - Use cheaper tiers for tool-driven workflows unless the user asks for deep reasoning/high stakes.
 provider: "openai"
 base_url: "https://api.openai.com/v1/"
 api_key: "openai"
@@ -8,32 +12,41 @@ api_key: "openai"
 models:
   L1:
     model: "gpt-5-nano"
-    # High-throughput tasks, especially simple instruction-following or classification
+    description: |
+      Cost: low. Fastest / highest throughput.
+      Best for: simple instruction following, tagging/classification, lightweight extraction,
+      routing, short summaries, rewriting, and other high-volume tasks.
+      Tradeoffs: weaker on deep multi-step reasoning, complex code, and tricky edge cases.
+
   L2:
     model: "gpt-5-mini"
-    # Cost-optimized reasoning and chat; balances speed, cost, and capability
+    description: |
+      Cost: low–mid. General-purpose workhorse.
+      Best for: most agent steps in production (Q&A, structured extraction, drafting, short code edits,
+      tool/function-calling workflows, and iterative refinement).
+      Tradeoffs: less reliable than top tiers for long-horizon planning, difficult debugging/refactors,
+      and high-stakes correctness.
+
   L3:
     model: "gpt-5.2"
-    # Complex reasoning, broad world knowledge, and code-heavy or multi-step agentic tasks
+    description: |
+      Cost: mid–high. Flagship quality.
+      Best for: complex reasoning, multi-step analysis, robust instruction following, and harder coding
+      tasks (design, refactors, debugging) when correctness matters.
+      Use when: requirements are ambiguous, failure is costly, or L1/L2 produce inconsistent results.
+
   L4:
     model: "gpt-5.2-pro"
-    # Tough problems that may take longer to solve but require harder thinking
+    description: |
+      Cost: high. Highest capability / slowest.
+      Best for: the toughest problems (deep reasoning, high-stakes decisions, complex multi-file design,
+      long-form synthesis) where you can pay more latency/cost for maximum reliability.
+      Use sparingly: only when explicitly requested or when other tiers repeatedly fail.
+
   code:
     model: "gpt-5.1-codex-max"
-    # Companies building interactive coding products; full spectrum of coding tasks
-
-# models:
-#   L1:
-#     model: "gpt-5-nano"
-#   L2:
-#     model: "gpt-5-mini"
-#   L3:
-#     model: "gpt-5"
-
-# models:
-#   L1:
-#     model: "gpt-4o-mini"
-#   L2:
-#     model: "gpt-4.1"
-#   L3:
-#     model: "o3-mini"
+    description: |
+      Cost: high (typically premium). Coding-specialized.
+      Best for: software engineering workflows (multi-file generation/refactors, debugging, tests,
+      code review) where code quality and correctness are the priority.
+      Prefer when: the user task is primarily coding or repo-wide changes.

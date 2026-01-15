@@ -1,13 +1,48 @@
 ###
-# https://ai.google.dev/gemini-api/docs/models
+# Model guide: https://ai.google.dev/gemini-api/docs/models
+# Pricing:     https://ai.google.dev/pricing (verify current numbers)
+# Notes:
+# - Prefer routing by user intent (speed/throughput vs quality vs modality) + required features.
+# - Costs change; treat any cost notes as guidance and verify against the pricing page.
 provider: "gemini"
 base_url: "https://generativelanguage.googleapis.com/v1beta/"
 api_key: "gemini"
 
 models:
   L1:
-    model: "gemini-2.0-flash-lite"
+    model: "gemini-2.5-flash-lite"
+    description: |
+      Ultra-fast Flash-Lite tier optimized for cost-efficiency and high throughput.
+      Best for: simple chat, tagging/classification, extraction, bulk summarization, routing.
+      Supports: long context (~1M), multimodal input (text/image/video/audio/PDF), function calling,
+      structured outputs, caching, batch API, code execution, file search, search grounding,
+      URL context; some variants support Google Maps grounding.
+      Tradeoffs: less capable on deep reasoning vs Pro.
+      Cost: lowest (verify on pricing page).
+
   L2:
-    model: "gemini-2.0-flash"
+    model: "gemini-2.5-flash"
+    description: |
+      Best price–performance workhorse for low-latency, large-scale tasks that still require “thinking”.
+      Best for: agentic tool use at scale, multimodal understanding, and reliable structured outputs.
+      Supports: long context (~1M), multimodal input (text/image/video/audio), function calling,
+      structured outputs, caching, batch API, code execution, file search, search grounding,
+      URL context; some variants add Live API / TTS / Google Maps grounding.
+      Cost: mid (verify on pricing page).
+
   L3:
-    model: "gemini-2.5-pro-preview-05-06"
+    model: "gemini-2.5-pro"
+    description: |
+      Advanced thinking model for hardest tasks: complex reasoning in code/math/STEM,
+      long-context synthesis, analyzing large datasets/codebases/documents.
+      Supports: long context (~1M), multimodal input (text/image/video/audio/PDF), thinking,
+      function calling, structured outputs, caching, batch API, code execution, file search,
+      search grounding, URL context; some variants add TTS.
+      Cost: highest (verify on pricing page).
+
+  # Optional: add preview-only models if you want them routable, but keep defaults stable.
+  # preview:
+    # pro:
+    #   model: "gemini-3-pro-preview"
+    # flash:
+    #   model: "gemini-3-flash-preview"

@@ -68,6 +68,8 @@ type Model struct {
 	Set   string `json:"set"`
 	Level Level  `json:"level"`
 
+	Description string `json:"description"`
+
 	// model @agent or resolved provider model name
 	// example:
 	//   @model
@@ -96,4 +98,6 @@ type ModelConfig struct {
 
 	// name of api key for looking up api access token
 	ApiKey string `yaml:"api_key" json:"api_key"`
+
+	Description string `json:"description"`
 }

@@ -1,5 +1,10 @@
 ###
-# https://docs.claude.com/en/docs/about-claude/models
+# Model guide: https://platform.claude.com/docs/en/about-claude/models/overview
+# Pricing:     https://www.anthropic.com/pricing
+# Notes:
+# - Prefer *versioned* model IDs in production for stability; aliases like `...-latest` can shift.
+# - All current Claude models support text+image input, text output, multilingual, and vision.
+# - Some capabilities/pricing depend on features like prompt caching, batch, and extended thinking.
 provider: "anthropic"
 base_url: "https://api.anthropic.com/"
 api_key: "anthropic"
@@ -7,7 +12,23 @@ api_key: "anthropic"
 models:
   L1:
     model: "claude-3-5-haiku-latest"
+    description: |
+      Fastest / lowest cost Claude tier. Best for high-throughput tasks: classification,
+      lightweight extraction, short summarization, simple chat/tool steps.
+      Tradeoffs: less reliable on deep reasoning and large multi-step coding than Sonnet/Opus.
+
   L2:
-    model: "claude-sonnet-4-0"
+    model: "claude-sonnet-4-5"
+    description: |
+      Best balance of intelligence, speed, and cost (recommended default). Excellent for coding and
+      agentic workflows, strong general reasoning + writing. Supports long context; 1M context is
+      available for Sonnet 4.5 via the `context-1m-2025-08-07` beta header (higher long-context pricing
+      beyond 200K tokens).
+      Cost: mid (see pricing).
+
   L3:
     model: "claude-opus-4-0"
+    description: |
+      Highest quality / most expensive tier for hardest problems: deep reasoning, complex architecture,
+      high-stakes decisions, and difficult debugging/refactors when other tiers fail.
+      Cost: high (see pricing).

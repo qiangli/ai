@@ -12,5 +12,12 @@ models:
     model: "gpt-o4-mini"
   Image:
     model: "dall-e-3"
-    features: 
+    features:
       image: true
+# models:
+#   L1:
+#     model: "gpt-4o-mini"
+#   L2:
+#     model: "gpt-4.1"
+#   L3:
+#     model: "o3-mini"
