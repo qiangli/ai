@@ -36,7 +36,9 @@ func (r *FuncKit) Call(ctx context.Context, vars *api.Vars, env *api.ToolEnv, tf
 	// script is retured as is for text/*
 	mime := strings.ToLower(tf.Body.MimeType)
 	switch mime {
-	case "application/x-sh", "bash", "sh", "application/yaml", "yaml", "yml":
+	case "application/x-sh", "text/x-shellscript", "application/x-shellscript", "bash", "sh":
+		return r.ExecScript(ctx, vars, env, tf, args)
+	case "application/yaml", "yaml", "yml":
 		return r.ExecScript(ctx, vars, env, tf, args)
 	case "application/x-go", "go", "golang":
 		return r.ExecScript(ctx, vars, env, tf, args)
