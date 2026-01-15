@@ -115,10 +115,10 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	if query == "" {
 		query, _ = vars.RTE.DefaultQuery(args)
 	}
-	// enforce if required is not enforced in args.
-	if query == "" {
-		return nil, fmt.Errorf("query is required for agent: %s/%s", agent.Pack, agent.Name)
-	}
+	// // enforce if required is not enforced in args.
+	// if query == "" {
+	// 	return nil, fmt.Errorf("query is required for agent: %s/%s", agent.Pack, agent.Name)
+	// }
 
 	// prompt is optional
 	prompt, _ := api.GetStrProp("prompt", args)
