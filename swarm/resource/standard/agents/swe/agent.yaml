@@ -7,6 +7,7 @@ agents:
     model: "llm/L2"
     embed:
       - "agent:context/lastn"
+      - "agent:manus/manus"
       - "agent:flow/choice"
     instruction: |
       You are a smart software engineer.
@@ -65,18 +66,30 @@ api_key: "openai"
 # api_key: "anthropic"
 
 # https://aider.chat/docs/llms.html
+# models:
+#   L1:
+#     model: "gpt-5-nano"
+#     provider: "openai"
+#     base_url: "https://api.openai.com/v1/"
+#     api_key: "openai"
+#   # L2:
+#   #   model: "claude-sonnet-4-0"
+#   L2:
+#     model: "gpt-5-mini"
+#   # L3:
+#   #   model: "claude-opus-4-0"
+#   # o1-mini gpt-4o
+#   L3:
+#     model: "o3-mini"
+
 models:
   L1:
     model: "gpt-5-nano"
-    provider: "openai"
-    base_url: "https://api.openai.com/v1/"
-    api_key: "openai"
-  # L2:
-  #   model: "claude-sonnet-4-0"
   L2:
     model: "gpt-5-mini"
-  # L3:
-  #   model: "claude-opus-4-0"
-  # o1-mini gpt-4o
   L3:
-    model: "o3-mini"
+    model: "gpt-5.2"
+  L4:
+    model: "gpt-5.2-pro"
+  code:
+    model: "gpt-5.1-codex-max"

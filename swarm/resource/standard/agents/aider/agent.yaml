@@ -20,7 +20,7 @@ agents:
       - "agent:aider/detect_lang"
       # - "agent:kbase"
       # - "agent:memory"
-      - "agent:manus/manus"
+      # - "agent:manus/manus"
       - "agent:flow/choice"
     instruction: |
       Always prioritize task delegation to the appropriate sub-agent based on the specific task context:
