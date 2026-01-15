@@ -1,0 +1,1049 @@
+#!/usr/bin/env ai /agent:ralph/ralph --script
+
+###
+# Ralph Orchestrator (Claude-style) implemented in pure YAML agents/tools/models.
+#
+# This file defines:
+# - ralph/ralph : ONE-iteration orchestrator
+# - ralph/loop  : loop runner that repeatedly calls ralph/ralph until stop
+# - supporting sub-agents and a small toolkit for JSONL/state updates
+#
+# Design goals (mirrors ralph-claude-code features where feasible in pure YAML):
+# - session continuity (persisted state + scratchpad)
+# - intelligent exit detection (TASK_COMPLETE markers, completion token, loop detector)
+# - rate limiting (soft: based on timestamps; no sleeping)
+# - circuit breaker (stagnation/repeated failure/repeated output)
+# - JSON output format support (best-effort parsing of structured output blocks)
+#
+# NOTE: In this agent framework, we cannot run external CLI (claude), tmux, or sleep.
+# Instead, we orchestrate LLM agents directly and persist state in .agent/.
+
+###
+pack: "ralph"
+log_level: "info"
+
+###
+agents:
+  # ---------------------------------------------------------------------------
+  # ralph/ralph — ONE orchestrator iteration
+  # ---------------------------------------------------------------------------
+  - name: "ralph"
+    display: "Ralph Orchestrator (one iteration)"
+    description: |
+      Executes exactly ONE autonomous development iteration:
+      - Ensure .agent workspace exists
+      - Load prompt (prompt_text or prompt_file)
+      - Select worker agent
+      - Build iteration prompt (includes scratchpad and last iteration summary)
+      - Spawn worker ONCE
+      - Record iteration to .agent/history.jsonl and update .agent/state.json
+      - Decide stop/continue (updates last_stop_reason)
+
+      For continuous execution, run ralph/loop.
+    model: "ralph/any"
+    functions:
+      - "fs:*"
+      - "ai:spawn_agent"
+      - "agent:ralph/init_workspace"
+      - "agent:ralph/read_prompt"
+      - "agent:ralph/pick_agent"
+      - "agent:ralph/build_iteration_prompt"
+      - "agent:ralph/record_iteration"
+      - "agent:ralph/decide_continue"
+    parameters:
+      type: "object"
+      properties:
+        prompt_file:
+          type: "string"
+          default: "PROMPT.md"
+        prompt_text:
+          type: "string"
+          description: "Inline prompt text. If set, overrides prompt_file."
+        agent:
+          type: "string"
+          description: "auto|claude|openai|gemini|worker"
+          default: "auto"
+        agent_priority:
+          type: "array"
+          items: { type: "string" }
+          default: ["claude", "openai", "gemini", "worker"]
+
+        # limits
+        max_iterations:
+          type: "integer"
+          default: 100
+        max_consecutive_failures:
+          type: "integer"
+          default: 5
+        # completion + loop detection
+        completion_promise:
+          type: "string"
+          default: "LOOP_COMPLETE"
+        loop_window:
+          type: "integer"
+          default: 5
+        loop_similarity_threshold:
+          type: "number"
+          default: 0.9
+        # rate limiting (soft) and circuit breaker
+        max_calls_per_hour:
+          type: "integer"
+          default: 100
+        cb_no_progress_threshold:
+          type: "integer"
+          default: 3
+        cb_same_error_threshold:
+          type: "integer"
+          default: 5
+        # observability
+        archive_prompts:
+          type: "boolean"
+          default: true
+        enable_metrics:
+          type: "boolean"
+          default: true
+        output_preview_length:
+          type: "integer"
+          default: 800
+        # security
+        allow_unsafe_paths:
+          type: "boolean"
+          default: false
+    instruction: |
+      #! mime-type=text/x-go-template
+      You are Ralph Orchestrator.
+
+      You must execute EXACTLY ONE orchestrator iteration and then stop.
+
+      Filesystem contract (create if missing):
+      - .agent/scratchpad.md
+      - .agent/state.json
+      - .agent/history.jsonl
+      - .agent/prompts/
+      - .agent/metrics/
+
+      Stop rules (evaluated after worker runs):
+      - iteration >= max_iterations
+      - consecutive_failures >= max_consecutive_failures
+      - prompt contains TASK_COMPLETE marker ("- [x] TASK_COMPLETE" or "[x] TASK_COMPLETE")
+      - worker output contains completion_promise exactly
+      - loop detected (current output repeats prior outputs)
+      - circuit breaker: no-progress >= cb_no_progress_threshold or same-error >= cb_same_error_threshold
+      - rate limiting: if calls in last hour >= max_calls_per_hour
+
+      Process:
+      1) agent:ralph/init_workspace
+      2) agent:ralph/read_prompt
+      3) agent:ralph/pick_agent
+      4) agent:ralph/build_iteration_prompt
+      5) Spawn the worker agent ONCE with ai:spawn_agent using .agent/spawn_request.json
+      6) agent:ralph/record_iteration
+      7) agent:ralph/decide_continue
+
+      IMPORTANT:
+      - Use fs tools for reading/writing state.
+      - Do not run shell.
+      - Make decisions conservatively; avoid false completion.
+    entrypoint:
+      - "agent:ralph/init_workspace"
+      - "agent:ralph/read_prompt"
+      - "agent:ralph/pick_agent"
+      - "agent:ralph/build_iteration_prompt"
+      - "ai:spawn_agent"
+      - "agent:ralph/record_iteration"
+      - "agent:ralph/decide_continue"
+
+  # ---------------------------------------------------------------------------
+  # ralph/loop — loop runner that repeatedly invokes ralph/ralph
+  # ---------------------------------------------------------------------------
+  - name: "loop"
+    display: "Ralph Loop Runner"
+    description: |
+      Repeatedly invokes ralph/ralph until stop.
+      Reads .agent/state.json after each invocation to determine stop.
+
+      This is the pure-YAML substitute for ralph_loop.sh.
+    model: "ralph/any"
+    functions:
+      - "fs:*"
+      - "agent:ralph/ralph"
+      - "agent:ralph/read_state"
+    parameters:
+      type: "object"
+      properties:
+        prompt_file: { type: "string", default: "PROMPT.md" }
+        prompt_text: { type: "string" }
+        agent: { type: "string", default: "auto" }
+        agent_priority:
+          type: "array"
+          items: { type: "string" }
+          default: ["claude", "openai", "gemini", "worker"]
+
+        max_iterations: { type: "integer", default: 100 }
+        max_consecutive_failures: { type: "integer", default: 5 }
+        completion_promise: { type: "string", default: "LOOP_COMPLETE" }
+        loop_window: { type: "integer", default: 5 }
+        loop_similarity_threshold: { type: "number", default: 0.9 }
+
+        max_calls_per_hour: { type: "integer", default: 100 }
+        cb_no_progress_threshold: { type: "integer", default: 3 }
+        cb_same_error_threshold: { type: "integer", default: 5 }
+
+        archive_prompts: { type: "boolean", default: true }
+        enable_metrics: { type: "boolean", default: true }
+        output_preview_length: { type: "integer", default: 800 }
+        allow_unsafe_paths: { type: "boolean", default: false }
+        max_turns:
+          type: "integer"
+          description: "Hard cap on number of ralph/ralph invocations in this run."
+          default: 50
+    instruction: |
+      #! mime-type=text/x-go-template
+      You are a loop runner.
+
+      You must call agent:ralph/ralph repeatedly until .agent/state.json.last_stop_reason is non-empty
+      or you reach max_turns.
+
+      Each call to ralph/ralph executes exactly ONE iteration.
+
+      After each call:
+      - Read .agent/state.json
+      - If last_stop_reason != "", stop and summarize.
+
+      If max_turns reached without stop, set last_stop_reason to "loop_runner_max_turns".
+
+      Final response must include:
+      - total turns executed
+      - final iteration
+      - last_stop_reason
+      - pointers to .agent/state.json, .agent/history.jsonl, .agent/scratchpad.md
+
+  # ---------------------------------------------------------------------------
+  # Worker agents (variants)
+  # ---------------------------------------------------------------------------
+  - name: "worker"
+    display: "Ralph Worker (generic)"
+    description: "Executes one focused step; updates scratchpad; emits LOOP_COMPLETE when done."
+    model: "ralph/any"
+    functions:
+      - "fs:*"
+    instruction: |
+      You are Ralph's worker, called for ONE iteration.
+
+      Do:
+      1) Read .agent/scratchpad.md
+      2) Read the provided iteration prompt carefully.
+      3) Do ONE focused task that advances the project.
+      4) Update .agent/scratchpad.md with: what changed, what remains, next recommendation.
+
+      Output requirements:
+      - If you believe the overall project is complete, print the exact token: LOOP_COMPLETE
+      - Otherwise, end with a brief "Next:" line.
+
+  - name: "claude"
+    display: "Ralph Worker (Claude style)"
+    description: "Same contract as worker; tuned for structured Ralph status block."
+    model: "ralph/any"
+    functions:
+      - "fs:*"
+    instruction: |
+      You are Ralph (Claude-style). Perform exactly ONE iteration.
+
+      At the end, include a Ralph-style status block:
+      ---RALPH_STATUS---
+      STATUS: IN_PROGRESS | COMPLETE | BLOCKED
+      TASKS_COMPLETED_THIS_LOOP: <number>
+      FILES_MODIFIED: <number>
+      TESTS_STATUS: PASSING | FAILING | NOT_RUN
+      WORK_TYPE: IMPLEMENTATION | TESTING | DOCUMENTATION | REFACTORING | DEBUGGING
+      EXIT_SIGNAL: false | true
+      RECOMMENDATION: <one line>
+      ---END_RALPH_STATUS---
+
+      If EXIT_SIGNAL is true, also print LOOP_COMPLETE on its own line.
+
+  - name: "openai"
+    display: "Ralph Worker (OpenAI style)"
+    description: "Same contract as worker."
+    model: "ralph/any"
+    functions:
+      - "fs:*"
+    instruction: |
+      Follow the same rules as ralph/worker.
+
+  - name: "gemini"
+    display: "Ralph Worker (Gemini style)"
+    description: "Same contract as worker."
+    model: "ralph/any"
+    functions:
+      - "fs:*"
+    instruction: |
+      Follow the same rules as ralph/worker.
+
+  # ---------------------------------------------------------------------------
+  # Sub-agents
+  # ---------------------------------------------------------------------------
+  - name: "init_workspace"
+    display: "Ralph: init workspace"
+    description: "Create .agent dirs and initialize state/counters if missing."
+    model: "ralph/any"
+    functions:
+      - "fs:*"
+      - "ralph:ensure_json_file"
+    instruction: |
+      Ensure these directories exist:
+      - .agent
+      - .agent/prompts
+      - .agent/metrics
+
+      Ensure these files exist:
+      - .agent/scratchpad.md (empty ok)
+      - .agent/history.jsonl (empty ok)
+      - .agent/state.json (JSON)
+      - .agent/circuit_breaker.json (JSON)
+      - .agent/rate_limit.json (JSON)
+
+      If state.json missing, create with:
+      {
+        "start_time_iso": "<iso>",
+        "iteration": 0,
+        "consecutive_failures": 0,
+        "last_agent": "",
+        "last_stop_reason": "",
+        "last_output_preview": "",
+        "last_output_hash": "",
+        "last_prompt_hash": "",
+        "last_call_times_iso": []
+      }
+
+      If circuit_breaker.json missing, create:
+      {
+        "state": "CLOSED",
+        "consecutive_no_progress": 0,
+        "consecutive_same_error": 0,
+        "last_error_fingerprint": "",
+        "last_change_iso": "<iso>",
+        "reason": ""
+      }
+
+      If rate_limit.json missing, create:
+      {"calls": []}
+
+      Use only fs tools and ralph:ensure_json_file.
+
+  - name: "read_prompt"
+    display: "Ralph: read prompt"
+    description: "Load base prompt and store as .agent/current_prompt.md; detect TASK_COMPLETE marker; archive snapshots."
+    model: "ralph/any"
+    functions:
+      - "fs:*"
+      - "ralph:safe_read_text"
+      - "ralph:write_text"
+      - "ralph:now_iso"
+      - "ralph:read_state"
+      - "ralph:sha256"
+    instruction: |
+      Load base prompt:
+      - If prompt_text exists in parameters, use it.
+      - Else read prompt_file (default PROMPT.md).
+
+      Write it to .agent/current_prompt.md.
+
+      Detect TASK_COMPLETE markers in the prompt text:
+      - a line containing "- [x] TASK_COMPLETE" OR "[x] TASK_COMPLETE"
+      If found: write .agent/stop_candidate.json {"stop": true, "reason": "prompt_TASK_COMPLETE"}
+      Else: write .agent/stop_candidate.json {"stop": false}
+
+      If archive_prompts is true:
+      - read state.json to get current iteration
+      - write snapshot to .agent/prompts/prompt_iter<iteration+1>_<ts>.md
+
+      Also compute prompt hash and write to .agent/prompt_hash.txt
+
+  - name: "pick_agent"
+    display: "Ralph: pick agent"
+    description: "Select the worker agent for this iteration; write to .agent/selected_agent.txt."
+    model: "ralph/any"
+    functions:
+      - "fs:*"
+      - "ralph:write_text"
+    instruction: |
+      Choose a worker agent.
+
+      If agent != "auto":
+        claude -> ralph/claude
+        openai -> ralph/openai
+        gemini -> ralph/gemini
+        worker -> ralph/worker
+        otherwise -> ralph/worker
+
+      If agent == "auto":
+        choose first in agent_priority that is one of [claude, openai, gemini, worker], map as above.
+
+      Write selected full name to .agent/selected_agent.txt.
+
+  - name: "build_iteration_prompt"
+    display: "Ralph: build iteration prompt"
+    description: "Compose per-iteration prompt with context and scratchpad; write spawn_request.json."
+    model: "ralph/any"
+    functions:
+      - "fs:*"
+      - "ralph:read_state"
+      - "ralph:safe_read_text"
+      - "ralph:write_text"
+      - "ralph:now_iso"
+    instruction: |
+      Read:
+      - .agent/state.json
+      - .agent/current_prompt.md
+      - .agent/scratchpad.md
+      - .agent/selected_agent.txt
+
+      Compute next iteration = state.iteration + 1.
+
+      Write .agent/iteration_prompt.md containing:
+      - Header with timestamp and iteration number
+      - One-task-per-iteration reminder
+      - Completion token requirement (completion_promise)
+      - Base prompt (current_prompt)
+      - Scratchpad (verbatim)
+      - Last output preview from state (if present)
+
+      Also write .agent/spawn_request.json with:
+      {
+        "agent": "<selected agent>",
+        "query": "<contents of iteration_prompt.md>"
+      }
+
+      NOTE: ai:spawn_agent will be called after this; it must use spawn_request.json fields.
+
+  - name: "record_iteration"
+    display: "Ralph: record iteration"
+    description: "Persist worker output, update history.jsonl/state.json, update circuit breaker and rate limit."
+    model: "ralph/any"
+    functions:
+      - "fs:*"
+      - "ralph:now_iso"
+      - "ralph:read_state"
+      - "ralph:write_state"
+      - "ralph:append_jsonl"
+      - "ralph:preview"
+      - "ralph:fingerprint_error"
+      - "ralph:update_circuit_breaker"
+      - "ralph:update_rate_limit"
+      - "ralph:sha256"
+    instruction: |
+      You are called after the worker agent ran.
+
+      Inputs:
+      - .agent/state.json
+      - .agent/selected_agent.txt
+      - The worker's raw output is the last assistant message in the conversation.
+
+      Steps:
+      1) Capture full worker output into .agent/current_output.txt
+      2) Compute preview (output_preview_length chars) and output hash; store into state.
+      3) Determine failure heuristic:
+         - failure if output contains "ERROR"/"Exception" or a Ralph status block with STATUS: BLOCKED.
+      4) Update state:
+         - iteration += 1
+         - consecutive_failures = consecutive_failures+1 if failure else 0
+         - last_agent, last_output_preview, last_output_hash
+      5) Append to .agent/history.jsonl: {ts_iso, iteration, agent, preview, output_hash}
+      6) Update rate_limit.json with this call timestamp
+      7) Update circuit_breaker.json using:
+         - files_changed: best-effort count by comparing prompt hash change or scratchpad change (no git)
+         - error_fingerprint from output
+
+      If enable_metrics is true, write .agent/metrics/iter<iteration>.json summarizing the same.
+
+  - name: "decide_continue"
+    display: "Ralph: decide continue"
+    description: "Decide stop/continue based on state, stop candidates, completion token, loop detector, rate limit and circuit breaker."
+    model: "ralph/any"
+    functions:
+      - "fs:*"
+      - "ralph:read_state"
+      - "ralph:write_state"
+      - "ralph:safe_read_text"
+      - "agent:ralph/loop_detector"
+      - "agent:ralph/rate_limiter"
+      - "agent:ralph/circuit_status"
+    instruction: |
+      Read .agent/state.json, .agent/current_output.txt, .agent/stop_candidate.json.
+
+      Evaluate stop in this priority:
+      1) If stop_candidate.stop == true -> stop_reason = stop_candidate.reason
+      2) If iteration >= max_iterations -> max_iterations
+      3) If consecutive_failures >= max_consecutive_failures -> too_many_failures
+      4) If current_output contains completion_promise exactly -> completion_promise
+      5) Run agent:ralph/loop_detector; if loop -> loop_detected
+      6) Run agent:ralph/circuit_status; if state==OPEN -> circuit_breaker_open
+      7) Run agent:ralph/rate_limiter; if over limit -> rate_limited
+
+      If stopping:
+      - set state.last_stop_reason to stop_reason
+      Else:
+      - set state.last_stop_reason to ""
+
+      Output a concise summary:
+      - iteration
+      - decision (STOP/CONTINUE)
+      - reason
+      - last_agent
+      - pointers to state/history/scratchpad
+
+  - name: "loop_detector"
+    display: "Ralph: loop detector"
+    description: "Detects repetitive outputs by comparing last N output_hash values and semantic similarity on previews."
+    model: "ralph/any"
+    functions:
+      - "fs:*"
+      - "ralph:read_jsonl_tail"
+      - "ralph:safe_read_text"
+      - "ralph:write_json"
+    instruction: |
+      Read last loop_window lines from .agent/history.jsonl (if exists) and .agent/current_output.txt.
+
+      Heuristics:
+      - If current output hash matches any of the last loop_window output_hash values, loop=true.
+      - Else, compare current output preview with prior previews and judge semantic similarity.
+        If similarity >= loop_similarity_threshold, loop=true.
+
+      Write .agent/loop_detected.json:
+      {"loop": true, "reason": "hash_match"|"semantic_match", "confidence": <0..1>}
+      or {"loop": false}
+
+      Be conservative.
+
+  - name: "rate_limiter"
+    display: "Ralph: rate limiter"
+    description: "Soft rate limiter: checks calls in last hour and reports over/under." 
+    model: "ralph/any"
+    functions:
+      - "fs:*"
+      - "ralph:now_iso"
+      - "ralph:read_json"
+      - "ralph:write_json"
+    instruction: |
+      Read .agent/rate_limit.json (format: {"calls": ["iso", ...]}).
+
+      Keep only calls within the last 60 minutes (best-effort; compare by string prefix hour or conservative length cap).
+
+      If count >= max_calls_per_hour:
+        write .agent/rate_limit_status.json {"over": true, "count": <n>, "limit": <limit>}
+      else:
+        write .agent/rate_limit_status.json {"over": false, "count": <n>, "limit": <limit>}
+
+  - name: "circuit_status"
+    display: "Ralph: circuit breaker status"
+    description: "Reads .agent/circuit_breaker.json and emits current CB state." 
+    model: "ralph/any"
+    functions:
+      - "fs:*"
+      - "ralph:read_json"
+      - "ralph:write_json"
+    instruction: |
+      Read .agent/circuit_breaker.json and write .agent/circuit_status.json:
+      {"state": "CLOSED|HALF_OPEN|OPEN", "reason": "..."}
+
+  - name: "read_state"
+    display: "Ralph: read state"
+    description: "Utility: read .agent/state.json and echo a short summary." 
+    model: "ralph/any"
+    functions:
+      - "fs:*"
+    instruction: |
+      Read .agent/state.json and print its key fields: iteration, consecutive_failures, last_stop_reason.
+
+###
+# Toolkit (pure go-template scripts as tools)
+###
+kit: "ralph"
+
+type: "func"
+
+tools:
+  - name: "now_iso"
+    description: "Return current ISO-8601 timestamp (UTC)"
+    parameters:
+      type: "object"
+      properties: {}
+      required: []
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+        import (
+          "fmt"
+          "time"
+        )
+        func main() {
+          fmt.Print(time.Now().UTC().Format(time.RFC3339))
+        }
+
+  - name: "write_text"
+    description: "Write text content to a file (overwrite)."
+    parameters:
+      type: "object"
+      properties:
+        path: { type: "string" }
+        content: { type: "string" }
+      required: ["path","content"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+        import (
+          "os"
+          "fmt"
+        )
+        var path = "{{ .path }}"
+        var content = `{{ .content }}`
+        func main() {
+          if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+            fmt.Print(err.Error())
+            os.Exit(1)
+          }
+        }
+
+  - name: "safe_read_text"
+    description: "Read a text file; return empty string if missing."
+    parameters:
+      type: "object"
+      properties:
+        path: { type: "string" }
+      required: ["path"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+        import (
+          "os"
+          "fmt"
+        )
+        var path = "{{ .path }}"
+        func main() {
+          b, err := os.ReadFile(path)
+          if err != nil {
+            fmt.Print("")
+            return
+          }
+          fmt.Print(string(b))
+        }
+
+  - name: "write_json"
+    description: "Write JSON (string) to a file (overwrite)."
+    parameters:
+      type: "object"
+      properties:
+        path: { type: "string" }
+        json: { type: "string" }
+      required: ["path","json"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+        import (
+          "os"
+          "fmt"
+        )
+        var path = "{{ .path }}"
+        var jsonText = `{{ .json }}`
+        func main() {
+          if err := os.WriteFile(path, []byte(jsonText), 0644); err != nil {
+            fmt.Print(err.Error())
+            os.Exit(1)
+          }
+        }
+
+  - name: "ensure_json_file"
+    description: "Ensure a JSON file exists; if not, create it with provided default JSON."
+    parameters:
+      type: "object"
+      properties:
+        path: { type: "string" }
+        default_json: { type: "string" }
+      required: ["path","default_json"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+        import (
+          "os"
+          "fmt"
+        )
+        var path = "{{ .path }}"
+        var def = `{{ .default_json }}`
+        func main() {
+          if _, err := os.Stat(path); err == nil {
+            return
+          }
+          if err := os.WriteFile(path, []byte(def), 0644); err != nil {
+            fmt.Print(err.Error())
+            os.Exit(1)
+          }
+        }
+
+  - name: "sha256"
+    description: "Compute SHA-256 of input text."
+    parameters:
+      type: "object"
+      properties:
+        text: { type: "string" }
+      required: ["text"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+        import (
+          "crypto/sha256"
+          "encoding/hex"
+          "fmt"
+        )
+        var text = `{{ .text }}`
+        func main() {
+          sum := sha256.Sum256([]byte(text))
+          fmt.Print(hex.EncodeToString(sum[:]))
+        }
+
+  - name: "preview"
+    description: "Return first N characters of text."
+    parameters:
+      type: "object"
+      properties:
+        text: { type: "string" }
+        n: { type: "integer" }
+      required: ["text","n"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+        import (
+          "fmt"
+          "unicode/utf8"
+        )
+        var text = `{{ .text }}`
+        var n = {{ .n }}
+        func main() {
+          if n <= 0 {
+            fmt.Print("")
+            return
+          }
+          // rune-safe trim
+          if utf8.RuneCountInString(text) <= n {
+            fmt.Print(text)
+            return
+          }
+          out := []rune(text)
+          fmt.Print(string(out[:n]))
+        }
+
+  - name: "append_jsonl"
+    description: "Append a JSON object (as string) as one line to a JSONL file."
+    parameters:
+      type: "object"
+      properties:
+        path: { type: "string" }
+        json_line: { type: "string" }
+      required: ["path","json_line"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+        import (
+          "os"
+          "fmt"
+        )
+        var path = "{{ .path }}"
+        var line = `{{ .json_line }}`
+        func main() {
+          f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+          if err != nil {
+            fmt.Print(err.Error())
+            os.Exit(1)
+          }
+          defer f.Close()
+          if _, err := f.WriteString(line + "\n"); err != nil {
+            fmt.Print(err.Error())
+            os.Exit(1)
+          }
+        }
+
+  - name: "read_json"
+    description: "Read a JSON file and return its content (raw). Returns {} if missing."
+    parameters:
+      type: "object"
+      properties:
+        path: { type: "string" }
+      required: ["path"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+        import (
+          "os"
+          "fmt"
+        )
+        var path = "{{ .path }}"
+        func main() {
+          b, err := os.ReadFile(path)
+          if err != nil {
+            fmt.Print("{}")
+            return
+          }
+          fmt.Print(string(b))
+        }
+
+  - name: "read_jsonl_tail"
+    description: "Return last N lines of a JSONL file as a JSON array string (best-effort)."
+    parameters:
+      type: "object"
+      properties:
+        path: { type: "string" }
+        n: { type: "integer" }
+      required: ["path","n"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+        import (
+          "bufio"
+          "fmt"
+          "os"
+        )
+        var path = "{{ .path }}"
+        var n = {{ .n }}
+        func main() {
+          f, err := os.Open(path)
+          if err != nil {
+            fmt.Print("[]")
+            return
+          }
+          defer f.Close()
+          lines := make([]string, 0, n)
+          scanner := bufio.NewScanner(f)
+          for scanner.Scan() {
+            lines = append(lines, scanner.Text())
+            if n > 0 && len(lines) > n {
+              lines = lines[1:]
+            }
+          }
+          fmt.Print("[")
+          for i, l := range lines {
+            if i > 0 { fmt.Print(",") }
+            fmt.Print(l)
+          }
+          fmt.Print("]")
+        }
+
+  - name: "read_state"
+    description: "Read .agent/state.json and return content."
+    parameters:
+      type: "object"
+      properties:
+        path: { type: "string", default: ".agent/state.json" }
+      required: []
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+        import (
+          "os"
+          "fmt"
+        )
+        var path = ".agent/state.json"
+        func main() {
+          b, err := os.ReadFile(path)
+          if err != nil { fmt.Print("{}") ; return }
+          fmt.Print(string(b))
+        }
+
+  - name: "write_state"
+    description: "Write .agent/state.json."
+    parameters:
+      type: "object"
+      properties:
+        json: { type: "string" }
+      required: ["json"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+        import (
+          "os"
+          "fmt"
+        )
+        var jsonText = `{{ .json }}`
+        func main() {
+          if err := os.WriteFile(".agent/state.json", []byte(jsonText), 0644); err != nil {
+            fmt.Print(err.Error())
+            os.Exit(1)
+          }
+        }
+
+  - name: "fingerprint_error"
+    description: "Extract a coarse error fingerprint from output text (best-effort)."
+    parameters:
+      type: "object"
+      properties:
+        text: { type: "string" }
+      required: ["text"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+        import (
+          "bufio"
+          "crypto/sha256"
+          "encoding/hex"
+          "fmt"
+          "strings"
+        )
+        var text = `{{ .text }}`
+        func main() {
+          // take first error-looking line; else empty
+          s := bufio.NewScanner(strings.NewReader(text))
+          pick := ""
+          for s.Scan() {
+            line := strings.TrimSpace(s.Text())
+            if line == "" { continue }
+            low := strings.ToLower(line)
+            if strings.Contains(low, "error") || strings.Contains(low, "exception") || strings.Contains(low, "failed") {
+              pick = line
+              break
+            }
+          }
+          if pick == "" { fmt.Print(""); return }
+          sum := sha256.Sum256([]byte(pick))
+          fmt.Print(hex.EncodeToString(sum[:]))
+        }
+
+  - name: "update_rate_limit"
+    description: "Append a call timestamp into .agent/rate_limit.json (as a simple JSON array wrapper)."
+    parameters:
+      type: "object"
+      properties:
+        ts_iso: { type: "string" }
+      required: ["ts_iso"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+        import (
+          "encoding/json"
+          "fmt"
+          "os"
+        )
+        type RL struct { Calls []string `json:"calls"` }
+        var ts = "{{ .ts_iso }}"
+        func main() {
+          p := ".agent/rate_limit.json"
+          b, _ := os.ReadFile(p)
+          rl := RL{Calls: []string{}}
+          _ = json.Unmarshal(b, &rl)
+          rl.Calls = append(rl.Calls, ts)
+          out, _ := json.Marshal(rl)
+          if err := os.WriteFile(p, out, 0644); err != nil {
+            fmt.Print(err.Error())
+            os.Exit(1)
+          }
+        }
+
+  - name: "update_circuit_breaker"
+    description: "Update .agent/circuit_breaker.json based on no-progress and repeated error fingerprint."
+    parameters:
+      type: "object"
+      properties:
+        has_progress: { type: "boolean" }
+        error_fingerprint: { type: "string" }
+        cb_no_progress_threshold: { type: "integer" }
+        cb_same_error_threshold: { type: "integer" }
+        ts_iso: { type: "string" }
+      required: ["has_progress","error_fingerprint","cb_no_progress_threshold","cb_same_error_threshold","ts_iso"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+        import (
+          "encoding/json"
+          "fmt"
+          "os"
+        )
+        type CB struct {
+          State string `json:"state"`
+          ConsecutiveNoProgress int `json:"consecutive_no_progress"`
+          ConsecutiveSameError int `json:"consecutive_same_error"`
+          LastErrorFingerprint string `json:"last_error_fingerprint"`
+          LastChangeIso string `json:"last_change_iso"`
+          Reason string `json:"reason"`
+        }
+        var hasProgress = {{ .has_progress }}
+        var errfp = "{{ .error_fingerprint }}"
+        var thrNP = {{ .cb_no_progress_threshold }}
+        var thrSE = {{ .cb_same_error_threshold }}
+        var ts = "{{ .ts_iso }}"
+        func main() {
+          p := ".agent/circuit_breaker.json"
+          b, _ := os.ReadFile(p)
+          cb := CB{State:"CLOSED"}
+          _ = json.Unmarshal(b, &cb)
+          if hasProgress {
+            cb.ConsecutiveNoProgress = 0
+          } else {
+            cb.ConsecutiveNoProgress++
+          }
+          if errfp != "" {
+            if cb.LastErrorFingerprint == errfp {
+              cb.ConsecutiveSameError++
+            } else {
+              cb.ConsecutiveSameError = 1
+              cb.LastErrorFingerprint = errfp
+            }
+          } else {
+            cb.ConsecutiveSameError = 0
+            cb.LastErrorFingerprint = ""
+          }
+
+          cb.LastChangeIso = ts
+          cb.Reason = ""
+          // transitions
+          if cb.ConsecutiveNoProgress >= thrNP {
+            cb.State = "OPEN"
+            cb.Reason = "no_progress"
+          }
+          if cb.ConsecutiveSameError >= thrSE {
+            cb.State = "OPEN"
+            cb.Reason = "same_error"
+          }
+
+          out, _ := json.Marshal(cb)
+          if err := os.WriteFile(p, out, 0644); err != nil {
+            fmt.Print(err.Error())
+            os.Exit(1)
+          }
+        }
+
+###
+set: "ralph"
+models:
+  any:
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
+    model: "gpt-5-mini"
