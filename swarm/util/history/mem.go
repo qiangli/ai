@@ -106,9 +106,14 @@ func LoadHistory(base string, maxHistory, maxSpan int, roles []string) ([]*api.M
 		for i := len(msgs) - 1; i >= 0; i-- {
 			// only use text message for now
 			for _, msg := range msgs {
+				// skip context messages
+				if msg.Context {
+					continue
+				}
 				if roles != nil && !slice.ContainsAny(roles, msg.Role) {
 					continue
 				}
+				//
 				if msg.ContentType == "" || strings.HasPrefix(msg.ContentType, "text/") {
 					history = append(history, msg)
 				}

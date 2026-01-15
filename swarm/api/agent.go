@@ -10,7 +10,7 @@ const (
 	RoleSystem    = "system"
 	RoleAssistant = "assistant"
 	RoleUser      = "user"
-	RoleTool      = "tool"
+	// RoleTool      = "tool"
 )
 
 // @pack[/sub]

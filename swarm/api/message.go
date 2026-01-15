@@ -38,6 +38,13 @@ type Message struct {
 
 	// active/responsible agent
 	Agent Packname `json:"agent"`
+
+	//
+	// TODO
+	// context of recursive irrelevant historical context messages
+	// rot the real intent of user
+	// new context messages are created and sent as user role message to LLM but persisteed as "context"
+	Context bool `json:"context"`
 }
 
 type Request struct {

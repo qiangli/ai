@@ -217,12 +217,14 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	}
 
 	// 2. Context Messages
-	// context/history, skip system role
+	// context/history, skip system role and old context message
 	var messages = api.ToMessages(args["history"])
 	for _, msg := range messages {
-		if msg.Role != api.RoleSystem {
-			history = append(history, msg)
+		if msg.Role == api.RoleSystem || msg.Context {
+			continue
 		}
+		msg.Context = true
+		history = append(history, msg)
 	}
 
 	// 3. New User Message
