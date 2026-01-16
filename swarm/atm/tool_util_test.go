@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/qiangli/ai/swarm/api"
 )
 
 // TestParseMimeType tests the ParseMimeType function
@@ -61,7 +63,7 @@ func TestParseMimeType(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		data, mimeType := ParseMimeType(tt.input)
+		data, mimeType := api.ParseMimeType(tt.input)
 		assert.Equal(t, tt.expectedData, data)
 		assert.Equal(t, tt.expectedMimeType, mimeType, "Expected mime type does not match")
 	}

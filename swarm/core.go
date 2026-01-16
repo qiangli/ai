@@ -136,7 +136,7 @@ func (sw *Swarm) mapAssign(_ context.Context, agent *api.Agent, dst, src map[str
 			continue
 		}
 		// go template value support
-		if atm.IsTemplate(val) {
+		if api.IsTemplate(val) {
 			maps.Copy(data, dst)
 			if resolved, err := atm.CheckApplyTemplate(agent.Template, val.(string), data); err != nil {
 				return err
