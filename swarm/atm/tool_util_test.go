@@ -19,6 +19,16 @@ func TestParseMimeType(t *testing.T) {
 			expectedMimeType: "text/plain",
 		},
 		{
+			input:            "//#! Content --mime-type text/plain\nThis is a simple text //#!.",
+			expectedData:     "This is a simple text //#!.",
+			expectedMimeType: "text/plain",
+		},
+		{
+			input:            "// #! Content --mime-type text/plain\nThis is a simple text // #!.",
+			expectedData:     "This is a simple text // #!.",
+			expectedMimeType: "text/plain",
+		},
+		{
 			input:            "Description: text file --mime_type=text/csv\nName,Age\nJohn,23",
 			expectedData:     "Name,Age\nJohn,23",
 			expectedMimeType: "text/csv",

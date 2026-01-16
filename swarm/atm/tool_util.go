@@ -61,6 +61,8 @@ func ParseMimeType(s string) (string, string) {
 		data = parts[0]
 	}
 	// shlex returns nil if not trimmed
+	line = strings.TrimPrefix(line, "//")
+	line = strings.TrimSpace(line)
 	line = strings.TrimPrefix(line, "#!")
 	opts := []string{"--mime-type", "--mime_type", "mime-type", "mime_type"}
 	args := shlex.Argv(line)
