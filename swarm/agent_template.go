@@ -19,6 +19,7 @@ import (
 
 // https://pkg.go.dev/text/template
 // https://masterminds.github.io/sprig/
+// https://github.com/golang/go/issues/18221
 func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 	var fm = sprig.FuncMap()
 

@@ -37,7 +37,7 @@ agents:
       Ralph, inspired by Geoffrey Huntley's methodology, automates continuous, iterative project improvements through autonomous agents, with precautions to avoid infinite loops and API misuse.
 
       Available Ralph Agents and Tools:
-      
+
       ## Agents
       - "agent:ralph/ralph"
       - "agent:ralph/setup"
@@ -267,9 +267,9 @@ agents:
     parameters:
       type: "object"
       properties:
-        base_dir:
+        root_dir:
           type: "string"
-          description: "Optional base directory where the project folder will be created. Defaults to current directory."
+          description: "Optional root directory where the project folder will be created. Defaults to current directory."
         project_name:
           type: "string"
           description: "Name of the new project directory to create."
@@ -279,13 +279,13 @@ agents:
       You implement project setup.
 
       Inputs (tool parameters):
-      - base_dir (optional): {{ default "<no value>" .base_dir }}
+      - root_dir (optional): {{ default "<no value>" .root_dir }}
       - project_name (required): {{ default "missing" .project_name }}
 
       Resolve target directory:
-      1) If base_dir is empty or "<no value>", call `sh:pwd` and use that as BASE_DIR.
+      1) If root_dir is empty or "<no value>", call `sh:pwd` and use that as ROOT_DIR.
       2) If project_name is "missing", report error and exit.
-      3) PROJECT_DIR := BASE_DIR + "/" + project_name.
+      3) PROJECT_DIR := ROOT_DIR + "/" + project_name.
 
       Do the following steps in order and echo progress:
       1) Print: "🚀 Setting up Ralph project: <project_name>"
@@ -480,37 +480,7 @@ tools:
       required: ["base_dir"]
     body:
       mime_type: "application/x-go"
-      script: |
-        #! --mime-type=text/x-go-template
-        package main
-
-        import (
-          "fmt"
-          "os"
-          "path/filepath"
-        )
-
-        var baseDir = "{{.base_dir}}"
-
-        const content = "{{asset \"/templates/PROMPT.md\"}}"
-        `
-
-        func main() {
-          if baseDir == "" || baseDir == "<no value>" {
-            fmt.Fprintln(os.Stderr, "missing required parameter: base_dir")
-            os.Exit(2)
-          }
-          outPath := filepath.Join(baseDir, "PROMPT.md")
-          if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
-            fmt.Fprintln(os.Stderr, err.Error())
-            os.Exit(1)
-          }
-          if err := os.WriteFile(outPath, []byte(content), 0o644); err != nil {
-            fmt.Fprintln(os.Stderr, err.Error())
-            os.Exit(1)
-          }
-          fmt.Println(outPath)
-        }
+      script: "asset:/prompt/md.go"
 
   - name: "write_template_agent"
     description: "Write the embedded AGENT.md template to <base_dir>/@AGENT.md (creating directories as needed)."
@@ -523,8 +493,8 @@ tools:
       required: ["base_dir"]
     body:
       mime_type: "application/x-go"
-      script: "asset:/agent_md.go"
-  
+      script: "asset:/agent/md.go"
+
   - name: "write_template_fix_plan"
     description: "Write the embedded fix_plan.md template to <base_dir>/@fix_plan.md (creating directories as needed)."
     parameters:
@@ -536,36 +506,7 @@ tools:
       required: ["base_dir"]
     body:
       mime_type: "application/x-go"
-      script: |
-        #! --mime-type=text/x-go-template
-        package main
-
-        import (
-          "fmt"
-          "os"
-          "path/filepath"
-        )
-
-        var baseDir = "{{.base_dir}}"
-
-        const content = "{{asset \"/templates/fix_plan.md\"}}"
-
-        func main() {
-          if baseDir == "" || baseDir == "<no value>" {
-            fmt.Fprintln(os.Stderr, "missing required parameter: base_dir")
-            os.Exit(2)
-          }
-          outPath := filepath.Join(baseDir, "@fix_plan.md")
-          if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
-            fmt.Fprintln(os.Stderr, err.Error())
-            os.Exit(1)
-          }
-          if err := os.WriteFile(outPath, []byte(content), 0o644); err != nil {
-            fmt.Fprintln(os.Stderr, err.Error())
-            os.Exit(1)
-          }
-          fmt.Println(outPath)
-        }
+      script: "asset:/fix_plan/md.go"
 
   - name: "write_template_specs_gitkeep"
     description: "Write the embedded templates/specs/.gitkeep to <base_dir>/specs/.gitkeep (creating directories as needed)."
