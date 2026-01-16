@@ -174,6 +174,10 @@ func (r *ConfigLoader) LoadToolConfig(kn api.Kitname) (*api.AppConfig, error) {
 	if err != nil {
 		return nil, err
 	}
+	if tc == nil {
+		return nil, fmt.Errorf("could not find the config for kit: %s", kit)
+	}
+
 	for _, v := range tc.Tools {
 		if v.Name == name {
 			tc.Kit = kit

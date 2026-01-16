@@ -569,30 +569,45 @@ Parameters: %s
 	return "", fmt.Errorf("unknown tool: %s", tid)
 }
 
-func (r *AIKit) ReadToolConfig(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (any, error) {
+func (r *AIKit) ReadToolConfig(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (*api.AppConfig, error) {
 	tid, err := api.GetStrProp("tool", args)
-	if err != nil {
-		return "", err
-	}
-
-	cfg, found := args["config"]
-	if found {
-		if v, ok := cfg.(*api.AppConfig); ok {
-			return v, nil
-		}
-	}
-
-	var loader = NewConfigLoader(r.sw.Vars.RTE)
-	data := api.ToString(cfg)
-	if data != "" {
-		loader.LoadContent(data)
-	}
-
-	config, err := loader.LoadToolConfig(api.Kitname(tid))
 	if err != nil {
 		return nil, err
 	}
-	args["config"] = config
+
+	// cfg, found := args["config"]
+	// if found {
+	// 	if v, ok := cfg.(*api.AppConfig); ok {
+	// 		return v, nil
+	// 	}
+	// }
+
+	// data := api.ToString(cfg)
+	// if data != "" {
+	// 	loader.LoadContent(data)
+	// }
+
+	kn := api.Kitname(tid).Clean()
+	kit, name := kn.Decode()
+	args["kit"] = kit
+	args["pack"] = ""
+	args["name"] = name
+
+	var loader = NewConfigLoader(r.sw.Vars.RTE)
+
+	if v := args.GetString("script"); v != "" {
+		if strings.HasSuffix(v, ".yaml") || strings.HasSuffix(v, ".yml") {
+			if err := loader.LoadContent(v); err != nil {
+				// return nil, err
+			}
+		}
+	}
+
+	config, err := loader.LoadToolConfig(kn)
+	if err != nil {
+		return nil, err
+	}
+	// args["config"] = config
 	return config, nil
 }
 

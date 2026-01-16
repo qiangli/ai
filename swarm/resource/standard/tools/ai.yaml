@@ -126,6 +126,9 @@ tools:
           description: |
             The name of the agent for which the configuration is requested.
             Use 'self' to refer to the current agent invoking the tool.
+        script:
+          type: "string"
+          description: "Load agent configuration from the script's content"
       required:
         - "agent"
 
@@ -309,6 +312,9 @@ tools:
         tool:
           type: "string"
           description: "The name of the tool"
+        script:
+          type: "string"
+          description: "Load tool configuration from the script's content"
       required:
         - "tool"
 
