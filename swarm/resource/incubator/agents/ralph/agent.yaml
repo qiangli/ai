@@ -5,9 +5,9 @@
 # Notes:
 # - Upstream runs an external AI CLI; in this agent pack, the "execution" step is implemented by
 #   calling a configurable `worker` agent once per iteration.
-# - We avoid custom shell/Golang tools by default. State is stored in files in the current working
-#   directory, matching the upstream spirit.
-# - References to the upstream name/CLI are kept only in comments for attribution.
+# - State is stored in files in the current working directory, matching the upstream spirit.
+# - Template files are EMBEDDED here (PROMPT/AGENT/fix_plan/specs/.gitkeep) and can be materialized
+#   into a project directory via small Go tools in this YAML.
 #
 # Implements core features from upstream Ralph-for-Claude-Code (see comments for source attribution):
 # - rate limiting with hourly reset
@@ -31,13 +31,8 @@ agents:
   # ---------------------------------------------------------------------------
   - name: "ralph"
     display: "Ralph Orchestrator"
-    description: "Main entry: routes to import/loop/once/monitor/setup/status/reset commands. Generic iterative orchestrator (portable templates)."
+    description: "Main entry: routes to import/loop/once/monitor/setup/status/reset commands. Generic iterative orchestrator (self-contained templates)."
     model: "anthropic/L2"
-    environment:
-      # Portable template roots. Override these if you vendor/copy templates elsewhere.
-      # These defaults keep repo-local behavior but avoid hardcoding in instructions.
-      RALPH_UPSTREAM_ROOT: "/Users/liqiang/workspace/poc/ralph-claude-code"
-      RALPH_TEMPLATES_DIR: "{{ .RALPH_UPSTREAM_ROOT }}/templates"
     instruction: |
       You are Ralph, an orchestrator for an autonomous iterative improvement loop.
 
@@ -82,6 +77,14 @@ agents:
         .circuit_breaker_state, .circuit_breaker_history,
         .ralph_session, .ralph_session_history,
         .agent/scratchpad.md
+
+      Templates (self-contained):
+      - This pack embeds canonical template contents.
+      - Sub-agents may materialize them into a project directory by calling the provided tools:
+          ralph:write_template_prompt
+          ralph:write_template_agent
+          ralph:write_template_fix_plan
+          ralph:write_template_specs_gitkeep
 
       Constraints:
       - Prefer spawning sub-agents (agent:ralph/*) rather than scripts.
@@ -162,12 +165,8 @@ agents:
   # ---------------------------------------------------------------------------
   - name: "ralph_import"
     display: "Ralph Import"
-    description: "Imports a PRD/spec into a new project folder (PROMPT.md, @fix_plan.md, specs/requirements.md, @AGENT.md). Uses portable template roots."
+    description: "Imports a PRD/spec into a new project folder (PROMPT.md, @fix_plan.md, specs/requirements.md, @AGENT.md). Uses embedded templates."
     model: "anthropic/L2"
-    environment:
-      # By default, inherit same upstream location as ralph/ralph. Override as needed.
-      RALPH_UPSTREAM_ROOT: "/Users/liqiang/workspace/poc/ralph-claude-code"
-      RALPH_TEMPLATES_DIR: "{{ .RALPH_UPSTREAM_ROOT }}/templates"
     instruction: |
       You implement the PRD import feature.
 
@@ -176,16 +175,13 @@ agents:
       - Optional project name
 
       Actions:
-      1) Read templates using the portable template root (prefer the first that exists):
-         - ${RALPH_TEMPLATES_DIR}/PROMPT.md
-         - ${RALPH_TEMPLATES_DIR}/AGENT.md
-         - ${RALPH_TEMPLATES_DIR}/fix_plan.md
-
-         Notes:
-         - The actual on-disk default for RALPH_TEMPLATES_DIR is set in agent environment.
-         - If you vendor/copy the upstream templates into your current repo, set RALPH_TEMPLATES_DIR accordingly.
-      2) Create a new project folder with the standard structure:
+      1) Create a new project folder with the standard structure:
          <project>/{PROMPT.md,@fix_plan.md,@AGENT.md,specs/requirements.md,specs/stdlib,src,examples,logs,docs/generated,.agent}
+      2) Materialize embedded templates into the project directory by calling tools:
+         - ralph:write_template_prompt
+         - ralph:write_template_agent
+         - ralph:write_template_fix_plan
+         - ralph:write_template_specs_gitkeep
       3) Call an LLM once to convert the PRD into:
          - PROMPT.md (instructions customized to the project)
          - @fix_plan.md (prioritized tasks)
@@ -197,17 +193,21 @@ agents:
            ...
            ===specs/requirements.md===
            ...
-      4) Write those files into the project directory.
+      4) Overwrite those three files in the project directory with the converted content.
       5) Ensure <project>/.agent/scratchpad.md exists (create empty if needed).
 
       Constraints:
-      - Pure YAML agents; do not use shell scripts.
+      - Pure YAML agents.
       - Use fs tools for file I/O.
 
       Output:
       - Print the created paths.
 
     functions:
+      - "ralph:write_template_prompt"
+      - "ralph:write_template_agent"
+      - "ralph:write_template_fix_plan"
+      - "ralph:write_template_specs_gitkeep"
       - "ai:call_llm"
       - "fs:*"
 
@@ -216,11 +216,8 @@ agents:
   # ---------------------------------------------------------------------------
   - name: "ralph_setup"
     display: "Ralph Setup"
-    description: "Creates a new blank project using templates (no PRD conversion). Uses portable template roots."
+    description: "Creates a new blank project using embedded templates (no PRD conversion)."
     model: "anthropic/L2"
-    environment:
-      RALPH_UPSTREAM_ROOT: "/Users/liqiang/workspace/poc/ralph-claude-code"
-      RALPH_TEMPLATES_DIR: "{{ .RALPH_UPSTREAM_ROOT }}/templates"
     instruction: |
       You implement project setup.
 
@@ -229,16 +226,21 @@ agents:
       Actions:
       - Create the standard project structure:
         <project>/{PROMPT.md,@fix_plan.md,@AGENT.md,specs/requirements.md,specs/stdlib,src,examples,logs,docs/generated,.agent}
-      - Copy templates from ${RALPH_TEMPLATES_DIR} (portable):
-        - PROMPT.md   -> <project>/PROMPT.md
-        - fix_plan.md -> <project>/@fix_plan.md
-        - AGENT.md    -> <project>/@AGENT.md
-      - Create empty specs/requirements.md if absent.
+      - Materialize embedded templates by calling tools:
+        - ralph:write_template_prompt         -> <project>/PROMPT.md
+        - ralph:write_template_fix_plan       -> <project>/@fix_plan.md
+        - ralph:write_template_agent          -> <project>/@AGENT.md
+        - ralph:write_template_specs_gitkeep  -> <project>/specs/.gitkeep
+      - Create empty <project>/specs/requirements.md if absent.
       - Ensure <project>/.agent/scratchpad.md exists.
 
       Output: created paths.
 
     functions:
+      - "ralph:write_template_prompt"
+      - "ralph:write_template_agent"
+      - "ralph:write_template_fix_plan"
+      - "ralph:write_template_specs_gitkeep"
       - "fs:*"
 
   # ---------------------------------------------------------------------------
@@ -381,5 +383,647 @@ agents:
       - "ai:call_llm"
 
 # =============================================================================
-# No custom tools/models: pure agents + built-in functions
+# Embedded template materializers (Go tools)
+# =============================================================================
+kit: "ralph"
+type: "func"
+tools:
+  - name: "write_template_prompt"
+    description: "Write the embedded PROMPT.md template to <base_dir>/PROMPT.md (creating directories as needed)."
+    parameters:
+      type: "object"
+      properties:
+        base_dir:
+          type: "string"
+          description: "Project base directory to write into (e.g., /path/to/my-project)."
+      required: ["base_dir"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+
+        import (
+          "fmt"
+          "os"
+          "path/filepath"
+        )
+
+        var baseDir = "<no value>"
+
+        const content = `# Ralph Development Instructions
+
+        ## Context
+        You are Ralph, an autonomous AI development agent working on a [YOUR PROJECT NAME] project.
+
+        ## Current Objectives
+        1. Study specs/* to learn about the project specifications
+        2. Review @fix_plan.md for current priorities
+        3. Implement the highest priority item using best practices
+        4. Use parallel subagents for complex tasks (max 100 concurrent)
+        5. Run tests after each implementation
+        6. Update documentation and fix_plan.md
+
+        ## Key Principles
+        - ONE task per loop - focus on the most important thing
+        - Search the codebase before assuming something isn't implemented
+        - Use subagents for expensive operations (file searching, analysis)
+        - Write comprehensive tests with clear documentation
+        - Update @fix_plan.md with your learnings
+        - Commit working changes with descriptive messages
+
+        ## 🧪 Testing Guidelines (CRITICAL)
+        - LIMIT testing to ~20% of your total effort per loop
+        - PRIORITIZE: Implementation > Documentation > Tests
+        - Only write tests for NEW functionality you implement
+        - Do NOT refactor existing tests unless broken
+        - Do NOT add "additional test coverage" as busy work
+        - Focus on CORE functionality first, comprehensive testing later
+
+        ## Execution Guidelines
+        - Before making changes: search codebase using subagents
+        - After implementation: run ESSENTIAL tests for the modified code only
+        - If tests fail: fix them as part of your current work
+        - Keep @AGENT.md updated with build/run instructions
+        - Document the WHY behind tests and implementations
+        - No placeholder implementations - build it properly
+
+        ## 🎯 Status Reporting (CRITICAL - Ralph needs this!)
+
+        **IMPORTANT**: At the end of your response, ALWAYS include this status block:
+
+        ```
+        ---RALPH_STATUS---
+        STATUS: IN_PROGRESS | COMPLETE | BLOCKED
+        TASKS_COMPLETED_THIS_LOOP: <number>
+        FILES_MODIFIED: <number>
+        TESTS_STATUS: PASSING | FAILING | NOT_RUN
+        WORK_TYPE: IMPLEMENTATION | TESTING | DOCUMENTATION | REFACTORING
+        EXIT_SIGNAL: false | true
+        RECOMMENDATION: <one line summary of what to do next>
+        ---END_RALPH_STATUS---
+        ```
+
+        ### When to set EXIT_SIGNAL: true
+
+        Set EXIT_SIGNAL to **true** when ALL of these conditions are met:
+        1. ✅ All items in @fix_plan.md are marked [x]
+        2. ✅ All tests are passing (or no tests exist for valid reasons)
+        3. ✅ No errors or warnings in the last execution
+        4. ✅ All requirements from specs/ are implemented
+        5. ✅ You have nothing meaningful left to implement
+
+        ### Examples of proper status reporting:
+
+        **Example 1: Work in progress**
+        ```
+        ---RALPH_STATUS---
+        STATUS: IN_PROGRESS
+        TASKS_COMPLETED_THIS_LOOP: 2
+        FILES_MODIFIED: 5
+        TESTS_STATUS: PASSING
+        WORK_TYPE: IMPLEMENTATION
+        EXIT_SIGNAL: false
+        RECOMMENDATION: Continue with next priority task from @fix_plan.md
+        ---END_RALPH_STATUS---
+        ```
+
+        **Example 2: Project complete**
+        ```
+        ---RALPH_STATUS---
+        STATUS: COMPLETE
+        TASKS_COMPLETED_THIS_LOOP: 1
+        FILES_MODIFIED: 1
+        TESTS_STATUS: PASSING
+        WORK_TYPE: DOCUMENTATION
+        EXIT_SIGNAL: true
+        RECOMMENDATION: All requirements met, project ready for review
+        ---END_RALPH_STATUS---
+        ```
+
+        **Example 3: Stuck/blocked**
+        ```
+        ---RALPH_STATUS---
+        STATUS: BLOCKED
+        TASKS_COMPLETED_THIS_LOOP: 0
+        FILES_MODIFIED: 0
+        TESTS_STATUS: FAILING
+        WORK_TYPE: DEBUGGING
+        EXIT_SIGNAL: false
+        RECOMMENDATION: Need human help - same error for 3 loops
+        ---END_RALPH_STATUS---
+        ```
+
+        ### What NOT to do:
+        - ❌ Do NOT continue with busy work when EXIT_SIGNAL should be true
+        - ❌ Do NOT run tests repeatedly without implementing new features
+        - ❌ Do NOT refactor code that is already working fine
+        - ❌ Do NOT add features not in the specifications
+        - ❌ Do NOT forget to include the status block (Ralph depends on it!)
+
+        ## 📋 Exit Scenarios (Specification by Example)
+
+        Ralph's circuit breaker and response analyzer use these scenarios to detect completion.
+        Each scenario shows the exact conditions and expected behavior.
+
+        ### Scenario 1: Successful Project Completion
+        **Given**:
+        - All items in @fix_plan.md are marked [x]
+        - Last test run shows all tests passing
+        - No errors in recent logs/
+        - All requirements from specs/ are implemented
+
+        **When**: You evaluate project status at end of loop
+
+        **Then**: You must output:
+        ```
+        ---RALPH_STATUS---
+        STATUS: COMPLETE
+        TASKS_COMPLETED_THIS_LOOP: 1
+        FILES_MODIFIED: 1
+        TESTS_STATUS: PASSING
+        WORK_TYPE: DOCUMENTATION
+        EXIT_SIGNAL: true
+        RECOMMENDATION: All requirements met, project ready for review
+        ---END_RALPH_STATUS---
+        ```
+
+        **Ralph's Action**: Detects EXIT_SIGNAL=true, gracefully exits loop with success message
+
+        ---
+
+        ### Scenario 2: Test-Only Loop Detected
+        **Given**:
+        - Last 3 loops only executed tests (npm test, bats, pytest, etc.)
+        - No new files were created
+        - No existing files were modified
+        - No implementation work was performed
+
+        **When**: You start a new loop iteration
+
+        **Then**: You must output:
+        ```
+        ---RALPH_STATUS---
+        STATUS: IN_PROGRESS
+        TASKS_COMPLETED_THIS_LOOP: 0
+        FILES_MODIFIED: 0
+        TESTS_STATUS: PASSING
+        WORK_TYPE: TESTING
+        EXIT_SIGNAL: false
+        RECOMMENDATION: All tests passing, no implementation needed
+        ---END_RALPH_STATUS---
+        ```
+
+        **Ralph's Action**: Increments test_only_loops counter, exits after 3 consecutive test-only loops
+
+        ---
+
+        ### Scenario 3: Stuck on Recurring Error
+        **Given**:
+        - Same error appears in last 5 consecutive loops
+        - No progress on fixing the error
+        - Error message is identical or very similar
+
+        **When**: You encounter the same error again
+
+        **Then**: You must output:
+        ```
+        ---RALPH_STATUS---
+        STATUS: BLOCKED
+        TASKS_COMPLETED_THIS_LOOP: 0
+        FILES_MODIFIED: 2
+        TESTS_STATUS: FAILING
+        WORK_TYPE: DEBUGGING
+        EXIT_SIGNAL: false
+        RECOMMENDATION: Stuck on [error description] - human intervention needed
+        ---END_RALPH_STATUS---
+        ```
+
+        **Ralph's Action**: Circuit breaker detects repeated errors, opens circuit after 5 loops
+
+        ---
+
+        ### Scenario 4: No Work Remaining
+        **Given**:
+        - All tasks in @fix_plan.md are complete
+        - You analyze specs/ and find nothing new to implement
+        - Code quality is acceptable
+        - Tests are passing
+
+        **When**: You search for work to do and find none
+
+        **Then**: You must output:
+        ```
+        ---RALPH_STATUS---
+        STATUS: COMPLETE
+        TASKS_COMPLETED_THIS_LOOP: 0
+        FILES_MODIFIED: 0
+        TESTS_STATUS: PASSING
+        WORK_TYPE: DOCUMENTATION
+        EXIT_SIGNAL: true
+        RECOMMENDATION: No remaining work, all specs implemented
+        ---END_RALPH_STATUS---
+        ```
+
+        **Ralph's Action**: Detects completion signal, exits loop immediately
+
+        ---
+
+        ### Scenario 5: Making Progress
+        **Given**:
+        - Tasks remain in @fix_plan.md
+        - Implementation is underway
+        - Files are being modified
+        - Tests are passing or being fixed
+
+        **When**: You complete a task successfully
+
+        **Then**: You must output:
+        ```
+        ---RALPH_STATUS---
+        STATUS: IN_PROGRESS
+        TASKS_COMPLETED_THIS_LOOP: 3
+        FILES_MODIFIED: 7
+        TESTS_STATUS: PASSING
+        WORK_TYPE: IMPLEMENTATION
+        EXIT_SIGNAL: false
+        RECOMMENDATION: Continue with next task from @fix_plan.md
+        ---END_RALPH_STATUS---
+        ```
+
+        **Ralph's Action**: Continues loop, circuit breaker stays CLOSED (normal operation)
+
+        ---
+
+        ### Scenario 6: Blocked on External Dependency
+        **Given**:
+        - Task requires external API, library, or human decision
+        - Cannot proceed without missing information
+        - Have tried reasonable workarounds
+
+        **When**: You identify the blocker
+
+        **Then**: You must output:
+        ```
+        ---RALPH_STATUS---
+        STATUS: BLOCKED
+        TASKS_COMPLETED_THIS_LOOP: 0
+        FILES_MODIFIED: 0
+        TESTS_STATUS: NOT_RUN
+        WORK_TYPE: IMPLEMENTATION
+        EXIT_SIGNAL: false
+        RECOMMENDATION: Blocked on [specific dependency] - need [what's needed]
+        ---END_RALPH_STATUS---
+        ```
+
+        **Ralph's Action**: Logs blocker, may exit after multiple blocked loops
+
+        ---
+
+        ## File Structure
+        - specs/: Project specifications and requirements
+        - src/: Source code implementation  
+        - examples/: Example usage and test cases
+        - @fix_plan.md: Prioritized TODO list
+        - @AGENT.md: Project build and run instructions
+
+        ## Current Task
+        Follow @fix_plan.md and choose the most important item to implement next.
+        Use your judgment to prioritize what will have the biggest impact on project progress.
+
+        Remember: Quality over speed. Build it right the first time. Know when you're done.
+        `
+
+        func main() {
+          if baseDir == "" || baseDir == "<no value>" {
+            fmt.Fprintln(os.Stderr, "missing required parameter: base_dir")
+            os.Exit(2)
+          }
+          outPath := filepath.Join(baseDir, "PROMPT.md")
+          if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
+            fmt.Fprintln(os.Stderr, err.Error())
+            os.Exit(1)
+          }
+          if err := os.WriteFile(outPath, []byte(content), 0o644); err != nil {
+            fmt.Fprintln(os.Stderr, err.Error())
+            os.Exit(1)
+          }
+          fmt.Println(outPath)
+        }
+
+  - name: "write_template_agent"
+    description: "Write the embedded AGENT.md template to <base_dir>/@AGENT.md (creating directories as needed)."
+    parameters:
+      type: "object"
+      properties:
+        base_dir:
+          type: "string"
+          description: "Project base directory to write into (e.g., /path/to/my-project)."
+      required: ["base_dir"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+
+        import (
+          "fmt"
+          "os"    
+          "path/filepath"
+        )
+
+        var baseDir = "<no value>"
+
+        const content = `# Agent Build Instructions
+
+        ## Project Setup
+        ```bash
+        # Install dependencies (example for Node.js project)
+        npm install
+
+        # Or for Python project
+        pip install -r requirements.txt
+
+        # Or for Rust project  
+        cargo build
+        ```
+
+        ## Running Tests
+        ```bash
+        # Node.js
+        npm test
+
+        # Python
+        pytest
+
+        # Rust
+        cargo test
+        ```
+
+        ## Build Commands
+        ```bash
+        # Production build
+        npm run build
+        # or
+        cargo build --release
+        ```
+
+        ## Development Server
+        ```bash
+        # Start development server
+        npm run dev
+        # or
+        cargo run
+        ```
+
+        ## Key Learnings
+        - Update this section when you learn new build optimizations
+        - Document any gotchas or special setup requirements
+        - Keep track of the fastest test/build cycle
+
+        ## Feature Development Quality Standards
+
+        **CRITICAL**: All new features MUST meet the following mandatory requirements before being considered complete.
+
+        ### Testing Requirements
+
+        - **Minimum Coverage**: 85% code coverage ratio required for all new code
+        - **Test Pass Rate**: 100% - all tests must pass, no exceptions
+        - **Test Types Required**:
+          - Unit tests for all business logic and services
+          - Integration tests for API endpoints or main functionality
+          - End-to-end tests for critical user workflows
+        - **Coverage Validation**: Run coverage reports before marking features complete:
+          ```bash
+          # Examples by language/framework
+          npm run test:coverage
+          pytest --cov=src tests/ --cov-report=term-missing
+          cargo tarpaulin --out Html
+          ```
+        - **Test Quality**: Tests must validate behavior, not just achieve coverage metrics
+        - **Test Documentation**: Complex test scenarios must include comments explaining the test strategy
+
+        ### Git Workflow Requirements
+
+        Before moving to the next feature, ALL changes must be:
+
+        1. **Committed with Clear Messages**:
+          ```bash
+          git add .
+          git commit -m "feat(module): descriptive message following conventional commits"
+          ```
+          - Use conventional commit format: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, etc.
+          - Include scope when applicable: `feat(api):`, `fix(ui):`, `test(auth):`
+          - Write descriptive messages that explain WHAT changed and WHY
+
+        2. **Pushed to Remote Repository**:
+          ```bash
+          git push origin <branch-name>
+          ```
+          - Never leave completed features uncommitted
+          - Push regularly to maintain backup and enable collaboration
+          - Ensure CI/CD pipelines pass before considering feature complete
+
+        3. **Branch Hygiene**:
+          - Work on feature branches, never directly on `main`
+          - Branch naming convention: `feature/<feature-name>`, `fix/<issue-name>`, `docs/<doc-update>`
+          - Create pull requests for all significant changes
+
+        4. **Ralph Integration**:
+          - Update @fix_plan.md with new tasks before starting work
+          - Mark items complete in @fix_plan.md upon completion
+          - Update PROMPT.md if development patterns change
+          - Test features work within Ralph's autonomous loop
+
+        ### Documentation Requirements
+
+        **ALL implementation documentation MUST remain synchronized with the codebase**:
+
+        1. **Code Documentation**:
+          - Language-appropriate documentation (JSDoc, docstrings, etc.)
+          - Update inline comments when implementation changes
+          - Remove outdated comments immediately
+
+        2. **Implementation Documentation**:
+          - Update relevant sections in this AGENT.md file
+          - Keep build and test commands current
+          - Update configuration examples when defaults change
+          - Document breaking changes prominently
+
+        3. **README Updates**:
+          - Keep feature lists current
+          - Update setup instructions when dependencies change
+          - Maintain accurate command examples
+          - Update version compatibility information
+
+        4. **AGENT.md Maintenance**:
+          - Add new build patterns to relevant sections
+          - Update "Key Learnings" with new insights
+          - Keep command examples accurate and tested
+          - Document new testing patterns or quality gates
+
+        ### Feature Completion Checklist
+
+        Before marking ANY feature as complete, verify:
+
+        - [ ] All tests pass with appropriate framework command
+        - [ ] Code coverage meets 85% minimum threshold
+        - [ ] Coverage report reviewed for meaningful test quality
+        - [ ] Code formatted according to project standards
+        - [ ] Type checking passes (if applicable)
+        - [ ] All changes committed with conventional commit messages
+        - [ ] All commits pushed to remote repository
+        - [ ] @fix_plan.md task marked as complete
+        - [ ] Implementation documentation updated
+        - [ ] Inline code comments updated or added
+        - [ ] AGENT.md updated (if new patterns introduced)
+        - [ ] Breaking changes documented
+        - [ ] Features tested within Ralph loop (if applicable)
+        - [ ] CI/CD pipeline passes
+
+        ### Rationale
+
+        These standards ensure:
+        - **Quality**: High test coverage and pass rates prevent regressions
+        - **Traceability**: Git commits and @fix_plan.md provide clear history of changes
+        - **Maintainability**: Current documentation reduces onboarding time and prevents knowledge loss
+        - **Collaboration**: Pushed changes enable team visibility and code review
+        - **Reliability**: Consistent quality gates maintain production stability
+        - **Automation**: Ralph integration ensures continuous development practices
+
+        **Enforcement**: AI agents should automatically apply these standards to all feature development tasks without requiring explicit instruction for each task.
+        `
+
+        func main() {
+          if baseDir == "" || baseDir == "<no value>" {
+            fmt.Fprintln(os.Stderr, "missing required parameter: base_dir")
+            os.Exit(2)
+          }
+          outPath := filepath.Join(baseDir, "@AGENT.md")
+          if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
+            fmt.Fprintln(os.Stderr, err.Error())
+            os.Exit(1)
+          }
+          if err := os.WriteFile(outPath, []byte(content), 0o644); err != nil {
+            fmt.Fprintln(os.Stderr, err.Error())
+            os.Exit(1)
+          }
+          fmt.Println(outPath)
+        }
+
+  - name: "write_template_fix_plan"
+    description: "Write the embedded fix_plan.md template to <base_dir>/@fix_plan.md (creating directories as needed)."
+    parameters:
+      type: "object"
+      properties:
+        base_dir:
+          type: "string"
+          description: "Project base directory to write into (e.g., /path/to/my-project)."
+      required: ["base_dir"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+
+        import (
+          "fmt"
+          "os"
+          "path/filepath"
+        )
+
+        var baseDir = "<no value>"
+
+        const content = `# Ralph Fix Plan
+
+        ## High Priority
+        - [ ] Set up basic project structure and build system
+        - [ ] Define core data structures and types
+        - [ ] Implement basic input/output handling
+        - [ ] Create test framework and initial tests
+
+        ## Medium Priority
+        - [ ] Add error handling and validation
+        - [ ] Implement core business logic
+        - [ ] Add configuration management
+        - [ ] Create user documentation
+
+        ## Low Priority
+        - [ ] Performance optimization
+        - [ ] Extended feature set
+        - [ ] Integration with external services
+        - [ ] Advanced error recovery
+
+        ## Completed
+        - [x] Project initialization
+
+        ## Notes
+        - Focus on MVP functionality first
+        - Ensure each feature is properly tested
+        - Update this file after each major milestone
+        `
+
+        func main() {
+          if baseDir == "" || baseDir == "<no value>" {
+            fmt.Fprintln(os.Stderr, "missing required parameter: base_dir")
+            os.Exit(2)
+          }
+          outPath := filepath.Join(baseDir, "@fix_plan.md")
+          if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
+            fmt.Fprintln(os.Stderr, err.Error())
+            os.Exit(1)
+          }
+          if err := os.WriteFile(outPath, []byte(content), 0o644); err != nil {
+            fmt.Fprintln(os.Stderr, err.Error())
+            os.Exit(1)
+          }
+          fmt.Println(outPath)
+        }
+
+  - name: "write_template_specs_gitkeep"
+    description: "Write the embedded templates/specs/.gitkeep to <base_dir>/specs/.gitkeep (creating directories as needed)."
+    parameters:
+      type: "object"
+      properties:
+        base_dir:
+          type: "string"
+          description: "Project base directory to write into (e.g., /path/to/my-project)."
+      required: ["base_dir"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! mime-type=text/x-go-template
+        package main
+
+        import (
+          "fmt"
+          "os"
+          "path/filepath"
+        )
+
+        var baseDir = "<no value>"
+
+        const content = `# This file ensures the templates/specs/ directory is tracked by git
+        # Remove this file when you add actual template specification files
+        `
+
+        func main() {
+          if baseDir == "" || baseDir == "<no value>" {
+            fmt.Fprintln(os.Stderr, "missing required parameter: base_dir")
+            os.Exit(2)
+          }
+          outPath := filepath.Join(baseDir, "specs", ".gitkeep")
+          if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
+            fmt.Fprintln(os.Stderr, err.Error())
+            os.Exit(1)
+          }
+          if err := os.WriteFile(outPath, []byte(content), 0o644); err != nil {
+            fmt.Fprintln(os.Stderr, err.Error())
+            os.Exit(1)
+          }
+          fmt.Println(outPath)
+        }
+
+# =============================================================================
+# No custom models: pure agents + built-in functions
 # =============================================================================
