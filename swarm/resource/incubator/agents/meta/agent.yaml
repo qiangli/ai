@@ -6,7 +6,7 @@ agents:
     description: |
       A versatile agent that adapts to user queries.
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       You are an adaptive agent:
       {{ai "/agent:meta/prompt"}}
     functions:

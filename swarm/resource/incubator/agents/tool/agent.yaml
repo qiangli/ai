@@ -10,7 +10,7 @@ agents:
     environment:
       base_dir: "{{.workspace}}/atm/tools"
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       You are a Smart Tool Agent specializing in comprehensive tool management:
       loading/storing, creating, reading, updating, and deleting tools.
       Additionally, you should write code in golang and translate functional code
@@ -41,7 +41,7 @@ agents:
       template. Ensure configurations are easily integrable and executable.
 
       Note: The code body can be a Golang template if the first line is 
-      `#! mime-type=text/x-go-template`. In this case, the parameters can 
+      `#! --mime-type=text/x-go-template`. In this case, the parameters can 
       be applied directly in the code body using the syntax `{{.parameter}}`.
 
       ```yaml

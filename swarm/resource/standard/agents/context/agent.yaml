@@ -17,7 +17,7 @@ agents:
     arguments:
       query: "{{default .message .query}}"
     context: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       {{ai "/agent:context/summarizer" "--query" .query}}
     functions:
       - "agent:context/summarizer"
@@ -40,7 +40,7 @@ agents:
           default: 1440
           minimum: 0
     context: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       *** Context History ***
       {{ai "/ai:list_messages" "--format" "text"}}
       ###

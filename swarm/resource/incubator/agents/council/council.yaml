@@ -45,7 +45,7 @@ agents:
           description: ""
           default: 4
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       You orchestrate an LLM Council process exactly as described below.
 
       Council definition (from README):
@@ -130,7 +130,7 @@ agents:
         - model
         - query
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       You are a council member answering a user question.
 
       You MUST call ai:call_llm exactly once with:
@@ -168,7 +168,7 @@ agents:
         - query
         - responses_text
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       You are a council member reviewing anonymized responses.
 
       You MUST call ai:call_llm exactly once with:
@@ -218,7 +218,7 @@ agents:
         - stage1_text
         - stage2_text
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       You are the Chairman of an LLM Council.
 
       You MUST call ai:call_llm exactly once with:
@@ -253,7 +253,7 @@ agents:
         - model
         - query
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       Generate a very short title (3-5 words maximum) that summarizes the following question.
       The title should be concise and descriptive. Do not use quotes or punctuation in the title.
 
@@ -284,7 +284,7 @@ agents:
       required:
         - ranking_text
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       Parse the provided ranking text into an ordered list of labels like ["Response A","Response B"].
 
       Deterministic algorithm (no external calls):
@@ -321,7 +321,7 @@ agents:
         - stage2
         - label_to_model
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       Compute aggregate rankings.
 
       Inputs:

@@ -39,7 +39,7 @@ agents:
       For context, run tool `agent:memory/fold` for a summary of the detailed interaction history and task progress.
 
     # message: |
-    #   #! mime-type=text/x-go-template
+    #   #! --mime-type=text/x-go-template
     #   Memory snapshot:
     #   {{ai "/agent:memory/fold" "--query" .message}}
     functions:

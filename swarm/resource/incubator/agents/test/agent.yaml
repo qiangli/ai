@@ -41,7 +41,7 @@ agents:
         - query
     # message, instruction, context can refernece all envs and args
     message: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       ## Message/Query
 
       Parameters (default):
@@ -65,7 +65,7 @@ agents:
         agent: {{.pack}}/{{.name}}
       --------
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       ## Instruction/Prompt
 
       Parameters (default):
@@ -89,7 +89,7 @@ agents:
         agent: {{.pack}}/{{.name}}
       --------
     context: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       ## Context/History
 
       Parameters (default):

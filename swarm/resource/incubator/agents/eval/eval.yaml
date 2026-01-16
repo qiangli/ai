@@ -45,7 +45,7 @@ agents:
     message: |
       Please provide your assessment:
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       You are an evaluation assistant.
       Please determine if the answer correctly addresses the query.
 
@@ -72,7 +72,7 @@ agents:
     message: |
       Please provide your assessment:
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       You are an evaluation assistant.
       Please analyze the detailed answer structure to determine if the task was solved.
 
@@ -103,7 +103,7 @@ agents:
     message: |
       Please provide your assessment:
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       You are an evaluation assistant.
       Please determine if the given task is solvable with the available tools.
 
@@ -131,7 +131,7 @@ agents:
       The response includes a chosen index and justification.
     model: "llm/any"
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       You are an evaluation assistant.
       Please compare multiple answers to the same query and select the better one.
 

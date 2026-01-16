@@ -46,7 +46,7 @@ agents:
       required:
         - query
     instruction: |
-      #! --mime-type=x-go-template
+      #! --mime-type=text/x-go-template
       As a web search assistant, you are responsible for processing user queries and providing accurate
       search results from the web.
 
@@ -106,7 +106,7 @@ agents:
     arguments:
       reasoning_effort: medium
     instruction: |
-      #! --mime-type=x-go-template
+      #! --mime-type=text/x-go-template
       You are a specialized research assistant tasked exclusively with expanding and refining search queries 
       based on a user's original input. Utilize the provided web search tool to perform all searches, ensuring 
       the development of queries is grounded in the actual search outcomes.

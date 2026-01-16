@@ -17,7 +17,7 @@ agents:
       max_concurrent_research_units: 3
       max_researcher_iterations: 3
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       # Research Workflow
 
       Follow this workflow for all research requests:
@@ -137,7 +137,7 @@ agents:
       required:
         - query
     instruction: |
-        #! mime-type=text/x-go-template
+        #! --mime-type=text/x-go-template
         You are a research assistant conducting research on the user's input topic. For context, today's date is {{date}}.
 
         <Task>
@@ -401,7 +401,7 @@ tools:
     body:
       mime_type: "text/x-go-template"
       script: |
-        #! mime-type=text/x-go-template
+        #! --mime-type=text/x-go-template
         Reflection recorded: {{.reflection}}
 
 ###

@@ -42,7 +42,7 @@ agents:
     environment:
       memories: "{{.workspace}}/memory"
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
 
       You are an AI assistant that helps users with various tasks including coding, research, and analysis.
 

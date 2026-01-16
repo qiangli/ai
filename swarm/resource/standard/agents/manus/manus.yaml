@@ -17,7 +17,7 @@ agents:
       - "agent:context/lastn"
       - "agent:manus/planning_with_files"
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       *** important ***
       All relative file paths should be interpreted as in the workspace subfolder:
       {{.workspace}}/manus

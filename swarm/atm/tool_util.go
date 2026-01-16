@@ -26,6 +26,8 @@ func applyTemplate(tpl *template.Template, text string, data any) (string, error
 	return buf.String(), nil
 }
 
+var templateMimeTypes = []string{"text/x-go-template", "x-go-template", "template", "tpl"}
+
 // check
 // #! or // magic for large block of text
 // {{ contained within for oneliner
@@ -36,7 +38,7 @@ func IsTemplate(v any) bool {
 	}
 	if strings.HasPrefix(s, "#!") || strings.HasPrefix(s, "//") {
 		_, mime := ParseMimeType(s)
-		return slices.Contains([]string{"text/x-go-template"}, mime)
+		return slices.Contains(templateMimeTypes, mime)
 	}
 	return strings.Contains(s, "{{")
 }
@@ -92,7 +94,7 @@ func CheckApplyTemplate(tpl *template.Template, s string, data map[string]any) (
 		// return applyTemplate(tpl, parts[0][2:], data)
 		// not a template
 		content, mime := ParseMimeType(s)
-		if slices.Contains([]string{"text/x-go-template"}, mime) {
+		if slices.Contains(templateMimeTypes, mime) {
 			return applyTemplate(tpl, content, data)
 		}
 		return s, nil

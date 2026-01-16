@@ -275,7 +275,7 @@ agents:
           description: "Name of the new project directory to create."
       required: ["project_name"]
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       You implement project setup.
 
       Inputs (tool parameters):
@@ -481,7 +481,7 @@ tools:
     body:
       mime_type: "application/x-go"
       script: |
-        #! mime-type=text/x-go-template
+        #! --mime-type=text/x-go-template
         package main
 
         import (
@@ -537,7 +537,7 @@ tools:
     body:
       mime_type: "application/x-go"
       script: |
-        #! mime-type=text/x-go-template
+        #! --mime-type=text/x-go-template
         package main
 
         import (
@@ -579,7 +579,7 @@ tools:
     body:
       mime_type: "application/x-go"
       script: |
-        #! mime-type=text/x-go-template
+        #! --mime-type=text/x-go-template
         package main
 
         import (

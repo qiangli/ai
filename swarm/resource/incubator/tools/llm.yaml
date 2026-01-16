@@ -20,5 +20,5 @@ kit: "llm"
 #     #   # The script could be a go-template.
 #     #   # code script will be executed after the template is applied.
 #     #   script: |
-#     #     #! mime-type=text/x-go-template
+#     #     #! --mime-type=text/x-go-template
 #     #     // Golang code goes here

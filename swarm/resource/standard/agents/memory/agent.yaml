@@ -13,7 +13,7 @@ agents:
       memory_file: "{{.workspace}}/memory/agent.md"
       # agent_memory: '{{list .workspace "memory/agent.md" | join "/" | cat}}'
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       ###
       Adapt your behavior based on user feedback and instructions.
 
@@ -37,7 +37,7 @@ agents:
       memory_path: "{{.workspace}}/memory/"
       memory_file: "{{.workspace}}/memory/agent.md"
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
 
       ## Long-term Memory
 
@@ -99,7 +99,7 @@ agents:
       todo_path: "{{.workspace}}/todo/"
       todo_file: "{{.workspace}}/todo/todos.md"
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
 
       ## Manage Todo List
 
@@ -180,7 +180,7 @@ agents:
       required:
         - query
     instruction: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       You are a memory compression assistant.
       Based on the query and previous thoughts and interaction history,
       summarize the detailed interaction history and task progress.

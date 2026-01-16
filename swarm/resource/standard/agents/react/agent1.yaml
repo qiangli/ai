@@ -10,7 +10,7 @@
 #       Follows a 'think-act-observe' file pattern for transparency, persistent progress, and error recovery.
 #     model: "react/reasoning"
 #     instruction: |
-#       #! mime-type=text/x-go-template
+#       #! --mime-type=text/x-go-template
 #       You are a step-by-step reasoning agent that uses the ReAct method enhanced by persistent, markdown-based planning and workflow tracking.
 
 #       **Workspace and File Policy:**

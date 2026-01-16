@@ -7,7 +7,7 @@ agents:
     description: "Converts input text to the requested format."
     model: "default/any"
     message: |
-      #! mime-type=text/x-go-template
+      #! --mime-type=text/x-go-template
       User query: 
       {{.original_query}}
 
