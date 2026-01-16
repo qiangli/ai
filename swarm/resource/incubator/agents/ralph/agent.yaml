@@ -58,15 +58,15 @@ agents:
         --setup <name>            create blank project structure
 
       Routing rules:
-      - If query includes "--import": run ralph/ralph_import.
-      - Else if query includes "--setup": run ralph/ralph_setup.
-      - Else if query includes "--monitor" and NOT "--once": start ralph/ralph_monitor then run ralph/ralph_loop.
+      - If query includes "--import": run ralph/import.
+      - Else if query includes "--setup": run ralph/setup.
+      - Else if query includes "--monitor" and NOT "--once": start ralph/ralph_monitor then run ralph/loop.
       - Else if query includes "--once": run ralph/ralph_once.
       - Else if query includes "--status": print status.json (read file; if missing say so).
       - Else if query includes "--circuit-status": print .circuit_breaker_state (read file; if missing say so).
       - Else if query includes "--reset-session": delete .ralph_session and append to .ralph_session_history; then exit.
       - Else if query includes "--reset-circuit": delete .circuit_breaker_state and .circuit_breaker_history; then exit.
-      - Otherwise: run ralph/ralph_loop.
+      - Otherwise: run ralph/loop.
 
       State and control files (in CWD unless import/setup creates a new folder):
         PROMPT.md, @fix_plan.md, @AGENT.md, specs/, logs/, docs/generated/
@@ -161,9 +161,9 @@ agents:
       - Prefer read-only actions when uncertain.
 
   # ---------------------------------------------------------------------------
-  # ralph_import: PRD/spec import
+  # ralph import: PRD/spec import
   # ---------------------------------------------------------------------------
-  - name: "ralph_import"
+  - name: "import"
     display: "Ralph Import"
     description: "Imports a PRD/spec into a new project folder (PROMPT.md, @fix_plan.md, specs/requirements.md, @AGENT.md). Uses embedded templates."
     model: "anthropic/L2"
@@ -212,30 +212,66 @@ agents:
       - "fs:*"
 
   # ---------------------------------------------------------------------------
-  # ralph_setup: initialize blank project
+  # ralph setup: initialize blank project
   # ---------------------------------------------------------------------------
-  - name: "ralph_setup"
+  - name: "setup"
     display: "Ralph Setup"
     description: "Creates a new blank project using embedded templates (no PRD conversion)."
     model: "anthropic/L2"
+    parameters:
+      type: "object"
+      properties:
+        base_dir:
+          type: "string"
+          description: "Optional base directory where the project folder will be created. Defaults to current directory."
+        project_name:
+          type: "string"
+          description: "Name of the new project directory to create."
+      required: ["project_name"]
     instruction: |
+      #! mime-type=text/x-go-template
       You implement project setup.
 
-      Input: project name.
+      Inputs (tool parameters):
+      - base_dir (optional): {{ default "<no value>" .base_dir }}
+      - project_name (required): {{ default "missing" .project_name }}
 
-      Actions:
-      - Create the standard project structure:
-        <project>/{PROMPT.md,@fix_plan.md,@AGENT.md,specs/requirements.md,specs/stdlib,src,examples,logs,docs/generated,.agent}
-      - Materialize embedded templates by calling tools:
-        - ralph:write_template_prompt         -> <project>/PROMPT.md
-        - ralph:write_template_fix_plan       -> <project>/@fix_plan.md
-        - ralph:write_template_agent          -> <project>/@AGENT.md
-        - ralph:write_template_specs_gitkeep  -> <project>/specs/.gitkeep
-      - Create empty <project>/specs/requirements.md if absent.
-      - Ensure <project>/.agent/scratchpad.md exists.
+      Resolve target directory:
+      1) If base_dir is empty or "<no value>", call `sh:pwd` and use that as BASE_DIR.
+      2) If project_name is "missing", report error and exit.
+      3) PROJECT_DIR := BASE_DIR + "/" + project_name.
 
-      Output: created paths.
+      Do the following steps in order and echo progress:
+      1) Print: "🚀 Setting up Ralph project: <project_name>"
+      2) Create project directory. If PROJECT_DIR already exists, report error and exit.
+      3) Create structure under PROJECT_DIR: specs/stdlib,src,examples,logs,docs/generated,.agent
+      4) Materialize embedded templates into PROJECT_DIR by calling tools:
+         - ralph:write_template_prompt        (base_dir=PROJECT_DIR) -> PROJECT_DIR/PROMPT.md
+         - ralph:write_template_fix_plan      (base_dir=PROJECT_DIR) -> PROJECT_DIR/@fix_plan.md
+         - ralph:write_template_agent         (base_dir=PROJECT_DIR) -> PROJECT_DIR/@AGENT.md
+         - ralph:write_template_specs_gitkeep (base_dir=PROJECT_DIR) -> PROJECT_DIR/specs/.gitkeep
+      5) Ensure PROJECT_DIR/specs/requirements.md exists (create empty file if absent).
+      6) Ensure PROJECT_DIR/.agent/scratchpad.md exists (create empty file if absent).
+      7) Initialize git in PROJECT_DIR (best-effort):
+         - sh:exec "git -C <PROJECT_DIR> init"
+         - Write PROJECT_DIR/README.md with "# <project_name>\n"
+         - sh:exec "git -C <PROJECT_DIR> add ."
+         - sh:exec "git -C <PROJECT_DIR> commit -m \"Initial Ralph project setup\"" (ignore failure if user has no git identity)
+      8) Print:
+         "✅ Project <project_name> created!"
+         "Next steps:"
+         "  1. Edit PROMPT.md with your project requirements"
+         "  2. Update specs/ with your project specifications"
+         "  3. Run: "agent:ralph/loop"
+         "  4. Monitor: "agent:ralph/monitor"
+
+      Output:
+      - Return the created PROJECT_DIR path and the key files created.
+    message: |
+      Set up ralph project.
     functions:
+      - "sh:pwd"
+      - "sh:exec"
       - "ralph:write_template_prompt"
       - "ralph:write_template_agent"
       - "ralph:write_template_fix_plan"
@@ -243,9 +279,9 @@ agents:
       - "fs:*"
 
   # ---------------------------------------------------------------------------
-  # ralph_loop: multi-iteration runner
+  # ralph loop: multi-iteration runner
   # ---------------------------------------------------------------------------
-  - name: "ralph_loop"
+  - name: "loop"
     display: "Ralph Loop"
     description: "Runs multi-iteration loop with rate limiting, circuit breaker, session continuity, and exit detection."
     model: "anthropic/L2"
