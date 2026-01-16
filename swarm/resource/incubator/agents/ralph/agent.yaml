@@ -235,7 +235,6 @@ agents:
       - Ensure <project>/.agent/scratchpad.md exists.
 
       Output: created paths.
-
     functions:
       - "ralph:write_template_prompt"
       - "ralph:write_template_agent"
@@ -404,12 +403,13 @@ tools:
         package main
 
         import (
+          "strings"
           "fmt"
           "os"
           "path/filepath"
         )
 
-        var baseDir = "<no value>"
+        var baseDir = "{{.base_dir}}"
 
         const content = `# Ralph Development Instructions
 
@@ -452,7 +452,7 @@ tools:
 
         **IMPORTANT**: At the end of your response, ALWAYS include this status block:
 
-        ```
+        '''
         ---RALPH_STATUS---
         STATUS: IN_PROGRESS | COMPLETE | BLOCKED
         TASKS_COMPLETED_THIS_LOOP: <number>
@@ -462,7 +462,7 @@ tools:
         EXIT_SIGNAL: false | true
         RECOMMENDATION: <one line summary of what to do next>
         ---END_RALPH_STATUS---
-        ```
+        '''
 
         ### When to set EXIT_SIGNAL: true
 
@@ -476,7 +476,7 @@ tools:
         ### Examples of proper status reporting:
 
         **Example 1: Work in progress**
-        ```
+        '''
         ---RALPH_STATUS---
         STATUS: IN_PROGRESS
         TASKS_COMPLETED_THIS_LOOP: 2
@@ -486,10 +486,10 @@ tools:
         EXIT_SIGNAL: false
         RECOMMENDATION: Continue with next priority task from @fix_plan.md
         ---END_RALPH_STATUS---
-        ```
+        '''
 
         **Example 2: Project complete**
-        ```
+        '''
         ---RALPH_STATUS---
         STATUS: COMPLETE
         TASKS_COMPLETED_THIS_LOOP: 1
@@ -499,10 +499,10 @@ tools:
         EXIT_SIGNAL: true
         RECOMMENDATION: All requirements met, project ready for review
         ---END_RALPH_STATUS---
-        ```
+        '''
 
         **Example 3: Stuck/blocked**
-        ```
+        '''
         ---RALPH_STATUS---
         STATUS: BLOCKED
         TASKS_COMPLETED_THIS_LOOP: 0
@@ -512,7 +512,7 @@ tools:
         EXIT_SIGNAL: false
         RECOMMENDATION: Need human help - same error for 3 loops
         ---END_RALPH_STATUS---
-        ```
+        '''
 
         ### What NOT to do:
         - ❌ Do NOT continue with busy work when EXIT_SIGNAL should be true
@@ -536,7 +536,7 @@ tools:
         **When**: You evaluate project status at end of loop
 
         **Then**: You must output:
-        ```
+        '''
         ---RALPH_STATUS---
         STATUS: COMPLETE
         TASKS_COMPLETED_THIS_LOOP: 1
@@ -546,7 +546,7 @@ tools:
         EXIT_SIGNAL: true
         RECOMMENDATION: All requirements met, project ready for review
         ---END_RALPH_STATUS---
-        ```
+        '''
 
         **Ralph's Action**: Detects EXIT_SIGNAL=true, gracefully exits loop with success message
 
@@ -562,7 +562,7 @@ tools:
         **When**: You start a new loop iteration
 
         **Then**: You must output:
-        ```
+        '''
         ---RALPH_STATUS---
         STATUS: IN_PROGRESS
         TASKS_COMPLETED_THIS_LOOP: 0
@@ -572,7 +572,7 @@ tools:
         EXIT_SIGNAL: false
         RECOMMENDATION: All tests passing, no implementation needed
         ---END_RALPH_STATUS---
-        ```
+        '''
 
         **Ralph's Action**: Increments test_only_loops counter, exits after 3 consecutive test-only loops
 
@@ -587,7 +587,7 @@ tools:
         **When**: You encounter the same error again
 
         **Then**: You must output:
-        ```
+        '''
         ---RALPH_STATUS---
         STATUS: BLOCKED
         TASKS_COMPLETED_THIS_LOOP: 0
@@ -597,7 +597,7 @@ tools:
         EXIT_SIGNAL: false
         RECOMMENDATION: Stuck on [error description] - human intervention needed
         ---END_RALPH_STATUS---
-        ```
+        '''
 
         **Ralph's Action**: Circuit breaker detects repeated errors, opens circuit after 5 loops
 
@@ -613,7 +613,7 @@ tools:
         **When**: You search for work to do and find none
 
         **Then**: You must output:
-        ```
+        '''
         ---RALPH_STATUS---
         STATUS: COMPLETE
         TASKS_COMPLETED_THIS_LOOP: 0
@@ -623,7 +623,7 @@ tools:
         EXIT_SIGNAL: true
         RECOMMENDATION: No remaining work, all specs implemented
         ---END_RALPH_STATUS---
-        ```
+        '''
 
         **Ralph's Action**: Detects completion signal, exits loop immediately
 
@@ -639,7 +639,7 @@ tools:
         **When**: You complete a task successfully
 
         **Then**: You must output:
-        ```
+        '''
         ---RALPH_STATUS---
         STATUS: IN_PROGRESS
         TASKS_COMPLETED_THIS_LOOP: 3
@@ -649,7 +649,7 @@ tools:
         EXIT_SIGNAL: false
         RECOMMENDATION: Continue with next task from @fix_plan.md
         ---END_RALPH_STATUS---
-        ```
+        '''
 
         **Ralph's Action**: Continues loop, circuit breaker stays CLOSED (normal operation)
 
@@ -664,7 +664,7 @@ tools:
         **When**: You identify the blocker
 
         **Then**: You must output:
-        ```
+        '''
         ---RALPH_STATUS---
         STATUS: BLOCKED
         TASKS_COMPLETED_THIS_LOOP: 0
@@ -674,7 +674,7 @@ tools:
         EXIT_SIGNAL: false
         RECOMMENDATION: Blocked on [specific dependency] - need [what's needed]
         ---END_RALPH_STATUS---
-        ```
+        '''
 
         **Ralph's Action**: Logs blocker, may exit after multiple blocked loops
 
@@ -704,7 +704,7 @@ tools:
             fmt.Fprintln(os.Stderr, err.Error())
             os.Exit(1)
           }
-          if err := os.WriteFile(outPath, []byte(content), 0o644); err != nil {
+          if err := os.WriteFile(outPath, []byte(strings.ReplaceAll(content, "'''", "```")), 0o644); err != nil {
             fmt.Fprintln(os.Stderr, err.Error())
             os.Exit(1)
           }
@@ -727,17 +727,18 @@ tools:
         package main
 
         import (
+          "strings"
           "fmt"
           "os"    
           "path/filepath"
         )
 
-        var baseDir = "<no value>"
+        var baseDir = "{{.base_dir}}"
 
         const content = `# Agent Build Instructions
 
         ## Project Setup
-        ```bash
+        '''bash
         # Install dependencies (example for Node.js project)
         npm install
 
@@ -746,10 +747,10 @@ tools:
 
         # Or for Rust project  
         cargo build
-        ```
+        '''
 
         ## Running Tests
-        ```bash
+        '''bash
         # Node.js
         npm test
 
@@ -758,23 +759,23 @@ tools:
 
         # Rust
         cargo test
-        ```
+        '''
 
         ## Build Commands
-        ```bash
+        '''bash
         # Production build
         npm run build
         # or
         cargo build --release
-        ```
+        '''
 
         ## Development Server
-        ```bash
+        '''bash
         # Start development server
         npm run dev
         # or
         cargo run
-        ```
+        '''
 
         ## Key Learnings
         - Update this section when you learn new build optimizations
@@ -794,12 +795,12 @@ tools:
           - Integration tests for API endpoints or main functionality
           - End-to-end tests for critical user workflows
         - **Coverage Validation**: Run coverage reports before marking features complete:
-          ```bash
+          '''bash
           # Examples by language/framework
           npm run test:coverage
           pytest --cov=src tests/ --cov-report=term-missing
           cargo tarpaulin --out Html
-          ```
+          '''
         - **Test Quality**: Tests must validate behavior, not just achieve coverage metrics
         - **Test Documentation**: Complex test scenarios must include comments explaining the test strategy
 
@@ -808,18 +809,18 @@ tools:
         Before moving to the next feature, ALL changes must be:
 
         1. **Committed with Clear Messages**:
-          ```bash
+          '''bash
           git add .
           git commit -m "feat(module): descriptive message following conventional commits"
-          ```
+          '''
           - Use conventional commit format: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, etc.
           - Include scope when applicable: `feat(api):`, `fix(ui):`, `test(auth):`
           - Write descriptive messages that explain WHAT changed and WHY
 
         2. **Pushed to Remote Repository**:
-          ```bash
+          '''bash
           git push origin <branch-name>
-          ```
+          '''
           - Never leave completed features uncommitted
           - Push regularly to maintain backup and enable collaboration
           - Ensure CI/CD pipelines pass before considering feature complete
@@ -904,7 +905,7 @@ tools:
             fmt.Fprintln(os.Stderr, err.Error())
             os.Exit(1)
           }
-          if err := os.WriteFile(outPath, []byte(content), 0o644); err != nil {
+          if err := os.WriteFile(outPath, []byte(strings.ReplaceAll(content, "'''", "```")), 0o644); err != nil {
             fmt.Fprintln(os.Stderr, err.Error())
             os.Exit(1)
           }
@@ -927,12 +928,13 @@ tools:
         package main
 
         import (
+          "strings"
           "fmt"
           "os"
           "path/filepath"
         )
 
-        var baseDir = "<no value>"
+        var baseDir = "{{.base_dir}}"
 
         const content = `# Ralph Fix Plan
 
@@ -973,7 +975,7 @@ tools:
             fmt.Fprintln(os.Stderr, err.Error())
             os.Exit(1)
           }
-          if err := os.WriteFile(outPath, []byte(content), 0o644); err != nil {
+          if err := os.WriteFile(outPath, []byte(strings.ReplaceAll(content, "'''", "```")), 0o644); err != nil {
             fmt.Fprintln(os.Stderr, err.Error())
             os.Exit(1)
           }
@@ -996,12 +998,13 @@ tools:
         package main
 
         import (
+          "strings"
           "fmt"
           "os"
           "path/filepath"
         )
 
-        var baseDir = "<no value>"
+        var baseDir = "{{.base_dir}}"
 
         const content = `# This file ensures the templates/specs/ directory is tracked by git
         # Remove this file when you add actual template specification files
@@ -1017,7 +1020,7 @@ tools:
             fmt.Fprintln(os.Stderr, err.Error())
             os.Exit(1)
           }
-          if err := os.WriteFile(outPath, []byte(content), 0o644); err != nil {
+          if err := os.WriteFile(outPath, []byte(strings.ReplaceAll(content, "'''", "```")), 0o644); err != nil {
             fmt.Fprintln(os.Stderr, err.Error())
             os.Exit(1)
           }
