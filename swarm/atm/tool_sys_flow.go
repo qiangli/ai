@@ -11,27 +11,6 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-// // run agent first if there is instruction followed by the flow.
-// // otherwise, run the flow only
-// func (r *SystemKit) Flow(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
-// 	flowType := argm.FlowType()
-
-// 	switch flowType {
-// 	case api.FlowTypeSequence:
-// 		return r.Sequence(ctx, vars, "", argm)
-// 	case api.FlowTypeParallel:
-// 		return r.Parallel(ctx, vars, "", argm)
-// 	case api.FlowTypeChoice:
-// 		return r.Choice(ctx, vars, "", argm)
-// 	// case api.FlowTypeMap:
-// 	// 	return r.Map(ctx, vars, "", argm)
-// 	case api.FlowTypeChain:
-// 		return r.Chain(ctx, vars, "", argm)
-// 	default:
-// 		return nil, fmt.Errorf("flow type not supported: %s", flowType)
-// 	}
-// }
-
 // FlowType Sequence executes actions one after another, where each
 // subsequent action uses the previous action's output as input.
 func (r *SystemKit) Sequence(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
@@ -51,8 +30,10 @@ func (r *SystemKit) InternalSequence(ctx context.Context, vars *api.Vars, _ stri
 	for _, v := range actions {
 		data, err := vars.RootAgent.Runner.Run(ctx, v, argm)
 		if err != nil {
+			argm["error"] = err
 			return nil, err
 		}
+		argm["result"] = data
 		result = data
 	}
 	return api.ToResult(result), nil

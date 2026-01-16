@@ -1,4 +1,4 @@
-// #! mime-type=text/x-go-template
+// #! --mime-type=text/x-go-template
 package main
 
 import (

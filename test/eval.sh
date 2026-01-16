@@ -15,7 +15,12 @@ template='data:,
 
 {{.query}}
 
+>>>>>>>>> Tool
+{{.tools}}
+
 >>>>>>>>> Result
+
+{{.result.Value | fromJson | toPrettyJson}}
 
 >>>>>>>>> Env
 
@@ -24,7 +29,8 @@ template='data:,
 
 ##
 # script="file:///$PWD/swarm/resource/incubator/agents/meta/agent.yaml"
-script="file:///$PWD/swarm/resource/incubator/agents/web/agent.yaml"
+# script="file:///$PWD/swarm/resource/incubator/agents/web/agent.yaml"
+script="file:///$PWD/swarm/resource/incubator/agents/ralph/agent.yaml"
 
 # message="write a report on the major world events for the year of 2025"
 # message="What is the latest technology and research  human like consciousness for  AI and LLM"
@@ -40,16 +46,24 @@ message="Top open source github repo for comamnd line parsing in golang"
 # /agent:web/search \
 #     --option message="$message"
 # agent="web/search"
-agent="web/react"
+# agent="web/react"
+
+# /flow:sequence \
+#     --agent "$agent" \
+#     --actions "[ai:spawn_agent,sh:format]" \
+#     --adapter "echo" \
+#     --template "$template" \
+#     --script "$script" \
+#     --message "$message"
+
+tool="ralph:write_template_agent"
 
 /flow:sequence \
-    --agent "$agent" \
-    --actions "[ai:spawn_agent,sh:format]" \
+    --tool "$tool" \
+    --actions "[ai:read_tool_config,sh:format]" \
     --adapter "echo" \
     --template "$template" \
-    --script "$script" \
-    --message "$message"
-
+    --script "$script"
 ###
 
 printenv

@@ -50,6 +50,7 @@ require (
 	github.com/sahilm/fuzzy v0.1.1
 	github.com/shirou/gopsutil/v4 v4.25.12
 	github.com/spf13/cast v1.10.0
+	github.com/stretchr/testify v1.11.1
 	github.com/traefik/yaegi v0.16.1
 	github.com/u-root/u-root v0.15.0
 	github.com/weppos/publicsuffix-go v0.50.2
@@ -175,6 +176,7 @@ require (
 	github.com/pjbgf/sha1cd v0.5.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkg/term v1.2.0-beta.2 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/qiangli/filesearch v0.0.0-20250727212022-dcfddd1c92de // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect

@@ -3,8 +3,11 @@ package atm
 import (
 	"bytes"
 	"maps"
+	"slices"
 	"strings"
 	"text/template"
+
+	"github.com/u-root/u-root/pkg/shlex"
 
 	"github.com/qiangli/ai/swarm/api"
 )
@@ -23,30 +26,78 @@ func applyTemplate(tpl *template.Template, text string, data any) (string, error
 	return buf.String(), nil
 }
 
-// crude check
-// #! magic for large block of text
+// check
+// #! or // magic for large block of text
 // {{ contained within for oneliner
 func IsTemplate(v any) bool {
 	s, ok := v.(string)
 	if !ok {
 		return false
 	}
-	return strings.HasPrefix(s, "#!") || strings.Contains(s, "{{")
+	if strings.HasPrefix(s, "#!") || strings.HasPrefix(s, "//") {
+		_, mime := ParseMimeType(s)
+		return slices.Contains([]string{"text/x-go-template"}, mime)
+	}
+	return strings.Contains(s, "{{")
 }
 
-// Check s for prefix "#!" or infix "{{" to apply template if found. otherise skip
-func CheckApplyTemplate(tpl *template.Template, s string, data map[string]any) (string, error) {
-	if strings.HasPrefix(s, "#!") {
-		// TODO parse the command line args?
-		parts := strings.SplitN(s, "\n", 2)
-		if len(parts) == 2 {
-			// remove hashbang line
-			return applyTemplate(tpl, parts[1], data)
+// Check for mime-type specification.
+// Returns content and mime type. remove first line for multiline text
+func ParseMimeType(s string) (string, string) {
+	var line string
+	var data string
+	parts := strings.SplitN(s, "\n", 2)
+	// remove first line for multiline text
+	if len(parts) == 2 {
+		line = parts[0]
+		data = parts[1]
+	} else {
+		line = parts[0]
+		if len(line) > 256 {
+			line = line[:256]
 		}
-		// remove hashbang
-		return applyTemplate(tpl, parts[0][2:], data)
+		data = parts[0]
 	}
-	// any string containing with {{
+	// shlex returns nil if not trimmed
+	line = strings.TrimPrefix(line, "#!")
+	opts := []string{"--mime-type", "--mime_type", "mime-type", "mime_type"}
+	args := shlex.Argv(line)
+	for i, v := range args {
+		if slices.Contains(opts, v) {
+			if len(args) > i+1 {
+				return data, args[i+1]
+			}
+		}
+		sa := strings.SplitN(v, "=", 2)
+		if len(sa) == 1 {
+			continue
+		}
+		if slices.Contains(opts, sa[0]) {
+			return data, sa[1]
+		}
+	}
+	return s, ""
+}
+
+// Check s for prefix "#!", "//" with mime-type specification
+// or infix "{{" to apply template if found. otherise skip
+func CheckApplyTemplate(tpl *template.Template, s string, data map[string]any) (string, error) {
+	if strings.HasPrefix(s, "#!") || strings.HasPrefix(s, "//") {
+		// parts := strings.SplitN(s, "\n", 2)
+		// if len(parts) == 2 {
+		// 	// remove hashbang line
+		// 	// return applyTemplate(tpl, parts[1], data)
+		// }
+		// // remove leading hashbang
+		// return applyTemplate(tpl, parts[0][2:], data)
+		// not a template
+		content, mime := ParseMimeType(s)
+		if slices.Contains([]string{"text/x-go-template"}, mime) {
+			return applyTemplate(tpl, content, data)
+		}
+		return s, nil
+	}
+	// one liner - any string containing with {{
 	if strings.Contains(s, "{{") {
 		return applyTemplate(tpl, s, data)
 	}
