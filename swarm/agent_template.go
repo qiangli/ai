@@ -20,7 +20,8 @@ import (
 // https://pkg.go.dev/text/template
 // https://masterminds.github.io/sprig/
 // https://github.com/golang/go/issues/18221
-func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
+
+func NewFuncMap(sw *Swarm) template.FuncMap {
 	var fm = sprig.FuncMap()
 
 	// overridge sprig
@@ -74,6 +75,47 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 	}
 
 	// custom
+
+	// core utils
+	// var core = []string{
+	// 	"base64",
+	// 	"basename",
+	// 	"cat",
+	// 	// "chmod",
+	// 	// "cp",
+	// 	"date",
+	// 	"dirname",
+	// 	"find",
+	// 	// "gzip",
+	// 	"head",
+	// 	"ls",
+	// 	// "mkdir",
+	// 	// "mktemp",
+	// 	// "mv",
+	// 	// "rm",
+	// 	"shasum",
+	// 	"sleep",
+	// 	// "tac",
+	// 	"tail",
+	// 	// "tar",
+	// 	"time",
+	// 	// "touch",
+	// 	"wget",
+	// 	"xargs",
+	// }
+	core := sh.CoreUtilsCommands
+
+	for _, cmd := range core {
+		fm[cmd] = func(args ...string) string {
+			return RunCoreUtil(sw, cmd, args)
+		}
+	}
+	return fm
+}
+
+func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
+	fm := NewFuncMap(sw)
+
 	// ai
 	fm["ai"] = func(args ...string) string {
 		if agent == nil {
@@ -114,41 +156,6 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 			return err.Error()
 		}
 		return content
-	}
-
-	// core utils
-	// var core = []string{
-	// 	"base64",
-	// 	"basename",
-	// 	"cat",
-	// 	// "chmod",
-	// 	// "cp",
-	// 	"date",
-	// 	"dirname",
-	// 	"find",
-	// 	// "gzip",
-	// 	"head",
-	// 	"ls",
-	// 	// "mkdir",
-	// 	// "mktemp",
-	// 	// "mv",
-	// 	// "rm",
-	// 	"shasum",
-	// 	"sleep",
-	// 	// "tac",
-	// 	"tail",
-	// 	// "tar",
-	// 	"time",
-	// 	// "touch",
-	// 	"wget",
-	// 	"xargs",
-	// }
-	core := sh.CoreUtilsCommands
-
-	for _, cmd := range core {
-		fm[cmd] = func(args ...string) string {
-			return RunCoreUtil(sw, cmd, args)
-		}
 	}
 
 	return template.New("swarm").Funcs(fm)

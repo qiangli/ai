@@ -68,6 +68,9 @@ type ToolFunc struct {
 
 	// default arguments
 	Arguments map[string]any `json:"arguments"`
+
+	//
+	Config *AppConfig `json:"-"`
 }
 
 func (r *ToolFunc) Clone() *ToolFunc {

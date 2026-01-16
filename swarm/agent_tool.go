@@ -30,7 +30,6 @@ func NewAgentToolRunner(sw *Swarm, user string, agent *api.Agent) api.ActionRunn
 	}
 }
 
-// TODO load asset: scheme
 func (r *AgentToolRunner) loadYaml(tid string, base string, script string) (*api.ToolFunc, error) {
 	kit, name := api.Kitname(tid).Decode()
 	// /agent:
@@ -43,10 +42,13 @@ func (r *AgentToolRunner) loadYaml(tid string, base string, script string) (*api
 		if ac.Pack != pack {
 			return nil, fmt.Errorf("Invalid pack name: %s. config: %s", pack, ac.Pack)
 		}
+		ac.Store = r.sw.Assets
+		ac.BaseDir = base
 		for _, v := range ac.Agents {
 			if (sub == "" && v.Name == pack) || sub == v.Name {
 				v, err := conf.LoadAgentTool(ac, v.Name)
 				if err == nil {
+					v.Config = ac
 					return v, nil
 				}
 			}
@@ -57,16 +59,20 @@ func (r *AgentToolRunner) loadYaml(tid string, base string, script string) (*api
 		if err != nil {
 			return nil, err
 		}
+		tc.Store = r.sw.Assets
+		tc.BaseDir = base
 		tools, err := conf.LoadTools(tc, r.user, r.sw.Secrets)
 		if err != nil {
 			return nil, err
 		}
 		for _, v := range tools {
 			if v.Kit == kit && v.Name == name {
+				v.Config = tc
 				return v, nil
 			}
 			// default
 			if v.Kit == kit && name == "" && v.Name == kit {
+				v.Config = tc
 				return v, nil
 			}
 		}

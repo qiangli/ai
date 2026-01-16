@@ -125,7 +125,8 @@ type Agent struct {
 	Runner   ActionRunner       `json:"-"`
 	Shell    ActionRunner       `json:"-"`
 	Template *template.Template `json:"-"`
-	Config   *AppConfig         `json:"-"`
+
+	Config *AppConfig `json:"-"`
 }
 
 // for reusing cached agent
@@ -145,7 +146,11 @@ func (a *Agent) Clone() *Agent {
 		Embed:       a.Embed,
 		Environment: a.cloneEnvironment(),
 		//
-		Runner: a.Runner,
+		Runner:   a.Runner,
+		Shell:    a.Shell,
+		Template: a.Template,
+		//
+		Config: a.Config,
 	}
 
 	return clone
