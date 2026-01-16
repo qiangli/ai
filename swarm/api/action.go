@@ -241,6 +241,10 @@ type AppConfig struct {
 
 	// TODO for debugging
 	Source string `yaml:"-" json:"-"`
+
+	Store AssetStore `yaml:"-" json:"-"`
+	// relative to store root
+	BaseDir string `yaml:"-" json:"-"`
 }
 
 // ToMap converts AppConfig to a map[string]any

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	// "maps"
+
 	"strings"
 	"text/template"
 
@@ -87,19 +87,7 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 		if err != nil {
 			return err.Error()
 		}
-		// id := at.Kitname().ID()
 
-		// inherit
-		// var in = make(map[string]any)
-		// predefined
-		// in["workspace"] = sw.Vars.RTE.Roots.Workspace
-		// in["user"] = sw.Vars.RTE.User
-
-		// // defaults
-		// maps.Copy(in, agent.Arguments)
-		// //
-		// maps.Copy(in, sw.Vars.Global.GetAllEnvs())
-		// maps.Copy(in, at)
 		in := atm.BuildEffectiveArgs(sw.Vars, agent, at)
 
 		result, err := sw.execm(ctx, agent, in)
@@ -107,11 +95,24 @@ func NewTemplate(sw *Swarm, agent *api.Agent) *template.Template {
 		if err != nil {
 			return err.Error()
 		}
-		// result := api.ToResult(data)
 		if result == nil {
 			return ""
 		}
 		return result.Value
+	}
+
+	fm["asset"] = func(args ...string) string {
+		if agent == nil {
+			return "<template: missing agent>"
+		}
+		if len(args) == 0 {
+			return "pathname required. asset <pathname>..."
+		}
+		content, err := loadAsset(agent.Config.Store, agent.Config.BaseDir, args...)
+		if err != nil {
+			return err.Error()
+		}
+		return content
 	}
 
 	// core utils

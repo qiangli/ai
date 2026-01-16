@@ -7,6 +7,8 @@ import (
 	"path"
 	"reflect"
 	"strings"
+
+	"github.com/qiangli/ai/swarm/api"
 )
 
 // var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL", "GOPATH"}
@@ -221,4 +223,23 @@ func count(obj any) int {
 
 func splitLines(text string) []string {
 	return strings.Split(text, "\n")
+}
+
+func loadAsset(store api.AssetStore, base string, args ...string) (string, error) {
+	as, ok := store.(api.AssetFS)
+	if !ok {
+		return "", fmt.Errorf("Asset not supported. base: %s, %v", base, args)
+	}
+	if len(args) == 0 {
+		return "", fmt.Errorf("Missing filename")
+	}
+	var content string
+	for _, name := range args {
+		v, err := as.ReadFile(path.Join(base, name))
+		if err != nil {
+			return "", err
+		}
+		content += string(v)
+	}
+	return content, nil
 }

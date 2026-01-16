@@ -94,6 +94,7 @@ func (r *assetManager) ListAgent(owner string) (map[string]*api.AppConfig, error
 func (r *assetManager) FindAgent(owner string, pack string) (*api.AppConfig, error) {
 	var content [][]byte
 	var asset api.AssetStore
+	var base string
 	for _, v := range r.assets {
 		if as, ok := v.(api.ATMSupport); ok {
 			if v, err := as.RetrieveAgent(owner, pack); err != nil {
@@ -101,6 +102,7 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AppConfig, err
 			} else {
 				content = [][]byte{[]byte(v.Content)}
 				asset = as
+				base = ""
 				break
 			}
 		} else if as, ok := v.(api.AssetFS); ok {
@@ -119,6 +121,7 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AppConfig, err
 					} else {
 						content = append(content, v)
 						asset = as
+						base = path.Join("agents", pack)
 					}
 				}
 			}
@@ -156,11 +159,13 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AppConfig, err
 	}
 
 	// sub agents
-	for _, v := range ac.Agents {
-		// v.Name = NormalizePackname(pack, v.Name)
-		v.Store = asset
-		// TODO base for resource asset? not used and not a problem for now
-	}
+	// for _, v := range ac.Agents {
+	// 	// v.Name = NormalizePackname(pack, v.Name)
+	// 	v.Store = asset
+	// 	// TODO base for resource asset? not used and not a problem for now
+	// }
+	ac.Store = asset
+	ac.BaseDir = base
 	return ac, nil
 }
 
@@ -188,19 +193,26 @@ func (r *assetManager) ListToolkit(owner string) (map[string]*api.AppConfig, err
 
 func (r *assetManager) FindToolkit(owner string, kit string) (*api.AppConfig, error) {
 	var content []byte
+	var asset api.AssetStore
+	var base string
 	for _, v := range r.assets {
 		if as, ok := v.(api.ATMSupport); ok {
 			if v, err := as.RetrieveTool(owner, kit); err != nil {
 				continue
 			} else {
 				content = []byte(v.Content)
+				asset = as
+				base = ""
 				break
 			}
 		} else if as, ok := v.(api.AssetFS); ok {
+			// TODO support <kit>/*.yaml
 			if v, err := as.ReadFile(path.Join("tools", kit+".yaml")); err != nil {
 				continue
 			} else {
 				content = v
+				asset = as
+				base = "tools"
 				break
 			}
 		}
@@ -221,7 +233,8 @@ func (r *assetManager) FindToolkit(owner string, kit string) (*api.AppConfig, er
 	//
 	tc.Kit = kit
 	tc.RawContent = content
-
+	tc.Store = asset
+	tc.BaseDir = base
 	return tc, nil
 }
 

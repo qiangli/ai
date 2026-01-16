@@ -65,12 +65,53 @@ func (r *ConfigLoader) LoadConfig(s string) (*api.AppConfig, error) {
 	}
 }
 
+// Load assets for context, instrution, message, and script
+func (r *ConfigLoader) ResolveAssets(ac *api.AppConfig) (*api.AppConfig, error) {
+	for _, a := range ac.Agents {
+		if strings.HasPrefix(a.Context, "asset:") {
+			v, err := loadAsset(ac.Store, ac.BaseDir, a.Context[6:])
+			if err != nil {
+				return nil, err
+			}
+			a.Context = v
+		}
+		if strings.HasPrefix(a.Instruction, "asset:") {
+			v, err := loadAsset(ac.Store, ac.BaseDir, a.Instruction[6:])
+			if err != nil {
+				return nil, err
+			}
+			a.Instruction = v
+		}
+		if strings.HasPrefix(a.Message, "asset:") {
+			v, err := loadAsset(ac.Store, ac.BaseDir, a.Message[6:])
+			if err != nil {
+				return nil, err
+			}
+			a.Message = v
+		}
+	}
+	for _, t := range ac.Tools {
+		if t.Body != nil {
+			s := t.Body.Script
+			if strings.HasPrefix(s, "asset:") {
+				v, err := loadAsset(ac.Store, ac.BaseDir, s[6:])
+				if err != nil {
+					return nil, err
+				}
+				t.Body.Script = v
+			}
+		}
+	}
+	return ac, nil
+}
+
 func (r *ConfigLoader) LoadAgentConfig(packname api.Packname) (*api.AppConfig, error) {
 	pack, sub := packname.Decode()
 	if pack == "" {
 		return nil, fmt.Errorf("pack is required")
 	}
 
+	// from script arg
 	if r.data != nil {
 		ac, err := conf.LoadAgentsData([][]byte{r.data})
 		if err != nil {
@@ -79,7 +120,7 @@ func (r *ConfigLoader) LoadAgentConfig(packname api.Packname) (*api.AppConfig, e
 		if ac.Pack == pack {
 			for _, v := range ac.Agents {
 				if v.Name == sub {
-					return ac, nil
+					return r.ResolveAssets(ac)
 				}
 			}
 		}
@@ -97,7 +138,7 @@ func (r *ConfigLoader) LoadAgentConfig(packname api.Packname) (*api.AppConfig, e
 	for _, v := range ac.Agents {
 		if v.Name == sub {
 			ac.Pack = pack
-			return ac, nil
+			return r.ResolveAssets(ac)
 		}
 	}
 	return nil, fmt.Errorf("config not found for: %s", packname)
@@ -113,6 +154,7 @@ func (r *ConfigLoader) LoadToolConfig(kn api.Kitname) (*api.AppConfig, error) {
 		name = kit
 	}
 
+	// from script arg
 	if r.data != nil {
 		tc, err := conf.LoadToolData([][]byte{r.data})
 		if err != nil {
@@ -122,7 +164,7 @@ func (r *ConfigLoader) LoadToolConfig(kn api.Kitname) (*api.AppConfig, error) {
 		for _, v := range tc.Tools {
 			if v.Name == name {
 				tc.Kit = kit
-				return tc, nil
+				return r.ResolveAssets(tc)
 			}
 		}
 		// continue to find
@@ -135,7 +177,7 @@ func (r *ConfigLoader) LoadToolConfig(kn api.Kitname) (*api.AppConfig, error) {
 	for _, v := range tc.Tools {
 		if v.Name == name {
 			tc.Kit = kit
-			return tc, nil
+			return r.ResolveAssets(tc)
 		}
 	}
 

@@ -232,9 +232,9 @@ type AgentConfig struct {
 	Entrypoint []string `yaml:"entrypoint" json:"entrypoint"`
 
 	//
-	Store AssetStore `yaml:"-" json:"-"`
+	// Store AssetStore `yaml:"-" json:"-"`
 	// relative to root
-	BaseDir string `yaml:"-" json:"-"`
+	// BaseDir string `yaml:"-" json:"-"`
 
 	Config *AppConfig `json:"-"`
 }
