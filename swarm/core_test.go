@@ -92,7 +92,7 @@ func TestTemplate(t *testing.T) {
 
 	agent := &api.Agent{}
 
-	tpl := NewTemplate(sw, agent)
+	tpl := atm.NewTemplate(sw.Vars, agent)
 
 	var tools []*api.ToolFunc
 	tools = append(tools, &api.ToolFunc{

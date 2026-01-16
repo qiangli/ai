@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/golang-lru/v2/expirable"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
 )
 
@@ -99,21 +100,21 @@ func (r *ConfigLoader) LoadConfig(s string) (*api.AppConfig, error) {
 func (r *ConfigLoader) ResolveAssets(ac *api.AppConfig) (*api.AppConfig, error) {
 	for _, a := range ac.Agents {
 		if strings.HasPrefix(a.Context, "asset:") {
-			v, err := loadAsset(ac.Store, ac.BaseDir, a.Context[6:])
+			v, err := atm.LoadAsset(ac.Store, ac.BaseDir, a.Context[6:])
 			if err != nil {
 				return nil, err
 			}
 			a.Context = v
 		}
 		if strings.HasPrefix(a.Instruction, "asset:") {
-			v, err := loadAsset(ac.Store, ac.BaseDir, a.Instruction[6:])
+			v, err := atm.LoadAsset(ac.Store, ac.BaseDir, a.Instruction[6:])
 			if err != nil {
 				return nil, err
 			}
 			a.Instruction = v
 		}
 		if strings.HasPrefix(a.Message, "asset:") {
-			v, err := loadAsset(ac.Store, ac.BaseDir, a.Message[6:])
+			v, err := atm.LoadAsset(ac.Store, ac.BaseDir, a.Message[6:])
 			if err != nil {
 				return nil, err
 			}
@@ -124,7 +125,7 @@ func (r *ConfigLoader) ResolveAssets(ac *api.AppConfig) (*api.AppConfig, error) 
 		if t.Body != nil {
 			s := t.Body.Script
 			if strings.HasPrefix(s, "asset:") {
-				v, err := loadAsset(ac.Store, ac.BaseDir, s[6:])
+				v, err := atm.LoadAsset(ac.Store, ac.BaseDir, s[6:])
 				if err != nil {
 					return nil, err
 				}

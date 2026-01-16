@@ -24,7 +24,8 @@ func (r *FuncKit) ExecScript(ctx context.Context, vars *api.Vars, env *api.ToolE
 	mime := strings.ToLower(tf.Body.MimeType)
 	code := tf.Body.Script
 	if api.IsTemplate(code) {
-		v, err := CheckApplyTemplate(env.Agent.Template, code, EncodeArgs(args))
+		tpl := NewToolTemplate(vars, env.Agent.Runner, tf)
+		v, err := CheckApplyTemplate(tpl, code, EncodeArgs(args))
 		if err != nil {
 			return nil, err
 		}

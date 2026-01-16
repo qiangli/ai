@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"reflect"
+	// "reflect"
 	"strings"
-
-	"github.com/qiangli/ai/swarm/api"
+	// "github.com/qiangli/ai/swarm/api"
 )
 
 // var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL", "GOPATH"}
@@ -198,59 +197,59 @@ func tail(data string, n int) string {
 	return ""
 }
 
-func count(obj any) int {
-	switch v := obj.(type) {
-	case []byte: // uint8
-		return len(v)
-	case string:
-		return len(splitLines(v))
-	case []int, []int8, []int16, []int32, []int64,
-		[]uint, []uint16, []uint32, []uint64,
-		[]string, []float64, []float32, []struct{}:
-		return reflect.ValueOf(obj).Len()
-	case int, int8, int16, int32, int64,
-		uint, uint8, uint16, uint32, uint64,
-		float32, float64,
-		complex64, complex128:
-		// Return 1 for single value
-		return 1
-	case struct{}:
-		return reflect.TypeOf(obj).NumField()
-	default:
-		return 0
-	}
-}
+// func count(obj any) int {
+// 	switch v := obj.(type) {
+// 	case []byte: // uint8
+// 		return len(v)
+// 	case string:
+// 		return len(splitLines(v))
+// 	case []int, []int8, []int16, []int32, []int64,
+// 		[]uint, []uint16, []uint32, []uint64,
+// 		[]string, []float64, []float32, []struct{}:
+// 		return reflect.ValueOf(obj).Len()
+// 	case int, int8, int16, int32, int64,
+// 		uint, uint8, uint16, uint32, uint64,
+// 		float32, float64,
+// 		complex64, complex128:
+// 		// Return 1 for single value
+// 		return 1
+// 	case struct{}:
+// 		return reflect.TypeOf(obj).NumField()
+// 	default:
+// 		return 0
+// 	}
+// }
 
-func splitLines(text string) []string {
-	return strings.Split(text, "\n")
-}
+// func splitLines(text string) []string {
+// 	return strings.Split(text, "\n")
+// }
 
-func loadAsset(store api.AssetStore, base string, args ...string) (string, error) {
-	if len(args) == 0 {
-		return "", fmt.Errorf("Missing filename")
-	}
-	if as, ok := store.(api.AssetFS); ok {
-		var content string
-		for _, name := range args {
-			v, err := as.ReadFile(path.Join(base, name))
-			if err != nil {
-				return "", err
-			}
-			content += string(v)
-		}
-		return content, nil
-	}
-	if ws, ok := store.(api.Workspace); ok {
-		var content string
-		for _, name := range args {
-			v, err := ws.ReadFile(path.Join(base, name), nil)
-			if err != nil {
-				return "", err
-			}
-			content += string(v)
-		}
-		return content, nil
-	}
+// func loadAsset(store api.AssetStore, base string, args ...string) (string, error) {
+// 	if len(args) == 0 {
+// 		return "", fmt.Errorf("Missing filename")
+// 	}
+// 	if as, ok := store.(api.AssetFS); ok {
+// 		var content string
+// 		for _, name := range args {
+// 			v, err := as.ReadFile(path.Join(base, name))
+// 			if err != nil {
+// 				return "", err
+// 			}
+// 			content += string(v)
+// 		}
+// 		return content, nil
+// 	}
+// 	if ws, ok := store.(api.Workspace); ok {
+// 		var content string
+// 		for _, name := range args {
+// 			v, err := ws.ReadFile(path.Join(base, name), nil)
+// 			if err != nil {
+// 				return "", err
+// 			}
+// 			content += string(v)
+// 		}
+// 		return content, nil
+// 	}
 
-	return "", fmt.Errorf("Asset not supported. base: %s. files: %v", base, args)
-}
+// 	return "", fmt.Errorf("Asset not supported. base: %s. files: %v", base, args)
+// }

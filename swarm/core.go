@@ -106,7 +106,7 @@ func (sw *Swarm) CreateAgent(ctx context.Context, parent *api.Agent, packname ap
 		a.Parent = p
 		a.Runner = NewAgentToolRunner(sw, sw.User.Email, a)
 		a.Shell = NewAgentScriptRunner(sw, a)
-		a.Template = NewTemplate(sw, a)
+		a.Template = atm.NewTemplate(sw.Vars, a)
 	}
 
 	var addAll func(*api.Agent, *api.Agent)
@@ -204,19 +204,20 @@ func (sw *Swarm) exec(ctx context.Context, parent *api.Agent, input any) (*api.R
 func (sw *Swarm) execm(ctx context.Context, agent *api.Agent, argm map[string]any) (*api.Result, error) {
 	log.GetLogger(ctx).Debugf("argm: %+v\n", argm)
 
-	am := api.ArgMap(argm)
-	id := am.Kitname().ID()
-	if id == "" {
-		// required
-		// kit is optional for system command
-		return nil, fmt.Errorf("missing action id: %+v", argm)
-	}
-	v, err := agent.Runner.Run(ctx, id, argm)
-	if err != nil {
-		return nil, err
-	}
-	result := api.ToResult(v)
-	return result, nil
+	// am := api.ArgMap(argm)
+	// id := am.Kitname().ID()
+	// if id == "" {
+	// 	// required
+	// 	// kit is optional for system command
+	// 	return nil, fmt.Errorf("missing action id: %+v", argm)
+	// }
+	// v, err := agent.Runner.Run(ctx, id, argm)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// result := api.ToResult(v)
+	// return result, nil
+	return api.Exec(ctx, agent.Runner, argm)
 }
 
 // inherit parent tools including embedded agents

@@ -317,3 +317,18 @@ func (r *ToolCallEntry) ToJSON() (string, error) {
 	}
 	return string(bytes), nil
 }
+
+func Exec(ctx context.Context, runner ActionRunner, args ArgMap) (*Result, error) {
+	id := args.Kitname().ID()
+	if id == "" {
+		// required
+		// kit is optional for system command
+		return nil, fmt.Errorf("missing action id: %+v", args)
+	}
+	v, err := runner.Run(ctx, id, args)
+	if err != nil {
+		return nil, err
+	}
+	result := ToResult(v)
+	return result, nil
+}
