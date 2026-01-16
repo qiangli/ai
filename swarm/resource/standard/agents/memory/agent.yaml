@@ -180,7 +180,7 @@ agents:
       required:
         - query
     instruction: |
-      #!
+      #! mime-type=text/x-go-template
       You are a memory compression assistant.
       Based on the query and previous thoughts and interaction history,
       summarize the detailed interaction history and task progress.

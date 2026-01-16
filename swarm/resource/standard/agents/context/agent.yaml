@@ -17,7 +17,7 @@ agents:
     arguments:
       query: "{{default .message .query}}"
     context: |
-      #!
+      #! mime-type=text/x-go-template
       {{ai "/agent:context/summarizer" "--query" .query}}
     functions:
       - "agent:context/summarizer"

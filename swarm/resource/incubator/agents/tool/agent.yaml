@@ -10,7 +10,7 @@ agents:
     environment:
       base_dir: "{{.workspace}}/atm/tools"
     instruction: |
-      #!
+      #! mime-type=text/x-go-template
       You are a Smart Tool Agent specializing in comprehensive tool management:
       loading/storing, creating, reading, updating, and deleting tools.
       Additionally, you should write code in golang and translate functional code

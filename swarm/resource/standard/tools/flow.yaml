@@ -17,7 +17,7 @@ tools:
     body:
       mime_type: "text/x-go-template"
       script: |
-        #!
+        #! mime-type=text/x-go-template
         A set of tools for executing actions in a controlled fashion:
 
         + sequence: Execute actions consecutively, using the result of each action as the input for the next one.

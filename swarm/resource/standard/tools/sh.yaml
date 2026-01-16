@@ -13,7 +13,7 @@ tools:
     body:
       mime_type: "text/x-go-template"
       script: |
-        #!
+        #! mime-type=text/x-go-template
         A set of tools for executing agent, tool, system command actions
         and applying templates.
 

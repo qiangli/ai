@@ -37,7 +37,7 @@ agents:
       - Execute the help tool promptly for complex issues to maintain efficiency.
       - Maintain a supportive and friendly tone throughout all interactions to bolster user satisfaction.
     # message: |
-    #   #!
+    #   #! mime-type=text/x-go-template
     #   Memory snapshot:
     #   {{ai "/agent:memory/fold" "--query" .message}}
     functions:
