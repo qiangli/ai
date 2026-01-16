@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"maps"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -29,7 +30,8 @@ func NewAgentToolRunner(sw *Swarm, user string, agent *api.Agent) api.ActionRunn
 	}
 }
 
-func (r *AgentToolRunner) loadYaml(tid string, script string) (*api.ToolFunc, error) {
+// TODO load asset: scheme
+func (r *AgentToolRunner) loadYaml(tid string, base string, script string) (*api.ToolFunc, error) {
 	kit, name := api.Kitname(tid).Decode()
 	// /agent:
 	if kit == string(api.ToolTypeAgent) {
@@ -87,7 +89,8 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 			if err != nil {
 				return nil, err
 			}
-			tf, err := r.loadYaml(tid, cfg)
+			base := filepath.Dir(s)
+			tf, err := r.loadYaml(tid, base, cfg)
 			if err != nil {
 				return nil, err
 			}

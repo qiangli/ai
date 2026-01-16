@@ -480,7 +480,36 @@ tools:
       required: ["base_dir"]
     body:
       mime_type: "application/x-go"
-      script: "asset:/prompt/md.go"
+      script: |
+        #! --mime-type=text/x-go-template
+        package main
+
+        import (
+          "fmt"
+          "os"
+          "path/filepath"
+        )
+
+        var baseDir = "{{.base_dir}}"
+
+        const content = `{{asset "/templates/PROMPT.md"}}`
+
+        func main() {
+          if baseDir == "" || baseDir == "<no value>" {
+            fmt.Fprintln(os.Stderr, "missing required parameter: base_dir")
+            os.Exit(2)
+          }
+          outPath := filepath.Join(baseDir, "PROMPT.md")
+          if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
+            fmt.Fprintln(os.Stderr, err.Error())
+            os.Exit(1)
+          }
+          if err := os.WriteFile(outPath, []byte(content), 0o644); err != nil {
+            fmt.Fprintln(os.Stderr, err.Error())
+            os.Exit(1)
+          }
+          fmt.Println(outPath)
+        }
 
   - name: "write_template_agent"
     description: "Write the embedded AGENT.md template to <base_dir>/@AGENT.md (creating directories as needed)."
@@ -493,7 +522,38 @@ tools:
       required: ["base_dir"]
     body:
       mime_type: "application/x-go"
-      script: "asset:/agent/md.go"
+      script: |
+        #! --mime-type=text/x-go-template
+        package main
+
+        import (
+          "fmt"
+          "os"
+          "path/filepath"
+        )
+
+        func saveAgentMD(baseDir, content string) {
+          if baseDir == "" || baseDir == "<no value>" {
+            fmt.Fprintln(os.Stderr, "missing required parameter: base_dir")
+            os.Exit(2)
+          }
+          outPath := filepath.Join(baseDir, "@AGENT.md")
+          if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
+            fmt.Fprintln(os.Stderr, err.Error())
+            os.Exit(1)
+          }
+          if err := os.WriteFile(outPath, []byte(content), 0o644); err != nil {
+            fmt.Fprintln(os.Stderr, err.Error())
+            os.Exit(1)
+          }
+          fmt.Println(outPath)
+        }
+
+        func main() {
+          var baseDir = "{{.base_dir}}"
+          var content = `{{asset "/templates/AGENT.md"}}`
+          saveAgentMD(baseDir, content)
+        }
 
   - name: "write_template_fix_plan"
     description: "Write the embedded fix_plan.md template to <base_dir>/@fix_plan.md (creating directories as needed)."
@@ -506,7 +566,36 @@ tools:
       required: ["base_dir"]
     body:
       mime_type: "application/x-go"
-      script: "asset:/fix_plan/md.go"
+      script: |
+        #! --mime-type=text/x-go-template
+        package main
+
+        import (
+          "fmt"
+          "os"
+          "path/filepath"
+        )
+
+        var baseDir = "{{.base_dir}}"
+
+        const content = `{{asset "/templates/fix_plan.md"}}`
+
+        func main() {
+          if baseDir == "" || baseDir == "<no value>" {
+            fmt.Fprintln(os.Stderr, "missing required parameter: base_dir")
+            os.Exit(2)
+          }
+          outPath := filepath.Join(baseDir, "@fix_plan.md")
+          if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
+            fmt.Fprintln(os.Stderr, err.Error())
+            os.Exit(1)
+          }
+          if err := os.WriteFile(outPath, []byte(content), 0o644); err != nil {
+            fmt.Fprintln(os.Stderr, err.Error())
+            os.Exit(1)
+          }
+          fmt.Println(outPath)
+        }
 
   - name: "write_template_specs_gitkeep"
     description: "Write the embedded templates/specs/.gitkeep to <base_dir>/specs/.gitkeep (creating directories as needed)."

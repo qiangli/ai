@@ -58,12 +58,15 @@ message="Top open source github repo for comamnd line parsing in golang"
 
 tool="ralph:write_template_agent"
 
-/flow:sequence \
-    --tool "$tool" \
-    --actions "[ai:read_tool_config,sh:format]" \
-    --adapter "echo" \
-    --template "$template" \
-    --script "$script"
+# /flow:sequence \
+#     --tool "$tool" \
+#     --actions "[ai:read_tool_config,sh:format]" \
+#     --adapter "echo" \
+#     --template "$template" \
+#     --script "$script"
+
+/ralph:write_template_agent  --script "$script" --base_dir=/tmp/test/xxx 
+
 ###
 
 printenv

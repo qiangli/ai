@@ -240,11 +240,9 @@
 				// "echo",
 				//
 				// "/agent:ralph/help",
-				"/ai:read_tool_config",
+				"/ralph:write_template_agent",
 				"--script",
-				"swarm/resource/incubator/agents/ralph/agent.yaml",
-				"--tool",
-				"ralph:write_template_agent"
+				"swarm/resource/incubator/agents/ralph/agent.yaml"
 				//
 				// "/fs:read_multiple_files",
 				// "--option",
