@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/url"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -35,8 +37,11 @@ const defaultMaxSpan = 1440 // 24 hours
 const defaultMaxHistory = 3
 
 type ConfigLoader struct {
-	data []byte
-	rte  *api.ActionRTEnv
+	base   string
+	assets api.AssetStore
+	data   []byte
+
+	rte *api.ActionRTEnv
 }
 
 func NewConfigLoader(rte *api.ActionRTEnv) *ConfigLoader {
@@ -45,12 +50,37 @@ func NewConfigLoader(rte *api.ActionRTEnv) *ConfigLoader {
 	}
 }
 
-func (r *ConfigLoader) LoadContent(s string) error {
-	v, err := api.LoadURIContent(r.rte.Workspace, s)
-	if err != nil {
-		return err
+func (r *ConfigLoader) LoadContent(src string) error {
+	// v, err := api.LoadURIContent(r.rte.Workspace, uri)
+	// if err != nil {
+	// 	return err
+	// }
+	var ws = r.rte.Workspace
+	var content []byte
+	if strings.HasPrefix(src, "data:") {
+		v, err := api.DecodeDataURL(src)
+		if err != nil {
+			return err
+		}
+		content = []byte(v)
+	} else {
+		var f = src
+		if strings.HasPrefix(f, "file:") {
+			v, err := url.Parse(f)
+			if err != nil {
+				return err
+			}
+			f = v.Path
+		}
+		data, err := ws.ReadFile(f, nil)
+		if err != nil {
+			return err
+		}
+		content = data
+		r.base = filepath.Dir(f)
+		r.assets = ws
 	}
-	r.data = []byte(v)
+	r.data = content
 	return nil
 }
 
@@ -120,6 +150,8 @@ func (r *ConfigLoader) LoadAgentConfig(packname api.Packname) (*api.AppConfig, e
 		if ac.Pack == pack {
 			for _, v := range ac.Agents {
 				if v.Name == sub {
+					ac.BaseDir = r.base
+					ac.Store = r.assets
 					return r.ResolveAssets(ac)
 				}
 			}
@@ -164,6 +196,8 @@ func (r *ConfigLoader) LoadToolConfig(kn api.Kitname) (*api.AppConfig, error) {
 		for _, v := range tc.Tools {
 			if v.Name == name {
 				tc.Kit = kit
+				tc.BaseDir = r.base
+				tc.Store = r.assets
 				return r.ResolveAssets(tc)
 			}
 		}

@@ -28,7 +28,7 @@
 				// "/agent:help/help",
 				//
 				// ai
-				"/ai:list_agents"
+				// "/ai:list_agents"
 				//
 				// alias
 				// "/alias:x",
@@ -238,6 +238,13 @@
 				// "what are the top 10 world news for this year",
 				// "--adapter",
 				// "echo",
+				//
+				// "/agent:ralph/help",
+				"/ai:read_tool_config",
+				"--script",
+				"swarm/resource/incubator/agents/ralph/agent.yaml",
+				"--tool",
+				"ralph:write_template_agent"
 				//
 				// "/fs:read_multiple_files",
 				// "--option",

@@ -226,20 +226,31 @@ func splitLines(text string) []string {
 }
 
 func loadAsset(store api.AssetStore, base string, args ...string) (string, error) {
-	as, ok := store.(api.AssetFS)
-	if !ok {
-		return "", fmt.Errorf("Asset not supported. base: %s, %v", base, args)
-	}
 	if len(args) == 0 {
 		return "", fmt.Errorf("Missing filename")
 	}
-	var content string
-	for _, name := range args {
-		v, err := as.ReadFile(path.Join(base, name))
-		if err != nil {
-			return "", err
+	if as, ok := store.(api.AssetFS); ok {
+		var content string
+		for _, name := range args {
+			v, err := as.ReadFile(path.Join(base, name))
+			if err != nil {
+				return "", err
+			}
+			content += string(v)
 		}
-		content += string(v)
+		return content, nil
 	}
-	return content, nil
+	if ws, ok := store.(api.Workspace); ok {
+		var content string
+		for _, name := range args {
+			v, err := ws.ReadFile(path.Join(base, name), nil)
+			if err != nil {
+				return "", err
+			}
+			content += string(v)
+		}
+		return content, nil
+	}
+
+	return "", fmt.Errorf("Asset not supported. base: %s. files: %v", base, args)
 }
