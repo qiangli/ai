@@ -8,7 +8,7 @@ import (
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
-	"github.com/qiangli/ai/swarm/atm/conf"
+	// "github.com/qiangli/ai/swarm/atm/conf"
 )
 
 // apply templates on env, inherit from embedded agents, export env
@@ -107,34 +107,41 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	}
 
 	// resolve model or inherit
-	var model = agent.Model
-	var owner = r.sw.User.Email
-	if v, found := args["model"]; found {
-		switch vt := v.(type) {
-		case *api.Model:
-			model = vt
-		case string:
-			// set/level
-			set, level := api.Setlevel(vt).Decode()
-			// embeded/inherited
-			if v := findModel(agent, set, level); v != nil {
-				model = v
-				break
-			}
-			// external
-			v, err := conf.LoadModel(owner, set, level, r.sw.Assets)
-			if err != nil {
-				return nil, err
-			}
-			model = v
-		}
-	}
+	// var model = agent.Model
+	// var owner = r.sw.User.Email
+	// if v, found := args["model"]; found {
+	// 	switch vt := v.(type) {
+	// 	case *api.Model:
+	// 		model = vt
+	// 	case string:
+	// 		// set/level
+	// 		set, level := api.Setlevel(vt).Decode()
+	// 		// embeded/inherited
+	// 		if v := findModel(agent, set, level); v != nil {
+	// 			model = v
+	// 			break
+	// 		}
+	// 		// external
+	// 		v, err := conf.LoadModel(owner, set, level, r.sw.Assets)
+	// 		if err != nil {
+	// 			return nil, err
+	// 		}
+	// 		model = v
+	// 	}
+	// }
 	// default/any
-	if model == nil {
-		model = r.sw.Vars.RootAgent.Model
-	}
-	agent.Model = model
+	// if model == nil {
+	// 	model = r.sw.Vars.RootAgent.Model
+	// }
+	// agent.Model = model
 	// args["model"] = model
+	if agent.Model == nil {
+		model := lookupModel(agent)
+		if model == nil {
+			model = r.sw.Vars.RootAgent.Model
+		}
+		agent.Model = model
+	}
 
 	// *** tools ***
 	// inherit tools of embeded agents
