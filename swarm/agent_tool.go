@@ -117,6 +117,13 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 				return nil, err
 			}
 			base := filepath.Dir(s)
+			if strings.HasPrefix(base, "file:") {
+				v, err := url.Parse(base)
+				if err != nil {
+					return nil, err
+				}
+				base = v.Path
+			}
 			tf, err := r.loadYaml(tid, base, cfg)
 			if err != nil {
 				return nil, err
