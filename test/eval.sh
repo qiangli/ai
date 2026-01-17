@@ -57,8 +57,8 @@ message="Top open source github repo for comamnd line parsing in golang"
 #     --message "$message"
 
 # tool="ralph:write_template_agent"
-# tool="ralph:write_template_fix_plan"
-tool="ralph:write_template_prompt"
+tool="ralph:write_template_fix_plan"
+# tool="ralph:write_template_prompt"
 
 # /flow:sequence \
 #     --tool "$tool" \

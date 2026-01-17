@@ -488,6 +488,7 @@ tools:
           "fmt"
           "os"
           "path/filepath"
+          "strings"
         )
 
         var baseDir = "{{.base_dir}}"
@@ -533,6 +534,7 @@ tools:
           "fmt"
           "os"
           "path/filepath"
+          "strings"
         )
 
         var baseDir = "{{.base_dir}}"
@@ -578,6 +580,7 @@ tools:
           "fmt"
           "os"
           "path/filepath"
+          "strings"
         )
 
         var baseDir = "{{.base_dir}}"
