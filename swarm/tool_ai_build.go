@@ -82,7 +82,7 @@ func mapAssign(_ context.Context, global *api.Environment, agent *api.Agent, dst
 // resolve tools, inherit from embedded agents
 //
 // context/instruction/message are not resolved - each is done separately as needed
-func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Agent, error) {
+func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, parent *api.Agent, _ *api.ToolFunc, args map[string]any) (*api.Agent, error) {
 	var name string
 	if v, found := args["agent"].(*api.Agent); found {
 		return v, nil
@@ -120,7 +120,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	}
 
 	//
-	parent := r.agent
+	// parent := r.agent
 	if parent == nil {
 		parent = r.vars.RootAgent
 	}
@@ -261,9 +261,9 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	return agent, nil
 }
 
-func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (string, error) {
-	var agent = r.agent
-	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
+func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (string, error) {
+	var agent = parent
+	if v, err := r.checkAndCreate(ctx, vars, parent, tf, args); err == nil {
 		agent = v
 	}
 
@@ -289,9 +289,9 @@ func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, tf string, args 
 	return query, nil
 }
 
-func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (string, error) {
-	var agent = r.agent
-	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
+func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (string, error) {
+	var agent = parent
+	if v, err := r.checkAndCreate(ctx, vars, parent, tf, args); err == nil {
 		agent = v
 	}
 
@@ -322,9 +322,9 @@ func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, tf string, args
 	return prompt, nil
 }
 
-func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (any, error) {
-	var agent = r.agent
-	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
+func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (any, error) {
+	var agent = parent
+	if v, err := r.checkAndCreate(ctx, vars, parent, tf, args); err == nil {
 		agent = v
 	}
 

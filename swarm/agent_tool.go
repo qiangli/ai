@@ -350,8 +350,8 @@ func (r *AgentToolRunner) dispatch(ctx context.Context, v *api.ToolFunc, args ap
 
 	// ai
 	if v.Type == api.ToolTypeAI {
-		aiKit := NewAIKit(r.vars, r.agent)
-		out, err := aiKit.Call(ctx, r.vars, v, args)
+		aiKit := NewAIKit(r.vars)
+		out, err := aiKit.Call(ctx, r.vars, r.agent, v, args)
 		if err != nil {
 			return nil, err
 		}
@@ -360,7 +360,7 @@ func (r *AgentToolRunner) dispatch(ctx context.Context, v *api.ToolFunc, args ap
 
 	// agent tool
 	if v.Type == api.ToolTypeAgent {
-		aiKit := NewAIKit(r.vars, r.agent)
+		aiKit := NewAIKit(r.vars)
 		var in map[string]any
 		if len(v.Arguments) > 0 {
 			in = make(map[string]any)
@@ -370,7 +370,7 @@ func (r *AgentToolRunner) dispatch(ctx context.Context, v *api.ToolFunc, args ap
 			in = args
 		}
 		in["agent"] = v.Name
-		return aiKit.SpawnAgent(ctx, r.vars, "", in)
+		return aiKit.SpawnAgent(ctx, r.vars, r.agent, nil, in)
 	}
 
 	// tools

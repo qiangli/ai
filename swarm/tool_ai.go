@@ -21,14 +21,14 @@ import (
 
 type AIKit struct {
 	// sw    *Swarm
-	vars  *api.Vars
-	agent *api.Agent
+	vars *api.Vars
+	// agent *api.Agent
 }
 
-func NewAIKit(vars *api.Vars, agent *api.Agent) *AIKit {
+func NewAIKit(vars *api.Vars) *AIKit {
 	return &AIKit{
-		vars:  vars,
-		agent: agent,
+		vars: vars,
+		// agent: agent,
 	}
 }
 
@@ -42,18 +42,18 @@ var (
 	listToolsCache  = expirable.NewLRU[ListCacheKey, string](10000, nil, time.Second*900)
 )
 
-func (r *AIKit) Call(ctx context.Context, vars *api.Vars, tf *api.ToolFunc, args map[string]any) (any, error) {
-	callArgs := []any{ctx, vars, tf.Name, args}
+func (r *AIKit) Call(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
+	callArgs := []any{ctx, vars, parent, tf, args}
 	return atm.CallKit(r, tf.Kit, tf.Name, callArgs...)
 }
 
-func (r *AIKit) checkAndCreate(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (*api.Agent, error) {
+func (r *AIKit) checkAndCreate(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (*api.Agent, error) {
 	if v, found := args["agent"]; found {
 		if a, ok := v.(*api.Agent); ok {
 			return a, nil
 		}
 		if _, ok := v.(string); ok {
-			a, err := r.createAgent(ctx, vars, tf, args)
+			a, err := r.createAgent(ctx, vars, parent, tf, args)
 			if err != nil {
 				return nil, err
 			}
@@ -102,11 +102,11 @@ func (r *AIKit) llmAdapter(agent *api.Agent, args map[string]any) (api.LLMAdapte
 	return llmAdapter, nil
 }
 
-func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Result, error) {
+func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
 	var owner = r.vars.User.Email
 
-	var agent = r.agent
-	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
+	var agent = parent
+	if v, err := r.checkAndCreate(ctx, vars, parent, tf, args); err == nil {
 		agent = v
 	}
 
@@ -299,7 +299,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 
 	if resp.Result.State == api.StateTransfer {
 		args["agent"] = resp.Result.NextAgent
-		return r.SpawnAgent(ctx, vars, "", args)
+		return r.SpawnAgent(ctx, vars, parent, tf, args)
 	}
 
 	// response message
@@ -332,7 +332,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	return resp.Result, nil
 }
 
-func (r *AIKit) ListAgents(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
+func (r *AIKit) ListAgents(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args map[string]any) (string, error) {
 	log.GetLogger(ctx).Debugf("List agents: %s %+v\n", tf, args)
 
 	var user = r.vars.User.Email
@@ -356,7 +356,7 @@ func (r *AIKit) ListAgents(ctx context.Context, vars *api.Vars, tf string, args 
 	return v, nil
 }
 
-func (r *AIKit) GetAgentInfo(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
+func (r *AIKit) GetAgentInfo(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args map[string]any) (string, error) {
 	const tpl = `
 Agent: %s
 Display: %s
@@ -369,10 +369,10 @@ Instruction: %s
 		return "", err
 	}
 	if agent == "self" {
-		if r.agent == nil {
+		if parent == nil {
 			return "", fmt.Errorf("Sorry, something went terribaly wrong")
 		}
-		agent = r.agent.Name
+		agent = parent.Name
 	}
 	pack, _ := api.Packname(agent).Decode()
 	ac, err := r.vars.Assets.FindAgent(r.vars.User.Email, pack)
@@ -395,16 +395,16 @@ Instruction: %s
 	return "", fmt.Errorf("unknown agent: %s", agent)
 }
 
-func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, args api.ArgMap) (*api.AppConfig, error) {
+func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, parent *api.Agent, _ *api.ToolFunc, args api.ArgMap) (*api.AppConfig, error) {
 	packsub, err := api.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
 	}
 	if packsub == "self" {
-		if r.agent == nil {
+		if parent == nil {
 			return nil, fmt.Errorf("Sorry, something went terribaly wrong")
 		}
-		packsub = r.agent.Pack + "/" + r.agent.Name
+		packsub = parent.Pack + "/" + parent.Name
 	}
 
 	pn := api.Packname(packsub).Clean()
@@ -432,7 +432,7 @@ func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, a
 	return config, nil
 }
 
-func (r *AIKit) TransferAgent(_ context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+func (r *AIKit) TransferAgent(_ context.Context, _ *api.Vars, _ *api.Agent, _ *api.ToolFunc, args map[string]any) (*api.Result, error) {
 	agent, err := api.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
@@ -450,16 +450,16 @@ func (r *AIKit) TransferAgent(_ context.Context, _ *api.Vars, _ string, args map
 // agent is required.
 // actions defatult to the following if not set:
 // entrypoint: "ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"
-func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, _ string, args api.ArgMap) (*api.Result, error) {
+func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, parent *api.Agent, _ *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
 	packsub, err := api.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
 	}
 	if packsub == "self" {
-		if r.agent == nil {
+		if parent == nil {
 			return nil, fmt.Errorf("Sorry, something went terribaly wrong")
 		}
-		packsub = r.agent.Pack + "/" + r.agent.Name
+		packsub = parent.Pack + "/" + parent.Name
 	}
 	pn := api.Packname(packsub).Clean()
 	_, sub := pn.Decode()
@@ -471,7 +471,7 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, _ string, args a
 		entry = api.ToStringArray(v)
 	}
 	if len(entry) == 0 {
-		if ac, _ := r.ReadAgentConfig(ctx, vars, "", args); ac != nil {
+		if ac, _ := r.ReadAgentConfig(ctx, vars, parent, nil, args); ac != nil {
 			for _, c := range ac.Agents {
 				if c.Name == sub {
 					entry = c.Entrypoint
@@ -511,8 +511,8 @@ func (r *AIKit) kitname(args map[string]any) api.Kitname {
 	return kn
 }
 
-func (r *AIKit) NewAgent(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Result, error) {
-	v, err := r.createAgent(ctx, vars, tf, args)
+func (r *AIKit) NewAgent(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
+	v, err := r.createAgent(ctx, vars, parent, tf, args)
 	if err != nil {
 		return nil, err
 	}
@@ -521,7 +521,7 @@ func (r *AIKit) NewAgent(ctx context.Context, vars *api.Vars, tf string, args ma
 	}, nil
 }
 
-func (r *AIKit) ReloadAgent(ctx context.Context, _ *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+func (r *AIKit) ReloadAgent(ctx context.Context, _ *api.Vars, _ *api.Agent, _ *api.ToolFunc, args map[string]any) (*api.Result, error) {
 	script, err := api.GetStrProp("script", args)
 	if err != nil {
 		return nil, err
@@ -537,8 +537,8 @@ func (r *AIKit) ReloadAgent(ctx context.Context, _ *api.Vars, _ string, args map
 	}, nil
 }
 
-func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
-	log.GetLogger(ctx).Debugf("List tools: %s %+v\n", tf, args)
+func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, _ *api.Agent, _ *api.ToolFunc, args map[string]any) (string, error) {
+	// log.GetLogger(ctx).Debugf("List tools: %s %+v\n", tf, args)
 
 	var user = r.vars.User.Email
 	// cached list
@@ -561,13 +561,13 @@ func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, tf string, args m
 	return v, nil
 }
 
-func (r *AIKit) GetToolInfo(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
+func (r *AIKit) GetToolInfo(ctx context.Context, vars *api.Vars, _ *api.Agent, _ *api.ToolFunc, args map[string]any) (string, error) {
 	const tpl = `
 Tool: %s__%s
 Description: %s
 Parameters: %s
 `
-	log.GetLogger(ctx).Debugf("Tool info: %s %+v\n", tf, args)
+	// log.GetLogger(ctx).Debugf("Tool info: %s:%s %+v\n", tf.Kit, tf.Name, args)
 
 	tid, err := api.GetStrProp("tool", args)
 	if err != nil {
@@ -597,7 +597,7 @@ Parameters: %s
 	return "", fmt.Errorf("unknown tool: %s", tid)
 }
 
-func (r *AIKit) ReadToolConfig(ctx context.Context, vars *api.Vars, tf string, args api.ArgMap) (*api.AppConfig, error) {
+func (r *AIKit) ReadToolConfig(ctx context.Context, vars *api.Vars, _ *api.Agent, _ *api.ToolFunc, args api.ArgMap) (*api.AppConfig, error) {
 	tid, err := api.GetStrProp("tool", args)
 	if err != nil {
 		return nil, err
@@ -639,8 +639,8 @@ func (r *AIKit) ReadToolConfig(ctx context.Context, vars *api.Vars, tf string, a
 	return config, nil
 }
 
-func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
-	log.GetLogger(ctx).Debugf("List models: %s %+v\n", tf, args)
+func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, _ *api.Agent, tf *api.ToolFunc, args map[string]any) (string, error) {
+	log.GetLogger(ctx).Debugf("List models: %s:%s %+v\n", tf.Kit, tf.Name, args)
 
 	var user = r.vars.User.Email
 	// cached list
@@ -663,8 +663,8 @@ func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, tf string, args 
 	return v, nil
 }
 
-func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
-	log.GetLogger(ctx).Debugf("List messages: %s %+v\n", tf, args)
+func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, _ *api.Agent, _ *api.ToolFunc, args map[string]any) (string, error) {
+	// log.GetLogger(ctx).Debugf("List messages: %s:%s %+v\n", tf.Kit, tf.Name, args)
 
 	maxHistory, err := api.GetIntProp("max_history", args)
 	if err != nil || maxHistory <= 0 {
@@ -699,9 +699,9 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, arg
 	if count == 0 {
 		return fmt.Sprintf("No messages (%s)", option), nil
 	}
-	if count > 0 {
-		log.GetLogger(ctx).Debugf("Recalled %v messages in memory less than %v minutes old\n", count, maxSpan)
-	}
+	// if count > 0 {
+	// 	log.GetLogger(ctx).Debugf("Recalled %v messages in memory less than %v minutes old\n", count, maxSpan)
+	// }
 
 	if format == "json" || format == "application/json" {
 		b, err := json.MarshalIndent(history, "", "    ")
@@ -722,7 +722,7 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, arg
 	return v, nil
 }
 
-func (r *AIKit) SaveMessages(_ context.Context, _ *api.Vars, _ string, args api.ArgMap) (*api.Result, error) {
+func (r *AIKit) SaveMessages(_ context.Context, _ *api.Vars, _ *api.Agent, _ *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
 	data, err := api.GetStrProp("messages", args)
 	args.History()
 	if err != nil {
