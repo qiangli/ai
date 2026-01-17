@@ -31,12 +31,6 @@ var (
 const maxTurnsLimit = 100
 const maxTimeLimit = 900 // 15 min
 
-// const defaultMaxTurns = 50
-// const defaultMaxTime = 600 // 10 min
-
-// const defaultMaxSpan = 1440 // 24 hours
-// const defaultMaxHistory = 3
-
 type ConfigLoader struct {
 	base   string
 	assets api.AssetStore
@@ -52,10 +46,6 @@ func NewConfigLoader(rte *api.ActionRTEnv) *ConfigLoader {
 }
 
 func (r *ConfigLoader) LoadContent(src string) error {
-	// v, err := api.LoadURIContent(r.rte.Workspace, uri)
-	// if err != nil {
-	// 	return err
-	// }
 	var ws = r.rte.Workspace
 	var content []byte
 	if strings.HasPrefix(src, "data:") {
@@ -292,6 +282,7 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 
 	maxTurns := nzl(c.MaxTurns, ac.MaxTurns)
 	maxTime := nzl(c.MaxTime, ac.MaxTime)
+
 	// hard limit
 	maxTurns = min(maxTurns, maxTurnsLimit)
 	maxTime = min(maxTime, maxTimeLimit)

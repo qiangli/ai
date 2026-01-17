@@ -494,6 +494,7 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, _ string, args a
 			}
 		}
 	}
+	// FIX: pass on the calling agent.
 	result, err := kit.InternalSequence(ctx, vars, "", resolved, args)
 	if err != nil {
 		return nil, err

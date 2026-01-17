@@ -126,7 +126,7 @@ func NewTemplate(vars *api.Vars, agent *api.Agent) *template.Template {
 	// ai
 	fm["ai"] = func(args ...string) string {
 		if agent == nil {
-			return "<template: missing agent>"
+			return "template: missing agent"
 		}
 
 		ctx := context.Background()
@@ -169,7 +169,7 @@ func NewToolTemplate(vars *api.Vars, runner api.ActionRunner, tf *api.ToolFunc) 
 	// ai
 	fm["ai"] = func(args ...string) string {
 		if tf == nil {
-			return "<template: missing tool func>"
+			return "template: missing tool func"
 		}
 		//
 		ctx := context.Background()
@@ -183,10 +183,7 @@ func NewToolTemplate(vars *api.Vars, runner api.ActionRunner, tf *api.ToolFunc) 
 
 		in := BuildEffectiveParamArgs(vars, tf.Parameters, tf.Arguments, at)
 
-		// if agent == nil {
-		// 	agent = vars.RootAgent
-		// }
-		// result, err := sw.execm(ctx, agent, in)
+		//
 		result, err := api.Exec(ctx, runner, in)
 
 		if err != nil {
@@ -199,11 +196,11 @@ func NewToolTemplate(vars *api.Vars, runner api.ActionRunner, tf *api.ToolFunc) 
 	}
 
 	fm["asset"] = func(args ...string) string {
-		// if agent == nil {
-		// 	return "<template: missing agent>"
-		// }
 		if len(args) == 0 {
 			return "pathname required. asset <pathname>..."
+		}
+		if tf == nil || tf.Config == nil {
+			return "template: missing tool func/config"
 		}
 		content, err := LoadAsset(tf.Config.Store, tf.Config.BaseDir, args...)
 		if err != nil {

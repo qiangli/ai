@@ -242,8 +242,10 @@
 				//
 				// "/agent:ralph/help",
 				"/ralph:write_template_agent",
-				// "--script",
-				// "swarm/resource/incubator/agents/ralph/agent.yaml"
+				"--base_dir",
+				"/tmp/test/ruff",
+				"--script",
+				"swarm/resource/incubator/agents/ralph/agent.yaml"
 				// //
 				// "/fs:read_multiple_files",
 				// "--option",

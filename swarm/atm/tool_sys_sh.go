@@ -78,9 +78,7 @@ func (r *SystemKit) Apply(ctx context.Context, vars *api.Vars, _ string, args ma
 		tpl = string(v)
 	}
 
-	// var data = make(map[string]any)
-	// maps.Copy(data, vars.Global.GetAllEnvs())
-	// maps.Copy(data, args)
+	//
 	data := BuildEffectiveArgs(vars, nil, args)
 
 	return CheckApplyTemplate(vars.RootAgent.Template, tpl, data)
@@ -120,9 +118,7 @@ func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, arg
 	//
 	output, _ := api.GetStrProp("output", args)
 
-	// var data = make(map[string]any)
-	// maps.Copy(data, vars.Global.GetAllEnvs())
-	// maps.Copy(data, args)
+	//
 	data := BuildEffectiveArgs(vars, nil, args)
 
 	txt, err := CheckApplyTemplate(vars.RootAgent.Template, tpl, data)
