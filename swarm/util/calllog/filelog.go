@@ -37,7 +37,12 @@ func write(base string, entry *api.CallLogEntry) error {
 	// filename
 	now := time.Now()
 	id := api.NewKitname(entry.Kit, entry.Name).ID()
-	filename := fmt.Sprintf("%s-%s-%d.json", id, now.Format("2006-01-02"), now.UnixNano())
+	var filename string
+	if entry.Error != nil {
+		filename = fmt.Sprintf("%s-%s-%d-error.json", id, now.Format("2006-01-02"), now.UnixNano())
+	} else {
+		filename = fmt.Sprintf("%s-%s-%d.json", id, now.Format("2006-01-02"), now.UnixNano())
+	}
 	path := filepath.Join(base, filename)
 
 	data, err := json.MarshalIndent(entry, "", "  ")

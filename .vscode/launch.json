@@ -109,7 +109,7 @@
 				// bash script
 				// 
 				// "test/eval.sh",
-				"test/test.sh",
+				// "test/test.sh",
 				// "test/std.sh",
 				// "test/yaml-wrap.sh",
 				// "swarm/resource/template/atm.yaml",
@@ -241,7 +241,7 @@
 				// "echo",
 				//
 				// "/agent:ralph/help",
-				// "/ralph:write_template_agent",
+				"/ralph:write_template_agent",
 				// "--script",
 				// "swarm/resource/incubator/agents/ralph/agent.yaml"
 				// //
