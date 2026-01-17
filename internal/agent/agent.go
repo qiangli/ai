@@ -41,22 +41,22 @@ func loadUser(base string) (*api.User, error) {
 	return &user, nil
 }
 
-func storeUser(base string, user *api.User) error {
-	p := filepath.Join(base, "user.json")
-	file, err := os.Create(p)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
+// func storeUser(base string, user *api.User) error {
+// 	p := filepath.Join(base, "user.json")
+// 	file, err := os.Create(p)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer file.Close()
 
-	encoder := json.NewEncoder(file)
-	err = encoder.Encode(user)
-	if err != nil {
-		return err
-	}
+// 	encoder := json.NewEncoder(file)
+// 	err = encoder.Encode(user)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	ctx := context.Background()
@@ -123,12 +123,6 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm, error) {
 	swarm.ClearAllEnv(essentialEnv)
 
-	// mem, err := db.OpenMemoryStore(cfg.Base, "memory.db")
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer mem.Close()
-
 	var adapters = adapter.GetAdapters()
 	var secrets = conf.LocalSecrets
 
@@ -164,6 +158,11 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 		return nil, err
 	}
 
+	tools, err := swarm.NewToolSystem(cfg.Base)
+	if err != nil {
+		return nil, err
+	}
+
 	var rte = &api.ActionRTEnv{
 		ID:        uuid.NewString(),
 		Base:      cfg.Base,
@@ -174,11 +173,11 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 		Blobs:     blobs,
 		Workspace: lfs,
 		OS:        los,
-	}
-
-	tools, err := swarm.NewToolSystem(rte)
-	if err != nil {
-		return nil, err
+		//
+		Tools:    tools,
+		Adapters: adapters,
+		History:  mem,
+		Log:      callogs,
 	}
 
 	sw := &swarm.Swarm{
@@ -202,14 +201,6 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 
 	return sw, nil
 }
-
-// func showInput(ctx context.Context, message string) {
-// 	if log.GetLogger(ctx).IsTrace() {
-// 		log.GetLogger(ctx).Debugf("input: %+v\n", message)
-// 	}
-
-// 	PrintInput(ctx, message)
-// }
 
 func processOutput(ctx context.Context, format string, message *api.Output) {
 	if log.GetLogger(ctx).IsTrace() {

@@ -37,11 +37,15 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	}
 
 	// config
+	loadScript := func(v string) (string, error) {
+		return api.LoadURIContent(vars.RTE.Workspace, v)
+	}
+
 	var cfg []byte
 	if v, found := args["script"]; found {
 		if uri, ok := v.(string); ok {
 			if strings.HasSuffix(uri, ".yaml") || strings.HasSuffix(uri, ".yml") {
-				data, err := r.sw.LoadScript(uri)
+				data, err := loadScript(uri)
 				if err != nil {
 					return nil, err
 				}
@@ -50,7 +54,12 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 		}
 	}
 
-	agent, err := r.sw.CreateAgent(ctx, r.sw.Vars.RootAgent, api.Packname(name), cfg)
+	//
+	parent := r.agent
+	if parent == nil {
+		parent = r.vars.RootAgent
+	}
+	agent, err := CreateAgent(ctx, r.vars, parent, api.Packname(name), cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +72,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	addEnv := func(a *api.Agent) error {
 		if a.Environment != nil {
 			src := a.Environment.GetAllEnvs()
-			return r.sw.mapAssign(ctx, a, envs, src, true)
+			return mapAssign(ctx, vars.Global, a, envs, src, true)
 		}
 		return nil
 	}
@@ -88,7 +97,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	// resolve agent args
 	var agentArgs = make(map[string]any)
 	if len(agent.Arguments) > 0 {
-		if err := r.sw.mapAssign(ctx, agent, agentArgs, agent.Arguments, true); err != nil {
+		if err := mapAssign(ctx, vars.Global, agent, agentArgs, agent.Arguments, true); err != nil {
 			return nil, err
 		}
 	}
@@ -138,7 +147,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	if agent.Model == nil {
 		model := lookupModel(agent)
 		if model == nil {
-			model = r.sw.Vars.RootAgent.Model
+			model = r.vars.RootAgent.Model
 		}
 		agent.Model = model
 	}

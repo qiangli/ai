@@ -10,8 +10,6 @@ import (
 
 type toolSystem struct {
 	kits map[any]api.ToolKit
-
-	rte *api.ActionRTEnv
 }
 
 type KitKey struct {
@@ -26,13 +24,13 @@ func NewKitKey(fnType api.ToolType, kit string) KitKey {
 	}
 }
 
-func NewToolSystem(rte *api.ActionRTEnv) (api.ToolSystem, error) {
+func NewToolSystem(base string) (api.ToolSystem, error) {
 	ts := &toolSystem{
-		rte:  rte,
+		// rte:  rte,
 		kits: make(map[any]api.ToolKit),
 	}
 
-	kbPath := filepath.Join(rte.Base, "kb.json")
+	kbPath := filepath.Join(base, "kb.json")
 
 	// default by type
 	ts.AddKit(api.ToolTypeFunc, atm.NewFuncKit(kbPath))

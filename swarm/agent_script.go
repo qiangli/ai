@@ -16,15 +16,20 @@ import (
 )
 
 type AgentScriptRunner struct {
-	sw    *Swarm
+	// sw    *Swarm
+	vars  *api.Vars
 	agent *api.Agent
 }
 
-func NewAgentScriptRunner(sw *Swarm, agent *api.Agent) api.ActionRunner {
+func NewAgentScriptRunner(vars *api.Vars, agent *api.Agent) api.ActionRunner {
 	return &AgentScriptRunner{
-		sw:    sw,
+		vars:  vars,
 		agent: agent,
 	}
+}
+
+func (r *AgentScriptRunner) loadScript(v string) (string, error) {
+	return api.LoadURIContent(r.vars.RTE.Workspace, v)
 }
 
 // Run command or script.
@@ -38,7 +43,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 			if !ok {
 				return nil, fmt.Errorf("script not found")
 			}
-			if v, err := r.sw.LoadScript(api.ToString(s)); err == nil {
+			if v, err := r.loadScript(api.ToString(s)); err == nil {
 				script = v
 			}
 		}
@@ -51,11 +56,11 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	// bash script
 	var b bytes.Buffer
 	ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
-	vs := sh.NewVirtualSystem(r.sw.OS, r.sw.Workspace, ioe)
+	vs := sh.NewVirtualSystem(r.vars.RTE.OS, r.vars.RTE.Workspace, ioe)
 
 	// set global env for bash script
 	// TODO batch set
-	for k, v := range r.sw.Vars.Global.GetAllEnvs() {
+	for k, v := range r.vars.Global.GetAllEnvs() {
 		vs.System.Setenv(k, v)
 	}
 
@@ -70,7 +75,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 		return nil, err
 	}
 	// copy back env
-	r.sw.Vars.Global.AddEnvs(vs.System.Environ())
+	r.vars.Global.AddEnvs(vs.System.Environ())
 
 	result := &api.Result{
 		Value: b.String(),
@@ -99,12 +104,12 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, _ map[string]an
 			// // defaults
 			// maps.Copy(in, r.agent.Arguments)
 			// //
-			// maps.Copy(in, r.sw.Vars.Global.GetAllEnvs())
+			// maps.Copy(in, r.vars.Global.GetAllEnvs())
 			// // share or not share?
 			// // maps.Copy(in, envs)
 			// maps.Copy(in, at)
 
-			in := atm.BuildEffectiveArgs(r.sw.Vars, r.agent, at)
+			in := atm.BuildEffectiveArgs(r.vars, r.agent, at)
 
 			_, err = r.run(ctx, vs, in)
 			if err != nil {
@@ -117,7 +122,7 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, _ map[string]an
 		// internal list
 		allowed := []string{"env", "printenv"}
 		if slices.Contains(allowed, args[0]) {
-			out, err := doBashCustom(r.sw.Vars, vs, args)
+			out, err := doBashCustom(r.vars, vs, args)
 			fmt.Fprintf(vs.IOE.Stdout, "%v", out)
 			if err != nil {
 				fmt.Fprintln(vs.IOE.Stderr, err.Error())
@@ -133,7 +138,7 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, _ map[string]an
 
 		// TODO restricted
 		// block other commands
-		out, err := atm.ExecCommand(ctx, r.sw.OS, r.sw.Vars, args[0], args[1:])
+		out, err := atm.ExecCommand(ctx, r.vars.RTE.OS, r.vars, args[0], args[1:])
 		// out already has stdout/stder combined
 		fmt.Fprintf(vs.IOE.Stdout, "%v", out)
 		return true, err
@@ -141,7 +146,7 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, _ map[string]an
 }
 
 func (r *AgentScriptRunner) run(ctx context.Context, vs *sh.VirtualSystem, args api.ArgMap) (*api.Result, error) {
-	result, err := r.sw.execm(ctx, r.agent, args)
+	result, err := api.Exec(ctx, r.agent.Runner, args)
 	if result != nil {
 		fmt.Fprintln(vs.IOE.Stdout, result.Value)
 	}

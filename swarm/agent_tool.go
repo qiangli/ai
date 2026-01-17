@@ -16,16 +16,16 @@ import (
 
 type AgentToolRunner struct {
 	user    string
-	sw      *Swarm
+	vars    *api.Vars
 	agent   *api.Agent
 	toolMap map[string]*api.ToolFunc
 }
 
-func NewAgentToolRunner(sw *Swarm, user string, agent *api.Agent) api.ActionRunner {
-	toolMap := sw.buildAgentToolMap(agent)
+func NewAgentToolRunner(vars *api.Vars, agent *api.Agent) api.ActionRunner {
+	toolMap := buildAgentToolMap(agent)
 	return &AgentToolRunner{
-		sw:      sw,
-		user:    user,
+		vars:    vars,
+		user:    vars.RTE.User.Email,
 		agent:   agent,
 		toolMap: toolMap,
 	}
@@ -43,7 +43,7 @@ func (r *AgentToolRunner) loadYaml(tid string, base string, script string) (*api
 		if ac.Pack != pack {
 			return nil, fmt.Errorf("Invalid pack name: %s. config: %s", pack, ac.Pack)
 		}
-		ac.Store = r.sw.Vars.RTE.Workspace
+		ac.Store = r.vars.RTE.Workspace
 		ac.BaseDir = base
 		for _, v := range ac.Agents {
 			if (sub == "" && v.Name == pack) || sub == v.Name {
@@ -60,9 +60,9 @@ func (r *AgentToolRunner) loadYaml(tid string, base string, script string) (*api
 		if err != nil {
 			return nil, err
 		}
-		tc.Store = r.sw.Vars.RTE.Workspace
+		tc.Store = r.vars.RTE.Workspace
 		tc.BaseDir = base
-		tools, err := conf.LoadTools(tc, r.user, r.sw.Secrets)
+		tools, err := conf.LoadTools(tc, r.user, r.vars.RTE.Secrets)
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +93,7 @@ func (r *AgentToolRunner) loadScript(uri string) (string, error) {
 			}
 			f = v.Path
 		}
-		data, err := r.sw.Workspace.ReadFile(f, nil)
+		data, err := r.vars.RTE.Workspace.ReadFile(f, nil)
 		if err != nil {
 			return "", err
 		}
@@ -166,7 +166,7 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 	}
 
 	// load external
-	tools, err := conf.LoadToolFunc(r.user, tid, r.sw.Secrets, r.sw.Assets)
+	tools, err := conf.LoadToolFunc(r.user, tid, r.vars.RTE.Secrets, r.vars.RTE.Assets)
 	if err != nil {
 		return nil, err
 	}
@@ -303,7 +303,7 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	// run the action
 	// and make the error/result available in args
 	uctx := context.WithValue(ctx, api.SwarmUserContextKey, r.user)
-	result, err := r.sw.callTool(uctx, r.agent, tf, args)
+	result, err := r.callTool(uctx, r.agent, tf, args)
 
 	if err != nil {
 		// args["error"] = err.Error()

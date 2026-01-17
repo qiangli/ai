@@ -20,13 +20,14 @@ import (
 )
 
 type AIKit struct {
-	sw    *Swarm
+	// sw    *Swarm
+	vars  *api.Vars
 	agent *api.Agent
 }
 
-func NewAIKit(sw *Swarm, agent *api.Agent) *AIKit {
+func NewAIKit(vars *api.Vars, agent *api.Agent) *AIKit {
 	return &AIKit{
-		sw:    sw,
+		vars:  vars,
 		agent: agent,
 	}
 }
@@ -77,7 +78,7 @@ func (r *AIKit) llmAdapter(agent *api.Agent, args map[string]any) (api.LLMAdapte
 		case api.LLMAdapter:
 			llmAdapter = vt
 		case string:
-			if v, err := r.sw.Adapters.Get(vt); err != nil {
+			if v, err := r.vars.RTE.Adapters.Get(vt); err != nil {
 				return nil, err
 			} else {
 				llmAdapter = v
@@ -87,7 +88,7 @@ func (r *AIKit) llmAdapter(agent *api.Agent, args map[string]any) (api.LLMAdapte
 		}
 	} else {
 		if agent != nil && agent.Adapter != "" {
-			if v, err := r.sw.Adapters.Get(agent.Adapter); err == nil {
+			if v, err := r.vars.RTE.Adapters.Get(agent.Adapter); err == nil {
 				llmAdapter = v
 			}
 		}
@@ -102,7 +103,7 @@ func (r *AIKit) llmAdapter(agent *api.Agent, args map[string]any) (api.LLMAdapte
 }
 
 func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (*api.Result, error) {
-	var owner = r.sw.User.Email
+	var owner = r.vars.RTE.User.Email
 
 	var agent = r.agent
 	if v, err := r.checkAndCreate(ctx, vars, tf, args); err == nil {
@@ -143,7 +144,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 				break
 			}
 			// external
-			v, err := conf.LoadModel(owner, set, level, r.sw.Assets)
+			v, err := conf.LoadModel(owner, set, level, r.vars.RTE.Assets)
 			if err != nil {
 				return nil, err
 			}
@@ -152,7 +153,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	}
 	// default/any
 	if model == nil {
-		model = r.sw.Vars.RootAgent.Model
+		model = r.vars.RootAgent.Model
 	}
 
 	var apiKey = model.ApiKey
@@ -161,7 +162,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 		apiKey = model.Provider
 	}
 
-	ak, err := r.sw.Secrets.Get(owner, apiKey)
+	ak, err := r.vars.RTE.Secrets.Get(owner, apiKey)
 	if err != nil {
 		return nil, err
 	}
@@ -324,7 +325,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	args["result"] = resp.Result.Value
 
 	// save the context
-	if err := r.sw.History.Save(history); err != nil {
+	if err := r.vars.RTE.History.Save(history); err != nil {
 		return nil, err
 	}
 
@@ -334,7 +335,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 func (r *AIKit) ListAgents(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
 	log.GetLogger(ctx).Debugf("List agents: %s %+v\n", tf, args)
 
-	var user = r.sw.User.Email
+	var user = r.vars.RTE.User.Email
 	// cached list
 	key := ListCacheKey{
 		Type: "agent",
@@ -345,7 +346,7 @@ func (r *AIKit) ListAgents(ctx context.Context, vars *api.Vars, tf string, args 
 		return v, nil
 	}
 
-	list, count, err := listAgents(r.sw.Assets, user)
+	list, count, err := listAgents(r.vars.RTE.Assets, user)
 	if err != nil {
 		return "", err
 	}
@@ -374,7 +375,7 @@ Instruction: %s
 		agent = r.agent.Name
 	}
 	pack, _ := api.Packname(agent).Decode()
-	ac, err := r.sw.Assets.FindAgent(r.sw.User.Email, pack)
+	ac, err := r.vars.RTE.Assets.FindAgent(r.vars.RTE.User.Email, pack)
 	if err != nil {
 		return "", err
 	}
@@ -412,7 +413,7 @@ func (r *AIKit) ReadAgentConfig(ctx context.Context, vars *api.Vars, _ string, a
 	args["pack"] = pack
 	args["name"] = name
 
-	var loader = NewConfigLoader(r.sw.Vars.RTE)
+	var loader = NewConfigLoader(r.vars.RTE)
 
 	// load from script
 	// TODO only load mime-type yaml
@@ -539,7 +540,7 @@ func (r *AIKit) ReloadAgent(ctx context.Context, _ *api.Vars, _ string, args map
 func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
 	log.GetLogger(ctx).Debugf("List tools: %s %+v\n", tf, args)
 
-	var user = r.sw.User.Email
+	var user = r.vars.RTE.User.Email
 	// cached list
 	key := ListCacheKey{
 		Type: "tool",
@@ -550,7 +551,7 @@ func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, tf string, args m
 		return v, nil
 	}
 
-	list, count, err := listTools(r.sw.Assets, user)
+	list, count, err := listTools(r.vars.RTE.Assets, user)
 	if err != nil {
 		return "", err
 	}
@@ -575,7 +576,7 @@ Parameters: %s
 
 	kit, name := api.Kitname(tid).Decode()
 
-	tc, err := r.sw.Assets.FindToolkit(r.sw.User.Email, kit)
+	tc, err := r.vars.RTE.Assets.FindToolkit(r.vars.RTE.User.Email, kit)
 	if err != nil {
 		return "", err
 	}
@@ -620,7 +621,7 @@ func (r *AIKit) ReadToolConfig(ctx context.Context, vars *api.Vars, tf string, a
 	args["pack"] = ""
 	args["name"] = name
 
-	var loader = NewConfigLoader(r.sw.Vars.RTE)
+	var loader = NewConfigLoader(r.vars.RTE)
 
 	if v := args.GetString("script"); v != "" {
 		if strings.HasSuffix(v, ".yaml") || strings.HasSuffix(v, ".yml") {
@@ -641,7 +642,7 @@ func (r *AIKit) ReadToolConfig(ctx context.Context, vars *api.Vars, tf string, a
 func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, tf string, args map[string]any) (string, error) {
 	log.GetLogger(ctx).Debugf("List models: %s %+v\n", tf, args)
 
-	var user = r.sw.User.Email
+	var user = r.vars.RTE.User.Email
 	// cached list
 	key := ListCacheKey{
 		Type: "model",
@@ -652,7 +653,7 @@ func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, tf string, args 
 		return v, nil
 	}
 
-	list, count, err := listModels(r.sw.Assets, user)
+	list, count, err := listModels(r.vars.RTE.Assets, user)
 	if err != nil {
 		return "", err
 	}
@@ -690,7 +691,7 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, tf string, arg
 	}
 	format, err := api.GetStrProp("format", args)
 
-	history, count, err := loadHistory(r.sw.History, option)
+	history, count, err := loadHistory(r.vars.RTE.History, option)
 
 	if err != nil {
 		return "", fmt.Errorf("Failed to recall messages (%s): %v", option, err)
@@ -736,7 +737,7 @@ func (r *AIKit) SaveMessages(_ context.Context, _ *api.Vars, _ string, args api.
 		return nil, fmt.Errorf("no messages provided for storing.")
 	}
 
-	if err := r.sw.History.Save(messages); err != nil {
+	if err := r.vars.RTE.History.Save(messages); err != nil {
 		return nil, err
 	}
 
@@ -755,7 +756,7 @@ func (r *AIKit) getTools(ids []string) ([]*api.ToolFunc, error) {
 
 	// this implementatin is incomplete
 	// TODO caching/mcp tools
-	list, err := r.sw.Assets.ListToolkit(r.sw.User.Email)
+	list, err := r.vars.RTE.Assets.ListToolkit(r.vars.RTE.User.Email)
 	if err != nil {
 		return nil, err
 	}

@@ -69,7 +69,7 @@ func (sw *Swarm) Init(rte *api.ActionRTEnv) error {
 	sw.Vars.Global.Set("user", sw.Vars.RTE.User)
 
 	rootData := []byte("data:," + string(resource.RootAgentData))
-	root, err := sw.CreateAgent(context.TODO(), nil, api.Packname("root"), rootData)
+	root, err := CreateAgent(context.TODO(), sw.Vars, nil, api.Packname("root"), rootData)
 	if err != nil {
 		return err
 	}
@@ -78,8 +78,8 @@ func (sw *Swarm) Init(rte *api.ActionRTEnv) error {
 	return nil
 }
 
-func (sw *Swarm) CreateAgent(ctx context.Context, parent *api.Agent, packname api.Packname, config []byte) (*api.Agent, error) {
-	var loader = NewConfigLoader(sw.Vars.RTE)
+func CreateAgent(ctx context.Context, vars *api.Vars, parent *api.Agent, packname api.Packname, config []byte) (*api.Agent, error) {
+	var loader = NewConfigLoader(vars.RTE)
 
 	if config != nil {
 		// load data
@@ -94,19 +94,13 @@ func (sw *Swarm) CreateAgent(ctx context.Context, parent *api.Agent, packname ap
 	}
 
 	// init setup
-
-	// agent.Parent = parent
-	// agent.Runner = NewAgentToolRunner(sw, sw.User.Email, agent)
-	// agent.Shell = NewAgentScriptRunner(sw, agent)
-	// agent.Template = NewTemplate(sw, agent)
-
 	// TODO optimize
 	// embeded
 	add := func(p, a *api.Agent) {
 		a.Parent = p
-		a.Runner = NewAgentToolRunner(sw, sw.User.Email, a)
-		a.Shell = NewAgentScriptRunner(sw, a)
-		a.Template = atm.NewTemplate(sw.Vars, a)
+		a.Runner = NewAgentToolRunner(vars, a)
+		a.Shell = NewAgentScriptRunner(vars, a)
+		a.Template = atm.NewTemplate(vars, a)
 	}
 
 	var addAll func(*api.Agent, *api.Agent)
@@ -125,12 +119,13 @@ func (sw *Swarm) CreateAgent(ctx context.Context, parent *api.Agent, packname ap
 // copy values from src to dst after applying templates if requested
 // skip unless override is true
 // var in src template can reference global env
-func (sw *Swarm) mapAssign(_ context.Context, agent *api.Agent, dst, src map[string]any, override bool) error {
+func mapAssign(_ context.Context, global *api.Environment, agent *api.Agent, dst, src map[string]any, override bool) error {
 	if len(src) == 0 {
 		return nil
 	}
 	var data = make(map[string]any)
-	maps.Copy(data, sw.Vars.Global.GetAllEnvs())
+	// sw.Vars.Global.GetAllEnvs()
+	maps.Copy(data, global.GetAllEnvs())
 	for key, val := range src {
 		if _, ok := dst[key]; ok && !override {
 			continue
@@ -201,28 +196,15 @@ func (sw *Swarm) exec(ctx context.Context, parent *api.Agent, input any) (*api.R
 }
 
 // default action runner
-func (sw *Swarm) execm(ctx context.Context, agent *api.Agent, argm map[string]any) (*api.Result, error) {
+func (sw *Swarm) execm(ctx context.Context, parent *api.Agent, argm map[string]any) (*api.Result, error) {
 	log.GetLogger(ctx).Debugf("argm: %+v\n", argm)
 
-	// am := api.ArgMap(argm)
-	// id := am.Kitname().ID()
-	// if id == "" {
-	// 	// required
-	// 	// kit is optional for system command
-	// 	return nil, fmt.Errorf("missing action id: %+v", argm)
-	// }
-	// v, err := agent.Runner.Run(ctx, id, argm)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// result := api.ToResult(v)
-	// return result, nil
-	return api.Exec(ctx, agent.Runner, argm)
+	return api.Exec(ctx, parent.Runner, argm)
 }
 
 // inherit parent tools including embedded agents
 // TODO cache
-func (sw *Swarm) buildAgentToolMap(agent *api.Agent) map[string]*api.ToolFunc {
+func buildAgentToolMap(agent *api.Agent) map[string]*api.ToolFunc {
 	toolMap := make(map[string]*api.ToolFunc)
 	if agent == nil {
 		return toolMap
@@ -240,7 +222,7 @@ func (sw *Swarm) buildAgentToolMap(agent *api.Agent) map[string]*api.ToolFunc {
 	return toolMap
 }
 
-func (sw *Swarm) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
+func (r *AgentToolRunner) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
 
 	log.GetLogger(ctx).Infof("⣿ %s:%s %+v\n", tf.Kit, tf.Name, formatArgs(args))
 
@@ -254,7 +236,7 @@ func (sw *Swarm) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFun
 		entry.Agent = string(api.NewPackname(agent.Pack, agent.Name))
 	}
 
-	result, err := sw.dispatch(ctx, agent, tf, args)
+	result, err := r.dispatch(ctx, agent, tf, args)
 
 	entry.Ended = time.Now()
 
@@ -271,15 +253,15 @@ func (sw *Swarm) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFun
 		log.GetLogger(ctx).Debugf("details:\n%s\n", result.String())
 	}
 
-	sw.Log.Save(&entry)
+	r.vars.RTE.Log.Save(&entry)
 
 	return result, err
 }
 
-func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
+func (r *AgentToolRunner) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
 	// command
 	if v.Type == api.ToolTypeBin {
-		out, err := atm.ExecCommand(ctx, sw.OS, sw.Vars, v.Name, nil)
+		out, err := atm.ExecCommand(ctx, r.vars.RTE.OS, r.vars, v.Name, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -290,8 +272,8 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 
 	// ai
 	if v.Type == api.ToolTypeAI {
-		aiKit := NewAIKit(sw, agent)
-		out, err := aiKit.Call(ctx, sw.Vars, v, args)
+		aiKit := NewAIKit(r.vars, agent)
+		out, err := aiKit.Call(ctx, r.vars, v, args)
 		if err != nil {
 			return nil, err
 		}
@@ -300,7 +282,7 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 
 	// agent tool
 	if v.Type == api.ToolTypeAgent {
-		aiKit := NewAIKit(sw, agent)
+		aiKit := NewAIKit(r.vars, agent)
 		var in map[string]any
 		if len(v.Arguments) > 0 {
 			in = make(map[string]any)
@@ -310,11 +292,11 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 			in = args
 		}
 		in["agent"] = v.Name
-		return aiKit.SpawnAgent(ctx, sw.Vars, "", in)
+		return aiKit.SpawnAgent(ctx, r.vars, "", in)
 	}
 
 	// tools
-	kit, err := sw.Tools.GetKit(v)
+	kit, err := r.vars.RTE.Tools.GetKit(v)
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +304,7 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 	env := &api.ToolEnv{
 		Agent: agent,
 	}
-	out, err := kit.Call(ctx, sw.Vars, env, v, args)
+	out, err := kit.Call(ctx, r.vars, env, v, args)
 
 	if err != nil {
 		return nil, err
@@ -330,6 +312,6 @@ func (sw *Swarm) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc
 	return api.ToResult(out), nil
 }
 
-func (sw *Swarm) LoadScript(v string) (string, error) {
-	return api.LoadURIContent(sw.Workspace, v)
-}
+// func (sw *Swarm) LoadScript(v string) (string, error) {
+// 	return api.LoadURIContent(sw.Workspace, v)
+// }

@@ -44,14 +44,14 @@ func defaultSwarm(cfg *api.App) (*Swarm, error) {
 		return nil, err
 	}
 
-	var rte = &api.ActionRTEnv{
-		// Root: root,
-		User:      user,
-		Workspace: lfs,
-		OS:        los,
-		Secrets:   secrets,
-	}
-	var tools, _ = NewToolSystem(rte)
+	// var rte = &api.ActionRTEnv{
+	// 	// Root: root,
+	// 	User:      user,
+	// 	Workspace: lfs,
+	// 	OS:        los,
+	// 	Secrets:   secrets,
+	// }
+	var tools, _ = NewToolSystem(cfg.Base)
 
 	mem, err := db.OpenMemoryStore(cfg.Base, "test.db")
 	if err != nil {
