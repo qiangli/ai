@@ -12,6 +12,15 @@ import (
 	"github.com/qiangli/ai/swarm/llm/xai"
 )
 
+const MaxTurnsLimit = 100
+const MaxTimeLimit = 900 // 15 min
+
+const DefaultMaxTurns = 50
+const DefaultMaxTime = 600 // 10 min
+
+// const DefaultMaxSpan = 1440 // 24 hours
+// const DefaultMaxHistory = 3
+
 type adapters struct {
 }
 

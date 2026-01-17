@@ -170,8 +170,10 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	}
 
 	// tools
-	var tools []*api.ToolFunc
+	funcMap := make(map[string]*api.ToolFunc)
 	if v, found := args["tools"]; found {
+		var tools []*api.ToolFunc
+
 		if tf, ok := v.([]*api.ToolFunc); ok {
 			tools = tf
 		} else {
@@ -192,9 +194,27 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 				}
 			}
 		}
-	} else {
-		tools = agent.Tools
+		for _, fn := range tools {
+			id := fn.ID()
+			if id == "" {
+				return nil, fmt.Errorf("tool ID is empty: %v", fn)
+			}
+			funcMap[id] = fn
+		}
 	}
+	// merge
+	for _, fn := range agent.Tools {
+		id := fn.ID()
+		if id == "" {
+			return nil, fmt.Errorf("tool ID is empty: %v", fn)
+		}
+		funcMap[id] = fn
+	}
+	var tools []*api.ToolFunc
+	for _, v := range funcMap {
+		tools = append(tools, v)
+	}
+	agent.Tools = tools
 
 	// request
 	var packname = api.NewPackname(agent.Pack, agent.Name)
@@ -254,6 +274,12 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, tf string, args map
 	req.Tools = tools
 	req.Runner = agent.Runner
 
+	// ensure defaults
+	if req.MaxTurns() == 0 {
+		req.SetMaxTurns(adapter.DefaultMaxTurns)
+	}
+
+	// call LLM
 	llmAdapter, err := r.llmAdapter(agent, args)
 	if err != nil {
 		return nil, err

@@ -91,6 +91,14 @@ func (r *Request) MaxTurns() int {
 	return r.Arguments.GetInt("max_turns")
 }
 
+func (r *Request) SetMaxTurns(max int) *Request {
+	if r.Arguments == nil {
+		r.Arguments = NewArguments()
+	}
+	r.Arguments.SetArg("max_turns", max)
+	return r
+}
+
 func (r *Request) MemOption() *MemOption {
 	var o MemOption
 	if r.Arguments == nil {

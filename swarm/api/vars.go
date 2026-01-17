@@ -242,6 +242,15 @@ func NewArgMap() ArgMap {
 	return make(map[string]any)
 }
 
+func (a ArgMap) Arg(key string) any {
+	return a.Get(key)
+}
+
+func (a ArgMap) SetArg(key string, value any) ArgMap {
+	a[key] = value
+	return a
+}
+
 func (a ArgMap) Kitname() Kitname {
 	kit := a.GetString("kit")
 	name := a.GetString("name")

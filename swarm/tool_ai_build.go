@@ -3,7 +3,7 @@ package swarm
 import (
 	"context"
 	"fmt"
-	// "maps"
+	"maps"
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -11,10 +11,9 @@ import (
 	"github.com/qiangli/ai/swarm/atm/conf"
 )
 
-// merge properties from agent and app config
 // apply templates on env, inherit from embedded agents, export env
 // apply templates on args
-// resolve model
+// resolve model, inherit from embedded agents or default to root agent.
 // resolve tools, inherit from embedded agents
 //
 // context/instruction/message are not resolved - each is done separately as needed
@@ -71,16 +70,21 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	if err := walkAgent(agent, addEnv); err != nil {
 		return nil, err
 	}
-	// NOTE: args["environment"] ?
+	// merge cmd line envs map
+	if v, found := args["environment"]; found {
+		v, err := api.ToMap(v)
+		if err != nil {
+			return nil, err
+		}
+		maps.Copy(envs, v)
+	}
 
 	// export envs
 	vars.Global.AddEnvs(envs)
-	// update - not used but for info?
+	// pointing to global env
 	agent.Environment = vars.Global
-	// agent.Environment.SetEnvs(envs)
 
 	// *** args ***
-	// global/agent envs
 	// resolve agent args
 	var agentArgs = make(map[string]any)
 	if len(agent.Arguments) > 0 {
@@ -89,8 +93,6 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 		}
 	}
 	agent.Arguments = agentArgs
-	// copy into input args if not exsiting
-	// maps.Copy(args, agentArgs)
 
 	// *** model ***
 	var lookupModel func(*api.Agent) *api.Model
@@ -106,14 +108,6 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 
 	// resolve model or inherit
 	var model = agent.Model
-	// if model == nil {
-	// 	provider, _ := api.GetStrProp("provider", args)
-	// 	if provider != "" {
-	// 		model = conf.DefaultModels[provider]
-	// 	} else {
-	// 		model = lookupModel(agent)
-	// 	}
-	// }
 	var owner = r.sw.User.Email
 	if v, found := args["model"]; found {
 		switch vt := v.(type) {
@@ -139,7 +133,8 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	if model == nil {
 		model = r.sw.Vars.RootAgent.Model
 	}
-	args["model"] = model
+	agent.Model = model
+	// args["model"] = model
 
 	// *** tools ***
 	// inherit tools of embeded agents
@@ -165,9 +160,9 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 	} else {
 		list = agent.Tools
 	}
-	// TODO merge: args["tools"]
+
 	agent.Tools = list
-	args["tools"] = list
+	// args["tools"] = list
 
 	// update the property with the created agent object
 	args["kit"] = "agent"
