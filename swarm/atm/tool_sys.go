@@ -14,7 +14,7 @@ func NewSystemKit() *SystemKit {
 	return &SystemKit{}
 }
 
-func (r *SystemKit) Call(ctx context.Context, vars *api.Vars, _ *api.ToolEnv, tf *api.ToolFunc, args map[string]any) (any, error) {
+func (r *SystemKit) Call(ctx context.Context, vars *api.Vars, _ *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	callArgs := []any{ctx, vars, tf.Name, args}
 	v, err := CallKit(r, tf.Kit, tf.Name, callArgs...)
 	if err != nil {

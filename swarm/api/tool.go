@@ -179,16 +179,16 @@ type ConnectorConfig struct {
 	ApiKey string `yaml:"api_key"`
 }
 
-// per tool call vars
-type ToolEnv struct {
-	// User string
-	Agent *Agent
-	// FS      fs.FS
-	// Secrets SecretStore
-}
+// // per tool call vars
+// type ToolEnv struct {
+// 	// User string
+// 	Agent *Agent
+// 	// FS      fs.FS
+// 	// Secrets SecretStore
+// }
 
 type ToolKit interface {
-	Call(context.Context, *Vars, *ToolEnv, *ToolFunc, map[string]any) (any, error)
+	Call(context.Context, *Vars, *Agent, *ToolFunc, map[string]any) (any, error)
 }
 
 type ToolSystem interface {

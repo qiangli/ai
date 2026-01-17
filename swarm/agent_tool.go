@@ -289,7 +289,7 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 
 	// run the action
 	uctx := context.WithValue(ctx, api.SwarmUserContextKey, r.user)
-	result, err := r.callTool(uctx, r.agent, tf, args)
+	result, err := r.callTool(uctx, tf, args)
 
 	if err != nil {
 		return "", err
@@ -300,21 +300,21 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	return result, err
 }
 
-func (r *AgentToolRunner) callTool(ctx context.Context, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
+func (r *AgentToolRunner) callTool(ctx context.Context, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
 
 	log.GetLogger(ctx).Infof("⣿ %s:%s %+v\n", tf.Kit, tf.Name, formatArgs(args))
 
 	var entry = api.CallLogEntry{
+		Agent:     string(api.NewPackname(r.agent.Pack, r.agent.Name)),
 		Kit:       tf.Kit,
 		Name:      tf.Name,
 		Arguments: args,
 		Started:   time.Now(),
 	}
-	if agent != nil {
-		entry.Agent = string(api.NewPackname(agent.Pack, agent.Name))
-	}
 
-	result, err := r.dispatch(ctx, agent, tf, args)
+	// entry.Agent = string(api.NewPackname( r.agent.Pack,  r.agent.Name))
+
+	result, err := r.dispatch(ctx, tf, args)
 
 	entry.Ended = time.Now()
 
@@ -336,7 +336,7 @@ func (r *AgentToolRunner) callTool(ctx context.Context, agent *api.Agent, tf *ap
 	return result, err
 }
 
-func (r *AgentToolRunner) dispatch(ctx context.Context, agent *api.Agent, v *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
+func (r *AgentToolRunner) dispatch(ctx context.Context, v *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
 	// command
 	if v.Type == api.ToolTypeBin {
 		out, err := atm.ExecCommand(ctx, r.vars.OS, r.vars, v.Name, nil)
@@ -350,7 +350,7 @@ func (r *AgentToolRunner) dispatch(ctx context.Context, agent *api.Agent, v *api
 
 	// ai
 	if v.Type == api.ToolTypeAI {
-		aiKit := NewAIKit(r.vars, agent)
+		aiKit := NewAIKit(r.vars, r.agent)
 		out, err := aiKit.Call(ctx, r.vars, v, args)
 		if err != nil {
 			return nil, err
@@ -360,7 +360,7 @@ func (r *AgentToolRunner) dispatch(ctx context.Context, agent *api.Agent, v *api
 
 	// agent tool
 	if v.Type == api.ToolTypeAgent {
-		aiKit := NewAIKit(r.vars, agent)
+		aiKit := NewAIKit(r.vars, r.agent)
 		var in map[string]any
 		if len(v.Arguments) > 0 {
 			in = make(map[string]any)
@@ -379,10 +379,7 @@ func (r *AgentToolRunner) dispatch(ctx context.Context, agent *api.Agent, v *api
 		return nil, err
 	}
 
-	env := &api.ToolEnv{
-		Agent: agent,
-	}
-	out, err := kit.Call(ctx, r.vars, env, v, args)
+	out, err := kit.Call(ctx, r.vars, r.agent, v, args)
 
 	if err != nil {
 		return nil, err

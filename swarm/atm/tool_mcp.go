@@ -18,7 +18,7 @@ func NewMcpKit() *McpKit {
 	return &McpKit{}
 }
 
-func (r *McpKit) Call(ctx context.Context, vars *api.Vars, env *api.ToolEnv, tf *api.ToolFunc, args map[string]any) (any, error) {
+func (r *McpKit) Call(ctx context.Context, vars *api.Vars, _ *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	var tid = tf.ID()
 
 	log.GetLogger(ctx).Debugf("🎖️ calling MCP tool: %s with args: %+v\n", tid, args)

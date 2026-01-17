@@ -11,7 +11,7 @@ import (
 )
 
 // Execute script in go, js, and go-template
-func (r *FuncKit) ExecScript(ctx context.Context, vars *api.Vars, env *api.ToolEnv, tf *api.ToolFunc, args map[string]any) (result any, err error) {
+func (r *FuncKit) ExecScript(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args map[string]any) (result any, err error) {
 	defer func() {
 		if v := recover(); v != nil {
 			err = fmt.Errorf("recovered from panic: %v", v)
@@ -24,7 +24,7 @@ func (r *FuncKit) ExecScript(ctx context.Context, vars *api.Vars, env *api.ToolE
 	mime := strings.ToLower(tf.Body.MimeType)
 	code := tf.Body.Script
 	if api.IsTemplate(code) {
-		tpl := NewToolTemplate(vars, env.Agent.Runner, tf)
+		tpl := NewToolTemplate(vars, parent.Runner, tf)
 		v, err := CheckApplyTemplate(tpl, code, EncodeArgs(args))
 		if err != nil {
 			return nil, err

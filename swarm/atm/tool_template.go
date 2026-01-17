@@ -15,7 +15,7 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 	// "github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
-	"github.com/qiangli/ai/swarm/log"
+	// "github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/shell/tool/sh"
 )
 
@@ -121,7 +121,6 @@ func NewFuncMap(vars *api.Vars) template.FuncMap {
 
 func NewTemplate(vars *api.Vars, agent *api.Agent) *template.Template {
 	fm := NewFuncMap(vars)
-	ac := agent.Config
 
 	// ai
 	fm["ai"] = func(args ...string) string {
@@ -153,7 +152,11 @@ func NewTemplate(vars *api.Vars, agent *api.Agent) *template.Template {
 		if len(args) == 0 {
 			return "pathname required. asset <pathname>..."
 		}
-		content, err := LoadAsset(ac.Store, ac.BaseDir, args...)
+		if agent == nil || agent.Config == nil {
+			return "template asset: missing agent/config"
+		}
+
+		content, err := LoadAsset(agent.Config.Store, agent.Config.BaseDir, args...)
 		if err != nil {
 			return err.Error()
 		}
@@ -169,12 +172,12 @@ func NewToolTemplate(vars *api.Vars, runner api.ActionRunner, tf *api.ToolFunc) 
 	// ai
 	fm["ai"] = func(args ...string) string {
 		if tf == nil {
-			return "template: missing tool func"
+			return "template: missing tool"
 		}
 		//
 		ctx := context.Background()
 
-		log.GetLogger(ctx).Debugf("template tool: %s:%s args: %+v\n", tf.Kit, tf.Name, args)
+		// log.GetLogger(ctx).Debugf("template tool: %s:%s args: %+v\n", tf.Kit, tf.Name, args)
 
 		at, err := conf.ParseActionArgs(args)
 		if err != nil {
@@ -200,7 +203,7 @@ func NewToolTemplate(vars *api.Vars, runner api.ActionRunner, tf *api.ToolFunc) 
 			return "pathname required. asset <pathname>..."
 		}
 		if tf == nil || tf.Config == nil {
-			return "template: missing tool func/config"
+			return "template asset: missing tool/config"
 		}
 		content, err := LoadAsset(tf.Config.Store, tf.Config.BaseDir, args...)
 		if err != nil {

@@ -189,7 +189,7 @@ func NewWebKit() *WebKit {
 	return &WebKit{}
 }
 
-func (r *WebKit) Call(ctx context.Context, vars *api.Vars, env *api.ToolEnv, tf *api.ToolFunc, args map[string]any) (any, error) {
+func (r *WebKit) Call(ctx context.Context, vars *api.Vars, _ *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	callArgs := []any{ctx, vars, tf.Name, args}
 
 	// forward to web auth kit
