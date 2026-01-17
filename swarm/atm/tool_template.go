@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"path"
 	"reflect"
+	"sort"
 	"strings"
 	"text/template"
 
@@ -36,6 +37,7 @@ func NewFuncMap(vars *api.Vars) template.FuncMap {
 			for k, v := range vars.Global.GetAllEnvs() {
 				envs = append(envs, fmt.Sprintf("%s=%v", k, v))
 			}
+			sort.Strings(envs)
 			return strings.Join(envs, "\n")
 		}
 		for _, k := range keys {

@@ -1,5 +1,7 @@
 #!/usr/bin/env ai /sh:bash --format raw --script
-# set -ue
+
+# test template vars: env, args, and params
+set -ue
 
 # // | fromJson | toPrettyJson
 template='data:,
@@ -30,18 +32,11 @@ Role: {{ .Role }}
 '
 
 ##
-
 script="file:///$PWD/swarm/resource/incubator/agents/test/agent.yaml"
 message="tell me a joke"
 
 env message="${message}"
 env datetime="<TODO>"
-
-# # /agent:test/test \
-# #     --script "$script" \
-# #     --adapter "echo" \
-# #     --message "$message"
-
 env workspace="<redacted>"
 
 /flow:sequence \
@@ -55,11 +50,6 @@ env workspace="<redacted>"
 ###
 
 printenv
-# /sh:get_envs --option keys='["result"]'
-
-# printf "result: %s\n" "$message"
-
-# date
 # echo ""
 echo "*** test completed ***"
 ###
