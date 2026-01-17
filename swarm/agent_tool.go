@@ -205,11 +205,6 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	// agent:*
 	// kit:*
 
-	// default tool
-	// if name == "" {
-	// 	name = kit
-	// }
-
 	// /alias:name --option name="command line"
 	// name to lookup the command in args
 	// TODO alias referencing alias

@@ -34,7 +34,8 @@ func (r *FuncKit) ExecScript(ctx context.Context, vars *api.Vars, parent *api.Ag
 
 	switch mime {
 	case "application/x-sh", "text/x-shellscript", "application/x-shellscript", "bash", "sh":
-		return vars.RootAgent.Shell.Run(ctx, code, args)
+		// return vars.RootAgent.Shell.Run(ctx, code, args)
+		return parent.Shell.Run(ctx, code, args)
 	case "application/yaml", "yaml", "yml":
 		return nil, fmt.Errorf("mime type not supported: %s", mime)
 	case "application/x-go", "go", "golang":

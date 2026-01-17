@@ -12,11 +12,6 @@ import (
 func Assets(cfg *api.DHNTConfig) (api.AssetManager, error) {
 	var assets = conf.NewAssetManager()
 
-	// cfg, err := api.LoadDHNTConfig(filepath.Join(base, "dhnt.json"))
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	for _, res := range cfg.Assets {
 		switch res.Type {
 		case "web":

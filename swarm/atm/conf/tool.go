@@ -130,6 +130,9 @@ func LoadLocalToolFunc(local *api.AppConfig, owner, s string, secrets api.Secret
 			Provider: local.Provider,
 			BaseUrl:  local.BaseUrl,
 			ApiKey:   local.ApiKey,
+			//
+			Store:   local.Store,
+			BaseDir: local.BaseDir,
 		}
 	}
 
@@ -230,7 +233,7 @@ func LoadTools(tc *api.AppConfig, owner string, secrets api.SecretStore) ([]*api
 			BaseUrl:  nvl(v.BaseUrl, tc.BaseUrl),
 			ApiKey:   nvl(v.ApiKey, tc.ApiKey),
 			//
-			// Config: tc,
+			Config: tc,
 		}
 		// TODO merge description/parameters for agent tool?
 		toolMap[tool.ID()] = tool
@@ -351,6 +354,8 @@ func LoadAgentTool(ac *api.AppConfig, sub string) (*api.ToolFunc, error) {
 				//
 				Agent:     pn.String(),
 				Arguments: c.Arguments,
+				//
+				Config: ac,
 			}
 
 			return tool, nil
@@ -386,7 +391,8 @@ func listToolkitATM(owner string, as api.ATMSupport, kits map[string]*api.AppCon
 		if _, ok := kits[tc.Kit]; ok {
 			continue
 		}
-
+		tc.Store = as
+		tc.BaseDir = ""
 		kits[tc.Kit] = tc
 	}
 	return nil
@@ -434,6 +440,8 @@ func listToolkitAsset(as api.AssetFS, base string, kits map[string]*api.AppConfi
 		if _, ok := kits[tc.Kit]; ok {
 			continue
 		}
+		tc.Store = as
+		tc.BaseDir = base
 		kits[tc.Kit] = tc
 	}
 	return nil

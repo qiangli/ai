@@ -274,6 +274,8 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 		Arguments: api.NewArguments(),
 		//
 		Parameters: c.Parameters,
+		//
+		Config: ac,
 	}
 	//
 	args := make(map[string]any)

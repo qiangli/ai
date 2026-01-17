@@ -125,13 +125,6 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AppConfig, err
 					}
 				}
 			}
-			// if v, err := as.ReadFile(path.Join("agents", pack, "agent.yaml")); err != nil {
-			// 	continue
-			// } else {
-			// 	content = v
-			// 	asset = as
-			// 	break
-			// }
 		}
 	}
 

@@ -24,10 +24,6 @@ func NewFuncKit(kbPath string) *FuncKit {
 }
 
 func (r *FuncKit) Call(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
-	// if tf.Body == nil || (tf.Body.Url == "" && tf.Body.Code == "") {
-	// 	return nil, fmt.Errorf("no function body: %s", tf.ID())
-	// }
-
 	if tf.Body == nil {
 		return r.builtin(ctx, vars, parent, tf, args)
 	}
