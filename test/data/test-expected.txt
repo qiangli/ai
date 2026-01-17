@@ -37,6 +37,9 @@ Content: empty? false
 Role: user
 
 Content: empty? false
+Role: user
+
+Content: empty? false
 Role: assistant
 
 %%%%%%%%%%%%%%%%%%%%%%
@@ -74,11 +77,11 @@ tell me a joke
 ---
 >>>>>>>>> Env
 ---
-nickname=Charles
-workspace=<redacted>
-user=&{ liqiang    map[kit:agent log_level:info name:ask]}
-message=tell me a joke
-datetime=<TODO>
 city=SFO
+datetime=<TODO>
+message=tell me a joke
+nickname=Charles
+user=&{ liqiang    map[kit:agent log_level:info name:ask]}
+workspace=<redacted>
 zip=1234567
 ---

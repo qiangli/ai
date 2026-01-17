@@ -35,10 +35,14 @@ $BASE/test/fs.sh
 $BASE/test/env.sh
 
 #
+function test_failed() {
+    echo "❌ test outputs differ"
+    exit 1
+}
 $BASE/test/test.sh
-diff /tmp/test.txt ./test/data/test.txt || echo "test outputs diff"
+diff /tmp/test.txt ./test/data/test-expected.txt || test_failed
 
 echo "$?"
-echo "*** All tests completed successfully ***"
+echo "*** All tests completed successfully 🎉 ***"
 ###
 
