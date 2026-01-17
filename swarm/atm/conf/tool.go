@@ -311,14 +311,7 @@ func LoadAgentTool(ac *api.AppConfig, sub string) (*api.ToolFunc, error) {
 	for _, c := range ac.Agents {
 		if c.Name == sub {
 			var params = map[string]any{}
-			// "type": "object",
-			// "properties": map[string]any{
-			// 	"query": map[string]any{
-			// 		"type":        "string",
-			// 		"description": "The user input",
-			// 	},
-			// },
-			// }
+
 			maps.Copy(params, c.Parameters)
 			// required for agent tool.
 			if _, ok := params["type"]; !ok {
@@ -350,17 +343,13 @@ func LoadAgentTool(ac *api.AppConfig, sub string) (*api.ToolFunc, error) {
 			tool := &api.ToolFunc{
 				Kit:  string(api.ToolTypeAgent),
 				Type: api.ToolTypeAgent,
-				// func name: pack/sub?
-				// Name:        c.Name,
+				//
 				Name:        pn.String(),
 				Description: c.Description,
 				Parameters:  params,
 				Body:        nil,
 				//
-				Agent: pn.String(),
-				// TODO
-				// for flow_type/actions
-				// agent will be recreated with full args
+				Agent:     pn.String(),
 				Arguments: c.Arguments,
 			}
 

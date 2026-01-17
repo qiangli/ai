@@ -56,34 +56,8 @@ func CheckApplyTemplate(tpl *template.Template, s string, data map[string]any) (
 // + agent arguments
 // + runtime args
 func BuildEffectiveArgs(vars *api.Vars, agent *api.Agent, input map[string]any) map[string]any {
-	// var data = make(map[string]any)
-	// // defaults from agent parameters
-	// if agent != nil {
-	// 	if len(agent.Parameters) > 0 {
-	// 		obj := agent.Parameters["properties"]
-	// 		props, _ := api.ToMap(obj)
-	// 		for key, prop := range props {
-	// 			if p, ok := prop.(map[string]any); ok {
-	// 				if def, ok := p["default"]; ok {
-	// 					data[key] = def
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
-	// // wont check vars.global - this should never be nil
-	// maps.Copy(data, vars.Global.GetAllEnvs())
-	// // agent arguments
-	// if agent != nil {
-	// 	maps.Copy(data, agent.Arguments)
-	// }
-	// maps.Copy(data, args)
-	// // predefined
-	// data["workspace"] = vars.RTE.Roots.Workspace.Path
-	// data["user"] = vars.RTE.User
-
 	if agent != nil {
-		BuildEffectiveParamArgs(vars, agent.Parameters, agent.Arguments, input)
+		return BuildEffectiveParamArgs(vars, agent.Parameters, agent.Arguments, input)
 	}
 	return BuildEffectiveParamArgs(vars, nil, nil, input)
 }

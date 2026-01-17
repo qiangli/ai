@@ -128,9 +128,6 @@ func NewTemplate(vars *api.Vars, agent *api.Agent) *template.Template {
 		}
 
 		ctx := context.Background()
-
-		// log.GetLogger(ctx).Debugf("template agent: %s args: %+v\n", agent.Name, args)
-
 		at, err := conf.ParseActionArgs(args)
 		if err != nil {
 			return err.Error()
@@ -151,9 +148,6 @@ func NewTemplate(vars *api.Vars, agent *api.Agent) *template.Template {
 	}
 
 	fm["asset"] = func(args ...string) string {
-		// if agent == nil {
-		// 	return "<template: missing agent>"
-		// }
 		if len(args) == 0 {
 			return "pathname required. asset <pathname>..."
 		}
