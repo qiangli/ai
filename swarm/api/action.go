@@ -255,31 +255,16 @@ func (ac *AppConfig) ToMap() map[string]any {
 	if ac.Pack != "" {
 		result["pack"] = ac.Pack
 	}
-	// if ac.Action != "" {
-	// 	result["action"] = ac.Action
-	// }
 	if ac.Kit != "" {
 		result["kit"] = ac.Kit
 	}
 	if ac.Type != "" {
 		result["type"] = ac.Type
 	}
-	// if ac.Name != "" {
-	// 	result["name"] = ac.Name
-	// }
 	if ac.Set != "" {
 		result["set"] = ac.Set
 	}
-	// TODO revisit
-	// if ac.Message != "" {
-	// 	result["message"] = ac.Message
-	// }
-	// if ac.Instruction != "" {
-	// 	result["instruction"] = ac.Instruction
-	// }
-	// if ac.Context != "" {
-	// 	result["context"] = ac.Context
-	// }
+	//
 	if ac.Model != "" {
 		result["model"] = ac.Model
 	}

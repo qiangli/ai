@@ -31,11 +31,11 @@ var (
 const maxTurnsLimit = 100
 const maxTimeLimit = 900 // 15 min
 
-const defaultMaxTurns = 50
-const defaultMaxTime = 600 // 10 min
+// const defaultMaxTurns = 50
+// const defaultMaxTime = 600 // 10 min
 
-const defaultMaxSpan = 1440 // 24 hours
-const defaultMaxHistory = 3
+// const defaultMaxSpan = 1440 // 24 hours
+// const defaultMaxHistory = 3
 
 type ConfigLoader struct {
 	base   string
@@ -290,22 +290,34 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 	maps.Copy(args, ac.ToMap())
 	maps.Copy(args, c.ToMap())
 
-	maxTurns := nzl(c.MaxTurns, ac.MaxTurns, defaultMaxTurns)
-	maxTime := nzl(c.MaxTime, ac.MaxTime, defaultMaxTime)
+	maxTurns := nzl(c.MaxTurns, ac.MaxTurns)
+	maxTime := nzl(c.MaxTime, ac.MaxTime)
 	// hard limit
 	maxTurns = min(maxTurns, maxTurnsLimit)
 	maxTime = min(maxTime, maxTimeLimit)
 
-	args["max_turns"] = maxTurns
-	args["max_time"] = maxTime
+	if maxTurns > 0 {
+		args["max_turns"] = maxTurns
+	}
+	if maxTime > 0 {
+		args["max_time"] = maxTime
+	}
 
-	maxHistory := nzl(c.MaxHistory, ac.MaxHistory, defaultMaxHistory)
-	maxSpan := nzl(c.MaxSpan, ac.MaxSpan, defaultMaxSpan)
-	args["max_history"] = maxHistory
-	args["max_span"] = maxSpan
+	maxHistory := nzl(c.MaxHistory, ac.MaxHistory)
+	maxSpan := nzl(c.MaxSpan, ac.MaxSpan)
+
+	if maxHistory > 0 {
+		args["max_history"] = maxHistory
+	}
+	if maxSpan > 0 {
+		args["max_span"] = maxSpan
+	}
 
 	// log
-	args["log_level"] = nvl(c.LogLevel, ac.LogLevel)
+	logLevel := nvl(c.LogLevel, ac.LogLevel)
+	if logLevel != "" {
+		args["log_level"] = logLevel
+	}
 
 	//
 	// ac.Arguments

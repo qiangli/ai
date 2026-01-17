@@ -236,11 +236,6 @@ type AgentConfig struct {
 	//
 	Entrypoint []string `yaml:"entrypoint" json:"entrypoint"`
 
-	//
-	// Store AssetStore `yaml:"-" json:"-"`
-	// relative to root
-	// BaseDir string `yaml:"-" json:"-"`
-
 	Config *AppConfig `json:"-"`
 }
 
@@ -250,21 +245,7 @@ func (ac *AgentConfig) ToMap() map[string]any {
 	if ac.Name != "" {
 		result["name"] = ac.Name
 	}
-	// TODO revisit naming
-	// user vs internal
-	// message ~ query
-	// instruction ~ prompt
-	// context ~ histry
-	//
-	// if ac.Message != "" {
-	// 	result["message"] = ac.Message
-	// }
-	// if ac.Instruction != "" {
-	// 	result["instruction"] = ac.Instruction
-	// }
-	// if ac.Context != "" {
-	// 	result["context"] = ac.Context
-	// }
+
 	if ac.Model != "" {
 		result["model"] = ac.Model
 	}
@@ -274,9 +255,6 @@ func (ac *AgentConfig) ToMap() map[string]any {
 	if ac.MaxTime > 0 {
 		result["max_time"] = ac.MaxTime
 	}
-	// if ac.Format != "" {
-	// 	result["format"] = ac.Format
-	// }
 	if ac.MaxHistory > 0 {
 		result["max_history"] = ac.MaxHistory
 	}
