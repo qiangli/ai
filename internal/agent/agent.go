@@ -12,7 +12,6 @@ import (
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 
-	// "github.com/qiangli/ai/swarm/db"
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/ai/swarm/util/calllog"
@@ -181,18 +180,18 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 	}
 
 	sw := &swarm.Swarm{
-		ID:       uuid.NewString(),
-		User:     user,
-		Secrets:  secrets,
-		Assets:   assets,
-		Tools:    tools,
-		Adapters: adapters,
-		Blobs:    blobs,
-		//
-		OS:        los,
-		Workspace: lfs,
-		History:   mem,
-		Log:       callogs,
+		// ID:       uuid.NewString(),
+		// User:     user,
+		// Secrets:  secrets,
+		// Assets:   assets,
+		// Tools:    tools,
+		// Adapters: adapters,
+		// Blobs:    blobs,
+		// //
+		// OS:        los,
+		// Workspace: lfs,
+		// History:   mem,
+		// Log:       callogs,
 	}
 
 	if err := sw.Init(rte); err != nil {

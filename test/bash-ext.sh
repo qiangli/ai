@@ -57,5 +57,5 @@ echo ">>> Testing bash extnesions..."
     --option cmd="ls -al /tmp" \
     --option duration="60s"
 
-echo "*** Bash extention tests completed ***"
+echo "*** 🎉 Bash extention tests completed ***"
 ###

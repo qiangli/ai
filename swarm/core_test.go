@@ -2,16 +2,16 @@ package swarm
 
 import (
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/google/uuid"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
-	"github.com/qiangli/ai/swarm/db"
 	"github.com/qiangli/ai/swarm/llm/adapter"
+	"github.com/qiangli/ai/swarm/util/calllog"
 	"github.com/qiangli/ai/swarm/util/conf"
+	hist "github.com/qiangli/ai/swarm/util/history"
 	"github.com/qiangli/shell/tool/sh/vfs"
 	"github.com/qiangli/shell/tool/sh/vos"
 )
@@ -19,7 +19,10 @@ import (
 func defaultSwarm(cfg *api.App) (*Swarm, error) {
 	var vars = api.NewVars()
 
-	var ws = cfg.Base + "/workdir"
+	var wsbase = cfg.Base + "/workdir"
+	if err := os.MkdirAll(wsbase, 0755); err != nil {
+		return nil, err
+	}
 
 	var user = &api.User{
 		Email: cfg.User,
@@ -27,51 +30,72 @@ func defaultSwarm(cfg *api.App) (*Swarm, error) {
 	var adapters = adapter.GetAdapters()
 
 	var secrets = conf.LocalSecrets
-	lfs, _ := vfs.NewLocalFS([]string{ws})
-	los, _ := vos.NewLocalSystem(lfs)
-
-	dc, err := conf.Load(cfg.Base)
+	lfs, err := vfs.NewLocalFS([]string{wsbase})
 	if err != nil {
 		return nil, err
+	}
+	los, err := vos.NewLocalSystem(lfs)
+	if err != nil {
+		return nil, err
+	}
+
+	// dc, err := conf.Load(cfg.Base)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	roots := &api.Roots{
+		Workspace: &api.Root{
+			Path: wsbase,
+		},
+	}
+	dc := &api.DHNTConfig{
+		Roots: roots,
 	}
 
 	assets, err := conf.Assets(dc)
 	if err != nil {
 		return nil, err
 	}
-	blobs, err := conf.NewBlobs(dc, "")
-	if err != nil {
-		return nil, err
-	}
-
-	// var rte = &api.ActionRTEnv{
-	// 	// Root: root,
-	// 	User:      user,
-	// 	Workspace: lfs,
-	// 	OS:        los,
-	// 	Secrets:   secrets,
+	// blobs, err := conf.NewBlobs(dc, "")
+	// if err != nil {
+	// 	return nil, err
 	// }
-	var tools, _ = NewToolSystem(cfg.Base)
 
-	mem, err := db.OpenMemoryStore(cfg.Base, "test.db")
+	tools, err := NewToolSystem(cfg.Base)
 	if err != nil {
 		return nil, err
 	}
-	sw := &Swarm{
-		ID: uuid.NewString(),
-		// Root:      root,
-		Vars:      vars,
-		User:      user,
-		Secrets:   secrets,
-		Assets:    assets,
-		Tools:     tools,
-		Adapters:  adapters,
-		Blobs:     blobs,
-		OS:        los,
-		Workspace: lfs,
-		//
-		History: mem,
+
+	mem, err := hist.NewFileMemStore(roots.Workspace.Path)
+	if err != nil {
+		return nil, err
 	}
+	callogs, err := calllog.NewFileCallLog(roots.Workspace.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	var rte = &api.ActionRTEnv{
+		ID:      uuid.NewString(),
+		Base:    cfg.Base,
+		Roots:   roots,
+		User:    user,
+		Secrets: secrets,
+		Assets:  assets,
+		// Blobs:     blobs,
+		Workspace: lfs,
+		OS:        los,
+		//
+		Tools:    tools,
+		Adapters: adapters,
+		History:  mem,
+		Log:      callogs,
+	}
+	vars.RTE = rte
+	sw := &Swarm{
+		Vars: vars,
+	}
+
 	return sw, nil
 }
 
@@ -79,11 +103,10 @@ func TestTemplate(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
-	home, _ := os.UserHomeDir()
-	base := filepath.Join(home, ".ai")
+	// home, _ := os.UserHomeDir()
+	base := t.TempDir()
 	cfg := &api.App{
 		Base: base,
-		// Workspace: "/tmp",
 	}
 	sw, err := defaultSwarm(cfg)
 	if err != nil {
@@ -91,6 +114,7 @@ func TestTemplate(t *testing.T) {
 	}
 
 	agent := &api.Agent{}
+	agent.Runner = NewAgentToolRunner(sw.Vars, agent)
 
 	tpl := atm.NewTemplate(sw.Vars, agent)
 

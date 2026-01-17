@@ -1,0 +1,16 @@
+{
+    "assets": [],
+    "roots": {
+        "cwd": {
+            "name": "Current Directory",
+            "description": "Current working directory",
+            "path": ""
+        },
+        "temp": {
+            "name": "Temporary Files",
+            "description": "Directory for temporary files",
+            "temp": ""
+        },
+        "dirs": []
+    }
+}

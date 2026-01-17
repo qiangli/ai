@@ -131,7 +131,7 @@ done
 # printenv
 
 echo "$?"
-echo "*** standard/incubator tests completed ***"
+echo "*** 🎉 standard/incubator tests completed ***"
 exit 0
 ###
 

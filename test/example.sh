@@ -46,7 +46,9 @@ $(exec "/bin/ls -al")
 # "base64", "basename", "cat", "date", "dirname", "head", "ls",
 # "shasum", "sleep", "tail", "time", "touch",
 #
-FILE="$PWD/ex.sh"
+FILE="/tmp/test.txt"
+touch $FILE
+#
 base64 $FILE
 basename $PWD 
 cat $FILE
@@ -88,5 +90,7 @@ time touch $FILE
     --option cmd="ls -al /tmp" \
     --option duration="60s"
 
+
+echo "*** 🎉 Example tests completed ***"
 exit 0
 ###

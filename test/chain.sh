@@ -53,5 +53,6 @@ choose="/flow:choice --option actions=[sh:pass,no_such_cmd,sh:pwd,kit:invalid_to
     --option cmd="${choose}" \
     --option duration="60s"
 
+echo "*** 🎉 chain test completed ***"
 exit 0
 ###

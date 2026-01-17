@@ -51,5 +51,5 @@ env workspace="<redacted>"
 
 printenv
 # echo ""
-echo "*** test completed ***"
+echo "*** 🎉 test [envs, args, params] completed ***"
 ###

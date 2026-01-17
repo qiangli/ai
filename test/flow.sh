@@ -41,6 +41,6 @@ adapter="echo"
 
 #
 echo "$?"
-echo "*** flow tests completed ***"
+echo "*** 🎉 flow tests completed ***"
 exit 0
 #

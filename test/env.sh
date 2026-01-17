@@ -22,5 +22,5 @@ env datetime2="${datetime}" message2="${message}"
 echo "---"
 printenv
 
-echo "*** env test completed ***"
+echo "*** 🎉 env test completed ***"
 ###

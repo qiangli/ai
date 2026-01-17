@@ -11,30 +11,30 @@ import (
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/ai/swarm/resource"
-	"github.com/qiangli/shell/tool/sh/vfs"
-	"github.com/qiangli/shell/tool/sh/vos"
+	// "github.com/qiangli/shell/tool/sh/vfs"
+	// "github.com/qiangli/shell/tool/sh/vos"
 )
 
 type Swarm struct {
 	// session id
-	ID string
+	// ID string
 
-	User *api.User
+	// User *api.User
 
-	Secrets api.SecretStore
+	// Secrets api.SecretStore
 
-	Assets api.AssetManager
+	// Assets api.AssetManager
 
-	Tools api.ToolSystem
+	// Tools api.ToolSystem
 
-	Adapters api.AdapterRegistry
+	// Adapters api.AdapterRegistry
 
-	Blobs api.BlobStore
+	// Blobs api.BlobStore
 
-	OS        vos.System
-	Workspace vfs.Workspace
-	History   api.MemStore
-	Log       api.CallLogger
+	// OS        vos.System
+	// Workspace vfs.Workspace
+	// History   api.MemStore
+	// Log       api.CallLogger
 
 	//
 	Vars *api.Vars

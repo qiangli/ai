@@ -34,6 +34,9 @@ $BASE/test/fs.sh
 
 $BASE/test/env.sh
 
+# ai bash examples
+$BASE/test/example.sh
+
 #
 function test_failed() {
     echo "❌ test outputs differ"
@@ -43,6 +46,6 @@ $BASE/test/test.sh
 diff /tmp/test.txt ./test/data/test-expected.txt || test_failed
 
 echo "$?"
-echo "*** All tests completed successfully 🎉 ***"
+echo "*** 🎉🎉🎉 All tests completed successfully ***"
 ###
 

@@ -30,5 +30,5 @@ do
 done
 
 echo "$?"
-echo "*** agent tests completed ***"
+echo "*** 🎉 agent tests completed ***"
 ###

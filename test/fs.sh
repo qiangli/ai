@@ -42,5 +42,5 @@ test
 ##
 /sh:exec --command "ls -al /tmp/test/"
 
-echo "*** fs* toolkit tests completed ***"
+echo "*** 🎉 fs* toolkit tests completed ***"
 ###

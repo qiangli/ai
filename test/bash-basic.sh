@@ -118,5 +118,5 @@ time touch /tmp/test/bye
 wget -O /tmp/test/out.txt https://www.google.com
 # xargs
 
-echo "*** Basic tests completed ***"
+echo "*** 🎉 Basic tests completed ***"
 ###
