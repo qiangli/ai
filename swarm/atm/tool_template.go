@@ -21,7 +21,6 @@ import (
 // https://pkg.go.dev/text/template
 // https://masterminds.github.io/sprig/
 // https://github.com/golang/go/issues/18221
-
 func NewFuncMap(vars *api.Vars) template.FuncMap {
 	var fm = sprig.FuncMap()
 
@@ -75,6 +74,9 @@ func NewFuncMap(vars *api.Vars) template.FuncMap {
 	fm["fence"] = func() string {
 		return "```"
 	}
+
+	fm["encodeMD"] = encodeMD
+	fm["decodeMD"] = decodeMD
 
 	// custom
 
@@ -159,7 +161,7 @@ func NewTemplate(vars *api.Vars, agent *api.Agent) *template.Template {
 		if err != nil {
 			return err.Error()
 		}
-		return content
+		return encodeMD(content)
 	}
 
 	return template.New("swarm-agent").Funcs(fm)
@@ -211,7 +213,7 @@ func NewToolTemplate(vars *api.Vars, runner api.ActionRunner, tf *api.ToolFunc) 
 		if err != nil {
 			return err.Error()
 		}
-		return content
+		return encodeMD(content)
 	}
 
 	return template.New("swarm-tool").Funcs(fm)
@@ -291,4 +293,16 @@ func count(obj any) int {
 	default:
 		return 0
 	}
+}
+
+// https://github.com/golang/go/issues/18221
+// UNICODE U+00060
+// HEX CODE &#x60;
+// HTML CODE &#96;
+// HTML ENTITY &grave;
+func encodeMD(s string) string {
+	return strings.ReplaceAll(s, "`", "&grave;")
+}
+func decodeMD(s string) string {
+	return strings.ReplaceAll(s, "&grave;", "`")
 }

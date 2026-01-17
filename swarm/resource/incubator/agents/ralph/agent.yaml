@@ -493,6 +493,9 @@ tools:
         var baseDir = "{{.base_dir}}"
 
         const content = `{{asset "/templates/PROMPT.md"}}`
+        func decodeMD(s string) string {
+          return strings.ReplaceAll(s, "&grave;", "`")
+        }
 
         func main() {
           if baseDir == "" || baseDir == "<no value>" {
@@ -504,7 +507,7 @@ tools:
             fmt.Fprintln(os.Stderr, err.Error())
             os.Exit(1)
           }
-          if err := os.WriteFile(outPath, []byte(content), 0o644); err != nil {
+          if err := os.WriteFile(outPath, []byte(decodeMD(content)), 0o644); err != nil {
             fmt.Fprintln(os.Stderr, err.Error())
             os.Exit(1)
           }
@@ -532,7 +535,14 @@ tools:
           "path/filepath"
         )
 
-        func saveAgentMD(baseDir, content string) {
+        var baseDir = "{{.base_dir}}"
+        
+        const content = `{{asset "/templates/AGENT.md"}}`
+        func decodeMD(s string) string {
+          return strings.ReplaceAll(s, "&grave;", "`")
+        }
+
+        func main() {
           if baseDir == "" || baseDir == "<no value>" {
             fmt.Fprintln(os.Stderr, "missing required parameter: base_dir")
             os.Exit(2)
@@ -542,17 +552,11 @@ tools:
             fmt.Fprintln(os.Stderr, err.Error())
             os.Exit(1)
           }
-          if err := os.WriteFile(outPath, []byte(content), 0o644); err != nil {
+          if err := os.WriteFile(outPath, []byte(decodeMD(content)), 0o644); err != nil {
             fmt.Fprintln(os.Stderr, err.Error())
             os.Exit(1)
           }
           fmt.Println(outPath)
-        }
-
-        func main() {
-          var baseDir = "{{.base_dir}}"
-          var content = `{{asset "/templates/AGENT.md"}}`
-          saveAgentMD(baseDir, content)
         }
 
   - name: "write_template_fix_plan"
@@ -579,6 +583,9 @@ tools:
         var baseDir = "{{.base_dir}}"
 
         const content = `{{asset "/templates/fix_plan.md"}}`
+        func decodeMD(s string) string {
+          return strings.ReplaceAll(s, "&grave;", "`")
+        }
 
         func main() {
           if baseDir == "" || baseDir == "<no value>" {
@@ -590,7 +597,7 @@ tools:
             fmt.Fprintln(os.Stderr, err.Error())
             os.Exit(1)
           }
-          if err := os.WriteFile(outPath, []byte(content), 0o644); err != nil {
+          if err := os.WriteFile(outPath, []byte(decodeMD(content)), 0o644); err != nil {
             fmt.Fprintln(os.Stderr, err.Error())
             os.Exit(1)
           }

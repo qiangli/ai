@@ -56,7 +56,9 @@ message="Top open source github repo for comamnd line parsing in golang"
 #     --script "$script" \
 #     --message "$message"
 
-tool="ralph:write_template_agent"
+# tool="ralph:write_template_agent"
+# tool="ralph:write_template_fix_plan"
+tool="ralph:write_template_prompt"
 
 # /flow:sequence \
 #     --tool "$tool" \
@@ -65,7 +67,7 @@ tool="ralph:write_template_agent"
 #     --template "$template" \
 #     --script "$script"
 
-/ralph:write_template_agent  --script "$script" --base_dir=/tmp/test/xxx 
+/$tool  --script "$script" --base_dir=/tmp/test/xxx 
 
 ###
 
