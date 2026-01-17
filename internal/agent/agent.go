@@ -7,8 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/google/uuid"
-
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 
@@ -93,9 +91,9 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 		Display: "",
 	}
 
-	if msg, ok := argm["message"]; ok {
-		sw.Vars.Global.Set("message", msg)
-	}
+	// if msg, ok := argm["message"]; ok {
+	// 	sw.Vars.Global.Set("message", msg)
+	// }
 
 	id := argm.Kitname().ID()
 	if id != "" {
@@ -162,16 +160,16 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 		return nil, err
 	}
 
-	var rte = &api.ActionRTEnv{
-		ID:        uuid.NewString(),
+	var vars = &api.Vars{
 		Base:      cfg.Base,
-		Roots:     roots,
+		Workspace: lfs,
 		User:      user,
 		Secrets:   secrets,
-		Assets:    assets,
-		Blobs:     blobs,
-		Workspace: lfs,
 		OS:        los,
+		//
+		Roots:  roots,
+		Assets: assets,
+		Blobs:  blobs,
 		//
 		Tools:    tools,
 		Adapters: adapters,
@@ -179,22 +177,23 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 		Log:      callogs,
 	}
 
-	sw := &swarm.Swarm{
-		// ID:       uuid.NewString(),
-		// User:     user,
-		// Secrets:  secrets,
-		// Assets:   assets,
-		// Tools:    tools,
-		// Adapters: adapters,
-		// Blobs:    blobs,
-		// //
-		// OS:        los,
-		// Workspace: lfs,
-		// History:   mem,
-		// Log:       callogs,
-	}
+	// sw := &swarm.Swarm{
+	// 	// ID:       uuid.NewString(),
+	// 	// User:     user,
+	// 	// Secrets:  secrets,
+	// 	// Assets:   assets,
+	// 	// Tools:    tools,
+	// 	// Adapters: adapters,
+	// 	// Blobs:    blobs,
+	// 	// //
+	// 	// OS:        los,
+	// 	// Workspace: lfs,
+	// 	// History:   mem,
+	// 	// Log:       callogs,
+	// }
 
-	if err := sw.Init(rte); err != nil {
+	sw, err := swarm.New(vars)
+	if err != nil {
 		return nil, err
 	}
 

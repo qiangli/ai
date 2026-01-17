@@ -36,17 +36,17 @@ type ConfigLoader struct {
 	assets api.AssetStore
 	data   []byte
 
-	rte *api.ActionRTEnv
+	vars *api.Vars
 }
 
-func NewConfigLoader(rte *api.ActionRTEnv) *ConfigLoader {
+func NewConfigLoader(vars *api.Vars) *ConfigLoader {
 	return &ConfigLoader{
-		rte: rte,
+		vars: vars,
 	}
 }
 
 func (r *ConfigLoader) LoadContent(src string) error {
-	var ws = r.rte.Workspace
+	var ws = r.vars.Workspace
 	var content []byte
 	if strings.HasPrefix(src, "data:") {
 		v, err := api.DecodeDataURL(src)
@@ -150,7 +150,7 @@ func (r *ConfigLoader) LoadAgentConfig(packname api.Packname) (*api.AppConfig, e
 		// continue to find
 	}
 
-	ac, err := r.rte.Assets.FindAgent(r.rte.User.Email, pack)
+	ac, err := r.vars.Assets.FindAgent(r.vars.User.Email, pack)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +195,7 @@ func (r *ConfigLoader) LoadToolConfig(kn api.Kitname) (*api.AppConfig, error) {
 		// continue to find
 	}
 
-	tc, err := r.rte.Assets.FindToolkit(r.rte.User.Email, kit)
+	tc, err := r.vars.Assets.FindToolkit(r.vars.User.Email, kit)
 	if err != nil {
 		return nil, err
 	}
@@ -237,7 +237,7 @@ func (r *ConfigLoader) CreateTool(tid string) (*api.ToolFunc, error) {
 			return nil, err
 		}
 
-		tools, err := conf.LoadTools(tc, r.rte.User.Email, r.rte.Secrets)
+		tools, err := conf.LoadTools(tc, r.vars.User.Email, r.vars.Secrets)
 		if err != nil {
 			return nil, err
 		}
@@ -353,7 +353,7 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 			}
 			// load external model if not defined locally
 			if agent.Model == nil {
-				if v, err := conf.LoadModel(r.rte.User.Email, set, level, r.rte.Assets); err != nil {
+				if v, err := conf.LoadModel(r.vars.User.Email, set, level, r.vars.Assets); err != nil {
 					return nil, fmt.Errorf("failed to load model: %s %v", model, err)
 
 				} else {
@@ -387,7 +387,7 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 		}
 		// local scope
 		if tools == nil {
-			if v, err := conf.LoadLocalToolFunc(ac, r.rte.User.Email, v, r.rte.Secrets, r.rte.Assets); err != nil {
+			if v, err := conf.LoadLocalToolFunc(ac, r.vars.User.Email, v, r.vars.Secrets, r.vars.Assets); err != nil {
 				return nil, err
 			} else {
 				tools = v
@@ -395,7 +395,7 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 		}
 		// load external kit if not defined locally
 		if tools == nil {
-			if v, err := conf.LoadToolFunc(r.rte.User.Email, v, r.rte.Secrets, r.rte.Assets); err != nil {
+			if v, err := conf.LoadToolFunc(r.vars.User.Email, v, r.vars.Secrets, r.vars.Assets); err != nil {
 				return nil, err
 			} else {
 				tools = v
@@ -444,7 +444,7 @@ func (r *ConfigLoader) Create(ctx context.Context, packname api.Packname) (*api.
 
 	// cached agent
 	key := AgentCacheKey{
-		User: r.rte.User.Email,
+		User: r.vars.User.Email,
 		Pack: pack,
 		Sub:  sub,
 	}
@@ -497,14 +497,14 @@ func (r *ConfigLoader) Create(ctx context.Context, packname api.Packname) (*api.
 
 // load all kit:* tools defined under "tools" in a yaml including agent tools.
 func (r *ConfigLoader) loadAllTools() ([]*api.ToolFunc, error) {
-	owner := r.rte.User.Email
-	tools, err := r.rte.Assets.ListToolkit(owner)
+	owner := r.vars.User.Email
+	tools, err := r.vars.Assets.ListToolkit(owner)
 	if err != nil {
 		return nil, err
 	}
 	var funcs []*api.ToolFunc
 	for _, tc := range tools {
-		v, err := conf.LoadTools(tc, owner, r.rte.Secrets)
+		v, err := conf.LoadTools(tc, owner, r.vars.Secrets)
 		if err != nil {
 			return nil, err
 		}
@@ -515,7 +515,7 @@ func (r *ConfigLoader) loadAllTools() ([]*api.ToolFunc, error) {
 
 // load all agent:* as tools defined under "agents" in a yaml
 func (r *ConfigLoader) loadAllAgentTools() ([]*api.ToolFunc, error) {
-	agents, err := r.rte.Assets.ListAgent(r.rte.User.Email)
+	agents, err := r.vars.Assets.ListAgent(r.vars.User.Email)
 	if err != nil {
 		return nil, err
 	}

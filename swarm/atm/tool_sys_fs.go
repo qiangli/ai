@@ -13,7 +13,7 @@ import (
 func (r *SystemKit) ListRoots(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	var result strings.Builder
 	result.WriteString("Allowed Root Directories:\n\n")
-	roots, err := vars.RTE.Roots.ResolveRoots()
+	roots, err := vars.Roots.ResolveRoots()
 	if err != nil {
 		return "", fmt.Errorf("failed to resolve root directories: %v", roots)
 	}
@@ -33,7 +33,7 @@ func (r *SystemKit) ListDirectory(ctx context.Context, vars *api.Vars, name stri
 	if err != nil {
 		return "", err
 	}
-	list, err := vars.RTE.Workspace.ListDirectory(path)
+	list, err := vars.Workspace.ListDirectory(path)
 	if err != nil {
 		return "", err
 	}
@@ -46,7 +46,7 @@ func (r *SystemKit) CreateDirectory(ctx context.Context, vars *api.Vars, name st
 		return "", err
 	}
 
-	if err := vars.RTE.Workspace.CreateDirectory(path); err != nil {
+	if err := vars.Workspace.CreateDirectory(path); err != nil {
 		return nil, err
 	}
 	return fmt.Sprintf("Directory created successfully: %q", path), nil
@@ -69,7 +69,7 @@ func (r *SystemKit) Tree(ctx context.Context, vars *api.Vars, name string, args 
 		followSymlinks = v
 	}
 
-	result, err := vars.RTE.Workspace.Tree(path, depth, followSymlinks)
+	result, err := vars.Workspace.Tree(path, depth, followSymlinks)
 	if err != nil {
 		return "", err
 	}
@@ -81,7 +81,7 @@ func (r *SystemKit) GetFileInfo(ctx context.Context, vars *api.Vars, name string
 	if err != nil {
 		return "", err
 	}
-	info, err := vars.RTE.Workspace.GetFileInfo(path)
+	info, err := vars.Workspace.GetFileInfo(path)
 	if err != nil {
 		return "", err
 	}
@@ -109,7 +109,7 @@ func (r *SystemKit) ReadFile(ctx context.Context, vars *api.Vars, name string, a
 		}
 	}
 
-	raw, err := vars.RTE.Workspace.ReadFile(path, opt)
+	raw, err := vars.Workspace.ReadFile(path, opt)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (r *SystemKit) ReadMultipleFiles(ctx context.Context, vars *api.Vars, name 
 		}
 	}
 
-	results, err := vars.RTE.Workspace.ReadMultipleFiles(paths)
+	results, err := vars.Workspace.ReadMultipleFiles(paths)
 	if err != nil {
 		return "", err
 	}
@@ -153,7 +153,7 @@ func (r *SystemKit) WriteFile(ctx context.Context, vars *api.Vars, name string, 
 	if err != nil {
 		return "", err
 	}
-	if err := vars.RTE.Workspace.WriteFile(path, []byte(content)); err != nil {
+	if err := vars.Workspace.WriteFile(path, []byte(content)); err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("File written successfully: %q", path), nil
@@ -168,7 +168,7 @@ func (r *SystemKit) CopyFile(ctx context.Context, vars *api.Vars, name string, a
 	if err != nil {
 		return "", err
 	}
-	if err := vars.RTE.Workspace.CopyFile(source, dest); err != nil {
+	if err := vars.Workspace.CopyFile(source, dest); err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("File copied successfully. Source: %q Destination: %q", source, dest), nil
@@ -183,7 +183,7 @@ func (r *SystemKit) MoveFile(ctx context.Context, vars *api.Vars, name string, a
 	if err != nil {
 		return "", err
 	}
-	if err := vars.RTE.Workspace.MoveFile(source, dest); err != nil {
+	if err := vars.Workspace.MoveFile(source, dest); err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("File moved successfully. Source: %q Destination: %q", source, dest), nil
@@ -203,7 +203,7 @@ func (r *SystemKit) DeleteFile(ctx context.Context, vars *api.Vars, name string,
 		return "", err
 	}
 
-	if err := vars.RTE.Workspace.DeleteFile(path, recursive); err != nil {
+	if err := vars.Workspace.DeleteFile(path, recursive); err != nil {
 		return "", err
 	}
 
@@ -240,7 +240,7 @@ func (r *SystemKit) EditFile(ctx context.Context, vars *api.Vars, name string, a
 		AllOccurrences: all,
 		UseRegex:       regex,
 	}
-	replacementCount, err := vars.RTE.Workspace.EditFile(path, options)
+	replacementCount, err := vars.Workspace.EditFile(path, options)
 	if replacementCount <= 0 {
 		return fmt.Sprintf("File not modified. You may adjust your find/replace strings and try again. find: %q replace: %q all: %v regex: %v", find, replace, all, regex), nil
 	}
@@ -289,5 +289,5 @@ func (r *SystemKit) SearchFiles(ctx context.Context, vars *api.Vars, name string
 		Follow:     false,
 		Hidden:     true,
 	}
-	return vars.RTE.Workspace.SearchFiles(path, options)
+	return vars.Workspace.SearchFiles(path, options)
 }

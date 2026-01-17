@@ -139,7 +139,34 @@ func (g *Environment) Clone() *Environment {
 	}
 }
 
-type ActionRTEnv struct {
+// type ActionRTEnv struct {
+// 	Base string
+
+// 	ID string
+
+// 	User      *User
+// 	Roots     *Roots
+// 	Workspace Workspace
+// 	OS        System
+// 	Secrets   SecretStore
+// 	Assets    AssetManager
+// 	Blobs     BlobStore
+
+// 	Tools    ToolSystem
+// 	Adapters AdapterRegistry
+// 	History  MemStore
+// 	Log      CallLogger
+// }
+
+// global context
+type Vars struct {
+	Global *Environment `json:"global"`
+
+	RootAgent *Agent `json:"root_agent"`
+
+	// RTE *ActionRTEnv `json:"-"`
+	// mu  sync.RWMutex `json:"-"`
+
 	Base string
 
 	ID string
@@ -151,33 +178,16 @@ type ActionRTEnv struct {
 	Secrets   SecretStore
 	Assets    AssetManager
 	Blobs     BlobStore
-
-	//
-	// User *api.User
-
-	// Secrets api.SecretStore
-
-	// Assets api.AssetManager
-
-	Tools ToolSystem
-
-	Adapters AdapterRegistry
-
-	// Blobs BlobStore
-
-	// OS        vos.System
-	// Workspace vfs.Workspace
-	History MemStore
-	Log     CallLogger
-
-	// Tools ToolSystem
-	// Adapters AdapterRegistry
+	Tools     ToolSystem
+	Adapters  AdapterRegistry
+	History   MemStore
+	Log       CallLogger
 }
 
 // Return default query from message and content.
 // Return error if either message or content is a template
 // Preprocessing is required for templates using [ai:build_query]
-func (r *ActionRTEnv) DefaultQuery(argm ArgMap) (string, error) {
+func (r *Vars) DefaultQuery(argm ArgMap) (string, error) {
 	message := argm.GetString("message")
 	if IsTemplate(message) {
 		return "", fmt.Errorf("message is a template")
@@ -201,7 +211,7 @@ func (r *ActionRTEnv) DefaultQuery(argm ArgMap) (string, error) {
 // Return error if instruction is a template
 // Return empty string if no instruction if found
 // Preprocessing is required for templates using [ai:build_prompt]
-func (r *ActionRTEnv) DefaultPrompt(argm ArgMap) (string, error) {
+func (r *Vars) DefaultPrompt(argm ArgMap) (string, error) {
 	instruction := argm.GetString("instruction")
 	if instruction == "" {
 		return "", nil
@@ -216,43 +226,33 @@ func (r *ActionRTEnv) DefaultPrompt(argm ArgMap) (string, error) {
 	return prompt, nil
 }
 
-func (r *ActionRTEnv) LoadScript(v string) (string, error) {
-	return LoadURIContent(r.Workspace, v)
+func (r *Vars) LoadScript(s string) (string, error) {
+	return LoadURIContent(r.Workspace, s)
 }
 
 // return as is for non URI
-func (r *ActionRTEnv) loadContent(v string) (string, error) {
-	if !IsURI(v) {
-		return v, nil
+func (r *Vars) loadContent(s string) (string, error) {
+	if !IsURI(s) {
+		return s, nil
 	}
-	return LoadURIContent(r.Workspace, v)
-}
-
-// global context
-type Vars struct {
-	Global *Environment `json:"global"`
-
-	RootAgent *Agent `json:"root_agent"`
-
-	RTE *ActionRTEnv `json:"-"`
-	mu  sync.RWMutex `json:"-"`
+	return LoadURIContent(r.Workspace, s)
 }
 
 // fs.FS interface
-func (v *Vars) Open(s string) (fs.File, error) {
-	return v.RTE.Workspace.OpenFile(s, os.O_RDWR, 0o755)
+func (r *Vars) Open(s string) (fs.File, error) {
+	return r.Workspace.OpenFile(s, os.O_RDWR, 0o755)
 }
 
 // Return secret token for the current user
-func (v *Vars) Token(key string) (string, error) {
-	return v.RTE.Secrets.Get(v.RTE.User.Email, key)
+func (r *Vars) Token(key string) (string, error) {
+	return r.Secrets.Get(r.User.Email, key)
 }
 
-func NewVars() *Vars {
-	return &Vars{
-		Global: NewEnvironment(),
-	}
-}
+// func NewVars() *Vars {
+// 	return &Vars{
+// 		Global: NewEnvironment(),
+// 	}
+// }
 
 type ArgMap map[string]any
 
@@ -318,32 +318,6 @@ func (a ArgMap) SetPrompt(prompt any) ArgMap {
 	a["prompt"] = prompt
 	return a
 }
-
-// func (a ArgMap) Result() *Result {
-// 	v, ok := a["result"]
-// 	if !ok {
-// 		return nil
-// 	}
-// 	return ToResult(v)
-// }
-
-// func (a ArgMap) SetResult(result any) ArgMap {
-// 	a["result"] = result
-// 	return a
-// }
-
-// func (a ArgMap) Error() error {
-// 	v, ok := a["error"]
-// 	if !ok {
-// 		return nil
-// 	}
-// 	return ToError(v)
-// }
-
-// func (a ArgMap) SetError(err error) ArgMap {
-// 	a["error"] = err
-// 	return a
-// }
 
 func (a ArgMap) Actions() []string {
 	obj := a["actions"]

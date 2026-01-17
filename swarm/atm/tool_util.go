@@ -84,8 +84,8 @@ func BuildEffectiveParamArgs(vars *api.Vars, parameters api.Parameters, argument
 	maps.Copy(data, input)
 
 	// predefined
-	data["workspace"] = vars.RTE.Roots.Workspace.Path
-	data["user"] = vars.RTE.User
+	data["workspace"] = vars.Roots.Workspace.Path
+	data["user"] = vars.User
 
 	return data
 }

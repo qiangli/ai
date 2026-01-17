@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/google/uuid"
+	// "github.com/google/uuid"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
@@ -16,8 +16,7 @@ import (
 	"github.com/qiangli/shell/tool/sh/vos"
 )
 
-func defaultSwarm(cfg *api.App) (*Swarm, error) {
-	var vars = api.NewVars()
+func defaultVars(cfg *api.App) (*api.Vars, error) {
 
 	var wsbase = cfg.Base + "/workdir"
 	if err := os.MkdirAll(wsbase, 0755); err != nil {
@@ -75,8 +74,8 @@ func defaultSwarm(cfg *api.App) (*Swarm, error) {
 		return nil, err
 	}
 
-	var rte = &api.ActionRTEnv{
-		ID:      uuid.NewString(),
+	var vars = &api.Vars{
+		// ID:      uuid.NewString(),
 		Base:    cfg.Base,
 		Roots:   roots,
 		User:    user,
@@ -91,12 +90,7 @@ func defaultSwarm(cfg *api.App) (*Swarm, error) {
 		History:  mem,
 		Log:      callogs,
 	}
-	vars.RTE = rte
-	sw := &Swarm{
-		Vars: vars,
-	}
-
-	return sw, nil
+	return vars, nil
 }
 
 func TestTemplate(t *testing.T) {
@@ -108,15 +102,16 @@ func TestTemplate(t *testing.T) {
 	cfg := &api.App{
 		Base: base,
 	}
-	sw, err := defaultSwarm(cfg)
+	vars, err := defaultVars(cfg)
+	// sw, err := New(vars)
 	if err != nil {
 		t.FailNow()
 	}
 
 	agent := &api.Agent{}
-	agent.Runner = NewAgentToolRunner(sw.Vars, agent)
+	agent.Runner = NewAgentToolRunner(vars, agent)
 
-	tpl := atm.NewTemplate(sw.Vars, agent)
+	tpl := atm.NewTemplate(vars, agent)
 
 	var tools []*api.ToolFunc
 	tools = append(tools, &api.ToolFunc{
@@ -125,7 +120,7 @@ func TestTemplate(t *testing.T) {
 		Kit:   "agent",
 		Agent: "ask",
 	})
-	sw.Vars.Global.Set("__parent_agent", &api.Agent{
+	vars.Global.Set("__parent_agent", &api.Agent{
 		Name: "test",
 		Model: &api.Model{
 			Provider: "openai",

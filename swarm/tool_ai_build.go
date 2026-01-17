@@ -8,8 +8,73 @@ import (
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
-	// "github.com/qiangli/ai/swarm/atm/conf"
 )
+
+func CreateAgent(ctx context.Context, vars *api.Vars, parent *api.Agent, packname api.Packname, config []byte) (*api.Agent, error) {
+	var loader = NewConfigLoader(vars)
+
+	if config != nil {
+		// load data
+		if err := loader.LoadContent(string(config)); err != nil {
+			return nil, err
+		}
+	}
+
+	agent, err := loader.Create(ctx, packname)
+	if err != nil {
+		return nil, err
+	}
+
+	// init setup
+	// TODO optimize
+	// embeded
+	add := func(p, a *api.Agent) {
+		a.Parent = p
+		a.Runner = NewAgentToolRunner(vars, a)
+		a.Shell = NewAgentScriptRunner(vars, a)
+		a.Template = atm.NewTemplate(vars, a)
+	}
+
+	var addAll func(*api.Agent, *api.Agent)
+	addAll = func(p, a *api.Agent) {
+		for _, v := range a.Embed {
+			addAll(p, v)
+		}
+		add(p, a)
+	}
+
+	addAll(parent, agent)
+
+	return agent, nil
+}
+
+// copy values from src to dst after applying templates if requested
+// skip unless override is true
+// var in src template can reference global env
+func mapAssign(_ context.Context, global *api.Environment, agent *api.Agent, dst, src map[string]any, override bool) error {
+	if len(src) == 0 {
+		return nil
+	}
+	var data = make(map[string]any)
+	// sw.Vars.Global.GetAllEnvs()
+	maps.Copy(data, global.GetAllEnvs())
+	for key, val := range src {
+		if _, ok := dst[key]; ok && !override {
+			continue
+		}
+		// go template value support
+		if api.IsTemplate(val) {
+			maps.Copy(data, dst)
+			if resolved, err := atm.CheckApplyTemplate(agent.Template, val.(string), data); err != nil {
+				return err
+			} else {
+				val = resolved
+			}
+		}
+		dst[key] = val
+	}
+	return nil
+}
 
 // apply templates on env, inherit from embedded agents, export env
 // apply templates on args
@@ -38,7 +103,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, _ string, args 
 
 	// config
 	loadScript := func(v string) (string, error) {
-		return api.LoadURIContent(vars.RTE.Workspace, v)
+		return api.LoadURIContent(vars.Workspace, v)
 	}
 
 	var cfg []byte

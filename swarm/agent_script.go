@@ -29,7 +29,7 @@ func NewAgentScriptRunner(vars *api.Vars, agent *api.Agent) api.ActionRunner {
 }
 
 func (r *AgentScriptRunner) loadScript(v string) (string, error) {
-	return api.LoadURIContent(r.vars.RTE.Workspace, v)
+	return api.LoadURIContent(r.vars.Workspace, v)
 }
 
 // Run command or script.
@@ -56,7 +56,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	// bash script
 	var b bytes.Buffer
 	ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
-	vs := sh.NewVirtualSystem(r.vars.RTE.OS, r.vars.RTE.Workspace, ioe)
+	vs := sh.NewVirtualSystem(r.vars.OS, r.vars.Workspace, ioe)
 
 	// set global env for bash script
 	// TODO batch set
@@ -138,7 +138,7 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, _ map[string]an
 
 		// TODO restricted
 		// block other commands
-		out, err := atm.ExecCommand(ctx, r.vars.RTE.OS, r.vars, args[0], args[1:])
+		out, err := atm.ExecCommand(ctx, r.vars.OS, r.vars, args[0], args[1:])
 		// out already has stdout/stder combined
 		fmt.Fprintf(vs.IOE.Stdout, "%v", out)
 		return true, err

@@ -33,11 +33,11 @@ func (r *SystemKit) Cd(ctx context.Context, vars *api.Vars, name string, args ma
 }
 
 func (r *SystemKit) Pwd(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	return vars.RTE.OS.Getwd()
+	return vars.OS.Getwd()
 }
 
 func (r *SystemKit) Workspace(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
-	return vars.RTE.Roots.Workspace.Path, nil
+	return vars.Roots.Workspace.Path, nil
 }
 
 func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
@@ -50,7 +50,7 @@ func (r *SystemKit) Exec(ctx context.Context, vars *api.Vars, _ string, args map
 	}
 	// command := argv[0]
 	// rest := argv[1:]
-	result, err := ExecCommand(ctx, vars.RTE.OS, vars, cmd, nil)
+	result, err := ExecCommand(ctx, vars.OS, vars, cmd, nil)
 	if err != nil {
 		return "", err
 	}
@@ -72,7 +72,7 @@ func (r *SystemKit) Apply(ctx context.Context, vars *api.Vars, _ string, args ma
 	if err != nil {
 		return "", err
 	}
-	if v, err := api.LoadURIContent(vars.RTE.Workspace, tpl); err != nil {
+	if v, err := api.LoadURIContent(vars.Workspace, tpl); err != nil {
 		return "", err
 	} else {
 		tpl = string(v)
@@ -102,7 +102,7 @@ func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, arg
 	var tpl string
 	tpl, _ = api.GetStrProp("template", args)
 	if tpl != "" {
-		if v, err := api.LoadURIContent(vars.RTE.Workspace, tpl); err != nil {
+		if v, err := api.LoadURIContent(vars.Workspace, tpl); err != nil {
 			return "", err
 		} else {
 			tpl = string(v)
@@ -148,7 +148,7 @@ func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, arg
 			key = strings.ReplaceAll(key, ":", "__")
 			key = strings.ReplaceAll(key, "-", "_")
 			vars.Global.Set(key, txt)
-			vars.RTE.OS.Setenv(key, txt)
+			vars.OS.Setenv(key, txt)
 			return "", nil
 		}
 		//
@@ -159,7 +159,7 @@ func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, arg
 			if file == "" {
 				file = uri.Opaque
 			}
-			err = vars.RTE.Workspace.WriteFile(file, []byte(txt))
+			err = vars.Workspace.WriteFile(file, []byte(txt))
 			if err != nil {
 				return "", err
 			}
@@ -370,7 +370,7 @@ func (r *SystemKit) SetEnvs(_ context.Context, vars *api.Vars, _ string, args ma
 	vars.Global.SetEnvs(obj)
 	var keys []string
 	for k, v := range obj {
-		vars.RTE.OS.Setenv(k, v)
+		vars.OS.Setenv(k, v)
 		keys = append(keys, k)
 	}
 	return &api.Result{
@@ -387,7 +387,7 @@ func (r *SystemKit) UnsetEnvs(_ context.Context, vars *api.Vars, _ string, args 
 	vars.Global.UnsetEnvs(keys)
 	// TODO delete env from OS
 	for _, k := range keys {
-		vars.RTE.OS.Setenv(k, "")
+		vars.OS.Setenv(k, "")
 	}
 	return &api.Result{
 		Value: fmt.Sprintf("Environment variables %q successfully cleared.", strings.Join(keys, ",")),
