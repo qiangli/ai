@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
+	"net/url"
 	"path"
 	"path/filepath"
 	"strings"
@@ -42,7 +43,7 @@ func (r *AgentToolRunner) loadYaml(tid string, base string, script string) (*api
 		if ac.Pack != pack {
 			return nil, fmt.Errorf("Invalid pack name: %s. config: %s", pack, ac.Pack)
 		}
-		ac.Store = r.sw.Assets
+		ac.Store = r.sw.Vars.RTE.Workspace
 		ac.BaseDir = base
 		for _, v := range ac.Agents {
 			if (sub == "" && v.Name == pack) || sub == v.Name {
@@ -59,7 +60,7 @@ func (r *AgentToolRunner) loadYaml(tid string, base string, script string) (*api
 		if err != nil {
 			return nil, err
 		}
-		tc.Store = r.sw.Assets
+		tc.Store = r.sw.Vars.RTE.Workspace
 		tc.BaseDir = base
 		tools, err := conf.LoadTools(tc, r.user, r.sw.Secrets)
 		if err != nil {
@@ -80,6 +81,26 @@ func (r *AgentToolRunner) loadYaml(tid string, base string, script string) (*api
 	return nil, nil
 }
 
+func (r *AgentToolRunner) loadScript(uri string) (string, error) {
+	if strings.HasPrefix(uri, "data:") {
+		return api.DecodeDataURL(uri)
+	} else {
+		var f = uri
+		if strings.HasPrefix(f, "file:") {
+			v, err := url.Parse(f)
+			if err != nil {
+				return "", err
+			}
+			f = v.Path
+		}
+		data, err := r.sw.Workspace.ReadFile(f, nil)
+		if err != nil {
+			return "", err
+		}
+		return string(data), nil
+	}
+}
+
 // try load from provided script file first,
 // if not found, continue to load from other sources
 func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFunc, error) {
@@ -91,7 +112,7 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 		case ".sh", ".bash":
 			// continue
 		case ".yaml", ".yml":
-			cfg, err := r.sw.LoadScript(s)
+			cfg, err := r.loadScript(s)
 			if err != nil {
 				return nil, err
 			}
@@ -107,7 +128,7 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 			// continue to load tid
 		case ".txt", ".md", ".markdown":
 			// feed text file as query content
-			cfg, err := r.sw.LoadScript(s)
+			cfg, err := r.loadScript(s)
 			if err != nil {
 				return nil, err
 			}
@@ -116,7 +137,7 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 			// continue to load tid
 		case ".json", ".jsonc":
 			// decode json as additional arguments
-			cfg, err := r.sw.LoadScript(s)
+			cfg, err := r.loadScript(s)
 			if err != nil {
 				return nil, err
 			}
