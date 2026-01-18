@@ -208,7 +208,8 @@ tools:
 
   # - name: "build_model"
   #   description: |
-  #     Constructs the model for the agent. Resolve LLM providers, base URL, and API key.
+  #     Constructs the model for the agent. Resolve LLM providers, base URL, and
+  #     API key.
   #   parameters:
   #     type: "object"
   #     properties:
@@ -411,3 +412,82 @@ tools:
             ```
       required:
         - messages
+
+  - name: "sleep"
+    description: "Suspend execution for an interval of time"
+    parameters:
+      type: "object"
+      properties:
+        duration:
+          type: "string"
+          description: "Duration is a number with an optional suffix: 's' for seconds (the default), 'm' for minutes, 'h' for hours, or 'd' for days."
+      required:
+        - duration
+    type: "func"
+    body:
+      mime_type: "application/x-go"
+      script: |
+        import (
+          "fmt"
+          "os"
+          "strconv"
+          "strings"
+          "time"
+        )
+
+        // parseDurationExt supports time.ParseDuration plus an extra 'd' suffix for days.
+        func parseDurationExt(s string) (time.Duration, error) {
+          s = strings.TrimSpace(s)
+          if s == "" {
+            return 0, fmt.Errorf("duration is required")
+          }
+
+          // Support day suffix like "2d".
+          if strings.HasSuffix(s, "d") {
+            v := strings.TrimSuffix(s, "d")
+            if v == "" {
+              return 0, fmt.Errorf("invalid duration %q", s)
+            }
+            f, err := strconv.ParseFloat(v, 64)
+            if err != nil {
+              return 0, fmt.Errorf("invalid duration %q: %v", s, err)
+            }
+            if f < 0 {
+              return 0, fmt.Errorf("duration must be non-negative")
+            }
+            return time.Duration(f * float64(24*time.Hour)), nil
+          }
+
+          // If no unit is provided, treat as seconds (Unix sleep behavior).
+          last := s[len(s)-1]
+          if last >= '0' && last <= '9' {
+            s = s + "s"
+          }
+
+          d, err := time.ParseDuration(s)
+          if err != nil {
+            return 0, err
+          }
+          if d < 0 {
+            return 0, fmt.Errorf("duration must be non-negative")
+          }
+          return d, nil
+        }
+
+        func main() {
+          // Parameters are injected as global variables by the runtime.
+          duration := os.Getenv("duration")
+          if duration == "" {
+            // Some runtimes inject as global var; try fallback.
+            duration = ""
+          }
+
+          d, err := parseDurationExt(duration)
+          if err != nil {
+            fmt.Fprintln(os.Stderr, err.Error())
+            os.Exit(1)
+          }
+
+          time.Sleep(d)
+          fmt.Println("ok")
+        }
