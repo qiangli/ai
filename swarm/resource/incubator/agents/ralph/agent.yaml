@@ -133,8 +133,10 @@ agents:
       Clarification triggers
       ---------------------
       Ask a question and stop when:
-      - "--setup" is present but project name is missing.
-      - "--import" is present but source file is missing.
+      - "--setup" is present OR user asks to setup/init/create/start a new project, but project name is missing.
+        Suggest: Try: --setup <project_name>
+      - "--import" is present OR user asks to import a PRD/spec into a new project, but source file or project name is missing.
+        Suggest: Try: --import <prd_file> <project_name>
       - The user requests status/monitoring but you cannot find any Ralph state files in the current directory.
       - You cannot confidently choose between (setup/import/run/status/reset).
 
@@ -147,11 +149,13 @@ agents:
       2) Import (flag or natural language):
          If message contains "--import" OR user clearly asks to "import" a PRD/spec/requirements into a (new) Ralph project:
            - If missing source file or name, ask for what's missing (file path + desired project name).
+             Suggest: Try: --import <prd_file> <project_name>
            - Else route to agent:ralph/import (pass the user query through).
 
       3) Setup (flag or natural language):
          If message contains "--setup" OR user clearly asks to "setup/init/create/start" a new Ralph project:
            - If missing project name, ask for it.
+             Suggest: Try: --setup <project_name>
            - Else route to agent:ralph/setup.
 
       4) Resets (no sub-agent required):
