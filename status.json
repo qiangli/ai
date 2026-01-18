@@ -1,0 +1,30 @@
+{
+  "project": "sleep-tool",
+  "status": "initialized",
+  "created_at": "2026-01-18T00:00:00Z",
+  "last_updated": "2026-01-18T00:00:00Z",
+  "iteration": 0,
+  "objective": "Create a simple sleep tool for LLM to suspend execution for an interval of time",
+  "requirements_complete": false,
+  "tasks": [
+    {
+      "id": 1,
+      "description": "Update /Users/liqiang/workspace/cloudbox/ai/swarm/resource/standard/tools/ai.yaml - add sleep tool",
+      "status": "pending",
+      "delegated_to": null
+    },
+    {
+      "id": 2,
+      "description": "Implement sleep tool in Golang",
+      "status": "pending",
+      "delegated_to": null
+    },
+    {
+      "id": 3,
+      "description": "Ensure tool is invokable as ai:sleep with proper description and parameters",
+      "status": "pending",
+      "delegated_to": null
+    }
+  ],
+  "notes": "Work must be delegated to agent:agent/agent who specializes in writing/updating agents/tools/models with YAML"
+}
