@@ -460,12 +460,7 @@ agents:
     description: "Runs multi-iteration loop with rate limiting, circuit breaker, session continuity, and exit detection."
     model: "anthropic/L2"
     instruction: |
-      You implement the multi-iteration Ralph loop in pure YAML by coordinating sub-agents and filesystem state.
-
-      Constraints:
-      - Do NOT modify other agents/tools in this pack.
-      - Use only: fs:* and ai:spawn_agent.
-      - Keep changes minimal and focused on matching upstream ralph_loop.sh behavior.
+      You implement the multi-iteration Ralph loop by coordinating sub-agents and filesystem state.
 
       Inputs:
       - The user query may include flags like:
@@ -475,34 +470,44 @@ agents:
         --no-continue
         --session-expiry <hours> (default 24)
 
-      Algorithm (must mirror upstream essence):
-      0) Preflight:
-         - If prompt file does not exist: print a helpful error and stop.
-      1) Ensure directories exist: logs/, docs/generated/, .agent/.
-      2) Initialize or load loop state files if missing:
-         - status.json, progress.json
-         - .exit_signals (JSON with keys test_only_loops/done_signals/completion_indicators)
-      3) Loop counter:
-         - Start at 1 and increment each iteration.
-      4) For each iteration:
-         - Spawn agent:ralph/once with an augmented query that includes: "--loop-number <n>" plus any inherited flags.
-         - After once completes, evaluate exit conditions based on .exit_signals and .response_analysis:
-           a) test_saturation: test_only_loops length >= 3
-           b) completion_signals: done_signals length >= 2
-           c) project_complete: completion_indicators length >= 2 AND (.response_analysis.analysis.exit_signal == true)
-           d) plan_complete: all checklist items in @fix_plan.md are [x] (if any exist)
-              Note: upstream treats this as exit; in Ralph v0.9.9 the EXIT_SIGNAL gate primarily applies to completion_indicators.
-         - If any exit triggers: write status.json with exit_reason and stop.
-         - If circuit breaker state becomes OPEN (read .circuit_breaker_state.state == "OPEN"): stop.
-         - If --max-loops > 0 and loop_number >= max-loops: stop.
+      Required state files (in CWD):
+        - status.json
+        - progress.json
+        - .exit_signals
+        - .response_analysis
+        - .circuit_breaker_state
+
+      Algorithm (procedural; use tool calls):
+      0) Parse flags from the user's query (best-effort, by string matching):
+         - prompt_file: from "--prompt <file>" else "PROMPT.md"
+         - max_calls_per_hour: from "--calls <n>" else 100
+         - max_loops: from "--max-loops <n>" else 0
+      1) Preflight:
+         - If prompt_file does not exist: write status.json {status:"error", exit_reason:"missing_prompt"} and stop.
+      2) Ensure directories exist (create if missing): logs/, docs/generated/, .agent/.
+      3) Initialize state files if missing:
+         - If status.json missing: write minimal JSON with status="initialized".
+         - If progress.json missing: write minimal JSON with status="idle".
+         - If .exit_signals missing: write {"test_only_loops":[],"done_signals":[],"completion_indicators":[]}.
+      4) Loop n := 1.. until exit:
+         a) Update progress.json to {status:"loop_start", loop_number:n, timestamp:"..."}
+         b) Call ai:spawn_agent agent:ralph/once with query augmented by "--loop-number n" and forwarded flags.
+         c) Read .exit_signals and .response_analysis (if missing, treat as empty/default).
+         d) Compute exit_reason using upstream-like gates:
+            - test_saturation if len(test_only_loops) >= 3
+            - completion_signals if len(done_signals) >= 2
+            - project_complete if len(completion_indicators) >= 2 AND response_analysis.analysis.exit_signal == true
+            - plan_complete if @fix_plan.md exists and all checklist items are [x]
+         e) Read .circuit_breaker_state; if state=="OPEN" => exit_reason="circuit_open".
+         f) If max_loops>0 and n>=max_loops => exit_reason="max_loops".
+         g) If exit_reason non-empty:
+            - write status.json with status="stopped", exit_reason, loop_count=n.
+            - write progress.json with status="stopped", exit_reason.
+            - print summary and stop.
+         h) Else: increment n and continue.
 
       Output:
-      - Print a brief summary: number of loops executed, final status, exit_reason (if any).
-
-      Implementation notes:
-      - Use fs:read_file to read JSON/text, and fs:write_file to create/overwrite state files.
-      - If parsing JSON is needed, you may do it in-LMM reasoning (no jq). Keep output files valid JSON.
-
+      - Print a brief summary: loops executed, exit_reason, circuit state.
     functions:
       - "ai:spawn_agent"
       - "fs:*"
@@ -524,46 +529,63 @@ agents:
 
       Inputs:
       - The query may include:
-        --loop-number <n> (required when called from ralph/loop)
+        --loop-number <n>
         --prompt <file> (default PROMPT.md)
         --calls <n> (default 100)
         --no-continue
         --session-expiry <hours> (default 24)
 
-      Steps (replicate upstream behavior at the state-file level):
-      1) Resolve prompt file path (default PROMPT.md). If missing: write status.json with error and stop.
+      Procedural steps (tool-driven):
+      1) Derive:
+         - loop_number (required; if missing, set to 1)
+         - prompt_file ("--prompt" else PROMPT.md)
+         - max_calls_per_hour ("--calls" else 100)
+         - session_expiry_hours ("--session-expiry" else 24)
+         - no_continue: present? ("--no-continue")
       2) Ensure directories exist: logs/, docs/generated/, .agent/.
-      3) Hourly rate limiting state:
-         - Files: .call_count and .last_reset_hour
-         - Compute current_hour as YYYYMMDDHH (local time).
-         - If .last_reset_hour missing or different: reset .call_count to 0 and write .last_reset_hour=current_hour.
-         - If .call_count >= --calls: write status.json with status="paused" and exit_reason="rate_limit" and stop.
-         - Otherwise increment .call_count by 1 and persist.
-      4) Session lifecycle (Ralph-side):
-         - Files: .ralph_session (JSON), .ralph_session_history (JSON array)
-         - If --no-continue: do not rely on any persisted session context (but still keep file present).
-         - Minimal behavior: ensure .ralph_session exists; update its last_used timestamp each iteration.
-         - Expiration: if last_used is older than --session-expiry hours (default 24), reset session (new id) and append a transition record to history.
-      5) Update progress.json to indicate "executing" for this loop.
-      6) Spawn agent:ralph/worker exactly once.
-      7) Save raw worker output to logs/worker_output_<timestamp>.log.
-      8) Spawn agent:ralph/analyzer with inputs:
-         - output_text: the raw worker output
-         - loop_number: --loop-number
-         Write analyzer JSON output to .response_analysis.
-      9) Update .exit_signals rolling windows based on .response_analysis.analysis:
-         - Append booleans for is_test_only and status==COMPLETE signals, plus completion_indicators count.
-         - Keep only the last 5 entries in each array (upstream uses last 5 loops window).
-      10) Update circuit breaker state file (.circuit_breaker_state) minimally:
-         - Track consecutive no-progress loops (analysis.has_progress==false) and same-error loops (if analysis.is_stuck==true).
-         - Apply thresholds: no-progress>=3 OPEN; same-error>=5 OPEN; no-progress>=2 HALF_OPEN; progress in HALF_OPEN => CLOSED.
-         - Persist .circuit_breaker_state as JSON with at least: {"state":"CLOSED|HALF_OPEN|OPEN","loop_number":n,"reason":"..."}.
-      11) Update status.json with loop_number, calls_made_this_hour, max_calls_per_hour, last_action, status.
-         Update progress.json to "completed".
-
-      Output:
-      - Return ONE line of JSON: {"loop_number":n,"log_file":"...","cb_state":"..."}
-
+      3) Validate prompt_file exists; if not:
+         - write status.json {status:"error", exit_reason:"missing_prompt", loop_number}
+         - print one-line JSON and stop.
+      4) Hourly rate limiting:
+         - current_hour := YYYYMMDDHH (you may approximate using local time string in status.json)
+         - Read .last_reset_hour (if missing => "") and .call_count (if missing => 0)
+         - If last_reset_hour != current_hour: set call_count=0 and write .last_reset_hour=current_hour
+         - If call_count >= max_calls_per_hour: write status.json {status:"paused", exit_reason:"rate_limit"} and stop.
+         - Else increment call_count and write .call_count.
+      5) Session tracking (minimal, Ralph-side):
+         - Ensure .ralph_session exists as JSON. Fields: session_id, created_at, last_used.
+         - Update last_used to now.
+         - If no_continue: do NOT carry any special context (still update last_used).
+         - Expiration: if .ralph_session.last_used older than session_expiry_hours, reset session_id and append to .ralph_session_history.
+           (Best-effort; if you can't compute exact age, you may treat any missing/invalid timestamp as expired.)
+      6) Ensure state files exist if missing:
+         - If .exit_signals missing: initialize JSON arrays.
+         - If progress.json missing: create.
+      7) Write progress.json status="executing" with loop_number.
+      8) Spawn agent:ralph/worker once and capture its output.
+      9) Write logs/worker_output_<loop_number>.log with raw output.
+      10) Spawn agent:ralph/analyzer with JSON-ish query containing:
+          - loop_number
+          - output_text (raw output)
+          Capture analyzer response and write to .response_analysis.
+      11) Update .exit_signals:
+          - Read existing .exit_signals JSON (best-effort). Append:
+            * test_only_loops: append analysis.is_test_only (bool)
+            * done_signals: append (analysis.status=="COMPLETE")
+            * completion_indicators: append analysis.completion_indicators (int)
+          - Keep last 5 elements of each.
+      12) Update .circuit_breaker_state (minimal):
+          - Read existing .circuit_breaker_state (or default CLOSED).
+          - Track counters in file: no_progress_count, stuck_count.
+          - If analysis.has_progress==false: no_progress_count++ else no_progress_count=0.
+          - If analysis.is_stuck==true: stuck_count++ else stuck_count=0.
+          - Transition:
+            * if stuck_count>=5 or no_progress_count>=3 => OPEN
+            * else if stuck_count>=2 or no_progress_count>=2 => HALF_OPEN
+            * else => CLOSED
+          - Write JSON: {state, loop_number, reason, no_progress_count, stuck_count}
+      13) Update status.json and progress.json to reflect completion of this loop.
+      14) Output EXACTLY one line JSON: {"loop_number":<n>,"log_file":"...","cb_state":"..."}
     functions:
       - "ai:spawn_agent"
       - "fs:*"
@@ -719,23 +741,23 @@ tools:
 
         func main() {
           if baseDir == "" || baseDir == "<no value>" {
-            fmt.Fprintln(os.Stderr, "missing required parameter: base_dir")
-            os.Exit(2)
-          }
-          outPath := filepath.Join(baseDir, "PROMPT.md")
-          if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
-            fmt.Fprintln(os.Stderr, err.Error())
+            fmt.Println("missing base_dir")
             os.Exit(1)
           }
-          if err := os.WriteFile(outPath, []byte(decodeMD(content)), 0o644); err != nil {
-            fmt.Fprintln(os.Stderr, err.Error())
+          if err := os.MkdirAll(baseDir, 0o755); err != nil {
+            fmt.Printf("failed to create base_dir: %v\n", err)
             os.Exit(1)
           }
-          fmt.Println(outPath)
+          out := filepath.Join(baseDir, "PROMPT.md")
+          if err := os.WriteFile(out, []byte(decodeMD(content)), 0o644); err != nil {
+            fmt.Printf("failed to write template: %v\n", err)
+            os.Exit(1)
+          }
+          fmt.Printf("wrote %s\n", out)
         }
 
   - name: "write_template_agent"
-    description: "Write the embedded AGENT.md template to <base_dir>/@AGENT.md (creating directories as needed)."
+    description: "Write the embedded @AGENT.md template to <base_dir>/@AGENT.md (creating directories as needed)."
     parameters:
       type: "object"
       properties:
@@ -757,31 +779,31 @@ tools:
         )
 
         var baseDir = "{{.base_dir}}"
-        
-        const content = `{{asset "/templates/AGENT.md"}}`
+
+        const content = `{{asset "/templates/@AGENT.md"}}`
         func decodeMD(s string) string {
           return strings.ReplaceAll(s, "&grave;", "`")
         }
 
         func main() {
           if baseDir == "" || baseDir == "<no value>" {
-            fmt.Fprintln(os.Stderr, "missing required parameter: base_dir")
-            os.Exit(2)
-          }
-          outPath := filepath.Join(baseDir, "@AGENT.md")
-          if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
-            fmt.Fprintln(os.Stderr, err.Error())
+            fmt.Println("missing base_dir")
             os.Exit(1)
           }
-          if err := os.WriteFile(outPath, []byte(decodeMD(content)), 0o644); err != nil {
-            fmt.Fprintln(os.Stderr, err.Error())
+          if err := os.MkdirAll(baseDir, 0o755); err != nil {
+            fmt.Printf("failed to create base_dir: %v\n", err)
             os.Exit(1)
           }
-          fmt.Println(outPath)
+          out := filepath.Join(baseDir, "@AGENT.md")
+          if err := os.WriteFile(out, []byte(decodeMD(content)), 0o644); err != nil {
+            fmt.Printf("failed to write template: %v\n", err)
+            os.Exit(1)
+          }
+          fmt.Printf("wrote %s\n", out)
         }
 
   - name: "write_template_fix_plan"
-    description: "Write the embedded fix_plan.md template to <base_dir>/@fix_plan.md (creating directories as needed)."
+    description: "Write the embedded @fix_plan.md template to <base_dir>/@fix_plan.md (creating directories as needed)."
     parameters:
       type: "object"
       properties:
@@ -804,30 +826,30 @@ tools:
 
         var baseDir = "{{.base_dir}}"
 
-        const content = `{{asset "/templates/fix_plan.md"}}`
+        const content = `{{asset "/templates/@fix_plan.md"}}`
         func decodeMD(s string) string {
           return strings.ReplaceAll(s, "&grave;", "`")
         }
 
         func main() {
           if baseDir == "" || baseDir == "<no value>" {
-            fmt.Fprintln(os.Stderr, "missing required parameter: base_dir")
-            os.Exit(2)
-          }
-          outPath := filepath.Join(baseDir, "@fix_plan.md")
-          if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
-            fmt.Fprintln(os.Stderr, err.Error())
+            fmt.Println("missing base_dir")
             os.Exit(1)
           }
-          if err := os.WriteFile(outPath, []byte(decodeMD(content)), 0o644); err != nil {
-            fmt.Fprintln(os.Stderr, err.Error())
+          if err := os.MkdirAll(baseDir, 0o755); err != nil {
+            fmt.Printf("failed to create base_dir: %v\n", err)
             os.Exit(1)
           }
-          fmt.Println(outPath)
+          out := filepath.Join(baseDir, "@fix_plan.md")
+          if err := os.WriteFile(out, []byte(decodeMD(content)), 0o644); err != nil {
+            fmt.Printf("failed to write template: %v\n", err)
+            os.Exit(1)
+          }
+          fmt.Printf("wrote %s\n", out)
         }
 
   - name: "write_template_specs_gitkeep"
-    description: "Write the embedded templates/specs/.gitkeep to <base_dir>/specs/.gitkeep (creating directories as needed)."
+    description: "Write the embedded specs/.gitkeep to <base_dir>/specs/.gitkeep (creating directories as needed)."
     parameters:
       type: "object"
       properties:
@@ -845,31 +867,40 @@ tools:
           "fmt"
           "os"
           "path/filepath"
+          "strings"
         )
 
         var baseDir = "{{.base_dir}}"
 
-        const content = `# This file ensures the templates/specs/ directory is tracked by git
-        # Remove this file when you add actual template specification files
-        `
+        const content = `{{asset "/templates/specs/.gitkeep"}}`
+        func decodeMD(s string) string {
+          return strings.ReplaceAll(s, "&grave;", "`")
+        }
 
         func main() {
           if baseDir == "" || baseDir == "<no value>" {
-            fmt.Fprintln(os.Stderr, "missing required parameter: base_dir")
-            os.Exit(2)
-          }
-          outPath := filepath.Join(baseDir, "specs", ".gitkeep")
-          if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
-            fmt.Fprintln(os.Stderr, err.Error())
+            fmt.Println("missing base_dir")
             os.Exit(1)
           }
-          if err := os.WriteFile(outPath, []byte(content), 0o644); err != nil {
-            fmt.Fprintln(os.Stderr, err.Error())
+          specsDir := filepath.Join(baseDir, "specs")
+          if err := os.MkdirAll(specsDir, 0o755); err != nil {
+            fmt.Printf("failed to create specs dir: %v\n", err)
             os.Exit(1)
           }
-          fmt.Println(outPath)
+          out := filepath.Join(specsDir, ".gitkeep")
+          if err := os.WriteFile(out, []byte(decodeMD(content)), 0o644); err != nil {
+            fmt.Printf("failed to write template: %v\n", err)
+            os.Exit(1)
+          }
+          fmt.Printf("wrote %s\n", out)
         }
 
-# =============================================================================
-# No custom models: pure agents + built-in functions
-# =============================================================================
+###
+set: "default"
+models:
+  any:
+    model: "gpt-5-nano"
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
+###
