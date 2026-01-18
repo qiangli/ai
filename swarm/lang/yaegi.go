@@ -13,6 +13,7 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
+// https://pkg.go.dev/github.com/traefik/yaegi
 // Golang interepter
 func Golang(ctx context.Context, f fs.FS, global map[string]any, script string, input map[string]any) (any, error) {
 	var b bytes.Buffer

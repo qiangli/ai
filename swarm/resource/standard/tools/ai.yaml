@@ -71,7 +71,7 @@ tools:
             type: "string"
           description: |
             List of tool names to utilize during the LLM call, specified in the format 'kit:name'.
-            Ensure each tool name is valid using the 'ai:list_tools' tool to find available tools.
+            Ensure each tool name is valid using the 'ai:list_tools' tool to find the available tools.
             Agents can be run as tools with `agent` as the kit, e.g.: 'agent:<agent_name>'.
             Ensure the agent name is valid using the 'ai:list_agents' tool to find available agents.
         temperature:
@@ -497,3 +497,47 @@ tools:
             fmt.Println(message)
           }
         }
+
+  - name: "callback"
+    description: |
+      Schedule and invoke a follow-up action (tool/agent/command) using slash-command syntax.
+
+      This is useful for LLM infinite-loop control, e.g. schedule a retry after a delay.
+    type: "func"
+    parameters:
+      type: "object"
+      properties:
+        wait:
+          type: "string"
+          description: "Optional wait before action"
+        action:
+          type: "string"
+          description: |
+            Action command/agent/tool to run.
+            Must be invoked via slash command syntax, e.g. `/ai:call_llm ...` or `/sh:bash ...`.
+      required:
+        - action
+    body:
+      mime_type: "application/x-sh"
+      script: |
+        #!/bin/bash
+
+        set -euo pipefail
+
+        if [[ -z "${action:-}" ]]; then
+          echo "ai:callback: missing required parameter: action" >&2
+          exit 2
+        fi
+
+        if [[ "${action}" != /* ]]; then
+          echo "ai:callback: invalid action: must begin with '/' (slash command syntax), got: ${action}" >&2
+          exit 2
+        fi
+
+        if [[ -n "${wait:-}" ]]; then
+          /ai:sleep --duration "${wait}"
+        fi
+
+        # Execute the action as a single command string to preserve spacing/quoting.
+        eval "${action}"
+        exit $?
