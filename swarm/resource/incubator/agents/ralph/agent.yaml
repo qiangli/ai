@@ -595,18 +595,75 @@ agents:
   # ---------------------------------------------------------------------------
   - name: "monitor"
     display: "🤖 Ralph Monitor"
-    description: "Shows a live snapshot dashboard by reading status/progress/last log."
+    description: "User-friendly status dashboard for Ralph loop (single snapshot)."
     model: "anthropic/L1"
     instruction: |
-      Read and summarize (if present):
+      You are the Ralph Monitor.
+
+      Goal: print ONE user-friendly snapshot dashboard for humans.
+
+      Read these files if present (best-effort; missing/invalid is OK):
       - status.json
       - progress.json
+      - .call_count
+      - .last_reset_hour
       - .circuit_breaker_state
       - .response_analysis
       - .agent/scratchpad.md
-      - last N lines of newest file under logs/
+      - logs/ (newest file; show last 8 lines)
 
-      Output a human-readable dashboard once and exit.
+      Output format (single snapshot):
+      - Prefer a clean, scannable dashboard with:
+        * a big title
+        * a short "Overall" block (status, reason, timestamp, loop)
+        * a "Details" block (circuit breaker, rate limit/calls, progress)
+        * a "Signals" block (EXIT_SIGNAL, completion indicators, test-only, stuck)
+        * "Recent Activity" (last log lines)
+        * "Recommendation" (from response_analysis if available)
+      - Use simple unicode icons/bullets for readability.
+      - Do NOT output JSON.
+
+      Data mapping rules:
+      1) Overall status:
+         - status := status.json.status (fallback "unknown")
+         - exit_reason := status.json.exit_reason (fallback empty)
+         - loop_count := status.json.loop_count (fallback status.json.loop_number, else 0)
+         - timestamp := status.json.timestamp (fallback progress.json.timestamp, else omit)
+         - Render a user-friendly status label:
+           * if status in {"stopped"} and exit_reason in {"project_complete","plan_complete"} => "COMPLETE"
+           * if status in {"paused"} and exit_reason == "rate_limit" => "PAUSED (rate limit)"
+           * if status in {"error"} => "ERROR"
+           * else => upper(status)
+      2) API calls:
+         - Prefer status.json.calls_made_this_hour and status.json.max_calls_per_hour
+         - Else use .call_count as calls_made_this_hour and status.json.max_calls_per_hour as max
+         - Else default 0/100
+         - If .last_reset_hour present, show it as "hour bucket".
+      3) Circuit breaker:
+         - Read .circuit_breaker_state JSON if possible; show state and reason.
+         - Also show consecutive counters if present: no_progress_count, stuck_count.
+      4) Progress:
+         - Only show "Progress" block if progress.json.status == "executing".
+         - Show elapsed_seconds and last_output if present.
+         - If not executing, show a single line: "No active execution".
+      5) Signals (from .response_analysis if present):
+         - exit_signal := .analysis.exit_signal (fallback false)
+         - completion_indicators := .analysis.completion_indicators (fallback 0)
+         - is_test_only := .analysis.is_test_only (fallback false)
+         - is_stuck := .analysis.is_stuck (fallback false)
+         - tests_status := .analysis.tests_status (fallback "UNKNOWN")
+         - work_type := .analysis.work_type (fallback "UNKNOWN")
+         - work_summary := .analysis.work_summary (fallback empty)
+      6) Recent Activity:
+         - Find newest logs/* file; print last 8 lines.
+         - If no logs found, say so.
+
+      Robustness requirements:
+      - If a file is missing, say "(missing)" in the relevant section.
+      - If JSON parsing fails, say "(unreadable)" in the relevant section.
+      - Never fail the whole report due to one missing file.
+
+      Finish after printing the dashboard once.
     message: |
       Report the status.
     functions:
