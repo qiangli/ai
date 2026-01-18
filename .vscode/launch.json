@@ -241,12 +241,15 @@
 				// "echo",
 				//
 				// "/agent:ralph/help",
-				"/ralph:write_template_agent",
-				"--base_dir",
-				"/tmp/test/ruff",
-				"--script",
-				"swarm/resource/incubator/agents/ralph/agent.yaml"
-				// //
+				// "/ralph:write_template_agent",
+				// "--base_dir",
+				// "/tmp/test/ruff",
+				// "--script",
+				// "swarm/resource/incubator/agents/ralph/agent.yaml"
+				//
+				"/ai:sleep",
+				"--duration",
+				"3s"
 				// "/fs:read_multiple_files",
 				// "--option",
 				// "paths=[/tmp/test/dir/x,/tmp/test/dir/z]",

@@ -39,7 +39,7 @@ func (r *FuncKit) ExecScript(ctx context.Context, vars *api.Vars, parent *api.Ag
 	case "application/yaml", "yaml", "yml":
 		return nil, fmt.Errorf("mime type not supported: %s", mime)
 	case "application/x-go", "go", "golang":
-		return lang.Golang(ctx, vars, nil, code, nil)
+		return lang.Golang(ctx, vars, vars.Global.GetAllEnvs(), code, args)
 	case "text/javascript", "js", "javascript", "ecmascript":
 		return lang.Javascript(ctx, code)
 	case "text/x-go-template", "template", "tpl":

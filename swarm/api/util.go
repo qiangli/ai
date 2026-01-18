@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
+	"reflect"
 	"slices"
 	"strconv"
 	"strings"
@@ -76,34 +77,7 @@ func GetArrayProp(key string, props map[string]any) ([]string, error) {
 		return []string{}, nil
 	}
 
-	// items, ok := val.([]any)
-	// if ok {
-	// 	strs := make([]string, len(items))
-	// 	for i, v := range items {
-	// 		str, ok := v.(string)
-	// 		if !ok {
-	// 			return nil, fmt.Errorf("item[%v] %v must be string: %q", i, v, key)
-	// 		}
-	// 		strs[i] = str
-	// 	}
-	// 	return strs, nil
-	// }
-
-	// strs, ok := val.([]string)
-	// if ok {
-	// 	return strs, nil
-	// }
-
 	return ToStringArray(val), nil
-	// return nil, fmt.Errorf("%q must be an array of strings", key)
-	// strs, ok := val.([]string)
-	// if !ok {
-	// 	if IsRequired(key, props) {
-	// 		return nil, fmt.Errorf("%s must be an array of strings", key)
-	// 	}
-	// 	return []string{}, nil
-	// }
-	// return strs, nil
 }
 
 func GetBoolProp(key string, props map[string]any) (bool, error) {
@@ -261,9 +235,18 @@ func ToString(data any) string {
 	if data == nil {
 		return ""
 	}
-	if v, ok := data.(string); ok {
+	// primitive
+	switch v := data.(type) {
+	case bool:
+		return strconv.FormatBool(v)
+	case int, int8, int16, int32, int64:
+		return strconv.FormatInt(reflect.ValueOf(v).Int(), 10)
+	case float32, float64:
+		return strconv.FormatFloat(reflect.ValueOf(v).Float(), 'f', -1, 64)
+	case string:
 		return v
 	}
+	//
 	if v, ok := data.(*Result); ok {
 		if len(v.Content) == 0 {
 			return v.Value
