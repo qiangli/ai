@@ -226,6 +226,8 @@ agents:
           type: "string"
           description: "Name for the new Ralph project directory."
       required: ["source_file", "project_name"]
+    message: |
+      Import, convert, and setup the project.
     instruction: |
       #! --mime-type=text/x-go-template
       # PRD to Ralph Conversion Task
@@ -343,16 +345,24 @@ agents:
       ### Project directory
       Create the project in: BASE_DIR/project_name
 
-      After creating the project directory, copy the source file into the project root using its basename.
-      Then run the conversion by generating the three required outputs (PROMPT.md, @fix_plan.md, specs/requirements.md) based on the source PRD content.
-
-      Output format for conversion (marker protocol):
-        ===PROMPT.md===
-        ...
-        ===@fix_plan.md===
-        ...
-        ===specs/requirements.md===
-        ...
+      REQUIRED setup steps (filesystem-only; do NOT call ai:call_llm for conversion):
+      1) Compute PROJECT_DIR := BASE_DIR + "/" + project_name.
+      2) If PROJECT_DIR already exists: report an error and stop.
+      3) Create directory structure under PROJECT_DIR:
+         - specs/stdlib
+         - src
+         - examples
+         - logs
+         - docs/generated
+         - .agent
+      4) Materialize embedded templates into PROJECT_DIR by calling tools:
+         - ralph:write_template_prompt        (base_dir=PROJECT_DIR) -> PROJECT_DIR/PROMPT.md
+         - ralph:write_template_fix_plan      (base_dir=PROJECT_DIR) -> PROJECT_DIR/@fix_plan.md
+         - ralph:write_template_agent         (base_dir=PROJECT_DIR) -> PROJECT_DIR/@AGENT.md
+         - ralph:write_template_specs_gitkeep (base_dir=PROJECT_DIR) -> PROJECT_DIR/specs/.gitkeep
+      5) Copy source_file into PROJECT_DIR root using its basename.
+      6) Ensure PROJECT_DIR/specs/requirements.md exists (create empty file if absent).
+      7) Ensure PROJECT_DIR/.agent/scratchpad.md exists (create empty file if absent).
 
       SUCCESS
       🎉 PRD imported successfully!
@@ -365,13 +375,10 @@ agents:
         2. Start autonomous development:
            ralph --monitor
 
-      Project created in: <resolved project directory>
-
+      Project created in: <PROJECT_DIR>
     functions:
       - "sh:pwd"
-      - "sh:exec"
       - "fs:*"
-      - "ai:call_llm"
       - "ralph:help_import"
       - "ralph:write_template_prompt"
       - "ralph:write_template_agent"
