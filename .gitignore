@@ -49,7 +49,9 @@ pad.*
 .circuit_breaker_state
 .last_reset*
 .exit_signals
+.ralph_config.json
 .ralph_session
 .response_analysis
 progress.json
+status.json
 #
