@@ -460,27 +460,48 @@ agents:
     description: "Runs multi-iteration loop with rate limiting, circuit breaker, session continuity, and exit detection."
     model: "anthropic/L2"
     instruction: |
-      You run the multi-iteration loop.
+      You implement the multi-iteration Ralph loop in pure YAML by coordinating sub-agents and filesystem state.
 
-      Required behavior:
-      - Parse flags from query (same as ralph/ralph).
-      - If --monitor present, spawn ralph/monitor first.
-      - Then iterate:
-        - Spawn ralph/once for each loop.
-        - After each iteration, check for graceful exit conditions (dual-condition gate).
-        - Stop on circuit breaker OPEN.
-        - Respect --max-loops if > 0.
+      Constraints:
+      - Do NOT modify other agents/tools in this pack.
+      - Use only: fs:* and ai:spawn_agent.
+      - Keep changes minimal and focused on matching upstream ralph_loop.sh behavior.
 
-      Exit detection (must match upstream essence):
-      - "project_complete" requires BOTH:
-          completion_indicators >= 2
-          AND last parsed RALPH_STATUS EXIT_SIGNAL == true
-      - Other exits:
-          3 consecutive test-only loops => exit_reason "test_saturation"
-          @fix_plan.md all [x] AND EXIT_SIGNAL true => exit_reason "plan_complete"
+      Inputs:
+      - The user query may include flags like:
+        --prompt <file> (default PROMPT.md)
+        --calls <n> (default 100)
+        --max-loops <n> (default 0 means no cap)
+        --no-continue
+        --session-expiry <hours> (default 24)
 
-      State files in CWD:
-        status.json, progress.json, .exit_signals, .response_analysis, .circuit_breaker_state, .ralph_session, .agent/scratchpad.md
+      Algorithm (must mirror upstream essence):
+      0) Preflight:
+         - If prompt file does not exist: print a helpful error and stop.
+      1) Ensure directories exist: logs/, docs/generated/, .agent/.
+      2) Initialize or load loop state files if missing:
+         - status.json, progress.json
+         - .exit_signals (JSON with keys test_only_loops/done_signals/completion_indicators)
+      3) Loop counter:
+         - Start at 1 and increment each iteration.
+      4) For each iteration:
+         - Spawn agent:ralph/once with an augmented query that includes: "--loop-number <n>" plus any inherited flags.
+         - After once completes, evaluate exit conditions based on .exit_signals and .response_analysis:
+           a) test_saturation: test_only_loops length >= 3
+           b) completion_signals: done_signals length >= 2
+           c) project_complete: completion_indicators length >= 2 AND (.response_analysis.analysis.exit_signal == true)
+           d) plan_complete: all checklist items in @fix_plan.md are [x] (if any exist)
+              Note: upstream treats this as exit; in Ralph v0.9.9 the EXIT_SIGNAL gate primarily applies to completion_indicators.
+         - If any exit triggers: write status.json with exit_reason and stop.
+         - If circuit breaker state becomes OPEN (read .circuit_breaker_state.state == "OPEN"): stop.
+         - If --max-loops > 0 and loop_number >= max-loops: stop.
+
+      Output:
+      - Print a brief summary: number of loops executed, final status, exit_reason (if any).
+
+      Implementation notes:
+      - Use fs:read_file to read JSON/text, and fs:write_file to create/overwrite state files.
+      - If parsing JSON is needed, you may do it in-LMM reasoning (no jq). Keep output files valid JSON.
 
     functions:
       - "ai:spawn_agent"
@@ -494,33 +515,54 @@ agents:
     description: "Runs exactly one iteration: rate limit check, invoke worker, analyze output, update state files."
     model: "anthropic/L2"
     instruction: |
-      Run exactly ONE loop iteration.
+      You implement exactly ONE Ralph loop iteration using pure YAML agent coordination and filesystem state.
 
-      Steps:
-      1) Load PROMPT.md (or --prompt).
+      Constraints:
+      - Do NOT modify other agents/tools in this pack.
+      - Use only: fs:* and ai:spawn_agent.
+      - Keep changes minimal and aligned with upstream ralph_loop.sh.
+
+      Inputs:
+      - The query may include:
+        --loop-number <n> (required when called from ralph/loop)
+        --prompt <file> (default PROMPT.md)
+        --calls <n> (default 100)
+        --no-continue
+        --session-expiry <hours> (default 24)
+
+      Steps (replicate upstream behavior at the state-file level):
+      1) Resolve prompt file path (default PROMPT.md). If missing: write status.json with error and stop.
       2) Ensure directories exist: logs/, docs/generated/, .agent/.
-      3) Enforce hourly rate limiting using .call_count and .last_reset_hour.
-      4) Maintain session lifecycle in .ralph_session and .ralph_session_history:
-         - if session is expired (default 24h) or --no-continue, don't carry session.
-         - if --reset-session, clear session and return.
-      5) Spawn ralph/worker once to perform the actual work for this iteration.
-      6) Save raw worker output to logs/worker_output_<timestamp>.log
-      7) Spawn ralph/analyzer to parse output and write .response_analysis
-      8) Update .exit_signals rolling windows.
-      9) Update circuit breaker state file.
-      10) Update status.json and progress.json.
-
-      Circuit breaker thresholds (upstream defaults):
-        no-progress loops >= 3 => OPEN
-        same-error loops >= 5 => OPEN
-        no-progress >= 2 => HALF_OPEN
-        progress in HALF_OPEN => CLOSED
-
-      "Progress" definition:
-      - If parsed analysis reports files_modified > 0 OR tasks_completed > 0.
+      3) Hourly rate limiting state:
+         - Files: .call_count and .last_reset_hour
+         - Compute current_hour as YYYYMMDDHH (local time).
+         - If .last_reset_hour missing or different: reset .call_count to 0 and write .last_reset_hour=current_hour.
+         - If .call_count >= --calls: write status.json with status="paused" and exit_reason="rate_limit" and stop.
+         - Otherwise increment .call_count by 1 and persist.
+      4) Session lifecycle (Ralph-side):
+         - Files: .ralph_session (JSON), .ralph_session_history (JSON array)
+         - If --no-continue: do not rely on any persisted session context (but still keep file present).
+         - Minimal behavior: ensure .ralph_session exists; update its last_used timestamp each iteration.
+         - Expiration: if last_used is older than --session-expiry hours (default 24), reset session (new id) and append a transition record to history.
+      5) Update progress.json to indicate "executing" for this loop.
+      6) Spawn agent:ralph/worker exactly once.
+      7) Save raw worker output to logs/worker_output_<timestamp>.log.
+      8) Spawn agent:ralph/analyzer with inputs:
+         - output_text: the raw worker output
+         - loop_number: --loop-number
+         Write analyzer JSON output to .response_analysis.
+      9) Update .exit_signals rolling windows based on .response_analysis.analysis:
+         - Append booleans for is_test_only and status==COMPLETE signals, plus completion_indicators count.
+         - Keep only the last 5 entries in each array (upstream uses last 5 loops window).
+      10) Update circuit breaker state file (.circuit_breaker_state) minimally:
+         - Track consecutive no-progress loops (analysis.has_progress==false) and same-error loops (if analysis.is_stuck==true).
+         - Apply thresholds: no-progress>=3 OPEN; same-error>=5 OPEN; no-progress>=2 HALF_OPEN; progress in HALF_OPEN => CLOSED.
+         - Persist .circuit_breaker_state as JSON with at least: {"state":"CLOSED|HALF_OPEN|OPEN","loop_number":n,"reason":"..."}.
+      11) Update status.json with loop_number, calls_made_this_hour, max_calls_per_hour, last_action, status.
+         Update progress.json to "completed".
 
       Output:
-      - Return a concise JSON blob summarizing loop_number, out_file, cb_state.
+      - Return ONE line of JSON: {"loop_number":n,"log_file":"...","cb_state":"..."}
 
     functions:
       - "ai:spawn_agent"
