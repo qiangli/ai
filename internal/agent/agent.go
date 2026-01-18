@@ -177,21 +177,6 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 		Log:      callogs,
 	}
 
-	// sw := &swarm.Swarm{
-	// 	// ID:       uuid.NewString(),
-	// 	// User:     user,
-	// 	// Secrets:  secrets,
-	// 	// Assets:   assets,
-	// 	// Tools:    tools,
-	// 	// Adapters: adapters,
-	// 	// Blobs:    blobs,
-	// 	// //
-	// 	// OS:        los,
-	// 	// Workspace: lfs,
-	// 	// History:   mem,
-	// 	// Log:       callogs,
-	// }
-
 	sw, err := swarm.New(vars)
 	if err != nil {
 		return nil, err

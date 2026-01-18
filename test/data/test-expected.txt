@@ -79,6 +79,7 @@ tell me a joke
 ---
 city=SFO
 datetime=<TODO>
+input=[/sh:bash --format raw --script /Users/liqiang/workspace/cloudbox/ai/test/test.sh]
 message=tell me a joke
 nickname=Charles
 user=&{ liqiang    map[kit:agent log_level:info name:ask]}

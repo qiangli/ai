@@ -61,7 +61,9 @@ func New(vars *api.Vars) (*Swarm, error) {
 }
 
 func (sw *Swarm) Parse(ctx context.Context, input any) (api.ArgMap, error) {
-	// parse special chars: - }}
+	log.GetLogger(ctx).Debugf("argm: %+v\n", input)
+	// save user raw input in env.
+	sw.vars.Global.Set("input", input)
 	parsev := func(argv []string) (api.ArgMap, error) {
 		if conf.IsAction(argv[0]) {
 			cfg, err := GetInput(ctx, argv)

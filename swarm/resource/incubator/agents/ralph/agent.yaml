@@ -183,7 +183,10 @@ agents:
       - If you routed to a sub-agent: respond with a brief, user-friendly statement of what you're doing.
       - If you performed a read/reset action: print results clearly.
       - Do not invent files or statuses; only report what you can read.
-
+    message: |
+      #! --mime-type=text/x-go-template
+      User's original input:
+      {{default "missing" .input}}
     functions:
       - "ai:spawn_agent"
       - "fs:*"
