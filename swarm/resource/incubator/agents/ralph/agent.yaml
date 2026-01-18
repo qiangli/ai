@@ -211,51 +211,172 @@ agents:
   # ---------------------------------------------------------------------------
   - name: "import"
     display: "Ralph Import"
-    description: "Imports a PRD/spec into a new project folder (PROMPT.md, @fix_plan.md, specs/requirements.md, @AGENT.md). Uses embedded templates."
+    description: "Import a PRD/spec into a new Ralph project."
     model: "anthropic/L2"
+    parameters:
+      type: "object"
+      properties:
+        base_dir:
+          type: "string"
+          description: "Optional base directory where the new project folder will be created. Defaults to current working directory."
+        source_file:
+          type: "string"
+          description: "Path to your PRD/specification file (any format)."
+        project_name:
+          type: "string"
+          description: "Name for the new Ralph project directory."
+      required: ["source_file", "project_name"]
     instruction: |
-      You implement the PRD import feature.
+      #! --mime-type=text/x-go-template
+      # PRD to Ralph Conversion Task
 
-      Input (from user query):
-      - A source file path to a PRD/spec document
-      - Optional project name
+      You are tasked with converting a Product Requirements Document (PRD) or specification into Ralph for Claude Code format.
 
-      Actions:
-      1) Create a new project folder with the standard structure:
-         <project>/{PROMPT.md,@fix_plan.md,@AGENT.md,specs/requirements.md,specs/stdlib,src,examples,logs,docs/generated,.agent}
-      2) Materialize embedded templates into the project directory by calling tools:
-         - ralph:write_template_prompt
-         - ralph:write_template_agent
-         - ralph:write_template_fix_plan
-         - ralph:write_template_specs_gitkeep
-      3) Call an LLM once to convert the PRD into:
-         - PROMPT.md (instructions customized to the project)
-         - @fix_plan.md (prioritized tasks)
-         - specs/requirements.md (technical specs)
-         Use the marker protocol:
-           ===PROMPT.md===
-           ...
-           ===@fix_plan.md===
-           ...
-           ===specs/requirements.md===
-           ...
-      4) Overwrite those three files in the project directory with the converted content.
-      5) Ensure <project>/.agent/scratchpad.md exists (create empty if needed).
+      ## Input Analysis
+      Analyze the provided specification file and extract:
+      - Project goals and objectives
+      - Core features and requirements
+      - Technical constraints and preferences
+      - Priority levels and phases
+      - Success criteria
 
-      Constraints:
-      - Pure YAML agents.
-      - Use fs tools for file I/O.
+      ## Required Outputs
 
-      Output:
-      - Print the created paths.
+      Create these files in the current directory:
+
+      ### 1. PROMPT.md
+      Transform the PRD into Ralph development instructions:
+      ```markdown
+      # Ralph Development Instructions
+
+      ## Context
+      You are Ralph, an autonomous AI development agent working on a [PROJECT NAME] project.
+
+      ## Current Objectives
+      [Extract and prioritize 4-6 main objectives from the PRD]
+
+      ## Key Principles
+      - ONE task per loop - focus on the most important thing
+      - Search the codebase before assuming something isn't implemented
+      - Use subagents for expensive operations (file searching, analysis)
+      - Write comprehensive tests with clear documentation
+      - Update @fix_plan.md with your learnings
+      - Commit working changes with descriptive messages
+
+      ## 🧪 Testing Guidelines (CRITICAL)
+      - LIMIT testing to ~20% of your total effort per loop
+      - PRIORITIZE: Implementation > Documentation > Tests
+      - Only write tests for NEW functionality you implement
+      - Do NOT refactor existing tests unless broken
+      - Focus on CORE functionality first, comprehensive testing later
+
+      ## Project Requirements
+      [Convert PRD requirements into clear, actionable development requirements]
+
+      ## Technical Constraints
+      [Extract any technical preferences, frameworks, languages mentioned]
+
+      ## Success Criteria
+      [Define what "done" looks like based on the PRD]
+
+      ## Current Task
+      Follow @fix_plan.md and choose the most important item to implement next.
+      ```
+
+      ### 2. @fix_plan.md
+      Convert requirements into a prioritized task list:
+      ```markdown
+      # Ralph Fix Plan
+
+      ## High Priority
+      [Extract and convert critical features into actionable tasks]
+
+      ## Medium Priority
+      [Secondary features and enhancements]
+
+      ## Low Priority
+      [Nice-to-have features and optimizations]
+
+      ## Completed
+      - [x] Project initialization
+
+      ## Notes
+      [Any important context from the original PRD]
+      ```
+
+      ### 3. specs/requirements.md
+      Create detailed technical specifications:
+      ```markdown
+      # Technical Specifications
+
+      [Convert PRD into detailed technical requirements including:]
+      - System architecture requirements
+      - Data models and structures
+      - API specifications
+      - User interface requirements
+      - Performance requirements
+      - Security considerations
+      - Integration requirements
+
+      [Preserve all technical details from the original PRD]
+      ```
+
+      ## Instructions
+      1. Read and analyze the attached specification file
+      2. Create the three files above with content derived from the PRD
+      3. Ensure all requirements are captured and properly prioritized
+      4. Make the PROMPT.md actionable for autonomous development
+      5. Structure @fix_plan.md with clear, implementable tasks
+
+      ---
+
+      ## Source PRD Import Inputs
+      - base_dir: {{ default "" .base_dir }}
+      - source_file: {{ default "missing" .source_file }}
+      - project_name: {{ default "missing" .project_name }}
+
+      ### Execution Requirements (for this agent)
+      - If `project_name` is missing: call `ralph:help_import` and stop.
+      - If `source_file` is missing: call `ralph:help_import` and stop.
+      - If `base_dir` is empty: call `sh:pwd` and use that as BASE_DIR.
+
+      ### Project directory
+      Create the project in: BASE_DIR/project_name
+
+      After creating the project directory, copy the source file into the project root using its basename.
+      Then run the conversion by generating the three required outputs (PROMPT.md, @fix_plan.md, specs/requirements.md) based on the source PRD content.
+
+      Output format for conversion (marker protocol):
+        ===PROMPT.md===
+        ...
+        ===@fix_plan.md===
+        ...
+        ===specs/requirements.md===
+        ...
+
+      SUCCESS
+      🎉 PRD imported successfully!
+
+      Next steps:
+        1. Review and edit the generated files:
+           - PROMPT.md (Ralph instructions)
+           - @fix_plan.md (task priorities)
+           - specs/requirements.md (technical specs)
+        2. Start autonomous development:
+           ralph --monitor
+
+      Project created in: <resolved project directory>
 
     functions:
+      - "sh:pwd"
+      - "sh:exec"
+      - "fs:*"
+      - "ai:call_llm"
+      - "ralph:help_import"
       - "ralph:write_template_prompt"
       - "ralph:write_template_agent"
       - "ralph:write_template_fix_plan"
       - "ralph:write_template_specs_gitkeep"
-      - "ai:call_llm"
-      - "fs:*"
 
   # ---------------------------------------------------------------------------
   # ralph setup: initialize blank project
@@ -469,6 +590,55 @@ agents:
 kit: "ralph"
 type: "func"
 tools:
+  - name: "help_import"
+    description: "Show usage/help for ralph/import (PRD/spec → Ralph project)"
+    parameters:
+      type: "object"
+      properties: {}
+      required: []
+    body:
+      mime_type: "application/x-go"
+      script: |
+        package main
+
+        import "fmt"
+
+        func main() {
+          fmt.Print(`Ralph Import - Convert PRDs to Ralph Format
+
+        Usage (agent tool call):
+          agent:ralph/import --source_file "<path>" --project_name "<name>" --base_dir "<optional>"
+
+        Parameters:
+          source_file   Path to your PRD/specification file (any format). Required.
+          project_name  Name for the new Ralph project directory. Required.
+          base_dir      Directory where the project folder will be created. Optional; defaults to current working directory.
+
+        Examples:
+          agent:ralph/import --source_file "my-app-prd.md" --project_name "my-awesome-app"
+          agent:ralph/import --base_dir "/tmp" --source_file "requirements.txt" --project_name "webapp"
+
+        Supported formats:
+          - Markdown (.md)
+          - Text files (.txt)
+          - JSON (.json)
+          - Word documents (.docx)
+          - PDFs (.pdf)
+          - Any text-based format
+
+        What this agent will do:
+          1) Create a new Ralph project directory under base_dir/project_name
+          2) Copy the source_file into the new project directory (basename only)
+          3) Convert the PRD into:
+            - PROMPT.md (Ralph instructions)
+            - @fix_plan.md (prioritized tasks)
+            - specs/requirements.md (technical specs)
+
+        Tip:
+          If required parameters are missing, call the tool ralph:help_import to see this help text.
+        `)
+        }
+
   - name: "write_template_prompt"
     description: "Write the embedded PROMPT.md template to <base_dir>/PROMPT.md (creating directories as needed)."
     parameters:
