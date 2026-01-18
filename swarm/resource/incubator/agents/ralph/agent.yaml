@@ -594,8 +594,8 @@ agents:
   # ralph monitor: pure agent dashboard
   # ---------------------------------------------------------------------------
   - name: "monitor"
-    display: "Ralph Monitor"
-    description: "Shows a live snapshot dashboard by reading status/progress/last log (single-shot, non-tmux)."
+    display: "🤖 Ralph Monitor"
+    description: "Shows a live snapshot dashboard by reading status/progress/last log."
     model: "anthropic/L1"
     instruction: |
       Read and summarize (if present):
@@ -607,7 +607,8 @@ agents:
       - last N lines of newest file under logs/
 
       Output a human-readable dashboard once and exit.
-
+    message: |
+      Report the status.
     functions:
       - "fs:*"
 
