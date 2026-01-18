@@ -144,13 +144,13 @@ agents:
       1) Help:
          If message contains "--help" or begins with "help": route to agent:ralph/help.
 
-      2) Import:
-         If message contains "--import":
-           - If missing source file or name, ask for what's missing.
+      2) Import (flag or natural language):
+         If message contains "--import" OR user clearly asks to "import" a PRD/spec/requirements into a (new) Ralph project:
+           - If missing source file or name, ask for what's missing (file path + desired project name).
            - Else route to agent:ralph/import (pass the user query through).
 
-      3) Setup:
-         If message contains "--setup":
+      3) Setup (flag or natural language):
+         If message contains "--setup" OR user clearly asks to "setup/init/create/start" a new Ralph project:
            - If missing project name, ask for it.
            - Else route to agent:ralph/setup.
 
