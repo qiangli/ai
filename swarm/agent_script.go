@@ -63,6 +63,10 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	for k, v := range r.vars.Global.GetAllEnvs() {
 		vs.System.Setenv(k, v)
 	}
+	// make args available as env
+	for k, v := range args {
+		vs.System.Setenv(k, v)
+	}
 
 	vs.ExecHandler = r.newExecHandler(vs, args)
 
@@ -71,16 +75,14 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	err := vs.RunScript(ctx, script)
 
 	if err != nil {
-		// args["error"] = err.Error()
 		return nil, err
 	}
-	// copy back env
-	r.vars.Global.AddEnvs(vs.System.Environ())
+	// // copy back env
+	// r.vars.Global.AddEnvs(vs.System.Environ())
 
 	result := &api.Result{
 		Value: b.String(),
 	}
-	// args["result"] = result
 	return result, nil
 }
 
@@ -98,16 +100,6 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, _ map[string]an
 			if err != nil {
 				return true, err
 			}
-
-			// // consistant with template
-			// var in = make(map[string]any)
-			// // defaults
-			// maps.Copy(in, r.agent.Arguments)
-			// //
-			// maps.Copy(in, r.vars.Global.GetAllEnvs())
-			// // share or not share?
-			// // maps.Copy(in, envs)
-			// maps.Copy(in, at)
 
 			in := atm.BuildEffectiveArgs(r.vars, r.agent, at)
 

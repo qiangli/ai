@@ -500,8 +500,7 @@ tools:
 
   - name: "callback"
     description: |
-      Schedule and invoke a follow-up action (tool/agent/command) using slash-command syntax.
-
+      Schedule and execute a specified action (such as a tool, agent, or command) using slash-command syntax.
       This is useful for LLM infinite-loop control, e.g. schedule a retry after a delay.
     type: "func"
     parameters:
@@ -513,31 +512,28 @@ tools:
         action:
           type: "string"
           description: |
-            Action command/agent/tool to run.
-            Must be invoked via slash command syntax, e.g. `/ai:call_llm ...` or `/sh:bash ...`.
+            The command, agent, or tool to execute, expressed in slash-command syntax (e.g., `/ai:call_llm ...`, `/sh:bash ...`).
+            Use the commands `ai:list_agents` and `ai:list_tools` to view all available agents and tools.
+            - For executing an agent: `/agent:<pack/name>`
+            - For executing a tool: `/kit:name`
       required:
         - action
     body:
       mime_type: "application/x-sh"
       script: |
         #!/bin/bash
-
         set -euo pipefail
-
         if [[ -z "${action:-}" ]]; then
           echo "ai:callback: missing required parameter: action" >&2
-          exit 2
+          exit 1
         fi
-
         if [[ "${action}" != /* ]]; then
           echo "ai:callback: invalid action: must begin with '/' (slash command syntax), got: ${action}" >&2
           exit 2
         fi
-
         if [[ -n "${wait:-}" ]]; then
           /ai:sleep --duration "${wait}"
         fi
-
         # Execute the action as a single command string to preserve spacing/quoting.
-        eval "${action}"
+        ${action}
         exit $?
