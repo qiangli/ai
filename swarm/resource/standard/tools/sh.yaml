@@ -302,7 +302,7 @@ tools:
 
   - name: "backoff"
     description: |
-      Run a command, repeatedly, until it succeeds or we are out of time.
+      Run an action command, repeatedly, until it succeeds or we are out of time.
     parameters:
       type: "object"
       properties:
@@ -314,8 +314,15 @@ tools:
           type: "string"
           description: |
             Duration is a number with an optional suffix: 's'
-            for seconds (the default), 'm' for minutes, 'h' for hours, or 'd'
-            for days.
+            for seconds (the default), 'm' for minutes, 'h' for hours, or 'd' for days.
+            
+            Examples:
+            + System command action
+            /sh:backoff --command "/sh:exec --command 'printenv'"  --option duration="10s"
+            + Tool action
+            /sh:backoff --command "/fs:list_roots"  --option duration="10s"
+            + Agent action
+            /sh:backoff --command "/agent:ed/ed --adapter echo"  --option duration="10s"
       required:
         - command
 
