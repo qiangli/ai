@@ -34,11 +34,7 @@ func genImage(ctx context.Context, req *api.Request) (*api.Response, error) {
 	}
 	prompt := strings.Join(messages, "\n")
 
-	// if req.Vars.IsTrace() {
-	// 	log.GetLogger(ctx).Debugf("prompt: %s\n", prompt)
-	// }
-
-	log.GetLogger(ctx).Infof("@%s %s/%s\n", req.Name, req.Model.Provider, req.Model.Model)
+	log.GetLogger(ctx).Infof("Ⓞ @%s/%s %s [%v/%v] image %s/%s\n", req.Agent.Pack, req.Agent.Name, req.Agent.Display, req.Model.Provider, req.Model.Model)
 
 	var imageFormat = openai.ImageGenerateParamsResponseFormatB64JSON
 

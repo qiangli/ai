@@ -102,7 +102,7 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	log.GetLogger(ctx).Debugf("[XAI] params messages: %v tools: %v\n", len(params.Messages), len(params.Tools))
 
 	for tries := range maxTurns {
-		log.GetLogger(ctx).Infof("Ⓧ @%s [%v/%v] chat %s/%s\n", req.Name, tries, maxTurns, req.Model.Provider, req.Model.Model)
+		log.GetLogger(ctx).Infof("Ⓧ @%s/%s %s [%v/%v] chat %s/%s\n", req.Agent.Pack, req.Agent.Name, req.Agent.Display, tries, maxTurns, req.Model.Provider, req.Model.Model)
 
 		log.GetLogger(ctx).Debugf("📡 sending chat request to %s: %v of %v\n%+v\n", req.Model.BaseUrl, tries, maxTurns, req)
 

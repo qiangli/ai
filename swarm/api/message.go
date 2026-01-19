@@ -52,7 +52,8 @@ type Request struct {
 	Agent *Agent `json:"-"`
 
 	// active action name
-	Name      string    `json:"name"`
+	// Name      string    `json:"name"`
+
 	Arguments Arguments `json:"arguments"`
 
 	// LLM
@@ -114,8 +115,8 @@ func (r *Request) MemOption() *MemOption {
 
 func NewRequest(ctx context.Context, name string, args map[string]any) *Request {
 	req := &Request{
-		ctx:       ctx,
-		Name:      name,
+		ctx: ctx,
+		// Name:      name,
 		Arguments: NewArguments(),
 	}
 	req.Arguments.AddArgs(args)
