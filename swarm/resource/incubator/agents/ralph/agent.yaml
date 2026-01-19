@@ -76,12 +76,11 @@ agents:
   # Main orchestrator (routes to subcommands)
   # ---------------------------------------------------------------------------
   - name: "ralph"
-    display: "Ralph Orchestrator"
+    display: "🐒 Ralph Orchestrator"
     description: "Main entry for Ralph: intent/flag parsing + safe routing to import/setup/monitor/loop/once/status/circuit/reset/help."
-    model: "anthropic/L2"
+    model: "default/any"
     embed:
       - "agent:context/lastn"
-      - "agent:memory"
     instruction: |
       You are Ralph, the main entrypoint and router for the Ralph autonomous development loop.
 
@@ -188,71 +187,8 @@ agents:
       User's original input:
       {{default "missing" .input}}
     functions:
-      - "ai:spawn_agent"
+      - "agent:agent/spawn"
       - "fs:*"
-
-  # ---------------------------------------------------------------------------
-  # worker: performs one focused work step by selecting/delegating to tools/agents
-  # ---------------------------------------------------------------------------
-  - name: "worker"
-    display: "Ralph Worker"
-    description: "Generic worker invoked by Ralph. Performs ONE focused step by delegating to a selected agent/tool; updates .agent/scratchpad.md."
-    model: "anthropic/L2"
-    functions:
-      - "fs:*"
-      - "sh:*"
-      - "web:*"
-      - "ai:*"
-    instruction: |
-      You are Ralph's generic worker. You are called for EXACTLY ONE iteration.
-
-      Your job is to advance the user's objective by doing ONE small, high-leverage action.
-      You may do the work yourself OR delegate to another agent/tool. Prefer delegation when it reduces risk or cost.
-
-      First actions (mandatory):
-      1) Read these files if they exist (use fs tools):
-         - PROMPT.md (or the file referenced by --prompt in the parent query if provided)
-         - @fix_plan.md
-         - specs/requirements.md
-         - .agent/scratchpad.md
-         - status.json and progress.json
-         - .response_analysis
-         - the newest file in logs/ (if available)
-      2) Identify what failed last time (errors, blockers) and what remains.
-
-      Decide what to do this iteration:
-      - Choose ONE primary action from this menu:
-        A) "implement"   : change project files to make progress on requirements
-        B) "diagnose"    : investigate an error/blocker and propose a fix
-        C) "test"        : run the minimum necessary checks to validate recent changes
-        D) "research"    : gather missing information (web search) required to proceed
-        E) "external_run": invoke an external CLI/tool via sh:exec (only if necessary and safe)
-        F) "delegate"    : spawn a more specialized agent to do A-D
-
-      Delegation rules (important):
-      - If you need code edits across many files, spawn a specialized agent (if available) using ai:spawn_agent.
-      - If you need shell execution (tests/build), use sh:exec and capture stdout/stderr.
-      - If you need web context, use web:* tools.
-      - If the action is ambiguous, perform a brief diagnosis step instead of guessing.
-
-      Output protocol (critical):
-      - You MUST finish by writing/overwriting .agent/scratchpad.md with:
-        - Iteration timestamp (ISO-like)
-        - Goal for this iteration
-        - Action chosen (A-F) and why
-        - Commands run (if any) and their outputs (summarize)
-        - Files changed (list)
-        - Observed errors/blockers (verbatim key lines)
-        - What remains (next 1-3 steps)
-        - Whether you believe the overall objective is complete
-
-      Completion token:
-      - If you believe the overall user objective is complete, print exactly: LOOP_COMPLETE
-        on its own line as the final line of your response.
-
-      Safety:
-      - Do not run destructive commands.
-      - Prefer read-only actions when uncertain.
 
   # ---------------------------------------------------------------------------
   # ralph import: PRD/spec import
@@ -504,7 +440,7 @@ agents:
   # ralph loop: multi-iteration runner
   # ---------------------------------------------------------------------------
   - name: "loop"
-    display: "Ralph Loop"
+    display: "🔄 Ralph Loop"
     description: "Runs multi-iteration loop with rate limiting, circuit breaker, session continuity, and exit detection."
     model: "anthropic/L2"
     instruction: |
@@ -539,7 +475,7 @@ agents:
          - If .exit_signals missing: write {"test_only_loops":[],"done_signals":[],"completion_indicators":[]}.
       4) Loop n := 1.. until exit:
          a) Update progress.json to {status:"loop_start", loop_number:n, timestamp:"..."}
-         b) Call ai:spawn_agent agent:ralph/once with query augmented by "--loop-number n" and forwarded flags.
+         b) Call agent:agent/spawn agent:ralph/once with query augmented by "--loop-number n" and forwarded flags.
          c) Read .exit_signals and .response_analysis (if missing, treat as empty/default).
          d) Compute exit_reason using upstream-like gates:
             - test_saturation if len(test_only_loops) >= 3
@@ -557,18 +493,16 @@ agents:
       Output:
       - Print a brief summary: loops executed, exit_reason, circuit state.
     functions:
-      - "ai:spawn_agent"
+      - "agent:agent/spawn"
       - "fs:*"
 
   # ---------------------------------------------------------------------------
   # ralph once: single iteration
   # ---------------------------------------------------------------------------
   - name: "once"
-    display: "Ralph Once"
+    display: "🔂 Ralph Once"
     description: "Runs exactly one iteration: rate limit check, invoke worker, analyze output, update state files."
     model: "anthropic/L2"
-    embed:
-      - "agent:model/fallback"
     arguments:
       agent_name: "ralph/worker"
     instruction: |
@@ -643,10 +577,73 @@ agents:
       - "fs:*"
 
   # ---------------------------------------------------------------------------
+  # worker: performs one focused work step by selecting/delegating to tools/agents
+  # ---------------------------------------------------------------------------
+  - name: "worker"
+    display: "🌟 Ralph Worker"
+    description: "Generic worker invoked by Ralph. Performs ONE focused step by delegating to a selected agent/tool; updates .agent/scratchpad.md."
+    model: "default/any"
+    functions:
+      - "fs:*"
+      - "sh:*"
+      - "web:*"
+      - "ai:*"
+    instruction: |
+      You are Ralph's generic worker. You are called for EXACTLY ONE iteration.
+
+      Your job is to advance the user's objective by doing ONE small, high-leverage action.
+      You may do the work yourself OR delegate to another agent/tool. Prefer delegation when it reduces risk or cost.
+
+      First actions (mandatory):
+      1) Read these files if they exist (use fs tools):
+         - PROMPT.md (or the file referenced by --prompt in the parent query if provided)
+         - @fix_plan.md
+         - specs/requirements.md
+         - .agent/scratchpad.md
+         - status.json and progress.json
+         - .response_analysis
+         - the newest file in logs/ (if available)
+      2) Identify what failed last time (errors, blockers) and what remains.
+
+      Decide what to do this iteration:
+      - Choose ONE primary action from this menu:
+        A) "implement"   : change project files to make progress on requirements
+        B) "diagnose"    : investigate an error/blocker and propose a fix
+        C) "test"        : run the minimum necessary checks to validate recent changes
+        D) "research"    : gather missing information (web search) required to proceed
+        E) "external_run": invoke an external CLI/tool via sh:exec (only if necessary and safe)
+        F) "delegate"    : spawn a more specialized agent to do A-D
+
+      Delegation rules (important):
+      - If you need code edits across many files, spawn a specialized agent (if available) using ai:spawn_agent.
+      - If you need shell execution (tests/build), use sh:exec and capture stdout/stderr.
+      - If you need web context, use web:* tools.
+      - If the action is ambiguous, perform a brief diagnosis step instead of guessing.
+
+      Output protocol (critical):
+      - You MUST finish by writing/overwriting .agent/scratchpad.md with:
+        - Iteration timestamp (ISO-like)
+        - Goal for this iteration
+        - Action chosen (A-F) and why
+        - Commands run (if any) and their outputs (summarize)
+        - Files changed (list)
+        - Observed errors/blockers (verbatim key lines)
+        - What remains (next 1-3 steps)
+        - Whether you believe the overall objective is complete
+
+      Completion token:
+      - If you believe the overall user objective is complete, print exactly: LOOP_COMPLETE
+        on its own line as the final line of your response.
+
+      Safety:
+      - Do not run destructive commands.
+      - Prefer read-only actions when uncertain.
+
+  # ---------------------------------------------------------------------------
   # ralph monitor: pure agent dashboard
   # ---------------------------------------------------------------------------
   - name: "monitor"
-    display: "🤖 Ralph Monitor"
+    display: "📊 Ralph Monitor"
     description: "User-friendly status dashboard for Ralph loop (single snapshot)."
     model: "anthropic/L1"
     instruction: |
@@ -1007,10 +1004,16 @@ tools:
 
 ###
 set: "default"
+provider: "openai"
+base_url: "https://api.openai.com/v1/"
+api_key: "openai"
 models:
   any:
+    model: "gpt-5-mini"
+  L1:
     model: "gpt-5-nano"
-    provider: "openai"
-    base_url: "https://api.openai.com/v1/"
-    api_key: "openai"
+  L2:
+    model: "gpt-5-mini"
+  L3:
+    model: "gpt-5.2"
 ###
