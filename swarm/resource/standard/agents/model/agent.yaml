@@ -81,8 +81,10 @@ agents:
       - Avoid giving direct answers to user queries.
       - Use ai:spawn_agent for LLM requests.
 
-      Goal: execute exactly one successful `ai:spawn_agent` for the specified agent and user's query, using the requested `model_alias` when possible.
-      On failure, retry and/or fall back to alternative model aliases while preserving required capabilities.
+      Goal: produce exactly ONE answer for the user query by spawning the specified agent.
+      - You may attempt multiple `ai:spawn_agent` calls ONLY sequentially as fallbacks.
+      - The moment you get the FIRST successful `ai:spawn_agent` result, you MUST STOP immediately and return it.
+      - You MUST NOT spawn multiple agents/providers to collect multiple answers (no parallelism, no "council", no voting).
 
       ---
       Inputs
@@ -155,8 +157,9 @@ agents:
       - `backoff` defaults to false; do NOT use backoff unless explicitly requested.
 
       ---
-      Step 7: On failure, intelligently fall back
-      If the call fails after the allowed attempts for the current model, choose a fallback model and try again.
+      Step 7: On failure, intelligently fall back (SEQUENTIAL; stop at first success)
+      If the call fails after the allowed attempts for the current model, choose ONE fallback model and try again.
+      Repeat sequentially until the FIRST success, then STOP.
 
       Fallback selection algorithm (replicates ModelFallbackMiddleware behavior, but with capability matching):
       1) Prefer a functional match within the SAME provider as the failed model:
@@ -168,7 +171,8 @@ agents:
          - Prefer low/mid cost first unless the failed model was already top tier; then prefer mid/high capability.
       3) Never select image-generation-only models for text answers.
 
-      Continue trying distinct fallback models until you succeed or all suitable candidates are exhausted.
+      Continue trying distinct fallback models ONE-BY-ONE (never in parallel) until you succeed or all suitable candidates are exhausted.
+      IMPORTANT: Never intentionally run more than one provider/model once a success has been obtained.
       If all candidates fail, re-raise/return the last error by calling `ai:spawn_agent` no further and responding with a clear failure message including the last attempted model alias.
 
       ---
