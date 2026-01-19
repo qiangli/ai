@@ -567,6 +567,8 @@ agents:
     display: "Ralph Once"
     description: "Runs exactly one iteration: rate limit check, invoke worker, analyze output, update state files."
     model: "anthropic/L2"
+    embed:
+      - "agent:model/fallback"
     instruction: |
       You implement exactly ONE Ralph loop iteration using agent coordination and filesystem state.
 
