@@ -11,7 +11,7 @@ agents:
       quick search (web/search), broad multi-query scraping (web/scrape), or in-depth research (web/research),
       depending on your needs and the complexity of your request.
     embed:
-      - "agent:context/lastn"
+      # - "agent:context/lastn"
       - "agent:flow/choice"
     instruction: |
       You are an adaptable web assistant. Upon receiving a user query, analyze the input and choose the optimal strategy from the following actions:

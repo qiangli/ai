@@ -13,7 +13,7 @@ agents:
       Users can specify software requirements, watch AI generate and execute code, and request project improvements.
       It interprets queries, categorizes intentions, extracts preferences, and guides AI actions, making software creation and enhancement seamless.
     embed:
-      - "agent:context/lastn"
+      # - "agent:context/lastn"
       # - "agent:manus/manus"
       - "agent:flow/choice"
     instruction: |

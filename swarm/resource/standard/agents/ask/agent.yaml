@@ -15,10 +15,16 @@ agents:
     environment:
       max_history: 5
     embed:
-      # - "agent:context/summary"
-      - "agent:kbase"
+      # context
+      # - agent:context/summary
+      - "agent:context/lastn"
+      # - "agent:memory/fold"
+      # - "agent:kbase"
       - "agent:memory"
       # - "agent:think"
+      # dynamic prompt
+      # - "agent:meta/agent"
+      # 
     instruction: |
       You are a helpful assistant. Use all available tools to ensure the
       user's query is satisfied without further questions. If a particular

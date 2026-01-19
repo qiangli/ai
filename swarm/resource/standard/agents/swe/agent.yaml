@@ -7,7 +7,8 @@ agents:
     model: "llm/L2"
     embed:
       - "agent:context/lastn"
-      - "agent:manus/manus"
+      - "agent:memory/memory"
+      # - "agent:manus/manus"
       - "agent:flow/choice"
     instruction: |
       You are a smart software engineer.

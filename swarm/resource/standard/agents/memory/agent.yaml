@@ -7,24 +7,19 @@ agents:
     description: "Agent default user memory"
     embed:
       - "agent:memory/long_term"
-      - "agent:memory/todo_list"
-    environment:
-      memory_path: "{{.workspace}}/memory/"
-      memory_file: "{{.workspace}}/memory/agent.md"
-    instruction: |
-      #! --mime-type=text/x-go-template
-      ###
-      Adapt your behavior based on user feedback and instructions.
+      # - "agent:memory/todo_list"
+    # environment:
+    #   memory_path: "{{.workspace}}/memory/"
+    #   memory_file: "{{.workspace}}/memory/agent.md"
+    # instruction: |
+    #   #! --mime-type=text/x-go-template
+    #   ###
+    #   Adapt your behavior based on user feedback and instructions.
 
-      After answering user questions, do not forget to update the memory file `{{.memory_file}}` to record any important information for future reference.
-      If creating todos would help achieve better management of tasks, write them as needed.
-      Check if all the todos for the current session have been completed, otherwise prompt the user to continue working on the todos.
-
-      Agent Memory:
-      <agent_memory>
-      {{list .workspace "memory/agent.md" | join "/" | cat}}
-      </agent_memory>
-      ###
+    #   After answering user questions, do not forget to update the memory file `{{.memory_file}}` to record any important information for future reference.
+    #   If creating todos would help achieve better management of tasks, write them as needed.
+    #   Check if all the todos for the current session have been completed, otherwise prompt the user to continue working on the todos.
+    #   ###
     functions:
       - "fs:*"
 
@@ -99,13 +94,17 @@ agents:
       memory_file: "{{.workspace}}/memory/agent.md"
     instruction: |
       #! --mime-type=text/x-go-template
-
+      Agent Memory:
+      <agent_memory>
+      {{list .workspace "memory/agent.md" | join "/" | cat}}
+      </agent_memory>
+      
       ## Long-term Memory
+
       You have access to a long-term memory system using the {{.memory_path}} path prefix.
       Files stored in {{.memory_path}} persist across sessions and conversations.
 
-      Your system prompt is loaded from {{.memory_file}} at startup.
-      You can update your own instructions by updating this file.
+      The above <agent_memory> was loaded from {{.memory_file}} at startup. You can update your own instructions by updating this file.
       If the directory or files do not exsit, you may create them by using the available file system tools.
 
       As you learn from your interactions with the user, you can save new knowledge by calling the `edit_file` tool.
