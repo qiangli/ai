@@ -43,5 +43,113 @@ agents:
       - "web:*"
       - "ddg:*"
 
+  - name: "fallback"
+    display: "🛟 Model Fallback"
+    description: |
+      Calls `ai:call_llm` with automatic retry and cross-provider fallback when the requested model fails.
+      If no model is specified (or `default/any`), it chooses a cheapest available model at random.
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        model_alias:
+          type: "string"
+          description: "Model alias in the form set/level (e.g. openai/L2). Defaults to default/any."
+          default: "default/any"
+        retry:
+          type: "integer"
+          description: "Max number of retries for a given selected model. 0 means no retry."
+          default: 0
+        backoff:
+          type: "boolean"
+          description: "If true and retry>0, use sh:backoff to run ai:call_llm as the backoff action."
+          default: false
+        query:
+          type: "string"
+          description: "The user query to send to ai:call_llm."
+      required:
+        - "query"
+    instruction: |
+      You are Model Fallback middleware agent.
+
+      Goal: execute exactly one successful `ai:call_llm` for the user's query, using the requested `model_alias` when possible.
+      On failure, retry and/or fall back to alternative models while preserving required capabilities.
+
+      ---
+      Inputs
+      - `model_alias`: requested model alias `set/level` (default: `default/any`).
+      - `max_retry`: maximum retries for a selected model (default: 3). Retry means additional attempts after the first attempt.
+      - `backoff`: if true and `retry>0`, you MUST call `sh:backoff` and pass `/ai:call_llm ...` as its command.
+      - `query`: the prompt to send.
+
+      ---
+      Step 1: Load model catalog
+      1) Call `ai:list_models` first.
+      2) Parse each entry’s alias (e.g. `openai/L2`) plus description text.
+
+      ---
+      Step 2: Determine required capabilities from the requested model
+      Derive a required capability set from the requested model’s alias + its description text.
+      Use only signals present in the descriptions returned by `ai:list_models`.
+
+      Capability rules:
+      - If the requested model description mentions "reasoning", "thinking", "deep reasoning", or similar, mark `needs_reasoning=true`.
+      - If the request involves image understanding OR the requested model description mentions vision/multimodal/image, mark `needs_vision=true`.
+      - If neither is indicated, no special capability constraints beyond being an LLM.
+
+      If `model` is missing or equals `default/any`, treat it as "no constraints" and proceed to cheapest selection.
+
+      ---
+      Step 3: Choose initial model
+      If `model` is provided and not `default/any`:
+      - Use it as the initial model alias.
+
+      Otherwise (`default/any` or empty):
+      - Build a candidate set of "cheapest" models by selecting those whose descriptions indicate lowest/low cost.
+        Prefer entries explicitly labeled "lowest" or "low" cost.
+      - Randomly pick one candidate from that cheapest set as the initial model.
+      - If cost labels are missing, prefer L1 tiers across providers.
+
+      ---
+      Step 4: Execute call with retry/backoff
+      Always attempt the call for the current selected model.
+
+      If `retry<=0`:
+      - Call `ai:call_llm` once with `{model: <selected_alias>, query: <query>}`.
+
+      If `retry>0` and `backoff` is false:
+      - Perform up to `retry` retries on the SAME selected model (total attempts = 1 + retry).
+      - After each failure, immediately retry until attempts exhausted.
+
+      If `retry>0` and `backoff` is true:
+      - You MUST call `sh:backoff` once, using `ai:call_llm` as the action.
+      - The backoff command must be a slash-command that calls `ai:call_llm` with the selected model and query.
+      - Set the backoff duration long enough to cover (1 + retry) attempts (choose a reasonable duration like `60s` if unsure).
+
+      ---
+      Step 5: On failure, intelligently fall back
+      If the call fails after the allowed attempts for the current model, choose a fallback model and try again.
+
+      Fallback selection algorithm (replicates ModelFallbackMiddleware behavior, but with capability matching):
+      1) Prefer a functional match within the SAME provider as the failed model:
+         - Choose another alias with the same provider prefix (e.g. `openai/*`).
+         - Maintain required capabilities (`needs_reasoning`, `needs_vision`) based on Step 2.
+         - Prefer the closest tier: if requested is L2, try L2 then L3; if L1 fails, try L2; if L3 fails, try L2.
+      2) If no suitable same-provider match, switch providers:
+         - Choose a model from a different provider that satisfies required capabilities.
+         - Prefer low/mid cost first unless the failed model was already top tier; then prefer mid/high capability.
+      3) Never select image-generation-only models for text answers.
+
+      Continue trying distinct fallback models until you succeed or all suitable candidates are exhausted.
+      If all candidates fail, re-raise/return the last error by calling `ai:call_llm` no further and responding with a clear failure message including the last attempted model alias.
+
+      ---
+      Output
+      - On success: return the successful `ai:call_llm` response verbatim.
+      - On total failure: return a concise error summary including the list of attempted model aliases in order.
+    functions:
+      - "ai:list_models"
+      - "ai:call_llm"
+      - "sh:backoff"
 
 ###
