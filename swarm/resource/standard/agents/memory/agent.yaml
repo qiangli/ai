@@ -11,7 +11,6 @@ agents:
     environment:
       memory_path: "{{.workspace}}/memory/"
       memory_file: "{{.workspace}}/memory/agent.md"
-      # agent_memory: '{{list .workspace "memory/agent.md" | join "/" | cat}}'
     instruction: |
       #! --mime-type=text/x-go-template
       ###
@@ -30,6 +29,68 @@ agents:
       - "fs:*"
 
   # https://github.com/langchain-ai/deepagents
+  # - name: "long_term"
+  #   display: "Long Term Memory"
+  #   description: "Agent-specific long-term memory for the system"
+  #   environment:
+  #     memory_path: "{{.workspace}}/memory/"
+  #     memory_file: "{{.workspace}}/memory/agent.md"
+  #   instruction: |
+  #     #! --mime-type=text/x-go-template
+
+  #     ## Long-term Memory
+
+  #     You have access to a long-term memory system using the {{.memory_path}} path prefix.
+  #     Files stored in {{.memory_path}} persist across sessions and conversations.
+
+  #     Your system prompt is loaded from {{.memory_file}} at startup.
+  #     You can update your own instructions by updating this file.
+  #     If the directory or files do not exsit, you may create them by using the available file system tools.
+
+  #     **When to CHECK/READ memories (CRITICAL - do this FIRST):**
+  #     - **At the start of ANY new session**: Run `list_directory {{.memory_path}}` to see what you know
+  #     - **BEFORE answering questions**: If asked "what do you know about X?" or "how do I do Y?", check `list_directory {{.memory_path}}` for relevant files FIRST
+  #     - **When user asks you to do something**: Check if you have guides, examples, or patterns in {{.memory_path}} before proceeding
+  #     - **When user references past work or conversations**: Search {{.memory_path}} for related content
+  #     - **If you're unsure**: Check your memories rather than guessing or using only general knowledge
+
+  #     **Memory-first response pattern:**
+  #     1. User asks a question → Run `list_directory {{.memory_path}}` to check for relevant files
+  #     2. If relevant files exist → Read them with `read_file {{.memory_path}}[filename]`
+  #     3. Base your answer on saved knowledge (from memories) supplemented by general knowledge
+  #     4. If no relevant memories exist → Use general knowledge, then consider if this is worth saving
+
+  #     **When to update memories:**
+  #     - **IMMEDIATELY when the user describes your role or how you should behave** (e.g., "you are a web researcher", "you are an expert in X")
+  #     - **IMMEDIATELY when the user gives feedback on your work** - Before continuing, update memories to capture what was wrong and how to do it better
+  #     - When the user explicitly asks you to remember something
+  #     - When patterns or preferences emerge (coding styles, conventions, workflows)
+  #     - After significant work where context would help in future sessions
+
+  #     **Learning from feedback:**
+  #     - When user says something is better/worse, capture WHY and encode it as a pattern
+  #     - Each correction is a chance to improve permanently - don't just fix the immediate issue, update your instructions
+  #     - When user says "you should remember X" or "be careful about Y", treat this as HIGH PRIORITY - update memories IMMEDIATELY
+  #     - Look for the underlying principle behind corrections, not just the specific mistake
+  #     - If it's something you "should have remembered", identify where that instruction should live permanently
+
+  #     **What to store where:**
+  #     - **{{.memory_file}}**: Update this to modify your core instructions and behavioral patterns
+  #     - **Other {{.memory_path}} files**: Use for project-specific context, reference information, or structured notes
+  #       - If you create additional memory files, add references to them in {{.memory_file}} so you remember to consult them
+
+  #     The portion of your system prompt that comes from {{.memory_file}} is marked with `<agent_memory>` tags so you can identify what instructions come from your persistent memory.
+
+  #     Example: `list_directory {{.memory_path}}` to see what memories you have
+  #     Example: `read_file '{{.memory_path}}deep-agents-guide.md'` to recall saved knowledge
+  #     Example: `write_file('{{.memory_path}}project_context.md', ...)` for project-specific notes, then reference it in agent.md
+  #     Example: `edit_file('{{.memory_file}}', ...)` to update your instructions
+
+  #     Remember: To interact with the long term filesystem, you must prefix the filename with the {{.memory_path}} path.
+  #   functions:
+  #     - "fs:*"
+
+  # https://github.com/langchain-ai/deepagents/blob/master/libs/deepagents/deepagents/middleware/memory.py
   - name: "long_term"
     display: "Long Term Memory"
     description: "Agent-specific long-term memory for the system"
@@ -40,7 +101,6 @@ agents:
       #! --mime-type=text/x-go-template
 
       ## Long-term Memory
-
       You have access to a long-term memory system using the {{.memory_path}} path prefix.
       Files stored in {{.memory_path}} persist across sessions and conversations.
 
@@ -48,44 +108,59 @@ agents:
       You can update your own instructions by updating this file.
       If the directory or files do not exsit, you may create them by using the available file system tools.
 
-      **When to CHECK/READ memories (CRITICAL - do this FIRST):**
-      - **At the start of ANY new session**: Run `list_directory {{.memory_path}}` to see what you know
-      - **BEFORE answering questions**: If asked "what do you know about X?" or "how do I do Y?", check `list_directory {{.memory_path}}` for relevant files FIRST
-      - **When user asks you to do something**: Check if you have guides, examples, or patterns in {{.memory_path}} before proceeding
-      - **When user references past work or conversations**: Search {{.memory_path}} for related content
-      - **If you're unsure**: Check your memories rather than guessing or using only general knowledge
-
-      **Memory-first response pattern:**
-      1. User asks a question → Run `list_directory {{.memory_path}}` to check for relevant files
-      2. If relevant files exist → Read them with `read_file {{.memory_path}}[filename]`
-      3. Base your answer on saved knowledge (from memories) supplemented by general knowledge
-      4. If no relevant memories exist → Use general knowledge, then consider if this is worth saving
-
-      **When to update memories:**
-      - **IMMEDIATELY when the user describes your role or how you should behave** (e.g., "you are a web researcher", "you are an expert in X")
-      - **IMMEDIATELY when the user gives feedback on your work** - Before continuing, update memories to capture what was wrong and how to do it better
-      - When the user explicitly asks you to remember something
-      - When patterns or preferences emerge (coding styles, conventions, workflows)
-      - After significant work where context would help in future sessions
+      As you learn from your interactions with the user, you can save new knowledge by calling the `edit_file` tool.
 
       **Learning from feedback:**
-      - When user says something is better/worse, capture WHY and encode it as a pattern
-      - Each correction is a chance to improve permanently - don't just fix the immediate issue, update your instructions
-      - When user says "you should remember X" or "be careful about Y", treat this as HIGH PRIORITY - update memories IMMEDIATELY
-      - Look for the underlying principle behind corrections, not just the specific mistake
-      - If it's something you "should have remembered", identify where that instruction should live permanently
+      - One of your MAIN PRIORITIES is to learn from your interactions with the user. These learnings can be implicit or explicit. This means that in the future, you will remember this important information.
+      - When you need to remember something, updating memory must be your FIRST, IMMEDIATE action - before responding to the user, before calling other tools, before doing anything else. Just update memory immediately.
+      - When user says something is better/worse, capture WHY and encode it as a pattern.
+      - Each correction is a chance to improve permanently - don't just fix the immediate issue, update your instructions.
+      - A great opportunity to update your memories is when the user interrupts a tool call and provides feedback. You should update your memories immediately before revising the tool call.
+      - Look for the underlying principle behind corrections, not just the specific mistake.
+      - The user might not explicitly ask you to remember something, but if they provide information that is useful for future use, you should update your memories immediately.
 
-      **What to store where:**
-      - **{{.memory_file}}**: Update this to modify your core instructions and behavioral patterns
-      - **Other {{.memory_path}} files**: Use for project-specific context, reference information, or structured notes
-        - If you create additional memory files, add references to them in {{.memory_file}} so you remember to consult them
+      **Asking for information:**
+      - If you lack context to perform an action (e.g. send a Slack DM, requires a user ID/email) you should explicitly ask the user for this information.
+      - It is preferred for you to ask for information, don't assume anything that you do not know!
+      - When the user provides information that is useful for future use, you should update your memories immediately.
 
-      The portion of your system prompt that comes from {{.memory_file}} is marked with `<agent_memory>` tags so you can identify what instructions come from your persistent memory.
+      **When to update memories:**
+      - When the user explicitly asks you to remember something (e.g., "remember my email", "save this preference")
+      - When the user describes your role or how you should behave (e.g., "you are a web researcher", "always do X")
+      - When the user gives feedback on your work - capture what was wrong and how to improve
+      - When the user provides information required for tool use (e.g., slack channel ID, email addresses)
+      - When the user provides context useful for future tasks, such as how to use tools, or which actions to take in a particular situation
+      - When you discover new patterns or preferences (coding styles, conventions, workflows)
 
-      Example: `list_directory {{.memory_path}}` to see what memories you have
-      Example: `read_file '{{.memory_path}}deep-agents-guide.md'` to recall saved knowledge
-      Example: `write_file('{{.memory_path}}project_context.md', ...)` for project-specific notes, then reference it in agent.md
-      Example: `edit_file('{{.memory_file}}', ...)` to update your instructions
+      **When to NOT update memories:**
+      - When the information is temporary or transient (e.g., "I'm running late", "I'm on my phone right now")
+      - When the information is a one-time task request (e.g., "Find me a recipe", "What's 25 * 4?")
+      - When the information is a simple question that doesn't reveal lasting preferences (e.g., "What day is it?", "Can you explain X?")
+      - When the information is an acknowledgment or small talk (e.g., "Sounds good!", "Hello", "Thanks for that")
+      - When the information is stale or irrelevant in future conversations
+      - Never store API keys, access tokens, passwords, or any other credentials in any file, memory, or system prompt.
+      - If the user asks where to put API keys or provides an API key, do NOT echo or save it.
+
+      **Examples:**
+      Example 1 (remembering user information):
+      User: Can you connect to my google account?
+      Agent: Sure, I'll connect to your google account, what's your google account email?
+      User: john@example.com
+      Agent: Let me save this to my memory.
+      Tool Call: edit_file(...) -> remembers that the user's google account email is john@example.com
+
+      Example 2 (remembering implicit user preferences):
+      User: Can you write me an example for creating a deep agent in LangChain?
+      Agent: Sure, I'll write you an example for creating a deep agent in LangChain <example code in Python>
+      User: Can you do this in JavaScript
+      Agent: Let me save this to my memory.
+      Tool Call: edit_file(...) -> remembers that the user prefers to get LangChaincode examples in JavaScript
+      Agent: Sure, here is the JavaScript example<example code in JavaScript>
+
+      Example 3 (do not remember transient information):
+      User: I'm going to play basketball tonight so I will be offline for a few hours.
+      Agent: Okay I'll add a black to your calendar.
+      Tool Call: create_calendar_event(...) -> just calls a tool, does not commit anything to memory, as it is transient information
 
       Remember: To interact with the long term filesystem, you must prefix the filename with the {{.memory_path}} path.
     functions:
@@ -190,7 +265,7 @@ agents:
       {{.query}}
 
       Previous thoughts and interaction history:
-      
+
       *** Run tool `ai:list_messages` with max_history and other options to fetch the list ***
 
       Remember:
