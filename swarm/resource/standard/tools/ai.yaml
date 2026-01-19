@@ -269,6 +269,10 @@ tools:
         query:
           type: "string"
           description: "The user query string"
+        model:
+          type: "string"
+          description: "Model alias in the form set/level (e.g. openai/L2). Defaults to default/any."
+          default: "default/any"
         entrypoint:
           type: "array"
           items:

@@ -603,18 +603,6 @@ func (r *AIKit) ReadToolConfig(ctx context.Context, vars *api.Vars, _ *api.Agent
 		return nil, err
 	}
 
-	// cfg, found := args["config"]
-	// if found {
-	// 	if v, ok := cfg.(*api.AppConfig); ok {
-	// 		return v, nil
-	// 	}
-	// }
-
-	// data := api.ToString(cfg)
-	// if data != "" {
-	// 	loader.LoadContent(data)
-	// }
-
 	kn := api.Kitname(tid).Clean()
 	kit, name := kn.Decode()
 	args["kit"] = kit

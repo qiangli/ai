@@ -568,12 +568,12 @@ agents:
     description: "Runs exactly one iteration: rate limit check, invoke worker, analyze output, update state files."
     model: "anthropic/L2"
     instruction: |
-      You implement exactly ONE Ralph loop iteration using pure YAML agent coordination and filesystem state.
+      You implement exactly ONE Ralph loop iteration using agent coordination and filesystem state.
 
       Constraints:
-      - Do NOT modify other agents/tools in this pack.
+      - Do NOT give direct answers to user queries.
       - Use only: fs:* and ai:spawn_agent.
-      - Keep changes minimal and aligned with upstream ralph_loop.sh.
+      - Keep changes minimal.
 
       Inputs:
       - The query may include:

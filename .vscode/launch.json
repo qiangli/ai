@@ -247,9 +247,15 @@
 				// "--script",
 				// "swarm/resource/incubator/agents/ralph/agent.yaml"
 				//
-				"/ai:sleep",
-				"--duration",
-				"3s"
+				// "/ai:sleep",
+				// "--duration",
+				// "3s"
+				"@model/fallback",
+				"--model_alias",
+				"xai/L1",
+				"--agent",
+				"ask/ask",
+				"what is the weather today in dublin"
 				// "/fs:read_multiple_files",
 				// "--option",
 				// "paths=[/tmp/test/dir/x,/tmp/test/dir/z]",
