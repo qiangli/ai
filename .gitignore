@@ -54,4 +54,10 @@ pad.*
 .response_analysis
 progress.json
 status.json
+# 
+.agent/
+PROMPT.md
+@AGENT.md
+@fix_plan.md
+specs/
 #
