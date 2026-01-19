@@ -33,15 +33,15 @@ func (r *FileMemStore) Save(messages []*api.Message) error {
 }
 
 func (r *FileMemStore) Load(opt *api.MemOption) ([]*api.Message, error) {
-	return LoadHistory(r.base, opt.MaxHistory, opt.MaxSpan, opt.Roles)
+	return loadHistory(r.base, opt.MaxHistory, opt.MaxSpan, opt.Offset, opt.Roles)
 }
 
 func (r *FileMemStore) Get(id string) (*api.Message, error) {
 	// TODO search
-	max := 100
+	max := 500
 	span := 14400
 
-	list, err := LoadHistory(r.base, max, span, nil)
+	list, err := loadHistory(r.base, max, 0, span, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -53,12 +53,17 @@ func (r *FileMemStore) Get(id string) (*api.Message, error) {
 	return nil, api.NewNotFoundError("message id: " + id)
 }
 
-func LoadHistory(base string, maxHistory, maxSpan int, roles []string) ([]*api.Message, error) {
+func loadHistory(base string, maxHistory, maxSpan, offset int, roles []string) ([]*api.Message, error) {
 	if maxHistory <= 0 || maxSpan <= 0 {
 		return nil, nil
 	}
+	if offset < 0 {
+		offset = 0
+	}
 
 	var history []*api.Message
+	targetSize := offset + maxHistory
+	messageCount := 0
 
 	entries, err := os.ReadDir(base)
 	if err != nil {
@@ -67,7 +72,6 @@ func LoadHistory(base string, maxHistory, maxSpan int, roles []string) ([]*api.M
 		}
 		return nil, err
 	}
-	// Collect .json files and their infos
 	type fileInfo struct {
 		name string
 		mod  time.Time
@@ -80,16 +84,12 @@ func LoadHistory(base string, maxHistory, maxSpan int, roles []string) ([]*api.M
 		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".json") {
 			fullPath := filepath.Join(base, entry.Name())
 			info, err := os.Stat(fullPath)
-			if err == nil {
-				if info.ModTime().Before(old) {
-					continue
-				}
+			if err == nil && info.ModTime().After(old) {
 				files = append(files, fileInfo{name: fullPath, mod: info.ModTime()})
 			}
 		}
 	}
 
-	// Sort by mod time DESC (most recent first)
 	sort.Slice(files, func(i, j int) bool {
 		return files[i].mod.After(files[j].mod)
 	})
@@ -103,28 +103,41 @@ func LoadHistory(base string, maxHistory, maxSpan int, roles []string) ([]*api.M
 		if err := json.Unmarshal(data, &msgs); err != nil {
 			continue
 		}
+
+		// Collect messages from oldest to newest
 		for i := len(msgs) - 1; i >= 0; i-- {
-			// only use text message for now
-			for _, msg := range msgs {
-				// skip context messages
-				if msg.Context {
-					continue
-				}
-				if roles != nil && !slice.ContainsAny(roles, msg.Role) {
-					continue
-				}
-				//
-				if msg.ContentType == "" || strings.HasPrefix(msg.ContentType, "text/") {
-					history = append(history, msg)
-				}
+			msg := msgs[i]
+			if msg.Context || (roles != nil && !slice.ContainsAny(roles, msg.Role)) {
+				continue
+			}
+			if msg.ContentType != "" && !strings.HasPrefix(msg.ContentType, "text/") {
+				continue
 			}
 
-			if maxHistory > 0 && len(history) >= maxHistory {
-				result := history[:maxHistory]
-				reverseMessages(result)
-				return result, nil
+			if messageCount < targetSize {
+				history = append(history, msg)
+				messageCount++
+			}
+
+			if messageCount >= targetSize {
+				break
 			}
 		}
+
+		if messageCount >= targetSize {
+			break
+		}
+	}
+
+	//
+	if offset < len(history) {
+		history = history[offset:]
+	} else {
+		history = []*api.Message{}
+	}
+
+	if len(history) > maxHistory {
+		history = history[:maxHistory]
 	}
 
 	reverseMessages(history)
@@ -138,7 +151,6 @@ func reverseMessages(msgs []*api.Message) {
 }
 
 func StoreHistory(base string, messages []*api.Message) error {
-	// filename
 	now := time.Now()
 	filename := fmt.Sprintf("%s-%d.json", now.Format("2006-01-02"), now.UnixNano())
 	path := filepath.Join(base, filename)

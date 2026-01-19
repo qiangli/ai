@@ -43,6 +43,8 @@ agents:
       #! --mime-type=text/x-go-template
       *** Context History ***
       {{ai "/ai:list_messages" "--format" "text"}}
+
+      To 
       ###
     functions:
       - "ai:list_messages"

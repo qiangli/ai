@@ -652,8 +652,6 @@ func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, _ *api.Agent, tf
 }
 
 func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, _ *api.Agent, _ *api.ToolFunc, args map[string]any) (string, error) {
-	// log.GetLogger(ctx).Debugf("List messages: %s:%s %+v\n", tf.Kit, tf.Name, args)
-
 	maxHistory, err := api.GetIntProp("max_history", args)
 	if err != nil || maxHistory <= 0 {
 		maxHistory = 7
@@ -662,10 +660,10 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, _ *api.Agent, 
 	if err != nil || maxSpan <= 0 {
 		maxSpan = 1440
 	}
-	// offset, err := api.GetIntProp("offset", args)
-	// if err != nil || offset <= 0 {
-	// 	offset = 0
-	// }
+	offset, err := api.GetIntProp("offset", args)
+	if err != nil || offset <= 0 {
+		offset = 0
+	}
 	roles, err := api.GetArrayProp("roles", args)
 	if err != nil || len(roles) == 0 {
 		roles = []string{"assistant", "user"}
@@ -674,7 +672,7 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, _ *api.Agent, 
 	var option = &api.MemOption{
 		MaxHistory: maxHistory,
 		MaxSpan:    maxSpan,
-		Offset:     0,
+		Offset:     offset,
 		Roles:      roles,
 	}
 	format, err := api.GetStrProp("format", args)
@@ -687,9 +685,6 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, _ *api.Agent, 
 	if count == 0 {
 		return fmt.Sprintf("No messages (%s)", option), nil
 	}
-	// if count > 0 {
-	// 	log.GetLogger(ctx).Debugf("Recalled %v messages in memory less than %v minutes old\n", count, maxSpan)
-	// }
 
 	if format == "json" || format == "application/json" {
 		b, err := json.MarshalIndent(history, "", "    ")
@@ -704,6 +699,8 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, _ *api.Agent, 
 		b.WriteString(v.Role)
 		b.WriteString("\n  CONTENT:\n")
 		b.WriteString(v.Content)
+		b.WriteString("\n  CREATED:\n")
+		b.WriteString(fmt.Sprintf("%v", v.Created))
 		b.WriteString("\n\n")
 	}
 	var v = fmt.Sprintf("Messages (%s): %v\n\n%s\n", option, count, b.String())

@@ -62,8 +62,8 @@
 				// "/bin/ls -al test",
 				//
 				// slash agent
-				// "/agent:ed",
-				// "correct mine englise"
+				"/agent:ed",
+				"correct mine englise"
 				//
 				// bash script
 				// "/sh:bash",
@@ -250,12 +250,12 @@
 				// "/ai:sleep",
 				// "--duration",
 				// "3s"
-				"@model/fallback",
-				"--model_alias",
-				"xai/L1",
-				"--agent",
-				"ask/ask",
-				"what is the weather today in dublin"
+				// "@model/fallback",
+				// "--model_alias",
+				// "xai/L1",
+				// "--agent",
+				// "ask/ask",
+				// "what is the weather today in NYC"
 				// "/fs:read_multiple_files",
 				// "--option",
 				// "paths=[/tmp/test/dir/x,/tmp/test/dir/z]",
