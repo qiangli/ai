@@ -291,7 +291,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 }
 
 // Return true if command line "s" is an action command.
-// action (agent and tool) name convention:
+// action (agent, tool, and command) name convention:
 // "ai" or prefix "agent:", "@" or "/" or suffix ","
 //
 // ai [action] message...
@@ -319,15 +319,14 @@ func IsAction(s string) bool {
 	case '@':
 		return true
 	case '/':
-		// s = strings.TrimPrefix(s, "/")
-		// sa := strings.SplitN(s, "/", 2)
-		// return strings.Contains(sa[0], ":") || len(sa) == 1
-		return IsSlashTool(s)
+		// return IsSlashTool(s)
+		return true
 	default:
 		if strings.HasPrefix(s, "agent:") {
 			return true
 		}
 	}
+
 	s, _ = split2(s, " ", "")
 	// true but empty command
 	if s == "ai" {
@@ -339,21 +338,21 @@ func IsAction(s string) bool {
 	return false
 }
 
-// Return true if s starts with slash "/" and  is of the following format:
-// /kit
-// /kit:name[/sub]
-func IsSlashTool(s string) bool {
-	if after, ok := strings.CutPrefix(s, "/"); ok {
-		sa := strings.SplitN(after, "/", 2)
-		return strings.Contains(sa[0], ":") || len(sa) == 1
-	}
-	return false
-}
+// // Return true if s starts with slash "/" and  is of the following format:
+// // /kit
+// // /kit:name[/sub]
+// func IsSlashTool(s string) bool {
+// 	if after, ok := strings.CutPrefix(s, "/"); ok {
+// 		sa := strings.SplitN(after, "/", 2)
+// 		return strings.Contains(sa[0], ":") || len(sa) == 1
+// 	}
+// 	return false
+// }
 
-// Return true if s starts with slash "/" - a slash command
-func IsSlash(s string) bool {
-	return strings.HasPrefix(s, "/")
-}
+// // Return true if s starts with slash "/" - a slash command
+// func IsSlash(s string) bool {
+// 	return strings.HasPrefix(s, "/")
+// }
 
 // Split s into array of words and return the arguments map
 func ParseActionCommand(s string) (api.ArgMap, error) {
@@ -444,13 +443,13 @@ func parsev(argv []string) (api.ArgMap, error) {
 			msg := argm["message"]
 			argm["message"] = api.Cat(msg.(string), stdin, "\n###\n")
 		}
-	} else if IsSlash(argv[0]) {
-		// call local system command as tool:
-		// sh:exec command
-		argm = make(map[string]any)
-		argm["kit"] = "sh"
-		argm["name"] = "exec"
-		argm["command"] = strings.Join(argv, " ")
+		// } else if IsSlash(argv[0]) {
+		// 	// call local system command as tool:
+		// 	// sh:exec command
+		// 	argm = make(map[string]any)
+		// 	argm["kit"] = "sh"
+		// 	argm["name"] = "exec"
+		// 	argm["command"] = strings.Join(argv, " ")
 	} else {
 		argm = make(map[string]any)
 		argm["message"] = strings.Join(argv, " ")
