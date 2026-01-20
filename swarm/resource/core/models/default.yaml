@@ -1,8 +1,8 @@
 ###
-provider: "openai"
-base_url: "https://api.openai.com/v1/"
-api_key: "openai"
-
+set: "default"
 models:
   any:
     model: "gpt-5-nano"
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"

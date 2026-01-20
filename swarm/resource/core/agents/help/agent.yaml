@@ -2,7 +2,7 @@
 pack: "help"
 agents:
   - name: "help"
-    display: "🚀 Help"
+    display: "Help"
     description: |
       Guide users in selecting the correct AI agent or tool.
     entrypoint:

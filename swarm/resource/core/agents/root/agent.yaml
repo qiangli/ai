@@ -2,10 +2,23 @@
 pack: "root"
 agents:
   - name: "root"
-    display: "🚀 root"
+    display: "Ⓡ root"
     description: "Ancestor of all agents"
     model: "default/any"
     adapter: "text"
+    instruction: |
+      Your sole task is to find the agent the user used the last time,
+      and transfer the user to the found agent.
+
+      Procedure (minimal):
+      1) Call ai:list_messages and inspect the most recent messages for the last
+         non-root agent that participated (sender/agent field). If found, transfer
+         the user to that agent.
+      2) If not found (or the agent no longer exists), call ai:list_agents and
+         pick the most suitable agent for answering the user's query, then transfer
+         the user to it.
+
+      You must never respond to user queries.
     functions:
       - "ai:*"
       - "fs:*"
@@ -13,10 +26,25 @@ agents:
       - "web:*"
 
 set: "default"
-provider: "openai"
-base_url: "https://api.openai.com/v1/"
-api_key: "openai"
 models:
-  any:
+  anthropic:
+    model: "claude-3-5-haiku-latest"
+    provider: "anthropic"
+    base_url: "https://api.anthropic.com/"
+    api_key: "anthropic"
+  gemini:
+    model: "gemini-2.5-flash-lite"
+    provider: "gemini"
+    base_url: "https://generativelanguage.googleapis.com/v1beta/"
+    api_key: "gemini"
+  openai:
     model: "gpt-4o-mini"
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
+  xai:
+    model: "grok-4-1-fast-non-reasoning"
+    provider: "xai"
+    base_url: "https://api.x.ai/v1/"
+    api_key: "xai"
 ###

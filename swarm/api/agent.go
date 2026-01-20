@@ -120,6 +120,9 @@ type Agent struct {
 
 	Parameters Parameters `json:"parameters"`
 
+	// model fallback
+	Models map[string]Setlevel `json:"-"`
+
 	// assigned at buildtime/runtime
 	Parent   *Agent             `json:"-"`
 	Runner   ActionRunner       `json:"-"`
@@ -151,6 +154,8 @@ func (a *Agent) Clone() *Agent {
 		Template: a.Template,
 		//
 		Config: a.Config,
+		//
+		Models: a.Models,
 	}
 
 	return clone
@@ -199,15 +204,8 @@ type AgentConfig struct {
 	Model string `yaml:"model" json:"model"`
 
 	//
-	MaxTurns int `yaml:"max_turns" json:"max_turns"`
-	MaxTime  int `yaml:"max_time" json:"max_time"`
-
-	// // output format: json | text
-	// Format string `yaml:"format" json:"format"`
-
-	// memory
-	// max history: 0 max span: 0
-	// New        *bool  `yaml:"new,omitempty"`
+	MaxTurns   int `yaml:"max_turns" json:"max_turns"`
+	MaxTime    int `yaml:"max_time" json:"max_time"`
 	MaxHistory int `yaml:"max_history" json:"max_history"`
 	MaxSpan    int `yaml:"max_span" json:"max_span"`
 
@@ -220,6 +218,7 @@ type AgentConfig struct {
 	// agent global vars
 	Environment map[string]any `yaml:"environment" json:"environment"`
 
+	// TODO clarify
 	// inherit from embedded parent:
 	// + environment
 	// + instruction
@@ -235,6 +234,9 @@ type AgentConfig struct {
 
 	//
 	Entrypoint []string `yaml:"entrypoint" json:"entrypoint"`
+
+	// model fallback
+	Models map[string]Setlevel `yaml:"models" json:"models"`
 
 	Config *AppConfig `json:"-"`
 }
@@ -270,36 +272,36 @@ func (ac *AgentConfig) ToMap() map[string]any {
 
 type FlowType string
 
-func ToFlowType(v any) FlowType {
-	if t, ok := v.(FlowType); ok {
-		return t
-	}
-	s, ok := v.(string)
-	if !ok {
-		return "invalid"
-	}
-	switch s {
-	case "sequence":
-		return FlowTypeSequence
-	case "chain":
-		return FlowTypeChain
-	case "choice":
-		return FlowTypeChoice
-	case "parallel":
-		return FlowTypeParallel
-	// case "map":
-	// 	return FlowTypeMap
-	// Uncomment if needed in the future
-	// case "loop":
-	// 	return FlowTypeLoop
-	// case "reduce":
-	// 	return FlowTypeReduce
-	// case "shell":
-	// 	return FlowTypeShell
-	default:
-		return "unknown"
-	}
-}
+// func ToFlowType(v any) FlowType {
+// 	if t, ok := v.(FlowType); ok {
+// 		return t
+// 	}
+// 	s, ok := v.(string)
+// 	if !ok {
+// 		return "invalid"
+// 	}
+// 	switch s {
+// 	case "sequence":
+// 		return FlowTypeSequence
+// 	case "chain":
+// 		return FlowTypeChain
+// 	case "choice":
+// 		return FlowTypeChoice
+// 	case "parallel":
+// 		return FlowTypeParallel
+// 	// case "map":
+// 	// 	return FlowTypeMap
+// 	// Uncomment if needed in the future
+// 	// case "loop":
+// 	// 	return FlowTypeLoop
+// 	// case "reduce":
+// 	// 	return FlowTypeReduce
+// 	// case "shell":
+// 	// 	return FlowTypeShell
+// 	default:
+// 		return "unknown"
+// 	}
+// }
 
 const (
 	// FlowTypeSequence executes actions one after another, where each

@@ -91,19 +91,19 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 		Display: "",
 	}
 
-	// if msg, ok := argm["message"]; ok {
-	// 	sw.Vars.Global.Set("message", msg)
-	// }
-
 	id := argm.Kitname().ID()
-	if id != "" {
-		if v, err := sw.Exec(ctx, argm); err != nil {
-			// return err
-			out.Content = fmt.Sprintf("❌ %+v", err)
-		} else {
-			out.ContentType = v.MimeType
-			out.Content = v.Value
-		}
+	if id == "" {
+		// default @root/root
+		argm["kit"] = "agent"
+		argm["pack"] = "root"
+		argm["name"] = "root"
+	}
+	if v, err := sw.Exec(ctx, argm); err != nil {
+		// return err
+		out.Content = fmt.Sprintf("❌ %+v", err)
+	} else {
+		out.ContentType = v.MimeType
+		out.Content = v.Value
 	}
 
 	// console outpu

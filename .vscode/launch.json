@@ -22,12 +22,14 @@
 			"envFile": "${workspaceFolder}/.env",
 			"cwd": "${workspaceFolder}/",
 			"args": [
+				// ai
 				// "/help",
 				// "/help:help",
 				// "/agent:help",
 				// "/agent:help/help",
 				//
-				// ai
+				"what is unix",
+				// 
 				// "/ai:list_agents"
 				//
 				// alias
