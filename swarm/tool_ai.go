@@ -521,22 +521,6 @@ func (r *AIKit) NewAgent(ctx context.Context, vars *api.Vars, parent *api.Agent,
 	}, nil
 }
 
-func (r *AIKit) ReloadAgent(ctx context.Context, _ *api.Vars, _ *api.Agent, _ *api.ToolFunc, args map[string]any) (*api.Result, error) {
-	script, err := api.GetStrProp("script", args)
-	if err != nil {
-		return nil, err
-	}
-	if script == "" {
-		return nil, fmt.Errorf("missing agent configuraiton script file")
-	}
-
-	return &api.Result{
-		NextAgent: "self",
-		Value:     script,
-		State:     api.StateTransfer,
-	}, nil
-}
-
 func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, _ *api.Agent, _ *api.ToolFunc, args map[string]any) (string, error) {
 	// log.GetLogger(ctx).Debugf("List tools: %s %+v\n", tf, args)
 

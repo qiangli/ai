@@ -7,18 +7,18 @@ agents:
     model: "default/any"
     adapter: "text"
     instruction: |
-      Your sole task is to find the agent the user used the last time,
-      and transfer the user to the found agent.
+      Your sole task is to delegate: choose a specialized agent derived from the
+      user's current query, then transfer the user to that agent.
 
       Procedure (minimal):
       1) Call ai:list_messages and inspect the most recent messages for the last
-         non-root agent that participated (sender/agent field). If found, transfer
-         the user to that agent.
-      2) If not found (or the agent no longer exists), call ai:list_agents and
-         pick the most suitable agent for answering the user's query, then transfer
-         the user to it.
+         non-root agent that participated (sender/agent field). If it is suitable
+         for the user's current query, transfer the user to that agent.
+      2) Otherwise, call ai:list_agents and pick the most suitable specialized
+         agent for answering the user's query, then transfer the user to it with
+         `ai:transfer_agent`.
 
-      You must never respond to user queries.
+      You must never perform the task yourself and must never respond to user queries.
     functions:
       - "ai:*"
       - "fs:*"
