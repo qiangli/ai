@@ -12,24 +12,30 @@ agents:
       ranging from local system intricacies to comprehensive web-based information,
       ensuring clarity and accuracy.
     model: "default/any"
-    environment:
-      memory_path: "{{.workspace}}/memory/"
-      memory_file: "{{.workspace}}/memory/agent.md"
-      max_history: 5
-    embed:
-      # context
-      # - agent:context/summary
-      # - "agent:context/lastn"
-      # - "agent:memory/fold"
-      # - "agent:kbase"
-      - "agent:memory"
-      # - "agent:think"
-      # dynamic prompt
-      # - "agent:meta/agent"
-      #
+    # environment:
+    #   # memory_path: "{{.workspace}}/memory/"
+    #   # memory_file: "{{.workspace}}/memory/agent.md"
+    #   max_history: 5
+    # embed:
+    #   # context
+    #   # - agent:context/summary
+    #   # - "agent:context/lastn"
+    #   # - "agent:memory/fold"
+    #   # - "agent:kbase"
+    #   # - "agent:memory"
+    #   # - "agent:think"
+    #   # dynamic prompt
+    #   # - "agent:meta/agent"
+    #   #
     instruction: |
       #! --mime-type=text/x-go-template
       You are a helpful assistant.
+
+      Your workspace: {{.workspace}}
+      Important sub folders: 
+      + memory: key notes
+      + history: past conversations
+      + calllog: tool call records
 
       Core objective:
       - Satisfy the user's query accurately with minimal back-and-forth.
