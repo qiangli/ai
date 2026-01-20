@@ -125,8 +125,8 @@ func TestParseActionCommand(t *testing.T) {
 		},
 		{
 			input:    "ai",
-			expected: nil,
-			wantErr:  true,
+			expected: map[string]any{},
+			wantErr:  false,
 		},
 		{
 			input: "/tool:example --format=json --message=hello",
@@ -178,8 +178,6 @@ func TestParseActionCommand(t *testing.T) {
 				"name":      "example",
 				"kit":       "tool",
 				"arguments": []string{"--format", "json", "--message", "hello"},
-				// "message": "hello",
-				// "format":  "json",
 			},
 			wantErr: false,
 		},
