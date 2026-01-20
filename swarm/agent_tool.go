@@ -259,8 +259,7 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	// /bin/*
 	// /bin: pseudo kit name "bin"
 	// support direct execution of system command using the standad syntax
-	// e.g. /bin/ls without the trigger word "ai"
-	// and slash command toolkit "/kit:name" syntax
+	// e.g. /bin/ls without the trigger word "ai" and slash command toolkit "/kit:name" syntax
 	// i.e. equivalent to: /sh:exec --arg command="ls -al /tmp"
 	if kit == "" || kit == string(api.ToolTypeBin) {
 		// system command action

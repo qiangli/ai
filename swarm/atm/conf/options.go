@@ -25,8 +25,9 @@ func (s *stringSlice) Set(value string) error {
 	return nil
 }
 
-// Parse and convert arguments list to map
+// Parse and convert argument array list to map
 // skipping trigger word "ai"
+// for option args: replace dash "-" with understcore "_" in argument names
 func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	// argv = dropEmpty(argv)
 
@@ -38,7 +39,8 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 		argv = argv[1:]
 	}
 	if len(argv) == 0 {
-		return nil, fmt.Errorf("empty ai command arguments")
+		return map[string]any{}, nil
+		// return nil, fmt.Errorf("empty ai command arguments")
 	}
 
 	var name = argv[0]
@@ -52,7 +54,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 		name = strings.ToLower(name[1:])
 		kit, name = api.Kitname(name).Decode()
 		if kit == "" {
-			// not a tool
+			// not a tool, assuming system command
 			name = ""
 		} else {
 			argv = argv[1:]
@@ -69,7 +71,6 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 		} else {
 			name = ""
 			// missing action (agent/tool)
-			// use IsAgentTool for checking if needed
 		}
 	}
 
@@ -86,9 +87,6 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	message := fs.String("message", "", "User input message")
 	// model := fs.String("model", "", "LLM model alias defined in the model set")
 
-	// support simpler tempalte syntax {{ai --query .query}}
-	// query := fs.String("query", "", "User input message")
-
 	// common args with defaut value
 	// TODO revisit
 	maxHistory := fs.Int("max-history", 0, "Max number of historic messages to retrieve")
@@ -104,26 +102,10 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	isInfo := fs.Bool("info", false, "Show progress")
 	isVerbose := fs.Bool("verbose", false, "Show progress and debugging information")
 
-	//
-	// workspace := fs.String("workspace", "", "Workspace root path")
-
-	// tool
-	// action := fs.String("action", "", "action (agent, tool, or command) to be executed.")
-	// agent := fs.String("agent", "", "agent to be executed.")
-	// tool := fs.String("tool", "", "tool to be executed.")
-	// command := fs.String("command", "", "Shell command(s) to be executed.")
-
-	// script := fs.String("script", "", "Path to the shell script file to be executed.")
-	// template := fs.String("template", "", "Path to the stemplate file to be applied.")
-	// actions := fs.String("actions", "", "list of actions (agent or tool) to be executed.")
-
 	// special input
 	// value provided as option
 	stdin := fs.String("stdin", "", "Read input from stdin")
 	//
-	// adapter := fs.String("adapter", "", "Custom action handler")
-	// input := fs.String("input", "", "Custom input action")
-	// output := fs.String("output", "", "Custom output action")
 
 	//
 	argm, err := fs.Parse(argv)
@@ -240,52 +222,20 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	if prompt != "" {
 		argm["instruction"] = prompt
 	}
-	// if *model != "" {
-	// 	argm["model"] = *model
-	// }
-	// if *workspace != "" {
-	// 	argm["workspace"] = *workspace
-	// }
-
-	// if *command != "" {
-	// 	argm["command"] = *command
-	// }
-	// if *actions != "" {
-	// 	argm["actions"] = *actions
-	// }
-	// if *script != "" {
-	// 	argm["script"] = *script
-	// }
-	// if *template != "" {
-	// 	argm["template"] = *template
-	// }
-
-	// if *action != "" {
-	// 	argm["action"] = *action
-	// }
-	// if *agent != "" {
-	// 	argm["agent"] = *agent
-	// }
-	// if *tool != "" {
-	// 	argm["tool"] = *tool
-	// }
 
 	//
 	if *stdin != "" {
 		argm["stdin"] = *stdin
 	}
-	// if *adapter != "" {
-	// 	argm["adapter"] = *adapter
-	// }
-	// if *input != "" {
-	// 	argm["input"] = *input
-	// }
-	// if *output != "" {
-	// 	argm["output"] = *output
-	// }
-	// if *query != "" {
-	// 	argm["query"] = *query
-	// }
+
+	// replace all "-" with "_"
+	for k, v := range argm {
+		if strings.ContainsAny(k, "-") {
+			key := strings.ReplaceAll(k, "-", "_")
+			delete(argm, k)
+			argm[key] = v
+		}
+	}
 
 	return argm, nil
 }
@@ -338,23 +288,7 @@ func IsAction(s string) bool {
 	return false
 }
 
-// // Return true if s starts with slash "/" and  is of the following format:
-// // /kit
-// // /kit:name[/sub]
-// func IsSlashTool(s string) bool {
-// 	if after, ok := strings.CutPrefix(s, "/"); ok {
-// 		sa := strings.SplitN(after, "/", 2)
-// 		return strings.Contains(sa[0], ":") || len(sa) == 1
-// 	}
-// 	return false
-// }
-
-// // Return true if s starts with slash "/" - a slash command
-// func IsSlash(s string) bool {
-// 	return strings.HasPrefix(s, "/")
-// }
-
-// Split s into array of words and return the arguments map
+// Split command line  into array of words, parse and return the arguments map
 func ParseActionCommand(s string) (api.ArgMap, error) {
 	if len(s) == 0 {
 		return nil, fmt.Errorf("missing action command")
@@ -364,9 +298,9 @@ func ParseActionCommand(s string) (api.ArgMap, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(argm) == 0 {
-		return nil, fmt.Errorf("empty command: %v", s)
-	}
+	// if len(argm) == 0 {
+	// 	return nil, fmt.Errorf("empty command: %v", s)
+	// }
 	return argm, nil
 }
 

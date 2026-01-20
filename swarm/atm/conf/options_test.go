@@ -33,7 +33,7 @@ func TestParseActionArgs(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		// comma suffix
+		// comma suffix (comma)
 		{
 			input: []string{"example,", "hello"},
 			expected: map[string]any{
@@ -44,10 +44,11 @@ func TestParseActionArgs(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		// empty "ai" command
 		{
 			input:    []string{"ai"},
-			expected: nil,
-			wantErr:  true,
+			expected: map[string]any{},
+			wantErr:  false,
 		},
 		{
 			input: []string{"/tool:example", "--format=json", "--message=hello"},
@@ -56,6 +57,17 @@ func TestParseActionArgs(t *testing.T) {
 				"kit":     "tool",
 				"message": "hello",
 				"format":  "json",
+			},
+			wantErr: false,
+		},
+		// convert "-" into "_"
+		{
+			input: []string{"--format=json", "--message=hello", "--option", "under-score=value", "--underscore-=value2"},
+			expected: map[string]any{
+				"message":     "hello",
+				"format":      "json",
+				"under_score": "value",
+				"underscore_": "value2",
 			},
 			wantErr: false,
 		},
@@ -221,6 +233,10 @@ func TestIsAction(t *testing.T) {
 			expected: true,
 		},
 		{
+			input:    "@",
+			expected: true,
+		},
+		{
 			input:    "agent:example",
 			expected: true,
 		},
@@ -233,7 +249,19 @@ func TestIsAction(t *testing.T) {
 			expected: true,
 		},
 		{
+			input:    "/",
+			expected: true,
+		},
+		{
 			input:    "/tool:example --format=json --message=hello",
+			expected: true,
+		},
+		{
+			input:    "/bin/ls -al",
+			expected: true,
+		},
+		{
+			input:    "/bin",
 			expected: true,
 		},
 		{
