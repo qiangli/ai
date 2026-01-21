@@ -17,26 +17,19 @@ agents:
         ```json
         {
           "agent": {
-            "shorthand": "a",
             "type": "string",
-            "description": "Specify the agent to use. shorthand: @<agent>",
+            "description": "Specify the agent pack/name to use. shorthand: @<pack/name>",
             "value": ""
           },
-          "workspace": {
-            "shorthand": "w",
-            "type": "string",
-            "description": "Workspace root path",
-            "value": ""
+          "option": {
+            "type": "stringArray",
+            "description": "Argument name=value (can be used multiple times)",
+            "value": []
           },
           "arguments": {
             "type": "string",
             "description": "Arguments map in JSON format",
             "value": ""
-          },
-          "arg": {
-            "type": "stringArray",
-            "description": "Argument name=value (can be used multiple times)",
-            "value": []
           },
           "instruction": {
             "type": "string",
@@ -46,16 +39,6 @@ agents:
           "message": {
             "type": "string",
             "description": "User query",
-            "value": ""
-          },
-          "new": {
-            "type": "bool",
-            "description": "Start a new conversation. max-history=0 and max-span=0",
-            "value": false
-          },
-          "context": {
-            "type": "string",
-            "description": "Agent for summarizing history",
             "value": ""
           },
           "max-history": {
@@ -110,7 +93,6 @@ agents:
             "value": false
           },
           "model": {
-            "shorthand": "m",
             "type": "string",
             "description": "LLM model alias defined in the model set",
             "value": ""
@@ -157,9 +139,8 @@ agents:
         ```json
         {
           "agent": {
-            "shorthand": "a",
             "type": "string",
-            "description": "Specify the agent to use. shorthand: @<agent>",
+            "description": "Specify the agent pack/name to use. shorthand: @<pack/name>",
             "value": ""
           },
           "instruction": {
@@ -173,7 +154,6 @@ agents:
             "value": ""
           },
           "model": {
-            "shorthand": "m",
             "type": "string",
             "description": "LLM model alias defined in the model set",
             "value": ""
@@ -197,7 +177,7 @@ agents:
       Your role is to meticulously apply these principles to parse inputs accurately into a structured JSON,
       resolving conflicts and prioritizing recent definitions to ensure consistency and precision in the output.
 
-  - name: "input/parse"
+  - name: "parse"
     display: "Input Parser"
     description: |
       Processes input text, converting it to structured JSON format for downstream processing.
@@ -207,7 +187,7 @@ agents:
         - "sh:parse"
     instruction: 
 
-  - name: "input/noop"
+  - name: "noop"
     display: "No-Op Parser"
     description: |
       Return the input text without any modifications.
