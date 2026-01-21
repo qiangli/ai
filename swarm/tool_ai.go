@@ -102,11 +102,11 @@ func (r *AIKit) llmAdapter(agent *api.Agent, args map[string]any) (api.LLMAdapte
 	return llmAdapter, nil
 }
 
-func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
+func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
 	var owner = r.vars.User.Email
 
-	var agent = parent
-	if v, err := r.checkAndCreate(ctx, vars, parent, tf, args); err == nil {
+	// check arg for overide
+	if v, err := r.checkAndCreate(ctx, vars, agent, tf, args); err == nil {
 		agent = v
 	}
 
@@ -130,7 +130,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, parent *api.Agent, 
 	// resolve model
 	// search parents
 	// load external
-	var model *api.Model
+	var model = agent.Model
 	if v, found := args["model"]; found {
 		switch vt := v.(type) {
 		case *api.Model:
@@ -298,8 +298,11 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, parent *api.Agent, 
 	}
 
 	if resp.Result.State == api.StateTransfer {
+		if resp.Result.NextAgent == "" {
+			return nil, fmt.Errorf("agent is required for transfer")
+		}
 		args["agent"] = resp.Result.NextAgent
-		return r.SpawnAgent(ctx, vars, parent, tf, args)
+		return r.SpawnAgent(ctx, vars, agent, tf, args)
 	}
 
 	// response message

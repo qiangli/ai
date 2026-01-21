@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/qiangli/ai/internal"
 	"github.com/qiangli/ai/internal/agent"
@@ -36,10 +35,7 @@ func main() {
 		default:
 			if !conf.IsAction(args[0]) {
 				// default to @root
-				args = []string{"/agent:root/root", "--message", strings.Join(args, " ")}
-				// system command
-				// args = []string{"/sh:exec", "--command", strings.Join(args, " ")}
-				// internal.Exit(fmt.Errorf("Failed to run. action required. ex. #!/usr/bin/env ai ACTION --script"))
+				args = append([]string{"/agent:root/root"}, args...)
 			}
 		}
 	}

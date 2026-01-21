@@ -5,7 +5,7 @@ agents:
     display: "Ⓡ root"
     description: "Ancestor of all agents"
     model: "default/any"
-    adapter: "text"
+    adapter: "chat"
     instruction: |
       Your sole task is to delegate: choose a specialized agent derived from the
       user's current query, then transfer the user to that agent.

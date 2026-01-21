@@ -192,19 +192,27 @@ func (r *Vars) DefaultQuery(argm ArgMap) (string, error) {
 	if IsTemplate(message) {
 		return "", fmt.Errorf("message is a template")
 	}
-	content := argm.GetString("content")
-	if IsTemplate(content) {
-		return "", fmt.Errorf("content is a template")
-	}
-	if content != "" {
-		v, err := r.loadContent(content)
+	if message != "" {
+		v, err := r.loadContent(message)
 		if err != nil {
 			return "", err
 		}
-		content = v
+		message = v
 	}
-	query := Cat(message, content, "\n###\n")
-	return query, nil
+	// TODO verify if this will cause breakage
+	// content := argm.GetString("content")
+	// if IsTemplate(content) {
+	// 	return "", fmt.Errorf("content is a template")
+	// }
+	// if content != "" {
+	// 	v, err := r.loadContent(content)
+	// 	if err != nil {
+	// 		return "", err
+	// 	}
+	// 	content = v
+	// }
+	// query := Cat(message, content, "\n###\n")
+	return message, nil
 }
 
 // Return default prompt using instruction.

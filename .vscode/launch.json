@@ -28,6 +28,8 @@
 				// "/agent:help",
 				// "/agent:help/help",
 				//
+				"--model",
+				"default/gemini",
 				"what is unix",
 				// 
 				// "/ai:list_agents"

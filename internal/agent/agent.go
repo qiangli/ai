@@ -38,7 +38,7 @@ func loadUser(base string) (*api.User, error) {
 	return &user, nil
 }
 
-func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
+func RunSwarm(cfg *api.App, user *api.User, args []string) error {
 	ctx := context.Background()
 
 	// init
@@ -50,7 +50,7 @@ func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	// ***
 	// parse input
 	// initial pass
-	argm, err := sw.Parse(ctx, argv)
+	argm, err := sw.Parse(ctx, args)
 	if err != nil {
 		return err
 	}
