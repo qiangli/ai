@@ -269,6 +269,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	req.Query = query
 	req.Prompt = prompt
 	req.Messages = history
+
 	req.Arguments = args
 	req.Model = model
 	req.Token = token
@@ -288,14 +289,21 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 
 	resp, err := llmAdapter.Call(ctx, req)
 	if err != nil {
+		args["error"] = err.Error()
 		return nil, err
 	}
-
 	if resp.Result == nil {
 		resp.Result = &api.Result{
 			Value: "Empty response",
 		}
 	}
+	args["result"] = resp.Result.Value
+
+	// NOTE
+	// keep query/history but clear the prompt of the current agent
+	// This is important for agent transfer and flow:*
+	// which may cause the wrong prompt for subsequent agents (with out instrutions)
+	delete(args, "prompt")
 
 	if resp.Result.State == api.StateTransfer {
 		if resp.Result.NextAgent == "" {
@@ -305,7 +313,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 		return r.SpawnAgent(ctx, vars, agent, tf, args)
 	}
 
-	// response message
+	// save assistant response message
 	message := api.Message{
 		ID:      uuid.NewString(),
 		Session: id,
@@ -321,17 +329,10 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	}
 	history = append(history, &message)
 
-	// update ouput
-	args["query"] = query
-	args["prompt"] = prompt
-	args["history"] = history
-	args["result"] = resp.Result.Value
-
 	// save the context
 	if err := r.vars.History.Save(history); err != nil {
 		return nil, err
 	}
-
 	return resp.Result, nil
 }
 
