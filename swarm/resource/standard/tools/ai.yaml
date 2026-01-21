@@ -60,7 +60,7 @@ tools:
         query:
           type: "string"
           description: "The main content or question from the user that requires a response from the LLM."
-        model:
+        models:
           type: "string"
           description: |
             Specifies the LLM model aliases to use. Defaults to 'default/any' if not provided.

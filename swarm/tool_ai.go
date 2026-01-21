@@ -169,15 +169,33 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 		// default
 		models = []*api.Model{r.vars.RootAgent.Model}
 	}
-	if v, found := args["model"]; found {
+
+	// models take precedence over model
+	// accepted:
+	// a,b,c
+	// [a,b,c]
+	// json array
+	if v, found := args["models"]; found {
+		switch vt := v.(type) {
+		case string:
+			aliases := api.ToStringArray(vt)
+			v, err := resolveModels(aliases)
+			if err != nil {
+				return nil, err
+			}
+			models = v
+		case []string:
+			v, err := resolveModels(vt)
+			if err != nil {
+				return nil, err
+			}
+			models = v
+		}
+	} else if v, found := args["model"]; found {
 		switch vt := v.(type) {
 		case *api.Model:
 			models = []*api.Model{vt}
 		case string:
-			// accepted:
-			// a,b,c
-			// [a,b,c]
-			// json array
 			aliases := api.ToStringArray(vt)
 			v, err := resolveModels(aliases)
 			if err != nil {
