@@ -226,8 +226,11 @@ func (r Kitname) Decode() (string, string) {
 	s := r.Clean()
 	parts := strings.SplitN(string(s), ":", 2)
 	kit := parts[0]
+	name := parts[1]
 	// restore agent name from __ to /
-	name := strings.ReplaceAll(parts[1], "__", "/")
+	if kit == "agent" {
+		return kit, strings.ReplaceAll(name, "__", "/")
+	}
 	return kit, name
 }
 
@@ -251,14 +254,20 @@ func (r Kitname) Clean() Kitname {
 	// remove leading slash / (slash command)
 	s = strings.TrimPrefix(s, "/")
 
-	if strings.HasPrefix(s, "@") || strings.HasPrefix(s, "agent:") {
+	if strings.HasPrefix(s, "@") || strings.HasPrefix(s, "agent:") || strings.HasSuffix(s, ",") {
 		pack, sub := Packname(s).Decode()
-		// return Kitname("agent" + ":" + pack + "__" + sub)
 		return Kitname("agent" + ":" + pack + "/" + sub)
 	}
 
 	indexUnderscore := strings.Index(s, "__")
 	indexColon := strings.Index(s, ":")
+
+	// system command if no ":" in first part of the path
+	// bin
+	// bin/grep
+	if indexUnderscore == -1 && indexColon == -1 {
+		return Kitname(":" + string(r))
+	}
 
 	if indexUnderscore >= 0 && (indexColon == -1 || indexUnderscore < indexColon) {
 		kit, name = split2(s, "__", "")

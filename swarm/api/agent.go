@@ -54,6 +54,8 @@ func (r Packname) Clean() Packname {
 	s = strings.TrimPrefix(s, "/")
 	s = strings.TrimPrefix(s, "@")
 	s = strings.TrimPrefix(s, "agent:")
+	//
+	s = strings.TrimSuffix(s, ",")
 
 	// convert back __ to / if any
 	s = strings.ReplaceAll(s, "__", "/")
