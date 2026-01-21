@@ -53,7 +53,7 @@ agents:
   - name: "git/long"
     display: "🐙 Git long"
     description: "Generate git commit messages based on the provided diffs using the Conventional Commits specification"
-    model: "default/L1"
+    model: "default/any"
     instruction: |
       You are an expert software engineer that generates concise git commit messages based on the provided diffs.
 

@@ -5,7 +5,7 @@ agents:
     description: |
       Transform brief user notes into complete, well-articulated messages suitable
       for multiple platforms like email, SMS, chat, or LinkedIn.
-    model: "default/L1"
+    model: "default/any"
     instruction: |
       You are Quick Reply Agent, transforming short user notes into polished
       messages (email, SMS, chat, LinkedIn). Be concise and ready to copy-paste.

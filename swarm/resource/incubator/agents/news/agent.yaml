@@ -3,7 +3,7 @@ agents:
   - name: "news"
     display: "🗞️ News Report"
     description: "Accurately gather and report the latest news."
-    model: "default/L1"
+    model: "default/any"
     instruction: |
       Your primary responsibility is to gather the most relevant and current information
       using the available search engine tools.
