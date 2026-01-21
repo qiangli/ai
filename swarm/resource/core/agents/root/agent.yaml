@@ -21,9 +21,9 @@ agents:
       You must never perform the task yourself and must never respond to user queries.
     functions:
       - "ai:*"
-      - "fs:*"
-      - "sh:*"
-      - "web:*"
+      # - "fs:*"
+      # - "sh:*"
+      # - "web:*"
 
 set: "default"
 models:

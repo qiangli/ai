@@ -114,12 +114,12 @@ func (r Arguments) Copy(dst map[string]any) Arguments {
 	return r
 }
 
-func (r Arguments) Clone() Arguments {
-	args := make(map[string]any)
-	maps.Copy(args, r)
+// func (r Arguments) Clone() Arguments {
+// 	args := make(map[string]any)
+// 	maps.Copy(args, r)
 
-	return args
-}
+// 	return args
+// }
 
 // openai: ChatCompletionMessageToolCallUnion
 // genai: FunctionCall

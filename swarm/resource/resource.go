@@ -14,12 +14,6 @@ func NewCoreStore() *ResourceStore {
 	}
 }
 
-// //go:embed shell_security_system.md
-// var ShellSecuritySystemRole string
-
-// //go:embed shell_security_user.md
-// var ShellSecurityUserRole string
-
 //go:embed core/agents/root/agent.yaml
 var RootAgentData []byte
 

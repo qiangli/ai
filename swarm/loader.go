@@ -7,9 +7,9 @@ import (
 	"net/url"
 	"path/filepath"
 	"strings"
-	"time"
+	// "time"
 
-	"github.com/hashicorp/golang-lru/v2/expirable"
+	// "github.com/hashicorp/golang-lru/v2/expirable"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
@@ -24,9 +24,10 @@ type AgentCacheKey struct {
 	Sub  string
 }
 
-var (
-	agentCache = expirable.NewLRU[AgentCacheKey, *api.Agent](10000, nil, time.Second*900)
-)
+// TODO can not be cached - cache config only?
+// var (
+// 	agentCache = expirable.NewLRU[AgentCacheKey, *api.Agent](10000, nil, time.Second*900)
+// )
 
 const maxTurnsLimit = 100
 const maxTimeLimit = 900 // 15 min
@@ -444,17 +445,17 @@ func (r *ConfigLoader) Create(ctx context.Context, packname api.Packname) (*api.
 		return nil, fmt.Errorf("missing agent pack")
 	}
 
-	// cached agent
-	key := AgentCacheKey{
-		User: r.vars.User.Email,
-		Pack: pack,
-		Sub:  sub,
-	}
-	// return a cloned copy if found
-	if v, ok := agentCache.Get(key); ok {
-		// log.GetLogger(ctx).Debugf("Using cached agent: %+v", key)
-		return v.Clone(), nil
-	}
+	// // cached agent
+	// key := AgentCacheKey{
+	// 	User: r.vars.User.Email,
+	// 	Pack: pack,
+	// 	Sub:  sub,
+	// }
+
+	// // return a cloned copy if found
+	// if v, ok := agentCache.Get(key); ok {
+	// 	return v.Clone(), nil
+	// }
 
 	ac, err := r.LoadAgentConfig(packname)
 	if err != nil {
@@ -490,7 +491,7 @@ func (r *ConfigLoader) Create(ctx context.Context, packname api.Packname) (*api.
 	}
 
 	if v, err := creator(); err == nil {
-		agentCache.Add(key, v)
+		// agentCache.Add(key, v)
 		return v, nil
 	} else {
 		return nil, err

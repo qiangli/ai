@@ -73,31 +73,31 @@ type ToolFunc struct {
 	Config *AppConfig `json:"-"`
 }
 
-func (r *ToolFunc) Clone() *ToolFunc {
-	// Create a new ToolFunc
-	clone := *r
+// func (r *ToolFunc) Clone() *ToolFunc {
+// 	// Create a new ToolFunc
+// 	clone := *r
 
-	// NOTE Deep copy the Body?
-	clone.Body = r.Body
+// 	// NOTE Deep copy the Body?
+// 	clone.Body = r.Body
 
-	// Deep copy the Parameters map
-	if r.Parameters != nil {
-		clone.Parameters = make(map[string]any, len(r.Parameters))
-		for k, v := range r.Parameters {
-			clone.Parameters[k] = v
-		}
-	}
+// 	// Deep copy the Parameters map
+// 	if r.Parameters != nil {
+// 		clone.Parameters = make(map[string]any, len(r.Parameters))
+// 		for k, v := range r.Parameters {
+// 			clone.Parameters[k] = v
+// 		}
+// 	}
 
-	// Deep copy the Extra map
-	if r.Extra != nil {
-		clone.Extra = make(map[string]any, len(r.Extra))
-		for k, v := range r.Extra {
-			clone.Extra[k] = v
-		}
-	}
+// 	// Deep copy the Extra map
+// 	if r.Extra != nil {
+// 		clone.Extra = make(map[string]any, len(r.Extra))
+// 		for k, v := range r.Extra {
+// 			clone.Extra[k] = v
+// 		}
+// 	}
 
-	return &clone
-}
+// 	return &clone
+// }
 
 // ID returns a unique identifier for the tool,
 // combining the tool kit and name.

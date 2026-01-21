@@ -38,23 +38,6 @@ func loadUser(base string) (*api.User, error) {
 	return &user, nil
 }
 
-// func storeUser(base string, user *api.User) error {
-// 	p := filepath.Join(base, "user.json")
-// 	file, err := os.Create(p)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer file.Close()
-
-// 	encoder := json.NewEncoder(file)
-// 	err = encoder.Encode(user)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
-
 func RunSwarm(cfg *api.App, user *api.User, argv []string) error {
 	ctx := context.Background()
 

@@ -128,16 +128,16 @@ func (g *Environment) Copy(dst map[string]any) {
 	maps.Copy(dst, g.Env)
 }
 
-func (g *Environment) Clone() *Environment {
-	g.mu.Lock()
-	defer g.mu.Unlock()
+// func (g *Environment) Clone() *Environment {
+// 	g.mu.Lock()
+// 	defer g.mu.Unlock()
 
-	env := make(map[string]any)
-	maps.Copy(env, g.Env)
-	return &Environment{
-		Env: env,
-	}
-}
+// 	env := make(map[string]any)
+// 	maps.Copy(env, g.Env)
+// 	return &Environment{
+// 		Env: env,
+// 	}
+// }
 
 // type ActionRTEnv struct {
 // 	Base string

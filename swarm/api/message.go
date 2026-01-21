@@ -160,16 +160,16 @@ func (r *Request) WithContext(ctx context.Context) *Request {
 	return r2
 }
 
-// Clone returns a shallow copy of r while ensuring proper copying of slices and maps
-func (r *Request) Clone() *Request {
-	r2 := new(Request)
-	*r2 = *r
+// // Clone returns a shallow copy of r while ensuring proper copying of slices and maps
+// func (r *Request) Clone() *Request {
+// 	r2 := new(Request)
+// 	*r2 = *r
 
-	if r.Arguments != nil {
-		r2.Arguments = r.Arguments.Clone()
-	}
-	return r2
-}
+// 	if r.Arguments != nil {
+// 		r2.Arguments = r.Arguments.Clone()
+// 	}
+// 	return r2
+// }
 
 type Response struct {
 	// A list of message objects generated during the conversation

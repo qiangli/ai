@@ -78,14 +78,11 @@ func (r Packname) Equal(s string) bool {
 }
 
 type Agent struct {
-	// ID string `json:"id"`
-
 	// Package name
 	Pack string `json:"pack"`
 
-	// Agent name
-	Name string `json:"name"`
-
+	// Agent sub name
+	Name        string `json:"name"`
 	Display     string `json:"display"`
 	Description string `json:"description"`
 
@@ -104,9 +101,6 @@ type Agent struct {
 
 	// LLM adapter
 	Adapter string `json:"adapter"`
-
-	// // TODO deprecate in favor of plain templates
-	// Flow *Flow `json:"flow"`
 
 	// inheritance
 	Embed []*Agent `json:"-"`
@@ -132,48 +126,55 @@ type Agent struct {
 	Config *AppConfig `json:"-"`
 }
 
-// for reusing cached agent
-func (a *Agent) Clone() *Agent {
-	clone := &Agent{
-		Parent:      a.Parent,
-		Pack:        a.Pack,
-		Name:        a.Name,
-		Display:     a.Display,
-		Description: a.Description,
+// // for reusing cached agent
+// func (a *Agent) Clone() *Agent {
+// 	clone := &Agent{
+// 		Pack:        a.Pack,
+// 		//
+// 		Name:        a.Name,
+// 		Display:     a.Display,
+// 		Description: a.Description,
+// 		//
+// 		Instruction: a.Instruction,
+// 		Context:     a.Context,
+// 		Message:     a.Message,
+// 		//
+// 		Model:     a.Model,
+// 		Tools:     a.Tools,
+// 		Adapter:   a.Adapter,
+// 		//
+// 		Embed:       a.Embed,
+// 		//
+// 		Environment: a.cloneEnvironment(),
+// 		Arguments: a.cloneArguments(),
+// 		Parameters: a.Parameters,
+// 		//
+// 		Models: a.Models,
+// 		//
+// 		Parent: a.Parent,
+// 		Runner:   a.Runner,
+// 		Shell:    a.Shell,
+// 		Template: a.Template,
+// 		//
+// 		Config: a.Config,
+// 	}
 
-		Model:     a.Model,
-		Tools:     a.Tools,
-		Arguments: a.cloneArguments(),
-		Adapter:   a.Adapter,
-		//
-		Embed:       a.Embed,
-		Environment: a.cloneEnvironment(),
-		//
-		Runner:   a.Runner,
-		Shell:    a.Shell,
-		Template: a.Template,
-		//
-		Config: a.Config,
-		//
-		Models: a.Models,
-	}
+// 	return clone
+// }
 
-	return clone
-}
+// func (a *Agent) cloneArguments() Arguments {
+// 	if a.Arguments == nil {
+// 		return nil
+// 	}
+// 	return a.Arguments.Clone()
+// }
 
-func (a *Agent) cloneArguments() Arguments {
-	if a.Arguments == nil {
-		return nil
-	}
-	return a.Arguments.Clone()
-}
-
-func (a *Agent) cloneEnvironment() *Environment {
-	if a.Environment == nil {
-		return nil
-	}
-	return a.Environment.Clone()
-}
+// func (a *Agent) cloneEnvironment() *Environment {
+// 	if a.Environment == nil {
+// 		return nil
+// 	}
+// 	return a.Environment.Clone()
+// }
 
 type AgentConfig struct {
 	Display     string `yaml:"display" json:"display"`
@@ -271,37 +272,6 @@ func (ac *AgentConfig) ToMap() map[string]any {
 }
 
 type FlowType string
-
-// func ToFlowType(v any) FlowType {
-// 	if t, ok := v.(FlowType); ok {
-// 		return t
-// 	}
-// 	s, ok := v.(string)
-// 	if !ok {
-// 		return "invalid"
-// 	}
-// 	switch s {
-// 	case "sequence":
-// 		return FlowTypeSequence
-// 	case "chain":
-// 		return FlowTypeChain
-// 	case "choice":
-// 		return FlowTypeChoice
-// 	case "parallel":
-// 		return FlowTypeParallel
-// 	// case "map":
-// 	// 	return FlowTypeMap
-// 	// Uncomment if needed in the future
-// 	// case "loop":
-// 	// 	return FlowTypeLoop
-// 	// case "reduce":
-// 	// 	return FlowTypeReduce
-// 	// case "shell":
-// 	// 	return FlowTypeShell
-// 	default:
-// 		return "unknown"
-// 	}
-// }
 
 const (
 	// FlowTypeSequence executes actions one after another, where each
