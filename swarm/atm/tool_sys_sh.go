@@ -210,7 +210,7 @@ func (r *SystemKit) Timeout(ctx context.Context, vars *api.Vars, name string, ar
 		}
 		cmdArgs = nargs
 	} else {
-		kit, name := api.Kitname(action.Name).Decode()
+		kit, name := api.Kitname(action.Command).Decode()
 		args["kit"] = kit
 		args["name"] = name
 		if kit == "agent" {
@@ -300,7 +300,7 @@ func (r *SystemKit) Backoff(ctx context.Context, vars *api.Vars, name string, ar
 		}
 		cmdArgs = nargs
 	} else {
-		kit, name := api.Kitname(action.Name).Decode()
+		kit, name := api.Kitname(action.Command).Decode()
 		args["kit"] = kit
 		args["name"] = name
 		if kit == "agent" {

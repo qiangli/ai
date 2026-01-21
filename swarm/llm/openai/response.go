@@ -130,7 +130,7 @@ func respond(ctx context.Context, req *api.Request) (*api.Response, error) {
 		results := runToolsV3(ctx, req.Runner, calls, maxThreadLimit)
 		for i, out := range results {
 			if out == nil {
-				params.Input.OfInputItemList = append(params.Input.OfInputItemList, responses.ResponseInputItemParamOfFunctionCallOutput(calls[i].ID, "no result"))
+				params.Input.OfInputItemList = append(params.Input.OfInputItemList, responses.ResponseInputItemParamOfFunctionCallOutput(calls[i].CallID, "no result"))
 				continue
 			}
 			// if out.State == api.StateExit {
@@ -142,7 +142,7 @@ func respond(ctx context.Context, req *api.Request) (*api.Response, error) {
 				return resp, nil
 			}
 
-			params.Input.OfInputItemList = append(params.Input.OfInputItemList, responses.ResponseInputItemParamOfFunctionCallOutput(calls[i].ID, out.Value))
+			params.Input.OfInputItemList = append(params.Input.OfInputItemList, responses.ResponseInputItemParamOfFunctionCallOutput(calls[i].CallID, out.Value))
 		}
 	}
 

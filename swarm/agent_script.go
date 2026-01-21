@@ -93,22 +93,25 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, _ map[string]an
 		}
 		log.GetLogger(ctx).Debugf("script agent: %s args: %+v\n", r.agent.Name, args)
 
-		if conf.IsAction(strings.ToLower(args[0])) {
-			// log.GetLogger(ctx).Debugf("script: ai agent/tool: %+v\n", args)
+		cmd := strings.ToLower(args[0])
+		if conf.IsAction(cmd) {
+			kit, name := api.Kitname(cmd).Decode()
+			if kit != "" && name != "" {
+				at, err := conf.ParseActionArgs(args)
+				if err != nil {
+					return true, err
+				}
 
-			at, err := conf.ParseActionArgs(args)
-			if err != nil {
-				return true, err
+				in := atm.BuildEffectiveArgs(r.vars, r.agent, at)
+
+				_, err = r.run(ctx, vs, in)
+				if err != nil {
+					return true, err
+				}
+
+				return true, nil
 			}
-
-			in := atm.BuildEffectiveArgs(r.vars, r.agent, at)
-
-			_, err = r.run(ctx, vs, in)
-			if err != nil {
-				return true, err
-			}
-
-			return true, nil
+			// system command - continue
 		}
 
 		// internal list

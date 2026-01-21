@@ -56,16 +56,23 @@ type TemplateFuncMap = template.FuncMap
 // command line: [ACTION] [OPTIONS] MESSAGE...
 type Action struct {
 	// unique tool call identifier
-	ID string `json:"id"`
+	CallID string `json:"call_id"`
 
-	// command name: (agent/tool/command)
+	// ID string `json:"id"`
+
+	// agent/tool/command
 	// agent:pack/sub
 	// kit:name
-	// bin:/command
-	Name string `json:"name"`
+	// /bin/comand
+	Command string `json:"command"`
 
 	// arguments including name
 	Arguments Arguments `json:"arguments"`
+}
+
+func (r *Action) Kit() (string, string) {
+	kit, name := Kitname(r.Command).Decode()
+	return kit, name
 }
 
 type Arguments = ArgMap
@@ -126,11 +133,10 @@ func (r Arguments) Copy(dst map[string]any) Arguments {
 // anthropic: ToolUseBlock
 type ToolCall Action
 
-func NewToolCall(id string, name string, args map[string]any) *ToolCall {
+func NewToolCall(cid string, cmd string, args map[string]any) *ToolCall {
 	tc := &ToolCall{
-		ID:   id,
-		Name: name,
-
+		CallID:    cid,
+		Command:   cmd,
 		Arguments: args,
 	}
 	return tc

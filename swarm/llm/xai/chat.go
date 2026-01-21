@@ -149,7 +149,7 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 		results := runToolsV3(ctx, req.Runner, calls, maxThreadLimit)
 		for i, out := range results {
 			if out == nil {
-				params.Messages = append(params.Messages, openai.ToolMessage("no result", calls[i].ID))
+				params.Messages = append(params.Messages, openai.ToolMessage("no result", calls[i].CallID))
 				continue
 			}
 			// if out.State == api.StateExit {
@@ -161,7 +161,7 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 				return resp, nil
 			}
 
-			params.Messages = append(params.Messages, openai.ToolMessage(out.Value, calls[i].ID))
+			params.Messages = append(params.Messages, openai.ToolMessage(out.Value, calls[i].CallID))
 		}
 	}
 

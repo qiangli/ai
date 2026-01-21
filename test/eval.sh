@@ -1,5 +1,8 @@
 #!/usr/bin/env ai /sh:bash --format raw --script
 # set -ue
+ls
+
+/bin/ls
 
 # // | fromJson | toPrettyJson
 template='data:,

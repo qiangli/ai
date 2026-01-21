@@ -94,7 +94,7 @@ func runToolsInParallel(
 				return
 			}
 
-			var name = toolCall.Name
+			var name = toolCall.Command
 			// var props = toolCall.Arguments
 			// if err := json.Unmarshal([]byte(toolCall.Arguments), &props); err != nil {
 			// 	results[i] = &api.Result{
@@ -141,7 +141,7 @@ func runTool(
 	runner api.ActionRunner,
 	toolCall *api.ToolCall,
 ) *api.Result {
-	var name = toolCall.Name
+	var name = toolCall.Command
 	var args = toolCall.Arguments
 	var props = make(map[string]any)
 	if args != nil {

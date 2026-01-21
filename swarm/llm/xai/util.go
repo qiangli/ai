@@ -88,14 +88,7 @@ func runToolsInParallel(
 				return
 			}
 
-			var name = toolCall.Name
-			// var props = toolCall.Arguments
-			// if err := json.Unmarshal([]byte(toolCall.Arguments), &props); err != nil {
-			// 	results[i] = &api.Result{
-			// 		Value: err.Error(),
-			// 	}
-			// 	return
-			// }
+			var name = toolCall.Command
 			var args = toolCall.Arguments
 			var props = make(map[string]any)
 			if args != nil {
@@ -135,18 +128,12 @@ func runTool(
 	runner api.ActionRunner,
 	toolCall *api.ToolCall,
 ) *api.Result {
-	var name = toolCall.Name
+	var name = toolCall.Command
 	var args = toolCall.Arguments
 	var props = make(map[string]any)
 	if args != nil {
 		args.Copy(props)
 	}
-	// var props map[string]any
-	// if err := json.Unmarshal([]byte(toolCall.Arguments), &props); err != nil {
-	// 	return &api.Result{
-	// 		Value: err.Error(),
-	// 	}
-	// }
 
 	log.GetLogger(ctx).Debugf("\n* tool call: %s props: %+v\n", name, props)
 

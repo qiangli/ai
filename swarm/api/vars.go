@@ -354,7 +354,7 @@ func (a ArgMap) Action() *Action {
 	}
 	if s, ok := v.(string); ok {
 		return &Action{
-			Name: s,
+			Command: s,
 		}
 	}
 	return nil
