@@ -5,10 +5,10 @@ import (
 	"maps"
 	"os"
 	"path"
-	"time"
+	// "time"
 
 	"dario.cat/mergo"
-	"github.com/hashicorp/golang-lru/v2/expirable"
+	// "github.com/hashicorp/golang-lru/v2/expirable"
 	"gopkg.in/yaml.v3"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -19,9 +19,9 @@ type ToolkitCacheKey struct {
 	Kit   string
 }
 
-var (
-	toolkitCache = expirable.NewLRU[ToolkitCacheKey, []*api.ToolFunc](10000, nil, time.Second*900)
-)
+// var (
+// 	toolkitCache = expirable.NewLRU[ToolkitCacheKey, []*api.ToolFunc](10000, nil, time.Second*900)
+// )
 
 func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetManager) ([]*api.ToolFunc, error) {
 	kit, name := api.Kitname(s).Decode()
@@ -38,11 +38,11 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 		return filtered, nil
 	}
 
-	key := ToolkitCacheKey{owner, kit}
+	// key := ToolkitCacheKey{owner, kit}
 
-	if v, ok := toolkitCache.Get(key); ok {
-		return filter(v)
-	}
+	// if v, ok := toolkitCache.Get(key); ok {
+	// 	return filter(v)
+	// }
 
 	// builtin "agent:" toolkit
 	// any agent can be used a tool
@@ -75,7 +75,7 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 		if err != nil {
 			return nil, err
 		}
-		toolkitCache.Add(key, v)
+		// toolkitCache.Add(key, v)
 		return filter(v)
 	}
 

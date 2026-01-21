@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/golang-lru/v2/expirable"
+	// "github.com/hashicorp/golang-lru/v2/expirable"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
@@ -37,10 +37,10 @@ type ListCacheKey struct {
 	User string
 }
 
-var (
-	listAgentsCache = expirable.NewLRU[ListCacheKey, string](10000, nil, time.Second*900)
-	listToolsCache  = expirable.NewLRU[ListCacheKey, string](10000, nil, time.Second*900)
-)
+// var (
+// 	listAgentsCache = expirable.NewLRU[ListCacheKey, string](10000, nil, time.Second*900)
+// 	listToolsCache  = expirable.NewLRU[ListCacheKey, string](10000, nil, time.Second*900)
+// )
 
 func (r *AIKit) Call(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	callArgs := []any{ctx, vars, parent, tf, args}
@@ -337,21 +337,21 @@ func (r *AIKit) ListAgents(ctx context.Context, vars *api.Vars, parent *api.Agen
 
 	var user = r.vars.User.Email
 	// cached list
-	key := ListCacheKey{
-		Type: "agent",
-		User: user,
-	}
-	if v, ok := listAgentsCache.Get(key); ok {
-		log.GetLogger(ctx).Debugf("Using cached agent list: %+v\n", key)
-		return v, nil
-	}
+	// key := ListCacheKey{
+	// 	Type: "agent",
+	// 	User: user,
+	// }
+	// if v, ok := listAgentsCache.Get(key); ok {
+	// 	log.GetLogger(ctx).Debugf("Using cached agent list: %+v\n", key)
+	// 	return v, nil
+	// }
 
 	list, count, err := listAgents(r.vars.Assets, user)
 	if err != nil {
 		return "", err
 	}
 	var v = fmt.Sprintf("Available agents: %v\n\n%s\n", count, list)
-	listAgentsCache.Add(key, v)
+	// listAgentsCache.Add(key, v)
 
 	return v, nil
 }
@@ -526,21 +526,21 @@ func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, _ *api.Agent, _ *
 
 	var user = r.vars.User.Email
 	// cached list
-	key := ListCacheKey{
-		Type: "tool",
-		User: user,
-	}
-	if v, ok := listToolsCache.Get(key); ok {
-		log.GetLogger(ctx).Debugf("Using cached tool list: %+v\n", key)
-		return v, nil
-	}
+	// key := ListCacheKey{
+	// 	Type: "tool",
+	// 	User: user,
+	// }
+	// if v, ok := listToolsCache.Get(key); ok {
+	// 	log.GetLogger(ctx).Debugf("Using cached tool list: %+v\n", key)
+	// 	return v, nil
+	// }
 
 	list, count, err := listTools(r.vars.Assets, user)
 	if err != nil {
 		return "", err
 	}
 	var v = fmt.Sprintf("Available tools: %v\n\n%s\n", count, list)
-	listToolsCache.Add(key, v)
+	// listToolsCache.Add(key, v)
 
 	return v, nil
 }
@@ -615,22 +615,22 @@ func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, _ *api.Agent, tf
 	log.GetLogger(ctx).Debugf("List models: %s:%s %+v\n", tf.Kit, tf.Name, args)
 
 	var user = r.vars.User.Email
-	// cached list
-	key := ListCacheKey{
-		Type: "model",
-		User: user,
-	}
-	if v, ok := listToolsCache.Get(key); ok {
-		log.GetLogger(ctx).Debugf("Using cached model list: %+v\n", key)
-		return v, nil
-	}
+	// // cached list
+	// key := ListCacheKey{
+	// 	Type: "model",
+	// 	User: user,
+	// }
+	// if v, ok := listToolsCache.Get(key); ok {
+	// 	log.GetLogger(ctx).Debugf("Using cached model list: %+v\n", key)
+	// 	return v, nil
+	// }
 
 	list, count, err := listModels(r.vars.Assets, user)
 	if err != nil {
 		return "", err
 	}
 	var v = fmt.Sprintf("Available models: %v\n\n%s\n", count, list)
-	listToolsCache.Add(key, v)
+	// listToolsCache.Add(key, v)
 
 	return v, nil
 }

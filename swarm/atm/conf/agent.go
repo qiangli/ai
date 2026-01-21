@@ -5,10 +5,10 @@ import (
 	// "os"
 	"path"
 	"strings"
-	"time"
+	// "time"
 
 	"dario.cat/mergo"
-	"github.com/hashicorp/golang-lru/v2/expirable"
+	// "github.com/hashicorp/golang-lru/v2/expirable"
 	"gopkg.in/yaml.v3"
 
 	"github.com/qiangli/ai/swarm/api"
@@ -24,9 +24,9 @@ type AgentCacheKey struct {
 	Sub  string
 }
 
-var (
-	agentCache = expirable.NewLRU[AgentCacheKey, *api.Agent](10000, nil, time.Second*900)
-)
+// var (
+// 	agentCache = expirable.NewLRU[AgentCacheKey, *api.Agent](10000, nil, time.Second*900)
+// )
 
 func listAgentsATM(owner string, as api.ATMSupport, packs map[string]*api.AppConfig) error {
 	recs, err := as.ListAgents(owner)
