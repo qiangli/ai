@@ -74,12 +74,12 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	// and make the error/reslt available in args
 	err := vs.RunScript(ctx, script)
 
+	// FIXME: translate error into exit status and respect set -e
 	if err != nil {
+		vs.System.Exit(1)
 		return nil, err
 	}
-	// // copy back env
-	// r.vars.Global.AddEnvs(vs.System.Environ())
-
+	vs.System.Exit(0)
 	result := &api.Result{
 		Value: b.String(),
 	}

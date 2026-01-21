@@ -4,6 +4,8 @@ ls
 
 /bin/ls
 
+bin/ls
+
 # // | fromJson | toPrettyJson
 template='data:,
 >>>>>>>>> Instruction/Prompt
