@@ -27,9 +27,11 @@
 				// "/help:help",
 				// "/agent:help",
 				// "/agent:help/help",
-				//
-				"--model",
-				"default/gemini",
+				//  /ai:call_llm --models default/xanthropic,default/xai --query
+				"/ai:call_llm",
+				"--models",
+				"default/xanthropic,,default/xgemini,default/xai",
+				"--query",
 				"what is unix",
 				// 
 				// "/ai:list_agents"
