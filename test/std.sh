@@ -55,7 +55,6 @@ agents=(
 "context/summarizer"
 #
 "ask/ask"
-"chat/chat"
 "ed/ed"
 # aider
 "aider/aider"
