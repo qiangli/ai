@@ -321,7 +321,12 @@ func (r *AgentToolRunner) callTool(ctx context.Context, tf *api.ToolFunc, args m
 			result = &api.Result{}
 		}
 		entry.Result = result
-		log.GetLogger(ctx).Infof("✔ %s (%s)\n", tf.ID(), head(result.String(), 180))
+		if result.State == api.StateTransfer {
+			log.GetLogger(ctx).Infof("➡️ %s:%s %s\n", tf.Kit, tf.Name, result.State)
+		} else {
+			log.GetLogger(ctx).Infof("✔ %s:%s (%s)\n", tf.Kit, tf.Name, head(result.String(), 180))
+		}
+
 		log.GetLogger(ctx).Debugf("details:\n%s\n", result.String())
 	}
 

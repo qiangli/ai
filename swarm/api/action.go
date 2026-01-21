@@ -32,9 +32,9 @@ func (s State) String() string {
 	return "EXIT"
 }
 
-func (s State) Equal(state string) bool {
-	return strings.ToUpper(state) == s.String()
-}
+// func (s State) Equal(state string) bool {
+// 	return strings.ToUpper(state) == s.String()
+// }
 
 func ParseState(state string) State {
 	switch strings.ToUpper(state) {
