@@ -498,7 +498,7 @@ func ToStringArray(obj any) []string {
 // try parse string into an array of string in the following formats:
 // a,b,c...
 // [a,b,c,]
-// intended for parsing commandline actins list
+// intended for parsing commandline actions and model list
 func ParseStringArray(s string) []string {
 	unquote := func(x string) string {
 		if x[0] == '\'' {

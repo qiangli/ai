@@ -63,8 +63,13 @@ tools:
         model:
           type: "string"
           description: |
-            Specifies the LLM model to use. Defaults to 'default/any' if not provided.
-            Ensure the model name is valid. Use the 'ai:list_models' tool to view available models.
+            Specifies the LLM model aliases to use. Defaults to 'default/any' if not provided.
+            Multiple model aliases can be separated by a comma ",". The models will be tried in order,
+            and the first successful response will be returned.
+            Ensure the model names are valid. Use the 'ai:list_models' tool to view available models.
+            Examples:
+              "default/openai"
+              "default/anthropic,default/gemini,default/openai,default/xai"
         tools:
           type: "array"
           items:

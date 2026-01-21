@@ -130,44 +130,84 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	// resolve model
 	// search parents
 	// load external
-	var model = agent.Model
+	resolveModel := func(alias string) (*api.Model, error) {
+		// set/level
+		set, level := api.Setlevel(alias).Decode()
+		// embeded/inherited
+		if v := findModel(agent, set, level); v != nil {
+			// models = []*api.Model{v}
+
+			return v, nil
+		}
+		// external
+		v, err := conf.LoadModel(owner, set, level, r.vars.Assets)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+	resolveModels := func(aliases []string) ([]*api.Model, error) {
+		if len(aliases) == 0 {
+			return nil, fmt.Errorf("LLM Model is required")
+		}
+		var models []*api.Model
+		for _, model := range aliases {
+			v, err := resolveModel(model)
+			if err == nil {
+				models = append(models, v)
+			}
+		}
+		if len(models) == 0 {
+			return nil, fmt.Errorf("No valid models found for %v", aliases)
+		}
+		return models, nil
+	}
+	var models []*api.Model
+	if agent.Model != nil {
+		models = []*api.Model{agent.Model}
+	} else {
+		// default
+		models = []*api.Model{r.vars.RootAgent.Model}
+	}
 	if v, found := args["model"]; found {
 		switch vt := v.(type) {
 		case *api.Model:
-			model = vt
+			models = []*api.Model{vt}
 		case string:
-			// set/level
-			set, level := api.Setlevel(vt).Decode()
-			// embeded/inherited
-			if v := findModel(agent, set, level); v != nil {
-				model = v
-				break
-			}
-			// external
-			v, err := conf.LoadModel(owner, set, level, r.vars.Assets)
+			// accepted:
+			// a,b,c
+			// [a,b,c]
+			// json array
+			aliases := api.ToStringArray(vt)
+			v, err := resolveModels(aliases)
 			if err != nil {
 				return nil, err
 			}
-			model = v
+			models = v
+		case []string:
+			v, err := resolveModels(vt)
+			if err != nil {
+				return nil, err
+			}
+			models = v
 		}
 	}
-	// default/any
-	if model == nil {
-		model = r.vars.RootAgent.Model
-	}
 
-	var apiKey = model.ApiKey
-	if apiKey == "" {
-		// default key
-		apiKey = model.Provider
-	}
+	getToken := func(model *api.Model) (func() string, error) {
+		var apiKey = model.ApiKey
+		if apiKey == "" {
+			// default key
+			apiKey = model.Provider
+		}
 
-	ak, err := r.vars.Secrets.Get(owner, apiKey)
-	if err != nil {
-		return nil, err
-	}
-	token := func() string {
-		return ak
+		ak, err := r.vars.Secrets.Get(owner, apiKey)
+		if err != nil {
+			return nil, err
+		}
+		token := func() string {
+			return ak
+		}
+		return token, nil
 	}
 
 	// tools
@@ -261,36 +301,51 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 		Agent:   packname,
 	})
 
+	llmAdapter, err := r.llmAdapter(agent, args)
+	if err != nil {
+		return nil, err
+	}
+
+	// call LLM
 	// request
 	var req = &api.Request{
 		Agent: agent,
 	}
-
-	req.Query = query
-	req.Prompt = prompt
-	req.Messages = history
-
-	req.Arguments = args
-	req.Model = model
-	req.Token = token
-	req.Tools = tools
-	req.Runner = agent.Runner
 
 	// ensure defaults
 	if req.MaxTurns() == 0 {
 		req.SetMaxTurns(adapter.DefaultMaxTurns)
 	}
 
-	// call LLM
-	llmAdapter, err := r.llmAdapter(agent, args)
-	if err != nil {
-		return nil, err
+	req.Query = query
+	req.Prompt = prompt
+	req.Messages = history
+	//
+	req.Arguments = args
+	req.Tools = tools
+	req.Runner = agent.Runner
+
+	var resp *api.Response
+	var respErr error
+	var sender string
+	for _, model := range models {
+		req.Model = model
+		req.Token, respErr = getToken(model)
+		if respErr != nil {
+			continue
+		}
+
+		sender = model.Provider
+		resp, respErr = llmAdapter.Call(ctx, req)
+		if respErr == nil && resp.Result != nil {
+			break
+		}
 	}
 
-	resp, err := llmAdapter.Call(ctx, req)
-	if err != nil {
-		args["error"] = err.Error()
-		return nil, err
+	// report the last error if not successful
+	if respErr != nil {
+		args["error"] = respErr.Error()
+		return nil, respErr
 	}
 	if resp.Result == nil {
 		resp.Result = &api.Result{
@@ -324,7 +379,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 		//
 		Role: nvl(resp.Result.Role, api.RoleAssistant),
 		//
-		Sender: model.Provider,
+		Sender: sender,
 		Agent:  packname,
 	}
 	history = append(history, &message)
