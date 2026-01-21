@@ -321,8 +321,12 @@ func (r *AgentToolRunner) callTool(ctx context.Context, tf *api.ToolFunc, args m
 			result = &api.Result{}
 		}
 		entry.Result = result
+
 		if result.State == api.StateTransfer {
-			log.GetLogger(ctx).Infof("➡️ %s:%s %s\n", tf.Kit, tf.Name, result.State)
+			if result.NextAgent == "" {
+				return nil, fmt.Errorf("Taget agent is required for transfer")
+			}
+			log.GetLogger(ctx).Infof("➡️ %s:%s @%s\n", tf.Kit, tf.Name, result.NextAgent)
 		} else {
 			log.GetLogger(ctx).Infof("✔ %s:%s (%s)\n", tf.Kit, tf.Name, head(result.String(), 180))
 		}
