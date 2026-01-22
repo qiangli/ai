@@ -123,7 +123,7 @@ func (r *SystemKit) Loop(ctx context.Context, vars *api.Vars, _ string, argm api
 	var actions = argm.Actions()
 	var result *api.Result
 	var err error
-	var max = argm.GetInt("max")
+	var max = argm.GetInt("max_iteration")
 	if max <= 0 {
 		max = math.MaxInt
 	}
@@ -136,7 +136,7 @@ func (r *SystemKit) Loop(ctx context.Context, vars *api.Vars, _ string, argm api
 
 	for i := 1; i < max; i++ {
 		if msg != "" {
-			log.GetLogger(ctx).Infof("%s", msg)
+			log.GetLogger(ctx).Infof("%s\n", msg)
 		}
 		result, err = r.InternalSequence(ctx, vars, "", actions, argm)
 		if err != nil {

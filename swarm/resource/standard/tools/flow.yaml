@@ -140,7 +140,7 @@ tools:
 
             Actions may require additional arguments.
             Use `/flow:help` for more details.
-        max:
+        max_iteration:
           type: integer
           description: Maximum number of iterations. If not set, runs indefinitely.
         sleep:

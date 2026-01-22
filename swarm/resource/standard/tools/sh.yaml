@@ -33,6 +33,17 @@ tools:
       Ideal for scenarios requiring a placeholder or testing phase 
       where subsequent processes are needed without executing any specific tasks.
     parameters: {}
+  
+  - name: "fail"
+    description: |
+      This tool simulates an error for testing purposes.
+      It can be used to evaluate error handling and response mechanisms.
+    parameters:
+      type: "object"
+      properties:
+        report:
+          type: "string"
+          description: "A customizable message that is displayed when the error is produced. This field is optional."
 
   - name: "exec"
     description: |
