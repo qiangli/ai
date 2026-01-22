@@ -21,7 +21,8 @@
 ---
 pack: "ralph"
 log_level: "info"
-
+max_time: 900
+max_turns: 100
 # =============================================================================
 # Agents
 # =============================================================================
@@ -31,7 +32,7 @@ agents:
     description: |
       Ralph employs Geoffrey Huntley's technique for continuous autonomous development cycles, named after [Ralph Wiggum](https://ghuntley.com/ralph/).
       This system empowers agents to iteratively refine and enhance projects autonomously until completion, incorporating safeguards against infinite loops and excessive API consumption.
-    model: default/any
+    model: "ralph/any"
     instruction: |
       As the Ralph Help Agent, your role is to assist users in utilizing Ralph effectively.
       Ralph, inspired by Geoffrey Huntley's methodology, automates continuous, iterative project improvements through autonomous agents, with precautions to avoid infinite loops and API misuse.
@@ -39,14 +40,14 @@ agents:
       Available Ralph Agents and Tools:
 
       ## Agents
-      - "agent:ralph/ralph"
-      - "agent:ralph/setup"
-      - "agent:ralph/import"
-      - "agent:ralph/loop"
-      - "agent:ralph/once"
-      - "agent:ralph/worker"
-      - "agent:ralph/monitor"
-      - "agent:ralph/analyzer"
+      - "ralph/ralph"
+      - "ralph/setup"
+      - "ralph/import"
+      - "ralph/loop"
+      - "ralph/once"
+      - "ralph/worker"
+      - "ralph/monitor"
+      - "ralph/analyzer"
 
       Execute `ai:read_agent_config` to acquire detailed information necessary for addressing user inquiries.
 
@@ -78,7 +79,7 @@ agents:
   - name: "ralph"
     display: "🐒 Ralph Orchestrator"
     description: "Main entry for Ralph: intent/flag parsing + safe routing to import/setup/monitor/loop/once/status/circuit/reset/help."
-    model: "default/any"
+    model: "ralph/any"
     embed:
       - "agent:context/lastn"
     instruction: |
@@ -196,7 +197,7 @@ agents:
   - name: "import"
     display: "Ralph Import"
     description: "Import a PRD/spec into a new Ralph project."
-    model: "anthropic/L2"
+    model: "ralph/L2"
     parameters:
       type: "object"
       properties:
@@ -375,7 +376,7 @@ agents:
   - name: "setup"
     display: "Ralph Setup"
     description: "Creates a new blank project using embedded templates (no PRD conversion)."
-    model: "anthropic/L2"
+    model: "ralph/L2"
     parameters:
       type: "object"
       properties:
@@ -442,7 +443,7 @@ agents:
   - name: "loop"
     display: "🔄 Ralph Loop"
     description: "Runs multi-iteration loop with rate limiting, circuit breaker, session continuity, and exit detection."
-    model: "anthropic/L2"
+    model: "ralph/L2"
     instruction: |
       You implement the multi-iteration Ralph loop by coordinating sub-agents and filesystem state.
 
@@ -502,7 +503,7 @@ agents:
   - name: "once"
     display: "🔂 Ralph Once"
     description: "Runs exactly one iteration: rate limit check, invoke worker, analyze output, update state files."
-    model: "anthropic/L2"
+    model: "ralph/L2"
     arguments:
       agent_name: "ralph/worker"
     instruction: |
@@ -548,9 +549,9 @@ agents:
          - If .exit_signals missing: initialize JSON arrays.
          - If progress.json missing: create.
       7) Write progress.json status="executing" with loop_number.
-      8) Spawn agent:ralph/worker once and capture its output.
+      8) Spawn `ralph/worker` once and capture its output.
       9) Write logs/worker_output_<loop_number>.log with raw output.
-      10) Spawn agent:ralph/analyzer with JSON-ish query containing:
+      10) Spawn `ralph/analyzer` with JSON-ish query containing:
           - loop_number
           - output_text (raw output)
           Capture analyzer response and write to .response_analysis.
@@ -582,7 +583,7 @@ agents:
   - name: "worker"
     display: "🌟 Ralph Worker"
     description: "Generic worker invoked by Ralph. Performs ONE focused step by delegating to a selected agent/tool; updates .agent/scratchpad.md."
-    model: "default/any"
+    model: "ralph/any"
     functions:
       - "fs:*"
       - "sh:*"
@@ -645,7 +646,7 @@ agents:
   - name: "monitor"
     display: "📊 Ralph Monitor"
     description: "User-friendly status dashboard for Ralph loop (single snapshot)."
-    model: "anthropic/L1"
+    model: "ralph/L1"
     instruction: |
       You are the Ralph Monitor.
 
@@ -724,7 +725,7 @@ agents:
   - name: "analyzer"
     display: "Ralph Analyzer"
     description: "Parses the worker output, extracts ---RALPH_STATUS--- block if present, and emits normalized analysis JSON."
-    model: "anthropic/L2"
+    model: "ralph/L2"
     instruction: |
       Input:
         output_text: raw worker output (string)
@@ -839,7 +840,7 @@ tools:
         /flow:fallback --actions "[ai:spawn_agent,agent:agent/spawn]" \
           --agent "{{.agent}}" \
           --agent-name "{{.agent}}" \
-          --model "default/L1" \
+          --model "anthropic/L1" \
           --query "{{.query}}"
 
   - name: "write_template_prompt"
@@ -1028,7 +1029,7 @@ tools:
         }
 
 ###
-set: "default"
+set: "ralph"
 provider: "openai"
 base_url: "https://api.openai.com/v1/"
 api_key: "openai"
