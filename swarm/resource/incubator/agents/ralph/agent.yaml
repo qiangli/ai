@@ -187,7 +187,7 @@ agents:
       User's original input:
       {{default "missing" .input}}
     functions:
-      - "agent:agent/spawn"
+      - "ralph:spawn_agent"
       - "fs:*"
 
   # ---------------------------------------------------------------------------
@@ -475,7 +475,7 @@ agents:
          - If .exit_signals missing: write {"test_only_loops":[],"done_signals":[],"completion_indicators":[]}.
       4) Loop n := 1.. until exit:
          a) Update progress.json to {status:"loop_start", loop_number:n, timestamp:"..."}
-         b) Call agent:agent/spawn agent:ralph/once with query augmented by "--loop-number n" and forwarded flags.
+         b) Call ralph:spawn_agent agent:ralph/once with query augmented by "--loop-number n" and forwarded flags.
          c) Read .exit_signals and .response_analysis (if missing, treat as empty/default).
          d) Compute exit_reason using upstream-like gates:
             - test_saturation if len(test_only_loops) >= 3
@@ -493,7 +493,7 @@ agents:
       Output:
       - Print a brief summary: loops executed, exit_reason, circuit state.
     functions:
-      - "agent:agent/spawn"
+      - "ralph:spawn_agent"
       - "fs:*"
 
   # ---------------------------------------------------------------------------
@@ -510,7 +510,7 @@ agents:
 
       Constraints:
       - Do NOT give direct answers to user queries.
-      - Use only: fs:* and ai:spawn_agent.
+      - Use only: fs:* and ralph:spawn_agent.
       - Keep changes minimal.
 
       Inputs:
@@ -573,7 +573,7 @@ agents:
       13) Update status.json and progress.json to reflect completion of this loop.
       14) Output EXACTLY one line JSON: {"loop_number":<n>,"log_file":"...","cb_state":"..."}
     functions:
-      - "ai:spawn_agent"
+      - "ralph:spawn_agent"
       - "fs:*"
 
   # ---------------------------------------------------------------------------
@@ -615,7 +615,7 @@ agents:
         F) "delegate"    : spawn a more specialized agent to do A-D
 
       Delegation rules (important):
-      - If you need code edits across many files, spawn a specialized agent (if available) using ai:spawn_agent.
+      - If you need code edits across many files, spawn a specialized agent (if available) using ralph:spawn_agent.
       - If you need shell execution (tests/build), use sh:exec and capture stdout/stderr.
       - If you need web context, use web:* tools.
       - If the action is ambiguous, perform a brief diagnosis step instead of guessing.
@@ -816,6 +816,31 @@ tools:
           If required parameters are missing, call the tool ralph:help_import to see this help text.
         `)
         }
+
+  - name: "spawn_agent"
+    description: |
+      Spawn agent with automatic retry and cross-provider model alias fallback when the requested model fails.
+    parameters:
+      type: "object"
+      properties:
+        agent:
+          type: "string"
+          description: "The name of the agent"
+        query:
+          type: "string"
+          description: "The user query string"
+      equired:
+        - "agent"
+        - "query"
+    body:
+      mime_type: "application/x-sh"
+      script: |
+        #! --mime-type=text/x-go-template
+        /flow:fallback --actions "[ai:spawn_agent,agent:agent/spawn]" \
+          --agent "{{.agent}}" \
+          --agent-name "{{.agent}}" \
+          --model "default/L1" \
+          --query "{{.query}}"
 
   - name: "write_template_prompt"
     description: "Write the embedded PROMPT.md template to <base_dir>/PROMPT.md (creating directories as needed)."
