@@ -1,43 +1,25 @@
 #!/usr/bin/env ai /sh:bash --format raw --script
-# set -xue
 set -ue
-
 
 echo "# Flow Test"
 
-# {{.result.Value |fromJson |toPrettyJson}}
-template='data:,
-*** Query:
-{{.query}}
+# actions in valid JSON array format
+/flow:sequence --actions '["sh:pwd","sh:format"]' --template "data:,***got from 'pwd': {{.result}}***\n"
 
-*** Result:
-{{.result}}
+# simple comma sepaated list also works 
+/flow:choice --actions "[sh:pwd,sh:pass]"
 
-*** Error:
-{{.error}}
+/flow:parallel --actions "[sh:pwd,sh:pass]"
 
-*** Environment:
-{{printenv}}
-'
+/flow:loop --actions "[sh:pass]" --max-iteration 3 --sleep 1s --report "Runing in a loop"
 
-adapter="echo"
-# adapter="chat"
-
-# command='/ai:pass --option query="tell me a joke" --option error="no error" --option n1=v1 --option n2=v2'
-# /flow:sequence --actions '["sh:parse", "sh:format"]' --command="$command"
-# /flow:sequence --actions '["sh:parse", "sh:set_envs", "sh:format"]' --command="$command" --template "$template"
-# /flow:sequence --actions '["agent:ed"]' --option command="ls -al" --option adapter="$adapter" --option query="what is unix" --option template=$template
-
-# # flow types
-# /flow:sequence --actions '["/sh:pwd", "fs:list_roots", "agent:ed"]' --option command="ls -al" --option adapter="$adapter" --option query="what is unix" --option template=$template
-
-# /flow:choice --actions '["/sh:pwd", "fs:list_roots", "agent:ed"]' --option command="ls -al" --option adapter="$adapter" --option query="what is unix" --option template=$template
-
-# # /flow:parallel --actions '["/sh:pwd", "fs:list_roots", "agent:ed"]' --option command="ls -al" --option adapter="$adapter" --option query="what is unix" --option template=$template --option adapter="echo"
-# /flow:parallel --actions '["/sh:format", "/sh:format", "/sh:format"]' --option query='query x' --template 'data:, *** {{.kit}}:{{.name}} query: {{.query}}' 
-
-# /flow:loop --actions "[sh:pwd,sh:pass]" --max-iteration 3 --sleep 1s --report "Runing in a loop"
 /flow:fallback --actions "[sh:fail,sh:pass]" 
+
+# chain with timeout/backoff using the "alias" action
+/flow:chain --chain "[sh:timeout,sh:backoff,alias:cmd]" \
+    --option cmd="/flow:choice --actions=[sh:pass,sh:fail]" \
+    --option duration="60s" \
+    --option report="sh:fail was called"
 
 #
 echo "$?"

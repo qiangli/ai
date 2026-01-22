@@ -6,9 +6,9 @@ tools:
   - name: "help"
     display: "Flow Tool Kit Help"
     description: |
-      A set of tools for executing actions in a controlled fashion:
+      `flow:*` is a set of tools for executing actions in a controlled fashion:
 
-      + sequence: Execute actions consecutively, using the result of each action as the input for the next one.
+      + sequence: Execute actions consecutively, the response of each action is set as "result" in the input arguments of the next action.
       + choice: Randomly select and execute a single action from the list.
       + parallel: Execute all actions simultaneously and return their results as a combined list.
       + loop: Repeatedly executes all specified actions in a loop. The loop can run indefinitely or for a limited number of iterations.
@@ -22,7 +22,7 @@ tools:
         #! --mime-type=text/x-go-template
         A set of tools for executing actions in a controlled fashion:
 
-        + sequence: Execute actions consecutively, using the result of each action as the input for the next one.
+        + sequence: the response of each action is set as "result" in the input arguments of the next action.
         + choice: Randomly select and execute a single action from the list of actions.
         + parallel: Execute all actions simultaneously and return their results as a combined list.
         + loop: Repeatedly executes all specified actions in a loop. The loop can run indefinitely or for a limited number of iterations.
@@ -56,7 +56,7 @@ tools:
 
   - name: "sequence"
     description: |
-      Execute actions consecutively, using the result of each action as the input for the next one.
+      the response of each action is set as "result" in the input arguments of the next action.
       Return the result from the last action or error from the first action that failed.
     parameters:
       type: "object"
@@ -74,6 +74,9 @@ tools:
             Tools and agents can be mixed in the actions.
             Additional arguments may be required for each action.
             Use `/flow:help` for more details
+
+            Example:
+            /flow:sequence --actions '["sh:pwd","sh:format"]' --template "data:,***got from 'pwd': {{.result}}***\n"
       required:
         - actions
 
@@ -96,6 +99,9 @@ tools:
             Tools and agents can be mixed in the actions.
             Additional arguments may be required for each action.
             Use `/flow:help` for more details
+
+            Example:
+            /flow:choice --actions "[sh:pwd,sh:pass]"
       required:
         - actions
 
@@ -118,6 +124,9 @@ tools:
             Tools and agents can be mixed in the actions.
             Additional arguments may be required for each action.
             Use `/flow:help` for more details
+
+            Example:
+            /flow:parallel --actions "[sh:pwd,sh:pass]"
       required:
         - actions
 
@@ -140,6 +149,9 @@ tools:
 
             Actions may require additional arguments.
             Use `/flow:help` for more details.
+
+            Example:
+            /flow:loop --actions "[sh:pass]" --max-iteration 3 --sleep 1s --report "Runing in a loop"
         max_iteration:
           type: integer
           description: Maximum number of iterations. If not set, runs indefinitely.
@@ -154,6 +166,32 @@ tools:
         report:
           type: "string"
           description: "An optional message to display before each iteration."
+      required:
+        - actions
+
+  - name: "fallback"
+    description: |
+      Execute a series of actions in sequence. 
+      Return the result of the first successfully executed action, or produce an error from the final action if all actions fail.
+    parameters:
+      type: "object"
+      properties:
+        actions:
+          type: "array"
+          items:
+            type: "string"
+          description: |
+            A list of valid actions. Use `ai:list_tools` or `ai:list_agents` to acquire available actions.
+            Specify actions in the following formats:
+            - Tool action: `tool:kit:name`
+            - Agent action: `agent:pack/name`
+
+            Tools and agents can be mixed in the actions.
+            Additional arguments may be required for each action.
+            Use `/flow:help` for more details
+
+            Example:
+            /flow:fallback --actions "[sh:fail,sh:pass]"
       required:
         - actions
 
@@ -179,28 +217,12 @@ tools:
             You can mix tools and agents in the action chain.
             Additional arguments might be necessary for each action.
             Use `flow:help`, `ai:get_tool_info`, and `ai:get_agent_info` for more information.
+
+            Example:
+            /flow:chain --chain "[sh:timeout,sh:backoff,alias:cmd]" \
+                --option cmd="/flow:choice --actions=[sh:pass,sh:fail]" \
+                --option duration="60s" \
+                --option report="sh:fail was called"
+
       required:
         - chain
-
-  - name: "fallback"
-    description: |
-      Execute a series of actions in sequence. 
-      Return the result of the first successfully executed action, or produce an error from the final action if all actions fail.
-    parameters:
-      type: "object"
-      properties:
-        actions:
-          type: "array"
-          items:
-            type: "string"
-          description: |
-            A list of valid actions. Use `ai:list_tools` or `ai:list_agents` to acquire available actions.
-            Specify actions in the following formats:
-            - Tool action: `tool:kit:name`
-            - Agent action: `agent:pack/name`
-
-            Tools and agents can be mixed in the actions.
-            Additional arguments may be required for each action.
-            Use `/flow:help` for more details
-      required:
-        - actions
