@@ -82,6 +82,11 @@ func mapAssign(_ context.Context, global *api.Environment, agent *api.Agent, dst
 // resolve tools, inherit from embedded agents
 //
 // context/instruction/message are not resolved - each is done separately as needed
+// var precedence:
+// global env
+// agent env (merged and exported)
+// agent args (local scope)
+// args
 func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, parent *api.Agent, _ *api.ToolFunc, args map[string]any) (*api.Agent, error) {
 	var name string
 	if v, found := args["agent"].(*api.Agent); found {
@@ -120,7 +125,6 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, parent *api.Age
 	}
 
 	//
-	// parent := r.agent
 	if parent == nil {
 		parent = r.vars.RootAgent
 	}
@@ -222,7 +226,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, parent *api.Age
 	args["pack"] = agent.Pack
 	args["agent"] = agent
 
-	//
+	// set args only if not provided in the input args.
 	for k, v := range agentArgs {
 		if _, ok := args[k]; !ok {
 			args[k] = v

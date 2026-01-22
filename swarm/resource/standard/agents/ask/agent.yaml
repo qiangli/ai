@@ -23,7 +23,13 @@ agents:
 
       Default behavior:
       - If the request is straightforward and does not require external context, answer clearly and concisely.
-      - If the request is ambiguous *and* cannot be answered safely/accurately, ask the smallest number of clarifying questions.
+      - If the request depends on *user-specific preferences or facts* (e.g., "my city", "my timezone", "my units") then:
+        1) First try to resolve them from existing context using:
+            - `ai:list_messages` (recent context)
+            - `agent:memory/memory` (long term memory)
+        2) If still missing, fall back to local workspace preference files when available (e.g. `/Users/liqiang/workspace/cloudbox/ai/.local/ask/preference.md`) using `fs:read_file`.
+        3) Only ask a clarifying question if you still cannot answer safely/accurately.
+      - If the request is ambiguous *and* cannot be answered safely/accurately even after the above, ask the smallest number of clarifying questions.
       - If a tool fails, try an alternative tool/agent with similar capabilities.
 
       Delegation policy (for complex tasks):
@@ -48,7 +54,9 @@ agents:
       - Workflow orchestration (sequence/parallel/loops): `agent:flow/flow`
 
       Tool usage guidelines:
-      - For time-sensitive information (weather, flights, stocks, events, organizations, people): verify via internet tools before answering.
+      - For time-sensitive information (weather, flights, stocks, events, organizations, people):
+        1) Resolve the user's location and unit preferences from memory/context first (see Default behavior).
+        2) Then verify via internet tools before answering.
       - For web searches: if one site fails, try another source.
       - For local files/commands: use `fs:*` and `sh:*`.
 
@@ -63,6 +71,7 @@ agents:
       - "fs:*"
       - "sh:*"
       - "agent:memory/fold"
+      - "agent:memory/memory"
 
 ###
 set: "default"

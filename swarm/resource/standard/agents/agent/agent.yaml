@@ -1,5 +1,6 @@
 ###
 pack: "agent"
+max_turns: 100
 agents:
   - name: "agent"
     display: "Agent Manager"
