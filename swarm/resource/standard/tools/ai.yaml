@@ -349,7 +349,7 @@ tools:
         duration:
           type: "string"
           description: "Duration in seconds, minutes, hours, or days. Accepted formats: '10', '10s', '5m', '2h', '1d'. Default is seconds if no suffix is provided."
-        message:
+        report:
           type: "string"
           description: "An optional message to display when the specified duration elapses."
       required:

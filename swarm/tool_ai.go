@@ -802,7 +802,7 @@ func (r *AIKit) Sleep(_ context.Context, _ *api.Vars, _ *api.Agent, _ *api.ToolF
 		return nil, err
 	}
 	// optional
-	msg, _ := api.GetStrProp("message", args)
+	msg, _ := api.GetStrProp("report", args)
 
 	time.Sleep(sec)
 

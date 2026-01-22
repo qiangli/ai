@@ -132,7 +132,7 @@ func (r *SystemKit) Loop(ctx context.Context, vars *api.Vars, _ string, argm api
 	if sec <= 0 {
 		sec = 3 * time.Second
 	}
-	msg := argm.GetString("message")
+	msg := argm.GetString("report")
 
 	for i := 1; i < max; i++ {
 		if msg != "" {

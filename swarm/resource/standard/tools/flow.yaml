@@ -148,7 +148,7 @@ tools:
             Defaults to '3s' if no suffix is provided.
           default: "3s"
           minimum: "1s"
-        message:
+        report:
           type: "string"
           description: "An optional message to display before each iteration."
       required:
