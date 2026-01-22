@@ -300,6 +300,9 @@ const (
 	// FlowTypeLoop executes actions repetitively in a loop. The loop runs indefinitely or can use a counter.
 	FlowTypeLoop FlowType = "loop"
 
+	// Fallback executes actions in sequence. Return the result of the first successfully executed action, or produce an error from the final action if all actions fail.
+	FlowTypeFallback FlowType = "fallback"
+
 	// // FlowTypeReduce applies action(s) sequentially to each element of an input array, accumulating
 	// // results. It passes the result of each action as input to the next. The process returns a single
 	// // accumulated value. If at the root, an initial value is sourced from a previous agent or user query.
@@ -309,16 +312,6 @@ const (
 	// complex flow control scenarios driven by external scripting logic.
 	// FlowTypeShell FlowType = "shell"
 )
-
-// type FlowConfig struct {
-// 	Type FlowType `yaml:"type" json:"type"`
-
-// 	// agent/tool list for non script flow
-// 	Actions []string `yaml:"actions" json:"actions"`
-
-// 	// content of the script for flow type: script
-// 	Script string `yaml:"script" json:"script"`
-// }
 
 type Resource struct {
 	// web resource base url

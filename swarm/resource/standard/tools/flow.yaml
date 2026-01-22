@@ -7,11 +7,13 @@ tools:
     display: "Flow Tool Kit Help"
     description: |
       A set of tools for executing actions in a controlled fashion:
-      
+
       + sequence: Execute actions consecutively, using the result of each action as the input for the next one.
       + choice: Randomly select and execute a single action from the list.
       + parallel: Execute all actions simultaneously and return their results as a combined list.
+      + loop: Repeatedly executes all specified actions in a loop. The loop can run indefinitely or for a limited number of iterations.
       + chain: Executes a series of actions consecutively. Chain actions ["a1", "a2", "a3", ...] translate to nested function calls: a1(a2(a3(...)))
+      + fallback: Executes actions in sequence. Return the result of the first successfully executed action, or produce an error from the final action if all actions fail.
     parameters: {}
     type: "func"
     body:
@@ -25,7 +27,8 @@ tools:
         + parallel: Execute all actions simultaneously and return their results as a combined list.
         + loop: Repeatedly executes all specified actions in a loop. The loop can run indefinitely or for a limited number of iterations.
         + chain: Executes a series of actions consecutively. Chain actions ["a1", "a2", "a3", ...] translate to nested function calls: a1(a2(a3(...)))
-        
+        + fallback: Executes actions in sequence. Return the result of the first successfully executed action, or produce an error from the final action if all actions fail.
+
         ## Actions
           A list of valid actions. Use `ai:list_tools` or `ai:list_agents` to acquire available actions.
           Specify actions in the following formats:
@@ -67,13 +70,13 @@ tools:
             Specify actions in the following formats:
             - Tool action: `tool:kit:name`
             - Agent action: `agent:pack/name`
-            
+
             Tools and agents can be mixed in the actions.
             Additional arguments may be required for each action.
             Use `/flow:help` for more details
       required:
         - actions
-    
+
   - name: "choice"
     description: |
       Randomly select and execute one single action from the list of actions.
@@ -89,13 +92,13 @@ tools:
             Specify actions in the following formats:
             - Tool action: `tool:kit:name`
             - Agent action: `agent:pack/name`
-            
+
             Tools and agents can be mixed in the actions.
             Additional arguments may be required for each action.
             Use `/flow:help` for more details
       required:
         - actions
-    
+
   - name: "parallel"
     description: |
       Execute all actions simultaneously and return their results as a combined list.
@@ -111,7 +114,7 @@ tools:
             Specify actions in the following formats:
             - Tool action: `tool:kit:name`
             - Agent action: `agent:pack/name`
-            
+
             Tools and agents can be mixed in the actions.
             Additional arguments may be required for each action.
             Use `/flow:help` for more details
@@ -134,10 +137,10 @@ tools:
             Actions can be specified as:
             - Tool action: `tool:kit:name`
             - Agent action: `agent:pack/name`
-            
+
             Actions may require additional arguments.
             Use `/flow:help` for more details.
-        max: 
+        max:
           type: integer
           description: Maximum number of iterations. If not set, runs indefinitely.
         sleep:
@@ -153,7 +156,7 @@ tools:
           description: "An optional message to display before each iteration."
       required:
         - actions
-  
+
   - name: "chain"
     description: |
       Execute a series of actions consecutively, similar to the `sequence` flow.
@@ -172,10 +175,32 @@ tools:
             Specify actions in these formats:
             - Tool action: `kit:name`, e.g., fs:read_file for the "read_file" tool in the "fs" (file system) kit.
             - Agent action: `agent:pack/sub`, e.g., pack/sub represents the agent's name, where all agents belong to the "agent" kit.
-            
+
             You can mix tools and agents in the action chain.
             Additional arguments might be necessary for each action.
             Use `flow:help`, `ai:get_tool_info`, and `ai:get_agent_info` for more information.
       required:
         - chain
-  
+
+  - name: "fallback"
+    description: |
+      Execute a series of actions in sequence. 
+      Return the result of the first successfully executed action, or produce an error from the final action if all actions fail.
+    parameters:
+      type: "object"
+      properties:
+        actions:
+          type: "array"
+          items:
+            type: "string"
+          description: |
+            A list of valid actions. Use `ai:list_tools` or `ai:list_agents` to acquire available actions.
+            Specify actions in the following formats:
+            - Tool action: `tool:kit:name`
+            - Agent action: `agent:pack/name`
+
+            Tools and agents can be mixed in the actions.
+            Additional arguments may be required for each action.
+            Use `/flow:help` for more details
+      required:
+        - actions

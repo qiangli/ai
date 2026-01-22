@@ -384,7 +384,3 @@ func (a ArgMap) SetHistory(messages []*Message) ArgMap {
 func (a ArgMap) DeleteHitory() {
 	delete(a, "history")
 }
-
-// func (a ArgMap) FlowType() FlowType {
-// 	return ToFlowType(a["flow_type"])
-// }
