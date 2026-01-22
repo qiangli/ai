@@ -5,10 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
+	"math"
 	"math/rand"
 	"sync"
+	"time"
 
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/ai/swarm/log"
+	"github.com/qiangli/ai/swarm/util"
 )
 
 // FlowType Sequence executes actions one after another, where each
@@ -43,7 +47,6 @@ func (r *SystemKit) InternalSequence(ctx context.Context, vars *api.Vars, _ stri
 // This allows for concurrent processing of independent actions.
 // all actions use the same input
 func (r *SystemKit) Parallel(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
-	// var query = argm.Query()
 	var actions = argm.Actions()
 
 	var resps = make([]string, len(actions))
@@ -113,4 +116,33 @@ func (r *SystemKit) Chain(ctx context.Context, vars *api.Vars, _ string, argm ap
 		return nil, err
 	}
 	return api.ToResult(out), nil
+}
+
+// FlowType Loop executes actions repetitively in a loop. The loop runs indefinitely or can use a counter.
+func (r *SystemKit) Loop(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
+	var actions = argm.Actions()
+	var result *api.Result
+	var err error
+	var max = argm.GetInt("max")
+	if max <= 0 {
+		max = math.MaxInt
+	}
+	duration := argm.GetString("sleep")
+	sec, _ := util.ParseDuration(duration)
+	if sec <= 0 {
+		sec = 3 * time.Second
+	}
+	msg := argm.GetString("message")
+
+	for i := 1; i < max; i++ {
+		if msg != "" {
+			log.GetLogger(ctx).Infof("%s", msg)
+		}
+		result, err = r.InternalSequence(ctx, vars, "", actions, argm)
+		if err != nil {
+			return nil, err
+		}
+		time.Sleep(sec)
+	}
+	return result, err
 }

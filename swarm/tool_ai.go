@@ -17,6 +17,7 @@ import (
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
+	"github.com/qiangli/ai/swarm/util"
 )
 
 type AIKit struct {
@@ -770,7 +771,6 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, _ *api.Agent, 
 
 func (r *AIKit) SaveMessages(_ context.Context, _ *api.Vars, _ *api.Agent, _ *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
 	data, err := api.GetStrProp("messages", args)
-	args.History()
 	if err != nil {
 		return nil, err
 	}
@@ -789,6 +789,25 @@ func (r *AIKit) SaveMessages(_ context.Context, _ *api.Vars, _ *api.Agent, _ *ap
 
 	return &api.Result{
 		Value: fmt.Sprintf("%v messages saved successfully.", len(messages)),
+	}, nil
+}
+
+func (r *AIKit) Sleep(_ context.Context, _ *api.Vars, _ *api.Agent, _ *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
+	duration, err := api.GetStrProp("duration", args)
+	if err != nil {
+		return nil, err
+	}
+	sec, err := util.ParseDuration(duration)
+	if err != nil {
+		return nil, err
+	}
+	// optional
+	msg, _ := api.GetStrProp("message", args)
+
+	time.Sleep(sec)
+
+	return &api.Result{
+		Value: msg,
 	}, nil
 }
 

@@ -297,10 +297,8 @@ const (
 	// // array populated with the results.
 	// FlowTypeMap FlowType = "map"
 
-	// // FlowTypeLoop executes actions repetitively in a loop. The loop can use a counter or
-	// // evaluate an expression for each iteration, allowing for repeated execution with varying
-	// // parameters or conditions.
-	// FlowTypeLoop FlowType = "loop"
+	// FlowTypeLoop executes actions repetitively in a loop. The loop runs indefinitely or can use a counter.
+	FlowTypeLoop FlowType = "loop"
 
 	// // FlowTypeReduce applies action(s) sequentially to each element of an input array, accumulating
 	// // results. It passes the result of each action as input to the next. The process returns a single

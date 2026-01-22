@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
-	// "reflect"
 	"strings"
-	// "github.com/qiangli/ai/swarm/api"
 )
 
 // var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL", "GOPATH"}
