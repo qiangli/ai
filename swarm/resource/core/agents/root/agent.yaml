@@ -1,5 +1,7 @@
 ###
 pack: "root"
+max_time: 300
+max_turns: 15
 agents:
   - name: "root"
     display: "Ⓡ root"
@@ -27,7 +29,4 @@ agents:
       - If you are uncertain, still pick the closest/simplest agent and transfer.
     functions:
       - "ai:*"
-      # - "fs:*"
-      # - "sh:*"
-      # - "web:*"
 ###
