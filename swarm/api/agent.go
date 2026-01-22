@@ -116,8 +116,8 @@ type Agent struct {
 
 	Parameters Parameters `json:"parameters"`
 
-	// model fallback
-	Models map[string]Setlevel `json:"-"`
+	// // model fallback
+	// Models map[string]Setlevel `json:"-"`
 
 	// assigned at buildtime/runtime
 	Parent   *Agent             `json:"-"`

@@ -955,6 +955,28 @@ func findModel(a *api.Agent, set, level string) *api.Model {
 			return a.Model
 		}
 	}
+	// lookup in ac.Models
+	if a.Config != nil {
+		ac := a.Config
+		if set == ac.Set {
+			for k, v := range ac.Models {
+				if k == level {
+					m := &api.Model{
+						Set:   set,
+						Level: level,
+						//
+						Model: v.Model,
+						//
+						Provider: nvl(v.Provider, ac.Provider),
+						BaseUrl:  nvl(v.BaseUrl, ac.BaseUrl),
+						ApiKey:   nvl(v.ApiKey, ac.ApiKey),
+					}
+					return m
+				}
+			}
+		}
+	}
+	//
 	for _, v := range a.Embed {
 		m := findModel(v, set, level)
 		if m != nil {

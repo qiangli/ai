@@ -23,16 +23,18 @@
 			"cwd": "${workspaceFolder}/",
 			"args": [
 				// ai
+				// default root/root
+				"what is the weather today",
 				// "/help",
 				// "/help:help",
 				// "/agent:help",
 				// "/agent:help/help",
 				//  /ai:call_llm --models default/xanthropic,default/xai --query
-				"/ai:call_llm",
-				"--models",
-				"default/xanthropic,,default/xgemini,default/xai",
-				"--query",
-				"what is unix",
+				// "/ai:call_llm",
+				// "--models",
+				// "default/xanthropic,,default/xgemini,default/xai",
+				// "--query",
+				// "what is unix",
 				// 
 				// "/ai:list_agents"
 				//

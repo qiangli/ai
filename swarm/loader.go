@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"path/filepath"
 	"strings"
-	// "time"
 
 	// "github.com/hashicorp/golang-lru/v2/expirable"
 
@@ -324,46 +323,44 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 	agent.Environment.AddEnvs(c.Environment)
 
 	// llm model set[/level]
-	// @model support
-	// flow does not require a model
 	model := strings.TrimSpace(nvl(c.Model, ac.Model))
-	// if model != "" && agent.Flow == nil {
 
 	if model != "" {
-		if strings.HasPrefix(model, "@") {
-			// defer model provider resolution
-			agent.Model = &api.Model{
-				Model: model,
-			}
-		} else {
-			set, level := api.Setlevel(model).Decode()
-			// local
-			if set == ac.Set {
-				for k, v := range ac.Models {
-					if k == level {
-						agent.Model = &api.Model{
-							Set:   set,
-							Level: level,
-							//
-							Model: v.Model,
-							//
-							Provider: nvl(v.Provider, ac.Provider),
-							BaseUrl:  nvl(v.BaseUrl, ac.BaseUrl),
-							ApiKey:   nvl(v.ApiKey, ac.ApiKey),
-						}
+		// if strings.HasPrefix(model, "@") {
+		// 	// defer model provider resolution
+		// 	agent.Model = &api.Model{
+		// 		Model: model,
+		// 	}
+		// } else {
+		set, level := api.Setlevel(model).Decode()
+		// local
+		if set == ac.Set {
+			for k, v := range ac.Models {
+				if k == level {
+					agent.Model = &api.Model{
+						Set:   set,
+						Level: level,
+						//
+						Model: v.Model,
+						//
+						Provider: nvl(v.Provider, ac.Provider),
+						BaseUrl:  nvl(v.BaseUrl, ac.BaseUrl),
+						ApiKey:   nvl(v.ApiKey, ac.ApiKey),
 					}
-				}
-			}
-			// load external model if not defined locally
-			if agent.Model == nil {
-				if v, err := conf.LoadModel(r.vars.User.Email, set, level, r.vars.Assets); err != nil {
-					return nil, fmt.Errorf("failed to load model: %s %v", model, err)
-
-				} else {
-					agent.Model = v
+					break
 				}
 			}
 		}
+		// load external model if not defined locally
+		if agent.Model == nil {
+			if v, err := conf.LoadModel(r.vars.User.Email, set, level, r.vars.Assets); err != nil {
+				return nil, fmt.Errorf("failed to load model: %s %v", model, err)
+
+			} else {
+				agent.Model = v
+			}
+		}
+		// }
 	}
 
 	// tools
