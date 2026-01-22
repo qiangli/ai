@@ -148,7 +148,8 @@ func (r *SystemKit) Loop(ctx context.Context, vars *api.Vars, _ string, argm api
 }
 
 // FlowType Fallback executes actions in sequence. Return the result of the first successfully executed action, or produce an error from the final action if all actions fail.
-func (r *SystemKit) Fallback(ctx context.Context, vars *api.Vars, _ string, actions []string, argm api.ArgMap) (*api.Result, error) {
+func (r *SystemKit) Fallback(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
+	var actions = argm.Actions()
 	var respErr error
 	for _, v := range actions {
 		result, err := vars.RootAgent.Runner.Run(ctx, v, argm)

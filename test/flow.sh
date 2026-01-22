@@ -36,8 +36,8 @@ adapter="echo"
 # # /flow:parallel --actions '["/sh:pwd", "fs:list_roots", "agent:ed"]' --option command="ls -al" --option adapter="$adapter" --option query="what is unix" --option template=$template --option adapter="echo"
 # /flow:parallel --actions '["/sh:format", "/sh:format", "/sh:format"]' --option query='query x' --template 'data:, *** {{.kit}}:{{.name}} query: {{.query}}' 
 
-/flow:loop --actions "[sh:pwd,sh:pass]" --max-iteration 3 --sleep 1s --report "Runing in a loop"
-# /flow:fallback --actions '["/sh:pwd", "fs:list_roots", "agent:ed"]' 
+# /flow:loop --actions "[sh:pwd,sh:pass]" --max-iteration 3 --sleep 1s --report "Runing in a loop"
+/flow:fallback --actions "[sh:fail,sh:pass]" 
 
 #
 echo "$?"
