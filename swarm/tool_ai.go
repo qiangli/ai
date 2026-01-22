@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"sort"
 	"strings"
 	"time"
@@ -347,6 +348,14 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	var resp *api.Response
 	var respErr error
 	var sender string
+	//
+	// Seed the random number generator
+	rd := rand.New(rand.NewSource(time.Now().UnixNano()))
+	// Shuffle the models slice
+	rd.Shuffle(len(models), func(i, j int) {
+		models[i], models[j] = models[j], models[i]
+	})
+
 	for _, model := range models {
 		req.Model = model
 		req.Token, respErr = getToken(model)
