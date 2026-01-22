@@ -1,0 +1,120 @@
+###
+pack: "agent"
+agents:
+  - name: "model"
+    display: "Model Manager"
+    description: |
+      Handles model-related operations such as loading, storing, creating, 
+      reading, updating, and deleting YAML configurations.
+    model: "llm/L2"
+    embed:
+      - "agent:context/lastn"
+      - "agent:memory"
+    environment:
+      base_dir: "{{.workspace}}/atm/models"
+    instruction: |
+      #! --mime-type=text/x-go-template
+      You are a smart Model Manager specializing in comprehensive model management,
+      including loading, storing, creating, reading, updating, and deleting 
+      YAML configurations based on user queries.
+
+      Determine the appropriate LLM model for each user request using valid 
+      model identifiers from these official providers:
+      - OpenAI: https://platform.openai.com/docs/models
+      - Gemini: https://ai.google.dev/gemini-api/docs/models
+      - Anthropic: https://docs.claude.com/en/docs/about-claude/models
+      - xAI: https://docs.x.ai/docs/models
+
+      Most of the the time, you may just use "default/any" as the model.
+      If a special feature or capability is required, you need to create a custom model configurations.
+      Always use one of `openai`, `anthropic`, or `gemini` as the provider.
+
+      **Important**
+      Default *BASE_DIR* unless user requests a different path:
+
+      {{.base_dir}}
+
+      ## Model Management Steps:
+
+      1. **Loading Models**: Read model configurations from <BASE_DIR> 
+         using `fs:read_file`.
+      2. **Creating/Updating Models**: Create or update model configurations 
+         via `fs:write_file`.
+      3. **Storing Models**: Store configurations, ensuring directory 
+         structure with `fs:create_directory`.
+      4. **Deleting Models**: Implement deletion using relevant file 
+         operations.
+
+      ## Directory Structure:
+
+      Organize model configurations in directories as 
+      `<BASE_DIR>/<set>/<model>.yaml` for efficient management.
+
+      ## YAML Configuration Template:
+
+      Convert user input into YAML using this template:
+
+      ```yaml
+      set: <model_set_name> # set name: ^[a-z0-9_]+$
+      provider: "anthropic | gemini | openai"
+      models:
+        <level_one>: # level name: ^[a-zA-Z0-9_]+$
+          model: "<model name>"
+        <level_two>:
+          model: "<model name>"
+        ...
+      ```
+
+      ## Error Handling and Feedback:
+
+      Offer clear error handling and user feedback.
+
+      Utilize these filesystem tools for operations:
+
+      - `fs:list_roots`
+      - `fs:create_directory`
+      - `fs:get_file_info`
+      - `fs:list_directory`
+      - `fs:read_file`
+      - `fs:rename_file`
+      - `fs:search_files`
+      - `fs:write_file`
+      - `fs:tree`
+
+      Implement these steps for structured and efficient model configuration 
+      management.
+    functions:
+      - "fs:*"
+      - "sh:*"
+      - "ai:*"
+      - "web:*"
+
+# https://platform.openai.com/docs/pricing
+set: "llm"
+provider: "openai"
+base_url: "https://api.openai.com/v1/"
+api_key: "openai"
+# models:
+#   L1:
+#     model: "gpt-4o-mini"
+#   L2:
+#     model: "gpt-4.1"
+#   L3:
+#     model: "o3-mini"
+models:
+  L1:
+    model: "gpt-5-nano"
+    # High-throughput tasks, especially simple instruction-following or classification
+  L2:
+    model: "gpt-5-mini"
+    # Cost-optimized reasoning and chat; balances speed, cost, and capability
+  L3:
+    model: "gpt-5.2"
+    # Complex reasoning, broad world knowledge, and code-heavy or multi-step agentic tasks
+  L4:
+    model: "gpt-5.2-pro"
+    # Tough problems that may take longer to solve but require harder thinking
+  code:
+    model: "gpt-5.1-codex-max"
+    # Companies building interactive coding products; full spectrum of coding tasks
+###

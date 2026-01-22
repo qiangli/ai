@@ -1,13 +1,12 @@
 ###
 pack: "agent"
-
 agents:
   - name: "prompt"
     display: "🤖 Prompt Engineer"
     description: |
       Expert in creating precise system role prompts, blending domain expertise 
       with user preferences for clear AI instructions.
-    model: default/any
+    model: "llm/L2"
     embed:
       - "agent:context/lastn"
     message: |
@@ -49,5 +48,4 @@ agents:
       - "fs:*"
     entrypoint:
       - "ai:call_llm"
-
 ###
