@@ -332,8 +332,8 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	}
 
 	// ensure defaults
-	if req.MaxTurns() == 0 {
-		req.SetMaxTurns(adapter.DefaultMaxTurns)
+	if req.MaxTurns() <= 0 {
+		req.SetMaxTurns(api.DefaultMaxTurns)
 	}
 
 	req.Query = query

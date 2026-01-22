@@ -79,7 +79,7 @@ func respond(ctx context.Context, req *api.Request) (*api.Response, error) {
 
 	var maxTurns = req.MaxTurns()
 	if maxTurns <= 0 {
-		maxTurns = 3
+		maxTurns = api.DefaultMaxTurns
 	}
 
 	var resp = &api.Response{}
