@@ -6,12 +6,14 @@ import (
 	"os"
 	"path"
 	"strings"
+
+	"github.com/qiangli/ai/swarm/api"
 )
 
 // var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL", "GOPATH"}
 
 // informative logging max value length
-const maxInfoTextLen = 32
+// const maxInfoTextLen = 32
 
 // ClearAllEnv clears all environment variables execep for the keeps
 func ClearAllEnv(keeps []string) {
@@ -118,24 +120,42 @@ func head(s string, maxLen int) string {
 	return s
 }
 
-func formatArgs(args map[string]any) string {
+const maxInfoTextLen = 12
+
+func formatArgMap(args map[string]any) string {
 	var sb strings.Builder
-	sb.WriteString("map[")
 	for k, v := range args {
-		if s, ok := v.(string); ok && len(s) > maxInfoTextLen {
-			sb.WriteString(fmt.Sprintf("%s: %s [%v],", k, abbreviate(s, maxInfoTextLen), len(s)))
-			continue
+		switch vt := v.(type) {
+		case string:
+			if len(vt) > maxInfoTextLen {
+				sb.WriteString(fmt.Sprintf("%s:%q[%v], ", k, abbreviate(vt, maxInfoTextLen), len(vt)))
+			} else {
+				sb.WriteString(fmt.Sprintf("%s:%q, ", k, vt))
+			}
+		case bool, int8, int, int32, int64, float32, float64:
+			sb.WriteString(fmt.Sprintf("%s:%v, ", k, vt))
+		case *api.Result:
+			sb.WriteString(fmt.Sprintf("%s:%q(%T), ", k, abbreviate(vt.Value, maxInfoTextLen), v))
+		case *api.Agent:
+			sb.WriteString(fmt.Sprintf("%s:%s/%s(%T), ", k, vt.Pack, vt.Name, v))
+		default:
+			sb.WriteString(fmt.Sprintf("%s:(%T), ", k, v))
 		}
-		// sb.WriteString(fmt.Sprintf("%s: %t (type),", k, v))
 	}
-	sb.WriteString("]")
-	return sb.String()
+	s := sb.String()
+	s = strings.TrimSpace(s)
+	s = strings.TrimSuffix(s, ",")
+	return fmt.Sprintf("map[%s]", s)
 }
 
 // abbreviate trims the string, keeping the beginning and end if exceeding maxLen.
 // after replacing newlines with .
 func abbreviate(s string, maxLen int) string {
-	s = strings.ReplaceAll(s, "\n", "•")
+	if s == "" {
+		return ""
+	}
+	// s = strings.ReplaceAll(s, "\n", "•")
+	s = strings.ReplaceAll(s, "\n", " ")
 	s = strings.Join(strings.Fields(s), " ")
 	s = strings.TrimSpace(s)
 
@@ -144,7 +164,7 @@ func abbreviate(s string, maxLen int) string {
 		keepLen := (maxLen - 3) / 2
 		start := s[:keepLen]
 		end := s[len(s)-keepLen:]
-		return start + "..." + end
+		return start + "…" + end
 	}
 	return s
 }

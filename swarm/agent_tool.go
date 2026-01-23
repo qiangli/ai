@@ -295,8 +295,7 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 }
 
 func (r *AgentToolRunner) callTool(ctx context.Context, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
-
-	log.GetLogger(ctx).Infof("⣿ %s:%s %+v\n", tf.Kit, tf.Name, formatArgs(args))
+	log.GetLogger(ctx).Infof("⣿ %s:%s %+v\n", tf.Kit, tf.Name, formatArgMap(args))
 
 	var entry = api.CallLogEntry{
 		Agent:     string(api.NewPackname(r.agent.Pack, r.agent.Name)),
@@ -305,8 +304,6 @@ func (r *AgentToolRunner) callTool(ctx context.Context, tf *api.ToolFunc, args m
 		Arguments: args,
 		Started:   time.Now(),
 	}
-
-	// entry.Agent = string(api.NewPackname( r.agent.Pack,  r.agent.Name))
 
 	result, err := r.dispatch(ctx, tf, args)
 
