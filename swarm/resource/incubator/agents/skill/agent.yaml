@@ -1,19 +1,19 @@
-#!/usr/bin/env ai /agent:skills/skills --script
+#!/usr/bin/env ai /agent:skill/skill --script
 
 # https://agentskills.io/home
-# skills/skills
+# skill/skill
 #
 # Implements an AgentSkills-style dispatcher:
-# - Find a skill pack folder by agent name under search roots listed in <workspace>/skills/config.md
-# - Load <root>/<agent>/skills.md as the prompt
+# - Resolve a skill by name via ai:list_skills + ai:get_skill_info
+# - Load <skill>/SKILL.md as the prompt
 # - Optionally gather allowed tools and pass them to ai:call_llm
 # - Append source/reference/scripts paths to the prompt
 
-pack: "skills"
+pack: "skill"
 agents:
-  - name: "skills"
+  - name: "skill"
     display: "🎓 Skills Runner"
-    description: "Loads a skill pack's skills.md and runs it as an LLM prompt (AgentSkills spec-inspired)."
+    description: "Loads a skill pack's SKILL.md and runs it as an LLM prompt (AgentSkills spec-inspired)."
     model: "default/any"
     embed:
       - "agent:context/lastn"
@@ -23,7 +23,7 @@ agents:
       properties:
         agent:
           type: "string"
-          description: "Skill/agent name; will search for <root>/<agent>/skills.md under roots in <workspace>/skills/config.md"
+          description: "Skill/agent name; resolved via ai:list_skills + ai:get_skill_info (Skill name in SKILL.md front matter)"
         model:
           type: "string"
           description: "Model alias set/level to use for the final ai:call_llm"
@@ -36,34 +36,32 @@ agents:
       #! mime-type=text/x-go-template
       You are the Skills agent.
 
-      Goal: given a skills name (parameter `.agent`), locate and run its AgentSkills skill prompt.
+      Goal: given a skill name (parameter `.agent`), locate and run its AgentSkills skill prompt.
 
       Steps you MUST follow:
-      1) Determine workspace path using `sh:workspace`.
-      2) Read `<workspace>/skills/config.md`.
-         - This file lists top-level folders (absolute paths), one per line (optionally with leading '-', comments starting with '#').
-      3) For each folder in config, check whether `<folder>/{{ .agent }}/skills.md` exists.
-         - The FIRST match wins.
-         - If none found, fail with a clear error listing all checked paths.
-      4) Load the matched `skills.md` content.
-      5) Parse `skills.md` to find an `allowed-tools` section.
+      1) Use `ai:list_skills` to enumerate available skills.
+      2) Find the skill whose name exactly matches `{{ .agent }}`.
+         - If none found, fail with a clear error message and include the available skill names.
+      3) Call `ai:get_skill_info` with `skill={{ .agent }}`.
+      4) From the returned Skill Info, load the skill prompt from the skill's `SKILL.md` (use filesystem tools only to read the returned path).
+      5) Parse `SKILL.md` to find an `allowed-tools` section.
          - If present, collect tool names.
          - Then call `ai:list_tools` and `ai:list_agents` to validate available tools.
          - Pass the intersection of requested allowed-tools with available tools/agents as the `tools` list in `ai:call_llm`.
          - Tool format: tools from ai:list_tools are `kit:name`; agent tools are `agent:pack/name`.
          - If allowed-tools is absent, do NOT pass `tools` (let default tool availability apply).
       6) Build the final `prompt` for `ai:call_llm` as:
-         - the loaded skills.md content
+         - the loaded SKILL.md content
          - plus an appended footer with absolute paths:
 
          Skills Source:
-         <absolute path to the matched skills.md>
+         <absolute path to the matched SKILL.md>
 
-         If `<root>/{{ .agent }}/references` exists, append:
+         If `references` exists under the skill directory, append:
          Reference:
          <absolute path>
 
-         If `<root>/{{ .agent }}/scripts` exists, append:
+         If `scripts` exists under the skill directory, append:
          Scripts:
          <absolute path>
 
