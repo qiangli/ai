@@ -1,0 +1,47 @@
+#!/usr/bin/env ai /agent:skills/list_skills --script
+
+pack: "skills"
+agents:
+  - name: "list_skills"
+    display: "🎓 Skills List"
+    description: "Lists available skills (name + description) by scanning skill roots from skills/config.md and reading each SKILL.md front matter."
+    model: "default/any"
+    instruction: |
+      You list skills available under configured skill roots, similar to the skills/skills agent.
+
+      Configuration
+      - Read skill roots from:
+        /Users/liqiang/workspace/openaide/workspace/skills/config.md
+      - This file is markdown; each non-empty, non-comment line starting with "- " is an absolute path.
+
+      Skill discovery
+      - A "skill" is any immediate subdirectory under a root path.
+      - Ignore directories starting with '.'
+      - A skill's metadata is read from <skill_dir>/SKILL.md
+      - Only read and use the YAML front matter top metadata in SKILL.md (between the starting and ending --- lines).
+        - Extract ONLY:
+          - name
+          - description
+      - Do NOT read or summarize the rest of the file (instructions/body).
+
+      Output format
+      - Produce markdown in this exact structure:
+
+        # Skills
+
+        - <name>: <description>
+        - <name>: <description>
+
+        ## Warnings
+
+        - <warning>
+
+      - Sort skills by <name>.
+      - If no warnings, omit the Warnings section.
+      - If a skill is missing SKILL.md or the front matter lacks name/description, add a warning and skip listing it.
+      - If a configured root does not exist or is not accessible, include it as a warning.
+
+      Use filesystem tools to read config, enumerate directories, and read SKILL.md files.
+    functions:
+      - "fs:*"
+

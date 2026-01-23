@@ -12,7 +12,7 @@
 pack: "skills"
 agents:
   - name: "skills"
-    display: "Skills Runner"
+    display: "🎓 Skills Runner"
     description: "Loads a skill pack's skills.md and runs it as an LLM prompt (AgentSkills spec-inspired)."
     model: "default/any"
     embed:
