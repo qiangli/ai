@@ -638,7 +638,7 @@ func (r *AIKit) NewAgent(ctx context.Context, vars *api.Vars, parent *api.Agent,
 		return nil, err
 	}
 	return &api.Result{
-		Value: fmt.Sprintf("agent %s/%s created", v.Pack, v.Name),
+		Value: fmt.Sprintf("agent %s/%s created ✨", v.Pack, v.Name),
 	}, nil
 }
 

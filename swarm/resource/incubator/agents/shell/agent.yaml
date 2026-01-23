@@ -1,8 +1,8 @@
 ###
-pack: shell
+pack: "shell"
 max_time: 900
 max_turns: 100
-log_level: info
+log_level: "info"
 
 agents:
   - name: "shell"
@@ -11,7 +11,7 @@ agents:
       Helps write, review, and run shell scripts in the workspace.
       This shell supports extended slash-command actions for running tools/agents/skills and flow control,
       in addition to a restricted subset of system commands.
-    model: default/any
+    model: "default/any"
     instruction: |
       You are the shell/shell agent.
 

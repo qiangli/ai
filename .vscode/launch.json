@@ -115,9 +115,12 @@
 				// "@happy/coder",
 				// 
 				// bash script
+				"@shell/shell",
+				"--message",
+				"install"
 				// 
 				// "test/eval.sh",
-				"test/test.sh",
+				// "test/test.sh",
 				// "test/std.sh",
 				// "test/yaml-wrap.sh",
 				// "swarm/resource/template/atm.yaml",

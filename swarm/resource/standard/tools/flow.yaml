@@ -151,15 +151,15 @@ tools:
             Use `/flow:help` for more details.
 
             Example:
-            /flow:loop --actions "[sh:pass]" --max-iteration 3 --sleep 1s --report "Runing in a loop"
+            /flow:loop --actions "[sh:pass]" --max-iteration 3 --sleep "1s" --report "Runing in a loop"
         max_iteration:
-          type: integer
+          type: "integer"
           description: Maximum number of iterations. If not set, runs indefinitely.
         sleep:
           type: "string"
           description: |
             Pauses execution between iterations for a specified duration in seconds, minutes, hours, or days. 
-            Accepted formats include: '10' (seconds), '10s', '5m', '2h', '1d'. 
+            Accepted formats include: '10s', '5m', '2h', '1d'. 
             Defaults to '3s' if no suffix is provided.
           default: "3s"
           minimum: "1s"
