@@ -730,11 +730,11 @@ func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, _ *api.Agent, tf
 func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, _ *api.Agent, _ *api.ToolFunc, args map[string]any) (string, error) {
 	maxHistory, err := api.GetIntProp("max_history", args)
 	if err != nil || maxHistory <= 0 {
-		maxHistory = 7
+		maxHistory = api.DefaultMaxHistory
 	}
 	maxSpan, err := api.GetIntProp("max_span", args)
 	if err != nil || maxSpan <= 0 {
-		maxSpan = 1440
+		maxSpan = api.DefaultMaxSpan
 	}
 	offset, err := api.GetIntProp("offset", args)
 	if err != nil || offset <= 0 {

@@ -14,7 +14,7 @@ agents:
     # env var is exported
     # equivalent to "sh:set_envs" after applying templates
     environment:
-      # sh:set_envs --option datetime=$(date)
+      # sh:set_envs --datetime=$(date)
       datetime: "{{.datetime}}"
       nickname: "Charles"
       city: "SFO"
@@ -24,9 +24,8 @@ agents:
     arguments:
       home_addr: "Addr: {{.city}} {{.zip}}"
     # no template is allowed for parameters
-    # defaults in parameters are passed as default values for the arguments/properties
-    # if not set in arguments or envs
-    # equivalent to options/flags definitions
+    # defaults in parameters are passed as default values for the arguments/properties if not set in arguments or envs
+    # equivalent to command line options/flags definitions
     parameters:
       type: "object"
       properties:
@@ -36,7 +35,7 @@ agents:
         max_results:
           type: "integer"
           description: "Maximum number of results to return"
-          default: 7
+          default: 20
       required:
         - query
     # message, instruction, context can refernece all envs and args
@@ -134,14 +133,14 @@ agents:
 #       required:
 #         - query
 
-## models
-set: "default"
-models:
-  any:
-    provider: "openai"
-    base_url: "https://api.openai.com/v1/"
-    api_key: "openai"
-    model: "gpt-4o-mini"
-    # model: "gpt-4.1"
-    # model: "o4-mini"
+# ## models
+# set: "default"
+# models:
+#   any:
+#     provider: "openai"
+#     base_url: "https://api.openai.com/v1/"
+#     api_key: "openai"
+#     model: "gpt-4o-mini"
+#     # model: "gpt-4.1"
+#     # model: "o4-mini"
 ###
