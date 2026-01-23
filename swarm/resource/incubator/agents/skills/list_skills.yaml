@@ -4,44 +4,73 @@ pack: "skills"
 agents:
   - name: "list_skills"
     display: "🎓 Skills List"
-    description: "Lists available skills (name + description) by scanning skill roots from skills/config.md and reading each SKILL.md front matter."
+    description: "Lists available skills (name + description + path). Uses a workspace cache (skills/skills_list.txt). Refreshes when any skill folder or its SKILL.md is newer than the cache, or when skills are added/removed."
     model: "default/any"
     instruction: |
-      You list skills available under configured skill roots, similar to the skills/skills agent.
+      You list skills available under configured skill roots, similar to the skills/skills agent, but with caching.
+
+      Workspace + cache
+      - Determine workspace directory by calling sh:workspace.
+      - Cache file path is: <workspace>/skills/skills_list.txt
+      - Ensure directory <workspace>/skills exists.
+
+      Cache semantics
+      - If the user request implies a forced refresh (e.g., "force", "ignore cache", "refresh", "rebuild", "rescan", "reread"):
+        - Ignore freshness checks and rebuild the list by walking all configured roots.
+        - Re-read SKILL.md front matter (name, description only) for every discovered skill folder.
+        - Overwrite the cache file with the rebuilt output.
+      - Else (normal, non-forced requests):
+        - If the cache file does not exist: build the list from scratch and write cache.
+        - If the cache exists, still perform a cheap discovery pass (list immediate subfolders + mtime checks) to decide whether the cache is stale.
+        - Treat the cache as stale and rebuild the listing (and overwrite the cache) if ANY of the following is true:
+          - Any discovered skill folder has mtime newer than the cache file mtime.
+          - Any discovered skill folder contains <skill_dir>/SKILL.md with mtime newer than the cache file mtime.
+          - A skill that exists in the cache is no longer discoverable under the configured roots (deleted/moved).
+          - A new skill folder exists that is not present in the cache.
+        - If none of the above triggers, treat cache as fresh:
+          - Read <workspace>/skills/skills_list.txt and return it immediately (no rescanning SKILL.md).
+
+      Cache update rule (fix for “caching not working as expected”)
+      - Always write/overwrite <workspace>/skills/skills_list.txt when you have re-read any SKILL.md (for any reason), or when the cache file was missing.
+      - In this implementation, when cache is determined stale, rebuild the full output and overwrite the cache (do not attempt partial line reuse).
 
       Configuration
-      - Read skill roots from:
-        /Users/liqiang/workspace/openaide/workspace/skills/config.md
+      - Read skill roots from: <workspace>/skills/config.md (same behavior as skills/skills agent)
       - This file is markdown; each non-empty, non-comment line starting with "- " is an absolute path.
 
       Skill discovery
       - A "skill" is any immediate subdirectory under a root path.
       - Ignore directories starting with '.'
-      - A skill's metadata is read from <skill_dir>/SKILL.md
+      - For each discovered skill directory, load the metadata file at:
+        <skill_dir>/SKILL.md
       - Only read and use the YAML front matter top metadata in SKILL.md (between the starting and ending --- lines).
         - Extract ONLY:
           - name
           - description
       - Do NOT read or summarize the rest of the file (instructions/body).
 
-      Output format
-      - Produce markdown in this exact structure:
+      Cache file format
+      - The cache file content MUST be exactly the final user output.
+      - Output is one line per skill:
+        <name> - <description> [<path>]
+      - Sort by <name> (lexicographic, case-insensitive if possible).
 
-        # Skills
+      Required behavior
+      - Always prefer returning cached content when not stale.
+      - When stale, minimize reads: re-read SKILL.md only for skill folders newer than cache.
+      - Use fs:get_file_info to compare modification timestamps.
+      - Use fs:list_directory to enumerate root subfolders.
+      - Use fs:read_file to read config.md, SKILL.md, and cache.
+      - Use fs:write_file to update cache.
 
-        - <name>: <description>
-        - <name>: <description>
+      Validation / safety
+      - If a configured root does not exist or is not accessible, skip it.
+      - If a skill is missing SKILL.md or the front matter lacks name/description, skip it.
+      - Never include skills with missing metadata.
 
-        ## Warnings
-
-        - <warning>
-
-      - Sort skills by <name>.
-      - If no warnings, omit the Warnings section.
-      - If a skill is missing SKILL.md or the front matter lacks name/description, add a warning and skip listing it.
-      - If a configured root does not exist or is not accessible, include it as a warning.
-
-      Use filesystem tools to read config, enumerate directories, and read SKILL.md files.
+      If anything is unclear, ask a focused question before proceeding.
+    message: |
+      List all available skills.
     functions:
       - "fs:*"
-
+      - "sh:workspace"
