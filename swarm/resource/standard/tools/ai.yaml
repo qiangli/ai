@@ -107,6 +107,23 @@ tools:
       type: object
       properties: {}
 
+  - name: "list_skills"
+    description: |
+      List available AgentSkills in the current workspace.
+
+      Reads `<workspace>/skills/config.md` for skill roots (each non-empty, non-comment line starting with `- ` is an absolute path).
+      Discovers skills as immediate subdirectories under those roots (excluding dot-prefixed directories).
+      For each skill directory, reads `<skill_dir>/SKILL.md` and extracts YAML front matter fields: `name`, `description`.
+
+      Output is one line per skill:
+        <name> - <description> [<path>]
+      Sorted by <name> (case-insensitive).
+
+      Note: caching is handled by the skills/list_skills agent; this tool intentionally does not implement caching.
+    parameters:
+      type: object
+      properties: {}
+
   - name: "get_agent_info"
     description: "Retrieve detailed information about a specified agent, including display name, description, and instructions"
     parameters:

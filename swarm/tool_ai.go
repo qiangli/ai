@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -19,6 +20,8 @@ import (
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/ai/swarm/util"
+
+	"path/filepath"
 )
 
 type AIKit struct {
@@ -423,22 +426,28 @@ func (r *AIKit) ListAgents(ctx context.Context, vars *api.Vars, parent *api.Agen
 	log.GetLogger(ctx).Debugf("List agents: %s %+v\n", tf, args)
 
 	var user = r.vars.User.Email
-	// cached list
-	// key := ListCacheKey{
-	// 	Type: "agent",
-	// 	User: user,
-	// }
-	// if v, ok := listAgentsCache.Get(key); ok {
-	// 	log.GetLogger(ctx).Debugf("Using cached agent list: %+v\n", key)
-	// 	return v, nil
-	// }
 
 	list, count, err := listAgents(r.vars.Assets, user)
 	if err != nil {
 		return "", err
 	}
 	var v = fmt.Sprintf("Available agents: %v\n\n%s\n", count, list)
-	// listAgentsCache.Add(key, v)
+
+	return v, nil
+}
+
+func (r *AIKit) ListSkills(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args map[string]any) (string, error) {
+	log.GetLogger(ctx).Debugf("List skills: %s %+v\n", tf, args)
+	if vars == nil || vars.Roots.Workspace.Path == "" {
+		return "", fmt.Errorf("workspace root not available")
+	}
+
+	list, count, err := listSkills(vars.Roots.Workspace.Path)
+	if err != nil {
+		return "", err
+	}
+
+	var v = fmt.Sprintf("Available skills: %v\n\n%s\n", count, list)
 
 	return v, nil
 }
@@ -717,7 +726,6 @@ func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, _ *api.Agent, tf
 		return "", err
 	}
 	var v = fmt.Sprintf("Available models: %v\n\n%s\n", count, list)
-	// listToolsCache.Add(key, v)
 
 	return v, nil
 }
@@ -861,6 +869,142 @@ func (r *AIKit) getTools(ids []string) ([]*api.ToolFunc, error) {
 		}
 	}
 	return tools, nil
+}
+
+type SkillEntry struct {
+	Name        string
+	Description string
+	Path        string
+}
+
+func listSkills(workspace string) (string, int, error) {
+	// Read skill roots from: <workspace>/skills/config.md
+	cfgPath := filepath.Join(workspace, "skills", "config.md")
+	b, err := os.ReadFile(cfgPath)
+	if err != nil {
+		return "", 0, err
+	}
+	lines := strings.Split(string(b), "\n")
+	var roots []string
+	for _, ln := range lines {
+		ln = strings.TrimSpace(ln)
+		if ln == "" || strings.HasPrefix(ln, "#") {
+			continue
+		}
+		if strings.HasPrefix(ln, "- ") {
+			p := strings.TrimSpace(strings.TrimPrefix(ln, "- "))
+			if p != "" {
+				roots = append(roots, p)
+			}
+		}
+	}
+
+	entries := make([]SkillEntry, 0)
+	seen := make(map[string]struct{})
+
+	for _, root := range roots {
+		root = strings.TrimSpace(root)
+		if root == "" {
+			continue
+		}
+		// list immediate subdirectories under root
+		items, err := os.ReadDir(root)
+		if err != nil {
+			// skip non-existent/inaccessible roots
+			continue
+		}
+		for _, it := range items {
+			if !it.IsDir() {
+				continue
+			}
+			base := strings.TrimSpace(it.Name())
+			if base == "" || strings.HasPrefix(base, ".") {
+				continue
+			}
+			skillDir := filepath.Join(root, base)
+			if _, ok := seen[skillDir]; ok {
+				continue
+			}
+			seen[skillDir] = struct{}{}
+
+			skillMd := filepath.Join(skillDir, "SKILL.md")
+			mb, err := os.ReadFile(skillMd)
+			if err != nil {
+				continue
+			}
+
+			// Parse YAML front matter only (between leading --- and next ---)
+			content := string(mb)
+			content = strings.TrimPrefix(content, "\ufeff")
+			if !strings.HasPrefix(content, "---") {
+				continue
+			}
+			rest := strings.TrimPrefix(content, "---")
+			// allow optional CRLF
+			if strings.HasPrefix(rest, "\r\n") {
+				rest = strings.TrimPrefix(rest, "\r\n")
+			} else if strings.HasPrefix(rest, "\n") {
+				rest = strings.TrimPrefix(rest, "\n")
+			}
+			end := strings.Index(rest, "\n---")
+			if end < 0 {
+				end = strings.Index(rest, "\r\n---")
+			}
+			if end < 0 {
+				continue
+			}
+			fm := rest[:end]
+			var meta struct {
+				Name        string `json:"name" yaml:"name"`
+				Description string `json:"description" yaml:"description"`
+			}
+			// Use a tiny YAML subset parser: key: value lines.
+			// (Avoid pulling in a full YAML dep here.)
+			for _, fl := range strings.Split(fm, "\n") {
+				fl = strings.TrimSpace(fl)
+				if fl == "" || strings.HasPrefix(fl, "#") {
+					continue
+				}
+				k, v, ok := strings.Cut(fl, ":")
+				if !ok {
+					continue
+				}
+				k = strings.TrimSpace(k)
+				v = strings.TrimSpace(v)
+				v = strings.Trim(v, "\"'")
+				switch strings.ToLower(k) {
+				case "name":
+					meta.Name = v
+				case "description":
+					meta.Description = v
+				}
+			}
+			if meta.Name == "" || meta.Description == "" {
+				continue
+			}
+
+			entries = append(entries, SkillEntry{
+				Name:        meta.Name,
+				Description: meta.Description,
+				Path:        skillDir,
+			})
+		}
+	}
+
+	sort.Slice(entries, func(i, j int) bool {
+		a := strings.ToLower(entries[i].Name)
+		b := strings.ToLower(entries[j].Name)
+		if a == b {
+			return entries[i].Name < entries[j].Name
+		}
+		return a < b
+	})
+
+	var buf strings.Builder
+	for _, e := range entries {
+		buf.WriteString(fmt.Sprintf("%s - %s [%s]\n", e.Name, e.Description, e.Path))
+	}
+	return buf.String(), len(entries), nil
 }
 
 func listAgents(assets api.AssetManager, user string) (string, int, error) {
