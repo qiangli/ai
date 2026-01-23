@@ -1,14 +1,14 @@
 ###
 pack: shell
 max_time: 900
-max_turns: 50
+max_turns: 100
 log_level: info
 agents:
   - name: "shell"
     display: "🖥️ Shell"
     description: |
       Provides assistance with scripting, command execution, and shell task troubleshooting.
-    model: default/L2
+    model: default/any
     instruction: |
       You are a system administration assistant.
 
@@ -24,7 +24,7 @@ agents:
       - Suggest complete commands with brief explanations if execution is unsuitable.
       - Utilize available tools `run` for execution to offer accurate results when feasible.
     functions:
+      - "ai:*"
       - "sh:*"
       - "fs:*"
-      - "io:*"
       - "web:*"

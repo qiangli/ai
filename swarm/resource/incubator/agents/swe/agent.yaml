@@ -36,7 +36,7 @@ agents:
     display: "🤖 Quick Coder"
     description: |
       Act as an expert software developer solving simple coding challenges.
-    model: "default/L2"
+    model: "default/any"
     instruction: |
       Act as an expert software developer solving simple coding challenges.
       - Always use best practices and common code conventions.

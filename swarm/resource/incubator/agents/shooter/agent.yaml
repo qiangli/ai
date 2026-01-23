@@ -4,7 +4,7 @@ agents:
   - name: "shooter"
     display: "🐝 Shooter Game Maker"
     description: "Make a shooter game"
-    model: "default/L2"
+    model: "default/any"
     instruction: |
         Create a single-page app in a single HTML file with the following requirements:
         - Name: Sky Shooter
