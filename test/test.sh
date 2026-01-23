@@ -7,12 +7,12 @@ set -ue
 template='data:,
 >>>>>>>>> Instruction/Prompt
 ---
-{{.prompt}}
+{{.prompt}} <-- this is cleared after call_llm
 ---
 >>>>>>>>> Context/History
 ---
 %%%%%%%%%%%%%%%%%%%%%%
-{{ range .history }}
+{{ range .history }} <-- this is cleared after call_llm
 Content: empty? {{ empty .Content }}
 Role: {{ .Role }}
 {{ end }}
@@ -44,8 +44,8 @@ env workspace="<redacted>"
     --actions "[ai:spawn_agent,sh:format]" \
     --adapter "echo" \
     --template "$template" \
-    --script "$script" \
-    --option output="file:/tmp/test.txt"
+    --script "$script" 
+    # --option output="file:/tmp/test.txt"
 
 ###
 

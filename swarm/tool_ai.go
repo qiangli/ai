@@ -386,10 +386,12 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	args["result"] = resp.Result.Value
 
 	// NOTE
-	// keep query/history but clear the prompt of the current agent
+	// keep query of the current agent but clear the prompt (and history???)
 	// This is important for agent transfer and flow:*
 	// which may cause the wrong prompt for subsequent agents (with out instrutions)
 	delete(args, "prompt")
+	// TODO: should be cleared?
+	delete(args, "history")
 
 	if resp.Result.State == api.StateTransfer {
 		if resp.Result.NextAgent == "" {
@@ -579,7 +581,7 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, parent *api.Agen
 	_, sub := pn.Decode()
 
 	//
-	kit := atm.NewSystemKit()
+	// kit := atm.NewSystemKit()
 	var entry []string
 	if v := args["entrypoint"]; v != nil {
 		entry = api.ToStringArray(v)
@@ -609,8 +611,12 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, parent *api.Agen
 			}
 		}
 	}
-	// FIX: pass on the calling agent.
-	result, err := kit.InternalSequence(ctx, vars, "", resolved, args)
+	//
+	var runner = vars.RootAgent.Runner
+	if parent != nil {
+		runner = parent.Runner
+	}
+	result, err := atm.InternalSequence(ctx, runner, resolved, args)
 	if err != nil {
 		return nil, err
 	}

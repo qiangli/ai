@@ -20,7 +20,7 @@ import (
 func (r *SystemKit) Sequence(ctx context.Context, vars *api.Vars, _ string, argm api.ArgMap) (*api.Result, error) {
 	var actions = argm.Actions()
 
-	result, err := r.InternalSequence(ctx, vars, "", actions, argm)
+	result, err := InternalSequence(ctx, vars.RootAgent.Runner, actions, argm)
 	if err != nil {
 		return nil, err
 	}
@@ -29,10 +29,10 @@ func (r *SystemKit) Sequence(ctx context.Context, vars *api.Vars, _ string, argm
 }
 
 // TODO merge with ai kit
-func (r *SystemKit) InternalSequence(ctx context.Context, vars *api.Vars, _ string, actions []string, argm api.ArgMap) (*api.Result, error) {
+func InternalSequence(ctx context.Context, runner api.ActionRunner, actions []string, argm api.ArgMap) (*api.Result, error) {
 	var result any
 	for _, v := range actions {
-		data, err := vars.RootAgent.Runner.Run(ctx, v, argm)
+		data, err := runner.Run(ctx, v, argm)
 		if err != nil {
 			argm["error"] = err
 			return nil, err
@@ -138,7 +138,7 @@ func (r *SystemKit) Loop(ctx context.Context, vars *api.Vars, _ string, argm api
 		if msg != "" {
 			log.GetLogger(ctx).Infof("%s\n", msg)
 		}
-		result, err = r.InternalSequence(ctx, vars, "", actions, argm)
+		result, err = InternalSequence(ctx, vars.RootAgent.Runner, actions, argm)
 		if err != nil {
 			return nil, err
 		}
