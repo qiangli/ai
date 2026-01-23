@@ -21,14 +21,20 @@ agents:
         - Overwrite the cache file with the rebuilt output.
       - Else (normal, non-forced requests):
         - If the cache file does not exist: build the list from scratch and write cache.
-        - If the cache exists, still perform a cheap discovery pass (list immediate subfolders + mtime checks) to decide whether the cache is stale.
-        - Treat the cache as stale and rebuild the listing (and overwrite the cache) if ANY of the following is true:
-          - Any discovered skill folder has mtime newer than the cache file mtime.
-          - Any discovered skill folder contains <skill_dir>/SKILL.md with mtime newer than the cache file mtime.
-          - A skill that exists in the cache is no longer discoverable under the configured roots (deleted/moved).
-          - A new skill folder exists that is not present in the cache.
-        - If none of the above triggers, treat cache as fresh:
-          - Read <workspace>/skills/skills_list.txt and return it immediately (no rescanning SKILL.md).
+        - If the cache exists:
+          - First do a super-cheap top-level freshness check:
+            - For each configured root, compare the root directory mtime vs the cache file mtime.
+            - If ALL root mtimes are <= cache mtime, treat the cache as fresh and return it immediately.
+            - Rationale: skills are immediate subfolders; adding/removing/renaming/creating a skill should update the root directory mtime.
+          - Only if ANY root mtime is > cache mtime (potentially stale):
+            - Perform a cheap discovery pass (list immediate subfolders + per-skill mtime checks) to decide whether the cache is truly stale.
+            - Treat the cache as stale and rebuild the listing (and overwrite the cache) if ANY of the following is true:
+              - Any discovered skill folder has mtime newer than the cache file mtime.
+              - Any discovered skill folder contains <skill_dir>/SKILL.md with mtime newer than the cache file mtime.
+              - A skill that exists in the cache is no longer discoverable under the configured roots (deleted/moved).
+              - A new skill folder exists that is not present in the cache.
+            - If none of the above triggers, treat cache as fresh:
+              - Read <workspace>/skills/skills_list.txt and return it immediately (no rescanning SKILL.md).
 
       Cache update rule (fix for “cache not saved on first run”)
       - You MUST call fs:write_file to write/overwrite <workspace>/skills/skills_list.txt whenever you read any <skill_dir>/SKILL.md during this run (including the first run when the cache file does not yet exist).
