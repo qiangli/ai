@@ -1080,7 +1080,7 @@ func listSkillFolderSections(skillDir string) (tools []string, refs []string, sc
 			if nm == "" || strings.HasPrefix(nm, ".") {
 				continue
 			}
-			(*f.out) = append((*f.out), filepath.Join(p, nm))
+			(*f.out) = append((*f.out), nm)
 		}
 		sort.Strings(*f.out)
 	}
