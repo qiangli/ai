@@ -40,6 +40,10 @@ tools:
           + ai:list_tools
           + ai:get_tool_info
 
+        ## Skills
+         + ai:list_skills
+         + ai:get_skill_info
+
         ## Models 
           + ai:list_models
         `
@@ -246,6 +250,32 @@ tools:
     parameters:
       type: object
       properties: {}
+
+  - name: "get_skill_info"
+    description: |
+      Get detailed information about an AgentSkill in the current workspace.
+
+      Resolves the skill by name by scanning skill roots listed in `<workspace>/skills/config.md` (same discovery rules as `ai:list_skills`).
+
+      Returns a summary including:
+        + Skill
+        + Description
+        + Instruction
+        + Tools
+        + References
+        + Scripts
+        + Assets
+        + Path
+
+      Note: this tool does not implement caching.
+    parameters:
+      type: "object"
+      properties:
+        skill:
+          type: "string"
+          description: "Skill name to lookup (matches SKILL.md front matter `name`)"
+      required:
+        - "skill"
 
   - name: "list_tools"
     description: "Enumerate AI tool functions available for selection"

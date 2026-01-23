@@ -452,6 +452,24 @@ func (r *AIKit) ListSkills(ctx context.Context, vars *api.Vars, parent *api.Agen
 	return v, nil
 }
 
+func (r *AIKit) GetSkillInfo(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args map[string]any) (string, error) {
+	log.GetLogger(ctx).Debugf("Get skill info: %s %+v\n", tf, args)
+	if vars == nil || vars.Roots.Workspace.Path == "" {
+		return "", fmt.Errorf("workspace root not available")
+	}
+
+	skill, err := api.GetStrProp("skill", args)
+	if err != nil {
+		return "", err
+	}
+
+	out, err := getSkillInfo(vars.Roots.Workspace.Path, skill)
+	if err != nil {
+		return "", err
+	}
+	return out, nil
+}
+
 func (r *AIKit) GetAgentInfo(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args map[string]any) (string, error) {
 	const tpl = `
 Agent: %s
@@ -854,6 +872,232 @@ type SkillEntry struct {
 	Name        string
 	Description string
 	Path        string
+}
+
+type SkillInfo struct {
+	Name        string
+	Description string
+	Instruction string
+	Tools       []string
+	References  []string
+	Scripts     []string
+	Assets      []string
+	Path        string
+}
+
+func getSkillInfo(workspace string, skillName string) (string, error) {
+	if strings.TrimSpace(skillName) == "" {
+		return "", fmt.Errorf("skill is required")
+	}
+
+	// Load roots from <workspace>/skills/config.md (same as listSkills)
+	cfgPath := filepath.Join(workspace, "skills", "config.md")
+	b, err := os.ReadFile(cfgPath)
+	if err != nil {
+		return "", err
+	}
+	lines := strings.Split(string(b), "\n")
+	var roots []string
+	for _, ln := range lines {
+		ln = strings.TrimSpace(ln)
+		if ln == "" || strings.HasPrefix(ln, "#") {
+			continue
+		}
+		if strings.HasPrefix(ln, "- ") {
+			p := strings.TrimSpace(strings.TrimPrefix(ln, "- "))
+			if p != "" {
+				roots = append(roots, p)
+			}
+		}
+	}
+
+	want := strings.ToLower(strings.TrimSpace(skillName))
+	var matchedDir string
+	var matchedMeta struct {
+		Name        string
+		Description string
+		Instruction string
+	}
+
+	for _, root := range roots {
+		root = strings.TrimSpace(root)
+		if root == "" {
+			continue
+		}
+		items, err := os.ReadDir(root)
+		if err != nil {
+			continue
+		}
+		for _, it := range items {
+			if !it.IsDir() {
+				continue
+			}
+			base := strings.TrimSpace(it.Name())
+			if base == "" || strings.HasPrefix(base, ".") {
+				continue
+			}
+			skillDir := filepath.Join(root, base)
+			skillMd := filepath.Join(skillDir, "SKILL.md")
+			mb, err := os.ReadFile(skillMd)
+			if err != nil {
+				continue
+			}
+
+			name, desc, instr, ok := parseSkillMd(string(mb))
+			if !ok {
+				continue
+			}
+			if strings.ToLower(strings.TrimSpace(name)) == want {
+				matchedDir = skillDir
+				matchedMeta.Name = name
+				matchedMeta.Description = desc
+				matchedMeta.Instruction = instr
+				break
+			}
+		}
+		if matchedDir != "" {
+			break
+		}
+	}
+
+	if matchedDir == "" {
+		return "", fmt.Errorf("skill not found: %s", skillName)
+	}
+
+	tools, refs, scripts, assets := listSkillFolderSections(matchedDir)
+
+	info := SkillInfo{
+		Name:        matchedMeta.Name,
+		Description: matchedMeta.Description,
+		Instruction: matchedMeta.Instruction,
+		Tools:       tools,
+		References:  refs,
+		Scripts:     scripts,
+		Assets:      assets,
+		Path:        matchedDir,
+	}
+
+	var buf strings.Builder
+	buf.WriteString(fmt.Sprintf("Skill: %s\n", info.Name))
+	buf.WriteString(fmt.Sprintf("Description: %s\n", info.Description))
+	buf.WriteString("Instruction:\n")
+	if strings.TrimSpace(info.Instruction) == "" {
+		buf.WriteString("(none)\n")
+	} else {
+		buf.WriteString(info.Instruction)
+		if !strings.HasSuffix(info.Instruction, "\n") {
+			buf.WriteString("\n")
+		}
+	}
+	buf.WriteString("\nTools:\n")
+	buf.WriteString(formatList(info.Tools))
+	buf.WriteString("\nReferences:\n")
+	buf.WriteString(formatList(info.References))
+	buf.WriteString("\nScripts:\n")
+	buf.WriteString(formatList(info.Scripts))
+	buf.WriteString("\nAssets:\n")
+	buf.WriteString(formatList(info.Assets))
+	buf.WriteString(fmt.Sprintf("\nPath: %s\n", info.Path))
+
+	return buf.String(), nil
+}
+
+func parseSkillMd(content string) (name string, desc string, instr string, ok bool) {
+	content = strings.TrimPrefix(content, "\ufeff")
+	if !strings.HasPrefix(content, "---") {
+		return "", "", "", false
+	}
+	rest := strings.TrimPrefix(content, "---")
+	if strings.HasPrefix(rest, "\r\n") {
+		rest = strings.TrimPrefix(rest, "\r\n")
+	} else if strings.HasPrefix(rest, "\n") {
+		rest = strings.TrimPrefix(rest, "\n")
+	}
+	end := strings.Index(rest, "\n---")
+	if end < 0 {
+		end = strings.Index(rest, "\r\n---")
+	}
+	if end < 0 {
+		return "", "", "", false
+	}
+	fm := rest[:end]
+	body := rest[end:]
+	// drop closing --- line
+	if i := strings.Index(body, "---"); i >= 0 {
+		body = body[i+3:]
+	}
+	body = strings.TrimLeft(body, "\r\n")
+	instr = strings.TrimSpace(body)
+
+	for _, fl := range strings.Split(fm, "\n") {
+		fl = strings.TrimSpace(fl)
+		if fl == "" || strings.HasPrefix(fl, "#") {
+			continue
+		}
+		k, v, has := strings.Cut(fl, ":")
+		if !has {
+			continue
+		}
+		k = strings.ToLower(strings.TrimSpace(k))
+		v = strings.Trim(strings.TrimSpace(v), "\"'")
+		switch k {
+		case "name":
+			name = v
+		case "description":
+			desc = v
+		}
+	}
+	if name == "" {
+		return "", "", "", false
+	}
+	return name, desc, instr, true
+}
+
+func listSkillFolderSections(skillDir string) (tools []string, refs []string, scripts []string, assets []string) {
+	// Heuristic mapping to common AgentSkills structure.
+	// We'll list immediate children of these folders if they exist.
+	folders := []struct {
+		name string
+		out  *[]string
+	}{
+		{"tools", &tools},
+		{"references", &refs},
+		{"scripts", &scripts},
+		{"assets", &assets},
+	}
+	for _, f := range folders {
+		p := filepath.Join(skillDir, f.name)
+		st, err := os.Stat(p)
+		if err != nil || !st.IsDir() {
+			continue
+		}
+		items, err := os.ReadDir(p)
+		if err != nil {
+			continue
+		}
+		for _, it := range items {
+			nm := it.Name()
+			if nm == "" || strings.HasPrefix(nm, ".") {
+				continue
+			}
+			(*f.out) = append((*f.out), filepath.Join(p, nm))
+		}
+		sort.Strings(*f.out)
+	}
+	return tools, refs, scripts, assets
+}
+
+func formatList(items []string) string {
+	if len(items) == 0 {
+		return "(none)\n"
+	}
+	var buf strings.Builder
+	for _, it := range items {
+		buf.WriteString("- ")
+		buf.WriteString(it)
+		buf.WriteString("\n")
+	}
+	return buf.String()
 }
 
 func listSkills(workspace string) (string, int, error) {
