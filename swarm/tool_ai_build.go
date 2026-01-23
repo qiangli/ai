@@ -239,7 +239,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, parent *api.Age
 	return agent, nil
 }
 
-func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (string, error) {
+func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (any, error) {
 	var agent = parent
 	if v, err := r.checkAndCreate(ctx, vars, parent, tf, args); err == nil {
 		agent = v
@@ -267,7 +267,7 @@ func (r *AIKit) BuildQuery(ctx context.Context, vars *api.Vars, parent *api.Agen
 	return query, nil
 }
 
-func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (string, error) {
+func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (any, error) {
 	var agent = parent
 	if v, err := r.checkAndCreate(ctx, vars, parent, tf, args); err == nil {
 		agent = v

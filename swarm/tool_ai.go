@@ -107,7 +107,7 @@ func (r *AIKit) llmAdapter(agent *api.Agent, args map[string]any) (api.LLMAdapte
 	return llmAdapter, nil
 }
 
-func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
+func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (any, error) {
 	var owner = r.vars.User.Email
 
 	// check arg for overide
@@ -566,7 +566,7 @@ func (r *AIKit) TransferAgent(_ context.Context, _ *api.Vars, _ *api.Agent, _ *a
 // agent is required.
 // actions defatult to the following if not set:
 // entrypoint: "ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"
-func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, parent *api.Agent, _ *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
+func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
 	packsub, err := api.GetStrProp("agent", args)
 	if err != nil {
 		return nil, err
@@ -611,6 +611,7 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, parent *api.Agen
 			}
 		}
 	}
+
 	//
 	var runner = vars.RootAgent.Runner
 	if parent != nil {
@@ -631,7 +632,7 @@ func (r *AIKit) kitname(args map[string]any) api.Kitname {
 	return kn
 }
 
-func (r *AIKit) NewAgent(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
+func (r *AIKit) NewAgent(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (any, error) {
 	v, err := r.createAgent(ctx, vars, parent, tf, args)
 	if err != nil {
 		return nil, err
