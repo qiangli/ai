@@ -30,9 +30,10 @@ agents:
         - If none of the above triggers, treat cache as fresh:
           - Read <workspace>/skills/skills_list.txt and return it immediately (no rescanning SKILL.md).
 
-      Cache update rule (fix for “caching not working as expected”)
-      - Always write/overwrite <workspace>/skills/skills_list.txt when you have re-read any SKILL.md (for any reason), or when the cache file was missing.
-      - In this implementation, when cache is determined stale, rebuild the full output and overwrite the cache (do not attempt partial line reuse).
+      Cache update rule (fix for “cache not saved on first run”)
+      - You MUST call fs:write_file to write/overwrite <workspace>/skills/skills_list.txt whenever you read any <skill_dir>/SKILL.md during this run (including the first run when the cache file does not yet exist).
+      - Practically: if you read one or more SKILL.md files, produce the final output string and then write it to the cache file exactly once at the end of the run.
+      - If control-flow reads SKILL.md incrementally, ensure you still write the final output to the cache file before returning.
 
       Configuration
       - Read skill roots from: <workspace>/skills/config.md (same behavior as skills/skills agent)
