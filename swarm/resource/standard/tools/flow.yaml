@@ -68,7 +68,7 @@ tools:
           description: |
             A list of valid actions. Use `ai:list_tools` or `ai:list_agents` to acquire available actions.
             Specify actions in the following formats:
-            - Tool action: `tool:kit:name`
+            - Tool action: `kit:name`
             - Agent action: `agent:pack/name`
 
             Tools and agents can be mixed in the actions.
@@ -93,7 +93,7 @@ tools:
           description: |
             A list of valid actions. Use `ai:list_tools` or `ai:list_agents` to acquire available actions.
             Specify actions in the following formats:
-            - Tool action: `tool:kit:name`
+            - Tool action: `kit:name`
             - Agent action: `agent:pack/name`
 
             Tools and agents can be mixed in the actions.
@@ -118,7 +118,7 @@ tools:
           description: |
             A list of valid actions. Use `ai:list_tools` or `ai:list_agents` to acquire available actions.
             Specify actions in the following formats:
-            - Tool action: `tool:kit:name`
+            - Tool action: `kit:name`
             - Agent action: `agent:pack/name`
 
             Tools and agents can be mixed in the actions.
@@ -144,14 +144,14 @@ tools:
           description: |
             List of valid actions. Use `ai:list_tools` or `ai:list_agents` to view available actions.
             Actions can be specified as:
-            - Tool action: `tool:kit:name`
+            - Tool action: `kit:name`
             - Agent action: `agent:pack/name`
 
             Actions may require additional arguments.
             Use `/flow:help` for more details.
 
             Example:
-            /flow:loop --actions "[sh:pass]" --max-iteration 3 --sleep "1s" --report "Runing in a loop"
+            /flow:loop --actions "[sh:pass]" --max_iteration 3 --sleep "1s" --report "Runing in a loop"
         max_iteration:
           type: "integer"
           description: Maximum number of iterations. If not set, runs indefinitely.
@@ -161,8 +161,6 @@ tools:
             Pauses execution between iterations for a specified duration in seconds, minutes, hours, or days. 
             Accepted formats include: '10s', '5m', '2h', '1d'. 
             Defaults to '3s' if no suffix is provided.
-          default: "3s"
-          minimum: "1s"
         report:
           type: "string"
           description: "An optional message to display before each iteration."
@@ -183,7 +181,7 @@ tools:
           description: |
             A list of valid actions. Use `ai:list_tools` or `ai:list_agents` to acquire available actions.
             Specify actions in the following formats:
-            - Tool action: `tool:kit:name`
+            - Tool action: `kit:name`
             - Agent action: `agent:pack/name`
 
             Tools and agents can be mixed in the actions.
