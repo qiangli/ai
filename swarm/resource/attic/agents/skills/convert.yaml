@@ -7,8 +7,6 @@ agents:
     description: |
       Convert Anthropic SKILL.md into an agent definition with a predefined YAML format
     model: "default/any"
-    # embed:
-    #   - "agent:agent/agent"
     instruction: |
       Your task is to convert SKILL.md into an agent definition with a predefined YAML format.
       Read the content of the given SKILL.md file and format it according to the layout below:

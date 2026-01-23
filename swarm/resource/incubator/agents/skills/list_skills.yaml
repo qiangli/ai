@@ -71,6 +71,7 @@ agents:
       If anything is unclear, ask a focused question before proceeding.
     message: |
       List all available skills.
+      Save the skills list into <workspace>/skills/skills_list.txt unless they are read from this cache file.
     functions:
       - "fs:*"
       - "sh:workspace"
