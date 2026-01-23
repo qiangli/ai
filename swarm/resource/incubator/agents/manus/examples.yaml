@@ -1,0 +1,14 @@
+
+###
+kit: "manus"
+tools:
+  - name: "examples"
+    description: "Examples: Planning with Files in Action"
+    parameters: {}
+    type: "func"
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! --mime-type=text/x-go-template
+        {{asset "/examples.md"}}
+      

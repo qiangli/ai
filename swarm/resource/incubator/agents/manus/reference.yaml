@@ -1,0 +1,12 @@
+###
+kit: "manus"
+tools:
+  - name: "reference"
+    description: "Reference: Manus Context Engineering Principles"
+    parameters: {}
+    type: "func"
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! --mime-type=text/x-go-template
+        {{asset "/reference.md"}}
