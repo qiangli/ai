@@ -38,14 +38,15 @@ message="tell me a joke"
 env message="${message}"
 env datetime="<TODO>"
 env workspace="<redacted>"
+env input="<redated>"
 
 /flow:sequence \
     --agent "test/test" \
     --actions "[ai:spawn_agent,sh:format]" \
     --adapter "echo" \
     --template "$template" \
-    --script "$script" 
-    # --option output="file:/tmp/test.txt"
+    --script "$script" \
+    --option output="file:/tmp/test.txt"
 
 ###
 

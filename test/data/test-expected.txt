@@ -1,14 +1,11 @@
 
 >>>>>>>>> Instruction/Prompt
 ---
-<no value>
+<no value> <-- this is cleared after call_llm
 ---
 >>>>>>>>> Context/History
 ---
 %%%%%%%%%%%%%%%%%%%%%%
-
-Content: empty? false
-Role: user
 
 %%%%%%%%%%%%%%%%%%%%%%
 ---
@@ -17,7 +14,7 @@ Role: user
 ## Message/Query
 
 Parameters (default):
-  max_results: 7
+  max_results: 20
 
 Environment:
   datetime: <TODO>
@@ -47,7 +44,7 @@ tell me a joke
 ---
 city=SFO
 datetime=<TODO>
-input=[/sh:bash --format raw --script /Users/liqiang/workspace/cloudbox/ai/test/test.sh]
+input=<redated>
 message=tell me a joke
 nickname=Charles
 user=&{ liqiang    map[log_level:info]}

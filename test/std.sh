@@ -88,7 +88,7 @@ agents=(
 "gptr/curate"
 "gptr/report"
 # 
-"kbase/kbase"
+# "kbase/kbase"
 # memory
 "memory/memory"
 "memory/long_term"
