@@ -621,22 +621,12 @@ func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, _ *api.Agent, _ *
 	// log.GetLogger(ctx).Debugf("List tools: %s %+v\n", tf, args)
 
 	var user = r.vars.User.Email
-	// cached list
-	// key := ListCacheKey{
-	// 	Type: "tool",
-	// 	User: user,
-	// }
-	// if v, ok := listToolsCache.Get(key); ok {
-	// 	log.GetLogger(ctx).Debugf("Using cached tool list: %+v\n", key)
-	// 	return v, nil
-	// }
 
 	list, count, err := listTools(r.vars.Assets, user)
 	if err != nil {
 		return "", err
 	}
 	var v = fmt.Sprintf("Available tools: %v\n\n%s\n", count, list)
-	// listToolsCache.Add(key, v)
 
 	return v, nil
 }
@@ -647,8 +637,6 @@ Tool: %s__%s
 Description: %s
 Parameters: %s
 `
-	// log.GetLogger(ctx).Debugf("Tool info: %s:%s %+v\n", tf.Kit, tf.Name, args)
-
 	tid, err := api.GetStrProp("tool", args)
 	if err != nil {
 		return "", err
@@ -711,15 +699,6 @@ func (r *AIKit) ListModels(ctx context.Context, vars *api.Vars, _ *api.Agent, tf
 	log.GetLogger(ctx).Debugf("List models: %s:%s %+v\n", tf.Kit, tf.Name, args)
 
 	var user = r.vars.User.Email
-	// // cached list
-	// key := ListCacheKey{
-	// 	Type: "model",
-	// 	User: user,
-	// }
-	// if v, ok := listToolsCache.Get(key); ok {
-	// 	log.GetLogger(ctx).Debugf("Using cached model list: %+v\n", key)
-	// 	return v, nil
-	// }
 
 	list, count, err := listModels(r.vars.Assets, user)
 	if err != nil {
@@ -1002,7 +981,7 @@ func listSkills(workspace string) (string, int, error) {
 
 	var buf strings.Builder
 	for _, e := range entries {
-		buf.WriteString(fmt.Sprintf("%s - %s [%s]\n", e.Name, e.Description, e.Path))
+		buf.WriteString(fmt.Sprintf("%s - %s\n[%s]\n\n", e.Name, e.Description, e.Path))
 	}
 	return buf.String(), len(entries), nil
 }
@@ -1079,17 +1058,8 @@ func loadHistory(store api.MemStore, opt *api.MemOption) ([]*api.Message, int, e
 	}
 
 	count := len(history)
-	// if count == 0 {
-	// 	return nil, 0, api.NewNotFoundError("no messages")
-	// }
 
 	return history, count, nil
-
-	// b, err := json.MarshalIndent(history, "", "    ")
-	// if err != nil {
-	// 	return "", 0, err
-	// }
-	// return string(b), count, nil
 }
 
 // lookup model from embedded agents first and then from parents
