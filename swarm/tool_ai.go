@@ -1080,6 +1080,10 @@ func listSkillFolderSections(skillDir string) (tools []string, refs []string, sc
 			if nm == "" || strings.HasPrefix(nm, ".") {
 				continue
 			}
+			// Add a trailing slash to signal directories.
+			if it.IsDir() {
+				nm = nm + "/"
+			}
 			(*f.out) = append((*f.out), nm)
 		}
 		sort.Strings(*f.out)
