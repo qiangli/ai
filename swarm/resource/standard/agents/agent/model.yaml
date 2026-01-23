@@ -2,7 +2,7 @@
 pack: "agent"
 agents:
   - name: "model"
-    display: "Model Manager"
+    display: "🤖 Model Manager"
     description: |
       Handles model-related operations such as loading, storing, creating, 
       reading, updating, and deleting YAML configurations.

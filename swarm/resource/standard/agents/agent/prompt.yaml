@@ -2,7 +2,7 @@
 pack: "agent"
 agents:
   - name: "prompt"
-    display: "🤖 Prompt Engineer"
+    display: "👉 Prompt Engineer"
     description: |
       Expert in creating precise system role prompts, blending domain expertise 
       with user preferences for clear AI instructions.

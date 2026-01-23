@@ -3,7 +3,7 @@ pack: "agent"
 max_turns: 100
 agents:
   - name: "agent"
-    display: "Agent Manager"
+    display: "🤖 Agent Manager"
     description: |
       Manage all agent operations, including loading, storing, creating, reading, 
       updating, and deleting configurations through YAML.

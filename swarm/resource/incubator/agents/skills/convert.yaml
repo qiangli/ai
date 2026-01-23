@@ -1,7 +1,8 @@
 ###
-pack: "skill"
+# https://agentskills.io/home
+pack: "skills"
 agents:
-  - name: "skill"
+  - name: "convert"
     display: "🌐 Convert Anthropic SKILL.md into agent.yaml"
     description: |
       Convert Anthropic SKILL.md into an agent definition with a predefined YAML format

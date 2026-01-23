@@ -2,7 +2,7 @@
 pack: "agent"
 agents:
   - name: "tool"
-    display: "Tool Manager"
+    display: "🤖 Tool Manager"
     description: |
       Manage tool-related operations including loading, storing, creating, 
       reading, updating, and deleting configurations using Golang and YAML.
