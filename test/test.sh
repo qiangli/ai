@@ -32,7 +32,7 @@ Role: {{ .Role }}
 '
 
 ##
-script="file:///$PWD/swarm/resource/incubator/agents/test/agent.yaml"
+script="file:///$PWD/test/agent/agent.yaml"
 message="tell me a joke"
 
 env message="${message}"
