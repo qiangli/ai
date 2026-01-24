@@ -258,7 +258,8 @@
 				// "--script",
 				// "swarm/resource/incubator/agents/ralph/agent.yaml"
 				//
-				"@manus/planning_with_files",
+				// "@manus/planning_with_files",
+				"@ask/ask",
 				// 
 				// "/ai:sleep",
 				// "--duration",

@@ -5,6 +5,7 @@ import (
 	"maps"
 	"os"
 	"path"
+
 	// "time"
 
 	"dario.cat/mergo"
@@ -103,12 +104,13 @@ func LoadLocalToolFunc(local *api.AppConfig, owner, s string, secrets api.Secret
 	// agent:<agent name>
 	if kit == string(api.ToolTypeAgent) {
 		pack, sub := api.Packname(name).Decode()
+		// local
 		v, err := LoadAgentTool(local, pack, sub)
 		if err != nil {
 			return nil, err
 		}
 		if len(v) == 0 {
-			return nil, fmt.Errorf("agent tool not found: %s", name)
+			return nil, fmt.Errorf("agent tool not found in local config %q: %s", local.Pack, name)
 		}
 		return v, nil
 		// if pack == local.Pack {
@@ -153,7 +155,8 @@ func LoadLocalToolFunc(local *api.AppConfig, owner, s string, secrets api.Secret
 	}
 
 	// no error, external kit will be resolved next
-	return nil, nil
+	// return nil, nil
+	return nil, fmt.Errorf("tool not found in local config %q: %s", local.Pack, name)
 }
 
 func LoadToolData(data [][]byte) (*api.AppConfig, error) {
@@ -318,6 +321,9 @@ func LoadTools(tc *api.AppConfig, owner string, secrets api.SecretStore) ([]*api
 func LoadAgentTool(ac *api.AppConfig, pack, sub string) ([]*api.ToolFunc, error) {
 	if ac == nil {
 		return nil, fmt.Errorf("nil config: %s/%s", pack, sub)
+	}
+	if ac.Pack != pack {
+		return nil, fmt.Errorf("Wrong pack: %s expect: %s", ac.Pack, pack)
 	}
 	var tools []*api.ToolFunc
 	for _, c := range ac.Agents {

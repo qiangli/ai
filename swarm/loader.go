@@ -373,48 +373,44 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 	// dedup
 	funcMap := make(map[string]*api.ToolFunc)
 	// kit:*
+	var tools []*api.ToolFunc
 	for _, v := range c.Functions {
-		var tools []*api.ToolFunc
 		// all (standard) - not including local custom tools
 		if v == "kit:*" {
 			all, err := r.loadAllTools()
 			if err != nil {
 				return nil, err
 			}
-			tools = all
+			tools = append(tools, all...)
+			continue
 		}
 		// all default agent as tool - not including agent tools that are defined under tools.
-		if tools == nil && v == "agent:*" {
+		if v == "agent:*" {
 			all, err := r.loadAllAgentTools()
 			if err != nil {
 				return nil, err
 			}
-			tools = all
+			tools = append(tools, all...)
+			continue
 		}
 		// local scope
-		if tools == nil {
-			if v, err := conf.LoadLocalToolFunc(ac, r.vars.User.Email, v, r.vars.Secrets, r.vars.Assets); err != nil {
-				return nil, err
-			} else {
-				tools = v
-			}
+		if v, err := conf.LoadLocalToolFunc(ac, r.vars.User.Email, v, r.vars.Secrets, r.vars.Assets); err == nil {
+			tools = append(tools, v...)
+			continue
 		}
 		// load external kit if not defined locally
-		if tools == nil {
-			if v, err := conf.LoadToolFunc(r.vars.User.Email, v, r.vars.Secrets, r.vars.Assets); err != nil {
-				return nil, err
-			} else {
-				tools = v
-			}
+		if v, err := conf.LoadToolFunc(r.vars.User.Email, v, r.vars.Secrets, r.vars.Assets); err == nil {
+			tools = append(tools, v...)
 		}
+	}
 
-		for _, fn := range tools {
-			id := fn.ID()
-			if id == "" {
-				return nil, fmt.Errorf("agent tool ID is empty: %s", c.Name)
-			}
-			funcMap[id] = fn
+	// dedup
+	for _, fn := range tools {
+		id := fn.ID()
+		if id == "" {
+			return nil, fmt.Errorf("agent tool ID is empty: %s", c.Name)
 		}
+		funcMap[id] = fn
 	}
 	var funcs []*api.ToolFunc
 	for _, v := range funcMap {
