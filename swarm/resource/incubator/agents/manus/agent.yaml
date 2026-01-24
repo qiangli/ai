@@ -26,6 +26,7 @@ agents:
       - "fs:*"
       - "sh:*"
 
+  # https://github.com/OthmanAdi/planning-with-files/blob/master/skills/planning-with-files/SKILL.md
   - name: "planning_with_files"
     display: "🗂️ Plan With Files"
     description: |
