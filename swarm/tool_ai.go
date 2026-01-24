@@ -324,11 +324,6 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 		Agent:   packname,
 	})
 
-	llmAdapter, err := r.llmAdapter(agent, args)
-	if err != nil {
-		return nil, err
-	}
-
 	// call LLM
 	// request
 	var req = &api.Request{
@@ -367,7 +362,13 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 		}
 
 		sender = model.Provider
+		//
+		llmAdapter, err := r.llmAdapter(agent, args)
+		if err != nil {
+			return nil, err
+		}
 		resp, respErr = llmAdapter.Call(ctx, req)
+
 		if respErr == nil && resp.Result != nil {
 			break
 		}
