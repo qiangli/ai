@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"math/rand"
 	"os"
 	"sort"
@@ -68,7 +69,7 @@ func (r *AIKit) checkAndCreate(ctx context.Context, vars *api.Vars, parent *api.
 	return nil, fmt.Errorf("missing agent")
 }
 
-func (r *AIKit) llmAdapter(agent *api.Agent, args map[string]any) (api.LLMAdapter, error) {
+func (r *AIKit) getAdapter(agent *api.Agent, args map[string]any) (api.LLMAdapter, error) {
 	// mock if echo__<agent__pack__sub> is found in args.
 	if agent != nil && len(args) > 0 {
 		id := api.NewPackname(agent.Pack, agent.Name).ID()
@@ -216,23 +217,6 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 		}
 	}
 
-	getToken := func(model *api.Model) (func() string, error) {
-		var apiKey = model.ApiKey
-		if apiKey == "" {
-			// default key
-			apiKey = model.Provider
-		}
-
-		ak, err := r.vars.Secrets.Get(owner, apiKey)
-		if err != nil {
-			return nil, err
-		}
-		token := func() string {
-			return ak
-		}
-		return token, nil
-	}
-
 	// tools
 	funcMap := make(map[string]*api.ToolFunc)
 	if v, found := args["tools"]; found {
@@ -278,7 +262,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	for _, v := range funcMap {
 		tools = append(tools, v)
 	}
-	agent.Tools = tools
+	// agent.Tools = tools
 
 	// request
 	var packname = api.NewPackname(agent.Pack, agent.Name)
@@ -325,6 +309,125 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	})
 
 	// call LLM
+	//
+	agent.Prompt = prompt
+	agent.History = history
+	agent.Query = query
+
+	agent.Tools = tools
+	// copy: agent.Arguments = args
+	if agent.Arguments == nil {
+		agent.Arguments = args
+	} else {
+		maps.Copy(agent.Arguments, args)
+	}
+	agent.Models = models
+
+	var result *api.Result
+	var respErr error
+	var sender string
+
+	//
+	// Seed the random number generator
+	rd := rand.New(rand.NewSource(time.Now().UnixNano()))
+	// Shuffle the models slice
+	rd.Shuffle(len(models), func(i, j int) {
+		models[i], models[j] = models[j], models[i]
+	})
+
+	for _, model := range models {
+		agent.Model = model
+
+		sender = model.Provider
+		//
+		// llmAdapter, err := r.getAdapter(agent, args)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// resp, respErr = llmAdapter.Call(ctx, req)
+		result, respErr = r.LlmAdapter(ctx, vars, agent, tf, args)
+
+		if respErr == nil && result != nil {
+			break
+		}
+	}
+
+	// report the last error if not successful
+	if respErr != nil {
+		args["error"] = respErr.Error()
+		return nil, respErr
+	}
+	if result == nil {
+		result = &api.Result{
+			Value: "Empty response",
+		}
+	}
+	args["result"] = result.Value
+
+	// NOTE
+	// keep query of the current agent but clear the prompt (and history???)
+	// This is important for agent transfer and flow:*
+	// which may cause the wrong prompt for subsequent agents (with out instrutions)
+	delete(args, "prompt")
+	// TODO: should be cleared?
+	delete(args, "history")
+
+	if result.State == api.StateTransfer {
+		if result.NextAgent == "" {
+			return nil, fmt.Errorf("agent is required for transfer")
+		}
+		args["agent"] = result.NextAgent
+		return r.SpawnAgent(ctx, vars, agent, tf, args)
+	}
+
+	// save assistant response message
+	message := api.Message{
+		ID:      uuid.NewString(),
+		Session: id,
+		Created: time.Now(),
+		//
+		ContentType: result.MimeType,
+		Content:     result.Value,
+		//
+		Role: nvl(result.Role, api.RoleAssistant),
+		//
+		Sender: sender,
+		Agent:  packname,
+	}
+	history = append(history, &message)
+
+	// save the context
+	if err := r.vars.History.Save(history); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *AIKit) LlmAdapter(ctx context.Context, vars *api.Vars, agent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
+	var owner = r.vars.User.Email
+
+	getToken := func(model *api.Model) (func() string, error) {
+		var apiKey = model.ApiKey
+		if apiKey == "" {
+			// default key
+			apiKey = model.Provider
+		}
+
+		ak, err := r.vars.Secrets.Get(owner, apiKey)
+		if err != nil {
+			return nil, err
+		}
+		token := func() string {
+			return ak
+		}
+		return token, nil
+	}
+
+	llmAdapter, err := r.getAdapter(agent, args)
+	if err != nil {
+		return nil, err
+	}
+
 	// request
 	var req = &api.Request{
 		Agent: agent,
@@ -335,91 +438,22 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 		req.SetMaxTurns(api.DefaultMaxTurns)
 	}
 
-	req.Query = query
-	req.Prompt = prompt
-	req.Messages = history
+	req.Query = agent.Query
+	req.Prompt = agent.Prompt
+	req.Messages = agent.History
 	//
-	req.Arguments = args
-	req.Tools = tools
+	req.Arguments = agent.Arguments
+	req.Tools = agent.Tools
 	req.Runner = agent.Runner
 
-	var resp *api.Response
-	var respErr error
-	var sender string
-	//
-	// Seed the random number generator
-	rd := rand.New(rand.NewSource(time.Now().UnixNano()))
-	// Shuffle the models slice
-	rd.Shuffle(len(models), func(i, j int) {
-		models[i], models[j] = models[j], models[i]
-	})
-
-	for _, model := range models {
-		req.Model = model
-		req.Token, respErr = getToken(model)
-		if respErr != nil {
-			continue
-		}
-
-		sender = model.Provider
-		//
-		llmAdapter, err := r.llmAdapter(agent, args)
-		if err != nil {
-			return nil, err
-		}
-		resp, respErr = llmAdapter.Call(ctx, req)
-
-		if respErr == nil && resp.Result != nil {
-			break
-		}
+	token, err := getToken(agent.Model)
+	if err != nil {
+		return nil, err
 	}
+	req.Token = token
 
-	// report the last error if not successful
-	if respErr != nil {
-		args["error"] = respErr.Error()
-		return nil, respErr
-	}
-	if resp.Result == nil {
-		resp.Result = &api.Result{
-			Value: "Empty response",
-		}
-	}
-	args["result"] = resp.Result.Value
-
-	// NOTE
-	// keep query of the current agent but clear the prompt (and history???)
-	// This is important for agent transfer and flow:*
-	// which may cause the wrong prompt for subsequent agents (with out instrutions)
-	delete(args, "prompt")
-	// TODO: should be cleared?
-	delete(args, "history")
-
-	if resp.Result.State == api.StateTransfer {
-		if resp.Result.NextAgent == "" {
-			return nil, fmt.Errorf("agent is required for transfer")
-		}
-		args["agent"] = resp.Result.NextAgent
-		return r.SpawnAgent(ctx, vars, agent, tf, args)
-	}
-
-	// save assistant response message
-	message := api.Message{
-		ID:      uuid.NewString(),
-		Session: id,
-		Created: time.Now(),
-		//
-		ContentType: resp.Result.MimeType,
-		Content:     resp.Result.Value,
-		//
-		Role: nvl(resp.Result.Role, api.RoleAssistant),
-		//
-		Sender: sender,
-		Agent:  packname,
-	}
-	history = append(history, &message)
-
-	// save the context
-	if err := r.vars.History.Save(history); err != nil {
+	resp, err := llmAdapter.Call(ctx, req)
+	if err != nil {
 		return nil, err
 	}
 	return resp.Result, nil

@@ -124,6 +124,44 @@ type Agent struct {
 	Template *template.Template `json:"-"`
 
 	Config *AppConfig `json:"-"`
+
+	// LLM
+	// get api token for LLM model
+	Token func() string `json:"-"`
+
+	Prompt  string     `json:"prompt"`
+	Query   string     `json:"query"`
+	History []*Message `json:"history"`
+
+	Models []*Model `json:"models"`
+}
+
+// func (r *Agent) MaxTurns() int {
+// 	if r.Arguments == nil {
+// 		return 0
+// 	}
+// 	return r.Arguments.GetInt("max_turns")
+// }
+
+// func (r *Agent) SetMaxTurns(max int) *Agent {
+// 	if r.Arguments == nil {
+// 		r.Arguments = NewArguments()
+// 	}
+// 	r.Arguments.SetArg("max_turns", max)
+// 	return r
+// }
+
+func (r *Agent) MemOption() *MemOption {
+	var o MemOption
+	if r.Arguments == nil {
+		return &o
+	}
+	o.MaxHistory = r.Arguments.GetInt("max_history")
+	o.MaxSpan = r.Arguments.GetInt("max_span")
+	o.Offset = r.Arguments.GetInt("offset")
+	o.Roles = r.Arguments.GetStringSlice("roles")
+
+	return &o
 }
 
 type AgentConfig struct {
