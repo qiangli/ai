@@ -3,7 +3,14 @@ kit: "manus"
 tools:
   - name: "examples"
     description: "Examples: Planning with Files in Action"
-    parameters: {}
+    parameters:
+      type: "object"
+      properties:
+        output:
+          type: "string"
+          description: |
+            Specifies where the content will be sent. 
+            Default is the console. Use "file:/absolute/path" to save it to a file.
     type: "func"
     body:
       mime_type: "text/*"
