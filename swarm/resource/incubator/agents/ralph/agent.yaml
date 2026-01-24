@@ -190,7 +190,6 @@ agents:
     functions:
       - "ralph:spawn_agent"
       - "fs:*"
-      - "ralph:safe_atomic_write"
 
   # ---------------------------------------------------------------------------
   # ralph import: PRD/spec import
@@ -465,16 +464,6 @@ agents:
 
       Algorithm (procedural; use tool calls):
       0) Parse flags from the user's query (best-effort, by string matching):
-+        1) State sanity check:
-+           - For each required state file (status.json, progress.json, .exit_signals, .response_analysis, .circuit_breaker_state):
-+             - If missing: create with version: 1 and safe defaults:
-+               status.json: {\"version\":1,\"status\":\"initialized\",\"loop_count\":0,\"timestamp\":\"...\"}
-+               progress.json: {\"version\":1,\"status\":\"idle\",\"loop_count\":0,\"timestamp\":\"...\"}
-+               .exit_signals: {\"version\":1,\"test_only_loops\":[],\"done_signals\":[],\"completion_indicators\":[]}
-+             - If exists but invalid JSON: log warning, rewrite with version: 1 + safe defaults
-+           - Write current timestamp to all versioned files
-         - If prompt_file does not exist: write status.json {status:\"error\", exit_reason:\"missing_prompt\"} and stop.
-+        2) Preflight:
          - prompt_file: from "--prompt <file>" else "PROMPT.md"
          - max_calls_per_hour: from "--calls <n>" else 100
          - max_loops: from "--max-loops <n>" else 0
@@ -508,26 +497,6 @@ agents:
       - "ralph:spawn_agent"
       - "fs:*"
 
-  # ---------------------------------------------------------------------------
-  # Atomic write helper tool
-  # ---------------------------------------------------------------------------
-  - name: "safe_atomic_write"
-    description: "Atomic JSON write: write to .tmp then rename. Ensures state files are never partially written."
-    parameters:
-      type: "object"
-      properties:
-        path:
-          type: "string"
-          description: "Target file path (e.g., status.json)"
-        content:
-          type: "string"
-          description: "JSON string content"
-      required: ["path", "content"]
-    body:
-      mime_type: "application/x-sh"
-      script: |
-        # Atomic write: tmp → rename
-        echo "$content" > "$path.tmp" && mv "$path.tmp" "$path" && echo "✅ Atomic write: $path"
   # ---------------------------------------------------------------------------
   # ralph once: single iteration
   # ---------------------------------------------------------------------------
