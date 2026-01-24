@@ -25,7 +25,7 @@ agents:
 
   ##
   # prompt adapted from https://github.com/Aider-AI/aider/blob/main/aider/prompts.py
-  - name: "git/short"
+  - name: "short"
     display: "🐙 Git short"
     description: "Generate concise, one-line git commit messages based on the provided diffs."
     model: "default/any"
@@ -50,7 +50,7 @@ agents:
   
   ##
   # https://www.conventionalcommits.org/en/v1.0.0/#summary
-  - name: "git/long"
+  - name: "long"
     display: "🐙 Git long"
     description: "Generate git commit messages based on the provided diffs using the Conventional Commits specification"
     model: "default/any"

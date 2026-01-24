@@ -2,6 +2,8 @@
 pack: "root"
 max_time: 300
 max_turns: 15
+max_history: 10
+max_span: 1440
 agents:
   - name: "root"
     display: "Ⓡ Root"
