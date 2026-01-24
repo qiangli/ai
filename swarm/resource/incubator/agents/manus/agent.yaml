@@ -40,19 +40,11 @@ agents:
 
       ## FIRST: Check for Previous Session
 
-      **Before starting work**, check for unsynced context from a previous session:
+      **Before starting work**, check for unsynced context from a previous session by running:
 
-      ```bash
-      # Linux/macOS
-      $(command -v python3 || command -v python) ${CLAUDE_PLUGIN_ROOT}/scripts/session-catchup.py "$(pwd)"
-      ```
+      - `agent:manus/session_catchup` (recommended)
 
-      ```powershell
-      # Windows PowerShell
-      & (Get-Command python -ErrorAction SilentlyContinue).Source "$env:USERPROFILE\.claude\skills\planning-with-files\scripts\session-catchup.py" (Get-Location)
-      ```
-
-      If catchup report shows unsynced context:
+      If the catchup report shows unsynced context:
       1. Run `git diff --stat` to see actual code changes
       2. Read current planning files
       3. Update planning files based on catchup + git diff
@@ -60,21 +52,27 @@ agents:
 
       ## Important: Where Files Go
 
-      - **Templates** are in `${CLAUDE_PLUGIN_ROOT}/templates/`
+      - **Templates** are exposed via these tools:
+        - `manus:templates_task_plan`
+        - `manus:templates_findings`
+        - `manus:templates_progress`
+      - **Reference docs** are exposed via these tools:
+        - `manus:reference`
+        - `manus:examples`
       - **Your planning files** go in **your project directory**
 
       | Location | What Goes There |
       |----------|-----------------|
-      | Skill directory (`${CLAUDE_PLUGIN_ROOT}/`) | Templates, scripts, reference docs |
+      | Manus tool/agent bundle | Templates, scripts, reference docs |
       | Your project directory | `task_plan.md`, `findings.md`, `progress.md` |
 
       ## Quick Start
 
       Before ANY complex task:
 
-      1. **Create `task_plan.md`** — Use [templates/task_plan.md](templates/task_plan.md) as reference
-      2. **Create `findings.md`** — Use [templates/findings.md](templates/findings.md) as reference
-      3. **Create `progress.md`** — Use [templates/progress.md](templates/progress.md) as reference
+      1. **Create `task_plan.md`** — Use `manus:templates_task_plan` as reference
+      2. **Create `findings.md`** — Use `manus:templates_findings` as reference
+      3. **Create `progress.md`** — Use `manus:templates_progress` as reference
       4. **Re-read plan before decisions** — Refreshes goals in attention window
       5. **Update after each phase** — Mark complete, log errors
 
@@ -197,24 +195,24 @@ agents:
 
       ## Templates
 
-      Copy these templates to start:
+      To start, use the template tools:
 
-      - [templates/task_plan.md](templates/task_plan.md) — Phase tracking
-      - [templates/findings.md](templates/findings.md) — Research storage
-      - [templates/progress.md](templates/progress.md) — Session logging
+      - `manus:templates_task_plan` — Phase tracking
+      - `manus:templates_findings` — Research storage
+      - `manus:templates_progress` — Session logging
 
-      ## Scripts
+      ## Scripts (Reimplemented as Agents)
 
-      Helper scripts for automation:
+      Helper automations are available as pure YAML agents:
 
-      - `scripts/init-session.sh` — Initialize all planning files
-      - `scripts/check-complete.sh` — Verify all phases complete
-      - `scripts/session-catchup.py` — Recover context from previous session (v2.2.0)
+      - `agent:manus/scripts_init_session` — Initialize all planning files
+      - `agent:manus/scripts_check_complete` — Verify all phases complete
+      - `agent:manus/session_catchup` — Recover context from previous session
 
       ## Advanced Topics
 
-      - **Manus Principles:** See [reference.md](reference.md)
-      - **Real Examples:** See [examples.md](examples.md)
+      - **Manus Principles:** See `manus:reference`
+      - **Real Examples:** See `manus:examples`
 
       ## Anti-Patterns
 
