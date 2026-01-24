@@ -7,7 +7,6 @@
 
 ###
 pack: "manus"
-
 agents:
   - name: "scripts_init_session"
     display: "🧩 Manus: Init Session (files)"

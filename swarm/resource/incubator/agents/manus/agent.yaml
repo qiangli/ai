@@ -2,6 +2,8 @@
 
 # Manus Agent: Planning with Files Implementation (3-file pattern)
 # https://github.com/OthmanAdi/planning-with-files
+# docs/quickstart.md
+# skills/planning-with-files/SKILL.md
 ###
 pack: "manus"
 model: "manus/any"
@@ -165,7 +167,7 @@ agents:
       - "sh:*"
       - "web:*"
 
-  # https://github.com/OthmanAdi/planning-with-files/blob/master/skills/planning-with-files/SKILL.md
+  ##
   - name: "planning_with_files"
     display: "🗂️ Plan With Files"
     description: |

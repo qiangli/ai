@@ -1,6 +1,5 @@
 ###
 # https://github.com/OthmanAdi/planning-with-files/templates
-
 kit: "manus"
 tools:
   - name: "templates_findings"
