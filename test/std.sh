@@ -95,10 +95,11 @@ agents=(
 "memory/todo_list"
 "memory/fold"
 # meta
-"meta/agent"
-"meta/prompt"
-"meta/dispatch"
-"meta/save_result"
+"meta/workspace"
+# "meta/agent"
+# "meta/prompt"
+# "meta/dispatch"
+# "meta/save_result"
 # react
 "react/react"
 # research
@@ -112,7 +113,7 @@ agents=(
 # 
 "swe/swe"
 # 
-"think/think"
+# "think/think"
 # web
 "web/search"
 "web/research"
