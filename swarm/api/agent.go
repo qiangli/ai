@@ -83,10 +83,19 @@ type Agent struct {
 	// Package name
 	Pack string `json:"pack"`
 
-	// Agent sub name
-	Name        string `json:"name"`
+	Name        string `json:"name"` // Agent sub name
 	Display     string `json:"display"`
 	Description string `json:"description"`
+
+	// exported global values
+	// Environment map[string]any
+	Environment *Environment `json:"environment"`
+
+	// default values
+	Arguments Arguments `json:"arguments"`
+
+	// agent as tool
+	Parameters Parameters `json:"parameters"`
 
 	// templated values
 	// these should not be in the args map
@@ -101,26 +110,15 @@ type Agent struct {
 	// Functions that the agent can call
 	Tools []*ToolFunc `json:"tools"`
 
-	// LLM adapter
-	Adapter string `json:"adapter"`
-
 	// inheritance
 	Embed []*Agent `json:"-"`
 
-	// exported global values
-	// Environment map[string]any
-	Environment *Environment `json:"environment"`
-
-	// default values
-	Arguments Arguments `json:"arguments"`
-
-	Parameters Parameters `json:"parameters"`
-
-	// // model fallback
-	// Models map[string]Setlevel `json:"-"`
+	// LLM adapter
+	Adapter string `json:"adapter"`
 
 	// assigned at buildtime/runtime
-	Parent   *Agent             `json:"-"`
+	Parent *Agent `json:"-"`
+	//
 	Runner   ActionRunner       `json:"-"`
 	Shell    ActionRunner       `json:"-"`
 	Template *template.Template `json:"-"`
@@ -128,76 +126,14 @@ type Agent struct {
 	Config *AppConfig `json:"-"`
 }
 
-// // for reusing cached agent
-// func (a *Agent) Clone() *Agent {
-// 	clone := &Agent{
-// 		Pack:        a.Pack,
-// 		//
-// 		Name:        a.Name,
-// 		Display:     a.Display,
-// 		Description: a.Description,
-// 		//
-// 		Instruction: a.Instruction,
-// 		Context:     a.Context,
-// 		Message:     a.Message,
-// 		//
-// 		Model:     a.Model,
-// 		Tools:     a.Tools,
-// 		Adapter:   a.Adapter,
-// 		//
-// 		Embed:       a.Embed,
-// 		//
-// 		Environment: a.cloneEnvironment(),
-// 		Arguments: a.cloneArguments(),
-// 		Parameters: a.Parameters,
-// 		//
-// 		Models: a.Models,
-// 		//
-// 		Parent: a.Parent,
-// 		Runner:   a.Runner,
-// 		Shell:    a.Shell,
-// 		Template: a.Template,
-// 		//
-// 		Config: a.Config,
-// 	}
-
-// 	return clone
-// }
-
-// func (a *Agent) cloneArguments() Arguments {
-// 	if a.Arguments == nil {
-// 		return nil
-// 	}
-// 	return a.Arguments.Clone()
-// }
-
-// func (a *Agent) cloneEnvironment() *Environment {
-// 	if a.Environment == nil {
-// 		return nil
-// 	}
-// 	return a.Environment.Clone()
-// }
-
 type AgentConfig struct {
+	Name        string `yaml:"name" json:"name"` // sub name without pack
 	Display     string `yaml:"display" json:"display"`
 	Description string `yaml:"description" json:"description"`
 
-	// tools defined in tools config
-	// kit:name | agent:pack/sub
-	Functions []string `yaml:"functions" json:"functions"`
-
-	// Flow *FlowConfig `yaml:"flow" json:"flow"`
-
-	// chat|image|docker
-	Adapter string `yaml:"adapter" json:"adapter"`
-
-	// // name of custom creator agent for this agent configuration
-	// Creator string `yaml:"creator" json:"creator"`
-
-	// default agents config
-	// sub name only
-	Name      string         `yaml:"name" json:"name"`
-	Arguments map[string]any `yaml:"arguments" json:"arguments"`
+	Environment map[string]any `yaml:"environment" json:"environment"` // global vars
+	Arguments   map[string]any `yaml:"arguments" json:"arguments"`
+	Parameters  Parameters     `yaml:"parameters" json:"parameters"` // agent as tool
 
 	//
 	Instruction string `yaml:"instruction" json:"instruction"`
@@ -205,6 +141,10 @@ type AgentConfig struct {
 	Message     string `yaml:"message" json:"message"`
 
 	Model string `yaml:"model" json:"model"`
+
+	// tools defined in tools config
+	// kit:name | agent:pack/sub
+	Functions []string `yaml:"functions" json:"functions"`
 
 	//
 	MaxTurns   int `yaml:"max_turns" json:"max_turns"`
@@ -214,12 +154,6 @@ type AgentConfig struct {
 
 	// logging: quiet | info[rmative] | verbose | trace
 	LogLevel string `yaml:"log_level" json:"log_level"`
-
-	// agent as tool
-	Parameters Parameters `yaml:"parameters" json:"parameters"`
-
-	// agent global vars
-	Environment map[string]any `yaml:"environment" json:"environment"`
 
 	// TODO clarify
 	// inherit from embedded parent:
@@ -235,11 +169,13 @@ type AgentConfig struct {
 	// - parameters
 	Embed []string `yaml:"embed" json:"embed"`
 
-	//
-	Entrypoint []string `yaml:"entrypoint" json:"entrypoint"`
+	// chat|image|docker
+	Adapter string `yaml:"adapter" json:"adapter"`
 
-	// // model fallback
-	// Models map[string]Setlevel `yaml:"models" json:"models"`
+	//
+	Entrypoint []string        `yaml:"entrypoint" json:"entrypoint"`
+	Advices    []*AdviceConfig `yaml:"advices" json:"advices"`
+	Exit       []string        `yaml:"exit" json:"exit"`
 
 	Config *AppConfig `json:"-"`
 }
@@ -271,6 +207,18 @@ func (ac *AgentConfig) ToMap() map[string]any {
 	}
 
 	return result
+}
+
+type Advice struct {
+	Before []*ToolFunc `json:"-"`
+	Around []*ToolFunc `json:"-"`
+	After  []*ToolFunc `json:"-"`
+}
+
+type AdviceConfig struct {
+	Before []string `yaml:"before" json:"before"`
+	Around []string `yaml:"around" json:"around"`
+	After  []string `yaml:"after" json:"after"`
 }
 
 type FlowType string

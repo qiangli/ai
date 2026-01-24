@@ -44,21 +44,16 @@ const (
 type ToolFunc struct {
 	Type ToolType `json:"type"`
 
-	Kit string `json:"kit"` // kit
+	// 'agent' for all agents as tool
+	Kit string `json:"kit"`
 
 	// tool name or pack/sub for agent
-	Name string `json:"name"` // name
+	Name string `json:"name"`
 
 	Description string     `json:"description"` // description
 	Parameters  Parameters `json:"parameters"`  // parameters
 
 	Body *FuncBody `json:"body"` // body
-
-	// // agent name if this tool references an agent
-	// Agent string `json:"agent"`
-
-	//
-	// State State `json:"state"`
 
 	// TODO move provider/base_url/api_key to argments
 	Provider string `json:"provider"`
@@ -77,32 +72,6 @@ type ToolFunc struct {
 	Config *AppConfig `json:"-"`
 }
 
-// func (r *ToolFunc) Clone() *ToolFunc {
-// 	// Create a new ToolFunc
-// 	clone := *r
-
-// 	// NOTE Deep copy the Body?
-// 	clone.Body = r.Body
-
-// 	// Deep copy the Parameters map
-// 	if r.Parameters != nil {
-// 		clone.Parameters = make(map[string]any, len(r.Parameters))
-// 		for k, v := range r.Parameters {
-// 			clone.Parameters[k] = v
-// 		}
-// 	}
-
-// 	// Deep copy the Extra map
-// 	if r.Extra != nil {
-// 		clone.Extra = make(map[string]any, len(r.Extra))
-// 		for k, v := range r.Extra {
-// 			clone.Extra[k] = v
-// 		}
-// 	}
-
-// 	return &clone
-// }
-
 // ID returns a unique identifier for the tool,
 // combining the tool kit and name.
 // A string that must match the pattern '^[a-zA-Z0-9_-]+$'."
@@ -114,15 +83,12 @@ type ToolConfig struct {
 	Type string `yaml:"type" json:"type"`
 
 	Name        string `yaml:"name" json:"name"`
+	Display     string `yaml:"display" json:"display"`
 	Description string `yaml:"description" json:"description"`
 
 	Parameters Parameters `yaml:"parameters" json:"parameters"`
 
 	Body *FuncBody `yaml:"body" json:"body"`
-
-	// agent name for agent tool type
-	// description/parameters defined here take precedence
-	Agent string `yaml:"agent" json:"agent"`
 
 	//
 	Provider string `yaml:"provider" json:"provider"`
@@ -155,9 +121,6 @@ type FuncBody struct {
 	// js    text/javascript
 	MimeType string `yaml:"mime_type" json:"mime_type"`
 	Script   string `yaml:"script" json:"script"`
-	// Language string `yaml:"language" json:"language"`
-	// Code     string `yaml:"code" json:"code"`
-	// Url      string `yaml:"url" json:"url"`
 }
 
 type ConnectorConfig struct {
@@ -182,14 +145,6 @@ type ConnectorConfig struct {
 	// name of api lookup key
 	ApiKey string `yaml:"api_key"`
 }
-
-// // per tool call vars
-// type ToolEnv struct {
-// 	// User string
-// 	Agent *Agent
-// 	// FS      fs.FS
-// 	// Secrets SecretStore
-// }
 
 type ToolKit interface {
 	Call(context.Context, *Vars, *Agent, *ToolFunc, map[string]any) (any, error)
