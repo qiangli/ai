@@ -235,7 +235,7 @@ func LoadTools(tc *api.AppConfig, owner string, secrets api.SecretStore) ([]*api
 			Parameters:  v.Parameters,
 			Body:        v.Body,
 			//
-			Agent: v.Agent,
+			// Agent: v.Agent,
 			//
 			Provider: nvl(v.Provider, tc.Provider),
 			BaseUrl:  nvl(v.BaseUrl, tc.BaseUrl),
@@ -350,7 +350,7 @@ func LoadAgentTool(ac *api.AppConfig, pack, sub string) ([]*api.ToolFunc, error)
 				params["properties"] = props
 			}
 
-			pn := api.NewPackname(ac.Pack, sub)
+			pn := api.NewPackname(ac.Pack, c.Name)
 
 			tool := &api.ToolFunc{
 				Kit:  string(api.ToolTypeAgent),
@@ -361,7 +361,7 @@ func LoadAgentTool(ac *api.AppConfig, pack, sub string) ([]*api.ToolFunc, error)
 				Parameters:  params,
 				Body:        nil,
 				//
-				Agent:     pn.String(),
+				// Agent:     pn.String(),
 				Arguments: c.Arguments,
 				//
 				Config: ac,

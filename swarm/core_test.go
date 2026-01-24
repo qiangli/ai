@@ -76,6 +76,7 @@ func defaultVars(cfg *api.App) (*api.Vars, error) {
 
 	var vars = &api.Vars{
 		// ID:      uuid.NewString(),
+		Global:  api.NewEnvironment(),
 		Base:    cfg.Base,
 		Roots:   roots,
 		User:    user,
@@ -115,23 +116,23 @@ func TestTemplate(t *testing.T) {
 
 	var tools []*api.ToolFunc
 	tools = append(tools, &api.ToolFunc{
-		Type:  api.ToolTypeAgent,
-		Name:  "ask-me",
-		Kit:   "agent",
-		Agent: "ask",
+		Type: api.ToolTypeAgent,
+		Name: "ask_me",
+		Kit:  "agent",
+		// Agent: "ask",
 	})
-	vars.Global.Set("__parent_agent", &api.Agent{
-		Name: "test",
-		Model: &api.Model{
-			Provider: "openai",
-			BaseUrl:  "https://api.openai.com/v1/",
-			ApiKey:   "openai",
-			Model:    "gpt-5-nano",
-		},
-		Tools: tools,
-	})
+	// vars.Global.Set("__parent_agent", &api.Agent{
+	// 	Name: "test",
+	// 	Model: &api.Model{
+	// 		Provider: "openai",
+	// 		BaseUrl:  "https://api.openai.com/v1/",
+	// 		ApiKey:   "openai",
+	// 		Model:    "gpt-5-nano",
+	// 	},
+	// 	Tools: tools,
+	// })
 
-	text := `this is from ai: {{ai "@ask-me" "--log-level=verbose"  "tell me a joke"}}`
+	text := `this is from ai: {{ai "@ask_me" "--log-level=verbose"  "tell me a joke"}}`
 	data := map[string]any{}
 	content, err := atm.CheckApplyTemplate(tpl, text, data)
 	t.Logf("content: %v\n", content)

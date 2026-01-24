@@ -115,9 +115,9 @@
 				// "@happy/coder",
 				// 
 				// bash script
-				"@shell/shell",
-				"--message",
-				"install"
+				// "@shell/shell",
+				// "--message",
+				// "install"
 				// 
 				// "test/eval.sh",
 				// "test/test.sh",
@@ -258,6 +258,8 @@
 				// "--script",
 				// "swarm/resource/incubator/agents/ralph/agent.yaml"
 				//
+				"@manus/planning_with_files",
+				// 
 				// "/ai:sleep",
 				// "--duration",
 				// "3s"

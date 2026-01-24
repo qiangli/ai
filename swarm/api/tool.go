@@ -42,21 +42,25 @@ const (
 )
 
 type ToolFunc struct {
-	Type        ToolType   `json:"type"`
-	Kit         string     `json:"kit"`         // kit
-	Name        string     `json:"name"`        // name
+	Type ToolType `json:"type"`
+
+	Kit string `json:"kit"` // kit
+
+	// tool name or pack/sub for agent
+	Name string `json:"name"` // name
+
 	Description string     `json:"description"` // description
 	Parameters  Parameters `json:"parameters"`  // parameters
 
 	Body *FuncBody `json:"body"` // body
 
-	// agent name if this tool references an agent
-	Agent string `json:"agent"`
+	// // agent name if this tool references an agent
+	// Agent string `json:"agent"`
 
 	//
-	State State `json:"state"`
+	// State State `json:"state"`
 
-	//
+	// TODO move provider/base_url/api_key to argments
 	Provider string `json:"provider"`
 	BaseUrl  string `json:"base_url"` // base url
 	// name of api key - used to resolve api key/token before tool call
