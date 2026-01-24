@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"strings"
 	"time"
 )
@@ -71,4 +72,49 @@ type CallLogEntry struct {
 type CallLogger interface {
 	Base() string
 	Save(*CallLogEntry)
+}
+
+func FormRequestLine(req *Request, adapter string, maxTurns, tries int) string {
+	var emoji string
+	switch req.Model.Provider {
+	case "anthropic":
+		emoji = "Ⓐ"
+	case "gemini":
+		emoji = "Ⓖ"
+	case "openai":
+		emoji = "Ⓞ"
+	case "xai":
+		emoji = "Ⓧ"
+	default:
+		emoji = "???"
+	}
+	return fmt.Sprintf("%s @%s/%s %s [%v/%v] %s %s/%s\n", req.Agent.Display, req.Agent.Pack, req.Agent.Name, emoji, tries, maxTurns, adapter, req.Model.Provider, req.Model.Model)
+}
+
+const maxInfoTextLen = 12
+
+func FormatArgMap(args map[string]any) string {
+	var sb strings.Builder
+	for k, v := range args {
+		switch vt := v.(type) {
+		case string:
+			if len(vt) > maxInfoTextLen {
+				sb.WriteString(fmt.Sprintf("%s:%q[%v], ", k, Abbreviate(vt, maxInfoTextLen), len(vt)))
+			} else {
+				sb.WriteString(fmt.Sprintf("%s:%q, ", k, vt))
+			}
+		case bool, int8, int, int32, int64, float32, float64:
+			sb.WriteString(fmt.Sprintf("%s:%v, ", k, vt))
+		case *Result:
+			sb.WriteString(fmt.Sprintf("%s:%q(%T), ", k, Abbreviate(vt.Value, maxInfoTextLen), v))
+		case *Agent:
+			sb.WriteString(fmt.Sprintf("%s:%s/%s(%T), ", k, vt.Pack, vt.Name, v))
+		default:
+			sb.WriteString(fmt.Sprintf("%s:(%T), ", k, v))
+		}
+	}
+	s := sb.String()
+	s = strings.TrimSpace(s)
+	s = strings.TrimSuffix(s, ",")
+	return fmt.Sprintf("map[%s]", s)
 }

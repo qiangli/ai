@@ -6,8 +6,6 @@ import (
 	"os"
 	"path"
 	"strings"
-
-	"github.com/qiangli/ai/swarm/api"
 )
 
 // var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL", "GOPATH"}
@@ -118,63 +116,6 @@ func head(s string, maxLen int) string {
 		return s[:maxLen] + "..."
 	}
 	return s
-}
-
-const maxInfoTextLen = 12
-
-func formatArgMap(args map[string]any) string {
-	var sb strings.Builder
-	for k, v := range args {
-		switch vt := v.(type) {
-		case string:
-			if len(vt) > maxInfoTextLen {
-				sb.WriteString(fmt.Sprintf("%s:%q[%v], ", k, abbreviate(vt, maxInfoTextLen), len(vt)))
-			} else {
-				sb.WriteString(fmt.Sprintf("%s:%q, ", k, vt))
-			}
-		case bool, int8, int, int32, int64, float32, float64:
-			sb.WriteString(fmt.Sprintf("%s:%v, ", k, vt))
-		case *api.Result:
-			sb.WriteString(fmt.Sprintf("%s:%q(%T), ", k, abbreviate(vt.Value, maxInfoTextLen), v))
-		case *api.Agent:
-			sb.WriteString(fmt.Sprintf("%s:%s/%s(%T), ", k, vt.Pack, vt.Name, v))
-		default:
-			sb.WriteString(fmt.Sprintf("%s:(%T), ", k, v))
-		}
-	}
-	s := sb.String()
-	s = strings.TrimSpace(s)
-	s = strings.TrimSuffix(s, ",")
-	return fmt.Sprintf("map[%s]", s)
-}
-
-// abbreviate trims the string, keeping the beginning and end if exceeding maxLen.
-// after replacing newlines with .
-func abbreviate(s string, maxLen int) string {
-	if s == "" {
-		return ""
-	}
-	// s = strings.ReplaceAll(s, "\n", "•")
-	s = strings.ReplaceAll(s, "\n", " ")
-	s = strings.Join(strings.Fields(s), " ")
-	s = strings.TrimSpace(s)
-
-	if len(s) > maxLen {
-		// Calculate the length for each part
-		keepLen := (maxLen - 3) / 2
-		start := s[:keepLen]
-		end := s[len(s)-keepLen:]
-		return start + "…" + end
-	}
-	return s
-}
-
-func NilSafe[T any](ptr *T) T {
-	var zeroValue T
-	if ptr != nil {
-		return *ptr
-	}
-	return zeroValue
 }
 
 // Return agent/kit name:

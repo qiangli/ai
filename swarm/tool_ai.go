@@ -782,9 +782,9 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, _ *api.Agent, 
 		b.WriteString(v.Role)
 		b.WriteString("\n  CONTENT:\n")
 		b.WriteString(v.Content)
-		b.WriteString("\n  CREATED:\n")
+		b.WriteString("\n  CREATED: ")
 		b.WriteString(fmt.Sprintf("%v", v.Created))
-		b.WriteString("\n  AGENT:\n")
+		b.WriteString("\n  AGENT: ")
 		b.WriteString(fmt.Sprintf("%v", v.Agent))
 		b.WriteString("\n\n")
 	}

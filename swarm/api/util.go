@@ -524,9 +524,13 @@ func ParseStringArray(s string) []string {
 }
 
 // Abbreviate trims the string, keeping the beginning and end if exceeding maxLen.
-// after replacing newlines with '.'
+// after replacing newlines with space
 func Abbreviate(s string, maxLen int) string {
-	s = strings.ReplaceAll(s, "\n", "•")
+	if s == "" {
+		return ""
+	}
+	// s = strings.ReplaceAll(s, "\n", "•")
+	s = strings.ReplaceAll(s, "\n", " ")
 	s = strings.Join(strings.Fields(s), " ")
 	s = strings.TrimSpace(s)
 
@@ -535,10 +539,17 @@ func Abbreviate(s string, maxLen int) string {
 		keepLen := (maxLen - 3) / 2
 		start := s[:keepLen]
 		end := s[len(s)-keepLen:]
-		return start + "..." + end
+		return start + "…" + end
 	}
-
 	return s
+}
+
+func NilSafe[T any](ptr *T) T {
+	var zeroValue T
+	if ptr != nil {
+		return *ptr
+	}
+	return zeroValue
 }
 
 func ToMap(obj any) (map[string]any, error) {
