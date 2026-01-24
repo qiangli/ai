@@ -61,4 +61,8 @@ PROMPT.md
 @fix_plan.md
 specs/
 logs/
-#
+# Manus agent generated files
+task_plan.md
+findings.md
+progress.md
+# 
