@@ -11,8 +11,6 @@ agents:
   - name: "scripts_init_session"
     display: "🧩 Manus: Init Session (files)"
     description: |
-      Pure-YAML agent version of scripts/init-session.sh.
-
       Creates planning files in the current working directory if missing:
       - task_plan.md
       - findings.md
@@ -42,8 +40,6 @@ agents:
       - "sh:*"
     instruction: |
       #! mime-type=text/x-go-template
-      You are implementing the exact behavior of `scripts/init-session.sh` but as a pure YAML agent.
-
       Requirements:
       - Create files only if they do NOT already exist.
       - The file contents must match the script templates exactly.
@@ -171,8 +167,6 @@ agents:
   - name: "scripts_check_complete"
     display: "✅ Manus: Check Complete"
     description: |
-      Pure-YAML agent version of scripts/check-complete.sh.
-
       Reads a task_plan.md (default task_plan.md) and prints the same completion summary.
       If not complete, it must indicate not complete.
 
@@ -199,6 +193,7 @@ agents:
       required: []
     functions:
       - "fs:*"
+      - "sh:*"
     instruction: |
       #! mime-type=text/x-go-template
       You are implementing the exact behavior of `scripts/check-complete.sh` but as a pure YAML agent.
@@ -251,8 +246,6 @@ agents:
   - name: "session_catchup"
     display: "🧭 Manus: Session Catchup"
     description: |
-      Pure-YAML agent version of scripts/session-catchup.py.
-
       It inspects the previous Claude session jsonl file under:
       ~/.claude/projects/<sanitized-project-path>/*.jsonl (excluding agent-*.jsonl)
 
