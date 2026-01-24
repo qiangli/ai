@@ -183,12 +183,12 @@ type AgentConfig struct {
 	Description string `yaml:"description" json:"description"`
 
 	// tools defined in tools config
-	// kit:name
+	// kit:name | agent:pack/sub
 	Functions []string `yaml:"functions" json:"functions"`
 
 	// Flow *FlowConfig `yaml:"flow" json:"flow"`
 
-	// chat|image|docker/aider oh gptr
+	// chat|image|docker
 	Adapter string `yaml:"adapter" json:"adapter"`
 
 	// // name of custom creator agent for this agent configuration
@@ -238,8 +238,8 @@ type AgentConfig struct {
 	//
 	Entrypoint []string `yaml:"entrypoint" json:"entrypoint"`
 
-	// model fallback
-	Models map[string]Setlevel `yaml:"models" json:"models"`
+	// // model fallback
+	// Models map[string]Setlevel `yaml:"models" json:"models"`
 
 	Config *AppConfig `json:"-"`
 }

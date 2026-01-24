@@ -21,15 +21,7 @@ agents:
       - "agent:manus/planning_with_files"
     arguments:
       models: "[manus/anthropic,manus/gemini,manus/openai,manus/xai]"
-    instruction: |
-      #! mime-type=text/x-go-template
-      *** important ***
-      All relative file paths should be interpreted as in the workspace subfolder:
-      {{.workspace}}/manus
-
-      Notes:
-      - Templates, scripts, examples, and reference docs are accessed via `manus:*` tools.
-      - The planning files (`task_plan.md`, `findings.md`, `progress.md`) live in your project directory.
+    instruction:
     functions:
       - "ai:*"
       - "fs:*"
@@ -239,6 +231,4 @@ agents:
       - "fs:*"
       - "manus:*"
       - "agent:manus/*"
-      # - "agent:manus/init_session"
-      # - "agent:manus/check_complete"
 ###
