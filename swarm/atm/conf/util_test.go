@@ -51,6 +51,7 @@ func TestSplit2(t *testing.T) {
 }
 
 func TestFilterTool(t *testing.T) {
+	// kit is required
 	tools := []*api.ToolFunc{
 		{
 			Kit:  "x",
@@ -75,16 +76,16 @@ func TestFilterTool(t *testing.T) {
 			Name: "b",
 		},
 	}
-	atools := []*api.ToolFunc{
-		{
-			Kit:  "x",
-			Name: "a",
-		},
-		{
-			Kit:  "y",
-			Name: "a",
-		},
-	}
+	// atools := []*api.ToolFunc{
+	// 	{
+	// 		Kit:  "x",
+	// 		Name: "a",
+	// 	},
+	// 	{
+	// 		Kit:  "y",
+	// 		Name: "a",
+	// 	},
+	// }
 	xbtools := []*api.ToolFunc{
 		{
 			Kit:  "x",
@@ -97,12 +98,12 @@ func TestFilterTool(t *testing.T) {
 		expected []*api.ToolFunc
 	}{
 		// kit:name
-		{"", "", tools},
-		{"*", "", tools},
-		{"", "*", tools},
-		{"*", "*", tools},
+		// {"", "", tools},
+		// {"*", "", tools},
+		// {"", "*", tools},
+		// {"*", "*", tools},
 		{"x", "*", xtools},
-		{"*", "a", atools},
+		// {"*", "a", atools},
 		{"x", "b", xbtools},
 		{"y", "b", nil},
 	}

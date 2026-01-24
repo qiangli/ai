@@ -198,6 +198,7 @@ type ToolSystem interface {
 
 // Took Kit and Name
 // ^[a-z0-9_]+$
+// LLM constraints: '^[a-zA-Z0-9_-]+$'
 type Kitname string
 
 func NewKitname(kit, name string) Kitname {
