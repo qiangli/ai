@@ -1,10 +1,588 @@
 kit: "manus"
 tools:
   - name: "scripts_check_complete"
-  # TODO base on scripts/check-complete.sh, implement in golang
-  
+    description: "Check if all phases in a task_plan.md are complete (exit 0 if complete else exit 1)."
+    type: "func"
+    parameters:
+      type: "object"
+      properties:
+        plan_file:
+          type: "string"
+          description: "Path to task_plan.md (defaults to task_plan.md in current working directory)."
+      required: []
+    body:
+      mime_type: "application/x-go"
+      script: |
+        package main
+
+        import (
+          "bufio"
+          "fmt"
+          "os"
+          "strings"
+        )
+
+        func scripts_check_complete() (string, error) {
+          planFile := "task_plan.md"
+          if len(os.Args) > 1 && strings.TrimSpace(os.Args[1]) != "" {
+            planFile = os.Args[1]
+          }
+
+          fi, err := os.Stat(planFile)
+          if err != nil || fi.IsDir() {
+            fmt.Printf("ERROR: %s not found\n", planFile)
+            fmt.Printf("Cannot verify completion without a task plan.\n")
+            return "", fmt.Errorf("plan file not found: %s", planFile)
+          }
+
+          f, err := os.Open(planFile)
+          if err != nil {
+            return "", err
+          }
+          defer f.Close()
+
+          total := 0
+          complete := 0
+          inProgress := 0
+          pending := 0
+
+          scan := bufio.NewScanner(f)
+          for scan.Scan() {
+            line := scan.Text()
+            if strings.Contains(line, "### Phase") {
+              total++
+            }
+            if strings.Contains(line, "**Status:** complete") {
+              complete++
+            }
+            if strings.Contains(line, "**Status:** in_progress") {
+              inProgress++
+            }
+            if strings.Contains(line, "**Status:** pending") {
+              pending++
+            }
+          }
+          if err := scan.Err(); err != nil {
+            return "", err
+          }
+
+          out := &strings.Builder{}
+          fmt.Fprintln(out, "=== Task Completion Check ===")
+          fmt.Fprintln(out, "")
+          fmt.Fprintf(out, "Total phases:   %d\n", total)
+          fmt.Fprintf(out, "Complete:       %d\n", complete)
+          fmt.Fprintf(out, "In progress:    %d\n", inProgress)
+          fmt.Fprintf(out, "Pending:        %d\n", pending)
+          fmt.Fprintln(out, "")
+
+          if total > 0 && complete == total {
+            fmt.Fprintln(out, "ALL PHASES COMPLETE")
+            fmt.Print(out.String())
+            return out.String(), nil
+          }
+
+          fmt.Fprintln(out, "TASK NOT COMPLETE")
+          fmt.Fprintln(out, "")
+          fmt.Fprintln(out, "Do not stop until all phases are complete.")
+          fmt.Print(out.String())
+          return "", fmt.Errorf("task not complete")
+        }
+
+        func main() {
+          _, err := scripts_check_complete()
+          if err != nil {
+            os.Exit(1)
+          }
+        }
+
   - name: "scripts_init_session"
-  # TODO base on scripts/init-sssin.sh, implement in golang
+    description: "Initialize planning files task_plan.md, findings.md, progress.md if they do not exist (replicates init-session.sh)."
+    type: "func"
+    parameters:
+      type: "object"
+      properties:
+        project_name:
+          type: "string"
+          description: "Project name (default: project)."
+      required: []
+    body:
+      mime_type: "application/x-go"
+      script: |
+        package main
+
+        import (
+          "fmt"
+          "os"
+          "strings"
+          "time"
+        )
+
+        func writeFileIfMissing(path, content string) (bool, error) {
+          if st, err := os.Stat(path); err == nil && !st.IsDir() {
+            return false, nil
+          }
+          return true, os.WriteFile(path, []byte(content), 0644)
+        }
+
+        func scripts_init_session() (string, error) {
+          projectName := "project"
+          if len(os.Args) > 1 && strings.TrimSpace(os.Args[1]) != "" {
+            projectName = os.Args[1]
+          }
+
+          date := time.Now().Format("2006-01-02")
+          out := &strings.Builder{}
+          fmt.Fprintf(out, "Initializing planning files for: %s\n", projectName)
+
+          taskPlan := "# Task Plan: [Brief Description]\n\n## Goal\n[One sentence describing the end state]\n\n## Current Phase\nPhase 1\n\n## Phases\n\n### Phase 1: Requirements & Discovery\n- [ ] Understand user intent\n- [ ] Identify constraints\n- [ ] Document in findings.md\n- **Status:** in_progress\n\n### Phase 2: Planning & Structure\n- [ ] Define approach\n- [ ] Create project structure\n- **Status:** pending\n\n### Phase 3: Implementation\n- [ ] Execute the plan\n- [ ] Write to files before executing\n- **Status:** pending\n\n### Phase 4: Testing & Verification\n- [ ] Verify requirements met\n- [ ] Document test results\n- **Status:** pending\n\n### Phase 5: Delivery\n- [ ] Review outputs\n- [ ] Deliver to user\n- **Status:** pending\n\n## Decisions Made\n| Decision | Rationale |\n|----------|-----------|\n\n## Errors Encountered\n| Error | Resolution |\n|-------|------------|\n"
+
+          created, err := writeFileIfMissing("task_plan.md", taskPlan)
+          if err != nil {
+            return "", err
+          }
+          if created {
+            fmt.Fprintln(out, "Created task_plan.md")
+          } else {
+            fmt.Fprintln(out, "task_plan.md already exists, skipping")
+          }
+
+          findings := "# Findings & Decisions\n\n## Requirements\n-\n\n## Research Findings\n-\n\n## Technical Decisions\n| Decision | Rationale |\n|----------|-----------|\n\n## Issues Encountered\n| Issue | Resolution |\n|-------|------------|\n\n## Resources\n-\n"
+
+          created, err = writeFileIfMissing("findings.md", findings)
+          if err != nil {
+            return "", err
+          }
+          if created {
+            fmt.Fprintln(out, "Created findings.md")
+          } else {
+            fmt.Fprintln(out, "findings.md already exists, skipping")
+          }
+
+          progress := fmt.Sprintf("# Progress Log\n\n## Session: %s\n\n### Current Status\n- **Phase:** 1 - Requirements & Discovery\n- **Started:** %s\n\n### Actions Taken\n-\n\n### Test Results\n| Test | Expected | Actual | Status |\n|------|----------|--------|--------|\n\n### Errors\n| Error | Resolution |\n|-------|------------|\n", date, date)
+
+          created, err = writeFileIfMissing("progress.md", progress)
+          if err != nil {
+            return "", err
+          }
+          if created {
+            fmt.Fprintln(out, "Created progress.md")
+          } else {
+            fmt.Fprintln(out, "progress.md already exists, skipping")
+          }
+
+          fmt.Fprintln(out, "")
+          fmt.Fprintln(out, "Planning files initialized!")
+          fmt.Fprintln(out, "Files: task_plan.md, findings.md, progress.md")
+
+          fmt.Print(out.String())
+          return out.String(), nil
+        }
+
+        func main() {
+          _, err := scripts_init_session()
+          if err != nil {
+            fmt.Printf("Error: %v\n", err)
+            os.Exit(1)
+          }
+        }
 
   - name: "session_catchup"
-  # TODO base on session-catchup.py, implement in golang.
+    description: "Detect unsynced context in the most recent previous Claude session after last planning-file update (task_plan.md/progress.md/findings.md)."
+    type: "func"
+    parameters:
+      type: "object"
+      properties:
+        project_path:
+          type: "string"
+          description: "Project path used to locate ~/.claude/projects/<sanitized>/ session logs (defaults to current working directory)."
+      required: []
+    body:
+      mime_type: "application/x-go"
+      script: |
+        package main
+
+        import (
+          "bufio"
+          "encoding/json"
+          "errors"
+          "fmt"
+          "io"
+          "os"
+          "path/filepath"
+          "sort"
+          "strings"
+          "time"
+        )
+
+        var planningFiles = []string{"task_plan.md", "progress.md", "findings.md"}
+
+        type msgLine struct {
+          Line int
+          Obj  map[string]any
+        }
+
+        func sanitizeProjectPath(projectPath string) string {
+          s := strings.ReplaceAll(projectPath, "/", "-")
+          if !strings.HasPrefix(s, "-") {
+            s = "-" + s
+          }
+          s = strings.ReplaceAll(s, "_", "-")
+          return s
+        }
+
+        func projectDir(projectPath string) (string, error) {
+          home, err := os.UserHomeDir()
+          if err != nil {
+            return "", err
+          }
+          return filepath.Join(home, ".claude", "projects", sanitizeProjectPath(projectPath)), nil
+        }
+
+        type sessionFile struct {
+          Path string
+          Mod  time.Time
+          Size int64
+        }
+
+        func listSessionsSorted(dir string) ([]sessionFile, error) {
+          entries, err := os.ReadDir(dir)
+          if err != nil {
+            return nil, err
+          }
+          out := []sessionFile{}
+          for _, e := range entries {
+            if e.IsDir() {
+              continue
+            }
+            name := e.Name()
+            if !strings.HasSuffix(name, ".jsonl") {
+              continue
+            }
+            if strings.HasPrefix(name, "agent-") {
+              continue
+            }
+            info, err := e.Info()
+            if err != nil {
+              continue
+            }
+            out = append(out, sessionFile{Path: filepath.Join(dir, name), Mod: info.ModTime(), Size: info.Size()})
+          }
+          sort.Slice(out, func(i, j int) bool { return out[i].Mod.After(out[j].Mod) })
+          return out, nil
+        }
+
+        func parseSessionMessages(path string) ([]msgLine, error) {
+          f, err := os.Open(path)
+          if err != nil {
+            return nil, err
+          }
+          defer f.Close()
+
+          r := bufio.NewReader(f)
+          msgs := []msgLine{}
+          lineNum := 0
+          for {
+            line, err := r.ReadBytes('\n')
+            if len(line) > 0 {
+              var obj map[string]any
+              if e := json.Unmarshal(bytesTrimRightNewline(line), &obj); e == nil {
+                msgs = append(msgs, msgLine{Line: lineNum, Obj: obj})
+              }
+              lineNum++
+            }
+            if errors.Is(err, io.EOF) {
+              break
+            }
+            if err != nil {
+              // keep going best-effort
+              break
+            }
+          }
+          return msgs, nil
+        }
+
+        func bytesTrimRightNewline(b []byte) []byte {
+          s := string(b)
+          s = strings.TrimRight(s, "\r\n")
+          return []byte(s)
+        }
+
+        func findLastPlanningUpdate(msgs []msgLine) (int, string) {
+          lastLine := -1
+          lastFile := ""
+
+          for _, m := range msgs {
+            t, _ := m.Obj["type"].(string)
+            if t != "assistant" {
+              continue
+            }
+            message, _ := m.Obj["message"].(map[string]any)
+            content, ok := message["content"]
+            if !ok {
+              continue
+            }
+            items, ok := content.([]any)
+            if !ok {
+              continue
+            }
+            for _, it := range items {
+              item, _ := it.(map[string]any)
+              if item == nil {
+                continue
+              }
+              if item["type"] != "tool_use" {
+                continue
+              }
+              toolName, _ := item["name"].(string)
+              if toolName != "Write" && toolName != "Edit" {
+                continue
+              }
+              input, _ := item["input"].(map[string]any)
+              fp, _ := input["file_path"].(string)
+              for _, pf := range planningFiles {
+                if strings.HasSuffix(fp, pf) {
+                  lastLine = m.Line
+                  lastFile = pf
+                }
+              }
+            }
+          }
+
+          return lastLine, lastFile
+        }
+
+        type extracted struct {
+          Role    string
+          Content string
+          Tools   []string
+          Line    int
+        }
+
+        func extractAfter(msgs []msgLine, afterLine int) []extracted {
+          out := []extracted{}
+          for _, m := range msgs {
+            if m.Line <= afterLine {
+              continue
+            }
+            t, _ := m.Obj["type"].(string)
+            isMeta, _ := m.Obj["isMeta"].(bool)
+
+            if t == "user" && !isMeta {
+              message, _ := m.Obj["message"].(map[string]any)
+              content := message["content"]
+              text := ""
+              switch v := content.(type) {
+              case string:
+                text = v
+              case []any:
+                for _, it := range v {
+                  item, _ := it.(map[string]any)
+                  if item != nil && item["type"] == "text" {
+                    if s, ok := item["text"].(string); ok {
+                      text = s
+                      break
+                    }
+                  }
+                }
+              }
+              if len(text) > 0 {
+                if strings.HasPrefix(text, "<local-command") || strings.HasPrefix(text, "<command-") || strings.HasPrefix(text, "<task-notification") {
+                  continue
+                }
+                if len(text) > 20 {
+                  out = append(out, extracted{Role: "user", Content: text, Line: m.Line})
+                }
+              }
+            }
+
+            if t == "assistant" {
+              message, _ := m.Obj["message"].(map[string]any)
+              content := message["content"]
+              text := ""
+              tools := []string{}
+              switch v := content.(type) {
+              case string:
+                text = v
+              case []any:
+                for _, it := range v {
+                  item, _ := it.(map[string]any)
+                  if item == nil {
+                    continue
+                  }
+                  if item["type"] == "text" {
+                    if s, ok := item["text"].(string); ok {
+                      text = s
+                    }
+                  }
+                  if item["type"] == "tool_use" {
+                    tn, _ := item["name"].(string)
+                    input, _ := item["input"].(map[string]any)
+                    switch tn {
+                    case "Edit":
+                      fp, _ := input["file_path"].(string)
+                      if fp == "" {
+                        fp = "unknown"
+                      }
+                      tools = append(tools, fmt.Sprintf("Edit: %s", fp))
+                    case "Write":
+                      fp, _ := input["file_path"].(string)
+                      if fp == "" {
+                        fp = "unknown"
+                      }
+                      tools = append(tools, fmt.Sprintf("Write: %s", fp))
+                    case "Bash":
+                      cmd, _ := input["command"].(string)
+                      if len(cmd) > 80 {
+                        cmd = cmd[:80]
+                      }
+                      tools = append(tools, fmt.Sprintf("Bash: %s", cmd))
+                    default:
+                      if tn != "" {
+                        tools = append(tools, tn)
+                      }
+                    }
+                  }
+                }
+              }
+              if text != "" || len(tools) > 0 {
+                if len(text) > 600 {
+                  text = text[:600]
+                }
+                out = append(out, extracted{Role: "assistant", Content: text, Tools: tools, Line: m.Line})
+              }
+            }
+          }
+          return out
+        }
+
+        func fileExists(path string) bool {
+          st, err := os.Stat(path)
+          return err == nil && !st.IsDir()
+        }
+
+        func session_catchup() (string, error) {
+          projectPath := ""
+          if len(os.Args) > 1 {
+            projectPath = os.Args[1]
+          }
+          if strings.TrimSpace(projectPath) == "" {
+            cwd, err := os.Getwd()
+            if err != nil {
+              return "", err
+            }
+            projectPath = cwd
+          }
+
+          pdir, err := projectDir(projectPath)
+          if err != nil {
+            return "", err
+          }
+
+          // If no previous sessions, nothing to output
+          if st, err := os.Stat(pdir); err != nil || !st.IsDir() {
+            return "", nil
+          }
+
+          sessions, err := listSessionsSorted(pdir)
+          if err != nil || len(sessions) < 1 {
+            return "", nil
+          }
+
+          // Find substantial session
+          target := sessionFile{}
+          found := false
+          for _, s := range sessions {
+            if s.Size > 5000 {
+              target = s
+              found = true
+              break
+            }
+          }
+          if !found {
+            return "", nil
+          }
+
+          msgs, err := parseSessionMessages(target.Path)
+          if err != nil {
+            return "", nil
+          }
+
+          lastLine, lastFile := findLastPlanningUpdate(msgs)
+          after := lastLine
+          if after < 0 {
+            // last 30 lines heuristic
+            if len(msgs) > 30 {
+              after = msgs[len(msgs)-30].Line
+            } else {
+              after = -1
+            }
+          }
+
+          extracted := extractAfter(msgs, after)
+          if len(extracted) == 0 {
+            return "", nil
+          }
+
+          // Format report
+          b := &strings.Builder{}
+          fmt.Fprintln(b, "\n[planning-with-files] SESSION CATCHUP DETECTED")
+          fmt.Fprintf(b, "Previous session: %s\n", strings.TrimSuffix(filepath.Base(target.Path), ".jsonl"))
+          if lastLine >= 0 {
+            fmt.Fprintf(b, "Last planning update: %s at message #%d\n", lastFile, lastLine)
+            fmt.Fprintf(b, "Unsynced messages: %d\n", len(extracted))
+          } else {
+            fmt.Fprintln(b, "No planning file updates found in previous session")
+          }
+
+          // Check planning files existence (mirrors python variable but not used for gating)
+          _ = fileExists(filepath.Join(projectPath, "task_plan.md")) || fileExists(filepath.Join(projectPath, "progress.md")) || fileExists(filepath.Join(projectPath, "findings.md"))
+
+          fmt.Fprintln(b, "\n--- UNSYNCED CONTEXT ---")
+          start := 0
+          if len(extracted) > 15 {
+            start = len(extracted) - 15
+          }
+          for _, m := range extracted[start:] {
+            if m.Role == "user" {
+              c := m.Content
+              if len(c) > 300 {
+                c = c[:300]
+              }
+              fmt.Fprintf(b, "USER: %s\n", c)
+            } else {
+              if m.Content != "" {
+                c := m.Content
+                if len(c) > 300 {
+                  c = c[:300]
+                }
+                fmt.Fprintf(b, "CLAUDE: %s\n", c)
+              }
+              if len(m.Tools) > 0 {
+                max := 4
+                if len(m.Tools) < 4 {
+                  max = len(m.Tools)
+                }
+                fmt.Fprintf(b, "  Tools: %s\n", strings.Join(m.Tools[:max], ", "))
+              }
+            }
+          }
+
+          fmt.Fprintln(b, "\n--- RECOMMENDED ---")
+          fmt.Fprintln(b, "1. Run: git diff --stat")
+          fmt.Fprintln(b, "2. Read: task_plan.md, progress.md, findings.md")
+          fmt.Fprintln(b, "3. Update planning files based on above context")
+          fmt.Fprintln(b, "4. Continue with task")
+
+          fmt.Print(b.String())
+          return b.String(), nil
+        }
+
+        func main() {
+          res, err := session_catchup()
+          if err != nil {
+            fmt.Printf("Error: %v\n", err)
+            os.Exit(1)
+          }
+          // If res is empty, be quiet like the python script
+          _ = res
+        }
