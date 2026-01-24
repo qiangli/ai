@@ -830,7 +830,7 @@ tools:
         query:
           type: "string"
           description: "The user query string"
-      equired:
+      required:
         - "agent"
         - "query"
     body:

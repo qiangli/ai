@@ -149,7 +149,7 @@ tools:
         content:
           type: "string"
           description: "Content to write"
-      required: 
+      required:
         - "path"
         - "content"
 
@@ -164,7 +164,7 @@ tools:
         destination:
           type: "string"
           description: "Destination path"
-      required: 
+      required:
         - "source"
         - "destination"
 
@@ -219,8 +219,14 @@ tools:
           description: "If true, replace all occurrences of the match. Default: true."
         regex:
           type: "boolean"
-          description: "If true, treat the find pattern as a regular expression. Default: false."
-      required: 
+          description: |
+            If true, treat the find pattern as a regular expression. Default: false.
+            Regular expression:
+            The syntax of the regular expressions accepted is the same general syntax used by Perl, Python, and other languages.
+            More precisely, it is the syntax accepted by RE2 and described at https://golang.org/s/re2syntax, except for \C. 
+            https://github.com/google/re2/wiki/Syntax
+            https://pkg.go.dev/regexp/syntax
+      required:
         - "path"
         - "find"
         - "replace"
