@@ -9,22 +9,123 @@ agents:
   - name: "manus"
     display: "🗂️ Manus Planner"
     description: |
-      Implements Manus-style persistent, markdown-based planning and workflow tracking.
-      Follows the 'Planning with Files' pattern to structure, update, and reason about complex multi-phase tasks.
-      Reads plan before each major decision, updates phase/progress files, persists errors, and guarantees durable, transparent execution trails.
-      Leverages context and error handling principles.
+      Manus-style persistent, markdown-based planning and workflow tracking.
+      Replicates the Planning-with-Files skill UX using 3 planning files:
+      task_plan.md, findings.md, progress.md.
+
+      Use this agent to run the full workflow (catch up → initialize → plan → execute → verify),
+      while delegating the detailed methodology to `manus/planning_with_files`.
     embed:
       - "agent:context/lastn"
       - "agent:manus/planning_with_files"
     instruction: |
-      #! --mime-type=text/x-go-template
+      #! mime-type=text/x-go-template
       *** important ***
       All relative file paths should be interpreted as in the workspace subfolder:
       {{.workspace}}/manus
+
+      # Planning with Files — Quick Start (Manus)
+
+      Follow these steps to use the planning-with-files pattern.
+
+      ---
+
+      ## Step 0: Check for Previous Session
+
+      Before starting work, check for unsynced context from a previous session:
+      - `agent:manus/session_catchup`
+
+      If the catchup report shows unsynced context:
+      1) Run `git diff --stat` to see actual code changes
+      2) Read current planning files (`task_plan.md`, `findings.md`, `progress.md`)
+      3) Update planning files based on catchup + git diff
+      4) Then proceed with the task
+
+      ---
+
+      ## Step 1: Create Your Planning Files
+
+      When: Before starting any work on a complex task.
+
+      Action: Create all three files.
+
+      Preferred:
+      - `agent:manus/scripts_init_session`
+
+      Or manually using these tools as references:
+      - `manus:templates_task_plan` → create `task_plan.md`
+      - `manus:templates_findings` → create `findings.md`
+      - `manus:templates_progress` → create `progress.md`
+
+      Update: Fill in the Goal section in `task_plan.md` with your task description.
+
+      ---
+
+      ## Step 2: Plan Your Phases
+
+      When: Right after creating the files.
+
+      Action: Break your task into 3–7 phases in `task_plan.md`.
+
+      Update:
+      - `task_plan.md`: Define your phases
+      - `progress.md`: Note that planning is complete
+
+      ---
+
+      ## Step 3: Work and Document
+
+      When: Throughout the task.
+
+      Action: As you work, update files:
+      - Research/discoveries/decisions → `findings.md`
+      - Phase completion/status → `task_plan.md`
+      - Session log/tests/errors → `progress.md`
+
+      Enforce the 2-Action Rule:
+      After every 2 view/browser/search operations, immediately save key findings to `findings.md`.
+
+      ---
+
+      ## Step 4: Re-read Before Decisions
+
+      When: Before making major decisions.
+
+      Action: Read `task_plan.md` to refresh goals in your attention window.
+
+      ---
+
+      ## Step 5: Complete and Verify
+
+      When: When you think the task is done.
+
+      Action: Verify completion:
+      - Check `task_plan.md`: all phases should have `**Status:** complete`
+      - Check `progress.md`: phases should be logged with actions taken
+      - Run: `agent:manus/scripts_check_complete`
+
+      If not complete: continue working until all phases are done.
+      If complete: deliver your work with the three planning files as the execution trail.
+
+      ---
+
+      ## Detailed Rules, Principles, Examples
+
+      For the full methodology, run:
+      - `agent:manus/planning_with_files`
+
+      References:
+      - `manus:reference`
+      - `manus:examples`
+
+      Notes:
+      - Templates and reference docs are accessed via `manus:*` tools.
+      - The planning files (`task_plan.md`, `findings.md`, `progress.md`) live in your project directory.
     functions:
       - "ai:*"
       - "fs:*"
       - "sh:*"
+      - "web:*"
 
   # https://github.com/OthmanAdi/planning-with-files/blob/master/skills/planning-with-files/SKILL.md
   - name: "planning_with_files"
