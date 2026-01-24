@@ -37,7 +37,7 @@ agents:
 
       Work like Manus: Use persistent markdown files as your "working memory on disk."
 
-      ## FIRST: Check for Previous Session (v2.2.0)
+      ## FIRST: Check for Previous Session
 
       **Before starting work**, check for unsynced context from a previous session:
 

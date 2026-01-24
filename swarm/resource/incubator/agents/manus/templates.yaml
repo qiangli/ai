@@ -1,8 +1,15 @@
 kit: "manus"
 tools:
-  - name: "findings"
+  - name: "templates_findings"
     description: "Findings"
-    parameters: {}
+    parameters:
+      type: "object"
+      properties:
+        output:
+          type: "string"
+          description: |
+            Specifies where the content will be sent. 
+            Default is the console. Use "file:/absolute/path" to save it to a file.
     type: "func"
     body:
       mime_type: "text/*"
@@ -103,9 +110,16 @@ tools:
         *Update this file after every 2 view/browser/search operations*
         *This prevents visual information from being lost*
 
-  - name: "progress"
+  - name: "templates_progress"
     description: "Progress"
-    parameters: {}
+    parameters:
+      type: "object"
+      properties:
+        output:
+          type: "string"
+          description: |
+            Specifies where the content will be sent. 
+            Default is the console. Use "file:/absolute/path" to save it to a file.
     type: "func"
     body:
       mime_type: "text/*"
@@ -225,10 +239,16 @@ tools:
         -->
         *Update after completing each phase or encountering errors*
 
-  
-  - name: "task_plan"
+  - name: "templates_task_plan"
     description: "Task Plan"
-    parameters: {}
+    parameters:
+      type: "object"
+      properties:
+        output:
+          type: "string"
+          description: |
+            Specifies where the content will be sent. 
+            Default is the console. Use "file:/absolute/path" to save it to a file.
     type: "func"
     body:
       mime_type: "text/*"
@@ -365,4 +385,3 @@ tools:
         - Update phase status as you progress: pending → in_progress → complete
         - Re-read this plan before major decisions (attention manipulation)
         - Log ALL errors - they help avoid repetition
-

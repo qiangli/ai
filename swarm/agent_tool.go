@@ -325,6 +325,11 @@ func (r *AgentToolRunner) callTool(ctx context.Context, tf *api.ToolFunc, args m
 			}
 			log.GetLogger(ctx).Infof("➡️ %s:%s @%s\n", tf.Kit, tf.Name, result.NextAgent)
 		} else {
+			output, _ := api.GetStrProp("output", args)
+			if output != "" {
+				out := r.output(output, result.Value)
+				result.Value = out
+			}
 			log.GetLogger(ctx).Infof("✔ %s:%s (%s)\n", tf.Kit, tf.Name, head(result.String(), 180))
 		}
 
@@ -405,4 +410,46 @@ func buildAgentToolMap(agent *api.Agent) map[string]*api.ToolFunc {
 		toolMap[v.ID()] = v
 	}
 	return toolMap
+}
+
+func (r *AgentToolRunner) output(output string, content string) string {
+	switch output {
+	case "none", "/dev/null":
+		return ""
+	case "console", "":
+		return content
+	default:
+		// uri
+		// [scheme:][//[userinfo@]host][/]path[?query][#fragment]
+		uri, err := url.Parse(output)
+		if err != nil {
+			return fmt.Sprintf("Invalid output scheme: %v", output)
+		}
+		// env:key
+		// scheme:opaque[?query][#fragment]
+		if uri.Scheme == "env" {
+			key := uri.Opaque
+			key = strings.ReplaceAll(key, "/", "__")
+			key = strings.ReplaceAll(key, ":", "__")
+			key = strings.ReplaceAll(key, "-", "_")
+			r.vars.Global.Set(key, content)
+			r.vars.OS.Setenv(key, content)
+			return fmt.Sprintf("env %q set", key)
+		}
+		//
+		// file:///path
+		// file:path
+		if uri.Scheme == "file" {
+			file := uri.Path
+			if file == "" {
+				file = uri.Opaque
+			}
+			err = r.vars.Workspace.WriteFile(file, []byte(content))
+			if err != nil {
+				return fmt.Sprintf("Failed to save: %q", file)
+			}
+			return fmt.Sprintf("File saved successfully: %s", file)
+		}
+	}
+	return fmt.Sprintf("Output scheme not supported: %s", output)
 }

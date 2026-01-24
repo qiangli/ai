@@ -1,0 +1,10 @@
+kit: "manus"
+tools:
+  - name: "scripts_check_complete"
+  # TODO base on scripts/check-complete.sh, implement in golang
+  
+  - name: "scripts_init_session"
+  # TODO base on scripts/init-sssin.sh, implement in golang
+
+  - name: "session_catchup"
+  # TODO base on session-catchup.py, implement in golang.
