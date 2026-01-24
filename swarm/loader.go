@@ -227,9 +227,15 @@ func (r *ConfigLoader) CreateTool(tid string) (*api.ToolFunc, error) {
 		if err != nil {
 			return nil, err
 		}
-		_, sub := pn.Decode()
-		v, err := conf.LoadAgentTool(ac, sub)
-		return v, err
+		pack, sub := pn.Decode()
+		v, err := conf.LoadAgentTool(ac, pack, sub)
+		if err != nil {
+			return nil, err
+		}
+		if len(v) != 1 {
+			return nil, fmt.Errorf("Error loading agent tool: %s/%s", pack, sub)
+		}
+		return v[0], err
 	} else {
 		// /kit:tool
 		tc, err := r.LoadToolConfig(kn)
@@ -523,12 +529,12 @@ func (r *ConfigLoader) loadAllAgentTools() ([]*api.ToolFunc, error) {
 	var funcs []*api.ToolFunc
 	for _, ac := range agents {
 		for _, sub := range ac.Agents {
-			v, err := conf.LoadAgentTool(ac, sub.Name)
+			v, err := conf.LoadAgentTool(ac, ac.Pack, sub.Name)
 			if err != nil {
 				// ignore error?
 				continue
 			}
-			funcs = append(funcs, v)
+			funcs = append(funcs, v...)
 		}
 	}
 	return funcs, nil

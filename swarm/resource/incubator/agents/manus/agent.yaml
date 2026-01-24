@@ -11,8 +11,7 @@ agents:
   - name: "manus"
     display: "🗂️ Manus Planner"
     description: |
-      Manus-style persistent, markdown-based planning and workflow tracking.
-      Replicates the Planning-with-Files skill UX using 3 planning files:
+      Manus-style persistent, markdown-based planning and workflow tracking using 3 planning files:
       task_plan.md, findings.md, progress.md.
 
       Use this agent to run the full workflow (catch up → initialize → plan → execute → verify),
@@ -22,147 +21,15 @@ agents:
       - "agent:manus/planning_with_files"
     arguments:
       models: "[manus/anthropic,manus/gemini,manus/openai,manus/xai]"
-    # instruction: |
-    #   #! mime-type=text/x-go-template
-    #   *** important ***
-    #   All relative file paths should be interpreted as in the workspace subfolder:
-    #   {{.workspace}}/manus
+    instruction: |
+      #! mime-type=text/x-go-template
+      *** important ***
+      All relative file paths should be interpreted as in the workspace subfolder:
+      {{.workspace}}/manus
 
-    #   # Planning with Files — Quick Start (Manus)
-
-    #   Follow these steps to use the planning-with-files pattern.
-
-    #   ---
-
-    #   ## Step 0: Check for Previous Session
-
-    #   Before starting work, check for unsynced context from a previous session:
-    #   - `agent:manus/session_catchup`
-
-    #   If the catchup report shows unsynced context:
-    #   1) Run `git diff --stat` to see actual code changes
-    #   2) Read current planning files (`task_plan.md`, `findings.md`, `progress.md`)
-    #   3) Update planning files based on catchup + git diff
-    #   4) Then proceed with the task
-
-    #   ---
-
-    #   ## Step 1: Create Your Planning Files
-
-    #   When: Before starting any work on a complex task.
-
-    #   Action: Create all three files.
-
-    #   Preferred:
-    #   - `agent:manus/scripts_init_session`
-
-    #   Or manually using these tools as references:
-    #   - `manus:templates_task_plan` → create `task_plan.md`
-    #   - `manus:templates_findings` → create `findings.md`
-    #   - `manus:templates_progress` → create `progress.md`
-
-    #   Update: Fill in the Goal section in `task_plan.md` with your task description.
-
-    #   ---
-
-    #   ## Step 2: Plan Your Phases
-
-    #   When: Right after creating the files.
-
-    #   Action: Break your task into 3–7 phases in `task_plan.md`.
-
-    #   Update:
-    #   - `task_plan.md`: Define your phases
-    #   - `progress.md`: Note that planning is complete
-
-    #   ---
-
-    #   ## Step 3: Work and Document
-
-    #   When: Throughout the task.
-
-    #   Action: As you work, update files:
-
-    #   | What Happens | Which File to Update | What to Add |
-    #   |--------------|---------------------|-------------|
-    #   | You research something | `findings.md` | Add to "Research Findings" |
-    #   | You view 2 browser/search results | `findings.md` | MUST update (2-Action Rule) |
-    #   | You make a technical decision | `findings.md` | Add to "Technical Decisions" with rationale |
-    #   | You complete a phase | `task_plan.md` | Change status: `in_progress` → `complete` |
-    #   | You complete a phase | `progress.md` | Log actions taken, files modified |
-    #   | An error occurs | `task_plan.md` | Add to "Errors Encountered" table |
-    #   | An error occurs | `progress.md` | Add to "Error Log" with timestamp |
-
-    #   Example workflow:
-    #   1. Research → Update findings.md
-    #   2. Research → Update findings.md (2nd time - MUST update now!)
-    #   3. Make decision → Update findings.md "Technical Decisions"
-    #   4. Implement code → Update progress.md "Actions taken"
-    #   5. Complete phase → Update task_plan.md status to "complete"
-    #   6. Complete phase → Update progress.md with phase summary
-
-    #   ---
-
-    #   ## Step 4: Re-read Before Decisions
-
-    #   When: Before making major decisions.
-
-    #   Action:
-    #   - Before *any* tool call that could change state (write/edit/delete files, run shell commands, spawn agents), first read `task_plan.md`.
-    #   - Confirm to yourself: (a) current goal, (b) current phase, (c) next planned step.
-    #   - If your next action does not match the plan, update `task_plan.md` (phases/decisions) before proceeding.
-
-    #   Why: After many actions, original goals can be forgotten. Re-reading restores them into your attention window.
-
-    #   ---
-
-    #   ## Step 5: Complete and Verify
-
-    #   When: When you think the task is done.
-
-    #   Action: Verify completion:
-
-    #   1. Check `task_plan.md`: All phases should have `**Status:** complete`
-    #   2. Check `progress.md`: All phases should be logged with actions taken
-    #   3. Run completion check:
-    #      - `agent:manus/scripts_check_complete`
-
-    #   If not complete: Do not stop. Continue working until all phases are done, then re-run the completion check.
-
-    #   If complete: Deliver your work! All three planning files document your process.
-
-    #   ---
-
-    #   ## Quick Reference: When to Update Which File
-
-    #   - `task_plan.md`: starting task; completing a phase; making a major decision; encountering an error; re-reading before decisions (simulate by re-reading before state-changing actions)
-    #   - `findings.md`: discoveries/research; after 2 view/browser/search operations (2-Action Rule); technical decisions; useful resources; viewing images/PDFs (capture as text immediately)
-    #   - `progress.md`: starting/completing a phase; running tests; encountering errors; resuming after a break (5-Question Check)
-
-    #   ---
-
-    #   ## Common Mistakes to Avoid
-
-    #   - Don't start work without creating `task_plan.md` (create plan file first)
-    #   - Don't forget to update `findings.md` after 2 browser operations (2-Action Rule)
-    #   - Don't skip logging errors (log all errors, even quick fixes)
-    #   - Don't repeat the same failed action (log it, then try a different approach)
-    #   - Don't update only one file (the three files work together)
-
-    #   ---
-
-    #   ## Detailed Rules, Principles, Examples
-
-    #   For the full methodology, run:
-    #   - `agent:manus/planning_with_files`
-
-    #   References:
-    #   - `manus:reference`
-    #   - `manus:examples`
-
-    #   Notes:
-    #   - Templates and reference docs are accessed via `manus:*` tools.
-    #   - The planning files (`task_plan.md`, `findings.md`, `progress.md`) live in your project directory.
+      Notes:
+      - Templates, scripts, examples, and reference docs are accessed via `manus:*` tools.
+      - The planning files (`task_plan.md`, `findings.md`, `progress.md`) live in your project directory.
     functions:
       - "ai:*"
       - "fs:*"
@@ -176,8 +43,6 @@ agents:
       Implements Manus-style file-based planning for complex tasks. Creates task_plan.md, findings.md, and progress.md.
       Use when starting complex multi-step tasks, research projects, or any task requiring >5 tool calls.
       Now with automatic session recovery after clear.
-    arguments:
-      models: "[manus/anthropic,manus/gemini,manus/openai,manus/xai]"
     instruction: |
       # Planning with Files
 
@@ -221,7 +86,7 @@ agents:
       4. **Re-read plan before decisions** — Refreshes goals in attention window
       5. **Update after each phase** — Mark complete, log errors
 
-      > **Note:** Planning files go in your project root, not the skill installation folder.
+      > **Note:** Planning files go in your project root, not the agent installation folder.
 
       ## The Core Pattern
 
@@ -350,8 +215,8 @@ agents:
 
       Helper automations are available as pure YAML agents:
 
-      - `agent:manus/scripts_init_session` — Initialize all planning files
-      - `agent:manus/scripts_check_complete` — Verify all phases complete
+      - `agent:manus/init_session` — Initialize all planning files
+      - `agent:manus/check_complete` — Verify all phases complete
       - `agent:manus/session_catchup` — Recover context from previous session
 
       ## Advanced Topics
@@ -369,7 +234,11 @@ agents:
       | Stuff everything in context | Store large content in files |
       | Start executing immediately | Create plan file FIRST |
       | Repeat failed actions | Track attempts, mutate approach |
-      | Create files in skill directory | Create files in your project |
+      | Create files in agent directory | Create files in your project |
     functions:
       - "fs:*"
+      - "manus:*"
+      - "agent:manus/*"
+      # - "agent:manus/init_session"
+      # - "agent:manus/check_complete"
 ###

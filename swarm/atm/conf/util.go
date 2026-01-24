@@ -25,14 +25,14 @@ func split2(s string, sep string, val string) (string, string) {
 }
 
 func filterTool(tools []*api.ToolFunc, kit, name string) []*api.ToolFunc {
-	// return true if a is blank, star, or a/b are equal
+	// return true if s is star or a/b are equal
 	eq := func(s, n string) bool {
-		return s == "" || s == "*" || s == n
+		return s == "*" || s == n
 	}
 
 	var filtered []*api.ToolFunc
 	for _, v := range tools {
-		if eq(kit, v.Kit) && eq(name, v.Name) {
+		if kit == v.Kit && eq(name, v.Name) {
 			filtered = append(filtered, v)
 		}
 	}

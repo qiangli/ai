@@ -50,11 +50,12 @@ func (r *AgentToolRunner) loadYaml(tid string, base string, script string) (*api
 		ac.BaseDir = base
 		for _, v := range ac.Agents {
 			if (sub == "" && v.Name == pack) || sub == v.Name {
-				v, err := conf.LoadAgentTool(ac, v.Name)
-				if err == nil {
-					v.Config = ac
-					return v, nil
+				v, err := conf.LoadAgentTool(ac, pack, v.Name)
+				if err == nil && len(v) == 1 {
+					v[0].Config = ac
+					return v[0], nil
 				}
+				return nil, fmt.Errorf("Error loading %s/%s", pack, sub)
 			}
 		}
 	} else {

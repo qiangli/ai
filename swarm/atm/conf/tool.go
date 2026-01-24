@@ -54,14 +54,14 @@ func LoadToolFunc(owner, s string, secrets api.SecretStore, assets api.AssetMana
 		if err != nil {
 			return nil, err
 		}
-		v, err := LoadAgentTool(ac, sub)
+		v, err := LoadAgentTool(ac, pack, sub)
 		if err != nil {
 			return nil, err
 		}
-		if v == nil {
+		if len(v) == 0 {
 			return nil, fmt.Errorf("agent tool not found: %s", name)
 		}
-		return []*api.ToolFunc{v}, nil
+		return v, nil
 	}
 
 	//
@@ -102,20 +102,27 @@ func LoadLocalToolFunc(local *api.AppConfig, owner, s string, secrets api.Secret
 	// any agent can be used as a tool
 	// agent:<agent name>
 	if kit == string(api.ToolTypeAgent) {
-		_, sub := api.Packname(name).Decode()
-
+		pack, sub := api.Packname(name).Decode()
+		v, err := LoadAgentTool(local, pack, sub)
+		if err != nil {
+			return nil, err
+		}
+		if len(v) == 0 {
+			return nil, fmt.Errorf("agent tool not found: %s", name)
+		}
+		return v, nil
 		// if pack == local.Pack {
 		// 	return nil, fmt.Errorf("recursion not supported: %s", name)
 		// }
-		for _, v := range local.Agents {
-			if sub == v.Name {
-				v, err := LoadAgentTool(local, sub)
-				if err != nil {
-					return nil, err
-				}
-				return []*api.ToolFunc{v}, nil
-			}
-		}
+		// for _, v := range local.Agents {
+		// 	if sub == v.Name {
+		// 		v, err := LoadAgentTool(local, pack, sub)
+		// 		if err != nil {
+		// 			return nil, err
+		// 		}
+		// 		return v, nil
+		// 	}
+		// }
 	}
 
 	// if kit refers to a kit in the same local config as the agents.
@@ -137,6 +144,7 @@ func LoadLocalToolFunc(local *api.AppConfig, owner, s string, secrets api.Secret
 	}
 
 	if tc != nil {
+		// TODO filter in LoadTools
 		v, err := LoadTools(tc, owner, secrets)
 		if err != nil {
 			return nil, err
@@ -307,12 +315,13 @@ func LoadTools(tc *api.AppConfig, owner string, secrets api.SecretStore) ([]*api
 	return tools, nil
 }
 
-func LoadAgentTool(ac *api.AppConfig, sub string) (*api.ToolFunc, error) {
+func LoadAgentTool(ac *api.AppConfig, pack, sub string) ([]*api.ToolFunc, error) {
 	if ac == nil {
-		return nil, fmt.Errorf("nil config: %s", sub)
+		return nil, fmt.Errorf("nil config: %s/%s", pack, sub)
 	}
+	var tools []*api.ToolFunc
 	for _, c := range ac.Agents {
-		if c.Name == sub {
+		if sub == "*" || sub == c.Name {
 			var params = map[string]any{}
 
 			maps.Copy(params, c.Parameters)
@@ -358,11 +367,11 @@ func LoadAgentTool(ac *api.AppConfig, sub string) (*api.ToolFunc, error) {
 				Config: ac,
 			}
 
-			return tool, nil
+			tools = append(tools, tool)
 		}
 	}
 
-	return nil, nil
+	return tools, nil
 }
 
 func listToolkitATM(owner string, as api.ATMSupport, kits map[string]*api.AppConfig) error {

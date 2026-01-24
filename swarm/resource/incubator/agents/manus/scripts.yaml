@@ -1,4 +1,4 @@
-#!/usr/bin/env ai /agent:manus/scripts_init_session --script
+#!/usr/bin/env ai /agent:manus/init_session --script
 
 # https://github.com/OthmanAdi/planning-with-files
 # - /scripts/init-session.sh
@@ -8,7 +8,7 @@
 ###
 pack: "manus"
 agents:
-  - name: "scripts_init_session"
+  - name: "init_session"
     display: "🧩 Manus: Init Session (files)"
     description: |
       Creates planning files in the current working directory if missing:
@@ -164,7 +164,7 @@ agents:
       Return value:
       - Your final assistant message should contain ONLY the output log string.
 
-  - name: "scripts_check_complete"
+  - name: "check_complete"
     display: "✅ Manus: Check Complete"
     description: |
       Reads a task_plan.md (default task_plan.md) and prints the same completion summary.
