@@ -218,14 +218,6 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, parent *api.Age
 	}
 
 	agent.Tools = list
-	// args["tools"] = list
-
-	// // set args only if not provided in the input args.
-	// for k, v := range agentArgs {
-	// 	if _, ok := args[k]; !ok {
-	// 		args[k] = v
-	// 	}
-	// }
 
 	// NOTE: local args takes precedence
 	maps.Copy(args, agentArgs)

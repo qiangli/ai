@@ -87,7 +87,7 @@ env
 # 	"return", "read", "mapfile", "readarray", "shopt",
 # 
 
-$(exec "/bin/ls -al")
+$(exec "/bin/ls -al /tmp")
 
 # // internal commands
 # 	"base64", "basename", "cat", "chmod", "cp", "date", "dirname", "find", "gzip", "head", "ls", "mkdir",
@@ -103,8 +103,8 @@ dirname $PWD
 find ./test -name agent.sh
 # # gzip
 head -n 3 test/agent.sh
-ls -ahdlQRFS ./test
 mkdir -p /tmp/test
+ls -ahdlQRFS /tmp/test
 mktemp mk-temp-test
 touch /tmp/test/hi
 mv /tmp/test/hi /tmp/test/hello

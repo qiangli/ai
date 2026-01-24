@@ -2,9 +2,9 @@
 # set -ue
 ls
 
-/bin/ls
+/bin/ls -al /tmp
 
-bin/ls
+bin/ls -al /tmp
 
 # // | fromJson | toPrettyJson
 template='data:,

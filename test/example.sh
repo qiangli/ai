@@ -40,7 +40,7 @@ function loop() {
 loop 1 2 3 4
 
 ### exec
-$(exec "/bin/ls -al")
+$(exec "/bin/ls -al /tmp")
 
 ### system commands (limited support)
 # "base64", "basename", "cat", "date", "dirname", "head", "ls",
@@ -50,12 +50,12 @@ FILE="/tmp/test.txt"
 touch $FILE
 #
 base64 $FILE
-basename $PWD 
+basename $FILE 
 cat $FILE
 date
-dirname $PWD 
+dirname $FILE 
 head -n 3 $FILE
-ls -ahdlQRFS $PWD
+ls -ahdlQRFS $FILE
 shasum $FILE
 sleep 1s
 tail -n 3 $FILE

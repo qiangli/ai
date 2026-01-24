@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"maps"
+	// "maps"
 	"math/rand"
 	"os"
 	"sort"
@@ -309,18 +309,11 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	})
 
 	// call LLM
-	//
 	agent.Prompt = prompt
 	agent.History = history
 	agent.Query = query
-
+	//
 	agent.Tools = tools
-	// copy: agent.Arguments = args
-	if agent.Arguments == nil {
-		agent.Arguments = args
-	} else {
-		maps.Copy(agent.Arguments, args)
-	}
 	agent.Models = models
 
 	var result *api.Result
@@ -340,13 +333,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 
 		sender = model.Provider
 		//
-		// llmAdapter, err := r.getAdapter(agent, args)
-		// if err != nil {
-		// 	return nil, err
-		// }
-		// resp, respErr = llmAdapter.Call(ctx, req)
 		result, respErr = r.LlmAdapter(ctx, vars, agent, tf, args)
-
 		if respErr == nil && result != nil {
 			break
 		}
@@ -442,9 +429,12 @@ func (r *AIKit) LlmAdapter(ctx context.Context, vars *api.Vars, agent *api.Agent
 	req.Prompt = agent.Prompt
 	req.Messages = agent.History
 	//
-	req.Arguments = agent.Arguments
+	req.Arguments = args
+
 	req.Tools = agent.Tools
 	req.Runner = agent.Runner
+
+	req.Model = agent.Model
 
 	token, err := getToken(agent.Model)
 	if err != nil {

@@ -24,7 +24,7 @@ echo ">>> Testing timeout..."
 # /sh:timeout --command "/alias:x --option x='sleep 3'" --option duration="10s"
 
 /sh:timeout --command "/sh:exec --command 'pwd'" --option duration="10s"
-/sh:timeout --option action="/alias:list_roots" --option list_roots="/sh:exec --command 'ls /'" --option duration="3s"
+/sh:timeout --option action="/alias:list_roots" --option list_roots="/sh:exec --command 'ls /tmp'" --option duration="3s"
 
 echo "*** 🎉 timeout test completed ***"
 ###
