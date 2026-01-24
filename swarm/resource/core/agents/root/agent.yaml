@@ -4,7 +4,7 @@ max_time: 300
 max_turns: 15
 agents:
   - name: "root"
-    display: "Ⓡ root"
+    display: "Ⓡ Root"
     description: "Ancestor of all agents"
     model: "root/any"
     arguments:

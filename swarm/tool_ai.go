@@ -784,6 +784,8 @@ func (r *AIKit) ListMessages(ctx context.Context, vars *api.Vars, _ *api.Agent, 
 		b.WriteString(v.Content)
 		b.WriteString("\n  CREATED:\n")
 		b.WriteString(fmt.Sprintf("%v", v.Created))
+		b.WriteString("\n  AGENT:\n")
+		b.WriteString(fmt.Sprintf("%v", v.Agent))
 		b.WriteString("\n\n")
 	}
 	var v = fmt.Sprintf("Messages (%s): %v\n\n%s\n", option, count, b.String())
