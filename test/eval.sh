@@ -53,24 +53,9 @@ message="Top open source github repo for comamnd line parsing in golang"
 # agent="web/search"
 # agent="web/react"
 
-# /flow:sequence \
-#     --agent "$agent" \
-#     --actions "[ai:spawn_agent,sh:format]" \
-#     --adapter "echo" \
-#     --template "$template" \
-#     --script "$script" \
-#     --message "$message"
-
 # tool="ralph:write_template_agent"
 tool="ralph:write_template_fix_plan"
 # tool="ralph:write_template_prompt"
-
-# /flow:sequence \
-#     --tool "$tool" \
-#     --actions "[ai:read_tool_config,sh:format]" \
-#     --adapter "echo" \
-#     --template "$template" \
-#     --script "$script"
 
 /$tool  --script "$script" --base_dir=/tmp/test/xxx 
 

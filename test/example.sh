@@ -70,7 +70,7 @@ time touch $FILE
 # use "chat" or other adapters for real LLM  call.
 # default is "chat" if not specified
 # "echo" adapter is for testing only which echoes the request.
-/agent:root/root --adapter "echo" --query "Hello"
+/agent:root/root --adapter "echo" --output none --query "Hello"
 
 ## system command
 /sh:exec --command "ls -al /tmp"

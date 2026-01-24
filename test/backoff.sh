@@ -10,7 +10,7 @@ echo ">>> Testing backoff..."
 # tool action
 /sh:backoff --command "/fs:list_roots"  --option duration="10s"
 # agent action
-/sh:backoff --command "/agent:ed/ed --adapter echo"  --option duration="10s"
+/sh:backoff --command "/agent:ed/ed --adapter echo --output none"  --option duration="10s"
 # flow:choice
 /sh:backoff --command "/flow:choice --actions '[sh:pass,invalid_action,kit:invalid_tool]'"  --duration "15s"
 #

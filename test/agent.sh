@@ -26,7 +26,7 @@ actions="[ai:read_agent_config,ai:new_agent,ai:build_query,ai:build_prompt,ai:bu
 for agent in "${agents[@]}"
 do
   echo "$agent"
-  /flow:sequence  --actions "$actions" --agent "$agent" --adapter "$adapter" --template "$template" --message "hello"  $@
+  /flow:sequence  --actions "$actions" --agent "$agent" --adapter "$adapter" --output none --template "$template" --message "hello"  $@
 done
 
 echo "$?"

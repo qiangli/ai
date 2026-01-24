@@ -14,7 +14,7 @@ $BASE/test/bash-ext.sh
 $BASE/test/flow.sh
 
 ##
-adapter="--adapter echo"
+adapter="--adapter echo --output none"
 #$BASE/sb.json.sh
 $BASE/test/sb.md $adapter
 $BASE/test/sb.sh $adapter
@@ -29,7 +29,7 @@ $BASE/test/chain.sh
 
 $BASE/test/agent.sh
 
-$BASE/test/std.sh
+$BASE/test/std.sh || exit 1
 $BASE/test/fs.sh
 
 $BASE/test/env.sh

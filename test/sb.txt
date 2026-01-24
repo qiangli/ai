@@ -1,3 +1,3 @@
-#!/usr/bin/env ai /ai:call_llm --adapter echo --verbose --option tools=["web:fetch_content","web:ddg_search"] --script
+#!/usr/bin/env ai /ai:call_llm --adapter echo --output none --verbose --option tools=["web:fetch_content","web:ddg_search"] --script
 What is the SOTA - start of the art technology for LLM memory.
 Use web tools to find the latest trend.

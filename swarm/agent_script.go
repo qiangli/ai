@@ -147,6 +147,8 @@ func (r *AgentScriptRunner) run(ctx context.Context, vs *sh.VirtualSystem, args 
 	}
 	if err != nil {
 		fmt.Fprintln(vs.IOE.Stderr, err.Error())
+		// check set -e
+		vs.System.Exit(1)
 		return nil, err
 	}
 	return result, nil

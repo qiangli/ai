@@ -37,7 +37,7 @@ tools=(
 )
 
 for tool in "${tools[@]}"; do
-  /$tool --option adapter="echo"\
+  /$tool --option adapter="echo" --output none \
       --option echo__${tool//:/__}="$tool ok"\
       --option query="what is up?" \
       --option agent="ed/ed" \
@@ -120,8 +120,8 @@ agents=(
 )
 
 for agent in "${agents[@]}"; do
-  /agent:$agent --option adapter="echo"\
-      --option echo__agent__${agent//\//__}="$agent ok"\
+  /agent:${agent} --option adapter="echo" --output none \
+      --option echo__agent__${agent//\//__}="$agent ok" \
       --option query="what is up?"
 done
 

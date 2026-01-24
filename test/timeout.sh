@@ -5,7 +5,7 @@ echo ">> Testing timer..."
 
 time /sh:exec --command "sleep 2"
 time /sh:bash --script "data:,sleep 2"
-time /agent:joker --message "explain timeout in a unix system" --adapter "echo"
+time /agent:joker --message "explain timeout in a unix system" --adapter "echo" --output none
 
 echo ">>> Testing timeout..."
 
