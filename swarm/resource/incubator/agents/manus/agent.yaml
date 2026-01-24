@@ -20,6 +20,8 @@ agents:
     embed:
       - "agent:context/lastn"
       - "agent:manus/planning_with_files"
+    arguments:
+      models: "[manus/anthropic,manus/gemini,manus/openai,manus/xai]"
     instruction: |
       #! mime-type=text/x-go-template
       *** important ***
@@ -174,6 +176,8 @@ agents:
       Implements Manus-style file-based planning for complex tasks. Creates task_plan.md, findings.md, and progress.md.
       Use when starting complex multi-step tasks, research projects, or any task requiring >5 tool calls.
       Now with automatic session recovery after clear.
+    arguments:
+      models: "[manus/anthropic,manus/gemini,manus/openai,manus/xai]"
     instruction: |
       # Planning with Files
 
@@ -359,11 +363,13 @@ agents:
 
       | Don't | Do Instead |
       |-------|------------|
-      | Use TodoWrite for persistence | Create task_plan.md file |
+      | Use file for persistence | Create task_plan.md file |
       | State goals once and forget | Re-read plan before decisions |
       | Hide errors and retry silently | Log errors to plan file |
       | Stuff everything in context | Store large content in files |
       | Start executing immediately | Create plan file FIRST |
       | Repeat failed actions | Track attempts, mutate approach |
       | Create files in skill directory | Create files in your project |
+    functions:
+      - "fs:*"
 ###
