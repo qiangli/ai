@@ -43,7 +43,7 @@ env input="<redated>"
 /flow:sequence \
     --agent "test/test" \
     --actions "[ai:spawn_agent,sh:format]" \
-    --adapter "echo" --output none \
+    --adapter "echo" \
     --template "$template" \
     --script "$script" \
     --option output="file:/tmp/test.txt"

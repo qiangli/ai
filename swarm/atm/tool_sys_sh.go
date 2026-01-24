@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
-	"net/url"
+	// "net/url"
 	"strings"
 
 	"github.com/cenkalti/backoff/v4"
@@ -122,7 +122,7 @@ func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, arg
 		tpl = resource.FormatFile(format)
 	}
 	//
-	output, _ := api.GetStrProp("output", args)
+	// output, _ := api.GetStrProp("output", args)
 
 	//
 	data := BuildEffectiveArgs(vars, nil, args)
@@ -132,48 +132,49 @@ func (r *SystemKit) Format(ctx context.Context, vars *api.Vars, name string, arg
 		return "", err
 	}
 
-	// tee output
-	switch output {
-	case "none", "/dev/null":
-		return "", nil
-	case "console", "":
-		fmt.Printf("%s", txt)
-		return txt, nil
-	default:
-		// uri
-		// [scheme:][//[userinfo@]host][/]path[?query][#fragment]
-		uri, err := url.Parse(output)
-		if err != nil {
-			return "", err
-		}
-		// env:key
-		// scheme:opaque[?query][#fragment]
-		if uri.Scheme == "env" {
-			key := uri.Opaque
-			key = strings.ReplaceAll(key, "/", "__")
-			key = strings.ReplaceAll(key, ":", "__")
-			key = strings.ReplaceAll(key, "-", "_")
-			vars.Global.Set(key, txt)
-			vars.OS.Setenv(key, txt)
-			return "", nil
-		}
-		//
-		// file:///path
-		// file:path
-		if uri.Scheme == "file" {
-			file := uri.Path
-			if file == "" {
-				file = uri.Opaque
-			}
-			err = vars.Workspace.WriteFile(file, []byte(txt))
-			if err != nil {
-				return "", err
-			}
-			return "", nil
-		}
-		//
-		return "", fmt.Errorf("output scheme not supported: %q.", uri.Scheme)
-	}
+	// // tee output
+	// switch output {
+	// case "none", "/dev/null":
+	// 	return "", nil
+	// case "console", "":
+	// 	fmt.Printf("%s", txt)
+	// 	return txt, nil
+	// default:
+	// 	// uri
+	// 	// [scheme:][//[userinfo@]host][/]path[?query][#fragment]
+	// 	uri, err := url.Parse(output)
+	// 	if err != nil {
+	// 		return "", err
+	// 	}
+	// 	// env:key
+	// 	// scheme:opaque[?query][#fragment]
+	// 	if uri.Scheme == "env" {
+	// 		key := uri.Opaque
+	// 		key = strings.ReplaceAll(key, "/", "__")
+	// 		key = strings.ReplaceAll(key, ":", "__")
+	// 		key = strings.ReplaceAll(key, "-", "_")
+	// 		vars.Global.Set(key, txt)
+	// 		vars.OS.Setenv(key, txt)
+	// 		return "", nil
+	// 	}
+	// 	//
+	// 	// file:///path
+	// 	// file:path
+	// 	if uri.Scheme == "file" {
+	// 		file := uri.Path
+	// 		if file == "" {
+	// 			file = uri.Opaque
+	// 		}
+	// 		err = vars.Workspace.WriteFile(file, []byte(txt))
+	// 		if err != nil {
+	// 			return "", err
+	// 		}
+	// 		return "", nil
+	// 	}
+	// 	//
+	// 	return "", fmt.Errorf("output scheme not supported: %q.", uri.Scheme)
+	// }
+	return txt, nil
 }
 
 // Run a command and kill it if it runs more than a specified duration

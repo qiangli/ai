@@ -120,7 +120,7 @@
 				// "install"
 				// 
 				// "test/eval.sh",
-				// "test/test.sh",
+				"test/test.sh",
 				// "test/std.sh",
 				// "test/yaml-wrap.sh",
 				// "swarm/resource/template/atm.yaml",
@@ -259,7 +259,7 @@
 				// "swarm/resource/incubator/agents/ralph/agent.yaml"
 				//
 				// "@manus/planning_with_files",
-				"@ask/ask",
+				// "@ask/ask",
 				// 
 				// "/ai:sleep",
 				// "--duration",
