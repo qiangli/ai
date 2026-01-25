@@ -184,7 +184,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	// json array
 	if v, found := args["models"]; found {
 		switch vt := v.(type) {
-		case string:
+		case string, []any:
 			aliases := api.ToStringArray(vt)
 			v, err := resolveModels(aliases)
 			if err != nil {
@@ -197,12 +197,14 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 				return nil, err
 			}
 			models = v
+		default:
+			return nil, fmt.Errorf("invalid models format: %+v.", v)
 		}
 	} else if v, found := args["model"]; found {
 		switch vt := v.(type) {
 		case *api.Model:
 			models = []*api.Model{vt}
-		case string:
+		case string, []any:
 			aliases := api.ToStringArray(vt)
 			v, err := resolveModels(aliases)
 			if err != nil {
@@ -215,6 +217,8 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 				return nil, err
 			}
 			models = v
+		default:
+			return nil, fmt.Errorf("invalid model format: %+v.", v)
 		}
 	}
 

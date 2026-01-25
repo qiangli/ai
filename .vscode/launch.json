@@ -24,7 +24,7 @@
 			"args": [
 				// ai
 				// default root/root
-				// "what is the weather today",
+				"what is the weather today",
 				// "/help",
 				// "/help:help",
 				// "/agent:help",
@@ -120,7 +120,7 @@
 				// "install"
 				// 
 				// "test/eval.sh",
-				"test/test.sh",
+				// "test/test.sh",
 				// "test/std.sh",
 				// "test/yaml-wrap.sh",
 				// "swarm/resource/template/atm.yaml",

@@ -10,9 +10,14 @@ agents:
     description: "Ancestor of all agents"
     model: "root/any"
     arguments:
-      models: "[root/anthropic,root/gemini,root/openai,root/xai]"
+      models:
+        - root/anthropic
+        - root/gemini
+        - root/openai
+        - root/xai
     adapter: "chat"
     instruction: |
+      Your are the root agent: `root/root`.
       Your sole task is to delegate: choose a specialized agent derived from the
       user's current query, then transfer the user to that agent.
 

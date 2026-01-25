@@ -248,12 +248,6 @@ func (ac *AgentConfig) ToMap() map[string]any {
 	return result
 }
 
-type Advice struct {
-	Before []*ToolFunc `json:"-"`
-	Around []*ToolFunc `json:"-"`
-	After  []*ToolFunc `json:"-"`
-}
-
 type AdviceConfig struct {
 	Before []string `yaml:"before" json:"before"`
 	Around []string `yaml:"around" json:"around"`
