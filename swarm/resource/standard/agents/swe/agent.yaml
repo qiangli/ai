@@ -1,0 +1,7 @@
+###
+pack: "swe"
+agents:
+  - name: "swe"
+    display: "🤖 Software Engineer"
+    description: |
+      Act as an expert software developer, analyze the input and choose the optimal strategy from a list of coding agents based on context and user needs.

@@ -1,0 +1,4 @@
+###
+pack: "code"
+agents:
+  - name: "architect"

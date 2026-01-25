@@ -1,0 +1,3 @@
+pack: "code"
+agents:
+  - name: "clarify"
