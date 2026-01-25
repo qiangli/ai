@@ -2,6 +2,10 @@
 # Models (local to this pack)
 # Keep L1/L2/L3 aligned across providers.
 #
+# This file provides multiple provider model *sets* (multi-document YAML). Each document
+# contains a provider's mapping for L1/L2/L3. Replace placeholder model IDs with actual
+# IDs for your account/provider.
+#
 # Docs:
 # - OpenAI models: https://platform.openai.com/docs/models
 # - Anthropic models: https://docs.anthropic.com/en/docs/about-claude/models
@@ -15,22 +19,64 @@ set: "swe"
 models:
   # L1: low cost, fast routing/triage
   L1:
-    model: "gpt-5-nano"  # low cost; fast for routing + small tasks
+    model: "gpt-5-nano"
     provider: "openai"
     base_url: "https://api.openai.com/v1/"
     api_key: "openai"
     description: "low cost; fast routing/triage, short answers"
   # L2: mid cost, general SWE reasoning + coding
   L2:
-    model: "gpt-5-mini"  # mid cost; good general coding + reasoning
+    model: "gpt-5-mini"
     provider: "openai"
     base_url: "https://api.openai.com/v1/"
     api_key: "openai"
     description: "mid cost; general software engineering, planning + coding"
   # L3: higher quality for architecture / hard debugging
   L3:
-    model: "gpt-5.2"     # high cost; stronger reasoning for architecture
+    model: "gpt-5.2"
     provider: "openai"
     base_url: "https://api.openai.com/v1/"
     api_key: "openai"
     description: "high cost; architecture, complex debugging, multi-step plans"
+---
+set: "swe"
+models:
+  L1:
+    model: "placeholder-anthropic-l1"
+    provider: "anthropic"
+    base_url: "https://api.anthropic.com/"
+    api_key: "anthropic"
+    description: "low cost; fast routing/triage, short answers (Anthropic)"
+  L2:
+    model: "placeholder-anthropic-l2"
+    provider: "anthropic"
+    base_url: "https://api.anthropic.com/"
+    api_key: "anthropic"
+    description: "mid cost; general software engineering, planning + coding (Anthropic)"
+  L3:
+    model: "placeholder-anthropic-l3"
+    provider: "anthropic"
+    base_url: "https://api.anthropic.com/"
+    api_key: "anthropic"
+    description: "high cost; architecture, complex debugging, multi-step plans (Anthropic)"
+---
+set: "swe"
+models:
+  L1:
+    model: "placeholder-gemini-l1"
+    provider: "google"
+    base_url: "https://api.generativeai.googleapis.com/"
+    api_key: "google"
+    description: "low cost; fast routing/triage, short answers (Gemini)"
+  L2:
+    model: "placeholder-gemini-l2"
+    provider: "google"
+    base_url: "https://api.generativeai.googleapis.com/"
+    api_key: "google"
+    description: "mid cost; general software engineering, planning + coding (Gemini)"
+  L3:
+    model: "placeholder-gemini-l3"
+    provider: "google"
+    base_url: "https://api.generativeai.googleapis.com/"
+    api_key: "google"
+    description: "high cost; architecture, complex debugging, multi-step plans (Gemini)"

@@ -76,7 +76,8 @@ agents:
          - call agent:swe/vibe.
 
       Hard requirements:
-      - If you call a sub-agent, call EXACTLY ONE and then return its response verbatim.
+      - If you call a sub-agent, call EXACTLY ONE.
+      - You MUST rewrite the query before delegating (see Delegation requirements below) and include any defaults/assumptions.
       - Only ask clarification when truly necessary; prefer reasonable defaults.
       - Prefer minimal, safe changes. Avoid big rewrites unless asked.
 
@@ -87,15 +88,13 @@ agents:
           (a) restates the user's intent in your own words,
           (b) includes any defaults/assumptions you are making,
           (c) includes any concrete deliverable format constraints.
-        - In your final response, you MUST include:
+        - In your final response, you MUST include a standard summary that contains:
           - "Chosen agent: <name>" and a 1-2 sentence reason.
+          - The rewritten/delegated query that was passed to the sub-agent.
           - If you significantly rewrote the query before delegating: briefly describe what key points were rewritten.
       - If you answer directly, still include a 1-sentence reason for not delegating.
     functions:
-      - "fs:*"
-      - "sh:*"
       - "ai:*"
-      - "web:*"
       - "agent:swe/quick"
       - "agent:swe/ask"
       - "agent:swe/clarify"
