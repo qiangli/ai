@@ -9,7 +9,7 @@ agents:
       Provides concise and reliable answers across diverse topics,
       ranging from local system intricacies to comprehensive web-based information,
       ensuring clarity and accuracy.
-    model: "default/any"
+    model: "ask/L1"
     embed:
       - "agent:meta/workspace"
     instruction: |
@@ -72,13 +72,4 @@ agents:
       - "sh:*"
       - "agent:memory/fold"
       - "agent:memory/memory"
-
-###
-set: "default"
-models:
-  any:
-    model: "gpt-5-nano"
-    provider: "openai"
-    base_url: "https://api.openai.com/v1/"
-    api_key: "openai"
 ###
