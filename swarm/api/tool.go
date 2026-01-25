@@ -68,6 +68,9 @@ type ToolFunc struct {
 	// default arguments
 	Arguments map[string]any `json:"arguments"`
 
+	// // Input  string `json:"input"`
+	// Output string `json:"output"`
+
 	//
 	Config *AppConfig `json:"-"`
 }
@@ -89,6 +92,8 @@ type ToolConfig struct {
 	Parameters Parameters `yaml:"parameters" json:"parameters"`
 
 	Body *FuncBody `yaml:"body" json:"body"`
+
+	Output string `yaml:"output" json:"output"`
 
 	//
 	Provider string `yaml:"provider" json:"provider"`

@@ -41,12 +41,11 @@ env workspace="<redacted>"
 env input="<redated>"
 
 /flow:sequence \
-    --agent "test/test" \
     --actions "[ai:spawn_agent,sh:format]" \
+    --agent "test/test" \
     --adapter "echo" \
     --template "$template" \
-    --script "$script" \
-    --option output="file:/tmp/test.txt"
+    --script "$script"
 
 ###
 
