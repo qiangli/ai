@@ -34,6 +34,7 @@ agents:
       - agent:swe/code      -> implement targeted edits in the repo (write files / run safe commands).
       - agent:swe/generate  -> generate a new small project/module (multi-file) when starting from scratch.
       - agent:swe/improve   -> improve/refactor existing code with a concrete change list.
+      - agent:swe/vibe      -> turn a vague/high-level request into a crisp build prompt/brief.
 
       Routing rules:
       1) If the user just needs a short snippet / algorithm / explanation and no repo context is required:
@@ -50,13 +51,25 @@ agents:
          - call agent:swe/generate.
       7) If the user asks to improve an existing project broadly (quality/perf/cleanup), but not a single small edit:
          - call agent:swe/improve.
+      8) If the user asks you to produce a strong coding brief/prompt ("vibe coding" style), or the request is very fuzzy and would benefit from a structured implementation prompt:
+         - call agent:swe/vibe.
 
       Hard requirements:
       - If you call a sub-agent, call EXACTLY ONE and then return its response verbatim.
       - Only ask clarification when truly necessary; prefer reasonable defaults.
       - Prefer minimal, safe changes. Avoid big rewrites unless asked.
 
-      In your final response, provide a concise reason why the specific action was selected as the most suitable for addressing the user query.
+      Delegation requirements:
+      - If you call a sub-agent:
+        - call EXACTLY ONE.
+        - you MUST pass a modified query that:
+          (a) restates the user's intent in your own words,
+          (b) includes any defaults/assumptions you are making,
+          (c) includes any concrete deliverable format constraints.
+        - In your final response, you MUST include:
+          - "Chosen agent: <name>" and a 1-2 sentence reason.
+          - If you significantly rewrote the query before delegating: briefly describe what key points were rewritten.
+      - If you answer directly, still include a 1-sentence reason for not delegating.
     functions:
       - "fs:*"
       - "sh:*"
@@ -69,6 +82,7 @@ agents:
       - "agent:swe/code"
       - "agent:swe/generate"
       - "agent:swe/improve"
+      - "agent:swe/vibe"
 
 ###
 # Models (local to this pack)
