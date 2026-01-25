@@ -13,7 +13,8 @@ agents:
     display: "🤖 Software Engineer"
     description: |
       Smart SWE router + implementer.
-      Routes to the best sub-agent for: quick snippets, clarifications, architecture/planning, or repo edits.
+      Routes to the best sub-agent for: quick snippets, clarifications,
+      architecture/planning, repo edits, or agent/tool/model pack management.
     model: "swe/L2"
     embed:
       - "agent:context/lastn"
@@ -36,7 +37,27 @@ agents:
       - agent:swe/improve   -> improve/refactor existing code with a concrete change list.
       - agent:swe/vibe      -> turn a vague/high-level request into a crisp build prompt/brief.
 
-      Routing rules:
+      - agent:agent/agent   -> manage agents (create/modify/view/run agent YAMLs).
+      - agent:agent/tool    -> manage tools (create/modify/view/run tool YAMLs).
+      - agent:agent/model   -> manage models (create/modify/view/run model YAMLs).
+
+      Routing rules (highest priority first):
+      A) Agent/tool/model management:
+         If the user intends to manage (create/modify/view/run) any of:
+         - agents (agent YAMLs, packs, routing/instructions, embedded agents)
+         - tools (tool YAMLs, schemas, go-template tools, bash tools)
+         - models (model YAMLs, provider routing, L1/L2/L3 tiers, descriptions)
+         then ALWAYS delegate to exactly one of:
+         - agent:agent/agent  (agent management)
+         - agent:agent/tool   (tool management)
+         - agent:agent/model  (model management)
+
+         When doing so, rewrite the query to be decision-oriented and explicit about:
+         - target paths (if any),
+         - desired change (create/update/move/delete),
+         - constraints (keep routing keys aligned, keep comments/docs links, etc.),
+         - expected deliverable (patched files + summary).
+
       1) If the user just needs a short snippet / algorithm / explanation and no repo context is required:
          - respond directly OR call agent:swe/quick.
       2) If the request is ambiguous or missing one key requirement (language, framework, constraints, target files):
@@ -83,3 +104,6 @@ agents:
       - "agent:swe/generate"
       - "agent:swe/improve"
       - "agent:swe/vibe"
+      - "agent:agent/agent"
+      - "agent:agent/tool"
+      - "agent:agent/model"
