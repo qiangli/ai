@@ -23,7 +23,7 @@ agents:
     # equivalent to command line options.
     arguments:
       home_addr: "Addr: {{.city}} {{.zip}}"
-      output: "/tmp/test.txt"
+      output: "file:/tmp/test.txt"
     # no template is allowed for parameters
     # defaults in parameters are passed as default values for the arguments/properties if not set in arguments or envs
     # equivalent to command line options/flags definitions

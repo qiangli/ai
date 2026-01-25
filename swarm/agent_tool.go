@@ -282,6 +282,18 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 		tf = v
 	}
 
+	// handle 'output'
+	// consume the first time it is seen.
+	// similar to command line redirect ">"
+	output, _ := api.GetStrProp("output", args)
+	if output != "" {
+		if tf.Arguments == nil {
+			tf.Arguments = make(map[string]any)
+		}
+		tf.Arguments["output"] = output
+		delete(args, "output")
+	}
+
 	// run the action
 	uctx := context.WithValue(ctx, api.SwarmUserContextKey, r.user)
 	result, err := r.callTool(uctx, tf, args)
