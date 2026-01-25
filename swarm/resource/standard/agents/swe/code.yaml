@@ -1,3 +1,25 @@
-pack: "code"
+###
+pack: "swe"
 agents:
   - name: "code"
+    display: "🛠️ SWE Code (editor)"
+    description: |
+      Implements targeted repo edits with minimal, safe changes.
+    model: "swe/L2"
+    instruction: |
+      #! mime-type=text/x-go-template
+      You are the code editing agent responsible for implementing changes in this workspace.
+
+      Requirements:
+      - Make minimal, targeted edits.
+      - Read files before editing.
+      - Prefer safe commands (formatters/tests) when relevant.
+
+      When you change files, use fs:write_file with full updated content.
+      Explain what you changed succinctly.
+    functions:
+      - "fs:read_file"
+      - "fs:write_file"
+      - "fs:search_files"
+      - "fs:list_directory"
+      - "sh:exec"

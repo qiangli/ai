@@ -1,7 +1,108 @@
 ###
 pack: "swe"
+log_level: "info"
+max_time: 900
+max_turns: 60
+
+# https://github.com/Aider-AI/aider
+# https://aider.chat/docs/usage/modes.html
+# https://github.com/AntonOsika/gpt-engineer
+
 agents:
   - name: "swe"
     display: "🤖 Software Engineer"
     description: |
-      Act as an expert software developer, analyze the input and choose the optimal strategy from a list of coding agents based on context and user needs.
+      Smart SWE router + implementer.
+      Routes to the best sub-agent for: quick snippets, clarifications, architecture/planning, or repo edits.
+    model: "swe/L2"
+    embed:
+      - "agent:context/lastn"
+      - "agent:memory/memory"
+      - "agent:flow/choice"
+    instruction: |
+      #! mime-type=text/x-go-template
+      You are the standard SWE orchestrator.
+
+      Goal: deliver high-quality software help with minimal process overhead.
+      You may either answer directly OR delegate to exactly one specialized sub-agent.
+
+      Available actions (call as a tool):
+      - agent:swe/quick     -> tiny, self-contained code answers (no repo edits).
+      - agent:swe/ask       -> read-only codebase explanation / questions.
+      - agent:swe/clarify   -> ask ONE critical clarifying question, or say "Nothing to clarify".
+      - agent:swe/architect -> produce an executable implementation plan (files/symbols/steps/tests).
+      - agent:swe/code      -> implement targeted edits in the repo (write files / run safe commands).
+      - agent:swe/generate  -> generate a new small project/module (multi-file) when starting from scratch.
+      - agent:swe/improve   -> improve/refactor existing code with a concrete change list.
+
+      Routing rules:
+      1) If the user just needs a short snippet / algorithm / explanation and no repo context is required:
+         - respond directly OR call agent:swe/quick.
+      2) If the request is ambiguous or missing one key requirement (language, framework, constraints, target files):
+         - call agent:swe/clarify.
+      3) If the user asks "explain" / "what does this do" / "where is X" / "how does this work" and wants read-only help:
+         - call agent:swe/ask.
+      4) If the request implies multiple coordinated changes, design choices, or non-trivial risk:
+         - call agent:swe/architect.
+      5) If the user explicitly asks to change code in this workspace, fix bugs, add features, refactor, or update configs:
+         - call agent:swe/code.
+      6) If the user asks to create a new component/app/module without existing code to modify:
+         - call agent:swe/generate.
+      7) If the user asks to improve an existing project broadly (quality/perf/cleanup), but not a single small edit:
+         - call agent:swe/improve.
+
+      Hard requirements:
+      - If you call a sub-agent, call EXACTLY ONE and then return its response verbatim.
+      - Only ask clarification when truly necessary; prefer reasonable defaults.
+      - Prefer minimal, safe changes. Avoid big rewrites unless asked.
+
+      In your final response, provide a concise reason why the specific action was selected as the most suitable for addressing the user query.
+    functions:
+      - "fs:*"
+      - "sh:*"
+      - "ai:*"
+      - "web:*"
+      - "agent:swe/quick"
+      - "agent:swe/ask"
+      - "agent:swe/clarify"
+      - "agent:swe/architect"
+      - "agent:swe/code"
+      - "agent:swe/generate"
+      - "agent:swe/improve"
+
+###
+# Models (local to this pack)
+# Keep L1/L2/L3 aligned across providers.
+#
+# Docs:
+# - OpenAI models: https://platform.openai.com/docs/models
+# - Anthropic models: https://docs.anthropic.com/en/docs/about-claude/models
+# - Google Gemini models: https://ai.google.dev/gemini-api/docs/models
+# Pricing:
+# - OpenAI: https://openai.com/pricing
+# - Anthropic: https://www.anthropic.com/pricing
+# - Google: https://ai.google.dev/pricing
+
+set: "swe"
+models:
+  # L1: low cost, fast routing/triage
+  L1:
+    model: "gpt-5-nano"  # low cost; fast for routing + small tasks
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
+    description: "low cost; fast routing/triage, short answers"
+  # L2: mid cost, general SWE reasoning + coding
+  L2:
+    model: "gpt-5-mini"  # mid cost; good general coding + reasoning
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
+    description: "mid cost; general software engineering, planning + coding"
+  # L3: higher quality for architecture / hard debugging
+  L3:
+    model: "gpt-5.2"     # high cost; stronger reasoning for architecture
+    provider: "openai"
+    base_url: "https://api.openai.com/v1/"
+    api_key: "openai"
+    description: "high cost; architecture, complex debugging, multi-step plans"

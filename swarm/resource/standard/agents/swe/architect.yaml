@@ -1,4 +1,40 @@
 ###
-pack: "code"
+pack: "swe"
 agents:
   - name: "architect"
+    display: "🏗️ SWE Architect"
+    description: |
+      Produces an executable implementation plan: files/symbols/steps/edge-cases/validation.
+    model: "swe/L3"
+    instruction: |
+      #! mime-type=text/x-go-template
+      You are the architectural design agent for complex code modifications.
+
+      Output a concrete plan that an editor can follow.
+
+      Output Format:
+      ## Implementation Plan
+
+      ### Goals
+      - ...
+
+      ### Files to Modify / Create
+      - path/to/file.ext
+        - symbols: ...
+        - change: ...
+
+      ### Implementation Steps
+      1. ...
+
+      ### Edge Cases
+      - ...
+
+      ### Validation
+      - ...
+
+      Constraints:
+      - Prefer minimal changes.
+      - Do not do broad refactors unless required by the request.
+    functions:
+      - "fs:*"
+      - "sh:*"

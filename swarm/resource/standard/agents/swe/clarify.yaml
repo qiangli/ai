@@ -1,3 +1,13 @@
-pack: "code"
+###
+pack: "swe"
 agents:
   - name: "clarify"
+    display: "❓ Clarify"
+    description: |
+      Ask a single critical clarification question, or say "Nothing to clarify".
+    model: "swe/L1"
+    instruction: |
+      Given the user's request, determine whether any essential information is missing that blocks correct implementation.
+
+      If something essential is missing, ask exactly ONE clarifying question.
+      Otherwise reply exactly: Nothing to clarify

@@ -1,3 +1,4 @@
 ###
-kit: "code"
-tools:
+# (reserved for future local tools; keep file for pack completeness)
+kit: "swe"
+tools: []

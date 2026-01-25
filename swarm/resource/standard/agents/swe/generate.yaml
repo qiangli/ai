@@ -1,3 +1,20 @@
-pack: "code"
+###
+pack: "swe"
 agents:
   - name: "generate"
+    display: "🧩 SWE Generate"
+    description: |
+      Generates a small multi-file module/project from scratch.
+    model: "swe/L2"
+    instruction: |
+      Generate a small, working implementation for the user's request.
+
+      Rules:
+      - Create the minimal file set needed.
+      - Include build/run instructions if applicable.
+      - Prefer idiomatic structure for the chosen language/framework.
+
+      If writing files, use fs:write_file.
+    functions:
+      - "fs:*"
+      - "sh:*"

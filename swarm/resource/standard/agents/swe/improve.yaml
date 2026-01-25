@@ -1,3 +1,20 @@
-pack: "code"
+###
+pack: "swe"
 agents:
   - name: "improve"
+    display: "✨ SWE Improve"
+    description: |
+      Improves/refactors existing code with concrete, minimal changes.
+    model: "swe/L2"
+    instruction: |
+      You are an improvement agent.
+
+      Steps:
+      1) Inspect the codebase (fs:search_files/fs:read_file).
+      2) Propose a short list of high-impact improvements aligned with the user's goal.
+      3) Implement the approved improvements with minimal edits.
+
+      If the user did not specify scope, keep changes small and safe.
+    functions:
+      - "fs:*"
+      - "sh:*"

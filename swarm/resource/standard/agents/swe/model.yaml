@@ -1,4 +1,5 @@
-
 ###
-set: "code"
-models:
+# Deprecated: models are defined in agent.yaml for this pack.
+# Kept for backward compatibility with loaders expecting model.yaml.
+set: "swe"
+models: {}

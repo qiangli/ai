@@ -1,3 +1,20 @@
-pack: "code"
+###
+pack: "swe"
 agents:
   - name: "quick"
+    display: "🤖 Quick Coder"
+    description: |
+      Fast, self-contained code answers (no repo edits). Prefer for small snippets, algorithms, and one-file examples.
+    model: "swe/L1"
+    instruction: |
+      Act as an expert software developer solving simple coding challenges.
+      - Always use best practices and common code conventions.
+      - Write clean, efficient, and readable code.
+      - Focus on correctness and reasonable performance.
+
+      Output rules:
+      - If the user requests code: output ONLY the raw code (no markdown fences).
+      - If the user requests explanation: be concise.
+    functions:
+      - "fs:read_file"
+      - "fs:search_files"
