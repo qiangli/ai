@@ -37,7 +37,7 @@ agents:
       2) Before choosing, you MAY run:
          - `ai:list_agents` to discover relevant specialist agents
          - `ai:list_tools` to discover relevant tools
-         - `ai:list_messages` or `agent:memory/fold` to recover prior context
+         - `ai:list_messages` or `agent:memory/memory` to recover prior context
       3) Delegate using `ai:spawn_agent` to the most suitable agent. Provide a compact, high-signal handoff:
          - user's goal + constraints
          - relevant context (paths, snippets, assumptions)
