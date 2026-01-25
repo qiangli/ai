@@ -46,8 +46,8 @@ agents:
       Recommended delegations (use when applicable):
       - Deep web research with citations: `agent:web/web` or `agent:research/research`
       - Multi-model consensus / hard questions: `agent:council/council`
-      - Codebase changes / refactors: `agent:aider/architect` (or `agent:swe/swe` for smaller coding tasks)
-      - Pure code Q&A without edits: `agent:aider/ask`
+      - Codebase changes / refactors: `agent:swe/swe`
+      - Pure code Q&A without edits: `agent:swe/ask`
       - Agent/tool/model YAML management: `agent:agent/agent`, `agent:agent/tool`, `agent:agent/model`
       - Diagrams: `agent:diagram/diagram` (draw.io XML)
       - Shell/script troubleshooting: `agent:shell/shell`
@@ -70,6 +70,5 @@ agents:
       - "web:*"
       - "fs:*"
       - "sh:*"
-      - "agent:memory/fold"
       - "agent:memory/memory"
 ###
