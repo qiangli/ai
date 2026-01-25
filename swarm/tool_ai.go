@@ -395,6 +395,29 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	return result, nil
 }
 
+func (r *AIKit) retryCallLlmPrompt(query string, resp *api.Response, err error) string {
+	const prompt = `
+	Encountered an error while processing user's request:
+
+	Query:
+	%s
+
+	Error:
+	%s
+	%s
+
+	Please review the above error response. If the error is recoverable, consider taking corrective actions as suggested and try again.
+
+	Example of a recoverable error:
+	✗ error: POST "https:...": 429 Too Many Requests. Limit x, Requested y. The input or output tokens must be reduced.
+	`
+	var val string
+	if resp != nil && resp.Result != nil {
+		val = resp.Result.Value
+	}
+	return fmt.Sprintf(prompt, query, err.Error(), val)
+}
+
 func (r *AIKit) LlmAdapter(ctx context.Context, vars *api.Vars, agent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
 	var owner = r.vars.User.Email
 
@@ -447,7 +470,13 @@ func (r *AIKit) LlmAdapter(ctx context.Context, vars *api.Vars, agent *api.Agent
 	}
 	req.Token = token
 
-	resp, err := llmAdapter.Call(ctx, req)
+	var resp *api.Response
+	resp, err = llmAdapter.Call(ctx, req)
+	if err != nil {
+		// retry once with the error attached to try recovering from 429 and other errors
+		req.Query = r.retryCallLlmPrompt(agent.Query, resp, err)
+		resp, err = llmAdapter.Call(ctx, req)
+	}
 	if err != nil {
 		return nil, err
 	}
