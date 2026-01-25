@@ -238,7 +238,7 @@ func LoadTools(tc *api.AppConfig, owner string, secrets api.SecretStore) ([]*api
 			Parameters:  v.Parameters,
 			Body:        v.Body,
 			//
-			// Output: v.Output,
+			Output: v.Output,
 			//
 			Provider: nvl(v.Provider, tc.Provider),
 			BaseUrl:  nvl(v.BaseUrl, tc.BaseUrl),
@@ -367,7 +367,7 @@ func LoadAgentTool(ac *api.AppConfig, pack, sub string) ([]*api.ToolFunc, error)
 				Parameters:  params,
 				Body:        nil,
 				//
-				// Output: c.Output,
+				Output: c.Output,
 				//
 				Arguments: c.Arguments,
 				//

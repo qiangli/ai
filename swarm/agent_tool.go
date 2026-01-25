@@ -287,10 +287,7 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	// similar to command line redirect ">"
 	output, _ := api.GetStrProp("output", args)
 	if output != "" {
-		if tf.Arguments == nil {
-			tf.Arguments = make(map[string]any)
-		}
-		tf.Arguments["output"] = output
+		tf.Output = output
 		delete(args, "output")
 	}
 
@@ -338,9 +335,8 @@ func (r *AgentToolRunner) callTool(ctx context.Context, tf *api.ToolFunc, args m
 			}
 			log.GetLogger(ctx).Infof("➡️ %s:%s @%s\n", tf.Kit, tf.Name, result.NextAgent)
 		} else {
-			output, _ := api.GetStrProp("output", args)
-			if output != "" {
-				out := r.output(output, result.Value)
+			if tf.Output != "" {
+				out := r.output(tf.Output, result.Value)
 				result.Value = out
 			}
 			log.GetLogger(ctx).Infof("✔ %s:%s (%s)\n", tf.Kit, tf.Name, head(result.String(), 180))

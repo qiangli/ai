@@ -45,7 +45,8 @@ env input="<redated>"
     --agent "test/test" \
     --adapter "echo" \
     --template "$template" \
-    --script "$script"
+    --script "$script" \
+    --output "file:/tmp/test.txt"
 
 ###
 

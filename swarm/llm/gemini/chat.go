@@ -104,30 +104,6 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	var config *genai.GenerateContentConfig
 
 	if len(req.Tools) > 0 {
-		// kits := make(map[string][]*api.ToolFunc)
-		// for _, f := range req.Tools {
-		// 	fa, ok := kits[f.Kit]
-		// 	if !ok {
-		// 		fa = []*api.ToolFunc{}
-		// 	}
-		// 	fa = append(fa, f)
-		// 	kits[f.Kit] = fa
-		// }
-
-		// var tools []*genai.Tool
-		// for _, kit := range kits {
-		// 	var fds []*genai.FunctionDeclaration
-		// 	for _, f := range kit {
-		// 		fd, err := defineTool(f.ID, f.Description, f.Parameters)
-		// 		if err != nil {
-		// 			return nil, err
-		// 		}
-		// 		fds = append(fds, fd)
-		// 	}
-		// 	tools = append(tools, &genai.Tool{
-		// 		FunctionDeclarations: fds,
-		// 	})
-		// }
 
 		// TODO verify - the toolkit structure is flattened
 		var tools []*genai.Tool

@@ -68,8 +68,8 @@ type ToolFunc struct {
 	// default arguments
 	Arguments map[string]any `json:"arguments"`
 
-	// // Input  string `json:"input"`
-	// Output string `json:"output"`
+	// Input  string `json:"input"`
+	Output string `json:"output"`
 
 	//
 	Config *AppConfig `json:"-"`

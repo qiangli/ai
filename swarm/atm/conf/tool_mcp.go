@@ -45,6 +45,8 @@ func listMcpTools(kit string, tc *api.ConnectorConfig, token string) ([]*api.Too
 			Parameters:  params,
 			Body:        nil,
 			//
+			Output: "",
+			//
 			Provider: tc.Provider,
 			BaseUrl:  tc.BaseUrl,
 			ApiKey:   tc.ApiKey,

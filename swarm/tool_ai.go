@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	// "maps"
 	"math/rand"
 	"os"
@@ -889,7 +890,7 @@ func (r *AIKit) getTools(ids []string) ([]*api.ToolFunc, error) {
 				Parameters:  v.Parameters,
 				Body:        v.Body,
 				//
-				// Agent: v.Agent,
+				Output: v.Output,
 				//
 				Provider: nvl(v.Provider, tc.Provider),
 				BaseUrl:  nvl(v.BaseUrl, tc.BaseUrl),

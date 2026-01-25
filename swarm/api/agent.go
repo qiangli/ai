@@ -180,6 +180,8 @@ type AgentConfig struct {
 
 	Model string `yaml:"model" json:"model"`
 
+	Output string `yaml:"output" json:"output"`
+
 	// tools defined in tools config
 	// kit:name | agent:pack/sub
 	Functions []string `yaml:"functions" json:"functions"`
