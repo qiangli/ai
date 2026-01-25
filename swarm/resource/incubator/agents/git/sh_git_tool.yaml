@@ -1,0 +1,165 @@
+#!/usr/bin/env ai
+#
+# Tool: sh:git-tool
+#
+# This tool invokes the Go JSON helper at swarm/atm/tools/git-tool.
+# It is intentionally strict: it only accepts structured actions or a command
+# array that starts with "git".
+#
+# Runtime notes:
+# - Default uses `go run` from the workspace root.
+# - No static binaries are checked in. (You may build one locally if desired.)
+#
+kit: "sh"
+type: "func"
+tools:
+  - name: "git-tool"
+    description: "Run safe git actions via swarm/atm/tools/git-tool (Go JSON runner)."
+    parameters:
+      type: "object"
+      properties:
+        id: { type: "string", description: "Optional request id." }
+        user: { type: "string", description: "Optional user label." }
+        payload:
+          type: "object"
+          description: "Payload object passed to git-tool. If omitted, tool will build it from top-level fields for backward compat."
+          properties:
+            action:
+              type: "string"
+              enum: ["status","clone","commit","pull","push","branch","remote-url","rev-parse","list-branches","list-remotes","latest-commit","show-file","raw"]
+            dir: { type: "string" }
+            args: { type: "array", items: { type: "string" } }
+            message: { type: "string" }
+            rev: { type: "string" }
+            path: { type: "string" }
+            command:
+              type: "array"
+              items: { type: "string" }
+              description: "Raw git argv array; must start with 'git'."
+        # Backward-compat convenience fields:
+        action:
+          type: "string"
+          enum: ["status","clone","commit","pull","push","branch","remote-url","rev-parse","list-branches","list-remotes","latest-commit","show-file","raw"]
+        dir: { type: "string" }
+        args: { type: "array", items: { type: "string" } }
+        message: { type: "string" }
+        rev: { type: "string" }
+        path: { type: "string" }
+        command:
+          type: "array"
+          items: { type: "string" }
+      required: []
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! --mime-type=text/x-go-template
+        package main
+
+        import (
+          "bytes"
+          "encoding/json"
+          "fmt"
+          "os"
+          "os/exec"
+          "strings"
+        )
+
+        // Top-level fields (strings) injected by the runtime.
+        var id = "<no value>"
+        var user = "<no value>"
+        var payload = "<no value>" // JSON object
+
+        var action = "<no value>"
+        var dir = "<no value>"
+        var args = "<no value>"   // JSON array
+        var message = "<no value>"
+        var rev = "<no value>"
+        var path = "<no value>"
+        var command = "<no value>" // JSON array
+
+        type payloadObj struct {
+          Action  string   `json:"action,omitempty"`
+          Dir     string   `json:"dir,omitempty"`
+          Args    []string `json:"args,omitempty"`
+          Message string   `json:"message,omitempty"`
+          Rev     string   `json:"rev,omitempty"`
+          Path    string   `json:"path,omitempty"`
+          Command []string `json:"command,omitempty"`
+        }
+
+        type envelope struct {
+          ID      string     `json:"id,omitempty"`
+          User    string     `json:"user,omitempty"`
+          Payload payloadObj `json:"payload"`
+        }
+
+        func main() {
+          var env envelope
+          if id != "" && id != "<no value>" { env.ID = id }
+          if user != "" && user != "<no value>" { env.User = user }
+
+          // Prefer explicit payload.
+          if payload != "" && payload != "<no value>" {
+            if err := json.Unmarshal([]byte(payload), &env.Payload); err != nil {
+              fmt.Fprintf(os.Stderr, "invalid payload JSON: %v\n", err)
+              os.Exit(2)
+            }
+          } else {
+            // Build from top-level convenience fields.
+            if action != "" && action != "<no value>" { env.Payload.Action = action }
+            if dir != "" && dir != "<no value>" { env.Payload.Dir = dir }
+            if message != "" && message != "<no value>" { env.Payload.Message = message }
+            if rev != "" && rev != "<no value>" { env.Payload.Rev = rev }
+            if path != "" && path != "<no value>" { env.Payload.Path = path }
+
+            if args != "" && args != "<no value>" {
+              var list []string
+              if err := json.Unmarshal([]byte(args), &list); err != nil {
+                fmt.Fprintf(os.Stderr, "invalid args JSON: %v\n", err)
+                os.Exit(2)
+              }
+              env.Payload.Args = list
+            }
+            if command != "" && command != "<no value>" {
+              var list []string
+              if err := json.Unmarshal([]byte(command), &list); err != nil {
+                fmt.Fprintf(os.Stderr, "invalid command JSON: %v\n", err)
+                os.Exit(2)
+              }
+              env.Payload.Command = list
+            }
+          }
+
+          // Basic validation before invoking.
+          if len(env.Payload.Command) > 0 {
+            if env.Payload.Command[0] != "git" {
+              fmt.Fprintf(os.Stderr, "command must start with 'git'\n")
+              os.Exit(2)
+            }
+          } else {
+            a := strings.TrimSpace(env.Payload.Action)
+            if a == "" {
+              fmt.Fprintf(os.Stderr, "either payload.command or payload.action is required\n")
+              os.Exit(2)
+            }
+          }
+
+          b, err := json.Marshal(env)
+          if err != nil {
+            fmt.Fprintf(os.Stderr, "marshal input: %v\n", err)
+            os.Exit(2)
+          }
+
+          cmd := exec.Command("go", "run", "./swarm/atm/tools/git-tool")
+          cmd.Dir = "/Users/liqiang/workspace/cloudbox/ai"
+          cmd.Stdin = bytes.NewReader(b)
+          cmd.Stdout = os.Stdout
+          cmd.Stderr = os.Stderr
+          if err := cmd.Run(); err != nil {
+            if ee, ok := err.(*exec.ExitError); ok {
+              os.Exit(ee.ExitCode())
+            }
+            fmt.Fprintf(os.Stderr, "failed to run git-tool: %v\n", err)
+            os.Exit(1)
+          }
+        }

@@ -1,0 +1,95 @@
+#!/usr/bin/env ai
+#
+# Tool: sh:classifier
+#
+# Deterministic, rule-based freeform classifier.
+# Invokes the Go helper at swarm/atm/tools/classifier via `go run`.
+#
+# Runtime notes:
+# - Default uses `go run` from the workspace root.
+# - For production, you can build a binary and call it directly.
+#
+kit: "sh"
+type: "func"
+tools:
+  - name: "classifier"
+    description: "Deterministic rule-based classifier for freeform git queries."
+    parameters:
+      type: "object"
+      properties:
+        id: { type: "string" }
+        user: { type: "string" }
+        query: { type: "string", description: "Freeform query" }
+        payload:
+          type: "object"
+          properties:
+            query: { type: "string" }
+      oneOf:
+        - required: ["query"]
+        - required: ["payload"]
+    body:
+      mime_type: "application/x-go"
+      script: |
+        #! --mime-type=text/x-go-template
+        package main
+
+        import (
+          "bytes"
+          "encoding/json"
+          "fmt"
+          "os"
+          "os/exec"
+        )
+
+        var id = "<no value>"
+        var user = "<no value>"
+        var query = "<no value>"
+        var payload = "<no value>" // JSON object
+
+        type inPayload struct {
+          Query string `json:"query"`
+        }
+
+        type envelope struct {
+          ID      string    `json:"id,omitempty"`
+          User    string    `json:"user,omitempty"`
+          Payload inPayload `json:"payload"`
+        }
+
+        func main() {
+          var env envelope
+          if id != "" && id != "<no value>" { env.ID = id }
+          if user != "" && user != "<no value>" { env.User = user }
+
+          if payload != "" && payload != "<no value>" {
+            if err := json.Unmarshal([]byte(payload), &env.Payload); err != nil {
+              fmt.Fprintf(os.Stderr, "invalid payload JSON: %v\n", err)
+              os.Exit(2)
+            }
+          } else {
+            if query == "" || query == "<no value>" {
+              fmt.Fprintf(os.Stderr, "query is required\n")
+              os.Exit(2)
+            }
+            env.Payload.Query = query
+          }
+
+          b, err := json.Marshal(env)
+          if err != nil {
+            fmt.Fprintf(os.Stderr, "marshal input: %v\n", err)
+            os.Exit(2)
+          }
+
+          cmd := exec.Command("go", "run", "./swarm/atm/tools/classifier")
+          cmd.Dir = "/Users/liqiang/workspace/cloudbox/ai"
+          cmd.Stdin = bytes.NewReader(b)
+          cmd.Stdout = os.Stdout
+          cmd.Stderr = os.Stderr
+          if err := cmd.Run(); err != nil {
+            if ee, ok := err.(*exec.ExitError); ok {
+              os.Exit(ee.ExitCode())
+            }
+            fmt.Fprintf(os.Stderr, "failed to run classifier: %v\n", err)
+            os.Exit(1)
+          }
+        }

@@ -1,135 +1,302 @@
-###
+#!/usr/bin/env ai
+#
+# Agent-first Git suite (fully mechanical orchestrator).
+#
+# Main entry: agent:git/git
+# - Deterministic routing only.
+# - No ai:call_llm.
+# - Freeform text is classified via sh:classifier (rule-based Go tool).
+#
 pack: "git"
-log_level: "info"
-format: "text"
-message: |
-  Generate a detailed git commit message in no more than 100 words and 3 bullet points.
 agents:
   - name: "git"
-    display: "🚀 Git"
-    description: "Generate git commit message based on users input and the provided diffs."
-    new: true
+    display: "Git Orchestrator (Mechanical)"
+    description: "Deterministic routing to git sub-agents; freeform classified via sh:classifier (no LLM)."
     model: "default/any"
-    embed:
-      - "agent:memory"
-      - "agent:flow/choice"
+    parameters:
+      type: "object"
+      properties:
+        id: { type: "string" }
+        user: { type: "string" }
+        payload:
+          type: "object"
+          properties:
+            action: { type: "string" }
+            dir: { type: "string" }
+            args: { type: "array", items: { type: "string" } }
+            message: { type: "string" }
+            rev: { type: "string" }
+            path: { type: "string" }
+            query: { type: "string" }
+        # Backward compat:
+        action: { type: "string" }
+        dir: { type: "string" }
+        args: { type: "array", items: { type: "string" } }
+        message: { type: "string" }
+        rev: { type: "string" }
+        path: { type: "string" }
+        query: { type: "string" }
+      required: []
     instruction: |
-      Pleas execute one of the following agents based on user's query:
-        - "agent:git/short"
-        - "agent:git/long"
+      You are a fully mechanical Git orchestrator.
+
+      Never call ai:call_llm.
+
+      Input forms you may receive:
+      - Structured: {payload:{action,dir,args,message,rev,path}}
+      - Backward compat structured: {action,dir,args,message,rev,path}
+      - Freeform: {payload:{query:"..."}} or {query:"..."}
+
+      Routing rules:
+      1) Extract the effective payload:
+         - If payload exists, use it.
+         - Otherwise build payload from top-level action/dir/args/message/rev/path/query.
+
+      2) If payload.action is non-empty:
+         - Route deterministically by spawning the matching sub-agent:
+           status -> agent:git/status
+           clone -> agent:git/clone
+           commit -> agent:git/commit
+           pull -> agent:git/pull
+           push -> agent:git/push
+           branch -> agent:git/branch
+           remote-url -> agent:git/remote-url
+           rev-parse -> agent:git/rev-parse
+           list-branches -> agent:git/list-branches
+           list-remotes -> agent:git/list-remotes
+           latest-commit -> agent:git/latest-commit
+           show-file -> agent:git/show-file
+
+      3) Else if payload.query is non-empty:
+         - Call sh:classifier with the query to obtain {action,dir,args,message,confidence}.
+         - If confidence < 0.7 OR action is empty:
+           return a JSON object asking ONE clarifying question, like:
+             {
+               "ok": false,
+               "needs_clarification": true,
+               "question": "I couldn't determine the git action. Please specify one of: status, clone, commit, pull, push, branch, remote-url, rev-parse, list-branches, list-remotes, latest-commit, show-file. Also include repo dir if needed.",
+               "classifier": { ...full classifier output... }
+             }
+           and STOP.
+         - Otherwise, route to the chosen sub-agent using the classifier outputs as the payload.
+
+      4) Else:
+         return a JSON error telling the user to provide action or query.
+
+      Output requirements:
+      - For successful operations, return the sub-agent's JSON output.
+      - For clarification requests, return the structured clarification JSON described above.
     functions:
-      - "agent:git/short"
-      - "agent:git/long"
-      - "fs:write_file"
       - "ai:spawn_agent"
+      - "sh:classifier"
+      - "agent:git/status"
+      - "agent:git/clone"
+      - "agent:git/commit"
+      - "agent:git/pull"
+      - "agent:git/push"
+      - "agent:git/branch"
+      - "agent:git/remote-url"
+      - "agent:git/rev-parse"
+      - "agent:git/list-branches"
+      - "agent:git/list-remotes"
+      - "agent:git/latest-commit"
+      - "agent:git/show-file"
 
-  ##
-  # prompt adapted from https://github.com/Aider-AI/aider/blob/main/aider/prompts.py
-  - name: "short"
-    display: "🐙 Git short"
-    description: "Generate concise, one-line git commit messages based on the provided diffs."
+  - name: "status"
+    display: "git status"
+    description: "Deterministic git status (porcelain)."
     model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        id: { type: "string" }
+        user: { type: "string" }
+        dir: { type: "string" }
+      required: ["dir"]
     instruction: |
-      You are an expert software engineer that generates concise, one-line Git commit messages based on the provided diffs.
+      Call sh:git-tool with envelope {id,user,payload:{action:"status",dir}}.
+      Return the tool JSON as-is.
+    functions: ["sh:git-tool"]
 
-      Review the provided context and diffs which are about to be committed to a git repo.
-      Review the diffs carefully.
-      Generate a one-line commit message for those changes.
-      The commit message should be structured as follows: `<type>`: `<description>`
-      Use these for `<type>`: fix, feat, build, chore, ci, docs, style, refactor, perf, test
-
-      Ensure the commit message:
-
-      - Starts with the appropriate prefix.
-      - Is in the imperative mood (e.g., "Add feature" not "Added feature" or "Adding feature").
-      - Does not exceed 72 characters.
-
-      Reply only with the one-line commit message, without any additional text, explanations, line breaks, or code block fencing.
-    functions:
-      - "fs:write_file"
-  
-  ##
-  # https://www.conventionalcommits.org/en/v1.0.0/#summary
-  - name: "long"
-    display: "🐙 Git long"
-    description: "Generate git commit messages based on the provided diffs using the Conventional Commits specification"
+  - name: "clone"
+    display: "git clone"
+    description: "Deterministic git clone."
     model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        id: { type: "string" }
+        user: { type: "string" }
+        repo_url: { type: "string" }
+        dest_dir: { type: "string" }
+      required: ["repo_url","dest_dir"]
     instruction: |
-      You are an expert software engineer that generates concise git commit messages based on the provided diffs.
+      Call sh:git-tool with envelope {id,user,payload:{action:"clone",args:[repo_url,dest_dir]}}.
+      Return the tool JSON as-is.
+    functions: ["sh:git-tool"]
 
-      Review the diffs carefully.
+  - name: "commit"
+    display: "git commit"
+    description: "Deterministic git commit."
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        id: { type: "string" }
+        user: { type: "string" }
+        dir: { type: "string" }
+        message: { type: "string" }
+      required: ["dir","message"]
+    instruction: |
+      Call sh:git-tool with envelope {id,user,payload:{action:"commit",dir,message}}.
+      Return the tool JSON as-is.
+    functions: ["sh:git-tool"]
 
-      Generate the commit message for the changes using the *Conventional Commits specification* provided below.
+  - name: "pull"
+    display: "git pull"
+    description: "Deterministic git pull."
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        id: { type: "string" }
+        user: { type: "string" }
+        dir: { type: "string" }
+        args: { type: "array", items: { type: "string" } }
+      required: ["dir"]
+    instruction: |
+      Call sh:git-tool with envelope {id,user,payload:{action:"pull",dir,args}}.
+      Return the tool JSON as-is.
+    functions: ["sh:git-tool"]
 
-      ===
-      The Conventional Commits specification is a lightweight convention on top of commit messages. It provides an easy set of rules for creating an explicit commit history; which makes it easier to write automated tools on top of. This convention dovetails with SemVer, by describing the features, fixes, and breaking changes made in commit messages.
+  - name: "push"
+    display: "git push"
+    description: "Deterministic git push."
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        id: { type: "string" }
+        user: { type: "string" }
+        dir: { type: "string" }
+        args: { type: "array", items: { type: "string" } }
+      required: ["dir"]
+    instruction: |
+      Call sh:git-tool with envelope {id,user,payload:{action:"push",dir,args}}.
+      Return the tool JSON as-is.
+    functions: ["sh:git-tool"]
 
-      The commit message should be structured as follows:
+  - name: "branch"
+    display: "git branch (current)"
+    description: "Deterministic current branch lookup."
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        id: { type: "string" }
+        user: { type: "string" }
+        dir: { type: "string" }
+      required: ["dir"]
+    instruction: |
+      Call sh:git-tool with envelope {id,user,payload:{action:"branch",dir}}.
+      Return the tool JSON as-is.
+    functions: ["sh:git-tool"]
 
-      <type>[optional scope]: <description>
+  - name: "remote-url"
+    display: "git remote-url"
+    description: "Deterministic origin remote URL lookup."
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        id: { type: "string" }
+        user: { type: "string" }
+        dir: { type: "string" }
+      required: ["dir"]
+    instruction: |
+      Call sh:git-tool with envelope {id,user,payload:{action:"remote-url",dir}}.
+      Return the tool JSON as-is.
+    functions: ["sh:git-tool"]
 
-      [optional body]
+  - name: "rev-parse"
+    display: "git rev-parse"
+    description: "Deterministic rev-parse."
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        id: { type: "string" }
+        user: { type: "string" }
+        dir: { type: "string" }
+        rev: { type: "string" }
+      required: ["dir","rev"]
+    instruction: |
+      Call sh:git-tool with envelope {id,user,payload:{action:"rev-parse",dir,rev}}.
+      Return the tool JSON as-is.
+    functions: ["sh:git-tool"]
 
-      [optional footer(s)]
-      The commit contains the following structural elements, to communicate intent to the consumers of your library:
+  - name: "list-branches"
+    display: "git list-branches"
+    description: "Deterministic local branch list."
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        id: { type: "string" }
+        user: { type: "string" }
+        dir: { type: "string" }
+      required: ["dir"]
+    instruction: |
+      Call sh:git-tool with envelope {id,user,payload:{action:"list-branches",dir}}.
+      Return the tool JSON as-is.
+    functions: ["sh:git-tool"]
 
-      fix: a commit of the type fix patches a bug in your codebase (this correlates with PATCH in Semantic Versioning).
-      feat: a commit of the type feat introduces a new feature to the codebase (this correlates with MINOR in Semantic Versioning).
-      BREAKING CHANGE: a commit that has a footer BREAKING CHANGE:, or appends a ! after the type/scope, introduces a breaking API change (correlating with MAJOR in Semantic Versioning). A BREAKING CHANGE can be part of commits of any type.
-      types other than fix: and feat: are allowed, for example @commitlint/config-conventional (based on the Angular convention) recommends build:, chore:, ci:, docs:, style:, refactor:, perf:, test:, and others.
-      footers other than BREAKING CHANGE: <description> may be provided and follow a convention similar to git trailer format.
-      Additional types are not mandated by the Conventional Commits specification, and have no implicit effect in Semantic Versioning (unless they include a BREAKING CHANGE). A scope may be provided to a commit’s type, to provide additional contextual information and is contained within parenthesis, e.g., feat(parser): add ability to parse arrays.
+  - name: "list-remotes"
+    display: "git list-remotes"
+    description: "Deterministic remote list."
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        id: { type: "string" }
+        user: { type: "string" }
+        dir: { type: "string" }
+      required: ["dir"]
+    instruction: |
+      Call sh:git-tool with envelope {id,user,payload:{action:"list-remotes",dir}}.
+      Return the tool JSON as-is.
+    functions: ["sh:git-tool"]
 
-      Examples
-      Commit message with description and breaking change footer
-      feat: allow provided config object to extend other configs
+  - name: "latest-commit"
+    display: "git latest-commit"
+    description: "Deterministic latest commit line."
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        id: { type: "string" }
+        user: { type: "string" }
+        dir: { type: "string" }
+      required: ["dir"]
+    instruction: |
+      Call sh:git-tool with envelope {id,user,payload:{action:"latest-commit",dir}}.
+      Return the tool JSON as-is.
+    functions: ["sh:git-tool"]
 
-      BREAKING CHANGE: 'extends' key in config file is now used for extending other config files
-      Commit message with ! to draw attention to breaking change
-      feat!: send an email to the customer when a product is shipped
-      Commit message with scope and ! to draw attention to breaking change
-      feat(api)!: send an email to the customer when a product is shipped
-      Commit message with both ! and BREAKING CHANGE footer
-      chore!: drop support for Node 6
-
-      BREAKING CHANGE: use JavaScript features not available in Node 6.
-      Commit message with no body
-      docs: correct spelling of CHANGELOG
-      Commit message with scope
-      feat(lang): add Polish language
-      Commit message with multi-paragraph body and multiple footers
-      fix: prevent racing of requests
-
-      Introduce a request id and a reference to latest request. Dismiss
-      incoming responses other than from latest request.
-
-      Remove timeouts which were used to mitigate the racing issue but are
-      obsolete now.
-
-      Reviewed-by: Z
-      Refs: #123
-      Specification
-      The key words “MUST”, “MUST NOT”, “REQUIRED”, “SHALL”, “SHALL NOT”, “SHOULD”, “SHOULD NOT”, “RECOMMENDED”, “MAY”, and “OPTIONAL” in this document are to be interpreted as described in RFC 2119.
-
-      Commits MUST be prefixed with a type, which consists of a noun, feat, fix, etc., followed by the OPTIONAL scope, OPTIONAL !, and REQUIRED terminal colon and space.
-      The type feat MUST be used when a commit adds a new feature to your application or library.
-      The type fix MUST be used when a commit represents a bug fix for your application.
-      A scope MAY be provided after a type. A scope MUST consist of a noun describing a section of the codebase surrounded by parenthesis, e.g., fix(parser):
-      A description MUST immediately follow the colon and space after the type/scope prefix. The description is a short summary of the code changes, e.g., fix: array parsing issue when multiple spaces were contained in string.
-      A longer commit body MAY be provided after the short description, providing additional contextual information about the code changes. The body MUST begin one blank line after the description.
-      A commit body is free-form and MAY consist of any number of newline separated paragraphs.
-      One or more footers MAY be provided one blank line after the body. Each footer MUST consist of a word token, followed by either a :<space> or <space># separator, followed by a string value (this is inspired by the git trailer convention).
-      A footer’s token MUST use - in place of whitespace characters, e.g., Acked-by (this helps differentiate the footer section from a multi-paragraph body). An exception is made for BREAKING CHANGE, which MAY also be used as a token.
-      A footer’s value MAY contain spaces and newlines, and parsing MUST terminate when the next valid footer token/separator pair is observed.
-      Breaking changes MUST be indicated in the type/scope prefix of a commit, or as an entry in the footer.
-      If included as a footer, a breaking change MUST consist of the uppercase text BREAKING CHANGE, followed by a colon, space, and description, e.g., BREAKING CHANGE: environment variables now take precedence over config files.
-      If included in the type/scope prefix, breaking changes MUST be indicated by a ! immediately before the :. If ! is used, BREAKING CHANGE: MAY be omitted from the footer section, and the commit description SHALL be used to describe the breaking change.
-      Types other than feat and fix MAY be used in your commit messages, e.g., docs: update ref docs.
-      The units of information that make up Conventional Commits MUST NOT be treated as case sensitive by implementors, with the exception of BREAKING CHANGE which MUST be uppercase.
-      BREAKING-CHANGE MUST be synonymous with BREAKING CHANGE, when used as a token in a footer.
-
-      ===
-      The response must conform strictly to the provided specification without any additional explanations or code block fencing.
-    functions:
-      - "fs:write_file"
-###
+  - name: "show-file"
+    display: "git show-file"
+    description: "Deterministic show file content at rev."
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        id: { type: "string" }
+        user: { type: "string" }
+        dir: { type: "string" }
+        rev: { type: "string" }
+        path: { type: "string" }
+      required: ["dir","rev","path"]
+    instruction: |
+      Call sh:git-tool with envelope {id,user,payload:{action:"show-file",dir,rev,path}}.
+      Return the tool JSON as-is.
+    functions: ["sh:git-tool"]
