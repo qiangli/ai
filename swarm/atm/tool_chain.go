@@ -84,8 +84,11 @@ var defaultActionHandler = ActionHandlerFunc(func(ctx context.Context, vars *api
 	return nil, nil
 })
 
-func StartChainActions(ctx context.Context, vars *api.Vars, actions []string, args api.ArgMap) (any, error) {
+func StartChainActions(ctx context.Context, vars *api.Vars, actions []string, args api.ArgMap, f func() (any, error)) (any, error) {
 	final := ActionHandlerFunc(func(ctx context.Context, vars *api.Vars, args api.ArgMap) (any, error) {
+		if f != nil {
+			return f()
+		}
 		return nil, nil
 	})
 

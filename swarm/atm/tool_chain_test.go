@@ -70,7 +70,7 @@ func TestStartChainActions(t *testing.T) {
 		"kit:run_query",
 	}
 
-	result, err := StartChainActions(ctx, vars, actions, args)
+	result, err := StartChainActions(ctx, vars, actions, args, nil)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}

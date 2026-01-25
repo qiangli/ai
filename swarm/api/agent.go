@@ -213,9 +213,8 @@ type AgentConfig struct {
 	Adapter string `yaml:"adapter" json:"adapter"`
 
 	//
-	Entrypoint []string        `yaml:"entrypoint" json:"entrypoint"`
-	Advices    []*AdviceConfig `yaml:"advices" json:"advices"`
-	Exit       []string        `yaml:"exit" json:"exit"`
+	Entrypoint []string      `yaml:"entrypoint" json:"entrypoint"`
+	Advices    *AdviceConfig `yaml:"advices" json:"advices"`
 
 	Config *AppConfig `json:"-"`
 }

@@ -112,6 +112,12 @@ agents:
         kit: {{.kit}}
         agent: {{.pack}}/{{.name}}
       --------
+    entry:
+    exit:
+    advices:
+      before:
+      around:
+      after:
 
 # kit: "test"
 # type: "func"

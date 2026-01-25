@@ -607,35 +607,21 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, parent *api.Agen
 	_, sub := pn.Decode()
 
 	//
-	// kit := atm.NewSystemKit()
-	var entry []string
-	if v := args["entrypoint"]; v != nil {
-		entry = api.ToStringArray(v)
-	}
-	if len(entry) == 0 {
-		if ac, _ := r.ReadAgentConfig(ctx, vars, parent, nil, args); ac != nil {
-			for _, c := range ac.Agents {
-				if c.Name == sub {
-					entry = c.Entrypoint
-					break
+	// resolve spawn_agent to avoid infinite loop
+	resolve := func(actions, defaults []string) []string {
+		var resolved []string
+		if len(actions) == 0 {
+			resolved = defaults
+		} else {
+			for _, v := range actions {
+				if v == "ai:spawn_agent" {
+					resolved = append(resolved, defaults...)
+				} else {
+					resolved = append(resolved, v)
 				}
 			}
 		}
-	}
-
-	// resolve to avoid infinite loop
-	var spawnAgent = []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
-	var resolved []string
-	if len(entry) == 0 {
-		resolved = spawnAgent
-	} else {
-		for _, v := range entry {
-			if v == "ai:spawn_agent" {
-				resolved = append(resolved, spawnAgent...)
-			} else {
-				resolved = append(resolved, v)
-			}
-		}
+		return resolved
 	}
 
 	//
@@ -643,10 +629,88 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, parent *api.Agen
 	if parent != nil {
 		runner = parent.Runner
 	}
-	result, err := atm.InternalSequence(ctx, runner, resolved, args)
+
+	sequence := func(actions []string) (*api.Result, error) {
+		var result any
+		var err error
+		for _, v := range actions {
+			result, err = runner.Run(ctx, v, args)
+		}
+		return api.ToResult(result), err
+	}
+
+	chain := func(chain, actions []string) (*api.Result, error) {
+		final := func() (any, error) {
+			if len(actions) == 0 {
+				return nil, nil
+			}
+			return sequence(actions)
+		}
+
+		out, err := atm.StartChainActions(ctx, vars, chain, args, final)
+		if err != nil {
+			return nil, err
+		}
+		return api.ToResult(out), nil
+	}
+
+	// kit := atm.NewSystemKit()
+	var entry []string
+	var before []string
+	var after []string
+	var around []string
+
+	ac, err := r.ReadAgentConfig(ctx, vars, parent, nil, args)
 	if err != nil {
 		return nil, err
 	}
+	for _, c := range ac.Agents {
+		if c.Name == sub {
+			entry = c.Entrypoint
+			if c.Advices != nil {
+				before = c.Advices.Before
+				around = c.Advices.Around
+				after = c.Advices.After
+			}
+			break
+		}
+	}
+	if v := args["entrypoint"]; v != nil {
+		entry = api.ToStringArray(v)
+	}
+
+	// before advices is intended to prepare and tranform args
+	if len(before) > 0 {
+		before = resolve(before, nil)
+		_, err := sequence(entry)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var result *api.Result
+	entry = resolve(entry, []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"})
+	around = resolve(around, nil)
+	if len(around) > 0 {
+		result, err = chain(around, entry)
+	} else {
+		result, err = sequence(entry)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	// after advices are intended to convert results
+	if len(after) > 0 {
+		after = resolve(after, nil)
+		args["result"] = result
+		_, err := sequence(after)
+		if err != nil {
+			return nil, err
+		}
+		result = api.ToResult(args["result"])
+	}
+
 	return result, nil
 }
 

@@ -107,11 +107,19 @@ func (r *SystemKit) Chain(ctx context.Context, vars *api.Vars, _ string, argm ap
 	if !ok {
 		return nil, fmt.Errorf("chain actions is required")
 	}
-	actions := api.ToStringArray(obj)
-	if len(actions) == 0 {
-		return nil, fmt.Errorf("no actions specified")
+	chain := api.ToStringArray(obj)
+	if len(chain) == 0 {
+		return nil, fmt.Errorf("no chain actions specified")
 	}
-	out, err := StartChainActions(ctx, vars, actions, argm)
+	var actions = argm.Actions()
+	final := func() (any, error) {
+		if len(actions) == 0 {
+			return nil, nil
+		}
+		return InternalSequence(ctx, vars.RootAgent.Runner, actions, argm)
+	}
+
+	out, err := StartChainActions(ctx, vars, chain, argm, final)
 	if err != nil {
 		return nil, err
 	}
