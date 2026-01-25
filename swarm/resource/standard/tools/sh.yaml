@@ -21,6 +21,7 @@ tools:
           + bash
           + exec
           + format
+          + go
           + parse
 
         ## Templates
@@ -279,6 +280,19 @@ tools:
           type: "string"
           description: |
             Specifies the command line to be parsed.
+      required:
+        - command
+
+  - name: "go"
+    description: |
+      Run Go commands (go build/test/vet/list/run) via the SystemKit.Go method.
+      Safety: only accepts commands starting with `go`.
+    parameters:
+      type: "object"
+      properties:
+        command:
+          type: "string"
+          description: "The Go command to execute (must start with 'go')."
       required:
         - command
 

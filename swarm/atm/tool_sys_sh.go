@@ -72,6 +72,30 @@ func (r *SystemKit) Bash(ctx context.Context, vars *api.Vars, name string, args 
 	return api.ToString(result), nil
 }
 
+// Go executes a `go` command (e.g., build/test/vet/list/run) in the user's environment.
+//
+// This is a minimal wrapper around the shell runner. It does not change directories.
+// If you need to run inside a repo, pass an explicit `cd ... && go ...` command.
+func (r *SystemKit) Go(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
+	cmd, err := api.GetStrProp("command", args)
+	if err != nil {
+		return "", err
+	}
+	cmd = strings.TrimSpace(cmd)
+	if cmd == "" {
+		return "", fmt.Errorf("command is empty")
+	}
+	// Safety: only allow `go ...` command lines.
+	if !strings.HasPrefix(cmd, "go ") && cmd != "go" {
+		return "", fmt.Errorf("only 'go ...' commands are allowed")
+	}
+	result, err := ExecCommand(ctx, vars.OS, vars, cmd, nil)
+	if err != nil {
+		return "", err
+	}
+	return api.ToString(result), nil
+}
+
 // template is required
 func (r *SystemKit) Apply(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
 	tpl, err := api.GetStrProp("template", args)

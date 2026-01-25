@@ -1,10 +1,10 @@
 #!/usr/bin/env ai /sh:bash --format raw --script
 # set -ue
-ls
+# ls
 
-/bin/ls -al /tmp
+# /bin/ls -al /tmp
 
-bin/ls -al /tmp
+# bin/ls -al /tmp
 
 # // | fromJson | toPrettyJson
 template='data:,
@@ -35,7 +35,7 @@ template='data:,
 ##
 # script="file:///$PWD/swarm/resource/incubator/agents/meta/agent.yaml"
 # script="file:///$PWD/swarm/resource/incubator/agents/web/agent.yaml"
-script="file:///$PWD/swarm/resource/incubator/agents/ralph/agent.yaml"
+# script="file:///$PWD/swarm/resource/incubator/agents/ralph/agent.yaml"
 
 # message="write a report on the major world events for the year of 2025"
 # message="What is the latest technology and research  human like consciousness for  AI and LLM"
@@ -46,7 +46,7 @@ script="file:///$PWD/swarm/resource/incubator/agents/ralph/agent.yaml"
 # message="suggestion for spending a day in Los Angels"
 # message="what is the state of the art for LLM vibe coding and future developments in the next 2 years"
 # message="what is the state of the art for LLM memory management and the future research in the next 2 years"
-message="Top open source github repo for comamnd line parsing in golang"
+# message="Top open source github repo for comamnd line parsing in golang"
 
 # /agent:web/search \
 #     --option message="$message"
@@ -54,15 +54,15 @@ message="Top open source github repo for comamnd line parsing in golang"
 # agent="web/react"
 
 # tool="ralph:write_template_agent"
-tool="ralph:write_template_fix_plan"
+# tool="ralph:write_template_fix_plan"
 # tool="ralph:write_template_prompt"
 
-/$tool  --script "$script" --base_dir=/tmp/test/xxx 
+# /$tool  --script "$script" --base_dir=/tmp/test/xxx 
 
 ###
 
-printenv
-
+# printenv
+/sh:go
 # echo ""
 echo "*** eval tests completed ***"
 ###
