@@ -56,11 +56,6 @@ agents=(
 #
 "ask/ask"
 "ed/ed"
-# aider
-"aider/aider"
-"aider/architect"
-"aider/ask"
-"aider/code"
 # deep
 "deep/deep"
 "deep/memory"
@@ -71,17 +66,6 @@ agents=(
 "flow/choice"
 "flow/parallel"
 "flow/shell"
-# gpte
-"gpte/gpte"
-"gpte/generate"
-"gpte/gen_code"
-"gpte/gen_entrypoint"
-"gpte/improve"
-"gpte/self_heal"
-"gpte/clarify"
-"gpte/execute"
-"gpte/to_file_dict"
-"gpte/parse_diff"
 # gptr
 "gptr/gptr"
 "gptr/preferences"
@@ -110,8 +94,17 @@ agents=(
 "research/critique"
 # 
 "shell/shell"
-# 
+# swe
 "swe/swe"
+"swe/vibe"
+# aider
+"swe/architect"
+"swe/ask"
+"swe/code"
+# gpte
+"swe/generate"
+"swe/improve"
+"swe/clarify"
 # 
 # "think/think"
 # web
