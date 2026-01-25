@@ -19,7 +19,7 @@ agents:
     embed:
       - "agent:context/lastn"
       - "agent:memory/memory"
-      - "agent:flow/choice"
+      # - "agent:flow/choice"
     instruction: |
       #! mime-type=text/x-go-template
       You are the standard SWE orchestrator.
