@@ -18,3 +18,4 @@ agents:
     functions:
       - "fs:*"
       - "sh:*"
+      - "web:*"

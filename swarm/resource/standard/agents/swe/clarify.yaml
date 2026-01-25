@@ -11,3 +11,7 @@ agents:
 
       If something essential is missing, ask exactly ONE clarifying question.
       Otherwise reply exactly: Nothing to clarify
+    functions:
+      - "fs:*"
+      - "sh:*"
+      - "web:*"

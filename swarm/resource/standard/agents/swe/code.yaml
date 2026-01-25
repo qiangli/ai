@@ -18,8 +18,6 @@ agents:
       When you change files, use fs:write_file with full updated content.
       Explain what you changed succinctly.
     functions:
-      - "fs:read_file"
-      - "fs:write_file"
-      - "fs:search_files"
-      - "fs:list_directory"
-      - "sh:exec"
+      - "fs:*"
+      - "sh:*"
+      - "web:*"

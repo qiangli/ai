@@ -16,5 +16,5 @@ agents:
       - If the user requests code: output ONLY the raw code (no markdown fences).
       - If the user requests explanation: be concise.
     functions:
-      - "fs:read_file"
-      - "fs:search_files"
+      - "fs:*"
+      - "sh:*"
