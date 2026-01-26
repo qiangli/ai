@@ -193,11 +193,11 @@ type AppConfig struct {
 	//
 	Arguments map[string]any `yaml:"arguments" json:"arguments"`
 
-	// user message
-	Message string `yaml:"message" json:"message"`
+	// // user message
+	// Message string `yaml:"message" json:"message"`
 
-	// system prompt
-	Instruction string `yaml:"instruction" json:"instruction"`
+	// // system prompt
+	// Instruction string `yaml:"instruction" json:"instruction"`
 
 	// set/level key - not the LLM model
 	Model string `yaml:"model" json:"model"`
@@ -206,8 +206,8 @@ type AppConfig struct {
 	MaxTurns int `yaml:"max_turns" json:"max_turns"`
 	MaxTime  int `yaml:"max_time" json:"max_time"`
 
-	// output format: json | text
-	Format string `yaml:"format" json:"format"`
+	// // output format: json | text
+	// Format string `yaml:"format" json:"format"`
 
 	// memory context
 	MaxHistory int    `yaml:"max_history" json:"max_history"`
@@ -257,6 +257,7 @@ type AppConfig struct {
 // and only for non zero values.
 func (ac *AppConfig) ToMap() map[string]any {
 	result := make(map[string]any)
+	// agent/tool/model
 	if ac.Pack != "" {
 		result["pack"] = ac.Pack
 	}
@@ -269,6 +270,7 @@ func (ac *AppConfig) ToMap() map[string]any {
 	if ac.Set != "" {
 		result["set"] = ac.Set
 	}
+
 	//
 	if ac.Model != "" {
 		result["model"] = ac.Model
@@ -279,15 +281,13 @@ func (ac *AppConfig) ToMap() map[string]any {
 	if ac.MaxTime > 0 {
 		result["max_time"] = ac.MaxTime
 	}
-	if ac.Format != "" {
-		result["format"] = ac.Format
-	}
 	if ac.MaxHistory > 0 {
 		result["max_history"] = ac.MaxHistory
 	}
 	if ac.MaxSpan > 0 {
 		result["max_span"] = ac.MaxSpan
 	}
+	//
 	if ac.LogLevel != "" {
 		result["log_level"] = ac.LogLevel
 	}
@@ -311,6 +311,6 @@ func (cfg *AppConfig) IsTracing() bool {
 	return ToLogLevel(cfg.LogLevel) == Tracing
 }
 
-func (cfg *AppConfig) HasInput() bool {
-	return cfg.Message != ""
-}
+// func (cfg *AppConfig) HasInput() bool {
+// 	return cfg.Message != ""
+// }

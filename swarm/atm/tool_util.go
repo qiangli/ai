@@ -64,18 +64,19 @@ func BuildEffectiveArgs(vars *api.Vars, agent *api.Agent, input map[string]any) 
 
 func BuildEffectiveParamArgs(vars *api.Vars, parameters api.Parameters, arguments api.Arguments, input map[string]any) map[string]any {
 	var data = make(map[string]any)
-	// defaults from parameters
-	if len(parameters) > 0 {
-		obj := parameters["properties"]
-		props, _ := api.ToMap(obj)
-		for key, prop := range props {
-			if p, ok := prop.(map[string]any); ok {
-				if def, ok := p["default"]; ok {
-					data[key] = def
-				}
-			}
-		}
-	}
+	// // defaults from parameters
+	// if len(parameters) > 0 {
+	// 	// obj := parameters["properties"]
+	// 	// props, _ := api.ToMap(obj)
+	// 	// for key, prop := range props {
+	// 	// 	if p, ok := prop.(map[string]any); ok {
+	// 	// 		if def, ok := p["default"]; ok {
+	// 	// 			data[key] = def
+	// 	// 		}
+	// 	// 	}
+	// 	// }
+	// 	maps.Copy(data, parameters.Defaults())
+	// }
 	// wont check vars.global - this should never be nil
 	maps.Copy(data, vars.Global.GetAllEnvs())
 	// arguments

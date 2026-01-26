@@ -84,8 +84,8 @@ func mapAssign(_ context.Context, global *api.Environment, agent *api.Agent, dst
 // context/instruction/message are not resolved - each is done separately as needed
 // var precedence:
 // global env
-// agent env (merged and exported)
-// agent args (local scope)
+// app/agent env (merged and exported)
+// app/agent args/agent parameters
 // args
 func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, parent *api.Agent, _ *api.ToolFunc, args map[string]any) (*api.Agent, error) {
 	var name string

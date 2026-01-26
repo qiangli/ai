@@ -24,7 +24,7 @@
 			"args": [
 				// ai
 				// default root/root
-				"what is the weather today",
+				// "what is the weather today",
 				// "/help",
 				// "/help:help",
 				// "/agent:help",
@@ -112,7 +112,7 @@
 				// "--script",
 				// "dev/skills/agents/eval/agent.yaml",
 				//
-				// "@happy/coder",
+				"@web/research",
 				// 
 				// bash script
 				// "@shell/shell",

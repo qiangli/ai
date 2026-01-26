@@ -218,30 +218,36 @@ type AgentConfig struct {
 	Config *AppConfig `json:"-"`
 }
 
-func (ac *AgentConfig) ToMap() map[string]any {
+// only for valid supported fields
+// non zero value only
+func (c *AgentConfig) ToMap() map[string]any {
 	result := make(map[string]any)
 
-	if ac.Name != "" {
-		result["name"] = ac.Name
+	if c.Name != "" {
+		result["name"] = c.Name
+	}
+	if c.Display != "" {
+		result["display"] = c.Name
 	}
 
-	if ac.Model != "" {
-		result["model"] = ac.Model
+	if c.Model != "" {
+		result["model"] = c.Model
 	}
-	if ac.MaxTurns > 0 {
-		result["max_turns"] = ac.MaxTurns
+
+	if c.MaxTurns > 0 {
+		result["max_turns"] = c.MaxTurns
 	}
-	if ac.MaxTime > 0 {
-		result["max_time"] = ac.MaxTime
+	if c.MaxTime > 0 {
+		result["max_time"] = c.MaxTime
 	}
-	if ac.MaxHistory > 0 {
-		result["max_history"] = ac.MaxHistory
+	if c.MaxHistory > 0 {
+		result["max_history"] = c.MaxHistory
 	}
-	if ac.MaxSpan > 0 {
-		result["max_span"] = ac.MaxSpan
+	if c.MaxSpan > 0 {
+		result["max_span"] = c.MaxSpan
 	}
-	if ac.LogLevel != "" {
-		result["log_level"] = ac.LogLevel
+	if c.LogLevel != "" {
+		result["log_level"] = c.LogLevel
 	}
 
 	return result

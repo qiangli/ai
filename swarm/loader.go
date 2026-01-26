@@ -283,8 +283,12 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 		//
 		Config: ac,
 	}
-	//
+	// app/agent
 	args := make(map[string]any)
+	// defaults from parameters
+	if len(c.Parameters) > 0 {
+		maps.Copy(args, c.Parameters.Defaults())
+	}
 	maps.Copy(args, ac.ToMap())
 	maps.Copy(args, c.ToMap())
 

@@ -15,11 +15,22 @@ type ToolType string
 
 type Parameters map[string]any
 
-// type Parameters struct {
-// 	Type       string         `json:"type"`
-// 	Properties map[string]any `json:"properties"`
-// 	Required   []string       `json:"required"`
-// }
+func (r Parameters) Defaults() map[string]any {
+	if len(r) == 0 {
+		return nil
+	}
+	obj := r["properties"]
+	props, _ := ToMap(obj)
+	var data = make(map[string]any)
+	for key, prop := range props {
+		if p, ok := prop.(map[string]any); ok {
+			if def, ok := p["default"]; ok {
+				data[key] = def
+			}
+		}
+	}
+	return data
+}
 
 const (
 	// script/template

@@ -3,7 +3,7 @@ package agent
 import (
 	"slices"
 
-	"fmt"
+	// "fmt"
 	"os"
 	"path/filepath"
 
@@ -87,12 +87,12 @@ func isValidFormat(format string) bool {
 	return slices.Contains(validFormats, format)
 }
 
-func Validate(app *api.AppConfig) error {
-	if app.Format != "" && !isValidFormat(app.Format) {
-		return fmt.Errorf("invalid format: %s", app.Format)
-	}
-	return nil
-}
+// func Validate(app *api.AppConfig) error {
+// 	if app.Format != "" && !isValidFormat(app.Format) {
+// 		return fmt.Errorf("invalid format: %s", app.Format)
+// 	}
+// 	return nil
+// }
 
 func SetupAppConfig(app *api.App) error {
 	app.Session = uuid.NewString()

@@ -85,16 +85,16 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	// LLM prompt/query/model
 	instruction := fs.String("instruction", "", "System role prompt message")
 	message := fs.String("message", "", "User input message")
-	// model := fs.String("model", "", "LLM model alias defined in the model set")
+
+	model := fs.String("model", "", "LLM model alias defined in the model set")
 
 	// common args with defaut value
-	// TODO revisit
 	maxHistory := fs.Int("max-history", api.DefaultMaxHistory, "Max number of historic messages to retrieve")
 	maxSpan := fs.Int("max-span", api.DefaultMaxSpan, "Historic message retrieval span (minutes)")
 	maxTurns := fs.Int("max-turns", api.DefaultMaxTurns, "Max conversation turns")
 	maxTime := fs.Int("max-time", api.DefaultMaxTime, "Max timeout (seconds)")
 
-	format := fs.String("format", "json", "Output as text, json, or markdown")
+	// format := fs.String("format", "json", "Output as text, json, or markdown")
 
 	// logging
 	logLevel := fs.String("log-level", "quiet", "Log level: quiet, info, verbose, trace")
@@ -118,8 +118,8 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 		"max_span":    *maxSpan,
 		"max_turns":   *maxTurns,
 		"max_time":    *maxTime,
-		"format":      *format,
-		"log_level":   *logLevel,
+		// "format":      *format,
+		"log_level": *logLevel,
 	}
 
 	// prepend messsage to non flag/option args
@@ -221,6 +221,9 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	}
 	if prompt != "" {
 		argm["instruction"] = prompt
+	}
+	if *model != "" {
+		argm["model"] = model
 	}
 
 	//
