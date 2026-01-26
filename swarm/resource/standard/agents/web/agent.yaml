@@ -1,4 +1,3 @@
-###
 pack: "web"
 
 #
@@ -60,8 +59,8 @@ agents:
 
       Record the URLs and their corresponding contents in the following format:
 
-      URL: <url>
-      CONTENT: <content>
+      URL: &lt;url&gt;
+      CONTENT: &lt;content&gt;
 
       You may receive results in various formats such as plain text, markdown, JSON, or HTML. Extract and convert
       these results into a uniform format that is readable and presentable to the user, with minimal summarization
@@ -84,6 +83,9 @@ agents:
     parameters:
       type: "object"
       properties:
+        query:
+          type: "string"
+          description: "The original query to refine into multiple targeted search queries."
         max_research_queries:
           type: "integer"
           default: 5
@@ -170,16 +172,217 @@ agents:
       - "agent:web/search"
 
   - name: "research"
-    display: "🌐 Web Researcher"
+    display: "🔬 Deep Web Research"
     description: |
-      A specialized agent (alias to `agent:gptr/gptr``) for conducting detailed and unbiased research.
-      Produces reports with citations by:
-      • Generating questions to provide an objective view.
-      • Using a crawler agent for data gathering.
-      • Summarizing and tracking sources.
-      • Aggregating summaries into final reports.
-    embed:
-      - "agent:gptr/gptr"
+      Level 3 - Deep research agent implementing GPT-Researcher architecture: generates research questions, scrapes content, curates sources, and produces comprehensive cited reports.
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The comprehensive research query"
+      required:
+        - query
+    model: "llm/L1"
+    instruction: |
+      #! --mime-type=text/x-go-template
+      You are a professional deep web researcher implementing the GPT-Researcher architecture.
+
+      Workflow for research query: "{{.query}}"
+
+      1. SCRAPE: Call agent:web/scrape to gather information from multiple sources
+         - This will refine queries and fetch content automatically
+      
+      2. CURATE: Call agent:web/curate to evaluate and rank sources
+         - Pass the scraped source_list and query
+         - Get back top 5-10 most relevant, credible sources with data
+      
+      3. SYNTHESIZE: Call agent:web/report to generate comprehensive report
+         - Pass curated information and query
+         - Get detailed markdown report with citations
+      
+      4. SAVE: Use fs:write_file to save report to workspace
+         - First call fs:list_roots to find workspace path
+         - Save with descriptive filename based on query
+         - Report saved location to user
+      
+      5. RETURN: Read and display the saved report content
+      
+      For context, the current date is {{date}}.
+    functions:
+      - "fs:*"
+      - "agent:web/scrape"
+      - "agent:web/curate"
+      - "agent:web/report"
+
+  - name: "curate"
+    display: "⚖️ Evaluating and curating sources"
+    description: |
+      Ranks sources and curates data based on their relevance, credibility and reliability.
+    model: "llm/L1"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The original query from user"
+        source_list:
+          type: "string"
+          description: "list of contents in JSON array format"
+        max_results:
+          type: "integer"
+          description: "Maximum number of results to return"
+          default: 5
+          minimum: 1
+          maximum: 10
+      required:
+        - query
+        - source_list
+    instruction: |
+      #! --mime-type=text/x-go-template
+      Your goal is to evaluate and curate the provided content for the research query:
+
+      {{default "Query is required. report back to user and stop processing." .query}}
+
+      For context, the current date is {{date}}.
+      ###
+
+      while prioritizing the inclusion of relevant and high-quality information, especially sources containing statistics, numbers, or concrete data.
+
+      The final curated list will be used as context for creating a research report, so prioritize:
+      - Retaining as much original information as possible, with extra emphasis on sources featuring quantitative data or unique insights
+      - Including a wide range of perspectives and insights
+      - Filtering out only clearly irrelevant or unusable content
+
+      EVALUATION GUIDELINES:
+      1. Assess each source based on:
+        - Relevance: Include sources directly or partially connected to the research query. Err on the side of inclusion.
+        - Credibility: Favor authoritative sources but retain others unless clearly untrustworthy.
+        - Currency: Prefer recent information unless older data is essential or valuable.
+        - Objectivity: Retain sources with bias if they provide a unique or complementary perspective.
+        - Quantitative Value: Give higher priority to sources with statistics, numbers, or other concrete data.
+      2. Source Selection:
+        - Include as many relevant sources as possible, up to {{default 5 .max_results}}, focusing on broad coverage and diversity.
+        - Prioritize sources with statistics, numerical data, or verifiable facts.
+        - Overlapping content is acceptable if it adds depth, especially when data is involved.
+        - Exclude sources only if they are entirely irrelevant, severely outdated, or unusable due to poor content quality.
+      3. Content Retention:
+        - DO NOT rewrite, summarize, or condense any source content.
+        - Retain all usable information, cleaning up only clear garbage or formatting issues.
+        - Keep marginally relevant or incomplete sources if they contain valuable data or insights.
+
+      SOURCES LIST TO EVALUATE:
+
+      {{default "Missing source list, stop processing." .source_list}}
+      ###
+
+      You MUST return your response in the EXACT sources JSON list format as the original sources.
+      The response MUST not contain any markdown format or additional text (like ```json), just the JSON list!
+
+  - name: "report"
+    display: "📝 Report"
+    description: "Generate the final research report with citations"
+    model: "llm/L1"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The original query from user"
+        information:
+          type: "string"
+          description: "list of contents for the report in JSON array format"
+      required:
+        - query
+    instruction: |
+      #! --mime-type=text/x-go-template
+      ###
+      ** User Query:
+      {{default "Query missing. report to user and stop" .query}}
+
+      ** Information:
+      {{default "Missing content for the report. stop processing." .information}}
+
+      Using the above information, answer the following task in a detailed report:
+
+      ** User's Preferences:
+
+      Run tool `agent:web/preferences` to find user's preferences based on the user query.
+
+      In the following instructions, there are placeholders in [[preferences.*]] format. You must reference the values in the above preferences.
+
+      ###
+      The report should focus on answering the query, should be well structured, informative,
+      in-depth, and comprehensive, with facts and numbers if available, and at least [[preferences.total_words]] words.
+      You should strive to write the report as long as you can using all relevant and necessary information provided.
+
+      Please follow all of the following guidelines in your report:
+      - You MUST determine your own concrete and valid opinion based on the given information. Do NOT defer to general and meaningless conclusions.
+      - You MUST write the report using markdown syntax and adhere to the [[preferences.report_format]] format.
+      - Structure your report with clear markdown headers: use # for the main title, ## for major sections, and ### for subsections.
+      - Use markdown tables when presenting structured data or comparisons to enhance readability.
+      - You MUST prioritize the relevance, reliability, and significance of the sources you use. Choose trusted sources over less reliable ones.
+      - You must also prioritize new articles over older articles if the source can be trusted.
+      - You MUST NOT include a table of contents, but DO include proper markdown headers (# ## ###) to structure your report clearly.
+      - Use in-text citation references in the [[preferences.report_format]] format. Insert these as markdown hyperlinks placed at the end of the sentence or paragraph that they reference, such as: ([in-text citation](url)).
+      - Don't forget to add a reference list at the end of the report in [[preferences.report_format]] format and full url links without hyperlinks.
+      - You MUST write all used source urls at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each.
+          Every url should be hyperlinked: [url website](url)
+          Additionally, you MUST include hyperlinks to the relevant URLs wherever they are referenced in the report:
+
+          eg: Author, A. A. (Year, Month Date). Title of web page. Website Name. [url website](url)
+      - Write the report in the [[preferences.tone]] tone.
+
+      You MUST write the report in the [[preferences.language]] language.
+      The report SHOULD be approximately [[preferences.total_words]] words long.
+
+      For context, the current date is {{date}}.
+    functions:
+      - "agent:web/preferences"
+
+  - name: "preferences"
+    display: "🖥️  User Preferences"
+    description: "Detect user preferences for the research tool."
+    model: "llm/L1"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The original query from user"
+      required:
+        - query
+    instruction: |
+      You are an agent designed to analyze user input to identify preferences for generating research reports.
+      Your role is not to gather or retrieve real-time information, but to extract the specified parameters from the user's query.
+
+      Your objective is to identify the following elements from the user's input:
+
+      + Tone of the report:
+        Example values:
+          "objective", "formal", "analytical", "persuasive", "informative", "explanatory", "descriptive", "critical", "comparative", "speculative",
+          "reflective", "narrative", "humorous", "optimistic", "pessimistic"
+        Multiple values are allowed, e.g., "formal, analytical, and objective". If a tone not listed above is detected in the user's input, it should also be considered valid.
+
+      + Total word count limit for document generation. The default is `500`.
+        Guidelines:
+          - Use 500 words for a short summary.
+          - Use 1000 words for a detailed and in-depth report.
+          - Do not exceed 2000 words for an extensive research report unless explicitly requested by the user for more.
+
+      + Report format: The preferred format for report generation. The default is `markdown`.
+        Formats such as `MLA`, `CMS`, `Harvard style`, `IEEE`, etc., should be used if specified by the user.
+
+      + Language: The language to be used for the final research report. The default is `English`.
+
+      You must also save the original query from the user.
+      {
+        "tone": "detected tone from user input",
+        "total_words": "derived total words from user input",
+        "report_format": "desired report format from user",
+        "language": "preferred language by user",
+        "original_query": "users original query"
+      }
 
 ## tools
 
@@ -191,4 +394,3 @@ api_key: "openai"
 models:
   L1:
     model: "gpt-4o-mini"
-###
