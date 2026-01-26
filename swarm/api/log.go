@@ -136,5 +136,5 @@ func FormatArgMap(args map[string]any) string {
 	s := sb.String()
 	s = strings.TrimSpace(s)
 	s = strings.TrimSuffix(s, ",")
-	return fmt.Sprintf("map[%s]", s)
+	return fmt.Sprintf("{%s}", s)
 }
