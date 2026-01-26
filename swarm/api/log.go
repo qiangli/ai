@@ -111,7 +111,7 @@ func FormatRequestLine(req *Request, adapter string, maxTurns, tries int) string
 	return fmt.Sprintf("%s %s [%v/%v] %s %s/%s\n", lineage, emoji, tries, maxTurns, adapter, req.Model.Provider, req.Model.Model)
 }
 
-const maxInfoTextLen = 12
+const maxInfoTextLen = 32
 
 func FormatArgMap(args map[string]any) string {
 	var sb strings.Builder
