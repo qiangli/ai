@@ -112,8 +112,11 @@ func run(p Payload) (stdout string, stderr string, exitCode int, err error) {
 	action := strings.ToLower(strings.TrimSpace(p.Action))
 	switch action {
 	case "status":
-		out, errOut, code, runErr := gitkit.RunGitExitCode(p.Dir, "status", "--porcelain=v1")
-		return out, errOut, code, runErr
+		outStr, errStr, runErr := gitkit.Status(p.Dir)
+		if runErr != nil {
+			return outStr, errStr, 1, runErr
+		}
+		return outStr, errStr, 0, nil
 	case "clone":
 		if len(p.Args) != 2 {
 			return "", "", 2, errors.New("clone requires args: [repoURL, destDir]")
