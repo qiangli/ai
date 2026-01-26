@@ -84,6 +84,7 @@ agents:
       For context, today's date is: {{date}}
     functions:
       - "web:*"
+      - "sh:timeout"
 
   - name: "refine_query"
     display: "🤔 Planning the web research strategy"
@@ -203,6 +204,8 @@ agents:
     display: "🔬 Deep Web Research"
     description: |
       Level 3 - Deep research agent implementing GPT-Researcher architecture: generates research questions, scrapes content, curates sources, and produces comprehensive cited reports.
+    arguments:
+      duration: "5m"
     parameters:
       type: "object"
       properties:
@@ -211,6 +214,9 @@ agents:
           description: "The comprehensive research query"
       required:
         - query
+    advices:
+      around:
+        - "sh:timeout"
     instruction: |
       #! --mime-type=text/x-go-template
       You are a professional deep web researcher implementing the GPT-Researcher architecture.
