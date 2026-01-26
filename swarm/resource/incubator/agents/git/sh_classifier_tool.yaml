@@ -15,18 +15,26 @@ tools:
   - name: "classifier"
     description: "Deterministic rule-based classifier for freeform git queries."
     parameters:
+      # OpenAI function schema restriction:
+      # - top-level parameters MUST be a JSON Schema object
+      # - and MUST NOT use oneOf/anyOf/allOf/enum/not at the top level.
+      # We keep the same intent (accept either `query` OR `payload.query`) by
+      # making `query` optional and allowing `payload` as an alternate carrier.
       type: "object"
+      additionalProperties: false
       properties:
         id: { type: "string" }
         user: { type: "string" }
         query: { type: "string", description: "Freeform query" }
         payload:
           type: "object"
+          additionalProperties: false
           properties:
             query: { type: "string" }
-      oneOf:
-        - required: ["query"]
-        - required: ["payload"]
+      # NOTE: We cannot express the mutual requirement (query XOR payload.query)
+      # without top-level oneOf. Runtime validation in the Go wrapper enforces:
+      # - payload JSON provided => uses payload.query
+      # - otherwise query is required (and errors if missing).
     body:
       mime_type: "application/x-go"
       script: |
