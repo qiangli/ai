@@ -395,28 +395,28 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	return result, nil
 }
 
-func (r *AIKit) retryCallLlmPrompt(query string, result *api.Result, err error) string {
-	const prompt = `
-	Encountered an error while processing user's request:
+// func (r *AIKit) retryCallLlmPrompt(query string, result *api.Result, err error) string {
+// 	const prompt = `
+// 	Encountered an error while processing user's request:
 
-	Query:
-	%s
+// 	Query:
+// 	%s
 
-	Error:
-	%s
-	%s
+// 	Error:
+// 	%s
+// 	%s
 
-	Please review the above error response. If the error is recoverable, consider taking corrective actions as suggested and try again.
+// 	Please review the above error response. If the error is recoverable, consider taking corrective actions as suggested and try again.
 
-	Example of a recoverable error:
-	✗ error: POST "https:...": 429 Too Many Requests. Limit x, Requested y. The input or output tokens must be reduced.
-	`
-	var val string
-	if result != nil {
-		val = result.Value
-	}
-	return fmt.Sprintf(prompt, query, err.Error(), val)
-}
+// 	Example of a recoverable error:
+// 	✗ error: POST "https:...": 429 Too Many Requests. Limit x, Requested y. The input or output tokens must be reduced.
+// 	`
+// 	var val string
+// 	if result != nil {
+// 		val = result.Value
+// 	}
+// 	return fmt.Sprintf(prompt, query, err.Error(), val)
+// }
 
 func (r *AIKit) LlmAdapter(ctx context.Context, vars *api.Vars, agent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
 	var owner = r.vars.User.Email
@@ -727,7 +727,21 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, parent *api.Agen
 	}
 
 	var result *api.Result
-	entry = resolve(entry, []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"})
+	// default entrypoint
+	// []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
+	var defaultEntry = []string{"ai:new_agent"}
+	if api.IsTemplate(agent.Message) {
+		defaultEntry = append(defaultEntry, "ai:build_query")
+	}
+	if api.IsTemplate(agent.Instruction) {
+		defaultEntry = append(defaultEntry, "ai:build_prompt")
+	}
+	if api.IsTemplate(agent.Context) {
+		defaultEntry = append(defaultEntry, "ai:build_context")
+	}
+	defaultEntry = append(defaultEntry, "ai:call_llm")
+
+	entry = resolve(entry, defaultEntry)
 	around = resolve(around, nil)
 	if len(around) > 0 {
 		result, err = chain(around, entry)
