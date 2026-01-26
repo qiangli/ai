@@ -56,21 +56,12 @@ agents=(
 #
 "ask/ask"
 "ed/ed"
-# deep
-"deep/deep"
-"deep/memory"
-# "deep/workspace"
 # flow
 "flow/flow"
 "flow/sequence"
 "flow/choice"
 "flow/parallel"
 "flow/shell"
-# gptr
-"gptr/gptr"
-"gptr/preferences"
-"gptr/curate"
-"gptr/report"
 # 
 # "kbase/kbase"
 # memory
@@ -80,28 +71,14 @@ agents=(
 "memory/fold"
 # meta
 "meta/workspace"
-# "meta/agent"
-# "meta/prompt"
-# "meta/dispatch"
-# "meta/save_result"
-# react
-"react/react"
-# research
-"research/research"
-"research/sub_agent"
-"research/web_search"
-"research/deep"
-"research/critique"
 # 
 "shell/shell"
 # swe
 "swe/swe"
 "swe/vibe"
-# aider
 "swe/architect"
 "swe/ask"
 "swe/code"
-# gpte
 "swe/generate"
 "swe/improve"
 "swe/clarify"
