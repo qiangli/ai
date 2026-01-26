@@ -129,7 +129,8 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	}
 	msg = strings.TrimSpace(msg)
 
-	prompt := strings.TrimSpace(*instruction)
+	instructStr := strings.TrimSpace(*instruction)
+	modelStr := strings.TrimSpace(*model)
 
 	//
 	isSet := func(fl string) bool {
@@ -219,11 +220,11 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	if msg != "" {
 		argm["message"] = msg
 	}
-	if prompt != "" {
-		argm["instruction"] = prompt
+	if instructStr != "" {
+		argm["instruction"] = instructStr
 	}
-	if *model != "" {
-		argm["model"] = model
+	if modelStr != "" {
+		argm["model"] = modelStr
 	}
 
 	//

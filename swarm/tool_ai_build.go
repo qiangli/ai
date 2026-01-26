@@ -219,8 +219,18 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, parent *api.Age
 
 	agent.Tools = list
 
+	// TODO: cmdline args or agent args?
 	// NOTE: local args takes precedence
 	maps.Copy(args, agentArgs)
+	// defaults from parameters
+	if len(agent.Parameters) > 0 {
+		maps.Copy(args, agent.Parameters.Defaults())
+	}
+	for k, v := range agentArgs {
+		if _, ok := args[k]; !ok {
+			args[k] = v
+		}
+	}
 
 	// update the property with the created agent object
 	args["kit"] = "agent"

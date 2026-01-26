@@ -210,12 +210,12 @@ func TestParseActionCommand(t *testing.T) {
 		t.Run(fmt.Sprintf("Test Case %d", i), func(t *testing.T) {
 			got, err := ParseActionCommand(tt.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseActionArgs() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TestParseActionCommand() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			// t.Logf("got: %+v, err: %v", got, err)
 			if !reflect.DeepEqual(got, api.ArgMap(tt.expected)) {
-				t.Errorf("ParseActionArgs() = %v, want %v", got, tt.expected)
+				t.Errorf("TestParseActionCommand() = %v, want %v", got, tt.expected)
 			}
 		})
 	}
@@ -272,7 +272,7 @@ func TestIsAction(t *testing.T) {
 		t.Run(fmt.Sprintf("Test Case %d", i), func(t *testing.T) {
 			got := IsAction(tt.input)
 			if got != tt.expected {
-				t.Errorf("ParseActionArgs() = %v, want %v", got, tt.expected)
+				t.Errorf("TestIsAction() = %v, want %v", got, tt.expected)
 			}
 		})
 	}
@@ -311,7 +311,7 @@ func TestParseArgsLogFlags(t *testing.T) {
 
 		got := argm["log_level"].(string)
 		if got != tt.expected {
-			t.Errorf("For args %v; expected %v got %v", tt.args, tt.expected, got)
+			t.Errorf("ParseActionArgs() args %v; expected %v got %v", tt.args, tt.expected, got)
 		}
 	}
 }
@@ -334,6 +334,17 @@ func TestParseAnyFlagCommand(t *testing.T) {
 				"option1": "one",
 				"option2": "two",
 				"option3": "three",
+			},
+			wantErr: false,
+		},
+		{
+			input: `/tool:example --instruction "you are smart" --message "hello" --model "default/any"`,
+			expected: map[string]any{
+				"kit":         "tool",
+				"name":        "example",
+				"instruction": "you are smart",
+				"message":     "hello",
+				"model":       "default/any",
 			},
 			wantErr: false,
 		},
@@ -386,12 +397,12 @@ func TestParseAnyFlagCommand(t *testing.T) {
 		t.Run(fmt.Sprintf("Test Case %d", i), func(t *testing.T) {
 			got, err := ParseActionCommand(tt.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseActionArgs() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TestParseAnyFlagCommand() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			// t.Logf("got: %+v, err: %v", got, err)
 			if !reflect.DeepEqual(got, api.ArgMap(tt.expected)) {
-				t.Errorf("ParseActionArgs() = %v, want %v", got, tt.expected)
+				t.Errorf("TestParseAnyFlagCommand() = %v, want %v", got, tt.expected)
 			}
 		})
 	}
