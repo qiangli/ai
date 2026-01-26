@@ -631,8 +631,9 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, parent *api.Agen
 		}
 		packsub = parent.Pack + "/" + parent.Name
 	}
-	pn := api.Packname(packsub).Clean()
-	_, sub := pn.Decode()
+
+	// pn := api.Packname(packsub).Clean()
+	// _, sub := pn.Decode()
 
 	//
 	// resolve spawn_agent to avoid infinite loop
@@ -683,26 +684,35 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, parent *api.Agen
 	}
 
 	// kit := atm.NewSystemKit()
-	var entry []string
-	var before []string
-	var after []string
-	var around []string
+	// var entry []string
+	// var before []string
+	// var after []string
+	// var around []string
 
-	ac, err := r.ReadAgentConfig(ctx, vars, parent, nil, args)
+	// ac, err := r.ReadAgentConfig(ctx, vars, parent, nil, args)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// for _, c := range ac.Agents {
+	// 	if c.Name == sub {
+	// 		entry = c.Entrypoint
+	// 		if c.Advices != nil {
+	// 			before = c.Advices.Before
+	// 			around = c.Advices.Around
+	// 			after = c.Advices.After
+	// 		}
+	// 		break
+	// 	}
+	// }
+	agent, err := r.createAgent(ctx, vars, parent, tf, args)
 	if err != nil {
 		return nil, err
 	}
-	for _, c := range ac.Agents {
-		if c.Name == sub {
-			entry = c.Entrypoint
-			if c.Advices != nil {
-				before = c.Advices.Before
-				around = c.Advices.Around
-				after = c.Advices.After
-			}
-			break
-		}
-	}
+	var entry = agent.Entrypoint
+	var before = agent.Before
+	var after = agent.After
+	var around = agent.Around
+
 	if v := args["entrypoint"]; v != nil {
 		entry = api.ToStringArray(v)
 	}

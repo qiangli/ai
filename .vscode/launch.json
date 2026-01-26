@@ -112,7 +112,7 @@
 				// "--script",
 				// "dev/skills/agents/eval/agent.yaml",
 				//
-				"@web/research",
+				"@swe/swe",
 				// 
 				// bash script
 				// "@shell/shell",

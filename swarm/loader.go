@@ -283,6 +283,13 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 		//
 		Config: ac,
 	}
+
+	agent.Entrypoint = c.Entrypoint
+	if c.Advices != nil {
+		agent.Before = c.Advices.Before
+		agent.Around = c.Advices.Around
+		agent.After = c.Advices.After
+	}
 	// app/agent
 	args := make(map[string]any)
 	//

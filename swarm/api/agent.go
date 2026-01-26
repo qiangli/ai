@@ -132,6 +132,13 @@ type Agent struct {
 	Query   string     `json:"query"`
 	History []*Message `json:"history"`
 
+	//
+	Entrypoint []string `json:"entrypoint"`
+	// advices
+	Before []string `json:"before"`
+	Around []string `json:"around"`
+	After  []string `json:"after"`
+
 	Models []*Model `json:"models"`
 }
 
