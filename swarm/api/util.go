@@ -386,19 +386,6 @@ func Cat(a, b, sep string) string {
 	return ""
 }
 
-// // Check if strings starts with '#!' or length <= 120 and contains '{{'
-// // #! for multi-line large block of text
-// // {{ for oneliner
-// func IsTemplate(s string) bool {
-// 	if strings.HasPrefix(s, "#!") {
-// 		return true
-// 	}
-// 	if len(s) > 120 {
-// 		return false
-// 	}
-// 	return strings.Contains(s, "{{")
-// }
-
 var TemplateMimeTypes = []string{"text/x-go-template", "x-go-template", "template", "tpl"}
 
 // check

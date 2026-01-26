@@ -87,7 +87,7 @@ func respond(ctx context.Context, req *api.Request) (*api.Response, error) {
 	log.GetLogger(ctx).Debugf("[OpenAI] params messages: %v tools: %v\n", len(params.Input.OfInputItemList), len(params.Tools))
 
 	for tries := range maxTurns {
-		log.GetLogger(ctx).Infof(api.FormRequestLine(req, "v3", maxTurns, tries))
+		log.GetLogger(ctx).Infof(api.FormatRequestLine(req, "v3", maxTurns, tries))
 
 		log.GetLogger(ctx).Debugf("📡 sending v3 request to %s: %v of %v\n%+v\n", req.Model.BaseUrl, tries, maxTurns, req)
 

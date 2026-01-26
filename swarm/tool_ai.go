@@ -395,7 +395,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	return result, nil
 }
 
-func (r *AIKit) retryCallLlmPrompt(query string, resp *api.Response, err error) string {
+func (r *AIKit) retryCallLlmPrompt(query string, result *api.Result, err error) string {
 	const prompt = `
 	Encountered an error while processing user's request:
 
@@ -412,8 +412,8 @@ func (r *AIKit) retryCallLlmPrompt(query string, resp *api.Response, err error) 
 	✗ error: POST "https:...": 429 Too Many Requests. Limit x, Requested y. The input or output tokens must be reduced.
 	`
 	var val string
-	if resp != nil && resp.Result != nil {
-		val = resp.Result.Value
+	if result != nil {
+		val = result.Value
 	}
 	return fmt.Sprintf(prompt, query, err.Error(), val)
 }
@@ -472,11 +472,6 @@ func (r *AIKit) LlmAdapter(ctx context.Context, vars *api.Vars, agent *api.Agent
 
 	var resp *api.Response
 	resp, err = llmAdapter.Call(ctx, req)
-	if err != nil {
-		// retry once with the error attached to try recovering from 429 and other errors
-		req.Query = r.retryCallLlmPrompt(agent.Query, resp, err)
-		resp, err = llmAdapter.Call(ctx, req)
-	}
 	if err != nil {
 		return nil, err
 	}

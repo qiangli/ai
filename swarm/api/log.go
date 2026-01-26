@@ -74,7 +74,21 @@ type CallLogger interface {
 	Save(*CallLogEntry)
 }
 
-func FormRequestLine(req *Request, adapter string, maxTurns, tries int) string {
+func formatLineage(agent *Agent) string {
+	var tracing func(*Agent) string
+	tracing = func(a *Agent) string {
+		if a == nil {
+			return ""
+		}
+		if a.Name == "root" {
+			return "Ⓡ"
+		}
+		return tracing(a.Parent) + "→" + a.Pack + "/" + a.Name
+	}
+	return tracing(agent)
+}
+
+func FormatRequestLine(req *Request, adapter string, maxTurns, tries int) string {
 	var emoji string
 	switch req.Model.Provider {
 	case "anthropic":
@@ -88,7 +102,13 @@ func FormRequestLine(req *Request, adapter string, maxTurns, tries int) string {
 	default:
 		emoji = "???"
 	}
-	return fmt.Sprintf("%s @%s/%s %s [%v/%v] %s %s/%s\n", req.Agent.Display, req.Agent.Pack, req.Agent.Name, emoji, tries, maxTurns, adapter, req.Model.Provider, req.Model.Model)
+	var lineage string
+	if req.Agent.Name == "root" {
+		lineage = req.Agent.Display
+	} else {
+		lineage = req.Agent.Display + " " + formatLineage(req.Agent)
+	}
+	return fmt.Sprintf("%s %s [%v/%v] %s %s/%s\n", lineage, emoji, tries, maxTurns, adapter, req.Model.Provider, req.Model.Model)
 }
 
 const maxInfoTextLen = 12

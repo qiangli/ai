@@ -105,7 +105,7 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 	var temperature = anthropic.Float(1.0)
 
 	for tries := range maxTurns {
-		log.GetLogger(ctx).Infof(api.FormRequestLine(req, "chat", maxTurns, tries))
+		log.GetLogger(ctx).Infof(api.FormatRequestLine(req, "chat", maxTurns, tries))
 
 		log.GetLogger(ctx).Debugf("📡 sending request to %s: %v of %v\n%+v\n", req.Model.BaseUrl, tries, maxTurns, req)
 
