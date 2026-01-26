@@ -1,10 +1,8 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/qiangli/ai/swarm/atm/gitkit"
@@ -33,7 +31,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	stdout, stderr, err := gitkit.ExecGit("", argv[1:]...)
+	stdout, stderr, exitCode, err := gitkit.RunGitExitCode("", argv[1:]...)
 	if stdout != "" {
 		fmt.Fprint(os.Stdout, stdout)
 	}
@@ -41,9 +39,9 @@ func main() {
 		fmt.Fprint(os.Stderr, stderr)
 	}
 	if err != nil {
-		var ee *exec.ExitError
-		if errors.As(err, &ee) {
-			os.Exit(ee.ExitCode())
+		// If run returned an explicit exit code, use it; otherwise default to 1.
+		if exitCode != 0 {
+			os.Exit(exitCode)
 		}
 		os.Exit(1)
 	}

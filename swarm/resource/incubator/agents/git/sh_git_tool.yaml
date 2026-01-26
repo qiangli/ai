@@ -60,8 +60,9 @@ tools:
           "encoding/json"
           "fmt"
           "os"
-          "os/exec"
           "strings"
+
+          "github.com/qiangli/ai/swarm/atm/gitkit"
         )
 
         // Top-level fields (strings) injected by the runtime.
@@ -144,22 +145,124 @@ tools:
             }
           }
 
-          b, err := json.Marshal(env)
-          if err != nil {
-            fmt.Fprintf(os.Stderr, "marshal input: %v\n", err)
-            os.Exit(2)
+          // Now dispatch using gitkit directly to avoid spawning external processes.
+          // This mirrors the behavior of swarm/atm/tools/git-tool but runs in-process.
+          out := run(env.Payload)
+          enc := json.NewEncoder(os.Stdout)
+          enc.SetEscapeHTML(false)
+          _ = enc.Encode(out)
+          if !out.OK {
+            // Use a non-zero exit code when tool reported error.
+            os.Exit(out.ExitCode)
+          }
+        }
+
+        type Output struct {
+          ID       string `json:"id,omitempty"`
+          User     string `json:"user,omitempty"`
+          Stdout   string `json:"stdout"`
+          Stderr   string `json:"stderr"`
+          ExitCode int    `json:"exit_code"`
+          OK       bool   `json:"ok"`
+          Error    string `json:"error,omitempty"`
+        }
+
+        func run(p payloadObj) Output {
+          // Raw command mode.
+          if len(p.Command) > 0 {
+            stdout, stderr, code, err := gitkit.RunGitExitCode(p.Dir, p.Command[1:]...)
+            out := Output{Stdout: stdout, Stderr: stderr, ExitCode: code, OK: err == nil}
+            if err != nil {
+              out.Error = err.Error()
+            }
+            return out
           }
 
-          cmd := exec.Command("go", "run", "./swarm/atm/tools/git-tool")
-          cmd.Dir = "/Users/liqiang/workspace/cloudbox/ai"
-          cmd.Stdin = bytes.NewReader(b)
-          cmd.Stdout = os.Stdout
-          cmd.Stderr = os.Stderr
-          if err := cmd.Run(); err != nil {
-            if ee, ok := err.(*exec.ExitError); ok {
-              os.Exit(ee.ExitCode())
+          action := strings.ToLower(strings.TrimSpace(p.Action))
+          switch action {
+          case "status":
+            outStr, errStr, err := gitkit.Status(p.Dir)
+            out := Output{Stdout: outStr, Stderr: errStr, ExitCode: 0, OK: err == nil}
+            if err != nil { out.ExitCode = 1; out.Error = err.Error() }
+            return out
+          case "clone":
+            if len(p.Args) != 2 {
+              return Output{ExitCode: 2, OK: false, Error: "clone requires args: [repoURL, destDir]"}
             }
-            fmt.Fprintf(os.Stderr, "failed to run git-tool: %v\n", err)
-            os.Exit(1)
+            err := gitkit.Clone(p.Args[0], p.Args[1])
+            if err != nil { return Output{ExitCode: 1, OK: false, Error: err.Error()} }
+            return Output{ExitCode: 0, OK: true}
+          case "commit":
+            msg := strings.TrimSpace(p.Message)
+            if msg == "" && len(p.Args) > 0 { msg = strings.Join(p.Args, " ") }
+            if strings.TrimSpace(msg) == "" {
+              return Output{ExitCode: 2, OK: false, Error: "commit requires non-empty message"}
+            }
+            stdout, stderr, code, err := gitkit.RunGitExitCode(p.Dir, "commit", "-m", msg)
+            out := Output{Stdout: stdout, Stderr: stderr, ExitCode: code, OK: err == nil}
+            if err != nil { out.Error = err.Error() }
+            return out
+          case "pull":
+            stdout, stderr, code, err := gitkit.RunGitExitCode(p.Dir, append([]string{"pull"}, p.Args...)...)
+            out := Output{Stdout: stdout, Stderr: stderr, ExitCode: code, OK: err == nil}
+            if err != nil { out.Error = err.Error() }
+            return out
+          case "push":
+            stdout, stderr, code, err := gitkit.RunGitExitCode(p.Dir, append([]string{"push"}, p.Args...)...)
+            out := Output{Stdout: stdout, Stderr: stderr, ExitCode: code, OK: err == nil}
+            if err != nil { out.Error = err.Error() }
+            return out
+          case "branch", "current-branch":
+            b, errStr, err := gitkit.CurrentBranch(p.Dir)
+            out := Output{Stdout: b, Stderr: errStr, ExitCode: 0, OK: err == nil}
+            if err != nil { out.ExitCode = 1; out.Error = err.Error() }
+            return out
+          case "remote-url":
+            u, errStr, err := gitkit.RemoteURL(p.Dir)
+            out := Output{Stdout: u, Stderr: errStr, ExitCode: 0, OK: err == nil}
+            if err != nil { out.ExitCode = 1; out.Error = err.Error() }
+            return out
+          case "rev-parse":
+            rev := strings.TrimSpace(p.Rev)
+            if rev == "" && len(p.Args) == 1 { rev = p.Args[0] }
+            if rev == "" { return Output{ExitCode: 2, OK: false, Error: "rev-parse requires rev (field 'rev' or args[0])"} }
+            h, errStr, err := gitkit.RevParse(p.Dir, rev)
+            out := Output{Stdout: h, Stderr: errStr, ExitCode: 0, OK: err == nil}
+            if err != nil { out.ExitCode = 1; out.Error = err.Error() }
+            return out
+          case "list-branches":
+            o, errStr, err := gitkit.ListBranches(p.Dir)
+            out := Output{Stdout: o, Stderr: errStr, ExitCode: 0, OK: err == nil}
+            if err != nil { out.ExitCode = 1; out.Error = err.Error() }
+            return out
+          case "list-remotes":
+            o, errStr, err := gitkit.ListRemotes(p.Dir)
+            out := Output{Stdout: o, Stderr: errStr, ExitCode: 0, OK: err == nil}
+            if err != nil { out.ExitCode = 1; out.Error = err.Error() }
+            return out
+          case "latest-commit":
+            o, errStr, err := gitkit.LatestCommit(p.Dir)
+            out := Output{Stdout: o, Stderr: errStr, ExitCode: 0, OK: err == nil}
+            if err != nil { out.ExitCode = 1; out.Error = err.Error() }
+            return out
+          case "show-file":
+            rev := strings.TrimSpace(p.Rev)
+            path := strings.TrimSpace(p.Path)
+            if rev == "" && len(p.Args) >= 1 { rev = p.Args[0] }
+            if path == "" && len(p.Args) >= 2 { path = p.Args[1] }
+            if rev == "" || path == "" { return Output{ExitCode: 2, OK: false, Error: "show-file requires rev and path (fields 'rev' and 'path' or args[0]=rev,args[1]=path)"} }
+            o, errStr, err := gitkit.ShowFileAtRev(p.Dir, rev, path)
+            out := Output{Stdout: o, Stderr: errStr, ExitCode: 0, OK: err == nil}
+            if err != nil { out.ExitCode = 1; out.Error = err.Error() }
+            return out
+          case "raw":
+            if len(p.Args) == 0 { return Output{ExitCode: 2, OK: false, Error: "raw requires args: full git argv including 'git'"} }
+            if p.Args[0] != "git" { return Output{ExitCode: 2, OK: false, Error: "raw command must start with 'git'"} }
+            stdout, stderr, code, err := gitkit.RunGitExitCode(p.Dir, p.Args[1:]...)
+            out := Output{Stdout: stdout, Stderr: stderr, ExitCode: code, OK: err == nil}
+            if err != nil { out.Error = err.Error() }
+            return out
+          default:
+            return Output{ExitCode: 2, OK: false, Error: fmt.Sprintf("unsupported action %q", action)}
           }
         }
