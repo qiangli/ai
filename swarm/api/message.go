@@ -189,10 +189,10 @@ type Result struct {
 	// The result value as a string
 	Value string `json:"value"`
 
-	// media content
+	// // media content
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types
 	MimeType string `json:"mime_type"`
-	Content  []byte `json:"content"`
+	// Content  []byte `json:"content"`
 
 	// transition
 	// The agent state
@@ -200,8 +200,8 @@ type Result struct {
 	// The agent name to transfer to for StateTransfer
 	NextAgent string `json:"next_agent"`
 
-	//
-	Actions []*ToolCall `json:"actions"`
+	// //
+	// Actions []*ToolCall `json:"actions"`
 }
 
 func (r *Result) String() string {

@@ -147,12 +147,12 @@ func ToResult(data any) *Result {
 		if v == nil {
 			return nil
 		}
-		if len(v.Content) == 0 {
-			return v
-		}
+		// if len(v.Content) == 0 {
+		// 	return v
+		// }
 		return &Result{
 			MimeType: v.MimeType,
-			Value:    MimeToString(v.MimeType, v.Content),
+			Value:    MimeToString(v.MimeType, v.Value),
 		}
 	}
 	if v, ok := data.(*Blob); ok {
@@ -161,7 +161,7 @@ func ToResult(data any) *Result {
 		}
 		return &Result{
 			MimeType: v.MimeType,
-			Value:    MimeToString(v.MimeType, v.Content),
+			Value:    MimeToString(v.MimeType, string(v.Content)),
 		}
 	}
 	if v, err := json.Marshal(data); err == nil {
@@ -248,13 +248,13 @@ func ToString(data any) string {
 	}
 	//
 	if v, ok := data.(*Result); ok {
-		if len(v.Content) == 0 {
-			return v.Value
-		}
-		return MimeToString(v.MimeType, v.Content)
+		// if len(v.Content) == 0 {
+		// 	return v.Value
+		// }
+		return MimeToString(v.MimeType, v.Value)
 	}
 	if v, ok := data.(*Blob); ok {
-		return MimeToString(v.MimeType, v.Content)
+		return MimeToString(v.MimeType, string(v.Content))
 	}
 	if v, err := json.Marshal(data); err == nil {
 		return string(v)
@@ -262,14 +262,17 @@ func ToString(data any) string {
 	return fmt.Sprintf("%+v", data)
 }
 
-func MimeToString(mime string, content []byte) string {
+func MimeToString(mime string, content string) string {
+	if mime == "" {
+		return content
+	}
 	if mime == ContentTypeImageB64 {
-		return string(content)
+		return content
 	}
 	if strings.HasPrefix(mime, "text/") {
-		return string(content)
+		return content
 	}
-	return DataURL(mime, content)
+	return DataURL(mime, []byte(content))
 }
 
 func ToInt(data any) int {
