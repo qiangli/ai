@@ -5,7 +5,13 @@ agents:
     display: "🏗️ SWE Architect"
     description: |
       Produces an executable implementation plan: files/symbols/steps/edge-cases/validation.
-    model: "swe/L3"
+    model: "anthropic/L3"
+    arguments:
+      models:
+        - anthropic/L3
+        - gemini/L3
+        - openai/L3
+        - xai/L3
     instruction: |
       #! mime-type=text/x-go-template
       You are the architectural design agent for complex code modifications.

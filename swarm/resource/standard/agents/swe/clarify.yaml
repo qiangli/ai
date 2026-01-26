@@ -5,7 +5,13 @@ agents:
     display: "❓ Clarify"
     description: |
       Ask a single critical clarification question, or say "Nothing to clarify".
-    model: "swe/L1"
+    model: "openai/L1"
+    arguments:
+      models:
+        - anthropic/L1
+        - gemini/L1
+        - openai/L1
+        - xai/L1
     instruction: |
       Given the user's request, determine whether any essential information is missing that blocks correct implementation.
 

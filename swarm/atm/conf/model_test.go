@@ -9,6 +9,10 @@ import (
 // TestLoadModelsData_File loads the repository model.yaml (relative path) and ensures
 // loadModelsData can parse the multi-document YAML and returns the expected L1/L2/L3 keys.
 func TestLoadModelsData_File(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skip test")
+	}
+
 	// relative to this package (swarm/atm/conf)
 	p := "../../resource/standard/agents/swe/model.yaml"
 	b, err := os.ReadFile(p)
@@ -55,6 +59,10 @@ func TestLoadModelsData_File(t *testing.T) {
 // TestLoadModelsData_MissingProvider ensures loadModelsData validates that each model
 // entry has a provider and returns an error when provider is missing.
 func TestLoadModelsData_MissingProvider(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skip test")
+	}
+
 	yaml := []byte(`set: "test"
 models:
   L1:

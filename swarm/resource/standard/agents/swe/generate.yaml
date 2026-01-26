@@ -5,7 +5,13 @@ agents:
     display: "🧩 SWE Generate"
     description: |
       Generates a small multi-file module/project from scratch.
-    model: "swe/L2"
+    model: "anthropic/L2"
+    arguments:
+      models:
+        - anthropic/L2
+        - gemini/L2
+        - openai/L2
+        - xai/L2
     instruction: |
       Generate a small, working implementation for the user's request.
 

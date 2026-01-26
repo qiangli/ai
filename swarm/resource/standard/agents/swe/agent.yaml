@@ -12,10 +12,16 @@ agents:
   - name: "swe"
     display: "🤖 Software Engineer"
     description: |
-      Smart SWE router + implementer.
-      Routes to the best sub-agent for: quick snippets, clarifications,
-      architecture/planning, repo edits, or agent/tool/model pack management.
-    model: "swe/L2"
+         Smart SWE router + implementer.
+         Routes to the best sub-agent for: quick snippets, clarifications,
+         architecture/planning, repo edits, or agent/tool/model pack management.
+    model: "openai/L2"
+    arguments:
+      models:
+        - anthropic/L2
+        - gemini/L2
+        - openai/L2
+        - xai/L2
     embed:
       - "agent:context/lastn"
       - "agent:memory/memory"
