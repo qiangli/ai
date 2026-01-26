@@ -190,9 +190,8 @@ type AppConfig struct {
 	// func, system, agent...
 	Type string `yaml:"type" json:"type"`
 
-	// action name and arguments
-	// Name string `yaml:"name" json:"name"`
-	// Arguments map[string]any `yaml:"arguments" json:"arguments"`
+	//
+	Arguments map[string]any `yaml:"arguments" json:"arguments"`
 
 	// user message
 	Message string `yaml:"message" json:"message"`
@@ -218,8 +217,8 @@ type AppConfig struct {
 	// logging: quiet | informative | verbose
 	LogLevel string `yaml:"log_level" json:"log_level"`
 
-	// // app level global vars
-	// Environment map[string]any `yaml:"environment" json:"environment"`
+	// app level global vars
+	Environment map[string]any `yaml:"environment" json:"environment"`
 
 	//
 	Pack string `yaml:"pack" json:"pack"`

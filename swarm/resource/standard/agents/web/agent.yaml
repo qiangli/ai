@@ -1,7 +1,7 @@
 pack: "web"
 
 #
-model: "llm/L1"
+model: "openai/L1"
 agents:
   - name: "web"
     display: "🌐 Web Smart Agent"
@@ -9,6 +9,12 @@ agents:
       A smart web assistant that analyzes your query and chooses the best strategy:
       quick search (web/search), broad multi-query scraping (web/scrape), or in-depth research (web/research),
       depending on your needs and the complexity of your request.
+    arguments:
+      models:
+        - anthropic/L1
+        - gemini/L1
+        - openai/L1
+        - xai/L1
     embed:
       - "agent:flow/choice"
     instruction: |
@@ -183,7 +189,6 @@ agents:
           description: "The comprehensive research query"
       required:
         - query
-    model: "llm/L1"
     instruction: |
       #! --mime-type=text/x-go-template
       You are a professional deep web researcher implementing the GPT-Researcher architecture.
@@ -219,7 +224,6 @@ agents:
     display: "⚖️ Evaluating and curating sources"
     description: |
       Ranks sources and curates data based on their relevance, credibility and reliability.
-    model: "llm/L1"
     parameters:
       type: "object"
       properties:
@@ -282,7 +286,6 @@ agents:
   - name: "report"
     display: "📝 Report"
     description: "Generate the final research report with citations"
-    model: "llm/L1"
     parameters:
       type: "object"
       properties:
@@ -343,7 +346,6 @@ agents:
   - name: "preferences"
     display: "🖥️  User Preferences"
     description: "Detect user preferences for the research tool."
-    model: "llm/L1"
     parameters:
       type: "object"
       properties:
@@ -383,14 +385,4 @@ agents:
         "language": "preferred language by user",
         "original_query": "users original query"
       }
-
-## tools
-
-## models
-set: llm
-provider: "openai"
-base_url: "https://api.openai.com/v1/"
-api_key: "openai"
-models:
-  L1:
-    model: "gpt-4o-mini"
+###

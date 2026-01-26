@@ -319,25 +319,19 @@ func (r *ConfigLoader) NewAgent(c *api.AgentConfig, pn api.Packname) (*api.Agent
 	}
 
 	//
-	// ac.Arguments
+	maps.Copy(args, ac.Arguments)
 	maps.Copy(args, c.Arguments)
 	agent.Arguments.SetArgs(args)
 
 	// merge global vars
 	agent.Environment = api.NewEnvironment()
-	// agent.Environment.AddEnvs(ac.Environment)
+	agent.Environment.AddEnvs(ac.Environment)
 	agent.Environment.AddEnvs(c.Environment)
 
 	// llm model set[/level]
 	model := strings.TrimSpace(nvl(c.Model, ac.Model))
 
 	if model != "" {
-		// if strings.HasPrefix(model, "@") {
-		// 	// defer model provider resolution
-		// 	agent.Model = &api.Model{
-		// 		Model: model,
-		// 	}
-		// } else {
 		set, level := api.Setlevel(model).Decode()
 		// local
 		if set == ac.Set {
