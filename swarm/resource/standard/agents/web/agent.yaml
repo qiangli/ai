@@ -10,7 +10,7 @@ arguments:
     - xai/L1
 agents:
   - name: "web"
-    display: "🌐 Web Smart Agent"
+    display: "🌐 Web Agent"
     description: |
       A smart web assistant that analyzes your query and chooses the best strategy:
       quick search (web/search), broad multi-query scraping (web/scrape), or in-depth research (web/research),
@@ -79,7 +79,7 @@ agents:
       to maintain original content fidelity.
 
       You do not need to use all tools. If a search tool fails due to reasons such as rate limiting or service
-      downtime, try another one. If all tools fail, wait for a few seconds and attempt again.
+      downtime, try another one. If all tools fail after retrying, return partial results instead of infinite retry.
 
       For context, today's date is: {{date}}
     functions:
@@ -129,8 +129,9 @@ agents:
       reviewing the top {{default 5 .max_research_queries}} results to identify further areas for inquiry.
 
       Use insights from these results to iteratively refine and broaden your search queries. Continue this 
-      process for up to {{default .max_iterations}} iterations, mandating a minimum of {{default 1 .min_iterations}} if specified, 
-      to maximize relevance and comprehensiveness.
+      process for EXACTLY {{default 1 .min_iterations}} to {{default 3 .max_iterations}} iterations and no more.
+
+      Return the JSON array immediately after completing iterations, even if results are incomplete. Perform no additional processing beyond the specified iterations.
 
       Return only a JSON array of the final {{default 10 .n_queries}} generated search queries, formatted as follows:
         [
@@ -160,29 +161,44 @@ agents:
         query:
           type: "string"
           description: "The search query string"
-        max_retry:
+        max_refined_queries:
           type: "integer"
-          description: "Maximum number of retries per query for web search"
-          default: 3
+          description: "Maximum number of refined queries to process"
+          default: 5
       required:
         - query
     instruction: |
       #! --mime-type=text/x-go-template
-      You are a specialized web scraper.
+      You are a specialized web scraper. Your job is to coordinate ONE round of query refinement followed by ONE round of searches.
 
-      Begin by running `agent:web/refine_query` to refine the user's query.
+      STEP 1 - REFINE (call exactly once):
+      Call `agent:web/refine_query` with the user's query: "{{.query}}"
 
-      For each refined query, use `agent:web/search` to gather results, ensuring accuracy and completeness without summarization.
+      STEP 2 - VALIDATE:
+      If the response from `agent:web/refine_query` is not valid JSON or not an array:
+      - Report: "Failed to parse refined queries as JSON array: <response>"
+      - STOP immediately without calling any search
 
-      If a query search fails or returns no results, retry up to {{default 3 .max_retry}} times.
+      STEP 3 - SEARCH (call once per query, no retries):
+      Take the first {{default 5 .max_refined_queries}} refined queries from the JSON array.
+      For each refined query (in order):
+        - Call `agent:web/search` with that query EXACTLY ONCE
+        - If it returns results, record them
+        - If it fails or returns nothing, record that failure
+        - DO NOT retry the same query
+        - Continue to the next query
 
-      Provide the final results as a JSON array. Each element must align with the content retrieved for its respective query, maintaining query order.
+      STEP 4 - RETURN:
+      After processing all queries (or hitting the limit), return all results as a JSON array.
+      Each element should contain the query and its corresponding content (or failure note).
+      DO NOT perform any additional searches or refinements.
 
       For context, the current date is {{date}}.
     functions:
       - "agent:web/refine_query"
       - "agent:web/search"
 
+  # https://github.com/assafelovic/gpt-researcher
   - name: "research"
     display: "🔬 Deep Web Research"
     description: |
@@ -203,20 +219,17 @@ agents:
 
       1. SCRAPE: Call agent:web/scrape to gather information from multiple sources
          - This will refine queries and fetch content automatically
-      
+         - If scrape returns no results or fails, stop and report the issue to the user instead of continuing
       2. CURATE: Call agent:web/curate to evaluate and rank sources
          - Pass the scraped source_list and query
          - Get back top 5-10 most relevant, credible sources with data
-      
       3. SYNTHESIZE: Call agent:web/report to generate comprehensive report
          - Pass curated information and query
          - Get detailed markdown report with citations
-      
       4. SAVE: Use fs:write_file to save report to workspace
          - First call fs:list_roots to find workspace path
          - Save with descriptive filename based on query
          - Report saved location to user
-      
       5. RETURN: Read and display the saved report content
       
       For context, the current date is {{date}}.
@@ -391,4 +404,3 @@ agents:
         "language": "preferred language by user",
         "original_query": "users original query"
       }
-###
