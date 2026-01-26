@@ -204,14 +204,20 @@ agents:
     display: "🔬 Deep Web Research"
     description: |
       Level 3 - Deep research agent implementing GPT-Researcher architecture: generates research questions, scrapes content, curates sources, and produces comprehensive cited reports.
-    arguments:
-      duration: "5m"
     parameters:
       type: "object"
       properties:
         query:
           type: "string"
           description: "The comprehensive research query"
+        duration:
+          type: "string"
+          description: |
+            Duration is a number with an optional suffix: 's'
+            for seconds (the default), 'm' for minutes, 'h' for hours, or 'd'
+            for days.  
+            A duration of 0 disables the associated timeout.
+          default: "5m"
       required:
         - query
     advices:

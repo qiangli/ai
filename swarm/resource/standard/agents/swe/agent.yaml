@@ -22,10 +22,28 @@ agents:
         - gemini/L2
         - openai/L2
         - xai/L2
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The comprehensive research query"
+        duration:
+          type: "string"
+          description: |
+            Duration is a number with an optional suffix: 's'
+            for seconds (the default), 'm' for minutes, 'h' for hours, or 'd'
+            for days.  
+            A duration of 0 disables the associated timeout.
+          default: "10m"
+      required:
+        - query
+    advices:
+      around:
+        - "sh:timeout"
     embed:
       - "agent:context/lastn"
       - "agent:memory/memory"
-      # - "agent:flow/choice"
     instruction: |
       #! mime-type=text/x-go-template
       You are the standard SWE orchestrator.
