@@ -230,7 +230,10 @@ agents:
          - First call fs:list_roots to find workspace path
          - Save with descriptive filename based on query
          - Report saved location to user
-      5. RETURN: Read and display the saved report content
+      5. RETURN (MANDATORY): Display the FULL report content to the user
+         - After saving, you MUST also return the full report content inline
+         - Do NOT truncate or summarize; show the report exactly as generated
+         - Prepend with: "**Research report saved to:** <path>" then show the full markdown
       
       For context, the current date is {{date}}.
     functions:
