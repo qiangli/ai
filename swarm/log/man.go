@@ -13,6 +13,9 @@ type Logger interface {
 	Debugf(string, ...any)
 
 	SetLogLevel(Level)
+	// tee/file specific
+	SetTeeFile(string) error
+	SetTeeLogLevel(Level)
 
 	IsQuiet() bool
 	IsInformative() bool

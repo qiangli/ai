@@ -82,6 +82,7 @@ agents:
     model: "ralph/any"
     embed:
       - "agent:context/lastn"
+      - "agent:memory/memory"
     instruction: |
       You are Ralph, the main entrypoint and router for the Ralph autonomous development loop.
 
@@ -190,6 +191,8 @@ agents:
     functions:
       - "ralph:spawn_agent"
       - "fs:*"
+      - "sh:*"
+      - "ai:*"
 
   # ---------------------------------------------------------------------------
   # ralph import: PRD/spec import
@@ -362,7 +365,7 @@ agents:
 
       Project created in: <PROJECT_DIR>
     functions:
-      - "sh:pwd"
+      - "sh:*"
       - "fs:*"
       - "ralph:help_import"
       - "ralph:write_template_prompt"
@@ -429,13 +432,12 @@ agents:
     message: |
       Set up ralph project.
     functions:
-      - "sh:pwd"
-      - "sh:exec"
+      - "sh:*"
+      - "fs:*"
       - "ralph:write_template_prompt"
       - "ralph:write_template_agent"
       - "ralph:write_template_fix_plan"
       - "ralph:write_template_specs_gitkeep"
-      - "fs:*"
 
   # ---------------------------------------------------------------------------
   # ralph loop: multi-iteration runner
@@ -584,11 +586,6 @@ agents:
     display: "🌟 Ralph Worker"
     description: "Generic worker invoked by Ralph. Performs ONE focused step by delegating to a selected agent/tool; updates .agent/scratchpad.md."
     model: "ralph/any"
-    functions:
-      - "fs:*"
-      - "sh:*"
-      - "web:*"
-      - "ai:*"
     instruction: |
       You are Ralph's generic worker. You are called for EXACTLY ONE iteration.
 
@@ -639,7 +636,12 @@ agents:
       Safety:
       - Do not run destructive commands.
       - Prefer read-only actions when uncertain.
-
+    functions:
+      - "fs:*"
+      - "sh:*"
+      - "web:*"
+      - "ai:*"
+  
   # ---------------------------------------------------------------------------
   # ralph monitor: pure agent dashboard
   # ---------------------------------------------------------------------------
@@ -842,6 +844,9 @@ tools:
           --agent-name "{{.agent}}" \
           --model "anthropic/L1" \
           --query "{{.query}}"
+    functions:
+      - "fs:*"
+      - "sh:*"
 
   - name: "write_template_prompt"
     description: "Write the embedded PROMPT.md template to <base_dir>/PROMPT.md (creating directories as needed)."
