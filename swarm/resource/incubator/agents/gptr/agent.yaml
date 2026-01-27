@@ -1,0 +1,240 @@
+#!/usr/bin/env ai /agent:gptr/gptr --script
+
+# adapted from https://github.com/assafelovic/gpt-researcher
+
+###
+pack: "gptr"
+agents:
+  - name: "gptr"
+    display: "📚 GPT Researcher"
+    description: |
+      GPT Researcher is an agent designed for research on any given task.
+      The agent produces detailed, factual, and unbiased research reports with citations.
+      • Generate questions that collectively form an objective opinion on the task.
+      • Use a crawler agent to gather information for each question.
+      • Summarize and source-track each resource.
+      • Filter and aggregate the summaries into a final research report.
+    model: "llm/fast"
+    embed:
+      - "agent:flow/sequence"
+    instruction: |
+      The core idea is:
+      + generate research questions based on user input
+      + gather relevant information
+      + aggregate all findings into a comprehensive report
+
+      Call the following actions:
+      - "agent:web/scrape"
+      - "agent:gptr/curate"
+      - "agent:gptr/report"
+
+      Once completed. You must save the final report in the `workspace` with an fitting name based on user query.
+      and report back to user where this report has been saved.
+      Additionally, read the saved report and return its content to the console.
+
+      Run `fs:list_roots` to find the file path for the workspace.
+    functions:
+      - "fs:*"
+      - "agent:web/scrape"
+      - "agent:gptr/curate"
+      - "agent:gptr/report"
+
+  - name: "curate"
+    display: "⚖️ Evaluating and curating sources"
+    description: |
+      Ranks sources and curates data based on their relevance, credibility and reliability.
+    model: "llm/smart"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The original query from user"
+        source_list:
+          type: "string"
+          desription: "list of contents in JSON array format"
+        max_results:
+          type: "integer"
+          description: "Maximum number of results to return"
+          default: 5
+          minimum: 1
+          maximum: 10
+      requrued:
+        - query
+        - source_list
+    arguments:
+      # temperature: 0.2
+      # max_completion_tokens: 10000
+      #
+      # max_results: 5
+    instruction: |
+      #! --mimte-type=text/x-go-template
+      Your goal is to evaluate and curate the provided content for the research query:
+
+      {{default "Query is required. report back to user and stop processing." .query}}
+
+      For context, the current date is {{date}}.
+      ###
+
+      while prioritizing the inclusion of relevant and high-quality information, especially sources containing statistics, numbers, or concrete data.
+
+      The final curated list will be used as context for creating a research report, so prioritize:
+      - Retaining as much original information as possible, with extra emphasis on sources featuring quantitative data or unique insights
+      - Including a wide range of perspectives and insights
+      - Filtering out only clearly irrelevant or unusable content
+
+      EVALUATION GUIDELINES:
+      1. Assess each source based on:
+        - Relevance: Include sources directly or partially connected to the research query. Err on the side of inclusion.
+        - Credibility: Favor authoritative sources but retain others unless clearly untrustworthy.
+        - Currency: Prefer recent information unless older data is essential or valuable.
+        - Objectivity: Retain sources with bias if they provide a unique or complementary perspective.
+        - Quantitative Value: Give higher priority to sources with statistics, numbers, or other concrete data.
+      2. Source Selection:
+        - Include as many relevant sources as possible, up to {{default 5 .max_results}}, focusing on broad coverage and diversity.
+        - Prioritize sources with statistics, numerical data, or verifiable facts.
+        - Overlapping content is acceptable if it adds depth, especially when data is involved.
+        - Exclude sources only if they are entirely irrelevant, severely outdated, or unusable due to poor content quality.
+      3. Content Retention:
+        - DO NOT rewrite, summarize, or condense any source content.
+        - Retain all usable information, cleaning up only clear garbage or formatting issues.
+        - Keep marginally relevant or incomplete sources if they contain valuable data or insights.
+
+      SOURCES LIST TO EVALUATE:
+
+      {{default "Missing source list, stop processing." .source_list}}
+      ###
+
+      You MUST return your response in the EXACT sources JSON list format as the original sources.
+      The response MUST not contain any markdown format or additional text (like ```json), just the JSON list!
+    # functions:
+
+  - name: "report"
+    display: "📝 Report"
+    description: "Generate the final report"
+    model: "llm/smart"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The original query from user"
+        information:
+          type: "string"
+          desription: "list of contents for the report in JSON array format"
+      required:
+        - "query"
+    # arguments:
+    #   # temperature: 0.35
+    #   # max_completion_tokens: 10000
+    #   #
+    instruction: |
+      #! --mime-type=text/x-go-template
+      ###
+      ** User Query:
+      {{default "Query missing. report to user and stop" .query}}
+
+      ** Information:
+      {{default "Missing content for the report. stop processing." .information}}
+
+      Using the above information, answer the following task in a detailed report:
+
+      ** User's Preferences:
+
+      Run tool `agent:gptr/preferences` to find user's preferences based on the user query.
+
+      In the following instructions, there are placeholders in [[preferences.*]] format. You must reference the values in the above preferences.
+
+      ###
+      The report should focus on answering the query, should be well structured, informative,
+      in-depth, and comprehensive, with facts and numbers if available, and at least [[preferences.total_words]] words.
+      You should strive to write the report as long as you can using all relevant and necessary information provided.
+
+      Please follow all of the following guidelines in your report:
+      - You MUST determine your own concrete and valid opinion based on the given information. Do NOT defer to general and meaningless conclusions.
+      - You MUST write the report using markdown syntax and adhere to the [[preferences.report_format]] format.
+      - Structure your report with clear markdown headers: use # for the main title, ## for major sections, and ### for subsections.
+      - Use markdown tables when presenting structured data or comparisons to enhance readability.
+      - You MUST prioritize the relevance, reliability, and significance of the sources you use. Choose trusted sources over less reliable ones.
+      - You must also prioritize new articles over older articles if the source can be trusted.
+      - You MUST NOT include a table of contents, but DO include proper markdown headers (# ## ###) to structure your report clearly.
+      - Use in-text citation references in the [[preferences.report_format]] format. Insert these as markdown hyperlinks placed at the end of the sentence or paragraph that they reference, such as: ([in-text citation](url)).
+      - Don't forget to add a reference list at the end of the report in [[preferences.report_format]] format and full url links without hyperlinks.
+      - You MUST write all used source urls at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each.
+          Every url should be hyperlinked: [url website](url)
+          Additionally, you MUST include hyperlinks to the relevant URLs wherever they are referenced in the report:
+
+          eg: Author, A. A. (Year, Month Date). Title of web page. Website Name. [url website](url)
+      - Write the report in the [[preferences.tone]] tone.
+
+      You MUST write the report in the [[preferences.language]] language.
+      The report SHOULD be approximately [[preferences.total_words]] words long.
+
+      For context, the current date is {{date}}.
+    functions:
+      - "agent:gptr/preferences"
+
+  - name: "preferences"
+    display: "🖥️  User Preferences"
+    description: "Detect user preferences for the research tool."
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The original query from user"
+      requrued:
+        - query
+    instruction: |
+      You are an agent designed to analyze user input to identify preferences for generating research reports.
+      Your role is not to gather or retrieve real-time information, but to extract the specified parameters from the user's query.
+
+      Your objective is to identify the following elements from the user's input:
+
+      + Tone of the report:
+        Example values:
+          "objective", "formal", "analytical", "persuasive", "informative", "explanatory", "descriptive", "critical", "comparative", "speculative",
+          "reflective", "narrative", "humorous", "optimistic", "pessimistic"
+        Multiple values are allowed, e.g., "formal, analytical, and objective". If a tone not listed above is detected in the user's input, it should also be considered valid.
+
+      + Total word count limit for document generation. The default is `500`.
+        Guidelines:
+          - Use 500 words for a short summary.
+          - Use 1000 words for a detailed and in-depth report.
+          - Do not exceed 2000 words for an extensive research report unless explicitly requested by the user for more.
+
+      + Report format: The preferred format for report generation. The default is `markdown`.
+        Formats such as `MLA`, `CMS`, `Harvard style`, `IEEE`, etc., should be used if specified by the user.
+
+      + Language: The language to be used for the final research report. The default is `English`.
+
+      You must also save the original query from the user.
+      {
+        "tone": "detected tone from user input",
+        "total_words": "derived total words from user input",
+        "report_format": "desired report format from user",
+        "language": "preferred language by user",
+        "original_query": "users original query"
+      }
+
+###
+# set: "default"
+# models:
+#   any:
+#     model: "gpt-4o-mini"
+#     provider: "openai"
+#     base_url: "https://api.openai.com/v1/"
+#     api_key: "openai"
+
+## models
+set: llm
+provider: "openai"
+base_url: "https://api.openai.com/v1/"
+api_key: "openai"
+models:
+  fast:
+    model: "gpt-4o-mini"
+  smart:
+    model: "gpt-4.1"
+  strategic:
+    model: "o4-mini"
