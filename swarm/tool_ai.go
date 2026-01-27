@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-
-	// "maps"
 	"math/rand"
 	"os"
 	"sort"
@@ -419,6 +417,18 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 // }
 
 func (r *AIKit) LlmAdapter(ctx context.Context, vars *api.Vars, agent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
+	const prompt = `
+	## Instruction
+	See file: %q
+
+	## Context History
+	See file: %q
+
+	## Query
+	See file: %q
+
+	Please read the files carefully and complete the task per the request in the files.
+	`
 	var owner = r.vars.User.Email
 
 	getToken := func(model *api.Model) (func() string, error) {
@@ -453,9 +463,39 @@ func (r *AIKit) LlmAdapter(ctx context.Context, vars *api.Vars, agent *api.Agent
 		req.SetMaxTurns(api.DefaultMaxTurns)
 	}
 
-	req.Query = agent.Query
-	req.Prompt = agent.Prompt
-	req.Messages = agent.History
+	// https://platform.openai.com/docs/models/gpt-5-mini
+	size, _ := api.GetIntProp("max_input_size", args)
+	if size <= 0 {
+		size = 272000*4 - 1000
+	}
+	total := len(agent.Prompt) + len(agent.Query)
+	for _, v := range agent.History {
+		total += len(v.Content)
+	}
+	if total < size {
+		req.Query = agent.Query
+		req.Prompt = agent.Prompt
+		req.Messages = agent.History
+	} else {
+		aid := api.NewPackname(agent.Pack, agent.Name).ID()
+		rid := uuid.NewString()
+		dir := filepath.Join(vars.Roots.Workspace.Path, "oversize", aid, rid)
+		if err := os.MkdirAll(dir, 0700); err != nil {
+			return nil, err
+		}
+		insfile := filepath.Join(dir, "instruction.txt")
+		ctxfile := filepath.Join(dir, "context.json")
+		qfile := filepath.Join(dir, "query.txt")
+
+		os.WriteFile(insfile, []byte(agent.Prompt), 0600)
+		os.WriteFile(insfile, []byte(agent.Context), 0600)
+		os.WriteFile(insfile, []byte(agent.Query), 0600)
+
+		req.Prompt = ""
+		req.Messages = nil
+		req.Query = fmt.Sprintf(prompt, insfile, ctxfile, qfile)
+	}
+
 	//
 	req.Arguments = args
 

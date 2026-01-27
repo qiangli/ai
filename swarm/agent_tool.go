@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"maps"
 	"net/url"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
@@ -307,6 +310,31 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 func (r *AgentToolRunner) callTool(ctx context.Context, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
 	log.GetLogger(ctx).Infof("⣿ %s:%s %+v\n", tf.Kit, tf.Name, api.FormatArgMap(args))
 
+	const outformat = `
+	The output is too big. It has been saved as %q.
+	You may access via tool "fs:read_file" with path, offset, and limit.
+	`
+	// save oversized output
+	saveOutput := func(val string) (string, error) {
+		size, _ := api.GetIntProp("max_output_size", args)
+		if size <= 0 {
+			size = 512000
+		}
+		if len(val) < size {
+			return val, nil
+		}
+		tid := api.NewPackname(tf.Kit, tf.Name).ID()
+		rid := uuid.NewString()
+		dir := filepath.Join(r.vars.Roots.Workspace.Path, "oversize", tid)
+		if err := os.MkdirAll(dir, 0700); err != nil {
+			return "", nil
+		}
+		outfile := filepath.Join(dir, rid+"-output.txt")
+		if err := os.WriteFile(outfile, []byte(val), 0600); err != nil {
+			return "", err
+		}
+		return fmt.Sprintf(outformat, outfile), nil
+	}
 	var entry = api.CallLogEntry{
 		Agent:     string(api.NewPackname(r.agent.Pack, r.agent.Name)),
 		Kit:       tf.Kit,
@@ -339,10 +367,13 @@ func (r *AgentToolRunner) callTool(ctx context.Context, tf *api.ToolFunc, args m
 				out := r.output(tf.Output, result.Value)
 				result.Value = out
 			}
-			log.GetLogger(ctx).Infof("✔ %s:%s (%s)\n", tf.Kit, tf.Name, head(result.String(), 180))
+			val, err := saveOutput(result.Value)
+			result.Value = val
+			entry.Error = err
+			log.GetLogger(ctx).Infof("✔ %s:%s (%s %v)\n", tf.Kit, tf.Name, head(val, 180), len(val))
 		}
 
-		log.GetLogger(ctx).Debugf("details:\n%s\n", result.String())
+		log.GetLogger(ctx).Debugf("details:\n%s\n", result.Value)
 	}
 
 	r.vars.Log.Save(&entry)
