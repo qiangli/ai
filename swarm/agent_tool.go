@@ -311,9 +311,11 @@ func (r *AgentToolRunner) callTool(ctx context.Context, tf *api.ToolFunc, args m
 	log.GetLogger(ctx).Infof("⣿ %s:%s %+v\n", tf.Kit, tf.Name, api.FormatArgMap(args))
 
 	const outformat = `
-	The output is too big. It has been saved as %q.
-	You may access via tool "fs:read_file" with path, offset, and limit.
+	The output is too large and has been saved to %q.
+	Use the 'fs:read_file' tool to access it with path, offset, and limit parameters.
+	Total size: %v
 	`
+
 	// save oversized output
 	saveOutput := func(val string) (string, error) {
 		size, _ := api.GetIntProp("max_output_size", args)
@@ -333,7 +335,7 @@ func (r *AgentToolRunner) callTool(ctx context.Context, tf *api.ToolFunc, args m
 		if err := os.WriteFile(outfile, []byte(val), 0600); err != nil {
 			return "", err
 		}
-		return fmt.Sprintf(outformat, outfile), nil
+		return fmt.Sprintf(outformat, outfile, size), nil
 	}
 	var entry = api.CallLogEntry{
 		Agent:     string(api.NewPackname(r.agent.Pack, r.agent.Name)),

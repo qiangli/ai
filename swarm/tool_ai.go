@@ -419,15 +419,15 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 func (r *AIKit) LlmAdapter(ctx context.Context, vars *api.Vars, agent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
 	const prompt = `
 	## Instruction
-	See file: %q
+	Review the content of the file: %q
 
 	## Context History
-	See file: %q
+	Refer to the background information in the file: %q
 
 	## Query
-	See file: %q
+	Follow the specific request or task outlined in the file: %q
 
-	Please read the files carefully and complete the task per the request in the files.
+	Please carefully read the contents of these files and provide a detailed response or solution based on the instructions and query provided.
 	`
 	var owner = r.vars.User.Email
 
@@ -488,7 +488,17 @@ func (r *AIKit) LlmAdapter(ctx context.Context, vars *api.Vars, agent *api.Agent
 		qfile := filepath.Join(dir, "query.txt")
 
 		os.WriteFile(insfile, []byte(agent.Prompt), 0600)
-		os.WriteFile(insfile, []byte(agent.Context), 0600)
+		var history []byte
+		if len(agent.History) == 0 {
+			history = []byte("no context")
+		} else {
+			v, err := json.Marshal(history)
+			if err != nil {
+				return nil, err
+			}
+			history = v
+		}
+		os.WriteFile(insfile, history, 0600)
 		os.WriteFile(insfile, []byte(agent.Query), 0600)
 
 		req.Prompt = ""
