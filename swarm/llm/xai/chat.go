@@ -116,9 +116,13 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 		toolCalls := completion.Choices[0].Message.ToolCalls
 		if len(toolCalls) == 0 {
 			resp.Result = &api.Result{
-				Role:     string(completion.Choices[0].Message.Role),
-				MimeType: "text/plain",
-				Value:    completion.Choices[0].Message.Content,
+				Role:         string(completion.Choices[0].Message.Role),
+				MimeType:     "text/plain",
+				Value:        completion.Choices[0].Message.Content,
+				Usage:        completion.Usage,
+				InputTokens:  completion.Usage.PromptTokens,
+				OutputTokens: completion.Usage.CompletionTokens,
+				TotalTokens:  completion.Usage.TotalTokens,
 			}
 
 			// request completed

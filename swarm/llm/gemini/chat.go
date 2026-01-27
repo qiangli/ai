@@ -155,9 +155,14 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 		// https://ai.google.dev/gemini-api/docs/function-calling?example=meeting
 		toolCalls := completion.FunctionCalls()
 		if len(toolCalls) == 0 {
-			// resp.Role = ""
 			resp.Result = &api.Result{
-				Value: completion.Text(),
+				Role:         api.RoleAssistant,
+				MimeType:     "text/plain",
+				Value:        completion.Text(),
+				Usage:        completion.UsageMetadata,
+				InputTokens:  int64(completion.UsageMetadata.PromptTokenCount),
+				OutputTokens: int64(completion.UsageMetadata.CandidatesTokenCount),
+				TotalTokens:  int64(completion.UsageMetadata.TotalTokenCount),
 			}
 			break
 		}

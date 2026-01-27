@@ -122,7 +122,13 @@ func respond(ctx context.Context, req *api.Request) (*api.Response, error) {
 		//
 		if len(calls) == 0 {
 			resp.Result = &api.Result{
-				Value: result.OutputText(),
+				Role:         api.RoleAssistant,
+				MimeType:     "text/plain",
+				Value:        result.OutputText(),
+				Usage:        result.Usage,
+				InputTokens:  result.Usage.InputTokens,
+				OutputTokens: result.Usage.OutputTokens,
+				TotalTokens:  result.Usage.TotalTokens,
 			}
 			return resp, nil
 		}

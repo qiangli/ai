@@ -183,8 +183,14 @@ func call(ctx context.Context, req *api.Request) (*api.Response, error) {
 
 		if len(toolResults) == 0 {
 			resp.Result = &api.Result{
-				Role:  string(completion.Role),
-				Value: b.String(),
+				Role:         string(completion.Role),
+				MimeType:     "text/plain",
+				Value:        b.String(),
+				Usage:        completion.Usage,
+				InputTokens:  completion.Usage.InputTokens,
+				OutputTokens: completion.Usage.OutputTokens,
+				//
+				TotalTokens: completion.Usage.InputTokens + completion.Usage.OutputTokens,
 			}
 			break
 		}

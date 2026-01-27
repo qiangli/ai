@@ -200,8 +200,12 @@ type Result struct {
 	// The agent name to transfer to for StateTransfer
 	NextAgent string `json:"next_agent"`
 
-	// //
-	// Actions []*ToolCall `json:"actions"`
+	//
+	Usage        any   `json:"usage"`
+	InputTokens  int64 `json:"input_tokens"`
+	OutputTokens int64 `json:"output_tokens"`
+	// The total number of tokens used.
+	TotalTokens int64 `json:"total_tokens"`
 }
 
 func (r *Result) String() string {
