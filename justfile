@@ -4,7 +4,7 @@ default:
   @just --list
 
 build:
-    time ./build.sh
+    time /bin/bash ./build.sh
 
 # build-all: tidy
 #     ./build.sh all
@@ -15,6 +15,9 @@ test:
 # Buid, install, unit tests, and bash integration tests
 all: tidy build test install
     time ./test/all.sh
+
+# test_sh:
+#     time ./test/all.sh
 
 # # Start hub services with 'ask' agent in debug mode (verbose)
 # hub flag_args='':
@@ -37,10 +40,10 @@ tidy:
 # git-amend: git-message
 #     git commit --amend -m "$(pbpaste)"
 
-push:
-    git push origin main --tag
+# push:
+#     git push origin main --tag
 
-install: build test
+install:
     time CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o "$(go env GOPATH)/bin/ai" -ldflags="-w -extldflags '-static' ${CLI_FLAGS:-}" ./cmd
 
 # Update all dependencies

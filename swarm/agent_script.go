@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
 
 	"slices"
 	"strings"
@@ -58,6 +59,16 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
 	vs := sh.NewVirtualSystem(r.vars.OS, r.vars.Workspace, ioe)
 
+	// pass current env
+	// required to run commands: /sh:go
+	for _, env := range os.Environ() {
+		if env != "" {
+			nv := strings.SplitN(env, "=", 2)
+			if len(nv) == 2 {
+				vs.System.Setenv(nv[0], nv[1])
+			}
+		}
+	}
 	// set global env for bash script
 	// TODO batch set
 	for k, v := range r.vars.Global.GetAllEnvs() {

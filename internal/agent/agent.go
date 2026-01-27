@@ -42,7 +42,7 @@ func RunSwarm(cfg *api.App, user *api.User, args []string) error {
 	ctx := context.Background()
 
 	// init
-	sw, err := initSwarm(ctx, cfg, user)
+	sw, err := initSwarm(cfg, user)
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func RunSwarm(cfg *api.App, user *api.User, args []string) error {
 	return nil
 }
 
-func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm, error) {
+func initSwarm(cfg *api.App, user *api.User) (*swarm.Swarm, error) {
 	swarm.ClearAllEnv(essentialEnv)
 
 	var adapters = adapter.GetAdapters()

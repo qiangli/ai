@@ -341,11 +341,19 @@ func (r *SystemKit) SetEnvs(_ context.Context, vars *api.Vars, _ string, args ma
 	}
 	var obj map[string]any
 	if _, ok := args["envs"]; ok {
-		v, err := api.GetMapProp("envs", args)
-		if err != nil {
-			return nil, err
+		if envs, err := api.GetMapProp("envs", args); err == nil {
+			obj = envs
+		} else if envs, err := api.GetArrayProp("envs", args); err == nil {
+			if len(envs) > 0 {
+				obj = make(map[string]any)
+				for _, env := range envs {
+					nv := strings.SplitN(env, "=", 2)
+					if len(nv) == 2 {
+						obj[nv[0]] = nv[1]
+					}
+				}
+			}
 		}
-		obj = v
 	} else {
 		// set all
 		obj = args

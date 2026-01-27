@@ -1,36 +1,32 @@
 #!/usr/bin/env ai /sh:bash --format raw --script
-# set -ue
-# ls
 
-# /bin/ls -al /tmp
+set -ue
 
-# bin/ls -al /tmp
+# # // | fromJson | toPrettyJson
+# template='data:,
+# >>>>>>>>> Instruction/Prompt
 
-# // | fromJson | toPrettyJson
-template='data:,
->>>>>>>>> Instruction/Prompt
+# {{.prompt}}
 
-{{.prompt}}
+# >>>>>>>>> Context/History
 
->>>>>>>>> Context/History
+# {{.history}}
 
-{{.history}}
+# >>>>>>>>> Message/Query
 
->>>>>>>>> Message/Query
+# {{.query}}
 
-{{.query}}
+# >>>>>>>>> Tool
+# {{.tools}}
 
->>>>>>>>> Tool
-{{.tools}}
+# >>>>>>>>> Result
 
->>>>>>>>> Result
+# {{.result.Value | fromJson | toPrettyJson}}
 
-{{.result.Value | fromJson | toPrettyJson}}
+# >>>>>>>>> Env
 
->>>>>>>>> Env
-
-{{printenv}}
-'
+# {{printenv}}
+# '
 
 ##
 # script="file:///$PWD/swarm/resource/incubator/agents/meta/agent.yaml"
@@ -61,8 +57,29 @@ template='data:,
 
 ###
 
+# export PATH=$PATH:/usr/local/go/bin:/usr/bin
+# PATHx="/usr/bin:/go/bin:$PATH"
+# /sh:set_envs --envs '{"HOME":"/Users/liqiang/", "PATH": "/usr/local/go/bin:/usr/bin", "GOPATH":"/Users/liqiang/go"}'
+# /sh:set_envs --envs '{"HOME":"/Users/liqiang/","PATH": "/usr/local/go/bin:/usr/bin"}'
+
 # printenv
-/sh:go
+
+# /sh:go --command "go version"
+# /sh:go --command "go env"
+
+# /sh:go --command "go build ./..."
+# /bin/go
 # echo ""
-echo "*** eval tests completed ***"
+
+# /sh:exec --command "diff a b"
+#
+# function test_failed() {
+#     echo "❌ test outputs differ"
+#     exit 1
+# }
+
+/sh:exec --command "diff /tmp/test.txt ./test/data/test-expected.txt || echo  '❌❌ test outputs differ'" 
+echo "status $?"
+
+echo "***🎉🎉🎉  eval tests completed ***"
 ###

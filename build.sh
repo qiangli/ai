@@ -1,4 +1,5 @@
 #!/bin/bash
+set -xue
 
 function tidy() {
 	go mod tidy
@@ -52,7 +53,8 @@ function build() {
 ##
 tidy
 #
-if [[ $1 == "all" ]]; then
+opt=${1:""}
+if [[ $opt == "all" ]]; then
 	build_all
 else
 	build

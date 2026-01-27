@@ -8,11 +8,6 @@ import (
 	"strings"
 )
 
-// var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL", "GOPATH"}
-
-// informative logging max value length
-// const maxInfoTextLen = 32
-
 // ClearAllEnv clears all environment variables execep for the keeps
 func ClearAllEnv(keeps []string) {
 	var memo = make(map[string]bool, len(keeps))

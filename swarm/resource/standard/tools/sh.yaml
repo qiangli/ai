@@ -34,7 +34,7 @@ tools:
       Ideal for scenarios requiring a placeholder or testing phase 
       where subsequent processes are needed without executing any specific tasks.
     parameters: {}
-  
+
   - name: "fail"
     description: |
       This tool simulates an error for testing purposes.
@@ -230,7 +230,7 @@ tools:
         Today is: {{date}}
         ###
         ```
-  
+
   - name: "apply"
     description: |
       Applies a Golang template to provided data, as documented at: https://pkg.go.dev/text/template.
@@ -340,7 +340,7 @@ tools:
           description: |
             Duration is a number with an optional suffix: 's'
             for seconds (the default), 'm' for minutes, 'h' for hours, or 'd' for days.
-            
+
             Examples:
             + System command action
             /sh:backoff --command "/sh:exec --command 'printenv'"  --option duration="10s"

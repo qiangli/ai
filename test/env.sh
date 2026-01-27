@@ -8,15 +8,20 @@ message="tell me a joke"
 # datetime=$(date)
 datetime="Jan  1 08:08:08"
 
-envs="
+# map
+map="
 {
 \"datetime\":\"$datetime\",
 \"message\":\"$message\"
 }
 "
-/sh:set_envs --option envs="${envs}"
+/sh:set_envs --option envs="${map}"
 
-#
+# array
+array="[HOME=$HOME,PATH=${PATH}]"
+/sh:set_envs --option envs="${array}"
+
+# name=value
 env datetime2="${datetime}" message2="${message}"
 
 echo "---"

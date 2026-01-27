@@ -2,7 +2,7 @@
 
 echo "Bash basic extension tests"
 
-# set -xue
+set -xue
 
 ##
 /bin/ls -al /tmp

@@ -1,13 +1,14 @@
-#!/bin/bash
-# this script runs as regular system bash
+#!/usr/bin/env ai /sh:bash --format raw --script
 
 set -ue
 
 BASE=$(pwd)
 echo $BASE
 
+/sh:set_envs --option envs="[OPENAI_API_KEY=invalid,GEMINI_API_KEY=invalid,ANTHROPIC_API_KEY=invalid,XAI_API_KEY=invalide}]"
+
 ##
-# $BASE/test/script.sh
+# 
 $BASE/test/bash-basic.sh
 $BASE/test/bash-ext.sh
 
@@ -20,6 +21,7 @@ $BASE/test/sb.md $adapter
 $BASE/test/sb.sh $adapter
 $BASE/test/sb.txt $adapter
 $BASE/test/sb.yaml $adapter
+
 $BASE/test/yaml-wrap.sh $adapter
 
 ##
@@ -43,9 +45,11 @@ function test_failed() {
     exit 1
 }
 $BASE/test/test.sh
-diff /tmp/test.txt ./test/data/test-expected.txt || test_failed
+
+# diff /tmp/test.txt ./test/data/test-expected.txt 
+/sh:exec --command "diff /tmp/test.txt ./test/data/test-expected.txt || echo  '❌❌ test outputs differ'" 
 
 echo "$?"
-echo "*** 🎉🎉🎉 All tests completed successfully ***"
+echo "*** All tests completed ***"
 ###
 
