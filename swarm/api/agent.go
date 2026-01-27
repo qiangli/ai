@@ -107,7 +107,7 @@ type Agent struct {
 	Model *Model `json:"model"`
 
 	// Functions that the agent can call
-	Tools []*ToolFunc `json:"tools"`
+	Tools []*ToolFunc `json:"-"`
 
 	// inheritance
 	Embed []*Agent `json:"-"`
