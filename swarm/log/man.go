@@ -16,6 +16,7 @@ type Logger interface {
 	// tee/file specific
 	SetTeeFile(string) error
 	SetTeeLogLevel(Level)
+	CloseTee() error
 
 	IsQuiet() bool
 	IsInformative() bool
