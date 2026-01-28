@@ -1,0 +1,10 @@
+{
+    "id": "",
+    "display": "tester",
+    "email": "",
+    "name": "",
+    "avatar": "",
+    "settings": {
+        "log_level": "info"
+    }
+}

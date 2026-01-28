@@ -1,5 +1,4 @@
-#!/usr/bin/env ai /sh:bash --format raw --script
-#!/bin/bash
+#!/usr/bin/env ai /sh:bash --format raw --base ./test/data/ --script
 
 echo ">>> Testing sleep and callback..."
 

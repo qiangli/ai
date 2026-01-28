@@ -1,4 +1,4 @@
-#!/usr/bin/env ai
+#!/usr/bin/env ai --base ./test/data/ 
 # set -x
 echo "### sb.sh"
 echo "$$ I'm called $@..."

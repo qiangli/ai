@@ -174,7 +174,7 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 
 	//
 	callDir := filepath.Join(roots.Workspace.Path, "var", "log", "toolcall")
-	teeDir := filepath.Join(roots.Workspace.Path, "var", "log", "conversation")
+	teeDir := filepath.Join(roots.Workspace.Path, "var", "log", "chat")
 
 	//
 

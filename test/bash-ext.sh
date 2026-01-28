@@ -1,4 +1,4 @@
-#!/usr/bin/env ai /sh:bash --format raw --script
+#!/usr/bin/env ai /sh:bash --format raw --base ./test/data/ --script
 
 echo "Bash basic extension tests"
 

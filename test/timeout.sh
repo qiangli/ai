@@ -1,5 +1,5 @@
-#!/usr/bin/env ai /sh:bash --format raw --script
-set -xue
+#!/usr/bin/env ai /sh:bash --format raw --base ./test/data/ --script
+set -ue
 
 echo ">> Testing timer..."
 

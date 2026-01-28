@@ -1,4 +1,5 @@
-#!/usr/bin/env ai /sh:bash --format raw --script
+#!/usr/bin/env ai /sh:bash --format raw --base ./test/data/ --script
+
 set -xue
 
 # agent="${1:-ask}"

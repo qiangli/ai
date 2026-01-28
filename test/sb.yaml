@@ -1,4 +1,4 @@
-#!/usr/bin/env ai /agent:hi --script
+#!/usr/bin/env ai /agent:hi --base ./test/data/ --script
 
 #
 # A complete "Hello World" example of agents, tools, and models
