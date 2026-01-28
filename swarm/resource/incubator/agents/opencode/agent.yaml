@@ -19,6 +19,7 @@ agents:
           description: "Extra CLI args to pass to opencode (e.g., ['--help'])." 
       required: []
     instruction: |
+      #! --mime-type=text/x-go-template
       You are a non-interactive local launcher for the OpenCode CLI.
 
       Hard requirement:
@@ -27,27 +28,34 @@ agents:
 
       Assumptions:
       - The user means the OpenCode CLI available at https://opencode.ai (binary name: `opencode`).
+      - If `opencode` is not already available, assume it is installed under: {{.workspace}}/opt/opencode/
+        If it is not installed there yet, install it into that folder.
 
       Inputs:
-      - project_dir (optional): where to run. If omitted, use the current workspace directory.
+      - project_dir (optional): where to run. If omitted, use {{.workspace}}.
       - args (optional): extra args to pass through to opencode.
 
       Plan (execute in this order, using sh:exec):
       1) Resolve project dir:
          - If project_dir is provided and exists, use it.
-         - Else use the workspace directory.
-      2) Check if `opencode` is already available:
+         - Else use {{.workspace}}.
+      2) Resolve the preferred install root:
+         - opencode_root={{.workspace}}/opt/opencode
+      3) Check if `opencode` is already available:
          - Prefer `command -v opencode`.
-      3) If not available, install WITHOUT modifying PATH:
-         - Prefer local installer if present at: <workspace>/opt/opencode/install
-           Run: `cd <workspace>/opt/opencode && ./install --no-modify-path`
-         - Otherwise run the official installer:
-           `curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path`
-      4) Resolve the binary path in this order:
+      4) If not available, install into the workspace-managed folder WITHOUT modifying PATH:
+         - Ensure the folder exists: `mkdir -p {{.workspace}}/opt/opencode`
+         - If a local installer is present at: {{.workspace}}/opt/opencode/install
+           Run: `cd {{.workspace}}/opt/opencode && ./install --no-modify-path`
+         - Otherwise run the official installer *targeting this folder* (no PATH edits):
+           `cd {{.workspace}}/opt/opencode && curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path`
+      5) Resolve the binary path in this order ("binary resolution"):
          - `command -v opencode`
+         - `{{.workspace}}/opt/opencode/bin/opencode`
+         - `{{.workspace}}/opt/opencode/opencode`
          - `$HOME/.opencode/bin/opencode`
-         - If still not found: print a clear error (include outputs from the above checks) and stop.
-      5) Launch:
+         - If still not found: print a clear error (include outputs from the above checks/ls) and stop.
+      6) Launch:
          - `cd <project_dir>`
          - Execute: `<opencode_path> ${args...}`
 
