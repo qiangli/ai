@@ -97,6 +97,9 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	return result, nil
 }
 
+type ExecHandlerFunc func(ctx context.Context, args []string) error
+type CallHandlerFunc func(ctx context.Context, args []string) ([]string, error)
+
 func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, _ map[string]any) sh.ExecHandler {
 	return func(ctx context.Context, args []string) (bool, error) {
 		if r.agent == nil {
@@ -145,6 +148,8 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, _ map[string]an
 		// TODO restricted
 		// block other commands
 		out, err := atm.ExecCommand(ctx, r.vars.OS, r.vars, args[0], args[1:])
+		// if dir, err := r.vars.OS.Getwd(); err != nil {
+		// }
 		// out already has stdout/stder combined
 		fmt.Fprintf(vs.IOE.Stdout, "%v", out)
 		return true, err
