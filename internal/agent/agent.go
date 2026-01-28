@@ -193,7 +193,7 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 	if err != nil {
 		return nil, err
 	}
-	callogs, err := calllog.NewFileCallLog(callDir, sessionID)
+	callogs, err := calllog.NewFileCallLog(filepath.Join(callDir, fmt.Sprintf("session_%s", sessionID)))
 	if err != nil {
 		return nil, err
 	}
@@ -229,8 +229,7 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 
 	// hook up tee logging for this run: write to <workspace>/var/log/conversation/<uuid>.log
 	if err := os.MkdirAll(teeDir, 0o755); err == nil {
-		filename := fmt.Sprintf("session_id__%s.log", sessionID)
-		teeFile := filepath.Join(teeDir, filename)
+		teeFile := filepath.Join(teeDir, fmt.Sprintf("session_%s.log", sessionID))
 		logger := log.GetLogger(ctx)
 		if err := logger.SetTeeFile(teeFile); err != nil {
 			// best effort: if setting tee fails, log to stderr

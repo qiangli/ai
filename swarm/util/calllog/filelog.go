@@ -18,9 +18,7 @@ func (r *FileCallLog) Base() string {
 	return r.base
 }
 
-func NewFileCallLog(root string, sessionID api.SessionID) (api.CallLogger, error) {
-	sub := fmt.Sprintf("session_id__%s", sessionID)
-	base := filepath.Join(root, "toolcall", sub)
+func NewFileCallLog(base string) (api.CallLogger, error) {
 	if err := os.MkdirAll(base, 0755); err != nil {
 		return nil, err
 	}

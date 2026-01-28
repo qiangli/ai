@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/uuid"
@@ -70,7 +71,7 @@ func defaultVars(cfg *api.App) (*api.Vars, error) {
 	if err != nil {
 		return nil, err
 	}
-	callogs, err := calllog.NewFileCallLog(roots.Workspace.Path, id)
+	callogs, err := calllog.NewFileCallLog(filepath.Join(roots.Workspace.Path, string(id)))
 	if err != nil {
 		return nil, err
 	}

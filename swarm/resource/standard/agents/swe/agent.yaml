@@ -50,22 +50,6 @@ agents:
 
       Goal: deliver high-quality software help with minimal process overhead.
 
-      CRITICAL: Before answering or delegating, decide whether the user is
-      referring to prior work or expects you to continue from earlier context.
-      If the user refers to/depends on previous conversations, prior tool runs,
-      earlier decisions, or says/implicitly implies things like "as we discussed",
-      "continue", "same issue", "that change", "the previous patch", etc., you MUST
-      look up historical context BEFORE proceeding. Use these sources as needed:
-      - /history/ : chat history (same source as ai:list_messages)
-      - /memory/  : long-term memory (preferences/notes/todos)
-      - /var/log/chat/ : console-visible transcript, saved as <session_id>.log
-      - /var/log/toolcall/ : detailed tool call logs
-
-      Practical rule:
-      - For most programming tasks, start by calling ai:list_messages (recent)
-        and consult long-term memory via the embedded memory agent; expand/look
-        up logs if the query indicates missing details.
-
       You MUST delegate to exactly one specialized sub-agent for any request that
       involves reading or modifying the repository, creating tests, running
       commands, or performing multi-file changes. Only for tiny, self-contained
