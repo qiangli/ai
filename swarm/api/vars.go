@@ -157,7 +157,9 @@ type Vars struct {
 func (r *Vars) DefaultQuery(argm ArgMap) (string, error) {
 	message := argm.GetString("message")
 	if IsTemplate(message) {
-		return "", fmt.Errorf("message is a template")
+		// TODO: append note the message to indicate this is template?
+		return message, nil
+		// return "", fmt.Errorf("message is a template")
 	}
 	if message != "" {
 		v, err := r.loadContent(message)

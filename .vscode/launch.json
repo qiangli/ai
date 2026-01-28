@@ -36,7 +36,7 @@
 				// "--query",
 				// "what is unix",
 				// 
-				"/ai:list_agents"
+				// "/ai:list_agents"
 				//
 				// alias
 				// "/alias:x",
@@ -261,6 +261,7 @@
 				//
 				// "@manus/planning_with_files",
 				// "@ask/ask",
+				"@agent", "update the agent in '{{.workspace}}'"
 				// 
 				// "/ai:sleep",
 				// "--duration",
