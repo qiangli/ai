@@ -39,7 +39,7 @@ func New(vars *api.Vars) (*Swarm, error) {
 	}
 
 	//
-	vars.ID = uuid.NewString()
+	vars.SessionID = uuid.NewString()
 	vars.Global = api.NewEnvironment()
 
 	// preset

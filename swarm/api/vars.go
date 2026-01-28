@@ -164,14 +164,11 @@ type Vars struct {
 
 	RootAgent *Agent `json:"root_agent"`
 
-	// RTE *ActionRTEnv `json:"-"`
-	// mu  sync.RWMutex `json:"-"`
-
 	Base string
 
-	ID string
-
+	SessionID string
 	User      *User
+
 	Roots     *Roots
 	Workspace Workspace
 	OS        System

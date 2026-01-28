@@ -109,6 +109,7 @@ func (r *AIKit) getAdapter(agent *api.Agent, args map[string]any) (api.LLMAdapte
 
 func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (any, error) {
 	var owner = r.vars.User.Email
+	var sessionID = r.vars.SessionID
 
 	// check arg for overide
 	if v, err := r.checkAndCreate(ctx, vars, agent, tf, args); err == nil {
@@ -265,11 +266,9 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	for _, v := range funcMap {
 		tools = append(tools, v)
 	}
-	// agent.Tools = tools
 
 	// request
 	var packname = api.NewPackname(agent.Pack, agent.Name)
-	var id = uuid.NewString()
 	var history []*api.Message
 
 	// 1. New System Message
@@ -277,7 +276,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	if prompt != "" {
 		history = append(history, &api.Message{
 			ID:      uuid.NewString(),
-			Session: id,
+			Session: sessionID,
 			Created: time.Now(),
 			//
 			Role:    api.RoleSystem,
@@ -302,7 +301,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	// Additional user message/query
 	history = append(history, &api.Message{
 		ID:      uuid.NewString(),
-		Session: id,
+		Session: sessionID,
 		Created: time.Now(),
 		//
 		Role:    api.RoleUser,
@@ -373,7 +372,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	// save assistant response message
 	message := api.Message{
 		ID:      uuid.NewString(),
-		Session: id,
+		Session: sessionID,
 		Created: time.Now(),
 		//
 		ContentType: result.MimeType,

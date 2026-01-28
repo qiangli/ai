@@ -147,13 +147,11 @@ type ActionRunner interface {
 }
 
 type App struct {
-	// app root. default: $HOME/.ai/
+	// user id: auth email
+	UserID string
+
+	// workspace root. default: $HOME/.ai/
 	Base string
-
-	// auth email
-	User string
-
-	Session string
 }
 
 type InputConfig struct {
@@ -168,17 +166,9 @@ type InputConfig struct {
 }
 
 type AppConfig struct {
-	// // entry action
-	// // kit:name
-	// // pack/sub
-	// // default: pack[/pack]
-	// Action string `yaml:"action" json:"action"`
-
-	// ActionConfig
-	//
 	// kit specifies a namespace for the action
 	// examples:
-	// class name
+	// shell
 	// MCP server name
 	// file system
 	// container name
@@ -193,11 +183,10 @@ type AppConfig struct {
 	//
 	Arguments map[string]any `yaml:"arguments" json:"arguments"`
 
-	// // user message
+	// top level config not supported. these should be agent specific
 	// Message string `yaml:"message" json:"message"`
-
-	// // system prompt
 	// Instruction string `yaml:"instruction" json:"instruction"`
+	// Context    string `yaml:"context" json:"context"`
 
 	// set/level key - not the LLM model
 	Model string `yaml:"model" json:"model"`
@@ -206,13 +195,9 @@ type AppConfig struct {
 	MaxTurns int `yaml:"max_turns" json:"max_turns"`
 	MaxTime  int `yaml:"max_time" json:"max_time"`
 
-	// // output format: json | text
-	// Format string `yaml:"format" json:"format"`
-
 	// memory context
-	MaxHistory int    `yaml:"max_history" json:"max_history"`
-	MaxSpan    int    `yaml:"max_span" json:"max_span"`
-	Context    string `yaml:"context" json:"context"`
+	MaxHistory int `yaml:"max_history" json:"max_history"`
+	MaxSpan    int `yaml:"max_span" json:"max_span"`
 
 	// logging: quiet | informative | verbose
 	LogLevel string `yaml:"log_level" json:"log_level"`

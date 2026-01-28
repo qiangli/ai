@@ -24,7 +24,7 @@ func defaultVars(cfg *api.App) (*api.Vars, error) {
 	}
 
 	var user = &api.User{
-		Email: cfg.User,
+		Email: cfg.UserID,
 	}
 	var adapters = adapter.GetAdapters()
 

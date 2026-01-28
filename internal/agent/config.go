@@ -1,13 +1,8 @@
 package agent
 
 import (
-	"slices"
-
-	// "fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/google/uuid"
 
 	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm/api"
@@ -81,21 +76,7 @@ func ParseSpecialChars(args []string) *api.InputConfig {
 	return &cfg
 }
 
-var validFormats = []string{"txt", "json", "markdown", "yaml"}
-
-func isValidFormat(format string) bool {
-	return slices.Contains(validFormats, format)
-}
-
-// func Validate(app *api.AppConfig) error {
-// 	if app.Format != "" && !isValidFormat(app.Format) {
-// 		return fmt.Errorf("invalid format: %s", app.Format)
-// 	}
-// 	return nil
-// }
-
-func SetupAppConfig(app *api.App) error {
-	app.Session = uuid.NewString()
+func setupAppConfig(app *api.App) error {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
@@ -106,7 +87,7 @@ func SetupAppConfig(app *api.App) error {
 
 func Run(argv []string) error {
 	var app = &api.App{}
-	err := SetupAppConfig(app)
+	err := setupAppConfig(app)
 	if err != nil {
 		return err
 	}
@@ -114,7 +95,7 @@ func Run(argv []string) error {
 	//
 	var user *api.User
 	who, _ := util.WhoAmI()
-	app.User = who
+	app.UserID = who
 	if v, err := loadUser(app.Base); err != nil {
 		user = &api.User{
 			Display:  who,
