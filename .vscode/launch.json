@@ -36,7 +36,7 @@
 				// "--query",
 				// "what is unix",
 				// 
-				// "/ai:list_agents"
+				"/ai:list_agents"
 				//
 				// alias
 				// "/alias:x",
@@ -119,7 +119,7 @@
 				// "--message",
 				// "install"
 				// 
-				"test/eval.sh",
+				// "test/eval.sh",
 				// "test/all.sh",
 				// "test/basic.sh",
 				// "test/std.sh",

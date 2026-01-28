@@ -211,27 +211,27 @@ func (r *printer) SetWriter(w io.Writer) {
 func (r *printer) Printf(format string, a ...interface{}) {
 	if r.on {
 		fmt.Fprintf(r.out, format, a...)
-	}
-	if r.writer != nil {
-		fmt.Fprintf(r.writer, format, a...)
+		if r.writer != nil {
+			fmt.Fprintf(r.writer, format, a...)
+		}
 	}
 }
 
 func (r *printer) Print(a ...interface{}) {
 	if r.on {
 		fmt.Fprint(r.out, a...)
-	}
-	if r.writer != nil {
-		fmt.Fprint(r.writer, a...)
+		if r.writer != nil {
+			fmt.Fprint(r.writer, a...)
+		}
 	}
 }
 
 func (r *printer) Println(a ...interface{}) {
 	if r.on {
 		fmt.Fprintln(r.out, a...)
-	}
-	if r.writer != nil {
-		fmt.Fprintln(r.writer, a...)
+		if r.writer != nil {
+			fmt.Fprintln(r.writer, a...)
+		}
 	}
 }
 
