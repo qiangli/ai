@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/google/uuid"
 
@@ -42,16 +43,23 @@ func loadUser(base string) (*api.User, error) {
 
 func Run(argv []string) error {
 	var app = &api.App{}
-
-	var workspace = os.Getenv("WORKSPACE")
-	if workspace == "" {
+	var base string
+	for i, v := range argv {
+		if slices.Contains([]string{"--base", "-base"}, v) {
+			if len(argv) > i+1 {
+				base = argv[i+1]
+				break
+			}
+		}
+	}
+	if base == "" {
 		home, err := os.UserHomeDir()
 		if err != nil {
 			return err
 		}
-		workspace = filepath.Join(home, ".ai")
+		base = filepath.Join(home, ".ai")
 	}
-	app.Base = workspace
+	app.Base = base
 
 	//
 	var user *api.User

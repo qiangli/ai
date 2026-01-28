@@ -1,0 +1,35 @@
+{
+    "blob": {
+        "base": "https://ai.dhnt.io",
+        "token": "invalid"
+    },
+    "assets": [
+        {
+            "type": "file",
+            "base": "./swarm/resource/incubator"
+        },
+        {
+            "type": "file",
+            "base": "./swarm/resource/standard"
+        }
+    ],
+    "roots": {
+        "workspace": {
+            "name": "Workspace",
+            "description": "Primary development workspace",
+            "path": "/tmp/workspace"
+        },
+        "cwd":            {
+            "name": "Current Directory",
+            "description": "Current working directory",
+            "path": ""
+        },
+        "temp":             {
+            "name": "Temporary Files",
+            "description": "Directory for temporary files",
+            "temp": ""
+        },
+        "dirs": [
+        ]
+    }
+}
