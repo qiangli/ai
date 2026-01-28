@@ -6,6 +6,9 @@ agents:
     display: "OpenCode launcher"
     description: "Installs (if needed) and launches the OpenCode CLI (`opencode`) in the given project directory, without prompting the user for clarification." 
     model: "default/any"
+    embed:
+      # - "agent:context/lastn"
+      - "agent:memory/memory"
     parameters:
       type: "object"
       properties:
@@ -69,3 +72,4 @@ agents:
     functions:
       - "sh:*"
       - "fs:*"
+      - "web:*"

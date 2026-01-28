@@ -4,32 +4,21 @@ model: "llm/L1"
 agents:
   - name: "memory"
     display: "Agent Memory"
-    description: "Agent default user memory"
+    description: |
+      Agent default user memory. 
+      Intended to be embedded into other agents' instructions.
     embed:
+      - "agent:meta/workspace"
       - "agent:memory/long_term"
-    instruction: |
-      CRITICAL: Before answering or delegating, decide whether the user is
-      referring to prior work or expects you to continue from earlier context.
-      If the user refers to/depends on previous conversations, prior tool runs,
-      earlier decisions, or says/implicitly implies things like "as we discussed",
-      "continue", "same issue", "that change", "the previous patch", etc., you MUST
-      look up historical context BEFORE proceeding. Use these sources as needed:
-      - /history/ : chat history (same source as ai:list_messages). Each message has a unique ID, but shares the same session ID for the same chat thread, stored as the "session" field.
-      - /memory/  : long-term memory (preferences/notes/todos)
-      - /var/log/chat/ : console-visible transcript, saved as `session_<id>.log` using the session ID.
-      - /var/log/toolcall/session_<id>/* : detailed tool call logs, organized in folders named `session_<id>` using the session ID.
-
-      Practical rule:
-      - For most tasks, start by calling ai:list_messages (recent)
-        and consult long-term memory via the embedded memory agent; expand/look
-        up logs if the query indicates missing details.
     functions:
       - "fs:*"
 
   # https://github.com/langchain-ai/deepagents/blob/master/libs/deepagents/deepagents/middleware/memory.py
   - name: "long_term"
     display: "Long Term Memory"
-    description: "Agent-specific long-term memory for the system"
+    description: |
+      Agent-specific long-term memory. 
+      Intended to be embedded into other agents' instructions.
     environment:
       memory_path: "{{.workspace}}/memory/"
       memory_file: "{{.workspace}}/memory/agent.md"
@@ -39,7 +28,7 @@ agents:
       <agent_memory>
       {{list .workspace "memory/agent.md" | join "/" | cat}}
       </agent_memory>
-      
+
       ## Long-term Memory
 
       You have access to a long-term memory system using the {{.memory_path}} path prefix.

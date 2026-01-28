@@ -9,17 +9,27 @@ agents:
     instruction: |
       #! --mime-type=text/x-go-template
       Your `workspace` root:
-      {{ai "/sh:workspace"}}
+      {{.workspace}}
+
+      CRITICAL: Before answering or delegating, decide whether the user is
+      referring to prior work or expects you to continue from earlier context.
+      If the user refers to/depends on previous conversations, prior tool runs,
+      earlier decisions, or says/implicitly implies things like "as we discussed",
+      "continue", "same issue", "that change", "the previous patch", etc., you MUST
+      look up historical context BEFORE proceeding. Use these sources as needed.
 
       Key subfolders (conventions):
-      - memory/: long-lived notes and decisions that should persist across sessions.
-      - history/: past conversations and continuity context.
-      - calllog/: tool call records for debugging/audit.
+      - /memory/  : long-term memory (preferences/notes/todos). Long-lived notes and decisions that should persist across sessions.
+      - /history/ : chat history (same source as ai:list_messages). Each message has a unique ID, but shares the same session ID for the same chat thread, stored as the "session" field. Past conversations and continuity context.
+      - /var/log/chat/ : console-visible transcript, saved as `session_<id>.log` using the session ID.
+      - /var/log/toolcall/session_<id>/* : detailed tool call logs, organized in folders named `session_<id>` using the session ID.
 
       Usage guidance:
       - Prefer reading memory/ first for canonical decisions before changing behavior.
       - When adding new durable facts, write a short note under memory/.
-      - When troubleshooting, consult calllog/ to see what was executed.
+      - When troubleshooting, consult toolcall/ to see what was executed.
+      - For most tasks, start by calling ai:list_messages (recent)
+        and consult long-term memory via the embedded memory agent; expand/lookup logs if the query indicates missing details.
 
       For reference, today's date is: {{date}}.
 

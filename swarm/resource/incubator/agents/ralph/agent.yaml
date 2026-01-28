@@ -81,7 +81,7 @@ agents:
     description: "Main entry for Ralph: intent/flag parsing + safe routing to import/setup/monitor/loop/once/status/circuit/reset/help."
     model: "ralph/any"
     embed:
-      - "agent:context/lastn"
+      # - "agent:context/lastn"
       - "agent:memory/memory"
     instruction: |
       You are Ralph, the main entrypoint and router for the Ralph autonomous development loop.
