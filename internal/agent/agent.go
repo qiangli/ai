@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/google/uuid"
+
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 
@@ -42,7 +44,7 @@ func RunSwarm(cfg *api.App, user *api.User, args []string) error {
 	ctx := context.Background()
 
 	// init
-	sw, err := initSwarm(cfg, user)
+	sw, err := initSwarm(ctx, cfg, user)
 	if err != nil {
 		return err
 	}
@@ -66,6 +68,8 @@ func RunSwarm(cfg *api.App, user *api.User, args []string) error {
 	level := api.ToLogLevel(argm["log_level"])
 	logger := log.GetLogger(ctx)
 	logger.SetLogLevel(level)
+	// mirror console level to tee (file) outputs so file contains same verbosity
+	logger.SetTeeLogLevel(level)
 	logger.Debugf("Config: %+v\n", cfg)
 
 	// ***
@@ -96,11 +100,17 @@ func RunSwarm(cfg *api.App, user *api.User, args []string) error {
 	}
 	processOutput(ctx, format, &out)
 
-	/*  */
+	/* close tee file if opened */
+	if logger != nil {
+		if err := logger.CloseTee(); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to close tee file: %v\n", err)
+		}
+	}
+
 	return nil
 }
 
-func initSwarm(cfg *api.App, user *api.User) (*swarm.Swarm, error) {
+func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm, error) {
 	swarm.ClearAllEnv(essentialEnv)
 
 	var adapters = adapter.GetAdapters()
@@ -163,6 +173,23 @@ func initSwarm(cfg *api.App, user *api.User) (*swarm.Swarm, error) {
 	sw, err := swarm.New(vars)
 	if err != nil {
 		return nil, err
+	}
+
+	// hook up tee logging for this run: write to <workspace>/var/log/conversation/<uuid>.log
+	rid := uuid.NewString()
+	teeDir := filepath.Join(roots.Workspace.Path, "var", "log", "conversation")
+	if err := os.MkdirAll(teeDir, 0o755); err == nil {
+		teeFile := filepath.Join(teeDir, rid+".log")
+		logger := log.GetLogger(ctx)
+		if err := logger.SetTeeFile(teeFile); err != nil {
+			// best effort: if setting tee fails, log to stderr
+			fmt.Fprintf(os.Stderr, "failed to set tee file %s: %v\n", teeFile, err)
+		} else {
+			// default tee log level mirrors console unless changed later
+			logger.SetTeeLogLevel(api.Informative)
+		}
+	} else {
+		fmt.Fprintf(os.Stderr, "failed to create tee dir %s: %v\n", teeDir, err)
 	}
 
 	return sw, nil
