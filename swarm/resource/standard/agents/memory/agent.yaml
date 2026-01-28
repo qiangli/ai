@@ -14,13 +14,13 @@ agents:
       earlier decisions, or says/implicitly implies things like "as we discussed",
       "continue", "same issue", "that change", "the previous patch", etc., you MUST
       look up historical context BEFORE proceeding. Use these sources as needed:
-      - /history/ : chat history (same source as ai:list_messages)
+      - /history/ : chat history (same source as ai:list_messages). Each message has a unique ID, but shares the same session ID for the same chat thread, stored as the "session" field.
       - /memory/  : long-term memory (preferences/notes/todos)
-      - /var/log/chat/ : console-visible transcript, saved as <session_id>.log
-      - /var/log/toolcall/<session_id>/* : detailed tool call logs
+      - /var/log/chat/ : console-visible transcript, saved as `session_<id>.log` using the session ID.
+      - /var/log/toolcall/session_<id>/* : detailed tool call logs, organized in folders named `session_<id>` using the session ID.
 
       Practical rule:
-      - For most programming tasks, start by calling ai:list_messages (recent)
+      - For most tasks, start by calling ai:list_messages (recent)
         and consult long-term memory via the embedded memory agent; expand/look
         up logs if the query indicates missing details.
     functions:
