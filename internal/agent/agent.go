@@ -7,9 +7,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/google/uuid"
+
+	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
-
 	"github.com/qiangli/ai/swarm/llm/adapter"
 	"github.com/qiangli/ai/swarm/log"
 	"github.com/qiangli/ai/swarm/util/calllog"
@@ -36,6 +38,39 @@ func loadUser(base string) (*api.User, error) {
 	}
 
 	return &user, nil
+}
+
+func Run(argv []string) error {
+	var app = &api.App{}
+
+	var workspace = os.Getenv("WORKSPACE")
+	if workspace == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return err
+		}
+		workspace = filepath.Join(home, ".ai")
+	}
+	app.Base = workspace
+
+	//
+	var user *api.User
+	who, _ := util.WhoAmI()
+	app.UserID = who
+	if v, err := loadUser(app.Base); err != nil {
+		user = &api.User{
+			Display:  who,
+			Settings: make(map[string]any),
+		}
+	} else {
+		user = v
+		user.Display = who
+	}
+
+	if err := RunSwarm(app, user, argv); err != nil {
+		return err
+	}
+	return nil
 }
 
 func RunSwarm(cfg *api.App, user *api.User, args []string) error {
@@ -109,6 +144,8 @@ func RunSwarm(cfg *api.App, user *api.User, args []string) error {
 }
 
 func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm, error) {
+	var sessionID = api.SessionID(uuid.NewString())
+
 	swarm.ClearAllEnv(essentialEnv)
 
 	var adapters = adapter.GetAdapters()
@@ -126,6 +163,13 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 	if len(dirs) == 0 {
 		return nil, fmt.Errorf("root directories not configed")
 	}
+
+	//
+	callDir := filepath.Join(roots.Workspace.Path, "var", "log", "toolcall")
+	teeDir := filepath.Join(roots.Workspace.Path, "var", "log", "conversation")
+
+	//
+
 	lfs, _ := vfs.NewLocalFS(dirs)
 	los, _ := vos.NewLocalSystem(lfs)
 
@@ -141,7 +185,7 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 	if err != nil {
 		return nil, err
 	}
-	callogs, err := calllog.NewFileCallLog(roots.Workspace.Path)
+	callogs, err := calllog.NewFileCallLog(callDir, sessionID)
 	if err != nil {
 		return nil, err
 	}
@@ -152,6 +196,8 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 	}
 
 	var vars = &api.Vars{
+		SessionID: sessionID,
+		//
 		Base:      cfg.Base,
 		Workspace: lfs,
 		User:      user,
@@ -174,12 +220,8 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 	}
 
 	// hook up tee logging for this run: write to <workspace>/var/log/conversation/<uuid>.log
-	if vars.SessionID == "" {
-		return nil, fmt.Errorf("session not setup properly.")
-	}
-	teeDir := filepath.Join(roots.Workspace.Path, "var", "log", "conversation")
 	if err := os.MkdirAll(teeDir, 0o755); err == nil {
-		teeFile := filepath.Join(teeDir, vars.SessionID+".log")
+		teeFile := filepath.Join(teeDir, string(sessionID)+".log")
 		logger := log.GetLogger(ctx)
 		if err := logger.SetTeeFile(teeFile); err != nil {
 			// best effort: if setting tee fails, log to stderr

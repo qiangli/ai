@@ -3,7 +3,6 @@ package swarm
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
@@ -18,9 +17,10 @@ type Swarm struct {
 }
 
 func New(vars *api.Vars) (*Swarm, error) {
-	// if rte == nil {
-	// 	return fmt.Errorf("Action RT env required")
-	// }
+	if vars.SessionID == "" {
+		return nil, fmt.Errorf("Missing required session ID")
+	}
+
 	if vars.Base == "" {
 		return nil, fmt.Errorf("app base required")
 	}
@@ -39,7 +39,6 @@ func New(vars *api.Vars) (*Swarm, error) {
 	}
 
 	//
-	vars.SessionID = uuid.NewString()
 	vars.Global = api.NewEnvironment()
 
 	// preset

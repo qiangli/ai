@@ -128,36 +128,6 @@ func (g *Environment) Copy(dst map[string]any) {
 	maps.Copy(dst, g.Env)
 }
 
-// func (g *Environment) Clone() *Environment {
-// 	g.mu.Lock()
-// 	defer g.mu.Unlock()
-
-// 	env := make(map[string]any)
-// 	maps.Copy(env, g.Env)
-// 	return &Environment{
-// 		Env: env,
-// 	}
-// }
-
-// type ActionRTEnv struct {
-// 	Base string
-
-// 	ID string
-
-// 	User      *User
-// 	Roots     *Roots
-// 	Workspace Workspace
-// 	OS        System
-// 	Secrets   SecretStore
-// 	Assets    AssetManager
-// 	Blobs     BlobStore
-
-// 	Tools    ToolSystem
-// 	Adapters AdapterRegistry
-// 	History  MemStore
-// 	Log      CallLogger
-// }
-
 // global context
 type Vars struct {
 	Global *Environment `json:"global"`
@@ -166,7 +136,7 @@ type Vars struct {
 
 	Base string
 
-	SessionID string
+	SessionID SessionID
 	User      *User
 
 	Roots     *Roots
@@ -196,19 +166,7 @@ func (r *Vars) DefaultQuery(argm ArgMap) (string, error) {
 		}
 		message = v
 	}
-	// TODO verify if this will cause breakage
-	// content := argm.GetString("content")
-	// if IsTemplate(content) {
-	// 	return "", fmt.Errorf("content is a template")
-	// }
-	// if content != "" {
-	// 	v, err := r.loadContent(content)
-	// 	if err != nil {
-	// 		return "", err
-	// 	}
-	// 	content = v
-	// }
-	// query := Cat(message, content, "\n###\n")
+
 	return message, nil
 }
 

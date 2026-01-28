@@ -1,10 +1,6 @@
 package agent
 
 import (
-	"os"
-	"path/filepath"
-
-	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm/api"
 )
 
@@ -74,40 +70,4 @@ func ParseSpecialChars(args []string) *api.InputConfig {
 	cfg.Args = args
 
 	return &cfg
-}
-
-func setupAppConfig(app *api.App) error {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return err
-	}
-	app.Base = filepath.Join(home, ".ai")
-	return nil
-}
-
-func Run(argv []string) error {
-	var app = &api.App{}
-	err := setupAppConfig(app)
-	if err != nil {
-		return err
-	}
-
-	//
-	var user *api.User
-	who, _ := util.WhoAmI()
-	app.UserID = who
-	if v, err := loadUser(app.Base); err != nil {
-		user = &api.User{
-			Display:  who,
-			Settings: make(map[string]any),
-		}
-	} else {
-		user = v
-		user.Display = who
-	}
-
-	if err := RunSwarm(app, user, argv); err != nil {
-		return err
-	}
-	return nil
 }

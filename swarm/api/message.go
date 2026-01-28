@@ -23,7 +23,7 @@ type Message struct {
 	ID string `json:"id"`
 
 	// thread id
-	Session string    `json:"session"`
+	Session SessionID `json:"session"`
 	Created time.Time `json:"created"`
 
 	// data

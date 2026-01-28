@@ -6,6 +6,8 @@ const SwarmUserContextKey ContextKey = "swarm_user"
 
 const defaultAgent = ""
 
+type SessionID string
+
 type User struct {
 	// uuid
 	ID string `json:"id"`

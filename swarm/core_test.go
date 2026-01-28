@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	// "github.com/google/uuid"
+	"github.com/google/uuid"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
@@ -17,8 +17,9 @@ import (
 )
 
 func defaultVars(cfg *api.App) (*api.Vars, error) {
-
 	var wsbase = cfg.Base + "/workdir"
+	var id = api.SessionID(uuid.NewString())
+
 	if err := os.MkdirAll(wsbase, 0755); err != nil {
 		return nil, err
 	}
@@ -69,13 +70,14 @@ func defaultVars(cfg *api.App) (*api.Vars, error) {
 	if err != nil {
 		return nil, err
 	}
-	callogs, err := calllog.NewFileCallLog(roots.Workspace.Path)
+	callogs, err := calllog.NewFileCallLog(roots.Workspace.Path, id)
 	if err != nil {
 		return nil, err
 	}
 
 	var vars = &api.Vars{
-		// ID:      uuid.NewString(),
+		SessionID: id,
+		//
 		Global:  api.NewEnvironment(),
 		Base:    cfg.Base,
 		Roots:   roots,

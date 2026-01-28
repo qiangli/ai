@@ -18,8 +18,8 @@ func (r *FileCallLog) Base() string {
 	return r.base
 }
 
-func NewFileCallLog(workspace string) (api.CallLogger, error) {
-	base := filepath.Join(workspace, "calllog")
+func NewFileCallLog(root string, session api.SessionID) (api.CallLogger, error) {
+	base := filepath.Join(root, "toolcall", string(session))
 	if err := os.MkdirAll(base, 0755); err != nil {
 		return nil, err
 	}
