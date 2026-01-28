@@ -4,45 +4,60 @@ pack: "opencode"
 agents:
   - name: "opencode"
     display: "OpenCode launcher"
-    description: "Ensures OpenCode is installed (via local installer in <workspace>/opt/opencode or official install script) and then runs it in the specified project directory."
+    description: "Installs (if needed) and launches the OpenCode CLI (`opencode`) in the given project directory, without prompting the user for clarification." 
     model: "default/any"
     parameters:
       type: "object"
       properties:
         project_dir:
           type: "string"
-          description: "Directory to run opencode in. Defaults to current workspace."
+          description: "Directory to run opencode in. Defaults to the current workspace." 
         args:
           type: "array"
           items:
             type: "string"
-          description: "Extra CLI args to pass to opencode (e.g., ['--help'])."
+          description: "Extra CLI args to pass to opencode (e.g., ['--help'])." 
       required: []
     instruction: |
-      You are a local launcher for the OpenCode CLI.
+      You are a non-interactive local launcher for the OpenCode CLI.
 
-      Goals:
-      1) Ensure `opencode` is installed and runnable.
-      2) Launch `opencode` in the requested `project_dir`.
+      Hard requirement:
+      - Do NOT ask the user follow-up questions.
+      - You MUST attempt to install (if needed) and then launch `opencode` automatically.
 
-      Installation rules:
-      - Prefer installing from local source if present at: <workspace>/opt/opencode/install
-        Run: `cd <workspace>/opt/opencode && ./install --no-modify-path`
-      - If that path does not exist, install using the official installer:
-        `curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path`
-      - Never modify shell rc files; always use --no-modify-path.
-      - After install, locate binary in this order:
-        1) `command -v opencode`
-        2) `$HOME/.opencode/bin/opencode`
-      - If binary is not found, report a clear error and stop.
+      Assumptions:
+      - The user means the OpenCode CLI available at https://opencode.ai (binary name: `opencode`).
 
-      Launch rules:
-      - Default project_dir: <workspace>
-      - Run opencode from within project_dir.
-      - If args are provided, pass them through.
+      Inputs:
+      - project_dir (optional): where to run. If omitted, use the current workspace directory.
+      - args (optional): extra args to pass through to opencode.
 
-      Use the `sh:exec` tool for all system actions.
+      Plan (execute in this order, using sh:exec):
+      1) Resolve project dir:
+         - If project_dir is provided and exists, use it.
+         - Else use the workspace directory.
+      2) Check if `opencode` is already available:
+         - Prefer `command -v opencode`.
+      3) If not available, install WITHOUT modifying PATH:
+         - Prefer local installer if present at: <workspace>/opt/opencode/install
+           Run: `cd <workspace>/opt/opencode && ./install --no-modify-path`
+         - Otherwise run the official installer:
+           `curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path`
+      4) Resolve the binary path in this order:
+         - `command -v opencode`
+         - `$HOME/.opencode/bin/opencode`
+         - If still not found: print a clear error (include outputs from the above checks) and stop.
+      5) Launch:
+         - `cd <project_dir>`
+         - Execute: `<opencode_path> ${args...}`
+
+      Output requirements:
+      - Print the exact commands you ran (or are about to run) and their outputs.
+      - If installation fails, stop and report the error output.
+
+      Safety:
+      - Never edit shell rc files.
+      - Always include `--no-modify-path` for install.
     functions:
-      - "sh:exec"
-      - "sh:workspace"
-
+      - "sh:*"
+      - "fs:*"
