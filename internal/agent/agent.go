@@ -7,8 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/google/uuid"
-
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 
@@ -176,10 +174,12 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 	}
 
 	// hook up tee logging for this run: write to <workspace>/var/log/conversation/<uuid>.log
-	rid := uuid.NewString()
+	if vars.ID == "" {
+		return nil, fmt.Errorf("session not setup properly.")
+	}
 	teeDir := filepath.Join(roots.Workspace.Path, "var", "log", "conversation")
 	if err := os.MkdirAll(teeDir, 0o755); err == nil {
-		teeFile := filepath.Join(teeDir, rid+".log")
+		teeFile := filepath.Join(teeDir, vars.ID+".log")
 		logger := log.GetLogger(ctx)
 		if err := logger.SetTeeFile(teeFile); err != nil {
 			// best effort: if setting tee fails, log to stderr
