@@ -123,6 +123,7 @@
 				// "test/all.sh",
 				// "test/basic.sh",
 				// "test/std.sh",
+				"test/bash-builtin.sh",
 				// "test/yaml-wrap.sh",
 				// "swarm/resource/template/atm.yaml",
 				// "--adapter",
@@ -261,7 +262,7 @@
 				//
 				// "@manus/planning_with_files",
 				// "@ask/ask",
-				"@agent", "update the agent in '{{.workspace}}'"
+				// "@agent", "update the agent in '{{.workspace}}'"
 				// 
 				// "/ai:sleep",
 				// "--duration",

@@ -57,7 +57,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	// bash script
 	var b bytes.Buffer
 	ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
-	vs := sh.NewVirtualSystem(r.vars.OS, r.vars.Workspace, ioe)
+	vs := sh.NewVirtualSystem(r.vars.Workspace, r.vars.OS, ioe)
 
 	// pass current env
 	// required to run commands: /sh:go

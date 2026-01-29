@@ -223,7 +223,7 @@ func RunCoreUtil(vars *api.Vars, cmd string, a []string) string {
 	var b bytes.Buffer
 	ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
 
-	vs := sh.NewVirtualSystem(vars.OS, vars.Workspace, ioe)
+	vs := sh.NewVirtualSystem(vars.Workspace, vars.OS, ioe)
 	done, err := sh.RunCoreUtils(context.Background(), vs, args)
 	if err != nil {
 		return err.Error()
