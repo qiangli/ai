@@ -13,7 +13,7 @@ import (
 	"github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
-	"github.com/qiangli/shell/sh"
+	// "github.com/qiangli/shell/sh"
 )
 
 type AgentScriptRunner struct {
@@ -55,8 +55,8 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 
 	// bash script
 	var b bytes.Buffer
-	ioe := &sh.IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
-	vs := sh.NewVirtualSystem(r.vars.Workspace, r.vars.OS, ioe)
+	ioe := &IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
+	vs := NewVirtualSystem(r.vars.Workspace, r.vars.OS, ioe)
 
 	// pass current env
 	// required to run commands: /sh:go
@@ -86,7 +86,9 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 
 	// FIXME: translate error into exit status and respect set -e
 	if err != nil {
-		vs.System.Exit(1)
+		if exit := vs.System.Getenv("option_exit"); exit == "true" {
+			vs.System.Exit(1)
+		}
 		return nil, err
 	}
 	vs.System.Exit(0)
@@ -96,10 +98,10 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	return result, nil
 }
 
-type ExecHandlerFunc func(ctx context.Context, args []string) error
-type CallHandlerFunc func(ctx context.Context, args []string) ([]string, error)
+// type ExecHandlerFunc func(ctx context.Context, args []string) error
+// type CallHandlerFunc func(ctx context.Context, args []string) ([]string, error)
 
-func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, _ map[string]any) sh.ExecHandler {
+func (r *AgentScriptRunner) newExecHandler(vs *VirtualSystem, _ map[string]any) ExecHandler {
 	return func(ctx context.Context, args []string) (bool, error) {
 		if r.agent == nil {
 			return true, fmt.Errorf("script: missing agent")
@@ -139,7 +141,7 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, _ map[string]an
 		}
 
 		// bash core utils
-		if did, err := sh.RunCoreUtils(ctx, vs, args); did {
+		if did, err := RunCoreUtils(ctx, vs, args); did {
 			// TDDO core util output?
 			return did, err
 		}
@@ -154,7 +156,7 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, _ map[string]an
 	}
 }
 
-func (r *AgentScriptRunner) run(ctx context.Context, vs *sh.VirtualSystem, args api.ArgMap) (*api.Result, error) {
+func (r *AgentScriptRunner) run(ctx context.Context, vs *VirtualSystem, args api.ArgMap) (*api.Result, error) {
 	result, err := api.Exec(ctx, r.agent.Runner, args)
 	if result != nil {
 		fmt.Fprintln(vs.IOE.Stdout, result.Value)
@@ -168,7 +170,7 @@ func (r *AgentScriptRunner) run(ctx context.Context, vs *sh.VirtualSystem, args 
 	return result, nil
 }
 
-func doBashCustom(vars *api.Vars, vs *sh.VirtualSystem, args []string) (string, error) {
+func doBashCustom(vars *api.Vars, vs *VirtualSystem, args []string) (string, error) {
 	printenv := func() string {
 		var envs []string
 		for k, v := range vs.System.Environ() {

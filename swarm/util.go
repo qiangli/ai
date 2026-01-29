@@ -102,8 +102,8 @@ func nzl(a ...int) int {
 	return 0
 }
 
-// head trims the string to the maxLen and replaces newlines with /.
-func head(s string, maxLen int) string {
+// Head trims the string to the maxLen and replaces newlines with /.
+func Head(s string, maxLen int) string {
 	s = strings.ReplaceAll(s, "\n", "•")
 	s = strings.Join(strings.Fields(s), " ")
 	s = strings.TrimSpace(s)
@@ -142,7 +142,7 @@ func ActionNameFromFile(file string) string {
 	return ""
 }
 
-func tail(data string, n int) string {
+func Tail(data string, n int) string {
 	lines := strings.Split(data, "\n")
 	if n < len(lines) {
 		// Return the lines after the nth line

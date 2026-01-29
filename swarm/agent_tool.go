@@ -147,7 +147,7 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 				return nil, err
 			}
 			old := args["content"]
-			args["content"] = api.Cat(api.ToString(old), tail(cfg, 1), "\n###\n")
+			args["content"] = api.Cat(api.ToString(old), Tail(cfg, 1), "\n###\n")
 			// continue to load tid
 		case ".json", ".jsonc":
 			// decode json as additional arguments
@@ -155,7 +155,7 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 			if err != nil {
 				return nil, err
 			}
-			obj := tail(cfg, 1)
+			obj := Tail(cfg, 1)
 			obj = strings.TrimSpace(obj)
 			if err := json.Unmarshal([]byte(obj), &args); err != nil {
 				return nil, err
@@ -372,7 +372,7 @@ func (r *AgentToolRunner) callTool(ctx context.Context, tf *api.ToolFunc, args m
 			val, err := saveOutput(result.Value)
 			result.Value = val
 			entry.Error = err
-			log.GetLogger(ctx).Infof("✔ %s:%s (%s %v)\n", tf.Kit, tf.Name, head(val, 180), len(val))
+			log.GetLogger(ctx).Infof("✔ %s:%s (%s %v)\n", tf.Kit, tf.Name, Head(val, 180), len(val))
 		}
 
 		log.GetLogger(ctx).Debugf("details:\n%s\n", result.Value)

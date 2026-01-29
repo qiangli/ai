@@ -2,21 +2,18 @@
 
 echo "Bash builtin system shell tests"
 
-# set -ue
-# oldpwd=$(pwd)
-cd $workspace
-pwd
+set -o pipefail
 
-# # printenv
+# # cd $workspace || echo "cd is not supported"
+# ls /x || echo ">>>>>> /x does not exist"
 
-# cd $oldpwd
-# # name=value
-# # export name
-# # export VAR=VAL
-# ##
-# # array="[HOME=~,PATH=/usr/bin]"
-# # /sh:set_envs --option envs="${array}"
-/sh:get_envs
+# pwd
+# For legacy bash scripts relying on `cd`, use the 'sh:exec' tool, e.g.,
+/sh:exec --command "/bin/bash $PWD/test/bash-legacy.sh"
+
+
+WS=$(/sh:workspace)
+echo "*** workspace: $WS ***"
 /fs:list_roots
 printenv
 
