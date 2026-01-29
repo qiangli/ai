@@ -13,7 +13,7 @@ import (
 func (r *SystemKit) ListRoots(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	var result strings.Builder
 	result.WriteString("Allowed Root Directories:\n\n")
-	roots, err := vars.Roots.ResolveRoots()
+	roots, err := vars.Roots.ResolvedRoots()
 	if err != nil {
 		return "", fmt.Errorf("failed to resolve root directories: %v", roots)
 	}

@@ -17,7 +17,6 @@ import (
 )
 
 type AgentScriptRunner struct {
-	// sw    *Swarm
 	vars  *api.Vars
 	agent *api.Agent
 }
@@ -148,8 +147,7 @@ func (r *AgentScriptRunner) newExecHandler(vs *sh.VirtualSystem, _ map[string]an
 		// TODO restricted
 		// block other commands
 		out, err := atm.ExecCommand(ctx, r.vars.OS, r.vars, args[0], args[1:])
-		// if dir, err := r.vars.OS.Getwd(); err != nil {
-		// }
+
 		// out already has stdout/stder combined
 		fmt.Fprintf(vs.IOE.Stdout, "%v", out)
 		return true, err

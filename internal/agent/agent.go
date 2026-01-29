@@ -164,6 +164,9 @@ func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm,
 		return nil, err
 	}
 	var roots = dc.Roots
+	if err := roots.Resolve(); err != nil {
+		return nil, err
+	}
 	dirs, err := roots.AllowedDirs()
 	if err != nil {
 		return nil, err

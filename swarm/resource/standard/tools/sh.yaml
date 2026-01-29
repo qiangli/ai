@@ -61,9 +61,10 @@ tools:
 
   - name: "cd"
     description: |
-      *Unsupported Command*: Changing the current working directory isn't supported on the user's system. 
-      You must use absolute path for accessing directories and files. 
-      Run 'fs:list_roots' tool to identify allowed top-level directories.
+      *Unsupported Command*: Changing the current working directory is not supported.
+      Use absolute paths for accessing directories and files.
+      Run the 'fs:list_roots' tool to identify allowed top-level directories.
+      For legacy bash scripts relying on `cd`, use the 'sh:exec' tool, e.g., sh:exec --command "/bin/bash </script/file>"
     parameters: {}
 
   - name: "pwd"
@@ -104,6 +105,8 @@ tools:
         Refer to the [Bash manual](https://www.gnu.org/software/bash/manual/bash.txt) for guidance.
         *** Note ***
         Only a subset of Bash features is supported. Please restrict your scripts to the provided examples.
+        Changing the current working directory is not supported in the script.
+        For legacy bash scripts relying on `cd`, use the 'sh:exec' tool, e.g., sh:exec --command "/bin/bash </script/file>"
 
         ```bash
         #

@@ -26,7 +26,7 @@ func (r *DHNTConfig) GetRoots() ([]*Root, error) {
 	if r.Roots == nil {
 		return nil, nil
 	}
-	return r.Roots.ResolveRoots()
+	return r.Roots.ResolvedRoots()
 }
 
 // https://modelcontextprotocol.io/specification/2025-06-18/client/roots
@@ -56,17 +56,40 @@ type Roots struct {
 
 	// Additional paths
 	Dirs []*Root `json:"dirs"`
+
+	//
+	allowedDirs   []string
+	resolvedRoots []*Root
+	resolved      bool
 }
 
-// // Returns temp directory if not set
-// func (r *Roots) Workspace() string {
-// 	if r.root == nil || r.root.Path == "" {
-// 		return os.TempDir()
-// 	}
-// 	return r.root.Path
-// }
+func (r *Roots) ResolvedRoots() ([]*Root, error) {
+	if r.resolved {
+		return r.resolvedRoots, nil
+	}
+	if err := r.Resolve(); err != nil {
+		return nil, err
+	}
+	return r.resolvedRoots, nil
+}
 
-func (r *Roots) ResolveRoots() ([]*Root, error) {
+func (r *Roots) Resolve() error {
+	roots, err := r.resolveRoots()
+	if err != nil {
+		return err
+	}
+	allowed, err := r.resolveDirs(roots)
+	if err != nil {
+		return err
+	}
+
+	r.resolved = true
+	r.resolvedRoots = roots
+	r.allowedDirs = allowed
+	return nil
+}
+
+func (r *Roots) resolveRoots() ([]*Root, error) {
 	var ps []*Root
 	for _, v := range r.Dirs {
 		ps = append(ps, v)
@@ -97,16 +120,31 @@ func (r *Roots) ResolveRoots() ([]*Root, error) {
 			r.Temp.Path = p
 		}
 	}
+
+	// resolve relative path
+	for i, v := range ps {
+		resolved, err := resolvePaths([]string{v.Path})
+		if err != nil {
+			return nil, err
+		}
+		ps[i].Path = resolved[0]
+	}
 	return ps, nil
+}
+
+func (r *Roots) AllowedDirs() ([]string, error) {
+	if r.resolved {
+		return r.allowedDirs, nil
+	}
+	if err := r.Resolve(); err != nil {
+		return nil, err
+	}
+	return r.allowedDirs, nil
 }
 
 // convenience helper for collecting all accessible paths
 // including symlink of the original path
-func (r *Roots) AllowedDirs() ([]string, error) {
-	roots, err := r.ResolveRoots()
-	if err != nil {
-		return nil, err
-	}
+func (r *Roots) resolveDirs(roots []*Root) ([]string, error) {
 	var ps []string
 	for _, v := range roots {
 		ps = append(ps, v.Path)

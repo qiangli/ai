@@ -30,6 +30,16 @@
             "temp": ""
         },
         "dirs": [
+            {
+                "name": "Incubator Resources",
+                "description": "Resource directory for incubating agents, tools, and models",
+                "path": "./swarm/resource/incubator"
+            },
+            {
+                "name": "Standard Resources",
+                "description": "Resource directory for standard agents, tools, and models",
+                "path": "./swarm/resource/standard"
+            }
         ]
     }
 }
