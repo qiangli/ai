@@ -14,7 +14,7 @@ import (
 	"slices"
 	"strings"
 	// "github.com/modelcontextprotocol/go-sdk/mcp"
-	// "github.com/qiangli/shell/tool/sh/vfs"
+	// "github.com/qiangli/shell/vfs"
 )
 
 // store provides persistence interface for knowledge base data.

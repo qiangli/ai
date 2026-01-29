@@ -1,0 +1,3 @@
+[submodule "lib/shell"]
+	path = lib/shell
+	url = https://github.com/qiangli/shell.git

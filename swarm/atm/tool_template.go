@@ -16,7 +16,7 @@ import (
 	// "github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
 	// "github.com/qiangli/ai/swarm/log"
-	"github.com/qiangli/shell/tool/sh"
+	"github.com/qiangli/shell/sh"
 )
 
 // https://pkg.go.dev/text/template

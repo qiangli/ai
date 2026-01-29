@@ -9,7 +9,7 @@ import (
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/log"
-	"github.com/qiangli/shell/tool/sh/vos"
+	"github.com/qiangli/shell/vos"
 )
 
 // RunCommand executes a shell command with args and returns the output

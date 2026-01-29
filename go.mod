@@ -45,7 +45,6 @@ require (
 	github.com/muesli/termenv v0.16.0
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/openai/openai-go/v3 v3.16.0
-	github.com/qiangli/shell v0.1.7
 	github.com/sahilm/fuzzy v0.1.1
 	github.com/shirou/gopsutil/v4 v4.25.12
 	github.com/spf13/cast v1.10.0
@@ -241,3 +240,5 @@ replace github.com/zyedidia/micro/v2 => github.com/qiangli/micro/v2 v2.0.5
 replace github.com/micro-editor/tcell/v2 => github.com/micro-editor/tcell/v2 v2.0.11
 
 replace github.com/zyedidia/poller => github.com/zyedidia/poller v1.0.1
+
+replace github.com/qiangli/shell => ./lib/shell

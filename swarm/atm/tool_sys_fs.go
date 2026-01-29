@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/shell/tool/sh/vfs"
+	"github.com/qiangli/shell/vfs"
 )
 
 func (r *SystemKit) ListRoots(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
