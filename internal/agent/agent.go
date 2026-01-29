@@ -18,8 +18,8 @@ import (
 	"github.com/qiangli/ai/swarm/util/calllog"
 	"github.com/qiangli/ai/swarm/util/conf"
 	hist "github.com/qiangli/ai/swarm/util/history"
-	"github.com/qiangli/shell/tool/sh/vfs"
-	"github.com/qiangli/shell/tool/sh/vos"
+	"github.com/qiangli/shell/vfs"
+	"github.com/qiangli/shell/vos"
 )
 
 var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL", "GOPATH"}
