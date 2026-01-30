@@ -68,7 +68,11 @@ var BuiltinCommands = []string{
 }
 
 func IsCoreUtils(s string) bool {
-	return !slices.Contains(CoreUtilsCommands, s)
+	return slices.Contains(CoreUtilsCommands, s)
+}
+
+func IsBuiltin(s string) bool {
+	return slices.Contains(BuiltinCommands, s)
 }
 
 // func RunBackoff(ctx context.Context, vs *VirtualSystem, args []string) (bool, error) {
@@ -101,15 +105,15 @@ func (r *virtualFS) Open(s string) (fs.File, error) {
 	return r.vs.vars.Workspace.OpenFile(s, os.O_RDWR, 0o755)
 }
 
-func RunCoreUtil(ctx context.Context, vs *VirtualSystem, args []string) (bool, error) {
+func RunCoreUtil(ctx context.Context, vs *VirtualSystem, args []string) error {
 	hc := interp.HandlerCtx(ctx)
 
-	runCmd := func(cmd core.Command) (bool, error) {
+	runCmd := func(cmd core.Command) error {
 		cmd.SetIO(hc.Stdin, hc.Stdout, hc.Stderr)
 		workdir, _ := vs.vars.OS.Getwd()
 		cmd.SetWorkingDir(workdir)
 		err := cmd.RunContext(ctx, args[1:]...)
-		return true, err
+		return err
 	}
 
 	// open := func(s string) (*os.File, error) {
@@ -171,6 +175,6 @@ func RunCoreUtil(ctx context.Context, vs *VirtualSystem, args []string) (bool, e
 	case "xargs":
 		return runCmd(xargs.New())
 	default:
-		return false, nil
+		return nil
 	}
 }

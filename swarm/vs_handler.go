@@ -19,7 +19,6 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 
 	"github.com/qiangli/shell/vfs"
-	// "github.com/qiangli/ai/swarm/api"
 )
 
 // func NewDummyExecHandler(vs *VirtualSystem) ExecHandler {
@@ -63,11 +62,7 @@ import (
 
 func VirtualOpenHandler(vs *VirtualSystem) interp.OpenHandlerFunc {
 	return func(ctx context.Context, path string, flag int, perm fs.FileMode) (io.ReadWriteCloser, error) {
-		mc := interp.HandlerCtx(ctx)
-		//
-		// fmt.Fprintf(vs.IOE.Stdout, "Opening path: %s\n", path)
-		// fmt.Fprintf(vs.IOE.Stdout, "Flags: %s\n", DecodeFileFlag(flag))
-		// fmt.Fprintf(vs.IOE.Stdout, "Permissions: %s\n", DecodeFilePerm(perm))
+		hc := interp.HandlerCtx(ctx)
 
 		//
 		if runtime.GOOS == "windows" && path == "/dev/null" {
@@ -77,7 +72,7 @@ func VirtualOpenHandler(vs *VirtualSystem) interp.OpenHandlerFunc {
 			// TODO: hopefully remove this in the future once the bug is fixed.
 			flag &^= os.O_TRUNC
 		} else if path != "" && !filepath.IsAbs(path) {
-			path = filepath.Join(mc.Dir, path)
+			path = filepath.Join(hc.Dir, path)
 		}
 		return vs.vars.Workspace.OpenFile(path, flag, perm)
 	}
@@ -130,43 +125,6 @@ func execEnv(env expand.Environ) []string {
 func VirtualExecHandler(vs *VirtualSystem) func(next interp.ExecHandlerFunc) interp.ExecHandlerFunc {
 	handle := func(ctx context.Context, args []string) error {
 		hc := interp.HandlerCtx(ctx)
-
-		// path, err := interp.LookPathDir(hc.Dir, hc.Env, args[0])
-		// if err != nil {
-		// 	fmt.Fprintln(hc.Stderr, err)
-		// 	return interp.ExitStatus(127)
-		// }
-
-		// // cmd := vs.System.Command(args[0], args[1:]...)
-		// cmd := vs.System.Command(path)
-		// cmd.Path = path
-		// cmd.Args = args
-		// cmd.Env = execEnv(hc.Env)
-		// cmd.Dir = hc.Dir
-		// cmd.Stdin = hc.Stdin
-		// cmd.Stdout = hc.Stdout
-		// cmd.Stderr = hc.Stderr
-
-		// prepareCommand(cmd)
-		// err = cmd.Start()
-		// if err == nil {
-		// 	stopf := context.AfterFunc(ctx, func() {
-		// 		if killTimeout <= 0 || runtime.GOOS == "windows" {
-		// 			_ = killCommand(cmd)
-		// 			return
-		// 		}
-		// 		_ = interruptCommand(cmd)
-		// 		// TODO: don't sleep in this goroutine if the program
-		// 		// stops itself with the interrupt above.
-		// 		time.Sleep(killTimeout)
-		// 		_ = killCommand(cmd)
-		// 	})
-		// 	defer stopf()
-
-		// err = cmd.Wait()
-		// }
-
-		// err := runCommandWithTimeout(ctx, vs, args, killTimeout)
 
 		err := HandleAction(ctx, vs, args)
 
@@ -250,6 +208,11 @@ func IsShell(s string) bool {
 	if slices.Contains([]string{"bash", "sh"}, path.Base(path.Ext(s))) {
 		return true
 	}
+	return false
+}
+
+// deny list
+func IsRestricted(s string) bool {
 	return false
 }
 

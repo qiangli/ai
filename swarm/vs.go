@@ -4,17 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
-	// "path/filepath"
 	"strings"
 
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
-	"github.com/qiangli/shell/sh"
-	// "github.com/qiangli/shell/vfs"
-	// "github.com/qiangli/shell/vos"
 	"github.com/qiangli/ai/swarm/api"
+	"github.com/qiangli/shell/sh"
 )
 
 type IOE = sh.IOE
@@ -23,10 +20,6 @@ type ExecHandler func(context.Context, []string) (bool, error)
 type VirtualSystem struct {
 	ioe *IOE
 
-	// fs vfs.Workspace
-	// os    vos.System
-
-	// ExecHandler ExecHandler
 	vars  *api.Vars
 	agent *api.Agent
 
@@ -99,27 +92,6 @@ func NewVirtualSystem(vars *api.Vars, agent *api.Agent, ioe *IOE) *VirtualSystem
 		ioe:   ioe,
 	}
 }
-
-// func NewLocalSystem(agent *api.Agent, roots []string, ioe *IOE) (*VirtualSystem, error) {
-// 	for i, v := range roots {
-// 		abs, err := filepath.Abs(v)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		roots[i] = abs
-// 	}
-
-// 	fs, err := vfs.NewLocalFS(roots)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	ls, err := vos.NewLocalSystem(fs)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return NewVirtualSystem(fs, ls, agent, ioe), nil
-// }
 
 func (vs *VirtualSystem) NewRunner(opts ...interp.RunnerOption) (*interp.Runner, error) {
 	r, err := interp.New(opts...)
