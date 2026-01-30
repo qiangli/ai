@@ -128,7 +128,6 @@ func execEnv(env expand.Environ) []string {
 }
 
 func VirtualExecHandler(vs *VirtualSystem) func(next interp.ExecHandlerFunc) interp.ExecHandlerFunc {
-
 	handle := func(ctx context.Context, args []string) error {
 		hc := interp.HandlerCtx(ctx)
 
@@ -194,10 +193,7 @@ func VirtualExecHandler(vs *VirtualSystem) func(next interp.ExecHandlerFunc) int
 
 	return func(next interp.ExecHandlerFunc) interp.ExecHandlerFunc {
 		return func(ctx context.Context, args []string) error {
-			if err := handle(ctx, args); err != nil {
-				return err
-			}
-			return next(ctx, args)
+			return handle(ctx, args)
 		}
 	}
 }

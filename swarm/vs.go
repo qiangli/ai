@@ -149,22 +149,7 @@ func (vs *VirtualSystem) NewRunner(opts ...interp.RunnerOption) (*interp.Runner,
 	}
 	interp.StdIO(vs.ioe.Stdin, vs.ioe.Stdout, vs.ioe.Stderr)(r)
 
-	// // exec handlers
-	// wrap := func(next interp.ExecHandlerFunc) interp.ExecHandlerFunc {
-	// 	return func(ctx context.Context, args []string) error {
-	// 		if vs.ExecHandler != nil {
-	// 			done, err := vs.ExecHandler(ctx, args)
-	// 			if done {
-	// 				return err
-	// 			}
-	// 		}
-	// 		return next(ctx, args)
-	// 	}
-	// }
 	var middlewares = []func(interp.ExecHandlerFunc) interp.ExecHandlerFunc{
-		// custom handler
-		// wrap,
-		// default bash handler
 		VirtualExecHandler(vs),
 	}
 	if err := interp.ExecHandlers(middlewares...)(r); err != nil {

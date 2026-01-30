@@ -174,7 +174,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 func HandleAction(ctx context.Context, vs *VirtualSystem, args []string) error {
 	hc := interp.HandlerCtx(ctx)
 
-	run := func(ctx context.Context, args api.ArgMap) (*api.Result, error) {
+	runAction := func(ctx context.Context, args api.ArgMap) (*api.Result, error) {
 		result, err := api.Exec(ctx, vs.agent.Runner, args)
 		if result != nil {
 			fmt.Fprintln(hc.Stdout, result.Value)
@@ -204,7 +204,7 @@ func HandleAction(ctx context.Context, vs *VirtualSystem, args []string) error {
 
 			in := atm.BuildEffectiveArgs(vs.vars, vs.agent, at)
 
-			_, err = run(ctx, in)
+			_, err = runAction(ctx, in)
 			if err != nil {
 				return err
 			}
@@ -217,7 +217,7 @@ func HandleAction(ctx context.Context, vs *VirtualSystem, args []string) error {
 	// internal list
 	allowed := []string{"env", "printenv"}
 	if slices.Contains(allowed, args[0]) {
-		out, err := doBashCustom(vs, args)
+		out, err := runBashCustom(vs, args)
 		fmt.Fprintf(hc.Stdout, "%v", out)
 		if err != nil {
 			fmt.Fprintln(hc.Stderr, err.Error())
@@ -241,7 +241,7 @@ func HandleAction(ctx context.Context, vs *VirtualSystem, args []string) error {
 	return err
 }
 
-func doBashCustom(vs *VirtualSystem, args []string) (string, error) {
+func runBashCustom(vs *VirtualSystem, args []string) (string, error) {
 	printenv := func() string {
 		var envs []string
 		for k, v := range vs.vars.OS.Environ() {
