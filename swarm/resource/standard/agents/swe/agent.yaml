@@ -42,7 +42,7 @@ agents:
       around:
         - "sh:timeout"
     embed:
-      - "agent:context/lastn"
+      # - "agent:context/lastn"
       - "agent:memory/memory"
     instruction: |
       #! mime-type=text/x-go-template

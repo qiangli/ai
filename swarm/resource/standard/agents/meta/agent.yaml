@@ -32,26 +32,3 @@ agents:
         and consult long-term memory via the embedded memory agent; expand/lookup logs if the query indicates missing details.
 
       For reference, today's date is: {{date}}.
-
-  # - name: "🤖 save_result"
-  #   display: "Save response in the environment"
-  #   description: |
-  #     Use the `sh:set_envs` tool to store the response with a key.
-  #   parameters:
-  #     type: "object"
-  #     properties:
-  #       result_key:
-  #         type: "string"
-  #         description: "Absolute path to the workspace root."
-  #         default: "result"
-  #     required:
-  #       - "result_key"
-  #   instruction: |
-  #     #! --mime-type=text/x-go-template
-  #     *** Important ***
-  #     You must save the response using the `sh:set_envs` tool with `{{default "result" .result_key}}` as the key.
-  #     Ensure the values are correctly stored by using the `sh:get_envs` tool to verify.
-  #     ###
-  #   functions:
-  #     - "sh:set_envs"
-  #     - "sh:get_envs"
