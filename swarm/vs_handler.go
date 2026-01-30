@@ -12,14 +12,14 @@ import (
 	"runtime"
 	"slices"
 	"strings"
-
-	// "time"
+	"time"
 
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
 	"github.com/qiangli/shell/vfs"
+	// "github.com/qiangli/ai/swarm/api"
 )
 
 // func NewDummyExecHandler(vs *VirtualSystem) ExecHandler {
@@ -79,19 +79,19 @@ func VirtualOpenHandler(vs *VirtualSystem) interp.OpenHandlerFunc {
 		} else if path != "" && !filepath.IsAbs(path) {
 			path = filepath.Join(mc.Dir, path)
 		}
-		return vs.Workspace.OpenFile(path, flag, perm)
+		return vs.vars.Workspace.OpenFile(path, flag, perm)
 	}
 }
 
 func VirtualReadDirHandler2(vs *VirtualSystem) interp.ReadDirHandlerFunc2 {
 	return func(ctx context.Context, path string) ([]fs.DirEntry, error) {
-		return vs.Workspace.ReadDir(path)
+		return vs.vars.Workspace.ReadDir(path)
 	}
 }
 
 func VirtualStatHandler(vs *VirtualSystem) interp.StatHandlerFunc {
 	return func(ctx context.Context, path string, followSymlinks bool) (fs.FileInfo, error) {
-		if v, ok := vs.Workspace.(vfs.FileStat); ok {
+		if v, ok := vs.vars.Workspace.(vfs.FileStat); ok {
 			if !followSymlinks {
 				return v.Lstat(path)
 			} else {
@@ -101,7 +101,7 @@ func VirtualStatHandler(vs *VirtualSystem) interp.StatHandlerFunc {
 		if followSymlinks {
 			return nil, fmt.Errorf("not supported")
 		}
-		return vs.Workspace.GetFileInfo(path)
+		return vs.vars.Workspace.GetFileInfo(path)
 	}
 }
 
@@ -128,30 +128,27 @@ func execEnv(env expand.Environ) []string {
 }
 
 func VirtualExecHandler(vs *VirtualSystem) func(next interp.ExecHandlerFunc) interp.ExecHandlerFunc {
-	// var killTimeout = 15 * time.Minute
-	// if vs.MaxTimeout > 0 {
-	// 	killTimeout = time.Duration(vs.MaxTimeout)
-	// }
+
 	handle := func(ctx context.Context, args []string) error {
 		hc := interp.HandlerCtx(ctx)
-		path, err := interp.LookPathDir(hc.Dir, hc.Env, args[0])
-		if err != nil {
-			fmt.Fprintln(hc.Stderr, err)
-			return interp.ExitStatus(127)
-		}
 
-		// cmd := vs.System.Command(args[0], args[1:]...)
-		cmd := vs.System.Command(path)
-		cmd.Path = path
-		cmd.Args = args
-		cmd.Env = execEnv(hc.Env)
-		cmd.Dir = hc.Dir
-		cmd.Stdin = hc.Stdin
-		cmd.Stdout = hc.Stdout
-		cmd.Stderr = hc.Stderr
+		// path, err := interp.LookPathDir(hc.Dir, hc.Env, args[0])
+		// if err != nil {
+		// 	fmt.Fprintln(hc.Stderr, err)
+		// 	return interp.ExitStatus(127)
+		// }
+
+		// // cmd := vs.System.Command(args[0], args[1:]...)
+		// cmd := vs.System.Command(path)
+		// cmd.Path = path
+		// cmd.Args = args
+		// cmd.Env = execEnv(hc.Env)
+		// cmd.Dir = hc.Dir
+		// cmd.Stdin = hc.Stdin
+		// cmd.Stdout = hc.Stdout
+		// cmd.Stderr = hc.Stderr
 
 		// prepareCommand(cmd)
-
 		// err = cmd.Start()
 		// if err == nil {
 		// 	stopf := context.AfterFunc(ctx, func() {
@@ -167,8 +164,12 @@ func VirtualExecHandler(vs *VirtualSystem) func(next interp.ExecHandlerFunc) int
 		// 	})
 		// 	defer stopf()
 
-		// 	err = cmd.Wait()
+		// err = cmd.Wait()
 		// }
+
+		// err := runCommandWithTimeout(ctx, vs, args, killTimeout)
+
+		err := HandleAction(ctx, vs, args)
 
 		switch err := err.(type) {
 		case *exec.ExitError:
@@ -226,7 +227,7 @@ func VirtualCallHandlerFunc(vs *VirtualSystem) interp.CallHandlerFunc {
 					for _, v := range arg[1:] {
 						switch string(v) {
 						case "e":
-							vs.System.Setenv("option_exit", "true")
+							vs.vars.OS.Setenv("option_exit", "true")
 						case "o":
 							opt = true
 						}
@@ -235,7 +236,7 @@ func VirtualCallHandlerFunc(vs *VirtualSystem) interp.CallHandlerFunc {
 				if (opt || arg == "-o") && i+1 < len(args[1:]) {
 					// Handle -o pipefail or other options
 					if args[i+2] == "pipefail" {
-						vs.System.Setenv("option_pipefail", "true")
+						vs.vars.OS.Setenv("option_pipefail", "true")
 					}
 				}
 			}
@@ -263,4 +264,66 @@ func run(ctx context.Context, r *interp.Runner, reader io.Reader, name string) e
 	}
 	r.Reset()
 	return r.Run(ctx, prog)
+}
+
+// runCommandWithTimeout executes a command with a context-based timeout and handles termination.
+func runCommandWithTimeout(ctx context.Context, vs *VirtualSystem, args []string) error {
+	hc := interp.HandlerCtx(ctx)
+
+	var maxTime = 15 * time.Minute
+	if vs.MaxTimeout > 0 {
+		maxTime = time.Duration(vs.MaxTimeout)
+	}
+
+	path, err := interp.LookPathDir(hc.Dir, hc.Env, args[0])
+	if err != nil {
+		fmt.Fprintln(hc.Stderr, err)
+		return interp.ExitStatus(127)
+	}
+
+	// cmd := vs.System.Command(args[0], args[1:]...)
+	cmd := vs.vars.OS.Command(path)
+	cmd.Path = path
+	cmd.Args = args
+	cmd.Env = execEnv(hc.Env)
+	cmd.Dir = hc.Dir
+	cmd.Stdin = hc.Stdin
+	cmd.Stdout = hc.Stdout
+	cmd.Stderr = hc.Stderr
+
+	err = cmd.Start()
+	if err != nil {
+		return err
+	}
+
+	// Create a context with timeout if maxTime is specified
+	var cancel context.CancelFunc
+	if maxTime > 0 {
+		ctx, cancel = context.WithTimeout(ctx, maxTime)
+		defer cancel()
+	}
+
+	// Handle command termination on context cancellation
+	stopf := context.AfterFunc(ctx, func() {
+		if runtime.GOOS == "windows" {
+			// On Windows, directly kill the process as signals like SIGINT are not supported
+			_ = cmd.Process.Kill()
+			return
+		}
+		// Send interrupt signal for graceful shutdown
+		_ = cmd.Process.Signal(os.Interrupt)
+		// Give a very short grace period for the process to terminate gracefully
+		graceTimer := time.NewTimer(100 * time.Millisecond)
+		defer graceTimer.Stop()
+		select {
+		case <-graceTimer.C:
+			// If the process doesn't stop within the grace period, forcefully kill it
+			_ = cmd.Process.Kill()
+		case <-ctx.Done():
+			// If context is cancelled again or already done, do nothing extra
+		}
+	})
+	defer stopf()
+
+	return cmd.Wait()
 }

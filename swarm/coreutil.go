@@ -5,6 +5,8 @@ import (
 	"io/fs"
 	"os"
 
+	"mvdan.cc/sh/v3/interp"
+
 	// "github.com/qiangli/shell/tool/core/backoff"
 	"github.com/qiangli/shell/tool/core/basename"
 	"github.com/qiangli/shell/tool/core/cat"
@@ -96,13 +98,15 @@ type virtualFS struct {
 }
 
 func (r *virtualFS) Open(s string) (fs.File, error) {
-	return r.vs.Workspace.OpenFile(s, os.O_RDWR, 0o755)
+	return r.vs.vars.Workspace.OpenFile(s, os.O_RDWR, 0o755)
 }
 
-func RunCoreUtils(ctx context.Context, vs *VirtualSystem, args []string) (bool, error) {
+func RunCoreUtil(ctx context.Context, vs *VirtualSystem, args []string) (bool, error) {
+	hc := interp.HandlerCtx(ctx)
+
 	runCmd := func(cmd core.Command) (bool, error) {
-		cmd.SetIO(vs.IOE.Stdin, vs.IOE.Stdout, vs.IOE.Stderr)
-		workdir, _ := vs.System.Getwd()
+		cmd.SetIO(hc.Stdin, hc.Stdout, hc.Stderr)
+		workdir, _ := vs.vars.OS.Getwd()
 		cmd.SetWorkingDir(workdir)
 		err := cmd.RunContext(ctx, args[1:]...)
 		return true, err

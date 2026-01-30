@@ -5,9 +5,10 @@ import (
 	"context"
 	"fmt"
 	"os"
-
 	"slices"
 	"strings"
+
+	"mvdan.cc/sh/v3/interp"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
@@ -56,7 +57,7 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	// bash script
 	var b bytes.Buffer
 	ioe := &IOE{Stdin: strings.NewReader(""), Stdout: &b, Stderr: &b}
-	vs := NewVirtualSystem(r.vars.Workspace, r.vars.OS, ioe)
+	vs := NewVirtualSystem(r.vars, r.agent, ioe)
 
 	// pass current env
 	// required to run commands: /sh:go
@@ -64,21 +65,21 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 		if env != "" {
 			nv := strings.SplitN(env, "=", 2)
 			if len(nv) == 2 {
-				vs.System.Setenv(nv[0], nv[1])
+				vs.vars.OS.Setenv(nv[0], nv[1])
 			}
 		}
 	}
 	// set global env for bash script
 	// TODO batch set
 	for k, v := range r.vars.Global.GetAllEnvs() {
-		vs.System.Setenv(k, v)
+		vs.vars.OS.Setenv(k, v)
 	}
 	// make args available as env
 	for k, v := range args {
-		vs.System.Setenv(k, v)
+		vs.vars.OS.Setenv(k, v)
 	}
 
-	vs.ExecHandler = r.newExecHandler(vs, args)
+	// vs.ExecHandler = newExecHandler(r.vars, r.agent, vs, args)
 
 	// run bash interpreter
 	// and make the error/reslt available in args
@@ -86,12 +87,12 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 
 	// FIXME: translate error into exit status and respect set -e
 	if err != nil {
-		if exit := vs.System.Getenv("option_exit"); exit == "true" {
-			vs.System.Exit(1)
+		if exit := vs.vars.OS.Getenv("option_exit"); exit == "true" {
+			vs.vars.OS.Exit(1)
 		}
 		return nil, err
 	}
-	vs.System.Exit(0)
+	vs.vars.OS.Exit(0)
 	result := &api.Result{
 		Value: b.String(),
 	}
@@ -101,91 +102,161 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 // type ExecHandlerFunc func(ctx context.Context, args []string) error
 // type CallHandlerFunc func(ctx context.Context, args []string) ([]string, error)
 
-func (r *AgentScriptRunner) newExecHandler(vs *VirtualSystem, _ map[string]any) ExecHandler {
-	return func(ctx context.Context, args []string) (bool, error) {
-		if r.agent == nil {
-			return true, fmt.Errorf("script: missing agent")
+// func newExecHandler(vars *api.Vars, agent *api.Agent, vs *VirtualSystem, _ map[string]any) ExecHandler {
+// 	run := func(ctx context.Context, vs *VirtualSystem, args api.ArgMap) (*api.Result, error) {
+// 		result, err := api.Exec(ctx, agent.Runner, args)
+// 		if result != nil {
+// 			fmt.Fprintln(vs.IOE.Stdout, result.Value)
+// 		}
+// 		if err != nil {
+// 			fmt.Fprintln(vs.IOE.Stderr, err.Error())
+// 			// check set -e
+// 			vs.System.Exit(1)
+// 			return nil, err
+// 		}
+// 		return result, nil
+// 	}
+
+// 	return func(ctx context.Context, args []string) (bool, error) {
+// 		if agent == nil {
+// 			return true, fmt.Errorf("script: missing agent")
+// 		}
+// 		log.GetLogger(ctx).Debugf("script agent: %s args: %+v\n", agent.Name, args)
+
+// 		cmd := strings.ToLower(args[0])
+// 		if conf.IsAction(cmd) {
+// 			kit, name := api.Kitname(cmd).Decode()
+// 			if kit != "" && name != "" {
+// 				at, err := conf.ParseActionArgs(args)
+// 				if err != nil {
+// 					return true, err
+// 				}
+
+// 				in := atm.BuildEffectiveArgs(vars, agent, at)
+
+// 				_, err = run(ctx, vs, in)
+// 				if err != nil {
+// 					return true, err
+// 				}
+
+// 				return true, nil
+// 			}
+// 			// system command - continue
+// 		}
+
+// 		// internal list
+// 		allowed := []string{"env", "printenv"}
+// 		if slices.Contains(allowed, args[0]) {
+// 			out, err := doBashCustom(vars, vs, args)
+// 			fmt.Fprintf(vs.IOE.Stdout, "%v", out)
+// 			if err != nil {
+// 				fmt.Fprintln(vs.IOE.Stderr, err.Error())
+// 			}
+// 			return true, err
+// 		}
+
+// 		// bash core utils
+// 		if did, err := RunCoreUtil(ctx, vs, args); did {
+// 			// TDDO core util output?
+// 			return did, err
+// 		}
+
+// 		// TODO restricted
+// 		// block other commands
+// 		out, err := atm.ExecCommand(ctx, vars.OS, vars, args[0], args[1:])
+
+// 		// out already has stdout/stder combined
+// 		fmt.Fprintf(vs.IOE.Stdout, "%v", out)
+// 		return true, err
+// 	}
+// }
+
+func HandleAction(ctx context.Context, vs *VirtualSystem, args []string) error {
+	hc := interp.HandlerCtx(ctx)
+
+	run := func(ctx context.Context, args api.ArgMap) (*api.Result, error) {
+		result, err := api.Exec(ctx, vs.agent.Runner, args)
+		if result != nil {
+			fmt.Fprintln(hc.Stdout, result.Value)
 		}
-		log.GetLogger(ctx).Debugf("script agent: %s args: %+v\n", r.agent.Name, args)
-
-		cmd := strings.ToLower(args[0])
-		if conf.IsAction(cmd) {
-			kit, name := api.Kitname(cmd).Decode()
-			if kit != "" && name != "" {
-				at, err := conf.ParseActionArgs(args)
-				if err != nil {
-					return true, err
-				}
-
-				in := atm.BuildEffectiveArgs(r.vars, r.agent, at)
-
-				_, err = r.run(ctx, vs, in)
-				if err != nil {
-					return true, err
-				}
-
-				return true, nil
-			}
-			// system command - continue
+		if err != nil {
+			fmt.Fprintln(hc.Stderr, err.Error())
+			// check set -e
+			// vs.System.Exit(1)
+			return nil, err
 		}
+		return result, nil
+	}
 
-		// internal list
-		allowed := []string{"env", "printenv"}
-		if slices.Contains(allowed, args[0]) {
-			out, err := doBashCustom(r.vars, vs, args)
-			fmt.Fprintf(vs.IOE.Stdout, "%v", out)
+	if vs.agent == nil {
+		return fmt.Errorf("script: missing agent")
+	}
+	log.GetLogger(ctx).Debugf("script agent: %s args: %+v\n", vs.agent.Name, args)
+
+	cmd := strings.ToLower(args[0])
+	if conf.IsAction(cmd) {
+		kit, name := api.Kitname(cmd).Decode()
+		if kit != "" && name != "" {
+			at, err := conf.ParseActionArgs(args)
 			if err != nil {
-				fmt.Fprintln(vs.IOE.Stderr, err.Error())
+				return err
 			}
-			return true, err
+
+			in := atm.BuildEffectiveArgs(vs.vars, vs.agent, at)
+
+			_, err = run(ctx, in)
+			if err != nil {
+				return err
+			}
+
+			return nil
 		}
-
-		// bash core utils
-		if did, err := RunCoreUtils(ctx, vs, args); did {
-			// TDDO core util output?
-			return did, err
-		}
-
-		// TODO restricted
-		// block other commands
-		out, err := atm.ExecCommand(ctx, r.vars.OS, r.vars, args[0], args[1:])
-
-		// out already has stdout/stder combined
-		fmt.Fprintf(vs.IOE.Stdout, "%v", out)
-		return true, err
+		// system command - continue
 	}
+
+	// internal list
+	allowed := []string{"env", "printenv"}
+	if slices.Contains(allowed, args[0]) {
+		out, err := doBashCustom(vs, args)
+		fmt.Fprintf(hc.Stdout, "%v", out)
+		if err != nil {
+			fmt.Fprintln(hc.Stderr, err.Error())
+		}
+		return err
+	}
+
+	// bash core utils
+	if did, err := RunCoreUtil(ctx, vs, args); did {
+		// TDDO core util output?
+		return err
+	}
+
+	// TODO restricted
+	// block other commands
+	// out, err := atm.ExecCommand(ctx, vars.OS, vars, args[0], args[1:])
+	err := runCommandWithTimeout(ctx, vs, args)
+
+	// out already has stdout/stder combined
+	// fmt.Fprintf(vs.IOE.Stdout, "%v", out)
+	return err
 }
 
-func (r *AgentScriptRunner) run(ctx context.Context, vs *VirtualSystem, args api.ArgMap) (*api.Result, error) {
-	result, err := api.Exec(ctx, r.agent.Runner, args)
-	if result != nil {
-		fmt.Fprintln(vs.IOE.Stdout, result.Value)
-	}
-	if err != nil {
-		fmt.Fprintln(vs.IOE.Stderr, err.Error())
-		// check set -e
-		vs.System.Exit(1)
-		return nil, err
-	}
-	return result, nil
-}
-
-func doBashCustom(vars *api.Vars, vs *VirtualSystem, args []string) (string, error) {
+func doBashCustom(vs *VirtualSystem, args []string) (string, error) {
 	printenv := func() string {
 		var envs []string
-		for k, v := range vs.System.Environ() {
+		for k, v := range vs.vars.OS.Environ() {
 			envs = append(envs, fmt.Sprintf("%s=%v", k, v))
 		}
 		return strings.Join(envs, "\n") + "\n"
 	}
 	setenv := func(key, val string) {
-		vars.Global.Set(key, val)
-		vs.System.Setenv(key, val)
+		vs.vars.Global.Set(key, val)
+		vs.vars.OS.Setenv(key, val)
 	}
 	unsetenv := func(key string) {
-		vars.Global.Unset(key)
+		vs.vars.Global.Unset(key)
 		// TODO add unset
-		vs.System.Setenv(key, "")
+		vs.vars.OS.Setenv(key, "")
 	}
 
 	switch args[0] {
