@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"maps"
 	"strings"
+	"unicode"
 
 	"github.com/cenkalti/backoff/v4"
 
@@ -386,4 +387,90 @@ func (r *SystemKit) UnsetEnvs(_ context.Context, vars *api.Vars, _ string, args 
 	return &api.Result{
 		Value: fmt.Sprintf("Environment variables %q successfully cleared.", strings.Join(keys, ",")),
 	}, nil
+}
+
+// SourceEnvs reads a source file containing NAME=VALUE or export NAME=VALUE lines
+// and sets valid environment variables. Invalid lines are ignored and warned.
+func (r *SystemKit) SourceEnvs(_ context.Context, vars *api.Vars, _ string, args map[string]any) (*api.Result, error) {
+	src, err := api.GetStrProp("source", args)
+	if err != nil {
+		return nil, err
+	}
+	if src == "" {
+		return nil, fmt.Errorf("missing property: source")
+	}
+	content, err := api.LoadURIContent(vars.Workspace, src)
+	if err != nil {
+		return nil, err
+	}
+	lines := strings.Split(content, "\n")
+	obj := make(map[string]any)
+	var invalid []string
+	for _, line := range lines {
+		l := strings.TrimSpace(line)
+		if l == "" {
+			continue
+		}
+		if strings.HasPrefix(l, "#") {
+			continue
+		}
+		// optional export prefix
+		if strings.HasPrefix(l, "export ") {
+			l = strings.TrimSpace(strings.TrimPrefix(l, "export "))
+		}
+		// find =
+		parts := strings.SplitN(l, "=", 2)
+		if len(parts) != 2 {
+			invalid = append(invalid, line)
+			continue
+		}
+		name := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+		// strip surrounding quotes from value
+		if len(value) >= 2 {
+			if (value[0] == '\'' && value[len(value)-1] == '\'') || (value[0] == '"' && value[len(value)-1] == '"') {
+				value = value[1 : len(value)-1]
+			}
+		}
+		if !isValidEnvName(name) {
+			invalid = append(invalid, line)
+			continue
+		}
+		obj[name] = value
+	}
+	if len(obj) == 0 {
+		if len(invalid) > 0 {
+			return &api.Result{Value: fmt.Sprintf("No valid environment variables found. Ignored %d invalid lines.", len(invalid))}, nil
+		}
+		return nil, fmt.Errorf("No environment variables to set.")
+	}
+	vars.Global.SetEnvs(obj)
+	var keys []string
+	for k, v := range obj {
+		vars.OS.Setenv(k, v)
+		keys = append(keys, k)
+	}
+	msg := fmt.Sprintf("Environment variables %q successfully set.", strings.Join(keys, ","))
+	if len(invalid) > 0 {
+		msg = msg + " Warning: ignored invalid lines: " + strings.Join(invalid, "; ")
+	}
+	return &api.Result{Value: msg}, nil
+}
+
+func isValidEnvName(s string) bool {
+	if s == "" {
+		return false
+	}
+	for i, r := range s {
+		if i == 0 {
+			if !(unicode.IsLetter(r) || r == '_') {
+				return false
+			}
+		} else {
+			if !(unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_') {
+				return false
+			}
+		}
+	}
+	return true
 }

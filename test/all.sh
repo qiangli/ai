@@ -41,6 +41,8 @@ $BASE/test/env.sh
 $BASE/test/example.sh
 
 #
+$BASE/test/source_envs.sh
+
 function test_failed() {
     echo "❌ test outputs differ"
     exit 1

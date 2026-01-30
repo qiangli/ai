@@ -405,3 +405,17 @@ tools:
           description: "The prompt for confirmation"
           example: "Do you want to continue?"
       required: ["prompt"]
+
+  - name: "source_envs"
+    display: "Source Environment Variables"
+    description: |
+      Reads a source file containing environment variable assignments and sets valid NAME=VALUE pairs.
+      Lines may optionally start with the keyword "export". Invalid lines will be ignored and a warning will be returned.
+    parameters:
+      type: "object"
+      properties:
+        source:
+          type: "string"
+          description: "A valid file path or URI specifying the source of environment name/value pairs. Supports file: and data: URIs."
+      required:
+        - source
