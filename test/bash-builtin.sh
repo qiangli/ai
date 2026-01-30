@@ -2,21 +2,17 @@
 
 # echo "Bash builtin system shell tests"
 
-# set -o pipefail
-
-# # cd $workspace || echo "cd is not supported"
-# ls /x || echo ">>>>>> /x does not exist"
-
-# pwd
+# cd $workspace || echo "cd is not supported"
 # For legacy bash scripts relying on `cd`, use the 'sh:exec' tool, e.g.,
+exec $PWD/test/bash-legacy.sh
 # /sh:exec --command "/bin/bash $PWD/test/bash-legacy.sh"
 
 
 # WS=$(/sh:workspace)
-/sh:workspace
-# echo "*** workspace:  ***"
-# /fs:list_roots
-# printenv
+# echo "*** pwd: $(pwd) workspace: $WS ***"
+# # /fs:list_roots
+# # printenv
+# ls /x || echo ">>>>>> /x does not exist"
 
 # echo "*** 🎉 Bash builtin system shell completed ***"
 # ###

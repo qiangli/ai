@@ -134,9 +134,11 @@ func HandleAction(ctx context.Context, vs *VirtualSystem, args []string) error {
 	}
 
 	// exec
-	if cmd == "exec" {
-		fmt.Fprintf(hc.Stderr, "System exec command not supported: %v\nUse tool 'sh:exec'", args)
-	}
+	// if cmd == "exec" {
+	// 	err := fmt.Errorf("System exec command not supported: %v\nUse tool 'sh:exec'", args)
+	// 	fmt.Fprintln(hc.Stderr, err.Error())
+	// 	return err
+	// }
 
 	// allow bash builtin
 	if interp.IsBuiltin(cmd) {
@@ -163,11 +165,10 @@ func HandleAction(ctx context.Context, vs *VirtualSystem, args []string) error {
 
 	// bash subshell
 	if IsShell(cmd) {
-		at, err := conf.ParseActionArgs(args)
+		in, err := conf.ParseActionArgs(args[1:])
 		if err != nil {
 			return err
 		}
-		in := atm.BuildEffectiveArgs(vs.vars, vs.agent, at)
 		subsh := NewAgentScriptRunner(vs.vars, vs.agent)
 		out, err := subsh.Run(ctx, cmd, in)
 		result := api.ToResult(out)

@@ -21,45 +21,6 @@ import (
 	"github.com/qiangli/shell/vfs"
 )
 
-// func NewDummyExecHandler(vs *VirtualSystem) ExecHandler {
-// 	var keeps = []string{"PATH", "PWD", "HOME", "USER", "SHELL"}
-// 	ClearAllEnv(keeps)
-
-// 	// return true if handled; otherwise false to leave it to the subsequent handlers
-// 	return func(ctx context.Context, args []string) (bool, error) {
-// 		fmt.Fprintf(vs.IOE.Stderr, "args: %+v\n", args)
-// 		if args[0] == "ai" || strings.HasPrefix(args[0], "@") || strings.HasPrefix(args[0], "/") {
-// 			fmt.Fprintf(vs.IOE.Stdout, "ai args: %+v\n", args)
-// 			return true, nil
-// 		}
-
-// 		// // exec
-// 		// if args[0] == "exec" {
-// 		// 	fmt.Fprintf(vs.IOE.Stderr, "exec command not supported: %v\n", args)
-// 		// }
-
-// 		// // allow bash builtin
-// 		// if interp.IsBuiltin(args[0]) {
-// 		// 	return false, nil
-// 		// }
-
-// 		// coreutils
-// 		if did, err := RunCoreUtils(ctx, vs, args); did {
-// 			return did, err
-// 		}
-
-// 		// // bash subshell
-// 		// if IsShell(args[0]) {
-// 		// 	err := Gosh(ctx, vs, "", args)
-// 		// 	return true, err
-// 		// }
-
-// 		// block other commands
-// 		fmt.Fprintf(vs.IOE.Stderr, "command not supported: %s %+v\n", args[0], args[1:])
-// 		return true, nil
-// 	}
-// }
-
 func VirtualOpenHandler(vs *VirtualSystem) interp.OpenHandlerFunc {
 	return func(ctx context.Context, path string, flag int, perm fs.FileMode) (io.ReadWriteCloser, error) {
 		hc := interp.HandlerCtx(ctx)
@@ -172,6 +133,8 @@ func VirtualCallHandlerFunc(vs *VirtualSystem) interp.CallHandlerFunc {
 		switch args[0] {
 		case "cd":
 			return nil, fmt.Errorf("Changing the current working directory is not supported\nFor legacy bash scripts relying on `cd`, use the 'sh:exec' tool, e.g., sh:exec --command '/bin/bash </script/file>'\n")
+		case "exec":
+			return nil, fmt.Errorf("System exec command not supported: %v\nUse tool 'sh:exec'", args)
 		case "set":
 			// parse -e | -o pipefail and set as env: option_exit = true|false option_pipefail = true | false
 			for i, arg := range args[1:] {
@@ -205,7 +168,7 @@ func IsShell(s string) bool {
 	if slices.Contains([]string{"bash", "sh"}, path.Base(s)) {
 		return true
 	}
-	if slices.Contains([]string{"bash", "sh"}, path.Base(path.Ext(s))) {
+	if slices.Contains([]string{".bash", ".sh"}, path.Base(path.Ext(s))) {
 		return true
 	}
 	return false
