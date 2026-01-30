@@ -3,6 +3,8 @@ package swarm
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
@@ -41,6 +43,13 @@ func New(vars *api.Vars) (*Swarm, error) {
 	//
 	vars.Global = api.NewEnvironment()
 
+	// export from os
+	for _, v := range os.Environ() {
+		kv := strings.SplitN(v, "=", 2)
+		if len(kv) == 2 {
+			vars.Global.Set(kv[0], kv[1])
+		}
+	}
 	// preset
 	vars.Global.Set("workspace", vars.Roots.Workspace.Path)
 	vars.Global.Set("user", vars.User)
