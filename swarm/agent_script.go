@@ -45,6 +45,8 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 			}
 			if v, err := r.loadScript(api.ToString(s)); err == nil {
 				script = v
+			} else {
+				return nil, err
 			}
 		}
 	}
@@ -107,7 +109,7 @@ func HandleAction(ctx context.Context, vs *VirtualSystem, args []string) error {
 	}
 	log.GetLogger(ctx).Debugf("script agent: %s args: %+v\n", vs.agent.Name, args)
 
-	cmd := strings.ToLower(args[0])
+	cmd := args[0]
 
 	// ai extended feature; agent/tool support
 	if conf.IsAction(cmd) {
@@ -167,13 +169,13 @@ func HandleAction(ctx context.Context, vs *VirtualSystem, args []string) error {
 	}
 
 	// bash subshell
-	if IsShell(cmd) {
+	if IsShellScript(cmd) {
 		in, err := conf.ParseActionArgs(args[1:])
 		if err != nil {
 			return err
 		}
-		subsh := NewAgentScriptRunner(vs.vars, vs.agent)
-		out, err := subsh.Run(ctx, cmd, in)
+		in["script"] = cmd
+		out, err := vs.agent.Shell.Run(ctx, "", in)
 		result := api.ToResult(out)
 		if result != nil {
 			fmt.Fprintln(hc.Stdout, result.Value)
@@ -182,7 +184,7 @@ func HandleAction(ctx context.Context, vs *VirtualSystem, args []string) error {
 			fmt.Fprintln(hc.Stderr, err.Error())
 			return err
 		}
-		return nil
+		return interp.ExitStatus(0)
 	}
 
 	// TODO restricted

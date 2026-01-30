@@ -6,11 +6,11 @@
     "assets": [
         {
             "type": "file",
-            "base": "./swarm/resource/incubator"
+            "base": "/Users/liqiang/workspace/cloudbox/ai/swarm/resource/incubator"
         },
         {
             "type": "file",
-            "base": "./swarm/resource/standard"
+            "base": "/Users/liqiang/workspace/cloudbox/ai/swarm/resource/standard"
         }
     ],
     "roots": {
@@ -33,12 +33,12 @@
             {
                 "name": "Incubator Resources",
                 "description": "Resource directory for incubating agents, tools, and models",
-                "path": "./swarm/resource/incubator"
+                "path": "/Users/liqiang/workspace/cloudbox/ai/swarm/resource/incubator"
             },
             {
                 "name": "Standard Resources",
                 "description": "Resource directory for standard agents, tools, and models",
-                "path": "./swarm/resource/standard"
+                "path": "/Users/liqiang/workspace/cloudbox/ai/swarm/resource/standard"
             }
         ]
     }

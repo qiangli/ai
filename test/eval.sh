@@ -1,6 +1,6 @@
 #!/usr/bin/env ai /sh:bash --format raw --base ./test/data/ --script
 
-# set -xu
+set -xu
 
 # BASE=$(pwd)
 # /bin/ls /x
@@ -8,7 +8,9 @@
 # cd /
 # exec test.sh
 # /sh:fail
-/Users/liqiang/workspace/cloudbox/ai/test/env.sh
+# /fs:list_roots
+./test/env.sh
+/bin/bash ./test/bash-legacy.sh
 echo "status $?"
 
 # echo "continued"

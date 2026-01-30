@@ -164,10 +164,10 @@ func VirtualCallHandlerFunc(vs *VirtualSystem) interp.CallHandlerFunc {
 }
 
 // return true if the last elemment is or ends in sh/bash
-func IsShell(s string) bool {
-	if slices.Contains([]string{"bash", "sh"}, path.Base(s)) {
-		return true
-	}
+func IsShellScript(s string) bool {
+	// if slices.Contains([]string{"bash", "sh"}, path.Base(s)) {
+	// 	return true
+	// }
 	if slices.Contains([]string{".bash", ".sh"}, path.Base(path.Ext(s))) {
 		return true
 	}
