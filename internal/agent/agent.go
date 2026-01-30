@@ -10,7 +10,6 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/qiangli/ai/internal/util"
 	"github.com/qiangli/ai/swarm"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm/adapter"
@@ -62,30 +61,17 @@ func Run(argv []string) error {
 	app.Base = base
 
 	//
-	var user *api.User
-	who, _ := util.WhoAmI()
-	app.UserID = who
-	if v, err := loadUser(app.Base); err != nil {
-		user = &api.User{
-			Display:  who,
-			Settings: make(map[string]any),
-		}
-	} else {
-		user = v
-		user.Display = who
-	}
-
-	if err := RunSwarm(app, user, argv); err != nil {
+	if err := RunSwarm(app, argv); err != nil {
 		return err
 	}
 	return nil
 }
 
-func RunSwarm(cfg *api.App, user *api.User, args []string) error {
+func RunSwarm(cfg *api.App, args []string) error {
 	ctx := context.Background()
 
 	// init
-	sw, err := initSwarm(ctx, cfg, user)
+	sw, err := initSwarm(ctx, cfg)
 	if err != nil {
 		return err
 	}
@@ -96,13 +82,6 @@ func RunSwarm(cfg *api.App, user *api.User, args []string) error {
 	argm, err := sw.Parse(ctx, args)
 	if err != nil {
 		return err
-	}
-
-	// default from user preference. update only if not set
-	for k, v := range user.Settings {
-		if _, ok := argm[k]; !ok {
-			argm[k] = v
-		}
 	}
 
 	// show input
@@ -151,7 +130,17 @@ func RunSwarm(cfg *api.App, user *api.User, args []string) error {
 	return nil
 }
 
-func initSwarm(ctx context.Context, cfg *api.App, user *api.User) (*swarm.Swarm, error) {
+func initSwarm(ctx context.Context, cfg *api.App) (*swarm.Swarm, error) {
+	var user *api.User
+	if v, err := loadUser(cfg.Base); err != nil {
+		user = &api.User{
+			Display:  "guest",
+			Settings: make(map[string]any),
+		}
+	} else {
+		user = v
+	}
+
 	var sessionID = api.SessionID(uuid.NewString())
 
 	swarm.ClearAllEnv(essentialEnv)

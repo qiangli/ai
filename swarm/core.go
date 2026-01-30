@@ -77,14 +77,25 @@ func (sw *Swarm) Parse(ctx context.Context, input any) (api.ArgMap, error) {
 		return conf.Parse(argv)
 	}
 
+	var argm api.ArgMap
+	var err error
 	switch input := input.(type) {
 	case string:
 		argv := conf.Argv(input)
-		return parsev(argv)
+		argm, err = parsev(argv)
 	case []string:
-		return parsev(input)
+		argm, err = parsev(input)
+	default:
+		argm, err = conf.Parse(input)
 	}
-	return conf.Parse(input)
+
+	// default from user preference. update only if not set
+	for k, v := range sw.vars.User.Settings {
+		if _, ok := argm[k]; !ok {
+			argm[k] = v
+		}
+	}
+	return argm, err
 }
 
 func (sw *Swarm) Format(ctx context.Context, argm map[string]any) (*api.Result, error) {
