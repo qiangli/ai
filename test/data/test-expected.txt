@@ -42,12 +42,15 @@ tell me a joke
 ---
 >>>>>>>>> Env
 ---
+HOME=<redated>
+PATH=/bin:/usr/bin
 city=SFO
+datetime2=Jan  1 08:08:08
 datetime=<TODO>
 input=<redated>
+message2=tell me a joke
 message=tell me a joke
 nickname=Charles
-user=&{ liqiang    map[log_level:info]}
 workspace=<redacted>
 zip=1234567
 ---

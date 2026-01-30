@@ -39,6 +39,8 @@ env message="${message}"
 env datetime="<TODO>"
 env workspace="<redacted>"
 env input="<redated>"
+env HOME="<redated>"
+env PATH="/bin:/usr/bin"
 
 /flow:sequence \
     --actions "[ai:spawn_agent,sh:format]" \
