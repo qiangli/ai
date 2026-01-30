@@ -160,7 +160,10 @@ func HandleAction(ctx context.Context, vs *VirtualSystem, args []string) error {
 	// bash core utils
 	if IsCoreUtils(cmd) {
 		err := RunCoreUtil(ctx, vs, args)
-		return err
+		if err != nil {
+			return interp.ExitStatus(1)
+		}
+		return nil
 	}
 
 	// bash subshell
@@ -184,12 +187,13 @@ func HandleAction(ctx context.Context, vs *VirtualSystem, args []string) error {
 
 	// TODO restricted
 	if IsRestricted(cmd) {
-		fmt.Fprintf(hc.Stderr, "command not supported: %s %+v\n", cmd, args[1:])
-		return nil
+		err := fmt.Errorf("Command not supported: %v\n", args)
+		fmt.Fprintln(hc.Stderr, err.Error())
+		return interp.ExitStatus(127)
 	}
 
 	// command
-	if err := runCommandWithTimeout(ctx, vs, args); err != nil {
+	if err := runCommand(ctx, vs, args); err != nil {
 		return err
 	}
 

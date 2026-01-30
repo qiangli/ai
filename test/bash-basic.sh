@@ -87,7 +87,7 @@ env
 # 	"return", "read", "mapfile", "readarray", "shopt",
 # 
 
-$(exec "/bin/ls -al /tmp")
+# $(exec "/bin/ls -al /tmp")
 
 # // internal commands
 # 	"base64", "basename", "cat", "chmod", "cp", "date", "dirname", "find", "gzip", "head", "ls", "mkdir",

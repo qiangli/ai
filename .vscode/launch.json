@@ -119,8 +119,8 @@
 				// "--message",
 				// "install"
 				// 
-				// "test/eval.sh",
-				"test/all.sh",
+				"test/eval.sh",
+				// "test/all.sh",
 				// "test/basic.sh",
 				// "test/std.sh",
 				// "test/bash-builtin.sh",

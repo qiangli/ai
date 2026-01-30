@@ -148,7 +148,8 @@ tools:
         loop 1 2 3 4
 
         ### execute external system commands
-        $(exec "/bin/ls -al")
+        /sh:exec --command "/bin/ls -al"
+        /sh:exec --command "/bin/bash /absolute/path"
 
         ### list of supported built-in system commands
         # "base64", "basename", "cat", "date", "dirname", "head", "ls",

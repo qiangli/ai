@@ -134,7 +134,7 @@ func VirtualCallHandlerFunc(vs *VirtualSystem) interp.CallHandlerFunc {
 		case "cd":
 			return nil, fmt.Errorf("Changing the current working directory is not supported\nFor legacy bash scripts relying on `cd`, use the 'sh:exec' tool, e.g., sh:exec --command '/bin/bash </script/file>'\n")
 		case "exec":
-			return nil, fmt.Errorf("System exec command not supported: %v\nUse tool 'sh:exec'", args)
+			return nil, fmt.Errorf("System exec command not supported: %v\nUse the 'sh:exec' tool, e.g., sh:exec --command '...'\n ", args)
 		case "set":
 			// parse -e | -o pipefail and set as env: option_exit = true|false option_pipefail = true | false
 			for i, arg := range args[1:] {
@@ -188,8 +188,8 @@ func run(ctx context.Context, r *interp.Runner, reader io.Reader, name string) e
 	return r.Run(ctx, prog)
 }
 
-// runCommandWithTimeout executes a command with a context-based timeout and handles termination.
-func runCommandWithTimeout(ctx context.Context, vs *VirtualSystem, args []string) error {
+// runCommandexecutes a command with a context-based timeout and handles termination.
+func runCommand(ctx context.Context, vs *VirtualSystem, args []string) error {
 	hc := interp.HandlerCtx(ctx)
 
 	var maxTime = 15 * time.Minute

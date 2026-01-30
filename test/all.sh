@@ -45,7 +45,7 @@ function test_failed() {
     echo "❌ test outputs differ"
     exit 1
 }
-$BASE/test/test.sh
+$BASE/test/test.sh --output /tmp/test.txt
 
 # diff /tmp/test.txt ./test/data/test-expected.txt 
 /sh:exec --command "diff /tmp/test.txt ./test/data/test-expected.txt || echo  '❌❌ test outputs differ'" 

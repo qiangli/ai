@@ -40,7 +40,7 @@ function loop() {
 loop 1 2 3 4
 
 ### exec
-$(exec "/bin/ls -al /tmp")
+# $(exec "/bin/ls -al /tmp")
 
 ### system commands (limited support)
 # "base64", "basename", "cat", "date", "dirname", "head", "ls",
