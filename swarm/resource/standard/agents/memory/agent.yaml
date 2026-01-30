@@ -8,8 +8,8 @@ agents:
       Agent default user memory. 
       Intended to be embedded into other agents' instructions.
     embed:
-      - "agent:meta/workspace"
       - "agent:memory/long_term"
+      - "agent:meta/workspace"
     functions:
       - "fs:*"
 

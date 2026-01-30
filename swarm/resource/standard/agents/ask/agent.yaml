@@ -11,7 +11,7 @@ agents:
       ensuring clarity and accuracy.
     model: "ask/L1"
     embed:
-      - "agent:meta/workspace"
+      - "agent:memory/memory"
     instruction: |
       #! --mime-type=text/x-go-template
       You are a helpful assistant.

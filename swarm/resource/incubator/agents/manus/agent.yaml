@@ -17,7 +17,7 @@ agents:
       Use this agent to run the full workflow (catch up → initialize → plan → execute → verify),
       while delegating the detailed methodology to `manus/planning_with_files`.
     embed:
-      - "agent:context/lastn"
+      - "agent:meta/workspace"
       - "agent:manus/planning_with_files"
     arguments:
       models: "[manus/anthropic,manus/gemini,manus/openai,manus/xai]"
