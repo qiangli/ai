@@ -1,6 +1,6 @@
 #!/usr/bin/env ai /sh:bash --format raw --base ./test/data/ --script
 
-set -ue
+set -xue
 
 BASE=$(pwd)
 echo $BASE

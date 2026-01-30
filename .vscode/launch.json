@@ -120,10 +120,10 @@
 				// "install"
 				// 
 				// "test/eval.sh",
-				// "test/all.sh",
+				"test/all.sh",
 				// "test/basic.sh",
 				// "test/std.sh",
-				"test/bash-builtin.sh",
+				// "test/bash-builtin.sh",
 				// "test/yaml-wrap.sh",
 				// "swarm/resource/template/atm.yaml",
 				// "--adapter",

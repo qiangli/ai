@@ -29,10 +29,8 @@ func (s *stringSlice) Set(value string) error {
 // skipping trigger word "ai"
 // for option args: replace dash "-" with understcore "_" in argument names
 func ParseActionArgs(argv []string) (api.ArgMap, error) {
-	// argv = dropEmpty(argv)
-
 	if len(argv) == 0 {
-		return nil, fmt.Errorf("missing action arguments")
+		return map[string]any{}, nil
 	}
 	// skip trigger word "ai"
 	if len(argv) > 0 && strings.ToLower(argv[0]) == "ai" {
@@ -40,7 +38,6 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	}
 	if len(argv) == 0 {
 		return map[string]any{}, nil
-		// return nil, fmt.Errorf("empty ai command arguments")
 	}
 
 	var name = argv[0]
