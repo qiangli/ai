@@ -11,6 +11,7 @@ echo $BASE
 # 
 $BASE/test/bash-basic.sh
 $BASE/test/bash-ext.sh
+$BASE/test/bash-builtin.sh
 
 $BASE/test/flow.sh
 
