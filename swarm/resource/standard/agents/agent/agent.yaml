@@ -9,6 +9,7 @@ agents:
       updating, and deleting configurations through YAML.
     model: "llm/L3"
     embed:
+      - "agent:context/lastn"
       - "agent:memory/memory"
     environment:
       base_dir: "{{.workspace}}/atm/agents"
