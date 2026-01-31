@@ -1,7 +1,7 @@
 package api
 
 import (
-	"context"
+	// "context"
 	"time"
 )
 
@@ -47,17 +47,21 @@ type Message struct {
 	Context bool `json:"context"`
 }
 
+// TODO move to use arg map
 type Request struct {
-	// parent agent
+	// active agent
 	Agent *Agent `json:"-"`
 
-	// active action name
-	// Name      string    `json:"name"`
+	//
+	Prompt  string     `json:"prompt"`
+	Query   string     `json:"query"`
+	History []*Message `json:"history"`
 
 	Arguments Arguments `json:"arguments"`
 
 	// LLM
-	Model *Model      `json:"model"`
+	Model *Model `json:"model"`
+
 	Tools []*ToolFunc `json:"tools"`
 
 	Messages []*Message `json:"messages"`
@@ -67,15 +71,10 @@ type Request struct {
 	// get api token for LLM model
 	Token func() string `json:"-"`
 
-	// ctx should only be modified via copying the whole request WithContext.
-	// It is unexported to prevent people from using Context wrong
-	// and mutating the contexts held by callers of the same request.
-	ctx context.Context `json:"-"`
-
-	//
-	Prompt  string     `json:"prompt"`
-	Query   string     `json:"query"`
-	History []*Message `json:"history"`
+	// // ctx should only be modified via copying the whole request WithContext.
+	// // It is unexported to prevent people from using Context wrong
+	// // and mutating the contexts held by callers of the same request.
+	// ctx context.Context `json:"-"`
 }
 
 func (r *Request) Message() string {
@@ -113,15 +112,15 @@ func (r *Request) MemOption() *MemOption {
 	return &o
 }
 
-func NewRequest(ctx context.Context, name string, args map[string]any) *Request {
-	req := &Request{
-		ctx: ctx,
-		// Name:      name,
-		Arguments: NewArguments(),
-	}
-	req.Arguments.AddArgs(args)
-	return req
-}
+// func NewRequest(ctx context.Context, name string, args map[string]any) *Request {
+// 	req := &Request{
+// 		ctx: ctx,
+// 		// Name:      name,
+// 		Arguments: NewArguments(),
+// 	}
+// 	req.Arguments.AddArgs(args)
+// 	return req
+// }
 
 // Context returns the request's context.
 // To change the context, use [Request.WithContext].
@@ -134,12 +133,12 @@ func NewRequest(ctx context.Context, name string, args map[string]any) *Request 
 // For incoming server requests, the context is canceled when the
 // client's connection closes, the request is canceled (with HTTP/2),
 // or when the ServeHTTP method returns.
-func (r *Request) Context() context.Context {
-	if r.ctx != nil {
-		return r.ctx
-	}
-	return context.Background()
-}
+// func (r *Request) Context() context.Context {
+// 	if r.ctx != nil {
+// 		return r.ctx
+// 	}
+// 	return context.Background()
+// }
 
 // WithContext returns a shallow copy of r with its context changed
 // to ctx. The provided ctx must be non-nil.
@@ -150,31 +149,20 @@ func (r *Request) Context() context.Context {
 //
 // To create a new request with a context, use [NewRequest].
 // To make a deep copy of a request with a new context, use [Request.Clone].
-func (r *Request) WithContext(ctx context.Context) *Request {
-	if ctx == nil {
-		panic("nil context")
-	}
-	r2 := new(Request)
-	*r2 = *r
-	r2.ctx = ctx
-	return r2
-}
-
-// // Clone returns a shallow copy of r while ensuring proper copying of slices and maps
-// func (r *Request) Clone() *Request {
+// func (r *Request) WithContext(ctx context.Context) *Request {
+// 	if ctx == nil {
+// 		panic("nil context")
+// 	}
 // 	r2 := new(Request)
 // 	*r2 = *r
-
-// 	if r.Arguments != nil {
-// 		r2.Arguments = r.Arguments.Clone()
-// 	}
+// 	r2.ctx = ctx
 // 	return r2
 // }
 
 type Response struct {
 	// A list of message objects generated during the conversation
 	// with a sender field indicating which Agent the message originated from.
-	Messages []*Message `json:"messages"`
+	// Messages []*Message `json:"messages"`
 
 	// The last agent to handle a message
 	Agent *Agent `json:"agent"`

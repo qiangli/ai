@@ -23,12 +23,17 @@ func (r *McpKit) Call(ctx context.Context, vars *api.Vars, _ *api.Agent, tf *api
 
 	log.GetLogger(ctx).Debugf("🎖️ calling MCP tool: %s with args: %+v\n", tid, args)
 
-	client := mcpcli.NewMcpClient(&api.ConnectorConfig{
-		BaseUrl:  tf.BaseUrl,
-		ApiKey:   tf.ApiKey,
-		Provider: tf.Provider,
+	apiKey, _ := api.GetStrProp("api_key", args)
+	baseUrl, _ := api.GetStrProp("base_url", args)
+	provider, _ := api.GetStrProp("provider", args)
+
+	client := mcpcli.NewMcpClient(&mcpcli.ConnectorConfig{
+		BaseUrl:  baseUrl,
+		ApiKey:   apiKey,
+		Provider: provider,
 	})
-	tk, err := vars.Token(tf.ApiKey)
+
+	tk, err := vars.Token(apiKey)
 	if err != nil {
 		return "", err
 	}

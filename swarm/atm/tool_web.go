@@ -14,17 +14,21 @@ var (
 	NoResult = "Empty content. This could be due to website bot detection. Please try a different website or try again in a few minutes."
 )
 
-// webAuthKit must be per tool/func call
-type webAuthKit struct {
-	vars *api.Vars
-	key  string
+// WebKit must be per tool/func call
+// type WebKit struct {
+// 	// vars *api.Vars
+// 	// key  string
+// }
+
+func (r *WebKit) token(vars *api.Vars, args map[string]any) (string, error) {
+	key, err := api.GetStrProp("api_key", args)
+	if err != nil {
+		return "", fmt.Errorf("api_key missing")
+	}
+	return vars.Token(key)
 }
 
-func (r *webAuthKit) token() (string, error) {
-	return r.vars.Token(r.key)
-}
-
-func (r *webAuthKit) FetchContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *WebKit) FetchContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	link, err := api.GetStrProp("url", args)
 	if err != nil {
 		return "", err
@@ -71,7 +75,7 @@ func (r *webAuthKit) FetchContent(ctx context.Context, vars *api.Vars, name stri
 	return content, err
 }
 
-func (r *webAuthKit) DownloadContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *WebKit) DownloadContent(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	link, err := api.GetStrProp("url", args)
 	if err != nil {
 		return "", err
@@ -86,7 +90,7 @@ func (r *webAuthKit) DownloadContent(ctx context.Context, vars *api.Vars, name s
 }
 
 // Search the web using DuckDuckGo.
-func (r *webAuthKit) DdgSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *WebKit) DdgSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	query, err := api.GetStrProp("query", args)
 	if err != nil {
 		return "", err
@@ -107,7 +111,7 @@ func (r *webAuthKit) DdgSearch(ctx context.Context, vars *api.Vars, name string,
 }
 
 // Search the web using Bing.
-func (r *webAuthKit) BingSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *WebKit) BingSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	query, err := api.GetStrProp("query", args)
 	if err != nil {
 		return "", err
@@ -128,7 +132,7 @@ func (r *webAuthKit) BingSearch(ctx context.Context, vars *api.Vars, name string
 }
 
 // Search the web using Brave.
-func (r *webAuthKit) BraveSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *WebKit) BraveSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	query, err := api.GetStrProp("query", args)
 	if err != nil {
 		return "", err
@@ -144,7 +148,7 @@ func (r *webAuthKit) BraveSearch(ctx context.Context, vars *api.Vars, name strin
 		max = 10
 	}
 
-	apiKey, err := r.token()
+	apiKey, err := r.token(vars, args)
 	if err != nil {
 		return "", err
 	}
@@ -154,7 +158,7 @@ func (r *webAuthKit) BraveSearch(ctx context.Context, vars *api.Vars, name strin
 }
 
 // Search the web using Google.
-func (r *webAuthKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+func (r *WebKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
 	query, err := api.GetStrProp("query", args)
 	if err != nil {
 		return "", err
@@ -171,7 +175,7 @@ func (r *webAuthKit) GoogleSearch(ctx context.Context, vars *api.Vars, name stri
 	}
 
 	// engine_id:api_key
-	key, err := r.token()
+	key, err := r.token(vars, args)
 	if err != nil {
 		return "", err
 	}
@@ -181,7 +185,6 @@ func (r *webAuthKit) GoogleSearch(ctx context.Context, vars *api.Vars, name stri
 	return webtool.Google(ctx, apiKey, seID, query, max)
 }
 
-// wrapper for webAuthKit
 type WebKit struct {
 }
 
@@ -192,11 +195,11 @@ func NewWebKit() *WebKit {
 func (r *WebKit) Call(ctx context.Context, vars *api.Vars, _ *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	callArgs := []any{ctx, vars, tf.Name, args}
 
-	// forward to web auth kit
-	ak := &webAuthKit{
-		vars: vars,
-		key:  tf.ApiKey,
-	}
+	// // forward to web auth kit
+	// ak := &WebKit{
+	// 	// vars: vars,
+	// 	// key:  tf.ApiKey,
+	// }
 
 	// mock if echo__<id> is found in args.
 	if len(args) > 0 {
@@ -205,7 +208,7 @@ func (r *WebKit) Call(ctx context.Context, vars *api.Vars, _ *api.Agent, tf *api
 		}
 	}
 
-	result, err := CallKit(ak, tf.Kit, tf.Name, callArgs...)
+	result, err := CallKit(r, tf.Kit, tf.Name, callArgs...)
 
 	if err != nil {
 		return nil, fmt.Errorf("error: %v. please try again after few seconds.", err)

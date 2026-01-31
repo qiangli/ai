@@ -47,15 +47,15 @@ type ToolFunc struct {
 
 	Body *FuncBody `json:"body"` // body
 
-	// TODO move provider/base_url/api_key to argments
-	Provider string `json:"provider"`
-	BaseUrl  string `json:"base_url"` // base url
-	// name of api key - used to resolve api key/token before tool call
-	ApiKey string `json:"api_key"`
+	// // TODO move provider/base_url/api_key to argments
+	// Provider string `json:"provider"`
+	// BaseUrl  string `json:"base_url"` // base url
+	// // name of api key - used to resolve api key/token before tool call
+	// ApiKey string `json:"api_key"`
 
-	// extra features.
-	// e.g labels for mcp for filtering tools
-	Extra map[string]any `json:"extra"`
+	// // extra features.
+	// // e.g labels for mcp for filtering tools
+	// Extra map[string]any `json:"extra"`
 
 	// input arguments
 	Arguments map[string]any `json:"arguments"`
@@ -88,11 +88,11 @@ type ToolConfig struct {
 	// output destination: console, none, file:/
 	Output string `yaml:"output" json:"output"`
 
-	//
-	Provider string `yaml:"provider" json:"provider"`
-	BaseUrl  string `yaml:"base_url" json:"base_url"`
-	// api lookup key
-	ApiKey string `yaml:"api_key" json:"api_key"`
+	// //
+	// Provider string `yaml:"provider" json:"provider"`
+	// BaseUrl  string `yaml:"base_url" json:"base_url"`
+	// // api lookup key
+	// ApiKey string `yaml:"api_key" json:"api_key"`
 
 	// filter by match key=values (comma, separated)
 	// include all tools that match
@@ -123,28 +123,28 @@ type FuncBody struct {
 	Script string `yaml:"script" json:"script"`
 }
 
-type ConnectorConfig struct {
-	// mcp | ssh ...
-	// Proto string `yaml:"proto"`
+// type ConnectorConfig struct {
+// 	// mcp | ssh ...
+// 	// Proto string `yaml:"proto"`
 
-	// mcp stdin/stdout
-	// https://github.com/modelcontextprotocol/servers/tree/main
-	// Command string `yaml:"command"`
-	// Args    string `yaml:"args"`
+// 	// mcp stdin/stdout
+// 	// https://github.com/modelcontextprotocol/servers/tree/main
+// 	// Command string `yaml:"command"`
+// 	// Args    string `yaml:"args"`
 
-	// ssh://user@example.com:2222/user/home
-	// git@github.com:owner/repo.git
-	// postgres://dbuser:secret@db.example.com:5432/mydb?sslmode=require
-	// https://drive.google.com/drive/folders
-	// mailto:someone@example.com
+// 	// ssh://user@example.com:2222/user/home
+// 	// git@github.com:owner/repo.git
+// 	// postgres://dbuser:secret@db.example.com:5432/mydb?sslmode=require
+// 	// https://drive.google.com/drive/folders
+// 	// mailto:someone@example.com
 
-	// optional as of now
-	Provider string `yaml:"provider"`
+// 	// optional as of now
+// 	Provider string `yaml:"provider"`
 
-	BaseUrl string `yaml:"base_url"`
-	// name of api lookup key
-	ApiKey string `yaml:"api_key"`
-}
+// 	BaseUrl string `yaml:"base_url"`
+// 	// name of api lookup key
+// 	ApiKey string `yaml:"api_key"`
+// }
 
 type ToolKit interface {
 	Call(context.Context, *Vars, *Agent, *ToolFunc, map[string]any) (any, error)

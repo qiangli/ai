@@ -9,10 +9,13 @@ import (
 
 func (r *FuncKit) DO(ctx context.Context, vars *api.Vars, _ *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
 	// python with digital ocean
-	tk, err := vars.Token(tf.ApiKey)
+	apiKey, _ := api.GetStrProp("api_key", args)
+	baseUrl, _ := api.GetStrProp("base_url", args)
+
+	tk, err := vars.Token(apiKey)
 	if err != nil {
 		return nil, err
 	}
-	cli := docli.NewDoClient(tf.BaseUrl, tk)
+	cli := docli.NewDoClient(baseUrl, tk)
 	return cli.Call(ctx, vars, tf, args)
 }

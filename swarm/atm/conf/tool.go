@@ -177,15 +177,15 @@ func LoadToolData(data [][]byte) (*api.AppConfig, error) {
 			v.Type = merged.Type
 		}
 
-		if v.Provider == "" {
-			v.Provider = merged.Provider
-		}
-		if v.BaseUrl == "" {
-			v.BaseUrl = merged.BaseUrl
-		}
-		if v.ApiKey == "" {
-			v.ApiKey = merged.ApiKey
-		}
+		// if v.Provider == "" {
+		// 	v.Provider = merged.Provider
+		// }
+		// if v.BaseUrl == "" {
+		// 	v.BaseUrl = merged.BaseUrl
+		// }
+		// if v.ApiKey == "" {
+		// 	v.ApiKey = merged.ApiKey
+		// }
 	}
 
 	// if v := merged.Connector; v != nil {
@@ -238,9 +238,9 @@ func LoadTools(tc *api.AppConfig, owner string, secrets api.SecretStore) ([]*api
 			//
 			Output: v.Output,
 			//
-			Provider: nvl(v.Provider, tc.Provider),
-			BaseUrl:  nvl(v.BaseUrl, tc.BaseUrl),
-			ApiKey:   nvl(v.ApiKey, tc.ApiKey),
+			// Provider: nvl(v.Provider, tc.Provider),
+			// BaseUrl:  nvl(v.BaseUrl, tc.BaseUrl),
+			// ApiKey:   nvl(v.ApiKey, tc.ApiKey),
 			//
 			Config: tc,
 		}
@@ -248,47 +248,47 @@ func LoadTools(tc *api.AppConfig, owner string, secrets api.SecretStore) ([]*api
 		toolMap[tool.ID()] = tool
 	}
 
-	// contact mcp servers and fetch the list of tools
-	for _, v := range tc.Tools {
-		var toolType = nvl(v.Type, tc.Type)
-		if toolType != string(api.ToolTypeMcp) {
-			continue
-		}
-		var token string
-		apiKey := nvl(v.ApiKey, tc.ApiKey)
-		if v, err := secrets.Get(owner, apiKey); err != nil {
-			return nil, err
-		} else {
-			token = v
-		}
-		connector := &api.ConnectorConfig{
-			Provider: nvl(v.Provider, tc.Provider),
-			BaseUrl:  nvl(v.BaseUrl, tc.BaseUrl),
-			ApiKey:   nvl(v.ApiKey, tc.ApiKey),
-		}
-		mcpTools, err := listMcpTools(tc.Kit, connector, token)
-		if err != nil {
-			return nil, err
-		}
+	// // contact mcp servers and fetch the list of tools
+	// for _, v := range tc.Tools {
+	// 	var toolType = nvl(v.Type, tc.Type)
+	// 	if toolType != string(api.ToolTypeMcp) {
+	// 		continue
+	// 	}
+	// 	var token string
+	// 	apiKey := nvl(v.ApiKey, tc.ApiKey)
+	// 	if v, err := secrets.Get(owner, apiKey); err != nil {
+	// 		return nil, err
+	// 	} else {
+	// 		token = v
+	// 	}
+	// 	connector := &api.ConnectorConfig{
+	// 		Provider: nvl(v.Provider, tc.Provider),
+	// 		BaseUrl:  nvl(v.BaseUrl, tc.BaseUrl),
+	// 		ApiKey:   nvl(v.ApiKey, tc.ApiKey),
+	// 	}
+	// 	mcpTools, err := listMcpTools(tc.Kit, connector, token)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-		// return true if extra is empty or has the name/val in the filter
-		met := func(extra map[string]any) bool {
-			if len(extra) == 0 || len(v.Filter) == 0 {
-				return true
-			}
-			for key, f := range v.Filter {
-				if m, ok := extra[key]; ok && m == f {
-					return true
-				}
-			}
-			return false
-		}
-		for _, tool := range mcpTools {
-			if met(tool.Extra) {
-				toolMap[tool.ID()] = tool
-			}
-		}
-	}
+	// 	// return true if extra is empty or has the name/val in the filter
+	// 	met := func(extra map[string]any) bool {
+	// 		if len(extra) == 0 || len(v.Filter) == 0 {
+	// 			return true
+	// 		}
+	// 		for key, f := range v.Filter {
+	// 			if m, ok := extra[key]; ok && m == f {
+	// 				return true
+	// 			}
+	// 		}
+	// 		return false
+	// 	}
+	// 	for _, tool := range mcpTools {
+	// 		if met(tool.Extra) {
+	// 			toolMap[tool.ID()] = tool
+	// 		}
+	// 	}
+	// }
 
 	// TODO deprecated in favor of tools
 	// connector mcp

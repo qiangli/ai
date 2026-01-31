@@ -4,7 +4,7 @@ type ContextKey string
 
 const SwarmUserContextKey ContextKey = "swarm_user"
 
-const defaultAgent = ""
+// const defaultAgent = ""
 
 type SessionID string
 
@@ -25,19 +25,19 @@ type User struct {
 	Settings map[string]any `json:"settings"`
 }
 
-func (r *User) Agent() string {
-	if r.Settings == nil {
-		return defaultAgent
-	}
-	agent := r.Settings["agent"]
-	if agent != "" {
-		if s, ok := agent.(string); ok {
-			return s
-		}
-	}
-	return defaultAgent
-}
+// func (r *User) Agent() string {
+// 	if r.Settings == nil {
+// 		return defaultAgent
+// 	}
+// 	agent := r.Settings["agent"]
+// 	if agent != "" {
+// 		if s, ok := agent.(string); ok {
+// 			return s
+// 		}
+// 	}
+// 	return defaultAgent
+// }
 
-func (r *User) SetAgent(s string) {
-	r.Settings["agent"] = s
-}
+// func (r *User) SetAgent(s string) {
+// 	r.Settings["agent"] = s
+// }

@@ -5,9 +5,30 @@ import (
 	"net/http"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-
-	"github.com/qiangli/ai/swarm/api"
 )
+
+type ConnectorConfig struct {
+	// mcp | ssh ...
+	// Proto string `yaml:"proto"`
+
+	// mcp stdin/stdout
+	// https://github.com/modelcontextprotocol/servers/tree/main
+	// Command string `yaml:"command"`
+	// Args    string `yaml:"args"`
+
+	// ssh://user@example.com:2222/user/home
+	// git@github.com:owner/repo.git
+	// postgres://dbuser:secret@db.example.com:5432/mydb?sslmode=require
+	// https://drive.google.com/drive/folders
+	// mailto:someone@example.com
+
+	// optional as of now
+	Provider string `yaml:"provider"`
+
+	BaseUrl string `yaml:"base_url"`
+	// name of api lookup key
+	ApiKey string `yaml:"api_key"`
+}
 
 type bearerTokenTransport struct {
 	token     string
@@ -20,10 +41,10 @@ func (b *bearerTokenTransport) RoundTrip(req *http.Request) (*http.Response, err
 }
 
 type McpClient struct {
-	cfg *api.ConnectorConfig
+	cfg *ConnectorConfig
 }
 
-func NewMcpClient(cfg *api.ConnectorConfig) *McpClient {
+func NewMcpClient(cfg *ConnectorConfig) *McpClient {
 	return &McpClient{
 		cfg: cfg,
 	}

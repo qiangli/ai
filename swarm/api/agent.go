@@ -196,20 +196,20 @@ type AgentConfig struct {
 	LogLevel string `yaml:"log_level" json:"log_level"`
 
 	// TODO clarify/finalize
-	// inherit from embedded ancestors:
+	// inherit from embedded ancestors (agent):
 	// + environmen
 	//
-	// + instruction
-	// + context
+	// + instruction (prompt)
+	// + context (history)
 	//
 	// + model
 	// + functions
 	//
-	// local scope only:
+	// local scope only (agent/tool):
 	// - arguments
 	// - parameters
 	//
-	// - message
+	// - message (query)
 	Embed []string `yaml:"embed" json:"embed"`
 
 	// chat|image|docker

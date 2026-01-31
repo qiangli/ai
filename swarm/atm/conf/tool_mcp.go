@@ -9,7 +9,7 @@ import (
 	mcpcli "github.com/qiangli/ai/swarm/mcp"
 )
 
-func listMcpTools(kit string, tc *api.ConnectorConfig, token string) ([]*api.ToolFunc, error) {
+func ListMcpTools(kit string, tc *mcpcli.ConnectorConfig, token string) ([]*api.ToolFunc, error) {
 	ctx := context.Background()
 
 	if tc.BaseUrl == "" {
@@ -46,15 +46,15 @@ func listMcpTools(kit string, tc *api.ConnectorConfig, token string) ([]*api.Too
 			Body:        nil,
 			//
 			Output: "",
-			//
-			Provider: tc.Provider,
-			BaseUrl:  tc.BaseUrl,
-			ApiKey:   tc.ApiKey,
+			// //
+			// Provider: tc.Provider,
+			// BaseUrl:  tc.BaseUrl,
+			// ApiKey:   tc.ApiKey,
 		}
 		meta := v.GetMeta()
 		if len(meta) > 0 {
-			tool.Extra = make(map[string]any)
-			maps.Copy(tool.Extra, meta)
+			tool.Arguments = make(map[string]any)
+			maps.Copy(tool.Arguments, meta)
 		}
 		tools = append(tools, tool)
 	}
