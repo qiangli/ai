@@ -13,25 +13,6 @@ import (
 // func/web/system/*, mcp, agent, bin, ai???
 type ToolType string
 
-type Parameters map[string]any
-
-func (r Parameters) Defaults() map[string]any {
-	if len(r) == 0 {
-		return nil
-	}
-	obj := r["properties"]
-	props, _ := ToMap(obj)
-	var data = make(map[string]any)
-	for key, prop := range props {
-		if p, ok := prop.(map[string]any); ok {
-			if def, ok := p["default"]; ok {
-				data[key] = def
-			}
-		}
-	}
-	return data
-}
-
 const (
 	// script/template
 	ToolTypeFunc ToolType = "func"
@@ -59,10 +40,10 @@ type ToolFunc struct {
 	Kit string `json:"kit"`
 
 	// tool name or pack/sub for agent
-	Name string `json:"name"`
+	Name        string `json:"name"`
+	Description string `json:"description"` // description
 
-	Description string     `json:"description"` // description
-	Parameters  Parameters `json:"parameters"`  // parameters
+	Parameters Parameters `json:"parameters"` // parameters
 
 	Body *FuncBody `json:"body"` // body
 
@@ -76,10 +57,9 @@ type ToolFunc struct {
 	// e.g labels for mcp for filtering tools
 	Extra map[string]any `json:"extra"`
 
-	// default arguments
+	// input arguments
 	Arguments map[string]any `json:"arguments"`
 
-	// Input  string `json:"input"`
 	Output string `json:"output"`
 
 	//
@@ -102,8 +82,10 @@ type ToolConfig struct {
 
 	Parameters Parameters `yaml:"parameters" json:"parameters"`
 
+	// code/template that generates the output
 	Body *FuncBody `yaml:"body" json:"body"`
 
+	// output destination: console, none, file:/
 	Output string `yaml:"output" json:"output"`
 
 	//
@@ -136,7 +118,9 @@ type FuncBody struct {
 	// json  application/json
 	// js    text/javascript
 	MimeType string `yaml:"mime_type" json:"mime_type"`
-	Script   string `yaml:"script" json:"script"`
+
+	// aciton definition
+	Script string `yaml:"script" json:"script"`
 }
 
 type ConnectorConfig struct {
@@ -275,7 +259,6 @@ func tr(s string) string {
 }
 
 func toolID(kit, name string) string {
-
 	return fmt.Sprintf("%s__%s", kit, tr(name))
 }
 

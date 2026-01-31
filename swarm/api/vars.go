@@ -3,9 +3,7 @@ package api
 import (
 	"fmt"
 	"io/fs"
-	"maps"
 	"os"
-	"sync"
 
 	"github.com/qiangli/shell/vfs"
 	"github.com/qiangli/shell/vos"
@@ -18,115 +16,6 @@ const (
 	VarsEnvContainer = "container"
 	VarsEnvHost      = "host"
 )
-
-type Environment struct {
-	Env map[string]any `json:"env"`
-	mu  sync.RWMutex   `json:"-"`
-}
-
-func NewEnvironment() *Environment {
-	return &Environment{
-		Env: make(map[string]any),
-	}
-}
-
-// Return value for key
-func (g *Environment) Get(key string) (any, bool) {
-	g.mu.RLock()
-	defer g.mu.RUnlock()
-	if v, ok := g.Env[key]; ok {
-		return v, ok
-	}
-	return nil, false
-}
-
-// Return string value for key, empty if key it not set or value can not be converted to string
-func (g *Environment) GetString(key string) string {
-	if v, ok := g.Get(key); ok {
-		return ToString(v)
-	}
-	return ""
-}
-
-// Return int value for key, 0 if key is not set or value can not be converted to int
-func (g *Environment) GetInt(key string) int {
-	if v, ok := g.Get(key); ok {
-		return ToInt(v)
-	}
-	return 0
-}
-
-// Return all envs
-func (g *Environment) GetAllEnvs() map[string]any {
-	return g.GetEnvs(nil)
-}
-
-// Return envs specified by keys
-func (g *Environment) GetEnvs(keys []string) map[string]any {
-	g.mu.RLock()
-	defer g.mu.RUnlock()
-	envs := make(map[string]any)
-	if len(keys) == 0 {
-		maps.Copy(envs, g.Env)
-		return envs
-	}
-	for _, k := range keys {
-		envs[k] = g.Env[k]
-	}
-	return envs
-}
-
-func (g *Environment) Set(key string, val any) {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	g.Env[key] = val
-}
-
-// Clear all entries from the map and copy the new values
-// while maintaining the same old reference.
-func (g *Environment) SetEnvs(envs map[string]any) {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	for k := range g.Env {
-		delete(g.Env, k)
-	}
-	maps.Copy(g.Env, envs)
-}
-
-func (g *Environment) Unset(key string) {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	delete(g.Env, key)
-}
-
-func (g *Environment) UnsetEnvs(keys []string) {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	for _, k := range keys {
-		delete(g.Env, k)
-	}
-}
-
-// copy all src values to the environment env
-func (g *Environment) AddEnvs(src map[string]any) {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	maps.Copy(g.Env, src)
-}
-
-// thread safe access to the env
-func (g *Environment) Apply(fn func(map[string]any) error) error {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	return fn(g.Env)
-}
-
-// copy all environment env to dst
-func (g *Environment) Copy(dst map[string]any) {
-	g.mu.RLock()
-	defer g.mu.RUnlock()
-	maps.Copy(dst, g.Env)
-}
 
 // global context
 type Vars struct {

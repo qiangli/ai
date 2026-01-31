@@ -70,10 +70,9 @@ type Model struct {
 
 	Description string `json:"description"`
 
-	// model @agent or resolved provider model name
-	// example:
-	//   @model
-	//   gemini-2.0-flash-lite
+	// LLM model name
+	// Example:
+	// gemini-2.0-flash-lite
 	Model string `json:"model"`
 
 	Provider string `json:"provider"`
@@ -84,7 +83,6 @@ type Model struct {
 }
 
 func (r *Model) String() string {
-	// return fmt.Sprintf("%s/%s", r.Provider, r.Model)
 	return fmt.Sprintf("%s/%s", r.Set, r.Level)
 }
 

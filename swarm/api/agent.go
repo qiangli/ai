@@ -92,21 +92,23 @@ type Agent struct {
 
 	// default values
 	Arguments Arguments `json:"arguments"`
+	// models - a special arg for supporting multi model fallback.
 
-	// agent as tool
+	// for tool or agent as a tool
 	Parameters Parameters `json:"parameters"`
 
-	// templated values
-	// these should not be in the args map
+	// templated values.
+	// these should not be in the args map (ignored)
+	// inherit from embedded ancestors
 	Instruction string `json:"instruction"`
 	Context     string `json:"context"`
-	Message     string `json:"message"`
+	// not inherited
+	Message string `json:"message"`
 
-	// The model to be used by the agent
-	// TODO map or list for supporting multi features
+	// The preferred model to be used by the agent
 	Model *Model `json:"model"`
 
-	// Functions that the agent can call
+	// The predefined list of functions the agent can call
 	Tools []*ToolFunc `json:"-"`
 
 	// inheritance
@@ -114,6 +116,14 @@ type Agent struct {
 
 	// LLM adapter
 	Adapter string `json:"adapter"`
+
+	// custom actions
+	Entrypoint []string `json:"entrypoint"`
+
+	// advices
+	Before []string `json:"before"`
+	Around []string `json:"around"`
+	After  []string `json:"after"`
 
 	// assigned at buildtime/runtime
 	Parent *Agent `json:"-"`
@@ -128,34 +138,14 @@ type Agent struct {
 	// get api token for LLM model
 	Token func() string `json:"-"`
 
+	// resolved from instruction/message/context
 	Prompt  string     `json:"prompt"`
 	Query   string     `json:"query"`
 	History []*Message `json:"history"`
 
-	//
-	Entrypoint []string `json:"entrypoint"`
-	// advices
-	Before []string `json:"before"`
-	Around []string `json:"around"`
-	After  []string `json:"after"`
-
+	// resolved from models arg
 	Models []*Model `json:"models"`
 }
-
-// func (r *Agent) MaxTurns() int {
-// 	if r.Arguments == nil {
-// 		return 0
-// 	}
-// 	return r.Arguments.GetInt("max_turns")
-// }
-
-// func (r *Agent) SetMaxTurns(max int) *Agent {
-// 	if r.Arguments == nil {
-// 		r.Arguments = NewArguments()
-// 	}
-// 	r.Arguments.SetArg("max_turns", max)
-// 	return r
-// }
 
 func (r *Agent) MemOption() *MemOption {
 	var o MemOption
@@ -171,21 +161,25 @@ func (r *Agent) MemOption() *MemOption {
 }
 
 type AgentConfig struct {
+	// Type: "agent"
+
 	Name        string `yaml:"name" json:"name"` // sub name without pack
 	Display     string `yaml:"display" json:"display"`
 	Description string `yaml:"description" json:"description"`
 
 	Environment map[string]any `yaml:"environment" json:"environment"` // global vars
 	Arguments   map[string]any `yaml:"arguments" json:"arguments"`
-	Parameters  Parameters     `yaml:"parameters" json:"parameters"` // agent as tool
 
-	//
+	// agent as tool: "agent"
+	Parameters Parameters `yaml:"parameters" json:"parameters"` // agent as tool
+
+	// LLM that generates the output
 	Instruction string `yaml:"instruction" json:"instruction"`
 	Context     string `yaml:"context" json:"context"`
 	Message     string `yaml:"message" json:"message"`
+	Model       string `yaml:"model" json:"model"`
 
-	Model string `yaml:"model" json:"model"`
-
+	// output destinateion: console, none, file:/
 	Output string `yaml:"output" json:"output"`
 
 	// tools defined in tools config
@@ -201,18 +195,21 @@ type AgentConfig struct {
 	// logging: quiet | info[rmative] | verbose | trace
 	LogLevel string `yaml:"log_level" json:"log_level"`
 
-	// TODO clarify
-	// inherit from embedded parent:
-	// + environment
+	// TODO clarify/finalize
+	// inherit from embedded ancestors:
+	// + environmen
+	//
 	// + instruction
 	// + context
 	//
 	// + model
 	// + functions
-	// local scope:
+	//
+	// local scope only:
 	// - arguments
-	// - message
 	// - parameters
+	//
+	// - message
 	Embed []string `yaml:"embed" json:"embed"`
 
 	// chat|image|docker
@@ -222,6 +219,7 @@ type AgentConfig struct {
 	Entrypoint []string      `yaml:"entrypoint" json:"entrypoint"`
 	Advices    *AdviceConfig `yaml:"advices" json:"advices"`
 
+	// runtime
 	Config *AppConfig `json:"-"`
 }
 

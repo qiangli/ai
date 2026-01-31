@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"maps"
 	"strings"
+	"sync"
 )
 
 type State int
@@ -31,10 +32,6 @@ func (s State) String() string {
 	}
 	return "EXIT"
 }
-
-// func (s State) Equal(state string) bool {
-// 	return strings.ToUpper(state) == s.String()
-// }
 
 func ParseState(state string) State {
 	switch strings.ToUpper(state) {
@@ -121,13 +118,6 @@ func (r Arguments) Copy(dst map[string]any) Arguments {
 	return r
 }
 
-// func (r Arguments) Clone() Arguments {
-// 	args := make(map[string]any)
-// 	maps.Copy(args, r)
-
-// 	return args
-// }
-
 // openai: ChatCompletionMessageToolCallUnion
 // genai: FunctionCall
 // anthropic: ToolUseBlock
@@ -165,30 +155,50 @@ type InputConfig struct {
 	Stdin      bool
 }
 
+// App config declares the default values for agent/tool/model
 type AppConfig struct {
-	// kit specifies a namespace for the action
-	// examples:
-	// shell
+	// Top level field config not supported. these should be agent specific
+	// Name        string
+	// Display     string
+	// Description string
+	// Instruction string
+	// Context     string
+	// Message     string
+	// Parameters  Parameters
+
+	//
+	Pack string `yaml:"pack" json:"pack"`
+	// list of agents
+	Agents []*AgentConfig `yaml:"agents" json:"agents"`
+
+	// app level global vars
+	Environment map[string]any `yaml:"environment" json:"environment"`
+
+	// app level agent vars
+	Arguments map[string]any `yaml:"arguments" json:"arguments"`
+
+	// Kit specifies a namespace for the action
+	// Action: agent, tool, and command
+	//
+	// Examples:
+	// Local machine
+	// File system
+	// Container name
 	// MCP server name
-	// file system
-	// container name
-	// virtual machine name
-	// tool/function (Gemini)
+	// Internet
 	Kit string `yaml:"kit" json:"kit"`
 
 	// action type:
 	// func, system, agent...
 	Type string `yaml:"type" json:"type"`
 
-	//
-	Arguments map[string]any `yaml:"arguments" json:"arguments"`
+	// list of tools
+	Tools []*ToolConfig `yaml:"tools" json:"tools"`
 
-	// top level config not supported. these should be agent specific
-	// Message string `yaml:"message" json:"message"`
-	// Instruction string `yaml:"instruction" json:"instruction"`
-	// Context    string `yaml:"context" json:"context"`
+	// modelset name
+	Set string `yaml:"set" json:"set"`
 
-	// set/level key - not the LLM model
+	// set/level alias - not the LLM model
 	Model string `yaml:"model" json:"model"`
 
 	//
@@ -202,28 +212,13 @@ type AppConfig struct {
 	// logging: quiet | informative | verbose
 	LogLevel string `yaml:"log_level" json:"log_level"`
 
-	// app level global vars
-	Environment map[string]any `yaml:"environment" json:"environment"`
-
-	//
-	Pack string `yaml:"pack" json:"pack"`
-
-	Agents []*AgentConfig `yaml:"agents" json:"agents"`
-
-	// tool / model provider
+	// model provider
 	Provider string `yaml:"provider" json:"provider"`
 	BaseUrl  string `yaml:"base_url" json:"base_url"`
 
-	// api token lookup key
+	// api token lookup key - not the LLM api token
 	ApiKey string `yaml:"api_key" json:"api_key"`
 
-	// action type:
-	// func, system, agent...
-	// Type  string        `yaml:"type"`
-	Tools []*ToolConfig `yaml:"tools" json:"tools"`
-
-	// modelset name
-	Set    string                  `yaml:"set" json:"set"`
 	Models map[string]*ModelConfig `yaml:"models" json:"models"`
 
 	// The raw data for this config
@@ -256,7 +251,7 @@ func (ac *AppConfig) ToMap() map[string]any {
 		result["set"] = ac.Set
 	}
 
-	//
+	// common fields
 	if ac.Model != "" {
 		result["model"] = ac.Model
 	}
@@ -296,6 +291,134 @@ func (cfg *AppConfig) IsTracing() bool {
 	return ToLogLevel(cfg.LogLevel) == Tracing
 }
 
-// func (cfg *AppConfig) HasInput() bool {
-// 	return cfg.Message != ""
-// }
+//
+
+// global/agent scope vars
+type Environment struct {
+	Env map[string]any `json:"env"`
+	mu  sync.RWMutex   `json:"-"`
+}
+
+func NewEnvironment() *Environment {
+	return &Environment{
+		Env: make(map[string]any),
+	}
+}
+
+// Return value for key
+func (g *Environment) Get(key string) (any, bool) {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	if v, ok := g.Env[key]; ok {
+		return v, ok
+	}
+	return nil, false
+}
+
+// Return string value for key, empty if key it not set or value can not be converted to string
+func (g *Environment) GetString(key string) string {
+	if v, ok := g.Get(key); ok {
+		return ToString(v)
+	}
+	return ""
+}
+
+// Return int value for key, 0 if key is not set or value can not be converted to int
+func (g *Environment) GetInt(key string) int {
+	if v, ok := g.Get(key); ok {
+		return ToInt(v)
+	}
+	return 0
+}
+
+// Return all envs
+func (g *Environment) GetAllEnvs() map[string]any {
+	return g.GetEnvs(nil)
+}
+
+// Return envs specified by keys
+func (g *Environment) GetEnvs(keys []string) map[string]any {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	envs := make(map[string]any)
+	if len(keys) == 0 {
+		maps.Copy(envs, g.Env)
+		return envs
+	}
+	for _, k := range keys {
+		envs[k] = g.Env[k]
+	}
+	return envs
+}
+
+func (g *Environment) Set(key string, val any) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	g.Env[key] = val
+}
+
+// Clear all entries from the map and copy the new values
+// while maintaining the same old reference.
+func (g *Environment) SetEnvs(envs map[string]any) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	for k := range g.Env {
+		delete(g.Env, k)
+	}
+	maps.Copy(g.Env, envs)
+}
+
+func (g *Environment) Unset(key string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	delete(g.Env, key)
+}
+
+func (g *Environment) UnsetEnvs(keys []string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	for _, k := range keys {
+		delete(g.Env, k)
+	}
+}
+
+// copy all src values to the environment env
+func (g *Environment) AddEnvs(src map[string]any) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	maps.Copy(g.Env, src)
+}
+
+// thread safe access to the env
+func (g *Environment) Apply(fn func(map[string]any) error) error {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return fn(g.Env)
+}
+
+// copy all environment env to dst
+func (g *Environment) Copy(dst map[string]any) {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	maps.Copy(dst, g.Env)
+}
+
+// agent/tool parameters
+type Parameters map[string]any
+
+func (r Parameters) Defaults() map[string]any {
+	if len(r) == 0 {
+		return nil
+	}
+	obj := r["properties"]
+	props, _ := ToMap(obj)
+	var data = make(map[string]any)
+	for key, prop := range props {
+		if p, ok := prop.(map[string]any); ok {
+			if def, ok := p["default"]; ok {
+				data[key] = def
+			}
+		}
+	}
+	return data
+}
