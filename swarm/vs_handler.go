@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -83,11 +84,30 @@ func execEnv(env expand.Environ) []string {
 	return list
 }
 
-func VirtualExecHandler(vs *VirtualSystem) func(next interp.ExecHandlerFunc) interp.ExecHandlerFunc {
+func VirtualExecHandler(vs *VirtualSystem, runner *interp.Runner) func(next interp.ExecHandlerFunc) interp.ExecHandlerFunc {
+	// workaround
+	// https://github.com/mvdan/sh/blob/v3.12.0/expand/environ.go#L42
+	syncEnv := func(ctx context.Context, hc interp.HandlerContext) {
+		var buf bytes.Buffer
+		buf.WriteString("set -a;")
+		for _, v := range vs.vars.OS.Env() {
+			nv := strings.SplitN(v, "=", 2)
+			if len(nv) == 2 {
+				buf.WriteString(nv[0])
+				buf.WriteString("=\"")
+				buf.WriteString(nv[1])
+				buf.WriteString("\";")
+			}
+		}
+		buf.WriteString("set +a")
+		hc.Builtin(ctx, []string{"eval", buf.String()})
+	}
 	handle := func(ctx context.Context, args []string) error {
 		hc := interp.HandlerCtx(ctx)
 
 		err := HandleAction(ctx, vs, args)
+		// sync env
+		syncEnv(ctx, hc)
 
 		switch err := err.(type) {
 		case *exec.ExitError:

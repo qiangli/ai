@@ -122,7 +122,7 @@ func (vs *VirtualSystem) NewRunner(opts ...interp.RunnerOption) (*interp.Runner,
 	interp.StdIO(vs.ioe.Stdin, vs.ioe.Stdout, vs.ioe.Stderr)(r)
 
 	var middlewares = []func(interp.ExecHandlerFunc) interp.ExecHandlerFunc{
-		VirtualExecHandler(vs),
+		VirtualExecHandler(vs, r),
 	}
 	if err := interp.ExecHandlers(middlewares...)(r); err != nil {
 		return nil, err
