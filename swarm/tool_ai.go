@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	// "github.com/hashicorp/golang-lru/v2/expirable"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm"
@@ -25,15 +24,12 @@ import (
 )
 
 type AIKit struct {
-	// sw    *Swarm
 	vars *api.Vars
-	// agent *api.Agent
 }
 
 func NewAIKit(vars *api.Vars) *AIKit {
 	return &AIKit{
 		vars: vars,
-		// agent: agent,
 	}
 }
 

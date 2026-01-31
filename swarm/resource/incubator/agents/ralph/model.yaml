@@ -1,0 +1,15 @@
+###
+set: "ralph"
+provider: "openai"
+base_url: "https://api.openai.com/v1/"
+api_key: "openai"
+models:
+  any:
+    model: "gpt-5-mini"
+  L1:
+    model: "gpt-5-nano"
+  L2:
+    model: "gpt-5-mini"
+  L3:
+    model: "gpt-5.2"
+###

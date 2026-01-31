@@ -113,13 +113,14 @@
 				// "dev/skills/agents/eval/agent.yaml",
 				//
 				// "@swe/swe",
+				"@ralph"
 				// 
 				// bash script
 				// "@shell/shell",
 				// "--message",
 				// "install"
 				// 
-				"test/eval.sh",
+				// "test/eval.sh",
 				// "test/all.sh",
 				// "test/basic.sh",
 				// "test/std.sh",
