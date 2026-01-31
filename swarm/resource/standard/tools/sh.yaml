@@ -238,7 +238,7 @@ tools:
   - name: "apply"
     description: |
       Applies a Golang template to provided data, as documented at: https://pkg.go.dev/text/template.
-      The template can be specified either as a file path or as an inline string prefixed with "data:".
+      The template can be specified either as a file path or as an inline string prefixed with "data:.".
       Additional arguments represent the data to be used in the template. Some default data variables include:
       + query - the user's request message
       + result - the last LLM's response
@@ -251,7 +251,7 @@ tools:
           type: "string"
           description: |
             Specifies the template to be applied to the data.
-            It can be specified either as a file path or as an inline string prefixed with "data:".
+            It can be specified either as a file path or as an inline string prefixed with "data:.".
             Provide any additional arguments required by the template.
       required:
         - template
@@ -272,7 +272,7 @@ tools:
           description: |
             A custom template to apply to the data. If not provided, default templates
             are used based on the format: json, markdown, or raw.
-            It can be a file path or an inline string prefixed with "data:".
+            It can be a file path or an inline string prefixed with "data:.".
 
   - name: "parse"
     description: |
@@ -419,3 +419,21 @@ tools:
           description: "A valid file path or URI specifying the source of environment name/value pairs. Supports file: and data: URIs."
       required:
         - source
+
+  - name: "diff"
+    display: "Diff (unix-like)"
+    description: |
+      Run a unix-style diff between two files. This is a thin wrapper around the system `diff` command.
+      If the files differ, the tool will return a non-zero exit (matching the `diff` behaviour) so callers can use shell-style `||` to react to differences.
+    parameters:
+      type: "object"
+      properties:
+        a:
+          type: "string"
+          description: "Path to the first file to compare."
+        b:
+          type: "string"
+          description: "Path to the second file to compare."
+      required:
+        - a
+        - b

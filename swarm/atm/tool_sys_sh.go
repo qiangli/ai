@@ -474,3 +474,30 @@ func isValidEnvName(s string) bool {
 	}
 	return true
 }
+
+// Diff runs the system `diff` command between two files and returns the
+// output. If the files differ, the underlying command may exit non-zero; we
+// return the output and the error so callers can inspect the diff while
+// observing the non-zero exit behavior.
+func (r *SystemKit) Diff(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
+	a, err := api.GetStrProp("a", args)
+	if err != nil {
+		return "", err
+	}
+	b, err := api.GetStrProp("b", args)
+	if err != nil {
+		return "", err
+	}
+	if strings.TrimSpace(a) == "" || strings.TrimSpace(b) == "" {
+		return "", fmt.Errorf("both 'a' and 'b' file paths are required")
+	}
+
+	// use unified diff format by default
+	out, err := RunCommandVerbose(ctx, vars.OS, "diff", []string{"-u", a, b})
+	if err != nil {
+		// return the output along with the error to allow callers to inspect
+		// differences while still propagating the non-zero exit behavior.
+		return out, err
+	}
+	return out, nil
+}
