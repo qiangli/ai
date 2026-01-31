@@ -423,8 +423,10 @@ tools:
   - name: "diff"
     display: "Diff (unix-like)"
     description: |
-      Run a unix-style diff between two files. This is a thin wrapper around the system `diff` command.
-      If the files differ, the tool will return a non-zero exit (matching the `diff` behaviour) so callers can use shell-style `||` to react to differences.
+      Compute a unified diff between two files using a pure-Go implementation.
+      The tool returns the unified diff text when files differ and returns a
+      non-zero exit (error) in that case so callers can use shell-style `||`
+      to react to differences, matching the behavior of the unix `diff` utility.
     parameters:
       type: "object"
       properties:

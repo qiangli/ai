@@ -503,10 +503,8 @@ func (r *SystemKit) Diff(ctx context.Context, vars *api.Vars, _ string, args map
 	}
 
 	// Compute unified diff
-	aLines := strings.Split(aContent, "\n")
-	bLines := strings.Split(bContent, "\n")
-
-d := difflib.UnifiedDiff{
+	// Use difflib's SplitLines helper to prepare line slices.
+	d := difflib.UnifiedDiff{
 		A:        difflib.SplitLines(aContent),
 		B:        difflib.SplitLines(bContent),
 		FromFile: aPath,
@@ -517,5 +515,12 @@ d := difflib.UnifiedDiff{
 	if err != nil {
 		return "", err
 	}
-	return text, nil
+	// If there is any diff output, return an error to produce a non-zero
+	// exit status (matching the unix `diff` behavior). Include the diff in
+	// the error message so callers can see the differences.
+	if strings.TrimSpace(text) != "" {
+		return text, fmt.Errorf("files differ:\n%s", text)
+	}
+	// No differences
+	return "", nil
 }
