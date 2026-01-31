@@ -74,4 +74,6 @@ https://github.com/rs/zerolog?tab=readme-ov-file
 https://github.com/easyCZ/logrotate
 https://linux.die.net/man/8/logrotate
 
+https://github.com/go-git/go-git
+
 

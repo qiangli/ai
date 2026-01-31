@@ -35,7 +35,7 @@ agents:
             for seconds (the default), 'm' for minutes, 'h' for hours, or 'd'
             for days.  
             A duration of 0 disables the associated timeout.
-          default: "10m"
+          default: "15m"
       required:
         - query
     advices:
