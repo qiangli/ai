@@ -30,7 +30,7 @@ Arguments:
 Preset:
   workspace: workspace
 
-  user: liqiang
+  user: tester
   kit: agent
   agent: test/test
 --------
@@ -42,13 +42,19 @@ tell me a joke
 ---
 >>>>>>>>> Env
 ---
+BAZ=123
+EMPTY=
+FOO=bar
+GOOD=true
 HOME=<redated>
+IGNORED=should_not_be_set
 PATH=/bin:/usr/bin
+QUOTED=quoted value
+SPACED=spaced_value
+WITH_EQUALS=one=two
 city=SFO
-datetime2=Jan  1 08:08:08
 datetime=<TODO>
 input=<redated>
-message2=tell me a joke
 message=tell me a joke
 nickname=Charles
 workspace=<redacted>
