@@ -113,7 +113,7 @@
 				// "dev/skills/agents/eval/agent.yaml",
 				//
 				// "@swe/swe",
-				"@swe"
+				// "@swe"
 				// 
 				// bash script
 				// "@shell/shell",
@@ -224,9 +224,9 @@
 				// "--script",
 				// "data:,#!\nset -x\n/fs:list_roots\nprintenv\necho this is a test\nls -al\ngo version\n"
 				//
-				// "/web:google_search",
-				// "--message",
-				// "todays news headlines"
+				"/web:google_search",
+				"--message",
+				"todays news headlines"
 				//
 				// "/web:fetch_content",
 				// "--option",

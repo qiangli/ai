@@ -108,7 +108,8 @@ tools:
   - name: "brave_search"
     display: "🦁 Brave Search"
     description: "Search the web using Brave and return formatted results"
-    api_key: "brave"
+    arguments:
+      api_key: "brave"
     parameters:
       type: "object"
       properties:
@@ -127,7 +128,8 @@ tools:
   - name: "google_search"
     display: "🅖 Google Search"
     description: "Search the web using Google and return formatted results"
-    api_key: "google"
+    arguments:
+      api_key: "google"
     parameters:
       type: "object"
       properties:

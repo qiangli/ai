@@ -307,7 +307,15 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 	return result, err
 }
 
-func (r *AgentToolRunner) callTool(ctx context.Context, tf *api.ToolFunc, args map[string]any) (*api.Result, error) {
+func (r *AgentToolRunner) callTool(ctx context.Context, tf *api.ToolFunc, input map[string]any) (*api.Result, error) {
+	var args map[string]any
+	if len(tf.Arguments) > 0 {
+		args = make(map[string]any)
+		maps.Copy(args, tf.Arguments)
+		maps.Copy(args, input)
+	} else {
+		args = input
+	}
 	log.GetLogger(ctx).Infof("⣿ %s:%s %+v\n", tf.Kit, tf.Name, api.FormatArgMap(args))
 
 	const outformat = `
@@ -383,10 +391,10 @@ func (r *AgentToolRunner) callTool(ctx context.Context, tf *api.ToolFunc, args m
 	return result, err
 }
 
-func (r *AgentToolRunner) dispatch(ctx context.Context, v *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
+func (r *AgentToolRunner) dispatch(ctx context.Context, tf *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
 	// command
-	if v.Type == api.ToolTypeBin {
-		out, err := atm.ExecCommand(ctx, r.vars.OS, r.vars, v.Name, nil)
+	if tf.Type == api.ToolTypeBin {
+		out, err := atm.ExecCommand(ctx, r.vars.OS, r.vars, tf.Name, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -396,9 +404,9 @@ func (r *AgentToolRunner) dispatch(ctx context.Context, v *api.ToolFunc, args ap
 	}
 
 	// ai
-	if v.Type == api.ToolTypeAI {
+	if tf.Type == api.ToolTypeAI {
 		aiKit := NewAIKit(r.vars)
-		out, err := aiKit.Call(ctx, r.vars, r.agent, v, args)
+		out, err := aiKit.Call(ctx, r.vars, r.agent, tf, args)
 		if err != nil {
 			return nil, err
 		}
@@ -406,27 +414,27 @@ func (r *AgentToolRunner) dispatch(ctx context.Context, v *api.ToolFunc, args ap
 	}
 
 	// agent tool
-	if v.Type == api.ToolTypeAgent {
+	if tf.Type == api.ToolTypeAgent {
 		aiKit := NewAIKit(r.vars)
-		var in map[string]any
-		if len(v.Arguments) > 0 {
-			in = make(map[string]any)
-			maps.Copy(in, v.Arguments)
-			maps.Copy(in, args)
-		} else {
-			in = args
-		}
-		in["agent"] = v.Name
-		return aiKit.SpawnAgent(ctx, r.vars, r.agent, nil, in)
+		// var in map[string]any
+		// if len(v.Arguments) > 0 {
+		// 	in = make(map[string]any)
+		// 	maps.Copy(in, v.Arguments)
+		// 	maps.Copy(in, args)
+		// } else {
+		// 	in = args
+		// }
+		args["agent"] = tf.Name
+		return aiKit.SpawnAgent(ctx, r.vars, r.agent, nil, args)
 	}
 
 	// tools
-	kit, err := r.vars.Tools.GetKit(v)
+	kit, err := r.vars.Tools.GetKit(tf)
 	if err != nil {
 		return nil, err
 	}
 
-	out, err := kit.Call(ctx, r.vars, r.agent, v, args)
+	out, err := kit.Call(ctx, r.vars, r.agent, tf, args)
 
 	if err != nil {
 		return nil, err

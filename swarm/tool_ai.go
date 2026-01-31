@@ -1053,6 +1053,7 @@ func (r *AIKit) getTools(ids []string) ([]*api.ToolFunc, error) {
 				//
 				Output: v.Output,
 				//
+				Arguments: v.Arguments,
 				// Provider: nvl(v.Provider, tc.Provider),
 				// BaseUrl:  nvl(v.BaseUrl, tc.BaseUrl),
 				// ApiKey:   nvl(v.ApiKey, tc.ApiKey),

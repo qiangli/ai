@@ -80,6 +80,8 @@ type ToolConfig struct {
 	Display     string `yaml:"display" json:"display"`
 	Description string `yaml:"description" json:"description"`
 
+	Arguments map[string]any `yaml:"arguments" json:"arguments"`
+
 	Parameters Parameters `yaml:"parameters" json:"parameters"`
 
 	// code/template that generates the output

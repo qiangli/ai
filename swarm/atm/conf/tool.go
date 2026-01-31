@@ -134,9 +134,10 @@ func LoadLocalToolFunc(local *api.AppConfig, owner, s string, secrets api.Secret
 			Type:  local.Type,
 			Tools: local.Tools,
 			//
-			Provider: local.Provider,
-			BaseUrl:  local.BaseUrl,
-			ApiKey:   local.ApiKey,
+			Provider:  local.Provider,
+			BaseUrl:   local.BaseUrl,
+			ApiKey:    local.ApiKey,
+			Arguments: local.Arguments,
 			//
 			Store:   local.Store,
 			BaseDir: local.BaseDir,
@@ -238,6 +239,7 @@ func LoadTools(tc *api.AppConfig, owner string, secrets api.SecretStore) ([]*api
 			//
 			Output: v.Output,
 			//
+			Arguments: v.Arguments,
 			// Provider: nvl(v.Provider, tc.Provider),
 			// BaseUrl:  nvl(v.BaseUrl, tc.BaseUrl),
 			// ApiKey:   nvl(v.ApiKey, tc.ApiKey),
