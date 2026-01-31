@@ -148,13 +148,13 @@ func (r *WebKit) BraveSearch(ctx context.Context, vars *api.Vars, name string, a
 		max = 10
 	}
 
-	apiKey, err := r.token(vars, args)
+	token, err := r.token(vars, args)
 	if err != nil {
 		return "", err
 	}
 
 	log.GetLogger(ctx).Debugf("🦁 brave query: %q max: %d\n", query, max)
-	return webtool.Brave(ctx, apiKey, query, max)
+	return webtool.Brave(ctx, token, query, max)
 }
 
 // Search the web using Google.
@@ -175,11 +175,11 @@ func (r *WebKit) GoogleSearch(ctx context.Context, vars *api.Vars, name string, 
 	}
 
 	// engine_id:api_key
-	key, err := r.token(vars, args)
+	token, err := r.token(vars, args)
 	if err != nil {
 		return "", err
 	}
-	seID, apiKey := split2(key, ":", "")
+	seID, apiKey := split2(token, ":", "")
 
 	log.GetLogger(ctx).Debugf("🅖 google query: %q max: %d\n", query, max)
 	return webtool.Google(ctx, apiKey, seID, query, max)

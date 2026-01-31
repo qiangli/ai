@@ -34,12 +34,12 @@ func Bing(ctx context.Context, query string, maxResults int) (string, error) {
 	return cli.Search(ctx, query)
 }
 
-func Brave(ctx context.Context, apiKey, query string, maxResults int) (string, error) {
-	cli := brave.New(apiKey, maxResults)
+func Brave(ctx context.Context, apiToken, query string, maxResults int) (string, error) {
+	cli := brave.New(apiToken, maxResults)
 	return cli.Search(ctx, query)
 }
 
-func Google(ctx context.Context, apiKey, searchEngineID, query string, maxResults int) (string, error) {
-	cli := google.New(apiKey, searchEngineID, maxResults)
+func Google(ctx context.Context, apiToken, searchEngineID, query string, maxResults int) (string, error) {
+	cli := google.New(apiToken, searchEngineID, maxResults)
 	return cli.Search(ctx, query)
 }
