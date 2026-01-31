@@ -50,7 +50,7 @@ function test_failed() {
 $BASE/test/test.sh --output /tmp/test.txt
 
 # diff /tmp/test.txt ./test/data/test-expected.txt 
-/sh:exec --command "diff /tmp/test.txt ./test/data/test-expected.txt || echo  '❌❌ test outputs differ'" 
+/sh:diff --a "/tmp/test.txt" --b "./test/data/test-expected.txt" || test_failed 
 
 echo "$?"
 echo "*** All tests completed ***"

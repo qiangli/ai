@@ -10,6 +10,7 @@ import (
 	"unicode"
 
 	"github.com/cenkalti/backoff/v4"
+	"github.com/pmezard/go-difflib/difflib"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
@@ -475,29 +476,46 @@ func isValidEnvName(s string) bool {
 	return true
 }
 
-// Diff runs the system `diff` command between two files and returns the
-// output. If the files differ, the underlying command may exit non-zero; we
-// return the output and the error so callers can inspect the diff while
-// observing the non-zero exit behavior.
+// Diff computes a unified diff between two files using an embedded Go
+// diff implementation instead of invoking an external `diff` binary. This
+// keeps all functionality inside the application binary as requested.
 func (r *SystemKit) Diff(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
-	a, err := api.GetStrProp("a", args)
+	aPath, err := api.GetStrProp("a", args)
 	if err != nil {
 		return "", err
 	}
-	b, err := api.GetStrProp("b", args)
+	bPath, err := api.GetStrProp("b", args)
 	if err != nil {
 		return "", err
 	}
-	if strings.TrimSpace(a) == "" || strings.TrimSpace(b) == "" {
+	if strings.TrimSpace(aPath) == "" || strings.TrimSpace(bPath) == "" {
 		return "", fmt.Errorf("both 'a' and 'b' file paths are required")
 	}
 
-	// use unified diff format by default
-	out, err := RunCommandVerbose(ctx, vars.OS, "diff", []string{"-u", a, b})
+	// Load file contents via workspace loader to support URIs and virtual FS
+	aContent, err := api.LoadURIContent(vars.Workspace, aPath)
 	if err != nil {
-		// return the output along with the error to allow callers to inspect
-		// differences while still propagating the non-zero exit behavior.
-		return out, err
+		return "", fmt.Errorf("failed to load 'a': %w", err)
 	}
-	return out, nil
+	bContent, err := api.LoadURIContent(vars.Workspace, bPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to load 'b': %w", err)
+	}
+
+	// Compute unified diff
+	aLines := strings.Split(aContent, "\n")
+	bLines := strings.Split(bContent, "\n")
+
+d := difflib.UnifiedDiff{
+		A:        difflib.SplitLines(aContent),
+		B:        difflib.SplitLines(bContent),
+		FromFile: aPath,
+		ToFile:   bPath,
+		Context:  3,
+	}
+	text, err := difflib.GetUnifiedDiffString(d)
+	if err != nil {
+		return "", err
+	}
+	return text, nil
 }
