@@ -5,21 +5,20 @@ import (
 	"strings"
 )
 
-// Level represents the "intelligence" level of the model.
+// Level by convnention represents the "intelligence" level of the model.
 // i.e. basic, regular, advanced
 // for example, OpenAI: gpt-4.1-mini, gpt-4.1, o3
 type Level = string
 
 const (
-	// any of L1/L2/L3
+	// any of L1/L2/L3/L4/L5
 	Any Level = "any"
 
 	L1 Level = "L1"
 	L2 Level = "L2"
 	L3 Level = "L3"
-	//
-	Image Level = "image"
-	TTS   Level = "tts"
+	L4 Level = "L4"
+	L5 Level = "L5"
 )
 
 // Model set and level
@@ -62,7 +61,7 @@ func (r Setlevel) Equal(s string) bool {
 	return false
 }
 
-var Levels = []Level{L1, L2, L3, Image, TTS}
+var Levels = []Level{L1, L2, L3, L4, L5}
 
 type Model struct {
 	Set   string `json:"set"`
