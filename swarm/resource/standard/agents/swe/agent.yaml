@@ -129,14 +129,5 @@ agents:
       - If you answer directly, still include a 1-sentence reason for not delegating.
     functions:
       - "ai:*"
-      - "agent:swe/quick"
-      - "agent:swe/ask"
-      - "agent:swe/clarify"
-      - "agent:swe/architect"
-      - "agent:swe/code"
-      - "agent:swe/generate"
-      - "agent:swe/improve"
-      - "agent:swe/vibe"
-      - "agent:agent/agent"
-      - "agent:agent/tool"
-      - "agent:agent/model"
+      - "agent:swe/*"
+      - "agent:agent/*"
