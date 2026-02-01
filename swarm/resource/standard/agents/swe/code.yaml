@@ -6,12 +6,12 @@ agents:
     description: |
       Implements targeted repo edits with minimal, safe changes.
     model: "anthropic/L2"
-    arguments:
-      models:
-        - anthropic/L2
-        - gemini/L2
-        - openai/L2
-        - xai/L2
+    # arguments:
+    #   models:
+    #     - anthropic/L2
+    #     - gemini/L2
+    #     - openai/L2
+    #     - xai/L2
     instruction: |
       #! mime-type=text/x-go-template
       You are the code editing agent responsible for implementing changes in this workspace.

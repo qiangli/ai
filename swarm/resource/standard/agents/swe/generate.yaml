@@ -6,12 +6,12 @@ agents:
     description: |
       Generates a small multi-file module/project from scratch.
     model: "anthropic/L2"
-    arguments:
-      models:
-        - anthropic/L2
-        - gemini/L2
-        - openai/L2
-        - xai/L2
+    # arguments:
+    #   models:
+    #     - anthropic/L2
+    #     - gemini/L2
+    #     - openai/L2
+    #     - xai/L2
     instruction: |
       Generate a small, working implementation for the user's request.
 

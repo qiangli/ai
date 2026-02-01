@@ -6,12 +6,12 @@ agents:
     description: |
       Improves/refactors existing code with concrete, minimal changes.
     model: "gemini/L2"
-    arguments:
-      models:
-        - anthropic/L2
-        - gemini/L2
-        - openai/L2
-        - xai/L2
+    # arguments:
+    #   models:
+    #     - anthropic/L2
+    #     - gemini/L2
+    #     - openai/L2
+    #     - xai/L2
     instruction: |
       You are an improvement agent.
 

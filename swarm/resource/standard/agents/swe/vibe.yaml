@@ -1,9 +1,5 @@
 ###
 pack: "swe"
-log_level: "info"
-max_time: 900
-max_turns: 60
-
 agents:
   - name: "vibe"
     display: "🎛️ Vibe Coder"
@@ -14,12 +10,12 @@ agents:
       Use when the user wants you to: propose a build prompt, define scope, enumerate files,
       or otherwise translate intent into a strong coding brief.
     model: "anthropic/L2"
-    arguments:
-      models:
-        - anthropic/L2
-        - gemini/L2
-        - openai/L2
-        - xai/L2
+    # arguments:
+    #   models:
+    #     - anthropic/L2
+    #     - gemini/L2
+    #     - openai/L2
+    #     - xai/L2
     embed:
       - "agent:context/lastn"
       - "agent:memory/memory"

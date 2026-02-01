@@ -1,13 +1,25 @@
 ###
 pack: "swe"
+#
+## default arguments for all agents
+#
 log_level: "info"
 max_time: 900
 max_turns: 60
 
+#
+model: "openai/L2"
+arguments:
+  models:
+    - anthropic/L2
+    - gemini/L2
+    - openai/L2
+    - xai/L2
+
 # https://github.com/Aider-AI/aider
 # https://aider.chat/docs/usage/modes.html
 # https://github.com/AntonOsika/gpt-engineer
-
+###
 agents:
   - name: "swe"
     display: "🤖 Software Engineer"
@@ -16,12 +28,12 @@ agents:
          Routes to the best sub-agent for: quick snippets, clarifications,
          architecture/planning, repo edits, or agent/tool/model pack management.
     model: "openai/L2"
-    arguments:
-      models:
-        - anthropic/L2
-        - gemini/L2
-        - openai/L2
-        - xai/L2
+    # arguments:
+    #   models:
+    #     - anthropic/L2
+    #     - gemini/L2
+    #     - openai/L2
+    #     - xai/L2
     parameters:
       type: "object"
       properties:

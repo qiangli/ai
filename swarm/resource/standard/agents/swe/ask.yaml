@@ -6,12 +6,12 @@ agents:
     description: |
       Read-only codebase analysis: explain behavior, locate symbols, answer questions. Never edits files.
     model: "gemini/L2"
-    arguments:
-      models:
-        - anthropic/L2
-        - gemini/L2
-        - openai/L2
-        - xai/L2
+    # arguments:
+    #   models:
+    #     - anthropic/L2
+    #     - gemini/L2
+    #     - openai/L2
+    #     - xai/L2
     instruction: |
       You are a READ-ONLY code analysis agent.
 
