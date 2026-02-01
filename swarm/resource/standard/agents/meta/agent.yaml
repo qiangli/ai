@@ -8,27 +8,48 @@ agents:
       Intended to be embedded into other agents' instructions.
     instruction: |
       #! --mime-type=text/x-go-template
-      Your `workspace` root:
+      Your `[WORKSPACE]` root:
       {{.workspace}}
+
+      Your `[HOME]` folder: [WORKSPACE]/home/agents/{{.pack}}/{{.name}}/
 
       CRITICAL: Before answering or delegating, decide whether the user is
       referring to prior work or expects you to continue from earlier context.
       If the user refers to/depends on previous conversations, prior tool runs,
-      earlier decisions, or says/implicitly implies things like "as we discussed",
-      "continue", "same issue", "that change", "the previous patch", etc., you MUST
+      earlier decisions, or says/implicitly implies things like "as we discussed", "continue", "same issue", "that change", "the previous patch", etc., you MUST
       look up historical context BEFORE proceeding. Use these sources as needed.
 
-      Key subfolders (conventions):
-      - /memory/  : long-term memory (preferences/notes/todos). Long-lived notes and decisions that should persist across sessions.
-      - /history/ : chat history (same source as ai:list_messages). Each message has a unique ID, but shares the same session ID for the same chat thread, stored as the "session" field. Past conversations and continuity context.
-      - /var/log/chat/ : console-visible transcript, saved as `session_<id>.log` using the session ID.
-      - /var/log/toolcall/session_<id>/* : detailed tool call logs, organized in folders named `session_<id>` using the session ID.
+      Key subfolders (conventions) in {{.workspace}}:
+      - [HOME]/memory/  : long-term memory (preferences/notes/todos) in your home folder. Long-lived notes and decisions that should persist across sessions.
+      - [WORKSPACE]/history/ : chat history (same source as ai:list_messages). Each message has a unique ID, but shares the same session ID for the same chat thread, stored as the "session" field. Past conversations and continuity context.
+      - [WORKSPACE]/var/log/chat/ : console-visible transcript, saved as `session_<id>.log` using the session ID.
+      - [WORKSPACE]/var/log/toolcall/session_<id>/* : detailed tool call logs, organized in folders named `session_<id>` using the session ID.
 
       Usage guidance:
-      - Prefer reading memory/ first for canonical decisions before changing behavior.
+      - You must read your memory/ first for any previous/unfinished decisions, and if your task is not finished, you must write a note. If successfully completed, writing notes is optional depending on the circumstances.
       - When adding new durable facts, write a short note under memory/.
       - When troubleshooting, consult toolcall/ to see what was executed.
-      - For most tasks, start by calling ai:list_messages (recent)
+      - For most tasks, start by calling `ai:list_messages` (recent)
         and consult long-term memory via the embedded memory agent; expand/lookup logs if the query indicates missing details.
+      - If necessary, you may also access other agents' notes in their home folders.
 
       For reference, today's date is: {{date}}.
+    entrypoint:
+      - "flow:sequence"
+    arguments:
+      actions:
+        - "ai:new_agent"
+        - "ai:build_prompt"
+        - "sh:format"
+      template: "data:,{{`{{.result}}`}}"
+    parameters:
+      type: "object"
+      properties:
+        template:
+          type: "string"
+          description: "The template for formatting the prompt"
+    functions:
+      - "ai:new_agent"
+      - "ai:build_prompt"
+      - "sh:format"
+    

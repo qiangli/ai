@@ -77,3 +77,10 @@ https://linux.die.net/man/8/logrotate
 https://github.com/go-git/go-git
 
 
+[micro](https://github.com/micro-editor/micro)
+[spf](https://github.com/yorukot/superfile.git)
+
+## Python
+
+[OpenHands](https://github.com/OpenHands/OpenHands)
+[Aider](https://github.com/Aider-AI/aider.git)
