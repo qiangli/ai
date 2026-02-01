@@ -55,7 +55,8 @@ agents:
         - "sh:timeout"
     embed:
       - "agent:context/lastn"
-      - "agent:memory/memory"
+      # - "agent:memory/memory"
+      - "agent:meta/workspace"
     instruction: |
       #! mime-type=text/x-go-template
       You are the standard SWE orchestrator.

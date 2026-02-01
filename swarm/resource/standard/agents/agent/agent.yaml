@@ -10,7 +10,8 @@ agents:
     model: "llm/L3"
     embed:
       - "agent:context/lastn"
-      - "agent:memory/memory"
+      # - "agent:memory/memory"
+      - "agent:meta/workspace"
     environment:
       base_dir: "{{.workspace}}/atm/agents"
     instruction: |

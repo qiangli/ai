@@ -37,7 +37,6 @@ func (r Packname) ID() string {
 
 // return normalized pack/sub after cleaning. sub is the same as pack if empty
 func (r Packname) Decode() (string, string) {
-
 	s := r.Clean()
 	parts := strings.SplitN(string(s), "/", 2)
 	return parts[0], parts[1]

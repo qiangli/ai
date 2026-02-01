@@ -128,9 +128,14 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, parent *api.Age
 	if parent == nil {
 		parent = r.vars.RootAgent
 	}
-	agent, err := CreateAgent(ctx, r.vars, parent, api.Packname(name), cfg)
+
+	pn := api.Packname(name)
+	agent, err := CreateAgent(ctx, r.vars, parent, pn, cfg)
 	if err != nil {
 		return nil, err
+	}
+	if agent == nil {
+		return nil, fmt.Errorf("Failed to create agent: %s", pn)
 	}
 
 	// *** envs ***

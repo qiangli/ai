@@ -439,24 +439,12 @@ func (r *ConfigLoader) Create(ctx context.Context, packname api.Packname) (*api.
 	// create the agent
 	// agent: pack/sub
 	// var user = ap.sw.User.Email
-	pack, sub := packname.Clean().Decode()
+	pack, sub := packname.Decode()
 
 	//
 	if pack == "" {
 		return nil, fmt.Errorf("missing agent pack")
 	}
-
-	// // cached agent
-	// key := AgentCacheKey{
-	// 	User: r.vars.User.Email,
-	// 	Pack: pack,
-	// 	Sub:  sub,
-	// }
-
-	// // return a cloned copy if found
-	// if v, ok := agentCache.Get(key); ok {
-	// 	return v.Clone(), nil
-	// }
 
 	ac, err := r.LoadAgentConfig(packname)
 	if err != nil {
@@ -492,7 +480,6 @@ func (r *ConfigLoader) Create(ctx context.Context, packname api.Packname) (*api.
 	}
 
 	if v, err := creator(); err == nil {
-		// agentCache.Add(key, v)
 		return v, nil
 	} else {
 		return nil, err

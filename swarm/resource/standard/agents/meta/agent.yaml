@@ -8,10 +8,11 @@ agents:
       Intended to be embedded into other agents' instructions.
     instruction: |
       #! --mime-type=text/x-go-template
-      Your `[WORKSPACE]` root:
+      The `[WORKSPACE]` root:
       {{.workspace}}
 
-      Your `[HOME]` folder: [WORKSPACE]/home/agents/{{.pack}}/{{.name}}/
+      You are agent: `{{.agent.Pack}}/{{.agent.Name}}`
+      Your `[HOME]` folder: [WORKSPACE]/home/agents/{{.agent.Pack}}/{{.agent.Name}}
 
       CRITICAL: Before answering or delegating, decide whether the user is
       referring to prior work or expects you to continue from earlier context.

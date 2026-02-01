@@ -12,7 +12,8 @@ agents:
     model: "ask/L1"
     embed:
       - "agent:context/lastn"
-      - "agent:memory/memory"
+      # - "agent:memory/memory"
+      - "agent:meta/workspace"
     instruction: |
       #! --mime-type=text/x-go-template
       You are a helpful assistant.
@@ -27,7 +28,6 @@ agents:
       - If the request depends on *user-specific preferences or facts* (e.g., "my city", "my timezone", "my units") then:
         1) First try to resolve them from existing context using:
             - `ai:list_messages` (recent context)
-            - `agent:memory/memory` (long term memory)
         2) If still missing, fall back to local workspace preference files when available (e.g. `/Users/liqiang/workspace/cloudbox/ai/.local/ask/preference.md`) using `fs:read_file`.
         3) Only ask a clarifying question if you still cannot answer safely/accurately.
       - If the request is ambiguous *and* cannot be answered safely/accurately even after the above, ask the smallest number of clarifying questions.
@@ -38,7 +38,7 @@ agents:
       2) Before choosing, you MAY run:
          - `ai:list_agents` to discover relevant specialist agents
          - `ai:list_tools` to discover relevant tools
-         - `ai:list_messages` or `agent:memory/memory` to recover prior context
+         - `ai:list_messages` to recover prior context
       3) Delegate using `ai:spawn_agent` to the most suitable agent. Provide a compact, high-signal handoff:
          - user's goal + constraints
          - relevant context (paths, snippets, assumptions)
@@ -71,5 +71,5 @@ agents:
       - "web:*"
       - "fs:*"
       - "sh:*"
-      - "agent:memory/memory"
+      # - "agent:memory/memory"
 ###
