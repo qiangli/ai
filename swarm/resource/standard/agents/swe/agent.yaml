@@ -77,6 +77,7 @@ agents:
       - agent:swe/generate  -> generate a new small project/module (multi-file) when starting from scratch.
       - agent:swe/improve   -> improve/refactor existing code with a concrete change list.
       - agent:swe/vibe      -> turn a vague/high-level request into a crisp build prompt/brief.
+      - agent:swe/install   -> install/setup tools into workspace (opt/bin/etc/profile) per install guidelines.
 
       - agent:agent/agent   -> manage agents (create/modify/view/run agent YAMLs).
       - agent:agent/tool    -> manage tools (create/modify/view/run tool YAMLs).
@@ -115,6 +116,8 @@ agents:
          - call agent:swe/improve.
       8) If the user asks you to produce a strong coding brief/prompt ("vibe coding" style), or the request is very fuzzy and would benefit from a structured implementation prompt:
          - call agent:swe/vibe.
+      9) If the user asks to install/setup tooling, CLIs, runtimes, or update PATH/profile entries:
+         - call agent:swe/install.
 
       Hard requirements:
       - If you call a sub-agent, call EXACTLY ONE.
