@@ -361,6 +361,7 @@ tools:
         dedupe:
           type: "boolean"
           description: "Skip processing when input hasn't changed (default true)."
+          default: "true"
       required: []
 
   - name: "timeout"

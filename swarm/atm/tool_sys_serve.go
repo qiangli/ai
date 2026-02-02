@@ -91,9 +91,6 @@ func (r *SystemKit) ServeLoop(ctx context.Context, vars *api.Vars, name string, 
 
 	action, _ := api.GetStrProp("action", args)
 	action = strings.TrimSpace(action)
-	if action == "" {
-		action = "default"
-	}
 
 	trigger, _ := api.GetStrProp("trigger", args)
 	trigger = strings.TrimSpace(trigger)
@@ -125,8 +122,8 @@ func (r *SystemKit) ServeLoop(ctx context.Context, vars *api.Vars, name string, 
 		lastIn = in
 
 		// trigger + action parsing from first line (clipboard/file mode requires trigger)
-		act := action
-		payload := in
+		var payload any
+		payload = in
 		if input == "stdin" {
 			// stdin is interactive; prompt is already "ai> ", trigger is optional
 			// action remains as configured (default if empty)
@@ -134,17 +131,21 @@ func (r *SystemKit) ServeLoop(ctx context.Context, vars *api.Vars, name string, 
 			_ = serveWriteOutputs(vars, outputs, in+"\n")
 		} else {
 			var ok bool
-			act, payload, ok = serveParseTriggeredFirstLine(in, trigger)
+			payload, ok = serveParseTriggeredFirstLine(in, trigger)
 			if !ok {
-				_ = serveWriteOutputs(vars, outputs, "no trigger word, input ignored\n")
+				// no trigger word, input ignored
+				// print a dot to acknowlege receiving the new input
+				if in != lastIn {
+					_ = serveWriteOutputs(vars, outputs, ".")
+				}
 				time.Sleep(poll)
 				continue
 			}
 		}
 
-		out, err := serveRunAction(ctx, vars, act, format, payload)
+		out, err := serveRunAction(ctx, vars, action, format, payload)
 		if err != nil {
-			out = fmt.Sprintf("%v", err)
+			out = fmt.Sprintf("%v\n", err)
 		}
 
 		// always prefix output prompt when writing to stdout (and others, per spec for stdin/stdout)
@@ -201,28 +202,49 @@ func serveReadInput(ctx context.Context, vars *api.Vars, input string, poll time
 	}
 }
 
-func serveRunAction(ctx context.Context, vars *api.Vars, action, format, in string) (string, error) {
+func serveRunAction(ctx context.Context, vars *api.Vars, action, format string, in any) (string, error) {
 	// Build args to run the underlying action.
 	// We pass query/message depending on kit.
-	args := api.ArgMap{}
-	kit, name := api.Kitname(action).Clean().Decode()
-	if kit == "agent" {
-		pack, sub := api.Packname(name).Clean().Decode()
-		args["kit"] = "agent"
-		args["pack"] = pack
-		args["name"] = sub
-		args["query"] = in
-		args["format"] = format
+	var args api.ArgMap
+
+	if s, ok := in.(string); ok {
+		args = api.ArgMap{}
+		args["message"] = s
 	} else {
-		args["kit"] = kit
-		args["name"] = name
-		// most tools take "query" or other fields; we provide "command" and "query" for compatibility.
-		args["query"] = in
-		args["command"] = in
+		args = in.(api.ArgMap)
+	}
+
+	// override
+	if action != "" {
+		kit, name := api.Kitname(action).Decode()
+		if kit == "agent" {
+			pack, sub := api.Packname(name).Decode()
+			args["kit"] = "agent"
+			args["pack"] = pack
+			args["name"] = sub
+		} else {
+			args["kit"] = kit
+			args["name"] = name
+			args["pack"] = ""
+		}
+	}
+	if format != "" {
 		args["format"] = format
 	}
 
-	res, err := vars.RootAgent.Runner.Run(ctx, args.Kitname().ID(), args)
+	id := args.Kitname().ID()
+	if id == "" {
+		// default @root/root
+		args["kit"] = "agent"
+		args["pack"] = "root"
+		args["name"] = "root"
+	}
+
+	if msg, ok := args["message"]; ok {
+		vars.Global.Set("message", msg)
+	}
+
+	res, err := api.Exec(ctx, vars.RootAgent.Runner, args)
 	if err != nil {
 		return "", err
 	}
