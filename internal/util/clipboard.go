@@ -6,14 +6,6 @@ import (
 	"github.com/atotto/clipboard"
 )
 
-// type ClipboardProvider interface {
-// 	Clear() error
-// 	Read() (string, error)
-// 	Get() (string, error)
-// 	Write(string) error
-// 	Append(string) error
-// }
-
 type Clipboard struct{}
 
 func NewClipboard() *Clipboard {

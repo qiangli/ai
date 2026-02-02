@@ -84,3 +84,9 @@ https://github.com/go-git/go-git
 
 [OpenHands](https://github.com/OpenHands/OpenHands)
 [Aider](https://github.com/Aider-AI/aider.git)
+
+## FTS
+
+https://github.com/zincsearch/zincsearch
+https://github.com/blugelabs/bluge
+https://github.com/blevesearch/bleve.git

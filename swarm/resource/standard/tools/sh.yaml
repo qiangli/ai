@@ -23,6 +23,7 @@ tools:
           + format
           + go
           + parse
+          + serve
 
         ## Templates
           + apply
@@ -299,6 +300,68 @@ tools:
           description: "The Go command to execute (must start with 'go')."
       required:
         - command
+
+  - name: "serve_loop"
+    display: "AI Serve Loop (clipboard/stdin loop)"
+    description: |
+      Runs an interactive infinite loop that reads input, executes an AI action, and writes output.
+
+      Default behavior:
+        - input: clipboard
+        - output: clipboard + stdout
+        - format: raw
+
+      For stdin/stdout mode, it always prints an "ai> " prompt for both input and output.
+
+      Termination:
+        - Ctrl+C exits in foreground mode.
+        - In background mode, responds to SIGTERM/SIGINT.
+    parameters:
+      type: "object"
+      properties:
+        # raw (default) or markdown
+        format:
+          type: "string"
+          enum: ["raw","markdown"]
+          description: "Output format. raw (default) or markdown"
+        # clipboard (default), stdin, or file
+        input:
+          type: "string"
+          description: "Input source: clipboard (default), stdin, or file:/path or /abs/path"
+        # a list of destinations, defaults: clipboard + stdout
+        output:
+          type: "array"
+          items:
+            type: "string"
+          description: "Output destinations: clipboard, stdout, and/or file:/path"
+        # detach and run under nohup
+        background:
+          type: "boolean"
+          description: "Detach from terminal and run in background (nohup style)."
+        # action to run each iteration (defaults to agent/root)
+        action:
+          type: "string"
+          description: "Action to execute per request (default: agent:root/root)."
+        # for clipboard mode: poll interval when unchanged
+        poll:
+          type: "string"
+          description: "Polling interval for clipboard changes (e.g. 300ms, default: 1s)."
+        trigger:
+          type: "string"
+          description: |
+            Trigger word(s) for clipboard/file input mode. Optional for stdin.
+
+            Default triggers: "ai", "#ai", "//ai".
+
+            In clipboard/file mode, only inputs whose first non-blank token matches a trigger will be processed;
+            otherwise the input is ignored and a message is emitted.
+
+            Examples: "ai", "#ai", "//ai", or custom like "ask".
+        # optional: stop if clipboard content equals last response
+        dedupe:
+          type: "boolean"
+          description: "Skip processing when input hasn't changed (default true)."
+      required: []
 
   - name: "timeout"
     description: |

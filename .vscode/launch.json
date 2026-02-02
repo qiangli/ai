@@ -36,7 +36,7 @@
 				// "--query",
 				// "what is unix",
 				// 
-				// "/ai:list_agents"
+				"/sh:serve"
 				//
 				// alias
 				// "/alias:x",
@@ -225,9 +225,9 @@
 				// "data:,#!\nset -x\n/fs:list_roots\nprintenv\necho this is a test\nls -al\ngo version\n"
 				//
 				// "/web:google_search",
-				"/web:brave_search",
-				"--message",
-				"todays news headlines"
+				// "/web:brave_search",
+				// "--message",
+				// "todays news headlines"
 				//
 				// "/web:fetch_content",
 				// "--option",
