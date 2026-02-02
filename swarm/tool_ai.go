@@ -677,9 +677,6 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, parent *api.Agen
 		packsub = parent.Pack + "/" + parent.Name
 	}
 
-	// pn := api.Packname(packsub).Clean()
-	// _, sub := pn.Decode()
-
 	//
 	// resolve spawn_agent to avoid infinite loop
 	resolve := func(actions, defaults []string) []string {
@@ -728,27 +725,7 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, parent *api.Agen
 		return api.ToResult(out), nil
 	}
 
-	// kit := atm.NewSystemKit()
-	// var entry []string
-	// var before []string
-	// var after []string
-	// var around []string
-
-	// ac, err := r.ReadAgentConfig(ctx, vars, parent, nil, args)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// for _, c := range ac.Agents {
-	// 	if c.Name == sub {
-	// 		entry = c.Entrypoint
-	// 		if c.Advices != nil {
-	// 			before = c.Advices.Before
-	// 			around = c.Advices.Around
-	// 			after = c.Advices.After
-	// 		}
-	// 		break
-	// 	}
-	// }
+	//
 	agent, err := r.createAgent(ctx, vars, parent, tf, args)
 	if err != nil {
 		return nil, err
@@ -773,18 +750,21 @@ func (r *AIKit) SpawnAgent(ctx context.Context, vars *api.Vars, parent *api.Agen
 
 	var result *api.Result
 	// default entrypoint
-	// []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
-	var defaultEntry = []string{"ai:new_agent"}
-	if api.IsTemplate(agent.Message) {
-		defaultEntry = append(defaultEntry, "ai:build_query")
-	}
-	if api.IsTemplate(agent.Instruction) {
-		defaultEntry = append(defaultEntry, "ai:build_prompt")
-	}
-	if api.IsTemplate(agent.Context) {
-		defaultEntry = append(defaultEntry, "ai:build_context")
-	}
-	defaultEntry = append(defaultEntry, "ai:call_llm")
+	// TODO split into before/around/after advices?
+	defaultEntry := []string{"ai:new_agent", "ai:build_query", "ai:build_prompt", "ai:build_context", "ai:call_llm"}
+	// TODO verify - this optimization is wrong
+	// var defaultEntry = []string{"ai:new_agent"}
+	// // message is not inherited from embeds
+	// if api.IsTemplate(agent.Message) {
+	// 	defaultEntry = append(defaultEntry, "ai:build_query")
+	// }
+	// if len(agent.Embed) > 0 || api.IsTemplate(agent.Instruction) {
+	// 	defaultEntry = append(defaultEntry, "ai:build_prompt")
+	// }
+	// if len(agent.Embed) > 0 || api.IsTemplate(agent.Context) {
+	// 	defaultEntry = append(defaultEntry, "ai:build_context")
+	// }
+	// defaultEntry = append(defaultEntry, "ai:call_llm")
 
 	entry = resolve(entry, defaultEntry)
 	around = resolve(around, nil)
@@ -830,8 +810,6 @@ func (r *AIKit) NewAgent(ctx context.Context, vars *api.Vars, parent *api.Agent,
 }
 
 func (r *AIKit) ListTools(ctx context.Context, vars *api.Vars, _ *api.Agent, _ *api.ToolFunc, args map[string]any) (string, error) {
-	// log.GetLogger(ctx).Debugf("List tools: %s %+v\n", tf, args)
-
 	var user = r.vars.User.Email
 
 	list, count, err := listTools(r.vars.Assets, user)

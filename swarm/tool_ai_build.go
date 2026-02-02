@@ -178,6 +178,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, parent *api.Age
 	agent.Arguments = agentArgs
 
 	// *** model ***
+	// inherit from parent
 	var lookupModel func(*api.Agent) *api.Model
 	lookupModel = func(a *api.Agent) *api.Model {
 		if a == nil {
@@ -198,7 +199,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, parent *api.Age
 	}
 
 	// *** tools ***
-	// inherit tools of embeded agents
+	// inherit tools from embeded agents
 	// deduplicate/merge all tools including the current agent
 	// child tools take precedence.
 	var list []*api.ToolFunc
@@ -224,13 +225,17 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, parent *api.Age
 
 	agent.Tools = list
 
-	// TODO: cmdline args or agent args?
-	// NOTE: local args takes precedence
-	maps.Copy(args, agentArgs)
+	// NOTE: cmdline args take precedence over parameter defaults and agent arguments.
 	// defaults from parameters
 	if len(agent.Parameters) > 0 {
-		maps.Copy(args, agent.Parameters.Defaults())
+		// maps.Copy(args, agent.Parameters.Defaults())
+		for k, v := range agent.Parameters.Defaults() {
+			if _, ok := args[k]; !ok {
+				args[k] = v
+			}
+		}
 	}
+	// agent arguments
 	for k, v := range agentArgs {
 		if _, ok := args[k]; !ok {
 			args[k] = v
@@ -295,6 +300,7 @@ func (r *AIKit) BuildPrompt(ctx context.Context, vars *api.Vars, parent *api.Age
 	}
 
 	// system role instructions
+	// inherit from embeds
 	var prompt = args.Prompt()
 	if !args.HasPrompt() {
 		if err := walkAgent(agent, addInst); err != nil {
@@ -328,6 +334,7 @@ func (r *AIKit) BuildContext(ctx context.Context, vars *api.Vars, parent *api.Ag
 	}
 
 	// add context as user role message
+	// inherit from embeds
 	var history = args.History()
 	if !args.HasHistory() {
 		if err := walkAgent(agent, addCtx); err != nil {

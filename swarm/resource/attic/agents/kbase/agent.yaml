@@ -1,6 +1,5 @@
 ###
 pack: "kbase"
-max_history: 0
 agents:
   - name: "kbase"
     display: "🤖 Knowledge Graph"

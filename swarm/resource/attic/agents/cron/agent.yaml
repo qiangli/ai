@@ -1,7 +1,5 @@
 ###
 pack: "cron"
-max_history: 0
-log_level: info
 agents:
   - name: "cron"
     display: "🕒 Task Scheduler"

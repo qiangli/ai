@@ -5,19 +5,27 @@ agents:
     display: "Display Name" # User-friendly display name with optional emoji
     description: "Short agent description" # Brief description of the agent's functionality
     model: "default/any" # Specify the model `set/level` to use; validate for correctness
-    message: |
-      Optional: preset message to be included when invoking the agent, prepended to user query.
     instruction: |
       Define the system role prompt here.
+    context: |
+      Optional: history of user/assistant messages and relevent data
+    message: |
+      Optional: preset message to be included when invoking the agent, prepended to user query.
     environment:
       <name>: <value> # Persistent environment variables; values can be Golang templates `{{"..."}}`
     arguments:
       <name>: <value> # Arguments specific to the agent, its tools, or child agents; can use Golang templates `{{"..."}}`
     parameters:
       # Intended for LLM when this agent is run as a tool call.
+    embed:
+      # list of agents to inherit instruction, and context from.
     entrypoint:
       # A list of actions (agent or tool) to run. Default `ai:spawn_agent` if entrypoint is not provided.
       # `ai:spawn_agent` is equivalent to: `["ai:new_agent","ai:build_query","ai:build_prompt","ai:build_context","ai:call_llm"]`
+    advices:
+      before: # list of actions that will be executed before the entrypoint actions are run intended to apply changes before requests are sent to LLM.
+      around: # list of actions that take another action as input. e.g. sh:timeout, sh:backoff
+      after: # list of actions that will be executed after the entrypoint actions has been run to apply changes to responses. e.g sh:format
     functions:
       # functions are tools made availale to LLM for tool calling.
       # Always add "fs:*" or specific tools in the `fs` kit e.g. "fs:list_roots" if local filesystem access is required.
@@ -25,7 +33,7 @@ agents:
       # Always add "web:*" or specific tools in the `web` kit e.g. "web:ddg_search" if internet access/web search is required.
       # Always add "ai:*" or specific tools in the `ai` kit e.g. "ai:spawn_agent" if core ai functionality is required.
       # If you need to add other tools. run `ai:list_tools` to explore all available tools.
-      - "<kit>:<name>"      # Validate and assign correct function/tool
-      - "<kit>:*"           # Use all tools available in the `<kit>`.
+      - "<kit>:<name>" # Validate and assign correct function/tool
+      - "<kit>:*" # Use all tools available in the `<kit>`.
       - "agent:<pack/name>" # Agents can also function as tools; prefix with `agent` as the kit. run `ai:list_agents` for all available agents.
 
