@@ -55,5 +55,5 @@ func serveParseTriggeredFirstLine(in string, trigger string) (any, bool) {
 	payload = strings.TrimLeft(payload, " \t")
 
 	argm["message"] = payload
-	return payload, true
+	return argm, true
 }

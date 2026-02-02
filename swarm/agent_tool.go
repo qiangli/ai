@@ -269,7 +269,7 @@ func (r *AgentToolRunner) Run(ctx context.Context, tid string, args map[string]a
 		// system command action
 		cmd, _ := api.GetStrProp("command", args)
 		if cmd == "" {
-			return nil, fmt.Errorf("missing system command")
+			return nil, fmt.Errorf("no kit specified. system command is required")
 		}
 		tf = &api.ToolFunc{
 			Type: api.ToolTypeBin,

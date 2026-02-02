@@ -327,7 +327,7 @@ tools:
         # clipboard (default), stdin, or file
         input:
           type: "string"
-          description: "Input source: clipboard (default), stdin, or file:/path or /abs/path"
+          description: "Input source: clipboard (default), or stdin"
         # a list of destinations, defaults: clipboard + stdout
         output:
           type: "array"
@@ -341,7 +341,8 @@ tools:
         # action to run each iteration (defaults to agent/root)
         action:
           type: "string"
-          description: "Action to execute per request (default: agent:root/root)."
+          description: "Action to execute per request."
+          default: "agent:root/root"
         # for clipboard mode: poll interval when unchanged
         poll:
           type: "string"

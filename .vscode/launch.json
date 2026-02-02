@@ -36,7 +36,9 @@
 				// "--query",
 				// "what is unix",
 				// 
-				"/sh:serve_loop"
+				"/sh:serve_loop",
+				// "--input",
+				// "stdin"
 				//
 				// alias
 				// "/alias:x",

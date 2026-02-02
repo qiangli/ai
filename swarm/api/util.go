@@ -36,10 +36,11 @@ func GetStrProp(key string, props map[string]any) (string, error) {
 		}
 		return "", nil
 	}
-	str, ok := val.(string)
-	if !ok {
-		return "", fmt.Errorf("property '%s' must be a string", key)
-	}
+	// str, ok := val.(string)
+	// if !ok {
+	// 	return "", fmt.Errorf("property '%s' must be a string", key)
+	// }
+	str := ToString(val)
 	return str, nil
 }
 

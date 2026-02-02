@@ -129,7 +129,7 @@ func (a ArgMap) Kitname() Kitname {
 	if kit == "agent" {
 		pack := a.GetString("pack")
 		if pack == "" {
-			pack = "missing"
+			pack = "<missing>"
 		}
 		name = pack + "/" + name
 	}

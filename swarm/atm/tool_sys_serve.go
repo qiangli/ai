@@ -85,8 +85,10 @@ func (r *SystemKit) ServeLoop(ctx context.Context, vars *api.Vars, name string, 
 		}
 	}
 	dedupe := true
-	if v, err := api.GetBoolProp("dedupe", args); err == nil {
-		dedupe = v
+	if v, err := api.GetStrProp("dedupe", args); err == nil {
+		if v == "false" {
+			dedupe = false
+		}
 	}
 
 	action, _ := api.GetStrProp("action", args)
@@ -95,7 +97,56 @@ func (r *SystemKit) ServeLoop(ctx context.Context, vars *api.Vars, name string, 
 	trigger, _ := api.GetStrProp("trigger", args)
 	trigger = strings.TrimSpace(trigger)
 
+	if err := serveInit(ctx, vars, input); err != nil {
+		return "", err
+	}
 	var lastIn string
+
+	serveWriteOutputs := func(out string) error {
+		for _, dst := range outputs {
+			dst = strings.TrimSpace(dst)
+			switch {
+			case dst == "stdout":
+				fmt.Fprint(os.Stdout, out)
+			case dst == "clipboard":
+				if err := clipboard.WriteAll(out); err != nil {
+					return err
+				}
+				// sync last in to prevent looping
+				lastIn = out
+			case strings.HasPrefix(dst, "file:"):
+				p := strings.TrimPrefix(dst, "file:")
+				if err := os.WriteFile(p, []byte(out), 0o644); err != nil {
+					return err
+				}
+			default:
+				return fmt.Errorf("unsupported output: %s", dst)
+			}
+		}
+		return nil
+	}
+
+	showIndicator := func() error {
+		var pb, stdout bool
+		for _, dst := range outputs {
+			dst = strings.TrimSpace(dst)
+			switch dst {
+			case "stdout":
+				stdout = true
+			case "clipboard":
+				pb = true
+			}
+		}
+		if pb && stdout {
+			// sync last in to prevent looping
+			fmt.Fprint(os.Stdout, ".")
+		}
+		return nil
+	}
+
+	var err error
+	var in, out string
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -103,14 +154,15 @@ func (r *SystemKit) ServeLoop(ctx context.Context, vars *api.Vars, name string, 
 		default:
 		}
 
-		in, err := serveReadInput(ctx, vars, input, poll)
+		in, err = serveReadInput(ctx, vars, input, poll)
 		if err != nil {
 			// non-fatal: write error to stdout/clipboard
-			_ = serveWriteOutputs(vars, outputs, "ai> "+err.Error()+"\n")
+			_ = serveWriteOutputs("ai> " + err.Error() + "\n")
 			// avoid tight loop
 			time.Sleep(poll)
 			continue
 		}
+
 		if strings.TrimSpace(in) == "" {
 			time.Sleep(poll)
 			continue
@@ -122,39 +174,39 @@ func (r *SystemKit) ServeLoop(ctx context.Context, vars *api.Vars, name string, 
 		lastIn = in
 
 		// trigger + action parsing from first line (clipboard/file mode requires trigger)
-		var payload any
-		payload = in
 		if input == "stdin" {
 			// stdin is interactive; prompt is already "ai> ", trigger is optional
 			// action remains as configured (default if empty)
-			_ = serveWriteOutputs(vars, outputs, "ai> ")
-			_ = serveWriteOutputs(vars, outputs, in+"\n")
-		} else {
-			var ok bool
-			payload, ok = serveParseTriggeredFirstLine(in, trigger)
-			if !ok {
-				// no trigger word, input ignored
-				// print a dot to acknowlege receiving the new input
-				if in != lastIn {
-					_ = serveWriteOutputs(vars, outputs, ".")
-				}
-				time.Sleep(poll)
-				continue
+			_ = serveWriteOutputs("ai> ")
+			_ = serveWriteOutputs(in + "\n")
+			if !strings.HasPrefix(in, "ai ") {
+				in = "ai " + in
 			}
 		}
+		var payload any
+		var ok bool
+		payload, ok = serveParseTriggeredFirstLine(in, trigger)
+		if !ok {
+			// no trigger word, input ignored
+			// print a dot to acknowlege receiving the new input
+			showIndicator()
+			time.Sleep(poll)
+			continue
+		}
 
-		out, err := serveRunAction(ctx, vars, action, format, payload)
+		out, err = serveRunAction(ctx, vars, action, format, payload)
 		if err != nil {
 			out = fmt.Sprintf("%v\n", err)
+		} else {
+			out = out + "\n"
 		}
 
 		// always prefix output prompt when writing to stdout (and others, per spec for stdin/stdout)
-		outWithPrompt := out
 		if input == "stdin" {
-			outWithPrompt = "ai> " + out
+			out = "ai> " + out
 		}
 
-		if err := serveWriteOutputs(vars, outputs, outWithPrompt); err != nil {
+		if err := serveWriteOutputs(out); err != nil {
 			// best effort
 			_, _ = fmt.Fprintln(os.Stderr, err.Error())
 		}
@@ -164,6 +216,28 @@ func (r *SystemKit) ServeLoop(ctx context.Context, vars *api.Vars, name string, 
 			time.Sleep(poll)
 		}
 	}
+}
+
+func serveInit(ctx context.Context, vars *api.Vars, input string) error {
+	switch {
+	case input == "stdin":
+		// prompt for input
+		fmt.Fprint(os.Stdout, "DHNT.io AI\n")
+	case input == "clipboard":
+		// clear previous content
+		if err := clipboard.WriteAll(""); err != nil {
+			return err
+		}
+	case strings.HasPrefix(input, "file:"):
+		// verify file exist
+		// p := strings.TrimPrefix(input, "file:")
+		//
+	case strings.HasPrefix(input, "/"):
+		// verify file exist
+	default:
+		return fmt.Errorf("unsupported input: %s", input)
+	}
+	return nil
 }
 
 func serveReadInput(ctx context.Context, vars *api.Vars, input string, poll time.Duration) (string, error) {
@@ -232,16 +306,15 @@ func serveRunAction(ctx context.Context, vars *api.Vars, action, format string, 
 		args["format"] = format
 	}
 
-	id := args.Kitname().ID()
-	if id == "" {
-		// default @root/root
+	if msg, ok := args["message"]; ok {
+		vars.Global.Set("message", msg)
+	}
+
+	tid := args.Kitname().ID()
+	if tid == "" {
 		args["kit"] = "agent"
 		args["pack"] = "root"
 		args["name"] = "root"
-	}
-
-	if msg, ok := args["message"]; ok {
-		vars.Global.Set("message", msg)
 	}
 
 	res, err := api.Exec(ctx, vars.RootAgent.Runner, args)
@@ -251,32 +324,10 @@ func serveRunAction(ctx context.Context, vars *api.Vars, action, format string, 
 	return api.ToString(res), nil
 }
 
-func serveWriteOutputs(_ *api.Vars, outputs []string, out string) error {
-	for _, dst := range outputs {
-		dst = strings.TrimSpace(dst)
-		switch {
-		case dst == "stdout":
-			fmt.Fprint(os.Stdout, out)
-		case dst == "clipboard":
-			if err := clipboard.WriteAll(out); err != nil {
-				return err
-			}
-		case strings.HasPrefix(dst, "file:"):
-			p := strings.TrimPrefix(dst, "file:")
-			if err := os.WriteFile(p, []byte(out), 0o644); err != nil {
-				return err
-			}
-		default:
-			return fmt.Errorf("unsupported output: %s", dst)
-		}
-	}
-	return nil
-}
-
 func buildServeReexecCommand(format, input string, outputs []string, action, poll string, dedupe bool) string {
 	var b strings.Builder
 	// call the ai binary (assumed in PATH) with sh:serve
-	b.WriteString("ai /sh:serve")
+	b.WriteString("ai /sh:serve_loop")
 	if format != "" {
 		b.WriteString(" --format ")
 		b.WriteString(shellQuote(format))

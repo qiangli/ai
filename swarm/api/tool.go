@@ -261,6 +261,9 @@ func tr(s string) string {
 }
 
 func toolID(kit, name string) string {
+	if kit == "" && name == "" {
+		return ""
+	}
 	return fmt.Sprintf("%s__%s", kit, tr(name))
 }
 
