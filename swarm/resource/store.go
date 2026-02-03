@@ -58,8 +58,9 @@ func (fs *FileStore) Search(query string) ([]byte, error) {
 }
 
 type WebStore struct {
-	Base  string
-	Token string
+	Base   string
+	ApiKey string
+	Token  func(string) (string, error)
 }
 
 func (ws *WebStore) ReadDir(name string) ([]api.DirEntry, error) {
@@ -73,7 +74,11 @@ func (ws *WebStore) ReadDir(name string) ([]api.DirEntry, error) {
 	}
 
 	// Add Authorization header
-	req.Header.Add("Authorization", "Bearer "+ws.Token)
+	token, err := ws.Token(ws.ApiKey)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -114,7 +119,11 @@ func (ws *WebStore) ReadFile(name string) ([]byte, error) {
 	}
 
 	// Add Authorization header
-	req.Header.Add("Authorization", "Bearer "+ws.Token)
+	token, err := ws.Token(ws.ApiKey)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {

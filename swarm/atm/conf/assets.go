@@ -14,9 +14,10 @@ type assetManager struct {
 	assets  []api.AssetStore
 }
 
-func NewAssetManager() api.AssetManager {
+func NewAssetManager(secrets api.SecretStore) api.AssetManager {
 	return &assetManager{
-		assets: make([]api.AssetStore, 0),
+		secrets: secrets,
+		assets:  make([]api.AssetStore, 0),
 	}
 }
 

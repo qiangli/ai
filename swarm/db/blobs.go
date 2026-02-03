@@ -78,8 +78,11 @@ func NewBlobStorage(bucket string, fs vfs.FileStore) (*BlobStorage, error) {
 }
 
 type CloudStorage struct {
-	Base  string
-	Token string
+	Base   string
+	ApiKey string
+
+	// TODO
+	Token func(string) (string, error)
 }
 
 // generate presigned url given the key
@@ -89,7 +92,11 @@ func (r CloudStorage) Locator(key string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	req.Header.Set("Authorization", "Bearer "+r.Token)
+	token, err := r.Token(r.ApiKey)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -122,7 +129,11 @@ func (r CloudStorage) ReadFile(key string, o *vfs.ReadOptions) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Bearer "+r.Token)
+	token, err := r.Token(r.ApiKey)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -156,7 +167,11 @@ func (r CloudStorage) WriteFile(key string, data []byte) error {
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Authorization", "Bearer "+r.Token)
+	token, err := r.Token(r.ApiKey)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -174,7 +189,7 @@ func (r CloudStorage) WriteFile(key string, data []byte) error {
 
 func NewCloudStorage(cfg *api.ResourceConfig) (vfs.FileStore, error) {
 	return &CloudStorage{
-		Base:  cfg.Base,
-		Token: cfg.Token,
+		Base:   cfg.Base,
+		ApiKey: cfg.ApiKey,
 	}, nil
 }

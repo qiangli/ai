@@ -158,9 +158,12 @@ func (r *Roots) resolveDirs(roots []*Root) ([]string, error) {
 }
 
 type ResourceConfig struct {
-	Type  string `json:"type"`
-	Base  string `json:"base"`
-	Token string `json:"token"`
+	// file | web
+	Type string `json:"type"`
+	Base string `json:"base"`
+
+	// web
+	ApiKey string `json:"api_key"`
 }
 
 func LoadDHNTConfig(conf string) (*DHNTConfig, error) {

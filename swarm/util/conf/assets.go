@@ -9,15 +9,18 @@ import (
 )
 
 // default assets with resource.json and the core
-func Assets(cfg *api.DHNTConfig) (api.AssetManager, error) {
-	var assets = conf.NewAssetManager()
+func Assets(cfg *api.DHNTConfig, owner string, secrets api.SecretStore) (api.AssetManager, error) {
+	var assets = conf.NewAssetManager(secrets)
 
 	for _, res := range cfg.Assets {
 		switch res.Type {
 		case "web":
 			assets.AddStore(&resource.WebStore{
-				Base:  fmt.Sprintf("%s/resource", res.Base),
-				Token: res.Token,
+				Base:   fmt.Sprintf("%s/resource", res.Base),
+				ApiKey: res.ApiKey,
+				Token: func(key string) (string, error) {
+					return secrets.Get(owner, key)
+				},
 			})
 		case "file":
 			assets.AddStore(&resource.FileStore{

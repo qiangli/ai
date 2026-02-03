@@ -53,7 +53,7 @@ func defaultVars(cfg *api.App) (*api.Vars, error) {
 		Roots: roots,
 	}
 
-	assets, err := conf.Assets(dc)
+	assets, err := conf.Assets(dc, user.Email, secrets)
 	if err != nil {
 		return nil, err
 	}
