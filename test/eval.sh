@@ -13,19 +13,22 @@
 # /bin/bash ./test/bash-legacy.sh
 # echo "status $?"
 
-# map
-map="
-{
-\"datetime\":\"$(date)\",
-\"message\":\"test\"
-}
-"
-/sh:set_envs --option envs="${map}"
+# # map
+# map="
+# {
+# \"datetime\":\"$(date)\",
+# \"message\":\"test\"
+# }
+# "
+# /sh:set_envs --option envs="${map}"
 
-echo "datetime: $datetime"
-echo "message: $message"
+# echo "datetime: $datetime"
+# echo "message: $message"
 
 # export name="charles"
 # set -a; name=charles; nick=lee; set +a;
 # echo "name: ${name} nick: $nick"
+echo "workspace: $workspace"
+echo "pwd cmd: $(pwd)"
+echo "PWD: $PWD"
 ###

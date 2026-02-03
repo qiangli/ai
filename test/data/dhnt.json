@@ -1,16 +1,16 @@
 {
     "blob": {
         "base": "https://ai.dhnt.io",
-        "token": "invalid"
+        "api_key": "dhnt"
     },
     "assets": [
         {
             "type": "file",
-            "base": "/Users/liqiang/workspace/ai/swarm/resource/incubator"
+            "base": "$HOME/workspace/ai/swarm/resource/incubator"
         },
         {
             "type": "file",
-            "base": "/Users/liqiang/workspace/ai/swarm/resource/standard"
+            "base": "$HOME/workspace/ai/swarm/resource/standard"
         }
     ],
     "roots": {
@@ -22,23 +22,23 @@
         "cwd":            {
             "name": "Current Directory",
             "description": "Current working directory",
-            "path": ""
+            "path": "$HOME/workspace/ai"
         },
         "temp":             {
             "name": "Temporary Files",
             "description": "Directory for temporary files",
-            "temp": ""
+            "path": "/tmp"
         },
         "dirs": [
             {
                 "name": "Incubator Resources",
                 "description": "Resource directory for incubating agents, tools, and models",
-                "path": "/Users/liqiang/workspace/ai/swarm/resource/incubator"
+                "path": "$HOME/workspace/ai/swarm/resource/incubator"
             },
             {
                 "name": "Standard Resources",
                 "description": "Resource directory for standard agents, tools, and models",
-                "path": "/Users/liqiang/workspace/ai/swarm/resource/standard"
+                "path": "$HOME/workspace/ai/swarm/resource/standard"
             }
         ]
     }

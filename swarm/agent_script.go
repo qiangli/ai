@@ -75,11 +75,6 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 	for k, v := range r.vars.Global.GetAllEnvs() {
 		vs.vars.OS.Setenv(k, v)
 	}
-	// NOTE: skip for now
-	// // make args available as env
-	// for k, v := range args {
-	// 	vs.vars.OS.Setenv(k, v)
-	// }
 
 	// run bash interpreter
 	// and make the error/reslt available in args

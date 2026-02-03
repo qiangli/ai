@@ -36,7 +36,7 @@
 				// "--query",
 				// "what is unix",
 				// 
-				"/sh:serve_loop",
+				// "/sh:serve_loop",
 				// "--input",
 				// "stdin"
 				//
@@ -124,6 +124,7 @@
 				// 
 				// "test/eval.sh",
 				// "test/all.sh",
+				"test/template.sh",
 				// "test/basic.sh",
 				// "test/std.sh",
 				// "test/bash-builtin.sh",

@@ -142,18 +142,20 @@ type App struct {
 
 	// workspace root. default: $HOME/.ai/
 	Base string
+
+	Input any
 }
 
-type InputConfig struct {
-	Message string
-	Args    []string
+// type InputConfig struct {
+// 	Message string
+// 	Args    []string
 
-	Clipin     bool
-	ClipWait   bool
-	Clipout    bool
-	ClipAppend bool
-	Stdin      bool
-}
+// 	Clipin     bool
+// 	ClipWait   bool
+// 	Clipout    bool
+// 	ClipAppend bool
+// 	Stdin      bool
+// }
 
 // App config declares the default values for agent/tool/model
 type AppConfig struct {

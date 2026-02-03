@@ -18,6 +18,7 @@ type Swarm struct {
 	vars *api.Vars
 }
 
+// set "workspace" and "user" in global env.
 func New(vars *api.Vars) (*Swarm, error) {
 	if vars.SessionID == "" {
 		return nil, fmt.Errorf("Missing required session ID")
@@ -68,6 +69,7 @@ func New(vars *api.Vars) (*Swarm, error) {
 	return sw, nil
 }
 
+// set original "input" in global env.
 func (sw *Swarm) Parse(ctx context.Context, input any) (api.ArgMap, error) {
 	log.GetLogger(ctx).Debugf("argm: %+v\n", input)
 	// save user raw input in env.

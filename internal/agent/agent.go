@@ -40,6 +40,7 @@ func loadUser(base string) (*api.User, error) {
 	return &user, nil
 }
 
+// resolve base directory: --base or $HOME/.ai/
 func Run(argv []string) error {
 	var app = &api.App{}
 	var base string

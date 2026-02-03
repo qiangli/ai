@@ -31,7 +31,18 @@ const (
 	ClipoutRedirect2 = "}}"
 )
 
-func GetInput(ctx context.Context, argv []string) (*api.InputConfig, error) {
+type inputConfig struct {
+	Message string
+	Args    []string
+
+	Clipin     bool
+	ClipWait   bool
+	Clipout    bool
+	ClipAppend bool
+	Stdin      bool
+}
+
+func GetInput(ctx context.Context, argv []string) (*inputConfig, error) {
 	cfg := ParseSpecialChars(argv)
 
 	in, err := GetUserInput(ctx, cfg)
@@ -48,7 +59,7 @@ func GetInput(ctx context.Context, argv []string) (*api.InputConfig, error) {
 // + be at the end of the args
 // + be in any order
 // + be multiple instances
-func ParseSpecialChars(args []string) *api.InputConfig {
+func ParseSpecialChars(args []string) *inputConfig {
 	var isStdin, isClipin, isClipWait, isClipout, isClipAppend bool
 
 	if len(args) > 0 {
@@ -76,7 +87,7 @@ func ParseSpecialChars(args []string) *api.InputConfig {
 		}
 	}
 
-	var cfg api.InputConfig
+	var cfg inputConfig
 
 	cfg.Stdin = isStdin
 	cfg.Clipin = isClipin
@@ -94,13 +105,13 @@ func ParseSpecialChars(args []string) *api.InputConfig {
 // otherwise, it determines the input source (stdin, clipboard, editor)
 // and collects input accordingly. It also
 // attaches any provided files or template file if provided.
-func GetUserInput(ctx context.Context, cfg *api.InputConfig) (*api.UserInput, error) {
+func GetUserInput(ctx context.Context, cfg *inputConfig) (*api.UserInput, error) {
 	return getUserInput(ctx, cfg, nil, nil, nil)
 }
 
 // user query: message and content
 // cfg.Message is prepended to message collected from command line --message flag or the non flag/option args.
-func getUserInput(ctx context.Context, cfg *api.InputConfig, stdin io.Reader, clipper api.ClipboardProvider, editor api.EditorProvider) (*api.UserInput, error) {
+func getUserInput(ctx context.Context, cfg *inputConfig, stdin io.Reader, clipper api.ClipboardProvider, editor api.EditorProvider) (*api.UserInput, error) {
 	// collecting message content from various sources
 	if clipper == nil {
 		clipper = util.NewClipboard()
@@ -115,7 +126,7 @@ func getUserInput(ctx context.Context, cfg *api.InputConfig, stdin io.Reader, cl
 
 func userInput(
 	ctx context.Context,
-	cfg *api.InputConfig,
+	cfg *inputConfig,
 	stdin io.Reader,
 	clipboard api.ClipboardProvider,
 ) (*api.UserInput, error) {
