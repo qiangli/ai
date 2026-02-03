@@ -103,12 +103,6 @@ func (r *Vars) Token(key string) (string, error) {
 	return r.Secrets.Get(r.User.Email, key)
 }
 
-// func NewVars() *Vars {
-// 	return &Vars{
-// 		Global: NewEnvironment(),
-// 	}
-// }
-
 type ArgMap map[string]any
 
 func NewArgMap() ArgMap {

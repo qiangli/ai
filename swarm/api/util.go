@@ -339,9 +339,9 @@ func ExpendPath(s string) (string, error) {
 	return s, nil
 }
 
-func ResolvePaths(dirs []string) ([]string, error) {
-	uniquePaths := make(map[string]struct{})
-
+// Expand and resolve path and always return the real path as the fisrt item
+// for symlinks.
+func ResolvePath(path string) ([]string, error) {
 	// remove last path separator
 	trim := func(s string) string {
 		last := len(s) - 1
@@ -350,22 +350,42 @@ func ResolvePaths(dirs []string) ([]string, error) {
 		}
 		return s
 	}
+
+	dir, err := ExpendPath(path)
+	if err != nil {
+		return nil, err
+	}
+	realPath, err := filepath.EvalSymlinks(dir)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return nil, err
+		}
+		realPath = dir // If symlink resolution fails, treat original as real path
+	}
+	dir = trim(dir)
+	realPath = trim(realPath)
+
+	var result []string
+	result = append(result, realPath)
+	if dir != realPath {
+		result = append(result, dir)
+	}
+
+	return result, nil
+}
+
+// Expand, resolve, and dedup paths
+func ResolvePaths(dirs []string) ([]string, error) {
+	uniquePaths := make(map[string]struct{})
+
 	for _, v := range dirs {
-		dir, err := ExpendPath(v)
+		paths, err := ResolvePath(v)
 		if err != nil {
 			return nil, err
 		}
-		realPath, err := filepath.EvalSymlinks(dir)
-		if err != nil {
-			// Handle error, for example by logging
-			// log.Printf("Failed to evaluate symlink for %s: %v\n", dir, err)
-			// continue
-			return nil, err
+		for _, p := range paths {
+			uniquePaths[p] = struct{}{}
 		}
-		dir = trim(dir)
-		realPath = trim(dir)
-		uniquePaths[dir] = struct{}{}
-		uniquePaths[realPath] = struct{}{}
 	}
 
 	var result []string
@@ -413,14 +433,8 @@ func LoadURIContent(ws Workspace, uri string) (string, error) {
 		return DecodeDataURL(uri)
 	} else {
 		var f = uri
-		if strings.HasPrefix(f, "file:") {
-			// v, err := url.Parse(f)
-			// if err != nil {
-			// 	return "", err
-			// }
-			f = f[5:]
-		}
-		resolved, err := ResolvePaths([]string{f})
+		f = strings.TrimPrefix(f, "file:")
+		resolved, err := ResolvePath(f)
 		if err != nil {
 			return "", err
 		}

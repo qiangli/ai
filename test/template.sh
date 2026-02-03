@@ -33,21 +33,22 @@ Role: {{ .Role }}
 
 ##
 # good
-# script="file:$PWD/test/agent/agent.yaml"
+script="file:$PWD/test/agent/agent.yaml"
 # script="file://$PWD/test/agent/agent.yaml"
-
-# bad
-script="file:/$PWD/test/agent/agent.yaml"
+# bad - fixed!
+# script="file:/$PWD/test/agent/agent.yaml"
 # script="file:./test/agent/agent.yaml"
 
 message="tell me a joke"
-echo "script: $script"
-# env message="${message}"
-# env datetime="<TODO>"
-# # env workspace="<redacted>"
-# env input="<redated>"
-# # env HOME="<redated>"
-# env PATH="/bin:/usr/bin"
+#
+env message="${message}"
+env datetime="<TODO>"
+env workspace="<redacted>"
+env input="<redated>"
+env HOME="<redated>"
+env PATH="/bin:/usr/bin"
+env GOPATH="<gopath>"
+env PWD="./"
 
 # /fs:list_roots --resolve
 # TODO only support /sh:set_envs, ignore: os.Setenv()
@@ -62,8 +63,7 @@ echo "script: $script"
     --output "file:/tmp/test.txt"
 
 ###
-
 printenv
-# echo ""
+echo ""
 echo "*** 🎉 test [envs, args, params] completed ***"
 ###

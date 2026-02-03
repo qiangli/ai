@@ -35,7 +35,6 @@ Preset:
   agent: test/test
 --------
 
-tell me a joke
 ---
 >>>>>>>>> Result
 ---
@@ -46,9 +45,11 @@ BAZ=123
 EMPTY=
 FOO=bar
 GOOD=true
+GOPATH=<gopath>
 HOME=<redated>
 IGNORED=should_not_be_set
 PATH=/bin:/usr/bin
+PWD=./
 QUOTED=quoted value
 SPACED=spaced_value
 WITH_EQUALS=one=two

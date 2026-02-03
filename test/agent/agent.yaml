@@ -118,36 +118,4 @@ agents:
       before:
       around:
       after:
-
-# kit: "test"
-# type: "func"
-# tools:
-#   - name: "test"
-#     description: |
-#       Search the web using available search tools and return formatted results
-#     parameters:
-#       type: "object"
-#       properties:
-#         query:
-#           type: "string"
-#           description: "The search query string"
-#         max_results:
-#           type: "integer"
-#           description: "Maximum number of results to return"
-#           default: 5
-#           minimum: 1
-#           maximum: 10
-#       required:
-#         - query
-
-# ## models
-# set: "default"
-# models:
-#   any:
-#     provider: "openai"
-#     base_url: "https://api.openai.com/v1/"
-#     api_key: "openai"
-#     model: "gpt-4o-mini"
-#     # model: "gpt-4.1"
-#     # model: "o4-mini"
 ###

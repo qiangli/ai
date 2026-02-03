@@ -491,13 +491,14 @@ func (r *AgentToolRunner) output(output string, content string) string {
 		// file:///path
 		// file:path
 		if uri.Scheme == "file" {
-			file := uri.Path
-			if file == "" {
-				file = uri.Opaque
-			}
-			err = r.vars.Workspace.WriteFile(file, []byte(content))
+			file := output[5:]
+			resolved, err := api.ResolvePath(file)
 			if err != nil {
-				return fmt.Sprintf("Failed to save: %q", file)
+				return fmt.Sprintf("Failed to resolve file path: %q. %v", file, err)
+			}
+			err = r.vars.Workspace.WriteFile(resolved[0], []byte(content))
+			if err != nil {
+				return fmt.Sprintf("Failed to save: %q. %v", file, err)
 			}
 			return fmt.Sprintf("File saved successfully: %s", file)
 		}

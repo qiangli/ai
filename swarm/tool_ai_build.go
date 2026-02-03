@@ -176,6 +176,7 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, parent *api.Age
 		}
 	}
 	agent.Arguments = agentArgs
+	//
 
 	// *** model ***
 	// inherit from parent
@@ -222,25 +223,25 @@ func (r *AIKit) createAgent(ctx context.Context, vars *api.Vars, parent *api.Age
 	} else {
 		list = agent.Tools
 	}
-
 	agent.Tools = list
 
-	// NOTE: cmdline args take precedence over parameter defaults and agent arguments.
-	// defaults from parameters
+	// ***
+	// Arg precedence:
+	// global envs
+	// parameter defaults
+	// parameter (input args)
+	// agent (config args)
+	// ***
+	// agent parameters - add only if missing
 	if len(agent.Parameters) > 0 {
-		// maps.Copy(args, agent.Parameters.Defaults())
 		for k, v := range agent.Parameters.Defaults() {
 			if _, ok := args[k]; !ok {
 				args[k] = v
 			}
 		}
 	}
-	// agent arguments
-	for k, v := range agentArgs {
-		if _, ok := args[k]; !ok {
-			args[k] = v
-		}
-	}
+	// agent arguments - override
+	maps.Copy(args, agent.Arguments)
 
 	// update the property with the created agent object
 	args["kit"] = "agent"

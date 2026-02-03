@@ -74,32 +74,20 @@ func (r *Roots) ResolvedRoots() ([]*Root, error) {
 }
 
 func (r *Roots) Resolve() error {
-	roots, err := r.resolveRoots()
-	if err != nil {
-		return err
-	}
-	allowed, err := r.resolveDirs(roots)
-	if err != nil {
-		return err
-	}
-
-	r.resolved = true
-	r.resolvedRoots = roots
-	r.allowedDirs = allowed
-	return nil
+	return r.resolveRoots()
 }
 
-func (r *Roots) resolveRoots() ([]*Root, error) {
-	var ps []*Root
+func (r *Roots) resolveRoots() error {
+	var roots []*Root
 	for _, v := range r.Dirs {
-		ps = append(ps, v)
+		roots = append(roots, v)
 	}
 
 	// update path
 	if r.Workspace == nil {
-		return nil, fmt.Errorf("workspace is required")
+		return fmt.Errorf("workspace is required")
 	}
-	ps = append(ps, r.Workspace)
+	roots = append(roots, r.Workspace)
 	if r.Workspace.Path == "" {
 		ws := os.Getenv("WORKSPACE")
 		if ws != "" {
@@ -109,17 +97,17 @@ func (r *Roots) resolveRoots() ([]*Root, error) {
 		}
 	}
 	if r.Cwd != nil {
-		ps = append(ps, r.Cwd)
+		roots = append(roots, r.Cwd)
 		if r.Cwd.Path == "" {
 			p, err := os.Getwd()
 			if err != nil {
-				return nil, err
+				return err
 			}
 			r.Cwd.Path = p
 		}
 	}
 	if r.Temp != nil {
-		ps = append(ps, r.Temp)
+		roots = append(roots, r.Temp)
 		if r.Temp.Path == "" {
 			p := os.TempDir()
 			r.Temp.Path = p
@@ -127,14 +115,27 @@ func (r *Roots) resolveRoots() ([]*Root, error) {
 	}
 
 	// resolve relative path
-	for i, v := range ps {
-		resolved, err := ResolvePaths([]string{v.Path})
+	allPaths := make(map[string]struct{})
+	for i, v := range roots {
+		resolved, err := ResolvePath(v.Path)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		ps[i].Path = resolved[0]
+		roots[i].Path = resolved[0]
+		for _, p := range resolved {
+			allPaths[p] = struct{}{}
+		}
 	}
-	return ps, nil
+
+	var allowed []string
+	for k := range allPaths {
+		allowed = append(allowed, k)
+	}
+
+	r.resolved = true
+	r.resolvedRoots = roots
+	r.allowedDirs = allowed
+	return nil
 }
 
 func (r *Roots) AllowedDirs() ([]string, error) {
@@ -145,16 +146,6 @@ func (r *Roots) AllowedDirs() ([]string, error) {
 		return nil, err
 	}
 	return r.allowedDirs, nil
-}
-
-// convenience helper for collecting all accessible paths
-// including symlink of the original path
-func (r *Roots) resolveDirs(roots []*Root) ([]string, error) {
-	var ps []string
-	for _, v := range roots {
-		ps = append(ps, v.Path)
-	}
-	return ResolvePaths(ps)
 }
 
 type ResourceConfig struct {
@@ -185,7 +176,7 @@ func LoadDHNTConfig(conf string) (*DHNTConfig, error) {
 	}
 	for i, a := range v.Assets {
 		if a.Type == "file" {
-			resolved, err := ResolvePaths([]string{a.Base})
+			resolved, err := ResolvePath(a.Base)
 			if err != nil {
 				return nil, err
 			}
