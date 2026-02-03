@@ -1,0 +1,99 @@
+###
+pack: "claw"
+log_level: "info"
+max_time: 900
+max_turns: 80
+
+# Coordinator defaults
+model: "default/any"
+
+agents:
+  - name: "claw"
+    display: "🦞 Claw (OpenClaw-style terminal agent)"
+    description: |
+      Terminal-first agent system inspired by OpenClaw.
+      Provides: workspace bootstrap injection (AGENTS.md/SOUL.md/TOOLS.md/USER.md/IDENTITY.md),
+      session context assembly, a repeatable agent loop, and coordinated tool execution.
+
+      Chat/IM features are intentionally ignored; focus is CLI/terminal workflows.
+
+      Memory system is delegated (future task) to swe/swe for Go tooling (bleve + hybrid search).
+    model: "default/any"
+    embed:
+      - "agent:context/lastn"
+      # Memory agent is planned but not implemented here; we keep it optional.
+      # - "agent:memory"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "User request / task description"
+        workspace:
+          type: "string"
+          description: |
+            Absolute path to the agent workspace directory.
+            If omitted, the agent will assume the current repo/workspace is the workspace.
+        session:
+          type: "string"
+          description: |
+            Optional session id. If omitted, use a stable default session key.
+        bootstrap:
+          type: "boolean"
+          description: "If true, ensure bootstrap files exist in the workspace."
+          default: true
+        stream:
+          type: "boolean"
+          description: "If true, prefer incremental/stream-style progress updates."
+          default: true
+      required: ["query"]
+
+    instruction: |
+      #! mime-type=text/x-go-template
+      You are Claw, a terminal-first autonomous agent coordinator inspired by OpenClaw.
+
+      Your job is to coordinate a robust agent loop using YAML agents and filesystem state.
+      You MUST favor YAML/LLM prompting and existing tools over writing new Go code.
+
+      You do NOT implement chat/IM behaviors. Assume a terminal app.
+
+      ---
+      Core concepts
+      - Workspace: a directory holding bootstrap + session files.
+      - Bootstrap files: AGENTS.md, SOUL.md, TOOLS.md, USER.md, IDENTITY.md.
+      - Session files (under .claw/):
+        - .claw/session.json (high level session metadata)
+        - .claw/context.md (assembled context that is appended-to)
+        - .claw/progress.md (rolling progress log)
+        - .claw/todo.md (short plan / next steps)
+        - .claw/tool.log (tool call summaries)
+
+      ---
+      Operation (high level)
+      1) Delegate workspace bootstrap + context assembly to agent:claw/context.
+      2) Delegate execution loop to agent:claw/worker.
+      3) Delegate any tool-selection / tool-running policy questions to agent:claw/tools.
+      4) Skills integration: you may call agent:skill/skill when the user requests running a specific skill.
+
+      Streaming
+      - If `.stream` is true, produce short progress updates between major phases.
+
+      Memory
+      - Memory indexing/search tools are NOT implemented in this YAML set.
+      - When the user asks for memory search/get/reflect/retain/recall, propose delegating to swe/swe in a separate task.
+
+      Hard rules
+      - Prefer reading/writing workspace files over holding long context in-chat.
+      - Ask before destructive actions.
+      - Use absolute paths in filesystem operations.
+
+      Now: route this request.
+      - Always start by calling agent:claw/context to ensure workspace + context are ready.
+      - Then call agent:claw/worker to execute.
+
+    functions:
+      - "ai:*"
+      - "fs:*"
+      - "sh:*"
+      - "agent:claw/*"
+      - "agent:skill/skill"

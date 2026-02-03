@@ -1,0 +1,23 @@
+pack: memory
+name: search
+description: Semantic search over memory files
+parameters:
+  - name: query
+    type: string
+    required: true
+  - name: max_results
+    type: integer
+    default: 5
+run:
+  type: exec
+  command: ["/Users/liqiang/workspace/ai/swarm/atm/memory/cmd/memorytool", "search"]
+  stdin: |
+    {
+      "query": "{{.query}}",
+      "config": {
+        "enabled": true,
+        "provider": "local",
+        "store_path": "/tmp/atm-memory"
+      }
+    }
+  parse: json
