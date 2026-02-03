@@ -76,6 +76,11 @@ func (r *AgentScriptRunner) Run(ctx context.Context, script string, args map[str
 		vs.vars.OS.Setenv(k, v)
 	}
 
+	cwd := vs.vars.OS.Getenv("PWD")
+	if v, ok := cwd.(string); ok {
+		vs.vars.OS.Chdir(v)
+	}
+
 	// run bash interpreter
 	// and make the error/reslt available in args
 	err := vs.RunScript(ctx, script)

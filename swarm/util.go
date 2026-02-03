@@ -15,7 +15,8 @@ func ClearAllEnv(keeps []string) {
 		memo[key] = true
 	}
 
-	for _, env := range os.Environ() {
+	envs := os.Environ()
+	for _, env := range envs {
 		key := strings.Split(env, "=")[0]
 		if !memo[key] {
 			os.Unsetenv(key)

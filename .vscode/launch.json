@@ -18,9 +18,10 @@
 				// "GOOGLE_API_KEY": "${env:GOOGLE_API_KEY}",
 				// "DHNT_API_KEY": "${env:DHNT_API_KEY}",
 				"AI_DEBUG": "true",
+				"PWD": "/Users/liqiang/workspace/ai"
 			},
 			"envFile": "${workspaceFolder}/.env",
-			"cwd": "${workspaceFolder}/",
+			"cwd": "${workspaceFolder}",
 			"args": [
 				// ai
 				// default root/root

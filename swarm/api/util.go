@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"net/url"
+	// "net/url"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -414,11 +414,11 @@ func LoadURIContent(ws Workspace, uri string) (string, error) {
 	} else {
 		var f = uri
 		if strings.HasPrefix(f, "file:") {
-			v, err := url.Parse(f)
-			if err != nil {
-				return "", err
-			}
-			f = v.Path
+			// v, err := url.Parse(f)
+			// if err != nil {
+			// 	return "", err
+			// }
+			f = f[5:]
 		}
 		resolved, err := ResolvePaths([]string{f})
 		if err != nil {
