@@ -11,15 +11,30 @@ import (
 )
 
 func (r *SystemKit) ListRoots(ctx context.Context, vars *api.Vars, name string, args map[string]any) (string, error) {
+	resolve, _ := api.GetBoolProp("resolve", args)
+
 	var result strings.Builder
 	result.WriteString("Allowed Root Directories:\n\n")
-	roots, err := vars.Roots.ResolvedRoots()
-	if err != nil {
-		return "", fmt.Errorf("failed to resolve root directories: %v", roots)
+	var roots any
+	var err error
+	if resolve {
+		roots, err = vars.Roots.AllowedDirs()
+		if err != nil {
+			return "", fmt.Errorf("failed to resolve allowed directories: %v", roots)
+		}
+		if len(roots.([]string)) == 0 {
+			return "", fmt.Errorf("no accessible allowed directories")
+		}
+	} else {
+		roots, err = vars.Roots.ResolvedRoots()
+		if err != nil {
+			return "", fmt.Errorf("failed to resolve root directories: %v", roots)
+		}
+		if len(roots.([]*api.Root)) == 0 {
+			return "", fmt.Errorf("no accessible root directories")
+		}
 	}
-	if len(roots) == 0 {
-		return "", fmt.Errorf("no accessible root directories")
-	}
+
 	v, err := PrettyJSON(roots)
 	if err != nil {
 		return "", err

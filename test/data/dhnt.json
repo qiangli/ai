@@ -6,7 +6,7 @@
     "assets": [
         {
             "type": "file",
-            "base": "~/workspace/ai/swarm/resource/incubator"
+            "base": "$HOME/workspace/ai/swarm/resource/incubator"
         },
         {
             "type": "file",

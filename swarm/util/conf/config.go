@@ -6,7 +6,7 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 )
 
-// default assets with resource.json and standard
+// Load and resolve path for roots and assets
 func Load(base string) (*api.DHNTConfig, error) {
 	cfg, err := api.LoadDHNTConfig(filepath.Join(base, "dhnt.json"))
 	if err != nil {

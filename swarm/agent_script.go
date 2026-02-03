@@ -11,7 +11,7 @@ import (
 	"mvdan.cc/sh/v3/interp"
 
 	"github.com/qiangli/ai/swarm/api"
-	"github.com/qiangli/ai/swarm/atm"
+	// "github.com/qiangli/ai/swarm/atm"
 	"github.com/qiangli/ai/swarm/atm/conf"
 	"github.com/qiangli/ai/swarm/log"
 )
@@ -113,8 +113,8 @@ func HandleAction(ctx context.Context, vs *VirtualSystem, args []string) error {
 			if err != nil {
 				return err
 			}
-			in := atm.BuildEffectiveArgs(vs.vars, vs.agent, at)
-			result, err := api.Exec(ctx, vs.agent.Runner, in)
+			// in := atm.BuildEffectiveArgs(vs.vars, vs.agent, at)
+			result, err := api.Exec(ctx, vs.agent.Runner, at)
 			if result != nil {
 				fmt.Fprintln(hc.Stdout, result.Value)
 			}

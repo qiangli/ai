@@ -176,6 +176,23 @@ func LoadDHNTConfig(conf string) (*DHNTConfig, error) {
 		return nil, err
 	}
 	v.Base = filepath.Dir(conf)
+	//
+	var roots = v.Roots
+	if roots != nil {
+		if err := roots.Resolve(); err != nil {
+			return nil, err
+		}
+	}
+	for i, a := range v.Assets {
+		if a.Type == "file" {
+			resolved, err := ResolvePaths([]string{a.Base})
+			if err != nil {
+				return nil, err
+			}
+			v.Assets[i].Base = resolved[0]
+		}
+	}
+	// blob - not required for now
 	return &v, nil
 }
 
