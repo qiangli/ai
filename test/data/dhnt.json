@@ -6,11 +6,11 @@
     "assets": [
         {
             "type": "file",
-            "base": "$HOME/workspace/ai/swarm/resource/incubator"
+            "base": "~/workspace/ai/swarm/resource/incubator"
         },
         {
             "type": "file",
-            "base": "$HOME/workspace/ai/swarm/resource/standard"
+            "base": "~/workspace/ai/swarm/resource/standard"
         }
     ],
     "roots": {
@@ -22,7 +22,7 @@
         "cwd":            {
             "name": "Current Directory",
             "description": "Current working directory",
-            "path": "$HOME/workspace/ai"
+            "path": "~/workspace/ai"
         },
         "temp":             {
             "name": "Temporary Files",
@@ -33,12 +33,12 @@
             {
                 "name": "Incubator Resources",
                 "description": "Resource directory for incubating agents, tools, and models",
-                "path": "$HOME/workspace/ai/swarm/resource/incubator"
+                "path": "~/workspace/ai/swarm/resource/incubator"
             },
             {
                 "name": "Standard Resources",
                 "description": "Resource directory for standard agents, tools, and models",
-                "path": "$HOME/workspace/ai/swarm/resource/standard"
+                "path": "~/workspace/ai/swarm/resource/standard"
             }
         ]
     }
