@@ -47,6 +47,8 @@ function test_failed() {
     echo "❌ test outputs differ"
     exit 1
 }
+#
+rm /tmp/test.txt
 $BASE/test/template.sh --output /tmp/test.txt
 
 # diff /tmp/test.txt ./test/data/test-expected.txt 
