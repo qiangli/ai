@@ -60,15 +60,16 @@ func Run(argv []string) error {
 		base = filepath.Join(home, ".ai")
 	}
 	app.Base = base
+	app.Input = argv
 
 	//
-	if err := RunSwarm(app, argv); err != nil {
+	if err := RunSwarm(app); err != nil {
 		return err
 	}
 	return nil
 }
 
-func RunSwarm(cfg *api.App, args []string) error {
+func RunSwarm(cfg *api.App) error {
 	ctx := context.Background()
 
 	// init
@@ -80,7 +81,7 @@ func RunSwarm(cfg *api.App, args []string) error {
 	// ***
 	// parse input
 	// initial pass
-	argm, err := sw.Parse(ctx, args)
+	argm, err := sw.Parse(ctx, cfg.Input)
 	if err != nil {
 		return err
 	}
@@ -200,6 +201,7 @@ func initSwarm(ctx context.Context, cfg *api.App) (*swarm.Swarm, error) {
 		SessionID: sessionID,
 		//
 		Base:      cfg.Base,
+		Input:     cfg.Input,
 		Workspace: lfs,
 		User:      user,
 		Secrets:   secrets,

@@ -27,6 +27,7 @@ type Vars struct {
 
 	SessionID SessionID
 	User      *User
+	Input     any
 
 	Roots     *Roots
 	Workspace Workspace

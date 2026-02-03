@@ -41,20 +41,20 @@ type Root struct {
 }
 
 type Roots struct {
-	// primary working directory for the agents
+	// required primary working directory for the agents
+	// default: $WORKSPACE env or system temp dir
 	Workspace *Root `json:"workspace"`
 
-	// // Add user home to the root list
-	// Home bool `json:"home"`
-
-	// Add the current working directory to the root list
+	// optional current working directory to the root list
 	// where ai is started
+	// default: current working dir, $PWD or $(pwd)
 	Cwd *Root `json:"cwd"`
 
-	// Add system temporary directory to the root list
+	// optional system temporary directory to the root list
+	// default: system temp dir
 	Temp *Root `json:"temp"`
 
-	// Additional paths
+	// Additional allowed paths
 	Dirs []*Root `json:"dirs"`
 
 	//
@@ -101,7 +101,12 @@ func (r *Roots) resolveRoots() ([]*Root, error) {
 	}
 	ps = append(ps, r.Workspace)
 	if r.Workspace.Path == "" {
-		r.Workspace.Path = os.TempDir()
+		ws := os.Getenv("WORKSPACE")
+		if ws != "" {
+			r.Workspace.Path = ws
+		} else {
+			r.Workspace.Path = os.TempDir()
+		}
 	}
 	if r.Cwd != nil {
 		ps = append(ps, r.Cwd)

@@ -18,7 +18,7 @@ type Swarm struct {
 	vars *api.Vars
 }
 
-// set "workspace" and "user" in global env.
+// set "workspace", "user", "input" in global env.
 func New(vars *api.Vars) (*Swarm, error) {
 	if vars.SessionID == "" {
 		return nil, fmt.Errorf("Missing required session ID")
@@ -54,6 +54,7 @@ func New(vars *api.Vars) (*Swarm, error) {
 	// preset
 	vars.Global.Set("workspace", vars.Roots.Workspace.Path)
 	vars.Global.Set("user", vars.User)
+	vars.Global.Set("input", vars.Input)
 
 	rootData := []byte("data:," + string(resource.RootAgentData))
 	root, err := CreateAgent(context.TODO(), vars, nil, api.Packname("root"), rootData)
@@ -73,7 +74,7 @@ func New(vars *api.Vars) (*Swarm, error) {
 func (sw *Swarm) Parse(ctx context.Context, input any) (api.ArgMap, error) {
 	log.GetLogger(ctx).Debugf("argm: %+v\n", input)
 	// save user raw input in env.
-	sw.vars.Global.Set("input", input)
+	// sw.vars.Global.Set("input", input)
 	parsev := func(argv []string) (api.ArgMap, error) {
 		if conf.IsAction(argv[0]) {
 			cfg, err := GetInput(ctx, argv)
