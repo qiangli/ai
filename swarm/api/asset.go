@@ -128,7 +128,7 @@ func (r *Roots) resolveRoots() ([]*Root, error) {
 
 	// resolve relative path
 	for i, v := range ps {
-		resolved, err := resolvePaths([]string{v.Path})
+		resolved, err := ResolvePaths([]string{v.Path})
 		if err != nil {
 			return nil, err
 		}
@@ -154,7 +154,7 @@ func (r *Roots) resolveDirs(roots []*Root) ([]string, error) {
 	for _, v := range roots {
 		ps = append(ps, v.Path)
 	}
-	return resolvePaths(ps)
+	return ResolvePaths(ps)
 }
 
 type ResourceConfig struct {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"os"
 	"path/filepath"
 	"reflect"
 	"slices"
@@ -304,10 +305,46 @@ func ToInt(data any) int {
 	return 0
 }
 
-func resolvePaths(dirs []string) ([]string, error) {
+// Expand: accept and support  ~ ./ ../ as well as any system env: e.g $HOME
+func ExpendPath(s string) (string, error) {
+	if len(s) == 0 {
+		return s, nil
+	}
+
+	// Handle tilde (~) for home directory
+	if s[0] == '~' {
+		homeDir, err := os.UserHomeDir()
+		if err == nil {
+			if len(s) == 1 {
+				return homeDir, nil
+			}
+			s = filepath.Join(homeDir, s[1:])
+		}
+	}
+
+	// Expand environment variables
+	s = os.ExpandEnv(s)
+
+	// Resolve relative paths (./ and ../)
+	if !filepath.IsAbs(s) {
+		absPath, err := filepath.Abs(s)
+		if err != nil {
+			return "", err
+		}
+		s = absPath
+	}
+
+	return s, nil
+}
+
+func ResolvePaths(dirs []string) ([]string, error) {
 	uniquePaths := make(map[string]struct{})
 
-	for _, dir := range dirs {
+	for _, v := range dirs {
+		dir, err := ExpendPath(v)
+		if err != nil {
+			return nil, err
+		}
 		realPath, err := filepath.EvalSymlinks(dir)
 		if err != nil {
 			// Handle error, for example by logging
