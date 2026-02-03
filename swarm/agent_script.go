@@ -145,7 +145,7 @@ func HandleAction(ctx context.Context, vs *VirtualSystem, args []string) error {
 	// TODO merge with core tuil
 	allowed := []string{"env", "printenv"}
 	if slices.Contains(allowed, cmd) {
-		out, err := runBashCustom(vs, args)
+		out, err := runBashCustom(ctx, vs, args)
 		fmt.Fprintf(hc.Stdout, "%v", out)
 		if err != nil {
 			fmt.Fprintln(hc.Stderr, err.Error())
@@ -196,7 +196,10 @@ func HandleAction(ctx context.Context, vs *VirtualSystem, args []string) error {
 	return nil
 }
 
-func runBashCustom(vs *VirtualSystem, args []string) (string, error) {
+func runBashCustom(ctx context.Context, vs *VirtualSystem, args []string) (string, error) {
+	hc := interp.HandlerCtx(ctx)
+	exportEnv(ctx, vs, hc)
+
 	printenv := func() string {
 		var envs []string
 		for k, v := range vs.vars.OS.Environ() {

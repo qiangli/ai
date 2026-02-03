@@ -85,44 +85,15 @@ func execEnv(env expand.Environ) []string {
 }
 
 func VirtualExecHandler(vs *VirtualSystem, runner *interp.Runner) func(next interp.ExecHandlerFunc) interp.ExecHandlerFunc {
-	// import form vos into shell env
-	// workaround
-	// https://github.com/mvdan/sh/blob/v3.12.0/expand/environ.go#L42
-	importEnv := func(ctx context.Context, hc interp.HandlerContext) {
-		var buf bytes.Buffer
-		buf.WriteString("set -a;")
-		for _, v := range vs.vars.OS.Env() {
-			nv := strings.SplitN(v, "=", 2)
-			if len(nv) == 2 {
-				buf.WriteString(nv[0])
-				buf.WriteString("=\"")
-				buf.WriteString(nv[1])
-				buf.WriteString("\";")
-			}
-		}
-		buf.WriteString("set +a")
-		hc.Builtin(ctx, []string{"eval", buf.String()})
-	}
-
-	// export from shell env back to vos
-	exportEnv := func(ctx context.Context, hc interp.HandlerContext) {
-		envs := execEnv(hc.Env)
-		for _, v := range envs {
-			nv := strings.SplitN(v, "=", 2)
-			if len(nv) == 2 {
-				vs.vars.OS.Setenv(nv[0], nv[1])
-			}
-		}
-	}
 
 	handle := func(ctx context.Context, args []string) error {
 		hc := interp.HandlerCtx(ctx)
 
-		importEnv(ctx, hc)
+		importEnv(ctx, vs, hc)
 		err := HandleAction(ctx, vs, args)
 		// sync env
 		// syncEnv(ctx, hc)
-		exportEnv(ctx, hc)
+		exportEnv(ctx, vs, hc)
 
 		switch err := err.(type) {
 		case *exec.ExitError:
@@ -283,4 +254,34 @@ func runCommand(ctx context.Context, vs *VirtualSystem, args []string) error {
 	defer stopf()
 
 	return cmd.Wait()
+}
+
+// import form vos into shell env
+// workaround
+// https://github.com/mvdan/sh/blob/v3.12.0/expand/environ.go#L42
+func importEnv(ctx context.Context, vs *VirtualSystem, hc interp.HandlerContext) {
+	var buf bytes.Buffer
+	buf.WriteString("set -a;")
+	for _, v := range vs.vars.OS.Env() {
+		nv := strings.SplitN(v, "=", 2)
+		if len(nv) == 2 {
+			buf.WriteString(nv[0])
+			buf.WriteString("=\"")
+			buf.WriteString(nv[1])
+			buf.WriteString("\";")
+		}
+	}
+	buf.WriteString("set +a")
+	hc.Builtin(ctx, []string{"eval", buf.String()})
+}
+
+// export from shell env back to vos
+func exportEnv(ctx context.Context, vs *VirtualSystem, hc interp.HandlerContext) {
+	envs := execEnv(hc.Env)
+	for _, v := range envs {
+		nv := strings.SplitN(v, "=", 2)
+		if len(nv) == 2 {
+			vs.vars.OS.Setenv(nv[0], nv[1])
+		}
+	}
 }

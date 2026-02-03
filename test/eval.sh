@@ -31,4 +31,11 @@
 echo "workspace: $workspace"
 echo "pwd cmd: $(pwd)"
 echo "PWD: $PWD"
+
+export ABC=DEFG
+# /sh:pass
+echo "---"
+echo "ABC: $ABC"
+printenv
+
 ###
