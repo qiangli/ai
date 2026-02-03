@@ -32,8 +32,13 @@ Role: {{ .Role }}
 '
 
 ##
-# script="file:/$PWD/test/agent/agent.yaml"
-script="file:./test/agent/agent.yaml"
+# good
+# script="file:$PWD/test/agent/agent.yaml"
+# script="file://$PWD/test/agent/agent.yaml"
+
+# bad
+script="file:/$PWD/test/agent/agent.yaml"
+# script="file:./test/agent/agent.yaml"
 
 message="tell me a joke"
 echo "script: $script"

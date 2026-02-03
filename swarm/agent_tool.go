@@ -89,23 +89,24 @@ func (r *AgentToolRunner) loadYaml(tid string, base string, script string) (*api
 }
 
 func (r *AgentToolRunner) loadScript(uri string) (string, error) {
-	if strings.HasPrefix(uri, "data:") {
-		return api.DecodeDataURL(uri)
-	} else {
-		var f = uri
-		if strings.HasPrefix(f, "file:") {
-			v, err := url.Parse(f)
-			if err != nil {
-				return "", err
-			}
-			f = v.Path
-		}
-		data, err := r.vars.Workspace.ReadFile(f, nil)
-		if err != nil {
-			return "", err
-		}
-		return string(data), nil
-	}
+	return api.LoadURIContent(r.vars.Workspace, uri)
+	// if strings.HasPrefix(uri, "data:") {
+	// 	return api.DecodeDataURL(uri)
+	// } else {
+	// 	var f = uri
+	// 	if strings.HasPrefix(f, "file:") {
+	// 		v, err := url.Parse(f)
+	// 		if err != nil {
+	// 			return "", err
+	// 		}
+	// 		f = v.Path
+	// 	}
+	// 	data, err := r.vars.Workspace.ReadFile(f, nil)
+	// 	if err != nil {
+	// 		return "", err
+	// 	}
+	// 	return string(data), nil
+	// }
 }
 
 // try load from provided script file first,

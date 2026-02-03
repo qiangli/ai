@@ -418,13 +418,13 @@ func LoadURIContent(ws Workspace, uri string) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			resolved, err := ResolvePaths([]string{v.Path})
-			if err != nil {
-				return "", err
-			}
-			f = resolved[0]
+			f = v.Path
 		}
-		data, err := ws.ReadFile(f, nil)
+		resolved, err := ResolvePaths([]string{f})
+		if err != nil {
+			return "", err
+		}
+		data, err := ws.ReadFile(resolved[0], nil)
 		if err != nil {
 			return "", err
 		}
