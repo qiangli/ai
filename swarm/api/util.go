@@ -322,6 +322,8 @@ func ExpendPath(s string) (string, error) {
 		}
 	}
 
+	s = filepath.Clean(s)
+
 	// Expand environment variables
 	s = os.ExpandEnv(s)
 
@@ -403,7 +405,7 @@ func ToMessages(data any) []*Message {
 }
 
 // Load data from uri.
-// Support file:// and data: protocols
+// Support file:/ and data: protocols
 // TODO enforce protocol requiremnt?
 // If no protocol is specified, assumse local file path.
 func LoadURIContent(ws Workspace, uri string) (string, error) {
@@ -416,7 +418,11 @@ func LoadURIContent(ws Workspace, uri string) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			f = v.Path
+			resolved, err := ResolvePaths([]string{v.Path})
+			if err != nil {
+				return "", err
+			}
+			f = resolved[0]
 		}
 		data, err := ws.ReadFile(f, nil)
 		if err != nil {

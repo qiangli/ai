@@ -129,7 +129,7 @@
 				"--format",
 				"raw",
 				"--script",
-				"test/eval.sh",
+				"test/template.sh",
 				"--base",
 				"test/data",
 				// "test/basic.sh",

@@ -32,26 +32,29 @@ Role: {{ .Role }}
 '
 
 ##
-PWD=$HOME/workspace/ai
-script="file:/$PWD/test/agent/agent.yaml"
+# script="file:/$PWD/test/agent/agent.yaml"
+script="file:./test/agent/agent.yaml"
+
 message="tell me a joke"
+echo "script: $script"
+# env message="${message}"
+# env datetime="<TODO>"
+# # env workspace="<redacted>"
+# env input="<redated>"
+# # env HOME="<redated>"
+# env PATH="/bin:/usr/bin"
 
-env message="${message}"
-env datetime="<TODO>"
-env workspace="<redacted>"
-env input="<redated>"
-env HOME="<redated>"
-env PATH="/bin:/usr/bin"
+# /fs:list_roots --resolve
+# TODO only support /sh:set_envs, ignore: os.Setenv()
+# /sh:get_envs
 
-/fs:list_roots --resolve
-
-# /flow:sequence \
-#     --actions "[ai:spawn_agent,sh:format]" \
-#     --agent "test/test" \
-#     --adapter "echo" \
-#     --template "$template" \
-#     --script "$script" \
-#     --output "file:/tmp/test.txt"
+/flow:sequence \
+    --actions "[ai:spawn_agent,sh:format]" \
+    --agent "test/test" \
+    --adapter "echo" \
+    --template "$template" \
+    --script "$script" \
+    --output "file:/tmp/test.txt"
 
 ###
 
