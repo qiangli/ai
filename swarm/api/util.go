@@ -340,6 +340,14 @@ func ExpendPath(s string) (string, error) {
 func ResolvePaths(dirs []string) ([]string, error) {
 	uniquePaths := make(map[string]struct{})
 
+	// remove last path separator
+	trim := func(s string) string {
+		last := len(s) - 1
+		if last > 0 && s[last] == os.PathListSeparator {
+			return s[:last]
+		}
+		return s
+	}
 	for _, v := range dirs {
 		dir, err := ExpendPath(v)
 		if err != nil {
@@ -352,6 +360,8 @@ func ResolvePaths(dirs []string) ([]string, error) {
 			// continue
 			return nil, err
 		}
+		dir = trim(dir)
+		realPath = trim(dir)
 		uniquePaths[dir] = struct{}{}
 		uniquePaths[realPath] = struct{}{}
 	}
