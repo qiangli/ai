@@ -1,0 +1,15 @@
+name: oauth_cli
+kind: tool
+description: "Python-based OAuth CLI (safe). Reads config from /Users/liqiang/workspace/etc/oauth_cli/config.json and credentials from /Users/liqiang/workspace/credentials.json. Writes tokens to /Users/liqiang/workspace/tokens.json."
+executable: "/Users/liqiang/workspace/opt/oauth_cli/oauth_cli.py"
+entrypoint: "oauth_cli.py"
+platforms:
+  - unix
+  - mac
+parameters:
+  - name: cmd
+    type: string
+    description: subcommand to run (info, device, local)
+  - name: simulate
+    type: boolean
+    description: whether to run simulated flows (safe)

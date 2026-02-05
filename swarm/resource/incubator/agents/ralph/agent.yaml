@@ -23,6 +23,15 @@ pack: "ralph"
 log_level: "info"
 max_time: 900
 max_turns: 100
+
+model: "ralph/any"
+arguments:
+  models:
+    - anthropic/L2
+    - gemini/L2
+    - openai/L2
+    - xai/L2
+
 # =============================================================================
 # Agents
 # =============================================================================

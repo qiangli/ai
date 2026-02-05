@@ -1,0 +1,24 @@
+pack: memory
+name: get
+description: Get lines from memory file
+parameters:
+  - name: path
+    type: string
+    required: true
+  - name: from_line
+    type: integer
+    default: 1
+  - name: lines
+    type: integer
+    default: 20
+run:
+  type: exec
+  command: ["/Users/liqiang/workspace/ai/swarm/atm/memory/cmd/memorytool", "get"]
+  stdin: |
+    {
+      "path": "{{.path}}",
+      "from_line": {{.from_line}},
+      "lines": {{.lines}},
+      "config": {}
+    }
+  parse: json
