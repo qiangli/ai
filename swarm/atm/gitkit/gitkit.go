@@ -202,55 +202,72 @@ func Status(dir string) (string, string, error) {
 	return st.String(), "", nil
 }
 
-// Commit performs a commit in dir with the provided message.
-func Commit(dir string, message string) (string, string, error) {
-	out, errOut, code, err := RunGitExitCode(dir, "commit", "-m", message)
-	if err != nil {
-		return out, errOut, err
+func Add(dir string, args []string) (string, string, error) {
+	repo, openErr := git.PlainOpen(dir)
+	if openErr != nil {
+		return "", openErr.Error(), openErr
 	}
-	if code != 0 {
-		return out, errOut, fmt.Errorf("commit failed: exit %d", code)
+	wt, wtErr := repo.Worktree()
+	if wtErr != nil {
+		return "", wtErr.Error(), wtErr
 	}
-	return out, errOut, nil
-}
-
-// Pull performs a git pull in dir. go-git has limited support for pull; we provide
-// a best-effort implementation.
-func Pull(dir string, args ...string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	wt, err := repo.Worktree()
-	if err != nil {
-		return "", err.Error(), err
-	}
-	// Default to origin and current branch
-	head, herr := repo.Head()
-	if herr != nil {
-		return "", herr.Error(), herr
-	}
-	remoteName := "origin"
-	ref := head.Name()
-	err = wt.Pull(&git.PullOptions{RemoteName: remoteName, ReferenceName: ref})
-	if err != nil && err != git.NoErrAlreadyUpToDate {
-		return "", err.Error(), err
+	for _, p := range args[1:] {
+		if _, aerr := wt.Add(p); aerr != nil {
+			return "", aerr.Error(), aerr
+		}
 	}
 	return "", "", nil
 }
 
-// Push performs a git push in dir. We implement a basic push to origin.
-func Push(dir string, args ...string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	err = repo.Push(&git.PushOptions{})
-	if err != nil && err != git.NoErrAlreadyUpToDate {
-		return "", err.Error(), err
-	}
-	return "", "", nil
-}
+// // Commit performs a commit in dir with the provided message.
+// func Commit(dir string, message string) (string, string, error) {
+// 	out, errOut, code, err := RunGitExitCode(dir, "commit", "-m", message)
+// 	if err != nil {
+// 		return out, errOut, err
+// 	}
+// 	if code != 0 {
+// 		return out, errOut, fmt.Errorf("commit failed: exit %d", code)
+// 	}
+// 	return out, errOut, nil
+// }
+
+// // Pull performs a git pull in dir. go-git has limited support for pull; we provide
+// // a best-effort implementation.
+// func Pull(dir string, args ...string) (string, string, error) {
+// 	repo, err := git.PlainOpen(dir)
+// 	if err != nil {
+// 		return "", err.Error(), err
+// 	}
+// 	wt, err := repo.Worktree()
+// 	if err != nil {
+// 		return "", err.Error(), err
+// 	}
+// 	// Default to origin and current branch
+// 	head, herr := repo.Head()
+// 	if herr != nil {
+// 		return "", herr.Error(), herr
+// 	}
+// 	remoteName := "origin"
+// 	ref := head.Name()
+// 	err = wt.Pull(&git.PullOptions{RemoteName: remoteName, ReferenceName: ref})
+// 	if err != nil && err != git.NoErrAlreadyUpToDate {
+// 		return "", err.Error(), err
+// 	}
+// 	return "", "", nil
+// }
+
+// // Push performs a git push in dir. We implement a basic push to origin.
+// func Push(dir string, args ...string) (string, string, error) {
+// 	repo, err := git.PlainOpen(dir)
+// 	if err != nil {
+// 		return "", err.Error(), err
+// 	}
+// 	err = repo.Push(&git.PushOptions{})
+// 	if err != nil && err != git.NoErrAlreadyUpToDate {
+// 		return "", err.Error(), err
+// 	}
+// 	return "", "", nil
+// }
 
 // CurrentBranch returns the current branch short name.
 func CurrentBranch(dir string) (string, string, error) {

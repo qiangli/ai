@@ -85,20 +85,10 @@ func Run(args *Args) (any, error) {
 		}
 
 		if args.Args != "" && args.Args != "<no value>" {
-			var list []string
-			// if err := json.Unmarshal([]byte(args.Args), &list); err != nil {
-			// 	return nil, fmt.Errorf("invalid args JSON: %v\n", err)
-			// }
-			list = api.ToStringArray(args.Args)
-			env.Payload.Args = list
+			env.Payload.Args = api.ToStringArray(args.Args)
 		}
 		if args.Command != "" && args.Command != "<no value>" {
-			var list []string
-			// if err := json.Unmarshal([]byte(args.Command), &list); err != nil {
-			// 	return nil, fmt.Errorf("invalid command JSON: %v\n", err)
-			// }
-			list = api.ToStringArray(args.Command)
-			env.Payload.Command = list
+			env.Payload.Command = api.ToStringArray(args.Command)
 		}
 	}
 
@@ -116,11 +106,6 @@ func Run(args *Args) (any, error) {
 
 	// Now dispatch using gitkit directly to avoid spawning external processes.
 	out := run(env.Payload)
-
-	// if !out.OK {
-	// 	// Use a non-zero exit code when tool reported error.
-	// 	return nil, fmt.Errorf("Error: %v, Exit code: %v", out.Error, out.ExitCode)
-	// }
 
 	var buf bytes.Buffer
 	enc := json.NewEncoder(&buf)
@@ -173,6 +158,17 @@ func run(p payloadObj) Output {
 			return Output{ExitCode: 1, OK: false, Error: err.Error()}
 		}
 		return Output{ExitCode: 0, OK: true}
+	case "add":
+		if len(p.Args) < 2 {
+			return Output{ExitCode: 2, OK: false, Error: "git add requires a path"}
+		}
+		outStr, errStr, err := Add(p.Dir, p.Args)
+		out := Output{Stdout: outStr, Stderr: errStr, ExitCode: 0, OK: err == nil}
+		if err != nil {
+			out.ExitCode = 1
+			out.Error = err.Error()
+		}
+		return out
 	case "commit":
 		msg := strings.TrimSpace(p.Message)
 		if msg == "" && len(p.Args) > 0 {
@@ -289,6 +285,6 @@ func run(p payloadObj) Output {
 		}
 		return out
 	default:
-		return Output{ExitCode: 2, OK: false, Error: fmt.Sprintf("unsupported action %q", action)}
+		return Output{ExitCode: 2, OK: false, Error: fmt.Sprintf("unsupported action %q.", action)}
 	}
 }
