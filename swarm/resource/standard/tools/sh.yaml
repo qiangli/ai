@@ -524,6 +524,6 @@ tools:
           description: "Path to a JSON file to use as input. If provided, overrides input."
       required:
         - expr
-    exec: "swarm/atm/cmd/sh_jq/sh_jq"
-    examples:
-      - "sh:jq --expr '.foo' --input '{\"foo\": 1}'"
+    # exec: "swarm/atm/cmd/sh_jq/sh_jq"
+    # examples:
+    #   - "sh:jq --expr '.foo' --input '{\"foo\": 1}'"
