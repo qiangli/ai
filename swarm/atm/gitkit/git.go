@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/qiangli/ai/swarm/api"
 )
 
 // Top-level fields (strings) injected by the runtime.
@@ -84,16 +86,18 @@ func Run(args *Args) (any, error) {
 
 		if args.Args != "" && args.Args != "<no value>" {
 			var list []string
-			if err := json.Unmarshal([]byte(args.Args), &list); err != nil {
-				return nil, fmt.Errorf("invalid args JSON: %v\n", err)
-			}
+			// if err := json.Unmarshal([]byte(args.Args), &list); err != nil {
+			// 	return nil, fmt.Errorf("invalid args JSON: %v\n", err)
+			// }
+			list = api.ToStringArray(args.Args)
 			env.Payload.Args = list
 		}
 		if args.Command != "" && args.Command != "<no value>" {
 			var list []string
-			if err := json.Unmarshal([]byte(args.Command), &list); err != nil {
-				return nil, fmt.Errorf("invalid command JSON: %v\n", err)
-			}
+			// if err := json.Unmarshal([]byte(args.Command), &list); err != nil {
+			// 	return nil, fmt.Errorf("invalid command JSON: %v\n", err)
+			// }
+			list = api.ToStringArray(args.Command)
 			env.Payload.Command = list
 		}
 	}
@@ -113,10 +117,10 @@ func Run(args *Args) (any, error) {
 	// Now dispatch using gitkit directly to avoid spawning external processes.
 	out := run(env.Payload)
 
-	if !out.OK {
-		// Use a non-zero exit code when tool reported error.
-		return nil, fmt.Errorf("Error: %v, Exit code: %v", out.Error, out.ExitCode)
-	}
+	// if !out.OK {
+	// 	// Use a non-zero exit code when tool reported error.
+	// 	return nil, fmt.Errorf("Error: %v, Exit code: %v", out.Error, out.ExitCode)
+	// }
 
 	var buf bytes.Buffer
 	enc := json.NewEncoder(&buf)
