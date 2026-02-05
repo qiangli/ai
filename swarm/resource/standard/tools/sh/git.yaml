@@ -10,10 +10,10 @@
 # - No static binaries are checked in. (You may build one locally if desired.)
 #
 kit: "sh"
-type: "func"
 tools:
   - name: "git"
     description: "Run safe git actions."
+    type: "func"
     parameters:
       type: "object"
       properties:

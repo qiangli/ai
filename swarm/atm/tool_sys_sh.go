@@ -524,3 +524,7 @@ func (r *SystemKit) Diff(ctx context.Context, vars *api.Vars, _ string, args map
 	// No differences
 	return "", nil
 }
+
+func (r *SystemKit) Git(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (string, error) {
+	
+}
