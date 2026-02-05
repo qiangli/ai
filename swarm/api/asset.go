@@ -90,11 +90,10 @@ func (r *Roots) resolveRoots() error {
 	roots = append(roots, r.Workspace)
 	if r.Workspace.Path == "" {
 		ws := os.Getenv("WORKSPACE")
-		if ws != "" {
-			r.Workspace.Path = ws
-		} else {
-			r.Workspace.Path = os.TempDir()
+		if ws == "" {
+			return fmt.Errorf("workspace path is empty. must be set in config dhnt.json or system env: 'WORKSPACE'")
 		}
+		r.Workspace.Path = ws
 	}
 	if r.Cwd != nil {
 		roots = append(roots, r.Cwd)
