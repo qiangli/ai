@@ -532,12 +532,12 @@ func (r *SystemKit) Git(ctx context.Context, vars *api.Vars, _ string, args map[
 	ga.User, _ = api.GetStrProp("user", args)
 	ga.Payload, _ = api.GetStrProp("payload", args)
 	ga.Action, _ = api.GetStrProp("action", args)
-	ga.Dir, _ = api.GetStrProp("dir", args)
+	// ga.Dir, _ = api.GetStrProp("dir", args)
 	ga.Args, _ = api.GetStrProp("args", args)
 	ga.Message, _ = api.GetStrProp("message", args)
 	ga.Rev, _ = api.GetStrProp("rev", args)
 	ga.Path, _ = api.GetStrProp("path", args)
-	ga.Command, _ = api.GetStrProp("command", args)
+	// ga.Command, _ = api.GetStrProp("command", args)
 
 	return gitkit.Run(&ga)
 }

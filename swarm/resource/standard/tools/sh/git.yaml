@@ -25,10 +25,10 @@ tools:
           properties:
             action:
               type: "string"
-              enum:
-                [
+              enum: [
                   "status",
                   "clone",
+                  "add",
                   "commit",
                   "pull",
                   "push",
@@ -39,24 +39,27 @@ tools:
                   "list-remotes",
                   "latest-commit",
                   "show-file",
-                  "raw",
+                  # "raw",
                 ]
-            dir: { type: "string" }
-            args: { type: "array", items: { type: "string" } }
-            message: { type: "string" }
-            rev: { type: "string" }
-            path: { type: "string" }
-            command:
+            # dir: { type: "string" }
+            args:
               type: "array"
               items: { type: "string" }
-              description: "Raw git argv array; must start with 'git'."
+              description: "git argv array"
+            # message: { type: "string" }
+            rev: { type: "string" }
+            path: { type: "string" }
+            # command:
+            #   type: "array"
+            #   items: { type: "string" }
+            #   description: "Raw git argv array; must start with 'git'."
         # Backward-compat convenience fields:
         action:
           type: "string"
-          enum:
-            [
+          enum: [
               "status",
               "clone",
+              "add",
               "commit",
               "pull",
               "push",
@@ -67,16 +70,16 @@ tools:
               "list-remotes",
               "latest-commit",
               "show-file",
-              "raw",
+              # "raw",
             ]
-        dir: { type: "string" }
+        # dir: { type: "string" }
         args:
           type: "array"
           items: { type: "string" }
-        message: { type: "string" }
+        # message: { type: "string" }
         rev: { type: "string" }
         path: { type: "string" }
-        command:
-          type: "array"
-          items: { type: "string" }
+        # command:
+        #   type: "array"
+        #   items: { type: "string" }
       required: []

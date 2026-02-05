@@ -16,12 +16,12 @@ type Args struct {
 	User    string `json:"user"`
 	Payload string `json:"payload"` // JSON object
 	Action  string `json:"action"`
-	Dir     string `json:"dir"`
+	// Dir     string `json:"dir"`
 	Args    string `json:"args"` // JSON array
 	Message string `json:"message"`
 	Rev     string `json:"rev"`
 	Path    string `json:"path"`
-	Command string `json:"command"` // JSON array
+	// Command string `json:"command"` // JSON array
 }
 
 // var id = "<no value>"
@@ -71,9 +71,9 @@ func Run(args *Args) (any, error) {
 		if args.Action != "" && args.Action != "<no value>" {
 			env.Payload.Action = args.Action
 		}
-		if args.Dir != "" && args.Dir != "<no value>" {
-			env.Payload.Dir = args.Dir
-		}
+		// if args.Dir != "" && args.Dir != "<no value>" {
+		// 	env.Payload.Dir = args.Dir
+		// }
 		if args.Message != "" && args.Message != "<no value>" {
 			env.Payload.Message = args.Message
 		}
@@ -87,9 +87,9 @@ func Run(args *Args) (any, error) {
 		if args.Args != "" && args.Args != "<no value>" {
 			env.Payload.Args = api.ToStringArray(args.Args)
 		}
-		if args.Command != "" && args.Command != "<no value>" {
-			env.Payload.Command = api.ToStringArray(args.Command)
-		}
+		// if args.Command != "" && args.Command != "<no value>" {
+		// 	env.Payload.Command = api.ToStringArray(args.Command)
+		// }
 	}
 
 	// Basic validation before invoking.
@@ -159,7 +159,7 @@ func run(p payloadObj) Output {
 		}
 		return Output{ExitCode: 0, OK: true}
 	case "add":
-		if len(p.Args) < 2 {
+		if len(p.Args) == 0 {
 			return Output{ExitCode: 2, OK: false, Error: "git add requires a path"}
 		}
 		outStr, errStr, err := Add(p.Dir, p.Args)
@@ -171,29 +171,66 @@ func run(p payloadObj) Output {
 		return out
 	case "commit":
 		msg := strings.TrimSpace(p.Message)
-		if msg == "" && len(p.Args) > 0 {
-			msg = strings.Join(p.Args, " ")
-		}
-		if strings.TrimSpace(msg) == "" {
-			return Output{ExitCode: 2, OK: false, Error: "commit requires non-empty message"}
-		}
-		stdout, stderr, code, err := RunGitExitCode(p.Dir, "commit", "-m", msg)
+		// if msg == "" && len(p.Args) > 0 {
+		// 	msg = strings.Join(p.Args, " ")
+		// }
+		// if strings.TrimSpace(msg) == "" {
+		// 	return Output{ExitCode: 2, OK: false, Error: "commit requires non-empty message"}
+		// }
+
+		// stdout, stderr, code, err := RunGitExitCode(p.Dir, "commit", "-m", msg)
+		// out := Output{Stdout: stdout, Stderr: stderr, ExitCode: code, OK: err == nil}
+		// if err != nil {
+		// 	out.Error = err.Error()
+		// }
+		// return out
+		// msg := strings.TrimSpace(p.Message)
+		// if msg == "" && len(p.Args) > 0 {
+		// 	msg = strings.Join(p.Args, " ")
+		// }
+		// if strings.TrimSpace(msg) == "" {
+		// 	return Output{ExitCode: 2, OK: false, Error: "commit requires non-empty message"}
+		// }
+
+		stdout, stderr, code, err := Commit(p.Dir, msg, p.Args)
 		out := Output{Stdout: stdout, Stderr: stderr, ExitCode: code, OK: err == nil}
 		if err != nil {
 			out.Error = err.Error()
 		}
 		return out
 	case "pull":
-		stdout, stderr, code, err := RunGitExitCode(p.Dir, append([]string{"pull"}, p.Args...)...)
-		out := Output{Stdout: stdout, Stderr: stderr, ExitCode: code, OK: err == nil}
+		// FIXME
+		// stdout, stderr, code, err := RunGitExitCode(p.Dir, append([]string{"pull"}, p.Args...)...)
+		// out := Output{Stdout: stdout, Stderr: stderr, ExitCode: code, OK: err == nil}
+		// if err != nil {
+		// 	out.Error = err.Error()
+		// }
+		// return out
+		if len(p.Args) != 0 {
+			return Output{ExitCode: 2, OK: false, Error: fmt.Sprintf("git pull args not supported: %v", p.Args)}
+		}
+		outStr, errStr, err := Pull(p.Dir, p.Args)
+		out := Output{Stdout: outStr, Stderr: errStr, ExitCode: 0, OK: err == nil}
 		if err != nil {
+			out.ExitCode = 1
 			out.Error = err.Error()
 		}
 		return out
 	case "push":
-		stdout, stderr, code, err := RunGitExitCode(p.Dir, append([]string{"push"}, p.Args...)...)
-		out := Output{Stdout: stdout, Stderr: stderr, ExitCode: code, OK: err == nil}
+		// FIXME
+		// stdout, stderr, code, err := RunGitExitCode(p.Dir, append([]string{"push"}, p.Args...)...)
+		// out := Output{Stdout: stdout, Stderr: stderr, ExitCode: code, OK: err == nil}
+		// if err != nil {
+		// 	out.Error = err.Error()
+		// }
+		// return out
+		if len(p.Args) != 0 {
+			return Output{ExitCode: 2, OK: false, Error: fmt.Sprintf("git push args not supported: %v", p.Args)}
+		}
+		outStr, errStr, err := Push(p.Dir, p.Args)
+		out := Output{Stdout: outStr, Stderr: errStr, ExitCode: 0, OK: err == nil}
 		if err != nil {
+			out.ExitCode = 1
 			out.Error = err.Error()
 		}
 		return out
