@@ -107,6 +107,14 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AppConfig, err
 				break
 			}
 		} else if as, ok := v.(api.AssetFS); ok {
+			// agents/<pack>.yaml
+			if v, err := as.ReadFile(path.Join("agents", pack+".yaml")); err == nil {
+				content = [][]byte{v}
+				asset = as
+				base = "agents"
+				break
+			}
+			// agents/<pack>/*.yaml
 			dirs, err := as.ReadDir(path.Join("agents", pack))
 			if err != nil {
 				continue
@@ -126,6 +134,8 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AppConfig, err
 					}
 				}
 			}
+			// found
+			break
 		}
 	}
 
@@ -141,7 +151,9 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AppConfig, err
 		return nil, fmt.Errorf("invalid config. no agent defined: %s", pack)
 	}
 
+	//
 	ac.Pack = pack
+
 	if len(content) == 1 {
 		ac.RawContent = content[0]
 	} else {
@@ -152,12 +164,6 @@ func (r *assetManager) FindAgent(owner string, pack string) (*api.AppConfig, err
 		ac.RawContent = buffer.Bytes()
 	}
 
-	// sub agents
-	// for _, v := range ac.Agents {
-	// 	// v.Name = NormalizePackname(pack, v.Name)
-	// 	v.Store = asset
-	// 	// TODO base for resource asset? not used and not a problem for now
-	// }
 	ac.Store = asset
 	ac.BaseDir = base
 	return ac, nil
@@ -186,7 +192,7 @@ func (r *assetManager) ListToolkit(owner string) (map[string]*api.AppConfig, err
 }
 
 func (r *assetManager) FindToolkit(owner string, kit string) (*api.AppConfig, error) {
-	var content []byte
+	var content [][]byte
 	var asset api.AssetStore
 	var base string
 	for _, v := range r.assets {
@@ -194,21 +200,41 @@ func (r *assetManager) FindToolkit(owner string, kit string) (*api.AppConfig, er
 			if v, err := as.RetrieveTool(owner, kit); err != nil {
 				continue
 			} else {
-				content = []byte(v.Content)
+				content = [][]byte{[]byte(v.Content)}
 				asset = as
 				base = ""
 				break
 			}
 		} else if as, ok := v.(api.AssetFS); ok {
-			// TODO support <kit>/*.yaml
-			if v, err := as.ReadFile(path.Join("tools", kit+".yaml")); err != nil {
-				continue
-			} else {
-				content = v
+			// tools/<kit>.yaml
+			if v, err := as.ReadFile(path.Join("tools", kit+".yaml")); err == nil {
+				content = [][]byte{v}
 				asset = as
 				base = "tools"
 				break
 			}
+			// tools/<kit>/*.yaml
+			dirs, err := as.ReadDir(path.Join("tools", kit))
+			if err != nil {
+				continue
+			}
+			for _, file := range dirs {
+				if file.IsDir() {
+					continue
+				}
+				name := file.Name()
+				if strings.HasSuffix(name, ".yaml") || strings.HasSuffix(name, ".yml") {
+					if v, err := as.ReadFile(path.Join("tools", kit, name)); err != nil {
+						continue
+					} else {
+						content = append(content, v)
+						asset = as
+						base = path.Join("tools", kit)
+					}
+				}
+			}
+			// found
+			break
 		}
 	}
 
@@ -216,7 +242,7 @@ func (r *assetManager) FindToolkit(owner string, kit string) (*api.AppConfig, er
 		return nil, nil
 	}
 
-	tc, err := LoadToolData([][]byte{content})
+	tc, err := LoadToolData(content)
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +252,17 @@ func (r *assetManager) FindToolkit(owner string, kit string) (*api.AppConfig, er
 
 	//
 	tc.Kit = kit
-	tc.RawContent = content
+
+	if len(content) == 1 {
+		tc.RawContent = content[0]
+	} else {
+		var buffer bytes.Buffer
+		for _, part := range content {
+			buffer.Write(part)
+		}
+		tc.RawContent = buffer.Bytes()
+	}
+
 	tc.Store = asset
 	tc.BaseDir = base
 	return tc, nil
