@@ -13,7 +13,7 @@ kit: "sh"
 # tools:
 #   - name: "git"
 #     description: "Run safe git actions."
-#     # type: "func"
+#     type: "system"
 #     parameters:
 #       type: "object"
 #       properties:

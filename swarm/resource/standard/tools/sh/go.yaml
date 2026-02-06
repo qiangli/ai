@@ -1,0 +1,74 @@
+###
+kit: "sh"
+tools:
+  - name: "go"
+    description: |
+      Run Go commands (go build/test/vet/list/run) via the SystemKit.Go method.
+      Safety: only accepts commands starting with `go`.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        command:
+          type: "string"
+          description: "The Go command to execute (must start with 'go')."
+      required:
+        - command
+  
+  - name: "template_example"
+    display: "Go Template Example"
+    description: |
+      This is a detailed Go template example that demonstrates standard syntax and includes additional features supporting agents and tools.
+    parameters: {}
+    type: "func"
+    body:
+      mime_type: "text/markdown"
+      script: |
+        # Go Template Example
+
+        Refer to the [Go Template](https://pkg.go.dev/text/template) documentation for guidance.
+
+        In addition to standard functions, you can use [Sprig Functions](https://masterminds.github.io/sprig/),
+        with the exception of those under "Advanced Functions" for security reasons.
+
+        Extended features:
+
+        You can execute agents and tools using the 'ai' function with the bash command action syntax.
+        Use the `sh:bash_example` tool for more details.
+
+        Example:
+        ```
+        #! --mime-type=text/x-go-template
+
+        *** Context History ***
+        {{ai "/ai:list_messages" "--format" "text"}}
+
+        User input: {{default "No input" .query}}
+
+        Today is: {{date}}
+        ###
+        ```
+  
+  - name: "apply"
+    description: |
+      Applies a Golang template to provided data, as documented at: https://pkg.go.dev/text/template.
+      The template can be specified either as a file path or as an inline string prefixed with "data:.".
+      Additional arguments represent the data to be used in the template. Some default data variables include:
+      + query - the user's request message
+      + result - the last LLM's response
+      + error - any errors encountered during processing
+      Additional environment variables are also available and can be inspected using the ai:get_envs tool call.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        template:
+          type: "string"
+          description: |
+            Specifies the template to be applied to the data.
+            It can be specified either as a file path or as an inline string prefixed with "data:.".
+            Provide any additional arguments required by the template.
+      required:
+        - template
+
+

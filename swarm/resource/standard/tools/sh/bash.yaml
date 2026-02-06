@@ -1,0 +1,129 @@
+##
+kit: "sh"
+tools:
+  - name: "bash"
+    description: |
+      Executes a shell script within the user's environment.
+      The script can be a file path or inline with the "data:" prefix.
+      Note: security restrictions may apply.
+      Run 'sh:bash_example' tool for a complete example with extended feature support for agent/tool.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        script:
+          type: "string"
+          description: |
+            Path to the script file or inline script prefixed with 'data:'.
+      required:
+        - script
+
+  - name: "bash_example"
+    display: "Bash Script Example"
+    description: |
+      A comprehensive bash script example demonstrating standard syntax along with extended features supporting agents and tools.
+    parameters: {}
+    type: "func"
+    body:
+      mime_type: "text/markdown"
+      script: |
+        # Bash Script Example
+
+        Refer to the [Bash manual](https://www.gnu.org/software/bash/manual/bash.txt) for guidance.
+        *** Note ***
+        Only a subset of Bash features is supported. Please restrict your scripts to the provided examples.
+        Changing the current working directory is not supported in the script.
+        For legacy bash scripts relying on `cd`, use the 'sh:exec' tool, e.g., sh:exec --command "/bin/bash </script/file>"
+
+        ```bash
+        #
+        set -xueo pipefail
+
+        ## Standard Syntax
+
+        ### conditional
+        if [[ $? -eq 0 ]]; then
+          echo "double bracket OK"
+        fi
+        if [ $? -eq 0 ]; then
+          echo "single bracket OK"
+        fi
+        if test $? -eq 0; then
+          echo "test OK"
+        fi
+
+        ### switch
+        case $? in
+            0) echo "OK";;
+            1) echo "Error";;
+            *) echo "Unhandled error";;
+        esac
+
+        ### function
+        function foobar() {
+            echo "foo $1"
+            echo "bar $2"
+        }
+        foobar "first" "second"
+
+        ### loop
+        function loop() {
+            for arg in "$@"; do
+                echo "arg: $arg"
+            done
+        }
+        loop 1 2 3 4
+
+        ### execute external system commands
+        /sh:exec --command "/bin/ls -al"
+        /sh:exec --command "/bin/bash /absolute/path"
+
+        ### list of supported built-in system commands
+        # "base64", "basename", "cat", "date", "dirname", "head", "ls",
+        # "shasum", "sleep", "tail", "time", "touch",
+        #
+        FILE="$PWD/ex.sh"
+        base64 $FILE
+        basename $PWD 
+        cat $FILE
+        date
+        dirname $PWD 
+        head -n 3 $FILE
+        ls -ahdlQRFS $PWD
+        shasum $FILE
+        sleep 1s
+        tail -n 3 $FILE
+        time touch $FILE
+
+        ## Slash command action extension for running agents and tools
+
+        ## tool action - /KIT:NAME
+        /ai:help
+
+        ## agent action - /agent:PACK/NAME
+        # use "chat" or other adapters for real LLM  call.
+        # default is "chat" if not specified
+        # "echo" adapter is for testing only which echoes the request.
+        /agent:root/root --adapter "echo" --query "Hello"
+
+        ## system command action
+        /sh:exec --command "ls -al /tmp"
+
+        ## alias action - name: ^[a-z0-9_]+$, e.g. 'cmd'
+        /alias:cmd --option cmd="ls -al /tmp"
+
+        # bash sub-script - inline 'data:' or 'file:'
+        /sh:bash --script "data:,ls -al /tmp"
+        # /sh:bash --script "<path>"
+
+        # flow control tool
+        /flow:sequence --actions '["sh:pass","sh:pwd"]'
+        /flow:choice --actions '[sh:pwd,sh:pass]'
+        /flow:parallel --actions '[sh:pwd,sh:pass]'
+        /flow:chain --option chain=[sh:timeout,sh:backoff,alias:cmd] \
+            --option cmd="ls -al /tmp" \
+            --option duration="60s"
+
+        exit 0
+        ```
+    log_level: "quiet"

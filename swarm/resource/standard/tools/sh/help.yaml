@@ -1,0 +1,28 @@
+###
+kit: "sh"
+tools:
+  - name: "help"
+    display: "Shell Tool Help"
+    description: |
+      A set of tools for executing agent, tool, system command actions
+      and applying templates.
+    parameters: {}
+    type: "func"
+    body:
+      mime_type: "text/x-go-template"
+      script: |
+        #! --mime-type=text/x-go-template
+        A set of tools for executing agent, tool, system command actions
+        and applying templates.
+
+        ## Actions
+          + bash
+          + exec
+          + format
+          + go
+          + parse
+          + serve
+
+        ## Templates
+          + apply
+    log_level: "quiet"

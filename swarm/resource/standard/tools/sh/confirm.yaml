@@ -1,0 +1,14 @@
+##
+kit: "sh"
+tools:
+  - name: "confirm"
+    description: "Prompt the user for a yes/no confirmation and return their response as a boolean value."
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        prompt:
+          type: "string"
+          description: "The prompt for confirmation"
+          example: "Do you want to continue?"
+      required: ["prompt"]

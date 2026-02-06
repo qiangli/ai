@@ -1,0 +1,23 @@
+###
+kit: "sh"
+tools:
+  - name: "diff"
+    display: "Diff (unix-like)"
+    description: |
+      Compute a unified diff between two files using a pure-Go implementation.
+      The tool returns the unified diff text when files differ and returns a
+      non-zero exit (error) in that case so callers can use shell-style `||`
+      to react to differences, matching the behavior of the unix `diff` utility.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        a:
+          type: "string"
+          description: "Path to the first file to compare."
+        b:
+          type: "string"
+          description: "Path to the second file to compare."
+      required:
+        - a
+        - b

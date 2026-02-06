@@ -1,40 +1,13 @@
 ###
 kit: "sh"
-type: "system"
-
 tools:
-  - name: "help"
-    display: "Shell Tool Help"
-    description: |
-      A set of tools for executing agent, tool, system command actions
-      and applying templates.
-    parameters: {}
-    type: "func"
-    body:
-      mime_type: "text/x-go-template"
-      script: |
-        #! --mime-type=text/x-go-template
-        A set of tools for executing agent, tool, system command actions
-        and applying templates.
-
-        ## Actions
-          + bash
-          + exec
-          + format
-          + go
-          + parse
-          + serve
-
-        ## Templates
-          + apply
-    log_level: "quiet"
-
   - name: "pass"
     description: |
       A no-operation (no-op) tool that performs no actions. 
       Ideal for scenarios requiring a placeholder or testing phase 
       where subsequent processes are needed without executing any specific tasks.
     parameters: {}
+    type: "system"
 
   - name: "fail"
     description: |
@@ -46,6 +19,7 @@ tools:
         report:
           type: "string"
           description: "A customizable message that is displayed when the error is produced. This field is optional."
+    type: "system"
 
   - name: "exec"
     description: |
@@ -59,6 +33,7 @@ tools:
           description: "The command to execute as a command line string."
       required:
         - command
+    type: "system"
 
   - name: "cd"
     description: |
@@ -67,199 +42,22 @@ tools:
       Run the 'fs:list_roots' tool to identify allowed top-level directories.
       For legacy bash scripts relying on `cd`, use the 'sh:exec' tool, e.g., sh:exec --command "/bin/bash </script/file>"
     parameters: {}
+    type: "system"
 
   - name: "pwd"
     description: "Print the current working directory on user's system."
     parameters: {}
+    type: "system"
 
   - name: "workspace"
     description: "Print the primary workspace directory for the user."
     parameters: {}
-
-  - name: "bash"
-    description: |
-      Executes a shell script within the user's environment.
-      The script can be a file path or inline with the "data:" prefix.
-      Note: security restrictions may apply.
-      Run 'sh:bash_example' tool for a complete example with extended feature support for agent/tool.
-    parameters:
-      type: "object"
-      properties:
-        script:
-          type: "string"
-          description: |
-            Path to the script file or inline script prefixed with 'data:'.
-      required:
-        - script
-
-  - name: "bash_example"
-    display: "Bash Script Example"
-    description: |
-      A comprehensive bash script example demonstrating standard syntax along with extended features supporting agents and tools.
-    parameters: {}
-    type: "func"
-    body:
-      mime_type: "text/markdown"
-      script: |
-        # Bash Script Example
-
-        Refer to the [Bash manual](https://www.gnu.org/software/bash/manual/bash.txt) for guidance.
-        *** Note ***
-        Only a subset of Bash features is supported. Please restrict your scripts to the provided examples.
-        Changing the current working directory is not supported in the script.
-        For legacy bash scripts relying on `cd`, use the 'sh:exec' tool, e.g., sh:exec --command "/bin/bash </script/file>"
-
-        ```bash
-        #
-        set -xueo pipefail
-
-        ## Standard Syntax
-
-        ### conditional
-        if [[ $? -eq 0 ]]; then
-          echo "double bracket OK"
-        fi
-        if [ $? -eq 0 ]; then
-          echo "single bracket OK"
-        fi
-        if test $? -eq 0; then
-          echo "test OK"
-        fi
-
-        ### switch
-        case $? in
-            0) echo "OK";;
-            1) echo "Error";;
-            *) echo "Unhandled error";;
-        esac
-
-        ### function
-        function foobar() {
-            echo "foo $1"
-            echo "bar $2"
-        }
-        foobar "first" "second"
-
-        ### loop
-        function loop() {
-            for arg in "$@"; do
-                echo "arg: $arg"
-            done
-        }
-        loop 1 2 3 4
-
-        ### execute external system commands
-        /sh:exec --command "/bin/ls -al"
-        /sh:exec --command "/bin/bash /absolute/path"
-
-        ### list of supported built-in system commands
-        # "base64", "basename", "cat", "date", "dirname", "head", "ls",
-        # "shasum", "sleep", "tail", "time", "touch",
-        #
-        FILE="$PWD/ex.sh"
-        base64 $FILE
-        basename $PWD 
-        cat $FILE
-        date
-        dirname $PWD 
-        head -n 3 $FILE
-        ls -ahdlQRFS $PWD
-        shasum $FILE
-        sleep 1s
-        tail -n 3 $FILE
-        time touch $FILE
-
-        ## Slash command action extension for running agents and tools
-
-        ## tool action - /KIT:NAME
-        /ai:help
-
-        ## agent action - /agent:PACK/NAME
-        # use "chat" or other adapters for real LLM  call.
-        # default is "chat" if not specified
-        # "echo" adapter is for testing only which echoes the request.
-        /agent:root/root --adapter "echo" --query "Hello"
-
-        ## system command action
-        /sh:exec --command "ls -al /tmp"
-
-        ## alias action - name: ^[a-z0-9_]+$, e.g. 'cmd'
-        /alias:cmd --option cmd="ls -al /tmp"
-
-        # bash sub-script - inline 'data:' or 'file:'
-        /sh:bash --script "data:,ls -al /tmp"
-        # /sh:bash --script "<path>"
-
-        # flow control tool
-        /flow:sequence --actions '["sh:pass","sh:pwd"]'
-        /flow:choice --actions '[sh:pwd,sh:pass]'
-        /flow:parallel --actions '[sh:pwd,sh:pass]'
-        /flow:chain --option chain=[sh:timeout,sh:backoff,alias:cmd] \
-            --option cmd="ls -al /tmp" \
-            --option duration="60s"
-
-        exit 0
-        ```
-    log_level: "quiet"
-
-  - name: "template_example"
-    display: "Go Template Example"
-    description: |
-      This is a detailed Go template example that demonstrates standard syntax and includes additional features supporting agents and tools.
-    parameters: {}
-    type: "func"
-    body:
-      mime_type: "text/markdown"
-      script: |
-        # Go Template Example
-
-        Refer to the [Go Template](https://pkg.go.dev/text/template) documentation for guidance.
-
-        In addition to standard functions, you can use [Sprig Functions](https://masterminds.github.io/sprig/),
-        with the exception of those under "Advanced Functions" for security reasons.
-
-        Extended features:
-
-        You can execute agents and tools using the 'ai' function with the bash command action syntax.
-        Use the `sh:bash_example` tool for more details.
-
-        Example:
-        ```
-        #! --mime-type=text/x-go-template
-
-        *** Context History ***
-        {{ai "/ai:list_messages" "--format" "text"}}
-
-        User input: {{default "No input" .query}}
-
-        Today is: {{date}}
-        ###
-        ```
-
-  - name: "apply"
-    description: |
-      Applies a Golang template to provided data, as documented at: https://pkg.go.dev/text/template.
-      The template can be specified either as a file path or as an inline string prefixed with "data:.".
-      Additional arguments represent the data to be used in the template. Some default data variables include:
-      + query - the user's request message
-      + result - the last LLM's response
-      + error - any errors encountered during processing
-      Additional environment variables are also available and can be inspected using the ai:get_envs tool call.
-    parameters:
-      type: "object"
-      properties:
-        template:
-          type: "string"
-          description: |
-            Specifies the template to be applied to the data.
-            It can be specified either as a file path or as an inline string prefixed with "data:.".
-            Provide any additional arguments required by the template.
-      required:
-        - template
+    type: "system"
 
   - name: "format"
     description: |
       Specifies the format or a custom template for the output.
+    type: "system"
     parameters:
       type: "object"
       properties:
@@ -278,6 +76,7 @@ tools:
   - name: "parse"
     description: |
       Parses an input command line into a `map[string]any` format and validate.
+    type: "system"
     parameters:
       type: "object"
       properties:
@@ -285,19 +84,6 @@ tools:
           type: "string"
           description: |
             Specifies the command line to be parsed.
-      required:
-        - command
-
-  - name: "go"
-    description: |
-      Run Go commands (go build/test/vet/list/run) via the SystemKit.Go method.
-      Safety: only accepts commands starting with `go`.
-    parameters:
-      type: "object"
-      properties:
-        command:
-          type: "string"
-          description: "The Go command to execute (must start with 'go')."
       required:
         - command
 
@@ -316,6 +102,7 @@ tools:
       Termination:
         - Ctrl+C exits in foreground mode.
         - In background mode, responds to SIGTERM/SIGINT.
+    type: "system"
     parameters:
       type: "object"
       properties:
@@ -369,6 +156,7 @@ tools:
     description: |
       Run action with a time limit.
       An action could be a system command, a tool, or an agent.
+    type: "system"
     parameters:
       type: "object"
       properties:
@@ -397,6 +185,7 @@ tools:
   - name: "backoff"
     description: |
       Run an action command, repeatedly, until it succeeds or we are out of time.
+    type: "system"
     parameters:
       type: "object"
       properties:
@@ -419,111 +208,3 @@ tools:
             /sh:backoff --command "/agent:ed/ed --adapter echo"  --option duration="10s"
       required:
         - command
-
-  - name: "get_envs"
-    description: "Get specific or all environment variables"
-    parameters:
-      type: "object"
-      properties:
-        keys:
-          type: "array"
-          description: "An array of environment variable names to retrieve. If not provided, all environment variables will be returned"
-          items:
-            type: "string"
-
-  - name: "set_envs"
-    description: "Set environment variables."
-    parameters:
-      type: "object"
-      properties:
-        envs:
-          type: "object"
-          description: |
-            A JSON object map of environment variables, represented as key-value pairs.
-            Each key is a string, and the value can be any data type, including objects and primitive types.
-            Ensure to provide at least one key-value pair to prevent empty calls. 
-            For example, to set environment variables foo and bar, pass: {"foo": "value1", "bar": "value2"}.
-          properties: {}
-      required:
-        - "envs"
-
-  - name: "unset_envs"
-    description: "Clear environment variables"
-    parameters:
-      type: "object"
-      properties:
-        keys:
-          type: "array"
-          description: "An array of environment variable names to unset."
-          items:
-            type: "string"
-      required:
-        - "keys"
-
-  - name: "confirm"
-    description: "Prompt the user for a yes/no confirmation and return their response as a boolean value."
-    parameters:
-      type: "object"
-      properties:
-        prompt:
-          type: "string"
-          description: "The prompt for confirmation"
-          example: "Do you want to continue?"
-      required: ["prompt"]
-
-  - name: "source_envs"
-    display: "Source Environment Variables"
-    description: |
-      Reads a source file containing environment variable assignments and sets valid NAME=VALUE pairs.
-      Lines may optionally start with the keyword "export". Invalid lines will be ignored and a warning will be returned.
-    parameters:
-      type: "object"
-      properties:
-        source:
-          type: "string"
-          description: "A valid file path or URI specifying the source of environment name/value pairs. Supports file: and data: URIs."
-      required:
-        - source
-
-  - name: "diff"
-    display: "Diff (unix-like)"
-    description: |
-      Compute a unified diff between two files using a pure-Go implementation.
-      The tool returns the unified diff text when files differ and returns a
-      non-zero exit (error) in that case so callers can use shell-style `||`
-      to react to differences, matching the behavior of the unix `diff` utility.
-    parameters:
-      type: "object"
-      properties:
-        a:
-          type: "string"
-          description: "Path to the first file to compare."
-        b:
-          type: "string"
-          description: "Path to the second file to compare."
-      required:
-        - a
-        - b
-
-  - name: "jq"
-    display: "jq (JSON processor)"
-    description: |
-      A lightweight wrapper around the jq JSON processor. Executes a jq expression against input JSON.
-      When an exec implementation is present, the runtime will invoke the binary located at the relative exec path.
-    parameters:
-      type: "object"
-      properties:
-        expr:
-          type: "string"
-          description: "jq expression to run (e.g., '.foo')"
-        input:
-          type: "string"
-          description: "Input JSON as a string. If omitted, stdin is used."
-        file:
-          type: "string"
-          description: "Path to a JSON file to use as input. If provided, overrides input."
-      required:
-        - expr
-    # exec: "swarm/atm/cmd/sh_jq/sh_jq"
-    # examples:
-    #   - "sh:jq --expr '.foo' --input '{\"foo\": 1}'"
