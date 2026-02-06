@@ -32,12 +32,18 @@ func initLocalRepo(t *testing.T, root string) {
 	if err := os.WriteFile(filepath.Join(root, "README.md"), []byte("hello\n"), 0o644); err != nil {
 		t.Fatalf("write file: %v", err)
 	}
-	if _, _, _, err := RunGitExitCode(root, "add", "README.md"); err != nil {
+	// if _, _, _, err := RunGitExitCode(root, "add", "README.md"); err != nil {
+	// 	t.Fatalf("git add failed: %v", err)
+	// }
+	if _, _, err := Add(root, []string{"README.md"}); err != nil {
 		t.Fatalf("git add failed: %v", err)
 	}
 
 	// Ensure commit can succeed in CI environments without global config.
-	if _, _, _, err := RunGitExitCode(root, "-c", "user.name=gitkit-test", "-c", "user.email=gitkit-test@example.com", "commit", "-m", "init"); err != nil {
+	// if _, _, _, err := RunGitExitCode(root, "-c", "user.name=gitkit-test", "-c", "user.email=gitkit-test@example.com", "commit", "-m", "init"); err != nil {
+	// 	t.Fatalf("git commit failed: %v", err)
+	// }
+	if _, _, _, err := Commit(root, "msg", []string{"-c", "user.name=gitkit-test", "-c", "user.email=gitkit-test@example.com", "-m", "init"}); err != nil {
 		t.Fatalf("git commit failed: %v", err)
 	}
 }
