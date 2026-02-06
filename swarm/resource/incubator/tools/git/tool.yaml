@@ -3,11 +3,11 @@
 # Tool: git/*
 #
 # Run safe git actions using pure Go (go-git/v5).
-# 12 core operations as distinct tools: git_status, git_diff_unstaged, git_diff_staged, git_diff, git_commit, git_add, git_reset, git_log, git_create_branch, git_checkout, git_show, git_branches.
+# 12 core operations as distinct tools: status, diff_unstaged, diff_staged, diff, commit, add, reset, log, create_branch, checkout, show, branches.
 #
 kit: "git"
 tools:
-  - name: "git_status"
+  - name: "status"
     description: |
       Get working tree status like `git status --porcelain`.
     type: "system"
@@ -18,7 +18,7 @@ tools:
           type: "string"
           description: "Path to the git repository."
       required: []
-  - name: "git_diff_unstaged"
+  - name: "diff_unstaged"
     description: |
       Show unstaged changes (working tree vs index) in unified diff format.
     type: "system"
@@ -31,7 +31,7 @@ tools:
           type: "integer"
           default: 3
       required: []
-  - name: "git_diff_staged"
+  - name: "diff_staged"
     description: |
       Show staged changes (index vs HEAD) in unified diff format.
     type: "system"
@@ -44,7 +44,7 @@ tools:
           type: "integer"
           default: 3
       required: []
-  - name: "git_diff"
+  - name: "diff"
     description: |
       Show diff against a target branch or commit.
     type: "system"
@@ -60,7 +60,7 @@ tools:
           type: "integer"
           default: 3
       required: ["target"]
-  - name: "git_commit"
+  - name: "commit"
     description: |
       Commit staged changes with a message.
     type: "system"
@@ -77,7 +77,7 @@ tools:
             type: "string"
           description: "Additional args e.g. [&quot;-c&quot;, &quot;user.name=foo&quot;]"
       required: ["message"]
-  - name: "git_add"
+  - name: "add"
     description: |
       Stage files for commit.
     type: "system"
@@ -91,7 +91,7 @@ tools:
           items:
             type: "string"
       required: ["files"]
-  - name: "git_reset"
+  - name: "reset"
     description: |
       Unstage all changes (mixed reset).
     type: "system"
@@ -101,7 +101,7 @@ tools:
         dir:
           type: "string"
       required: []
-  - name: "git_log"
+  - name: "log"
     description: |
       Get recent commits as JSON array [{hash, author, date, message}].
     type: "system"
@@ -117,7 +117,7 @@ tools:
         end_timestamp:
           type: "string"
       required: []
-  - name: "git_create_branch"
+  - name: "create_branch"
     description: |
       Create a new branch from current or base_branch.
     type: "system"
@@ -131,7 +131,7 @@ tools:
         base_branch:
           type: "string"
       required: ["branch_name"]
-  - name: "git_checkout"
+  - name: "checkout"
     description: |
       Switch to a branch.
     type: "system"
@@ -143,7 +143,7 @@ tools:
         branch_name:
           type: "string"
       required: ["branch_name"]
-  - name: "git_show"
+  - name: "show"
     description: |
       Show commit details and changes vs parent.
     type: "system"
@@ -155,7 +155,7 @@ tools:
         rev:
           type: "string"
       required: ["rev"]
-  - name: "git_branches"
+  - name: "branches"
     description: |
       List branches as JSON array. branch_type: local (default), remote, all.
     type: "system"

@@ -14,7 +14,7 @@ import (
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
-	"github.com/qiangli/ai/swarm/atm/gitkit"
+	// "github.com/qiangli/ai/swarm/atm/gitkit"
 	"github.com/qiangli/ai/swarm/resource"
 )
 
@@ -530,18 +530,18 @@ func (r *SystemKit) Diff(ctx context.Context, vars *api.Vars, _ string, args map
 	return "", nil
 }
 
-func (r *SystemKit) Git(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (any, error) {
-	var ga gitkit.Args
-	ga.ID, _ = api.GetStrProp("id", args)
-	ga.User, _ = api.GetStrProp("user", args)
-	ga.Payload, _ = api.GetStrProp("payload", args)
-	ga.Action, _ = api.GetStrProp("action", args)
-	// ga.Dir, _ = api.GetStrProp("dir", args)
-	ga.Args, _ = api.GetStrProp("args", args)
-	ga.Message, _ = api.GetStrProp("message", args)
-	ga.Rev, _ = api.GetStrProp("rev", args)
-	ga.Path, _ = api.GetStrProp("path", args)
-	// ga.Command, _ = api.GetStrProp("command", args)
+// func (r *SystemKit) Git(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (any, error) {
+// 	var ga gitkit.Args
+// 	ga.ID, _ = api.GetStrProp("id", args)
+// 	ga.User, _ = api.GetStrProp("user", args)
+// 	ga.Payload, _ = api.GetStrProp("payload", args)
+// 	ga.Action, _ = api.GetStrProp("action", args)
+// 	// ga.Dir, _ = api.GetStrProp("dir", args)
+// 	ga.Args, _ = api.GetStrProp("args", args)
+// 	ga.Message, _ = api.GetStrProp("message", args)
+// 	ga.Rev, _ = api.GetStrProp("rev", args)
+// 	ga.Path, _ = api.GetStrProp("path", args)
+// 	// ga.Command, _ = api.GetStrProp("command", args)
 
-	return gitkit.Run(&ga)
-}
+// 	return gitkit.Run(&ga)
+// }

@@ -8,13 +8,22 @@ import (
 )
 
 type SystemKit struct {
+	git *GitKit
 }
 
 func NewSystemKit() *SystemKit {
-	return &SystemKit{}
+	return &SystemKit{
+		git: &GitKit{},
+	}
 }
 
-func (r *SystemKit) Call(ctx context.Context, vars *api.Vars, _ *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
+func (r *SystemKit) Call(ctx context.Context, vars *api.Vars, agent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
+	// dispatch git:*
+	if tf.Kit == "git" {
+		return r.git.Call(ctx, vars, agent, tf, args)
+	}
+
+	// TODO refactor
 	callArgs := []any{ctx, vars, tf.Name, args}
 	v, err := CallKit(r, tf.Kit, tf.Name, callArgs...)
 	if err != nil {
