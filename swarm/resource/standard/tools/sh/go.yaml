@@ -3,15 +3,14 @@ kit: "sh"
 tools:
   - name: "go"
     description: |
-      Run Go commands (go build/test/vet/list/run) via the SystemKit.Go method.
-      Safety: only accepts commands starting with `go`.
+      Run Go commands (go build/test/vet/list/run).
     type: "system"
     parameters:
       type: "object"
       properties:
         command:
           type: "string"
-          description: "The Go command to execute (must start with 'go')."
+          description: "The Go sub command to execute."
       required:
         - command
   

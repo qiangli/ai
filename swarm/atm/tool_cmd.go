@@ -26,7 +26,8 @@ func RunCommand(ctx context.Context, vs vos.System, command string, args []strin
 	}
 	if err != nil {
 		log.GetLogger(ctx).Errorf("❌ %s: %+v\n", command, err)
-		return "", fmt.Errorf("%v\n%s", err, clip(string(out), 500))
+		// return "", fmt.Errorf("%v\n%s", err, clip(string(out), 500))
+		return "", fmt.Errorf("%v\n%s", err, out)
 	}
 
 	log.GetLogger(ctx).Debugf("🎉 %s: %s\n", command, out)

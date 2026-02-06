@@ -85,15 +85,19 @@ func (r *SystemKit) Go(ctx context.Context, vars *api.Vars, _ string, args map[s
 	}
 	cmd = strings.TrimSpace(cmd)
 	if cmd == "" {
-		return "", fmt.Errorf("command is empty")
+		return "", fmt.Errorf("command is required. e.g., sh:go --command 'help'")
 	}
 	// Safety: only allow `go ...` command lines.
 	if !strings.HasPrefix(cmd, "go ") && cmd != "go" {
-		return "", fmt.Errorf("only 'go ...' commands are allowed")
+		// return "", fmt.Errorf("only 'go ...' commands are allowed")
+		cmd = "go " + cmd
 	}
 	result, err := ExecCommand(ctx, vars.OS, vars, cmd, nil)
 	if err != nil {
 		return "", err
+	}
+	if result == "" {
+		result = "Success"
 	}
 	return api.ToString(result), nil
 }
