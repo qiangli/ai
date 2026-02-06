@@ -2,8 +2,8 @@
 #
 # Tool: git:git
 #
-# It is intentionally strict: it only accepts structured actions or a command
-# array that starts with "git".
+# Run safe git actions using pure Go (go-git/v5).
+# Enhanced with MCP-style tools: status, diffs, commit, add, reset, log, branches, create-branch, checkout, show.
 #
 # Runtime notes:
 # - Default uses `go run` from the workspace root.
@@ -12,74 +12,158 @@
 kit: "git"
 tools:
   - name: "git"
-    description: "Run safe git actions."
+    description: |
+      Run safe git actions. Use `action` to select subcommand.
+      
+      Examples:
+      - status: working tree status
+      - diff-unstaged: unstaged changes (status)
+      - diff-staged: staged changes (status)
+      - diff: diff vs target branch/commit
+      - commit: commit staged changes
+      - add: stage files
+      - reset: unstage all
+      - log: recent commits (JSON array)
+      - create-branch: create new branch
+      - checkout: switch branch
+      - show: show commit patch vs parent
+      - branches: list branches (JSON array)
+      
+      See enum for all.
     type: "system"
     parameters:
       type: "object"
       properties:
-        # id: { type: "string", description: "Optional request id." }
-        # user: { type: "string", description: "Optional user label." }
         payload:
           type: "object"
-          description: "Payload object passed to git. If omitted, tool will build it from top-level fields for backward compat."
+          description: "Payload object passed to git."
           properties:
             action:
               type: "string"
               enum: [
-                  "status",
-                  "clone",
-                  "add",
-                  "commit",
-                  "pull",
-                  "push",
-                  "branch",
-                  "remote-url",
-                  "rev-parse",
-                  "list-branches",
-                  "list-remotes",
-                  "latest-commit",
-                  "show-file",
-                  # "raw",
-                ]
-            # dir: { type: "string" }
+                "status",
+                "clone",
+                "add",
+                "commit",
+                "pull",
+                "push",
+                "branch",
+                "remote-url",
+                "rev-parse",
+                "list-branches",
+                "list-remotes",
+                "latest-commit",
+                "show-file",
+                "diff-unstaged",
+                "diff-staged",
+                "diff",
+                "reset",
+                "log",
+                "create-branch",
+                "checkout",
+                "show",
+                "branches"
+              ]
+            dir:
+              type: "string"
             args:
               type: "array"
-              items: { type: "string" }
-              description: "git argv array"
-            # message: { type: "string" }
-            rev: { type: "string" }
-            path: { type: "string" }
-            # command:
-            #   type: "array"
-            #   items: { type: "string" }
-            #   description: "Raw git argv array; must start with 'git'."
-        # Backward-compat convenience fields:
+              items:
+                type: "string"
+            message:
+              type: "string"
+            rev:
+              type: "string"
+            path:
+              type: "string"
+            command:
+              type: "array"
+              items:
+                type: "string"
+            context_lines:
+              type: "integer"
+            target:
+              type: "string"
+            max_count:
+              type: "integer"
+            start_timestamp:
+              type: "string"
+            end_timestamp:
+              type: "string"
+            branch_name:
+              type: "string"
+            base_branch:
+              type: "string"
+            branch_type:
+              type: "string"
+            contains:
+              type: "string"
+            not_contains:
+              type: "string"
+            files:
+              type: "array"
+              items:
+                type: "string"
+          required: []
+        # Backward-compat top-level fields:
         action:
           type: "string"
           enum: [
-              "status",
-              "clone",
-              "add",
-              "commit",
-              "pull",
-              "push",
-              "branch",
-              "remote-url",
-              "rev-parse",
-              "list-branches",
-              "list-remotes",
-              "latest-commit",
-              "show-file",
-              # "raw",
-            ]
-        # dir: { type: "string" }
+            "status",
+            "clone",
+            "add",
+            "commit",
+            "pull",
+            "push",
+            "branch",
+            "remote-url",
+            "rev-parse",
+            "list-branches",
+            "list-remotes",
+            "latest-commit",
+            "show-file",
+            "diff-unstaged",
+            "diff-staged",
+            "diff",
+            "reset",
+            "log",
+            "create-branch",
+            "checkout",
+            "show",
+            "branches"
+          ]
         args:
           type: "array"
-          items: { type: "string" }
-        # message: { type: "string" }
-        rev: { type: "string" }
-        path: { type: "string" }
-        # command:
-        #   type: "array"
-        #   items: { type: "string" }
+          items:
+            type: "string"
+        message:
+          type: "string"
+        rev:
+          type: "string"
+        path:
+          type: "string"
+        context_lines:
+          type: "integer"
+        target:
+          type: "string"
+        max_count:
+          type: "integer"
+        start_timestamp:
+          type: "string"
+        end_timestamp:
+          type: "string"
+        branch_name:
+          type: "string"
+        base_branch:
+          type: "string"
+        branch_type:
+          type: "string"
+        contains:
+          type: "string"
+        not_contains:
+          type: "string"
+        files:
+          type: "array"
+          items:
+            type: "string"
       required: []
