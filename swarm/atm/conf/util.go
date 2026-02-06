@@ -103,10 +103,10 @@ func Packname(s string) string {
 	return normalizedName(trimExt(s))
 }
 
-// convert filename to toolkit name
-func Kitname(s string) string {
-	return normalizedName(trimExt(s))
-}
+// // convert filename to toolkit name
+// func Kitname(s string) string {
+// 	return normalizedName(trimExt(s))
+// }
 
 // convert filename to model alias
 func modelName(s string) string {

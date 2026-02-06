@@ -82,6 +82,7 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AppConfi
 		}
 		pack := v.Name()
 		base := path.Join(root, pack)
+
 		// filename := path.Join(base, "agent.yaml")
 		// content, err := as.ReadFile(filename)
 		// if err != nil {
@@ -113,6 +114,7 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AppConfi
 			continue
 		}
 
+		//
 		ac, err := LoadAgentsData(content)
 		if err != nil {
 			//return fmt.Errorf("error loading agent data: %s", v.Name())

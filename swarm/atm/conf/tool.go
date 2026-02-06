@@ -5,6 +5,7 @@ import (
 	"maps"
 	"os"
 	"path"
+	"strings"
 
 	"dario.cat/mergo"
 	// "github.com/hashicorp/golang-lru/v2/expirable"
@@ -402,7 +403,8 @@ func listToolkitATM(owner string, as api.ATMSupport, kits map[string]*api.AppCon
 		}
 		//
 		if tc.Kit == "" {
-			tc.Kit = Kitname(v.Name)
+			// tc.Kit = Kitname(v.Name)
+			tc.Kit = strings.TrimSuffix(v.Name, path.Ext(v.Name))
 		}
 		if _, ok := kits[tc.Kit]; ok {
 			continue
@@ -414,35 +416,68 @@ func listToolkitATM(owner string, as api.ATMSupport, kits map[string]*api.AppCon
 	return nil
 }
 
-func listToolkitAsset(as api.AssetFS, base string, kits map[string]*api.AppConfig) error {
-	dirs, err := as.ReadDir(base)
+func listToolkitAsset(as api.AssetFS, root string, kits map[string]*api.AppConfig) error {
+	files, err := as.ReadDir(root)
 	if err != nil {
 		return err
 	}
 
 	// not found
-	if len(dirs) == 0 {
+	if len(files) == 0 {
 		return nil
 	}
 
-	for _, v := range dirs {
-		if v.IsDir() {
-			continue
-		}
-		content, err := as.ReadFile(path.Join(base, v.Name()))
-		if err != nil {
-			if os.IsNotExist(err) {
+	for _, file := range files {
+		var content [][]byte
+		var baseDir string
+		var kit string
+		// tools/<kit>.yaml
+		if !file.IsDir() {
+			name := file.Name()
+			v, err := as.ReadFile(path.Join(root, name))
+			if err != nil {
+				if os.IsNotExist(err) {
+					continue
+				}
+				return fmt.Errorf("failed to read tool asset %s: %w", name, err)
+			}
+			content = [][]byte{v}
+
+			baseDir = root
+			kit = strings.TrimSuffix(name, path.Ext(name))
+		} else {
+			base := path.Join(root, file.Name())
+
+			pdirs, err := as.ReadDir(base)
+			if err != nil {
 				continue
 			}
-			return fmt.Errorf("failed to read tool asset %s: %w", v.Name(), err)
+			for _, v := range pdirs {
+				if v.IsDir() {
+					continue
+				}
+				name := v.Name()
+				if strings.HasSuffix(name, ".yaml") || strings.HasSuffix(name, ".yml") {
+					if data, err := as.ReadFile(path.Join(base, name)); err != nil {
+						continue
+					} else {
+						content = append(content, data)
+					}
+				}
+			}
+
+			baseDir = base
+			kit = file.Name()
 		}
+
 		if len(content) == 0 {
 			continue
 		}
 
-		tc, err := LoadToolData([][]byte{content})
+		//
+		tc, err := LoadToolData(content)
 		if err != nil {
-			return fmt.Errorf("error loading tool data: %s\n", v.Name())
+			return fmt.Errorf("error loading tool data: %s\n", file.Name())
 		}
 		if tc == nil || len(tc.Tools) == 0 {
 			// TODO mcp
@@ -451,13 +486,13 @@ func listToolkitAsset(as api.AssetFS, base string, kits map[string]*api.AppConfi
 
 		//
 		if tc.Kit == "" {
-			tc.Kit = Kitname(v.Name())
+			tc.Kit = kit
 		}
 		if _, ok := kits[tc.Kit]; ok {
 			continue
 		}
 		tc.Store = as
-		tc.BaseDir = base
+		tc.BaseDir = baseDir
 		kits[tc.Kit] = tc
 	}
 	return nil
