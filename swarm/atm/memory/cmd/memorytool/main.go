@@ -11,14 +11,14 @@ import (
 )
 
 type SearchReq struct {
-	Query  string           `json:"query"`
+	Query  string              `json:"query"`
 	Config memory.MemoryConfig `json:"config"`
 }
 
 type GetReq struct {
-	Path     string `json:"path"`
-	FromLine int    `json:"from_line"`
-	Lines    int    `json:"lines"`
+	Path     string              `json:"path"`
+	FromLine int                 `json:"from_line"`
+	Lines    int                 `json:"lines"`
 	Config   memory.MemoryConfig `json:"config"`
 }
 

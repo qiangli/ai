@@ -33,7 +33,7 @@ func (l *LocalRandomEmbedder) Embed(texts []string) ([][]float64, error) {
 	return res, nil
 }
 
-func (l *LocalRandomEmbedder) Name() string  { return "local" }
+func (l *LocalRandomEmbedder) Name() string      { return "local" }
 func (l *LocalRandomEmbedder) ModelName() string { return "random" }
 
 type OpenAIEmbedder struct {
@@ -63,7 +63,7 @@ func (o *OpenAIEmbedder) Embed(texts []string) ([][]float64, error) {
 		reqBody, _ := json.Marshal(OpenAIReq{Model: o.model, Input: texts})
 		httpReq, _ := http.NewRequest("POST", "https://api.openai.com/v1/embeddings", bytes.NewBuffer(reqBody))
 		httpReq.Header.Set("Content-Type", "application/json")
-		httpReq.Header.Set("Authorization", "Bearer " + o.apiKey)
+		httpReq.Header.Set("Authorization", "Bearer "+o.apiKey)
 		client := &http.Client{Timeout: 30 * time.Second}
 		resp, err := client.Do(httpReq)
 		if err != nil {

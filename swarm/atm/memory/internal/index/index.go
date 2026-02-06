@@ -212,7 +212,7 @@ func (mi *MemoryIndex) Search(query string) ([]memory.SearchResult, error) {
 			continue
 		}
 		normV := vc.Score / maxVec
-		score := mi.cfg.Query.Hybrid.VectorWeight*normV
+		score := mi.cfg.Query.Hybrid.VectorWeight * normV
 		all = append(all, memory.SearchResult{
 			Content:      vc.Content,
 			Path:         vc.Path,

@@ -1,150 +1,114 @@
 #!/usr/bin/env ai
 #
-# Tool: git:git
+# Tool: git/*
 #
 # Run safe git actions using pure Go (go-git/v5).
-# Enhanced with MCP-style tools: status, diffs, commit, add, reset, log, branches, create-branch, checkout, show.
-#
-# Runtime notes:
-# - Default uses `go run` from the workspace root.
-# - No static binaries are checked in. (You may build one locally if desired.)
+# 12 core operations as distinct tools: git_status, git_diff_unstaged, git_diff_staged, git_diff, git_commit, git_add, git_reset, git_log, git_create_branch, git_checkout, git_show, git_branches.
 #
 kit: "git"
 tools:
-  - name: "git"
+  - name: "git_status"
     description: |
-      Run safe git actions. Use `action` to select subcommand.
-      
-      Examples:
-      - status: working tree status
-      - diff-unstaged: unstaged changes (status)
-      - diff-staged: staged changes (status)
-      - diff: diff vs target branch/commit
-      - commit: commit staged changes
-      - add: stage files
-      - reset: unstage all
-      - log: recent commits (JSON array)
-      - create-branch: create new branch
-      - checkout: switch branch
-      - show: show commit patch vs parent
-      - branches: list branches (JSON array)
-      
-      See enum for all.
+      Get working tree status like `git status --porcelain`.
     type: "system"
     parameters:
       type: "object"
       properties:
-        payload:
-          type: "object"
-          description: "Payload object passed to git."
-          properties:
-            action:
-              type: "string"
-              enum: [
-                "status",
-                "clone",
-                "add",
-                "commit",
-                "pull",
-                "push",
-                "branch",
-                "remote-url",
-                "rev-parse",
-                "list-branches",
-                "list-remotes",
-                "latest-commit",
-                "show-file",
-                "diff-unstaged",
-                "diff-staged",
-                "diff",
-                "reset",
-                "log",
-                "create-branch",
-                "checkout",
-                "show",
-                "branches"
-              ]
-            dir:
-              type: "string"
-            args:
-              type: "array"
-              items:
-                type: "string"
-            message:
-              type: "string"
-            rev:
-              type: "string"
-            path:
-              type: "string"
-            command:
-              type: "array"
-              items:
-                type: "string"
-            context_lines:
-              type: "integer"
-            target:
-              type: "string"
-            max_count:
-              type: "integer"
-            start_timestamp:
-              type: "string"
-            end_timestamp:
-              type: "string"
-            branch_name:
-              type: "string"
-            base_branch:
-              type: "string"
-            branch_type:
-              type: "string"
-            contains:
-              type: "string"
-            not_contains:
-              type: "string"
-            files:
-              type: "array"
-              items:
-                type: "string"
-          required: []
-        # Backward-compat top-level fields:
-        action:
+        dir:
           type: "string"
-          enum: [
-            "status",
-            "clone",
-            "add",
-            "commit",
-            "pull",
-            "push",
-            "branch",
-            "remote-url",
-            "rev-parse",
-            "list-branches",
-            "list-remotes",
-            "latest-commit",
-            "show-file",
-            "diff-unstaged",
-            "diff-staged",
-            "diff",
-            "reset",
-            "log",
-            "create-branch",
-            "checkout",
-            "show",
-            "branches"
-          ]
+          description: "Path to the git repository."
+      required: []
+  - name: "git_diff_unstaged"
+    description: |
+      Show unstaged changes (working tree vs index) in unified diff format.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+        context_lines:
+          type: "integer"
+          default: 3
+      required: []
+  - name: "git_diff_staged"
+    description: |
+      Show staged changes (index vs HEAD) in unified diff format.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+        context_lines:
+          type: "integer"
+          default: 3
+      required: []
+  - name: "git_diff"
+    description: |
+      Show diff against a target branch or commit.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+        target:
+          type: "string"
+          description: "Target branch, commit hash, or ref."
+        context_lines:
+          type: "integer"
+          default: 3
+      required: ["target"]
+  - name: "git_commit"
+    description: |
+      Commit staged changes with a message.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+        message:
+          type: "string"
         args:
           type: "array"
           items:
             type: "string"
-        message:
+          description: "Additional args e.g. [&quot;-c&quot;, &quot;user.name=foo&quot;]"
+      required: ["message"]
+  - name: "git_add"
+    description: |
+      Stage files for commit.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
           type: "string"
-        rev:
+        files:
+          type: "array"
+          items:
+            type: "string"
+      required: ["files"]
+  - name: "git_reset"
+    description: |
+      Unstage all changes (mixed reset).
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
           type: "string"
-        path:
-          type: "string"
-        context_lines:
-          type: "integer"
-        target:
+      required: []
+  - name: "git_log"
+    description: |
+      Get recent commits as JSON array [{hash, author, date, message}].
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
           type: "string"
         max_count:
           type: "integer"
@@ -152,18 +116,55 @@ tools:
           type: "string"
         end_timestamp:
           type: "string"
+      required: []
+  - name: "git_create_branch"
+    description: |
+      Create a new branch from current or base_branch.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
         branch_name:
           type: "string"
         base_branch:
           type: "string"
+      required: ["branch_name"]
+  - name: "git_checkout"
+    description: |
+      Switch to a branch.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+        branch_name:
+          type: "string"
+      required: ["branch_name"]
+  - name: "git_show"
+    description: |
+      Show commit details and changes vs parent.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+        rev:
+          type: "string"
+      required: ["rev"]
+  - name: "git_branches"
+    description: |
+      List branches as JSON array. branch_type: local (default), remote, all.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
         branch_type:
           type: "string"
-        contains:
-          type: "string"
-        not_contains:
-          type: "string"
-        files:
-          type: "array"
-          items:
-            type: "string"
+          enum: ["local", "remote", "all"]
       required: []

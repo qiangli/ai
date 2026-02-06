@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	targetChars   = 1600
+	targetChars     = 1600
 	overlapFraction = 0.2
-	minChunkLines = 5
+	minChunkLines   = 5
 )
 
 type Chunk struct {
