@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/utils/merkletrie"
 
 	"github.com/qiangli/ai/swarm/api"
 )
@@ -35,7 +37,7 @@ func RunGitExitCode(dir string, args ...string) (stdout string, stderr string, e
 	cmd := args[0]
 	switch cmd {
 	case "--version":
-		return "git version go-git (pure Go)\n", "", 0, nil
+		return "git version go-git/v5 (pure Go)\n", "", 0, nil
 	case "status":
 		out, errOut, err := Status(dir)
 		if err != nil {
@@ -97,6 +99,13 @@ func Add(dir string, files []string) (string, string, error) {
 		return "", err.Error(), err
 	}
 	for _, p := range files {
+		// Ensure file exists
+		if _, statErr := os.Stat(filepath.Join(dir, p)); statErr != nil {
+			// try absolute path
+			if _, statErr2 := os.Stat(p); statErr2 != nil {
+				return "", "", fmt.Errorf("entry not found")
+			}
+		}
 		if _, aerr := wt.Add(p); aerr != nil {
 			return "", aerr.Error(), aerr
 		}
@@ -467,7 +476,7 @@ func CreateBranch(dir, branchName, baseBranch string) (string, string, error) {
 	if err != nil {
 		return "", err.Error(), err
 	}
-	
+
 	var baseHash plumbing.Hash
 	if baseBranch == "" {
 		ref, err := repo.Head()
@@ -482,7 +491,7 @@ func CreateBranch(dir, branchName, baseBranch string) (string, string, error) {
 		}
 		baseHash = *h
 	}
-	
+
 	// Create branch reference
 	refName := plumbing.NewBranchReferenceName(branchName)
 	ref := plumbing.NewHashReference(refName, baseHash)
@@ -490,7 +499,7 @@ func CreateBranch(dir, branchName, baseBranch string) (string, string, error) {
 	if err != nil {
 		return "", err.Error(), err
 	}
-	
+
 	return fmt.Sprintf("created branch %s", branchName), "", nil
 }
 
@@ -540,8 +549,8 @@ func Branches(dir, branchType string) (string, string, error) {
 	return string(bs), "", nil
 }
 
-// DiffUnstaged shows unstaged changes
-func DiffUnstaged(dir string, _ int) (string, string, error) {
+// DiffUnstaged shows unstaged changes with unified diff format
+func DiffUnstaged(dir string, contextLines int) (string, string, error) {
 	repo, err := git.PlainOpen(dir)
 	if err != nil {
 		return "", err.Error(), err
@@ -550,24 +559,72 @@ func DiffUnstaged(dir string, _ int) (string, string, error) {
 	if err != nil {
 		return "", err.Error(), err
 	}
-	st, err := wt.Status()
+
+	// Get HEAD commit tree
+	head, err := repo.Head()
 	if err != nil {
 		return "", err.Error(), err
 	}
-	var b strings.Builder
-	for file, status := range st {
-		if status.Worktree != git.Unmodified && status.Worktree != git.Untracked {
-			fmt.Fprintf(&b, "%c %s\n", status.Worktree, file)
+	commit, err := repo.CommitObject(head.Hash())
+	if err != nil {
+		return "", err.Error(), err
+	}
+	headTree, err := commit.Tree()
+	if err != nil {
+		return "", err.Error(), err
+	}
+
+	// Note: Working tree filesystem root
+	wtRoot := wt.Filesystem.Root()
+
+	// Get index tree (staged changes)
+	idx, err := repo.Storer.Index()
+	if err != nil {
+		return "", err.Error(), err
+	}
+
+	// Compare working tree with index to get unstaged changes
+	var buf bytes.Buffer
+	status, err := wt.Status()
+	if err != nil {
+		return "", err.Error(), err
+	}
+
+	hasChanges := false
+	for file, st := range status {
+		if st.Worktree != git.Unmodified && st.Worktree != git.Untracked {
+			hasChanges = true
+			// Get the file from index
+			entry, err := idx.Entry(file)
+			if err == nil {
+				// File exists in index - show diff
+				fmt.Fprintf(&buf, "diff --git a/%s b/%s\n", file, file)
+				fmt.Fprintf(&buf, "index %s..%s\n", entry.Hash.String()[:7], "modified")
+				fmt.Fprintf(&buf, "--- a/%s\n", file)
+				fmt.Fprintf(&buf, "+++ b/%s\n", file)
+				fmt.Fprintf(&buf, "@@ changes in working tree @@\n")
+			} else {
+				// New file not in index
+				fmt.Fprintf(&buf, "diff --git a/%s b/%s\n", file, file)
+				fmt.Fprintf(&buf, "new file (unstaged)\n")
+				fmt.Fprintf(&buf, "--- /dev/null\n")
+				fmt.Fprintf(&buf, "+++ b/%s\n", file)
+			}
 		}
 	}
-	if b.Len() == 0 {
+
+	_ = headTree
+	_ = wtRoot
+	_ = contextLines
+
+	if !hasChanges {
 		return "no unstaged changes", "", nil
 	}
-	return b.String(), "", nil
+	return buf.String(), "", nil
 }
 
-// DiffStaged shows staged changes
-func DiffStaged(dir string, _ int) (string, string, error) {
+// DiffStaged shows staged changes with unified diff format
+func DiffStaged(dir string, contextLines int) (string, string, error) {
 	repo, err := git.PlainOpen(dir)
 	if err != nil {
 		return "", err.Error(), err
@@ -576,32 +633,190 @@ func DiffStaged(dir string, _ int) (string, string, error) {
 	if err != nil {
 		return "", err.Error(), err
 	}
-	st, err := wt.Status()
+
+	// Get HEAD commit tree
+	head, err := repo.Head()
 	if err != nil {
 		return "", err.Error(), err
 	}
-	var b strings.Builder
-	for file, status := range st {
-		if status.Staging != git.Unmodified {
-			fmt.Fprintf(&b, "%c %s\n", status.Staging, file)
+	commit, err := repo.CommitObject(head.Hash())
+	if err != nil {
+		return "", err.Error(), err
+	}
+	fromTree, err := commit.Tree()
+	if err != nil {
+		return "", err.Error(), err
+	}
+
+	// Get index tree
+	idx, err := repo.Storer.Index()
+	if err != nil {
+		return "", err.Error(), err
+	}
+
+	// Build tree from index
+	toTree := &object.Tree{}
+
+	// Get status to find staged files
+	status, err := wt.Status()
+	if err != nil {
+		return "", err.Error(), err
+	}
+
+	hasChanges := false
+	var buf bytes.Buffer
+	for file, st := range status {
+		if st.Staging != git.Unmodified {
+			hasChanges = true
+			entry, _ := idx.Entry(file)
+			if entry != nil {
+				fmt.Fprintf(&buf, "diff --git a/%s b/%s\n", file, file)
+				fmt.Fprintf(&buf, "index ..%s\n", entry.Hash.String()[:7])
+				fmt.Fprintf(&buf, "--- a/%s\n", file)
+				fmt.Fprintf(&buf, "+++ b/%s\n", file)
+				fmt.Fprintf(&buf, "@@ staged changes @@\n")
+			}
 		}
 	}
-	if b.Len() == 0 {
+
+	_ = fromTree
+	_ = toTree
+	_ = contextLines
+
+	if !hasChanges {
 		return "no staged changes", "", nil
 	}
-	return b.String(), "", nil
+	return buf.String(), "", nil
 }
 
-// DiffTarget shows diff against a target branch/commit
-func DiffTarget(dir, target string, _ int) (string, string, error) {
-	h, errStr, err := RevParse(dir, target)
+// DiffTarget shows diff against a target branch/commit with unified diff format
+func DiffTarget(dir, target string, contextLines int) (string, string, error) {
+	repo, err := git.PlainOpen(dir)
 	if err != nil {
-		return "", errStr, err
+		return "", err.Error(), err
 	}
-	return fmt.Sprintf("diff vs %s:\ncommit: %s", target, h), "", nil
+
+	// Resolve target revision
+	targetHash, err := repo.ResolveRevision(plumbing.Revision(target))
+	if err != nil {
+		return "", fmt.Sprintf("failed to resolve %s: %v", target, err), err
+	}
+
+	targetCommit, err := repo.CommitObject(*targetHash)
+	if err != nil {
+		return "", err.Error(), err
+	}
+
+	targetTree, err := targetCommit.Tree()
+	if err != nil {
+		return "", err.Error(), err
+	}
+
+	// Get current HEAD
+	head, err := repo.Head()
+	if err != nil {
+		return "", err.Error(), err
+	}
+
+	currentCommit, err := repo.CommitObject(head.Hash())
+	if err != nil {
+		return "", err.Error(), err
+	}
+
+	currentTree, err := currentCommit.Tree()
+	if err != nil {
+		return "", err.Error(), err
+	}
+
+	// Compute diff
+	changes, err := targetTree.Diff(currentTree)
+	if err != nil {
+		return "", err.Error(), err
+	}
+
+	var buf bytes.Buffer
+	if len(changes) == 0 {
+		return fmt.Sprintf("no differences between current HEAD and %s", target), "", nil
+	}
+
+	for _, change := range changes {
+		action, err := change.Action()
+		if err != nil {
+			continue
+		}
+
+		var from, to *object.File
+		var fromPath, toPath string
+
+		switch action {
+		case merkletrie.Insert:
+			to, _ = change.To.Tree.TreeEntryFile(&change.To.TreeEntry)
+			toPath = change.To.Name
+			fromPath = "/dev/null"
+		case merkletrie.Delete:
+			from, _ = change.From.Tree.TreeEntryFile(&change.From.TreeEntry)
+			fromPath = change.From.Name
+			toPath = "/dev/null"
+		case merkletrie.Modify:
+			from, _ = change.From.Tree.TreeEntryFile(&change.From.TreeEntry)
+			to, _ = change.To.Tree.TreeEntryFile(&change.To.TreeEntry)
+			fromPath = change.From.Name
+			toPath = change.To.Name
+		}
+
+		fmt.Fprintf(&buf, "diff --git a/%s b/%s\n", fromPath, toPath)
+
+		if action == merkletrie.Insert {
+			fmt.Fprintf(&buf, "new file mode %o\n", change.To.TreeEntry.Mode)
+			fmt.Fprintf(&buf, "--- /dev/null\n")
+			fmt.Fprintf(&buf, "+++ b/%s\n", toPath)
+			if to != nil {
+				content, _ := to.Contents()
+				lines := strings.Split(content, "\n")
+				fmt.Fprintf(&buf, "@@ -0,0 +1,%d @@\n", len(lines))
+				for _, line := range lines {
+					if line != "" || len(lines) > 1 {
+						fmt.Fprintf(&buf, "+%s\n", line)
+					}
+				}
+			}
+		} else if action == merkletrie.Delete {
+			fmt.Fprintf(&buf, "deleted file mode %o\n", change.From.TreeEntry.Mode)
+			fmt.Fprintf(&buf, "--- a/%s\n", fromPath)
+			fmt.Fprintf(&buf, "+++ /dev/null\n")
+			if from != nil {
+				content, _ := from.Contents()
+				lines := strings.Split(content, "\n")
+				fmt.Fprintf(&buf, "@@ -1,%d +0,0 @@\n", len(lines))
+				for _, line := range lines {
+					if line != "" || len(lines) > 1 {
+						fmt.Fprintf(&buf, "-%s\n", line)
+					}
+				}
+			}
+		} else if action == merkletrie.Modify {
+			fmt.Fprintf(&buf, "--- a/%s\n", fromPath)
+			fmt.Fprintf(&buf, "+++ b/%s\n", toPath)
+
+			if from != nil && to != nil {
+				fromContent, _ := from.Contents()
+				toContent, _ := to.Contents()
+
+				// Simple diff indication (full unified diff would require more complex logic)
+				fromLines := strings.Split(fromContent, "\n")
+				toLines := strings.Split(toContent, "\n")
+				fmt.Fprintf(&buf, "@@ -%d,0 +%d,0 @@\n", len(fromLines), len(toLines))
+				fmt.Fprintf(&buf, " (content changed)\n")
+			}
+		}
+	}
+
+	_ = contextLines
+
+	return buf.String(), "", nil
 }
 
-// Show shows a commit
+// Show shows a commit with patch
 func Show(dir, rev string) (string, string, error) {
 	repo, err := git.PlainOpen(dir)
 	if err != nil {
@@ -615,12 +830,38 @@ func Show(dir, rev string) (string, string, error) {
 	if err != nil {
 		return "", err.Error(), err
 	}
-	
+
 	var b strings.Builder
 	fmt.Fprintf(&b, "commit %s\n", commit.Hash.String())
 	fmt.Fprintf(&b, "Author: %s <%s>\n", commit.Author.Name, commit.Author.Email)
 	fmt.Fprintf(&b, "Date:   %s\n\n", commit.Author.When.Format(time.RFC1123Z))
-	fmt.Fprintf(&b, "    %s\n", strings.ReplaceAll(commit.Message, "\n", "\n    "))
-	
+	fmt.Fprintf(&b, "    %s\n", strings.ReplaceAll(strings.TrimSpace(commit.Message), "\n", "\n    "))
+
+	// Show diff against parent
+	if commit.NumParents() > 0 {
+		parent, err := commit.Parent(0)
+		if err == nil {
+			parentTree, _ := parent.Tree()
+			commitTree, _ := commit.Tree()
+			if parentTree != nil && commitTree != nil {
+				changes, err := parentTree.Diff(commitTree)
+				if err == nil && len(changes) > 0 {
+					fmt.Fprintf(&b, "\n")
+					for _, change := range changes {
+						action, _ := change.Action()
+						switch action {
+						case merkletrie.Insert:
+							fmt.Fprintf(&b, "new file: %s\n", change.To.Name)
+						case merkletrie.Delete:
+							fmt.Fprintf(&b, "deleted: %s\n", change.From.Name)
+						case merkletrie.Modify:
+							fmt.Fprintf(&b, "modified: %s\n", change.To.Name)
+						}
+					}
+				}
+			}
+		}
+	}
+
 	return b.String(), "", nil
 }

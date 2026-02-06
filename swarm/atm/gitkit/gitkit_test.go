@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/object"
-	"time"
 )
 
 func hasGit(t *testing.T) bool {
@@ -55,7 +55,7 @@ func initLocalRepo(t *testing.T, root string) {
 	if err != nil {
 		t.Fatalf("get worktree failed: %v", err)
 	}
-	
+
 	_, err = wt.Commit("init", &git.CommitOptions{
 		Author: &object.Signature{
 			Name:  "gitkit-test",
@@ -282,6 +282,39 @@ func TestCreateBranch(t *testing.T) {
 	}
 }
 
+func TestCheckout(t *testing.T) {
+	if !hasGit(t) {
+		return
+	}
+
+	root := filepath.Join(t.TempDir(), "repo")
+	initLocalRepo(t, root)
+
+	// Create a new branch
+	_, _, err := CreateBranch(root, "test-checkout", "")
+	if err != nil {
+		t.Fatalf("CreateBranch failed: %v", err)
+	}
+
+	// Checkout the branch
+	out, stderr, err := Checkout(root, "test-checkout")
+	if err != nil {
+		t.Fatalf("Checkout failed: %v (stderr=%q)", err, stderr)
+	}
+	if !strings.Contains(out, "test-checkout") {
+		t.Fatalf("expected 'test-checkout' in output, got: %q", out)
+	}
+
+	// Verify we're on the new branch
+	current, _, err := CurrentBranch(root)
+	if err != nil {
+		t.Fatalf("CurrentBranch failed: %v", err)
+	}
+	if strings.TrimSpace(current) != "test-checkout" {
+		t.Fatalf("expected current branch 'test-checkout', got: %q", current)
+	}
+}
+
 func TestBranches(t *testing.T) {
 	if !hasGit(t) {
 		return
@@ -300,7 +333,7 @@ func TestBranches(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Branches failed: %v (stderr=%q)", err, stderr)
 	}
-	
+
 	// The output should be JSON array
 	if !strings.HasPrefix(out, "[") || !strings.HasSuffix(out, "]") {
 		t.Fatalf("expected JSON array output, got: %q", out)
@@ -354,5 +387,223 @@ func TestDiffStaged(t *testing.T) {
 	}
 	if !strings.Contains(out, "newfile.txt") {
 		t.Fatalf("expected 'newfile.txt' in diff output, got: %q", out)
+	}
+}
+
+func TestDiffTarget(t *testing.T) {
+	if !hasGit(t) {
+		return
+	}
+
+	root := filepath.Join(t.TempDir(), "repo")
+	initLocalRepo(t, root)
+
+	// Create a second commit
+	if err := os.WriteFile(filepath.Join(root, "file2.txt"), []byte("content\n"), 0o644); err != nil {
+		t.Fatalf("write file: %v", err)
+	}
+	if _, _, err := Add(root, []string{"file2.txt"}); err != nil {
+		t.Fatalf("Add failed: %v", err)
+	}
+
+	repo, err := git.PlainOpen(root)
+	if err != nil {
+		t.Fatalf("open repo: %v", err)
+	}
+	wt, err := repo.Worktree()
+	if err != nil {
+		t.Fatalf("get worktree: %v", err)
+	}
+	_, err = wt.Commit("second commit", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "gitkit-test",
+			Email: "gitkit-test@example.com",
+			When:  time.Now(),
+		},
+	})
+	if err != nil {
+		t.Fatalf("commit failed: %v", err)
+	}
+
+	// Diff against HEAD~1
+	out, stderr, err := DiffTarget(root, "HEAD~1", 3)
+	if err != nil {
+		t.Fatalf("DiffTarget failed: %v (stderr=%q)", err, stderr)
+	}
+	if !strings.Contains(out, "file2.txt") {
+		t.Fatalf("expected 'file2.txt' in diff output, got: %q", out)
+	}
+}
+
+func TestReset(t *testing.T) {
+	if !hasGit(t) {
+		return
+	}
+
+	root := filepath.Join(t.TempDir(), "repo")
+	initLocalRepo(t, root)
+
+	// Stage a file
+	if err := os.WriteFile(filepath.Join(root, "staged.txt"), []byte("content\n"), 0o644); err != nil {
+		t.Fatalf("write file: %v", err)
+	}
+	if _, _, err := Add(root, []string{"staged.txt"}); err != nil {
+		t.Fatalf("Add failed: %v", err)
+	}
+
+	// Reset
+	out, stderr, err := Reset(root)
+	if err != nil {
+		t.Fatalf("Reset failed: %v (stderr=%q)", err, stderr)
+	}
+	if !strings.Contains(out, "unstaged") {
+		t.Fatalf("expected 'unstaged' in output, got: %q", out)
+	}
+
+	// Verify file is no longer staged
+	status, _, err := DiffStaged(root, 3)
+	if err != nil {
+		t.Fatalf("DiffStaged failed: %v", err)
+	}
+	if strings.Contains(status, "staged.txt") {
+		t.Fatalf("expected file to be unstaged, but got: %q", status)
+	}
+}
+
+func TestShow(t *testing.T) {
+	if !hasGit(t) {
+		return
+	}
+
+	root := filepath.Join(t.TempDir(), "repo")
+	initLocalRepo(t, root)
+
+	out, stderr, err := Show(root, "HEAD")
+	if err != nil {
+		t.Fatalf("Show failed: %v (stderr=%q)", err, stderr)
+	}
+	if !strings.Contains(out, "commit") {
+		t.Fatalf("expected 'commit' in output, got: %q", out)
+	}
+	if !strings.Contains(out, "init") {
+		t.Fatalf("expected commit message 'init' in output, got: %q", out)
+	}
+}
+
+func TestRevParse(t *testing.T) {
+	if !hasGit(t) {
+		return
+	}
+
+	root := filepath.Join(t.TempDir(), "repo")
+	initLocalRepo(t, root)
+
+	hash, stderr, err := RevParse(root, "HEAD")
+	if err != nil {
+		t.Fatalf("RevParse failed: %v (stderr=%q)", err, stderr)
+	}
+	if len(hash) != 40 {
+		t.Fatalf("expected 40-character hash, got: %q", hash)
+	}
+}
+
+func TestAddMultipleFiles(t *testing.T) {
+	if !hasGit(t) {
+		return
+	}
+
+	root := filepath.Join(t.TempDir(), "repo")
+	initLocalRepo(t, root)
+
+	// Create multiple files
+	files := []string{"file1.txt", "file2.txt", "file3.txt"}
+	for _, f := range files {
+		if err := os.WriteFile(filepath.Join(root, f), []byte("test\n"), 0o644); err != nil {
+			t.Fatalf("write file %s: %v", f, err)
+		}
+	}
+
+	// Add all files at once
+	out, stderr, err := Add(root, files)
+	if err != nil {
+		t.Fatalf("Add failed: %v (stderr=%q)", err, stderr)
+	}
+	if !strings.Contains(out, "3") {
+		t.Fatalf("expected '3' files added, got: %q", out)
+	}
+}
+
+func TestLogWithTimeFilter(t *testing.T) {
+	if !hasGit(t) {
+		return
+	}
+
+	root := filepath.Join(t.TempDir(), "repo")
+	initLocalRepo(t, root)
+
+	// Get current time
+	now := time.Now()
+
+	// Create a second commit
+	if err := os.WriteFile(filepath.Join(root, "file2.txt"), []byte("content\n"), 0o644); err != nil {
+		t.Fatalf("write file: %v", err)
+	}
+	if _, _, err := Add(root, []string{"file2.txt"}); err != nil {
+		t.Fatalf("Add failed: %v", err)
+	}
+
+	repo, err := git.PlainOpen(root)
+	if err != nil {
+		t.Fatalf("open repo: %v", err)
+	}
+	wt, err := repo.Worktree()
+	if err != nil {
+		t.Fatalf("get worktree: %v", err)
+	}
+	_, err = wt.Commit("second commit", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "gitkit-test",
+			Email: "gitkit-test@example.com",
+			When:  time.Now(),
+		},
+	})
+	if err != nil {
+		t.Fatalf("commit failed: %v", err)
+	}
+
+	// Test with time filter - should get both commits
+	logs, _, err := Log(root, 10, now.Add(-1*time.Hour), now.Add(1*time.Hour))
+	if err != nil {
+		t.Fatalf("Log failed: %v", err)
+	}
+	if len(logs) != 2 {
+		t.Fatalf("expected 2 commits, got %d", len(logs))
+	}
+}
+
+func TestCommitWithAuthorInfo(t *testing.T) {
+	if !hasGit(t) {
+		return
+	}
+
+	root := filepath.Join(t.TempDir(), "repo")
+	initLocalRepo(t, root)
+
+	// Create and stage a file
+	if err := os.WriteFile(filepath.Join(root, "test.txt"), []byte("content\n"), 0o644); err != nil {
+		t.Fatalf("write file: %v", err)
+	}
+	if _, _, err := Add(root, []string{"test.txt"}); err != nil {
+		t.Fatalf("Add failed: %v", err)
+	}
+
+	// Commit with custom author
+	args := []string{"-c", "user.name=Test Author", "-c", "user.email=test@example.com"}
+	hash, stderr, code, err := Commit(root, "test commit", args)
+	if err != nil {
+		t.Fatalf("Commit failed: %v (stderr=%q, code=%d)", err, stderr, code)
+	}
+	if len(hash) != 40 {
+		t.Fatalf("expected 40-character hash, got: %q", hash)
 	}
 }
