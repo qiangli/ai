@@ -429,24 +429,25 @@ func listToolkitAsset(as api.AssetFS, root string, kits map[string]*api.AppConfi
 
 	for _, file := range files {
 		var content [][]byte
-		var baseDir string
+		var base string
 		var kit string
 		// tools/<kit>.yaml
 		if !file.IsDir() {
 			name := file.Name()
-			v, err := as.ReadFile(path.Join(root, name))
+			data, err := as.ReadFile(path.Join(root, name))
 			if err != nil {
 				if os.IsNotExist(err) {
 					continue
 				}
 				return fmt.Errorf("failed to read tool asset %s: %w", name, err)
 			}
-			content = [][]byte{v}
+			content = [][]byte{data}
 
-			baseDir = root
+			base = root
 			kit = strings.TrimSuffix(name, path.Ext(name))
 		} else {
-			base := path.Join(root, file.Name())
+			kit = file.Name()
+			base = path.Join(root, kit)
 
 			pdirs, err := as.ReadDir(base)
 			if err != nil {
@@ -465,9 +466,6 @@ func listToolkitAsset(as api.AssetFS, root string, kits map[string]*api.AppConfi
 					}
 				}
 			}
-
-			baseDir = base
-			kit = file.Name()
 		}
 
 		if len(content) == 0 {
@@ -492,7 +490,7 @@ func listToolkitAsset(as api.AssetFS, root string, kits map[string]*api.AppConfi
 			continue
 		}
 		tc.Store = as
-		tc.BaseDir = baseDir
+		tc.BaseDir = base
 		kits[tc.Kit] = tc
 	}
 	return nil

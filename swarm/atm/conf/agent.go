@@ -1,10 +1,11 @@
 package conf
 
 import (
-	// "fmt"
-	// "os"
+	"fmt"
+	"os"
 	"path"
 	"strings"
+
 	// "time"
 
 	"dario.cat/mergo"
@@ -66,47 +67,51 @@ func listAgentsATM(owner string, as api.ATMSupport, packs map[string]*api.AppCon
 }
 
 func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AppConfig) error {
-	dirs, err := as.ReadDir(root)
+	files, err := as.ReadDir(root)
 	if err != nil {
 		return err
 	}
 
 	// not found
-	if len(dirs) == 0 {
+	if len(files) == 0 {
 		return nil
 	}
 
-	for _, v := range dirs {
-		if !v.IsDir() {
-			continue
-		}
-		pack := v.Name()
-		base := path.Join(root, pack)
-
-		// filename := path.Join(base, "agent.yaml")
-		// content, err := as.ReadFile(filename)
-		// if err != nil {
-		// 	if os.IsNotExist(err) {
-		// 		continue
-		// 	}
-		// 	// return fmt.Errorf("failed to read agent asset %s: %w", v.Name(), err)
-		// 	continue
-		// }
+	for _, file := range files {
 		var content [][]byte
-		pdirs, err := as.ReadDir(base)
-		if err != nil {
-			continue
-		}
-		for _, file := range pdirs {
-			if file.IsDir() {
+		var base string
+		var pack string
+		if !file.IsDir() {
+			name := file.Name()
+			data, err := as.ReadFile(path.Join(root, name))
+			if err != nil {
+				if os.IsNotExist(err) {
+					continue
+				}
+				return fmt.Errorf("failed to read agent asset %s: %w", name, err)
+			}
+			content = [][]byte{data}
+			base = root
+			pack = strings.TrimSuffix(name, path.Ext(name))
+		} else {
+			pack = file.Name()
+			base := path.Join(root, pack)
+
+			pdirs, err := as.ReadDir(base)
+			if err != nil {
 				continue
 			}
-			name := file.Name()
-			if strings.HasSuffix(name, ".yaml") || strings.HasSuffix(name, ".yml") {
-				if v, err := as.ReadFile(path.Join(base, name)); err != nil {
+			for _, v := range pdirs {
+				if v.IsDir() {
 					continue
-				} else {
-					content = append(content, v)
+				}
+				name := v.Name()
+				if strings.HasSuffix(name, ".yaml") || strings.HasSuffix(name, ".yml") {
+					if data, err := as.ReadFile(path.Join(base, name)); err != nil {
+						continue
+					} else {
+						content = append(content, data)
+					}
 				}
 			}
 		}
@@ -117,8 +122,7 @@ func listAgentsAsset(as api.AssetFS, root string, packs map[string]*api.AppConfi
 		//
 		ac, err := LoadAgentsData(content)
 		if err != nil {
-			//return fmt.Errorf("error loading agent data: %s", v.Name())
-			continue
+			return fmt.Errorf("error loading agent data: %s", file.Name())
 		}
 		if ac == nil || len(ac.Agents) == 0 {
 			continue
