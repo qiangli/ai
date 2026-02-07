@@ -139,8 +139,8 @@ func Push(dir string, args []string, token, username, password, sshKey string) (
 
 // --- Low-level helper implementations -------------------------------------------------
 
-// Status returns a porcelain-like status for the repository at dir.
-func Status(dir string) (string, string, error) {
+// StatusPorcelain returns a porcelain-like status for the repository at dir.
+func StatusPorcelain(dir string) (string, string, error) {
 	repo, err := git.PlainOpen(dir)
 	if err != nil {
 		return "", err.Error(), err
@@ -483,7 +483,7 @@ func RunGitExitCode(dir string, args ...string) (string, string, int, error) {
 	subArgs := args[1:]
 	switch sub {
 	case "status":
-		out, errStr, err := Status(dir)
+		out, errStr, err := StatusPorcelain(dir)
 		if err != nil {
 			return out, errStr, 1, err
 		}
