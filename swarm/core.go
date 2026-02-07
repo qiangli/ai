@@ -70,11 +70,9 @@ func New(vars *api.Vars) (*Swarm, error) {
 	return sw, nil
 }
 
-// set original "input" in global env.
 func (sw *Swarm) Parse(ctx context.Context, input any) (api.ArgMap, error) {
 	log.GetLogger(ctx).Debugf("argm: %+v\n", input)
-	// save user raw input in env.
-	// sw.vars.Global.Set("input", input)
+
 	parsev := func(argv []string) (api.ArgMap, error) {
 		if conf.IsAction(argv[0]) {
 			cfg, err := GetInput(ctx, argv)

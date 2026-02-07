@@ -102,7 +102,6 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 	// special input
 	// value provided as option
 	stdin := fs.String("stdin", "", "Read input from stdin")
-	//
 
 	//
 	argm, err := fs.Parse(argv)
@@ -115,8 +114,7 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 		"max_span":    *maxSpan,
 		"max_turns":   *maxTurns,
 		"max_time":    *maxTime,
-		// "format":      *format,
-		"log_level": *logLevel,
+		"log_level":   *logLevel,
 	}
 
 	// prepend messsage to non flag/option args
@@ -224,7 +222,6 @@ func ParseActionArgs(argv []string) (api.ArgMap, error) {
 		argm["model"] = modelStr
 	}
 
-	//
 	if *stdin != "" {
 		argm["stdin"] = *stdin
 	}
@@ -289,21 +286,19 @@ func IsAction(s string) bool {
 	return false
 }
 
-// Split command line  into array of words, parse and return the arguments map
-func ParseActionCommand(s string) (api.ArgMap, error) {
-	if len(s) == 0 {
-		return nil, fmt.Errorf("missing action command")
-	}
-	argv := shlex.Argv(s)
-	argm, err := ParseActionArgs(argv)
-	if err != nil {
-		return nil, err
-	}
-	// if len(argm) == 0 {
-	// 	return nil, fmt.Errorf("empty command: %v", s)
-	// }
-	return argm, nil
-}
+// // Split command line  into array of words, parse and return the arguments map
+// func ParseActionCommand(s string) (api.ArgMap, error) {
+// 	if len(s) == 0 {
+// 		return nil, fmt.Errorf("missing action command")
+// 	}
+// 	argv := shlex.Argv(s)
+// 	argm, err := ParseActionArgs(argv)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	return argm, nil
+// }
 
 // Splits command line
 func Argv(s string) []string {
@@ -338,7 +333,7 @@ func Parse(input any) (api.ArgMap, error) {
 		return nil, err
 	}
 	if len(argm) == 0 {
-		return nil, fmt.Errorf("empty input map")
+		return nil, fmt.Errorf("empty input")
 	}
 
 	a := api.ArgMap(argm)
@@ -356,38 +351,20 @@ func Parse(input any) (api.ArgMap, error) {
 
 func parsev(argv []string) (api.ArgMap, error) {
 	var argm map[string]any
-	if IsAction(argv[0]) {
-
-		// cfg, err := GetInput(ctx, argv)
-		// if err != nil {
-		// 	return nil, err
-		// }
-
-		stdin := api.ToString(argm["stdin"])
-		// clipboard
-
-		// remove special trailing chars
-		// argv = cfg.Args
-		v, err := ParseActionArgs(argv)
-		if err != nil {
-			return nil, err
-		}
-		argm = v
-
-		if stdin != "" {
-			msg := argm["message"]
-			argm["message"] = api.Cat(msg.(string), stdin, "\n###\n")
-		}
-		// } else if IsSlash(argv[0]) {
-		// 	// call local system command as tool:
-		// 	// sh:exec command
-		// 	argm = make(map[string]any)
-		// 	argm["kit"] = "sh"
-		// 	argm["name"] = "exec"
-		// 	argm["command"] = strings.Join(argv, " ")
-	} else {
-		argm = make(map[string]any)
-		argm["message"] = strings.Join(argv, " ")
+	// if IsAction(argv[0]) {
+	argm, err := ParseActionArgs(argv)
+	if err != nil {
+		return nil, err
 	}
+	// argm = v
+
+	// merge messae/stdin
+	// stdin := api.ToString(argm["stdin"])
+	// if stdin != "" {
+	// 	msg := argm["message"]
+	// 	argm["message"] = api.Cat(api.ToString(msg), stdin, "\n---\n")
+	// }
+	// argm["message"] = strings.Join(argv, " ")
+	// // }
 	return argm, nil
 }
