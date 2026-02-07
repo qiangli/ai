@@ -31,6 +31,14 @@ type Args struct {
 	Contains       string   `json:"contains"`
 	NotContains    string   `json:"not_contains"`
 	Files          []string `json:"files"`
+
+	// new fields for tag/push/pull
+	TagName     string `json:"tag_name"`
+	Annotated   bool   `json:"annotated"`
+	Remote      string `json:"remote"`
+	Force       bool   `json:"force"`
+	SetUpstream bool   `json:"set_upstream"`
+	Rebase      bool   `json:"rebase"`
 }
 
 type payloadObj struct {
@@ -52,6 +60,14 @@ type payloadObj struct {
 	Contains       string   `json:"contains,omitempty"`
 	NotContains    string   `json:"not_contains,omitempty"`
 	Files          []string `json:"files,omitempty"`
+
+	// new fields for tag/push/pull
+	TagName     string `json:"tag_name,omitempty"`
+	Annotated   bool   `json:"annotated,omitempty"`
+	Remote      string `json:"remote,omitempty"`
+	Force       bool   `json:"force,omitempty"`
+	SetUpstream bool   `json:"set_upstream,omitempty"`
+	Rebase      bool   `json:"rebase,omitempty"`
 }
 
 // Run is kept for backward compatibility and delegates to specific tool handlers.
@@ -83,6 +99,12 @@ func Run(args *Args) (any, error) {
 		return RunGitShow(args)
 	case "git_branches":
 		return RunGitBranches(args)
+	case "git_push":
+		return RunGitPush(args)
+	case "git_pull":
+		return RunGitPull(args)
+	case "git_tag":
+		return RunGitTag(args)
 	default:
 		return nil, fmt.Errorf("unsupported tool %q", args.Tool)
 	}
@@ -284,6 +306,86 @@ func RunGitBranches(args *Args) (any, error) {
 	typ := strings.ToLower(strings.TrimSpace(args.BranchType))
 	o, errStr, err := Branches(args.Dir, typ)
 	out := Output{Stdout: o, Stderr: errStr, ExitCode: 0, OK: err == nil}
+	if err != nil {
+		out.ExitCode = 1
+		out.Error = err.Error()
+	}
+	return encodeOutput(out)
+}
+
+func RunGitPush(args *Args) (any, error) {
+	// build argument slice for lower-level Push implementation
+	remote := args.Remote
+	if remote == "" {
+		remote = "origin"
+	}
+	branch := args.BranchName
+	var a []string
+	if remote != "" {
+		a = append(a, remote)
+	}
+	if branch != "" {
+		a = append(a, branch)
+	}
+	if args.SetUpstream {
+		a = append(a, "--set-upstream")
+	}
+	if args.Force {
+		a = append(a, "--force")
+	}
+	if args.Annotated { // reuse Annotated as 'tags' flag if set in Args
+		a = append(a, "--tags")
+	}
+	outStr, errStr, err := Push(args.Dir, a)
+	out := Output{Stdout: outStr, Stderr: errStr, ExitCode: 0, OK: err == nil}
+	if err != nil {
+		out.ExitCode = 1
+		out.Error = err.Error()
+	}
+	return encodeOutput(out)
+}
+
+func RunGitPull(args *Args) (any, error) {
+	remote := args.Remote
+	if remote == "" {
+		remote = "origin"
+	}
+	branch := args.BranchName
+	var a []string
+	if remote != "" {
+		a = append(a, remote)
+	}
+	if branch != "" {
+		a = append(a, branch)
+	}
+	if args.Rebase {
+		a = append(a, "--rebase")
+	}
+	outStr, errStr, err := Pull(args.Dir, a)
+	out := Output{Stdout: outStr, Stderr: errStr, ExitCode: 0, OK: err == nil}
+	if err != nil {
+		out.ExitCode = 1
+		out.Error = err.Error()
+	}
+	return encodeOutput(out)
+}
+
+func RunGitTag(args *Args) (any, error) {
+	name := strings.TrimSpace(args.TagName)
+	if name == "" {
+		out := Output{ExitCode: 2, OK: false, Error: "tag requires tag_name"}
+		return encodeOutput(out)
+	}
+	rev := strings.TrimSpace(args.Rev)
+	if rev == "" {
+		rev = strings.TrimSpace(args.Target)
+	}
+	if rev == "" {
+		out := Output{ExitCode: 2, OK: false, Error: "tag requires revision"}
+		return encodeOutput(out)
+	}
+	outStr, errStr, err := Tag(args.Dir, name, rev, args.Annotated, args.Message)
+	out := Output{Stdout: outStr, Stderr: errStr, ExitCode: 0, OK: err == nil}
 	if err != nil {
 		out.ExitCode = 1
 		out.Error = err.Error()

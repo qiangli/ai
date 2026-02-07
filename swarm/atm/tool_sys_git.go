@@ -227,3 +227,127 @@ func (r *GitKit) Branches(ctx context.Context, vars *api.Vars, parent *api.Agent
 	}
 	return gitkit.RunGitBranches(gitArgs)
 }
+
+// New methods: Tag, Push, Pull
+
+func (r *GitKit) Tag(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
+	dir, err := api.GetStrProp("dir", args)
+	if err != nil {
+		return nil, err
+	}
+	tagName, err := api.GetStrProp("tag_name", args)
+	if err != nil {
+		return nil, fmt.Errorf("tag_name is required: %w", err)
+	}
+	// revision may be provided as 'revision' or 'rev' or 'target'
+	rev, _ := api.GetStrProp("revision", args)
+	if rev == "" {
+		rev, _ = api.GetStrProp("rev", args)
+	}
+	if rev == "" {
+		rev, _ = api.GetStrProp("target", args)
+	}
+	if rev == "" {
+		return nil, fmt.Errorf("revision is required for tag")
+	}
+	// annotated optional bool
+	annotated := false
+	if v, ok := args["annotated"]; ok {
+		switch t := v.(type) {
+		case bool:
+			annotated = t
+		case string:
+			if t == "true" {
+				annotated = true
+			}
+		}
+	}
+	message, _ := api.GetStrProp("message", args)
+	gitArgs := &gitkit.Args{
+		Dir:       dir,
+		TagName:   tagName,
+		Rev:       rev,
+		Annotated: annotated,
+		Message:   message,
+	}
+	return gitkit.RunGitTag(gitArgs)
+}
+
+func (r *GitKit) Push(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
+	dir, err := api.GetStrProp("dir", args)
+	if err != nil {
+		return nil, err
+	}
+	remote, _ := api.GetStrProp("remote", args)
+	branch, _ := api.GetStrProp("branch", args)
+	// booleans
+	setUp := false
+	if v, ok := args["set_upstream"]; ok {
+		switch t := v.(type) {
+		case bool:
+			setUp = t
+		case string:
+			if t == "true" {
+				setUp = true
+			}
+		}
+	}
+	force := false
+	if v, ok := args["force"]; ok {
+		switch t := v.(type) {
+		case bool:
+			force = t
+		case string:
+			if t == "true" {
+				force = true
+			}
+		}
+	}
+	tags := false
+	if v, ok := args["tags"]; ok {
+		switch t := v.(type) {
+		case bool:
+			tags = t
+		case string:
+			if t == "true" {
+				tags = true
+			}
+		}
+	}
+	gitArgs := &gitkit.Args{
+		Dir:         dir,
+		Remote:      remote,
+		BranchName:  branch,
+		SetUpstream: setUp,
+		Force:       force,
+		Annotated:   tags,
+	}
+	return gitkit.RunGitPush(gitArgs)
+}
+
+func (r *GitKit) Pull(ctx context.Context, vars *api.Vars, parent *api.Agent, tf *api.ToolFunc, args map[string]any) (any, error) {
+	dir, err := api.GetStrProp("dir", args)
+	if err != nil {
+		return nil, err
+	}
+	remote, _ := api.GetStrProp("remote", args)
+	branch, _ := api.GetStrProp("branch", args)
+	rebase := false
+	if v, ok := args["rebase"]; ok {
+		switch t := v.(type) {
+		case bool:
+			rebase = t
+		case string:
+			if t == "true" {
+				rebase = true
+			}
+		}
+	}
+	gitArgs := &gitkit.Args{
+		Dir:        dir,
+		Remote:     remote,
+		BranchName: branch,
+		Rebase:     rebase,
+	}
+	return gitkit.RunGitPull(gitArgs)
+}

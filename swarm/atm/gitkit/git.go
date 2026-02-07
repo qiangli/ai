@@ -201,7 +201,7 @@ func Pull(dir string, _ []string) (string, string, error) {
 }
 
 // Push pushes changes to remote
-func Push(dir string, _ []string) (string, string, error) {
+func Push(dir string, args []string) (string, string, error) {
 	repo, err := git.PlainOpen(dir)
 	if err != nil {
 		return "", err.Error(), err
@@ -211,6 +211,46 @@ func Push(dir string, _ []string) (string, string, error) {
 		return "", err.Error(), err
 	}
 	return "pushed successfully", "", nil
+}
+
+// Tag creates a tag at the specified revision. If annotated is true, creates an annotated tag with message.
+func Tag(dir, tagName, rev string, annotated bool, message string) (string, string, error) {
+	if strings.TrimSpace(tagName) == "" {
+		return "", "", fmt.Errorf("tag name must not be empty")
+	}
+	repo, err := git.PlainOpen(dir)
+	if err != nil {
+		return "", err.Error(), err
+	}
+	// resolve revision; default to HEAD
+	if strings.TrimSpace(rev) == "" {
+		head, herr := repo.Head()
+		if herr != nil {
+			return "", herr.Error(), herr
+		}
+		rev = head.Hash().String()
+	}
+	h, err := repo.ResolveRevision(plumbing.Revision(rev))
+	if err != nil {
+		return "", err.Error(), err
+	}
+	// create tag
+	if annotated {
+		// annotated tag
+		tagger := &object.Signature{Name: "auto", Email: "gitkit@dhnt.io", When: time.Now()}
+		_, cerr := repo.CreateTag(tagName, *h, &git.CreateTagOptions{Message: message, Tagger: tagger})
+		if cerr != nil {
+			return "", cerr.Error(), cerr
+		}
+		return fmt.Sprintf("created annotated tag %s at %s", tagName, h.String()), "", nil
+	}
+	// lightweight tag
+	refName := plumbing.NewTagReferenceName(tagName)
+	ref := plumbing.NewHashReference(refName, *h)
+	if rerr := repo.Storer.SetReference(ref); rerr != nil {
+		return "", rerr.Error(), rerr
+	}
+	return fmt.Sprintf("created tag %s at %s", tagName, h.String()), "", nil
 }
 
 // CurrentBranch returns the name of the current branch
