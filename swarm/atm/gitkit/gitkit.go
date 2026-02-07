@@ -432,6 +432,20 @@ func RunGitPull(args *Args) (any, error) {
 
 func RunGitTag(args *Args) (any, error) {
 	name := strings.TrimSpace(args.TagName)
+	// allow tag name and/or rev to be provided via Args.Args (legacy positional args)
+	if name == "" && args.Args != "" {
+		arr := api.ToStringArray(args.Args)
+		if len(arr) > 0 {
+			name = strings.TrimSpace(arr[0])
+		}
+		if len(arr) > 1 {
+			// only set rev from positional args if not already provided
+			revCandidate := strings.TrimSpace(arr[1])
+			if revCandidate != "" {
+				args.Rev = revCandidate
+			}
+		}
+	}
 	if name == "" {
 		out := Output{ExitCode: 2, OK: false, Error: "tag requires tag_name"}
 		return encodeOutput(out)
@@ -439,6 +453,13 @@ func RunGitTag(args *Args) (any, error) {
 	rev := strings.TrimSpace(args.Rev)
 	if rev == "" {
 		rev = strings.TrimSpace(args.Target)
+	}
+	// also allow positional args to supply rev as first/second element if still empty
+	if rev == "" && args.Args != "" {
+		arr := api.ToStringArray(args.Args)
+		if len(arr) > 1 {
+			rev = strings.TrimSpace(arr[1])
+		}
 	}
 	if rev == "" {
 		out := Output{ExitCode: 2, OK: false, Error: "tag requires revision"}

@@ -577,7 +577,20 @@ func Tag(dir string, name, rev string, annotated bool, msg string) (string, stri
 	if err != nil {
 		return "", err.Error(), err
 	}
-	h := plumbing.NewHash(rev)
+
+	// Resolve revision to a hash. Accept refs like HEAD, branch names, or raw hashes.
+	hashPtr, rerr := repo.ResolveRevision(plumbing.Revision(rev))
+	var h plumbing.Hash
+	if rerr != nil {
+		// fallback: try parse as raw hash
+		h = plumbing.NewHash(rev)
+		if h.IsZero() {
+			return "", fmt.Sprintf("failed to resolve revision %q: %v", rev, rerr), rerr
+		}
+	} else {
+		h = *hashPtr
+	}
+
 	if annotated {
 		// create annotated tag
 		_, err := repo.CreateTag(name, h, &git.CreateTagOptions{Message: msg, Tagger: &object.Signature{Name: "gitkit", Email: "gitkit@dhnt.io", When: time.Now()}})
@@ -772,5 +785,3 @@ func jsonMarshalStd(v any) ([]byte, error) {
 func jsonMarshalReal(v any) ([]byte, error) {
 	return jsonMarshalImport(v)
 }
-
-// jsonMarshalImport is defined in a small file to include encoding/json import.
