@@ -10,11 +10,11 @@ import (
 	"unicode"
 
 	"github.com/cenkalti/backoff/v4"
+	"github.com/itchyny/gojq"
 	"github.com/pmezard/go-difflib/difflib"
 
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/conf"
-	// "github.com/qiangli/ai/swarm/atm/gitkit"
 	"github.com/qiangli/ai/swarm/resource"
 )
 
@@ -409,7 +409,7 @@ func (r *SystemKit) SourceEnvs(_ context.Context, vars *api.Vars, _ string, args
 	if err != nil {
 		return nil, err
 	}
-	lines := strings.Split(content, "\n")
+	lines := strings.Split(string(content), "\n")
 	obj := make(map[string]any)
 	var invalid []string
 	for _, line := range lines {
@@ -510,8 +510,8 @@ func (r *SystemKit) Diff(ctx context.Context, vars *api.Vars, _ string, args map
 	// Compute unified diff
 	// Use difflib's SplitLines helper to prepare line slices.
 	d := difflib.UnifiedDiff{
-		A:        difflib.SplitLines(aContent),
-		B:        difflib.SplitLines(bContent),
+		A:        difflib.SplitLines(string(aContent)),
+		B:        difflib.SplitLines(string(bContent)),
 		FromFile: aPath,
 		ToFile:   bPath,
 		Context:  3,
@@ -530,18 +530,64 @@ func (r *SystemKit) Diff(ctx context.Context, vars *api.Vars, _ string, args map
 	return "", nil
 }
 
-// func (r *SystemKit) Git(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (any, error) {
-// 	var ga gitkit.Args
-// 	ga.ID, _ = api.GetStrProp("id", args)
-// 	ga.User, _ = api.GetStrProp("user", args)
-// 	ga.Payload, _ = api.GetStrProp("payload", args)
-// 	ga.Action, _ = api.GetStrProp("action", args)
-// 	// ga.Dir, _ = api.GetStrProp("dir", args)
-// 	ga.Args, _ = api.GetStrProp("args", args)
-// 	ga.Message, _ = api.GetStrProp("message", args)
-// 	ga.Rev, _ = api.GetStrProp("rev", args)
-// 	ga.Path, _ = api.GetStrProp("path", args)
-// 	// ga.Command, _ = api.GetStrProp("command", args)
+func (r *SystemKit) Jq(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (any, error) {
+	expr, err := api.GetStrProp("expr", args)
+	if err != nil {
+		return nil, err
+	}
 
-// 	return gitkit.Run(&ga)
-// }
+	file, _ := api.GetStrProp("file", args)
+	inputStr, _ := api.GetStrProp("input", args)
+	if file != "" {
+		content, err := api.LoadURIContent(vars.Workspace, file)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load input file %q: %w", file, err)
+		}
+		inputStr = string(content)
+	}
+	if inputStr == "" {
+		return nil, errors.New("either 'input' or 'file' must be provided")
+	}
+
+	var parsed any
+	if err := json.Unmarshal([]byte(inputStr), &parsed); err != nil {
+		return nil, fmt.Errorf("invalid JSON input: %w", err)
+	}
+
+	query, err := gojq.Parse(expr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid jq expression %q: %w", expr, err)
+	}
+
+	iter := query.Run(parsed)
+	var results []any
+	for {
+		val, ok := iter.Next()
+		if !ok {
+			break
+		}
+		if errVal, isErr := val.(error); isErr {
+			return nil, fmt.Errorf("jq execution error: %w", errVal)
+		}
+		results = append(results, val)
+	}
+
+	var out string
+	switch len(results) {
+	case 0:
+		out = ""
+	case 1:
+		b, err := json.Marshal(results[0])
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal single result: %w", err)
+		}
+		out = string(b)
+	default:
+		b, err := json.Marshal(results)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal results: %w", err)
+		}
+		out = string(b)
+	}
+	return out, nil
+}
