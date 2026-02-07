@@ -33,6 +33,9 @@ func init() {
 		}
 	}
 
+	// github token
+	env["github"] = os.Getenv("GITHUB_TOKEN")
+
 	// google is special.
 	env["google"] = os.Getenv("GOOGLE_SEARCH_ENGINE_ID") + ":" + os.Getenv("GOOGLE_API_KEY")
 

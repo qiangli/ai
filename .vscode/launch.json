@@ -133,9 +133,10 @@
 				// "test/template.sh",
 				// "--base",
 				// "test/data",
-				"/git:add",
-				"--files",
-				"[\"swarm/\"]"
+				// "/git:add",
+				// "--files",
+				// "[\"swarm/\"]"
+				"/git:push",
 				// "test/basic.sh",
 				// "test/std.sh",
 				// "test/bash-builtin.sh",

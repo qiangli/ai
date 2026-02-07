@@ -278,6 +278,11 @@ func (r *GitKit) Push(ctx context.Context, vars *api.Vars, parent *api.Agent, tf
 	username, _ := api.GetStrProp("username", args)
 	password, _ := api.GetStrProp("password", args)
 	sshKey, _ := api.GetStrProp("ssh_key", args)
+
+	// use GITHUB_TOKEN as default
+	if token == "" && username == "" && password == "" {
+		token, _ = vars.Secrets.Get(vars.User.Email, "github")
+	}
 	// booleans
 	setUp := false
 	if v, ok := args["set_upstream"]; ok {
