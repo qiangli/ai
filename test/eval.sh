@@ -32,12 +32,13 @@
 # echo "pwd cmd: $(pwd)"
 # echo "PWD: $PWD"
 
-export ABC=DEFG
+# export ABC=DEFG
 # /sh:pass
 # echo "---"
 # echo "ABC: $ABC"
 # printenv
 
-/bin/bash test/bash-native.sh
-
+# /bin/bash test/bash-native.sh
+# /sh:exec --command "/bin/bash -lc 'pwd'"                         
+/sh:exec --command "/bin/bash $PWD/test/bash-native.sh"
 ###

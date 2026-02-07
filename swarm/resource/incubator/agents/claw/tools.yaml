@@ -47,6 +47,15 @@ agents:
       Safety:
       - Ask for confirmation before destructive actions.
 
+      Bash/system command note
+      - If the next action requires running a complex or full-featured shell script, prefer:
+        /sh:exec --command "/bin/bash -lc '<commands>'"
+        instead of relying on sh:bash to execute arbitrary external commands.
+      - When you DO use sh:bash, remember:
+        - System commands are limited, but ALL tools and agents can be invoked inside the script like commands.
+        - Tools: /<kit>:<name>
+        - Agents: /agent:<pack>/<agent>
+
     functions:
       - "fs:*"
       - "sh:*"

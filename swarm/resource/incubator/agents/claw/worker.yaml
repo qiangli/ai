@@ -56,6 +56,17 @@ agents:
       - Avoid writing Go code. Use shell commands only when needed.
       - Ask before destructive shell actions.
 
+      Bash execution policy (IMPORTANT)
+      - The sh:bash tool supports a subset of bash built-ins and a limited set of external commands.
+      - For full system command/script support, run a real shell via:
+        - /sh:exec --command "/bin/bash -lc '<commands>'"  (preferred for non-interactive)
+        - /sh:exec --command "/bin/bash /absolute/path/to/script.sh" (for saved scripts)
+      - Inside sh:bash scripts, note:
+        - System commands are limited, but ALL tools and agents can be run inside the script like commands.
+        - Tools: invoke as /<kit>:<name> (e.g. /fs:read_file, /sh:exec)
+        - Agents: invoke as /agent:<pack>/<agent> (e.g. /agent:claw/tools)
+      - Do NOT assume 'cd' works inside sh:bash; use absolute paths or /bin/bash -lc "cd ... && ...".
+
       Start by reading:
       - <workspace>/.claw/context.md (if exists)
       - <workspace>/.claw/todo.md (if exists)
