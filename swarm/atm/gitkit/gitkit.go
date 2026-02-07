@@ -40,6 +40,15 @@ type Args struct {
 	SetUpstream bool   `json:"set_upstream"`
 	Rebase      bool   `json:"rebase"`
 
+	// restore fields
+	Paths    []string `json:"paths"`
+	Source   string   `json:"source"`
+	Staged   bool     `json:"staged"`
+	Worktree bool     `json:"worktree"`
+	Backup   bool     `json:"backup"`
+	DryRun   bool     `json:"dry_run"`
+	Recurse  bool     `json:"recurse"`
+
 	// auth fields
 	Token    string `json:"token,omitempty"`
 	Username string `json:"username,omitempty"`
@@ -75,6 +84,15 @@ type payloadObj struct {
 	SetUpstream bool   `json:"set_upstream,omitempty"`
 	Rebase      bool   `json:"rebase,omitempty"`
 
+	// restore fields
+	Paths    []string `json:"paths,omitempty"`
+	Source   string   `json:"source,omitempty"`
+	Staged   bool     `json:"staged,omitempty"`
+	Worktree bool     `json:"worktree,omitempty"`
+	Backup   bool     `json:"backup,omitempty"`
+	DryRun   bool     `json:"dry_run,omitempty"`
+	Recurse  bool     `json:"recurse,omitempty"`
+
 	// auth
 	Token    string `json:"token,omitempty"`
 	Username string `json:"username,omitempty"`
@@ -101,6 +119,8 @@ func Run(args *Args) (any, error) {
 		return RunGitAdd(args)
 	case "git_reset":
 		return RunGitReset(args)
+	case "git_restore":
+		return RunGitRestore(args)
 	case "git_log":
 		return RunGitLog(args)
 	case "git_create_branch":
@@ -239,6 +259,31 @@ func RunGitAdd(args *Args) (any, error) {
 func RunGitReset(args *Args) (any, error) {
 	o, errStr, err := Reset(args.Dir)
 	out := Output{Stdout: o, Stderr: errStr, ExitCode: 0, OK: err == nil}
+	if err != nil {
+		out.ExitCode = 1
+		out.Error = err.Error()
+	}
+	return encodeOutput(out)
+}
+
+func RunGitRestore(args *Args) (any, error) {
+	paths := args.Paths
+	source := args.Source
+	if source == "" {
+		source = "HEAD"
+	}
+	staged := args.Staged
+	worktree := args.Worktree
+	// Default: if neither staged nor worktree is set, restore worktree (like git restore)
+	if !staged && !worktree {
+		worktree = true
+	}
+	force := args.Force
+	backup := args.Backup
+	dryRun := args.DryRun
+
+	outStr, errStr, err := Restore(args.Dir, paths, source, staged, worktree, force, backup, dryRun)
+	out := Output{Stdout: outStr, Stderr: errStr, ExitCode: 0, OK: err == nil}
 	if err != nil {
 		out.ExitCode = 1
 		out.Error = err.Error()

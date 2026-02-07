@@ -237,6 +237,147 @@ func Reset(dir string) (string, string, error) {
 	return "reset unstaged changes", "", nil
 }
 
+// Restore restores files from a given source (revision) to working tree and/or index.
+// Similar to git restore [--source=<tree>] [--staged] [--worktree] <pathspec>...
+func Restore(dir string, paths []string, source string, staged, worktree, force, backup, dryRun bool) (string, string, error) {
+	repo, err := git.PlainOpen(dir)
+	if err != nil {
+		return "", err.Error(), err
+	}
+
+	// Resolve source to a tree
+	hash, err := repo.ResolveRevision(plumbing.Revision(source))
+	if err != nil {
+		return "", fmt.Sprintf("failed to resolve revision %q: %v", source, err), err
+	}
+
+	commit, err := repo.CommitObject(*hash)
+	if err != nil {
+		return "", fmt.Sprintf("failed to get commit object: %v", err), err
+	}
+
+	tree, err := commit.Tree()
+	if err != nil {
+		return "", fmt.Sprintf("failed to get tree: %v", err), err
+	}
+
+	wt, err := repo.Worktree()
+	if err != nil {
+		return "", err.Error(), err
+	}
+
+	var restoredPaths []string
+	var errors []string
+
+	// If no paths specified, restore all
+	if len(paths) == 0 {
+		if worktree {
+			// Restore entire worktree using Checkout
+			err := wt.Checkout(&git.CheckoutOptions{
+				Hash:  *hash,
+				Force: force,
+			})
+			if err != nil {
+				return "", fmt.Sprintf("failed to restore worktree: %v", err), err
+			}
+			restoredPaths = append(restoredPaths, ".")
+		}
+		if staged {
+			// Reset index to source commit
+			err := wt.Reset(&git.ResetOptions{
+				Commit: *hash,
+				Mode:   git.MixedReset,
+			})
+			if err != nil {
+				return "", fmt.Sprintf("failed to restore index: %v", err), err
+			}
+		}
+	} else {
+		// Restore specific paths
+		for _, path := range paths {
+			path = strings.TrimSpace(path)
+			if path == "" {
+				continue
+			}
+
+			// Normalize path (remove leading ./)
+			path = strings.TrimPrefix(path, "./")
+
+			if dryRun {
+				restoredPaths = append(restoredPaths, fmt.Sprintf("[dry-run] would restore %s", path))
+				continue
+			}
+
+			// Get file from tree
+			file, err := tree.File(path)
+			if err != nil {
+				errors = append(errors, fmt.Sprintf("failed to get file %s from tree: %v", path, err))
+				continue
+			}
+
+			// Read file content
+			content, err := file.Contents()
+			if err != nil {
+				errors = append(errors, fmt.Sprintf("failed to read file %s: %v", path, err))
+				continue
+			}
+
+			if worktree {
+				// Write file to worktree
+				fullPath := filepath.Join(dir, path)
+
+				// Create backup if requested
+				if backup {
+					if _, err := os.Stat(fullPath); err == nil {
+						backupPath := fullPath + ".backup"
+						data, _ := os.ReadFile(fullPath)
+						_ = os.WriteFile(backupPath, data, 0644)
+					}
+				}
+
+				// Ensure directory exists
+				if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+					errors = append(errors, fmt.Sprintf("failed to create directory for %s: %v", path, err))
+					continue
+				}
+
+				// Write file
+				if err := os.WriteFile(fullPath, []byte(content), 0644); err != nil {
+					errors = append(errors, fmt.Sprintf("failed to write file %s: %v", path, err))
+					continue
+				}
+			}
+
+			if staged {
+				// Stage the file (add to index)
+				_, err := wt.Add(path)
+				if err != nil {
+					errors = append(errors, fmt.Sprintf("failed to stage file %s: %v", path, err))
+					continue
+				}
+			}
+
+			restoredPaths = append(restoredPaths, path)
+		}
+	}
+
+	var outMsg string
+	if len(restoredPaths) > 0 {
+		outMsg = fmt.Sprintf("Restored %d path(s) from %s:\n%s", len(restoredPaths), source, strings.Join(restoredPaths, "\n"))
+	}
+
+	var errMsg string
+	if len(errors) > 0 {
+		errMsg = strings.Join(errors, "\n")
+	}
+
+	if len(errors) > 0 && len(restoredPaths) == 0 {
+		return outMsg, errMsg, fmt.Errorf("restore failed")
+	}
+
+	return outMsg, errMsg, nil
+}
+
 // LogEntry represents a compact commit record
 type LogEntry struct {
 	Hash    string `json:"hash"`
