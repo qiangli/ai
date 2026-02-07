@@ -118,14 +118,14 @@ func run(p Payload) (stdout string, stderr string, exitCode int, err error) {
 		}
 		return outStr, errStr, 0, nil
 	case "clone":
-		if len(p.Args) != 2 {
-			return "", "", 2, errors.New("clone requires args: [repoURL, destDir]")
-		}
-		err := gitkit.Clone(p.Args[0], p.Args[1])
-		if err != nil {
-			return "", "", 1, err
-		}
-		return "", "", 0, nil
+		// if len(p.Args) != 2 {
+		// 	return "", "", 2, errors.New("clone requires args: [repoURL, destDir]")
+		// }
+		// err := gitkit.Clone(p.Args[0], p.Args[1])
+		// if err != nil {
+		// 	return "", "", 1, err
+		// }
+		// return "", "", 0, nil
 	case "commit":
 		msg := strings.TrimSpace(p.Message)
 		if msg == "" && len(p.Args) > 0 {
@@ -143,65 +143,65 @@ func run(p Payload) (stdout string, stderr string, exitCode int, err error) {
 		out, errOut, code, runErr := gitkit.RunGitExitCode(p.Dir, append([]string{"push"}, p.Args...)...)
 		return out, errOut, code, runErr
 	case "branch", "current-branch":
-		branch, errOut, runErr := gitkit.CurrentBranch(p.Dir)
-		if runErr != nil {
-			return branch, errOut, 1, runErr
-		}
-		return branch, errOut, 0, nil
+		// branch, errOut, runErr := gitkit.CurrentBranch(p.Dir)
+		// if runErr != nil {
+		// 	return branch, errOut, 1, runErr
+		// }
+		// return branch, errOut, 0, nil
 	case "remote-url":
-		url, errOut, runErr := gitkit.RemoteURL(p.Dir)
-		if runErr != nil {
-			return url, errOut, 1, runErr
-		}
-		return url, errOut, 0, nil
+		// url, errOut, runErr := gitkit.RemoteURL(p.Dir)
+		// if runErr != nil {
+		// 	return url, errOut, 1, runErr
+		// }
+		// return url, errOut, 0, nil
 	case "rev-parse":
-		rev := strings.TrimSpace(p.Rev)
-		if rev == "" && len(p.Args) == 1 {
-			rev = p.Args[0]
-		}
-		if rev == "" {
-			return "", "", 2, errors.New("rev-parse requires rev (field 'rev' or args[0])")
-		}
-		hash, errOut, runErr := gitkit.RevParse(p.Dir, rev)
-		if runErr != nil {
-			return hash, errOut, 1, runErr
-		}
-		return hash, errOut, 0, nil
+		// rev := strings.TrimSpace(p.Rev)
+		// if rev == "" && len(p.Args) == 1 {
+		// 	rev = p.Args[0]
+		// }
+		// if rev == "" {
+		// 	return "", "", 2, errors.New("rev-parse requires rev (field 'rev' or args[0])")
+		// }
+		// hash, errOut, runErr := gitkit.RevParse(p.Dir, rev)
+		// if runErr != nil {
+		// 	return hash, errOut, 1, runErr
+		// }
+		// return hash, errOut, 0, nil
 	case "list-branches":
-		out, errOut, runErr := gitkit.ListBranches(p.Dir)
-		if runErr != nil {
-			return out, errOut, 1, runErr
-		}
-		return out, errOut, 0, nil
+		// out, errOut, runErr := gitkit.ListBranches(p.Dir)
+		// if runErr != nil {
+		// 	return out, errOut, 1, runErr
+		// }
+		// return out, errOut, 0, nil
 	case "list-remotes":
-		out, errOut, runErr := gitkit.ListRemotes(p.Dir)
-		if runErr != nil {
-			return out, errOut, 1, runErr
-		}
-		return out, errOut, 0, nil
+		// out, errOut, runErr := gitkit.ListRemotes(p.Dir)
+		// if runErr != nil {
+		// 	return out, errOut, 1, runErr
+		// }
+		// return out, errOut, 0, nil
 	case "latest-commit":
-		out, errOut, runErr := gitkit.LatestCommit(p.Dir)
-		if runErr != nil {
-			return out, errOut, 1, runErr
-		}
-		return out, errOut, 0, nil
+		// out, errOut, runErr := gitkit.LatestCommit(p.Dir)
+		// if runErr != nil {
+		// 	return out, errOut, 1, runErr
+		// }
+		// return out, errOut, 0, nil
 	case "show-file":
-		rev := strings.TrimSpace(p.Rev)
-		path := strings.TrimSpace(p.Path)
-		if rev == "" && len(p.Args) >= 1 {
-			rev = p.Args[0]
-		}
-		if path == "" && len(p.Args) >= 2 {
-			path = p.Args[1]
-		}
-		if rev == "" || path == "" {
-			return "", "", 2, errors.New("show-file requires rev and path (fields 'rev' and 'path' or args[0]=rev,args[1]=path)")
-		}
-		out, errOut, runErr := gitkit.ShowFileAtRev(p.Dir, rev, path)
-		if runErr != nil {
-			return out, errOut, 1, runErr
-		}
-		return out, errOut, 0, nil
+		// rev := strings.TrimSpace(p.Rev)
+		// path := strings.TrimSpace(p.Path)
+		// if rev == "" && len(p.Args) >= 1 {
+		// 	rev = p.Args[0]
+		// }
+		// if path == "" && len(p.Args) >= 2 {
+		// 	path = p.Args[1]
+		// }
+		// if rev == "" || path == "" {
+		// 	return "", "", 2, errors.New("show-file requires rev and path (fields 'rev' and 'path' or args[0]=rev,args[1]=path)")
+		// }
+		// out, errOut, runErr := gitkit.ShowFileAtRev(p.Dir, rev, path)
+		// if runErr != nil {
+		// 	return out, errOut, 1, runErr
+		// }
+		// return out, errOut, 0, nil
 	case "raw":
 		if len(p.Args) == 0 {
 			return "", "", 2, errors.New("raw requires args: full git argv including 'git'")
@@ -212,8 +212,9 @@ func run(p Payload) (stdout string, stderr string, exitCode int, err error) {
 		out, errOut, code, runErr := gitkit.RunGitExitCode(p.Dir, p.Args[1:]...)
 		return out, errOut, code, runErr
 	default:
-		return "", "", 2, fmt.Errorf("unsupported action %q", action)
+		// return "", "", 2, fmt.Errorf("unsupported action %q", action)
 	}
+	return "", "", 2, fmt.Errorf("unsupported action %q", action)
 }
 
 func validateCommand(cmd []string) error {

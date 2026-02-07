@@ -1,0 +1,337 @@
+#!/usr/bin/env ai
+#
+# Tool: git/*
+#
+# Run safe git actions using pure Go (go-git/v5).
+#
+kit: "git"
+tools:
+  - name: "status"
+    description: |
+      Show the working tree status for a Git repository.
+
+      Similar to `git status --porcelain`.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "Path to the Git repository."
+      required: []
+
+  - name: "diff_unstaged"
+    description: |
+      Show changes in the working directory that are not yet staged.
+
+      Returns a unified diff (working tree vs index). Similar to `git diff`.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "Path to the Git repository."
+        context_lines:
+          type: "integer"
+          default: 3
+          description: "Number of context lines to show in the diff output."
+      required: []
+
+  - name: "diff_staged"
+    description: |
+      Show changes that are staged for commit.
+
+      Returns a unified diff (index vs HEAD). Similar to `git diff --cached`.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "Path to the Git repository."
+        context_lines:
+          type: "integer"
+          default: 3
+          description: "Number of context lines to show in the diff output."
+      required: []
+
+  - name: "diff"
+    description: |
+      Show differences between the current state and a target branch/commit.
+
+      Returns a unified diff comparing the repository's current state with the provided target.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "Path to the Git repository."
+        target:
+          type: "string"
+          description: "Target branch or commit to compare with."
+        context_lines:
+          type: "integer"
+          default: 3
+          description: "Number of context lines to show in the diff output."
+      required: ["target"]
+
+  - name: "commit"
+    description: |
+      Record staged changes to the repository.
+
+      Similar to `git commit -m <message>`.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "Path to the Git repository."
+        message:
+          type: "string"
+          description: "Commit message."
+        args:
+          type: "array"
+          items:
+            type: "string"
+          description: |
+            Additional git commit arguments.
+
+            Example: ["-c", "user.name=foo"]
+      required: ["message"]
+
+  - name: "add"
+    description: |
+      Add file contents to the staging area.
+
+      Similar to `git add <files...>`.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "Path to the Git repository."
+        files:
+          type: "array"
+          items:
+            type: "string"
+          description: "Array of file paths (relative to repo root) to stage."
+      required: ["files"]
+
+  - name: "reset"
+    description: |
+      Unstage all staged changes.
+
+      Equivalent to a mixed reset. Similar to `git reset`.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "Path to the Git repository."
+      required: []
+
+  - name: "log"
+    description: |
+      Show commit logs, optionally filtered by date.
+
+      Returns an array of commit entries with hash, author, date, and message.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "Path to the Git repository."
+        max_count:
+          type: "integer"
+          description: "Maximum number of commits to return."
+        start_timestamp:
+          type: "string"
+          description: |
+            Start timestamp for filtering commits.
+
+            Accepts ISO 8601 (e.g. "2024-01-15T14:30:25"), relative dates (e.g. "2 weeks ago", "yesterday"),
+            or absolute dates (e.g. "2024-01-15", "Jan 15 2024").
+        end_timestamp:
+          type: "string"
+          description: |
+            End timestamp for filtering commits.
+
+            Accepts ISO 8601 (e.g. "2024-01-15T14:30:25"), relative dates (e.g. "2 weeks ago", "yesterday"),
+            or absolute dates (e.g. "2024-01-15", "Jan 15 2024").
+      required: []
+
+  - name: "create_branch"
+    description: |
+      Create a new branch.
+
+      If base_branch is not provided, the new branch is created from the current branch.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "Path to the Git repository."
+        branch_name:
+          type: "string"
+          description: "Name of the new branch to create."
+        base_branch:
+          type: "string"
+          description: "Base branch to create from (defaults to current branch)."
+      required: ["branch_name"]
+
+  - name: "checkout"
+    description: |
+      Switch branches.
+
+      Similar to `git checkout <branch_name>`.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "Path to the Git repository."
+        branch_name:
+          type: "string"
+          description: "Name of the branch to check out."
+      required: ["branch_name"]
+
+  - name: "show"
+    description: |
+      Show the contents of a commit/revision.
+
+      The revision may be a commit hash, branch name, or tag.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "Path to the Git repository."
+        rev:
+          type: "string"
+          description: "Revision to show (commit hash, branch name, or tag)."
+      required: ["rev"]
+
+  - name: "branches"
+    description: |
+      List Git branches.
+
+      Returns branches for the repository (local by default, or remote/all).
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "Path to the Git repository."
+        branch_type:
+          type: "string"
+          enum: ["local", "remote", "all"]
+          description: "Whether to list local branches, remote branches, or all branches."
+      required: []
+
+  - name: "tag"
+    description: |
+      Create a new Git tag at a specific revision.
+
+      Similar to `git tag <tag_name> <revision>`.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "Path to the Git repository."
+        tag_name:
+          type: "string"
+          description: "Name of the tag to create (e.g. v1.2.3)."
+        revision:
+          type: "string"
+          description: "Revision to tag (commit hash, branch name, etc.)."
+        annotated:
+          type: "boolean"
+          default: false
+          description: "If true, create an annotated tag."
+        message:
+          type: "string"
+          description: "Optional tag message (used for annotated tags)."
+      required: ["tag_name", "revision"]
+
+  - name: "push"
+    description: |
+      Push commits and/or tags to a remote repository.
+
+      Similar to `git push <remote> <branch>` (and optionally `--tags`).
+      Supports authentication for private repositories.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "Path to the Git repository."
+        remote:
+          type: "string"
+          default: "origin"
+          description: "Remote name to push to (default: origin)."
+        branch:
+          type: "string"
+          description: "Branch to push (defaults to current branch if omitted)."
+        set_upstream:
+          type: "boolean"
+          default: false
+          description: "If true, set upstream tracking for the pushed branch."
+        force:
+          type: "boolean"
+          default: false
+          description: "If true, force the push (use with caution)."
+        tags:
+          type: "boolean"
+          default: false
+          description: "If true, also push tags."
+        token:
+          type: "string"
+          description: "Personal access token (PAT) for HTTPS remotes (used as x-access-token)."
+        username:
+          type: "string"
+          description: "Username for HTTPS basic auth (fallback if no token)."
+        password:
+          type: "string"
+          description: "Password or app password for HTTPS basic auth (fallback if no token)."
+        ssh_key:
+          type: "string"
+          description: "Private SSH key for SSH remotes (prefers ssh-agent, then GIT_SSH_KEY env)."
+      required: []
+
+  - name: "pull"
+    description: |
+      Fetch from a remote and integrate into the current branch.
+
+      Similar to `git pull <remote> <branch>`.
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "Path to the Git repository."
+        remote:
+          type: "string"
+          default: "origin"
+          description: "Remote name to pull from (default: origin)."
+        branch:
+          type: "string"
+          description: "Branch to pull (defaults to the tracked upstream if omitted)."
+        rebase:
+          type: "boolean"
+          default: false
+          description: "If true, rebase instead of merge when integrating."
+      required: []

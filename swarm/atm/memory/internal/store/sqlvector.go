@@ -56,7 +56,7 @@ func dot(a, b []float64) float64 {
 	}
 	sum := 0.0
 	for i := 0; i < minl; i++ {
-		sum += a[i]*b[i]
+		sum += a[i] * b[i]
 	}
 	return sum
 }

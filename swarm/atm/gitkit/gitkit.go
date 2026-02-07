@@ -2,488 +2,419 @@ package gitkit
 
 import (
 	"bytes"
-	"errors"
+	"encoding/json"
 	"fmt"
-	"io"
-	"os"
 	"strings"
-	"time"
-
-	git "github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/config"
-	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/object"
 
 	"github.com/qiangli/ai/swarm/api"
 )
 
-// ExecGit executes a supported git operation implemented in pure Go (go-git).
-// It preserves the old signature: (stdout, stderr string, err error).
-// Note: not all arbitrary git subcommands are supported. For unsupported
-// commands ExecGit/RunGitExitCode will return a descriptive error.
-func ExecGit(dir string, args ...string) (stdout string, stderr string, err error) {
-	out, errOut, _, runErr := RunGitExitCode(dir, args...)
-	if runErr != nil {
-		return out, errOut, fmt.Errorf("git %v failed: %w", args, runErr)
-	}
-	return out, errOut, nil
+type Args struct {
+	ID             string   `json:"id"`
+	User           string   `json:"user"`
+	Payload        string   `json:"payload"`
+	Action         string   `json:"action"`
+	Tool           string   `json:"tool"`
+	Args           string   `json:"args"`
+	Message        string   `json:"message"`
+	Rev            string   `json:"rev"`
+	Dir            string   `json:"dir"`
+	Path           string   `json:"path"`
+	ContextLines   int      `json:"context_lines"`
+	Target         string   `json:"target"`
+	MaxCount       int      `json:"max_count"`
+	StartTimestamp string   `json:"start_timestamp"`
+	EndTimestamp   string   `json:"end_timestamp"`
+	BranchName     string   `json:"branch_name"`
+	BaseBranch     string   `json:"base_branch"`
+	BranchType     string   `json:"branch_type"`
+	Contains       string   `json:"contains"`
+	NotContains    string   `json:"not_contains"`
+	Files          []string `json:"files"`
+
+	// new fields for tag/push/pull
+	TagName     string `json:"tag_name"`
+	Annotated   bool   `json:"annotated"`
+	Remote      string `json:"remote"`
+	Force       bool   `json:"force"`
+	SetUpstream bool   `json:"set_upstream"`
+	Rebase      bool   `json:"rebase"`
+
+	// auth fields
+	Token    string `json:"token,omitempty"`
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
+	SSHKey   string `json:"ssh_key,omitempty"`
 }
 
-// RunGitExitCode provides a minimal emulation of some git subcommands using
-// go-git. It returns stdout, stderr, exitCode, err. For unsupported commands
-// it returns exitCode 127 and an error.
-func RunGitExitCode(dir string, args ...string) (stdout string, stderr string, exitCode int, err error) {
-	if len(args) == 0 {
-		return "", "", 2, fmt.Errorf("no git command provided")
-	}
+type payloadObj struct {
+	Action         string   `json:"action,omitempty"`
+	Tool           string   `json:"tool,omitempty"`
+	Dir            string   `json:"dir,omitempty"`
+	Args           []string `json:"args,omitempty"`
+	Message        string   `json:"message,omitempty"`
+	Rev            string   `json:"rev,omitempty"`
+	Path           string   `json:"path,omitempty"`
+	ContextLines   int      `json:"context_lines,omitempty"`
+	Target         string   `json:"target,omitempty"`
+	MaxCount       int      `json:"max_count,omitempty"`
+	StartTimestamp string   `json:"start_timestamp,omitempty"`
+	EndTimestamp   string   `json:"end_timestamp,omitempty"`
+	BranchName     string   `json:"branch_name,omitempty"`
+	BaseBranch     string   `json:"base_branch,omitempty"`
+	BranchType     string   `json:"branch_type,omitempty"`
+	Contains       string   `json:"contains,omitempty"`
+	NotContains    string   `json:"not_contains,omitempty"`
+	Files          []string `json:"files,omitempty"`
 
-	cmd := args[0]
-	switch cmd {
-	case "--version":
-		return "git version go-git (pure Go)\n", "", 0, nil
-	case "init":
-		// git init [path]
-		path := dir
-		if len(args) >= 2 && dir == "" {
-			path = args[1]
-		}
-		if path == "" {
-			path = "."
-		}
-		_, err := git.PlainInit(path, false)
-		if err != nil {
-			return "", err.Error(), 1, err
-		}
-		return "", "", 0, nil
-	case "remote":
-		if len(args) >= 2 && args[1] == "add" {
-			// git remote add <name> <url>
-			if len(args) < 4 {
-				return "", "", 2, fmt.Errorf("remote add requires name and url")
-			}
-			name := args[2]
-			url := args[3]
-			repo, openErr := git.PlainOpen(dir)
-			if openErr != nil {
-				return "", openErr.Error(), 1, openErr
-			}
-			_, rerr := repo.CreateRemote(&config.RemoteConfig{Name: name, URLs: []string{url}})
-			if rerr != nil {
-				return "", rerr.Error(), 1, rerr
-			}
-			return "", "", 0, nil
-		}
-		return "", "", 127, fmt.Errorf("unsupported remote subcommand: %v", args[1:])
-	// case "add":
-	// 	if len(args) < 2 {
-	// 		return "", "", 2, fmt.Errorf("git add requires a path")
-	// 	}
-	// 	repo, openErr := git.PlainOpen(dir)
-	// 	if openErr != nil {
-	// 		return "", openErr.Error(), 1, openErr
-	// 	}
-	// 	wt, wtErr := repo.Worktree()
-	// 	if wtErr != nil {
-	// 		return "", wtErr.Error(), 1, wtErr
-	// 	}
-	// 	for _, p := range args[1:] {
-	// 		if _, aerr := wt.Add(p); aerr != nil {
-	// 			return "", aerr.Error(), 1, aerr
-	// 		}
-	// 	}
-	// 	return "", "", 0, nil
-	// case "commit":
-	// 	// Supports optional leading -c user.name=.. -c user.email=.. in args
-	// 	// and commit -m "msg"
-	// 	name := ""
-	// 	email := ""
-	// 	filtered := []string{}
-	// 	for i := 0; i < len(args); i++ {
-	// 		if args[i] == "-c" && i+1 < len(args) {
-	// 			kv := args[i+1]
-	// 			if strings.HasPrefix(kv, "user.name=") {
-	// 				name = strings.TrimPrefix(kv, "user.name=")
-	// 			} else if strings.HasPrefix(kv, "user.email=") {
-	// 				email = strings.TrimPrefix(kv, "user.email=")
-	// 			}
-	// 			i++
-	// 			continue
-	// 		}
-	// 		filtered = append(filtered, args[i])
-	// 	}
-	// 	msg := ""
-	// 	for i := 0; i < len(filtered); i++ {
-	// 		if filtered[i] == "-m" && i+1 < len(filtered) {
-	// 			msg = filtered[i+1]
-	// 			break
-	// 		}
-	// 	}
-	// 	if strings.TrimSpace(msg) == "" {
-	// 		return "", "", 2, fmt.Errorf("commit message must not be empty")
-	// 	}
-	// 	repo, openErr := git.PlainOpen(dir)
-	// 	if openErr != nil {
-	// 		return "", openErr.Error(), 1, openErr
-	// 	}
-	// 	wt, wtErr := repo.Worktree()
-	// 	if wtErr != nil {
-	// 		return "", wtErr.Error(), 1, wtErr
-	// 	}
-	// 	// Ensure index/staging from worktree is up-to-date; go-git requires Add prior to Commit
-	// 	// Assume caller ran 'add'. Proceed to commit.
-	// 	if name == "" || email == "" {
-	// 		// fall back to environment or generic
-	// 		if name == "" {
-	// 			if v := os.Getenv("GIT_AUTHOR_NAME"); v != "" {
-	// 				name = v
-	// 			}
-	// 		}
-	// 		if email == "" {
-	// 			if v := os.Getenv("GIT_AUTHOR_EMAIL"); v != "" {
-	// 				email = v
-	// 			}
-	// 		}
-	// 		if name == "" {
-	// 			name = "gitkit"
-	// 		}
-	// 		if email == "" {
-	// 			email = "gitkit@example.invalid"
-	// 		}
-	// 	}
-	// 	commitHash, cerr := wt.Commit(msg, &git.CommitOptions{
-	// 		Author: &object.Signature{Name: name, Email: email, When: time.Now()},
-	// 	})
-	// 	if cerr != nil {
-	// 		return "", cerr.Error(), 1, cerr
-	// 	}
-	// 	// Return the commit hash on stdout for convenience.
-	// 	return commitHash.String(), "", 0, nil
-	case "-c":
-		// if caller passed config flags then next arg may be actual command;
-		// briefly handle when they call like: -c ... commit ...
-		// Recurse after stripping leading -c pairs.
-		filtered := []string{}
-		for i := 0; i < len(args); i++ {
-			if args[i] == "-c" && i+1 < len(args) {
-				i++
-				continue
-			}
-			filtered = append(filtered, args[i])
-		}
-		return RunGitExitCode(dir, filtered...)
+	// new fields for tag/push/pull
+	TagName     string `json:"tag_name,omitempty"`
+	Annotated   bool   `json:"annotated,omitempty"`
+	Remote      string `json:"remote,omitempty"`
+	Force       bool   `json:"force,omitempty"`
+	SetUpstream bool   `json:"set_upstream,omitempty"`
+	Rebase      bool   `json:"rebase,omitempty"`
+
+	// auth
+	Token    string `json:"token,omitempty"`
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
+	SSHKey   string `json:"ssh_key,omitempty"`
+}
+
+// Run is kept for backward compatibility and delegates to specific tool handlers.
+func Run(args *Args) (any, error) {
+	// Keep Run for backward compatibility: delegate to specific tool functions based on Args.Tool.
+	tool := strings.ToLower(strings.TrimSpace(args.Tool))
+	switch tool {
+	case "git_status":
+		return RunGitStatus(args)
+	case "git_diff_unstaged":
+		return RunGitDiffUnstaged(args)
+	case "git_diff_staged":
+		return RunGitDiffStaged(args)
+	case "git_diff":
+		return RunGitDiff(args)
+	case "git_commit":
+		return RunGitCommit(args)
+	case "git_add":
+		return RunGitAdd(args)
+	case "git_reset":
+		return RunGitReset(args)
+	case "git_log":
+		return RunGitLog(args)
+	case "git_create_branch":
+		return RunGitCreateBranch(args)
+	case "git_checkout":
+		return RunGitCheckout(args)
+	case "git_show":
+		return RunGitShow(args)
+	case "git_branches":
+		return RunGitBranches(args)
+	case "git_push":
+		return RunGitPush(args)
+	case "git_pull":
+		return RunGitPull(args)
+	case "git_tag":
+		return RunGitTag(args)
 	default:
-		return "", "", 127, fmt.Errorf("unsupported git subcommand: %s", cmd)
+		return nil, fmt.Errorf("unsupported tool %q", args.Tool)
 	}
 }
 
-// Clone clones repoURL into destDir using go-git.
-func Clone(repoURL, destDir string) error {
-	_, err := git.PlainClone(destDir, false, &git.CloneOptions{URL: repoURL})
-	if err != nil {
-		return fmt.Errorf("git clone failed: %w", err)
-	}
-	return nil
-}
-
-// Status returns a simplified status: list of changed files. It delegates to ExecGit
-// for compatibility but provides a basic implementation.
-func Status(dir string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	wt, err := repo.Worktree()
-	if err != nil {
-		return "", err.Error(), err
-	}
-	st, err := wt.Status()
-	if err != nil {
-		return "", err.Error(), err
-	}
-	// Status.String returns a porcelain-like listing; reuse it.
-	return st.String(), "", nil
-}
-
-func Add(dir string, args []string) (string, string, error) {
-	repo, openErr := git.PlainOpen(dir)
-	if openErr != nil {
-		return "", openErr.Error(), openErr
-	}
-	wt, wtErr := repo.Worktree()
-	if wtErr != nil {
-		return "", wtErr.Error(), wtErr
-	}
-	for _, p := range args {
-		if _, aerr := wt.Add(p); aerr != nil {
-			return "", aerr.Error(), aerr
-		}
-	}
-	return "", "", nil
-}
-
-// Commit performs a commit in dir with the provided message.
-func Commit(dir string, message string, args []string) (string, string, int, error) {
-	// out, errOut, code, err := RunGitExitCode(dir, "commit", "-m", message)
-	// if err != nil {
-	// 	return out, errOut, err
-	// }
-	// if code != 0 {
-	// 	return out, errOut, fmt.Errorf("commit failed: exit %d", code)
-	// }
-	// return out, errOut, nil
-
-	// Supports optional leading -c user.name=.. -c user.email=.. in args
-	// and commit -m "msg"
-	name := ""
-	email := ""
-	filtered := []string{}
-	for i := 0; i < len(args); i++ {
-		if args[i] == "-c" && i+1 < len(args) {
-			kv := args[i+1]
-			if strings.HasPrefix(kv, "user.name=") {
-				name = strings.TrimPrefix(kv, "user.name=")
-			} else if strings.HasPrefix(kv, "user.email=") {
-				email = strings.TrimPrefix(kv, "user.email=")
-			}
-			i++
-			continue
-		}
-		filtered = append(filtered, args[i])
-	}
-
-	var msg = message
-	for i := 0; i < len(filtered); i++ {
-		if filtered[i] == "-m" && i+1 < len(filtered) {
-			msg = api.Cat(message, filtered[i+1], "\n")
-			break
-		}
-	}
-	if strings.TrimSpace(msg) == "" {
-		return "", "", 2, fmt.Errorf("commit message must not be empty")
-	}
-	repo, openErr := git.PlainOpen(dir)
-	if openErr != nil {
-		return "", openErr.Error(), 1, openErr
-	}
-	wt, wtErr := repo.Worktree()
-	if wtErr != nil {
-		return "", wtErr.Error(), 1, wtErr
-	}
-	// Ensure index/staging from worktree is up-to-date; go-git requires Add prior to Commit
-	// Assume caller ran 'add'. Proceed to commit.
-	if name == "" || email == "" {
-		// fall back to environment or generic
-		if name == "" {
-			if v := os.Getenv("GIT_AUTHOR_NAME"); v != "" {
-				name = v
-			}
-		}
-		if email == "" {
-			if v := os.Getenv("GIT_AUTHOR_EMAIL"); v != "" {
-				email = v
-			}
-		}
-		if name == "" {
-			name = "auto"
-		}
-		if email == "" {
-			email = "gitkit@dhnt.io"
-		}
-	}
-	commitHash, cerr := wt.Commit(msg, &git.CommitOptions{
-		Author: &object.Signature{Name: name, Email: email, When: time.Now()},
-	})
-	if cerr != nil {
-		return "", cerr.Error(), 1, cerr
-	}
-	// Return the commit hash on stdout for convenience.
-	return commitHash.String(), "", 0, nil
-}
-
-// Pull performs a git pull in dir. go-git has limited support for pull; we provide
-// a best-effort implementation.
-func Pull(dir string, _ []string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	wt, err := repo.Worktree()
-	if err != nil {
-		return "", err.Error(), err
-	}
-	// Default to origin and current branch
-	head, herr := repo.Head()
-	if herr != nil {
-		return "", herr.Error(), herr
-	}
-	remoteName := "origin"
-	ref := head.Name()
-	err = wt.Pull(&git.PullOptions{RemoteName: remoteName, ReferenceName: ref})
-	if err != nil && err != git.NoErrAlreadyUpToDate {
-		return "", err.Error(), err
-	}
-	return "", "", nil
-}
-
-// Push performs a git push in dir. We implement a basic push to origin.
-func Push(dir string, _ []string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	err = repo.Push(&git.PushOptions{})
-	if err != nil && err != git.NoErrAlreadyUpToDate {
-		return "", err.Error(), err
-	}
-	return "", "", nil
-}
-
-// CurrentBranch returns the current branch short name.
-func CurrentBranch(dir string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	head, err := repo.Head()
-	if err != nil {
-		return "", err.Error(), err
-	}
-	return head.Name().Short(), "", nil
-}
-
-// RemoteURL returns the URL for the default remote "origin".
-func RemoteURL(dir string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	remotes, rerr := repo.Remotes()
-	if rerr != nil {
-		return "", rerr.Error(), rerr
-	}
-	for _, rem := range remotes {
-		if rem.Config().Name == "origin" {
-			urls := rem.Config().URLs
-			if len(urls) > 0 {
-				return strings.TrimSpace(urls[0]), "", nil
-			}
-		}
-	}
-	return "", "", fmt.Errorf("origin not found")
-}
-
-// RevParse resolves a revision to a commit SHA.
-func RevParse(dir, rev string) (string, string, error) {
-	if strings.TrimSpace(rev) == "" {
-		return "", "", errors.New("rev must not be empty")
-	}
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	// Use ResolveRevision which accepts many ref syntaxes.
-	r, rerr := repo.ResolveRevision(plumbing.Revision(rev))
-	if rerr != nil {
-		return "", rerr.Error(), rerr
-	}
-	return r.String(), "", nil
-}
-
-// ListBranches lists local branch names, one per line.
-func ListBranches(dir string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	iter, err := repo.Branches()
-	if err != nil {
-		return "", err.Error(), err
-	}
+// encodeOutput marshals Output to JSON string with HTML escaping disabled.
+func encodeOutput(out Output) (string, error) {
 	var buf bytes.Buffer
-	err = iter.ForEach(func(ref *plumbing.Reference) error {
-		buf.WriteString(ref.Name().Short() + "\n")
-		return nil
-	})
-	if err != nil {
-		return "", err.Error(), err
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(out); err != nil {
+		return "", err
 	}
-	return buf.String(), "", nil
+	return buf.String(), nil
 }
 
-// ListRemotes lists remotes in a format similar to `git remote -v`.
-func ListRemotes(dir string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
+// The following functions expose distinct tool handlers for each git operation.
+// Each accepts *Args (as used by tests/wrappers) and returns the same (any,error) as Run.
+
+func RunGitStatus(args *Args) (any, error) {
+	outStr, errStr, err := Status(args.Dir)
+	if outStr == "" {
+		outStr = "clean"
+	}
+	out := Output{Stdout: outStr, Stderr: errStr, ExitCode: 0, OK: err == nil}
 	if err != nil {
-		return "", err.Error(), err
+		out.ExitCode = 1
+		out.Error = err.Error()
 	}
-	remotes, rerr := repo.Remotes()
-	if rerr != nil {
-		return "", rerr.Error(), rerr
+	return encodeOutput(out)
+}
+
+func RunGitDiffUnstaged(args *Args) (any, error) {
+	ctx := 3
+	if args.ContextLines != 0 {
+		ctx = args.ContextLines
 	}
-	var buf bytes.Buffer
-	for _, r := range remotes {
-		for _, u := range r.Config().URLs {
-			buf.WriteString(fmt.Sprintf("%s\t%s (fetch)\n", r.Config().Name, u))
-			buf.WriteString(fmt.Sprintf("%s\t%s (push)\n", r.Config().Name, u))
+	o, errStr, err := DiffUnstaged(args.Dir, ctx)
+	out := Output{Stdout: o, Stderr: errStr, ExitCode: 0, OK: err == nil}
+	if err != nil {
+		out.ExitCode = 1
+		out.Error = err.Error()
+	}
+	return encodeOutput(out)
+}
+
+func RunGitDiffStaged(args *Args) (any, error) {
+	ctx := 3
+	if args.ContextLines != 0 {
+		ctx = args.ContextLines
+	}
+	o, errStr, err := DiffStaged(args.Dir, ctx)
+	out := Output{Stdout: o, Stderr: errStr, ExitCode: 0, OK: err == nil}
+	if err != nil {
+		out.ExitCode = 1
+		out.Error = err.Error()
+	}
+	return encodeOutput(out)
+}
+
+func RunGitDiff(args *Args) (any, error) {
+	target := strings.TrimSpace(args.Target)
+	if target == "" {
+		target = args.Rev
+	}
+	if target == "" {
+		out := Output{ExitCode: 2, OK: false, Error: "diff requires target"}
+		return encodeOutput(out)
+	}
+	ctx := 3
+	if args.ContextLines != 0 {
+		ctx = args.ContextLines
+	}
+	o, errStr, err := DiffTarget(args.Dir, target, ctx)
+	out := Output{Stdout: o, Stderr: errStr, ExitCode: 0, OK: err == nil}
+	if err != nil {
+		out.ExitCode = 1
+		out.Error = err.Error()
+	}
+	return encodeOutput(out)
+}
+
+func RunGitCommit(args *Args) (any, error) {
+	msg := strings.TrimSpace(args.Message)
+	// build args.Args into slice if provided
+	var extra []string
+	if args.Args != "" && args.Args != "<no value>" {
+		extra = api.ToStringArray(args.Args)
+	}
+	if msg == "" && len(extra) > 0 {
+		msg = strings.Join(extra, " ")
+	}
+	if msg == "" {
+		out := Output{ExitCode: 2, OK: false, Error: "commit requires message"}
+		return encodeOutput(out)
+	}
+	stdout, stderr, code, err := Commit(args.Dir, msg, extra)
+	out := Output{Stdout: stdout, Stderr: stderr, ExitCode: code, OK: err == nil}
+	if err != nil {
+		out.Error = err.Error()
+	}
+	return encodeOutput(out)
+}
+
+func RunGitAdd(args *Args) (any, error) {
+	files := args.Files
+	if len(files) == 0 {
+		out := Output{ExitCode: 2, OK: false, Error: "add requires files"}
+		return encodeOutput(out)
+	}
+	outStr, errStr, err := Add(args.Dir, files)
+	out := Output{Stdout: outStr, Stderr: errStr, ExitCode: 0, OK: err == nil}
+	if err != nil {
+		out.ExitCode = 1
+		out.Error = err.Error()
+	}
+	return encodeOutput(out)
+}
+
+func RunGitReset(args *Args) (any, error) {
+	o, errStr, err := Reset(args.Dir)
+	out := Output{Stdout: o, Stderr: errStr, ExitCode: 0, OK: err == nil}
+	if err != nil {
+		out.ExitCode = 1
+		out.Error = err.Error()
+	}
+	return encodeOutput(out)
+}
+
+func RunGitLog(args *Args) (any, error) {
+	max := args.MaxCount
+	startT := ParseTime(args.StartTimestamp)
+	endT := ParseTime(args.EndTimestamp)
+	logs, errStr, err := Log(args.Dir, max, startT, endT)
+	out := Output{Stdout: "", Stderr: errStr, ExitCode: 0, OK: err == nil}
+	if err != nil {
+		out.ExitCode = 1
+		out.Error = err.Error()
+		out.Stdout = "[]"
+	} else {
+		bs, _ := json.Marshal(logs)
+		out.Stdout = string(bs)
+	}
+	return encodeOutput(out)
+}
+
+func RunGitCreateBranch(args *Args) (any, error) {
+	name := strings.TrimSpace(args.BranchName)
+	if name == "" {
+		out := Output{ExitCode: 2, OK: false, Error: "create-branch requires branch_name"}
+		return encodeOutput(out)
+	}
+	o, errStr, err := CreateBranch(args.Dir, name, args.BaseBranch)
+	out := Output{Stdout: o, Stderr: errStr, ExitCode: 0, OK: err == nil}
+	if err != nil {
+		out.ExitCode = 1
+		out.Error = err.Error()
+	}
+	return encodeOutput(out)
+}
+
+func RunGitCheckout(args *Args) (any, error) {
+	name := strings.TrimSpace(args.BranchName)
+	if name == "" {
+		out := Output{ExitCode: 2, OK: false, Error: "checkout requires branch_name"}
+		return encodeOutput(out)
+	}
+	o, errStr, err := Checkout(args.Dir, name)
+	out := Output{Stdout: o, Stderr: errStr, ExitCode: 0, OK: err == nil}
+	if err != nil {
+		out.ExitCode = 1
+		out.Error = err.Error()
+	}
+	return encodeOutput(out)
+}
+
+func RunGitShow(args *Args) (any, error) {
+	rev := strings.TrimSpace(args.Rev)
+	if rev == "" && args.Args != "" {
+		arr := api.ToStringArray(args.Args)
+		if len(arr) > 0 {
+			rev = arr[0]
 		}
 	}
-	return buf.String(), "", nil
+	if rev == "" {
+		out := Output{ExitCode: 2, OK: false, Error: "show requires rev"}
+		return encodeOutput(out)
+	}
+	o, errStr, err := Show(args.Dir, rev)
+	out := Output{Stdout: o, Stderr: errStr, ExitCode: 0, OK: err == nil}
+	if err != nil {
+		out.ExitCode = 1
+		out.Error = err.Error()
+	}
+	return encodeOutput(out)
 }
 
-// LatestCommit returns the latest commit as a single line: "<hash> <subject>".
-func LatestCommit(dir string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
+func RunGitBranches(args *Args) (any, error) {
+	typ := strings.ToLower(strings.TrimSpace(args.BranchType))
+	branches, errStr, err := Branches(args.Dir, typ)
+	out := Output{Stdout: "", Stderr: errStr, ExitCode: 0, OK: err == nil}
 	if err != nil {
-		return "", err.Error(), err
+		out.ExitCode = 1
+		out.Error = err.Error()
+	} else {
+		bs, _ := json.Marshal(branches)
+		out.Stdout = string(bs)
 	}
-	head, err := repo.Head()
-	if err != nil {
-		return "", err.Error(), err
-	}
-	commit, cerr := repo.CommitObject(head.Hash())
-	if cerr != nil {
-		return "", cerr.Error(), cerr
-	}
-	subject := strings.SplitN(commit.Message, "\n", 2)[0]
-	return fmt.Sprintf("%s %s", commit.Hash.String(), strings.TrimSpace(subject)), "", nil
+	return encodeOutput(out)
 }
 
-// ShowFileAtRev returns the file content at the given revision.
-func ShowFileAtRev(dir, rev, path string) (string, string, error) {
-	if strings.TrimSpace(rev) == "" {
-		return "", "", errors.New("rev must not be empty")
+func RunGitPush(args *Args) (any, error) {
+	// build argument slice for lower-level Push implementation
+	remote := args.Remote
+	if remote == "" {
+		remote = "origin"
 	}
-	if strings.TrimSpace(path) == "" {
-		return "", "", errors.New("path must not be empty")
+	branch := args.BranchName
+	var a []string
+	if remote != "" {
+		a = append(a, remote)
 	}
-	repo, err := git.PlainOpen(dir)
+	if branch != "" {
+		a = append(a, branch)
+	}
+	if args.SetUpstream {
+		a = append(a, "--set-upstream")
+	}
+	if args.Force {
+		a = append(a, "--force")
+	}
+	if args.Annotated { // reuse Annotated as 'tags' flag if set in Args
+		a = append(a, "--tags")
+	}
+	outStr, errStr, err := Push(args.Dir, a, args.Token, args.Username, args.Password, args.SSHKey)
+	out := Output{Stdout: outStr, Stderr: errStr, ExitCode: 0, OK: err == nil}
 	if err != nil {
-		return "", err.Error(), err
+		out.ExitCode = 1
+		out.Error = err.Error()
 	}
-	r, rerr := repo.ResolveRevision(plumbing.Revision(rev))
-	if rerr != nil {
-		return "", rerr.Error(), rerr
+	return encodeOutput(out)
+}
+
+func RunGitPull(args *Args) (any, error) {
+	remote := args.Remote
+	if remote == "" {
+		remote = "origin"
 	}
-	commit, cerr := repo.CommitObject(*r)
-	if cerr != nil {
-		return "", cerr.Error(), cerr
+	branch := args.BranchName
+	var a []string
+	if remote != "" {
+		a = append(a, remote)
 	}
-	tree, terr := commit.Tree()
-	if terr != nil {
-		return "", terr.Error(), terr
+	if branch != "" {
+		a = append(a, branch)
 	}
-	file, ferr := tree.File(path)
-	if ferr != nil {
-		return "", ferr.Error(), ferr
+	if args.Rebase {
+		a = append(a, "--rebase")
 	}
-	reader, rerr2 := file.Blob.Reader()
-	if rerr2 != nil {
-		return "", rerr2.Error(), rerr2
+	outStr, errStr, err := Pull(args.Dir, a)
+	out := Output{Stdout: outStr, Stderr: errStr, ExitCode: 0, OK: err == nil}
+	if err != nil {
+		out.ExitCode = 1
+		out.Error = err.Error()
 	}
-	defer reader.Close()
-	b, rerr3 := io.ReadAll(reader)
-	if rerr3 != nil {
-		return "", rerr3.Error(), rerr3
+	return encodeOutput(out)
+}
+
+func RunGitTag(args *Args) (any, error) {
+	name := strings.TrimSpace(args.TagName)
+	if name == "" {
+		out := Output{ExitCode: 2, OK: false, Error: "tag requires tag_name"}
+		return encodeOutput(out)
 	}
-	return string(b), "", nil
+	rev := strings.TrimSpace(args.Rev)
+	if rev == "" {
+		rev = strings.TrimSpace(args.Target)
+	}
+	if rev == "" {
+		out := Output{ExitCode: 2, OK: false, Error: "tag requires revision"}
+		return encodeOutput(out)
+	}
+	outStr, errStr, err := Tag(args.Dir, name, rev, args.Annotated, args.Message)
+	out := Output{Stdout: outStr, Stderr: errStr, ExitCode: 0, OK: err == nil}
+	if err != nil {
+		out.ExitCode = 1
+		out.Error = err.Error()
+	}
+	return encodeOutput(out)
+}
+
+// Output represents the standardized tool output
+type Output struct {
+	ID       string `json:"id,omitempty"`
+	User     string `json:"user,omitempty"`
+	Stdout   string `json:"stdout"`
+	Stderr   string `json:"stderr"`
+	ExitCode int    `json:"exit_code"`
+	OK       bool   `json:"ok"`
+	Error    string `json:"error,omitempty"`
 }

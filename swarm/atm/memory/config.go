@@ -3,24 +3,24 @@ package memory
 import "time"
 
 type MemoryConfig struct {
-	Enabled   bool   `json:"enabled"`
-	Provider  string `json:"provider"` // "openai", "gemini", "local"
-	Model     string `json:"model"`
-	Fallback  string `json:"fallback"`
-	StorePath string `json:"store_path"`
+	Enabled    bool     `json:"enabled"`
+	Provider   string   `json:"provider"` // "openai", "gemini", "local"
+	Model      string   `json:"model"`
+	Fallback   string   `json:"fallback"`
+	StorePath  string   `json:"store_path"`
 	ExtraPaths []string `json:"extra_paths"`
-	Query struct {
+	Query      struct {
 		MaxResults int `json:"max_results"`
-		Hybrid struct {
-			Enabled            bool    `json:"enabled"`
-			VectorWeight       float64 `json:"vector_weight"`
-			TextWeight         float64 `json:"text_weight"`
-			CandidateMultiplier int    `json:"candidate_multiplier"`
+		Hybrid     struct {
+			Enabled             bool    `json:"enabled"`
+			VectorWeight        float64 `json:"vector_weight"`
+			TextWeight          float64 `json:"text_weight"`
+			CandidateMultiplier int     `json:"candidate_multiplier"`
 		} `json:"hybrid"`
 	} `json:"query"`
 	Sync struct {
-		Watch   []string `json:"watch"`
-		Debounce string  `json:"debounce"`
+		Watch    []string `json:"watch"`
+		Debounce string   `json:"debounce"`
 	} `json:"sync"`
 	Cache struct {
 		Enabled bool   `json:"enabled"`

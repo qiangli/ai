@@ -1,10 +1,16 @@
 package gitkit
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
 func hasGit(t *testing.T) bool {
@@ -20,176 +26,162 @@ func hasGit(t *testing.T) bool {
 func initLocalRepo(t *testing.T, root string) {
 	t.Helper()
 
-	if _, _, _, err := RunGitExitCode("", "init", root); err != nil {
+	// Use go-git to initialize the repository
+	repo, err := git.PlainInit(root, false)
+	if err != nil {
 		t.Fatalf("git init failed: %v", err)
 	}
 
-	// Create an origin remote to test ListRemotes deterministically.
-	if _, _, _, err := RunGitExitCode(root, "remote", "add", "origin", "https://example.invalid/repo.git"); err != nil {
+	// Create an origin remote
+	_, err = repo.CreateRemote(&config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{"https://example.invalid/repo.git"},
+	})
+	if err != nil {
 		t.Fatalf("git remote add failed: %v", err)
 	}
 
+	// Create a test file
 	if err := os.WriteFile(filepath.Join(root, "README.md"), []byte("hello\n"), 0o644); err != nil {
 		t.Fatalf("write file: %v", err)
 	}
-	// if _, _, _, err := RunGitExitCode(root, "add", "README.md"); err != nil {
-	// 	t.Fatalf("git add failed: %v", err)
-	// }
+
+	// Stage the file
 	if _, _, err := Add(root, []string{"README.md"}); err != nil {
 		t.Fatalf("git add failed: %v", err)
 	}
 
-	// Ensure commit can succeed in CI environments without global config.
-	// if _, _, _, err := RunGitExitCode(root, "-c", "user.name=gitkit-test", "-c", "user.email=gitkit-test@example.com", "commit", "-m", "init"); err != nil {
-	// 	t.Fatalf("git commit failed: %v", err)
-	// }
-	if _, _, _, err := Commit(root, "msg", []string{"-c", "user.name=gitkit-test", "-c", "user.email=gitkit-test@example.com", "-m", "init"}); err != nil {
+	// Commit with explicit author info
+	wt, err := repo.Worktree()
+	if err != nil {
+		t.Fatalf("get worktree failed: %v", err)
+	}
+
+	_, err = wt.Commit("init", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "gitkit-test",
+			Email: "gitkit-test@example.com",
+			When:  time.Now(),
+		},
+	})
+	if err != nil {
 		t.Fatalf("git commit failed: %v", err)
 	}
 }
 
-func TestExecGit_Version(t *testing.T) {
+func TestRunToolGitStatus(t *testing.T) {
 	if !hasGit(t) {
 		return
 	}
-	stdout, stderr, err := ExecGit("", "--version")
-	if err != nil {
-		t.Fatalf("expected no error, got %v (stderr=%q)", err, stderr)
-	}
-	if !strings.Contains(stdout, "git version") {
-		t.Fatalf("expected 'git version' in stdout, got %q (stderr=%q)", stdout, stderr)
-	}
-}
-
-func TestRunGitExitCode_NonZero(t *testing.T) {
-	if !hasGit(t) {
-		return
-	}
-
-	// Intentionally fail: unknown subcommand.
-	_, _, code, err := RunGitExitCode("", "definitely-not-a-subcommand")
-	if err == nil {
-		t.Fatalf("expected error")
-	}
-	if code == 0 {
-		t.Fatalf("expected non-zero exit code")
-	}
-}
-
-func TestClone_LocalRepo_NoNetwork(t *testing.T) {
-	if !hasGit(t) {
-		return
-	}
-
-	tmp := t.TempDir()
-	repoDir := filepath.Join(tmp, "repo")
-	cloneDir := filepath.Join(tmp, "clone")
-
-	initLocalRepo(t, repoDir)
-
-	if err := Clone(repoDir, cloneDir); err != nil {
-		t.Fatalf("Clone failed: %v", err)
-	}
-
-	b, err := os.ReadFile(filepath.Join(cloneDir, "README.md"))
-	if err != nil {
-		t.Fatalf("read cloned file: %v", err)
-	}
-	if string(b) != "hello\n" {
-		t.Fatalf("unexpected README.md content: %q", string(b))
-	}
-}
-
-func TestCurrentBranch(t *testing.T) {
-	if !hasGit(t) {
-		return
-	}
-
 	root := filepath.Join(t.TempDir(), "repo")
 	initLocalRepo(t, root)
 
-	branch, stderr, err := CurrentBranch(root)
+	args := &Args{Dir: root}
+	resAny, err := RunGitStatus(args)
 	if err != nil {
-		t.Fatalf("CurrentBranch failed: %v (stderr=%q)", err, stderr)
+		t.Fatalf("RunGitStatus failed: %v", err)
 	}
-	// Default branch might be master or main depending on config; just ensure non-empty.
-	if strings.TrimSpace(branch) == "" {
-		t.Fatalf("expected non-empty branch")
+	res, ok := resAny.(string)
+	if !ok {
+		t.Fatalf("result not string")
+	}
+	var out Output
+	if err := json.Unmarshal([]byte(res), &out); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
+	}
+	if !out.OK || out.ExitCode != 0 {
+		t.Fatalf("bad result: exit=%d error=%q stdout=%q", out.ExitCode, out.Error, out.Stdout)
+	}
+	if strings.TrimSpace(out.Stdout) == "" {
+		t.Fatal("empty stdout")
 	}
 }
 
-func TestListBranches(t *testing.T) {
+func TestRunToolGitLog(t *testing.T) {
 	if !hasGit(t) {
 		return
 	}
-
 	root := filepath.Join(t.TempDir(), "repo")
 	initLocalRepo(t, root)
 
-	out, stderr, err := ListBranches(root)
+	args := &Args{Dir: root}
+	resAny, err := RunGitLog(args)
 	if err != nil {
-		t.Fatalf("ListBranches failed: %v (stderr=%q)", err, stderr)
+		t.Fatalf("RunGitLog failed: %v", err)
 	}
-	out = strings.TrimSpace(out)
-	if out == "" {
-		t.Fatalf("expected at least one branch")
+	res, ok := resAny.(string)
+	if !ok {
+		t.Fatalf("result not string")
+	}
+	var out Output
+	if err := json.Unmarshal([]byte(res), &out); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
+	}
+	if !out.OK || out.ExitCode != 0 {
+		t.Fatalf("bad result: exit=%d error=%q stdout=%q", out.ExitCode, out.Error, out.Stdout)
+	}
+	if !strings.HasPrefix(out.Stdout, "[") || !strings.HasSuffix(out.Stdout, "]") {
+		t.Fatalf("stdout not JSON array: %q", out.Stdout)
 	}
 }
 
-func TestListRemotes(t *testing.T) {
+func TestRunToolGitBranches(t *testing.T) {
 	if !hasGit(t) {
 		return
 	}
-
 	root := filepath.Join(t.TempDir(), "repo")
 	initLocalRepo(t, root)
 
-	out, stderr, err := ListRemotes(root)
+	args := &Args{Dir: root}
+	resAny, err := RunGitBranches(args)
 	if err != nil {
-		t.Fatalf("ListRemotes failed: %v (stderr=%q)", err, stderr)
+		t.Fatalf("RunGitBranches failed: %v", err)
 	}
-	if !strings.Contains(out, "origin") {
-		t.Fatalf("expected 'origin' in remotes output, got: %q", out)
+	res, ok := resAny.(string)
+	if !ok {
+		t.Fatalf("result not string")
+	}
+	var out Output
+	if err := json.Unmarshal([]byte(res), &out); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
+	}
+	if !out.OK || out.ExitCode != 0 {
+		t.Fatalf("bad result: exit=%d error=%q stdout=%q", out.ExitCode, out.Error, out.Stdout)
+	}
+	if !strings.HasPrefix(out.Stdout, "[") || !strings.HasSuffix(out.Stdout, "]") {
+		t.Fatalf("stdout not JSON array: %q", out.Stdout)
 	}
 }
 
-func TestLatestCommit(t *testing.T) {
+func TestRunToolGitAdd(t *testing.T) {
 	if !hasGit(t) {
 		return
 	}
-
 	root := filepath.Join(t.TempDir(), "repo")
 	initLocalRepo(t, root)
 
-	out, stderr, err := LatestCommit(root)
+	newfile := filepath.Join(root, "newfile.txt")
+	if err := os.WriteFile(newfile, []byte("test content\n"), 0o644); err != nil {
+		t.Fatalf("write file: %v", err)
+	}
+
+	args := &Args{Dir: root, Files: []string{"newfile.txt"}}
+	resAny, err := RunGitAdd(args)
 	if err != nil {
-		t.Fatalf("LatestCommit failed: %v (stderr=%q)", err, stderr)
+		t.Fatalf("RunGitAdd failed: %v", err)
 	}
-	parts := strings.SplitN(strings.TrimSpace(out), " ", 2)
-	if len(parts) != 2 {
-		t.Fatalf("expected '<hash> <subject>', got %q", out)
+	res, ok := resAny.(string)
+	if !ok {
+		t.Fatalf("result not string")
 	}
-	if len(parts[0]) < 7 {
-		t.Fatalf("expected hash prefix, got %q", parts[0])
+	var out Output
+	if err := json.Unmarshal([]byte(res), &out); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
 	}
-	if strings.TrimSpace(parts[1]) == "" {
-		t.Fatalf("expected non-empty subject")
+	if !out.OK || out.ExitCode != 0 {
+		t.Fatalf("bad result: exit=%d error=%q stdout=%q", out.ExitCode, out.Error, out.Stdout)
 	}
-}
-
-func TestShowFileAtRev(t *testing.T) {
-	if !hasGit(t) {
-		return
-	}
-
-	root := filepath.Join(t.TempDir(), "repo")
-	initLocalRepo(t, root)
-
-	out, stderr, err := ShowFileAtRev(root, "HEAD", "README.md")
-	if err != nil {
-		t.Fatalf("ShowFileAtRev failed: %v (stderr=%q)", err, stderr)
-	}
-	if out != "hello\n" {
-		t.Fatalf("unexpected content: %q", out)
+	if !strings.Contains(out.Stdout, "added") {
+		t.Fatalf("expected 'added' in stdout: %q", out.Stdout)
 	}
 }

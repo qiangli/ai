@@ -21,7 +21,7 @@ import (
 	"github.com/qiangli/shell/vos"
 )
 
-var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL", "GOPATH"}
+var essentialEnv = []string{"GITHUB_TOKEN", "PATH", "PWD", "HOME", "USER", "SHELL", "GOPATH"}
 
 func loadUser(base string) (*api.User, error) {
 	p := filepath.Join(base, "user.json")
