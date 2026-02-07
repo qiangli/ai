@@ -183,7 +183,7 @@ func Commit(dir string, msg string, extra []string) (string, string, int, error)
 		return "", err.Error(), 1, err
 	}
 	hash, err := wt.Commit(msg, &git.CommitOptions{
-		Author: &object.Signature{Name: "gitkit", Email: "gitkit@example.com", When: time.Now()},
+		Author: &object.Signature{Name: "gitkit", Email: "gitkit@dhnt.io", When: time.Now()},
 	})
 	if err != nil {
 		return "", err.Error(), 1, err
@@ -580,7 +580,7 @@ func Tag(dir string, name, rev string, annotated bool, msg string) (string, stri
 	h := plumbing.NewHash(rev)
 	if annotated {
 		// create annotated tag
-		_, err := repo.CreateTag(name, h, &git.CreateTagOptions{Message: msg, Tagger: &object.Signature{Name: "gitkit", Email: "gitkit@example.com", When: time.Now()}})
+		_, err := repo.CreateTag(name, h, &git.CreateTagOptions{Message: msg, Tagger: &object.Signature{Name: "gitkit", Email: "gitkit@dhnt.io", When: time.Now()}})
 		if err != nil {
 			return "", err.Error(), err
 		}
