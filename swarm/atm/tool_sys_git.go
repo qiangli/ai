@@ -109,26 +109,30 @@ func (r *GitKit) Add(ctx context.Context, vars *api.Vars, parent *api.Agent, tf 
 	if err != nil {
 		return nil, err
 	}
-	filesIface, ok := args["files"]
-	if !ok {
-		return nil, fmt.Errorf("files is required")
+	// filesIface, ok := args["files"]
+	// if !ok {
+	// 	return nil, fmt.Errorf("files is required")
+	// }
+	// filesListI, ok := filesIface.([]any)
+	// if !ok || len(filesListI) == 0 {
+	// 	return nil, fmt.Errorf("files is required and must be non-empty array")
+	// }
+	// files := make([]string, len(filesListI))
+	// for i, f := range filesListI {
+	// 	if fs, ok := f.(string); ok {
+	// 		files[i] = fs
+	// 	} else {
+	// 		return nil, fmt.Errorf("files[%d] must be string", i)
+	// 	}
+	// }
+	// filesJSON, _ := json.Marshal(files)
+	files, err := api.GetArrayProp("files", args)
+	if err != nil {
+		return nil, err
 	}
-	filesListI, ok := filesIface.([]interface{})
-	if !ok || len(filesListI) == 0 {
-		return nil, fmt.Errorf("files is required and must be non-empty array")
-	}
-	files := make([]string, len(filesListI))
-	for i, f := range filesListI {
-		if fs, ok := f.(string); ok {
-			files[i] = fs
-		} else {
-			return nil, fmt.Errorf("files[%d] must be string", i)
-		}
-	}
-	filesJSON, _ := json.Marshal(files)
 	gitArgs := &gitkit.Args{
 		Dir:   dir,
-		Files: string(filesJSON),
+		Files: files,
 	}
 	return gitkit.RunGitAdd(gitArgs)
 }

@@ -4,32 +4,33 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/qiangli/ai/swarm/api"
 	"strings"
+
+	"github.com/qiangli/ai/swarm/api"
 )
 
 type Args struct {
-	ID             string `json:"id"`
-	User           string `json:"user"`
-	Payload        string `json:"payload"`
-	Action         string `json:"action"`
-	Tool           string `json:"tool"`
-	Args           string `json:"args"`
-	Message        string `json:"message"`
-	Rev            string `json:"rev"`
-	Dir            string `json:"dir"`
-	Path           string `json:"path"`
-	ContextLines   int    `json:"context_lines"`
-	Target         string `json:"target"`
-	MaxCount       int    `json:"max_count"`
-	StartTimestamp string `json:"start_timestamp"`
-	EndTimestamp   string `json:"end_timestamp"`
-	BranchName     string `json:"branch_name"`
-	BaseBranch     string `json:"base_branch"`
-	BranchType     string `json:"branch_type"`
-	Contains       string `json:"contains"`
-	NotContains    string `json:"not_contains"`
-	Files          string `json:"files"`
+	ID             string   `json:"id"`
+	User           string   `json:"user"`
+	Payload        string   `json:"payload"`
+	Action         string   `json:"action"`
+	Tool           string   `json:"tool"`
+	Args           string   `json:"args"`
+	Message        string   `json:"message"`
+	Rev            string   `json:"rev"`
+	Dir            string   `json:"dir"`
+	Path           string   `json:"path"`
+	ContextLines   int      `json:"context_lines"`
+	Target         string   `json:"target"`
+	MaxCount       int      `json:"max_count"`
+	StartTimestamp string   `json:"start_timestamp"`
+	EndTimestamp   string   `json:"end_timestamp"`
+	BranchName     string   `json:"branch_name"`
+	BaseBranch     string   `json:"base_branch"`
+	BranchType     string   `json:"branch_type"`
+	Contains       string   `json:"contains"`
+	NotContains    string   `json:"not_contains"`
+	Files          []string `json:"files"`
 }
 
 type payloadObj struct {
@@ -148,7 +149,7 @@ func RunGitDiff(args *Args) (any, error) {
 		target = args.Rev
 	}
 	if target == "" {
-		out := Output{ExitCode: 2, OK: false, Error: "diff requires target or rev"}
+		out := Output{ExitCode: 2, OK: false, Error: "diff requires target"}
 		return encodeOutput(out)
 	}
 	ctx := 3
@@ -187,16 +188,16 @@ func RunGitCommit(args *Args) (any, error) {
 }
 
 func RunGitAdd(args *Args) (any, error) {
-	files := []string{}
-	if args.Args != "" && args.Args != "<no value>" {
-		files = api.ToStringArray(args.Args)
-	}
-	if args.Files != "" && args.Files != "<no value>" {
-		// args.Files is a single string maybe with commas; reuse ToStringArray
-		files = api.ToStringArray(args.Files)
-	}
+	files := args.Files
+	// if args.Args != "" && args.Args != "<no value>" {
+	// 	files = api.ToStringArray(args.Args)
+	// }
+	// if args.Files != nil {
+	// 	// args.Files is a single string maybe with commas; reuse ToStringArray
+	// 	files = api.ToStringArray(args.Files)
+	// }
 	if len(files) == 0 {
-		out := Output{ExitCode: 2, OK: false, Error: "add requires files or args"}
+		out := Output{ExitCode: 2, OK: false, Error: "add requires files"}
 		return encodeOutput(out)
 	}
 	outStr, errStr, err := Add(args.Dir, files)

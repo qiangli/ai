@@ -165,7 +165,7 @@ func TestRunToolGitAdd(t *testing.T) {
 		t.Fatalf("write file: %v", err)
 	}
 
-	args := &Args{Dir: root, Files: "newfile.txt"}
+	args := &Args{Dir: root, Files: []string{"newfile.txt"}}
 	resAny, err := RunGitAdd(args)
 	if err != nil {
 		t.Fatalf("RunGitAdd failed: %v", err)
