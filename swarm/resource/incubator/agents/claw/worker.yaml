@@ -52,7 +52,8 @@ agents:
       - If blocked, write a "BLOCKED" entry with the exact question and what you already tried.
 
       IMPORTANT:
-      - Avoid writing Go code. Use YAML tools/agents and shell commands only when needed.
+      - Use agents/tools/skills.
+      - Avoid writing Go code. Use shell commands only when needed.
       - Ask before destructive shell actions.
 
       Start by reading:

@@ -28,14 +28,16 @@
 # export name="charles"
 # set -a; name=charles; nick=lee; set +a;
 # echo "name: ${name} nick: $nick"
-echo "workspace: $workspace"
-echo "pwd cmd: $(pwd)"
-echo "PWD: $PWD"
+# echo "workspace: $workspace"
+# echo "pwd cmd: $(pwd)"
+# echo "PWD: $PWD"
 
 export ABC=DEFG
 # /sh:pass
-echo "---"
-echo "ABC: $ABC"
-printenv
+# echo "---"
+# echo "ABC: $ABC"
+# printenv
+
+/bin/bash test/bash-native.sh
 
 ###
