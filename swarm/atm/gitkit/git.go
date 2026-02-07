@@ -579,6 +579,11 @@ func Tag(dir string, name, rev string, annotated bool, msg string) (string, stri
 	}
 
 	// Resolve revision to a hash. Accept refs like HEAD, branch names, or raw hashes.
+	// default empty revision to HEAD
+	if strings.TrimSpace(rev) == "" {
+		rev = "HEAD"
+	}
+
 	hashPtr, rerr := repo.ResolveRevision(plumbing.Revision(rev))
 	var h plumbing.Hash
 	if rerr != nil {

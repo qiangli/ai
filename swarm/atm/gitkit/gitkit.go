@@ -461,9 +461,9 @@ func RunGitTag(args *Args) (any, error) {
 			rev = strings.TrimSpace(arr[1])
 		}
 	}
+	// default empty revision to HEAD
 	if rev == "" {
-		out := Output{ExitCode: 2, OK: false, Error: "tag requires revision"}
-		return encodeOutput(out)
+		rev = "HEAD"
 	}
 	outStr, errStr, err := Tag(args.Dir, name, rev, args.Annotated, args.Message)
 	out := Output{Stdout: outStr, Stderr: errStr, ExitCode: 0, OK: err == nil}
