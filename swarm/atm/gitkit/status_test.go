@@ -42,7 +42,7 @@ func TestStatus(t *testing.T) {
 		if !strings.Contains(out, "Changes not staged for commit:") {
 			t.Errorf("expected unstaged section, got:\n%s", out)
 		}
-		if !strings.Contains(out, "modified:   README.md") {
+		if !strings.Contains(out, "  modified:   README.md") {
 			t.Errorf("expected modified file, got:\n%s", out)
 		}
 	})
@@ -60,8 +60,8 @@ func TestStatus(t *testing.T) {
 		if !strings.Contains(out, "Untracked files:") {
 			t.Errorf("expected untracked section, got:\n%s", out)
 		}
-		if !strings.Contains(out, "untracked.txt") {
-			t.Errorf("expected untracked.txt, got:\n%s", out)
+		if !strings.Contains(out, "        untracked.txt") {
+			t.Errorf("expected untracked.txt line, got:\n%s", out)
 		}
 	})
 
@@ -74,10 +74,21 @@ func TestStatus(t *testing.T) {
 		// Set branch config for upstream
 		cfg, err := repo.Config()
 		if err != nil {
-			t.Fatalf("ConfigScoped: %v", err)
+			t.Fatalf("Config: %v", err)
 		}
+		// Add remote origin
+		if cfg.Remotes == nil {
+			cfg.Remotes = make(map[string]*config.RemoteConfig)
+		}
+		cfg.Remotes["origin"] = &config.RemoteConfig{
+			Name:  "origin",
+			URLs:  []string{"https://github.com/example/repo.git"},
+			Fetch: []config.RefSpec{"+refs/heads/*:refs/remotes/origin/*"},
+		}
+		// Set branch.main upstream
 		cfg.Branches = map[string]*config.Branch{
 			"main": {
+				Name:   "main",
 				Remote: "origin",
 				Merge:  plumbing.NewBranchReferenceName("main"),
 			},
@@ -85,7 +96,7 @@ func TestStatus(t *testing.T) {
 		if err := repo.Storer.SetConfig(cfg); err != nil {
 			t.Fatalf("SetConfig: %v", err)
 		}
-		// Set fake upstream ref to current HEAD
+		// Set fake upstream ref to current HEAD (before new commit)
 		head, err := repo.Head()
 		if err != nil {
 			t.Fatalf("Head: %v", err)
@@ -125,7 +136,7 @@ func TestStatus(t *testing.T) {
 		if !strings.Contains(out, "Your branch is ahead of 'origin/main' by 1 commit.") {
 			t.Errorf("expected ahead message, got:\n%s", out)
 		}
-		if !strings.Contains(out, "[use \"git push\" to publish your local commits.]") {
+		if !strings.Contains(out, `[use "git push" to publish your local commits.]`) {
 			t.Errorf("expected push hint, got:\n%s", out)
 		}
 	})
@@ -158,6 +169,20 @@ func setupCleanRepo(t *testing.T) string {
 	})
 	if err != nil {
 		t.Fatalf("Commit: %v", err)
+	}
+	// Rename master to main
+	headRef, err := repo.Head()
+	if err != nil {
+		t.Fatalf("get Head: %v", err)
+	}
+	mainRefName := plumbing.NewBranchReferenceName("main")
+	mainRef := plumbing.NewHashReference(mainRefName, headRef.Hash())
+	if err := repo.Storer.SetReference(mainRef); err != nil {
+		t.Fatalf("Set main ref: %v", err)
+	}
+	headSymRef := plumbing.NewSymbolicReference(plumbing.HEAD, mainRefName)
+	if err := repo.Storer.SetReference(headSymRef); err != nil {
+		t.Fatalf("Set HEAD symref: %v", err)
 	}
 	return dir
 }

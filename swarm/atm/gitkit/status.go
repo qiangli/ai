@@ -3,6 +3,7 @@ package gitkit
 import (
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 
 	"github.com/go-git/go-git/v5"
@@ -76,12 +77,12 @@ func statusDetailed(dir string) (string, error) {
 							if ahead > 0 {
 								pl := plural(ahead)
 								lines = append(lines, fmt.Sprintf("Your branch is ahead of '%s' by %d commit%s.", upstreamRefName.Short(), ahead, pl))
-								lines = append(lines, "[use \"git push\" to publish your local commits]")
+								lines = append(lines, `[use "git push" to publish your local commits.]`)
 							}
 							if behind > 0 {
 								pl := plural(behind)
 								lines = append(lines, fmt.Sprintf("Your branch is behind '%s' by %d commit%s.", upstreamRefName.Short(), behind, pl))
-								lines = append(lines, "[use \"git pull\" to update your local branch]")
+								lines = append(lines, `[use "git pull" to update your local branch.]`)
 							}
 						}
 					}
@@ -90,17 +91,82 @@ func statusDetailed(dir string) (string, error) {
 		}
 	}
 
-	stStr := strings.TrimSpace(st.String())
-	if stStr == "" {
-		lines = append(lines, "nothing to commit, working tree clean")
+	// Parse porcelain status to verbose sections
+	stStr := st.String()
+	stLines := strings.Split(stStr, "\n")
+	stagedChanges := []string{}
+	unstagedChanges := []string{}
+	untrackedFiles := []string{}
+
+	for _, line := range stLines {
+		if len(line) == 0 {
+			continue
+		}
+		if len(line) < 4 || line[2] != ' ' {
+			// Skip renamed or invalid (renamed have \t)
+			continue
+		}
+		x := line[0]
+		y := line[1]
+		path := line[3:]
+		if x == '?' && y == '?' {
+			untrackedFiles = append(untrackedFiles, fmt.Sprintf("        %s", path))
+			continue
+		}
+		if x != ' ' {
+			action := porcelainStatusCharToAction(byte(x))
+			stagedLine := fmt.Sprintf("  %s:   %s", action, path)
+			stagedChanges = append(stagedChanges, stagedLine)
+		}
+		if y != ' ' {
+			action := porcelainStatusCharToAction(byte(y))
+			unstagedLine := fmt.Sprintf("  %s:   %s", action, path)
+			unstagedChanges = append(unstagedChanges, unstagedLine)
+		}
+	}
+
+	sort.Strings(stagedChanges)
+	sort.Strings(unstagedChanges)
+	sort.Strings(untrackedFiles)
+
+	hasChanges := len(stagedChanges) > 0 || len(unstagedChanges) > 0 || len(untrackedFiles) > 0
+	if hasChanges {
+		if len(stagedChanges) > 0 {
+			lines = append(lines, "Changes to be committed:")
+			lines = append(lines, `  (use "git restore --staged <file>..." to unstage)`)
+			lines = append(lines, stagedChanges...)
+		}
+		if len(unstagedChanges) > 0 {
+			lines = append(lines, "Changes not staged for commit:")
+			lines = append(lines, `  (use "git add <file>..." to update what will be committed)`)
+			lines = append(lines, `  (use "git restore <file>..." to discard changes in working directory)`)
+			lines = append(lines, unstagedChanges...)
+		}
+		if len(untrackedFiles) > 0 {
+			lines = append(lines, "Untracked files:")
+			lines = append(lines, `  (use "git add <file>..." to include in what will be committed)`)
+			lines = append(lines, untrackedFiles...)
+		}
 	} else {
-		// Include the porcelain status block as-is under a header so tests can
-		// still assert on human readable lines while keeping the detailed
-		// porcelain output available.
-		lines = append(lines, stStr)
+		lines = append(lines, "nothing to commit, working tree clean")
 	}
 
 	return strings.Join(lines, "\n"), nil
+}
+
+func porcelainStatusCharToAction(c byte) string {
+	switch c {
+	case 'A':
+		return "new file"
+	case 'M':
+		return "modified"
+	case 'D':
+		return "deleted"
+	case 'R':
+		return "renamed"
+	default:
+		return string(c)
+	}
 }
 
 func plural(n int) string {
