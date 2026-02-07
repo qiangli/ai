@@ -335,3 +335,78 @@ tools:
           default: false
           description: "If true, rebase instead of merge when integrating."
       required: []
+
+  - name: "restore"
+    # Background: see prior internal notes/logs under var/log/chat (e.g. sessions discussing git-kit/tooling refactors and go-git based subcommands).
+    description: |
+      Restore files in the working tree and/or the index (staging area).
+
+      Similar to the Unix `git restore` subcommand.
+
+      Usage notes:
+      - Restores file content from `source` (defaults to `HEAD`).
+      - If `worktree` is true, restores the working tree copy.
+      - If `staged` is true, restores the index (staged area).
+      - If both `staged` and `worktree` are false, this tool defaults to restoring the working tree (same spirit as `git restore`).
+      - If `paths` is omitted or empty, the tool may restore the entire tree (use with care).
+
+      Examples:
+        # restore a single file in working tree from HEAD
+        - kit: git
+          name: restore
+          dir: /path/to/repo
+          paths: ["README.md"]
+
+        # restore both index and working tree copies from a specific revision
+        - kit: git
+          name: restore
+          dir: /path/to/repo
+          source: abc1234
+          staged: true
+          worktree: true
+          paths: ["src/main.go", "go.mod"]
+
+    type: "system"
+    parameters:
+      type: "object"
+      properties:
+        dir:
+          type: "string"
+          description: "Path to the Git repository."
+        paths:
+          type: "array"
+          items:
+            type: "string"
+          description: |
+            File paths (relative to repo root) to restore.
+
+            If omitted or empty, restore may apply to the entire working tree (use with care).
+        source:
+          type: "string"
+          default: "HEAD"
+          description: "Revision/commit to restore from (default: HEAD)."
+        staged:
+          type: "boolean"
+          default: false
+          description: "If true, restore the index (staged area)."
+        worktree:
+          type: "boolean"
+          default: true
+          description: "If true, restore the working tree copy."
+        force:
+          type: "boolean"
+          default: false
+          description: "If true, overwrite local changes without prompting."
+        backup:
+          type: "boolean"
+          default: false
+          description: "If true, create a backup copy before overwriting."
+        dry_run:
+          type: "boolean"
+          default: false
+          description: "If true, describe what would be done without making changes."
+        recurse:
+          type: "boolean"
+          default: true
+          description: "If true, allow directory paths / globs where supported by the implementation."
+      required: []
