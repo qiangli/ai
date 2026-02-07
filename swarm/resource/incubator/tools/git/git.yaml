@@ -270,6 +270,7 @@ tools:
       Push commits and/or tags to a remote repository.
 
       Similar to `git push <remote> <branch>` (and optionally `--tags`).
+      Supports authentication for private repositories.
     type: "system"
     parameters:
       type: "object"
@@ -296,6 +297,18 @@ tools:
           type: "boolean"
           default: false
           description: "If true, also push tags."
+        token:
+          type: "string"
+          description: "Personal access token (PAT) for HTTPS remotes (used as x-access-token)."
+        username:
+          type: "string"
+          description: "Username for HTTPS basic auth (fallback if no token)."
+        password:
+          type: "string"
+          description: "Password or app password for HTTPS basic auth (fallback if no token)."
+        ssh_key:
+          type: "string"
+          description: "Private SSH key for SSH remotes (prefers ssh-agent, then GIT_SSH_KEY env)."
       required: []
 
   - name: "pull"

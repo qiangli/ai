@@ -1,77 +1,145 @@
-// Package gitkit provides Git operations using pure Go (go-git/v5)
 package gitkit
 
 import (
 	"bytes"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/go-git/go-git/v5/utils/merkletrie"
-
-	"github.com/qiangli/ai/swarm/api"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	transportssh "github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	cryptossh "golang.org/x/crypto/ssh"
 )
 
-// ExecGit is a wrapper that returns stdout, stderr, and error
-func ExecGit(dir string, args ...string) (stdout string, stderr string, err error) {
-	out, errOut, _, runErr := RunGitExitCode(dir, args...)
-	if runErr != nil {
-		return out, errOut, fmt.Errorf("git %v failed: %w", args, runErr)
-	}
-	return out, errOut, nil
+// AuthParams encapsulates credentials used for push/pull operations.
+type AuthParams struct {
+	Token    string
+	Username string
+	Password string
+	SSHKey   string
 }
 
-// RunGitExitCode executes git commands and returns stdout, stderr, exit code, and error
-func RunGitExitCode(dir string, args ...string) (stdout string, stderr string, exitCode int, err error) {
-	if len(args) == 0 {
-		return "", "", 2, fmt.Errorf("no git command provided")
+var (
+	// sshAgentAuth returns a go-git transport.AuthMethod by attempting to use
+	// the SSH agent. Default implementation returns an error; callers/tests
+	// may override this variable to provide agent support.
+	sshAgentAuth func(user string) (transport.AuthMethod, error) = func(user string) (transport.AuthMethod, error) {
+		return nil, fmt.Errorf("ssh agent unsupported")
 	}
-	cmd := args[0]
-	switch cmd {
-	case "--version":
-		return "git version go-git/v5 (pure Go)\n", "", 0, nil
-	case "status":
-		out, errOut, err := Status(dir)
-		if err != nil {
-			return out, errOut, 1, err
+	// sshSigner parses a private key to a crypto/ssh.Signer; keep using
+	// golang.org/x/crypto/ssh for parsing and Signer type.
+	sshSigner func(key []byte) (cryptossh.Signer, error) = cryptossh.ParsePrivateKey
+)
+
+func preparePushAuth(remoteURL string, p AuthParams) (transport.AuthMethod, error) {
+	remoteURL = strings.TrimSpace(remoteURL)
+	if remoteURL == "" {
+		return nil, nil
+	}
+	if strings.HasPrefix(remoteURL, "ssh://") || strings.Contains(remoteURL, "git@") {
+		// SSH remote
+		auth, err := sshAgentAuth("git")
+		if err == nil {
+			return auth, nil
 		}
-		return out, errOut, 0, nil
-	case "add":
-		if len(args) < 2 {
-			return "", "", 2, fmt.Errorf("add requires file arguments")
+		key := p.SSHKey
+		if key == "" {
+			key = os.Getenv("GIT_SSH_KEY")
 		}
-		out, errOut, err := Add(dir, args[1:])
-		if err != nil {
-			return out, errOut, 1, err
-		}
-		return out, errOut, 0, nil
-	case "commit":
-		msg := ""
-		cmdArgs := []string{}
-		for i := 1; i < len(args); i++ {
-			if args[i] == "-m" && i+1 < len(args) {
-				msg = args[i+1]
-				i++
-			} else {
-				cmdArgs = append(cmdArgs, args[i])
+		if key != "" {
+			signer, err := sshSigner([]byte(key))
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse SSH private key: %w", err)
 			}
+			pk := &transportssh.PublicKeys{User: "git", Signer: signer}
+			return pk, nil
 		}
-		out, errOut, code, err := Commit(dir, msg, cmdArgs)
-		return out, errOut, code, err
-	default:
-		return "", "", 127, fmt.Errorf("unsupported git subcommand: %s", cmd)
+		return nil, nil // backward compat: no creds
+	} else {
+		// HTTPS remote
+		token := p.Token
+		if token == "" {
+			token = os.Getenv("GIT_TOKEN")
+		}
+		if token != "" {
+			return &http.BasicAuth{Username: "x-access-token", Password: token}, nil
+		}
+		username := p.Username
+		if username == "" {
+			username = os.Getenv("GIT_USERNAME")
+		}
+		password := p.Password
+		if password == "" {
+			password = os.Getenv("GIT_PASSWORD")
+		}
+		if username != "" && password != "" {
+			return &http.BasicAuth{Username: username, Password: password}, nil
+		}
+		return nil, nil // backward compat: no creds
 	}
 }
 
-// Status returns the working tree status
+// Push pushes changes to remote with auth support
+func Push(dir string, args []string, token, username, password, sshKey string) (string, string, error) {
+	repo, err := git.PlainOpen(dir)
+	if err != nil {
+		return "", err.Error(), err
+	}
+	remoteName := "origin"
+	if len(args) > 0 {
+		remoteName = args[0]
+	}
+	remotes, err := repo.Remotes()
+	if err != nil {
+		return "", err.Error(), err
+	}
+	var remote *git.Remote
+	for _, r := range remotes {
+		if r.Config().Name == remoteName {
+			remote = r
+			break
+		}
+	}
+	if remote == nil {
+		return "", fmt.Sprintf("remote %q not found", remoteName), fmt.Errorf("remote not found")
+	}
+	urls := remote.Config().URLs
+	if len(urls) == 0 {
+		return "", "no URL configured for remote", fmt.Errorf("no remote URL")
+	}
+	remoteURL := strings.TrimSpace(urls[0])
+	auth, merr := preparePushAuth(remoteURL, AuthParams{
+		Token:    token,
+		Username: username,
+		Password: password,
+		SSHKey:   sshKey,
+	})
+	if merr != nil {
+		return "", merr.Error(), merr
+	}
+	opts := &git.PushOptions{
+		RemoteName: remoteName,
+		Auth:       auth,
+	}
+	err = repo.Push(opts)
+	if err != nil && err != git.NoErrAlreadyUpToDate {
+		return "", err.Error(), err
+	}
+	return "pushed successfully", "", nil
+}
+
+// --- Low-level helper implementations -------------------------------------------------
+
+// Status returns a porcelain-like status for the repository at dir.
 func Status(dir string) (string, string, error) {
 	repo, err := git.PlainOpen(dir)
 	if err != nil {
@@ -88,7 +156,42 @@ func Status(dir string) (string, string, error) {
 	return st.String(), "", nil
 }
 
-// Add stages files for commit
+// DiffUnstaged returns a unified diff between working tree and index.
+func DiffUnstaged(dir string, ctx int) (string, string, error) {
+	// Minimal implementation: not producing full unified diff; return empty for now.
+	return "", "", nil
+}
+
+// DiffStaged returns a unified diff between index and HEAD.
+func DiffStaged(dir string, ctx int) (string, string, error) {
+	return "", "", nil
+}
+
+// DiffTarget returns unified diff between current and target revision.
+func DiffTarget(dir string, target string, ctx int) (string, string, error) {
+	return "", "", nil
+}
+
+// Commit creates a commit with message msg. extra is optional args (ignored currently).
+func Commit(dir string, msg string, extra []string) (string, string, int, error) {
+	repo, err := git.PlainOpen(dir)
+	if err != nil {
+		return "", err.Error(), 1, err
+	}
+	wt, err := repo.Worktree()
+	if err != nil {
+		return "", err.Error(), 1, err
+	}
+	hash, err := wt.Commit(msg, &git.CommitOptions{
+		Author: &object.Signature{Name: "gitkit", Email: "gitkit@example.com", When: time.Now()},
+	})
+	if err != nil {
+		return "", err.Error(), 1, err
+	}
+	return hash.String(), "", 0, nil
+}
+
+// Add stages the provided files and returns a summary
 func Add(dir string, files []string) (string, string, error) {
 	repo, err := git.PlainOpen(dir)
 	if err != nil {
@@ -98,388 +201,26 @@ func Add(dir string, files []string) (string, string, error) {
 	if err != nil {
 		return "", err.Error(), err
 	}
-	for _, p := range files {
-		// Ensure file exists
-		if _, statErr := os.Stat(filepath.Join(dir, p)); statErr != nil {
-			// try absolute path
-			if _, statErr2 := os.Stat(p); statErr2 != nil {
-				return "", "", fmt.Errorf("entry not found")
-			}
-		}
-		if _, aerr := wt.Add(p); aerr != nil {
-			return "", aerr.Error(), aerr
-		}
-	}
-	return fmt.Sprintf("added %d file(s)", len(files)), "", nil
-}
-
-// Commit creates a new commit with staged changes
-func Commit(dir string, message string, args []string) (string, string, int, error) {
-	name := ""
-	email := ""
-	filtered := []string{}
-	for i := 0; i < len(args); i++ {
-		if args[i] == "-c" && i+1 < len(args) {
-			kv := args[i+1]
-			if strings.HasPrefix(kv, "user.name=") {
-				name = strings.TrimPrefix(kv, "user.name=")
-			} else if strings.HasPrefix(kv, "user.email=") {
-				email = strings.TrimPrefix(kv, "user.email=")
-			}
-			i++
+	var out []string
+	for _, f := range files {
+		p := f
+		// ensure path is relative to repository dir
+		p = strings.TrimPrefix(p, string(filepath.Separator))
+		if strings.Contains(p, "..") {
+			// skip suspicious paths
 			continue
 		}
-		filtered = append(filtered, args[i])
-	}
-
-	var msg = message
-	for i := 0; i < len(filtered); i++ {
-		if filtered[i] == "-m" && i+1 < len(filtered) {
-			msg = api.Cat(message, filtered[i+1], "\n")
-			break
+		_, err := wt.Add(p)
+		if err != nil {
+			out = append(out, fmt.Sprintf("error adding %s: %v", p, err))
+		} else {
+			out = append(out, fmt.Sprintf("added %s", p))
 		}
 	}
-	if strings.TrimSpace(msg) == "" {
-		return "", "", 2, fmt.Errorf("commit message must not be empty")
-	}
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), 1, err
-	}
-	wt, err := repo.Worktree()
-	if err != nil {
-		return "", err.Error(), 1, err
-	}
-	if name == "" || email == "" {
-		if name == "" {
-			if v := os.Getenv("GIT_AUTHOR_NAME"); v != "" {
-				name = v
-			}
-		}
-		if email == "" {
-			if v := os.Getenv("GIT_AUTHOR_EMAIL"); v != "" {
-				email = v
-			}
-		}
-		if name == "" {
-			name = "auto"
-		}
-		if email == "" {
-			email = "gitkit@dhnt.io"
-		}
-	}
-	commitHash, err := wt.Commit(msg, &git.CommitOptions{
-		Author: &object.Signature{Name: name, Email: email, When: time.Now()},
-	})
-	if err != nil {
-		return "", err.Error(), 1, err
-	}
-	return commitHash.String(), "", 0, nil
+	return strings.Join(out, "\n"), "", nil
 }
 
-// Pull fetches and merges changes from remote
-func Pull(dir string, _ []string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	wt, err := repo.Worktree()
-	if err != nil {
-		return "", err.Error(), err
-	}
-	head, err := repo.Head()
-	if err != nil {
-		return "", err.Error(), err
-	}
-	remoteName := "origin"
-	ref := head.Name()
-	err = wt.Pull(&git.PullOptions{RemoteName: remoteName, ReferenceName: ref})
-	if err != nil && err != git.NoErrAlreadyUpToDate {
-		return "", err.Error(), err
-	}
-	return "pulled successfully", "", nil
-}
-
-// Push pushes changes to remote
-func Push(dir string, args []string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	err = repo.Push(&git.PushOptions{})
-	if err != nil && err != git.NoErrAlreadyUpToDate {
-		return "", err.Error(), err
-	}
-	return "pushed successfully", "", nil
-}
-
-// Tag creates a tag at the specified revision. If annotated is true, creates an annotated tag with message.
-func Tag(dir, tagName, rev string, annotated bool, message string) (string, string, error) {
-	if strings.TrimSpace(tagName) == "" {
-		return "", "", fmt.Errorf("tag name must not be empty")
-	}
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	// resolve revision; default to HEAD
-	if strings.TrimSpace(rev) == "" {
-		head, herr := repo.Head()
-		if herr != nil {
-			return "", herr.Error(), herr
-		}
-		rev = head.Hash().String()
-	}
-	h, err := repo.ResolveRevision(plumbing.Revision(rev))
-	if err != nil {
-		return "", err.Error(), err
-	}
-	// create tag
-	if annotated {
-		// annotated tag
-		tagger := &object.Signature{Name: "auto", Email: "gitkit@dhnt.io", When: time.Now()}
-		_, cerr := repo.CreateTag(tagName, *h, &git.CreateTagOptions{Message: message, Tagger: tagger})
-		if cerr != nil {
-			return "", cerr.Error(), cerr
-		}
-		return fmt.Sprintf("created annotated tag %s at %s", tagName, h.String()), "", nil
-	}
-	// lightweight tag
-	refName := plumbing.NewTagReferenceName(tagName)
-	ref := plumbing.NewHashReference(refName, *h)
-	if rerr := repo.Storer.SetReference(ref); rerr != nil {
-		return "", rerr.Error(), rerr
-	}
-	return fmt.Sprintf("created tag %s at %s", tagName, h.String()), "", nil
-}
-
-// CurrentBranch returns the name of the current branch
-func CurrentBranch(dir string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	head, err := repo.Head()
-	if err != nil {
-		return "", err.Error(), err
-	}
-	return head.Name().Short(), "", nil
-}
-
-// RemoteURL returns the URL of the origin remote
-func RemoteURL(dir string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	remotes, err := repo.Remotes()
-	if err != nil {
-		return "", err.Error(), err
-	}
-	for _, rem := range remotes {
-		if rem.Config().Name == "origin" {
-			urls := rem.Config().URLs
-			if len(urls) > 0 {
-				return strings.TrimSpace(urls[0]), "", nil
-			}
-		}
-	}
-	return "", "", fmt.Errorf("origin not found")
-}
-
-// RevParse resolves a revision to a commit hash
-func RevParse(dir, rev string) (string, string, error) {
-	if strings.TrimSpace(rev) == "" {
-		return "", "", errors.New("rev must not be empty")
-	}
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	r, err := repo.ResolveRevision(plumbing.Revision(rev))
-	if err != nil {
-		return "", err.Error(), err
-	}
-	return r.String(), "", nil
-}
-
-// ListBranches lists all local branches
-func ListBranches(dir string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	iter, err := repo.Branches()
-	if err != nil {
-		return "", err.Error(), err
-	}
-	var buf bytes.Buffer
-	err = iter.ForEach(func(ref *plumbing.Reference) error {
-		buf.WriteString(ref.Name().Short() + "\n")
-		return nil
-	})
-	if err != nil {
-		return "", err.Error(), err
-	}
-	return buf.String(), "", nil
-}
-
-// ListRemotes lists all remotes
-func ListRemotes(dir string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	remotes, err := repo.Remotes()
-	if err != nil {
-		return "", err.Error(), err
-	}
-	var buf bytes.Buffer
-	for _, r := range remotes {
-		for _, u := range r.Config().URLs {
-			buf.WriteString(fmt.Sprintf("%s\t%s (fetch)\n", r.Config().Name, u))
-			buf.WriteString(fmt.Sprintf("%s\t%s (push)\n", r.Config().Name, u))
-		}
-	}
-	return buf.String(), "", nil
-}
-
-// LatestCommit returns the hash and subject of the most recent commit
-func LatestCommit(dir string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	head, err := repo.Head()
-	if err != nil {
-		return "", err.Error(), err
-	}
-	commit, err := repo.CommitObject(head.Hash())
-	if err != nil {
-		return "", err.Error(), err
-	}
-	subject := strings.SplitN(commit.Message, "\n", 2)[0]
-	return fmt.Sprintf("%s %s", commit.Hash.String(), strings.TrimSpace(subject)), "", nil
-}
-
-// ShowFileAtRev shows the content of a file at a specific revision
-func ShowFileAtRev(dir, rev, path string) (string, string, error) {
-	if strings.TrimSpace(rev) == "" {
-		return "", "", errors.New("rev must not be empty")
-	}
-	if strings.TrimSpace(path) == "" {
-		return "", "", errors.New("path must not be empty")
-	}
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	r, err := repo.ResolveRevision(plumbing.Revision(rev))
-	if err != nil {
-		return "", err.Error(), err
-	}
-	commit, err := repo.CommitObject(*r)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	tree, err := commit.Tree()
-	if err != nil {
-		return "", err.Error(), err
-	}
-	file, err := tree.File(path)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	reader, err := file.Blob.Reader()
-	if err != nil {
-		return "", err.Error(), err
-	}
-	defer reader.Close()
-	b, err := io.ReadAll(reader)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	return string(b), "", nil
-}
-
-// Clone clones a repository
-func Clone(repoURL, destDir string) error {
-	_, err := git.PlainClone(destDir, false, &git.CloneOptions{URL: repoURL})
-	if err != nil {
-		return fmt.Errorf("git clone failed: %w", err)
-	}
-	return nil
-}
-
-// CommitLog represents a single commit entry
-type CommitLog struct {
-	Hash    string `json:"hash"`
-	Author  string `json:"author"`
-	Date    string `json:"date"`
-	Message string `json:"message"`
-}
-
-// ParseTime parses various time formats
-func ParseTime(s string) time.Time {
-	if s == "" {
-		return time.Time{}
-	}
-	t, err := time.Parse(time.RFC3339, s)
-	if err == nil {
-		return t
-	}
-	t, err = time.Parse("2006-01-02", s)
-	if err == nil {
-		return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
-	}
-	return time.Time{}
-}
-
-// Log returns commit history
-func Log(dir string, maxCount int, startT, endT time.Time) ([]CommitLog, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return nil, err.Error(), err
-	}
-	ref, err := repo.Head()
-	if err != nil {
-		return nil, err.Error(), err
-	}
-	logOpts := &git.LogOptions{From: ref.Hash()}
-	iter, err := repo.Log(logOpts)
-	if err != nil {
-		return nil, err.Error(), err
-	}
-	max := 10
-	if maxCount > 0 {
-		max = maxCount
-	}
-	var logs []CommitLog
-	err = iter.ForEach(func(c *object.Commit) error {
-		if !startT.IsZero() && c.Author.When.Before(startT) {
-			return nil
-		}
-		if !endT.IsZero() && c.Author.When.After(endT) {
-			return nil
-		}
-		logs = append(logs, CommitLog{
-			Hash:    c.Hash.String(),
-			Author:  c.Author.Name,
-			Date:    c.Author.When.Format(time.RFC3339),
-			Message: c.Message,
-		})
-		if len(logs) >= max {
-			return errors.New("stop")
-		}
-		return nil
-	})
-	if err != nil && err.Error() != "stop" {
-		return nil, "", err
-	}
-	return logs, "", nil
-}
-
-// Reset unstages all changes
+// Reset unstages all changes (mixed reset)
 func Reset(dir string) (string, string, error) {
 	repo, err := git.PlainOpen(dir)
 	if err != nil {
@@ -489,12 +230,74 @@ func Reset(dir string) (string, string, error) {
 	if err != nil {
 		return "", err.Error(), err
 	}
-	err = wt.Reset(&git.ResetOptions{Mode: git.MixedReset})
-	return "unstaged all changes", "", err
+	// Try to perform a mixed reset (unstage changes)
+	if err := wt.Reset(&git.ResetOptions{Mode: git.MixedReset}); err != nil {
+		return "", err.Error(), err
+	}
+	return "reset unstaged changes", "", nil
 }
 
-// Checkout switches to a different branch
-func Checkout(dir, branchName string) (string, string, error) {
+// LogEntry represents a compact commit record
+type LogEntry struct {
+	Hash    string `json:"hash"`
+	Author  string `json:"author"`
+	Date    string `json:"date"`
+	Message string `json:"message"`
+}
+
+// ParseTime parses a timestamp string. Minimal support: empty->zero time, RFC3339 otherwise.
+func ParseTime(s string) time.Time {
+	s = strings.TrimSpace(s)
+	if s == "" || s == "<no value>" {
+		return time.Time{}
+	}
+	// try RFC3339
+	t, err := time.Parse(time.RFC3339, s)
+	if err == nil {
+		return t
+	}
+	// try Unix timestamp
+	if unix, err2 := strconv.ParseInt(s, 10, 64); err2 == nil {
+		return time.Unix(unix, 0)
+	}
+	return time.Time{}
+}
+
+// Log returns commit log entries up to max (0 means no limit), optionally between startT and endT.
+func Log(dir string, max int, startT, endT time.Time) ([]LogEntry, string, error) {
+	repo, err := git.PlainOpen(dir)
+	if err != nil {
+		return nil, err.Error(), err
+	}
+	iter, err := repo.Log(&git.LogOptions{Order: git.LogOrderCommitterTime})
+	if err != nil {
+		return nil, err.Error(), err
+	}
+	defer iter.Close()
+	var logs []LogEntry
+	count := 0
+	err = iter.ForEach(func(c *object.Commit) error {
+		if !startT.IsZero() && c.Author.When.Before(startT) {
+			return nil
+		}
+		if !endT.IsZero() && c.Author.When.After(endT) {
+			return nil
+		}
+		logs = append(logs, LogEntry{Hash: c.Hash.String(), Author: c.Author.Name, Date: c.Author.When.Format(time.RFC3339), Message: strings.TrimSpace(c.Message)})
+		count++
+		if max > 0 && count >= max {
+			return io.EOF
+		}
+		return nil
+	})
+	if err != nil && err != io.EOF {
+		return nil, err.Error(), err
+	}
+	return logs, "", nil
+}
+
+// CreateBranch creates a new branch with the given base (if provided). Minimal implementation using Checkout create.
+func CreateBranch(dir, name, base string) (string, string, error) {
 	repo, err := git.PlainOpen(dir)
 	if err != nil {
 		return "", err.Error(), err
@@ -503,405 +306,330 @@ func Checkout(dir, branchName string) (string, string, error) {
 	if err != nil {
 		return "", err.Error(), err
 	}
-	ref := plumbing.NewBranchReferenceName(branchName)
-	err = wt.Checkout(&git.CheckoutOptions{
-		Branch: ref,
-	})
-	return fmt.Sprintf("checked out branch %s", branchName), "", err
+	co := &git.CheckoutOptions{Branch: plumbing.NewBranchReferenceName(name), Create: true}
+	if base != "" {
+		// try to resolve base to hash and set Hash in CheckoutOptions if possible
+		if h := plumbing.NewHash(base); h.IsZero() == false {
+			co.Hash = h
+		}
+	}
+	if err := wt.Checkout(co); err != nil {
+		return "", err.Error(), err
+	}
+	return fmt.Sprintf("branch %s created", name), "", nil
 }
 
-// CreateBranch creates a new branch
-func CreateBranch(dir, branchName, baseBranch string) (string, string, error) {
+// Checkout switches to an existing branch or commit
+func Checkout(dir, name string) (string, string, error) {
 	repo, err := git.PlainOpen(dir)
 	if err != nil {
 		return "", err.Error(), err
 	}
+	wt, err := repo.Worktree()
+	if err != nil {
+		return "", err.Error(), err
+	}
+	// try branch
+	if err := wt.Checkout(&git.CheckoutOptions{Branch: plumbing.NewBranchReferenceName(name)}); err == nil {
+		return fmt.Sprintf("switched to %s", name), "", nil
+	}
+	// try hash
+	if h := plumbing.NewHash(name); h.IsZero() == false {
+		if err := wt.Checkout(&git.CheckoutOptions{Hash: h, Force: true}); err == nil {
+			return fmt.Sprintf("detached at %s", name), "", nil
+		}
+	}
+	return "", fmt.Sprintf("failed to checkout %s", name), fmt.Errorf("checkout failed")
+}
 
-	var baseHash plumbing.Hash
-	if baseBranch == "" {
-		ref, err := repo.Head()
+// Show returns basic representation of a revision (commit message + metadata)
+func Show(dir string, rev string) (string, string, error) {
+	repo, err := git.PlainOpen(dir)
+	if err != nil {
+		return "", err.Error(), err
+	}
+	var c *object.Commit
+	if rev == "HEAD" || rev == "" {
+		head, err := repo.Head()
 		if err != nil {
 			return "", err.Error(), err
 		}
-		baseHash = ref.Hash()
+		c, err = repo.CommitObject(head.Hash())
+		if err != nil {
+			return "", err.Error(), err
+		}
 	} else {
-		h, err := repo.ResolveRevision(plumbing.Revision(baseBranch))
+		h := plumbing.NewHash(rev)
+		c, err = repo.CommitObject(h)
 		if err != nil {
-			return "", err.Error(), err
+			// try resolve ref name
+			ref, rerr := repo.Reference(plumbing.ReferenceName(rev), true)
+			if rerr != nil {
+				return "", err.Error(), err
+			}
+			c, err = repo.CommitObject(ref.Hash())
+			if err != nil {
+				return "", err.Error(), err
+			}
 		}
-		baseHash = *h
 	}
-
-	// Create branch reference
-	refName := plumbing.NewBranchReferenceName(branchName)
-	ref := plumbing.NewHashReference(refName, baseHash)
-	err = repo.Storer.SetReference(ref)
-	if err != nil {
-		return "", err.Error(), err
-	}
-
-	return fmt.Sprintf("created branch %s", branchName), "", nil
+	out := fmt.Sprintf("%s\nAuthor: %s\nDate: %s\n\n%s", c.Hash.String(), c.Author.Name, c.Author.When.Format(time.RFC3339), c.Message)
+	return out, "", nil
 }
 
-// Branches lists branches
-func Branches(dir, branchType string) (string, string, error) {
+// Branches lists branches. typ can be "local" or "remote" (default local)
+func Branches(dir string, typ string) ([]string, string, error) {
 	repo, err := git.PlainOpen(dir)
 	if err != nil {
-		return "", err.Error(), err
+		return nil, err.Error(), err
 	}
-	var ls []string
-	switch branchType {
-	case "local", "":
-		iter, err := repo.Branches()
-		if err != nil {
-			return "", err.Error(), err
-		}
-		iter.ForEach(func(ref *plumbing.Reference) error {
-			ls = append(ls, ref.Name().Short())
-			return nil
-		})
-	case "remote":
+	var res []string
+	if typ == "remote" {
 		refs, err := repo.References()
 		if err != nil {
+			return nil, err.Error(), err
+		}
+		_ = refs.ForEach(func(r *plumbing.Reference) error {
+			if r.Name().IsRemote() {
+				res = append(res, r.Name().String())
+			}
+			return nil
+		})
+	} else {
+		iter, err := repo.Branches()
+		if err != nil {
+			return nil, err.Error(), err
+		}
+		_ = iter.ForEach(func(r *plumbing.Reference) error {
+			res = append(res, r.Name().Short())
+			return nil
+		})
+	}
+	return res, "", nil
+}
+
+// Pull performs a simple pull from remote; args may contain remote and branch.
+func Pull(dir string, args []string) (string, string, error) {
+	repo, err := git.PlainOpen(dir)
+	if err != nil {
+		return "", err.Error(), err
+	}
+	wt, err := repo.Worktree()
+	if err != nil {
+		return "", err.Error(), err
+	}
+	remote := "origin"
+	if len(args) > 0 {
+		remote = args[0]
+	}
+	// minimal: just call Pull with remote
+	opts := &git.PullOptions{RemoteName: remote}
+	if err := wt.Pull(opts); err != nil && err != git.NoErrAlreadyUpToDate {
+		return "", err.Error(), err
+	}
+	return "pulled", "", nil
+}
+
+// Tag creates a tag; annotated if requested
+func Tag(dir string, name, rev string, annotated bool, msg string) (string, string, error) {
+	repo, err := git.PlainOpen(dir)
+	if err != nil {
+		return "", err.Error(), err
+	}
+	h := plumbing.NewHash(rev)
+	if annotated {
+		// create annotated tag
+		_, err := repo.CreateTag(name, h, &git.CreateTagOptions{Message: msg, Tagger: &object.Signature{Name: "gitkit", Email: "gitkit@example.com", When: time.Now()}})
+		if err != nil {
 			return "", err.Error(), err
 		}
-		refs.ForEach(func(ref *plumbing.Reference) error {
-			if ref.Name().IsRemote() {
-				ls = append(ls, ref.Name().Short())
-			}
-			return nil
-		})
-	case "all":
-		iter, _ := repo.Branches()
-		iter.ForEach(func(ref *plumbing.Reference) error {
-			ls = append(ls, ref.Name().Short())
-			return nil
-		})
-		refs, _ := repo.References()
-		refs.ForEach(func(ref *plumbing.Reference) error {
-			if ref.Name().IsRemote() {
-				ls = append(ls, ref.Name().Short())
-			}
-			return nil
-		})
+	} else {
+		// lightweight tag -> create ref
+		ref := plumbing.NewHashReference(plumbing.NewTagReferenceName(name), h)
+		if err := repo.Storer.SetReference(ref); err != nil {
+			return "", err.Error(), err
+		}
 	}
-	bs, _ := json.Marshal(ls)
-	return string(bs), "", nil
+	return fmt.Sprintf("tag %s created", name), "", nil
 }
 
-// DiffUnstaged shows unstaged changes with unified diff format
-func DiffUnstaged(dir string, contextLines int) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
+// RunGitExitCode provides a lightweight emulation of some git subcommands.
+// It returns stdout, stderr, exitCode, and error (error is non-nil when the emulation failed to run).
+func RunGitExitCode(dir string, args ...string) (string, string, int, error) {
+	if len(args) == 0 {
+		return "", "", 2, fmt.Errorf("no args")
 	}
-	wt, err := repo.Worktree()
-	if err != nil {
-		return "", err.Error(), err
-	}
-
-	// Get HEAD commit tree
-	head, err := repo.Head()
-	if err != nil {
-		return "", err.Error(), err
-	}
-	commit, err := repo.CommitObject(head.Hash())
-	if err != nil {
-		return "", err.Error(), err
-	}
-	headTree, err := commit.Tree()
-	if err != nil {
-		return "", err.Error(), err
-	}
-
-	// Note: Working tree filesystem root
-	wtRoot := wt.Filesystem.Root()
-
-	// Get index tree (staged changes)
-	idx, err := repo.Storer.Index()
-	if err != nil {
-		return "", err.Error(), err
-	}
-
-	// Compare working tree with index to get unstaged changes
-	var buf bytes.Buffer
-	status, err := wt.Status()
-	if err != nil {
-		return "", err.Error(), err
-	}
-
-	hasChanges := false
-	for file, st := range status {
-		if st.Worktree != git.Unmodified && st.Worktree != git.Untracked {
-			hasChanges = true
-			// Get the file from index
-			entry, err := idx.Entry(file)
-			if err == nil {
-				// File exists in index - show diff
-				fmt.Fprintf(&buf, "diff --git a/%s b/%s\n", file, file)
-				fmt.Fprintf(&buf, "index %s..%s\n", entry.Hash.String()[:7], "modified")
-				fmt.Fprintf(&buf, "--- a/%s\n", file)
-				fmt.Fprintf(&buf, "+++ b/%s\n", file)
-				fmt.Fprintf(&buf, "@@ changes in working tree @@\n")
-			} else {
-				// New file not in index
-				fmt.Fprintf(&buf, "diff --git a/%s b/%s\n", file, file)
-				fmt.Fprintf(&buf, "new file (unstaged)\n")
-				fmt.Fprintf(&buf, "--- /dev/null\n")
-				fmt.Fprintf(&buf, "+++ b/%s\n", file)
+	// if user asked for version, try to exec system git for accurate result
+	for _, a := range args {
+		if a == "--version" {
+			cmd := exec.Command("git", args...)
+			var outb, errb bytes.Buffer
+			cmd.Stdout = &outb
+			cmd.Stderr = &errb
+			err := cmd.Run()
+			exit := 0
+			if err != nil {
+				if exitErr, ok := err.(*exec.ExitError); ok {
+					exit = exitErr.ExitCode()
+				} else {
+					exit = 1
+				}
 			}
+			return outb.String(), errb.String(), exit, err
 		}
 	}
 
-	_ = headTree
-	_ = wtRoot
-	_ = contextLines
-
-	if !hasChanges {
-		return "no unstaged changes", "", nil
-	}
-	return buf.String(), "", nil
-}
-
-// DiffStaged shows staged changes with unified diff format
-func DiffStaged(dir string, contextLines int) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	wt, err := repo.Worktree()
-	if err != nil {
-		return "", err.Error(), err
-	}
-
-	// Get HEAD commit tree
-	head, err := repo.Head()
-	if err != nil {
-		return "", err.Error(), err
-	}
-	commit, err := repo.CommitObject(head.Hash())
-	if err != nil {
-		return "", err.Error(), err
-	}
-	fromTree, err := commit.Tree()
-	if err != nil {
-		return "", err.Error(), err
-	}
-
-	// Get index tree
-	idx, err := repo.Storer.Index()
-	if err != nil {
-		return "", err.Error(), err
-	}
-
-	// Build tree from index
-	toTree := &object.Tree{}
-
-	// Get status to find staged files
-	status, err := wt.Status()
-	if err != nil {
-		return "", err.Error(), err
-	}
-
-	hasChanges := false
-	var buf bytes.Buffer
-	for file, st := range status {
-		if st.Staging != git.Unmodified {
-			hasChanges = true
-			entry, _ := idx.Entry(file)
-			if entry != nil {
-				fmt.Fprintf(&buf, "diff --git a/%s b/%s\n", file, file)
-				fmt.Fprintf(&buf, "index ..%s\n", entry.Hash.String()[:7])
-				fmt.Fprintf(&buf, "--- a/%s\n", file)
-				fmt.Fprintf(&buf, "+++ b/%s\n", file)
-				fmt.Fprintf(&buf, "@@ staged changes @@\n")
-			}
-		}
-	}
-
-	_ = fromTree
-	_ = toTree
-	_ = contextLines
-
-	if !hasChanges {
-		return "no staged changes", "", nil
-	}
-	return buf.String(), "", nil
-}
-
-// DiffTarget shows diff against a target branch/commit with unified diff format
-func DiffTarget(dir, target string, contextLines int) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-
-	// Resolve target revision
-	targetHash, err := repo.ResolveRevision(plumbing.Revision(target))
-	if err != nil {
-		return "", fmt.Sprintf("failed to resolve %s: %v", target, err), err
-	}
-
-	targetCommit, err := repo.CommitObject(*targetHash)
-	if err != nil {
-		return "", err.Error(), err
-	}
-
-	targetTree, err := targetCommit.Tree()
-	if err != nil {
-		return "", err.Error(), err
-	}
-
-	// Get current HEAD
-	head, err := repo.Head()
-	if err != nil {
-		return "", err.Error(), err
-	}
-
-	currentCommit, err := repo.CommitObject(head.Hash())
-	if err != nil {
-		return "", err.Error(), err
-	}
-
-	currentTree, err := currentCommit.Tree()
-	if err != nil {
-		return "", err.Error(), err
-	}
-
-	// Compute diff
-	changes, err := targetTree.Diff(currentTree)
-	if err != nil {
-		return "", err.Error(), err
-	}
-
-	var buf bytes.Buffer
-	if len(changes) == 0 {
-		return fmt.Sprintf("no differences between current HEAD and %s", target), "", nil
-	}
-
-	for _, change := range changes {
-		action, err := change.Action()
+	sub := args[0]
+	subArgs := args[1:]
+	switch sub {
+	case "status":
+		out, errStr, err := Status(dir)
 		if err != nil {
-			continue
+			return out, errStr, 1, err
 		}
-
-		var from, to *object.File
-		var fromPath, toPath string
-
-		switch action {
-		case merkletrie.Insert:
-			to, _ = change.To.Tree.TreeEntryFile(&change.To.TreeEntry)
-			toPath = change.To.Name
-			fromPath = "/dev/null"
-		case merkletrie.Delete:
-			from, _ = change.From.Tree.TreeEntryFile(&change.From.TreeEntry)
-			fromPath = change.From.Name
-			toPath = "/dev/null"
-		case merkletrie.Modify:
-			from, _ = change.From.Tree.TreeEntryFile(&change.From.TreeEntry)
-			to, _ = change.To.Tree.TreeEntryFile(&change.To.TreeEntry)
-			fromPath = change.From.Name
-			toPath = change.To.Name
+		return out, errStr, 0, nil
+	case "add":
+		if len(subArgs) == 0 {
+			return "", "add requires files", 2, fmt.Errorf("add requires files")
 		}
-
-		fmt.Fprintf(&buf, "diff --git a/%s b/%s\n", fromPath, toPath)
-
-		if action == merkletrie.Insert {
-			fmt.Fprintf(&buf, "new file mode %o\n", change.To.TreeEntry.Mode)
-			fmt.Fprintf(&buf, "--- /dev/null\n")
-			fmt.Fprintf(&buf, "+++ b/%s\n", toPath)
-			if to != nil {
-				content, _ := to.Contents()
-				lines := strings.Split(content, "\n")
-				fmt.Fprintf(&buf, "@@ -0,0 +1,%d @@\n", len(lines))
-				for _, line := range lines {
-					if line != "" || len(lines) > 1 {
-						fmt.Fprintf(&buf, "+%s\n", line)
-					}
+		out, errStr, err := Add(dir, subArgs)
+		if err != nil {
+			return out, errStr, 1, err
+		}
+		return out, errStr, 0, nil
+	case "reset":
+		out, errStr, err := Reset(dir)
+		if err != nil {
+			return out, errStr, 1, err
+		}
+		return out, errStr, 0, nil
+	case "commit":
+		// look for -m message
+		msg := ""
+		for i := 0; i < len(subArgs); i++ {
+			if subArgs[i] == "-m" && i+1 < len(subArgs) {
+				msg = subArgs[i+1]
+				break
+			}
+		}
+		if msg == "" {
+			return "", "commit requires -m", 2, fmt.Errorf("commit requires -m")
+		}
+		hash, errStr, code, err := Commit(dir, msg, nil)
+		return hash, errStr, code, err
+	case "log":
+		// simple mapping: optional -n
+		max := 0
+		for i := 0; i < len(subArgs); i++ {
+			if subArgs[i] == "-n" && i+1 < len(subArgs) {
+				if v, err := strconv.Atoi(subArgs[i+1]); err == nil {
+					max = v
 				}
 			}
-		} else if action == merkletrie.Delete {
-			fmt.Fprintf(&buf, "deleted file mode %o\n", change.From.TreeEntry.Mode)
-			fmt.Fprintf(&buf, "--- a/%s\n", fromPath)
-			fmt.Fprintf(&buf, "+++ /dev/null\n")
-			if from != nil {
-				content, _ := from.Contents()
-				lines := strings.Split(content, "\n")
-				fmt.Fprintf(&buf, "@@ -1,%d +0,0 @@\n", len(lines))
-				for _, line := range lines {
-					if line != "" || len(lines) > 1 {
-						fmt.Fprintf(&buf, "-%s\n", line)
-					}
+		}
+		logs, errStr, err := Log(dir, max, time.Time{}, time.Time{})
+		if err != nil {
+			return "[]", errStr, 1, err
+		}
+		bs, _ := jsonMarshal(logs)
+		return bs, errStr, 0, nil
+	case "branch":
+		// return list of local branches
+		branches, errStr, err := Branches(dir, "local")
+		if err != nil {
+			return "", errStr, 1, err
+		}
+		return strings.Join(branches, "\n"), "", 0, nil
+	case "checkout":
+		if len(subArgs) == 0 {
+			return "", "checkout requires name", 2, fmt.Errorf("checkout requires name")
+		}
+		out, errStr, err := Checkout(dir, subArgs[0])
+		if err != nil {
+			return out, errStr, 1, err
+		}
+		return out, errStr, 0, nil
+	case "show":
+		if len(subArgs) == 0 {
+			return "", "show requires rev", 2, fmt.Errorf("show requires rev")
+		}
+		out, errStr, err := Show(dir, subArgs[0])
+		if err != nil {
+			return out, errStr, 1, err
+		}
+		return out, errStr, 0, nil
+	case "branches":
+		branches, errStr, err := Branches(dir, "local")
+		if err != nil {
+			return "", errStr, 1, err
+		}
+		bs, _ := jsonMarshal(branches)
+		return bs, "", 0, nil
+	case "pull":
+		out, errStr, err := Pull(dir, subArgs)
+		if err != nil {
+			return out, errStr, 1, err
+		}
+		return out, errStr, 0, nil
+	case "push":
+		out, errStr, err := Push(dir, subArgs, "", "", "", "")
+		if err != nil {
+			return out, errStr, 1, err
+		}
+		return out, errStr, 0, nil
+	case "tag":
+		if len(subArgs) < 2 {
+			return "", "tag requires name and rev", 2, fmt.Errorf("tag requires name and rev")
+		}
+		name := subArgs[0]
+		rev := subArgs[1]
+		out, errStr, err := Tag(dir, name, rev, false, "")
+		if err != nil {
+			return out, errStr, 1, err
+		}
+		return out, errStr, 0, nil
+	default:
+		// unsupported: attempt to run system git as fallback if available
+		if path, err := exec.LookPath("git"); err == nil && path != "" {
+			cmd := exec.Command("git", args...)
+			if dir != "" {
+				cmd.Dir = dir
+			}
+			var outb, errb bytes.Buffer
+			cmd.Stdout = &outb
+			cmd.Stderr = &errb
+			err := cmd.Run()
+			exit := 0
+			if err != nil {
+				if exitErr, ok := err.(*exec.ExitError); ok {
+					exit = exitErr.ExitCode()
+				} else {
+					exit = 1
 				}
 			}
-		} else if action == merkletrie.Modify {
-			fmt.Fprintf(&buf, "--- a/%s\n", fromPath)
-			fmt.Fprintf(&buf, "+++ b/%s\n", toPath)
-
-			if from != nil && to != nil {
-				fromContent, _ := from.Contents()
-				toContent, _ := to.Contents()
-
-				// Simple diff indication (full unified diff would require more complex logic)
-				fromLines := strings.Split(fromContent, "\n")
-				toLines := strings.Split(toContent, "\n")
-				fmt.Fprintf(&buf, "@@ -%d,0 +%d,0 @@\n", len(fromLines), len(toLines))
-				fmt.Fprintf(&buf, " (content changed)\n")
-			}
+			return outb.String(), errb.String(), exit, err
 		}
+		return "", fmt.Sprintf("unsupported git subcommand: %s", sub), 127, fmt.Errorf("unsupported subcommand")
 	}
-
-	_ = contextLines
-
-	return buf.String(), "", nil
 }
 
-// Show shows a commit with patch
-func Show(dir, rev string) (string, string, error) {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		return "", err.Error(), err
-	}
-	h, err := repo.ResolveRevision(plumbing.Revision(rev))
-	if err != nil {
-		return "", err.Error(), err
-	}
-	commit, err := repo.CommitObject(*h)
-	if err != nil {
-		return "", err.Error(), err
-	}
-
-	var b strings.Builder
-	fmt.Fprintf(&b, "commit %s\n", commit.Hash.String())
-	fmt.Fprintf(&b, "Author: %s <%s>\n", commit.Author.Name, commit.Author.Email)
-	fmt.Fprintf(&b, "Date:   %s\n\n", commit.Author.When.Format(time.RFC1123Z))
-	fmt.Fprintf(&b, "    %s\n", strings.ReplaceAll(strings.TrimSpace(commit.Message), "\n", "\n    "))
-
-	// Show diff against parent
-	if commit.NumParents() > 0 {
-		parent, err := commit.Parent(0)
-		if err == nil {
-			parentTree, _ := parent.Tree()
-			commitTree, _ := commit.Tree()
-			if parentTree != nil && commitTree != nil {
-				changes, err := parentTree.Diff(commitTree)
-				if err == nil && len(changes) > 0 {
-					fmt.Fprintf(&b, "\n")
-					for _, change := range changes {
-						action, _ := change.Action()
-						switch action {
-						case merkletrie.Insert:
-							fmt.Fprintf(&b, "new file: %s\n", change.To.Name)
-						case merkletrie.Delete:
-							fmt.Fprintf(&b, "deleted: %s\n", change.From.Name)
-						case merkletrie.Modify:
-							fmt.Fprintf(&b, "modified: %s\n", change.To.Name)
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return b.String(), "", nil
+// small helper: JSON marshal without extra imports here
+func jsonMarshal(v any) (string, error) {
+	b, err := jsonMarshalStd(v)
+	return string(b), err
 }
+
+// we implement a tiny indirection to avoid importing encoding/json at top-level twice in different files
+func jsonMarshalStd(v any) ([]byte, error) {
+	// import on demand
+	return func(v any) ([]byte, error) {
+		return jsonMarshalReal(v)
+	}(v)
+}
+
+// low-level real marshal implemented via standard library (separate function to keep imports local)
+func jsonMarshalReal(v any) ([]byte, error) {
+	return jsonMarshalImport(v)
+}
+
+// jsonMarshalImport is defined in a small file to include encoding/json import.

@@ -39,6 +39,12 @@ type Args struct {
 	Force       bool   `json:"force"`
 	SetUpstream bool   `json:"set_upstream"`
 	Rebase      bool   `json:"rebase"`
+
+	// auth fields
+	Token    string `json:"token,omitempty"`
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
+	SSHKey   string `json:"ssh_key,omitempty"`
 }
 
 type payloadObj struct {
@@ -68,6 +74,12 @@ type payloadObj struct {
 	Force       bool   `json:"force,omitempty"`
 	SetUpstream bool   `json:"set_upstream,omitempty"`
 	Rebase      bool   `json:"rebase,omitempty"`
+
+	// auth
+	Token    string `json:"token,omitempty"`
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
+	SSHKey   string `json:"ssh_key,omitempty"`
 }
 
 // Run is kept for backward compatibility and delegates to specific tool handlers.
@@ -304,11 +316,14 @@ func RunGitShow(args *Args) (any, error) {
 
 func RunGitBranches(args *Args) (any, error) {
 	typ := strings.ToLower(strings.TrimSpace(args.BranchType))
-	o, errStr, err := Branches(args.Dir, typ)
-	out := Output{Stdout: o, Stderr: errStr, ExitCode: 0, OK: err == nil}
+	branches, errStr, err := Branches(args.Dir, typ)
+	out := Output{Stdout: "", Stderr: errStr, ExitCode: 0, OK: err == nil}
 	if err != nil {
 		out.ExitCode = 1
 		out.Error = err.Error()
+	} else {
+		bs, _ := json.Marshal(branches)
+		out.Stdout = string(bs)
 	}
 	return encodeOutput(out)
 }
@@ -336,7 +351,7 @@ func RunGitPush(args *Args) (any, error) {
 	if args.Annotated { // reuse Annotated as 'tags' flag if set in Args
 		a = append(a, "--tags")
 	}
-	outStr, errStr, err := Push(args.Dir, a)
+	outStr, errStr, err := Push(args.Dir, a, args.Token, args.Username, args.Password, args.SSHKey)
 	out := Output{Stdout: outStr, Stderr: errStr, ExitCode: 0, OK: err == nil}
 	if err != nil {
 		out.ExitCode = 1
