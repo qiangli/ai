@@ -41,21 +41,14 @@ type ToolFunc struct {
 
 	// tool name or pack/sub for agent
 	Name        string `json:"name"`
-	Description string `json:"description"` // description
+	Display     string `json:"display"`
+	Description string `json:"description"`
+	Usage       string `json:"usage"`
+	Examples    string `json:"examples"`
 
-	Parameters Parameters `json:"parameters"` // parameters
+	Parameters Parameters `json:"parameters"`
 
-	Body *FuncBody `json:"body"` // body
-
-	// // TODO move provider/base_url/api_key to argments
-	// Provider string `json:"provider"`
-	// BaseUrl  string `json:"base_url"` // base url
-	// // name of api key - used to resolve api key/token before tool call
-	// ApiKey string `json:"api_key"`
-
-	// // extra features.
-	// // e.g labels for mcp for filtering tools
-	// Extra map[string]any `json:"extra"`
+	Body *FuncBody `json:"body"`
 
 	// input arguments
 	Arguments map[string]any `json:"arguments"`

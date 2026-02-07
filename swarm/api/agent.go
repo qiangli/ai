@@ -84,6 +84,8 @@ type Agent struct {
 	Name        string `json:"name"` // Agent sub name
 	Display     string `json:"display"`
 	Description string `json:"description"`
+	Usage       string `json:"usage"`
+	Examples    string `json:"examples"`
 
 	// exported global values
 	// Environment map[string]any
