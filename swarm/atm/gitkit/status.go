@@ -77,12 +77,12 @@ func statusDetailed(dir string) (string, error) {
 							if ahead > 0 {
 								pl := plural(ahead)
 								lines = append(lines, fmt.Sprintf("Your branch is ahead of '%s' by %d commit%s.", upstreamRefName.Short(), ahead, pl))
-								lines = append(lines, `[use "git push" to publish your local commits.]`)
+								lines = append(lines, `[use "git:push" to publish your local commits.]`)
 							}
 							if behind > 0 {
 								pl := plural(behind)
 								lines = append(lines, fmt.Sprintf("Your branch is behind '%s' by %d commit%s.", upstreamRefName.Short(), behind, pl))
-								lines = append(lines, `[use "git pull" to update your local branch.]`)
+								lines = append(lines, `[use "git:pull" to update your local branch.]`)
 							}
 						}
 					}
@@ -133,18 +133,18 @@ func statusDetailed(dir string) (string, error) {
 	if hasChanges {
 		if len(stagedChanges) > 0 {
 			lines = append(lines, "Changes to be committed:")
-			lines = append(lines, `  (use "git restore --staged <file>..." to unstage)`)
+			lines = append(lines, `  (use "git:restore --staged ..." to unstage)`)
 			lines = append(lines, stagedChanges...)
 		}
 		if len(unstagedChanges) > 0 {
 			lines = append(lines, "Changes not staged for commit:")
-			lines = append(lines, `  (use "git add <file>..." to update what will be committed)`)
-			lines = append(lines, `  (use "git restore <file>..." to discard changes in working directory)`)
+			lines = append(lines, `  (use "git:add ..." to update what will be committed)`)
+			lines = append(lines, `  (use "git:restore ..." to discard changes in working directory)`)
 			lines = append(lines, unstagedChanges...)
 		}
 		if len(untrackedFiles) > 0 {
 			lines = append(lines, "Untracked files:")
-			lines = append(lines, `  (use "git add <file>..." to include in what will be committed)`)
+			lines = append(lines, `  (use "git:add ..." to include in what will be committed)`)
 			lines = append(lines, untrackedFiles...)
 		}
 	} else {

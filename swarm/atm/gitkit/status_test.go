@@ -136,7 +136,7 @@ func TestStatus(t *testing.T) {
 		if !strings.Contains(out, "Your branch is ahead of 'origin/main' by 1 commit.") {
 			t.Errorf("expected ahead message, got:\n%s", out)
 		}
-		if !strings.Contains(out, `[use "git push" to publish your local commits.]`) {
+		if !strings.Contains(out, `[use "git:push" to publish your local commits.]`) {
 			t.Errorf("expected push hint, got:\n%s", out)
 		}
 	})

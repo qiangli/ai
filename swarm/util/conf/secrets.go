@@ -13,14 +13,15 @@ var getApiKey func(string) string
 func init() {
 	// save the env before they are cleared during runtime
 	var env = make(map[string]string)
-	// env["openai"] = os.Getenv("OPENAI_API_KEY")
-	// env["gemini"] = os.Getenv("GEMINI_API_KEY")
-	// env["anthropic"] = os.Getenv("ANTHROPIC_API_KEY")
-	//
-	// env["google"] = os.Getenv("GOOGLE_SEARCH_ENGINE_ID") + ":" + os.Getenv("GOOGLE_API_KEY")
-	// env["brave"] = os.Getenv("BRAVE_API_KEY")
-	// env["dhnt"] = os.Getenv("DHNT_API_KEY")
 
+	// openai: OPENAI_API_KEY
+	// gemini: GEMINI_API_KEY
+	// anthropic: ANTHROPIC_API_KEY
+	//
+	// google: GOOGLE_SEARCH_ENGINE_ID:GOOGLE_API_KEY
+	// brave: BRAVE_API_KEY
+	// dhnt: DHNT_API_KEY
+	//
 	// store all keys ending in _API_KEY
 	// and make it available as api key without the suffix
 	for _, kv := range os.Environ() {

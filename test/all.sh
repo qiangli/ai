@@ -5,7 +5,7 @@ set -ue
 BASE=$(pwd)
 echo $BASE
 
-/sh:set_envs --option envs="[OPENAI_API_KEY=invalid,GEMINI_API_KEY=invalid,ANTHROPIC_API_KEY=invalid,XAI_API_KEY=invalide}]"
+/sh:set_envs --option envs="[OPENAI_API_KEY=invalid,GEMINI_API_KEY=invalid,ANTHROPIC_API_KEY=invalid,XAI_API_KEY=invalid]"
 
 ##
 # 
