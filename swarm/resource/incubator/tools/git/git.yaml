@@ -263,7 +263,7 @@ tools:
         message:
           type: "string"
           description: "Optional tag message (used for annotated tags)."
-      required: ["tag_name", "revision"]
+      required: []
 
   - name: "push"
     description: |

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	git "github.com/go-git/go-git/v5"
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/atm/gitkit"
 )
@@ -218,9 +219,19 @@ func (r *GitKit) Tag(ctx context.Context, vars *api.Vars, parent *api.Agent, tf 
 	if err != nil {
 		return nil, err
 	}
-	tagName, err := api.GetStrProp("tag_name", args)
-	if err != nil {
-		return nil, fmt.Errorf("tag_name is required: %w", err)
+	// tag_name is optional: if not provided, list tags
+	tagName, _ := api.GetStrProp("tag_name", args)
+	if tagName == "" {
+		// list tags using gitkit.Tags
+		repo, err := git.PlainOpen(dir)
+		if err != nil {
+			return nil, err
+		}
+		list, err := gitkit.Tags(ctx, repo)
+		if err != nil {
+			return nil, err
+		}
+		return list, nil
 	}
 	// revision may be provided as 'revision' or 'rev' or 'target'
 	rev, _ := api.GetStrProp("revision", args)
