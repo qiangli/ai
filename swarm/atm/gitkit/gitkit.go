@@ -189,13 +189,6 @@ func RunGitCommit(args *Args) (any, error) {
 
 func RunGitAdd(args *Args) (any, error) {
 	files := args.Files
-	// if args.Args != "" && args.Args != "<no value>" {
-	// 	files = api.ToStringArray(args.Args)
-	// }
-	// if args.Files != nil {
-	// 	// args.Files is a single string maybe with commas; reuse ToStringArray
-	// 	files = api.ToStringArray(args.Files)
-	// }
 	if len(files) == 0 {
 		out := Output{ExitCode: 2, OK: false, Error: "add requires files"}
 		return encodeOutput(out)
