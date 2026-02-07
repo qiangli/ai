@@ -28,7 +28,7 @@ agents:
       - If the request depends on *user-specific preferences or facts* (e.g., "my city", "my timezone", "my units") then:
         1) First try to resolve them from existing context using:
             - `ai:list_messages` (recent context)
-        2) If still missing, fall back to local workspace preference files when available (e.g. `/Users/liqiang/workspace/cloudbox/ai/.local/ask/preference.md`) using `fs:read_file`.
+        2) If still missing, fall back to local workspace preference files when available (e.g. `preference.md`) using `fs:read_file`.
         3) Only ask a clarifying question if you still cannot answer safely/accurately.
       - If the request is ambiguous *and* cannot be answered safely/accurately even after the above, ask the smallest number of clarifying questions.
       - If a tool fails, try an alternative tool/agent with similar capabilities.
