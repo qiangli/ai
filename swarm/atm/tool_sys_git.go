@@ -365,14 +365,7 @@ func (r *GitKit) Restore(ctx context.Context, vars *api.Vars, parent *api.Agent,
 		return nil, err
 	}
 
-	pathsIface, _ := api.GetArrayProp("paths", args)
-	var paths []string
-	if pathsIface != nil {
-		for _, p := range pathsIface {
-			paths = append(paths, fmt.Sprintf("%v", p))
-		}
-	}
-
+	paths, _ := api.GetArrayProp("paths", args)
 	source, _ := api.GetStrProp("source", args)
 
 	staged := false
