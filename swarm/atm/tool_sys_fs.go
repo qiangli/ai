@@ -14,7 +14,7 @@ func (r *SystemKit) ListRoots(ctx context.Context, vars *api.Vars, name string, 
 	resolve, _ := api.GetBoolProp("resolve", args)
 
 	var result strings.Builder
-	result.WriteString("Allowed Root Directories:\n\n")
+	// result.WriteString("Allowed Root Directories:\n\n")
 	var roots any
 	var err error
 	if resolve {

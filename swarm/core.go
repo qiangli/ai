@@ -74,17 +74,41 @@ func (sw *Swarm) Parse(ctx context.Context, input any) (api.ArgMap, error) {
 	log.GetLogger(ctx).Debugf("argm: %+v\n", input)
 
 	parsev := func(argv []string) (api.ArgMap, error) {
-		if conf.IsAction(argv[0]) {
-			cfg, err := GetInput(ctx, argv)
-			if err != nil {
-				return nil, err
-			}
-			// remove special trailing chars
-			if cfg.Message != "" {
-				argv = append(cfg.Args, "--stdin", cfg.Message)
-			}
+		// remove special trailing chars
+		c := ParseSpecialChars(argv)
+		argm, err := conf.Parse(c.Args)
+		if err != nil {
+			return nil, err
 		}
-		return conf.Parse(argv)
+
+		input := argm.GetString("input")
+		if input == "-" {
+			c.Stdin = true
+		}
+
+		in, err := GetUserInput(ctx, c)
+		if err != nil {
+			return nil, err
+		}
+
+		msg := argm.GetString("message")
+		stdin := argm.GetString("stdin")
+		if stdin != "" {
+			msg = api.Cat(msg, stdin, "\n\n")
+		}
+		if in.Message != "" {
+			msg = api.Cat(msg, in.Message, "\n\n")
+		}
+
+		// update input and message from merged content
+		// for some tools
+		if input == "-" {
+			argm["input"] = msg
+		}
+		// for agents
+		argm["message"] = msg
+
+		return argm, nil
 	}
 
 	var argm api.ArgMap

@@ -5,7 +5,7 @@ tools:
     description: |
       A lightweight wrapper around the jq JSON processor. Executes a jq expression against input JSON.
       When an exec implementation is present, the runtime will invoke the binary located at the relative exec path.
-      
+
       Implemented in Go using github.com/itchyny/gojq.
     type: "system"
     parameters:
@@ -16,11 +16,11 @@ tools:
           description: "jq expression to run (e.g., '.foo')"
         input:
           type: "string"
-          description: "Input JSON as a string. If omitted, stdin is used."
+          description: "Input JSON as a string. If input is a single dash `-', stdin is used."
         file:
           type: "string"
           description: "Path to a JSON file to use as input. If provided, overrides input."
       required:
         - expr
     examples:
-      - "sh:jq --expr '.foo' --input '{\"foo\": 1}'"
+      - 'sh:jq --expr ''.foo'' --input ''{"foo": 1}'''

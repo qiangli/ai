@@ -31,9 +31,9 @@ const (
 	ClipoutRedirect2 = "}}"
 )
 
-type inputConfig struct {
-	Message string
-	Args    []string
+type InputConfig struct {
+	// Message string
+	Args []string
 
 	Clipin     bool
 	ClipWait   bool
@@ -42,24 +42,24 @@ type inputConfig struct {
 	Stdin      bool
 }
 
-func GetInput(ctx context.Context, argv []string) (*inputConfig, error) {
-	cfg := ParseSpecialChars(argv)
+// func GetInput(ctx context.Context, argv []string) (*InputConfig, error) {
+// 	cfg := ParseSpecialChars(argv)
 
-	in, err := GetUserInput(ctx, cfg)
-	if err != nil {
-		return nil, err
-	}
-	cfg.Message = in.Message
+// 	in, err := GetUserInput(ctx, cfg)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	cfg.Message = in.Message
 
-	return cfg, nil
-}
+// 	return cfg, nil
+// }
 
 // parse special char sequence for stdin/clipboard
 // they can:
 // + be at the end of the args
 // + be in any order
 // + be multiple instances
-func ParseSpecialChars(args []string) *inputConfig {
+func ParseSpecialChars(args []string) *InputConfig {
 	var isStdin, isClipin, isClipWait, isClipout, isClipAppend bool
 
 	if len(args) > 0 {
@@ -87,7 +87,7 @@ func ParseSpecialChars(args []string) *inputConfig {
 		}
 	}
 
-	var cfg inputConfig
+	var cfg InputConfig
 
 	cfg.Stdin = isStdin
 	cfg.Clipin = isClipin
@@ -105,13 +105,13 @@ func ParseSpecialChars(args []string) *inputConfig {
 // otherwise, it determines the input source (stdin, clipboard, editor)
 // and collects input accordingly. It also
 // attaches any provided files or template file if provided.
-func GetUserInput(ctx context.Context, cfg *inputConfig) (*api.UserInput, error) {
+func GetUserInput(ctx context.Context, cfg *InputConfig) (*api.UserInput, error) {
 	return getUserInput(ctx, cfg, nil, nil, nil)
 }
 
 // user query: message and content
 // cfg.Message is prepended to message collected from command line --message flag or the non flag/option args.
-func getUserInput(ctx context.Context, cfg *inputConfig, stdin io.Reader, clipper api.ClipboardProvider, editor api.EditorProvider) (*api.UserInput, error) {
+func getUserInput(ctx context.Context, cfg *InputConfig, stdin io.Reader, clipper api.ClipboardProvider, editor api.EditorProvider) (*api.UserInput, error) {
 	// collecting message content from various sources
 	if clipper == nil {
 		clipper = util.NewClipboard()
@@ -126,7 +126,7 @@ func getUserInput(ctx context.Context, cfg *inputConfig, stdin io.Reader, clippe
 
 func userInput(
 	ctx context.Context,
-	cfg *inputConfig,
+	cfg *InputConfig,
 	stdin io.Reader,
 	clipboard api.ClipboardProvider,
 ) (*api.UserInput, error) {

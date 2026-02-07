@@ -350,21 +350,9 @@ func Parse(input any) (api.ArgMap, error) {
 }
 
 func parsev(argv []string) (api.ArgMap, error) {
-	var argm map[string]any
-	// if IsAction(argv[0]) {
 	argm, err := ParseActionArgs(argv)
 	if err != nil {
 		return nil, err
 	}
-	// argm = v
-
-	// merge messae/stdin
-	// stdin := api.ToString(argm["stdin"])
-	// if stdin != "" {
-	// 	msg := argm["message"]
-	// 	argm["message"] = api.Cat(api.ToString(msg), stdin, "\n---\n")
-	// }
-	// argm["message"] = strings.Join(argv, " ")
-	// // }
 	return argm, nil
 }

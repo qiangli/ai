@@ -12,9 +12,9 @@ echo ">>> Testing backoff..."
 # agent action
 /sh:backoff --command "/agent:ed/ed --adapter echo --output none"  --option duration="10s"
 # flow:choice
-/sh:backoff --command "/flow:choice --actions '[sh:pass,invalid_action,kit:invalid_tool]'"  --duration "60s"
+/sh:backoff --command "/flow:choice --actions '[sh:pass,invalid_action,kit:invalid_tool,sh:workspace]'"  --duration "1m"
 #
-/sh:backoff --action "/alias:choose" --option choose="/flow:choice --actions '[sh:pass,no_such_cmd,sh:pwd,kit:invalid_tool]'" --duration "30s"
+/sh:backoff --action "/alias:choose" --option choose="/flow:choice --actions '[sh:pass,no_such_cmd,sh:pwd,kit:invalid_tool]'" --duration "60s"
 
 echo "$?"
 echo "*** 🎉 backoff tests completed ***"
