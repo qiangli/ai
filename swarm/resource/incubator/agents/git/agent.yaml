@@ -55,17 +55,20 @@ agents:
       2) If payload.action is non-empty:
          - Route deterministically by spawning the matching sub-agent:
            status -> agent:git/status
-           clone -> agent:git/clone
            commit -> agent:git/commit
            pull -> agent:git/pull
            push -> agent:git/push
-           branch -> agent:git/branch
-           remote-url -> agent:git/remote-url
-           rev-parse -> agent:git/rev-parse
-           list-branches -> agent:git/list-branches
-           list-remotes -> agent:git/list-remotes
-           latest-commit -> agent:git/latest-commit
-           show-file -> agent:git/show-file
+           branches -> agent:git/branches
+           log -> agent:git/log
+           show -> agent:git/show
+           diff -> agent:git/diff
+           diff_staged -> agent:git/diff_staged
+           diff_unstaged -> agent:git/diff_unstaged
+           add -> agent:git/add
+           reset -> agent:git/reset
+           checkout -> agent:git/checkout
+           create_branch -> agent:git/create_branch
+           tag -> agent:git/tag
 
       3) Else if payload.query is non-empty:
          - Call sh:classifier with the query to obtain {action,dir,args,message,confidence}.
@@ -74,7 +77,7 @@ agents:
              {
                "ok": false,
                "needs_clarification": true,
-               "question": "I couldn't determine the git action. Please specify one of: status, clone, commit, pull, push, branch, remote-url, rev-parse, list-branches, list-remotes, latest-commit, show-file. Also include repo dir if needed.",
+               "question": "I couldn't determine the git action. Please specify one of: status, commit, pull, push, branches, log, show, diff, diff_staged, diff_unstaged, add, reset, checkout, create_branch, tag. Also include repo dir if needed.",
                "classifier": { ...full classifier output... }
              }
            and STOP.
@@ -84,219 +87,255 @@ agents:
          return a JSON error telling the user to provide action or query.
 
       Output requirements:
-      - For successful operations, return the sub-agent's JSON output.
+      - For successful operations, return the sub-agent's output as-is.
       - For clarification requests, return the structured clarification JSON described above.
     functions:
       - "ai:spawn_agent"
       - "sh:classifier"
       - "agent:git/status"
-      - "agent:git/clone"
       - "agent:git/commit"
       - "agent:git/pull"
       - "agent:git/push"
-      - "agent:git/branch"
-      - "agent:git/remote-url"
-      - "agent:git/rev-parse"
-      - "agent:git/list-branches"
-      - "agent:git/list-remotes"
-      - "agent:git/latest-commit"
-      - "agent:git/show-file"
+      - "agent:git/branches"
+      - "agent:git/log"
+      - "agent:git/show"
+      - "agent:git/diff"
+      - "agent:git/diff_staged"
+      - "agent:git/diff_unstaged"
+      - "agent:git/add"
+      - "agent:git/reset"
+      - "agent:git/checkout"
+      - "agent:git/create_branch"
+      - "agent:git/tag"
 
   - name: "status"
     display: "git status"
-    description: "Deterministic git status (porcelain)."
+    description: "Deterministic git status (tool wrapper)."
     model: "default/any"
     parameters:
       type: "object"
       properties:
-        id: { type: "string" }
-        user: { type: "string" }
         dir: { type: "string" }
       required: ["dir"]
     instruction: |
-      Call sh:git-tool with envelope {id,user,payload:{action:"status",dir}}.
-      Return the tool JSON as-is.
-    functions: ["sh:git-tool"]
-
-  - name: "clone"
-    display: "git clone"
-    description: "Deterministic git clone."
-    model: "default/any"
-    parameters:
-      type: "object"
-      properties:
-        id: { type: "string" }
-        user: { type: "string" }
-        repo_url: { type: "string" }
-        dest_dir: { type: "string" }
-      required: ["repo_url","dest_dir"]
-    instruction: |
-      Call sh:git-tool with envelope {id,user,payload:{action:"clone",args:[repo_url,dest_dir]}}.
-      Return the tool JSON as-is.
-    functions: ["sh:git-tool"]
+      Call git:status with {dir}.
+      Return the tool output as-is.
+    functions: ["git:status"]
 
   - name: "commit"
     display: "git commit"
-    description: "Deterministic git commit."
+    description: "Deterministic git commit (tool wrapper)."
     model: "default/any"
     parameters:
       type: "object"
       properties:
-        id: { type: "string" }
-        user: { type: "string" }
         dir: { type: "string" }
         message: { type: "string" }
-      required: ["dir","message"]
+        args: { type: "array", items: { type: "string" } }
+      required: ["dir", "message"]
     instruction: |
-      Call sh:git-tool with envelope {id,user,payload:{action:"commit",dir,message}}.
-      Return the tool JSON as-is.
-    functions: ["sh:git-tool"]
+      Call git:commit with {dir,message,args}.
+      Return the tool output as-is.
+    functions: ["git:commit"]
 
   - name: "pull"
     display: "git pull"
-    description: "Deterministic git pull."
+    description: "Deterministic git pull (tool wrapper)."
     model: "default/any"
     parameters:
       type: "object"
       properties:
-        id: { type: "string" }
-        user: { type: "string" }
         dir: { type: "string" }
-        args: { type: "array", items: { type: "string" } }
+        remote: { type: "string" }
+        branch: { type: "string" }
       required: ["dir"]
     instruction: |
-      Call sh:git-tool with envelope {id,user,payload:{action:"pull",dir,args}}.
-      Return the tool JSON as-is.
-    functions: ["sh:git-tool"]
+      Call git:pull with {dir,remote,branch}.
+      Return the tool output as-is.
+    functions: ["git:pull"]
 
   - name: "push"
     display: "git push"
-    description: "Deterministic git push."
+    description: "Deterministic git push (tool wrapper)."
     model: "default/any"
     parameters:
       type: "object"
       properties:
-        id: { type: "string" }
-        user: { type: "string" }
         dir: { type: "string" }
-        args: { type: "array", items: { type: "string" } }
+        remote: { type: "string" }
+        branch: { type: "string" }
+        push_tags: { type: "boolean" }
       required: ["dir"]
     instruction: |
-      Call sh:git-tool with envelope {id,user,payload:{action:"push",dir,args}}.
-      Return the tool JSON as-is.
-    functions: ["sh:git-tool"]
+      Call git:push with {dir,remote,branch,push_tags}.
+      Return the tool output as-is.
+    functions: ["git:push"]
 
-  - name: "branch"
-    display: "git branch (current)"
-    description: "Deterministic current branch lookup."
+  - name: "branches"
+    display: "git branches"
+    description: "List branches (tool wrapper)."
     model: "default/any"
     parameters:
       type: "object"
       properties:
-        id: { type: "string" }
-        user: { type: "string" }
+        dir: { type: "string" }
+        scope: { type: "string", description: "local|remote|all" }
+      required: ["dir"]
+    instruction: |
+      Call git:branches with {dir,scope}.
+      Return the tool output as-is.
+    functions: ["git:branches"]
+
+  - name: "log"
+    display: "git log"
+    description: "Show commit logs (tool wrapper)."
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        dir: { type: "string" }
+        since: { type: "string" }
+        until: { type: "string" }
+        limit: { type: "integer" }
+      required: ["dir"]
+    instruction: |
+      Call git:log with {dir,since,until,limit}.
+      Return the tool output as-is.
+    functions: ["git:log"]
+
+  - name: "show"
+    display: "git show"
+    description: "Show a revision/commit (tool wrapper)."
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        dir: { type: "string" }
+        revision: { type: "string" }
+      required: ["dir", "revision"]
+    instruction: |
+      Call git:show with {dir,revision}.
+      Return the tool output as-is.
+    functions: ["git:show"]
+
+  - name: "diff"
+    display: "git diff"
+    description: "Diff vs target (tool wrapper)."
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        dir: { type: "string" }
+        target: { type: "string" }
+        context_lines: { type: "integer" }
+      required: ["dir", "target"]
+    instruction: |
+      Call git:diff with {dir,target,context_lines}.
+      Return the tool output as-is.
+    functions: ["git:diff"]
+
+  - name: "diff_staged"
+    display: "git diff --cached"
+    description: "Diff staged (tool wrapper)."
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        dir: { type: "string" }
+        context_lines: { type: "integer" }
+      required: ["dir"]
+    instruction: |
+      Call git:diff_staged with {dir,context_lines}.
+      Return the tool output as-is.
+    functions: ["git:diff_staged"]
+
+  - name: "diff_unstaged"
+    display: "git diff"
+    description: "Diff unstaged (tool wrapper)."
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        dir: { type: "string" }
+        context_lines: { type: "integer" }
+      required: ["dir"]
+    instruction: |
+      Call git:diff_unstaged with {dir,context_lines}.
+      Return the tool output as-is.
+    functions: ["git:diff_unstaged"]
+
+  - name: "add"
+    display: "git add"
+    description: "Stage files (tool wrapper)."
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
+        dir: { type: "string" }
+        files: { type: "array", items: { type: "string" } }
+      required: ["dir", "files"]
+    instruction: |
+      Call git:add with {dir,files}.
+      Return the tool output as-is.
+    functions: ["git:add"]
+
+  - name: "reset"
+    display: "git reset"
+    description: "Unstage changes (tool wrapper)."
+    model: "default/any"
+    parameters:
+      type: "object"
+      properties:
         dir: { type: "string" }
       required: ["dir"]
     instruction: |
-      Call sh:git-tool with envelope {id,user,payload:{action:"branch",dir}}.
-      Return the tool JSON as-is.
-    functions: ["sh:git-tool"]
+      Call git:reset with {dir}.
+      Return the tool output as-is.
+    functions: ["git:reset"]
 
-  - name: "remote-url"
-    display: "git remote-url"
-    description: "Deterministic origin remote URL lookup."
+  - name: "checkout"
+    display: "git checkout"
+    description: "Checkout branch (tool wrapper)."
     model: "default/any"
     parameters:
       type: "object"
       properties:
-        id: { type: "string" }
-        user: { type: "string" }
         dir: { type: "string" }
-      required: ["dir"]
+        branch: { type: "string" }
+      required: ["dir", "branch"]
     instruction: |
-      Call sh:git-tool with envelope {id,user,payload:{action:"remote-url",dir}}.
-      Return the tool JSON as-is.
-    functions: ["sh:git-tool"]
+      Call git:checkout with {dir,branch}.
+      Return the tool output as-is.
+    functions: ["git:checkout"]
 
-  - name: "rev-parse"
-    display: "git rev-parse"
-    description: "Deterministic rev-parse."
+  - name: "create_branch"
+    display: "git branch <new>"
+    description: "Create branch (tool wrapper)."
     model: "default/any"
     parameters:
       type: "object"
       properties:
-        id: { type: "string" }
-        user: { type: "string" }
         dir: { type: "string" }
-        rev: { type: "string" }
-      required: ["dir","rev"]
+        name: { type: "string" }
+        base_branch: { type: "string" }
+      required: ["dir", "name"]
     instruction: |
-      Call sh:git-tool with envelope {id,user,payload:{action:"rev-parse",dir,rev}}.
-      Return the tool JSON as-is.
-    functions: ["sh:git-tool"]
+      Call git:create_branch with {dir,name,base_branch}.
+      Return the tool output as-is.
+    functions: ["git:create_branch"]
 
-  - name: "list-branches"
-    display: "git list-branches"
-    description: "Deterministic local branch list."
+  - name: "tag"
+    display: "git tag"
+    description: "Create tag (tool wrapper)."
     model: "default/any"
     parameters:
       type: "object"
       properties:
-        id: { type: "string" }
-        user: { type: "string" }
         dir: { type: "string" }
-      required: ["dir"]
+        tag_name: { type: "string" }
+        revision: { type: "string" }
+      required: ["dir", "tag_name"]
     instruction: |
-      Call sh:git-tool with envelope {id,user,payload:{action:"list-branches",dir}}.
-      Return the tool JSON as-is.
-    functions: ["sh:git-tool"]
-
-  - name: "list-remotes"
-    display: "git list-remotes"
-    description: "Deterministic remote list."
-    model: "default/any"
-    parameters:
-      type: "object"
-      properties:
-        id: { type: "string" }
-        user: { type: "string" }
-        dir: { type: "string" }
-      required: ["dir"]
-    instruction: |
-      Call sh:git-tool with envelope {id,user,payload:{action:"list-remotes",dir}}.
-      Return the tool JSON as-is.
-    functions: ["sh:git-tool"]
-
-  - name: "latest-commit"
-    display: "git latest-commit"
-    description: "Deterministic latest commit line."
-    model: "default/any"
-    parameters:
-      type: "object"
-      properties:
-        id: { type: "string" }
-        user: { type: "string" }
-        dir: { type: "string" }
-      required: ["dir"]
-    instruction: |
-      Call sh:git-tool with envelope {id,user,payload:{action:"latest-commit",dir}}.
-      Return the tool JSON as-is.
-    functions: ["sh:git-tool"]
-
-  - name: "show-file"
-    display: "git show-file"
-    description: "Deterministic show file content at rev."
-    model: "default/any"
-    parameters:
-      type: "object"
-      properties:
-        id: { type: "string" }
-        user: { type: "string" }
-        dir: { type: "string" }
-        rev: { type: "string" }
-        path: { type: "string" }
-      required: ["dir","rev","path"]
-    instruction: |
-      Call sh:git-tool with envelope {id,user,payload:{action:"show-file",dir,rev,path}}.
-      Return the tool JSON as-is.
-    functions: ["sh:git-tool"]
+      Call git:tag with {dir,tag_name,revision}.
+      Return the tool output as-is.
+    functions: ["git:tag"]
