@@ -66,9 +66,13 @@ func preparePushAuth(remoteURL string, p AuthParams) (transport.AuthMethod, erro
 		return nil, nil // backward compat: no creds
 	} else {
 		// HTTPS remote
+		// TODO read from secrets
 		token := p.Token
 		if token == "" {
 			token = os.Getenv("GIT_TOKEN")
+		}
+		if token == "" {
+			token = os.Getenv("GITHUB_TOKEN")
 		}
 		if token != "" {
 			return &http.BasicAuth{Username: "x-access-token", Password: token}, nil
