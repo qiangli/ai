@@ -1,7 +1,6 @@
 package md
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"regexp"
@@ -61,6 +60,7 @@ func parseTaskYAML(y []byte, task *api.Task) error {
 	if err := yaml.Unmarshal(y, &m); err != nil {
 		return err
 	}
+
 	if argI, ok := m["arguments"]; ok {
 		if args, ok := argI.(map[interface{}]interface{}); ok {
 			taskArg := map[string]any{}
@@ -70,6 +70,8 @@ func parseTaskYAML(y []byte, task *api.Task) error {
 				}
 			}
 			task.Arguments = taskArg
+		} else if args, ok := argI.(map[string]interface{}); ok {
+			task.Arguments = args
 		}
 	}
 	if depI, ok := m["dependencies"]; ok {
@@ -91,57 +93,124 @@ func parseTaskYAML(y []byte, task *api.Task) error {
 	return nil
 }
 
-func collectYAML(start ast.Node, source []byte) (string, ast.Node, error) {
-	var b bytes.Buffer
-	current := start
-	for current != nil {
-		nextCur := current.NextSibling()
-		switch current := current.(type) {
-		case *ast.Heading, *ast.ThematicBreak:
-			return b.String(), current, nil
-		case *ast.FencedCodeBlock:
-			cb := current
-			info := ""
-			if cb.Info != nil {
-				info = strings.TrimSpace(string(cb.Info.Text(source)))
-			}
-			if info == "yaml" || info == "" {
-				b.WriteString(collectCodeContent(cb, source))
-			} else {
-				return b.String(), current, nil
-			}
-		default:
-			lines := current.Lines()
-			if lines != nil {
-				for i := 0; i < lines.Len(); i++ {
-					line := lines.At(i)
-					b.Write(line.Value(source))
+// findThematicBreakPairs finds pairs of '---' thematic breaks in the source
+// Returns a list of [start, end] index pairs where:
+// - start is the end of the opening '---' line (after the newline)
+// - end is the start of the closing '---' line
+func findThematicBreakPairs(source string) [][2]int {
+	// Find all lines that are thematic breaks (3+ dashes, optional surrounding whitespace)
+	dashRe := regexp.MustCompile(`(?m)^[ \t]*(-{3,})[ \t]*$`)
+	allMatches := dashRe.FindAllStringIndex(source, -1)
+
+	var pairs [][2]int
+	for i := 0; i+1 < len(allMatches); i += 2 {
+		// Start position: end of first --- line (including newline if present)
+		start := allMatches[i][1]
+		if start < len(source) && source[start] == '\n' {
+			start++
+		}
+		// End position: start of second --- line
+		end := allMatches[i+1][0]
+		pairs = append(pairs, [2]int{start, end})
+	}
+	return pairs
+}
+
+// collectRawFromNode collects the original source bytes for a node by reading its
+// Lines() segments if available, otherwise recursively collecting from children.
+func collectRawFromNode(n ast.Node, source []byte) string {
+	if n == nil {
+		return ""
+	}
+	if lines := n.Lines(); lines != nil && lines.Len() > 0 {
+		var sb strings.Builder
+		for i := 0; i < lines.Len(); i++ {
+			line := lines.At(i)
+			sb.Write(line.Value(source))
+			// Preserve original line breaks between segments
+			sb.WriteByte('\n')
+		}
+		return sb.String()
+	}
+	// fallback: recurse into children
+	var sb strings.Builder
+	for c := n.FirstChild(); c != nil; c = c.NextSibling() {
+		sb.WriteString(collectRawFromNode(c, source))
+	}
+	return sb.String()
+}
+
+// collectYAMLBetweenBreaks collects the raw text between an opening thematic break node
+// and the next closing thematic break in the AST. It returns the YAML text (trimmed)
+// and the AST node following the closing thematic break (may be nil).
+func collectYAMLBetweenBreaks(start ast.Node, source []byte) (string, ast.Node) {
+	if start == nil {
+		return "", nil
+	}
+	var sb strings.Builder
+	for node := start.NextSibling(); node != nil; node = node.NextSibling() {
+		if _, isBreak := node.(*ast.ThematicBreak); isBreak {
+			return strings.TrimSpace(sb.String()), node.NextSibling()
+		}
+		// Collect raw source for the node to preserve YAML formatting
+		switch n := node.(type) {
+		case *ast.List:
+			// Reconstruct list items with hyphen markers
+			for li := n.FirstChild(); li != nil; li = li.NextSibling() {
+				raw := strings.TrimSpace(collectRawFromNode(li, source))
+				if raw == "" {
+					continue
+				}
+				lines := strings.Split(raw, "\n")
+				for _, l := range lines {
+					if strings.TrimSpace(l) == "" {
+						continue
+					}
+					sb.WriteString("- ")
+					sb.WriteString(strings.TrimSpace(l))
+					sb.WriteString("\n")
 				}
 			}
+		default:
+			raw := collectRawFromNode(node, source)
+			if strings.TrimSpace(raw) != "" {
+				sb.WriteString(raw)
+			}
 		}
-		current = nextCur
 	}
-	return b.String(), nil, nil
+	return strings.TrimSpace(sb.String()), nil
+}
+
+// Exported wrapper in case other packages expect the exported symbol
+func CollectYAMLBetweenBreaks(start ast.Node, source []byte) (string, ast.Node) {
+	return collectYAMLBetweenBreaks(start, source)
 }
 
 func Parse(source string) (*api.TaskFile, error) {
-	// basic sanity checks: unmatched fences or thematic breaks indicate bad files
+	// basic sanity checks
 	if strings.Count(source, "```")%2 == 1 {
 		return nil, fmt.Errorf("unterminated fenced code block")
-	}
-	// count lines with only '---'
-	dashRe := regexp.MustCompile(`(?m)^\s*-{3,}\s*$`)
-	if len(dashRe.FindAllStringIndex(source, -1))%2 == 1 {
-		return nil, fmt.Errorf("unterminated yaml block")
 	}
 
 	sourceBytes := []byte(source)
 	parser := goldmark.New()
 	doc := parser.Parser().Parse(text.NewReader(sourceBytes))
+
+	// Find all thematic break pairs for YAML blocks
+	yamlPairs := findThematicBreakPairs(source)
+
+	// Count total thematic breaks to detect unpaired ones
+	dashRe := regexp.MustCompile(`(?m)^[ \t]*(-{3,})[ \t]*$`)
+	totalBreaks := len(dashRe.FindAllStringIndex(source, -1))
+	if totalBreaks%2 == 1 {
+		return nil, fmt.Errorf("unterminated YAML block (unpaired ---)")
+	}
+
 	tf := &api.TaskFile{
 		Tasks: make(map[string][]*api.Task),
 	}
-	// front comment
+
+	// Extract front comment for Arguments
 	ast.Walk(doc, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
 		if entering {
 			if block, ok := n.(*ast.HTMLBlock); ok {
@@ -154,12 +223,16 @@ func Parse(source string) (*api.TaskFile, error) {
 		}
 		return ast.WalkContinue, nil
 	})
+
 	currentGroup := "default"
 	var currentTask *api.Task
 	titleSet := false
+	processedYAMLPairs := make(map[int]bool) // Track which YAML pairs we've processed
+
 	node := doc.FirstChild()
 	for node != nil {
 		next := node.NextSibling()
+
 		switch v := node.(type) {
 		case *ast.Heading:
 			level := int(v.Level)
@@ -169,14 +242,17 @@ func Parse(source string) (*api.TaskFile, error) {
 				tf.Title = d
 				titleSet = true
 			} else if level >= 3 {
+				// Save previous task
 				if currentTask != nil {
 					tf.Tasks[currentGroup] = append(tf.Tasks[currentGroup], currentTask)
 				}
+				// Create new task
 				currentTask = &api.Task{
 					Name:    name,
 					Display: d,
 				}
 			}
+
 		case *ast.Paragraph:
 			if titleSet && tf.Description == "" {
 				tf.Description = nodeText(v, sourceBytes)
@@ -184,6 +260,62 @@ func Parse(source string) (*api.TaskFile, error) {
 			if currentTask != nil && currentTask.Description == "" {
 				currentTask.Description = nodeText(v, sourceBytes)
 			}
+
+		case *ast.ThematicBreak:
+			// Check if this is the start of a YAML block
+			// We need to find which YAML pair this belongs to
+			// Look at the next sibling - if it's between a pair of breaks, this is the opening break
+			if next != nil {
+				// Find a YAML pair that starts around this position
+				for pairIdx, pair := range yamlPairs {
+					if processedYAMLPairs[pairIdx] {
+						continue
+					}
+					// Check if the content between the pair contains nodes between current and some future node
+					yamlText := strings.TrimSpace(source[pair[0]:pair[1]])
+					if yamlText != "" {
+						// Check if this looks like it's the right YAML block by seeing if the next content matches
+						// For now, just try to apply it and mark as processed
+						if currentTask != nil {
+							if err := parseTaskYAML([]byte(yamlText), currentTask); err == nil {
+								processedYAMLPairs[pairIdx] = true
+								// Skip past the YAML block in the AST
+								// Find the next thematic break and skip past it
+								for next != nil {
+									if _, isBreak := next.(*ast.ThematicBreak); isBreak {
+										next = next.NextSibling()
+										break
+									}
+									next = next.NextSibling()
+								}
+								break
+							}
+						} else {
+							// Global YAML
+							var m map[string]interface{}
+							if yaml.Unmarshal([]byte(yamlText), &m) == nil {
+								bs, _ := yaml.Marshal(m)
+								if tf.Arguments == "" {
+									tf.Arguments = string(bs)
+								} else {
+									tf.Arguments += "\n" + string(bs)
+								}
+								processedYAMLPairs[pairIdx] = true
+								// Skip past the YAML block
+								for next != nil {
+									if _, isBreak := next.(*ast.ThematicBreak); isBreak {
+										next = next.NextSibling()
+										break
+									}
+									next = next.NextSibling()
+								}
+								break
+							}
+						}
+					}
+				}
+			}
+
 		case *ast.FencedCodeBlock:
 			if currentTask != nil && currentTask.MimeType == "" {
 				lang := v.Language(sourceBytes)
@@ -194,36 +326,17 @@ func Parse(source string) (*api.TaskFile, error) {
 				}
 				currentTask.Content = collectCodeContent(v, sourceBytes)
 			}
-		case *ast.ThematicBreak:
-			yStr, skipTo, err := collectYAML(next, sourceBytes)
-			if err != nil {
-				return nil, err
-			}
-			yStr = strings.TrimSpace(yStr)
-			if yStr != "" {
-				if currentTask != nil {
-					parseTaskYAML([]byte(yStr), currentTask)
-				} else {
-					var m map[string]interface{}
-					if yaml.Unmarshal([]byte(yStr), &m) == nil {
-						bs, _ := yaml.Marshal(m)
-						if tf.Arguments == "" {
-							tf.Arguments = string(bs)
-						} else {
-							tf.Arguments += "\n" + string(bs)
-						}
-					}
-				}
-			}
-			node = skipTo
-			continue
 		}
+
 		node = next
 	}
+
+	// Save last task
 	if currentTask != nil {
 		tf.Tasks[currentGroup] = append(tf.Tasks[currentGroup], currentTask)
 	}
-	// validation
+
+	// Validation
 	for g, tasks := range tf.Tasks {
 		for idx, t := range tasks {
 			if strings.TrimSpace(t.Display) == "" {

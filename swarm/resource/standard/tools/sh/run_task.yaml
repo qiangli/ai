@@ -1,9 +1,24 @@
-###
-kit: "sh"
-tools:
-  - name: "run_task"
-    display: "Run tasks in markdown taskfile"
-    description: |
-      todo
-    parameters: {}
-    type: "system"
+name: sh:run_task
+description: Run tasks defined in a markdown TaskFile
+input:
+  type: object
+  properties:
+    taskfile:
+      type: string
+      description: file: or data: uri or absolute path to taskfile
+    tasks:
+      type: array
+      items:
+        type: string
+      description: list of task names to run (default: ["all"])
+    args:
+      type: object
+      additionalProperties: true
+  required: ["taskfile"]
+output:
+  type: object
+  properties:
+    success:
+      type: boolean
+    output:
+      type: string

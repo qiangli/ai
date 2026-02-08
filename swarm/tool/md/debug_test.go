@@ -20,3 +20,7 @@ func TestDebugSimple(t *testing.T) {
 	}
 	fmt.Printf("Parsed ok: title=%q groups=%d\n", tf.Title, len(tf.Tasks))
 }
+
+func TestDebugAST(t *testing.T) {
+	DebugAST()
+}

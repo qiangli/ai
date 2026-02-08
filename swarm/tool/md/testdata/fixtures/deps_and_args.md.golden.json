@@ -7,8 +7,30 @@
         "description": "Build the project.",
         "mime_type": "bash",
         "content": "echo build",
-        "arguments": null,
-        "dependencies": null
+        "arguments": {
+          "env": "production",
+          "retries": "3"
+        },
+        "dependencies": [
+          {
+            "name": "tidy",
+            "display": "tidy",
+            "description": "",
+            "mime_type": "",
+            "content": "",
+            "arguments": null,
+            "dependencies": null
+          },
+          {
+            "name": "test",
+            "display": "test",
+            "description": "",
+            "mime_type": "",
+            "content": "",
+            "arguments": null,
+            "dependencies": null
+          }
+        ]
       }
     ]
   },
