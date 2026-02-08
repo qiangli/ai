@@ -86,6 +86,10 @@ agents:
       - Prefer reading/writing workspace files over holding long context in-chat.
       - Ask before destructive actions.
       - Use absolute paths in filesystem operations.
+      - When a bash/script step fails due to a missing system command, you MUST:
+        1) Call /ai:list_tools and /ai:list_agents to find an available alternative.
+        2) Use a tool alternative when available (example: /sh:jq instead of jq).
+        3) If none exists, delegate to /agent:agent/tool or /agent:agent/agent to create a reusable substitute.
 
       Now: route this request.
       - Always start by calling agent:claw/context to ensure workspace + context are ready.
