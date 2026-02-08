@@ -6,7 +6,7 @@
 ### Default
 
 ```yaml
-#!/bin/bash /task:help --script
+#!/usr/bin/env ai /task:help --script
 kit: task
 tools:
     - name: help
@@ -21,14 +21,14 @@ tools:
 ### Build
 
 ```bash
-#!/bin/bash ai /sh:bash --script
+#!/usr/bin/env ai /sh:bash --script
 time /bin/bash ./build.sh
 ```
 
 ### Test
 
 ```bash
-#!/bin/bash ai /sh:bash --script
+#!/usr/bin/env ai /sh:bash --script
 go test -short ./..."
 ```
 
@@ -45,14 +45,14 @@ dependencies:
 ---
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env ai /sh:bash --script
 time ./test/all.sh
 ```
 
 ### Tidy
 
 ```bash
-#!/bin/bash ai /sh:bash --script
+#!/usr/bin/env ai /sh:bash --script
 ##
 go mod tidy
 go fmt ./...
@@ -62,8 +62,7 @@ go vet ./...
 ### Install
 
 ```bash
-#!/bin/bash ai /sh:bash --script
-
+#!/usr/bin/env ai /sh:bash --script
 time CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o "$(go env GOPATH)/bin/ai" -ldflags="-w -extldflags '-static' ${CLI_FLAGS:-}" ./cmd
 ```
 
@@ -72,13 +71,13 @@ time CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o "$(go env GOPATH)/bin/ai
 Update all dependencies
 
 ```bash
-#!/bin/bash ai /sh:bash --script
+#!/usr/bin/env ai /sh:bash --script
 go get -u ./...
 ```
 
 ### Clean Cache
 
 ```bash
-#!/bin/bash ai /sh:bash --script
+#!/usr/bin/env ai /sh:bash --script
 go clean -modcache
 ```

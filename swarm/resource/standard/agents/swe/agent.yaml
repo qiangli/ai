@@ -14,7 +14,7 @@ arguments:
     - anthropic/L2
     - gemini/L2
     - openai/L2
-    - xai/L2
+    # - xai/L2
 
 # https://github.com/Aider-AI/aider
 # https://aider.chat/docs/usage/modes.html
