@@ -8,12 +8,12 @@
 ```yaml
 #!/dev:help
 kit: dev
-log_level: "quiet"
 tools:
   - name: "help"
     display: "AI Dev Build Help"
     description: |
       Steps for building the 'ai' binary
+    type: "func"
     parameters: {}
     body: 
       mime_type: "text/markdown"
@@ -29,8 +29,16 @@ tools:
           ai /sh:run_task --task install --taskfile ./taskfile.md
         ## All
           Run tidy, build, test, install, and test/all.sh:
-
           ai /sh:run_task --task all --taskfile ./taskfile.md
+        
+        Tip: add an alias to your system, e.g.:
+        
+        ~~~bash
+        alias dev="ai /sh:run_task --taskfile ./taskfile.md --task"
+        ~~~
+    arguments:
+      log_level: "quiet"
+##
 ```
 
 ### Build

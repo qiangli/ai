@@ -647,7 +647,8 @@ func (r *SystemKit) RunTask(ctx context.Context, vars *api.Vars, _ string, args 
 		if err != nil {
 			return nil, fmt.Errorf("task %q failed: %w", taskName, err)
 		}
-		results = append(results, fmt.Sprintf("Task %q: %s", taskName, result))
+		// results = append(results, fmt.Sprintf("Task %q: %s", taskName, result))
+		results = append(results, result)
 	}
 
 	return strings.Join(results, "\n"), nil
@@ -694,6 +695,9 @@ func (r *SystemKit) executeTaskWithDeps(ctx context.Context, vars *api.Vars, tas
 		if task.Arguments != nil {
 			maps.Copy(scriptArgs, task.Arguments)
 		}
+		cmdline := parseCmdline(task.Content)
+		cmdArgs, _ := conf.Parse(cmdline)
+		maps.Copy(scriptArgs, cmdArgs)
 		scriptArgs["script"] = "data:text/x-sh," + task.Content
 
 		// If Runner is not available, return the script content for test-safety
