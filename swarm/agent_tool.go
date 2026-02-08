@@ -98,7 +98,12 @@ func (r *AgentToolRunner) loadTool(tid string, args map[string]any) (*api.ToolFu
 	// load tool from content
 	if s, ok := args["script"]; ok {
 		s := api.ToString(s)
-		ext := path.Ext(s)
+		var ext string
+		if strings.HasPrefix(s, "data:") {
+			_, ext = api.DecodeMimeType(s)
+		} else {
+			ext = path.Ext(s)
+		}
 		switch ext {
 		case ".sh", ".bash":
 			// continue

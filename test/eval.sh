@@ -4,14 +4,17 @@
 
 # bash
 #/usr/bin/env ai /sh:bash --script
-time /bin/bash ./build.sh
+# time /bin/bash ./build.sh
 # 
 
 ### Test
 
 # # bash
 # #/usr/bin/env ai /sh:bash --script
+# set -xe
 # go test -short ./...
+# echo "EXIT STATUS: $?"
+
 # # 
 
 ### All
@@ -28,7 +31,9 @@ time /bin/bash ./build.sh
 
 # # bash
 # #/usr/bin/env ai /sh:bash --script
+# set -xe
 # time ./test/all.sh
+# echo "EXIT STATUS: $?"
 # # 
 
 ### Tidy
@@ -36,17 +41,22 @@ time /bin/bash ./build.sh
 # # bash
 # #/usr/bin/env ai /sh:bash --script
 # ##
+# set -xe
 # go mod tidy
 # go fmt ./...
 # go vet ./...
+# echo "EXIT STATUS: $?"
+
 # # 
 
 ### Install
 
-# # bash
-# #/usr/bin/env ai /sh:bash --script
+# # # bash
+# # #/usr/bin/env ai /sh:bash --script
+# set -xe
 # time CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o "$(go env GOPATH)/bin/ai" -ldflags="-w -extldflags '-static' ${CLI_FLAGS:-}" ./cmd
-# # 
+# echo "EXIT STATUS: $?"
+# # # 
 
 ### Update
 
@@ -55,6 +65,7 @@ time /bin/bash ./build.sh
 # # bash
 # #/usr/bin/env ai /sh:bash --script
 # go get -u ./...
+# echo "success"
 # # 
 
 ### Clean Cache

@@ -233,6 +233,46 @@ func DecodeDataURL(dataURL string) (string, error) {
 	return content, nil
 }
 
+// https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
+// data:[<media-type>][;base64],<data>
+// Return mime-type and corresponding file extension.
+func DecodeMimeType(s string) (string, string) {
+	// Check if it starts with "data:"
+	if !strings.HasPrefix(s, "data:") {
+		return "", ""
+	}
+
+	// Remove "data:" prefix and split at comma to get the metadata part
+	metadata := strings.SplitN(s[5:], ",", 2)[0]
+
+	// Split metadata to handle cases like "text/plain;base64"
+	parts := strings.Split(metadata, ";")
+	mimeType := parts[0]
+
+	if mimeType == "" {
+		mimeType = "text/plain" // Default if not specified
+	}
+
+	// Determine file extension based on mime type
+	var ext string
+	switch mimeType {
+	case "text", "text/plain":
+		ext = ".txt"
+	case "markdown", "text/markdown", "text/x-markdown":
+		ext = ".md"
+	case "json", "application/json":
+		ext = ".json"
+	case "yaml", "application/x-yaml", "application/yaml", "text/yaml", "text/x-yaml":
+		ext = ".yaml"
+	case "bash", "application/x-shellscript", "text/x-shellscript", "text/x-sh":
+		ext = ".sh"
+	default:
+		ext = ".bin" // Default for unknown or binary data
+	}
+
+	return mimeType, ext
+}
+
 func ToString(data any) string {
 	if data == nil {
 		return ""

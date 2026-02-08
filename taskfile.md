@@ -1,4 +1,4 @@
-<!-- /usr/bin/env ai /sh:run_task --task-name default --script -->
+<!-- /usr/bin/env ai /sh:run_task --task default --script -->
 # TASK File Example
 
 ## Tasks
@@ -6,30 +6,47 @@
 ### Default
 
 ```yaml
-#!/usr/bin/env ai /task:help --script
-kit: task
+#!/dev:help
+kit: dev
+log_level: "quiet"
 tools:
-    - name: help
-      type: func
-      body:
-        mime-type: text/*
-        script: |
-          # Build DHNT.io AI
-          TODO
+  - name: "help"
+    display: "AI Dev Build Help"
+    description: |
+      Steps for building the 'ai' binary
+    parameters: {}
+    body: 
+      mime_type: "text/markdown"
+      script: |
+        # AI Build
+        ## Tidy
+          ai /sh:run_task --task tidy --taskfile ./taskfile.md
+        ## Test
+          ai /sh:run_task --task test --taskfile ./taskfile.md
+        ## Build
+          ai /sh:run_task --task build --taskfile ./taskfile.md
+        ## Install
+          ai /sh:run_task --task install --taskfile ./taskfile.md
+        ## All
+          Run tidy, build, test, install, and test/all.sh:
+
+          ai /sh:run_task --task all --taskfile ./taskfile.md
 ```
 
 ### Build
 
 ```bash
-#!/usr/bin/env ai /sh:bash --script
+set -xe
 time /bin/bash ./build.sh
+echo "EXIT STATUS: $?"
 ```
 
 ### Test
 
 ```bash
-#!/usr/bin/env ai /sh:bash --script
+set -xe
 go test -short ./...
+echo "EXIT STATUS: $?"
 ```
 
 ### All
@@ -45,25 +62,27 @@ dependencies:
 ---
 
 ```bash
-#!/usr/bin/env ai /sh:bash --script
+set -xe
 time ./test/all.sh
+echo "EXIT STATUS: $?"
 ```
 
 ### Tidy
 
 ```bash
-#!/usr/bin/env ai /sh:bash --script
-##
+set -xe
 go mod tidy
 go fmt ./...
 go vet ./...
+echo "EXIT STATUS: $?"
 ```
 
 ### Install
 
 ```bash
-#!/usr/bin/env ai /sh:bash --script
+set -xe
 time CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o "$(go env GOPATH)/bin/ai" -ldflags="-w -extldflags '-static' ${CLI_FLAGS:-}" ./cmd
+echo "EXIT STATUS: $?"
 ```
 
 ### Update
@@ -71,13 +90,15 @@ time CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o "$(go env GOPATH)/bin/ai
 Update all dependencies
 
 ```bash
-#!/usr/bin/env ai /sh:bash --script
+set -xe
 go get -u ./...
+echo "EXIT STATUS: $?"
 ```
 
 ### Clean Cache
 
 ```bash
-#!/usr/bin/env ai /sh:bash --script
+set -xe
 go clean -modcache
+echo "EXIT STATUS: $?"
 ```

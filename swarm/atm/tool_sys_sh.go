@@ -643,7 +643,7 @@ func (r *SystemKit) RunTask(ctx context.Context, vars *api.Vars, _ string, args 
 	executed := make(map[string]bool)
 
 	for _, taskName := range taskNames {
-		result, err := r.executeTaskWithDeps(ctx, vars, taskName, taskMap, executed)
+		result, err := r.executeTaskWithDeps(ctx, vars, taskName, taskMap, executed, args)
 		if err != nil {
 			return nil, fmt.Errorf("task %q failed: %w", taskName, err)
 		}
@@ -654,7 +654,7 @@ func (r *SystemKit) RunTask(ctx context.Context, vars *api.Vars, _ string, args 
 }
 
 // executeTaskWithDeps executes a task and its dependencies recursively
-func (r *SystemKit) executeTaskWithDeps(ctx context.Context, vars *api.Vars, taskName string, taskMap map[string]*api.Task, executed map[string]bool) (string, error) {
+func (r *SystemKit) executeTaskWithDeps(ctx context.Context, vars *api.Vars, taskName string, taskMap map[string]*api.Task, executed map[string]bool, args map[string]any) (string, error) {
 	// Check if already executed
 	if executed[taskName] {
 		return "already executed", nil
@@ -668,7 +668,7 @@ func (r *SystemKit) executeTaskWithDeps(ctx context.Context, vars *api.Vars, tas
 
 	// Execute dependencies first
 	for _, dep := range task.Dependencies {
-		_, err := r.executeTaskWithDeps(ctx, vars, dep.Name, taskMap, executed)
+		_, err := r.executeTaskWithDeps(ctx, vars, dep.Name, taskMap, executed, args)
 		if err != nil {
 			return "", fmt.Errorf("dependency %q failed: %w", dep.Name, err)
 		}
@@ -688,13 +688,14 @@ func (r *SystemKit) executeTaskWithDeps(ctx context.Context, vars *api.Vars, tas
 	switch {
 	case task.MimeType == "bash" || strings.HasPrefix(task.MimeType, "sh"):
 		// Execute bash script
-		scriptArgs := map[string]any{
-			"script": "data:," + task.Content,
-		}
+		scriptArgs := map[string]any{}
 		// Merge task arguments if present
+		maps.Copy(scriptArgs, args)
 		if task.Arguments != nil {
 			maps.Copy(scriptArgs, task.Arguments)
 		}
+		scriptArgs["script"] = "data:text/x-sh," + task.Content
+
 		// If Runner is not available, return the script content for test-safety
 		if vars == nil || vars.RootAgent == nil || vars.RootAgent.Runner == nil {
 			result = task.Content
@@ -703,10 +704,27 @@ func (r *SystemKit) executeTaskWithDeps(ctx context.Context, vars *api.Vars, tas
 		result, err = vars.RootAgent.Runner.Run(ctx, "sh:bash", scriptArgs)
 
 	case task.MimeType == "yaml":
-		// For YAML content, we could parse and execute as a tool definition
-		// For now, just report that it's a YAML task
-		result = fmt.Sprintf("YAML task (content length: %d)", len(task.Content))
+		// 	// For YAML content, we could parse and execute as a tool definition
+		// 	// For now, just report that it's a YAML task
+		// 	result = fmt.Sprintf("YAML task (content length: %d)", len(task.Content))
+		scriptArgs := map[string]any{}
+		// Merge task arguments if present
+		maps.Copy(scriptArgs, args)
+		if task.Arguments != nil {
+			maps.Copy(scriptArgs, task.Arguments)
+		}
+		cmdline := parseCmdline(task.Content)
+		cmdArgs, _ := conf.Parse(cmdline)
+		maps.Copy(scriptArgs, cmdArgs)
+		scriptArgs["script"] = "data:text/yaml," + task.Content
 
+		// If Runner is not available, return the script content for test-safety
+		if vars == nil || vars.RootAgent == nil || vars.RootAgent.Runner == nil {
+			result = task.Content
+			break
+		}
+
+		result, err = vars.RootAgent.Runner.Run(ctx, "", scriptArgs)
 	default:
 		// Unsupported mime type
 		result = fmt.Sprintf("unsupported mime type: %s", task.MimeType)
