@@ -591,3 +591,17 @@ func (r *SystemKit) Jq(ctx context.Context, vars *api.Vars, _ string, args map[s
 	}
 	return out, nil
 }
+
+func (r *SystemKit) RunTask(ctx context.Context, vars *api.Vars, _ string, args map[string]any) (any, error) {
+	taskfile, err := api.GetStrProp("taskfile", args)
+	// support inline: "data:,"", "file:"", "/file/path"
+	// use api.LoadURIContent()
+	tasks, err := api.GetArrayProp("tasks", args)
+	// parse taskfile and lookup the Task by task name.
+	//  run tasks in the tasks list and return err at the first failure.
+	// var in = make(map[string]any)
+	// maps.Copy(in, args)
+	// maps["script"] = 
+	// vars.RootAgent.Runner.Run(ctx, task, in)
+	return nil, nil
+}
