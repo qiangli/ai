@@ -1,24 +1,27 @@
-name: sh:run_task
-description: Run tasks defined in a markdown TaskFile
-input:
-  type: object
-  properties:
-    taskfile:
-      type: string
-      description: file: or data: uri or absolute path to taskfile
-    tasks:
-      type: array
-      items:
-        type: string
-      description: list of task names to run (default: ["all"])
-    args:
+##
+kit: "sh"
+tools:
+  - name: "run_task"
+    description: "Run tasks defined in a markdown TaskFile"
+    type: "system"
+    parameters:
       type: object
-      additionalProperties: true
-  required: ["taskfile"]
-output:
-  type: object
-  properties:
-    success:
-      type: boolean
-    output:
-      type: string
+      additionalProperties: false
+      properties:
+        taskfile:
+          type: string
+          description: "Workspace-relative path or URI (file:, data:, http(s):) to the markdown taskfile."
+        tasks:
+          type: array
+          items:
+            type: string
+          description: "List of task names to run."
+        task:
+          type: string
+          description: "Single task name to run (used if tasks is not provided)."
+        args:
+          type: object
+          additionalProperties: true
+          description: "Optional arguments passed through to task execution."
+      required:
+        - taskfile
