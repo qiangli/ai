@@ -6,7 +6,7 @@
 ### Default
 
 ```yaml
-#!/bin/bash /task:help --script
+#!/usr/bin/env ai /task:help --script
 kit: task
 tools:
     - name: help
@@ -14,35 +14,45 @@ tools:
       body:
         mime-type: text/*
         script: |
-            ...
+          # Build DHNT.io AI
+          TODO
 ```
 
 ### Build
 
 ```bash
-#!/bin/bash ai /sh:bash --script
+#!/usr/bin/env ai /sh:bash --script
 time /bin/bash ./build.sh
 ```
 
 ### Test
 
 ```bash
-#!/bin/bash ai /sh:bash --script
-go test -short ./..."
+#!/usr/bin/env ai /sh:bash --script
+go test -short ./...
 ```
 
 ### All
-Requires: tidy, build, test, install
+
+Buid, install, unit tests, and bash integration tests
+
+---
+dependencies:
+  - tidy
+  - build
+  - test
+  - install
+---
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env ai /sh:bash --script
 time ./test/all.sh
 ```
 
 ### Tidy
 
 ```bash
-#!/bin/bash ai /sh:bash --script
+#!/usr/bin/env ai /sh:bash --script
 ##
 go mod tidy
 go fmt ./...
@@ -52,22 +62,22 @@ go vet ./...
 ### Install
 
 ```bash
-#!/bin/bash ai /sh:bash --script
-
+#!/usr/bin/env ai /sh:bash --script
 time CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o "$(go env GOPATH)/bin/ai" -ldflags="-w -extldflags '-static' ${CLI_FLAGS:-}" ./cmd
 ```
 
 ### Update
 
+Update all dependencies
+
 ```bash
-#!/bin/bash ai /sh:bash --script
+#!/usr/bin/env ai /sh:bash --script
 go get -u ./...
 ```
 
 ### Clean Cache
-Name: clean-cache
 
 ```bash
-#!/bin/bash ai /sh:bash --script
+#!/usr/bin/env ai /sh:bash --script
 go clean -modcache
 ```

@@ -1,44 +1,68 @@
 #!/usr/bin/env ai /sh:bash --format raw --base ./test/data/ --script
 
-# set -x
+### Build
 
-# BASE=$(pwd)
-# /bin/ls /x
-# ls /x
-# cd /
-# exec test.sh
-# /sh:fail
-# /fs:list_roots
-# ./test/env.sh
-# /bin/bash ./test/bash-legacy.sh
-# echo "status $?"
+# bash
+#/usr/bin/env ai /sh:bash --script
+time /bin/bash ./build.sh
+# 
 
-# # map
-# map="
-# {
-# \"datetime\":\"$(date)\",
-# \"message\":\"test\"
-# }
-# "
-# /sh:set_envs --option envs="${map}"
+### Test
 
-# echo "datetime: $datetime"
-# echo "message: $message"
+# # bash
+# #/usr/bin/env ai /sh:bash --script
+# go test -short ./...
+# # 
 
-# export name="charles"
-# set -a; name=charles; nick=lee; set +a;
-# echo "name: ${name} nick: $nick"
-# echo "workspace: $workspace"
-# echo "pwd cmd: $(pwd)"
-# echo "PWD: $PWD"
+### All
 
-# export ABC=DEFG
-# /sh:pass
-# echo "---"
-# echo "ABC: $ABC"
-# printenv
+# Buid, install, unit tests, and bash integration tests
 
-# /bin/bash test/bash-native.sh
-# /sh:exec --command "/bin/bash -lc 'pwd'"                         
-/sh:exec --command "/bin/bash $PWD/test/bash-native.sh"
+# ---
+# dependencies:
+#   - tidy
+#   - build
+#   - test
+#   - install
+# ---
+
+# # bash
+# #/usr/bin/env ai /sh:bash --script
+# time ./test/all.sh
+# # 
+
+### Tidy
+
+# # bash
+# #/usr/bin/env ai /sh:bash --script
+# ##
+# go mod tidy
+# go fmt ./...
+# go vet ./...
+# # 
+
+### Install
+
+# # bash
+# #/usr/bin/env ai /sh:bash --script
+# time CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o "$(go env GOPATH)/bin/ai" -ldflags="-w -extldflags '-static' ${CLI_FLAGS:-}" ./cmd
+# # 
+
+### Update
+
+# Update all dependencies
+
+# # bash
+# #/usr/bin/env ai /sh:bash --script
+# go get -u ./...
+# # 
+
+### Clean Cache
+
+# # bash
+# #/usr/bin/env ai /sh:bash --script
+# go clean -modcache
+# # 
+
+
 ###

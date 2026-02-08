@@ -29,7 +29,7 @@ time /bin/bash ./build.sh
 
 ```bash
 #!/usr/bin/env ai /sh:bash --script
-go test -short ./..."
+go test -short ./...
 ```
 
 ### All
