@@ -56,6 +56,7 @@ require (
 	github.com/u-root/u-root v0.15.0
 	github.com/weppos/publicsuffix-go v0.50.2
 	github.com/yuin/goldmark v1.7.16
+	github.com/yuin/goldmark-meta v1.1.0
 	github.com/zyedidia/micro/v2 v2.0.15
 	golang.org/x/crypto v0.47.0
 	golang.org/x/exp v0.0.0-20260112195511-716be5621a96
