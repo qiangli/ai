@@ -407,3 +407,62 @@ func TestParseAnyFlagCommand(t *testing.T) {
 		})
 	}
 }
+
+func TestParseScriptCmdline(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected map[string]any
+		wantErr  bool
+	}{
+		{
+			input: `#!/bin/bash /x:y --base /abs/path --script
+			content`,
+			expected: map[string]any{
+				"kit":    "x",
+				"name":   "y",
+				"base":   "/abs/path",
+				"script": "data:,content",
+			},
+			wantErr: false,
+		},
+		{
+			input: `#!/x:y --base /abs/path --script
+			content`,
+			expected: map[string]any{
+				"kit":    "x",
+				"name":   "y",
+				"base":   "/abs/path",
+				"script": "data:,content",
+			},
+			wantErr: false,
+		},
+		{
+			input: `/x:y --base /abs/path --script content`,
+			expected: map[string]any{
+				"kit":    "sh",
+				"name":   "bash",
+				"script": "data:,/x:y --base /abs/path --script content",
+			},
+			wantErr: false,
+		},
+		{
+			input: `#!/x:y --base /abs/path --script content`,
+			expected: map[string]any{
+				"kit":    "x",
+				"name":   "y",
+				"base":   "/abs/path",
+				"script": "data:,",
+			},
+			wantErr: false,
+		},
+	}
+
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("Test Case %d", i), func(t *testing.T) {
+			got := ParseScriptCmdline("", tt.input)
+			if !reflect.DeepEqual(got, tt.expected) {
+				t.Errorf("TestParseScriptCmdline() = %v, want %v", got, tt.expected)
+			}
+		})
+	}
+}

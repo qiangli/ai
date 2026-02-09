@@ -405,14 +405,6 @@ func (r *AgentToolRunner) dispatch(ctx context.Context, tf *api.ToolFunc, args a
 	// agent tool
 	if tf.Type == api.ToolTypeAgent {
 		aiKit := NewAIKit(r.vars)
-		// var in map[string]any
-		// if len(v.Arguments) > 0 {
-		// 	in = make(map[string]any)
-		// 	maps.Copy(in, v.Arguments)
-		// 	maps.Copy(in, args)
-		// } else {
-		// 	in = args
-		// }
 		args["agent"] = tf.Name
 		return aiKit.SpawnAgent(ctx, r.vars, r.agent, nil, args)
 	}

@@ -688,17 +688,11 @@ func (r *SystemKit) executeTaskWithDeps(ctx context.Context, vars *api.Vars, tas
 
 	switch {
 	case task.MimeType == "bash" || strings.HasPrefix(task.MimeType, "sh"):
-		// Execute bash script
 		scriptArgs := map[string]any{}
-		// Merge task arguments if present
 		maps.Copy(scriptArgs, args)
-		if task.Arguments != nil {
-			maps.Copy(scriptArgs, task.Arguments)
-		}
-		cmdline := parseCmdline(task.Content)
-		cmdArgs, _ := conf.Parse(cmdline)
-		maps.Copy(scriptArgs, cmdArgs)
-		scriptArgs["script"] = "data:text/x-sh," + task.Content
+		v := conf.ParseScriptCmdline("text/x-sh", task.Content)
+		maps.Copy(scriptArgs, v)
+		maps.Copy(scriptArgs, task.Arguments)
 
 		// If Runner is not available, return the script content for test-safety
 		if vars == nil || vars.RootAgent == nil || vars.RootAgent.Runner == nil {
@@ -708,19 +702,11 @@ func (r *SystemKit) executeTaskWithDeps(ctx context.Context, vars *api.Vars, tas
 		result, err = vars.RootAgent.Runner.Run(ctx, "sh:bash", scriptArgs)
 
 	case task.MimeType == "yaml":
-		// 	// For YAML content, we could parse and execute as a tool definition
-		// 	// For now, just report that it's a YAML task
-		// 	result = fmt.Sprintf("YAML task (content length: %d)", len(task.Content))
 		scriptArgs := map[string]any{}
-		// Merge task arguments if present
 		maps.Copy(scriptArgs, args)
-		if task.Arguments != nil {
-			maps.Copy(scriptArgs, task.Arguments)
-		}
-		cmdline := parseCmdline(task.Content)
-		cmdArgs, _ := conf.Parse(cmdline)
-		maps.Copy(scriptArgs, cmdArgs)
-		scriptArgs["script"] = "data:text/yaml," + task.Content
+		v := conf.ParseScriptCmdline("text/yaml", task.Content)
+		maps.Copy(scriptArgs, v)
+		maps.Copy(scriptArgs, task.Arguments)
 
 		// If Runner is not available, return the script content for test-safety
 		if vars == nil || vars.RootAgent == nil || vars.RootAgent.Runner == nil {

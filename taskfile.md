@@ -75,6 +75,17 @@ time ./test/all.sh
 echo "EXIT STATUS: $?"
 ```
 
+
+### Test Shell
+
+Run bash integration tests
+
+```bash
+set -xe
+time ./test/all.sh
+echo "EXIT STATUS: $?"
+```
+
 ### Tidy
 
 ```bash

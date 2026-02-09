@@ -3,6 +3,7 @@ package conf
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/u-root/u-root/pkg/shlex"
@@ -355,4 +356,65 @@ func parsev(argv []string) (api.ArgMap, error) {
 		return nil, err
 	}
 	return argm, nil
+}
+
+// #!/bin ... [--script]
+// #!/kit:name
+// /kit:name
+func parseCmdline(s string) string {
+	if s == "" {
+		return ""
+	}
+	sa := strings.SplitN(s, "\n", 2)
+	cmdline := sa[0]
+	cmdline = strings.TrimPrefix(cmdline, "#!")
+	cmdline = strings.TrimSuffix(cmdline, "--script")
+	cmdline = strings.TrimSpace(cmdline)
+
+	ca := strings.SplitN(cmdline, " ", 2)
+	// #!/bin/bash
+	// remove system bash cmd
+	if strings.HasSuffix(ca[0], "/sh") || strings.HasSuffix(ca[0], "/bash") {
+		cmdline = ca[1]
+	}
+	return cmdline
+	// // /agent:pack/sub
+	// // /kit:name
+	// if strings.Contains(sa[0], ":") {
+	// 	return cmdline
+	// }
+	// // skip first arg
+	// // expected:
+	// // ai [action] or [action]
+	// return ca[1]
+}
+
+// #!/bin/bash ... [--script]
+// [content]
+// Return nil if number of lines is less than 2.
+func ParseScriptCmdline(mime, v string) map[string]any {
+	if v == "" {
+		return nil
+	}
+	var sa []string
+	sa = strings.SplitN(v, "\n", 2)
+
+	var args = map[string]any{
+		"kit":  "sh",
+		"name": "bash",
+	}
+	var script string
+	if strings.HasPrefix(sa[0], "#!") {
+		cmdline := parseCmdline(sa[0])
+		cmdArgs, _ := Parse(cmdline)
+		maps.Copy(args, cmdArgs)
+		if len(sa) == 2 {
+			script = strings.TrimSpace(sa[1])
+		}
+	} else {
+		script = v
+	}
+	args["script"] = fmt.Sprintf("data:%s,%s", mime, script)
+
+	return args
 }

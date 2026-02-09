@@ -90,23 +90,3 @@ func echoAdapter(args api.ArgMap) (any, error) {
 	v, err := json.Marshal(args)
 	return string(v), err
 }
-
-func parseCmdline(s string) string {
-	if s == "" {
-		return ""
-	}
-	sa := strings.SplitN(s, "\n", 2)
-	cmdline := sa[0]
-	if after, ok := strings.CutPrefix(cmdline, "#!"); ok {
-		cmdline = after
-	}
-	sa = strings.SplitN(cmdline, " ", 2)
-	// /agent:pack/sub
-	// /kit:name
-	if strings.Contains(sa[0], ":") {
-		return cmdline
-	}
-	// expected:
-	// ai [action] or [action]
-	return sa[1]
-}

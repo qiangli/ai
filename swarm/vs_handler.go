@@ -209,7 +209,6 @@ func runCommand(ctx context.Context, vs *VirtualSystem, args []string) error {
 		return interp.ExitStatus(127)
 	}
 
-	// cmd := vs.System.Command(args[0], args[1:]...)
 	cmd := vs.vars.OS.Command(path)
 	cmd.Path = path
 	cmd.Args = args

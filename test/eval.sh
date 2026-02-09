@@ -33,6 +33,8 @@
 # #/usr/bin/env ai /sh:bash --script
 # set -xe
 # time ./test/all.sh
+time ./test/env.sh
+
 # echo "EXIT STATUS: $?"
 # # 
 
@@ -75,5 +77,6 @@
 # go clean -modcache
 # # 
 
+printenv
 
 ###
