@@ -1,5 +1,18 @@
 <!-- /usr/bin/env ai /sh:run_task --task default --script -->
-# TASK File Example
+# Build AI
+
+Instructions for building the `ai` binary in this repo.
+
+`ai` is used to build `ai`. If you are building for the first time or if `ai` is corrupt, you need to run:
+
+```bash
+time CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o "$(go env GOPATH)/bin/ai" -ldflags="-w -extldflags '-static' ${CLI_FLAGS:-}" ./cmd
+```
+
+Once ai is built, you can run this task file for other targets, e.g:
+
+`ai /sh:run_task --taskfile ./taskfile.md --task test`
+
 
 ## Tasks
 
