@@ -413,7 +413,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 
 func (r *AIKit) LlmAdapter(ctx context.Context, vars *api.Vars, agent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
 	const prompt = `
-	The original request exceeds the max input size (%v) and has be rewriten as follows:
+	The original request exceeds the maximum input size (%v) and has been rewritten as follows:
 	
 	## Instruction
 	Review the content of the file: %q
@@ -424,7 +424,7 @@ func (r *AIKit) LlmAdapter(ctx context.Context, vars *api.Vars, agent *api.Agent
 	## Query
 	Follow the specific request or task outlined in the file: %q
 
-	Please carefully read the contents of these files and provide a detailed response or solution based on the instructions and query provided.
+	Please carefully review the contents of these files and provide a detailed response or solution based on the instructions and query provided.
 	`
 	var owner = r.vars.User.Email
 
@@ -461,15 +461,15 @@ func (r *AIKit) LlmAdapter(ctx context.Context, vars *api.Vars, agent *api.Agent
 	}
 
 	// https://platform.openai.com/docs/models/gpt-5-mini
-	size, _ := api.GetIntProp("max_input_size", args)
-	if size <= 0 {
-		size = 272000*4 - 1000
+	maxInputSize, _ := api.GetIntProp("max_input_size", args)
+	if maxInputSize <= 0 {
+		maxInputSize = 272000*4 - 1000
 	}
 	total := len(agent.Prompt) + len(agent.Query)
 	for _, v := range agent.History {
 		total += len(v.Content)
 	}
-	if total < size {
+	if total < maxInputSize {
 		req.Query = agent.Query
 		req.Prompt = agent.Prompt
 		req.Messages = agent.History
@@ -498,9 +498,10 @@ func (r *AIKit) LlmAdapter(ctx context.Context, vars *api.Vars, agent *api.Agent
 		os.WriteFile(insfile, history, 0600)
 		os.WriteFile(insfile, []byte(agent.Query), 0600)
 
+		// remove instruction/context and rewrite the query
 		req.Prompt = ""
 		req.Messages = nil
-		req.Query = fmt.Sprintf(prompt, insfile, ctxfile, qfile)
+		req.Query = fmt.Sprintf(prompt, maxInputSize, insfile, ctxfile, qfile)
 	}
 
 	//

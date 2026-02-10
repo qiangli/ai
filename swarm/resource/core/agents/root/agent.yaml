@@ -11,6 +11,7 @@ agents:
     model: "root/any"
     arguments:
       models:
+        - root/any
         - root/anthropic
         - root/gemini
         - root/openai

@@ -1,11 +1,6 @@
 ###
-set: "default"
+set: "incubator"
 models:
-  any:
-    model: "gpt-5-mini"
-    provider: "openai"
-    base_url: "https://api.openai.com/v1/"
-    api_key: "openai"
   anthropic:
     model: "claude-3-5-haiku-latest"
     provider: "anthropic"
@@ -17,7 +12,7 @@ models:
     base_url: "https://generativelanguage.googleapis.com/v1beta/"
     api_key: "gemini"
   openai:
-    model: "gpt-5-nano"
+    model: "gpt-5-mini"
     provider: "openai"
     base_url: "https://api.openai.com/v1/"
     api_key: "openai"
