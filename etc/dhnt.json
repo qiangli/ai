@@ -6,6 +6,10 @@
     "assets": [
         {
             "type": "file",
+            "base": "~/workspace/ai/swarm/resource/pilot/"
+        },
+        {
+            "type": "file",
             "base": "~/workspace/ai/swarm/resource/incubator/"
         },
         {

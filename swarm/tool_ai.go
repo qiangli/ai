@@ -413,6 +413,8 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 
 func (r *AIKit) LlmAdapter(ctx context.Context, vars *api.Vars, agent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
 	const prompt = `
+	The original request exceeds the max input size (%v) and has be rewriten as follows:
+	
 	## Instruction
 	Review the content of the file: %q
 
