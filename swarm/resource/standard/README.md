@@ -1,26 +1,20 @@
-# Standard (Stable)
+# Standard (Stable) - Agents/Tools/Models
 
-The Standard state represents production-ready, well-tested releases that are unlikely to change in patch terms.
+Overview
+- Production-ready, tested, stable releases of agents, tools, and models.
 
-## When to use
-- Production-ready features with a stable interface.
-- Customer-facing releases and major milestones.
+Scope
+- Deployable to production environments; governed by versioning and change-control processes.
 
-## Lifecycle and rights
-- Generally read-only in active environments; updates occur through formal release cycles.
-- Promotions from Pilot or Incubator when features reach stability and repeatable outcomes.
+Promotion & Governance
+- Changes typically promoted from Pilot or Incubator when validated.
+- Edits are managed through governance; promotions require review.
 
-## Promotion to Core
-- Considered core means the platform is foundational and broadly supported.
-- No major churn expected; minor updates follow standard release cadence.
+Promotion to Core
+- Core is the foundation; promote from Standard when foundational components are ready and validated.
 
-## Editability and promotion
-- Edits typically occur via the release governance process; direct edits to Standard are discouraged.
-- Promote to Core when the feature set is fully stabilized and ready for long-term support.
+Notes
+- Focus on reliability and predictable behavior for agents/tools/models platforms.
 
-## Quick example (config-like)
-- State: standard
-- label: Stable
-- editable_by: team
-- promotion: core
-- description: "Production-ready, stable release."
+Path
+- Path: ./swarm/resource/standard/README.md

@@ -1,22 +1,17 @@
-# Core (Foundation)
+# Core (Foundation) - Agents/Tools/Models
 
-The Core state represents the non-customizable, foundational layer that underpins other states.
+Overview
+- Foundational, non-customizable layer of agents/tools/models used across ecosystems.
 
-## When to use
-- Foundational platform components and defaults.
-- Stable base for extensions and addons.
+Scope
+- Baseline components and primitives; changes are tightly governed.
 
-## Lifecycle and rights
-- Typically controlled by platform owners; updates are tightly governed.
-- Promotions from Standard when new foundation features are introduced.
+Promotion & Governance
+- Promotions from Standard to Core follow cross-team validation and governance.
+- Edits are tightly controlled to preserve foundation stability.
 
-## Editability and promotion
-- Core changes require formal review; direct edits are limited.
-- Promote to Core when introducing foundational changes with wide impact.
+Notes
+- Defines the non-configurable backbone that supports higher-level states (Pilot/Incubator/Standard).
 
-## Quick example (config-like)
-- State: core
-- label: Base
-- editable_by: platform
-- promotion: none
-- description: "Foundational platform base and defaults."
+Path
+- Path: ./swarm/resource/core/README.md

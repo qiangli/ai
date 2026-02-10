@@ -1,26 +1,23 @@
-# Incubator (Preview)
+# Incubator (Preview) - Agents/Tools/Models
 
-The Incubator state contains features or builds not fully finalized yet. It is useful for internal testing and controlled exposure to a broader audience.
+Overview
+- Preview/experimental state for internal testing of new agents, tools, and model versions; early feedback helps shape stability.
 
-## When to use
-- Early access for internal QA, experimentation, or stakeholder previews.
-- Features with churn or ongoing integration.
+Scope
+- For early testing of new agents/tools/models; not production-ready.
 
-## Lifecycle and rights
-- Editable by the team, with a focus on feedback-driven iteration.
-- Promotions to Standard when stable; canary-style gradual rollouts for external users.
+Lifecycle & Promotion
+- Editable by the team; promoted to Standard when stable and supported by feedback.
 
-## Promotion to Standard
-- Reaches stable behavior with repeatable outcomes across releases.
-- Passes predefined acceptance criteria and QA checks.
+Promotion to Standard
+- Criteria: stable behavior across tests, low defects, and governance approval.
+- Migration: once stable, move up to Standard.
 
-## Editability and promotion
-- Incubator holdings can be updated in place in ./swarm/resource/incubator.
-- To promote, update metadata to the next state (e.g., next_state: standard) and document rationale.
+Governance & Use
+- Internal-only deployments; share learnings and document issues for future releases.
 
-## Quick example (config-like)
-- State: incubator
-- label: Incubator
-- editable_by: team
-- promotion: standard
-- description: "Preview state for ongoing development and internal testing."
+Notes
+- Tailored for agents/tools/models ecosystems; lightweight promotion guidance included.
+
+Path
+- Path: ./swarm/resource/incubator/README.md
