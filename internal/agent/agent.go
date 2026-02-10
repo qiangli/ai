@@ -169,8 +169,14 @@ func initSwarm(ctx context.Context, cfg *api.App) (*swarm.Swarm, error) {
 
 	//
 
-	lfs, _ := vfs.NewLocalFS(dirs)
-	los, _ := vos.NewLocalSystem(lfs)
+	lfs, err := vfs.NewLocalFS(dirs)
+	if err != nil {
+		return nil, err
+	}
+	los, err := vos.NewLocalSystem(lfs)
+	if err != nil {
+		return nil, err
+	}
 	// populate essentialEnv
 	for _, k := range essentialEnv {
 		los.Setenv(k, os.Getenv(k))
