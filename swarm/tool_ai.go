@@ -137,8 +137,6 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 		set, level := api.Setlevel(alias).Decode()
 		// embeded/inherited
 		if v := findModel(agent, set, level); v != nil {
-			// models = []*api.Model{v}
-
 			return v, nil
 		}
 		// external
@@ -164,6 +162,7 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 		}
 		return models, nil
 	}
+
 	var models []*api.Model
 	if agent.Model != nil {
 		models = []*api.Model{agent.Model}
@@ -326,6 +325,9 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 		models[i], models[j] = models[j], models[i]
 	})
 
+	// collect all errors
+	var errors []string
+
 	for _, model := range models {
 		agent.Model = model
 
@@ -335,12 +337,14 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 		if respErr == nil && result != nil {
 			break
 		}
+		errors = append(errors, respErr.Error())
 	}
 
-	// report the last error if not successful
+	// report all errors if the last error is not nil/none of the attempts was successful
 	if respErr != nil {
-		args["error"] = respErr.Error()
-		return nil, respErr
+		err := strings.Join(errors, ";\n")
+		args["error"] = err
+		return nil, fmt.Errorf("%s", err)
 	}
 	if result == nil {
 		result = &api.Result{
@@ -387,29 +391,6 @@ func (r *AIKit) CallLlm(ctx context.Context, vars *api.Vars, agent *api.Agent, t
 	}
 	return result, nil
 }
-
-// func (r *AIKit) retryCallLlmPrompt(query string, result *api.Result, err error) string {
-// 	const prompt = `
-// 	Encountered an error while processing user's request:
-
-// 	Query:
-// 	%s
-
-// 	Error:
-// 	%s
-// 	%s
-
-// 	Please review the above error response. If the error is recoverable, consider taking corrective actions as suggested and try again.
-
-// 	Example of a recoverable error:
-// 	✗ error: POST "https:...": 429 Too Many Requests. Limit x, Requested y. The input or output tokens must be reduced.
-// 	`
-// 	var val string
-// 	if result != nil {
-// 		val = result.Value
-// 	}
-// 	return fmt.Sprintf(prompt, query, err.Error(), val)
-// }
 
 func (r *AIKit) LlmAdapter(ctx context.Context, vars *api.Vars, agent *api.Agent, tf *api.ToolFunc, args api.ArgMap) (*api.Result, error) {
 	const prompt = `

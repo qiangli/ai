@@ -123,7 +123,7 @@
 				// "--message",
 				// "install"
 				// 
-				"test/eval.sh",
+				// "test/eval.sh",
 				// "test/all.sh",
 				// "test/template.sh",
 				// "/sh:bash",
@@ -221,7 +221,7 @@
 				//
 				// "/ai:read_agent_config",
 				// "--agent",
-				// "ask/ask"
+				"@ask/ask"
 				//
 				// "/flow:sequence",
 				// "--actions",
