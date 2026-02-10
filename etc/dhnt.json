@@ -1,0 +1,55 @@
+{
+    "blob": {
+        "base": "https://ai.dhnt.io",
+        "token": "dhnt"
+    },
+    "assets": [
+        {
+            "type": "file",
+            "base": "~/workspace/ai/swarm/resource/incubator/"
+        },
+        {
+            "type": "file",
+            "base": "~/workspace/ai/swarm/resource/standard/"
+        }
+    ],
+    "roots": {
+        "workspace": {
+            "name": "Workspace",
+            "description": "Primary development workspace",
+            "path": "~/workspace/"
+        },
+        "cwd":            {
+            "name": "Current Directory",
+            "description": "Current working directory",
+            "path": ""
+        },
+        "temp":             {
+            "name": "Temporary Files",
+            "description": "Directory for temporary files",
+            "temp": ""
+        },
+        "dirs": [
+            {
+                "name": "Incubator Resources",
+                "description": "Resource directory for incubating agents, tools, and models",
+                "path": "~/workspace/ai/swarm/resource/incubator"
+            },
+            {
+                "name": "Standard Resources",
+                "description": "Resource directory for standard agents, tools, and models",
+                "path": "~/workspace/ai/swarm/resource/standard"
+            },
+            {
+                "name": "User Downloads",
+                "description": "Directory for downloaded files",
+                "path": "~/downloads/"
+            },
+            {
+                "name": "Proof of Concept",
+                "description": "Directory for POC projects",
+                "path": "~/workspace/poc/"
+            }
+        ]
+    }
+}

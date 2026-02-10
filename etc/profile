@@ -1,0 +1,9 @@
+#!/bin/bash
+## Workspace profile
+export WORKSPACE=$HOME/workspace
+# Go environment
+export GOROOT=$WORKSPACE/opt/go
+export GOPATH=$WORKSPACE/.gopath
+export PATH=$WORKSPACE/bin:$GOPATH/bin:$PATH
+#
+alias just="ai /sh:run_task --base ./test/data --taskfile ./taskfile.md --task"
