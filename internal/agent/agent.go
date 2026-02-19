@@ -21,7 +21,8 @@ import (
 	"github.com/qiangli/shell/vos"
 )
 
-var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL", "GOPATH"}
+// TODO externalize
+// var essentialEnv = []string{"PATH", "PWD", "HOME", "USER", "SHELL", "GOPATH"}
 
 func loadUser(base string) (*api.User, error) {
 	p := filepath.Join(base, "user.json")
@@ -145,7 +146,7 @@ func initSwarm(ctx context.Context, cfg *api.App) (*swarm.Swarm, error) {
 
 	var sessionID = api.SessionID(uuid.NewString())
 
-	swarm.ClearAllEnv(essentialEnv)
+	// swarm.ClearAllEnv(essentialEnv)
 
 	var adapters = adapter.GetAdapters()
 	var secrets = conf.LocalSecrets
@@ -177,10 +178,11 @@ func initSwarm(ctx context.Context, cfg *api.App) (*swarm.Swarm, error) {
 	if err != nil {
 		return nil, err
 	}
-	// populate essentialEnv
-	for _, k := range essentialEnv {
-		los.Setenv(k, os.Getenv(k))
-	}
+
+	// // populate essentialEnv
+	// for _, k := range essentialEnv {
+	// 	los.Setenv(k, os.Getenv(k))
+	// }
 
 	assets, err := conf.Assets(dc, user.Email, secrets)
 	if err != nil {

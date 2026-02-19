@@ -8,6 +8,7 @@ import (
 	"github.com/qiangli/ai/swarm/api"
 	"github.com/qiangli/ai/swarm/llm/anthropic"
 	"github.com/qiangli/ai/swarm/llm/gemini"
+	"github.com/qiangli/ai/swarm/llm/kimi"
 	"github.com/qiangli/ai/swarm/llm/openai"
 	"github.com/qiangli/ai/swarm/llm/xai"
 )
@@ -114,6 +115,8 @@ func (r *ChatAdapter) Call(ctx context.Context, req *api.Request) (*api.Response
 		resp, err = anthropic.Send(ctx, req)
 	case "xai":
 		resp, err = xai.Send(ctx, req)
+	case "kimi":
+		resp, err = kimi.Send(ctx, req)
 	default:
 		return nil, fmt.Errorf("Unknown provider: %s", provider)
 	}
@@ -186,6 +189,8 @@ func (r *TextAdapter) Call(ctx context.Context, req *api.Request) (*api.Response
 		resp, err = anthropic.Send(ctx, req)
 	case "xai":
 		resp, err = xai.Send(ctx, req)
+	case "kimi":
+		resp, err = kimi.Send(ctx, req)
 	default:
 		return nil, fmt.Errorf("Unknown provider: %s", provider)
 	}

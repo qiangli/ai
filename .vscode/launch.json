@@ -221,7 +221,9 @@
 				//
 				// "/ai:read_agent_config",
 				// "--agent",
-				"@ask/ask"
+				"@ask/ask",
+				"--message",
+				"what is the new headlines today",
 				//
 				// "/flow:sequence",
 				// "--actions",

@@ -5,6 +5,9 @@ import (
 )
 
 func TestAlias(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	tests := []struct {
 		bin string
 	}{
@@ -23,6 +26,9 @@ func TestAlias(t *testing.T) {
 }
 
 func TestEnv(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	tests := []struct {
 		bin string
 	}{

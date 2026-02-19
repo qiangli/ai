@@ -1,0 +1,34 @@
+###
+# Kimi models: MoonshotAI Kimi (text-only guidance)
+# https://platform.moonshot.ai/docs/pricing/chat#generation-model-kimi-k2
+# kimi-k2.5, kimi-k2-0905-Preview, kimi-k2-turbo-preview, kimi-k2-thinking, and kimi-k2-thinking-turbo
+# Notes:
+# - Kimi sessions typically require the kimi CLI and the KIMI_BASE_URL/KIMI_API_KEY or using session options.
+# - External tools (function-calling) require the CLI and wire_protocol_version >= 2; the SDK/CLI detects this at runtime.
+provider: "kimi"
+base_url: "https://api.moonshot.ai/v1"
+api_key: "kimi"
+
+models:
+  L1:
+    model: "kimi-k2.5"
+    description: |
+      Fast / low-cost Kimi tier optimized for high-throughput chat, short summaries,
+      classification, and bulk extraction. Best for routing, tagging, and simple
+      instruction-following where latency and cost matter more than deep reasoning.
+
+  L2:
+    model: "kimi-k2-thinking"
+    description: |
+      Balanced thinking tier for general-purpose agentic workflows. Good for
+      multi-step prompts, tool-using agents, structured outputs, and coding tasks
+      that require reasonable reasoning depth. Supports streaming text and
+      external tool/function-calling when the CLI supports wire protocol v2.
+
+  L3:
+    model: "kimi-k2-thinking-turbo"
+    description: |
+      Highest-quality Kimi tier for complex reasoning, long-context synthesis,
+      and multi-step code/design problems. Use this tier when correctness and
+      reasoning quality matter more than latency or cost.
+

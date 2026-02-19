@@ -3,6 +3,7 @@ set: "default"
 models:
   any:
     model: "gpt-5-nano"
+    # model: "gpt-5-mini"
     provider: "openai"
     base_url: "https://api.openai.com/v1/"
     api_key: "openai"
@@ -26,3 +27,8 @@ models:
     provider: "xai"
     base_url: "https://api.x.ai/v1/"
     api_key: "xai"
+  kimi:
+    model: "kimi-k2.5"
+    provider: "kimi"
+    base_url: "https://api.moonshot.ai/v1"
+    api_key: "kimi"

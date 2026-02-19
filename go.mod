@@ -1,6 +1,6 @@
 module github.com/qiangli/ai
 
-go 1.24.9
+go 1.25
 
 require (
 	dario.cat/mergo v1.0.2

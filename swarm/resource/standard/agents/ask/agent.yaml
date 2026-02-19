@@ -11,11 +11,12 @@ agents:
       ensuring clarity and accuracy.
     model: "ask/any"
     arguments:
-      models:
-        - default/anthropic
-        - default/gemini
-        - default/openai
-        - default/xai
+      # models:
+      #   - default/kimi
+      #   - default/openai
+      #   - default/gemini
+      #   - default/xai
+      #   # - default/anthropic
     embed:
       - "agent:context/lastn"
       # - "agent:memory/memory"
